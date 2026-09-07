@@ -35,7 +35,36 @@ public static class BuildScript
 
     public static void BuildAndroid()
     {
+        ConfigureAndroidSigning();
         Run(BuildTarget.Android, Path.Combine(OutputRoot, "Android/Pause.apk"));
+    }
+
+    // The project is set to sign with the release keystore, which needs
+    // passwords a command-line build has no way to prompt for -- so an
+    // unattended build just fails with "please provide passwords".
+    //
+    // Pass them in the environment to produce a release-signed APK:
+    //   PAUSE_KEYSTORE_PASS=... PAUSE_KEYALIAS_PASS=...
+    //
+    // With neither set we fall back to Unity's debug key, which is what you
+    // want for a build you are only installing on your own device.
+    static void ConfigureAndroidSigning()
+    {
+        string storePass = Environment.GetEnvironmentVariable("PAUSE_KEYSTORE_PASS");
+        string aliasPass = Environment.GetEnvironmentVariable("PAUSE_KEYALIAS_PASS");
+
+        if (!string.IsNullOrEmpty(storePass) && !string.IsNullOrEmpty(aliasPass))
+        {
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystorePass = storePass;
+            PlayerSettings.Android.keyaliasPass = aliasPass;
+            Debug.Log("[BUILD] signing Android with the release keystore");
+            return;
+        }
+
+        PlayerSettings.Android.useCustomKeystore = false;
+        Debug.Log("[BUILD] no keystore passwords in the environment; " +
+                  "signing Android with the debug key (not for distribution)");
     }
 
     public static void BuildIOS()

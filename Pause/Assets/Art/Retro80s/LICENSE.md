@@ -5,4 +5,7 @@
 - Source: https://kenney.nl/assets/pixel-shmup
 - Attribution is not required by CC0; this notice is retained for provenance.
 
-The ship set is deliberately a preview library. Gameplay roster wiring is separate from art approval.
+Every ship hull state also has a three-frame `*_idle0`–`*_idle2` engine loop.
+The loop uses a cyan → gold → magenta pixel exhaust, deliberately pulsing but
+never turning into a boost effect. The ship set is deliberately a preview
+library. Gameplay roster wiring is separate from art approval.
