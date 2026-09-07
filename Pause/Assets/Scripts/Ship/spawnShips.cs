@@ -23,7 +23,7 @@ public class spawnShips : MonoBehaviour
         if (hull != null && sprite != null)
         {
             hull.sprite = sprite;
-            float scale = .58f / Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+            float scale = shopingShips.NormalizedHullScale(sprite);
             instance.transform.localScale = new Vector3(scale, scale, 1f);
             var collider = instance.GetComponent<BoxCollider2D>();
             if (collider != null)

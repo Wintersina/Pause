@@ -36,6 +36,21 @@ public class lifeControler : MonoBehaviour {
         currentShipIndex = shipIndex;
         img = shopingShips.DamageSpritesFor(shipIndex);
         applyDamageSprite();
+
+        // Ships placed by spawnShips.cs (gameS1) already get normalised to a
+        // consistent on-screen size from their sprite's own bounds. A ship
+        // authored directly into a scene instead -- the tutorial's ship1 is
+        // the one case of this -- never went through that and just kept
+        // whatever scale the 2016 prefab happened to have baked in, which is
+        // why it rendered far smaller than the same ship looks in game.
+        // Applying the identical formula here closes that gap for any ship
+        // placed either way, and is harmless where spawnShips.cs already set
+        // it, since both compute the same value from the same sprite.
+        if (img != null && img.Length > 0 && img[0] != null)
+        {
+            float scale = shopingShips.NormalizedHullScale(img[0]);
+            transform.localScale = new Vector3(scale, scale, transform.localScale.z);
+        }
     }
 	
 	// Update is called once per frame

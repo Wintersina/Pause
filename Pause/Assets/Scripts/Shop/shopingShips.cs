@@ -242,6 +242,20 @@ public class shopingShips : MonoBehaviour {
 
     // These deliberate paths keep each hull's three health states in the
     // correct intact -> damaged -> critical order.
+    // Reference world size every hull is normalised to on spawn, whatever its
+    // source art's native resolution -- 0.58 world units along its longest
+    // edge. Shared so any code that places a ship (the dynamic gameS1
+    // spawner, or a ship authored directly into a scene like the tutorial's)
+    // produces the same on-screen size instead of drifting apart.
+    public const float ReferenceHullSize = 0.58f;
+
+    public static float NormalizedHullScale(Sprite sprite)
+    {
+        if (sprite == null) return 1f;
+        float extent = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+        return extent > 0f ? ReferenceHullSize / extent : 1f;
+    }
+
     public static Sprite SpriteFor(int index, int damageState = 0)
     {
         if (index >= 8) return OriginalShipArt.SpriteFor(index);

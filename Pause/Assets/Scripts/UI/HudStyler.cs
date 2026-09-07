@@ -25,7 +25,11 @@ public class HudStyler : MonoBehaviour
     {
         speedText = Find("SpeedText");
         dustText = Find("CurrecnyGatheredText");
-        pauseText = Find("PauseCounter");
+        // gameS1 names this PauseCounter; tutorialS5 names the same readout
+        // PausesRemainingText. Find() returning null for the first name used
+        // to short-circuit Update() entirely (see below), which is why none
+        // of the three stats styled in the tutorial, not just the pause one.
+        pauseText = Find("PauseCounter") ?? Find("PausesRemainingText");
 
         Style(speedText, Speed, 26);
         Style(dustText, Dust, 26);
@@ -56,6 +60,15 @@ public class HudStyler : MonoBehaviour
 
     // A thin depleting bar under the pause counter, so the most important
     // number is readable at a glance instead of being parsed as text.
+    //
+    // This used to hang 4-10px *below* the pause counter's own rect. The
+    // panel's VerticalLayoutGroup has no idea that extra height exists --
+    // PauseBar is a plain child of PauseCounter, invisible to the group's own
+    // spacing math -- so the fixed gap it left before the next stacked
+    // element (the blue-atom timer, gotAtomText) was not enough to clear it,
+    // and the two overlapped. Contained within the bottom of PauseCounter's
+    // own allocated rect instead, it cannot spill into whatever the layout
+    // group stacks next, on any screen size.
     static Image BuildPauseBar(Text anchor)
     {
         var holder = new GameObject("PauseBar", typeof(Image));
@@ -63,10 +76,9 @@ public class HudStyler : MonoBehaviour
 
         var rt = holder.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0f, 0f);
-        rt.anchorMax = new Vector2(1f, 0f);
-        rt.pivot = new Vector2(0f, 1f);
-        rt.offsetMin = new Vector2(0f, -10f);
-        rt.offsetMax = new Vector2(0f, -4f);
+        rt.anchorMax = new Vector2(1f, 0.16f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
 
         var img = holder.GetComponent<Image>();
         img.color = Pause;
@@ -78,19 +90,24 @@ public class HudStyler : MonoBehaviour
 
     void Update()
     {
-        if (pauseText == null) return;
-
-        int left = Mathf.Max(0, score.pauseCounter);
-        bool low = left <= 1;
-
-        pauseText.color = low ? PauseLow : Pause;
-        pauseText.text = "PAUSES  " + left;
-
-        if (pauseBar != null)
+        // Each stat is independently guarded rather than one shared early
+        // return -- a single missing element (the pause counter's name
+        // mismatch in the tutorial) used to silently skip every stat here,
+        // not just the one that could not be found.
+        if (pauseText != null)
         {
-            // five is a full run's allotment; anything above that just fills it
-            pauseBar.fillAmount = Mathf.Clamp01(left / 5f);
-            pauseBar.color = low ? PauseLow : Pause;
+            int left = Mathf.Max(0, score.pauseCounter);
+            bool low = left <= 1;
+
+            pauseText.color = low ? PauseLow : Pause;
+            pauseText.text = "PAUSES  " + left;
+
+            if (pauseBar != null)
+            {
+                // five is a full run's allotment; anything above that just fills it
+                pauseBar.fillAmount = Mathf.Clamp01(left / 5f);
+                pauseBar.color = low ? PauseLow : Pause;
+            }
         }
 
         if (speedText != null)
