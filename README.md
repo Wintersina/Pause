@@ -144,6 +144,50 @@ Everything above is Inspector-exposed — no code changes needed.
 
 ---
 
+## Planets
+
+A run is a journey outward. Every 8 minutes of active flight a **portal** opens
+and drifts down the screen; fly into it and you arrive somewhere new.
+
+| # | Planet | Ramp | Top speed | Feel |
+|---|---|---:|---:|---|
+| 0 | **Space** | `0.0020` | `0.60` | Where every run begins. The original starfield. |
+| 1 | **Frost** | `0.0024` | `0.66` | Ice sheets and blue crevasses. Cold and still. |
+| 2 | **Verdant** | `0.0028` | `0.72` | Jungle canopy, rivers, bioluminescence. |
+| 3 | **Ember** | `0.0032` | `0.80` | Black basalt cut by veins of lava. |
+
+**Crossing a portal resets your speed to zero, but your pauses and star dust
+carry over.** Each planet is a fresh difficulty ramp, not a fresh start — and
+because every planet ramps faster and tops out higher than the last, the run
+gets harder even though it always begins slow.
+
+Miss a portal and you're not stranded: another opens after a quarter of the
+usual wait.
+
+By default every run starts at Space, so the planets are a route you fly rather
+than a menu you pick from. The furthest planet reached is recorded either way —
+flip `startAtHighestUnlocked` on `WorldManager` to treat them as unlocked
+shortcuts instead.
+
+A world is a **re-theme of `gameS1`**, not a separate scene: the backdrop and
+side walls swap textures, the music crossfades, and the difficulty curve
+changes, while every other system keeps running. Adding a planet is an art drop.
+
+```
+Resources/Worlds/<Name>/backdrop.png     1024 x 4096, seamless vertical tile
+Resources/Worlds/<Name>/wallLeft.png       64 x 448,  seamless vertical tile
+Resources/Worlds/<Name>/wallRight.png      64 x 448,  mirror of wallLeft
+Resources/WorldMusic/<Name>.wav          44.1kHz stereo, ~40s seamless loop
+```
+
+Missing art or music falls back to whatever is already playing rather than
+cutting to black or silence, so a half-finished planet stays playable.
+
+> In a development build, press **P** to open a portal immediately instead of
+> waiting eight minutes. The shortcut is compiled out of release builds.
+
+---
+
 ## Running it
 
 Requires **Unity 6000.3.23f1**. iOS builds need Xcode; Android needs the
@@ -234,3 +278,7 @@ Code and original art by **Sina Serati**.
 
 Enemy and meteor sprites from
 [Kenney](https://kenney.nl) — *Space Shooter (Remastered)*, CC0.
+
+Planet backdrops and world music are generated procedurally — the generators
+live outside the project, and the committed assets are plain PNG and WAV files
+like everything else.
