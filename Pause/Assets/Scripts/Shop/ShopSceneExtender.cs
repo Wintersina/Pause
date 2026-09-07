@@ -222,16 +222,21 @@ public class ShopSceneExtender : MonoBehaviour
         var rt = go.GetComponent<RectTransform>();
         if (rt != null)
         {
-            rt.sizeDelta = new Vector2(210f, 44f);
+            // The old 44px plate lived below the hull. It looked like a ship
+            // button but did not let the player tap the ship, which made the
+            // dock feel broken on a phone. The hit area now covers the hull,
+            // its idle flame and the price label together.
+            rt.sizeDelta = new Vector2(230f, 148f);
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
         }
 
-        // Tap targets sit over the ships, so the plate itself stays subtle.
+        // Keep the hit box invisible: the bay frame is the visual affordance,
+        // not a second oversized UI card on top of the ship art.
         var img = go.GetComponent<Image>();
         if (img != null)
         {
-            img.color = new Color(0.07f, 0.09f, 0.14f, 0.55f);
+            img.color = new Color(0.07f, 0.09f, 0.14f, 0.01f);
             img.raycastTarget = true;
         }
 
@@ -271,6 +276,18 @@ public class ShopSceneExtender : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.raycastTarget = false;
+
+        // Text stays visibly below the hull even though its parent hit box is
+        // centred on the hull. This separates presentation from touch target.
+        var rt = text.transform as RectTransform;
+        if (rt != null)
+        {
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0f, 7f);
+            rt.sizeDelta = new Vector2(0f, 34f);
+        }
     }
 
 

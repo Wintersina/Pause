@@ -11,8 +11,8 @@ public class ShopButtonAligner : MonoBehaviour
 {
     public int shipIndex;
 
-    [Tooltip("How far below the ship the plate sits, in canvas units.")]
-    public float dropBelowShip = 62f;
+    [Tooltip("The button is centred on the ship; its label is placed below it.")]
+    public float dropBelowShip = 0f;
 
     RectTransform rect;
     RectTransform canvasRect;
