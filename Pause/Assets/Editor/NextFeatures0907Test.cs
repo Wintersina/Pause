@@ -155,18 +155,24 @@ public static class NextFeatures0907Test
             if (leaveButton.onClick.GetPersistentMethodName(i) == "mainMenuButton") wiredToLeave = true;
         Check("leave clone still calls buttonClicks.mainMenuButton()", wiredToLeave);
 
-        // dead: hidden (the death screen's own buttons cover this instead)
+        // The same high-priority controls remain available after death. This
+        // avoids the old death dialog eating taps intended for its lower-canvas
+        // button pair, and keeps the location consistent with pause.
         buttonClicks.playerDied = true;
         score.pauseCounter = 3;
         comp.SendMessage("Update");
-        Check("hidden while dead", !replay.activeSelf && !leave.activeSelf);
+        Check("shown while dead", replay.activeSelf && leave.activeSelf);
+        var overlay = replay.GetComponentInParent<Canvas>();
+        Check("death actions live above the popup canvas", overlay != null && overlay.sortingOrder > 1);
+        Check("death actions have a raycaster for taps", overlay != null &&
+              overlay.GetComponent<UnityEngine.UI.GraphicRaycaster>() != null);
 
-        // alive, out of pauses, not touching: this is "flying without input
-        // left", not a real pause -- must stay hidden.
+        // Alive and out of pauses: flight continues without touch, but the
+        // player must still be able to leave the run.
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         comp.SendMessage("Update");
-        Check("hidden when out of pauses (not a real pause)", !replay.activeSelf && !leave.activeSelf);
+        Check("shown when out of pauses so the player can leave", replay.activeSelf && leave.activeSelf);
 
         // alive, pauses left, not touching: a genuine ordinary pause.
         score.pauseCounter = 3;
@@ -204,6 +210,10 @@ public static class NextFeatures0907Test
         Check("a gun was attached", gun != null);
         Check("ship gained an UltimateGun child", shipGo.GetComponentInChildren<UltimateGun>() != null);
         if (gun != null) gun.SendMessage("Awake");
+        Check("gun has roster-specific barrel art", gun != null &&
+              gun.transform.Find("Barrel") != null &&
+              gun.transform.Find("Barrel").GetComponent<SpriteRenderer>().sprite != null);
+        Check("power charge indicator is attached", shipGo.GetComponent<PowerReadyIndicator>() != null);
 
         var timerField = typeof(ShipPowerController).GetField("timer", BindingFlags.NonPublic | BindingFlags.Instance);
         var cooldownField = typeof(ShipPowerController).GetField("cooldown", BindingFlags.NonPublic | BindingFlags.Instance);

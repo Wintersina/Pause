@@ -36,18 +36,28 @@ public class UltimateGun : MonoBehaviour
         var hull = GetComponentInParent<SpriteRenderer>();
         Vector2 extents = hull != null && hull.sprite != null ? hull.sprite.bounds.extents : new Vector2(0.4f, 0.5f);
 
-        barrelLength = extents.x * 0.85f;
-        retractedX = -extents.x * 0.2f;
-        extendedX = -extents.x * 1.05f;
-        mountY = extents.y * 0.05f;
+        int shipIndex = ShipExhaust.IndexFor(hull != null ? hull.gameObject : gameObject);
+        barrelLength = extents.x * 0.92f;
+        retractedX = -extents.x * 0.1f;
+        extendedX = -extents.x * 0.34f;
+        // Every hull points up during gameplay, so the weapon deploys from
+        // the nose and every shot begins at the muzzle tip.
+        mountY = extents.y * 0.74f;
 
         var barrelGo = new GameObject("Barrel", typeof(SpriteRenderer));
         barrelGo.transform.SetParent(transform, false);
         var barrelRenderer = barrelGo.GetComponent<SpriteRenderer>();
-        barrelRenderer.sprite = SolidSprite();
-        barrelRenderer.color = new Color(0.55f, 0.58f, 0.64f);
+        barrelRenderer.sprite = GunSpriteFor(shipIndex);
+        barrelRenderer.color = Color.white;
         barrelRenderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) + 1;
-        barrelGo.transform.localScale = new Vector3(barrelLength, extents.y * 0.14f, 1f);
+        if (barrelRenderer.sprite != null)
+        {
+            float fit = Mathf.Max(barrelRenderer.sprite.bounds.size.x, barrelRenderer.sprite.bounds.size.y);
+            float k = (extents.y * 0.72f) / Mathf.Max(0.0001f, fit);
+            barrelGo.transform.localScale = Vector3.one * k;
+        }
+        else
+            barrelGo.transform.localScale = new Vector3(barrelLength, extents.y * 0.14f, 1f);
         barrel = barrelGo.transform;
 
         var muzzleGo = new GameObject("Muzzle", typeof(SpriteRenderer));
@@ -66,7 +76,7 @@ public class UltimateGun : MonoBehaviour
     {
         float x = Mathf.Lerp(retractedX, extendedX, extend01);
         barrel.localPosition = new Vector3(x, mountY, 0.02f);
-        muzzle.localPosition = new Vector3(x - barrelLength * 0.5f, mountY, 0.01f);
+        muzzle.localPosition = new Vector3(x, mountY + barrelLength * .58f, 0.01f);
     }
 
     // targetExtend01: 0 fully retracted .. 1 fully extended -- the caller
@@ -88,6 +98,23 @@ public class UltimateGun : MonoBehaviour
     public void Fire()
     {
         flash = 1f;
+    }
+
+    public Vector3 MuzzlePosition => muzzle != null ? muzzle.position : transform.position + Vector3.up;
+
+    static readonly Sprite[] gunSprites = new Sprite[16];
+    static Sprite GunSpriteFor(int shipIndex)
+    {
+        int slot = Mathf.Clamp(shipIndex, 0, 14);
+        if (gunSprites[slot] != null) return gunSprites[slot];
+        var tex = Resources.Load<Texture2D>("ShipArt/Guns/ship_gun_roster");
+        if (tex == null) return SolidSprite();
+        const float Cell = 313.5f;
+        int col = slot % 4;
+        int row = 3 - slot / 4;
+        gunSprites[slot] = Sprite.Create(tex, new Rect(col * Cell, row * Cell, Cell, Cell),
+            new Vector2(.5f, .12f), 100f);
+        return gunSprites[slot];
     }
 
     static Sprite solidCache;

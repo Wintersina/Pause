@@ -14,6 +14,13 @@ public static class ShipExhaust
         return int.TryParse(name, out index) ? index : shopingShips.StarterShip;
     }
 
+    // Ninja and UFO are spinning craft, not nozzle-driven ships. A fixed
+    // exhaust would rotate around with the hull and read as a broken flame.
+    public static bool UsesWind(int index)
+    {
+        return index == 11 || index == 13;
+    }
+
     public static Sprite SpriteFor(int index)
     {
         int slot = Mathf.Abs(index - 1) % paths.Length;
@@ -35,14 +42,37 @@ public static class ShipExhaust
 
     public static Vector3 MountFor(Sprite hull, int index)
     {
-        if (hull == null) return new Vector3(0f, -.2f, .05f);
+        var mounts = MountsFor(hull, index);
+        return mounts.Length > 0 ? mounts[0] : new Vector3(0f, -.2f, .05f);
+    }
+
+    // A hull's nozzle count is part of its silhouette. Keeping these mounts
+    // here makes the normal flight flame and the dock launch flame agree.
+    public static Vector3[] MountsFor(Sprite hull, int index)
+    {
+        if (hull == null) return new[] { new Vector3(0f, -.2f, .05f) };
         float rear = hull.bounds.min.y;
         // These two hulls have swept wings extending below the central nozzle.
         if (index == 4) rear += .05f;
         if (index == 6) rear += .06f;
         if (index == 8) rear += .03f;
         if (index == 16) rear += .01f;
-        return new Vector3(0f, rear + .01f, .05f);
+        Vector3 center = new Vector3(0f, rear + .01f, .05f);
+        float halfSpan;
+        switch (index)
+        {
+            // Volt Viper, Lightning and Paranoid visibly have two engines.
+            // Their plumes must leave the two nozzles, never the fuselage.
+            case 2:  halfSpan = hull.bounds.size.x * .27f; break;
+            case 8:  halfSpan = hull.bounds.size.x * .25f; break;
+            case 10: halfSpan = hull.bounds.size.x * .23f; break;
+            default: return new[] { center };
+        }
+        return new[]
+        {
+            center + Vector3.left * halfSpan,
+            center + Vector3.right * halfSpan,
+        };
     }
 
     public static Vector3 ScaleFor(Sprite hull, int index)
@@ -68,20 +98,48 @@ public static class ShipExhaust
         }
         boost.name = "Boost" + index;
         boost.tag = "boost";
+        if (UsesWind(index))
+        {
+            // collisionDetection still uses this tagged holder for the old
+            // blue-atom state. Leave the object discoverable, but disable all
+            // visual renderers so a spinning craft never gains a flame.
+            foreach (var renderer in boost.GetComponentsInChildren<SpriteRenderer>(true))
+                renderer.enabled = false;
+            return boost;
+        }
         var animator = boost.GetComponent<Animator>();
         if (animator != null) animator.enabled = false;
         var hull = ship.GetComponent<SpriteRenderer>();
-        var sr = boost.GetComponent<SpriteRenderer>();
-        if (sr == null) sr = boost.AddComponent<SpriteRenderer>();
-        sr.sprite = SpriteFor(index);
-        sr.color = TintFor(index);
-        sr.sortingOrder = hull != null ? hull.sortingOrder - 1 : 3;
-        boost.transform.localPosition = MountFor(hull != null ? hull.sprite : null, index);
+        // The root is what the legacy boost scripts activate. Actual plume
+        // renderers are its children so a twin-engine ship gets twin flames.
+        var rootRenderer = boost.GetComponent<SpriteRenderer>();
+        if (rootRenderer != null) rootRenderer.enabled = false;
+        var rootAnimation = boost.GetComponent<DockLaunchFlame>();
+        if (rootAnimation != null) rootAnimation.enabled = false;
+        boost.transform.localPosition = Vector3.zero;
         boost.transform.localRotation = Quaternion.identity;
-        boost.transform.localScale = ScaleFor(hull != null ? hull.sprite : null, index);
-        var animation = boost.GetComponent<DockLaunchFlame>();
-        if (animation == null) animation = boost.AddComponent<DockLaunchFlame>();
-        animation.Refresh();
+        boost.transform.localScale = Vector3.one;
+        var mounts = MountsFor(hull != null ? hull.sprite : null, index);
+        var scale = ScaleFor(hull != null ? hull.sprite : null, index);
+        for (int i = 0; i < mounts.Length; i++)
+        {
+            var child = boost.transform.Find("Nozzle" + i);
+            var plume = child != null ? child.gameObject : new GameObject("Nozzle" + i);
+            if (child == null) plume.transform.SetParent(boost.transform, false);
+            var sr = plume.GetComponent<SpriteRenderer>();
+            if (sr == null) sr = plume.AddComponent<SpriteRenderer>();
+            sr.sprite = SpriteFor(index);
+            sr.color = TintFor(index);
+            sr.sortingOrder = hull != null ? hull.sortingOrder - 1 : 3;
+            plume.transform.localPosition = mounts[i];
+            plume.transform.localRotation = Quaternion.identity;
+            plume.transform.localScale = mounts.Length > 1
+                ? new Vector3(scale.x * .72f, scale.y, scale.z)
+                : scale;
+            var animation = plume.GetComponent<DockLaunchFlame>();
+            if (animation == null) animation = plume.AddComponent<DockLaunchFlame>();
+            animation.Refresh();
+        }
         return boost;
     }
 }

@@ -28,8 +28,8 @@ public class ShipThruster : MonoBehaviour
              "so the flame ignores pause state and just burns.")]
     public bool respondToPause = true;
 
-    Transform flame;
-    SpriteRenderer flameRenderer;
+    readonly System.Collections.Generic.List<Transform> flames = new System.Collections.Generic.List<Transform>();
+    readonly System.Collections.Generic.List<SpriteRenderer> flameRenderers = new System.Collections.Generic.List<SpriteRenderer>();
     GameObject boostObject;      // the big flame, so we never draw both
     Vector3 baseScale = Vector3.one;
     float seed;
@@ -45,28 +45,37 @@ public class ShipThruster : MonoBehaviour
         var hull = GetComponent<SpriteRenderer>();
 
         int index = ShipExhaust.IndexFor(gameObject);
+        if (ShipExhaust.UsesWind(index)) return;
         boostObject = ShipExhaust.ConfigureBoost(gameObject, index);
         Sprite sprite = ShipExhaust.SpriteFor(index);
         if (sprite == null) return;
-        var go = new GameObject("~Thruster");
-        go.transform.SetParent(transform, false);
-        flameRenderer = go.AddComponent<SpriteRenderer>();
-        flameRenderer.sprite = sprite;
-        flameRenderer.color = ShipExhaust.TintFor(index);
-        flameRenderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
-        go.transform.localPosition = ShipExhaust.MountFor(hull != null ? hull.sprite : null, index);
-        go.transform.localRotation = Quaternion.identity;
+        var mounts = ShipExhaust.MountsFor(hull != null ? hull.sprite : null, index);
         baseScale = ShipExhaust.ScaleFor(hull != null ? hull.sprite : null, index);
-        flame = go.transform;
+        for (int i = 0; i < mounts.Length; i++)
+        {
+            string name = i == 0 ? "~Thruster" : "~Thruster" + i;
+            var old = transform.Find(name);
+            var go = old != null ? old.gameObject : new GameObject(name);
+            if (old == null) go.transform.SetParent(transform, false);
+            var renderer = go.GetComponent<SpriteRenderer>();
+            if (renderer == null) renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            renderer.color = ShipExhaust.TintFor(index);
+            renderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
+            go.transform.localPosition = mounts[i];
+            go.transform.localRotation = Quaternion.identity;
+            flames.Add(go.transform);
+            flameRenderers.Add(renderer);
+        }
     }
 
     void LateUpdate()
     {
-        if (flame == null) return;
+        if (flames.Count == 0) return;
 
         // Never draw the idle flame under the real boost flame.
         bool boosting = boostObject != null && boostObject.activeInHierarchy;
-        flameRenderer.enabled = !boosting;
+        foreach (var renderer in flameRenderers) renderer.enabled = !boosting;
         if (boosting) return;
 
         float target = idleScale;
@@ -92,8 +101,10 @@ public class ShipThruster : MonoBehaviour
         Vector3 want = new Vector3(baseScale.x * Mathf.Sqrt(target) * wobble,
                                    baseScale.y * target * wobble, 1f);
 
-        flame.localScale = Vector3.Lerp(flame.localScale, want,
-                                        1f - Mathf.Exp(-14f * Time.unscaledDeltaTime));
+        if (flames.Count > 1) want.x *= .72f;
+        foreach (var flame in flames)
+            flame.localScale = Vector3.Lerp(flame.localScale, want,
+                                             1f - Mathf.Exp(-14f * Time.unscaledDeltaTime));
     }
 }
 
@@ -112,7 +123,15 @@ public class ShipThrusterAttach : MonoBehaviour
         GameObject player = FindPlayer();
         if (player != null)
         {
-            if (player.GetComponent<ShipThruster>() == null)
+            int index = ShipExhaust.IndexFor(player);
+            if (ShipExhaust.UsesWind(index))
+            {
+                if (player.GetComponent<ShipSpinWind>() == null)
+                    player.AddComponent<ShipSpinWind>();
+                var oldThruster = player.GetComponent<ShipThruster>();
+                if (oldThruster != null) Destroy(oldThruster);
+            }
+            else if (player.GetComponent<ShipThruster>() == null)
                 player.AddComponent<ShipThruster>();
             Destroy(gameObject);
             return;

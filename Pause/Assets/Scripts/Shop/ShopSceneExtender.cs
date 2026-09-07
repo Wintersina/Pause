@@ -143,7 +143,7 @@ public class ShopSceneExtender : MonoBehaviour
         EnsureBoost(go, index);
 
         // Parked ships idle rather than hanging dead in space.
-        if (go.GetComponent<ShipThruster>() == null)
+        if (!ShipExhaust.UsesWind(index) && go.GetComponent<ShipThruster>() == null)
         {
             var thruster = go.AddComponent<ShipThruster>();
             thruster.respondToPause = false;

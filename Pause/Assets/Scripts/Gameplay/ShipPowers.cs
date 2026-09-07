@@ -27,14 +27,14 @@ public static class ShipPowerTable
     // Index matches shopingShips ship numbering.
     static readonly ShipPower[] byShip =
     {
-        ShipPower.Laser,
-        ShipPower.Missiles,
-        ShipPower.Shockwave,
-        ShipPower.Cloak,
-        ShipPower.Railgun,
-        ShipPower.Magnet,
-        ShipPower.TimeDilation,
-        ShipPower.Overcharge,
+        ShipPower.Laser, ShipPower.Missiles, ShipPower.Shockwave,
+        ShipPower.Cloak, ShipPower.Railgun, ShipPower.Magnet,
+        ShipPower.TimeDilation, ShipPower.Overcharge,
+        // The legacy roster uses the same cinematic target-sweep delivery,
+        // with its own generated gun silhouette and tint on each hull.
+        ShipPower.Railgun, ShipPower.Laser, ShipPower.Missiles,
+        ShipPower.Shockwave, ShipPower.Railgun, ShipPower.Magnet,
+        ShipPower.TimeDilation, ShipPower.Overcharge,
     };
 
     public static ShipPower For(int shipNumber)

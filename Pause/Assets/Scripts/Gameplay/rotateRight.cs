@@ -93,7 +93,7 @@ public class rotateRight : MonoBehaviour {
         if (flyOffChecker && shipSelected != 0)
         {
             // each ship takes off to its own unique location
-            if (boost[shipSelected] != null) boost[shipSelected].SetActive(true);
+            if (boost[shipSelected] != null && !ShipExhaust.UsesWind(shipSelected)) boost[shipSelected].SetActive(true);
 
             if (shopingShips.ships[shipSelected] != null)
             {

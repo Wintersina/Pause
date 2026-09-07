@@ -43,14 +43,11 @@ public class moveStarsBackground : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        // Replay/menu are for death only. They used to also appear the
-        // moment the player ran out of pauses -- even while still alive and
-        // flying -- and stayed up through that whole stretch since nothing
-        // hid them again until an actual death. Gated on playerDied alone
-        // now, so they show exactly once, when there is actually a run to
-        // end.
-        if (replyB != null) replyB.gameObject.SetActive(buttonClicks.playerDied);
-        if (mainMenuB != null) mainMenuB.gameObject.SetActive(buttonClicks.playerDied);
+        // These scene objects are templates for PauseQuickActions. Keeping
+        // them hidden avoids duplicate controls and, crucially, leaves the
+        // tappable copies above the death popup's blocking panel.
+        if (replyB != null) replyB.gameObject.SetActive(false);
+        if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
 
         if (buttonClicks.playerDied)
         {

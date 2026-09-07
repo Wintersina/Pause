@@ -124,6 +124,7 @@ public static class ShopTest
             var p = ship.transform.position;
             Check("ship" + i + " has clipped card art", b.GetComponentInChildren<DockCardArt>() != null
                   && b.GetComponentInParent<ScrollRect>() != null);
+            Check("ship" + i + " has a dock idle animator", ship.GetComponent<DockShipIdleAnimator>() != null);
         }
 
         // no two ships stacked on the same slot
@@ -137,10 +138,27 @@ public static class ShopTest
                   Vector3.Distance(a.transform.position, b.transform.position) > 0.05f);
         }
 
+        var selectedShip = SceneUtil.FindAny("ship2");
+        var selectedAnimator = selectedShip != null ? selectedShip.GetComponent<DockShipIdleAnimator>() : null;
+        if (selectedAnimator != null)
+        {
+            selectedAnimator.SendMessage("Awake");
+            rotateRight.shipSelected = 2;
+            rotateRight.flyOffChecker = false;
+            selectedAnimator.SendMessage("Update");
+            var selectedThruster = selectedShip.GetComponent<ShipThruster>();
+            Check("selected dock ship wakes up with a stronger flame",
+                  selectedThruster != null && selectedThruster.idleScale > .4f);
+            rotateRight.shipSelected = 0;
+        }
+        else Check("selected dock ship has an animator to wake it up", false);
+
         var scroll = SceneUtil.FindAny("~DockScroll").GetComponent<ScrollRect>();
         Canvas.ForceUpdateCanvases();
         Check("dock clips cards at viewport", scroll.viewport.GetComponent<RectMask2D>() != null);
         Check("dock scrolls vertically", scroll.vertical && !scroll.horizontal);
+        var dockBackground = SceneUtil.FindAny("~DockScroll").GetComponent<Image>();
+        Check("dock background leaves the starfield visible", dockBackground != null && dockBackground.color.a < 0.7f);
         Check("roster extends beyond viewport", scroll.content.rect.height > scroll.viewport.rect.height);
         Check("scrollbar is connected", scroll.verticalScrollbar != null);
         scroll.verticalNormalizedPosition = 0;
@@ -155,7 +173,16 @@ public static class ShopTest
             Check("all health states load for ship" + i,
                 shopingShips.SpriteFor(i, 0) != null && shopingShips.SpriteFor(i, 1) != null && shopingShips.SpriteFor(i, 2) != null);
             var boost = SceneUtil.FindAny("Boost" + i);
-            Check("ship" + i + " has engine art", boost != null && boost.GetComponent<SpriteRenderer>().sprite != null);
+            if (ShipExhaust.UsesWind(i))
+            {
+                bool noFlame = boost != null;
+                if (boost != null)
+                    foreach (var renderer in boost.GetComponentsInChildren<SpriteRenderer>(true)) noFlame &= !renderer.enabled;
+                Check("ship" + i + " uses spin wind instead of engine art", noFlame);
+            }
+            else
+                Check("ship" + i + " has engine art", boost != null &&
+                    boost.GetComponentInChildren<SpriteRenderer>(true) != null);
         }
         Debug.Log("[ST] failures: " + fails);
         EditorApplication.Exit(fails == 0 ? 0 : 1);

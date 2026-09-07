@@ -65,8 +65,8 @@ public static class BugBatch0907Test
 
             buttonClicks.playerDied = true;
             comp.SendMessage("Update");
-            Check("actually dead: replay shows", reply.gameObject.activeSelf);
-            Check("actually dead: menu shows", menu.gameObject.activeSelf);
+            Check("actually dead: template replay stays hidden for the overlay copy", !reply.gameObject.activeSelf);
+            Check("actually dead: template menu stays hidden for the overlay copy", !menu.gameObject.activeSelf);
 
             buttonClicks.playerDied = false;
             score.pauseCounter = 3;

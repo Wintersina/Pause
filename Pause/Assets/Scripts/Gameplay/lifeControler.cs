@@ -35,6 +35,7 @@ public class lifeControler : MonoBehaviour {
 
         currentShipIndex = shipIndex;
         img = shopingShips.DamageSpritesFor(shipIndex);
+        if (GetComponent<ShipDamageFx>() == null) gameObject.AddComponent<ShipDamageFx>();
         applyDamageSprite();
 
         // Ships placed by spawnShips.cs (gameS1) already get normalised to a
@@ -69,5 +70,14 @@ public class lifeControler : MonoBehaviour {
         int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
         Sprite animated = shopingShips.IdleSpriteFor(currentShipIndex, frame, idleFrame);
         spriteControl.sprite = animated != null ? animated : img[frame];
+
+        // The newer hulls swap authored damaged frames. Legacy sheets have a
+        // single intact frame, so add a warm scorch tint at the same health
+        // thresholds; ShipDamageFx supplies the visible fire and sparks.
+        if (currentShipIndex >= ShipLivesIndicator.FirstShipWithoutDamageArt)
+        {
+            float damage = Mathf.Clamp01(collisionDetection.lifeCounter / 2f);
+            spriteControl.color = Color.Lerp(Color.white, new Color(1f, .48f, .34f), damage);
+        }
     }
 }

@@ -49,11 +49,14 @@ public class ShipPowerController : MonoBehaviour
     public int overchargePauses = 2;
 
     public static ShipPowerController Instance { get; private set; }
+    public static bool CinematicClearActive { get; private set; }
+    public static float CinematicTimeScale => CinematicClearActive ? 0.22f : 1f;
 
     ShipPower power;
     float timer;
     float cooldown;
     UltimateGun gun;
+    public float Charge01 => cooldown <= 0f ? 1f : Mathf.Clamp01(1f - timer / cooldown);
 
     void Awake()
     {
@@ -63,6 +66,7 @@ public class ShipPowerController : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        CinematicClearActive = false;
     }
 
     void Start()
@@ -71,6 +75,7 @@ public class ShipPowerController : MonoBehaviour
         cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);
+        if (GetComponent<PowerReadyIndicator>() == null) gameObject.AddComponent<PowerReadyIndicator>();
     }
 
     void Update()
@@ -103,18 +108,40 @@ public class ShipPowerController : MonoBehaviour
     void Fire()
     {
         if (gun != null) gun.Fire();
+        StartCoroutine(CinematicClear());
+    }
 
-        switch (power)
+    // The ultimate is intentionally input-independent once it has begun:
+    // lifting a finger cannot cancel shots already hunting the screen's
+    // hazards. Unscaled timing keeps the sequence smooth while the world is
+    // slowed to make every impact readable.
+    IEnumerator CinematicClear()
+    {
+        if (CinematicClearActive) yield break;
+        CinematicClearActive = true;
+        var targets = new List<GameObject>();
+        foreach (var target in Targets()) targets.Add(target);
+        targets.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
+
+        Color tint = ShipExhaust.TintFor(ShipExhaust.IndexFor(gameObject));
+        for (int i = 0; i < targets.Count; i++)
         {
-            case ShipPower.Laser:        DoLaser();      break;
-            case ShipPower.Missiles:     DoMissiles();   break;
-            case ShipPower.Shockwave:    DoShockwave();  break;
-            case ShipPower.Cloak:        StartCoroutine(DoCloak());   break;
-            case ShipPower.Magnet:       StartCoroutine(DoMagnet());  break;
-            case ShipPower.TimeDilation: StartCoroutine(DoDilation()); break;
-            case ShipPower.Railgun:      DoRailgun();    break;
-            case ShipPower.Overcharge:   DoOvercharge(); break;
+            var target = targets[i];
+            if (target == null) continue;
+            Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
+            PowerFx.HomingProjectile(from, target.transform, tint, .38f, () =>
+            {
+                if (target == null) return;
+                PowerFx.Burst(target.transform.position, tint, 6);
+                collisionDetection.PlayExplosion();
+                Destroy(target);
+            });
+            yield return new WaitForSecondsRealtime(.075f);
         }
+
+        // Let the final dart land before returning the normal simulation rate.
+        yield return new WaitForSecondsRealtime(.48f);
+        CinematicClearActive = false;
     }
 
     // Clears the lanes either side of the ship, leaving the centre alone.

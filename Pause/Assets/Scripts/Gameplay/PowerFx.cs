@@ -75,6 +75,16 @@ public static class PowerFx
         }
     }
 
+    // A real target-following shot for the cinematic clear. It tracks the
+    // transform every frame so a slowed, moving asteroid cannot escape a dart
+    // aimed at its old position.
+    public static void HomingProjectile(Vector3 from, Transform target, Color tint,
+                                        float seconds, System.Action onHit)
+    {
+        var go = Piece("vfx_spark_05", from, tint, .58f);
+        Runner.StartCoroutine(HomeTo(go, target, seconds, onHit));
+    }
+
     public static void Burst(Vector3 at, Color tint, int count = 10)
     {
         for (int i = 0; i < count; i++)
@@ -136,6 +146,19 @@ public static class PowerFx
             if (sr != null) { var c = start; c.a = start.a * (1f - k); sr.color = c; }
             yield return null;
         }
+        Object.Destroy(go);
+    }
+
+    static IEnumerator HomeTo(GameObject go, Transform target, float seconds, System.Action onHit)
+    {
+        Vector3 from = go.transform.position;
+        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        {
+            if (target == null) { Object.Destroy(go); yield break; }
+            go.transform.position = Vector3.Lerp(from, target.position, t / seconds);
+            yield return null;
+        }
+        if (target != null) onHit?.Invoke();
         Object.Destroy(go);
     }
 

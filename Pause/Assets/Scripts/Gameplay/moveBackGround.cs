@@ -25,6 +25,11 @@ public class moveBackGround : MonoBehaviour {
     }
 
     void Update () {
+        if (ShipPowerController.CinematicClearActive)
+        {
+            Time.timeScale = ShipPowerController.CinematicTimeScale;
+            return;
+        }
         // pauses when there is no touch on the touchscreen
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {

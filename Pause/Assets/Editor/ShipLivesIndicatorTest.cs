@@ -16,6 +16,8 @@ public static class ShipLivesIndicatorTest
         // in this isolated test, so the real preconditions are set explicitly.
         collisionDetection.MAXLIFE = 3;
 
+        DamageEffectsAttachToEveryHull();
+
         // A Retro80s ship (has its own damage art) should get no hearts at all.
         // Destroy() is deferred (and Play-mode oriented) so the component may
         // still be structurally attached right after this call even in the
@@ -75,5 +77,39 @@ public static class ShipLivesIndicatorTest
 
         Debug.Log("[SL] failures: " + fails);
         EditorApplication.Exit(0);
+    }
+
+    static void DamageEffectsAttachToEveryHull()
+    {
+        // Legacy sheets do not have authored broken frames, so the shared
+        // damage-fire layer is required for every selected hull, while the
+        // modern ships additionally swap their damaged sprite frames.
+        PlayerPrefs.SetInt("spawnShip", 8);
+        var ship = new GameObject("ship8(Clone)", typeof(SpriteRenderer));
+        var life = ship.AddComponent<lifeControler>();
+        life.SendMessage("Start");
+        var damageFx = ship.GetComponent<ShipDamageFx>();
+        Check("a hurt ship gets persistent damage effects", damageFx != null);
+        if (damageFx != null) damageFx.SendMessage("Start");
+
+        collisionDetection.lifeCounter = 2;
+        life.SendMessage("Update");
+        Check("legacy hull visibly scorches at critical damage",
+              ship.GetComponent<SpriteRenderer>().color.g < .6f);
+        collisionDetection.lifeCounter = 0;
+
+        int flames = 0;
+        foreach (Transform child in ship.transform)
+            if (child.name.StartsWith("~DamageFlame")) flames++;
+        Check("damage effects create two small hull flames", flames == 2);
+
+        for (int i = 1; i < shopingShips.shipTotal; i++)
+        {
+            var frames = shopingShips.DamageSpritesFor(i);
+            Check("ship" + i + " resolves intact, damaged and critical frames",
+                  frames != null && frames.Length == 3 &&
+                  frames[0] != null && frames[1] != null && frames[2] != null);
+        }
+        Object.DestroyImmediate(ship);
     }
 }

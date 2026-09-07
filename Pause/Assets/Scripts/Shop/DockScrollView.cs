@@ -28,7 +28,9 @@ public class DockScrollView : MonoBehaviour
         var root = Rect("~DockScroll", canvas.transform);
         Stretch(root, new Vector2(22, 110), new Vector2(-22, -120));
         var background = root.gameObject.AddComponent<Image>();
-        background.color = new Color(0.015f, 0.025f, 0.055f, 0.8f);
+        // Keep the starfield readable through the dock instead of dropping a
+        // near-black slab behind the cards.
+        background.color = new Color(0.025f, 0.075f, 0.15f, 0.48f);
         var scroll = root.gameObject.AddComponent<ScrollRect>();
         scroll.horizontal = false;
         scroll.movementType = ScrollRect.MovementType.Clamped;
@@ -72,7 +74,16 @@ public class DockScrollView : MonoBehaviour
             if (button == null || ship == null) continue;
             button.transform.SetParent(content, false);
             button.GetComponent<ShopButtonAligner>().followShip = false;
-            button.GetComponent<Image>().color = new Color(0.06f, 0.10f, 0.17f, 0.96f);
+            var card = button.GetComponent<Image>();
+            card.color = i % 2 == 0
+                ? new Color(0.08f, 0.19f, 0.31f, 0.98f)
+                : new Color(0.10f, 0.13f, 0.28f, 0.98f);
+            var outline = button.GetComponent<Outline>();
+            if (outline == null) outline = button.AddComponent<Outline>();
+            outline.effectColor = i % 2 == 0
+                ? new Color(0.18f, 0.85f, 1f, 0.8f)
+                : new Color(0.86f, 0.34f, 1f, 0.75f);
+            outline.effectDistance = new Vector2(2f, -2f);
             var label = button.GetComponentInChildren<Text>(true);
             label.fontSize = 25;
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
