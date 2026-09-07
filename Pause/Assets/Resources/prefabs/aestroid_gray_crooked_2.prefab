@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6168138}
   - component: {fileID: 11477288}
   m_Layer: 0
-  m_Name: aestroid_gray_crooked 2
+  m_Name: aestroid_gray_crooked_2
   m_TagString: Astr
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,13 +131,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.12, y: 5.12}
+    oldSize: {x: 0.32, y: 0.32}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2, y: 3}
+  m_Size: {x: 0.2624, y: 0.2624}
   m_EdgeRadius: 0
 --- !u!114 &11477288
 MonoBehaviour:
