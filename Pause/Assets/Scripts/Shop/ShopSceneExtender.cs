@@ -129,25 +129,58 @@ public class ShopSceneExtender : MonoBehaviour
         boost.SetActive(false);
     }
 
+    // The canvas is 800x600 anchored at its centre, so anything beyond y = +300
+    // hangs off the top. The authored rows sat at 380 and 280, which put the
+    // first four buttons partly or wholly out of reach on a 4:3 view -- they
+    // simply could not be tapped. Every button is now placed inside the safe
+    // area, and the whole grid is laid out from one formula so it stays
+    // consistent as the roster grows.
+    const float ButtonTopY = 250f;
+    const float ButtonRowStep = 100f;
+    const float ButtonColumnX = 200f;
+
+    static Vector2 ButtonSlot(int index)
+    {
+        int col = (index - 1) % 2, row = (index - 1) / 2;
+        return new Vector2(col == 0 ? -ButtonColumnX : ButtonColumnX,
+                           ButtonTopY - row * ButtonRowStep);
+    }
+
     static void EnsureButton(int index, GameObject canvas, GameObject template)
     {
-        if (SceneUtil.FindAny("Button" + index) != null) return;
-        if (canvas == null || template == null) return;
+        var go = SceneUtil.FindAny("Button" + index);
 
-        var clone = Instantiate(template, template.transform.parent);
-        clone.name = "Button" + index;
-
-        // Continue the authored button grid: two columns, 100px rows.
-        var rt = clone.GetComponent<RectTransform>();
-        var src = template.GetComponent<RectTransform>();
-        if (rt != null && src != null)
+        if (go == null)
         {
-            int col = (index - 1) % 2, row = (index - 1) / 2;
-            rt.anchoredPosition = new Vector2(col == 0 ? -200f : 200f, 380f - row * 100f);
+            if (canvas == null || template == null) return;
+            go = Instantiate(template, template.transform.parent);
+            go.name = "Button" + index;
+            // shipselected() keys off the button's name, so the cloned handler
+            // is already correct -- nothing else to wire.
         }
 
-        // shipselected() keys off the button's name, so the cloned handler is
-        // already correct -- nothing else to wire.
+        var rt = go.GetComponent<RectTransform>();
+        if (rt != null) rt.anchoredPosition = ButtonSlot(index);
+
+        Label(go, index);
+    }
+
+    // Each button states which ship it is and what it costs. Previously they
+    // were unlabelled, so the price only appeared after opening the panel.
+    static void Label(GameObject button, int index)
+    {
+        var texts = button.GetComponentsInChildren<Text>(true);
+        if (texts == null || texts.Length == 0) return;
+
+        string shipName = shopingShips.NameFor(index);
+        float cost = shopingShips.CostFor(index);
+        bool owned = PlayerPrefs.GetString("boughtship" + index) == "True";
+
+        string price = owned ? "OWNED" : Mathf.RoundToInt(cost).ToString("N0");
+        texts[0].text = string.IsNullOrEmpty(shipName)
+            ? price
+            : shipName.ToUpperInvariant() + "   " + price;
+        texts[0].resizeTextForBestFit = true;
     }
 }
 

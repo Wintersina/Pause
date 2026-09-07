@@ -65,6 +65,11 @@ public class enmiesOnBoard : MonoBehaviour {
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
 
+    // The rails run just outside the playfield; mines ride them rather than
+    // drifting loose in the middle of the screen.
+    const float RailLeftX = -2.75f;
+    const float RailRightX = 2.65f;
+
     void Start () {
 
         if (phases == null || phases.Length == 0)
@@ -164,6 +169,15 @@ public class enmiesOnBoard : MonoBehaviour {
         }
     }
 
+    // Mines are rail hardware -- they belong in a rail lane, not at an
+    // arbitrary x. Everything else spawns wherever it was asked to.
+    Vector3 PlaceFor(GameObject prefab, float x)
+    {
+        if (PrefabName.Is(prefab, "mine"))
+            x = (Random.value < 0.5f) ? RailLeftX : RailRightX;
+        return new Vector3(x, transform.position.y, 0f);
+    }
+
     static float Roll(Vector2 range)
     {
         return Random.Range(range.x, range.y);
@@ -225,15 +239,15 @@ public class enmiesOnBoard : MonoBehaviour {
     // spawns small enimes through the board
     void spawnAstroid2()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.2f, 2.4f), transform.position.y, transform.rotation.z);
-        Instantiate(astroid2[astroidSelector], randomEnmPosition, transform.rotation);
+        GameObject prefab = astroid2[astroidSelector];
+        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.2f, 2.4f)), transform.rotation);
     }
 
     // this spawn larg enimes though the board
     void spawnAstroid1()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.2f, 2.4f), transform.position.y, transform.rotation.z);
-        Instantiate(astroid1[astroidSelector], randomEnmPosition, transform.rotation);
+        GameObject prefab = astroid1[astroidSelector];
+        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.2f, 2.4f)), transform.rotation);
     }
 
     // will create a line of animated enimies that the player is able to doge through
@@ -252,20 +266,20 @@ public class enmiesOnBoard : MonoBehaviour {
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2.3f), transform.position.y, transform.rotation.z);
-        Instantiate(astroid3[astroidSelector], randomEnmPosition, transform.rotation);
+        GameObject prefab = astroid3[astroidSelector];
+        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2.3f)), transform.rotation);
     }
 
     void spawnMidAstroid()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2f), transform.position.y, transform.rotation.z);
-        Instantiate(astroid4[astroidSelector], randomEnmPosition, transform.rotation);
+        GameObject prefab = astroid4[astroidSelector];
+        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2f)), transform.rotation);
     }
 
     void spawnLargeAstroid()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2.3f), transform.position.y, transform.rotation.z);
-        Instantiate(astroid5[astroidSelector], randomEnmPosition, transform.rotation);
+        GameObject prefab = astroid5[astroidSelector];
+        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2.3f)), transform.rotation);
     }
 
     // Picks from the imported set, biased so later phases meet the nastier art:

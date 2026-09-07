@@ -3,6 +3,14 @@ using System.Collections;
 
 public class musicControl : MonoBehaviour {
 
+    [Header("Boost sting")]
+    [Tooltip("Ceiling for the boost track. It used to ramp unbounded to full " +
+             "volume, which made grabbing a blue atom jarringly loud.")]
+    [Range(0f, 1f)] public float boostVolumeCap = 0.55f;
+
+    [Tooltip("How quickly the boost track fades up, per second.")]
+    public float boostFadeInPerSecond = 0.9f;
+
     public AudioSource boostSound;
     public AudioSource backgroundSound;
     public static bool boostMusicChanger;
@@ -54,10 +62,12 @@ public class musicControl : MonoBehaviour {
     {
         if(liftedFinger && collisionDetection.invTimer < 1.05)
         {
-            boostSound.volume = .60f;
+            boostSound.volume = boostVolumeCap;
             liftedFinger = false;
         }
-        boostSound.volume = (collisionDetection.invTimer > 1.05f) ? boostSound.volume + .025f : boostSound.volume - .008f;
+        boostSound.volume = (collisionDetection.invTimer > 1.05f)
+            ? Mathf.Min(boostSound.volume + boostFadeInPerSecond * Time.deltaTime, boostVolumeCap)
+            : Mathf.Max(boostSound.volume - .3f * Time.deltaTime, 0f);
         backgroundSound.volume -= .05f;
 
     }

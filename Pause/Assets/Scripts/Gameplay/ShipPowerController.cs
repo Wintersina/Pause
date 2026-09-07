@@ -46,14 +46,15 @@ public class ShipPowerController : MonoBehaviour
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
 
-        if (running && timer > 0f)
+        if (running && timer > 0f) timer -= Time.deltaTime;
+
+        // Charged and waiting: a second finger on the screen fires it. The
+        // first finger is already flying the ship, so this is the one spare
+        // input the game has.
+        if (running && timer <= 0f && TouchInput.SecondaryPressedThisFrame)
         {
-            timer -= Time.deltaTime;
-            if (timer <= 0f)
-            {
-                Fire();
-                timer = cooldownSeconds;
-            }
+            Fire();
+            timer = cooldownSeconds;
         }
 
         UpdateHud();
@@ -66,13 +67,21 @@ public class ShipPowerController : MonoBehaviour
         if (flashTimer > 0f)
         {
             flashTimer -= Time.unscaledDeltaTime;
-            hudLabel.text = ShipPowerTable.DisplayName(power) + "  READY";
+            hudLabel.text = ShipPowerTable.DisplayName(power) + "  FIRED";
             hudLabel.color = new Color(1f, 0.85f, 0.3f);
             return;
         }
 
+        if (timer <= 0f)
+        {
+            // charged: tell the player how to spend it
+            hudLabel.color = new Color(1f, 0.79f, 0.26f);
+            hudLabel.text = ShipPowerTable.DisplayName(power) + "  READY - SECOND TOUCH";
+            return;
+        }
+
         hudLabel.color = new Color(1f, 1f, 1f, 0.6f);
-        hudLabel.text = ShipPowerTable.DisplayName(power) + "  " + Mathf.CeilToInt(Mathf.Max(0f, timer)) + "s";
+        hudLabel.text = ShipPowerTable.DisplayName(power) + "  " + Mathf.CeilToInt(timer) + "s";
     }
 
     void Fire()

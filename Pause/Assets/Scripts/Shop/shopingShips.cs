@@ -65,14 +65,8 @@ public class shopingShips : MonoBehaviour {
 
         // initilizing the cost of ships. Each ship has a differnt cost
         // Star dust is much harder to earn now, so the ships have real prices.
-        shipCost[0] = 0f;
-        shipCost[1] = 150f;
-        shipCost[2] = 400f;
-        shipCost[3] = 900f;
-        shipCost[4] = 1400f;
-        shipCost[5] = 2100f;
-        shipCost[6] = 3000f;
-        shipCost[7] = 4200f;
+        for (int i = 0; i < shipCost.Length && i < Prices.Length; i++)
+            shipCost[i] = Prices[i];
   
 
         
@@ -207,6 +201,18 @@ public class shopingShips : MonoBehaviour {
     {
         "non", "Proteus", "Amadeus", "Darkwing", "M237", "Cygnus", "Vesper", "XR7",
     };
+
+    // Prices, exposed so the shop buttons can show them before you tap in.
+    public static readonly float[] Prices =
+    {
+        0f, 150f, 400f, 900f, 1400f, 2100f, 3000f, 4200f,
+    };
+
+    public static float CostFor(int index)
+    {
+        if (index < 0 || index >= Prices.Length) return 0f;
+        return Prices[index];
+    }
 
     public static string NameFor(int index)
     {

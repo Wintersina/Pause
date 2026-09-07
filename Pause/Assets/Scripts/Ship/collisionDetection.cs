@@ -44,6 +44,27 @@ public class collisionDetection : MonoBehaviour {
         return go;
     }
 
+    // The explosion sound only ever fired for asteroids destroyed while boosted,
+    // so most blasts on screen were silent. Every explosion now makes a noise,
+    // with a little pitch variation so repeats do not grate.
+    public static void PlayExplosion()
+    {
+        var src = ExplosionSource();
+        if (src == null) return;
+        src.pitch = Random.Range(0.92f, 1.08f);
+        src.PlayOneShot(src.clip, 0.9f);
+    }
+
+    static AudioSource cachedExplosionSource;
+
+    static AudioSource ExplosionSource()
+    {
+        if (cachedExplosionSource != null) return cachedExplosionSource;
+        var go = SceneUtil.FindAny("AstroidExplotionSound");
+        cachedExplosionSource = go != null ? go.GetComponent<AudioSource>() : null;
+        return cachedExplosionSource;
+    }
+
     // Tutorial earnings are tracked separately so a practice run cannot be
     // farmed for real currency.
     void awardDust(float amount)
@@ -124,11 +145,13 @@ public class collisionDetection : MonoBehaviour {
             // creating different explotions for different enims
             if (PrefabName.Is(hit.gameObject, "rail3"))
             {
+                PlayExplosion();
                 GameObject BlueExp = ScrollWithWorld(Instantiate(blueExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(BlueExp, 2);
             }
             else if (PrefabName.Is(hit.gameObject, "mine"))
             {
+                PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);
             }
@@ -152,7 +175,6 @@ public class collisionDetection : MonoBehaviour {
                     achievementAPICalls.achievement_aliens_6();
                 }if(hit.gameObject.tag == "Astr")
                 {
-                    astroidExpSound.Play();
                     //------------------------- Destroy 5 Astroid ------------##14-------------------
                     achievementAPICalls.achievement_destroyer();
                     //------------------------- Destroy 25 Astroid------------##15-------------------
@@ -177,6 +199,7 @@ public class collisionDetection : MonoBehaviour {
                 GameObject exp = Instantiate(explosionAnimation) as GameObject;
                 exp.transform.position = hit.gameObject.transform.position;
                 ScrollWithWorld(exp);
+                PlayExplosion();
 
                 Destroy(exp, 2);
                 Destroy(hit.gameObject);
@@ -197,6 +220,7 @@ public class collisionDetection : MonoBehaviour {
 
                 // kill the player
                 GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
+                PlayExplosion();
 
 
                 //exp.transform.position = hit.gameObject.transform.position;

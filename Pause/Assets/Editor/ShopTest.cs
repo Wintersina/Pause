@@ -86,6 +86,32 @@ public static class ShopTest
             Check("Boost" + i + " exists for lift-off", named);
         }
 
+        // Selecting a ship slides it out of its parking spot toward its face
+        // marker, so the two must not be the same point or nothing moves.
+        for (int i = 1; i < total; i++)
+        {
+            var ret = SceneUtil.FindAny("return" + i);
+            var face = SceneUtil.FindAny("face" + i);
+            if (ret == null || face == null) continue;
+            float d = Vector3.Distance(ret.transform.position, face.transform.position);
+            Check("ship" + i + " flies " + d.ToString("F2") + "u out of its parking spot", d > 0.4f);
+        }
+
+        // every button must sit inside the visible canvas or it cannot be tapped
+        var scaler = SceneUtil.FindAny("Canvas").GetComponent<UnityEngine.UI.CanvasScaler>();
+        float halfH = scaler.referenceResolution.y * 0.5f;
+        float halfW = scaler.referenceResolution.x * 0.5f;
+        for (int i = 1; i < total; i++)
+        {
+            var b = SceneUtil.FindAny("Button" + i);
+            if (b == null) continue;
+            var rt = b.GetComponent<RectTransform>();
+            var p = rt.anchoredPosition;
+            var half = rt.sizeDelta * 0.5f;
+            bool inside = Mathf.Abs(p.y) + half.y <= halfH && Mathf.Abs(p.x) + half.x <= halfW;
+            Check("Button" + i + " at y=" + p.y + " is inside the canvas", inside);
+        }
+
         // no two ships stacked on the same slot
         for (int i = 1; i < total; i++)
         for (int j = i + 1; j < total; j++)

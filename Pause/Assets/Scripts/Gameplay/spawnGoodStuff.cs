@@ -24,6 +24,12 @@ public class spawnGoodStuff : MonoBehaviour {
              "level, so nobody reaches the portal without a shot at one.")]
     public float guaranteeWhenSecondsLeft = 60f;
 
+    [Tooltip("Most red (pause) atoms a planet will hand out, spread randomly " +
+             "across the level.")]
+    public int redAtomsPerWorld = 5;
+
+    private int redBudget;
+    private int redSpawned;
     private int blueBudget;
     private int blueSpawned;
     private bool blueGuaranteeUsed;
@@ -65,6 +71,9 @@ public class spawnGoodStuff : MonoBehaviour {
     {
         blueBudget = Random.Range(blueAtomsPerWorld.x, blueAtomsPerWorld.y + 1);
         blueSpawned = 0;
+        redBudget = redAtomsPerWorld;
+        redSpawned = 0;
+        redAtomDelayTimer = Random.Range(15f, 40f);
         blueGuaranteeUsed = false;
         atomTimer = Random.Range(20f, 45f);
     }
@@ -129,10 +138,13 @@ public class spawnGoodStuff : MonoBehaviour {
             blueSpawned++;
             atomTimer = Random.Range(55f, 95f);
         }
-        if (redAtomDelayTimer <= 0)
+        // Red atoms were arriving every 5-10 seconds, so pauses were effectively
+        // unlimited. Now a fixed allowance per planet, spread across the level.
+        if (redAtomDelayTimer <= 0 && redSpawned < redBudget)
         {
-            redAtomDelayTimer = Random.Range(5, 10);
+            redAtomDelayTimer = Random.Range(50f, 90f);
             spawnRedAtom();
+            redSpawned++;
         }
 
 

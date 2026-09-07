@@ -23,6 +23,37 @@ public static class TouchInput
         }
     }
 
+    // A second finger on the screen -- the game's only spare input, used to
+    // trigger the active ship's power. Falls back to the right mouse button
+    // (or space) so it is reachable on desktop and in the editor.
+    public static bool SecondaryPressed
+    {
+        get
+        {
+            if (Input.touchSupported && Input.touchCount > 0)
+                return Input.touchCount >= 2;
+
+            return Input.GetMouseButton(1) || Input.GetKey(KeyCode.Space);
+        }
+    }
+
+    // True only on the frame the second finger first lands.
+    public static bool SecondaryPressedThisFrame
+    {
+        get
+        {
+            if (Input.touchSupported && Input.touchCount > 0)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                    if (i >= 1 && Input.GetTouch(i).phase == TouchPhase.Began)
+                        return true;
+                return false;
+            }
+
+            return Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Space);
+        }
+    }
+
     // Screen-space position of the active finger, or the mouse cursor.
     public static Vector2 Position
     {

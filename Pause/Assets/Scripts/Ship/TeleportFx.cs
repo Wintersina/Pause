@@ -45,6 +45,8 @@ public class TeleportFx : MonoBehaviour
             var go = col.gameObject;
             if (!go.CompareTag("Enimey") && !go.CompareTag("Astr")) continue;
 
+            collisionDetection.PlayExplosion();
+
             if (explosion != null)
             {
                 var fx = Instantiate(explosion, go.transform.position, Quaternion.identity);
