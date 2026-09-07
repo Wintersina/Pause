@@ -144,15 +144,36 @@ public class DockScrollView : MonoBehaviour
         scroll.gameObject.SetActive(false);
     }
 
+    // Cards never render narrower than this (the Mathf.Max floor below), and
+    // the grid's own padding/spacing (RectOffset(8,8,8,8) + 16px spacing) eat
+    // a fixed 32px regardless of column count.
+    const float MinCellWidth = 200f;
+    const float GridSpacing = 16f;
+    const float GridHorizontalPadding = 16f;
+
     public void RefreshLayout()
     {
         if (scroll == null) return;
         float width = scroll.viewport.rect.width;
         if (Mathf.Approximately(width, lastWidth)) return;
         lastWidth = width;
-        int columns = width >= 540 ? 2 : 1;
+
+        // Two columns only when they still fit at the minimum card width --
+        // otherwise the Mathf.Max floor below would force cards wider than
+        // the viewport actually has room for, overflowing past the clipped
+        // scroll area instead of just dropping to one column cleanly.
+        //
+        // The old flat 540px threshold was tuned against Editor/Mac test
+        // windows, which run close to the 720x960 reference aspect this
+        // canvas scales against. Real phones -- especially the tall, narrow
+        // ones Android actually ships -- are a good deal narrower than that
+        // reference once CanvasScaler's width/height blend is applied, so
+        // the viewport routinely landed under 540px and silently fell back
+        // to one column exactly on the devices most in need of two.
+        float twoColumnWidth = MinCellWidth * 2f + GridSpacing + GridHorizontalPadding;
+        int columns = width >= twoColumnWidth ? 2 : 1;
         grid.constraintCount = columns;
-        grid.cellSize = new Vector2(Mathf.Max(200, (width - 16 - (columns - 1) * 16) / columns), 230);
+        grid.cellSize = new Vector2(Mathf.Max(MinCellWidth, (width - GridHorizontalPadding - (columns - 1) * GridSpacing) / columns), 230);
         int rows = Mathf.CeilToInt((shopingShips.shipTotal - 1f) / columns);
         content.sizeDelta = new Vector2(0, 16 + rows * 230 + (rows - 1) * 16);
     }
