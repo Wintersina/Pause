@@ -218,6 +218,9 @@ public static class NextFeatures0907Test
               UltimateGun.HoverModeFor(1) != UltimateGun.HoverModeFor(2) &&
               UltimateGun.HoverModeFor(2) != UltimateGun.HoverModeFor(3));
         Check("power charge indicator is attached", shipGo.GetComponent<PowerReadyIndicator>() != null);
+        Vector3 bentHeading = PowerFx.SteerHeading(Vector3.up, Vector3.right, 180f, .25f);
+        Check("homing projectile bends toward a moving side target",
+              bentHeading.x > .1f && bentHeading.y > .1f);
 
         var timerField = typeof(ShipPowerController).GetField("timer", BindingFlags.NonPublic | BindingFlags.Instance);
         var cooldownField = typeof(ShipPowerController).GetField("cooldown", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -249,6 +252,12 @@ public static class NextFeatures0907Test
         Check("fires on its own once charged (timer reset for the next cycle)", rerolled > 0f);
         Check("the reroll lands back in the 30-60s range",
               rerolled >= controller.cooldownRange.x && rerolled <= controller.cooldownRange.y);
+        // Firing (just above) is what actually starts the CinematicClear
+        // coroutine, which sets CinematicClearActive true as its first
+        // statement before any yield -- moved here from right after the gun/
+        // indicator checks, where nothing had triggered it yet and this
+        // always read the inactive (1x) branch instead.
+        Check("cinematic clear uses super slow motion", ShipPowerController.CinematicTimeScale <= .1f);
 
         buttonClicks.playerDied = false;
         Object.DestroyImmediate(shipGo);
