@@ -92,7 +92,7 @@ public class ShopSceneExtender : MonoBehaviour
         string name = shopingShips.NameFor(index);
         if (string.IsNullOrEmpty(name)) return null;
 
-        var frames = Resources.LoadAll<Sprite>("prefabs/Ships/Sprites/" + name);
+        var frames = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + name);
         return (frames != null && frames.Length > 0) ? frames[0] : null;
     }
 

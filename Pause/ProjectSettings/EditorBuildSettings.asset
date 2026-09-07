@@ -6,25 +6,25 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/spashS7.unity
+    path: Assets/Scenes/spashS7.unity
     guid: 7cd7f63fda6a915498b9ab42d6b3548f
   - enabled: 1
-    path: Assets/startS4.unity
+    path: Assets/Scenes/startS4.unity
     guid: 41a07f22984004b4a8cc38565703a7fe
   - enabled: 1
-    path: Assets/leaderboardS3.unity
+    path: Assets/Scenes/leaderboardS3.unity
     guid: 49073020bb7923b4383b20a262f76b2e
   - enabled: 1
-    path: Assets/gameS1.unity
+    path: Assets/Scenes/gameS1.unity
     guid: 50a6b5a04ec62724086d4458819ffb3c
   - enabled: 1
-    path: Assets/shopS6.unity
+    path: Assets/Scenes/shopS6.unity
     guid: 4396591154dc897458c33bf286fe7087
   - enabled: 1
-    path: Assets/creditsS7.unity
+    path: Assets/Scenes/creditsS7.unity
     guid: 67613cc8254dbe14086d02b3a1388bb0
   - enabled: 1
-    path: Assets/tutorialS5.unity
+    path: Assets/Scenes/tutorialS5.unity
     guid: 1c2394c720af815478a2dae7b14754fb
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

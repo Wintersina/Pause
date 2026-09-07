@@ -32,7 +32,7 @@ public class lifeControler : MonoBehaviour {
             shipIndex < 0 || shipIndex >= shipNames.Length)
             shipIndex = 0;
 
-        img = Resources.LoadAll<Sprite>("prefabs/Ships/Sprites/" + shipNames[shipIndex]);
+        img = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + shipNames[shipIndex]);
         applyDamageSprite();
     }
 	

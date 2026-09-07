@@ -218,6 +218,39 @@ Pause/Builds/Mac/Pause.app/Contents/MacOS/Pause \
 
 ---
 
+## Layout
+
+```
+Pause/Assets/
+  Art/          sprites, materials, animations, effects
+  Audio/        music and sound effects
+  Editor/       editor-only tooling and headless tests
+  Resources/    anything loaded by path at runtime
+    Prefabs/Ships/Sprites/<Name>/   ship damage sheets
+    Prefabs/Enemies/Kenney/         enemy and meteor art
+    Worlds/<Name>/                  planet backdrops and walls
+    WorldMusic/<Name>.wav           planet music
+  Scenes/       every .unity scene
+  Scripts/
+    Core/       input, scene lookup, score, social, shared helpers
+    Gameplay/   movement, spawning, collisions, ship powers
+    UI/         HUD, menus, icons, ads
+    Audio/      music control
+    Ship/       player ship behaviour
+    Shop/       hangar and purchasing
+    Menu/       main menu
+    Tutorial/   tutorial flow and skip
+    Credits/    credits roll
+    Worlds/     planet themes, portals, progression
+```
+
+No path under `Assets/` contains a space, bracket or `#`, so globbing and
+shell tooling work without quoting. Only paths under `Resources/` are
+referenced by string from code — everything else is resolved by GUID and can
+be moved freely.
+
+---
+
 ## Scenes
 
 ```
