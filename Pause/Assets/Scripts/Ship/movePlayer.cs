@@ -66,7 +66,18 @@ public class movePlayer : MonoBehaviour
                 }
                 else
                     teleported = true;
+
+                // `teleported` is set the moment the finger lifts, so the next
+                // touch is an arrival rather than a drag. Compare before and
+                // after to tell a real jump from a nudge.
+                Vector3 before = transform.position;
                 moveLeft_Right(fingerPos);
+
+                if (teleported)
+                {
+                    teleported = false;
+                    TeleportFx.Play(before, transform.position);
+                }
             }
             else
             {

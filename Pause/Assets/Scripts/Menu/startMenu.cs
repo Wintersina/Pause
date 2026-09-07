@@ -25,8 +25,11 @@ public class startMenu : MonoBehaviour {
         aboutB.gameObject.SetActive(true);
         quitB.gameObject.SetActive(true);
         // find it and turn it off.
-        loggedoutTextObj = GameObject.Find("LoggedoutText").GetComponent<Text>();
-        loggedoutTextObj.gameObject.SetActive(false);
+        // Inactive objects are invisible to GameObject.Find, and a null here
+        // used to abort the rest of Start().
+        GameObject loggedOut = SceneUtil.FindAny("LoggedoutText");
+        loggedoutTextObj = loggedOut != null ? loggedOut.GetComponent<Text>() : null;
+        if (loggedoutTextObj != null) loggedoutTextObj.gameObject.SetActive(false);
         // if ads are showing in main menu, turn them off.
         if (AdMob.isAdsShowwing)
             AdMob.hide();
@@ -47,7 +50,7 @@ public class startMenu : MonoBehaviour {
         if (logoutTimer > 0)
         {
             logoutTimer -= Time.deltaTime;
-            if (logoutTimer <= 0)
+            if (logoutTimer <= 0 && loggedoutTextObj != null)
                 loggedoutTextObj.gameObject.SetActive(false);
         }
     }
@@ -73,7 +76,7 @@ public class startMenu : MonoBehaviour {
     public void logoutButton()
     {
         logoutTimer = 2f;
-        loggedoutTextObj.gameObject.SetActive(true);
+        if (loggedoutTextObj != null) loggedoutTextObj.gameObject.SetActive(true);
         SocialBridge.SignOut();
     }
 

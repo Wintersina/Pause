@@ -57,7 +57,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 25
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -78,7 +78,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 1024
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -135,10 +135,10 @@ TextureImporter:
       name: M237_0
       rect:
         serializedVersion: 2
-        x: 395
-        y: 528
-        width: 3163
-        height: 4234
+        x: 99
+        y: 132
+        width: 791
+        height: 1058
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -157,10 +157,10 @@ TextureImporter:
       name: M237_1
       rect:
         serializedVersion: 2
-        x: 4051
-        y: 528
-        width: 3157
-        height: 4234
+        x: 1013
+        y: 132
+        width: 789
+        height: 1058
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -179,10 +179,10 @@ TextureImporter:
       name: M237_2
       rect:
         serializedVersion: 2
-        x: 7673
-        y: 528
-        width: 3163
-        height: 4234
+        x: 1918
+        y: 132
+        width: 791
+        height: 1058
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

@@ -723,6 +723,8 @@ MonoBehaviour:
   - {fileID: 127076, guid: 1390ffc126996fb4388474c4cdff00ac, type: 3}
   alien1: {fileID: 128726, guid: 1716f248879a3d9409936e4fc65c75a4, type: 3}
   rails: {fileID: 197016, guid: 08a494c717485c14393c67b01b49ed19, type: 3}
+  extraEnemyPrefabs: []
+  phases: []
 --- !u!4 &184872559
 Transform:
   m_ObjectHideFlags: 0
@@ -754,6 +756,8 @@ MonoBehaviour:
   midStar: {fileID: 134654, guid: a535e540b4433b0429596826f048f8c1, type: 3}
   Atom: {fileID: 128552, guid: a86978352d0440a4b8b027af78d33384, type: 3}
   redAtom: {fileID: 101498, guid: 5ec23f4ebcebd8b43beca2e8c0737720, type: 3}
+  blueAtomsPerWorld: {x: 3, y: 5}
+  guaranteeWhenSecondsLeft: 60
 --- !u!1 &268133799
 GameObject:
   m_ObjectHideFlags: 0
@@ -832,6 +836,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 350b81c8e995d974d9d69996fcc8791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dustPerSecondAtTopSpeed: 0.05
+  topSpeed: 0.6
   currencyText: {fileID: 1388457177}
   speedValue: {fileID: 1497952720}
   pauseCounterText: {fileID: 1210568188}
@@ -2081,6 +2087,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSpeed: 0
+  speedRampPerSecond: 0.002
+  maxSpeed: 0.6
 --- !u!23 &775281445
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2484,6 +2492,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSpeed: 0
+  speedRampPerSecond: 0.002
+  maxSpeed: 0.6
 --- !u!23 &896665834
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3495,6 +3505,7 @@ GameObject:
   - component: {fileID: 1482080259}
   - component: {fileID: 1482080261}
   - component: {fileID: 1482080260}
+  - component: {fileID: 1482080262}
   m_Layer: 5
   m_Name: deathSpeedReachedThisRoundText
   m_TagString: Untagged
@@ -3534,7 +3545,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8161765, g: 0.11402467, b: 0.11402467, a: 1}
+  m_Color: {r: 1, g: 0.79, b: 0.26, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3544,7 +3555,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 84e24e4d1d01463409a4b0a10543feb8, type: 3}
     m_FontSize: 15
-    m_FontStyle: 0
+    m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
     m_MaxSize: 165
@@ -3563,6 +3574,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1482080258}
   m_CullTransparentMesh: 1
+--- !u!114 &1482080262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1482080258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.85}
+  m_EffectDistance: {x: 2, y: -2}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1492807527
 GameObject:
   m_ObjectHideFlags: 0
@@ -4312,6 +4338,7 @@ GameObject:
   - component: {fileID: 1794422039}
   - component: {fileID: 1794422041}
   - component: {fileID: 1794422040}
+  - component: {fileID: 1794422042}
   m_Layer: 5
   m_Name: playerDeadHighScore
   m_TagString: Untagged
@@ -4351,7 +4378,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8161765, g: 0.11402467, b: 0.11402467, a: 1}
+  m_Color: {r: 1, g: 0.79, b: 0.26, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4361,7 +4388,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 84e24e4d1d01463409a4b0a10543feb8, type: 3}
     m_FontSize: 15
-    m_FontStyle: 0
+    m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
     m_MaxSize: 45
@@ -4380,6 +4407,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1794422038}
   m_CullTransparentMesh: 1
+--- !u!114 &1794422042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1794422038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.85}
+  m_EffectDistance: {x: 2, y: -2}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1807342013
 GameObject:
   m_ObjectHideFlags: 0
@@ -4546,6 +4588,7 @@ GameObject:
   - component: {fileID: 1926900701}
   - component: {fileID: 1926900703}
   - component: {fileID: 1926900702}
+  - component: {fileID: 1926900704}
   m_Layer: 5
   m_Name: playerDeadHighestSpeed
   m_TagString: Untagged
@@ -4585,7 +4628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8161765, g: 0.11402467, b: 0.11402467, a: 1}
+  m_Color: {r: 1, g: 0.79, b: 0.26, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4595,7 +4638,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 84e24e4d1d01463409a4b0a10543feb8, type: 3}
     m_FontSize: 15
-    m_FontStyle: 0
+    m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
     m_MaxSize: 45
@@ -4614,6 +4657,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1926900700}
   m_CullTransparentMesh: 1
+--- !u!114 &1926900704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926900700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.85}
+  m_EffectDistance: {x: 2, y: -2}
+  m_UseGraphicAlpha: 1
 --- !u!1 &2081944146
 GameObject:
   m_ObjectHideFlags: 0

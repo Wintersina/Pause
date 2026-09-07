@@ -19,11 +19,16 @@ public class moveStarsBackground : MonoBehaviour {
     void Start()
     {
         speedCap = 1;
-        replyB = GameObject.Find("replayWhenPausedButton").GetComponent<Button>();
-        mainMenuB = GameObject.Find("mainMenuWhenPausedButton").GetComponent<Button>();
-        pauseText = GameObject.Find("paused");
-        replyB.gameObject.SetActive(false);
-        mainMenuB.gameObject.SetActive(false);
+        // A null from any of these used to throw and abort Start(), which took
+        // the whole pause menu down with it.
+        GameObject replayGo = SceneUtil.FindAny("replayWhenPausedButton");
+        GameObject menuGo = SceneUtil.FindAny("mainMenuWhenPausedButton");
+        replyB = replayGo != null ? replayGo.GetComponent<Button>() : null;
+        mainMenuB = menuGo != null ? menuGo.GetComponent<Button>() : null;
+        pauseText = SceneUtil.FindAny("paused");
+
+        if (replyB != null) replyB.gameObject.SetActive(false);
+        if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
 
         starBackgroundSpeed = .005f;
         pauseMenuTimer = 0f;
@@ -55,8 +60,8 @@ public class moveStarsBackground : MonoBehaviour {
         {
             delayPauseMenuTimer -= Time.deltaTime;
             showPaused(false);
-            replyB.gameObject.SetActive(true);
-            mainMenuB.gameObject.SetActive(true);
+            if (replyB != null) replyB.gameObject.SetActive(true);
+            if (mainMenuB != null) mainMenuB.gameObject.SetActive(true);
             moveBackground();
         }
         else {
@@ -85,7 +90,7 @@ public class moveStarsBackground : MonoBehaviour {
     // show pause or not
     void showPaused(bool show)
     {
-        if (!buttonClicks.playerDied)
+        if (!buttonClicks.playerDied && pauseText != null)
         {
             pauseText.gameObject.SetActive(show);
         }
@@ -97,8 +102,8 @@ public class moveStarsBackground : MonoBehaviour {
                 {
 
                     pauseMenuTimer = .35f;
-                    replyB.gameObject.SetActive(show);
-                    mainMenuB.gameObject.SetActive(show);
+                    if (replyB != null) replyB.gameObject.SetActive(show);
+                    if (mainMenuB != null) mainMenuB.gameObject.SetActive(show);
                     delayPauseMenuTimer = pauseMenuTimer;
                 }
             }
@@ -107,9 +112,8 @@ public class moveStarsBackground : MonoBehaviour {
         {
             if (!buttonClicks.playerDied)
             {
-                replyB.gameObject.SetActive(show);
-                mainMenuB.gameObject.SetActive(show);
-
+                if (replyB != null) replyB.gameObject.SetActive(show);
+                if (mainMenuB != null) mainMenuB.gameObject.SetActive(show);
             }
         }
     }

@@ -81,6 +81,12 @@ public class WorldManager : MonoBehaviour
     float timer;
     bool portalOpen;
 
+    // How long until this planet's portal opens. Other systems pace themselves
+    // against the level clock -- the blue-atom budget saves one for the end.
+    public float SecondsLeftInWorld { get { return Mathf.Max(0f, timer); } }
+    public float WorldLength { get { return secondsPerWorld; } }
+    public bool PortalIsOpen { get { return portalOpen; } }
+
     void Awake()
     {
         Instance = this;

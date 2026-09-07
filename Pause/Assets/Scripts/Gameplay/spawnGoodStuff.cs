@@ -15,6 +15,20 @@ public class spawnGoodStuff : MonoBehaviour {
     private float midStarTimer;
     private float atomTimer;
 
+    [Header("Blue atoms")]
+    [Tooltip("How many blue atoms a planet may hand out, chosen at random " +
+             "within this range. One of them is always held back for the end.")]
+    public Vector2Int blueAtomsPerWorld = new Vector2Int(3, 5);
+
+    [Tooltip("A blue atom is guaranteed once this many seconds remain in the " +
+             "level, so nobody reaches the portal without a shot at one.")]
+    public float guaranteeWhenSecondsLeft = 60f;
+
+    private int blueBudget;
+    private int blueSpawned;
+    private bool blueGuaranteeUsed;
+    private int lastWorld = -1;
+
     // used for random int for generating stars
     int max;
 
@@ -24,8 +38,9 @@ public class spawnGoodStuff : MonoBehaviour {
         AtomOnScreen = false;
         smStarTimer = 7f;
         midStarTimer = 14f;
-        atomTimer = 1f;
+        atomTimer = Random.Range(20f, 45f);
         redAtomDelayTimer = 10f;
+        resetBlueBudget();
 	
 	}
 
@@ -45,8 +60,25 @@ public class spawnGoodStuff : MonoBehaviour {
     }
 
 
+    // Each planet gets its own allowance.
+    void resetBlueBudget()
+    {
+        blueBudget = Random.Range(blueAtomsPerWorld.x, blueAtomsPerWorld.y + 1);
+        blueSpawned = 0;
+        blueGuaranteeUsed = false;
+        atomTimer = Random.Range(20f, 45f);
+    }
+
     void spawn()
     {
+        // a new planet restores the allowance
+        int world = WorldManager.Instance != null ? WorldManager.CurrentIndex : 0;
+        if (world != lastWorld)
+        {
+            lastWorld = world;
+            resetBlueBudget();
+        }
+
         smStarTimer -= Time.deltaTime;
         midStarTimer -= Time.deltaTime;
         atomTimer -= Time.deltaTime;
@@ -76,13 +108,26 @@ public class spawnGoodStuff : MonoBehaviour {
                 spawnMidStar(i, randomStarPos);
             }  
         }
-        if(atomTimer <= 0)
+        // Blue atoms used to arrive every 6-9 seconds, which made a shield and
+        // boost routine. They are now a scarce, per-planet allowance.
+        int reserve = blueGuaranteeUsed ? 0 : 1;   // always hold one back for the end
+        if (atomTimer <= 0 && blueSpawned < blueBudget - reserve)
         {
-            // will change spawn time depending on speed
-            atomDelayTimer = (moveBackGround.speed < .4) ? Random.Range(8f, 9f) : Random.Range(6f, 6.5f);
+            atomDelayTimer = Random.Range(55f, 95f);
             spawnAtom();
+            blueSpawned++;
             atomTimer = atomDelayTimer;
+        }
 
+        // The held-back one, released near the portal.
+        if (!blueGuaranteeUsed && WorldManager.Instance != null &&
+            WorldManager.Instance.SecondsLeftInWorld <= guaranteeWhenSecondsLeft &&
+            blueSpawned < blueBudget)
+        {
+            blueGuaranteeUsed = true;
+            spawnAtom();
+            blueSpawned++;
+            atomTimer = Random.Range(55f, 95f);
         }
         if (redAtomDelayTimer <= 0)
         {

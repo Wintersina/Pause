@@ -43,7 +43,7 @@ public class buttonClicks : MonoBehaviour {
     }
     public void replay()
     {
-        
+        GameStateReset.Clear();
         startMenu.youAreInTutorial = false;
         moveBackGround.speed = 0f;
         score.totalCurrency = 0;
@@ -53,6 +53,7 @@ public class buttonClicks : MonoBehaviour {
     {
         if (AdMob.isAdsShowwing)
             AdMob.hide();
+        GameStateReset.Clear();
         Application.Quit();
     }
     void showButton()
@@ -65,6 +66,10 @@ public class buttonClicks : MonoBehaviour {
     {
         if(AdMob.isAdsShowwing)
             AdMob.hide();
+
+        // Death leaves timeScale at 0 and playerDied set; carrying either into
+        // the menu leaves it frozen and unresponsive.
+        GameStateReset.Clear();
         SceneManager.LoadScene("startS4");
     }
 }

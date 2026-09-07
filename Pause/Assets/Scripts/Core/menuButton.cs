@@ -39,6 +39,7 @@ public class menuButton : MonoBehaviour {
     {
         if(AdMob.isAdsShowwing)
             AdMob.hide();
+        GameStateReset.Clear();
         SceneManager.LoadScene("startS4");
     }
  

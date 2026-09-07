@@ -22,6 +22,9 @@ public class enmiesOnBoard : MonoBehaviour {
 
         [Header("Enemy types in play")]
         public bool rails = true;
+        [Tooltip("Extra enemy ships and meteors drawn from Resources/Prefabs/" +
+                 "Enemies. Lets later phases field hardware the early ones never see.")]
+        public bool extraEnemies;
         public bool bigEnemy;
         public bool smallEnemy;
         public bool smallAstroid;
@@ -34,6 +37,7 @@ public class enmiesOnBoard : MonoBehaviour {
         public Vector2 enemyInterval = new Vector2(2.5f, 5f);
         public Vector2 astroidInterval = new Vector2(2.5f, 5f);
         public Vector2 alienInterval = new Vector2(2.5f, 4f);
+        public Vector2 extraInterval = new Vector2(2.5f, 4.5f);
     }
 
     public GameObject[] astroid1 = new GameObject[5];
@@ -44,6 +48,9 @@ public class enmiesOnBoard : MonoBehaviour {
     public GameObject alien1;
     public GameObject rails;
 
+    [Tooltip("Left empty, these load from Resources/Prefabs/Enemies at startup.")]
+    public GameObject[] extraEnemyPrefabs;
+
     public SpawnPhase[] phases;
 
     private float railDelayTimer;
@@ -53,6 +60,7 @@ public class enmiesOnBoard : MonoBehaviour {
     private float midAstroidDelayTimer;
     private float bigAstroidDelayTimer;
     private float spawnAnimatedEnimeOneDelayTimer;
+    private float extraEnemyDelayTimer;
 
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
@@ -61,6 +69,10 @@ public class enmiesOnBoard : MonoBehaviour {
 
         if (phases == null || phases.Length == 0)
             phases = DefaultPhases();
+
+        // Loading by folder means dropping new art in is enough -- no scene edit.
+        if (extraEnemyPrefabs == null || extraEnemyPrefabs.Length == 0)
+            extraEnemyPrefabs = Resources.LoadAll<GameObject>("Prefabs/Enemies");
 
         phase = phases[0];
         astroidSelector = 0;
@@ -73,6 +85,7 @@ public class enmiesOnBoard : MonoBehaviour {
         smallAstroidDelayTimer = 18f;
         bigAstroidDelayTimer = 21f;
         spawnAnimatedEnimeOneDelayTimer = 6f;
+        extraEnemyDelayTimer = 24f;
     }
 
     // Escalating mix: each phase adds a type rather than just reskinning.
@@ -94,7 +107,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 astroidInterval = new Vector2(3f, 5f),
             },
             new SpawnPhase {
-                name = "Asteroid field", speedBelow = 0.4f,
+                name = "Asteroid field", extraEnemies = true, speedBelow = 0.4f,
                 rails = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, aliens = true,
                 railInterval = new Vector2(0.6f, 1f),
@@ -103,7 +116,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 alienInterval = new Vector2(3f, 4.5f),
             },
             new SpawnPhase {
-                name = "Swarm", speedBelow = 0.5f,
+                name = "Swarm", extraEnemies = true, speedBelow = 0.5f,
                 rails = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.5f, 0.9f),
@@ -112,7 +125,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 alienInterval = new Vector2(2f, 3.5f),
             },
             new SpawnPhase {
-                name = "Chaos", speedBelow = float.MaxValue,
+                name = "Chaos", extraEnemies = true, speedBelow = float.MaxValue,
                 rails = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.5f, 0.8f),
@@ -165,6 +178,7 @@ public class enmiesOnBoard : MonoBehaviour {
         midAstroidDelayTimer -= Time.deltaTime;
         bigAstroidDelayTimer -= Time.deltaTime;
         spawnAnimatedEnimeOneDelayTimer -= Time.deltaTime;
+        extraEnemyDelayTimer -= Time.deltaTime;
 
         if (railDelayTimer <= 0)
         {
@@ -200,6 +214,11 @@ public class enmiesOnBoard : MonoBehaviour {
         {
             if (phase.aliens) spawnAnimatedEnimeOne();
             spawnAnimatedEnimeOneDelayTimer = Roll(phase.alienInterval);
+        }
+        if (extraEnemyDelayTimer <= 0)
+        {
+            if (phase.extraEnemies) spawnExtraEnemy();
+            extraEnemyDelayTimer = Roll(phase.extraInterval);
         }
     }
 
@@ -247,6 +266,39 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2.3f), transform.position.y, transform.rotation.z);
         Instantiate(astroid5[astroidSelector], randomEnmPosition, transform.rotation);
+    }
+
+    // Picks from the imported set, biased so later phases meet the nastier art:
+    // black and blue hulls early, green and red once things get serious.
+    void spawnExtraEnemy()
+    {
+        if (extraEnemyPrefabs == null || extraEnemyPrefabs.Length == 0) return;
+
+        GameObject pick = ChooseExtra();
+        if (pick == null) return;
+
+        Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Instantiate(pick, pos, transform.rotation);
+    }
+
+    GameObject ChooseExtra()
+    {
+        string[] tiers = { "Black", "Blue", "Green", "Red" };
+        string wanted = tiers[Mathf.Clamp(astroidSelector, 0, tiers.Length - 1)];
+
+        var shortlist = new System.Collections.Generic.List<GameObject>();
+        foreach (var go in extraEnemyPrefabs)
+            if (go != null && go.name.Contains(wanted)) shortlist.Add(go);
+
+        // meteors are colourless, so fold them in for the later phases
+        if (astroidSelector >= 2)
+            foreach (var go in extraEnemyPrefabs)
+                if (go != null && go.name.Contains("meteor")) shortlist.Add(go);
+
+        if (shortlist.Count == 0)
+            return extraEnemyPrefabs[Random.Range(0, extraEnemyPrefabs.Length)];
+
+        return shortlist[Random.Range(0, shortlist.Count)];
     }
 
     void spawnRails()
