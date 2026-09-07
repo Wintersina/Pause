@@ -36,6 +36,7 @@ That's the whole game. One input, used sparingly, under rising pressure.
 | **Lift** | Freeze everything. Costs one pause. |
 | **Lift + tap elsewhere** | Teleport to that spot. Your escape hatch. |
 | **Red atom** | +2 pauses |
+| **Green atom** | Repairs one point of hull damage. Rare — twice per planet at most. |
 | **Blue atom** | Shield, boost, brief invincibility, `+2` dust |
 | **Stars** | Star Dust — `0.5` small, `1.0` large. See [Economy](#economy). |
 
@@ -164,10 +165,10 @@ gets harder even though it always begins slow.
 Miss a portal and you're not stranded: another opens after a quarter of the
 usual wait.
 
-By default every run starts at Space, so the planets are a route you fly rather
-than a menu you pick from. The furthest planet reached is recorded either way —
-flip `startAtHighestUnlocked` on `WorldManager` to treat them as unlocked
-shortcuts instead.
+**Unlocks are permanent.** Once you have reached a planet, later runs begin
+there rather than replaying the earlier worlds. Turn off `startAtHighestUnlocked`
+on `WorldManager` if you would rather every run started at Space and the planets
+were a route flown outward each time.
 
 A world is a **re-theme of `gameS1`**, not a separate scene: the backdrop and
 side walls swap textures, the music crossfades, and the difficulty curve
@@ -280,6 +281,11 @@ upgrade; the call surface is intact, so restoring ads means filling in one file.
 
 **`ShipPowerController`** — attaches itself at runtime by finding `movePlayer`,
 so adding a ship needs no prefab surgery.
+
+**Object identity is name-based but rename-proof.** Pickups and hazards are
+identified with `PrefabName.Is(go, "smStar1")`, which ignores the `(Clone)`
+suffix, case, spaces and underscores. Comparing raw names against literals is
+what silently broke star collection when assets were renamed.
 
 **The economy lives in `collisionDetection`**, not in `score`. `score.calcScore`
 looks like the money code but is a sub-1% trickle; the pickup handlers are where
