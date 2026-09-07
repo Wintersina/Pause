@@ -30,6 +30,15 @@ public class TeleportFx : MonoBehaviour
         Strike(to);
     }
 
+    // Feedback for a teleport refused on cooldown -- a dull, collapsing ring
+    // rather than the bright flare of a successful jump, so the two never read
+    // as the same thing.
+    public static void Denied(Vector3 at)
+    {
+        Ensure();
+        runner.StartCoroutine(Flash(at, 1.1f, 0.6f, new Color(0.75f, 0.78f, 0.85f, 0.45f)));
+    }
+
     static void Ensure()
     {
         if (runner == null) runner = new GameObject("~TeleportFx").AddComponent<TeleportFx>();

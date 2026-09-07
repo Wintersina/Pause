@@ -14,6 +14,14 @@ public class movePlayer : MonoBehaviour
     private bool playoneshot;
     private bool teleported;
 
+    [Header("Teleport")]
+    [Tooltip("Minimum gap between teleports once the player is out of pauses. " +
+             "While they still have pauses in hand there is no cooldown -- the " +
+             "pause itself is the cost.")]
+    public float teleportCooldown = 1f;
+
+    private float nextTeleportAt;
+
     void Start()
     {
         teleported = false;
@@ -76,7 +84,7 @@ public class movePlayer : MonoBehaviour
                 if (teleported)
                 {
                     teleported = false;
-                    TeleportFx.Play(before, transform.position);
+                    TryTeleport(before);
                 }
             }
             else
@@ -88,6 +96,26 @@ public class movePlayer : MonoBehaviour
         else
             teleported = true;
 
+    }
+
+    // A teleport is free while the player still holds pauses -- spending one is
+    // already the cost. Once they are out, blinking across the screen was
+    // unlimited and free, so it is rate limited instead.
+    void TryTeleport(Vector3 from)
+    {
+        bool hasPauses = score.pauseCounter > 0;
+        bool ready = Time.unscaledTime >= nextTeleportAt;
+
+        if (hasPauses || ready)
+        {
+            nextTeleportAt = Time.unscaledTime + teleportCooldown;
+            TeleportFx.Play(from, transform.position);
+            return;
+        }
+
+        // On cooldown: stay put, and show why rather than just ignoring the tap.
+        transform.position = from;
+        TeleportFx.Denied(from);
     }
 
     // will move the player left and right baised on touch positions.

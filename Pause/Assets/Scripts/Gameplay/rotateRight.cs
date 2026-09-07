@@ -4,6 +4,12 @@ using UnityEngine.SceneManagement;
 
 public class rotateRight : MonoBehaviour {
 
+    [Header("Hangar departure")]
+    [Tooltip("World units per second while a selected ship slides into its launch lane.")]
+    public float checkoutSpeed = 4.5f;
+    [Tooltip("World units per second while the ship burns out of the dock.")]
+    public float launchSpeed = 10f;
+
     private GameObject[] Targets = new GameObject[shopingShips.shipTotal];
     private GameObject[] startingPoss = new GameObject[shopingShips.shipTotal];
     private static bool[] checkedOut = new bool[shopingShips.shipTotal];
@@ -59,7 +65,8 @@ public class rotateRight : MonoBehaviour {
             {
                 shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(
                     shopingShips.ships[shipSelected].transform.position,
-                    Targets[shipSelected].transform.position, .03f);
+                    Targets[shipSelected].transform.position,
+                    checkoutSpeed * Time.unscaledDeltaTime);
             }
 
             // Find whatever ship was checked out and return it to its position
@@ -70,7 +77,8 @@ public class rotateRight : MonoBehaviour {
 
                 shopingShips.ships[k].transform.position = Vector3.MoveTowards(
                     shopingShips.ships[k].transform.position,
-                    startingPoss[k].transform.position, .03f);
+                    startingPoss[k].transform.position,
+                    checkoutSpeed * Time.unscaledDeltaTime);
             }
         }
         // Unscaled: this is a transition timer, and the game scene leaves
@@ -89,7 +97,8 @@ public class rotateRight : MonoBehaviour {
                 {
                     shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(
                         shopingShips.ships[shipSelected].transform.position,
-                        pad.transform.position, .1f);
+                        pad.transform.position,
+                        launchSpeed * Time.unscaledDeltaTime);
                 }
             }
         }

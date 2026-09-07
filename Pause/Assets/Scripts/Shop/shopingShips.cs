@@ -57,6 +57,9 @@ public class shopingShips : MonoBehaviour {
 
         updateStarDustLabel();
 
+        var dustCanvas = SceneUtil.FindAny("StarDustCanvas");
+        if (dustCanvas != null) dustCanvas.SetActive(true);
+
         buttonCanvis = SceneUtil.FindAny("Canvas");
         if (buttonCanvis != null) buttonCanvis.SetActive(true);
         popUpCanvis = SceneUtil.FindAny("PopUpCanvas");
@@ -223,7 +226,7 @@ public class shopingShips : MonoBehaviour {
     void updateStarDustLabel()
     {
         if (starDust == null) return;
-        starDust.text = "Star Dust: " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
+        starDust.text = "✦  STAR DUST   " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
     }
 
     // Fills the confirm panel's preview.

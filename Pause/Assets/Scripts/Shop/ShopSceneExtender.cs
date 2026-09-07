@@ -19,17 +19,17 @@ public class ShopSceneExtender : MonoBehaviour
     // face markers sit one unit further out than their ship.
     // Camera is orthographic size 5, so the view is y in [-5, 5] and about
     // x in [-2.8, 2.8] on a portrait phone. Seven ships sit in two columns.
-    const float ColumnX = 1.15f;
-    const float FaceX = 2.30f;
-    const float TopY = 3.15f;
-    const float RowStep = 1.55f;
+    const float ColumnX = 1.08f;
+    const float FaceX = 2.42f;
+    const float TopY = 2.80f;
+    const float RowStep = 1.34f;
 
     // Authored previews are hand-scaled so every hull ends up roughly this tall
     // in world units, regardless of how large its source texture is -- Darkwing
     // is 15401px wide and sits at scale 0.03, Proteus is 400px at scale 0.60.
     // Generated ships are normalised to the same visual size instead of being
     // left at scale 1, which is why they towered over the rest.
-    const float TargetHullHeight = 0.72f;
+    const float TargetHullHeight = 0.58f;
 
     public static Vector3 ShipSlot(int i)
     {
@@ -51,13 +51,24 @@ public class ShopSceneExtender : MonoBehaviour
         var canvas = SceneUtil.FindAny("Canvas");
         var templateButton = SceneUtil.FindAny("Button3");
 
+        // This canvas was authored inactive, which made the only currency
+        // readout disappear even though shopingShips was correctly updating it.
+        var dustCanvas = SceneUtil.FindAny("StarDustCanvas");
+        if (dustCanvas != null) dustCanvas.SetActive(true);
+
         for (int i = 1; i < total; i++)
         {
             EnsureMarker("face" + i, FaceSlot(i));
             EnsureMarker("return" + i, ShipSlot(i));
             EnsureShip(i);
             EnsureButton(i, canvas, templateButton);
+            EnsureDockBay(i);
         }
+
+        // Launch lanes must extend beyond the dock, rather than steering a
+        // selected ship back toward the middle before it exits the screen.
+        EnsureMarker("LiftOffLeft", new Vector3(-FaceX, 6.6f, 0f));
+        EnsureMarker("LiftOffRight", new Vector3(FaceX, 6.6f, 0f));
     }
 
     // face/return are pure position markers; rotateRight only reads .position.
@@ -65,9 +76,9 @@ public class ShopSceneExtender : MonoBehaviour
     {
         var go = SceneUtil.FindAny(name);
         if (go == null) go = new GameObject(name);
-        // Markers authored as UI RectTransforms keep their own placement.
-        if (go.transform is RectTransform) return;
-        go.transform.position = pos;
+        var rect = go.transform as RectTransform;
+        if (rect != null) rect.anchoredPosition = new Vector2(pos.x, pos.y);
+        else go.transform.position = pos;
     }
 
     static void EnsureShip(int index)
@@ -130,13 +141,69 @@ public class ShopSceneExtender : MonoBehaviour
     static void EnsureBoost(GameObject ship, int index)
     {
         foreach (Transform c in ship.transform)
-            if (c.name.StartsWith("Boost")) return;
+            if (c.name.StartsWith("Boost"))
+            {
+                PopulateBoost(c.gameObject);
+                return;
+            }
 
         var boost = new GameObject("Boost" + index);
         boost.transform.SetParent(ship.transform, false);
-        boost.transform.localPosition = new Vector3(0f, -0.6f, 0f);
-        boost.AddComponent<SpriteRenderer>().sortingOrder = 4;
+        boost.transform.localPosition = new Vector3(0f, -0.48f, 0f);
+        PopulateBoost(boost);
         boost.SetActive(false);
+    }
+
+    static void PopulateBoost(GameObject boost)
+    {
+        boost.tag = "boost";
+        var sr = boost.GetComponent<SpriteRenderer>();
+        if (sr == null) sr = boost.AddComponent<SpriteRenderer>();
+        if (sr.sprite == null)
+            sr.sprite = Resources.Load<Sprite>("Prefabs/Vfx/vfx_flare_01");
+        sr.sortingOrder = 4;
+        boost.transform.localScale = Vector3.one * 0.30f;
+    }
+
+    // The old shop was a bare starfield. These bay plates and neon guide rails
+    // give every parked ship a place in the hangar and make the two launch
+    // directions instantly legible without requiring scene art edits.
+    static readonly Color DockPlate = new Color(0.035f, 0.06f, 0.11f, 0.86f);
+    static readonly Color DockCyan = new Color(0.18f, 0.88f, 1f, 0.78f);
+    static readonly Color DockPink = new Color(1f, 0.22f, 0.65f, 0.68f);
+
+    static void EnsureDockBay(int index)
+    {
+        var root = SceneUtil.FindAny("~DockBay" + index);
+        if (root == null) root = new GameObject("~DockBay" + index);
+        root.transform.position = ShipSlot(index) + new Vector3(0f, -0.04f, 0.2f);
+
+        EnsureDockPiece(root.transform, "Plate", Vector3.zero,
+                        new Vector2(2.22f, 0.86f), DockPlate, 1);
+        EnsureDockPiece(root.transform, "TopRail", new Vector3(0f, 0.41f),
+                        new Vector2(2.16f, 0.035f), DockCyan, 2);
+        EnsureDockPiece(root.transform, "BottomRail", new Vector3(0f, -0.41f),
+                        new Vector2(2.16f, 0.035f), DockPink, 2);
+        EnsureDockPiece(root.transform, "CenterGuide", new Vector3(0f, -0.27f),
+                        new Vector2(0.42f, 0.025f), DockCyan, 2);
+    }
+
+    static void EnsureDockPiece(Transform parent, string name, Vector3 localPos,
+                                Vector2 size, Color color, int order)
+    {
+        var t = parent.Find(name);
+        GameObject go = t != null ? t.gameObject : new GameObject(name);
+        if (t == null) go.transform.SetParent(parent, false);
+        go.transform.localPosition = localPos;
+        var sr = go.GetComponent<SpriteRenderer>();
+        if (sr == null) sr = go.AddComponent<SpriteRenderer>();
+        if (sr.sprite == null)
+            sr.sprite = Sprite.Create(Texture2D.whiteTexture,
+                                      new Rect(0, 0, 1, 1),
+                                      new Vector2(0.5f, 0.5f), 1f);
+        sr.color = color;
+        sr.sortingOrder = order;
+        go.transform.localScale = new Vector3(size.x, size.y, 1f);
     }
 
     static void EnsureButton(int index, GameObject canvas, GameObject template)
@@ -211,5 +278,27 @@ public class ShopSceneExtender : MonoBehaviour
     {
         if (scene.name != "shopS6") return;
         ShopSceneExtender.Build();
+    }
+}
+
+// The method above was left orphaned during the dock refactor: Unity never
+// called it, so the scene remained its old four-ship shell. Register once at
+// process start and build before the scene's Start() methods query the ships.
+public static class ShopSceneBootstrap
+{
+    [RuntimeInitializeOnLoadMethod]
+    static void Init()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        // Also support opening shopS6 directly in the editor or as a build's
+        // first scene; AfterSceneLoad registration would otherwise miss it.
+        if (SceneManager.GetActiveScene().name == "shopS6")
+            ShopSceneExtender.Build();
+    }
+
+    static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "shopS6") ShopSceneExtender.Build();
     }
 }
