@@ -97,19 +97,32 @@ public static class ShopTest
             Check("ship" + i + " flies " + d.ToString("F2") + "u out of its parking spot", d > 0.4f);
         }
 
-        // every button must sit inside the visible canvas or it cannot be tapped
-        var scaler = SceneUtil.FindAny("Canvas").GetComponent<UnityEngine.UI.CanvasScaler>();
-        float halfH = scaler.referenceResolution.y * 0.5f;
-        float halfW = scaler.referenceResolution.x * 0.5f;
+        // Buttons are pinned under their ship at runtime by ShopButtonAligner,
+        // so their authored anchors mean nothing -- what matters is that the
+        // aligner is present and pointed at the right ship, and that the ship
+        // itself is inside the camera's view.
+        var cam = Object.FindFirstObjectByType<Camera>();
+        float halfHeight = cam.orthographicSize;
+        float halfWidth = halfHeight * (9f / 16f);   // portrait-locked
+
         for (int i = 1; i < total; i++)
         {
             var b = SceneUtil.FindAny("Button" + i);
             if (b == null) continue;
-            var rt = b.GetComponent<RectTransform>();
-            var p = rt.anchoredPosition;
-            var half = rt.sizeDelta * 0.5f;
-            bool inside = Mathf.Abs(p.y) + half.y <= halfH && Mathf.Abs(p.x) + half.x <= halfW;
-            Check("Button" + i + " at y=" + p.y + " is inside the canvas", inside);
+
+            var aligner = b.GetComponent<ShopButtonAligner>();
+            Check("Button" + i + " follows its ship", aligner != null && aligner.shipIndex == i);
+
+            var label = b.GetComponentInChildren<UnityEngine.UI.Text>(true);
+            Check("Button" + i + " has a label", label != null);
+            if (label != null)
+                Check("Button" + i + " label is not best-fit inflated", !label.resizeTextForBestFit);
+
+            var ship = SceneUtil.FindAny("ship" + i);
+            if (ship == null) continue;
+            var p = ship.transform.position;
+            Check("ship" + i + " sits inside the camera view",
+                  Mathf.Abs(p.x) < halfWidth && Mathf.Abs(p.y) < halfHeight);
         }
 
         // no two ships stacked on the same slot

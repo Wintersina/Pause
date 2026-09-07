@@ -17,17 +17,19 @@ public class ShopSceneExtender : MonoBehaviour
     //   ship1 (-0.5, 3)  ship2 (0.5, 3)
     //   ship3 (-0.5, 2)  ship4 (0.5, 2)   ...
     // face markers sit one unit further out than their ship.
-    const float ColumnX = 0.5f;
-    const float FaceX = 1.5f;
-    const float TopY = 3.0f;
-    const float RowStep = 1.0f;
+    // Camera is orthographic size 5, so the view is y in [-5, 5] and about
+    // x in [-2.8, 2.8] on a portrait phone. Seven ships sit in two columns.
+    const float ColumnX = 1.15f;
+    const float FaceX = 2.30f;
+    const float TopY = 3.15f;
+    const float RowStep = 1.55f;
 
     // Authored previews are hand-scaled so every hull ends up roughly this tall
     // in world units, regardless of how large its source texture is -- Darkwing
     // is 15401px wide and sits at scale 0.03, Proteus is 400px at scale 0.60.
     // Generated ships are normalised to the same visual size instead of being
     // left at scale 1, which is why they towered over the rest.
-    const float TargetHullHeight = 1.05f;
+    const float TargetHullHeight = 0.72f;
 
     public static Vector3 ShipSlot(int i)
     {
@@ -82,16 +84,15 @@ public class ShopSceneExtender : MonoBehaviour
         var sr = go.GetComponent<SpriteRenderer>();
         if (sr == null) sr = go.AddComponent<SpriteRenderer>();
 
-        // Only fill in art we are missing, so authored previews stay untouched.
-        bool weSuppliedTheArt = false;
-        if (sr.sprite == null)
-        {
-            var sprite = LoadShipSprite(index);
-            if (sprite != null) { sr.sprite = sprite; weSuppliedTheArt = true; }
-        }
+        // Always use the undamaged frame -- some authored previews pointed at a
+        // battle-scarred one.
+        var sprite = LoadShipSprite(index);
+        if (sprite != null) sr.sprite = sprite;
         sr.sortingOrder = 5;
 
-        if (weSuppliedTheArt) NormaliseScale(go, sr);
+        // Every hull is normalised now. The authored scales were hand-tuned for
+        // a four-ship dock and are much too large once seven have to fit.
+        NormaliseScale(go, sr);
 
         EnsureBoost(go, index);
     }
@@ -129,23 +130,6 @@ public class ShopSceneExtender : MonoBehaviour
         boost.SetActive(false);
     }
 
-    // The canvas is 800x600 anchored at its centre, so anything beyond y = +300
-    // hangs off the top. The authored rows sat at 380 and 280, which put the
-    // first four buttons partly or wholly out of reach on a 4:3 view -- they
-    // simply could not be tapped. Every button is now placed inside the safe
-    // area, and the whole grid is laid out from one formula so it stays
-    // consistent as the roster grows.
-    const float ButtonTopY = 250f;
-    const float ButtonRowStep = 100f;
-    const float ButtonColumnX = 200f;
-
-    static Vector2 ButtonSlot(int index)
-    {
-        int col = (index - 1) % 2, row = (index - 1) / 2;
-        return new Vector2(col == 0 ? -ButtonColumnX : ButtonColumnX,
-                           ButtonTopY - row * ButtonRowStep);
-    }
-
     static void EnsureButton(int index, GameObject canvas, GameObject template)
     {
         var go = SceneUtil.FindAny("Button" + index);
@@ -160,38 +144,59 @@ public class ShopSceneExtender : MonoBehaviour
         }
 
         var rt = go.GetComponent<RectTransform>();
-        if (rt != null) rt.anchoredPosition = ButtonSlot(index);
+        if (rt != null)
+        {
+            rt.sizeDelta = new Vector2(210f, 44f);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+        }
 
-        Label(go, index);
+        // Tap targets sit over the ships, so the plate itself stays subtle.
+        var img = go.GetComponent<Image>();
+        if (img != null)
+        {
+            img.color = new Color(0.07f, 0.09f, 0.14f, 0.55f);
+            img.raycastTarget = true;
+        }
+
+        EnsureLabel(go);
+
+        // Keep each button pinned beneath its ship at runtime, where the real
+        // screen size is known -- the world grid and the canvas do not share a
+        // coordinate space, so this cannot be baked in.
+        var aligner = go.GetComponent<ShopButtonAligner>();
+        if (aligner == null) aligner = go.AddComponent<ShopButtonAligner>();
+        aligner.shipIndex = index;
     }
 
-    // Each button states which ship it is and what it costs. Previously they
-    // were unlabelled, so the price only appeared after opening the panel.
-    static void Label(GameObject button, int index)
+    // Buttons cloned from the scene came without the authored "Select" child,
+    // so several had no text at all and showed neither name nor price.
+    static void EnsureLabel(GameObject button)
     {
-        var texts = button.GetComponentsInChildren<Text>(true);
-        if (texts == null || texts.Length == 0) return;
+        var text = button.GetComponentInChildren<Text>(true);
+        if (text == null)
+        {
+            var labelGo = new GameObject("Label", typeof(Text));
+            labelGo.transform.SetParent(button.transform, false);
+            text = labelGo.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-        string shipName = shopingShips.NameFor(index);
-        float cost = shopingShips.CostFor(index);
-        bool owned = PlayerPrefs.GetString("boughtship" + index) == "True";
+            var lrt = labelGo.GetComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero;
+            lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+        }
 
-        string price = owned ? "OWNED" : Mathf.RoundToInt(cost).ToString("N0");
-        texts[0].text = string.IsNullOrEmpty(shipName)
-            ? price
-            : shipName.ToUpperInvariant() + "   " + price;
-        texts[0].resizeTextForBestFit = true;
+        // Best-fit blew the labels up to fill the whole plate; a fixed size
+        // keeps every button reading the same.
+        text.resizeTextForBestFit = false;
+        text.fontSize = 22;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.raycastTarget = false;
     }
-}
 
-public static class ShopSceneBootstrap
-{
-    [RuntimeInitializeOnLoadMethod]
-    static void Init()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {

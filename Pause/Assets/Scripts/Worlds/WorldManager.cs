@@ -33,25 +33,25 @@ public class WorldManager : MonoBehaviour
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
             portalColor = new Color(0.55f, 0.85f, 1f),
-            speedRampPerSecond = 0.002f, maxSpeed = 0.60f,
+            speedRampPerSecond = 0.00115f, maxSpeed = 0.58f,
         },
         new WorldTheme {
             displayName = "Frost", resourceFolder = "Frost",
             musicResource = "WorldMusic/Frost",
             portalColor = new Color(0.62f, 0.92f, 1f),
-            speedRampPerSecond = 0.0024f, maxSpeed = 0.66f,
+            speedRampPerSecond = 0.00130f, maxSpeed = 0.64f,
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
             musicResource = "WorldMusic/Verdant",
             portalColor = new Color(0.60f, 1f, 0.62f),
-            speedRampPerSecond = 0.0028f, maxSpeed = 0.72f,
+            speedRampPerSecond = 0.00145f, maxSpeed = 0.70f,
         },
         new WorldTheme {
             displayName = "Ember", resourceFolder = "Ember",
             musicResource = "WorldMusic/Ember",
             portalColor = new Color(1f, 0.62f, 0.35f),
-            speedRampPerSecond = 0.0032f, maxSpeed = 0.80f,
+            speedRampPerSecond = 0.00165f, maxSpeed = 0.78f,
         },
     };
 

@@ -65,10 +65,14 @@ public class enmiesOnBoard : MonoBehaviour {
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
 
-    // The rails run just outside the playfield; mines ride them rather than
-    // drifting loose in the middle of the screen.
-    const float RailLeftX = -2.75f;
-    const float RailRightX = 2.65f;
+    // One shared lane pair for rails and the mines that ride them.
+    //
+    // These used to be -2.75 and +2.65 -- asymmetric, and far enough out that
+    // the left wall (whose inner edge sits near -2.5) covered half of whatever
+    // was on the lane. Pulled in and squared up so a rail and its mines sit
+    // fully on screen, just outside the player's own +/-2.4 reach.
+    public const float RailLeftX = -2.52f;
+    public const float RailRightX = 2.52f;
 
     void Start () {
 
@@ -317,8 +321,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
     void spawnRails()
     {
-        Vector3 left = new Vector3(-2.75f, transform.position.y, transform.rotation.z);
-        Vector3 right = new Vector3(2.65f, transform.position.y, transform.rotation.z);
+        Vector3 left = new Vector3(RailLeftX, transform.position.y, 0f);
+        Vector3 right = new Vector3(RailRightX, transform.position.y, 0f);
 
         if (Random.Range(1, 10) % 2 == 0)
             Instantiate(rails, right, transform.rotation);
