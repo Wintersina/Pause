@@ -1,97 +1,258 @@
 fileFormatVersion: 2
 guid: a975d111e2e26964e96adea20ac8cd4f
-timeCreated: 1458699027
-licenseType: Free
 TextureImporter:
-  fileIDToRecycleName:
-    21300000: explode 1_0
-    21300002: explode 1_1
-    21300004: explode 1_2
-    21300006: explode 1_3
-    21300008: explode 1_4
-    21300010: explode 1_5
-    21300012: explode 1_6
-    21300014: explode 1_7
-    21300016: explode 1_8
-    21300018: explode 1_9
-    21300020: explode 1_10
-    21300022: explode 1_11
-    21300024: explode 1_12
-    21300026: explode 1_13
-    21300028: explode 1_14
-    21300030: explode 1_15
-    21300032: explode 1_16
-    21300034: explode 1_17
-    21300036: explode 1_18
-    21300038: explode 1_19
-    21300040: explode 1_20
-    21300042: explode 1_21
-    21300044: explode 1_22
-    21300046: explode 1_23
-    21300048: explode 1_24
-    21300050: explode 1_25
-    21300052: explode 1_26
-    21300054: explode 1_27
-    21300056: explode 1_28
-    21300058: explode 1_29
-    21300060: explode 1_30
-    21300062: explode 1_31
-    21300064: explode 1_32
-    21300066: explode 1_33
-    21300068: explode 1_34
-    21300070: explode 1_35
-    21300072: explode 1_36
-    21300074: explode 1_37
-    21300076: explode 1_38
-    21300078: explode 1_39
-    21300080: explode 1_40
-    21300082: explode 1_41
-    21300084: explode 1_42
-    21300086: explode 1_43
-    21300088: explode 1_44
-    21300090: explode 1_45
-    21300092: explode 1_46
-    21300094: explode 1_47
-    21300096: explode 1_48
-    21300098: explode 1_49
-    21300100: explode 1_50
-    21300102: explode 1_51
-    21300104: explode 1_52
-    21300106: explode 1_53
-    21300108: explode 1_54
-    21300110: explode 1_55
-    21300112: explode 1_56
-    21300114: explode 1_57
-    21300116: explode 1_58
-    21300118: explode 1_59
-    21300120: explode 1_60
-    21300122: explode 1_61
-    21300124: explode 1_62
-    21300126: explode 1_63
-    21300128: explode 1_64
-    21300130: explode 1_65
-    21300132: explode 1_66
-    21300134: explode 1_67
-    21300136: explode 1_68
-    21300138: explode 1_69
-    21300140: explode 1_70
-    21300142: explode 1_71
-    21300144: explode 1_72
-    21300146: explode 1_73
-    21300148: explode 1_74
-    21300150: explode 1_75
-    21300152: explode 1_76
-    21300154: explode 1_77
-    21300156: explode 1_78
-    21300158: explode 1_79
-  serializedVersion: 2
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: explode 1_0
+  - first:
+      213: 21300002
+    second: explode 1_1
+  - first:
+      213: 21300004
+    second: explode 1_2
+  - first:
+      213: 21300006
+    second: explode 1_3
+  - first:
+      213: 21300008
+    second: explode 1_4
+  - first:
+      213: 21300010
+    second: explode 1_5
+  - first:
+      213: 21300012
+    second: explode 1_6
+  - first:
+      213: 21300014
+    second: explode 1_7
+  - first:
+      213: 21300016
+    second: explode 1_8
+  - first:
+      213: 21300018
+    second: explode 1_9
+  - first:
+      213: 21300020
+    second: explode 1_10
+  - first:
+      213: 21300022
+    second: explode 1_11
+  - first:
+      213: 21300024
+    second: explode 1_12
+  - first:
+      213: 21300026
+    second: explode 1_13
+  - first:
+      213: 21300028
+    second: explode 1_14
+  - first:
+      213: 21300030
+    second: explode 1_15
+  - first:
+      213: 21300032
+    second: explode 1_16
+  - first:
+      213: 21300034
+    second: explode 1_17
+  - first:
+      213: 21300036
+    second: explode 1_18
+  - first:
+      213: 21300038
+    second: explode 1_19
+  - first:
+      213: 21300040
+    second: explode 1_20
+  - first:
+      213: 21300042
+    second: explode 1_21
+  - first:
+      213: 21300044
+    second: explode 1_22
+  - first:
+      213: 21300046
+    second: explode 1_23
+  - first:
+      213: 21300048
+    second: explode 1_24
+  - first:
+      213: 21300050
+    second: explode 1_25
+  - first:
+      213: 21300052
+    second: explode 1_26
+  - first:
+      213: 21300054
+    second: explode 1_27
+  - first:
+      213: 21300056
+    second: explode 1_28
+  - first:
+      213: 21300058
+    second: explode 1_29
+  - first:
+      213: 21300060
+    second: explode 1_30
+  - first:
+      213: 21300062
+    second: explode 1_31
+  - first:
+      213: 21300064
+    second: explode 1_32
+  - first:
+      213: 21300066
+    second: explode 1_33
+  - first:
+      213: 21300068
+    second: explode 1_34
+  - first:
+      213: 21300070
+    second: explode 1_35
+  - first:
+      213: 21300072
+    second: explode 1_36
+  - first:
+      213: 21300074
+    second: explode 1_37
+  - first:
+      213: 21300076
+    second: explode 1_38
+  - first:
+      213: 21300078
+    second: explode 1_39
+  - first:
+      213: 21300080
+    second: explode 1_40
+  - first:
+      213: 21300082
+    second: explode 1_41
+  - first:
+      213: 21300084
+    second: explode 1_42
+  - first:
+      213: 21300086
+    second: explode 1_43
+  - first:
+      213: 21300088
+    second: explode 1_44
+  - first:
+      213: 21300090
+    second: explode 1_45
+  - first:
+      213: 21300092
+    second: explode 1_46
+  - first:
+      213: 21300094
+    second: explode 1_47
+  - first:
+      213: 21300096
+    second: explode 1_48
+  - first:
+      213: 21300098
+    second: explode 1_49
+  - first:
+      213: 21300100
+    second: explode 1_50
+  - first:
+      213: 21300102
+    second: explode 1_51
+  - first:
+      213: 21300104
+    second: explode 1_52
+  - first:
+      213: 21300106
+    second: explode 1_53
+  - first:
+      213: 21300108
+    second: explode 1_54
+  - first:
+      213: 21300110
+    second: explode 1_55
+  - first:
+      213: 21300112
+    second: explode 1_56
+  - first:
+      213: 21300114
+    second: explode 1_57
+  - first:
+      213: 21300116
+    second: explode 1_58
+  - first:
+      213: 21300118
+    second: explode 1_59
+  - first:
+      213: 21300120
+    second: explode 1_60
+  - first:
+      213: 21300122
+    second: explode 1_61
+  - first:
+      213: 21300124
+    second: explode 1_62
+  - first:
+      213: 21300126
+    second: explode 1_63
+  - first:
+      213: 21300128
+    second: explode 1_64
+  - first:
+      213: 21300130
+    second: explode 1_65
+  - first:
+      213: 21300132
+    second: explode 1_66
+  - first:
+      213: 21300134
+    second: explode 1_67
+  - first:
+      213: 21300136
+    second: explode 1_68
+  - first:
+      213: 21300138
+    second: explode 1_69
+  - first:
+      213: 21300140
+    second: explode 1_70
+  - first:
+      213: 21300142
+    second: explode 1_71
+  - first:
+      213: 21300144
+    second: explode 1_72
+  - first:
+      213: 21300146
+    second: explode 1_73
+  - first:
+      213: 21300148
+    second: explode 1_74
+  - first:
+      213: 21300150
+    second: explode 1_75
+  - first:
+      213: 21300152
+    second: explode 1_76
+  - first:
+      213: 21300154
+    second: explode 1_77
+  - first:
+      213: 21300156
+    second: explode 1_78
+  - first:
+      213: 21300158
+    second: explode 1_79
+  externalObjects: {}
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 1
+    sRGBTexture: 1
     linearTexture: 0
-    correctGamma: 0
     fadeOut: 0
     borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
     mipMapFadeDistanceStart: 1
     mipMapFadeDistanceEnd: 3
   bumpmap:
@@ -99,38 +260,110 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
-  generateCubemap: 0
+  generateCubemap: 6
   cubemapConvolution: 0
-  cubemapConvolutionSteps: 7
-  cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
   textureFormat: -2
   maxTextureSize: 2048
   textureSettings:
+    serializedVersion: 2
     filterMode: 0
     aniso: 16
-    mipBias: -1
-    wrapMode: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
-  rGBM: 0
   compressionQuality: 50
-  allowsAlphaSplitting: 0
   spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationDetail: -1
   textureType: 8
-  buildTargetSettings: []
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
+    serializedVersion: 2
     sprites:
-    - name: explode 1_0
+    - serializedVersion: 2
+      name: explode 1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -140,16 +373,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -11.5, y: 26.5}
-        - {x: -28.5, y: 19.5}
-        - {x: -28.5, y: -33.5}
-        - {x: -26.5, y: -39.5}
-        - {x: 18.5, y: -39.5}
-        - {x: 37.5, y: -18.5}
-        - {x: 37.5, y: 12.5}
-        - {x: 29.5, y: 26.5}
-    - name: explode 1_1
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02305410000000000800000000000000
+      internalID: 21300000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_1
       rect:
         serializedVersion: 2
         x: 125
@@ -159,17 +395,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -31.5, y: -23.5}
-        - {x: -24.5, y: -46.5}
-        - {x: -22.5, y: -47.5}
-        - {x: 32.5, y: -47.5}
-        - {x: 42.5, y: -38.5}
-        - {x: 42.5, y: 15.5}
-        - {x: 39.5, y: 32.5}
-        - {x: -19.5, y: 32.5}
-        - {x: -31.5, y: 21.5}
-    - name: explode 1_2
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22305410000000000800000000000000
+      internalID: 21300002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_2
       rect:
         serializedVersion: 2
         x: 250
@@ -179,18 +417,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -10.5, y: 42.5}
-        - {x: -36.5, y: 23.5}
-        - {x: -36.5, y: -15.5}
-        - {x: -35.5, y: -26.5}
-        - {x: -23.5, y: -50.5}
-        - {x: -19.5, y: -55.5}
-        - {x: 33.5, y: -55.5}
-        - {x: 55.5, y: -31.5}
-        - {x: 55.5, y: 38.5}
-        - {x: 43.5, y: 42.5}
-    - name: explode 1_3
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42305410000000000800000000000000
+      internalID: 21300004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_3
       rect:
         serializedVersion: 2
         x: 375
@@ -200,25 +439,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 41.5, y: 40.5}
-        - {x: -31.5, y: 40.5}
-        - {x: -33.5, y: 38.5}
-        - {x: -33.5, y: -32.5}
-        - {x: -22.5, y: -55.5}
-        - {x: 42.5, y: -55.5}
-        - {x: 60.5, y: -25.5}
-        - {x: 60.5, y: 20.5}
-        - {x: 54.5, y: 35.5}
-      - - {x: -7.5, y: 54.5}
-        - {x: -9.5, y: 52.5}
-        - {x: -9.5, y: 50.5}
-        - {x: -7.5, y: 48.5}
-        - {x: -5.5, y: 48.5}
-        - {x: -3.5, y: 50.5}
-        - {x: -3.5, y: 52.5}
-        - {x: -5.5, y: 54.5}
-    - name: explode 1_4
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62305410000000000800000000000000
+      internalID: 21300006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_4
       rect:
         serializedVersion: 2
         x: 514
@@ -228,20 +461,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -30.5, y: 42.5}
-        - {x: -48.5, y: 39.5}
-        - {x: -48.5, y: -33.5}
-        - {x: -29.5, y: -56.5}
-        - {x: -26.5, y: -55.5}
-        - {x: -20.5, y: -49.5}
-        - {x: -20.5, y: -47.5}
-        - {x: -17.5, y: -57.5}
-        - {x: 30.5, y: -57.5}
-        - {x: 49.5, y: -34.5}
-        - {x: 49.5, y: 0.5}
-        - {x: 39.5, y: 42.5}
-    - name: explode 1_5
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82305410000000000800000000000000
+      internalID: 21300008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_5
       rect:
         serializedVersion: 2
         x: 647
@@ -251,14 +483,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -55.5, y: 45.5}
-        - {x: -55.5, y: -54.5}
-        - {x: 31.5, y: -54.5}
-        - {x: 44.5, y: -21.5}
-        - {x: 44.5, y: 26.5}
-        - {x: 30.5, y: 45.5}
-    - name: explode 1_6
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2305410000000000800000000000000
+      internalID: 21300010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_6
       rect:
         serializedVersion: 2
         x: 780
@@ -268,30 +505,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -40.5, y: -51.5}
-        - {x: -42.5, y: -53.5}
-        - {x: -42.5, y: -56.5}
-        - {x: -41.5, y: -57.5}
-        - {x: -36.5, y: -57.5}
-        - {x: -36.5, y: -52.5}
-        - {x: -38.5, y: -51.5}
-      - - {x: -56.5, y: 42.5}
-        - {x: -58.5, y: 39.5}
-        - {x: -58.5, y: -45.5}
-        - {x: -33.5, y: -57.5}
-        - {x: 11.5, y: -57.5}
-        - {x: 39.5, y: -35.5}
-        - {x: 39.5, y: 42.5}
-      - - {x: -59.5, y: 28.5}
-        - {x: -60.5, y: 26.5}
-        - {x: -60.5, y: 23.5}
-        - {x: -58.5, y: 22.5}
-        - {x: -55.5, y: 22.5}
-        - {x: -54.5, y: 24.5}
-        - {x: -54.5, y: 27.5}
-        - {x: -56.5, y: 28.5}
-    - name: explode 1_7
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2305410000000000800000000000000
+      internalID: 21300012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_7
       rect:
         serializedVersion: 2
         x: 902
@@ -301,19 +527,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 36.5, y: 42.5}
-        - {x: -35.5, y: 42.5}
-        - {x: -54.5, y: 36.5}
-        - {x: -54.5, y: -25.5}
-        - {x: -51.5, y: -41.5}
-        - {x: -23.5, y: -57.5}
-        - {x: 5.5, y: -57.5}
-        - {x: 30.5, y: -51.5}
-        - {x: 45.5, y: -25.5}
-        - {x: 45.5, y: 24.5}
-        - {x: 42.5, y: 39.5}
-    - name: explode 1_8
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2305410000000000800000000000000
+      internalID: 21300014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_8
       rect:
         serializedVersion: 2
         x: 1027
@@ -323,14 +549,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -42.5, y: 45.5}
-        - {x: -51.5, y: 17.5}
-        - {x: -51.5, y: -44.5}
-        - {x: -18.5, y: -54.5}
-        - {x: 48.5, y: -54.5}
-        - {x: 48.5, y: 45.5}
-    - name: explode 1_9
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03305410000000000800000000000000
+      internalID: 21300016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_9
       rect:
         serializedVersion: 2
         x: 1150
@@ -340,23 +571,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 48.5, y: 3.5}
-        - {x: 52.5, y: 2.5}
-        - {x: 53.5, y: 3.5}
-        - {x: 53.5, y: 36.5}
-        - {x: 46.5, y: 45.5}
-        - {x: -44.5, y: 45.5}
-        - {x: -46.5, y: 44.5}
-        - {x: -46.5, y: -46.5}
-        - {x: -40.5, y: -54.5}
-        - {x: 35.5, y: -54.5}
-        - {x: 53.5, y: -47.5}
-        - {x: 53.5, y: -11.5}
-        - {x: 52.5, y: 0.5}
-        - {x: 47.5, y: 3.5}
-        - {x: 47.5, y: 7.5}
-    - name: explode 1_10
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23305410000000000800000000000000
+      internalID: 21300018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_10
       rect:
         serializedVersion: 2
         x: 1286
@@ -366,40 +593,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 18.5, y: -53.5}
-        - {x: 31.5, y: -53.5}
-        - {x: 38.5, y: -44.5}
-        - {x: 37.5, y: -33.5}
-        - {x: 35.5, y: -31.5}
-        - {x: 33.5, y: -31.5}
-        - {x: 39.5, y: -31.5}
-        - {x: 41.5, y: -29.5}
-        - {x: 43.5, y: -20.5}
-        - {x: 43.5, y: 14.5}
-        - {x: 41.5, y: 18.5}
-        - {x: 39.5, y: 20.5}
-        - {x: 29.5, y: 20.5}
-        - {x: 27.5, y: 18.5}
-        - {x: 25.5, y: 20.5}
-        - {x: 41.5, y: 20.5}
-        - {x: 43.5, y: 25.5}
-        - {x: 43.5, y: 34.5}
-        - {x: 28.5, y: 42.5}
-        - {x: -46.5, y: 42.5}
-        - {x: -52.5, y: 26.5}
-        - {x: -44.5, y: 26.5}
-        - {x: -42.5, y: 28.5}
-        - {x: -42.5, y: 30.5}
-        - {x: -42.5, y: 25.5}
-        - {x: -56.5, y: 17.5}
-        - {x: -56.5, y: -37.5}
-        - {x: -40.5, y: -57.5}
-        - {x: 5.5, y: -57.5}
-        - {x: 9.5, y: -55.5}
-        - {x: 13.5, y: -51.5}
-        - {x: 13.5, y: -47.5}
-    - name: explode 1_11
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43305410000000000800000000000000
+      internalID: 21300020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_11
       rect:
         serializedVersion: 2
         x: 1405
@@ -409,113 +615,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -7.5, y: -42.5}
-        - {x: -9.5, y: -44.5}
-        - {x: -9.5, y: -49.5}
-        - {x: -5.5, y: -52.5}
-        - {x: 1.5, y: -52.5}
-        - {x: 2.5, y: -50.5}
-        - {x: 2.5, y: -46.5}
-        - {x: -2.5, y: -42.5}
-      - - {x: 15.5, y: -44.5}
-        - {x: 12.5, y: -46.5}
-        - {x: 12.5, y: -51.5}
-        - {x: 14.5, y: -52.5}
-        - {x: 18.5, y: -52.5}
-        - {x: 20.5, y: -49.5}
-        - {x: 20.5, y: -44.5}
-      - - {x: 2.5, y: -44.5}
-        - {x: 2.5, y: -50.5}
-        - {x: 7.5, y: -50.5}
-        - {x: 8.5, y: -49.5}
-        - {x: 8.5, y: -44.5}
-      - - {x: 44.5, y: -30.5}
-        - {x: 33.5, y: -30.5}
-        - {x: 22.5, y: -39.5}
-        - {x: 22.5, y: -49.5}
-        - {x: 23.5, y: -50.5}
-        - {x: 33.5, y: -50.5}
-        - {x: 35.5, y: -49.5}
-        - {x: 46.5, y: -38.5}
-        - {x: 46.5, y: -32.5}
-      - - {x: -29.5, y: -38.5}
-        - {x: -31.5, y: -38.5}
-        - {x: -33.5, y: -40.5}
-        - {x: -33.5, y: -42.5}
-        - {x: -29.5, y: -46.5}
-        - {x: -23.5, y: -46.5}
-        - {x: -21.5, y: -45.5}
-        - {x: -21.5, y: -42.5}
-        - {x: -22.5, y: -39.5}
-      - - {x: 13.5, y: -41.5}
-        - {x: 28.5, y: -41.5}
-        - {x: 50.5, y: -36.5}
-        - {x: 50.5, y: 20.5}
-        - {x: 43.5, y: 47.5}
-        - {x: 17.5, y: 47.5}
-        - {x: 14.5, y: 46.5}
-        - {x: 16.5, y: 43.5}
-        - {x: 3.5, y: 46.5}
-        - {x: -7.5, y: 47.5}
-        - {x: -15.5, y: 47.5}
-        - {x: -47.5, y: 22.5}
-        - {x: -47.5, y: -7.5}
-        - {x: -45.5, y: -17.5}
-        - {x: -31.5, y: -42.5}
-        - {x: 11.5, y: -42.5}
-        - {x: 12.5, y: -38.5}
-        - {x: 12.5, y: -34.5}
-        - {x: 12.5, y: -38.5}
-      - - {x: -40.5, y: -22.5}
-        - {x: -45.5, y: -28.5}
-        - {x: -45.5, y: -38.5}
-        - {x: -43.5, y: -40.5}
-        - {x: -33.5, y: -40.5}
-        - {x: -29.5, y: -32.5}
-        - {x: -29.5, y: -22.5}
-      - - {x: 40.5, y: 7.5}
-        - {x: 38.5, y: 5.5}
-        - {x: 38.5, y: 3.5}
-        - {x: 40.5, y: 1.5}
-        - {x: 42.5, y: 1.5}
-        - {x: 44.5, y: 3.5}
-        - {x: 44.5, y: 5.5}
-        - {x: 42.5, y: 7.5}
-      - - {x: 39.5, y: 21.5}
-        - {x: 36.5, y: 20.5}
-        - {x: 36.5, y: 12.5}
-        - {x: 42.5, y: 7.5}
-        - {x: 44.5, y: 7.5}
-        - {x: 48.5, y: 11.5}
-        - {x: 48.5, y: 17.5}
-        - {x: 46.5, y: 21.5}
-      - - {x: 44.5, y: 43.5}
-        - {x: 38.5, y: 43.5}
-        - {x: 36.5, y: 41.5}
-        - {x: 36.5, y: 39.5}
-        - {x: 43.5, y: 29.5}
-        - {x: 47.5, y: 29.5}
-        - {x: 48.5, y: 30.5}
-        - {x: 48.5, y: 37.5}
-        - {x: 46.5, y: 41.5}
-      - - {x: 32.5, y: 37.5}
-        - {x: 30.5, y: 35.5}
-        - {x: 30.5, y: 33.5}
-        - {x: 32.5, y: 31.5}
-        - {x: 34.5, y: 31.5}
-        - {x: 36.5, y: 33.5}
-        - {x: 36.5, y: 35.5}
-        - {x: 34.5, y: 37.5}
-      - - {x: -34.5, y: 47.5}
-        - {x: -41.5, y: 43.5}
-        - {x: -41.5, y: 37.5}
-        - {x: -29.5, y: 37.5}
-        - {x: -24.5, y: 38.5}
-        - {x: -23.5, y: 41.5}
-        - {x: -23.5, y: 45.5}
-        - {x: -27.5, y: 47.5}
-    - name: explode 1_12
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63305410000000000800000000000000
+      internalID: 21300022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_12
       rect:
         serializedVersion: 2
         x: 1541
@@ -525,144 +637,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 26.5, y: -47.5}
-        - {x: 21.5, y: -47.5}
-        - {x: 18.5, y: -50.5}
-        - {x: 18.5, y: -55.5}
-        - {x: 26.5, y: -55.5}
-        - {x: 28.5, y: -51.5}
-        - {x: 28.5, y: -48.5}
-      - - {x: 9.5, y: -34.5}
-        - {x: 7.5, y: -38.5}
-        - {x: 19.5, y: -47.5}
-        - {x: 27.5, y: -47.5}
-        - {x: 38.5, y: -34.5}
-        - {x: 38.5, y: 26.5}
-        - {x: 9.5, y: 34.5}
-        - {x: -20.5, y: 34.5}
-        - {x: -21.5, y: 32.5}
-        - {x: -21.5, y: 30.5}
-        - {x: -20.5, y: 27.5}
-        - {x: -17.5, y: 25.5}
-        - {x: -21.5, y: 28.5}
-        - {x: -27.5, y: 30.5}
-        - {x: -41.5, y: 30.5}
-        - {x: -43.5, y: 25.5}
-        - {x: -43.5, y: 20.5}
-        - {x: -36.5, y: 19.5}
-        - {x: -35.5, y: 22.5}
-        - {x: -23.5, y: 22.5}
-        - {x: -29.5, y: 22.5}
-        - {x: -36.5, y: 17.5}
-        - {x: -43.5, y: -6.5}
-        - {x: -43.5, y: -12.5}
-        - {x: -10.5, y: -47.5}
-        - {x: -2.5, y: -47.5}
-        - {x: 2.5, y: -44.5}
-        - {x: 2.5, y: -37.5}
-        - {x: 13.5, y: -32.5}
-      - - {x: 36.5, y: -41.5}
-        - {x: 34.5, y: -42.5}
-        - {x: 34.5, y: -45.5}
-        - {x: 36.5, y: -47.5}
-        - {x: 38.5, y: -47.5}
-        - {x: 40.5, y: -45.5}
-        - {x: 40.5, y: -43.5}
-        - {x: 39.5, y: -41.5}
-      - - {x: -25.5, y: -19.5}
-        - {x: -27.5, y: -19.5}
-        - {x: -23.5, y: -19.5}
-        - {x: -20.5, y: -18.5}
-        - {x: -19.5, y: -8.5}
-        - {x: -23.5, y: -7.5}
-        - {x: -33.5, y: -7.5}
-        - {x: -41.5, y: -9.5}
-        - {x: -41.5, y: -26.5}
-        - {x: -29.5, y: -45.5}
-        - {x: -20.5, y: -45.5}
-        - {x: -19.5, y: -43.5}
-        - {x: -19.5, y: -36.5}
-        - {x: -23.5, y: -21.5}
-      - - {x: -53.5, y: -23.5}
-        - {x: -50.5, y: -27.5}
-        - {x: -43.5, y: -27.5}
-        - {x: -43.5, y: -18.5}
-        - {x: -44.5, y: -13.5}
-        - {x: -52.5, y: -13.5}
-        - {x: -53.5, y: -15.5}
-      - - {x: 32.5, y: -13.5}
-        - {x: 30.5, y: -15.5}
-        - {x: 30.5, y: -17.5}
-        - {x: 32.5, y: -19.5}
-        - {x: 34.5, y: -19.5}
-        - {x: 36.5, y: -17.5}
-        - {x: 36.5, y: -15.5}
-        - {x: 34.5, y: -13.5}
-      - - {x: -45.5, y: 12.5}
-        - {x: -49.5, y: 6.5}
-        - {x: -49.5, y: -5.5}
-        - {x: -46.5, y: -11.5}
-        - {x: -40.5, y: -11.5}
-        - {x: -39.5, y: -10.5}
-        - {x: -39.5, y: 10.5}
-        - {x: -41.5, y: 12.5}
-      - - {x: 40.5, y: -3.5}
-        - {x: 38.5, y: -5.5}
-        - {x: 38.5, y: -7.5}
-        - {x: 40.5, y: -9.5}
-        - {x: 42.5, y: -9.5}
-        - {x: 44.5, y: -7.5}
-        - {x: 44.5, y: -5.5}
-        - {x: 42.5, y: -3.5}
-      - - {x: 40.5, y: 16.5}
-        - {x: 38.5, y: 14.5}
-        - {x: 38.5, y: 10.5}
-        - {x: 40.5, y: 8.5}
-        - {x: 42.5, y: 8.5}
-        - {x: 44.5, y: 10.5}
-        - {x: 44.5, y: 14.5}
-        - {x: 42.5, y: 16.5}
-      - - {x: -53.5, y: 16.5}
-        - {x: -55.5, y: 15.5}
-        - {x: -55.5, y: 12.5}
-        - {x: -54.5, y: 10.5}
-        - {x: -49.5, y: 10.5}
-        - {x: -47.5, y: 11.5}
-        - {x: -47.5, y: 14.5}
-        - {x: -48.5, y: 16.5}
-      - - {x: -31.5, y: 36.5}
-        - {x: -33.5, y: 35.5}
-        - {x: -33.5, y: 32.5}
-        - {x: -32.5, y: 30.5}
-        - {x: -27.5, y: 30.5}
-        - {x: -25.5, y: 32.5}
-        - {x: -25.5, y: 34.5}
-        - {x: -27.5, y: 36.5}
-      - - {x: -7.5, y: 44.5}
-        - {x: -9.5, y: 43.5}
-        - {x: -9.5, y: 34.5}
-        - {x: -0.5, y: 34.5}
-        - {x: 2.5, y: 35.5}
-        - {x: 2.5, y: 42.5}
-        - {x: -1.5, y: 44.5}
-      - - {x: 19.5, y: 44.5}
-        - {x: 18.5, y: 42.5}
-        - {x: 18.5, y: 38.5}
-        - {x: 22.5, y: 36.5}
-        - {x: 27.5, y: 36.5}
-        - {x: 28.5, y: 38.5}
-        - {x: 28.5, y: 42.5}
-        - {x: 24.5, y: 44.5}
-      - - {x: -17.5, y: 44.5}
-        - {x: -19.5, y: 42.5}
-        - {x: -19.5, y: 40.5}
-        - {x: -17.5, y: 38.5}
-        - {x: -15.5, y: 38.5}
-        - {x: -13.5, y: 40.5}
-        - {x: -13.5, y: 42.5}
-        - {x: -15.5, y: 44.5}
-    - name: explode 1_13
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83305410000000000800000000000000
+      internalID: 21300024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_13
       rect:
         serializedVersion: 2
         x: 1661
@@ -672,88 +659,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 32.5, y: -35.5}
-        - {x: 26.5, y: -38.5}
-        - {x: 26.5, y: -45.5}
-        - {x: 38.5, y: -45.5}
-        - {x: 38.5, y: -35.5}
-      - - {x: -21.5, y: -7.5}
-        - {x: -27.5, y: -7.5}
-        - {x: -33.5, y: -15.5}
-        - {x: -33.5, y: -20.5}
-        - {x: -27.5, y: -35.5}
-        - {x: -24.5, y: -39.5}
-        - {x: -18.5, y: -39.5}
-        - {x: -17.5, y: -36.5}
-        - {x: -17.5, y: -14.5}
-        - {x: -19.5, y: -9.5}
-      - - {x: 15.5, y: -34.5}
-        - {x: 21.5, y: -32.5}
-        - {x: 38.5, y: -22.5}
-        - {x: 50.5, y: -8.5}
-        - {x: 50.5, y: 2.5}
-        - {x: 36.5, y: 26.5}
-        - {x: 21.5, y: 32.5}
-        - {x: -29.5, y: 32.5}
-        - {x: -31.5, y: 31.5}
-        - {x: -31.5, y: 24.5}
-        - {x: -26.5, y: 23.5}
-        - {x: -31.5, y: 9.5}
-        - {x: -31.5, y: 0.5}
-        - {x: -30.5, y: -8.5}
-        - {x: -9.5, y: -37.5}
-        - {x: 10.5, y: -37.5}
-        - {x: 14.5, y: -33.5}
-        - {x: 14.5, y: -31.5}
-      - - {x: 32.5, y: -27.5}
-        - {x: 30.5, y: -29.5}
-        - {x: 30.5, y: -31.5}
-        - {x: 34.5, y: -35.5}
-        - {x: 36.5, y: -35.5}
-        - {x: 38.5, y: -33.5}
-        - {x: 38.5, y: -31.5}
-        - {x: 34.5, y: -27.5}
-      - - {x: 36.5, y: -23.5}
-        - {x: 36.5, y: -28.5}
-        - {x: 44.5, y: -35.5}
-        - {x: 47.5, y: -35.5}
-        - {x: 48.5, y: -33.5}
-        - {x: 48.5, y: -28.5}
-        - {x: 41.5, y: -23.5}
-      - - {x: 32.5, y: -19.5}
-        - {x: 30.5, y: -21.5}
-        - {x: 30.5, y: -23.5}
-        - {x: 32.5, y: -25.5}
-        - {x: 34.5, y: -25.5}
-        - {x: 36.5, y: -23.5}
-        - {x: 36.5, y: -21.5}
-        - {x: 34.5, y: -19.5}
-      - - {x: -40.5, y: 8.5}
-        - {x: -43.5, y: 2.5}
-        - {x: -43.5, y: -3.5}
-        - {x: -39.5, y: -9.5}
-        - {x: -35.5, y: -9.5}
-        - {x: -32.5, y: -8.5}
-        - {x: -31.5, y: -2.5}
-        - {x: -31.5, y: 8.5}
-      - - {x: 38.5, y: 12.5}
-        - {x: 31.5, y: 11.5}
-        - {x: 30.5, y: 8.5}
-        - {x: 30.5, y: 3.5}
-        - {x: 37.5, y: -1.5}
-        - {x: 40.5, y: -1.5}
-        - {x: 44.5, y: 2.5}
-        - {x: 44.5, y: 8.5}
-        - {x: 40.5, y: 12.5}
-      - - {x: 5.5, y: 30.5}
-        - {x: 2.5, y: 26.5}
-        - {x: 2.5, y: 21.5}
-        - {x: 3.5, y: 20.5}
-        - {x: 8.5, y: 20.5}
-        - {x: 10.5, y: 22.5}
-        - {x: 10.5, y: 30.5}
-    - name: explode 1_14
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3305410000000000800000000000000
+      internalID: 21300026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_14
       rect:
         serializedVersion: 2
         x: 1802
@@ -763,123 +681,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 20.5, y: -39.5}
-        - {x: 15.5, y: -42.5}
-        - {x: 15.5, y: -47.5}
-        - {x: 25.5, y: -47.5}
-        - {x: 25.5, y: -40.5}
-        - {x: 23.5, y: -39.5}
-      - - {x: 12.5, y: 3.5}
-        - {x: 7.5, y: 2.5}
-        - {x: 5.5, y: 0.5}
-        - {x: 5.5, y: -1.5}
-        - {x: 9.5, y: -7.5}
-        - {x: -2.5, y: -11.5}
-        - {x: -4.5, y: -13.5}
-        - {x: -6.5, y: -13.5}
-        - {x: -0.5, y: -9.5}
-        - {x: 3.5, y: -7.5}
-        - {x: 5.5, y: -5.5}
-        - {x: 5.5, y: 0.5}
-        - {x: 10.5, y: 7.5}
-        - {x: 13.5, y: 7.5}
-        - {x: 17.5, y: 9.5}
-        - {x: 17.5, y: 22.5}
-        - {x: -4.5, y: 22.5}
-        - {x: -20.5, y: 10.5}
-        - {x: -24.5, y: 1.5}
-        - {x: -18.5, y: -1.5}
-        - {x: -16.5, y: -1.5}
-        - {x: -22.5, y: -1.5}
-        - {x: -30.5, y: -9.5}
-        - {x: -30.5, y: -21.5}
-        - {x: -27.5, y: -28.5}
-        - {x: -22.5, y: -37.5}
-        - {x: 8.5, y: -37.5}
-        - {x: 17.5, y: -23.5}
-        - {x: 17.5, y: 0.5}
-      - - {x: 27.5, y: -27.5}
-        - {x: 25.5, y: -29.5}
-        - {x: 25.5, y: -31.5}
-        - {x: 29.5, y: -35.5}
-        - {x: 31.5, y: -35.5}
-        - {x: 33.5, y: -33.5}
-        - {x: 33.5, y: -31.5}
-        - {x: 29.5, y: -27.5}
-      - - {x: -46.5, y: -7.5}
-        - {x: -50.5, y: -11.5}
-        - {x: -50.5, y: -21.5}
-        - {x: -45.5, y: -21.5}
-        - {x: -43.5, y: -20.5}
-        - {x: -40.5, y: -12.5}
-        - {x: -40.5, y: -8.5}
-        - {x: -42.5, y: -7.5}
-      - - {x: 25.5, y: -3.5}
-        - {x: 23.5, y: -5.5}
-        - {x: 23.5, y: -7.5}
-        - {x: 25.5, y: -9.5}
-        - {x: 27.5, y: -9.5}
-        - {x: 29.5, y: -7.5}
-        - {x: 29.5, y: -5.5}
-        - {x: 27.5, y: -3.5}
-      - - {x: -46.5, y: 6.5}
-        - {x: -46.5, y: -3.5}
-        - {x: -43.5, y: -7.5}
-        - {x: -34.5, y: -7.5}
-        - {x: -24.5, y: -3.5}
-        - {x: -24.5, y: 6.5}
-      - - {x: -60.5, y: 2.5}
-        - {x: -60.5, y: -5.5}
-        - {x: -56.5, y: -5.5}
-        - {x: -54.5, y: -4.5}
-        - {x: -54.5, y: 1.5}
-        - {x: -56.5, y: 2.5}
-      - - {x: 25.5, y: 6.5}
-        - {x: 25.5, y: 2.5}
-        - {x: 26.5, y: 0.5}
-        - {x: 29.5, y: 0.5}
-        - {x: 31.5, y: 1.5}
-        - {x: 31.5, y: 6.5}
-        - {x: 29.5, y: 8.5}
-        - {x: 27.5, y: 8.5}
-      - - {x: -38.5, y: 16.5}
-        - {x: -38.5, y: 6.5}
-        - {x: -30.5, y: 6.5}
-        - {x: -30.5, y: 13.5}
-        - {x: -31.5, y: 16.5}
-      - - {x: -16.5, y: 14.5}
-        - {x: -18.5, y: 12.5}
-        - {x: -18.5, y: 10.5}
-        - {x: -16.5, y: 8.5}
-        - {x: -14.5, y: 8.5}
-        - {x: -12.5, y: 10.5}
-        - {x: -12.5, y: 12.5}
-        - {x: -14.5, y: 14.5}
-      - - {x: -26.5, y: 22.5}
-        - {x: -28.5, y: 20.5}
-        - {x: -28.5, y: 18.5}
-        - {x: -26.5, y: 16.5}
-        - {x: -24.5, y: 16.5}
-        - {x: -22.5, y: 18.5}
-        - {x: -22.5, y: 20.5}
-        - {x: -24.5, y: 22.5}
-      - - {x: -17.5, y: 32.5}
-        - {x: -22.5, y: 32.5}
-        - {x: -22.5, y: 26.5}
-        - {x: -18.5, y: 20.5}
-        - {x: -10.5, y: 20.5}
-        - {x: -10.5, y: 28.5}
-        - {x: -13.5, y: 31.5}
-      - - {x: -36.5, y: 34.5}
-        - {x: -38.5, y: 33.5}
-        - {x: -38.5, y: 30.5}
-        - {x: -37.5, y: 28.5}
-        - {x: -32.5, y: 28.5}
-        - {x: -30.5, y: 30.5}
-        - {x: -30.5, y: 32.5}
-        - {x: -32.5, y: 34.5}
-    - name: explode 1_15
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3305410000000000800000000000000
+      internalID: 21300028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: explode 1_15
       rect:
         serializedVersion: 2
         x: 1919
@@ -889,108 +703,49 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -3.5, y: -29.5}
-        - {x: 0.5, y: -29.5}
-        - {x: 3.5, y: -28.5}
-        - {x: 3.5, y: -16.5}
-        - {x: -3.5, y: -9.5}
-        - {x: -7.5, y: -9.5}
-        - {x: -9.5, y: -11.5}
-        - {x: -13.5, y: -25.5}
-        - {x: -13.5, y: -32.5}
-        - {x: -10.5, y: -39.5}
-        - {x: 8.5, y: -39.5}
-        - {x: 8.5, y: -32.5}
-        - {x: 4.5, y: -29.5}
-      - - {x: 12.5, y: -21.5}
-        - {x: 10.5, y: -23.5}
-        - {x: 10.5, y: -25.5}
-        - {x: 12.5, y: -27.5}
-        - {x: 16.5, y: -27.5}
-        - {x: 18.5, y: -25.5}
-        - {x: 18.5, y: -23.5}
-        - {x: 16.5, y: -21.5}
-      - - {x: 12.5, y: -13.5}
-        - {x: 10.5, y: -15.5}
-        - {x: 10.5, y: -17.5}
-        - {x: 12.5, y: -19.5}
-        - {x: 14.5, y: -19.5}
-        - {x: 16.5, y: -17.5}
-        - {x: 16.5, y: -15.5}
-        - {x: 14.5, y: -13.5}
-      - - {x: 24.5, y: -13.5}
-        - {x: 22.5, y: -15.5}
-        - {x: 22.5, y: -17.5}
-        - {x: 24.5, y: -19.5}
-        - {x: 26.5, y: -19.5}
-        - {x: 28.5, y: -17.5}
-        - {x: 28.5, y: -15.5}
-        - {x: 26.5, y: -13.5}
-      - - {x: -41.5, y: -9.5}
-        - {x: -41.5, y: -17.5}
-        - {x: -37.5, y: -17.5}
-        - {x: -35.5, y: -16.5}
-        - {x: -35.5, y: -9.5}
-      - - {x: -0.5, y: 2.5}
-        - {x: -3.5, y: 1.5}
-        - {x: -3.5, y: -13.5}
-        - {x: 6.5, y: -13.5}
-        - {x: 10.5, y: -9.5}
-        - {x: 10.5, y: -2.5}
-        - {x: 7.5, y: 2.5}
-      - - {x: -22.5, y: 2.5}
-        - {x: -25.5, y: 2.5}
-        - {x: -27.5, y: 0.5}
-        - {x: -31.5, y: 2.5}
-        - {x: -34.5, y: 2.5}
-        - {x: -35.5, y: 0.5}
-        - {x: -35.5, y: -6.5}
-        - {x: -32.5, y: -9.5}
-        - {x: -27.5, y: -9.5}
-        - {x: -21.5, y: -3.5}
-        - {x: -21.5, y: 1.5}
-      - - {x: -11.5, y: -1.5}
-        - {x: -13.5, y: -3.5}
-        - {x: -13.5, y: -7.5}
-        - {x: -11.5, y: -9.5}
-        - {x: -9.5, y: -9.5}
-        - {x: -7.5, y: -7.5}
-        - {x: -7.5, y: -3.5}
-        - {x: -9.5, y: -1.5}
-      - - {x: 25.5, y: 2.5}
-        - {x: 24.5, y: 1.5}
-        - {x: 24.5, y: -4.5}
-        - {x: 25.5, y: -6.5}
-        - {x: 27.5, y: -7.5}
-        - {x: 32.5, y: -7.5}
-        - {x: 32.5, y: -0.5}
-        - {x: 28.5, y: 2.5}
-      - - {x: 4.5, y: 8.5}
-        - {x: 2.5, y: 6.5}
-        - {x: 2.5, y: 4.5}
-        - {x: 4.5, y: 2.5}
-        - {x: 6.5, y: 2.5}
-        - {x: 8.5, y: 4.5}
-        - {x: 8.5, y: 6.5}
-        - {x: 6.5, y: 8.5}
-      - - {x: 16.5, y: 22.5}
-        - {x: 8.5, y: 16.5}
-        - {x: 8.5, y: 4.5}
-        - {x: 24.5, y: 4.5}
-        - {x: 28.5, y: 5.5}
-        - {x: 28.5, y: 21.5}
-        - {x: 22.5, y: 22.5}
-      - - {x: -25.5, y: 16.5}
-        - {x: -27.5, y: 14.5}
-        - {x: -27.5, y: 12.5}
-        - {x: -25.5, y: 10.5}
-        - {x: -23.5, y: 10.5}
-        - {x: -21.5, y: 12.5}
-        - {x: -21.5, y: 14.5}
-        - {x: -23.5, y: 16.5}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3305410000000000800000000000000
+      internalID: 21300030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
-  spritePackingTag: 
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      explode 1_0: 21300000
+      explode 1_1: 21300002
+      explode 1_10: 21300020
+      explode 1_11: 21300022
+      explode 1_12: 21300024
+      explode 1_13: 21300026
+      explode 1_14: 21300028
+      explode 1_15: 21300030
+      explode 1_2: 21300004
+      explode 1_3: 21300006
+      explode 1_4: 21300008
+      explode 1_5: 21300010
+      explode 1_6: 21300012
+      explode 1_7: 21300014
+      explode 1_8: 21300016
+      explode 1_9: 21300018
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
