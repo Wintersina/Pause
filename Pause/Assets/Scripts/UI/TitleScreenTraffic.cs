@@ -28,7 +28,7 @@ public class TitleScreenTraffic : MonoBehaviour
     {
         public GameObject go;
         public Vector3 velocity;
-        public float spin;
+        public int hullIndex = -1;
         public float respawnAt;
     }
 
@@ -79,8 +79,9 @@ public class TitleScreenTraffic : MonoBehaviour
         }
         f.go.SetActive(true);
 
+        f.hullIndex = PickUnusedHullIndex(f);
         var sr = f.go.GetComponent<SpriteRenderer>();
-        sr.sprite = hulls[Random.Range(0, hulls.Length)];
+        sr.sprite = hulls[f.hullIndex];
         sr.sortingOrder = 2;
         sr.color = new Color(1f, 1f, 1f, 0.85f);
 
@@ -93,14 +94,34 @@ public class TitleScreenTraffic : MonoBehaviour
         float angle = Random.Range(0f, Mathf.PI * 2f);
         float speed = Random.Range(speedRange.x, speedRange.y);
         f.velocity = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * speed;
-        f.spin = Random.Range(-40f, 40f);
 
         f.go.transform.position = insideView
             ? new Vector3(Random.Range(MinX, MaxX), Random.Range(MinY, MaxY), 0f)
             : EdgeOppositeTo(f.velocity);
 
+        // A random heading at spawn, then held fixed -- no tumbling en
+        // route. Independent of f.velocity's direction on purpose: it reads
+        // as traffic on varied approach vectors, not every hull nose-first
+        // along its own flight path.
         f.go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
         f.respawnAt = 0f;
+    }
+
+    // No two ships in the air at once share a hull. Excludes only other
+    // *active* flyers, not this one, so a respawn is free to reuse the hull
+    // it just had rather than being forced off it for no reason.
+    int PickUnusedHullIndex(Flyer self)
+    {
+        var taken = new HashSet<int>();
+        foreach (var other in flyers)
+            if (other != self && other.go != null && other.go.activeSelf)
+                taken.Add(other.hullIndex);
+
+        if (taken.Count >= hulls.Length) return Random.Range(0, hulls.Length); // every hull already in use
+
+        int index;
+        do { index = Random.Range(0, hulls.Length); } while (taken.Contains(index));
+        return index;
     }
 
     // Enter from whichever edge the heading is coming from.
@@ -126,7 +147,6 @@ public class TitleScreenTraffic : MonoBehaviour
             }
 
             f.go.transform.position += f.velocity * Time.unscaledDeltaTime;
-            f.go.transform.Rotate(0, 0, f.spin * Time.unscaledDeltaTime);
 
             var p = f.go.transform.position;
             if (p.x < MinX - 0.6f || p.x > MaxX + 0.6f || p.y < MinY - 0.6f || p.y > MaxY + 0.6f)
