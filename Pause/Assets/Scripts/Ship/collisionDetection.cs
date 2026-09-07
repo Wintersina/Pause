@@ -80,6 +80,17 @@ public class collisionDetection : MonoBehaviour {
             score.tutorialCurrency += amount;
     }
 
+    // Shaves time off the ultimate's countdown on pickup -- a little for
+    // star dust, a lot more for an atom (blue, red or the green heal atom
+    // all count the same). No-ops outside gameS1, where there is no
+    // ShipPowerController to speed up.
+    void BoostUltimate(bool dust)
+    {
+        var power = ShipPowerController.Instance;
+        if (power == null) return;
+        power.ReduceTimer(dust ? power.secondsPerDust : power.secondsPerAtom);
+    }
+
     // The shield prefab was authored at a fixed size per ship and had drifted
     // out of sync -- one ship's bubble measured twice the world size of every
     // other ship's despite an identical padding intent. Sized here instead
@@ -332,11 +343,13 @@ public class collisionDetection : MonoBehaviour {
                 if (PrefabName.Is(hit.gameObject, "smStar1"))
             {
                 awardDust(smallStarValue);
+                BoostUltimate(dust: true);
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 awardDust(largeStarValue);
+                BoostUltimate(dust: true);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
@@ -345,15 +358,18 @@ public class collisionDetection : MonoBehaviour {
                 // sprite back up from lifeCounter on the next frame
                 if (lifeCounter > 0) lifeCounter--;
                 if (hypeText != null) hypeText.text = "REPAIRED";
+                BoostUltimate(dust: false);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
-                score.incromentPause(); 
+                score.incromentPause();
+                BoostUltimate(dust: false);
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
+                BoostUltimate(dust: false);
                 boostSound.Play();
                 // ---------------------------
                 //   Music control section!

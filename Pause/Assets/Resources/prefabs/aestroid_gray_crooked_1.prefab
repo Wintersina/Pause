@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 21231796}
   - component: {fileID: 11485424}
   - component: {fileID: 6103098}
+  - component: {fileID: 550484870765336382}
   m_Layer: 0
   m_Name: aestroid_gray_crooked_1
   m_TagString: Astr
@@ -151,3 +152,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.2624, y: 0.2624}
   m_EdgeRadius: 0
+--- !u!114 &550484870765336382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1da668df160544d87801ac8d0fdcc1b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidSpin
+  speedRange: {x: 15, y: 60}

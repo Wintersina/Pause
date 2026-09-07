@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8155122462036348639}
   - component: {fileID: 6649639114034273262}
   - component: {fileID: 7723784810513155155}
+  - component: {fileID: 6393998391985352125}
   m_Layer: 0
   m_Name: kn_meteorBrown_big1
   m_TagString: Astr
@@ -180,3 +181,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2faa2a2e916e6f24e96c59536f981f0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::moveEnimes
+--- !u!114 &6393998391985352125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044915380249474652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1da668df160544d87801ac8d0fdcc1b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidSpin
+  speedRange: {x: 10, y: 45}

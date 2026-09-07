@@ -1,21 +1,40 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 // Runs the active ship's power on a cooldown.
 //
 // Attached to the player ship at runtime by ShipPowerBootstrap, so no prefab or
 // scene wiring is needed. Everything here is Inspector-tunable.
+//
+// Used to require a second finger on screen to spend a charged power, with a
+// text readout telling the player to do that -- clunky on a one-touch game,
+// and easy to miss entirely. It now fires itself the moment it is ready, no
+// input at all, and UltimateGun gives the player something to watch coming:
+// a small weapon that slides out of the ship's left side over the last
+// second or so before it goes off. Collecting star dust or an atom shaves
+// time off the current countdown (see ReduceTimer, called from
+// collisionDetection's pickup handling), so playing well gets the ultimate
+// back faster.
 public class ShipPowerController : MonoBehaviour
 {
     [Header("Timing")]
-    [Tooltip("Seconds between activations. Only counts down while the game is " +
-             "actually running (finger down, not dead).")]
-    public float cooldownSeconds = 60f;
+    [Tooltip("The countdown is rerolled to a random point in this range every " +
+             "time the power fires, then counts down on its own -- only while " +
+             "the game is actually running (finger down, not dead) -- and " +
+             "fires itself the instant it reaches zero.")]
+    public Vector2 cooldownRange = new Vector2(30f, 60f);
 
-    [Tooltip("Cooldown before the very first activation.")]
-    public float firstChargeSeconds = 45f;
+    [Tooltip("How many seconds before firing the gun starts sliding out.")]
+    public float extendLeadSeconds = 1.2f;
+
+    [Header("Pickup timer boost")]
+    [Tooltip("Seconds shaved off the current countdown per star dust pickup collected.")]
+    public float secondsPerDust = 0.5f;
+
+    [Tooltip("Seconds shaved off the current countdown per atom collected -- " +
+             "blue, red or the green heal atom all count the same.")]
+    public float secondsPerAtom = 7f;
 
     [Header("Tuning")]
     public float laserWidth = 0.85f;
@@ -29,16 +48,29 @@ public class ShipPowerController : MonoBehaviour
     public float dilationSeconds = 4f;
     public int overchargePauses = 2;
 
+    public static ShipPowerController Instance { get; private set; }
+
     ShipPower power;
     float timer;
-    Text hudLabel;
-    float flashTimer;
+    float cooldown;
+    UltimateGun gun;
+
+    void Awake()
+    {
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     void Start()
     {
         power = ShipPowerTable.For(PlayerPrefs.GetInt("spawnShip", 0));
-        timer = firstChargeSeconds;
-        hudLabel = ShipPowerHud.Ensure();
+        cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
+        timer = cooldown;
+        gun = UltimateGun.Attach(gameObject);
     }
 
     void Update()
@@ -48,45 +80,29 @@ public class ShipPowerController : MonoBehaviour
 
         if (running && timer > 0f) timer -= Time.deltaTime;
 
-        // Charged and waiting: a second finger on the screen fires it. The
-        // first finger is already flying the ship, so this is the one spare
-        // input the game has.
-        if (running && timer <= 0f && TouchInput.SecondaryPressedThisFrame)
+        float extendTarget = timer <= extendLeadSeconds
+            ? 1f - Mathf.Clamp01(timer / Mathf.Max(0.01f, extendLeadSeconds))
+            : 0f;
+        if (gun != null) gun.Tick(extendTarget);
+
+        if (running && timer <= 0f)
         {
             Fire();
-            timer = cooldownSeconds;
+            cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
+            timer = cooldown;
         }
-
-        UpdateHud();
     }
 
-    void UpdateHud()
+    // Called from collisionDetection when the player collects star dust or
+    // an atom -- speeds up the current countdown rather than waiting it out.
+    public void ReduceTimer(float seconds)
     {
-        if (hudLabel == null) return;
-
-        if (flashTimer > 0f)
-        {
-            flashTimer -= Time.unscaledDeltaTime;
-            hudLabel.text = ShipPowerTable.DisplayName(power) + "  FIRED";
-            hudLabel.color = new Color(1f, 0.85f, 0.3f);
-            return;
-        }
-
-        if (timer <= 0f)
-        {
-            // charged: tell the player how to spend it
-            hudLabel.color = new Color(1f, 0.79f, 0.26f);
-            hudLabel.text = ShipPowerTable.DisplayName(power) + "  READY - SECOND TOUCH";
-            return;
-        }
-
-        hudLabel.color = new Color(1f, 1f, 1f, 0.6f);
-        hudLabel.text = ShipPowerTable.DisplayName(power) + "  " + Mathf.CeilToInt(timer) + "s";
+        timer = Mathf.Max(0f, timer - seconds);
     }
 
     void Fire()
     {
-        flashTimer = 2f;
+        if (gun != null) gun.Fire();
 
         switch (power)
         {
@@ -241,45 +257,6 @@ public class ShipPowerController : MonoBehaviour
 
         for (int i = 0; i < overchargePauses; i++)
             score.incromentPause();
-    }
-}
-
-// Minimal HUD readout for the power, created on demand.
-public static class ShipPowerHud
-{
-    public static Text Ensure()
-    {
-        var existing = GameObject.Find("~PowerHud");
-        if (existing != null) return existing.GetComponentInChildren<Text>();
-
-        var root = new GameObject("~PowerHud",
-            typeof(Canvas), typeof(UnityEngine.UI.CanvasScaler), typeof(GraphicRaycaster));
-        var canvas = root.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 400;
-
-        var scaler = root.GetComponent<UnityEngine.UI.CanvasScaler>();
-        scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(800, 1200);
-        scaler.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.Expand;
-
-        var textGo = new GameObject("Label", typeof(Text));
-        textGo.transform.SetParent(root.transform, false);
-
-        var text = textGo.GetComponent<Text>();
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.fontSize = 26;
-        text.alignment = TextAnchor.LowerCenter;
-        text.color = new Color(1f, 1f, 1f, 0.6f);
-
-        var rt = textGo.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0.5f, 0f);
-        rt.anchorMax = new Vector2(0.5f, 0f);
-        rt.pivot = new Vector2(0.5f, 0f);
-        rt.sizeDelta = new Vector2(600, 40);
-        rt.anchoredPosition = new Vector2(0, 96);
-
-        return text;
     }
 }
 
