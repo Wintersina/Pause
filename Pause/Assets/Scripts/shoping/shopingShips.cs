@@ -8,9 +8,10 @@ public class shopingShips : MonoBehaviour {
     //if button is clicked move ship;
     public static bool buttonIsClicked;
 
-    public static int shipTotal = 7;
+    public static int shipTotal = 8;
     public static GameObject[] ships = new GameObject[shipTotal];
     public Button[] shipButtons = new Button[shipTotal];
+    private static string[] shipNamesShared;
     private string[] shipNames = new string[shipTotal];
     private float[] shipCost = new float[shipTotal];
     
@@ -50,19 +51,15 @@ public class shopingShips : MonoBehaviour {
             shipCost = new float[shipTotal];
 
         // initilizing the names of ships
-        shipNames[0] = "non";
-        shipNames[1] = "Proteus";
-        shipNames[2] = "Amadeus";
-        shipNames[3] = "Darkwing";
-        shipNames[4] = "Cygnus";
-        shipNames[5] = "Vesper";
-        shipNames[6] = "XR7";
+        shipNamesShared = shipNames;
+        for (int i = 0; i < shipNames.Length && i < Roster.Length; i++)
+            shipNames[i] = Roster[i];
 
         updateStarDustLabel();
 
-        buttonCanvis = GameObject.Find("Canvas");
+        buttonCanvis = SceneUtil.FindAny("Canvas");
         if (buttonCanvis != null) buttonCanvis.SetActive(true);
-        popUpCanvis = GameObject.Find("PopUpCanvas");
+        popUpCanvis = SceneUtil.FindAny("PopUpCanvas");
         if (popUpCanvis != null) popUpCanvis.SetActive(false);
         notEnoughStarDustTimer = 0.0f;
 
@@ -72,9 +69,10 @@ public class shopingShips : MonoBehaviour {
         shipCost[1] = 150f;
         shipCost[2] = 400f;
         shipCost[3] = 900f;
-        shipCost[4] = 1600f;
-        shipCost[5] = 2600f;
-        shipCost[6] = 4000f;
+        shipCost[4] = 1400f;
+        shipCost[5] = 2100f;
+        shipCost[6] = 3000f;
+        shipCost[7] = 4200f;
   
 
         
@@ -97,9 +95,9 @@ public class shopingShips : MonoBehaviour {
         // called GetComponent<Button>() straight off a possibly-null Find().
         for (int i = 1; i <= ships.Length - 1; i++)
         {
-            ships[i] = GameObject.Find("ship" + i.ToString());
+            ships[i] = SceneUtil.FindAny("ship" + i.ToString());
 
-            GameObject buttonGo = GameObject.Find("Button" + i.ToString());
+            GameObject buttonGo = SceneUtil.FindAny("Button" + i.ToString());
             shipButtons[i] = buttonGo != null ? buttonGo.GetComponent<Button>() : null;
         }
         //Debug.Log(PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2"));
@@ -204,6 +202,18 @@ public class shopingShips : MonoBehaviour {
         }
     }
        
+    // Roster names, available before this component's Start() has run.
+    public static readonly string[] Roster =
+    {
+        "non", "Proteus", "Amadeus", "Darkwing", "M237", "Cygnus", "Vesper", "XR7",
+    };
+
+    public static string NameFor(int index)
+    {
+        if (index < 0 || index >= Roster.Length) return null;
+        return Roster[index];
+    }
+
     void updateStarDustLabel()
     {
         if (starDust == null) return;

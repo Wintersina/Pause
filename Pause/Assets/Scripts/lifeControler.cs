@@ -12,15 +12,9 @@ public class lifeControler : MonoBehaviour {
     // Use this for initialization
     void Start() {
 
-        // Kept in sync with shopingShips. The array is sized from
-        // shopingShips.shipTotal, so it grows with the roster.
-        shipNames[0] = "non";
-        shipNames[1] = "Proteus";
-        shipNames[2] = "Amadeus";
-        shipNames[3] = "Darkwing";
-        shipNames[4] = "Cygnus";
-        shipNames[5] = "Vesper";
-        shipNames[6] = "XR7";
+        // Single source of truth for the roster lives in shopingShips.
+        for (int i = 0; i < shipNames.Length && i < shopingShips.Roster.Length; i++)
+            shipNames[i] = shopingShips.Roster[i];
 
         spriteControl = this.gameObject.GetComponent<SpriteRenderer>();
         if (this.gameObject.name.Contains("(Clone)"))

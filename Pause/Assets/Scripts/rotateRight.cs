@@ -20,8 +20,8 @@ public class rotateRight : MonoBehaviour {
         //boost[0] = null;
         flyOffChecker = false;
         flyOffTimer = 1000;
-        liftOffLeft = GameObject.Find("LiftOffLeft");
-        liftOffRight = GameObject.Find("LiftOffRight");
+        liftOffLeft = SceneUtil.FindAny("LiftOffLeft");
+        liftOffRight = SceneUtil.FindAny("LiftOffRight");
         shipSelected = 0;
         // `boost` is serialized, so the scene may still hold an array sized for
         // the old roster. Resize before indexing.
@@ -37,10 +37,10 @@ public class rotateRight : MonoBehaviour {
         // missing object is skipped instead of throwing.
         for (int i = 1; i < shopingShips.shipTotal; i++)
         {
-            boost[i] = GameObject.Find("Boost" + i.ToString());
+            boost[i] = SceneUtil.FindAny("Boost" + i.ToString());
             if (boost[i] != null) boost[i].SetActive(false);
-            startingPoss[i] = GameObject.Find("return" + i.ToString());
-            Targets[i] = GameObject.Find("face" + i.ToString());
+            startingPoss[i] = SceneUtil.FindAny("return" + i.ToString());
+            Targets[i] = SceneUtil.FindAny("face" + i.ToString());
             checkedOut[i] = false;
         }
         

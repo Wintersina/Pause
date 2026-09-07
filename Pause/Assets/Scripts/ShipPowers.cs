@@ -16,9 +16,10 @@ public enum ShipPower
     Missiles,     // ship 1  Proteus  - homes on the nearest few targets
     Shockwave,    // ship 2  Amadeus  - clears everything close by
     Cloak,        // ship 3  Darkwing - brief invulnerability
-    Magnet,       // ship 4  Cygnus   - pulls pickups toward the ship
-    TimeDilation, // ship 5  Vesper   - slows the world for a moment
-    Overcharge,   // ship 6  XR7      - grants extra pauses
+    Railgun,      // ship 4  M237     - clears the two neighbouring lanes
+    Magnet,       // ship 5  Cygnus   - pulls pickups toward the ship
+    TimeDilation, // ship 6  Vesper   - slows the world for a moment
+    Overcharge,   // ship 7  XR7      - grants extra pauses
 }
 
 public static class ShipPowerTable
@@ -30,6 +31,7 @@ public static class ShipPowerTable
         ShipPower.Missiles,
         ShipPower.Shockwave,
         ShipPower.Cloak,
+        ShipPower.Railgun,
         ShipPower.Magnet,
         ShipPower.TimeDilation,
         ShipPower.Overcharge,
@@ -49,6 +51,7 @@ public static class ShipPowerTable
             case ShipPower.Missiles:     return "SWARM MISSILES";
             case ShipPower.Shockwave:    return "SHOCKWAVE";
             case ShipPower.Cloak:        return "PHASE CLOAK";
+            case ShipPower.Railgun:      return "RAILGUN";
             case ShipPower.Magnet:       return "TRACTOR FIELD";
             case ShipPower.TimeDilation: return "TIME DILATION";
             case ShipPower.Overcharge:   return "OVERCHARGE";
@@ -64,6 +67,7 @@ public static class ShipPowerTable
             case ShipPower.Missiles:     return "Launches homing missiles at nearby targets.";
             case ShipPower.Shockwave:    return "Clears everything around the ship.";
             case ShipPower.Cloak:        return "Briefly phases out of danger.";
+            case ShipPower.Railgun:      return "Clears the lanes either side of you.";
             case ShipPower.Magnet:       return "Pulls nearby pickups toward you.";
             case ShipPower.TimeDilation: return "Slows the world down for a moment.";
             case ShipPower.Overcharge:   return "Restores extra pauses.";
