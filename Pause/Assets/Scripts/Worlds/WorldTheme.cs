@@ -37,4 +37,10 @@ public class WorldTheme
     public float speedRampPerSecond = 0.002f;
 
     public float maxSpeed = 0.6f;
+
+    [Tooltip("Multiplies elapsed flight time before enmiesOnBoard checks its " +
+             "phase thresholds. 1 is Space's own pace; later worlds set this " +
+             "higher so enemy density keeps escalating faster than earlier " +
+             "planets, independent of (and continuing past) the speed cap above.")]
+    public float enemyRampScale = 1f;
 }

@@ -17,11 +17,17 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         public string name = "Phase";
 
-        [Tooltip("This phase is active while speed is below this value. The last phase is the catch-all.")]
-        public float speedBelow = 0.2f;
+        [Tooltip("This phase activates once this many seconds of active flight have " +
+                 "passed in the current level (elapsedFlightSeconds * phaseRampScale). " +
+                 "The last phase is the catch-all for everything after.")]
+        public float activeAfterSeconds = 0f;
 
         [Header("Enemy types in play")]
         public bool rails = true;
+        public bool mines;
+        [Tooltip("Enters from below the board and closes in on the player for a few " +
+                 "seconds before settling into a passive drift. See ChaserEnemy.")]
+        public bool chasers;
         [Tooltip("Extra enemy ships and meteors drawn from Resources/Prefabs/" +
                  "Enemies. Lets later phases field hardware the early ones never see.")]
         public bool extraEnemies;
@@ -34,6 +40,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
         [Header("Seconds between spawns (min, max)")]
         public Vector2 railInterval = new Vector2(0.6f, 1.0f);
+        public Vector2 mineInterval = new Vector2(6f, 10f);
+        public Vector2 chaserInterval = new Vector2(7f, 11f);
         public Vector2 enemyInterval = new Vector2(2.5f, 5f);
         public Vector2 astroidInterval = new Vector2(2.5f, 5f);
         public Vector2 alienInterval = new Vector2(2.5f, 4f);
@@ -48,8 +56,19 @@ public class enmiesOnBoard : MonoBehaviour {
     public GameObject alien1;
     public GameObject rails;
 
+    [Tooltip("Left empty, loads Resources/Prefabs/mine at startup.")]
+    public GameObject mine;
+    [Tooltip("Left empty, loads Resources/Prefabs/Enemies/kn_enemyRed5 at startup -- " +
+             "the visual/collider base; ChaserEnemy supplies the actual behaviour.")]
+    public GameObject chaser;
+
     [Tooltip("Left empty, these load from Resources/Prefabs/Enemies at startup.")]
     public GameObject[] extraEnemyPrefabs;
+
+    [Tooltip("Multiplies elapsed flight time before checking phase thresholds -- set " +
+             "per world by WorldManager so later planets escalate through the phases " +
+             "faster than earlier ones, independent of the speed cap.")]
+    public float phaseRampScale = 1f;
 
     public SpawnPhase[] phases;
 
@@ -61,6 +80,15 @@ public class enmiesOnBoard : MonoBehaviour {
     private float bigAstroidDelayTimer;
     private float spawnAnimatedEnimeOneDelayTimer;
     private float extraEnemyDelayTimer;
+    private float mineDelayTimer;
+    private float chaserDelayTimer;
+
+    // Drives SelectPhase() -- only accumulates while actually flying, so a
+    // level's difficulty escalation can't be dodged by never letting go of
+    // the (finger-down) touch, and continues climbing even after
+    // moveBackGround.speed has hit its per-world cap, unlike the old speed-
+    // keyed phases, which flattened out completely once speed stopped rising.
+    private float elapsedFlightSeconds;
 
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
@@ -83,8 +111,15 @@ public class enmiesOnBoard : MonoBehaviour {
         if (extraEnemyPrefabs == null || extraEnemyPrefabs.Length == 0)
             extraEnemyPrefabs = Resources.LoadAll<GameObject>("Prefabs/Enemies");
 
+        // Neither lives in that folder scan: mine.prefab sits one level up
+        // (Resources/Prefabs, not Resources/Prefabs/Enemies), and the chaser
+        // reuses an existing enemy hull rather than needing new art.
+        if (mine == null) mine = Resources.Load<GameObject>("Prefabs/mine");
+        if (chaser == null) chaser = Resources.Load<GameObject>("Prefabs/Enemies/kn_enemyRed5");
+
         phase = phases[0];
         astroidSelector = 0;
+        elapsedFlightSeconds = 0f;
 
         // staggered so the board does not fill up the instant the run starts
         railDelayTimer = 3f;
@@ -95,49 +130,60 @@ public class enmiesOnBoard : MonoBehaviour {
         bigAstroidDelayTimer = 21f;
         spawnAnimatedEnimeOneDelayTimer = 6f;
         extraEnemyDelayTimer = 24f;
+        mineDelayTimer = 10f;
+        chaserDelayTimer = 20f;
     }
 
     // Escalating mix: each phase adds a type rather than just reskinning.
+    // Thresholds are tuned against a 300s (5 minute) level at phaseRampScale
+    // 1 -- Space's own scale, the baseline every other world ramps faster
+    // than -- leaving the last ~80s of a run in full Chaos.
     static SpawnPhase[] DefaultPhases()
     {
         return new[]
         {
             new SpawnPhase {
-                name = "Warm-up", speedBelow = 0.2f,
+                name = "Warm-up", activeAfterSeconds = 0f,
                 rails = true, bigEnemy = true,
                 railInterval = new Vector2(0.8f, 1.2f),
                 enemyInterval = new Vector2(3.5f, 5f),
             },
             new SpawnPhase {
-                name = "Debris", speedBelow = 0.3f,
-                rails = true, bigEnemy = true, smallEnemy = true, midAstroid = true,
+                name = "Debris", activeAfterSeconds = 35f,
+                rails = true, mines = true, bigEnemy = true, smallEnemy = true, midAstroid = true,
                 railInterval = new Vector2(0.7f, 1.1f),
+                mineInterval = new Vector2(7f, 11f),
                 enemyInterval = new Vector2(2.5f, 4.5f),
                 astroidInterval = new Vector2(3f, 5f),
             },
             new SpawnPhase {
-                name = "Asteroid field", extraEnemies = true, speedBelow = 0.4f,
-                rails = true, bigEnemy = true, smallEnemy = true,
+                name = "Asteroid field", extraEnemies = true, activeAfterSeconds = 80f,
+                rails = true, mines = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, aliens = true,
                 railInterval = new Vector2(0.6f, 1f),
+                mineInterval = new Vector2(6f, 10f),
                 enemyInterval = new Vector2(2f, 3.5f),
                 astroidInterval = new Vector2(2f, 4f),
                 alienInterval = new Vector2(3f, 4.5f),
             },
             new SpawnPhase {
-                name = "Swarm", extraEnemies = true, speedBelow = 0.5f,
-                rails = true, bigEnemy = true, smallEnemy = true,
+                name = "Swarm", extraEnemies = true, activeAfterSeconds = 150f,
+                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.5f, 0.9f),
+                mineInterval = new Vector2(5f, 9f),
+                chaserInterval = new Vector2(8f, 12f),
                 enemyInterval = new Vector2(1.2f, 2.5f),
                 astroidInterval = new Vector2(1.5f, 3f),
                 alienInterval = new Vector2(2f, 3.5f),
             },
             new SpawnPhase {
-                name = "Chaos", extraEnemies = true, speedBelow = float.MaxValue,
-                rails = true, bigEnemy = true, smallEnemy = true,
+                name = "Chaos", extraEnemies = true, activeAfterSeconds = 220f,
+                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.5f, 0.8f),
+                mineInterval = new Vector2(4f, 7f),
+                chaserInterval = new Vector2(6f, 9f),
                 enemyInterval = new Vector2(0.6f, 1.4f),
                 astroidInterval = new Vector2(0.8f, 1.8f),
                 alienInterval = new Vector2(1.5f, 2.5f),
@@ -146,23 +192,26 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 
     void Update () {
+        bool flying = !buttonClicks.playerDied &&
+                      (TouchInput.IsPressed || score.pauseCounter <= 0);
+        if (flying) elapsedFlightSeconds += Time.deltaTime;
+
         SelectPhase();
 
-        if (TouchInput.IsPressed && !buttonClicks.playerDied)
-        {
-            spawn();
-        }
-        else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
-        {
-            spawn();
-        }
+        if (flying) spawn();
     }
 
     void SelectPhase()
     {
-        for (int i = 0; i < phases.Length; i++)
+        float effectiveTime = elapsedFlightSeconds * Mathf.Max(0.01f, phaseRampScale);
+        // Searched from the end: elapsed time only ever grows, so the
+        // correct phase is the *latest* one whose threshold has been
+        // reached, not the first (ascending-search made sense for the old
+        // speed thresholds, which could sit still or even dip; time never
+        // does).
+        for (int i = phases.Length - 1; i >= 0; i--)
         {
-            if (moveBackGround.speed < phases[i].speedBelow || i == phases.Length - 1)
+            if (i == 0 || effectiveTime >= phases[i].activeAfterSeconds)
             {
                 phase = phases[i];
                 // prefab arrays are sized 5; keep the index in range regardless
@@ -175,15 +224,25 @@ public class enmiesOnBoard : MonoBehaviour {
 
     // Mines are rail hardware -- they belong in a rail lane, not at an
     // arbitrary x. Everything else spawns wherever it was asked to.
+    //
+    // A side is picked first and the rail search is filtered to that side --
+    // NearestLiveRail() used to match on vertical distance alone, so with
+    // both a left and a right rail on screen at once (spawnRails() alternates
+    // sides freely) a mine could be hung on whichever rail was nearest in Y
+    // regardless of which side it actually came from, landing it on the
+    // wrong lane -- reported as mines inconsistently sticking to different
+    // parts of the screen.
     Vector3 PlaceFor(GameObject prefab, float x)
     {
         pendingMineRail = null;
         if (PrefabName.Is(prefab, "mine"))
         {
-            Transform rail = NearestLiveRail();
-            // A mine can be selected by the enemy table before a rail happens
-            // to be on screen. Create its mounting rail first in that case.
-            if (rail == null) rail = SpawnRail(Random.value < 0.5f);
+            bool right = Random.value < 0.5f;
+            Transform rail = NearestLiveRail(right);
+            // A mine can be selected by the enemy table before a rail on
+            // this side happens to be on screen. Create its mounting rail
+            // first in that case.
+            if (rail == null) rail = SpawnRail(right);
             if (rail != null)
             {
                 pendingMineRail = rail;
@@ -235,18 +294,25 @@ public class enmiesOnBoard : MonoBehaviour {
         return spawned;
     }
 
-    Transform NearestLiveRail()
+    // right: only rails on the positive-x side are considered a match, so a
+    // mine can never end up mounted to the opposite lane from the one it was
+    // meant for.
+    Transform NearestLiveRail(bool right)
     {
         for (int i = liveRails.Count - 1; i >= 0; i--)
             if (liveRails[i] == null) liveRails.RemoveAt(i);
         if (liveRails.Count == 0) return null;
 
-        // Prefer the rail closest in vertical travel to this spawn point. Its
-        // x is nevertheless taken directly from that rail's transform.
-        Transform best = liveRails[0];
-        float bestDistance = Mathf.Abs(best.position.y - transform.position.y);
-        for (int i = 1; i < liveRails.Count; i++)
+        // Prefer the rail closest in vertical travel to this spawn point,
+        // among those on the requested side. Its x is nevertheless taken
+        // directly from that rail's transform.
+        Transform best = null;
+        float bestDistance = float.MaxValue;
+        for (int i = 0; i < liveRails.Count; i++)
         {
+            bool railIsRight = liveRails[i].position.x > 0f;
+            if (railIsRight != right) continue;
+
             float distance = Mathf.Abs(liveRails[i].position.y - transform.position.y);
             if (distance < bestDistance)
             {
@@ -286,8 +352,9 @@ public class enmiesOnBoard : MonoBehaviour {
             return wall.transform.position.x;
         }
         // Safety fallback for a stripped test scene. A normal game always
-        // resolves the mesh calculation above.
-        return left ? -2.5f : 2.5f;
+        // resolves the mesh calculation above; matches the authored pipe
+        // position (+/-3.21) rather than an unrelated guessed constant.
+        return left ? -3.21f : 3.21f;
     }
 
     static float Roll(Vector2 range)
@@ -305,11 +372,23 @@ public class enmiesOnBoard : MonoBehaviour {
         bigAstroidDelayTimer -= Time.deltaTime;
         spawnAnimatedEnimeOneDelayTimer -= Time.deltaTime;
         extraEnemyDelayTimer -= Time.deltaTime;
+        mineDelayTimer -= Time.deltaTime;
+        chaserDelayTimer -= Time.deltaTime;
 
         if (railDelayTimer <= 0)
         {
             if (phase.rails) spawnRails();
             railDelayTimer = Roll(phase.railInterval);
+        }
+        if (mineDelayTimer <= 0)
+        {
+            if (phase.mines) spawnMine();
+            mineDelayTimer = Roll(phase.mineInterval);
+        }
+        if (chaserDelayTimer <= 0)
+        {
+            if (phase.chasers) spawnChaser();
+            chaserDelayTimer = Roll(phase.chaserInterval);
         }
         if (smEnmDelayTimer <= 0)
         {
@@ -430,6 +509,35 @@ public class enmiesOnBoard : MonoBehaviour {
     void spawnRails()
     {
         SpawnRail(Random.Range(1, 10) % 2 == 0);
+    }
+
+    // x is ignored here -- PlaceFor() always overrides it with whichever
+    // rail the mine actually gets mounted to.
+    void spawnMine()
+    {
+        if (mine == null) return;
+        SpawnEnemy(mine, 0f);
+    }
+
+    // Enters from below the visible board (everything else scrolls in from
+    // above) and closes in on the player before settling into a passive
+    // drift -- see ChaserEnemy for the actual behaviour.
+    void spawnChaser()
+    {
+        if (chaser == null) return;
+
+        var cam = Camera.main;
+        float bottomY = cam != null && cam.orthographic
+            ? cam.transform.position.y - cam.orthographicSize - 1f
+            : transform.position.y - 12f;
+        Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), bottomY, 0f);
+
+        GameObject spawned = Instantiate(chaser, pos, Quaternion.identity);
+        // The borrowed hull's own straight-line scroller would fight
+        // ChaserEnemy for control of the transform.
+        var straightLine = spawned.GetComponent<moveItemEnmInStrightLine>();
+        if (straightLine != null) Destroy(straightLine);
+        if (spawned.GetComponent<ChaserEnemy>() == null) spawned.AddComponent<ChaserEnemy>();
     }
 }
 

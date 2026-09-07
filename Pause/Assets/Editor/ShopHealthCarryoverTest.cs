@@ -47,7 +47,7 @@ public static class ShopHealthCarryoverTest
 
     static void DockShipsIgnoreStaleDamageOutsideGameplay()
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
+        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
 
         // Simulate a run that ended mid-damage and was never cleaned up --
         // exactly the scenario GameStateReset.Clear() exists to guard
@@ -110,7 +110,7 @@ public static class ShopHealthCarryoverTest
 
     static void ConfirmDialogPreviewAnimates()
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
+        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
 
         var shop = Object.FindFirstObjectByType<shopingShips>();
         Check("shop scene has a shopingShips instance", shop != null);

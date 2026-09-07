@@ -58,7 +58,7 @@ public static class AsteroidBackwardsAndShopColumnsTest
 
     static void ShopGetsTwoColumnsOnARealPhoneViewport()
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
+        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
 
         var canvasGo = new GameObject("~DockLayoutTestCanvas", typeof(RectTransform));
         var rt = canvasGo.GetComponent<RectTransform>();

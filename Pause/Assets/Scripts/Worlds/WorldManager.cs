@@ -28,30 +28,38 @@ public class WorldManager : MonoBehaviour
     public static WorldManager Instance { get; private set; }
 
     // Space first; the rest are generated planets. Index is the world number.
+    //
+    // maxSpeed was lowered ~20% uniformly across every world (0.58/0.64/0.70/
+    // 0.78 -> 0.46/0.51/0.56/0.62): at the old values the world scrolled fast
+    // enough near the end of a level that oncoming enemies were unreadable,
+    // not just hard. Difficulty past that point now comes from enemyRampScale
+    // instead -- enmiesOnBoard's phases are keyed on elapsed flight time, not
+    // speed, so density keeps escalating for the rest of the level even after
+    // the (now lower, still per-world-distinct) speed cap is reached.
     public static readonly WorldTheme[] Worlds =
     {
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
             portalColor = new Color(0.55f, 0.85f, 1f),
-            speedRampPerSecond = 0.00115f, maxSpeed = 0.58f,
+            speedRampPerSecond = 0.00115f, maxSpeed = 0.46f, enemyRampScale = 1.00f,
         },
         new WorldTheme {
             displayName = "Frost", resourceFolder = "Frost",
             musicResource = "WorldMusic/Frost",
             portalColor = new Color(0.62f, 0.92f, 1f),
-            speedRampPerSecond = 0.00130f, maxSpeed = 0.64f,
+            speedRampPerSecond = 0.00130f, maxSpeed = 0.51f, enemyRampScale = 1.10f,
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
             musicResource = "WorldMusic/Verdant",
             portalColor = new Color(0.60f, 1f, 0.62f),
-            speedRampPerSecond = 0.00145f, maxSpeed = 0.70f,
+            speedRampPerSecond = 0.00145f, maxSpeed = 0.56f, enemyRampScale = 1.20f,
         },
         new WorldTheme {
             displayName = "Ember", resourceFolder = "Ember",
             musicResource = "WorldMusic/Ember",
             portalColor = new Color(1f, 0.62f, 0.35f),
-            speedRampPerSecond = 0.00165f, maxSpeed = 0.78f,
+            speedRampPerSecond = 0.00165f, maxSpeed = 0.62f, enemyRampScale = 1.35f,
         },
     };
 
@@ -172,9 +180,14 @@ public class WorldManager : MonoBehaviour
     static void ApplyDifficulty(WorldTheme theme)
     {
         var bg = Object.FindFirstObjectByType<moveBackGround>();
-        if (bg == null) return;
-        bg.speedRampPerSecond = theme.speedRampPerSecond;
-        bg.maxSpeed = theme.maxSpeed;
+        if (bg != null)
+        {
+            bg.speedRampPerSecond = theme.speedRampPerSecond;
+            bg.maxSpeed = theme.maxSpeed;
+        }
+
+        var enemies = Object.FindFirstObjectByType<enmiesOnBoard>();
+        if (enemies != null) enemies.phaseRampScale = theme.enemyRampScale;
     }
 
     // Reset to the first planet -- used when starting a brand new game.

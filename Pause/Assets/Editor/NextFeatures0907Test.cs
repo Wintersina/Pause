@@ -213,6 +213,10 @@ public static class NextFeatures0907Test
         Check("gun has roster-specific barrel art", gun != null &&
               gun.transform.Find("Barrel") != null &&
               gun.transform.Find("Barrel").GetComponent<SpriteRenderer>().sprite != null);
+        Check("gun is a companion of the player ship", gun != null && gun.transform.parent == shipGo.transform);
+        Check("roster has several companion hover patterns",
+              UltimateGun.HoverModeFor(1) != UltimateGun.HoverModeFor(2) &&
+              UltimateGun.HoverModeFor(2) != UltimateGun.HoverModeFor(3));
         Check("power charge indicator is attached", shipGo.GetComponent<PowerReadyIndicator>() != null);
 
         var timerField = typeof(ShipPowerController).GetField("timer", BindingFlags.NonPublic | BindingFlags.Instance);
