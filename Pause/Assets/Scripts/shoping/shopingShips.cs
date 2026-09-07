@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
@@ -8,7 +8,7 @@ public class shopingShips : MonoBehaviour {
     //if button is clicked move ship;
     public static bool buttonIsClicked;
 
-    public static int shipTotal = 4;
+    public static int shipTotal = 7;
     public static GameObject[] ships = new GameObject[shipTotal];
     public Button[] shipButtons = new Button[shipTotal];
     private string[] shipNames = new string[shipTotal];
@@ -34,24 +34,47 @@ public class shopingShips : MonoBehaviour {
     // Use this for initialization
     void Start() {
 
+        // `shipButtons` is serialized, so the scene may still hold an array
+        // sized for the old roster; grow it before indexing.
+        if (shipButtons == null || shipButtons.Length < shipTotal)
+        {
+            var grown = new Button[shipTotal];
+            if (shipButtons != null) shipButtons.CopyTo(grown, 0);
+            shipButtons = grown;
+        }
+        if (ships == null || ships.Length < shipTotal)
+            ships = new GameObject[shipTotal];
+        if (shipNames == null || shipNames.Length < shipTotal)
+            shipNames = new string[shipTotal];
+        if (shipCost == null || shipCost.Length < shipTotal)
+            shipCost = new float[shipTotal];
+
         // initilizing the names of ships
         shipNames[0] = "non";
         shipNames[1] = "Proteus";
         shipNames[2] = "Amadeus";
         shipNames[3] = "Darkwing";
+        shipNames[4] = "Cygnus";
+        shipNames[5] = "Vesper";
+        shipNames[6] = "XR7";
 
-        starDust.text = "Start Dust: " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
+        updateStarDustLabel();
+
         buttonCanvis = GameObject.Find("Canvas");
-        buttonCanvis.gameObject.SetActive(true);
+        if (buttonCanvis != null) buttonCanvis.SetActive(true);
         popUpCanvis = GameObject.Find("PopUpCanvas");
-        popUpCanvis.gameObject.SetActive(false);
+        if (popUpCanvis != null) popUpCanvis.SetActive(false);
         notEnoughStarDustTimer = 0.0f;
 
         // initilizing the cost of ships. Each ship has a differnt cost
-        shipCost[0] = 0;
-        shipCost[1] = 0f;
-        shipCost[2] = 0f;
-        shipCost[3] = 0f;
+        // Star dust is much harder to earn now, so the ships have real prices.
+        shipCost[0] = 0f;
+        shipCost[1] = 150f;
+        shipCost[2] = 400f;
+        shipCost[3] = 900f;
+        shipCost[4] = 1600f;
+        shipCost[5] = 2600f;
+        shipCost[6] = 4000f;
   
 
         
@@ -69,11 +92,15 @@ public class shopingShips : MonoBehaviour {
         }
         // will find every button in this secene and give player option to buy a ship. if player has already bought it will not show
         // buy as an option
-        for (int i = 1; i <= ships.Length-1; i++)
-        {      
+        // Buttons for the newer ships may not be authored in the scene yet.
+        // Missing entries are skipped rather than throwing -- the old code
+        // called GetComponent<Button>() straight off a possibly-null Find().
+        for (int i = 1; i <= ships.Length - 1; i++)
+        {
             ships[i] = GameObject.Find("ship" + i.ToString());
-            shipButtons[i] = GameObject.Find("Button" + i.ToString()).GetComponent<Button>();
-            
+
+            GameObject buttonGo = GameObject.Find("Button" + i.ToString());
+            shipButtons[i] = buttonGo != null ? buttonGo.GetComponent<Button>() : null;
         }
         //Debug.Log(PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2"));
 	
@@ -100,7 +127,7 @@ public class shopingShips : MonoBehaviour {
                     buttonCanvis.SetActive(false);
                     popUpCanvis.SetActive(true);
                     
-                    shipImg.sprite = ships[i].gameObject.GetComponentInChildren<Image>().sprite;
+                    setShipImage(i);
                     question.text = "You Have Already Bought " + shipNames[i] + " star ship.";
                     Text changeyestoOk = yesButton.gameObject.GetComponentInChildren<Text>();
                     Text changenotoCancel = noButton.gameObject.GetComponentInChildren<Text>();
@@ -115,7 +142,7 @@ public class shopingShips : MonoBehaviour {
                     
                     buttonCanvis.SetActive(false);
                     popUpCanvis.SetActive(true);
-                    shipImg.sprite = ships[i].gameObject.GetComponentInChildren<Image>().sprite;
+                    setShipImage(i);
                     question.text = "Cost: "+shipCost[i]+ " StarDust. \n\n" + "Would you like to buy the " + shipNames[i] + " ship?";
                     Text changeyestoOk = yesButton.gameObject.GetComponentInChildren<Text>();
                     changeyestoOk.text = "Yes";
@@ -155,7 +182,7 @@ public class shopingShips : MonoBehaviour {
                 rotateRight.shipSelected = shipNumber;
                 // reduce cost, switch canvases and show new cost
                 PlayerPrefs.SetFloat("PlayerCurrecny", PlayerPrefs.GetFloat("PlayerCurrecny") - shipCost[shipNumber]);
-                starDust.text = "Start Dust: " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
+                updateStarDustLabel();
                 buttonCanvis.SetActive(true);
                 popUpCanvis.SetActive(false);
                 PlayerPrefs.SetString("boughtship" + shipNumber.ToString(), "True");
@@ -177,9 +204,23 @@ public class shopingShips : MonoBehaviour {
         }
     }
        
+    void updateStarDustLabel()
+    {
+        if (starDust == null) return;
+        starDust.text = "Star Dust: " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
+    }
+
+    // Ship preview objects only exist for ships authored into the scene.
+    void setShipImage(int i)
+    {
+        if (shipImg == null || ships[i] == null) return;
+        Image img = ships[i].GetComponentInChildren<Image>();
+        if (img != null) shipImg.sprite = img.sprite;
+    }
+
     public static void turnOffCanves()
     {
-        buttonCanvis.gameObject.SetActive(false);
-        popUpCanvis.gameObject.SetActive(false);
+        if (buttonCanvis != null) buttonCanvis.SetActive(false);
+        if (popUpCanvis != null) popUpCanvis.SetActive(false);
     }
 }

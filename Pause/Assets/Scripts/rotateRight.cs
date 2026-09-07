@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
@@ -23,13 +23,24 @@ public class rotateRight : MonoBehaviour {
         liftOffLeft = GameObject.Find("LiftOffLeft");
         liftOffRight = GameObject.Find("LiftOffRight");
         shipSelected = 0;
-        // find all game objects within the current scene and assign them apporpriatly 
+        // `boost` is serialized, so the scene may still hold an array sized for
+        // the old roster. Resize before indexing.
+        if (boost == null || boost.Length < shopingShips.shipTotal)
+        {
+            var grown = new GameObject[shopingShips.shipTotal];
+            if (boost != null) boost.CopyTo(grown, 0);
+            boost = grown;
+        }
+
+        // find all game objects within the current scene and assign them apporpriatly.
+        // Newer ships may not have Boost/return/face objects authored yet, so a
+        // missing object is skipped instead of throwing.
         for (int i = 1; i < shopingShips.shipTotal; i++)
         {
-            boost[i] = GameObject.Find("Boost"+i.ToString());
-            boost[i].gameObject.SetActive(false);
+            boost[i] = GameObject.Find("Boost" + i.ToString());
+            if (boost[i] != null) boost[i].SetActive(false);
             startingPoss[i] = GameObject.Find("return" + i.ToString());
-            Targets[i] = GameObject.Find("face"+i.ToString());
+            Targets[i] = GameObject.Find("face" + i.ToString());
             checkedOut[i] = false;
         }
         
@@ -44,29 +55,39 @@ public class rotateRight : MonoBehaviour {
     {  
         if (shipSelected != 0)
         {
-               shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(shopingShips.ships[shipSelected].gameObject.transform.position, Targets[shipSelected].transform.position, .03f);
-                // Find whatever ship was checked out and return it to its position
-                for (int k = 1; k < shopingShips.shipTotal;  k++)
-                {
-                    if(k != shipSelected)
-                    {
-                        shopingShips.ships[k].transform.position = Vector3.MoveTowards(shopingShips.ships[k].gameObject.transform.position, startingPoss[k].transform.position, .03f);
-                    }
+            if (shopingShips.ships[shipSelected] != null && Targets[shipSelected] != null)
+            {
+                shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(
+                    shopingShips.ships[shipSelected].transform.position,
+                    Targets[shipSelected].transform.position, .03f);
+            }
+
+            // Find whatever ship was checked out and return it to its position
+            for (int k = 1; k < shopingShips.shipTotal; k++)
+            {
+                if (k == shipSelected) continue;
+                if (shopingShips.ships[k] == null || startingPoss[k] == null) continue;
+
+                shopingShips.ships[k].transform.position = Vector3.MoveTowards(
+                    shopingShips.ships[k].transform.position,
+                    startingPoss[k].transform.position, .03f);
             }
         }
         flyOffTimer -= Time.deltaTime;
         if (flyOffChecker && shipSelected != 0)
         {
             // each ship takes off to its own unique location
-            boost[shipSelected].gameObject.SetActive(true);
-           if(shipSelected %2 == 0)
-            {
+            if (boost[shipSelected] != null) boost[shipSelected].SetActive(true);
 
-              shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(shopingShips.ships[shipSelected].gameObject.transform.position, liftOffRight.transform.position, .1f);
-            }
-            else
+            if (shopingShips.ships[shipSelected] != null)
             {
-                shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(shopingShips.ships[shipSelected].gameObject.transform.position, liftOffLeft.transform.position, .1f);
+                GameObject pad = (shipSelected % 2 == 0) ? liftOffRight : liftOffLeft;
+                if (pad != null)
+                {
+                    shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(
+                        shopingShips.ships[shipSelected].transform.position,
+                        pad.transform.position, .1f);
+                }
             }
         }
         if (flyOffTimer <= 0)
