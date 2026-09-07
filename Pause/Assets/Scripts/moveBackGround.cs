@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -20,7 +20,7 @@ public class moveBackGround : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         // pauses when there is no touch on the touchscreen
-        if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             Time.timeScale = 1;
             offsetTimer = Time.timeSinceLevelLoad;

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -30,7 +30,7 @@ public class removeThingsFromScreen : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	    if(touched && Input.touchCount > 0)
+	    if(touched && TouchInput.IsPressed)
         {
             
             fingerMover.gameObject.SetActive(false);

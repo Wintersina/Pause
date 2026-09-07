@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,7 +20,8 @@ public class tutButtonClicks : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Application.platform == RuntimePlatform.Android && Input.touchCount == 0)
+        // Back/Escape. Was Android-gated, and the touchCount == 0 guard
+        // swallowed the key on every other platform.
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {

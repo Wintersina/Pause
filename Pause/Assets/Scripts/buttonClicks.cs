@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 public class buttonClicks : MonoBehaviour {
 
@@ -29,7 +29,8 @@ public class buttonClicks : MonoBehaviour {
         else if (AdMob.isAdsShowwing)
             AdMob.hide();
 
-        if (Application.platform == RuntimePlatform.Android && Input.touchCount == 0)
+        // Back/Escape. Was Android-gated, and the touchCount == 0 guard
+        // swallowed the key on every other platform.
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {

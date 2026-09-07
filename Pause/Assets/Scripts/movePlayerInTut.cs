@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -25,12 +25,12 @@ public class movePlayerInTut : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-            if (Input.touchCount > 0)
+            if (TouchInput.IsPressed)
             {
-                fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.GetTouch(0).position.x, Input.GetTouch(0).position.y, 0));
+                fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
                 textPos = Camera.main.WorldToScreenPoint(transform.position);
             }
-            if (Input.touchCount > 0 && Input.touchCount <= 1)
+            if (TouchInput.IsPressed)
                 moveLeft_Right(fingerPos);
         }
 

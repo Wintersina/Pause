@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class slowMoveBackground : MonoBehaviour {
@@ -21,7 +21,7 @@ public class slowMoveBackground : MonoBehaviour {
     void Update()
     {
         // pauses when there is no touch on the touchscreen
-        //if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        //if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             moveBackground();
             

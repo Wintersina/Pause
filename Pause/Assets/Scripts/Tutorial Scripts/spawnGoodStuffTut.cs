@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class spawnGoodStuffTut: MonoBehaviour {
@@ -27,7 +27,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	    if((Input.touchCount > 0 && Input.touchCount <2 ) && !buttonClicks.playerDied)
+	    if((TouchInput.IsPressed) && !buttonClicks.playerDied)
         {
             spawn();
         }

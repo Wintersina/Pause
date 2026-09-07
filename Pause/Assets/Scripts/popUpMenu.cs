@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -14,7 +14,7 @@ public class popUpMenu : MonoBehaviour {
 
     void Update()
     {
-        if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             canves.gameObject.SetActive(false);
         }

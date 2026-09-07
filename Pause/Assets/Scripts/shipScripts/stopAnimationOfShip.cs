@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class stopAnimationOfShip : MonoBehaviour {
@@ -14,7 +14,7 @@ public class stopAnimationOfShip : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Input.touchCount > 0 && Input.touchCount <= 1)
+        if (TouchInput.IsPressed)
 
         { 
             showAnimation(false);

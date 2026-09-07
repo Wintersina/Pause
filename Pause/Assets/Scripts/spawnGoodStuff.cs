@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class spawnGoodStuff : MonoBehaviour {
@@ -31,7 +31,7 @@ public class spawnGoodStuff : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Input.touchCount > 0 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             spawn();
         }

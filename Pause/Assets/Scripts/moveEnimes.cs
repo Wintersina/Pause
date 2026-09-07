@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class moveEnimes : MonoBehaviour {
@@ -23,7 +23,7 @@ public class moveEnimes : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-            if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+            if (TouchInput.IsPressed && !buttonClicks.playerDied)
             moveEnim();
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
             moveEnim();

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 /*
@@ -45,7 +45,7 @@ public class enmiesOnBoardTut : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         // Spawn call
-        if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             spawn();
         }

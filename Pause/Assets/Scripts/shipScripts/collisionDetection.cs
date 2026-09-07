@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 
@@ -74,7 +74,7 @@ public class collisionDetection : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.touchCount > 0 && Input.touchCount <= 1)
+        if (TouchInput.IsPressed)
         {
             turnTextsOff();
         }

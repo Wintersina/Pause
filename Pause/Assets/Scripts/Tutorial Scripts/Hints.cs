@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -69,7 +69,7 @@ public class Hints : MonoBehaviour {
 
         animationTimer -= Time.deltaTime;
         // move only if there is a finger on the screen
-        if (Input.touchCount > 0 && Input.touchCount < 2)
+        if (TouchInput.IsPressed)
         {
             startHintTimer -= Time.deltaTime;
             killIconl -= Time.deltaTime;

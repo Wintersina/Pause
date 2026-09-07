@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class stopAnimationOfBoost : MonoBehaviour {
@@ -15,7 +15,7 @@ public class stopAnimationOfBoost : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Input.touchCount > 0 && Input.touchCount <= 1)
+        if (TouchInput.IsPressed)
 
         {
             showAnimation(false);

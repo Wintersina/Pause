@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 // Aurtur: Sina Serati
@@ -11,7 +11,7 @@ public class moveItemEnmInStrightLine : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
             transform.Translate(new Vector2(0, -1) * moveBackGround.speed * Time.deltaTime * 30);
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
             transform.Translate(new Vector2(0, -1) * moveBackGround.speed * Time.deltaTime * 30);

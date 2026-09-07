@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class musicControl : MonoBehaviour {
@@ -17,7 +17,7 @@ public class musicControl : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.touchCount > 0 && Input.touchCount <= 1)
+        if (TouchInput.IsPressed)
         {
             // if boost has been picked up.
             if (boostMusicChanger)

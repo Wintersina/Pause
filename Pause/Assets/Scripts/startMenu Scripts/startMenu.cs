@@ -1,8 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using GooglePlayGames;
 
 public class startMenu : MonoBehaviour {
 
@@ -15,15 +13,12 @@ public class startMenu : MonoBehaviour {
     private Text loggedoutTextObj;
     private float logoutTimer;
 
-
     void Start()
     {
-
-        PlayGamesPlatform.Activate();
         Time.timeScale = 1;
         // initilize all game materials
         logoutTimer = 0;
-        
+
         // will change scenes based on char selection
         playerDied = false;
         playB.gameObject.SetActive(true);
@@ -40,20 +35,20 @@ public class startMenu : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        // quit aplication if back butten is pressed and we are in an android phone
-        if (Application.platform == RuntimePlatform.Android && Input.touchCount == 0)
+        // Back/Escape quits. Was Android-gated and additionally required
+        // touchCount == 0, which swallowed the keypress on other platforms.
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                Application.Quit();
-                return;
-            }
+            Application.Quit();
+            return;
         }
+
         // used for logout display.
-        logoutTimer -= Time.deltaTime;
-        if (logoutTimer <= 0)
+        if (logoutTimer > 0)
         {
-            loggedoutTextObj.gameObject.SetActive(false);
+            logoutTimer -= Time.deltaTime;
+            if (logoutTimer <= 0)
+                loggedoutTextObj.gameObject.SetActive(false);
         }
     }
 
@@ -73,16 +68,15 @@ public class startMenu : MonoBehaviour {
             score.totalCurrency = 0;
             SceneManager.LoadScene("tutorialS5");
         }
-       
     }
 
     public void logoutButton()
     {
         logoutTimer = 2f;
         loggedoutTextObj.gameObject.SetActive(true);
-        PlayGamesPlatform.Instance.SignOut();
-
+        SocialBridge.SignOut();
     }
+
    public void achivements()
     {
         SceneManager.LoadScene("leaderboardS3");
@@ -98,22 +92,14 @@ public class startMenu : MonoBehaviour {
     public void quit()
     {
         Application.Quit();
-
     }
     public void login()
     {
-        if (Application.platform == RuntimePlatform.Android)
+        // No longer Android-only; on iOS this signs in to Game Center.
+        SocialBridge.Authenticate(success =>
         {
-            Social.localUser.Authenticate((bool success) =>
-            {
-                if (success)
-                {
-                    //----------------------------Logged in Achivment -------------#00--------------
-                    achievementAPICalls.achievement_logged_on_successfully();
-                    //---------------------------------------------------------------------------
-                }
-            });
-        }
-
+            if (success)
+                achievementAPICalls.achievement_logged_on_successfully();
+        });
     }
 }

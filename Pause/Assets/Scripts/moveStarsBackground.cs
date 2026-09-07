@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -39,7 +39,7 @@ public class moveStarsBackground : MonoBehaviour {
             starBackgroundSpeed = .005f;
         }
         // pauses when there is no touch on the touchscreen
-        if (Input.touchCount > 0 && Input.touchCount < 2 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
 
         {
             delayPauseMenuTimer -= Time.deltaTime;

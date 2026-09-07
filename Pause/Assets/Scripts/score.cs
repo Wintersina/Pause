@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -58,7 +58,7 @@ public class score : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.touchCount > 0 && Input.touchCount <= 1 && !buttonClicks.playerDied)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             
             if (!pauseCounterBool)
