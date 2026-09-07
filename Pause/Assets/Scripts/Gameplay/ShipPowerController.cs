@@ -96,7 +96,29 @@ public class ShipPowerController : MonoBehaviour
             case ShipPower.Cloak:        StartCoroutine(DoCloak());   break;
             case ShipPower.Magnet:       StartCoroutine(DoMagnet());  break;
             case ShipPower.TimeDilation: StartCoroutine(DoDilation()); break;
+            case ShipPower.Railgun:      DoRailgun();    break;
             case ShipPower.Overcharge:   DoOvercharge(); break;
+        }
+    }
+
+    // Clears the lanes either side of the ship, leaving the centre alone.
+    void DoRailgun()
+    {
+        float x = transform.position.x;
+        var tint = new Color(1f, 0.55f, 0.4f, 0.9f);
+
+        PowerFx.Laser(transform.position + Vector3.left * 1.1f, 0.9f, 12f, tint);
+        PowerFx.Laser(transform.position + Vector3.right * 1.1f, 0.9f, 12f, tint);
+
+        foreach (var go in Targets())
+        {
+            float dx = Mathf.Abs(go.transform.position.x - x);
+            if (dx > 0.55f && dx < 1.75f && go.transform.position.y >= transform.position.y - 1f)
+            {
+                PowerFx.Burst(go.transform.position, tint, 5);
+                collisionDetection.PlayExplosion();
+                Destroy(go);
+            }
         }
     }
 
@@ -119,10 +141,16 @@ public class ShipPowerController : MonoBehaviour
     void DoLaser()
     {
         float x = transform.position.x;
+        PowerFx.Laser(transform.position, laserWidth * 2f, 12f, new Color(0.6f, 0.95f, 1f, 0.9f));
+
         foreach (var go in Targets())
             if (Mathf.Abs(go.transform.position.x - x) <= laserWidth &&
                 go.transform.position.y >= transform.position.y)
+            {
+                PowerFx.Burst(go.transform.position, new Color(0.7f, 0.95f, 1f), 5);
+                collisionDetection.PlayExplosion();
                 Destroy(go);
+            }
     }
 
     void DoMissiles()
@@ -136,26 +164,47 @@ public class ShipPowerController : MonoBehaviour
             Vector2.Distance(a.transform.position, transform.position)
             .CompareTo(Vector2.Distance(b.transform.position, transform.position)));
 
-        for (int i = 0; i < Mathf.Min(missileCount, pool.Count); i++)
+        int fired = Mathf.Min(missileCount, pool.Count);
+        var hits = new Vector3[fired];
+        for (int i = 0; i < fired; i++) hits[i] = pool[i].transform.position;
+
+        PowerFx.Missiles(transform.position, hits, new Color(1f, 0.72f, 0.35f));
+
+        for (int i = 0; i < fired; i++)
+        {
+            PowerFx.Burst(hits[i], new Color(1f, 0.7f, 0.3f), 6);
+            collisionDetection.PlayExplosion();
             Destroy(pool[i]);
+        }
     }
 
     void DoShockwave()
     {
+        PowerFx.Ring(transform.position, shockwaveRadius, new Color(1f, 0.85f, 0.4f, 0.95f), 0.5f);
+
         foreach (var go in Targets())
             if (Vector2.Distance(go.transform.position, transform.position) <= shockwaveRadius)
+            {
+                PowerFx.Burst(go.transform.position, new Color(1f, 0.8f, 0.4f), 5);
+                collisionDetection.PlayExplosion();
                 Destroy(go);
+            }
     }
 
     IEnumerator DoCloak()
     {
         // reuse the existing invulnerability window
         collisionDetection.invTimer = Mathf.Max(collisionDetection.invTimer, cloakSeconds);
+        PowerFx.Ring(transform.position, 2.2f, new Color(0.75f, 0.6f, 1f, 0.9f));
+        PowerFx.Aura(transform.position, new Color(0.75f, 0.6f, 1f, 0.7f), cloakSeconds);
         yield return null;
     }
 
     IEnumerator DoMagnet()
     {
+        PowerFx.Ring(transform.position, magnetRadius, new Color(0.5f, 1f, 0.85f, 0.85f), 0.6f);
+        PowerFx.Aura(transform.position, new Color(0.5f, 1f, 0.85f, 0.55f), magnetSeconds);
+
         float t = magnetSeconds;
         while (t > 0f)
         {
@@ -174,6 +223,9 @@ public class ShipPowerController : MonoBehaviour
     {
         // moveBackGround drives timeScale every frame, so slow the world by
         // scaling speed rather than fighting it over Time.timeScale.
+        PowerFx.Ring(transform.position, 3.2f, new Color(0.7f, 0.8f, 1f, 0.9f), 0.7f);
+        PowerFx.Aura(transform.position, new Color(0.6f, 0.75f, 1f, 0.5f), dilationSeconds);
+
         float original = moveBackGround.speed;
         moveBackGround.speed = original * dilationScale;
         yield return new WaitForSeconds(dilationSeconds);
@@ -184,6 +236,9 @@ public class ShipPowerController : MonoBehaviour
 
     void DoOvercharge()
     {
+        PowerFx.Burst(transform.position, new Color(0.6f, 1f, 0.7f), 14);
+        PowerFx.Ring(transform.position, 1.8f, new Color(0.6f, 1f, 0.7f, 0.9f));
+
         for (int i = 0; i < overchargePauses; i++)
             score.incromentPause();
     }

@@ -1,16 +1,10 @@
 fileFormatVersion: 2
-guid: 6d335c375f1544cb98520cebf12704e0
+guid: caeb21d80d7524b9ab99fa1835549b0d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4169815351287193933
-    second: XR7_0
-  - first:
-      213: -5669726914282435008
-    second: XR7_1
-  - first:
-      213: -8884898143662060005
-    second: XR7_2
+      213: -801430733680360474
+    second: vfx_spark_05_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -43,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -81,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -132,67 +126,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: XR7_0
+      name: vfx_spark_05_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 74
         y: 0
-        width: 128
-        height: 128
+        width: 330
+        height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3be5e87d707d126c0800000000000000
-      internalID: -4169815351287193933
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: XR7_1
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 04e49b439651151b0800000000000000
-      internalID: -5669726914282435008
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: XR7_2
-      rect:
-        serializedVersion: 2
-        x: 256
-        y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b1ece79663082b480800000000000000
-      internalID: -8884898143662060005
+      spriteID: 6e3c6ee6efeb0e4f0800000000000000
+      internalID: -801430733680360474
       vertices: []
       indices: 
       edges: []
@@ -211,9 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      XR7_0: -4169815351287193933
-      XR7_1: -5669726914282435008
-      XR7_2: -8884898143662060005
+      vfx_spark_05_0: -801430733680360474
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

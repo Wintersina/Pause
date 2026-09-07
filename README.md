@@ -65,8 +65,9 @@ difficulty curve from the Inspector without touching code.
 
 ## The hangar
 
-Seven ships. Each has one power that recharges roughly once a minute and fires
-on its own — the game is one-touch, so there's no spare input to bind.
+Eight ships. Each has one power that recharges roughly once a minute. Once
+it's charged, **put a second finger on the screen** to fire it — the first
+finger is already flying the ship, so that's the one spare input the game has.
 
 | Ship | Cost | Power | Does |
 |---|---:|---|---|
@@ -74,9 +75,10 @@ on its own — the game is one-touch, so there's no spare input to bind.
 | **Proteus** | `150` | `SWARM MISSILES` | Homes on the nearest few targets |
 | **Amadeus** | `400` | `SHOCKWAVE` | Clears everything close by |
 | **Darkwing** | `900` | `PHASE CLOAK` | Brief invulnerability |
-| **Cygnus** | `1,600` | `TRACTOR FIELD` | Pulls pickups toward you |
-| **Vesper** | `2,600` | `TIME DILATION` | Slows the world down |
-| **XR7** | `4,000` | `OVERCHARGE` | Restores extra pauses |
+| **M237** | `1,400` | `RAILGUN` | Clears the lanes either side of you |
+| **Cygnus** | `2,100` | `TRACTOR FIELD` | Pulls pickups toward you |
+| **Vesper** | `3,000` | `TIME DILATION` | Slows the world down |
+| **XR7** | `4,200` | `OVERCHARGE` | Restores extra pauses |
 
 Ships take visible damage — every hull has three states, and you watch yours
 come apart as the run goes badly.
@@ -315,8 +317,9 @@ phone it will look rough.
 
 Code and original art by **Sina Serati**.
 
-Enemy and meteor sprites from
-[Kenney](https://kenney.nl) — *Space Shooter (Remastered)*, CC0.
+Enemy and meteor sprites, the pixel-art hulls for Cygnus, Vesper and XR7, and
+the power-up particle set all come from [Kenney](https://kenney.nl) — *Space
+Shooter (Remastered)*, *Pixel Shmup* and *Particle Pack*, all CC0.
 
 Planet backdrops and world music are generated procedurally — the generators
 live outside the project, and the committed assets are plain PNG and WAV files
