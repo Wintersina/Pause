@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 
 public class collisionDetection : MonoBehaviour {
@@ -19,6 +20,10 @@ public class collisionDetection : MonoBehaviour {
     //private string[] savedString = new string[12];
 
     public GameObject shield;
+
+    [Tooltip("How far the shield's edge sits past the hull, as a fraction " +
+             "of the hull's own radius. 0 would hug the hull exactly.")]
+    public float shieldPadding = 0.35f;
     public GameObject explosionAnimation;
     public GameObject blueExp;
     public GameObject redExp;
@@ -75,6 +80,64 @@ public class collisionDetection : MonoBehaviour {
             score.tutorialCurrency += amount;
     }
 
+    // The shield prefab was authored at a fixed size per ship and had drifted
+    // out of sync -- one ship's bubble measured twice the world size of every
+    // other ship's despite an identical padding intent. Sized here instead
+    // from the hull's own current sprite bounds, so it always matches
+    // whatever ship (and whatever future ship) is actually equipped.
+    //
+    // Ships 1-3 (the original damage-frame ships) start with no sprite baked
+    // into the prefab at all -- lifeControler assigns it in its own Start(),
+    // and Unity does not guarantee that runs before this one on the same
+    // object. Polling for a frame or two rather than reading it once in
+    // Start() avoids depending on component execution order.
+    IEnumerator FitShieldToHullWhenReady()
+    {
+        var hullSprite = GetComponent<SpriteRenderer>();
+        float giveUp = 1f;
+        while (hullSprite != null && hullSprite.sprite == null && giveUp > 0f)
+        {
+            giveUp -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+        FitShieldToHull();
+    }
+
+    void FitShieldToHull()
+    {
+        if (shield == null) return;
+        var hullSprite = GetComponent<SpriteRenderer>();
+        var shieldRenderer = shield.GetComponent<SpriteRenderer>();
+        if (hullSprite == null || hullSprite.sprite == null ||
+            shieldRenderer == null || shieldRenderer.sprite == null) return;
+
+        float parentWorldScale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
+        float neededLocalScale = ComputeShieldLocalScale(
+            hullSprite.sprite.bounds.extents, parentWorldScale,
+            shieldRenderer.sprite.bounds.extents, shieldPadding);
+        if (neededLocalScale <= 0f) return;
+
+        shield.transform.localScale = new Vector3(neededLocalScale, neededLocalScale, shield.transform.localScale.z);
+    }
+
+    // Pure and testable without Play mode: extents are each sprite's own
+    // unscaled local bounds (Sprite.bounds.extents), hullParentWorldScale is
+    // the hull's transform.lossyScale (which the shield, as its child,
+    // inherits before its own localScale multiplies in).
+    public static float ComputeShieldLocalScale(
+        Vector2 hullLocalExtents, float hullParentWorldScale,
+        Vector2 shieldLocalExtents, float padding)
+    {
+        float hullLocalR = Mathf.Max(hullLocalExtents.x, hullLocalExtents.y);
+        float hullWorldR = hullLocalR * hullParentWorldScale;
+        float targetWorldR = hullWorldR * (1f + padding);
+
+        float shieldLocalR = Mathf.Max(shieldLocalExtents.x, shieldLocalExtents.y);
+        if (shieldLocalR <= 0f || hullParentWorldScale <= 0f) return 0f;
+
+        return targetWorldR / (shieldLocalR * hullParentWorldScale);
+    }
+
 	void Start () {
 
         MAXLIFE = 3;
@@ -87,6 +150,8 @@ public class collisionDetection : MonoBehaviour {
         boost.gameObject.SetActive(false);
         boostSound = GameObject.Find("RocketsSound").GetComponent<AudioSource>();
         astroidExpSound = GameObject.Find("AstroidExplotionSound").GetComponent<AudioSource>();
+
+        StartCoroutine(FitShieldToHullWhenReady());
 
 
         //destructionComboText.gameObject.SetActive(false);
