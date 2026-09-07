@@ -13,6 +13,13 @@ public class moveStarsBackground : MonoBehaviour {
     public Button mainMenuB;
     private float speedCap;
 
+    // "Paused" used to be a fixed "PAUSED" wordmark sprite; now a randomly
+    // picked one of two red-glow variants, re-rolled once per pause rather
+    // than every frame it stays visible.
+    private Sprite[] pauseGlowSprites;
+    private SpriteRenderer pauseRenderer;
+    private bool wasShowingPause;
+
     private Vector2 offset;
 
     // Use this for initialization
@@ -26,6 +33,8 @@ public class moveStarsBackground : MonoBehaviour {
         replyB = replayGo != null ? replayGo.GetComponent<Button>() : null;
         mainMenuB = menuGo != null ? menuGo.GetComponent<Button>() : null;
         pauseText = SceneUtil.FindAny("paused");
+        pauseRenderer = pauseText != null ? pauseText.GetComponent<SpriteRenderer>() : null;
+        pauseGlowSprites = Resources.LoadAll<Sprite>("PauseGlow");
 
         if (replyB != null) replyB.gameObject.SetActive(false);
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
@@ -88,10 +97,21 @@ public class moveStarsBackground : MonoBehaviour {
     }
 
     // show pause or not
+    void PickRandomPauseGlow()
+    {
+        if (pauseRenderer == null || pauseGlowSprites == null || pauseGlowSprites.Length == 0) return;
+        pauseRenderer.sprite = pauseGlowSprites[Random.Range(0, pauseGlowSprites.Length)];
+    }
+
     void showPaused(bool show)
     {
         if (!buttonClicks.playerDied && pauseText != null)
         {
+            // Roll a new glow only on the hidden -> shown transition, not
+            // every frame the finger stays lifted.
+            if (show && !wasShowingPause) PickRandomPauseGlow();
+            wasShowingPause = show;
+
             pauseText.gameObject.SetActive(show);
         }
         if (!show)
