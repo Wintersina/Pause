@@ -72,6 +72,11 @@ public class TitleScreenTraffic : MonoBehaviour
         {
             f.go = new GameObject("~TitleShip");
             f.go.AddComponent<SpriteRenderer>();
+
+            // menu ships burn steadily; they are not subject to the pause
+            var thruster = f.go.AddComponent<ShipThruster>();
+            thruster.respondToPause = false;
+            thruster.idleScale = 0.30f;
         }
         f.go.SetActive(true);
 

@@ -95,6 +95,15 @@ public class ShopSceneExtender : MonoBehaviour
         NormaliseScale(go, sr);
 
         EnsureBoost(go, index);
+
+        // Parked ships idle rather than hanging dead in space.
+        if (go.GetComponent<ShipThruster>() == null)
+        {
+            var thruster = go.AddComponent<ShipThruster>();
+            thruster.respondToPause = false;
+            thruster.idleScale = 0.26f;
+            thruster.flicker = 0.14f;
+        }
     }
 
     static void NormaliseScale(GameObject go, SpriteRenderer sr)
