@@ -6,6 +6,7 @@ public class lifeControler : MonoBehaviour {
 
     private SpriteRenderer spriteControl;
     public Sprite []img = new Sprite[3];
+    private int currentShipIndex;
     private string extention;
     private string []shipNames= new string[shopingShips.shipTotal];
 
@@ -32,7 +33,8 @@ public class lifeControler : MonoBehaviour {
             shipIndex < 0 || shipIndex >= shipNames.Length)
             shipIndex = 0;
 
-        img = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + shipNames[shipIndex]);
+        currentShipIndex = shipIndex;
+        img = shopingShips.DamageSpritesFor(shipIndex);
         applyDamageSprite();
     }
 	
@@ -49,6 +51,8 @@ public class lifeControler : MonoBehaviour {
     {
         if (img == null || img.Length == 0) return;
         int frame = Mathf.Clamp(collisionDetection.lifeCounter, 0, img.Length - 1);
-        spriteControl.sprite = img[frame];
+        int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
+        Sprite animated = shopingShips.IdleSpriteFor(currentShipIndex, frame, idleFrame);
+        spriteControl.sprite = animated != null ? animated : img[frame];
     }
 }

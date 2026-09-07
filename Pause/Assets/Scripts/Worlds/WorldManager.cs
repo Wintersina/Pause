@@ -103,6 +103,7 @@ public class WorldManager : MonoBehaviour
         timer = secondsPerWorld;
         WorldPainter.Apply(Current);
         WorldMusic.Apply(Current);
+        WorldAtmosphere.Apply(Current);
         ApplyDifficulty(Current);
         WorldBanner.Show(Current.displayName);
     }
@@ -160,6 +161,7 @@ public class WorldManager : MonoBehaviour
         var theme = Current;
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
+        WorldAtmosphere.Apply(theme);
         ApplyDifficulty(theme);
         WorldBanner.Show(theme.displayName);
 

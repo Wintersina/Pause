@@ -1,37 +1,37 @@
-﻿using UnityEngine;
-using System.Collections;
+using UnityEngine;
 
-public class spawnShips : MonoBehaviour {
-
-    //public GameObject[] ships = new GameObject[shopingShips.shipTotal];
+public class spawnShips : MonoBehaviour
+{
     public GameObject ship;
-    private Vector3 shipPos;
-    private Quaternion shipRot;
-	// Use this for initialization
-	void Start () {
-        shipPos = new Vector3(0, -2, 1);
-        shipRot = new Quaternion(0, 0, 0,0);
-        //will spawn ship corrosponding to what user selected
-        if (PlayerPrefs.GetInt("spawnShip") == 0)
+
+    void Start()
+    {
+        int index = PlayerPrefs.GetInt("spawnShip", shopingShips.StarterShip);
+        if (index < 1 || index >= shopingShips.shipTotal ||
+            (index != shopingShips.StarterShip && PlayerPrefs.GetString("boughtship" + index) != "True"))
+            index = shopingShips.StarterShip;
+
+        // Original hulls share the starter's gameplay components and effects.
+        // Their selected index remains on the instance for health art and exhaust.
+        int prefabIndex = index <= 7 ? index : shopingShips.StarterShip;
+        ship = Resources.Load<GameObject>("Prefabs/Ships/inGameShips/ship" + prefabIndex);
+        if (ship == null) return;
+        var instance = Instantiate(ship, new Vector3(0f, -2f, 1f), Quaternion.identity);
+        instance.name = "ship" + index + "(Clone)";
+        var hull = instance.GetComponent<SpriteRenderer>();
+        Sprite sprite = shopingShips.SpriteFor(index);
+        if (hull != null && sprite != null)
         {
-            ship = (GameObject)Resources.Load("Prefabs/Ships/inGameShips/ship1", typeof(GameObject));
-        }
-        else {
-            if (PlayerPrefs.GetString("boughtship"+ PlayerPrefs.GetInt("spawnShip").ToString()) == "True")
+            hull.sprite = sprite;
+            float scale = .58f / Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+            instance.transform.localScale = new Vector3(scale, scale, 1f);
+            var collider = instance.GetComponent<BoxCollider2D>();
+            if (collider != null)
             {
-                ship = (GameObject)Resources.Load("Prefabs/Ships/inGameShips/ship" + PlayerPrefs.GetInt("spawnShip").ToString(), typeof(GameObject));
-            }
-            else
-            {
-                ship = (GameObject)Resources.Load("Prefabs/Ships/inGameShips/ship1", typeof(GameObject));
+                collider.offset = sprite.bounds.center;
+                collider.size = (Vector2)sprite.bounds.size * .78f;
             }
         }
-           
-
-        // spawn ship
-        Instantiate(ship, shipPos, shipRot);
-        
-	}
-	
-
+        ShipExhaust.ConfigureBoost(instance, index);
+    }
 }

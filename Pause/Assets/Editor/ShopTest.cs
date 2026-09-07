@@ -15,6 +15,7 @@ public static class ShopTest
 
     public static void Run()
     {
+        fails = 0;
         EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
 
         // the bug that hid every button: Find() cannot see inactive objects
@@ -28,7 +29,7 @@ public static class ShopTest
         ShopSceneExtender.Build();
 
         int total = shopingShips.shipTotal;
-        Check("roster is 8", total == 8);
+        Check("roster includes retro and original ships", total == shopingShips.Roster.Length && total > 8);
 
         for (int i = 1; i < total; i++)
         {
@@ -111,7 +112,7 @@ public static class ShopTest
             if (b == null) continue;
 
             var aligner = b.GetComponent<ShopButtonAligner>();
-            Check("Button" + i + " follows its ship", aligner != null && aligner.shipIndex == i);
+            Check("Button" + i + " uses a scroll card", aligner != null && aligner.shipIndex == i && !aligner.followShip);
 
             var label = b.GetComponentInChildren<UnityEngine.UI.Text>(true);
             Check("Button" + i + " has a label", label != null);
@@ -121,8 +122,8 @@ public static class ShopTest
             var ship = SceneUtil.FindAny("ship" + i);
             if (ship == null) continue;
             var p = ship.transform.position;
-            Check("ship" + i + " sits inside the camera view",
-                  Mathf.Abs(p.x) < halfWidth && Mathf.Abs(p.y) < halfHeight);
+            Check("ship" + i + " has clipped card art", b.GetComponentInChildren<DockCardArt>() != null
+                  && b.GetComponentInParent<ScrollRect>() != null);
         }
 
         // no two ships stacked on the same slot
@@ -136,7 +137,27 @@ public static class ShopTest
                   Vector3.Distance(a.transform.position, b.transform.position) > 0.05f);
         }
 
+        var scroll = SceneUtil.FindAny("~DockScroll").GetComponent<ScrollRect>();
+        Canvas.ForceUpdateCanvases();
+        Check("dock clips cards at viewport", scroll.viewport.GetComponent<RectMask2D>() != null);
+        Check("dock scrolls vertically", scroll.vertical && !scroll.horizontal);
+        Check("roster extends beyond viewport", scroll.content.rect.height > scroll.viewport.rect.height);
+        Check("scrollbar is connected", scroll.verticalScrollbar != null);
+        scroll.verticalNormalizedPosition = 0;
+        Canvas.ForceUpdateCanvases();
+        var last = SceneUtil.FindAny("Button" + (total - 1)).GetComponent<RectTransform>();
+        Vector3[] corners = new Vector3[4];
+        last.GetWorldCorners(corners);
+        Vector3 bottom = scroll.viewport.InverseTransformPoint(corners[0]);
+        Check("last ship is reachable at bottom of scroll", bottom.y >= scroll.viewport.rect.yMin - 1);
+        for (int i = 1; i < total; i++)
+        {
+            Check("all health states load for ship" + i,
+                shopingShips.SpriteFor(i, 0) != null && shopingShips.SpriteFor(i, 1) != null && shopingShips.SpriteFor(i, 2) != null);
+            var boost = SceneUtil.FindAny("Boost" + i);
+            Check("ship" + i + " has engine art", boost != null && boost.GetComponent<SpriteRenderer>().sprite != null);
+        }
         Debug.Log("[ST] failures: " + fails);
-        EditorApplication.Exit(0);
+        EditorApplication.Exit(fails == 0 ? 0 : 1);
     }
 }

@@ -930,6 +930,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 990001001}
   - component: {fileID: 500541694}
   - component: {fileID: 500541693}
   - component: {fileID: 500541691}
@@ -4432,3 +4433,16 @@ SceneRoots:
   - {fileID: 1875682414}
   - {fileID: 52347826}
   - {fileID: 1693947838}
+--- !u!114 &990001001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500541689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d92a76e127ad43ffb6b1885a72c93eaf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  icon: {fileID: 21300000, guid: 218b99219a6a16046ab222ada9902aa4, type: 3}

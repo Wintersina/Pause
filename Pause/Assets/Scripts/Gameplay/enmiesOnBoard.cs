@@ -65,14 +65,14 @@ public class enmiesOnBoard : MonoBehaviour {
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
 
-    // One shared lane pair for rails and the mines that ride them.
-    //
-    // These used to be -2.75 and +2.65 -- asymmetric, and far enough out that
-    // the left wall (whose inner edge sits near -2.5) covered half of whatever
-    // was on the lane. Pulled in and squared up so a rail and its mines sit
-    // fully on screen, just outside the player's own +/-2.4 reach.
-    public const float RailLeftX = -2.52f;
-    public const float RailRightX = 2.52f;
+    // A mine must be attached to a real rail, never to a magic screen x.
+    // These are the transforms returned by Instantiate(), so a mine follows
+    // the precise lane the rail was given for the current world.
+    readonly System.Collections.Generic.List<Transform> liveRails =
+        new System.Collections.Generic.List<Transform>();
+    readonly System.Collections.Generic.List<Transform> liveMines =
+        new System.Collections.Generic.List<Transform>();
+    Transform pendingMineRail;
 
     void Start () {
 
@@ -177,9 +177,117 @@ public class enmiesOnBoard : MonoBehaviour {
     // arbitrary x. Everything else spawns wherever it was asked to.
     Vector3 PlaceFor(GameObject prefab, float x)
     {
+        pendingMineRail = null;
         if (PrefabName.Is(prefab, "mine"))
-            x = (Random.value < 0.5f) ? RailLeftX : RailRightX;
+        {
+            Transform rail = NearestLiveRail();
+            // A mine can be selected by the enemy table before a rail happens
+            // to be on screen. Create its mounting rail first in that case.
+            if (rail == null) rail = SpawnRail(Random.value < 0.5f);
+            if (rail != null)
+            {
+                pendingMineRail = rail;
+                x = rail.position.x;
+                // Hold enough vertical space for the mine's full circular
+                // silhouette before it enters the visible board.
+                float y = ReserveMineY(rail, transform.position.y);
+                return new Vector3(x, y, 0f);
+            }
+        }
         return new Vector3(x, transform.position.y, 0f);
+    }
+
+    float ReserveMineY(Transform rail, float requestedY)
+    {
+        for (int i = liveMines.Count - 1; i >= 0; i--)
+            if (liveMines[i] == null) liveMines.RemoveAt(i);
+
+        float y = requestedY;
+        bool moved;
+        do
+        {
+            moved = false;
+            for (int i = 0; i < liveMines.Count; i++)
+            {
+                if (Mathf.Abs(liveMines[i].position.x - rail.position.x) < 0.02f &&
+                    Mathf.Abs(liveMines[i].position.y - y) < 1.18f)
+                {
+                    y += 1.22f;
+                    moved = true;
+                    break;
+                }
+            }
+        } while (moved);
+        return y;
+    }
+
+    GameObject SpawnEnemy(GameObject prefab, float x)
+    {
+        GameObject spawned = Instantiate(prefab, PlaceFor(prefab, x), transform.rotation);
+        if (PrefabName.Is(prefab, "mine"))
+        {
+            liveMines.Add(spawned.transform);
+            var mount = spawned.GetComponent<RailMineMount>();
+            if (mount == null) mount = spawned.AddComponent<RailMineMount>();
+            mount.rail = pendingMineRail;
+            mount.lockedX = spawned.transform.position.x;
+        }
+        return spawned;
+    }
+
+    Transform NearestLiveRail()
+    {
+        for (int i = liveRails.Count - 1; i >= 0; i--)
+            if (liveRails[i] == null) liveRails.RemoveAt(i);
+        if (liveRails.Count == 0) return null;
+
+        // Prefer the rail closest in vertical travel to this spawn point. Its
+        // x is nevertheless taken directly from that rail's transform.
+        Transform best = liveRails[0];
+        float bestDistance = Mathf.Abs(best.position.y - transform.position.y);
+        for (int i = 1; i < liveRails.Count; i++)
+        {
+            float distance = Mathf.Abs(liveRails[i].position.y - transform.position.y);
+            if (distance < bestDistance)
+            {
+                best = liveRails[i];
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    Transform SpawnRail(bool right)
+    {
+        if (rails == null) return null;
+        Vector3 pos = new Vector3(WorldRailX(!right), transform.position.y, 0f);
+        GameObject spawned = Instantiate(rails, pos, transform.rotation);
+        liveRails.Add(spawned.transform);
+        return spawned.transform;
+    }
+
+    // The side-wall meshes are the rails in every world. Their inner edges
+    // move correctly with the authored geometry, regardless of texture/theme.
+    // This calculation is deliberately based on those live meshes rather than
+    // a hard-coded portrait-screen coordinate.
+    static float WorldRailX(bool left)
+    {
+        GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
+        if (wall != null)
+        {
+            var filter = wall.GetComponent<MeshFilter>();
+            if (filter != null && filter.sharedMesh != null)
+            {
+                float halfWidth = filter.sharedMesh.bounds.extents.x * Mathf.Abs(wall.transform.lossyScale.x);
+                // Mine hardware sits at the centerline of the visible bar,
+                // not at its inside edge.
+                return wall.transform.position.x;
+            }
+            return wall.transform.position.x;
+        }
+        // Safety fallback for a stripped test scene. A normal game always
+        // resolves the mesh calculation above.
+        return left ? -2.5f : 2.5f;
     }
 
     static float Roll(Vector2 range)
@@ -244,14 +352,14 @@ public class enmiesOnBoard : MonoBehaviour {
     void spawnAstroid2()
     {
         GameObject prefab = astroid2[astroidSelector];
-        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.2f, 2.4f)), transform.rotation);
+        SpawnEnemy(prefab, Random.Range(-2.2f, 2.4f));
     }
 
     // this spawn larg enimes though the board
     void spawnAstroid1()
     {
         GameObject prefab = astroid1[astroidSelector];
-        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.2f, 2.4f)), transform.rotation);
+        SpawnEnemy(prefab, Random.Range(-2.2f, 2.4f));
     }
 
     // will create a line of animated enimies that the player is able to doge through
@@ -271,19 +379,19 @@ public class enmiesOnBoard : MonoBehaviour {
     void spawnSmallAstroid()
     {
         GameObject prefab = astroid3[astroidSelector];
-        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2.3f)), transform.rotation);
+        SpawnEnemy(prefab, Random.Range(-2.3f, 2.3f));
     }
 
     void spawnMidAstroid()
     {
         GameObject prefab = astroid4[astroidSelector];
-        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2f)), transform.rotation);
+        SpawnEnemy(prefab, Random.Range(-2.3f, 2f));
     }
 
     void spawnLargeAstroid()
     {
         GameObject prefab = astroid5[astroidSelector];
-        Instantiate(prefab, PlaceFor(prefab, Random.Range(-2.3f, 2.3f)), transform.rotation);
+        SpawnEnemy(prefab, Random.Range(-2.3f, 2.3f));
     }
 
     // Picks from the imported set, biased so later phases meet the nastier art:
@@ -321,12 +429,20 @@ public class enmiesOnBoard : MonoBehaviour {
 
     void spawnRails()
     {
-        Vector3 left = new Vector3(RailLeftX, transform.position.y, 0f);
-        Vector3 right = new Vector3(RailRightX, transform.position.y, 0f);
+        SpawnRail(Random.Range(1, 10) % 2 == 0);
+    }
+}
 
-        if (Random.Range(1, 10) % 2 == 0)
-            Instantiate(rails, right, transform.rotation);
-        else
-            Instantiate(rails, left, transform.rotation);
+// Keeps a rail mine locked to the centerline it was mounted on even while the
+// rail scrolls. This only controls X; the existing enemy movement owns Y.
+public class RailMineMount : MonoBehaviour
+{
+    public Transform rail;
+    public float lockedX;
+
+    void LateUpdate()
+    {
+        float x = rail != null ? rail.position.x : lockedX;
+        transform.position = new Vector3(x, transform.position.y, transform.position.z);
     }
 }

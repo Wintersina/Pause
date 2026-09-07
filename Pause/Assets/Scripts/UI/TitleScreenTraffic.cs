@@ -55,11 +55,10 @@ public class TitleScreenTraffic : MonoBehaviour
     static Sprite[] LoadHulls()
     {
         var found = new List<Sprite>();
-        foreach (var name in shopingShips.Roster)
+        for (int i = 1; i < shopingShips.Roster.Length; i++)
         {
-            if (string.IsNullOrEmpty(name) || name == "non") continue;
-            var frames = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + name);
-            if (frames != null && frames.Length > 0) found.Add(frames[0]);
+            var sprite = shopingShips.SpriteFor(i, 0);
+            if (sprite != null) found.Add(sprite);
         }
         return found.ToArray();
     }

@@ -8,4 +8,6 @@
 Every ship hull state also has a three-frame `*_idle0`–`*_idle2` engine loop.
 The loop uses a cyan → gold → magenta pixel exhaust, deliberately pulsing but
 never turning into a boost effect. The ship set is deliberately a preview
-library. Gameplay roster wiring is separate from art approval.
+library. The active Proteus, Amadeus, Darkwing, and M237 sheets use the same
+three-state CC0 pixel-art treatment, so all seven live shop ships now share the
+same 80s visual language.

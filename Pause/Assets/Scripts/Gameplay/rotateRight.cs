@@ -9,6 +9,8 @@ public class rotateRight : MonoBehaviour {
     public float checkoutSpeed = 4.5f;
     [Tooltip("World units per second while the ship burns out of the dock.")]
     public float launchSpeed = 10f;
+    [Tooltip("Degrees per second while the selected hull swings from its berth to launch heading.")]
+    public float turnSpeed = 540f;
 
     private GameObject[] Targets = new GameObject[shopingShips.shipTotal];
     private GameObject[] startingPoss = new GameObject[shopingShips.shipTotal];
@@ -67,6 +69,8 @@ public class rotateRight : MonoBehaviour {
                     shopingShips.ships[shipSelected].transform.position,
                     Targets[shipSelected].transform.position,
                     checkoutSpeed * Time.unscaledDeltaTime);
+                if (!flyOffChecker)
+                    TurnToDockHeading(shopingShips.ships[shipSelected], shipSelected);
             }
 
             // Find whatever ship was checked out and return it to its position
@@ -79,6 +83,7 @@ public class rotateRight : MonoBehaviour {
                     shopingShips.ships[k].transform.position,
                     startingPoss[k].transform.position,
                     checkoutSpeed * Time.unscaledDeltaTime);
+                TurnToDockHeading(shopingShips.ships[k], k);
             }
         }
         // Unscaled: this is a transition timer, and the game scene leaves
@@ -93,10 +98,17 @@ public class rotateRight : MonoBehaviour {
             if (shopingShips.ships[shipSelected] != null)
             {
                 GameObject pad = (shipSelected % 2 == 0) ? liftOffRight : liftOffLeft;
-                if (pad != null)
+                var ship = shopingShips.ships[shipSelected];
+                ship.transform.rotation = Quaternion.RotateTowards(
+                    ship.transform.rotation, Quaternion.identity,
+                    turnSpeed * Time.unscaledDeltaTime);
+
+                // The launch begins only after the hull has visibly made its
+                // quarter-turn toward the top of the screen.
+                if (pad != null && Quaternion.Angle(ship.transform.rotation, Quaternion.identity) < 1f)
                 {
-                    shopingShips.ships[shipSelected].transform.position = Vector3.MoveTowards(
-                        shopingShips.ships[shipSelected].transform.position,
+                    ship.transform.position = Vector3.MoveTowards(
+                        ship.transform.position,
                         pad.transform.position,
                         launchSpeed * Time.unscaledDeltaTime);
                 }
@@ -110,5 +122,13 @@ public class rotateRight : MonoBehaviour {
             Time.timeScale = 1f;
             SceneManager.LoadScene("gameS1");
         }
+    }
+
+    void TurnToDockHeading(GameObject ship, int index)
+    {
+        ship.transform.rotation = Quaternion.RotateTowards(
+            ship.transform.rotation,
+            Quaternion.Euler(0f, 0f, ShopSceneExtender.DockAngle(index)),
+            turnSpeed * Time.unscaledDeltaTime);
     }
 }

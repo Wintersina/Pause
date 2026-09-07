@@ -44,56 +44,19 @@ public class ShipThruster : MonoBehaviour
     {
         var hull = GetComponent<SpriteRenderer>();
 
-        // Copy the look from the ship's own boost flame where there is one --
-        // same sprite, same animation -- so the idle flame is unmistakably the
-        // same engine, just turned down.
-        Sprite sprite = null;
-        RuntimeAnimatorController controller = null;
-        Vector3 boostScale = new Vector3(2f, 1.5f, 1f);
-
-        foreach (var t in GetComponentsInChildren<Transform>(true))
-        {
-            if (!t.CompareTag("boost")) continue;
-            boostObject = t.gameObject;
-
-            var sr = t.GetComponent<SpriteRenderer>();
-            if (sr != null) sprite = sr.sprite;
-            var an = t.GetComponent<Animator>();
-            if (an != null) controller = an.runtimeAnimatorController;
-            boostScale = t.localScale;
-            break;
-        }
-
-        // Ships built in code (the menu traffic) have no boost child, so fall
-        // back to a particle flare.
-        if (sprite == null)
-        {
-            var tex = Resources.Load<Texture2D>("Prefabs/Vfx/vfx_flare_01");
-            if (tex == null) return;
-            sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
-                                   new Vector2(0.5f, 0.5f), 100f);
-            boostScale = Vector3.one * 0.5f;
-        }
-
+        int index = ShipExhaust.IndexFor(gameObject);
+        boostObject = ShipExhaust.ConfigureBoost(gameObject, index);
+        Sprite sprite = ShipExhaust.SpriteFor(index);
+        if (sprite == null) return;
         var go = new GameObject("~Thruster");
         go.transform.SetParent(transform, false);
-
         flameRenderer = go.AddComponent<SpriteRenderer>();
         flameRenderer.sprite = sprite;
+        flameRenderer.color = ShipExhaust.TintFor(index);
         flameRenderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
-
-        if (controller != null)
-            go.AddComponent<Animator>().runtimeAnimatorController = controller;
-
-        // Sit it just behind the hull, measured from the sprite so it lands
-        // correctly whatever the ship's own scale and art size.
-        float rear = hull != null && hull.sprite != null
-            ? hull.sprite.bounds.extents.y
-            : 0.4f;
-        go.transform.localPosition = new Vector3(0f, -rear - 0.10f, 0.05f);
+        go.transform.localPosition = ShipExhaust.MountFor(hull != null ? hull.sprite : null, index);
         go.transform.localRotation = Quaternion.identity;
-
-        baseScale = boostScale;
+        baseScale = ShipExhaust.ScaleFor(hull != null ? hull.sprite : null, index);
         flame = go.transform;
     }
 
@@ -126,7 +89,8 @@ public class ShipThruster : MonoBehaviour
 
         // Unscaled so the flame keeps guttering while the world is frozen.
         float wobble = 1f + Mathf.Sin((Time.unscaledTime + seed) * 22f) * flicker;
-        Vector3 want = baseScale * target * wobble;
+        Vector3 want = new Vector3(baseScale.x * Mathf.Sqrt(target) * wobble,
+                                   baseScale.y * target * wobble, 1f);
 
         flame.localScale = Vector3.Lerp(flame.localScale, want,
                                         1f - Mathf.Exp(-14f * Time.unscaledDeltaTime));

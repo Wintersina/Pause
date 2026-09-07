@@ -29,7 +29,7 @@ public class ShopSceneExtender : MonoBehaviour
     // is 15401px wide and sits at scale 0.03, Proteus is 400px at scale 0.60.
     // Generated ships are normalised to the same visual size instead of being
     // left at scale 1, which is why they towered over the rest.
-    const float TargetHullHeight = 0.58f;
+    const float TargetHullHeight = 1.05f;
 
     public static Vector3 ShipSlot(int i)
     {
@@ -44,6 +44,13 @@ public class ShopSceneExtender : MonoBehaviour
         return new Vector3(col == 0 ? -FaceX : FaceX, p.y, 0f);
     }
 
+    // The source sprites point up. Parked ships face out toward the nearest
+    // hangar door, then rotate back to this natural (up) heading for launch.
+    public static float DockAngle(int index)
+    {
+        return index % 2 == 0 ? -90f : 90f;
+    }
+
     public static void Build()
     {
         int total = shopingShips.shipTotal;
@@ -55,6 +62,7 @@ public class ShopSceneExtender : MonoBehaviour
         // readout disappear even though shopingShips was correctly updating it.
         var dustCanvas = SceneUtil.FindAny("StarDustCanvas");
         if (dustCanvas != null) dustCanvas.SetActive(true);
+        EnsureInstruction(canvas);
 
         for (int i = 1; i < total; i++)
         {
@@ -65,10 +73,20 @@ public class ShopSceneExtender : MonoBehaviour
             EnsureDockBay(i);
         }
 
+        // The authored scene still has its retired seven-ship layout. Only
+        // the three finished 80s ships belong in this dock.
+        for (int i = total; i < 12; i++)
+        {
+            SetActiveIfFound("ship" + i, false);
+            SetActiveIfFound("Button" + i, false);
+            SetActiveIfFound("~DockBay" + i, false);
+        }
+
         // Launch lanes must extend beyond the dock, rather than steering a
         // selected ship back toward the middle before it exits the screen.
         EnsureMarker("LiftOffLeft", new Vector3(-FaceX, 6.6f, 0f));
         EnsureMarker("LiftOffRight", new Vector3(FaceX, 6.6f, 0f));
+        DockScrollView.Build(canvas);
     }
 
     // face/return are pure position markers; rotateRight only reads .position.
@@ -81,6 +99,12 @@ public class ShopSceneExtender : MonoBehaviour
         else go.transform.position = pos;
     }
 
+    static void SetActiveIfFound(string name, bool active)
+    {
+        var go = SceneUtil.FindAny(name);
+        if (go != null) go.SetActive(active);
+    }
+
     static void EnsureShip(int index)
     {
         var go = SceneUtil.FindAny("ship" + index);
@@ -89,6 +113,7 @@ public class ShopSceneExtender : MonoBehaviour
             go = new GameObject("ship" + index);
             go.AddComponent<SpriteRenderer>();
         }
+        go.SetActive(true);
 
         go.transform.position = ShipSlot(index);
 
@@ -101,9 +126,19 @@ public class ShopSceneExtender : MonoBehaviour
         if (sprite != null) sr.sprite = sprite;
         sr.sortingOrder = 5;
 
+        // Legacy scene hulls have an old UI Image on top of their runtime
+        // SpriteRenderer. Disable it so the intended 80s sprite can show.
+        foreach (var image in go.GetComponentsInChildren<Image>(true))
+            image.enabled = false;
+
         // Every hull is normalised now. The authored scales were hand-tuned for
         // a four-ship dock and are much too large once seven have to fit.
         NormaliseScale(go, sr);
+        go.transform.rotation = Quaternion.Euler(0f, 0f, DockAngle(index));
+
+        var idleAnimator = go.GetComponent<DockShipIdleAnimator>();
+        if (idleAnimator == null) idleAnimator = go.AddComponent<DockShipIdleAnimator>();
+        idleAnimator.shipIndex = index;
 
         EnsureBoost(go, index);
 
@@ -129,45 +164,18 @@ public class ShopSceneExtender : MonoBehaviour
     // First damage frame of the ship's sheet, matching what lifeControler loads.
     static Sprite LoadShipSprite(int index)
     {
-        string name = shopingShips.NameFor(index);
-        if (string.IsNullOrEmpty(name)) return null;
-
-        var frames = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + name);
-        return (frames != null && frames.Length > 0) ? frames[0] : null;
+        return shopingShips.SpriteFor(index, 0);
     }
 
     // rotateRight looks these up by the exact name "Boost<N>", so the generated
     // ones must match or the lift-off flare silently never appears.
     static void EnsureBoost(GameObject ship, int index)
     {
-        foreach (Transform c in ship.transform)
-            if (c.name.StartsWith("Boost"))
-            {
-                PopulateBoost(c.gameObject);
-                return;
-            }
-
-        var boost = new GameObject("Boost" + index);
-        boost.transform.SetParent(ship.transform, false);
-        boost.transform.localPosition = new Vector3(0f, -0.48f, 0f);
-        PopulateBoost(boost);
-        boost.SetActive(false);
+        ShipExhaust.ConfigureBoost(ship, index);
     }
 
-    static void PopulateBoost(GameObject boost)
-    {
-        boost.tag = "boost";
-        var sr = boost.GetComponent<SpriteRenderer>();
-        if (sr == null) sr = boost.AddComponent<SpriteRenderer>();
-        if (sr.sprite == null)
-            sr.sprite = Resources.Load<Sprite>("Prefabs/Vfx/vfx_flare_01");
-        sr.sortingOrder = 4;
-        boost.transform.localScale = Vector3.one * 0.30f;
-    }
-
-    // The old shop was a bare starfield. These bay plates and neon guide rails
-    // give every parked ship a place in the hangar and make the two launch
-    // directions instantly legible without requiring scene art edits.
+    // A restrained berth, deliberately without the old stack of horizontal
+    // neon rules. The outward-facing ship is now the visual focus.
     static readonly Color DockPlate = new Color(0.035f, 0.06f, 0.11f, 0.86f);
     static readonly Color DockCyan = new Color(0.18f, 0.88f, 1f, 0.78f);
     static readonly Color DockPink = new Color(1f, 0.22f, 0.65f, 0.68f);
@@ -176,16 +184,19 @@ public class ShopSceneExtender : MonoBehaviour
     {
         var root = SceneUtil.FindAny("~DockBay" + index);
         if (root == null) root = new GameObject("~DockBay" + index);
+        root.SetActive(true);
         root.transform.position = ShipSlot(index) + new Vector3(0f, -0.04f, 0.2f);
 
         EnsureDockPiece(root.transform, "Plate", Vector3.zero,
-                        new Vector2(2.22f, 0.86f), DockPlate, 1);
-        EnsureDockPiece(root.transform, "TopRail", new Vector3(0f, 0.41f),
-                        new Vector2(2.16f, 0.035f), DockCyan, 2);
-        EnsureDockPiece(root.transform, "BottomRail", new Vector3(0f, -0.41f),
-                        new Vector2(2.16f, 0.035f), DockPink, 2);
-        EnsureDockPiece(root.transform, "CenterGuide", new Vector3(0f, -0.27f),
-                        new Vector2(0.42f, 0.025f), DockCyan, 2);
+                        new Vector2(1.88f, 0.74f), DockPlate, 1);
+        EnsureDockPiece(root.transform, "DoorGlow", new Vector3(index % 2 == 0 ? 0.86f : -0.86f, 0f),
+                        new Vector2(0.035f, 0.58f), index % 2 == 0 ? DockPink : DockCyan, 2);
+
+        // Retire guide pieces made by an earlier dock layout if this scene was
+        // rebuilt while open in the editor.
+        RemoveDockPiece(root.transform, "TopRail");
+        RemoveDockPiece(root.transform, "BottomRail");
+        RemoveDockPiece(root.transform, "CenterGuide");
     }
 
     static void EnsureDockPiece(Transform parent, string name, Vector3 localPos,
@@ -206,6 +217,12 @@ public class ShopSceneExtender : MonoBehaviour
         go.transform.localScale = new Vector3(size.x, size.y, 1f);
     }
 
+    static void RemoveDockPiece(Transform parent, string name)
+    {
+        var old = parent.Find(name);
+        if (old != null) Object.Destroy(old.gameObject);
+    }
+
     static void EnsureButton(int index, GameObject canvas, GameObject template)
     {
         var go = SceneUtil.FindAny("Button" + index);
@@ -218,6 +235,7 @@ public class ShopSceneExtender : MonoBehaviour
             // shipselected() keys off the button's name, so the cloned handler
             // is already correct -- nothing else to wire.
         }
+        go.SetActive(true);
 
         var rt = go.GetComponent<RectTransform>();
         if (rt != null)
@@ -248,6 +266,38 @@ public class ShopSceneExtender : MonoBehaviour
         var aligner = go.GetComponent<ShopButtonAligner>();
         if (aligner == null) aligner = go.AddComponent<ShopButtonAligner>();
         aligner.shipIndex = index;
+    }
+
+    static void EnsureInstruction(GameObject canvas)
+    {
+        // The authored scene contains two copies of the old, too-wide hint.
+        // On portrait screens they split across both edges of the display.
+        foreach (var text in Resources.FindObjectsOfTypeAll<Text>())
+        {
+            if (text == null || !text.gameObject.scene.IsValid()) continue;
+            if (text.text != null && text.text.Contains("Touch any of the ships"))
+                text.gameObject.SetActive(false);
+        }
+
+        if (canvas == null) return;
+        var go = SceneUtil.FindAny("~DockInstruction");
+        if (go == null)
+        {
+            go = new GameObject("~DockInstruction", typeof(Text));
+            go.transform.SetParent(canvas.transform, false);
+        }
+        var label = go.GetComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.text = "TOUCH A SHIP TO SELECT OR BUY";
+        label.fontSize = 18;
+        label.alignment = TextAnchor.MiddleCenter;
+        label.color = new Color(0.82f, 0.92f, 1f, 0.88f);
+        label.raycastTarget = false;
+        var rt = label.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0f, -88f);
+        rt.sizeDelta = new Vector2(520f, 34f);
     }
 
     // Buttons cloned from the scene came without the authored "Select" child,

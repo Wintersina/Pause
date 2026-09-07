@@ -13,6 +13,10 @@ public class movePlayer : MonoBehaviour
     private AudioSource goClip;
     private bool playoneshot;
     private bool teleported;
+    // A denied no-pause jump must remain denied until the finger lifts. Without
+    // this, the first frame restored the ship but the held touch moved it again
+    // on the next frame, which still looked and played like a free teleport.
+    private bool teleportLockedUntilRelease;
 
     [Header("Teleport")]
     [Tooltip("Minimum gap between teleports once the player is out of pauses. " +
@@ -75,16 +79,31 @@ public class movePlayer : MonoBehaviour
                 else
                     teleported = true;
 
-                // `teleported` is set the moment the finger lifts, so the next
-                // touch is an arrival rather than a drag. Compare before and
-                // after to tell a real jump from a nudge.
-                Vector3 before = transform.position;
-                moveLeft_Right(fingerPos);
-
                 if (teleported)
                 {
+                    // `teleported` is set the moment the finger lifts, so the
+                    // next touch is an arrival rather than a drag. Do the
+                    // cooldown check *before* moving: restoring position after
+                    // a move only blocked one frame of a held touch.
                     teleported = false;
-                    TryTeleport(before);
+                    if (!CanTeleport())
+                    {
+                        teleportLockedUntilRelease = true;
+                        TeleportFx.Denied(transform.position);
+                        return;
+                    }
+
+                    Vector3 before = transform.position;
+                    moveLeft_Right(fingerPos);
+                    MarkTeleport();
+                    TeleportFx.Play(before, transform.position);
+                }
+                else if (!teleportLockedUntilRelease)
+                {
+                    // Normal held-touch steering remains responsive. A touch
+                    // that was refused by the no-pause cooldown cannot steer
+                    // or blink until it has been released.
+                    moveLeft_Right(fingerPos);
                 }
             }
             else
@@ -94,28 +113,27 @@ public class movePlayer : MonoBehaviour
 
         }
         else
+        {
             teleported = true;
+            teleportLockedUntilRelease = false;
+        }
 
     }
 
     // A teleport is free while the player still holds pauses -- spending one is
     // already the cost. Once they are out, blinking across the screen was
     // unlimited and free, so it is rate limited instead.
-    void TryTeleport(Vector3 from)
+    bool CanTeleport()
     {
-        bool hasPauses = score.pauseCounter > 0;
-        bool ready = Time.unscaledTime >= nextTeleportAt;
+        return score.pauseCounter > 0 || Time.unscaledTime >= nextTeleportAt;
+    }
 
-        if (hasPauses || ready)
-        {
-            nextTeleportAt = Time.unscaledTime + teleportCooldown;
-            TeleportFx.Play(from, transform.position);
-            return;
-        }
-
-        // On cooldown: stay put, and show why rather than just ignoring the tap.
-        transform.position = from;
-        TeleportFx.Denied(from);
+    void MarkTeleport()
+    {
+        // This timestamp deliberately updates even while pauses remain. It has
+        // no effect until the final pause is gone, at which point the next
+        // blink is correctly one second after the previous one.
+        nextTeleportAt = Time.unscaledTime + teleportCooldown;
     }
 
     // will move the player left and right baised on touch positions.

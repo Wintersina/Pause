@@ -1,14 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 
 public class shopingShips : MonoBehaviour {
 
+    static readonly Dictionary<string, Sprite> runtimeSprites = new Dictionary<string, Sprite>();
+
+    // Ship 1 is the starter hull. It must never appear as a paid upgrade,
+    // including for players carrying old PlayerPrefs from before the change.
+    public const int StarterShip = 1;
+
     //if button is clicked move ship;
     public static bool buttonIsClicked;
 
-    public static int shipTotal = 8;
+    // Retro hulls retain their saved indices; original ships follow them.
+    public static int shipTotal = 19;
     public static GameObject[] ships = new GameObject[shipTotal];
     public Button[] shipButtons = new Button[shipTotal];
     private static string[] shipNamesShared;
@@ -34,6 +42,8 @@ public class shopingShips : MonoBehaviour {
 
     // Use this for initialization
     void Start() {
+
+        PlayerPrefs.SetString("boughtship" + StarterShip, "True");
 
         // `shipButtons` is serialized, so the scene may still hold an array
         // sized for the old roster; grow it before indexing.
@@ -202,13 +212,17 @@ public class shopingShips : MonoBehaviour {
     // Roster names, available before this component's Start() has run.
     public static readonly string[] Roster =
     {
-        "non", "Proteus", "Amadeus", "Darkwing", "M237", "Cygnus", "Vesper", "XR7",
+        "non", "Neon Comet", "Volt Viper", "Solar Fang", "Crimson Halo",
+        "Ion Lancer", "Jade Phantom", "Gold Warden",
+        "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO",
+        "Dove", "Scout", "Interceptor", "Xenon", "Turtle",
     };
 
     // Prices, exposed so the shop buttons can show them before you tap in.
     public static readonly float[] Prices =
     {
-        0f, 150f, 400f, 900f, 1400f, 2100f, 3000f, 4200f,
+        0f, 0f, 600f, 1400f, 2200f, 3200f, 4400f, 5800f,
+        800f, 1000f, 1200f, 1600f, 1800f, 2000f, 2400f, 400f, 700f, 2600f, 3000f,
     };
 
     public static float CostFor(int index)
@@ -221,6 +235,57 @@ public class shopingShips : MonoBehaviour {
     {
         if (index < 0 || index >= Roster.Length) return null;
         return Roster[index];
+    }
+
+    // These deliberate paths keep each hull's three health states in the
+    // correct intact -> damaged -> critical order.
+    public static Sprite SpriteFor(int index, int damageState = 0)
+    {
+        if (index >= 8) return OriginalShipArt.SpriteFor(index);
+        string[] keys = { "", "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo",
+                          "IonLancer", "JadePhantom", "GoldWarden" };
+        string[] states = { "intact", "damaged", "critical" };
+        if (index <= 0 || index >= keys.Length) return null;
+        string state = states[Mathf.Clamp(damageState, 0, states.Length - 1)];
+        return LoadRuntimeSprite("Prefabs/Ships/Retro80s/" + keys[index] + "_" + state);
+    }
+
+    public static Sprite IdleSpriteFor(int index, int damageState, int idleFrame)
+    {
+        if (index >= 8) return OriginalShipArt.SpriteFor(index);
+        string[] keys = { "", "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo",
+                          "IonLancer", "JadePhantom", "GoldWarden" };
+        string[] states = { "intact", "damaged", "critical" };
+        if (index <= 0 || index >= keys.Length) return null;
+        string path = "Prefabs/Ships/Retro80s/" + keys[index] + "_" +
+                      states[Mathf.Clamp(damageState, 0, states.Length - 1)] +
+                      "_idle" + Mathf.Clamp(idleFrame, 0, 2);
+        Sprite sprite = LoadRuntimeSprite(path);
+        return sprite != null ? sprite : SpriteFor(index, damageState);
+    }
+
+    static Sprite LoadRuntimeSprite(string path)
+    {
+        Sprite cached;
+        if (runtimeSprites.TryGetValue(path, out cached)) return cached;
+        Texture2D texture = Resources.Load<Texture2D>(path);
+        if (texture == null) return null;
+        Rect rect = new Rect(0, 0, texture.width, texture.height);
+        if (path.Contains("/NeonComet_")) rect = new Rect(16, 18, 32, 29);
+        if (path.Contains("/VoltViper_")) rect = new Rect(18, 21, 28, 23);
+        if (path.Contains("/SolarFang_")) rect = new Rect(17, 18, 29, 28);
+        if (path.Contains("/CrimsonHalo_")) rect = new Rect(8, 4, 46, 57);
+        if (path.Contains("/IonLancer_")) rect = new Rect(9, 6, 47, 55);
+        if (path.Contains("/JadePhantom_")) rect = new Rect(4, 6, 56, 55);
+        if (path.Contains("/GoldWarden_")) rect = new Rect(7, 6, 51, 55);
+        Sprite sprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), 100f);
+        runtimeSprites[path] = sprite;
+        return sprite;
+    }
+
+    public static Sprite[] DamageSpritesFor(int index)
+    {
+        return new[] { SpriteFor(index, 0), SpriteFor(index, 1), SpriteFor(index, 2) };
     }
 
     void updateStarDustLabel()
@@ -242,34 +307,44 @@ public class shopingShips : MonoBehaviour {
 
         Sprite found = null;
 
-        if (ships[i] != null)
-        {
-            Image img = ships[i].GetComponentInChildren<Image>(true);
-            if (img != null && img.sprite != null) found = img.sprite;
+        // The scene's original ship children use large, unrelated menu art.
+        // Always prefer the canonical roster sheet, which is also what the
+        // dock displays. This keeps Darkwing and every later ship consistent.
+        found = SpriteFor(i, 0);
 
-            if (found == null)
-            {
-                SpriteRenderer sr = ships[i].GetComponentInChildren<SpriteRenderer>(true);
-                if (sr != null && sr.sprite != null) found = sr.sprite;
-            }
+        if (found == null && ships[i] != null)
+        {
+            SpriteRenderer sr = ships[i].GetComponentInChildren<SpriteRenderer>(true);
+            if (sr != null && sr.sprite != null) found = sr.sprite;
         }
 
         if (found == null)
         {
-            string shipName = NameFor(i);
-            if (!string.IsNullOrEmpty(shipName))
+            Image img = ships[i] != null ? ships[i].GetComponentInChildren<Image>(true) : null;
+            if (img != null && img.sprite != null)
             {
-                var frames = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + shipName);
-                if (frames != null && frames.Length > 0) found = frames[0];
+                found = img.sprite;
             }
         }
 
         if (found != null)
         {
             shipImg.sprite = found;
-            // Preserve the art's aspect so tall hulls are not squashed into the
-            // panel's square frame.
+            // The original panel was sized from a short ship. Wide sheets such
+            // as Darkwing could cover the question/cost text. Every hull now
+            // gets the same bounded preview card; preserveAspect handles the
+            // individual silhouette without scaling the UI around its pixels.
             shipImg.preserveAspect = true;
+            var rect = shipImg.rectTransform;
+            rect.localScale = Vector3.one;
+            // The preview had an old perpetual-rotation script attached. It
+            // made a selected hull look like a random spinning icon.
+            var oldSpinner = shipImg.GetComponent<roate>();
+            if (oldSpinner != null) oldSpinner.enabled = false;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -24f);
+            rect.sizeDelta = new Vector2(240f, 180f);
         }
     }
 

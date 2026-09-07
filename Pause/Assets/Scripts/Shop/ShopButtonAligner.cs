@@ -10,6 +10,7 @@ using UnityEngine.UI;
 public class ShopButtonAligner : MonoBehaviour
 {
     public int shipIndex;
+    public bool followShip = true;
 
     [Tooltip("The button is centred on the ship; its label is placed below it.")]
     public float dropBelowShip = 0f;
@@ -37,7 +38,7 @@ public class ShopButtonAligner : MonoBehaviour
             ship = go.transform;
         }
 
-        Follow();
+        if (followShip) Follow();
         Relabel();
     }
 
@@ -66,9 +67,9 @@ public class ShopButtonAligner : MonoBehaviour
         bool owned = PlayerPrefs.GetString("boughtship" + shipIndex) == "True";
         bool active = PlayerPrefs.GetInt("spawnShip", 0) == shipIndex;
 
-        string text = active ? shipName.ToUpperInvariant() + "  ✓"
-                    : owned  ? shipName.ToUpperInvariant() + "  OWNED"
-                             : shipName.ToUpperInvariant() + "  " +
+        string text = active ? shipName.ToUpperInvariant() + "\nSELECTED"
+                    : owned  ? shipName.ToUpperInvariant() + "\nOWNED"
+                             : shipName.ToUpperInvariant() + "\n" +
                                Mathf.RoundToInt(shopingShips.CostFor(shipIndex)).ToString("N0");
 
         if (text == lastText) return;
