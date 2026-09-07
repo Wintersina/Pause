@@ -54,6 +54,8 @@ public class enmiesOnBoard : MonoBehaviour {
     public GameObject[] astroid4 = new GameObject[5];
     public GameObject[] astroid5 = new GameObject[5];
     public GameObject alien1;
+    // Legacy rail3 obstacle prefab removed. Side rails are authored by each
+    // world's wall textures; this field remains only for scene compatibility.
     public GameObject rails;
 
     [Tooltip("Left empty, loads Resources/Prefabs/mine at startup.")]
@@ -135,58 +137,75 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 
     // Escalating mix: each phase adds a type rather than just reskinning.
-    // Thresholds are tuned against a 300s (5 minute) level at phaseRampScale
-    // 1 -- Space's own scale, the baseline every other world ramps faster
-    // than -- leaving the last ~80s of a run in full Chaos.
+    //
+    // Thresholds and intervals retuned 2026-09-07: reported as feeling way
+    // too sparse on Space specifically as the run speeds up. Two compounding
+    // causes -- Space's speedRampPerSecond/maxSpeed (0.00115/0.46) mean speed
+    // never actually reaches its cap within a single 300s level, so the
+    // player's sense of "things speeding up" builds continuously from second
+    // one; but Space also has the lowest enemyRampScale (1.00, the baseline
+    // every other world ramps faster than), so at the old thresholds it did
+    // not reach the denser phases until 150-220s in -- half to three-quarters
+    // of the entire level -- leaving speed and density badly out of step for
+    // most of a run. Thresholds are now compressed (Chaos at 130s instead of
+    // 220s) so density ramps in step with speed instead of trailing it, and
+    // every phase's spawn intervals are tightened on top of that so the
+    // board reads as busier at every stage, not just once Chaos hits. Still
+    // tuned against a 300s (5 minute) level at phaseRampScale 1 (Space);
+    // every other world reaches Chaos sooner still.
     static SpawnPhase[] DefaultPhases()
     {
         return new[]
         {
             new SpawnPhase {
                 name = "Warm-up", activeAfterSeconds = 0f,
-                rails = true, bigEnemy = true,
-                railInterval = new Vector2(0.8f, 1.2f),
-                enemyInterval = new Vector2(3.5f, 5f),
+                // A rail mine is introduced early and then keeps returning;
+                // players should see this rail hazard before the board gets
+                // crowded with later asteroid phases.
+                rails = true, mines = true, bigEnemy = true, smallEnemy = true,
+                railInterval = new Vector2(0.6f, 0.9f),
+                mineInterval = new Vector2(7f, 10f),
+                enemyInterval = new Vector2(2.4f, 3.4f),
             },
             new SpawnPhase {
-                name = "Debris", activeAfterSeconds = 35f,
+                name = "Debris", activeAfterSeconds = 20f,
                 rails = true, mines = true, bigEnemy = true, smallEnemy = true, midAstroid = true,
-                railInterval = new Vector2(0.7f, 1.1f),
-                mineInterval = new Vector2(7f, 11f),
-                enemyInterval = new Vector2(2.5f, 4.5f),
-                astroidInterval = new Vector2(3f, 5f),
+                railInterval = new Vector2(0.55f, 0.85f),
+                mineInterval = new Vector2(6f, 9f),
+                enemyInterval = new Vector2(1.8f, 3f),
+                astroidInterval = new Vector2(2.2f, 3.5f),
             },
             new SpawnPhase {
-                name = "Asteroid field", extraEnemies = true, activeAfterSeconds = 80f,
+                name = "Asteroid field", extraEnemies = true, activeAfterSeconds = 45f,
                 rails = true, mines = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, aliens = true,
-                railInterval = new Vector2(0.6f, 1f),
-                mineInterval = new Vector2(6f, 10f),
-                enemyInterval = new Vector2(2f, 3.5f),
-                astroidInterval = new Vector2(2f, 4f),
-                alienInterval = new Vector2(3f, 4.5f),
-            },
-            new SpawnPhase {
-                name = "Swarm", extraEnemies = true, activeAfterSeconds = 150f,
-                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
-                midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
-                railInterval = new Vector2(0.5f, 0.9f),
-                mineInterval = new Vector2(5f, 9f),
-                chaserInterval = new Vector2(8f, 12f),
-                enemyInterval = new Vector2(1.2f, 2.5f),
-                astroidInterval = new Vector2(1.5f, 3f),
-                alienInterval = new Vector2(2f, 3.5f),
-            },
-            new SpawnPhase {
-                name = "Chaos", extraEnemies = true, activeAfterSeconds = 220f,
-                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
-                midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.5f, 0.8f),
+                mineInterval = new Vector2(5f, 8f),
+                enemyInterval = new Vector2(1.4f, 2.4f),
+                astroidInterval = new Vector2(1.5f, 2.8f),
+                alienInterval = new Vector2(2.2f, 3.5f),
+            },
+            new SpawnPhase {
+                name = "Swarm", extraEnemies = true, activeAfterSeconds = 80f,
+                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
+                midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
+                railInterval = new Vector2(0.4f, 0.7f),
                 mineInterval = new Vector2(4f, 7f),
-                chaserInterval = new Vector2(6f, 9f),
-                enemyInterval = new Vector2(0.6f, 1.4f),
-                astroidInterval = new Vector2(0.8f, 1.8f),
-                alienInterval = new Vector2(1.5f, 2.5f),
+                chaserInterval = new Vector2(7f, 10f),
+                enemyInterval = new Vector2(0.9f, 1.8f),
+                astroidInterval = new Vector2(1.1f, 2.2f),
+                alienInterval = new Vector2(1.5f, 2.7f),
+            },
+            new SpawnPhase {
+                name = "Chaos", extraEnemies = true, activeAfterSeconds = 130f,
+                rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
+                midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
+                railInterval = new Vector2(0.4f, 0.65f),
+                mineInterval = new Vector2(3.5f, 6f),
+                chaserInterval = new Vector2(5f, 8f),
+                enemyInterval = new Vector2(0.5f, 1.1f),
+                astroidInterval = new Vector2(0.6f, 1.4f),
+                alienInterval = new Vector2(1.2f, 2f),
             },
         };
     }
@@ -286,6 +305,8 @@ public class enmiesOnBoard : MonoBehaviour {
         if (PrefabName.Is(prefab, "mine"))
         {
             liveMines.Add(spawned.transform);
+            if (spawned.GetComponent<RailBombAnimator>() == null)
+                spawned.AddComponent<RailBombAnimator>();
             var mount = spawned.GetComponent<RailMineMount>();
             if (mount == null) mount = spawned.AddComponent<RailMineMount>();
             mount.rail = pendingMineRail;
@@ -325,9 +346,13 @@ public class enmiesOnBoard : MonoBehaviour {
 
     Transform SpawnRail(bool right)
     {
-        if (rails == null) return null;
         Vector3 pos = new Vector3(WorldRailX(!right), transform.position.y, 0f);
-        GameObject spawned = Instantiate(rails, pos, transform.rotation);
+        // Invisible lane marker: the visible rail is the themed side wall.
+        // This replaces the retired rail1/rail2/rail3 obstacle art while
+        // preserving a moving transform for mine attachment.
+        GameObject spawned = new GameObject("RailMineLane");
+        spawned.transform.position = pos;
+        spawned.AddComponent<RailLaneScroller>();
         liveRails.Add(spawned.transform);
         return spawned.transform;
     }
@@ -339,27 +364,64 @@ public class enmiesOnBoard : MonoBehaviour {
     static float WorldRailX(bool left)
     {
         GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
+        float wallX = 0f;
         if (wall != null)
         {
-            var filter = wall.GetComponent<MeshFilter>();
-            if (filter != null && filter.sharedMesh != null)
-            {
-                float halfWidth = filter.sharedMesh.bounds.extents.x * Mathf.Abs(wall.transform.lossyScale.x);
-                // Mine hardware sits at the centerline of the visible bar,
-                // not at its inside edge.
-                return wall.transform.position.x;
-            }
-            return wall.transform.position.x;
+            wallX = wall.transform.position.x;
         }
-        // Safety fallback for a stripped test scene. A normal game always
-        // resolves the mesh calculation above; matches the authored pipe
-        // position (+/-3.21) rather than an unrelated guessed constant.
-        return left ? -3.21f : 3.21f;
+        else wallX = left ? -3.21f : 3.21f;
+
+        // The decorative pipe's transform is outside the portrait camera
+        // (about +/-3.21). Its old centerline therefore spawned both the rail
+        // and its mine beyond the visible board. Put rail hardware just
+        // inside the pipe, constrained to the camera's actual visible edge.
+        var cam = Camera.main;
+        float visibleLimit = cam != null && cam.orthographic
+            ? cam.orthographicSize * cam.aspect - .30f : 2.35f;
+        float safeLimit = Mathf.Max(.65f, Mathf.Min(2.35f, visibleLimit));
+        return Mathf.Sign(wallX == 0f ? (left ? -1f : 1f) : wallX) * safeLimit;
     }
 
-    static float Roll(Vector2 range)
+    // Continuous spawn-rate multiplier, layered on top of the phase system
+    // above (which still controls which enemy *types* are active). Steps
+    // every 10 seconds of active flight, the same for every world/level:
+    //   0-60s:  climbs from 1x to 2x (six 10s steps)
+    //   60s-(level end minus 30s): keeps climbing, 2x toward 2.5x
+    //   final 30s of the level: flat 3x, regardless of how long the level is
+    // Applied by dividing rolled delays (Roll() below), so higher density
+    // means shorter delays -- more spawns per minute, on every active type
+    // at once, not just the ones a phase newly unlocks.
+    const float DensityTickSeconds = 10f;
+    const float DensityFirstMinute = 60f;
+    const float DensityFinalStretch = 30f;
+    const float DensityFirstMinuteCeiling = 2f;
+    const float DensityMidCeiling = 2.5f;
+    const float DensityFinalMultiplier = 3f;
+
+    float DensityMultiplier()
     {
-        return Random.Range(range.x, range.y);
+        float levelLength = WorldManager.Instance != null ? WorldManager.Instance.WorldLength : 300f;
+        float finalStart = Mathf.Max(DensityFirstMinute, levelLength - DensityFinalStretch);
+
+        if (elapsedFlightSeconds >= finalStart) return DensityFinalMultiplier;
+
+        int tick = Mathf.FloorToInt(elapsedFlightSeconds / DensityTickSeconds);
+
+        if (elapsedFlightSeconds <= DensityFirstMinute)
+        {
+            int firstMinuteTicks = Mathf.RoundToInt(DensityFirstMinute / DensityTickSeconds); // 6
+            return Mathf.Lerp(1f, DensityFirstMinuteCeiling, (float)tick / firstMinuteTicks);
+        }
+
+        int firstMinuteTickCount = Mathf.RoundToInt(DensityFirstMinute / DensityTickSeconds);
+        int midTicks = Mathf.Max(1, Mathf.FloorToInt((finalStart - DensityFirstMinute) / DensityTickSeconds));
+        int tickInMid = tick - firstMinuteTickCount;
+        return Mathf.Lerp(DensityFirstMinuteCeiling, DensityMidCeiling, (float)tickInMid / midTicks);
+    }
+
+    float Roll(Vector2 range)
+    {
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier());
     }
 
     void spawn()
@@ -515,8 +577,31 @@ public class enmiesOnBoard : MonoBehaviour {
     // rail the mine actually gets mounted to.
     void spawnMine()
     {
-        if (mine == null) return;
-        SpawnEnemy(mine, 0f);
+        // The legacy blue mine prefab has been retired. Rail mines are now
+        // constructed from the current world's dedicated atlas, so their
+        // visual always matches the rail and planet they are mounted on.
+        if (mine != null) { SpawnEnemy(mine, 0f); return; }
+
+        bool right = Random.value < .5f;
+        Transform rail = NearestLiveRail(right);
+        if (rail == null) rail = SpawnRail(right);
+        if (rail == null) return;
+
+        var go = new GameObject("mine", typeof(SpriteRenderer), typeof(BoxCollider2D),
+            typeof(moveItemEnmInStrightLine), typeof(RailMineMount), typeof(RailBombAnimator));
+        go.tag = "Enimey";
+        go.transform.position = new Vector3(rail.position.x, ReserveMineY(rail, transform.position.y), 0f);
+        go.transform.localScale = Vector3.one * .46f;
+        var renderer = go.GetComponent<SpriteRenderer>();
+        renderer.sprite = RailBombSprites.FrameForWorld(
+            WorldManager.Instance != null ? WorldManager.CurrentIndex : 0, 0);
+        renderer.sortingOrder = 12;
+        var collider = go.GetComponent<BoxCollider2D>();
+        collider.size = new Vector2(1.35f, 1.35f);
+        var mount = go.GetComponent<RailMineMount>();
+        mount.rail = rail;
+        mount.lockedX = rail.position.x;
+        liveMines.Add(go.transform);
     }
 
     // Enters from below the visible board (everything else scrolls in from
@@ -571,5 +656,15 @@ public class RailMineMount : MonoBehaviour
         if (rail == null) return;
         Gizmos.color = IsOnRail() ? Color.green : Color.red;
         Gizmos.DrawLine(transform.position, rail.position);
+    }
+}
+
+public class RailLaneScroller : MonoBehaviour
+{
+    void Update()
+    {
+        if (TouchInput.IsPressed || score.pauseCounter <= 0)
+            transform.position += Vector3.down * moveBackGround.speed * Time.deltaTime * 30f;
+        if (transform.position.y < -12f) Destroy(gameObject);
     }
 }

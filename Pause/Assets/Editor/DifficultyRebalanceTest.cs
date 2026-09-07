@@ -30,6 +30,8 @@ public static class DifficultyRebalanceTest
         PhaseProgressionIsTimeDrivenNotSpeedDriven();
         WorldSpeedCapsLoweredAndRampScaleWired();
         ChaserHomesThenWanders();
+        ObsoleteRailAndAsteroidArtIsRemoved();
+        EnemyDensityRampsEveryTenSeconds();
 
         Debug.Log("[DR] failures: " + fails);
         EditorApplication.Exit(0);
@@ -39,7 +41,6 @@ public static class DifficultyRebalanceTest
     {
         var go = new GameObject(name);
         var comp = go.AddComponent<enmiesOnBoard>();
-        comp.rails = Resources.Load<GameObject>("Prefabs/rail3");
         comp.SendMessage("Start");
         return comp;
     }
@@ -56,6 +57,8 @@ public static class DifficultyRebalanceTest
         var leftRail = (Transform)spawnRail.Invoke(comp, new object[] { false });
         Check("SpawnRail(true) lands on the positive-x side", rightRail.position.x > 0f);
         Check("SpawnRail(false) lands on the negative-x side", leftRail.position.x < 0f);
+        Check("right rail is inside the visible play lane", rightRail.position.x <= 2.35f);
+        Check("left rail is inside the visible play lane", leftRail.position.x >= -2.35f);
 
         // Move the right rail far away in Y and leave the left one close --
         // a search that ignored side would now prefer the (far) right rail
@@ -73,12 +76,23 @@ public static class DifficultyRebalanceTest
         Object.DestroyImmediate(rightRail.gameObject);
     }
 
+    static void ObsoleteRailAndAsteroidArtIsRemoved()
+    {
+        Check("obsolete rail3 prefab is removed", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/rail3.prefab") == null);
+        Check("Ember mine keeps approved beat frame one",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_mine_ember_1.png") != null);
+        Check("Ember mine keeps approved beat frame two",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_mine_ember_2.png") != null);
+        foreach (string name in new[] { "aestroid_brown_2", "aestroid_dark_3", "aestroid_gay_2", "aestroid_gay_4", "aestroid_gray_crooked", "aestroid_gray_crooked_3" })
+            Check(name + " art removed from rotation", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Aestroids/" + name + ".png") == null);
+    }
+
     static void MineFieldLoadsAndSpawnsOntoARail()
     {
         EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
         var comp = NewBoard("~EnmiesOnBoardTest2");
 
-        Check("mine field auto-loads from Resources/Prefabs/mine", comp.mine != null);
+        Check("legacy mine prefab is intentionally absent; themed rail mine is runtime-built", comp.mine == null);
 
         var spawnMine = PrivM(typeof(enmiesOnBoard), "spawnMine");
         spawnMine.Invoke(comp, null);
@@ -94,6 +108,8 @@ public static class DifficultyRebalanceTest
         if (mount != null && mount.rail != null)
         {
             Check("the mine spawned exactly on its rail's x", Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+        Check("the mine receives the themed rail-bomb animator",
+                  mineTransform.GetComponent<RailBombAnimator>() != null);
             Check("the mine reports itself on its assigned rail", mount.IsOnRail());
 
             // This is the important live-play case: rails scroll and other
@@ -217,5 +233,64 @@ public static class DifficultyRebalanceTest
         Object.DestroyImmediate(playerGo);
         Object.DestroyImmediate(chaserGo);
         buttonClicks.playerDied = false;
+    }
+
+    // Reported 2026-09-07: on Space specifically, enemy spawns felt way too
+    // sparse as the run sped up -- Space has the lowest enemyRampScale (the
+    // baseline every other world ramps faster than) and never actually
+    // reaches its own speed cap within a 300s level, so speed climbed the
+    // whole time while density barely moved. Follow-up spec: density should
+    // step up every 10s of active flight -- reaching 2x by the one-minute
+    // mark, continuing to climb toward the end, and hitting a flat 3x for
+    // the last 30 seconds of any level, independent of world.
+    static void EnemyDensityRampsEveryTenSeconds()
+    {
+        EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
+        var comp = NewBoard("~EnmiesOnBoardDensityTest");
+
+        var elapsedField = Priv(typeof(enmiesOnBoard), "elapsedFlightSeconds");
+        var densityMethod = PrivM(typeof(enmiesOnBoard), "DensityMultiplier");
+        var rollMethod = PrivM(typeof(enmiesOnBoard), "Roll");
+
+        float DensityAt(float t)
+        {
+            elapsedField.SetValue(comp, t);
+            return (float)densityMethod.Invoke(comp, null);
+        }
+
+        Check("density starts at 1x (no ramp yet)", Mathf.Approximately(DensityAt(0f), 1f));
+
+        float afterOneTick = DensityAt(15f); // one 10s step in
+        Check("density has climbed after the first 10s tick", afterOneTick > 1f && afterOneTick < 2f);
+
+        float afterAnotherTick = DensityAt(25f);
+        Check("density keeps climbing tick over tick", afterAnotherTick > afterOneTick);
+
+        Check("density reaches 2x right at the one-minute mark",
+              Mathf.Approximately(DensityAt(60f), 2f));
+
+        float midLevel = DensityAt(150f); // comfortably inside a 300s level, before the final stretch
+        Check("density keeps climbing past the one-minute mark, toward the mid ceiling",
+              midLevel > 2f && midLevel <= 2.5f);
+
+        // No live WorldManager.Instance in this test, so DensityMultiplier()
+        // falls back to the same 300s default gameS1's own WorldManager
+        // ships with -- the last 30s of that window is t >= 270.
+        Check("final 30 seconds of the level (no WorldManager -> 300s default) hits a flat 3x",
+              Mathf.Approximately(DensityAt(280f), 3f));
+        Check("one moment before the final stretch is still below 3x",
+              DensityAt(269f) < 3f);
+
+        // Roll() divides by the multiplier -- higher density means shorter
+        // delays, i.e. more spawns per minute.
+        var range = new Vector2(10f, 10f); // fixed, so any spread is purely from the multiplier
+        elapsedField.SetValue(comp, 0f);
+        float delayAtStart = (float)rollMethod.Invoke(comp, new object[] { range });
+        elapsedField.SetValue(comp, 280f);
+        float delayAtEnd = (float)rollMethod.Invoke(comp, new object[] { range });
+        Check("Roll() actually shortens delays as density climbs (3x density -> 1/3 the delay)",
+              Mathf.Approximately(delayAtEnd, delayAtStart / 3f));
+
+        Object.DestroyImmediate(comp.gameObject);
     }
 }
