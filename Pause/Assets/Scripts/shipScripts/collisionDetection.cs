@@ -27,6 +27,23 @@ public class collisionDetection : MonoBehaviour {
 
     public AudioSource boostSound, astroidExpSound;
 
+    [Header("Star dust payouts")]
+    [Tooltip("Pickups are where nearly all star dust comes from -- the passive " +
+             "trickle in score.cs is under 1% of income. Tune the economy here.")]
+    public float smallStarValue = 0.5f;
+    public float largeStarValue = 1f;
+    public float blueAtomValue = 2f;
+
+    // Tutorial earnings are tracked separately so a practice run cannot be
+    // farmed for real currency.
+    void awardDust(float amount)
+    {
+        if (PlayerPrefs.GetString("HasDoneTut") == "true")
+            score.totalCurrency += amount;
+        else
+            score.tutorialCurrency += amount;
+    }
+
 	void Start () {
 
         MAXLIFE = 3;
@@ -214,12 +231,12 @@ public class collisionDetection : MonoBehaviour {
                 // calculate different scores for each items.
                 if (hit.gameObject.name == "smStar 1(Clone)")
             {
-                if (PlayerPrefs.GetString("HasDoneTut") == "true") score.totalCurrency += 1; else score.tutorialCurrency +=1;
+                awardDust(smallStarValue);
                 Destroy(hit.gameObject);
             }
             else if(hit.gameObject.name == "LargeStar 1(Clone)")
             {
-                if (PlayerPrefs.GetString("HasDoneTut") == "true") score.totalCurrency += 2; else score.tutorialCurrency += 2;
+                awardDust(largeStarValue);
                 Destroy(hit.gameObject);
             }
             else if (hit.gameObject.name == "pauseAtom(Clone)")
@@ -236,7 +253,7 @@ public class collisionDetection : MonoBehaviour {
                 // ----------------------------
 
                 shield.SetActive(true);
-                if (PlayerPrefs.GetString("HasDoneTut") == "true") score.totalCurrency += 5; else score.tutorialCurrency += 5;
+                awardDust(blueAtomValue);
                 atomTimerText.text = "0.00";
                 boostText.text = "Boost!";
                 Destroy(hit.gameObject);

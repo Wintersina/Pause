@@ -36,8 +36,8 @@ That's the whole game. One input, used sparingly, under rising pressure.
 | **Lift** | Freeze everything. Costs one pause. |
 | **Lift + tap elsewhere** | Teleport to that spot. Your escape hatch. |
 | **Red atom** | +2 pauses |
-| **Blue atom** | Shield, boost and brief invincibility |
-| **Stars** | Star Dust — the currency |
+| **Blue atom** | Shield, boost, brief invincibility, `+2` dust |
+| **Stars** | Star Dust — `0.5` small, `1.0` large. See [Economy](#economy). |
 
 Run out of pauses and the game stops waiting for you: it plays on without the
 freeze, and you fly it raw until you die.
@@ -67,21 +67,80 @@ difficulty curve from the Inspector without touching code.
 Seven ships. Each has one power that recharges roughly once a minute and fires
 on its own — the game is one-touch, so there's no spare input to bind.
 
-| Ship | Power | Does |
-|---|---|---|
-| **Rookie** | `LANCE` | Piercing beam straight ahead |
-| **Proteus** | `SWARM MISSILES` | Homes on the nearest few targets |
-| **Amadeus** | `SHOCKWAVE` | Clears everything close by |
-| **Darkwing** | `PHASE CLOAK` | Brief invulnerability |
-| **Cygnus** | `TRACTOR FIELD` | Pulls pickups toward you |
-| **Vesper** | `TIME DILATION` | Slows the world down |
-| **XR7** | `OVERCHARGE` | Restores extra pauses |
+| Ship | Cost | Power | Does |
+|---|---:|---|---|
+| **Rookie** | — | `LANCE` | Piercing beam straight ahead |
+| **Proteus** | `150` | `SWARM MISSILES` | Homes on the nearest few targets |
+| **Amadeus** | `400` | `SHOCKWAVE` | Clears everything close by |
+| **Darkwing** | `900` | `PHASE CLOAK` | Brief invulnerability |
+| **Cygnus** | `1,600` | `TRACTOR FIELD` | Pulls pickups toward you |
+| **Vesper** | `2,600` | `TIME DILATION` | Slows the world down |
+| **XR7** | `4,000` | `OVERCHARGE` | Restores extra pauses |
 
 Ships take visible damage — every hull has three states, and you watch yours
 come apart as the run goes badly.
 
-Star Dust is deliberately hard to earn, and payout scales with speed: flying
-fast is worth more than crawling. Prices run 150 → 4000.
+---
+
+## The shop
+
+Reached from the main menu. Every ship is a button on the grid; tapping one
+opens a confirm panel that doubles as both the buy dialog and the select
+dialog depending on whether you already own it.
+
+- **Not owned** — shows the price and asks to buy. Declines silently if you're short.
+- **Owned** — offers to make it your active ship.
+- Purchases and selection persist in `PlayerPrefs` (`boughtship{n}`, `spawnShip`,
+  `PlayerCurrecny`).
+
+The active ship determines which power you fly with, so the shop is the only
+place the game's build variety lives.
+
+---
+
+## Economy
+
+**Star dust comes almost entirely from pickups.** The passive trickle is under
+1% of income — worth `0.30` in your first minute against roughly `17–40` from
+collecting. If you want to change how fast players earn, change the pickups.
+
+| Source | Value | Spawns |
+|---|---:|---|
+| Small star | `0.5` | clusters of 4–9, every 5–7s |
+| Large star | `1.0` | clusters of 3–5, every 10–14s |
+| Blue atom | `2.0` | every 6–9s (also grants shield + boost) |
+| Passive trickle | `0 → 0.05/s` | continuous, scales with speed |
+
+Collecting *everything* would pay about `67/min`, which no one does — you're
+dodging at the same time. Realistic rates and what they buy:
+
+| Ship | Cost | @17/min | @27/min | @40/min |
+|---|---:|---:|---:|---:|
+| Proteus | `150` | 9 min | 6 min | 4 min |
+| Amadeus | `400` | 24 min | 15 min | 10 min |
+| Darkwing | `900` | 53 min | 33 min | 22 min |
+| Cygnus | `1,600` | 95 min | 59 min | 40 min |
+| Vesper | `2,600` | 154 min | 96 min | 64 min |
+| XR7 | `4,000` | 237 min | 148 min | 99 min |
+
+Owning the full roster costs `9,650` — between **4 and 9.5 hours** of active
+flight depending on how cleanly you collect. Times are cumulative flight time,
+not wall clock; a run is typically one to three minutes.
+
+Dust carries across runs. It's banked to `PlayerPrefs` on death and reloaded at
+the start of the next run, so a bad run never costs you your savings. Tutorial
+earnings are tracked separately and never bank, so practice runs can't be farmed.
+
+### Tuning the economy
+
+Everything above is Inspector-exposed — no code changes needed.
+
+| Knob | Where |
+|---|---|
+| Star and atom payouts | `collisionDetection` on the player ship |
+| Passive trickle rate | `score.dustPerSecondAtTopSpeed` |
+| Ship prices | `shopingShips.shipCost[]` |
+| Pickup spawn rates | `spawnGoodStuff` |
 
 ---
 
@@ -144,6 +203,10 @@ upgrade; the call surface is intact, so restoring ads means filling in one file.
 
 **`ShipPowerController`** — attaches itself at runtime by finding `movePlayer`,
 so adding a ship needs no prefab surgery.
+
+**The economy lives in `collisionDetection`**, not in `score`. `score.calcScore`
+looks like the money code but is a sub-1% trickle; the pickup handlers are where
+the currency actually moves.
 
 **Serialized arrays** — several scripts hold `public` arrays sized from
 `shopingShips.shipTotal`. Scenes cache them at the *old* size, so they're
