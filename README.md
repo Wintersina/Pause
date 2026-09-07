@@ -33,7 +33,16 @@ Output lands in `Pause/Builds/`.
 
 ## Credits
 
-Code and original art by **Sina Serati**.
+- **Mastermind and developer** — Sina Serati
+- **iOS and Android development** — Sina Serati
+- **Creative director** — Cody Everett
+- **Audio engineer** — Josh Morris
+- **Beta/alpha testers** — Saeed, Pouya
 
-Additional sprites and particles from [Kenney](https://kenney.nl) — *Space Shooter
-(Remastered)*, *Pixel Shmup* and *Particle Pack*, all CC0.
+Thanks to [Phaser.io](https://phaser.io) and [OpenGameArt](https://opengameart.org)
+for some of the in-game art, and to [Kenney](https://kenney.nl) for the *Space
+Shooter (Remastered)*, *Pixel Shmup* and *Particle Pack* sprites and particles,
+all CC0.
+
+Thank you to everyone who beta tested the game and helped it reach where it is
+today with their ideas and suggestions.
