@@ -20,10 +20,10 @@ public class WorldManager : MonoBehaviour
              "it is not fatal -- another opens after the same interval.")]
     public float portalLifetime = 14f;
 
-    [Tooltip("Off: every run starts at Space and the planets are a journey you " +
-             "fly out through. On: runs resume at the furthest planet reached, " +
-             "treating worlds as unlocked shortcuts.")]
-    public bool startAtHighestUnlocked = false;
+    [Tooltip("On: a run begins at the furthest planet reached, so a planet you " +
+             "have unlocked stays unlocked. Off: every run starts at Space and " +
+             "the planets are a journey flown outward.")]
+    public bool startAtHighestUnlocked = true;
 
     public static WorldManager Instance { get; private set; }
 
@@ -88,9 +88,8 @@ public class WorldManager : MonoBehaviour
 
     void Start()
     {
-        // Each run is a journey outward by default: begin at Space regardless of
-        // how far a previous run got. The furthest planet reached is still
-        // recorded, so progress is never lost -- it just is not a shortcut.
+        // Unlocks are permanent: once a planet has been reached, later runs
+        // start there rather than replaying the earlier worlds.
         CurrentIndex = startAtHighestUnlocked
             ? PlayerPrefs.GetInt(PrefsHighestWorld, 0)
             : 0;

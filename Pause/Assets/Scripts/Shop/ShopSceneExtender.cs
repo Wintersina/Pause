@@ -22,6 +22,13 @@ public class ShopSceneExtender : MonoBehaviour
     const float TopY = 3.0f;
     const float RowStep = 1.0f;
 
+    // Authored previews are hand-scaled so every hull ends up roughly this tall
+    // in world units, regardless of how large its source texture is -- Darkwing
+    // is 15401px wide and sits at scale 0.03, Proteus is 400px at scale 0.60.
+    // Generated ships are normalised to the same visual size instead of being
+    // left at scale 1, which is why they towered over the rest.
+    const float TargetHullHeight = 1.05f;
+
     public static Vector3 ShipSlot(int i)
     {
         int col = (i - 1) % 2, row = (i - 1) / 2;
@@ -76,14 +83,26 @@ public class ShopSceneExtender : MonoBehaviour
         if (sr == null) sr = go.AddComponent<SpriteRenderer>();
 
         // Only fill in art we are missing, so authored previews stay untouched.
+        bool weSuppliedTheArt = false;
         if (sr.sprite == null)
         {
             var sprite = LoadShipSprite(index);
-            if (sprite != null) sr.sprite = sprite;
+            if (sprite != null) { sr.sprite = sprite; weSuppliedTheArt = true; }
         }
         sr.sortingOrder = 5;
 
-        EnsureBoost(go);
+        if (weSuppliedTheArt) NormaliseScale(go, sr);
+
+        EnsureBoost(go, index);
+    }
+
+    static void NormaliseScale(GameObject go, SpriteRenderer sr)
+    {
+        if (sr.sprite == null) return;
+        float h = sr.sprite.bounds.size.y;
+        if (h <= 0.0001f) return;
+        float k = TargetHullHeight / h;
+        go.transform.localScale = new Vector3(k, k, 1f);
     }
 
     // First damage frame of the ship's sheet, matching what lifeControler loads.
@@ -96,13 +115,14 @@ public class ShopSceneExtender : MonoBehaviour
         return (frames != null && frames.Length > 0) ? frames[0] : null;
     }
 
-    static void EnsureBoost(GameObject ship)
+    // rotateRight looks these up by the exact name "Boost<N>", so the generated
+    // ones must match or the lift-off flare silently never appears.
+    static void EnsureBoost(GameObject ship, int index)
     {
-        if (ship.transform.Find("Boost") != null) return;
         foreach (Transform c in ship.transform)
             if (c.name.StartsWith("Boost")) return;
 
-        var boost = new GameObject("Boost");
+        var boost = new GameObject("Boost" + index);
         boost.transform.SetParent(ship.transform, false);
         boost.transform.localPosition = new Vector3(0f, -0.6f, 0f);
         boost.AddComponent<SpriteRenderer>().sortingOrder = 4;

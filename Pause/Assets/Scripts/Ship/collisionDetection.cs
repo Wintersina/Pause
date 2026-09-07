@@ -34,6 +34,16 @@ public class collisionDetection : MonoBehaviour {
     public float largeStarValue = 1f;
     public float blueAtomValue = 2f;
 
+    // Explosions used to hang in space while the world scrolled past them, so a
+    // blast appeared to race forward alongside the ship. Giving them the same
+    // scroller everything else uses keeps them pinned to the point of impact.
+    static GameObject ScrollWithWorld(GameObject go)
+    {
+        if (go != null && go.GetComponent<moveItemEnmInStrightLine>() == null)
+            go.AddComponent<moveItemEnmInStrightLine>();
+        return go;
+    }
+
     // Tutorial earnings are tracked separately so a practice run cannot be
     // farmed for real currency.
     void awardDust(float amount)
@@ -112,21 +122,21 @@ public class collisionDetection : MonoBehaviour {
         {
 
             // creating different explotions for different enims
-            if (hit.gameObject.name == "rail3(Clone)")
+            if (PrefabName.Is(hit.gameObject, "rail3"))
             {
-                GameObject BlueExp = Instantiate(blueExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject;
+                GameObject BlueExp = ScrollWithWorld(Instantiate(blueExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(BlueExp, 2);
             }
-            else if (hit.gameObject.name == "mine(Clone)")
+            else if (PrefabName.Is(hit.gameObject, "mine"))
             {
-                GameObject RedExp = Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject;
+                GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);
             }
 
             if (atomCheck)
             {
                 // acchivment reporting
-                if (hit.gameObject.name == "alien1(Clone)")
+                if (PrefabName.Is(hit.gameObject, "alien1"))
                 {
                     //------------------------- Kill 5 Alieans ------------##08-------------------
                     achievementAPICalls.achievement_aliens();
@@ -166,6 +176,7 @@ public class collisionDetection : MonoBehaviour {
                 // create explotion and show it on the objets position.
                 GameObject exp = Instantiate(explosionAnimation) as GameObject;
                 exp.transform.position = hit.gameObject.transform.position;
+                ScrollWithWorld(exp);
 
                 Destroy(exp, 2);
                 Destroy(hit.gameObject);
@@ -185,7 +196,7 @@ public class collisionDetection : MonoBehaviour {
                 Quaternion shipRot = this.gameObject.transform.rotation;
 
                 // kill the player
-                GameObject exp = Instantiate(explosionAnimation, shipPos, shipRot) as GameObject;
+                GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
 
 
                 //exp.transform.position = hit.gameObject.transform.position;
@@ -220,7 +231,7 @@ public class collisionDetection : MonoBehaviour {
         else if (hit.gameObject.tag == "pickUp")
         {
 
-            if (hit.gameObject.name == "smStar 1(Clone)" || hit.gameObject.name == "LargeStar 1(Clone)")
+            if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 //--------------------PicUp Stars 150-------##06----------------------------------------
                 achievementAPICalls.achievement_stars();
@@ -229,22 +240,30 @@ public class collisionDetection : MonoBehaviour {
             }
 
                 // calculate different scores for each items.
-                if (hit.gameObject.name == "smStar 1(Clone)")
+                if (PrefabName.Is(hit.gameObject, "smStar1"))
             {
                 awardDust(smallStarValue);
                 Destroy(hit.gameObject);
             }
-            else if(hit.gameObject.name == "LargeStar 1(Clone)")
+            else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 awardDust(largeStarValue);
                 Destroy(hit.gameObject);
             }
-            else if (hit.gameObject.name == "pauseAtom(Clone)")
+            else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
+            {
+                // repairs one point of hull damage; lifeControler picks the
+                // sprite back up from lifeCounter on the next frame
+                if (lifeCounter > 0) lifeCounter--;
+                if (hypeText != null) hypeText.text = "REPAIRED";
+                Destroy(hit.gameObject);
+            }
+            else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
                 score.incromentPause(); 
                 Destroy(hit.gameObject);
             }
-            else if(hit.gameObject.name == "atom3a(Clone)")
+            else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
                 boostSound.Play();
                 // ---------------------------

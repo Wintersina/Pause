@@ -37,6 +37,11 @@ public class moveStarsBackground : MonoBehaviour {
         if (buttonClicks.playerDied)
         {
             starBackgroundSpeed = .005f;
+
+            // Replay and menu were only revealed when the player ran *out of
+            // pauses*, so dying with pauses left showed no way to restart.
+            if (replyB != null) replyB.gameObject.SetActive(true);
+            if (mainMenuB != null) mainMenuB.gameObject.SetActive(true);
         }
         // pauses when there is no touch on the touchscreen
         if (TouchInput.IsPressed && !buttonClicks.playerDied)

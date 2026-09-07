@@ -19,7 +19,7 @@ public class rotateRight : MonoBehaviour {
     {
         //boost[0] = null;
         flyOffChecker = false;
-        flyOffTimer = 1000;
+        flyOffTimer = -1f;   // disarmed; only counts down once lift-off is armed
         liftOffLeft = SceneUtil.FindAny("LiftOffLeft");
         liftOffRight = SceneUtil.FindAny("LiftOffRight");
         shipSelected = 0;
@@ -73,7 +73,10 @@ public class rotateRight : MonoBehaviour {
                     startingPoss[k].transform.position, .03f);
             }
         }
-        flyOffTimer -= Time.deltaTime;
+        // Unscaled: this is a transition timer, and the game scene leaves
+        // Time.timeScale at 0 whenever the player's finger is up. On scaled
+        // time the countdown can freeze and lift-off never fires.
+        if (flyOffChecker) flyOffTimer -= Time.unscaledDeltaTime;
         if (flyOffChecker && shipSelected != 0)
         {
             // each ship takes off to its own unique location
@@ -90,8 +93,12 @@ public class rotateRight : MonoBehaviour {
                 }
             }
         }
-        if (flyOffTimer <= 0)
+        // Only fires once armed, so simply idling in the shop no longer
+        // eventually launches the player by itself.
+        if (flyOffChecker && flyOffTimer <= 0)
         {
+            flyOffChecker = false;
+            Time.timeScale = 1f;
             SceneManager.LoadScene("gameS1");
         }
     }

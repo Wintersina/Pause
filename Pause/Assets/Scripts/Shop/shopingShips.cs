@@ -220,12 +220,48 @@ public class shopingShips : MonoBehaviour {
         starDust.text = "Star Dust: " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
     }
 
-    // Ship preview objects only exist for ships authored into the scene.
+    // Fills the confirm panel's preview.
+    //
+    // Authored ships carry a child UI Image holding their shop art, but ships
+    // built at runtime only have a SpriteRenderer -- so this used to come back
+    // null for them and the panel kept showing whichever ship was opened last.
+    // Falls through Image -> SpriteRenderer -> the ship's sheet in Resources,
+    // so every ship resolves to something.
     void setShipImage(int i)
     {
-        if (shipImg == null || ships[i] == null) return;
-        Image img = ships[i].GetComponentInChildren<Image>();
-        if (img != null) shipImg.sprite = img.sprite;
+        if (shipImg == null) return;
+
+        Sprite found = null;
+
+        if (ships[i] != null)
+        {
+            Image img = ships[i].GetComponentInChildren<Image>(true);
+            if (img != null && img.sprite != null) found = img.sprite;
+
+            if (found == null)
+            {
+                SpriteRenderer sr = ships[i].GetComponentInChildren<SpriteRenderer>(true);
+                if (sr != null && sr.sprite != null) found = sr.sprite;
+            }
+        }
+
+        if (found == null)
+        {
+            string shipName = NameFor(i);
+            if (!string.IsNullOrEmpty(shipName))
+            {
+                var frames = Resources.LoadAll<Sprite>("Prefabs/Ships/Sprites/" + shipName);
+                if (frames != null && frames.Length > 0) found = frames[0];
+            }
+        }
+
+        if (found != null)
+        {
+            shipImg.sprite = found;
+            // Preserve the art's aspect so tall hulls are not squashed into the
+            // panel's square frame.
+            shipImg.preserveAspect = true;
+        }
     }
 
     public static void turnOffCanves()
