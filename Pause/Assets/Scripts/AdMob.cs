@@ -1,65 +1,46 @@
-﻿using UnityEngine;
-using GoogleMobileAds.Api;
+using UnityEngine;
 
+// Ad placeholder.
+//
+// The 2016 Google Mobile Ads SDK this wrapped (play-services-ads 10.0.1) was
+// removed during the Unity 6 upgrade -- it no longer builds. The call surface
+// below is kept intact so the ~20 existing call sites still compile and the
+// game's show/hide logic keeps working; every call is currently a no-op.
+//
+// To bring ads back: install the current Google Mobile Ads Unity plugin, then
+// fill in RequestBanner/show/hide here. Nothing outside this file needs to change.
+//
+// Original ad unit id (Android banner), kept for reference when re-wiring:
+//   ca-app-pub-6947554333794592/9092756042
+public class AdMob : MonoBehaviour
+{
+    // Note: name kept (typo and all) -- referenced across the project.
+    public static bool isAdsShowwing = false;
 
-// This class will display adds in the game only when the player is dead for seconds at a time.
-// This class was made by Sina Serat
-// 9/3/2016
-// 
-public class AdMob : MonoBehaviour {
-
-  
-    private static bool isAdLoaded = false;
-    private static BannerView bannerView;
-    public static bool isAdsShowwing = true;
+    static bool isAdLoaded;
 
     void Start()
     {
-       
+        RequestBanner();
     }
-    void Update()
+
+    // Was called every frame from Update() until a banner loaded; a single
+    // Start() call is enough and avoids the per-frame retry.
+    static void RequestBanner()
     {
-        if (!isAdLoaded)
-        {
-            RequestBanner();
-        }
+        if (isAdLoaded) return;
+        isAdLoaded = true;
+        isAdsShowwing = false;
+        Debug.Log("[AdMob] Ads are stubbed out; no banner requested.");
     }
 
-    // this method is only called once at the start of the game
-    private void RequestBanner(){
-        #if UNITY_ANDROID
-            string adUnitId = "ca-app-pub-6947554333794592/9092756042";
-        #endif
-
-        // Create a 320x50 banner at the top of the screen.
-        bannerView = new BannerView(adUnitId, AdSize.Banner, AdPosition.Bottom);
-        // Create an empty ad request.
-        AdRequest request = new AdRequest.Builder().Build();
-        // Load the banner with the request.
-        bannerView.LoadAd(request);
-        hide();
-        isAdLoaded = true;
-        
-}
-    // Will hide it once its called
     public static void hide()
     {
-        if (bannerView != null)
-        {
-            isAdsShowwing = false;
-            Debug.Log("Hiding ad");
-            bannerView.Hide();
-        }
+        isAdsShowwing = false;
     }
 
-    // will show once its called
     public static void show()
     {
-        if (bannerView != null)
-        {
-            isAdsShowwing = true;
-            Debug.Log("Showing ad");
-            bannerView.Show();
-        }
+        isAdsShowwing = true;
     }
 }
