@@ -32,5 +32,17 @@ public static class GameStateReset
         Time.timeScale = 1f;
         buttonClicks.playerDied = false;
         startMenu.playerDied = false;
+
+        // collisionDetection.lifeCounter/atomCheck/invTimer are statics too,
+        // and the shop's own ship1-ship3 (authored directly in shopS6 with
+        // the same gameplay components as the real player ship) read
+        // lifeCounter through lifeControler exactly like the ship you were
+        // just flying does. Without this, a hull that took damage in a run
+        // stayed damaged -- scorched sprite, ShipDamageFx's fire and sparks,
+        // all of it -- in the dock, which is supposed to only ever show
+        // healed, ready-to-fly ships.
+        collisionDetection.lifeCounter = 0;
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
     }
 }

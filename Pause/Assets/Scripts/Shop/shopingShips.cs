@@ -115,6 +115,17 @@ public class shopingShips : MonoBehaviour {
 	void Update () {
         notEnoughStarDustTimer -= Time.deltaTime;
 
+        // setShipImage() only ever set shipImg.sprite once, when the
+        // confirm/already-owned dialog opened, so it sat on a single static
+        // frame -- unlike every other ship display in the shop (the dock
+        // bay, the launch sequence), which all idle-cycle. Keep it animating
+        // for as long as the dialog is actually up.
+        if (shipImg != null && popUpCanvis != null && popUpCanvis.activeSelf && shipNumber > 0)
+        {
+            int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
+            Sprite animated = IdleSpriteFor(shipNumber, 0, idleFrame);
+            if (animated != null) shipImg.sprite = animated;
+        }
     }
     // redo this function later for efficincy
     // what this function does :

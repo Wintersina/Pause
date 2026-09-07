@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public static class ShipLivesIndicatorTest
@@ -12,6 +13,16 @@ public static class ShipLivesIndicatorTest
 
     public static void Run()
     {
+        // lifeControler now only attaches ShipDamageFx (and only reads
+        // collisionDetection.lifeCounter for the scorch tint) in an actual
+        // gameplay scene -- the shop's own ship1-ship3 carry the same
+        // lifeControler/collisionDetection pair the real player ship does,
+        // and used to inherit whatever damage state a previous run left
+        // behind. Opening gameS1 here makes that gameplay context explicit
+        // instead of relying on whichever scene happened to be left open,
+        // matching what DamageEffectsAttachToEveryHull below actually needs.
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+
         // collisionDetection.Start() is what normally sets these; it never runs
         // in this isolated test, so the real preconditions are set explicitly.
         collisionDetection.MAXLIFE = 3;

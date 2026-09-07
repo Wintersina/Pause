@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class lifeControler : MonoBehaviour {
@@ -9,6 +10,12 @@ public class lifeControler : MonoBehaviour {
     private int currentShipIndex;
     private string extention;
     private string []shipNames= new string[shopingShips.shipTotal];
+
+    // The shop's own ship1-ship3 are authored with the same collisionDetection
+    // component the real player ship carries (so this script's sprite-picking
+    // can be reused there too), so GetComponent<collisionDetection>() can't
+    // tell a dock ship apart from a live one. Scene name can.
+    private bool isLiveGameplay;
 
     // Use this for initialization
     void Start() {
@@ -35,7 +42,19 @@ public class lifeControler : MonoBehaviour {
 
         currentShipIndex = shipIndex;
         img = shopingShips.DamageSpritesFor(shipIndex);
-        if (GetComponent<ShipDamageFx>() == null) gameObject.AddComponent<ShipDamageFx>();
+
+        // Damage art and fx only mean something for the ship actually being
+        // flown in a live run. GameStateReset.Clear() already zeroes
+        // collisionDetection.lifeCounter (a static, so it otherwise survives
+        // scene changes untouched) on the way out of gameplay; this is the
+        // second, scene-scoped guard so a dock ship reads as fully healed
+        // even if that ordering were ever missed, and so it never gets the
+        // fire/spark ShipDamageFx in the first place.
+        string sceneName = SceneManager.GetActiveScene().name;
+        isLiveGameplay = sceneName == "gameS1" || sceneName == "tutorialS5";
+
+        if (isLiveGameplay && GetComponent<ShipDamageFx>() == null)
+            gameObject.AddComponent<ShipDamageFx>();
         applyDamageSprite();
 
         // Ships placed by spawnShips.cs (gameS1) already get normalised to a
@@ -66,7 +85,8 @@ public class lifeControler : MonoBehaviour {
     void applyDamageSprite()
     {
         if (img == null || img.Length == 0) return;
-        int frame = Mathf.Clamp(collisionDetection.lifeCounter, 0, img.Length - 1);
+        int life = isLiveGameplay ? collisionDetection.lifeCounter : 0;
+        int frame = Mathf.Clamp(life, 0, img.Length - 1);
         int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
         Sprite animated = shopingShips.IdleSpriteFor(currentShipIndex, frame, idleFrame);
         spriteControl.sprite = animated != null ? animated : img[frame];
@@ -76,7 +96,7 @@ public class lifeControler : MonoBehaviour {
         // thresholds; ShipDamageFx supplies the visible fire and sparks.
         if (currentShipIndex >= ShipLivesIndicator.FirstShipWithoutDamageArt)
         {
-            float damage = Mathf.Clamp01(collisionDetection.lifeCounter / 2f);
+            float damage = Mathf.Clamp01(life / 2f);
             spriteControl.color = Color.Lerp(Color.white, new Color(1f, .48f, .34f), damage);
         }
     }
