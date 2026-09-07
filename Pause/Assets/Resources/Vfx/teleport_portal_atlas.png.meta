@@ -1,0 +1,1807 @@
+fileFormatVersion: 2
+guid: abecf5f5e787d49b5a2f03c63838e373
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7813894674969634290
+    second: teleport_portal_atlas_0
+  - first:
+      213: 4455955302286877685
+    second: teleport_portal_atlas_1
+  - first:
+      213: -2499947070351392492
+    second: teleport_portal_atlas_2
+  - first:
+      213: -3106058438397738889
+    second: teleport_portal_atlas_3
+  - first:
+      213: 3063990870272691723
+    second: teleport_portal_atlas_4
+  - first:
+      213: -5796684360583853547
+    second: teleport_portal_atlas_5
+  - first:
+      213: 218411159320701806
+    second: teleport_portal_atlas_6
+  - first:
+      213: -3130940122223339968
+    second: teleport_portal_atlas_7
+  - first:
+      213: -431219522519231176
+    second: teleport_portal_atlas_8
+  - first:
+      213: -5483489322500467213
+    second: teleport_portal_atlas_9
+  - first:
+      213: -7230203072848459587
+    second: teleport_portal_atlas_10
+  - first:
+      213: -4901356254438791007
+    second: teleport_portal_atlas_11
+  - first:
+      213: 9044988039990160138
+    second: teleport_portal_atlas_12
+  - first:
+      213: -7110377389781068079
+    second: teleport_portal_atlas_13
+  - first:
+      213: -3800069722427142841
+    second: teleport_portal_atlas_14
+  - first:
+      213: -5114673559543117255
+    second: teleport_portal_atlas_15
+  - first:
+      213: 6483029992890408480
+    second: teleport_portal_atlas_16
+  - first:
+      213: 6566082775260576879
+    second: teleport_portal_atlas_17
+  - first:
+      213: 3091378744582574221
+    second: teleport_portal_atlas_18
+  - first:
+      213: -5435936492290235232
+    second: teleport_portal_atlas_19
+  - first:
+      213: -2787127956108032578
+    second: teleport_portal_atlas_20
+  - first:
+      213: -1463953332917388221
+    second: teleport_portal_atlas_21
+  - first:
+      213: -2468562654198904613
+    second: teleport_portal_atlas_22
+  - first:
+      213: -2885900128216171686
+    second: teleport_portal_atlas_23
+  - first:
+      213: 7303222292252196503
+    second: teleport_portal_atlas_24
+  - first:
+      213: 5400135290035230721
+    second: teleport_portal_atlas_25
+  - first:
+      213: 7639411587237667972
+    second: teleport_portal_atlas_26
+  - first:
+      213: 4707791631484485962
+    second: teleport_portal_atlas_27
+  - first:
+      213: 2727988290820844794
+    second: teleport_portal_atlas_28
+  - first:
+      213: 1089491067499315225
+    second: teleport_portal_atlas_29
+  - first:
+      213: 2866803285833711145
+    second: teleport_portal_atlas_30
+  - first:
+      213: 999411465340754422
+    second: teleport_portal_atlas_31
+  - first:
+      213: -1647934495608654085
+    second: teleport_portal_atlas_32
+  - first:
+      213: 6527905017933735939
+    second: teleport_portal_atlas_33
+  - first:
+      213: 5438938722643453040
+    second: teleport_portal_atlas_34
+  - first:
+      213: -8523255402925224409
+    second: teleport_portal_atlas_35
+  - first:
+      213: -4424315945152282560
+    second: teleport_portal_atlas_36
+  - first:
+      213: -1583888337934019074
+    second: teleport_portal_atlas_37
+  - first:
+      213: -3174564538237746006
+    second: teleport_portal_atlas_38
+  - first:
+      213: -516294308199041937
+    second: teleport_portal_atlas_39
+  - first:
+      213: 7352842881125534679
+    second: teleport_portal_atlas_40
+  - first:
+      213: 4762748731516303608
+    second: teleport_portal_atlas_41
+  - first:
+      213: -4514306969780015542
+    second: teleport_portal_atlas_42
+  - first:
+      213: 5731953366048068913
+    second: teleport_portal_atlas_43
+  - first:
+      213: -647044355696335291
+    second: teleport_portal_atlas_44
+  - first:
+      213: -7401444861301631200
+    second: teleport_portal_atlas_45
+  - first:
+      213: 4847847698664351518
+    second: teleport_portal_atlas_46
+  - first:
+      213: -1367700630612836238
+    second: teleport_portal_atlas_47
+  - first:
+      213: -5914045090086162570
+    second: teleport_portal_atlas_48
+  - first:
+      213: 55149716886688585
+    second: teleport_portal_atlas_49
+  - first:
+      213: 3503248757422938197
+    second: teleport_portal_atlas_50
+  - first:
+      213: -2837900840280401651
+    second: teleport_portal_atlas_51
+  - first:
+      213: -5394997908297666534
+    second: teleport_portal_atlas_52
+  - first:
+      213: 2541371046709697101
+    second: teleport_portal_atlas_53
+  - first:
+      213: 7561912433356429414
+    second: teleport_portal_atlas_54
+  - first:
+      213: -2252860490003214250
+    second: teleport_portal_atlas_55
+  - first:
+      213: -817305442845185224
+    second: teleport_portal_atlas_56
+  - first:
+      213: -1819795780882078862
+    second: teleport_portal_atlas_57
+  - first:
+      213: -6762172527798822626
+    second: teleport_portal_atlas_58
+  - first:
+      213: 4972596107195601036
+    second: teleport_portal_atlas_59
+  - first:
+      213: 810888183651937316
+    second: teleport_portal_atlas_60
+  - first:
+      213: 5444455254610303710
+    second: teleport_portal_atlas_61
+  - first:
+      213: -5090788512180538726
+    second: teleport_portal_atlas_62
+  - first:
+      213: -3395063493696468441
+    second: teleport_portal_atlas_63
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: teleport_portal_atlas_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1004
+        width: 51
+        height: 247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f5a1ed9ec7807c60800000000000000
+      internalID: 7813894674969634290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_1
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 1100
+        width: 92
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f3e3df1dbbb6dd30800000000000000
+      internalID: 4455955302286877685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_2
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 1215
+        width: 56
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4114d6282676e4dd0800000000000000
+      internalID: -2499947070351392492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_3
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 1223
+        width: 25
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 770c2bf8e4015e4d0800000000000000
+      internalID: -3106058438397738889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_4
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 962
+        width: 343
+        height: 292
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0ec4a9767b758a20800000000000000
+      internalID: 3063990870272691723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_5
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 953
+        width: 305
+        height: 301
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51a4654494a0e8fa0800000000000000
+      internalID: -5796684360583853547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_6
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 1236
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6baa4ecac3f70300800000000000000
+      internalID: 218411159320701806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_7
+      rect:
+        serializedVersion: 2
+        x: 1029
+        y: 1231
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0461cd91c8aac84d0800000000000000
+      internalID: -3130940122223339968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_8
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 1179
+        width: 25
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83517040120040af0800000000000000
+      internalID: -431219522519231176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_9
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 1197
+        width: 38
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f556b2938bb6e3b0800000000000000
+      internalID: -5483489322500467213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_10
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 1179
+        width: 53
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db80eeccc9829ab90800000000000000
+      internalID: -7230203072848459587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_11
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 1181
+        width: 25
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a869808472eafbb0800000000000000
+      internalID: -4901356254438791007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_12
+      rect:
+        serializedVersion: 2
+        x: 346
+        y: 962
+        width: 274
+        height: 270
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0b254133b0468d70800000000000000
+      internalID: 9044988039990160138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_13
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 1195
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d65127bf6dd25d90800000000000000
+      internalID: -7110377389781068079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_14
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 1205
+        width: 9
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74d430998b0734bc0800000000000000
+      internalID: -3800069722427142841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_15
+      rect:
+        serializedVersion: 2
+        x: 1228
+        y: 1196
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93a895d0f770509b0800000000000000
+      internalID: -5114673559543117255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_16
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 1187
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02e9f621e6958f950800000000000000
+      internalID: 6483029992890408480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_17
+      rect:
+        serializedVersion: 2
+        x: 315
+        y: 1162
+        width: 26
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6cb739de796f1b50800000000000000
+      internalID: 6566082775260576879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_18
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 1193
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d809901e698c6ea20800000000000000
+      internalID: 3091378744582574221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_19
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 1191
+        width: 13
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a42573af8caf84b0800000000000000
+      internalID: -5435936492290235232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_20
+      rect:
+        serializedVersion: 2
+        x: 605
+        y: 1171
+        width: 25
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb5ce9804e12259d0800000000000000
+      internalID: -2787127956108032578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_21
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 1138
+        width: 31
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34cb5b7333efeabe0800000000000000
+      internalID: -1463953332917388221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_22
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 964
+        width: 206
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd8cda25857edbdd0800000000000000
+      internalID: -2468562654198904613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_23
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 1167
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5bbb60af1933f7d0800000000000000
+      internalID: -2885900128216171686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_24
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 1148
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79ef76d0bf14a5560800000000000000
+      internalID: 7303222292252196503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_25
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 1155
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 108d9956f6221fa40800000000000000
+      internalID: 5400135290035230721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_26
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 1154
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 484ed4efc54a40a60800000000000000
+      internalID: 7639411587237667972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_27
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 1112
+        width: 36
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a41803fbb8f655140800000000000000
+      internalID: 4707791631484485962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_28
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 1126
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afc2dc1a5e2cbd520800000000000000
+      internalID: 2727988290820844794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_29
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 1126
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91002408a56ae1f00800000000000000
+      internalID: 1089491067499315225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_30
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 1092
+        width: 23
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92e7a05466ee8c720800000000000000
+      internalID: 2866803285833711145
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_31
+      rect:
+        serializedVersion: 2
+        x: 623
+        y: 1110
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f99610ce6f9edd00800000000000000
+      internalID: 999411465340754422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_32
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 1080
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf63220be4c5129e0800000000000000
+      internalID: -1647934495608654085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_33
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 1074
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3082e690707c79a50800000000000000
+      internalID: 6527905017933735939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_34
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 1058
+        width: 28
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 074a74693fdfa7b40800000000000000
+      internalID: 5438938722643453040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_35
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 1016
+        width: 36
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72e86b28e5057b980800000000000000
+      internalID: -8523255402925224409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_36
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 986
+        width: 61
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0400a13c61ca992c0800000000000000
+      internalID: -4424315945152282560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_37
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 1030
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef51f8dc2f5e40ae0800000000000000
+      internalID: -1583888337934019074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_38
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 1028
+        width: 20
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa489cd3f5ea1f3d0800000000000000
+      internalID: -3174564538237746006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_39
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 1010
+        width: 21
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f647d38ef01c5d8f0800000000000000
+      internalID: -516294308199041937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_40
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 978
+        width: 31
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7db4fb2b4ab8a0660800000000000000
+      internalID: 7352842881125534679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_41
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 990
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f8b878bcbea81240800000000000000
+      internalID: 4762748731516303608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_42
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 1002
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4e21339ab5f951c0800000000000000
+      internalID: -4514306969780015542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_43
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 927
+        width: 53
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 135566c973dfb8f40800000000000000
+      internalID: 5731953366048068913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_44
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 964
+        width: 18
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5466cc0369c3507f0800000000000000
+      internalID: -647044355696335291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_45
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 971
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 027d979fc19c84990800000000000000
+      internalID: -7401444861301631200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_46
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 962
+        width: 33
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1765140cc3074340800000000000000
+      internalID: 4847847698664351518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_47
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 962
+        width: 26
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2708e39d583f40de0800000000000000
+      internalID: -1367700630612836238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_48
+      rect:
+        serializedVersion: 2
+        x: 862
+        y: 945
+        width: 37
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67f65c313571deda0800000000000000
+      internalID: -5914045090086162570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_49
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 964
+        width: 36
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9439e74106ee3c000800000000000000
+      internalID: 55149716886688585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_50
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1254
+        height: 966
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 558d5021f2a0e9030800000000000000
+      internalID: 3503248757422938197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_51
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 951
+        width: 10
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d09dd4bb830cd98d0800000000000000
+      internalID: -2837900840280401651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_52
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 943
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1031ff7cfd1125b0800000000000000
+      internalID: -5394997908297666534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_53
+      rect:
+        serializedVersion: 2
+        x: 336
+        y: 945
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4a18919083c44320800000000000000
+      internalID: 2541371046709697101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_54
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 939
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 668d1dc1b4f41f860800000000000000
+      internalID: 7561912433356429414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_55
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 952
+        width: 7
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65098dc025b3cb0e0800000000000000
+      internalID: -2252860490003214250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_56
+      rect:
+        serializedVersion: 2
+        x: 818
+        y: 951
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83b283ea70958a4f0800000000000000
+      internalID: -817305442845185224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_57
+      rect:
+        serializedVersion: 2
+        x: 1023
+        y: 951
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 273e4c40169ceb6e0800000000000000
+      internalID: -1819795780882078862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_58
+      rect:
+        serializedVersion: 2
+        x: 663
+        y: 27
+        width: 27
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1955aad9efe722a0800000000000000
+      internalID: -6762172527798822626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_59
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 11
+        width: 21
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8052e440d5320540800000000000000
+      internalID: 4972596107195601036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_60
+      rect:
+        serializedVersion: 2
+        x: 1182
+        y: 17
+        width: 23
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42ca22bb18ad04b00800000000000000
+      internalID: 810888183651937316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_61
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 13
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eda5e8645379e8b40800000000000000
+      internalID: 5444455254610303710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_62
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 17
+        width: 13
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a92f6d002d2e959b0800000000000000
+      internalID: -5090788512180538726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: teleport_portal_atlas_63
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 15
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a43548dbf42e0d0800000000000000
+      internalID: -3395063493696468441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      teleport_portal_atlas_0: 7813894674969634290
+      teleport_portal_atlas_1: 4455955302286877685
+      teleport_portal_atlas_10: -7230203072848459587
+      teleport_portal_atlas_11: -4901356254438791007
+      teleport_portal_atlas_12: 9044988039990160138
+      teleport_portal_atlas_13: -7110377389781068079
+      teleport_portal_atlas_14: -3800069722427142841
+      teleport_portal_atlas_15: -5114673559543117255
+      teleport_portal_atlas_16: 6483029992890408480
+      teleport_portal_atlas_17: 6566082775260576879
+      teleport_portal_atlas_18: 3091378744582574221
+      teleport_portal_atlas_19: -5435936492290235232
+      teleport_portal_atlas_2: -2499947070351392492
+      teleport_portal_atlas_20: -2787127956108032578
+      teleport_portal_atlas_21: -1463953332917388221
+      teleport_portal_atlas_22: -2468562654198904613
+      teleport_portal_atlas_23: -2885900128216171686
+      teleport_portal_atlas_24: 7303222292252196503
+      teleport_portal_atlas_25: 5400135290035230721
+      teleport_portal_atlas_26: 7639411587237667972
+      teleport_portal_atlas_27: 4707791631484485962
+      teleport_portal_atlas_28: 2727988290820844794
+      teleport_portal_atlas_29: 1089491067499315225
+      teleport_portal_atlas_3: -3106058438397738889
+      teleport_portal_atlas_30: 2866803285833711145
+      teleport_portal_atlas_31: 999411465340754422
+      teleport_portal_atlas_32: -1647934495608654085
+      teleport_portal_atlas_33: 6527905017933735939
+      teleport_portal_atlas_34: 5438938722643453040
+      teleport_portal_atlas_35: -8523255402925224409
+      teleport_portal_atlas_36: -4424315945152282560
+      teleport_portal_atlas_37: -1583888337934019074
+      teleport_portal_atlas_38: -3174564538237746006
+      teleport_portal_atlas_39: -516294308199041937
+      teleport_portal_atlas_4: 3063990870272691723
+      teleport_portal_atlas_40: 7352842881125534679
+      teleport_portal_atlas_41: 4762748731516303608
+      teleport_portal_atlas_42: -4514306969780015542
+      teleport_portal_atlas_43: 5731953366048068913
+      teleport_portal_atlas_44: -647044355696335291
+      teleport_portal_atlas_45: -7401444861301631200
+      teleport_portal_atlas_46: 4847847698664351518
+      teleport_portal_atlas_47: -1367700630612836238
+      teleport_portal_atlas_48: -5914045090086162570
+      teleport_portal_atlas_49: 55149716886688585
+      teleport_portal_atlas_5: -5796684360583853547
+      teleport_portal_atlas_50: 3503248757422938197
+      teleport_portal_atlas_51: -2837900840280401651
+      teleport_portal_atlas_52: -5394997908297666534
+      teleport_portal_atlas_53: 2541371046709697101
+      teleport_portal_atlas_54: 7561912433356429414
+      teleport_portal_atlas_55: -2252860490003214250
+      teleport_portal_atlas_56: -817305442845185224
+      teleport_portal_atlas_57: -1819795780882078862
+      teleport_portal_atlas_58: -6762172527798822626
+      teleport_portal_atlas_59: 4972596107195601036
+      teleport_portal_atlas_6: 218411159320701806
+      teleport_portal_atlas_60: 810888183651937316
+      teleport_portal_atlas_61: 5444455254610303710
+      teleport_portal_atlas_62: -5090788512180538726
+      teleport_portal_atlas_63: -3395063493696468441
+      teleport_portal_atlas_7: -3130940122223339968
+      teleport_portal_atlas_8: -431219522519231176
+      teleport_portal_atlas_9: -5483489322500467213
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

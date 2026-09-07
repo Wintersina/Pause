@@ -16,7 +16,7 @@ public static class ShopTest
     public static void Run()
     {
         fails = 0;
-        EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
+        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
 
         // the bug that hid every button: Find() cannot see inactive objects
         Check("GameObject.Find cannot see the inactive Canvas (the original bug)",

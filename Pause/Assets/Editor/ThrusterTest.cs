@@ -15,7 +15,7 @@ public static class ThrusterTest
     public static void Run()
     {
         // Dock ships get a flame from the extender.
-        EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity", OpenSceneMode.Single);
+        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
         ShopSceneExtender.Build();
 
         for (int i = 1; i < shopingShips.shipTotal; i++)

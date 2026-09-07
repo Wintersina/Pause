@@ -45,7 +45,7 @@ public class Hints : MonoBehaviour {
 
         pausedIcon = GameObject.Find("paused");
 
-        dialougeArray = new string[10];
+        dialougeArray = new string[11];
         reachedTheEndOfTut = false;
 
         killIconl = 0f;
@@ -64,11 +64,12 @@ public class Hints : MonoBehaviour {
         dialougeArray[2] = "In PAUSE, at anytime lift your finger to PAUSE the game.";
         dialougeArray[3] = "Here comes a red ATOM. Grabing it will increase your PAUSE counters by 2.";
         dialougeArray[4] = "Here comes a blue ATOM. Grabing it will give you a POWER UP.";
-        dialougeArray[5] = "POWER UP is a temporary SHIELD, BOOST and INVINCIVILITY.";
-        dialougeArray[6] = "Remember to Teleport by PAUSING and placing your finger anywhere on the screen.";
-        dialougeArray[7] = "Collect STARS for STAR DUST. Spend it on new ships.";
-        dialougeArray[8] = "Almost done. Next up: ALIENS and ASTEROIDS in the real thing.";
-        dialougeArray[9] = "Lets Start the game... Good luck, Commander.";
+        dialougeArray[5] = "Here comes a green ATOM. Grab it to repair your ship.";
+        dialougeArray[6] = "POWER UP is a temporary SHIELD, BOOST and INVINCIBILITY.";
+        dialougeArray[7] = "Remember to Teleport by PAUSING and placing your finger anywhere on the screen.";
+        dialougeArray[8] = "Collect STARS for STAR DUST. Spend it on new ships.";
+        dialougeArray[9] = "Almost done. Next up: ALIENS and ASTEROIDS in the real thing.";
+        dialougeArray[10] = "Lets Start the game... Good luck, Commander.";
 
 
     }
@@ -149,12 +150,16 @@ public class Hints : MonoBehaviour {
         {
             spawnGoodStuffTut.atomDelayTimer = 1.75f;
         }
-        else if (dialougeCount == 8)
+        else if (dialougeCount == 6)
+        {
+            spawnGoodStuffTut.greenAtomDelayTimer = 1.75f;
+        }
+        else if (dialougeCount == 9)
         {
             spawnGoodStuffTut.midStarTimer = 2f;
             spawnGoodStuffTut.smStarTimer = 2f;
         }
-        else if (dialougeCount == 10)
+        else if (dialougeCount == 11)
         {
             PlayerPrefs.SetString("HasDoneTut", "true");
             animationTimer = 7f;
@@ -180,6 +185,7 @@ public class Hints : MonoBehaviour {
                 moveBackGround.speed = 0;
                 startMenu.youAreInTutorial = false;
                 tutButtonClicks.activeCanvis.gameObject.SetActive(true);
+                TutorialFinishContinueBootstrap.Show();
                 playerIcon.gameObject.SetActive(false);
                 //---------------Complete Tut ---------##19-----------
                 achievementAPICalls.achievement_tutorial_completed();

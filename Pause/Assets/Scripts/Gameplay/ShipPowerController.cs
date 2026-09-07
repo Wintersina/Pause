@@ -50,7 +50,9 @@ public class ShipPowerController : MonoBehaviour
 
     public static ShipPowerController Instance { get; private set; }
     public static bool CinematicClearActive { get; private set; }
-    public static float CinematicTimeScale => CinematicClearActive ? 0.22f : 1f;
+    // Deliberately dramatic: threats crawl while the homing shots remain
+    // readable, giving every target impact its own moment on screen.
+    public static float CinematicTimeScale => CinematicClearActive ? 0.06f : 1f;
 
     ShipPower power;
     float timer;
@@ -129,18 +131,20 @@ public class ShipPowerController : MonoBehaviour
             var target = targets[i];
             if (target == null) continue;
             Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
-            PowerFx.HomingProjectile(from, target.transform, tint, .38f, () =>
+            PowerFx.HomingProjectile(from, target.transform, tint, 2.4f, () =>
             {
                 if (target == null) return;
                 PowerFx.Burst(target.transform.position, tint, 6);
                 collisionDetection.PlayExplosion();
                 Destroy(target);
             });
-            yield return new WaitForSecondsRealtime(.075f);
+            yield return new WaitForSecondsRealtime(.11f);
         }
 
         // Let the final dart land before returning the normal simulation rate.
-        yield return new WaitForSecondsRealtime(.48f);
+        // HomeTo has a 2.4s unscaled safety limit; keep the world slowed until
+        // even the last, farthest arc has had time to connect.
+        yield return new WaitForSecondsRealtime(2.5f);
         CinematicClearActive = false;
     }
 

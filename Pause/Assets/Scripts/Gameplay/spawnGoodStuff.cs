@@ -170,12 +170,12 @@ public class spawnGoodStuff : MonoBehaviour {
 
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
         // spawn 3 enimies at the same time
-        Instantiate(Atom, randomStarPos, transform.rotation);
+        AtomSpin.AddTo(Instantiate(Atom, randomStarPos, transform.rotation) as GameObject);
 
     }
     void spawnRedAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        Instantiate(redAtom, randomStarPos, transform.rotation);
+        AtomSpin.AddTo(Instantiate(redAtom, randomStarPos, transform.rotation) as GameObject);
     }
 }

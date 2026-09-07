@@ -9,12 +9,14 @@ public class spawnGoodStuffTut: MonoBehaviour {
     public GameObject redAtom;
     public static float redAtomDelayTimer;
     public static float atomDelayTimer;
+    public static float greenAtomDelayTimer;
     public static float smStarTimer;
     public static float midStarTimer;
 
 
     // used for random int for generating stars
     int max;
+    int redAtomsShown, blueAtomsShown, greenAtomsShown;
 
 	// Use this for initialization
 	void Start () {
@@ -23,6 +25,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         midStarTimer = 1000;
         atomDelayTimer = 1000;
         redAtomDelayTimer = 1000;
+        greenAtomDelayTimer = 1000;
 	}
 	
 	// Update is called once per frame
@@ -43,6 +46,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         midStarTimer -= Time.deltaTime;
         atomDelayTimer -= Time.deltaTime;
         redAtomDelayTimer -= Time.deltaTime;
+        greenAtomDelayTimer -= Time.deltaTime;
 
         if(smStarTimer <= 0)
         {
@@ -68,15 +72,21 @@ public class spawnGoodStuffTut: MonoBehaviour {
                 spawnMidStar(i, randomStarPos);
             }  
         }
-        if(atomDelayTimer <= 0 )
+        if(atomDelayTimer <= 0 && blueAtomsShown == 0)
         {
-            atomDelayTimer = Random.Range(7f,12f);
+            atomDelayTimer = 1000f;
             spawnBlueAtom();       
         }
-        if( redAtomDelayTimer <= 0)
+        if(redAtomDelayTimer <= 0 && redAtomsShown == 0)
         {
-            redAtomDelayTimer = Random.Range(5, 10);
+            redAtomDelayTimer = 1000f;
             spawnRedAtom();
+        }
+        if (greenAtomDelayTimer <= 0 && greenAtomsShown == 0)
+        {
+            greenAtomDelayTimer = 1000f;
+            greenAtomsShown++;
+            HealAtom.Spawn(new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z));
         }
 
     }
@@ -97,12 +107,14 @@ public class spawnGoodStuffTut: MonoBehaviour {
     void spawnBlueAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        Instantiate(Atom, randomStarPos, transform.rotation);
+        AtomSpin.AddTo(Instantiate(Atom, randomStarPos, transform.rotation) as GameObject);
+        blueAtomsShown++;
     }
 
     void spawnRedAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        Instantiate(redAtom, randomStarPos, transform.rotation);
+        AtomSpin.AddTo(Instantiate(redAtom, randomStarPos, transform.rotation) as GameObject);
+        redAtomsShown++;
     }
 }

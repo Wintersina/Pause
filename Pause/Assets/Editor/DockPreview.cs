@@ -10,7 +10,7 @@ public static class DockPreview
     {
         foreach (var size in new[] { new Vector2Int(1100, 800), new Vector2Int(1080, 2400) })
         {
-            EditorSceneManager.OpenScene("Assets/Scenes/shopS6.unity");
+            EditorSceneLoader.Open("shopS6");
             ShopSceneExtender.Build();
             var shop = Object.FindFirstObjectByType<shopingShips>();
             shop.SendMessage("Start");

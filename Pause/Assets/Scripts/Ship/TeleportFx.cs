@@ -18,13 +18,14 @@ public class TeleportFx : MonoBehaviour
     public static float MinimumJump = 0.85f;
 
     static TeleportFx runner;
-    static Sprite ring;
+    static AudioClip warpSound;
 
     public static void Play(Vector3 from, Vector3 to)
     {
         if (Vector3.Distance(from, to) < MinimumJump) return;
 
         Ensure();
+        PlaySound();
         runner.StartCoroutine(Flash(from, 0.9f, 1.6f, new Color(0.55f, 0.85f, 1f, 0.85f)));
         runner.StartCoroutine(Flash(to, 1.7f, 0.5f, new Color(1f, 0.95f, 0.7f, 0.95f)));
         Strike(to);
@@ -42,6 +43,20 @@ public class TeleportFx : MonoBehaviour
     static void Ensure()
     {
         if (runner == null) runner = new GameObject("~TeleportFx").AddComponent<TeleportFx>();
+    }
+
+    // A compact 80s-style rising warp followed by a bright arrival chime.
+    // The clip lives in Resources so this effect remains self-contained like
+    // the portal visuals and needs no AudioSource wired in a scene.
+    static void PlaySound()
+    {
+        if (warpSound == null) warpSound = Resources.Load<AudioClip>("Audio/teleport_warp");
+        if (warpSound == null || runner == null) return;
+
+        var source = runner.GetComponent<AudioSource>();
+        if (source == null) source = runner.gameObject.AddComponent<AudioSource>();
+        source.spatialBlend = 0f;
+        source.PlayOneShot(warpSound, 0.78f);
     }
 
     // Destroy what we landed on, reusing the game's own explosion art.
@@ -69,45 +84,50 @@ public class TeleportFx : MonoBehaviour
     // Unscaled time: a teleport begins while the world is still frozen.
     static IEnumerator Flash(Vector3 at, float startScale, float endScale, Color tint)
     {
-        var go = new GameObject("~TeleportRing");
+        var go = new GameObject("~TeleportVortex");
         go.transform.position = at;
 
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = Ring();
-        sr.color = tint;
-        sr.sortingOrder = 60;
+        var outer = MakeLayer(go.transform, "Vortex", tint, 60, 0);
+        var inner = MakeLayer(go.transform, "Core", new Color(0.65f, 0.92f, 1f, tint.a * 0.72f), 61, 5);
+        var sparks = MakeLayer(go.transform, "Sparks", new Color(1f, 0.46f, 1f, tint.a * 0.38f), 62, 10);
+        inner.transform.localScale = Vector3.one * 0.72f;
+        sparks.transform.localScale = Vector3.one * 1.15f;
 
         const float life = 0.32f;
         for (float t = 0f; t < life; t += Time.unscaledDeltaTime)
         {
             float k = t / life;
             go.transform.localScale = Vector3.one * Mathf.Lerp(startScale, endScale, k);
-            var c = sr.color; c.a = tint.a * (1f - k); sr.color = c;
+            int frame = Mathf.FloorToInt(t * 35f);
+            outer.sprite = TeleportPortalSprites.FrameAt(frame);
+            inner.sprite = TeleportPortalSprites.FrameAt(frame + 5);
+            sparks.sprite = TeleportPortalSprites.FrameAt(frame + 10);
+            outer.transform.localRotation = Quaternion.Euler(0, 0, frame * 16f);
+            inner.transform.localRotation = Quaternion.Euler(0, 0, -frame * 10f);
+            sparks.transform.localRotation = Quaternion.Euler(0, 0, frame * 24f);
+            Fade(outer, tint.a * (1f - k));
+            Fade(inner, tint.a * 0.72f * (1f - k));
+            Fade(sparks, tint.a * 0.38f * (1f - k));
             yield return null;
         }
         Destroy(go);
     }
 
-    static Sprite Ring()
+    static SpriteRenderer MakeLayer(Transform parent, string name, Color tint, int order, int frame)
     {
-        if (ring != null) return ring;
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = TeleportPortalSprites.FrameAt(frame);
+        sr.color = tint;
+        sr.sortingOrder = order;
+        return sr;
+    }
 
-        const int S = 128;
-        var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
-        tex.wrapMode = TextureWrapMode.Clamp;
-        float c = (S - 1) / 2f;
-
-        for (int y = 0; y < S; y++)
-        for (int x = 0; x < S; x++)
-        {
-            float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;
-            // a soft annulus: bright at the rim, hollow in the middle
-            float a = Mathf.Clamp01(1f - Mathf.Abs(d - 0.78f) / 0.20f);
-            if (d > 1f) a = 0f;
-            tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
-        }
-        tex.Apply();
-        ring = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), 100f);
-        return ring;
+    static void Fade(SpriteRenderer renderer, float alpha)
+    {
+        var color = renderer.color;
+        color.a = alpha;
+        renderer.color = color;
     }
 }

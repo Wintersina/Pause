@@ -22,6 +22,13 @@ public static class WorldLogicTest
         Check("world 0 is Space", WorldManager.Worlds[0].displayName == "Space");
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
         Check("space keeps authored music", WorldManager.Worlds[0].musicResource == "");
+        Check("teleport portal atlas is present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Vfx/teleport_portal_atlas.png") != null);
+        Check("teleport portal has sixteen animation frames", TeleportPortalSprites.FrameCount == 16);
+        Check("teleport warp sound is present",
+              AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Audio/teleport_warp.wav") != null);
+        Check("the themed rail-bomb animation atlas is present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Vfx/rail_bomb_themes_atlas.png") != null);
 
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
         Check("has a next world", WorldManager.HasNext);

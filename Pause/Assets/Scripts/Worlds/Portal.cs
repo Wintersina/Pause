@@ -10,7 +10,7 @@ public class Portal : MonoBehaviour
     public float fallSpeed = 1.6f;
     Action onMissed;
     float life;
-    SpriteRenderer ring, core;
+    SpriteRenderer ring, core, sparks;
     float spin;
 
     public static Portal Spawn(Color color, float lifetime, Action onMissed)
@@ -27,9 +27,13 @@ public class Portal : MonoBehaviour
 
     void Build(Color color)
     {
-        ring = MakePart("Ring", PortalArt.Ring(), color, 0);
-        core = MakePart("Core", PortalArt.Core(), new Color(1f, 1f, 1f, 0.85f), 1);
-        core.transform.localScale = Vector3.one * 0.55f;
+        ring = MakePart("PortalVortex", TeleportPortalSprites.FrameAt(0), color, 0);
+        core = MakePart("PortalCore", TeleportPortalSprites.FrameAt(4),
+            new Color(0.62f, 0.9f, 1f, 0.72f), 1);
+        sparks = MakePart("PortalSparks", TeleportPortalSprites.FrameAt(8),
+            new Color(0.9f, 0.48f, 1f, 0.36f), 2);
+        core.transform.localScale = Vector3.one * 0.72f;
+        sparks.transform.localScale = Vector3.one * 1.14f;
 
         var col = gameObject.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -64,11 +68,23 @@ public class Portal : MonoBehaviour
         transform.position += Vector3.down * fallSpeed * Time.deltaTime;
 
         spin += Time.deltaTime * 90f;
-        if (ring != null) ring.transform.localRotation = Quaternion.Euler(0, 0, spin);
+        int frame = Mathf.FloorToInt(Time.time * 15f);
+        if (ring != null)
+        {
+            ring.sprite = TeleportPortalSprites.FrameAt(frame);
+            ring.transform.localRotation = Quaternion.Euler(0, 0, spin);
+        }
         if (core != null)
         {
+            core.sprite = TeleportPortalSprites.FrameAt(frame + 5);
             float pulse = 0.5f + Mathf.PingPong(Time.time * 0.6f, 0.25f);
             core.transform.localScale = Vector3.one * pulse;
+            core.transform.localRotation = Quaternion.Euler(0, 0, -spin * 0.6f);
+        }
+        if (sparks != null)
+        {
+            sparks.sprite = TeleportPortalSprites.FrameAt(frame + 10);
+            sparks.transform.localRotation = Quaternion.Euler(0, 0, spin * 1.45f);
         }
 
         life -= Time.deltaTime;

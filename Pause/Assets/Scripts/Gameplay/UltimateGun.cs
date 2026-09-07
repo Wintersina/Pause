@@ -17,9 +17,12 @@ public class UltimateGun : MonoBehaviour
     Transform muzzle;
     SpriteRenderer muzzleRenderer;
 
-    float retractedX, extendedX, mountY, barrelLength;
+    float mountY, barrelLength;
     float extend; // 0 retracted .. 1 fully extended, eased toward Tick's target
     float flash;  // 1 right after firing, decays to 0
+    float firePop;
+    int shipIndex;
+    Vector3 restingOffset, firingOffset;
 
     public static UltimateGun Attach(GameObject ship)
     {
@@ -36,13 +39,14 @@ public class UltimateGun : MonoBehaviour
         var hull = GetComponentInParent<SpriteRenderer>();
         Vector2 extents = hull != null && hull.sprite != null ? hull.sprite.bounds.extents : new Vector2(0.4f, 0.5f);
 
-        int shipIndex = ShipExhaust.IndexFor(hull != null ? hull.gameObject : gameObject);
+        shipIndex = ShipExhaust.IndexFor(hull != null ? hull.gameObject : gameObject);
         barrelLength = extents.x * 0.92f;
-        retractedX = -extents.x * 0.1f;
-        extendedX = -extents.x * 0.34f;
-        // Every hull points up during gameplay, so the weapon deploys from
-        // the nose and every shot begins at the muzzle tip.
-        mountY = extents.y * 0.74f;
+        // A companion weapon hovers beside its owner while charging, then
+        // drifts into the forward firing slot just before the sweep begins.
+        mountY = 0f;
+        restingOffset = new Vector3(extents.x * (shipIndex % 2 == 0 ? -1.22f : 1.22f),
+                                    extents.y * .12f, .02f);
+        firingOffset = new Vector3(0f, extents.y * 1.08f, .02f);
 
         var barrelGo = new GameObject("Barrel", typeof(SpriteRenderer));
         barrelGo.transform.SetParent(transform, false);
@@ -74,17 +78,24 @@ public class UltimateGun : MonoBehaviour
 
     void Reposition(float extend01)
     {
-        float x = Mathf.Lerp(retractedX, extendedX, extend01);
-        barrel.localPosition = new Vector3(x, mountY, 0.02f);
-        muzzle.localPosition = new Vector3(x, mountY + barrelLength * .58f, 0.01f);
+        Vector3 hover = HoverOffset(shipIndex, Time.unscaledTime);
+        Vector3 target = Vector3.Lerp(restingOffset + hover, firingOffset + hover * .2f, extend01);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, target,
+            1f - Mathf.Exp(-10f * Time.unscaledDeltaTime));
+        barrel.localPosition = new Vector3(0f, mountY, 0.02f);
+        muzzle.localPosition = new Vector3(0f, mountY + barrelLength * .58f, 0.01f);
     }
 
     // targetExtend01: 0 fully retracted .. 1 fully extended -- the caller
     // works out how close to firing it is, this just eases toward it.
     public void Tick(float targetExtend01)
     {
-        extend = Mathf.MoveTowards(extend, targetExtend01, Time.deltaTime * 2.5f);
+        extend = Mathf.MoveTowards(extend, targetExtend01, Time.unscaledDeltaTime * 2.5f);
         Reposition(extend);
+
+        firePop = Mathf.Max(0f, firePop - Time.unscaledDeltaTime * 3.8f);
+        float scale = 1f + extend * .14f + firePop * .24f;
+        transform.localScale = Vector3.one * scale;
 
         if (flash > 0f)
         {
@@ -98,14 +109,33 @@ public class UltimateGun : MonoBehaviour
     public void Fire()
     {
         flash = 1f;
+        firePop = 1f;
     }
 
     public Vector3 MuzzlePosition => muzzle != null ? muzzle.position : transform.position + Vector3.up;
 
+    // Four readable companion behaviors distributed across the roster:
+    // orbit, side-to-side float, vertical bob and a loose figure-eight.
+    public static int HoverModeFor(int index) => Mathf.Abs(index) % 4;
+    static Vector3 HoverOffset(int index, float time)
+    {
+        float phase = time * 2.4f + index * .71f;
+        switch (HoverModeFor(index))
+        {
+            case 0: return new Vector3(Mathf.Cos(phase) * .18f, Mathf.Sin(phase) * .18f, 0f);
+            case 1: return new Vector3(Mathf.Sin(phase) * .28f, Mathf.Sin(phase * 2f) * .06f, 0f);
+            case 2: return new Vector3(Mathf.Sin(phase * .7f) * .08f, Mathf.Sin(phase) * .25f, 0f);
+            default: return new Vector3(Mathf.Sin(phase) * .22f, Mathf.Sin(phase * 2f) * .13f, 0f);
+        }
+    }
+
     static readonly Sprite[] gunSprites = new Sprite[16];
     static Sprite GunSpriteFor(int shipIndex)
     {
-        int slot = Mathf.Clamp(shipIndex, 0, 14);
+        // Roster ships are numbered 1-15 while the generated sheet is
+        // zero-based, so subtract one to give every purchasable hull its own
+        // tile. Ship 0 uses the first tile as the safe fallback.
+        int slot = Mathf.Clamp(shipIndex <= 0 ? 0 : shipIndex - 1, 0, 14);
         if (gunSprites[slot] != null) return gunSprites[slot];
         var tex = Resources.Load<Texture2D>("ShipArt/Guns/ship_gun_roster");
         if (tex == null) return SolidSprite();

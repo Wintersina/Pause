@@ -27,6 +27,7 @@ public static class BugBatch0907Test
     {
         ReplayMenuButtonsAreDeathOnly();
         TutorialContinueButtonIsUsable();
+        TutorialAtomLessonsAreBalanced();
         SpawnPointTracksCamera();
         ThrusterAttachFindsTutorialShip();
         StarClustersSpreadHorizontally();
@@ -108,6 +109,15 @@ public static class BugBatch0907Test
                 if (button.onClick.GetPersistentMethodName(i) == "replay") wired = true;
         }
         Check("continue button is wired to tutButtonClicks.replay()", wired);
+    }
+
+    static void TutorialAtomLessonsAreBalanced()
+    {
+        Check("tutorial includes a green atom lesson",
+              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/Hints.cs").Contains("green ATOM"));
+        Check("tutorial has a one-shot green atom cue",
+              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("greenAtomsShown == 0"));
+        Check("green atom uses the shared slow spin", typeof(HealAtom).GetMethod("Spawn") != null);
     }
 
     // ---- 3: spawn point tracks the camera --------------------------------

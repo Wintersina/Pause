@@ -1,0 +1,715 @@
+fileFormatVersion: 2
+guid: 4a9bbc2f111af435387d0e7147f01cfe
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3448208286096837471
+    second: rail_bomb_themes_atlas_0
+  - first:
+      213: -985794980870230681
+    second: rail_bomb_themes_atlas_1
+  - first:
+      213: 5104079944609365451
+    second: rail_bomb_themes_atlas_2
+  - first:
+      213: 6153778541272964263
+    second: rail_bomb_themes_atlas_3
+  - first:
+      213: 239715810221367007
+    second: rail_bomb_themes_atlas_4
+  - first:
+      213: -56451424816105109
+    second: rail_bomb_themes_atlas_5
+  - first:
+      213: 600337959404265514
+    second: rail_bomb_themes_atlas_6
+  - first:
+      213: -1278163749877920229
+    second: rail_bomb_themes_atlas_7
+  - first:
+      213: 357419799741131875
+    second: rail_bomb_themes_atlas_8
+  - first:
+      213: 2105356869919473671
+    second: rail_bomb_themes_atlas_9
+  - first:
+      213: 1916961957511284398
+    second: rail_bomb_themes_atlas_10
+  - first:
+      213: -1420754749177678169
+    second: rail_bomb_themes_atlas_11
+  - first:
+      213: 2605314065408043574
+    second: rail_bomb_themes_atlas_12
+  - first:
+      213: 7490853097187425337
+    second: rail_bomb_themes_atlas_13
+  - first:
+      213: -3965890525522976879
+    second: rail_bomb_themes_atlas_14
+  - first:
+      213: -4066544454601459523
+    second: rail_bomb_themes_atlas_15
+  - first:
+      213: 7383159139388771555
+    second: rail_bomb_themes_atlas_16
+  - first:
+      213: 6107570272473093848
+    second: rail_bomb_themes_atlas_17
+  - first:
+      213: -1546387803947689559
+    second: rail_bomb_themes_atlas_18
+  - first:
+      213: 7866780424798231887
+    second: rail_bomb_themes_atlas_19
+  - first:
+      213: 1994761773812981154
+    second: rail_bomb_themes_atlas_20
+  - first:
+      213: -2480132386638999639
+    second: rail_bomb_themes_atlas_21
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 945
+        width: 325
+        height: 306
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5b4c54ba2f7adf20800000000000000
+      internalID: 3448208286096837471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_1
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 966
+        width: 267
+        height: 244
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76dedd710b0c152f0800000000000000
+      internalID: -985794980870230681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_2
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 0
+        width: 685
+        height: 1254
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcdf2a3caa555d640800000000000000
+      internalID: 5104079944609365451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_3
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 1044
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ac1ffaaafc966550800000000000000
+      internalID: 6153778541272964263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_4
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 964
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fde1a436244a35300800000000000000
+      internalID: 239715810221367007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_5
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 966
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6975cc6ab1773ff0800000000000000
+      internalID: -56451424816105109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_6
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 953
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a20697f7134d45800800000000000000
+      internalID: 600337959404265514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_7
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 950
+        width: 26
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ecebb67dc034ee0800000000000000
+      internalID: -1278163749877920229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_8
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 648
+        width: 293
+        height: 305
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36ce2470a6fc5f400800000000000000
+      internalID: 357419799741131875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_9
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 953
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7008af42beab73d10800000000000000
+      internalID: 2105356869919473671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_10
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 664
+        width: 299
+        height: 276
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea6c56d6eba6a9a10800000000000000
+      internalID: 1916961957511284398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_11
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 939
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a6b0564517784ce0800000000000000
+      internalID: -1420754749177678169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_12
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 939
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63aa9f4c65fe72420800000000000000
+      internalID: 2605314065408043574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 746
+        width: 5
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93cbd72243bd4f760800000000000000
+      internalID: 7490853097187425337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_14
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 329
+        width: 321
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19f9d18449356f8c0800000000000000
+      internalID: -3965890525522976879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_15
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 343
+        width: 289
+        height: 303
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db835203d5bb097c0800000000000000
+      internalID: -4066544454601459523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 319
+        height: 340
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ec427f9e10467660800000000000000
+      internalID: 7383159139388771555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_17
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 0
+        width: 275
+        height: 342
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d69e73bdc272c450800000000000000
+      internalID: 6107570272473093848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_18
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 196
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a993b44c702a8ae0800000000000000
+      internalID: -1546387803947689559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_19
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 71
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4d581acd1b6c2d60800000000000000
+      internalID: 7866780424798231887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_20
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 33
+        width: 20
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ad96abb341deab10800000000000000
+      internalID: 1994761773812981154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rail_bomb_themes_atlas_21
+      rect:
+        serializedVersion: 2
+        x: 1186
+        y: 19
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9afc0721cbcc49dd0800000000000000
+      internalID: -2480132386638999639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      rail_bomb_themes_atlas_0: 3448208286096837471
+      rail_bomb_themes_atlas_1: -985794980870230681
+      rail_bomb_themes_atlas_10: 1916961957511284398
+      rail_bomb_themes_atlas_11: -1420754749177678169
+      rail_bomb_themes_atlas_12: 2605314065408043574
+      rail_bomb_themes_atlas_13: 7490853097187425337
+      rail_bomb_themes_atlas_14: -3965890525522976879
+      rail_bomb_themes_atlas_15: -4066544454601459523
+      rail_bomb_themes_atlas_16: 7383159139388771555
+      rail_bomb_themes_atlas_17: 6107570272473093848
+      rail_bomb_themes_atlas_18: -1546387803947689559
+      rail_bomb_themes_atlas_19: 7866780424798231887
+      rail_bomb_themes_atlas_2: 5104079944609365451
+      rail_bomb_themes_atlas_20: 1994761773812981154
+      rail_bomb_themes_atlas_21: -2480132386638999639
+      rail_bomb_themes_atlas_3: 6153778541272964263
+      rail_bomb_themes_atlas_4: 239715810221367007
+      rail_bomb_themes_atlas_5: -56451424816105109
+      rail_bomb_themes_atlas_6: 600337959404265514
+      rail_bomb_themes_atlas_7: -1278163749877920229
+      rail_bomb_themes_atlas_8: 357419799741131875
+      rail_bomb_themes_atlas_9: 2105356869919473671
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

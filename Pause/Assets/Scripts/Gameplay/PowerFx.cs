@@ -75,9 +75,9 @@ public static class PowerFx
         }
     }
 
-    // A real target-following shot for the cinematic clear. It tracks the
-    // transform every frame so a slowed, moving asteroid cannot escape a dart
-    // aimed at its old position.
+    // A real target-following shot for the cinematic clear. It continually
+    // steers toward the live target transform, producing a visible curved
+    // path instead of interpolating in a straight line toward a stale point.
     public static void HomingProjectile(Vector3 from, Transform target, Color tint,
                                         float seconds, System.Action onHit)
     {
@@ -149,13 +149,29 @@ public static class PowerFx
         Object.Destroy(go);
     }
 
-    static IEnumerator HomeTo(GameObject go, Transform target, float seconds, System.Action onHit)
+    public static Vector3 SteerHeading(Vector3 currentHeading, Vector3 desiredHeading,
+                                       float turnDegreesPerSecond, float deltaSeconds)
     {
-        Vector3 from = go.transform.position;
-        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        if (currentHeading.sqrMagnitude < .0001f) currentHeading = Vector3.up;
+        if (desiredHeading.sqrMagnitude < .0001f) return currentHeading.normalized;
+        return Vector3.RotateTowards(currentHeading.normalized, desiredHeading.normalized,
+            turnDegreesPerSecond * Mathf.Deg2Rad * deltaSeconds, 0f).normalized;
+    }
+
+    static IEnumerator HomeTo(GameObject go, Transform target, float maxSeconds, System.Action onHit)
+    {
+        // Start forward, then bend into the target. The slow world movement
+        // makes the arc pronounced even for enemies initially near centre.
+        Vector3 heading = Vector3.up;
+        const float speed = 6.4f;
+        for (float t = 0; t < maxSeconds; t += Time.unscaledDeltaTime)
         {
             if (target == null) { Object.Destroy(go); yield break; }
-            go.transform.position = Vector3.Lerp(from, target.position, t / seconds);
+            Vector3 toTarget = target.position - go.transform.position;
+            if (toTarget.sqrMagnitude <= .018f) break;
+            heading = SteerHeading(heading, toTarget, 235f, Time.unscaledDeltaTime);
+            go.transform.position += heading * speed * Time.unscaledDeltaTime;
+            go.transform.up = heading;
             yield return null;
         }
         if (target != null) onHit?.Invoke();

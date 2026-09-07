@@ -25,6 +25,7 @@ public static class NextFeatures0907Test
     public static void Run()
     {
         AsteroidsSpinSomeAtTieredSpeeds();
+        AtomsStayInsideSideRails();
         RailsCoverTallCamera();
         PauseQuickActionsVisibility();
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();
@@ -79,6 +80,14 @@ public static class NextFeatures0907Test
               Mathf.Abs(rolledSpeed) >= comp.speedRange.x && Mathf.Abs(rolledSpeed) <= comp.speedRange.y);
 
         Object.DestroyImmediate(go);
+    }
+
+    static void AtomsStayInsideSideRails()
+    {
+        Check("atom clamp keeps its visible edge inside the left rail",
+              AtomSpin.ClampAtomX(-4f, .22f) >= -2.13f);
+        Check("atom clamp keeps its visible edge inside the right rail",
+              AtomSpin.ClampAtomX(4f, .22f) <= 2.13f);
     }
 
     // ---- 2: rails cover the camera -----------------------------------------

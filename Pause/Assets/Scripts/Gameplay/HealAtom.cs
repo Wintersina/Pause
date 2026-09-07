@@ -34,6 +34,7 @@ public class HealAtom : MonoBehaviour
         // same scroller the asteroids and stars use
         go.AddComponent<moveItemEnmInStrightLine>();
         go.AddComponent<HealAtom>();
+        go.AddComponent<AtomSpin>();
 
         return go;
     }

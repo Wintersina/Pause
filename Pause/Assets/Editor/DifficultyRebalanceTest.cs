@@ -92,7 +92,21 @@ public static class DifficultyRebalanceTest
         Check("the spawned mine got a RailMineMount", mount != null);
         Check("the mount references a real, live rail", mount != null && mount.rail != null);
         if (mount != null && mount.rail != null)
+        {
             Check("the mine spawned exactly on its rail's x", Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+            Check("the mine reports itself on its assigned rail", mount.IsOnRail());
+
+            // This is the important live-play case: rails scroll and other
+            // movement code may alter a bomb during the frame. LateUpdate
+            // must snap it back to the assigned rail, never leave it in the
+            // middle of the play field.
+            mount.rail.position += new Vector3(0.18f, -0.4f, 0f);
+            mineTransform.position += new Vector3(-1.5f, 0f, 0f);
+            mount.SendMessage("LateUpdate");
+            Check("a moving rail carries its mine to the new rail x", mount.IsOnRail());
+            Check("the mine's x equals the moved rail x",
+                  Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+        }
 
         Object.DestroyImmediate(comp.gameObject);
         if (mineTransform != null) Object.DestroyImmediate(mineTransform.gameObject);

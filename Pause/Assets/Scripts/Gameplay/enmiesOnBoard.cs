@@ -548,9 +548,28 @@ public class RailMineMount : MonoBehaviour
     public Transform rail;
     public float lockedX;
 
+    // Kept public for the headless regression test and for quick inspection
+    // while playing in the editor.
+    public float AlignmentError
+    {
+        get { return Mathf.Abs(transform.position.x - (rail != null ? rail.position.x : lockedX)); }
+    }
+
+    public bool IsOnRail(float tolerance = 0.015f)
+    {
+        return AlignmentError <= tolerance;
+    }
+
     void LateUpdate()
     {
         float x = rail != null ? rail.position.x : lockedX;
         transform.position = new Vector3(x, transform.position.y, transform.position.z);
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (rail == null) return;
+        Gizmos.color = IsOnRail() ? Color.green : Color.red;
+        Gizmos.DrawLine(transform.position, rail.position);
     }
 }
