@@ -38,13 +38,17 @@ public static class HomePauseTest
             RenderHome(menu, 1080, 2400);
         }
 
-        Sprite expected = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/gameIcon.png");
-        Check("original game icon imports as sprite", expected != null);
+        // PauseOverlay (the big, un-stripped gameIcon.png shown centre-screen on
+        // pause) and moveStarsBackground's stripped-and-cropped glow icon fired
+        // on the identical condition -- Time.timeScale == 0 && !playerDied --
+        // so both showed at once. The user asked to keep only the smaller one;
+        // PauseOverlay is removed from both scenes rather than adjusted, so
+        // this now guards against it quietly coming back.
         foreach (string scene in new[] { "gameS1", "tutorialS5" })
         {
             EditorSceneManager.OpenScene("Assets/Scenes/" + scene + ".unity");
             var overlay = Object.FindFirstObjectByType<PauseOverlay>();
-            Check(scene + " references original pause icon", overlay != null && overlay.icon == expected);
+            Check(scene + " no longer shows the big pause overlay", overlay == null);
         }
         Check("paused living player sees icon", PauseOverlay.ShouldShow(0f, false));
         Check("running game hides icon", !PauseOverlay.ShouldShow(1f, false));
