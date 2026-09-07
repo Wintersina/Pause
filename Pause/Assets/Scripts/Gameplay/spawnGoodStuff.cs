@@ -149,18 +149,20 @@ public class spawnGoodStuff : MonoBehaviour {
 
 
     }
+    // Each star in a cluster used to share vPos.x, so a whole burst landed
+    // in one straight vertical line at a single horizontal spot. Rolling a
+    // fresh x per star spreads the cluster across the lane instead, while
+    // the vPos.y + pos stagger (unchanged) still keeps them from all
+    // spawning on top of each other at once.
     void spawnSmStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(vPos.x, vPos.y + pos, vPos.z);   
-        // spawn 3 enimies at the same time
-        Instantiate(smStar,spawner , transform.rotation);
+        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
+        Instantiate(smStar, spawner, transform.rotation);
     }
     void spawnMidStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(vPos.x, vPos.y + pos, vPos.z);
-        // spawn 3 enimies at the same time
+        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
         Instantiate(midStar, spawner, transform.rotation);
-
     }
     // will make you invensiable for a few seconds.
     void spawnAtom()

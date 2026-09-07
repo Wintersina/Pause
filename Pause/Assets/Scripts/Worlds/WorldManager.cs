@@ -14,7 +14,7 @@ public class WorldManager : MonoBehaviour
     public const string PrefsHighestWorld = "highestWorld";
 
     [Tooltip("Seconds of active flight before the portal opens.")]
-    public float secondsPerWorld = 480f;   // 8 minutes
+    public float secondsPerWorld = 300f;   // 5 minutes
 
     [Tooltip("How long the portal stays on screen before drifting off. Missing " +
              "it is not fatal -- another opens after the same interval.")]
@@ -123,7 +123,7 @@ public class WorldManager : MonoBehaviour
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-    // Waiting eight minutes to test a portal is impractical. Never compiled
+    // Waiting five minutes to test a portal is impractical. Never compiled
     // into a release build.
     void LateUpdate()
     {

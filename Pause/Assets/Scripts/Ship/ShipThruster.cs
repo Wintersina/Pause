@@ -98,23 +98,36 @@ public class ShipThruster : MonoBehaviour
 }
 
 // Attaches a thruster to the player's ship once it exists.
+//
+// gameS1's ship carries movePlayer; tutorialS5's carries movePlayerInTut
+// instead -- looking up only the former meant this never found the tutorial
+// ship at all, so it never got the idle/boost flame the main game gets and
+// was left showing whatever flame (or none) the 2016 scene had baked in.
 public class ShipThrusterAttach : MonoBehaviour
 {
     float giveUp = 6f;
 
     void Update()
     {
-        var player = Object.FindFirstObjectByType<movePlayer>();
+        GameObject player = FindPlayer();
         if (player != null)
         {
             if (player.GetComponent<ShipThruster>() == null)
-                player.gameObject.AddComponent<ShipThruster>();
+                player.AddComponent<ShipThruster>();
             Destroy(gameObject);
             return;
         }
 
         giveUp -= Time.unscaledDeltaTime;
         if (giveUp <= 0f) Destroy(gameObject);
+    }
+
+    static GameObject FindPlayer()
+    {
+        var main = Object.FindFirstObjectByType<movePlayer>();
+        if (main != null) return main.gameObject;
+        var tut = Object.FindFirstObjectByType<movePlayerInTut>();
+        return tut != null ? tut.gameObject : null;
     }
 }
 

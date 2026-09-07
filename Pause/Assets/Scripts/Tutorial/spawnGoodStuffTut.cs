@@ -80,19 +80,18 @@ public class spawnGoodStuffTut: MonoBehaviour {
         }
 
     }
+    // See spawnGoodStuff.spawnSmStar/spawnMidStar: was vPos.x for the whole
+    // cluster (a straight vertical line at one x), now a fresh roll per star.
     void spawnSmStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(vPos.x, vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
         Instantiate(smStar, spawner, transform.rotation);
-
     }
 
     void spawnMidStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(vPos.x, vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
         Instantiate(midStar, spawner, transform.rotation);
-
-
     }
     // will make you invensiable for a few seconds.
     void spawnBlueAtom()

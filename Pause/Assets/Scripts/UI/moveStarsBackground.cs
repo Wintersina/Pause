@@ -4,8 +4,6 @@ using UnityEngine.UI;
 
 public class moveStarsBackground : MonoBehaviour {
 
-    private float delayPauseMenuTimer;
-    private float pauseMenuTimer;
     private float starBackgroundSpeed;
     //public Animator player;
     public GameObject pauseText;
@@ -40,44 +38,39 @@ public class moveStarsBackground : MonoBehaviour {
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
 
         starBackgroundSpeed = .005f;
-        pauseMenuTimer = 0f;
-        delayPauseMenuTimer = .5f;
-
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Replay/menu are for death only. They used to also appear the
+        // moment the player ran out of pauses -- even while still alive and
+        // flying -- and stayed up through that whole stretch since nothing
+        // hid them again until an actual death. Gated on playerDied alone
+        // now, so they show exactly once, when there is actually a run to
+        // end.
+        if (replyB != null) replyB.gameObject.SetActive(buttonClicks.playerDied);
+        if (mainMenuB != null) mainMenuB.gameObject.SetActive(buttonClicks.playerDied);
+
         if (buttonClicks.playerDied)
         {
             starBackgroundSpeed = .005f;
-
-            // Replay and menu were only revealed when the player ran *out of
-            // pauses*, so dying with pauses left showed no way to restart.
-            if (replyB != null) replyB.gameObject.SetActive(true);
-            if (mainMenuB != null) mainMenuB.gameObject.SetActive(true);
         }
         // pauses when there is no touch on the touchscreen
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
-
         {
-            delayPauseMenuTimer -= Time.deltaTime;
             showPaused(false);
             moveBackground();
-        }// show replayand menu button when player runs out of pauses
+        }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
-            delayPauseMenuTimer -= Time.deltaTime;
             showPaused(false);
-            if (replyB != null) replyB.gameObject.SetActive(true);
-            if (mainMenuB != null) mainMenuB.gameObject.SetActive(true);
             moveBackground();
         }
-        else {
-            
+        else
+        {
             showPaused(true);
         }
-
     }
 
     // this function moves background in the 'y' direction for illustion of player moving.
@@ -103,39 +96,20 @@ public class moveStarsBackground : MonoBehaviour {
         pauseRenderer.sprite = pauseGlowSprites[Random.Range(0, pauseGlowSprites.Length)];
     }
 
+    // Shows or hides the paused glow icon only. Replay/menu are handled
+    // entirely in Update() now -- they are a death-only concern, not a
+    // pause-display one, and coupling them here was what made them appear
+    // on every ordinary pause and out-of-pauses stretch, not just death.
     void showPaused(bool show)
     {
-        if (!buttonClicks.playerDied && pauseText != null)
-        {
-            // Roll a new glow only on the hidden -> shown transition, not
-            // every frame the finger stays lifted.
-            if (show && !wasShowingPause) PickRandomPauseGlow();
-            wasShowingPause = show;
+        if (buttonClicks.playerDied || pauseText == null) return;
 
-            pauseText.gameObject.SetActive(show);
-        }
-        if (!show)
-        {
-            if (delayPauseMenuTimer <= 0)
-            {
-                if (!buttonClicks.playerDied)
-                {
+        // Roll a new glow only on the hidden -> shown transition, not every
+        // frame the finger stays lifted.
+        if (show && !wasShowingPause) PickRandomPauseGlow();
+        wasShowingPause = show;
 
-                    pauseMenuTimer = .35f;
-                    if (replyB != null) replyB.gameObject.SetActive(show);
-                    if (mainMenuB != null) mainMenuB.gameObject.SetActive(show);
-                    delayPauseMenuTimer = pauseMenuTimer;
-                }
-            }
-        }
-        else
-        {
-            if (!buttonClicks.playerDied)
-            {
-                if (replyB != null) replyB.gameObject.SetActive(show);
-                if (mainMenuB != null) mainMenuB.gameObject.SetActive(show);
-            }
-        }
+        pauseText.gameObject.SetActive(show);
     }
 
 }
