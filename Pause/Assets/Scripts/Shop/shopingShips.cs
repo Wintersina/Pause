@@ -16,7 +16,7 @@ public class shopingShips : MonoBehaviour {
     public static bool buttonIsClicked;
 
     // Retro hulls retain their saved indices; original ships follow them.
-    public static int shipTotal = 19;
+    public static int shipTotal = 16;
     public static GameObject[] ships = new GameObject[shipTotal];
     public Button[] shipButtons = new Button[shipTotal];
     private static string[] shipNamesShared;
@@ -210,19 +210,22 @@ public class shopingShips : MonoBehaviour {
     }
        
     // Roster names, available before this component's Start() has run.
+    // Scout, Interceptor and Xenon were removed: reskins/duplicates of the
+    // roster's own Neon Comet, Volt Viper and Solar Fang (indices 1-3), so
+    // the same ship was effectively listed twice under two names.
     public static readonly string[] Roster =
     {
         "non", "Neon Comet", "Volt Viper", "Solar Fang", "Crimson Halo",
         "Ion Lancer", "Jade Phantom", "Gold Warden",
         "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO",
-        "Dove", "Scout", "Interceptor", "Xenon", "Turtle",
+        "Dove", "Turtle",
     };
 
     // Prices, exposed so the shop buttons can show them before you tap in.
     public static readonly float[] Prices =
     {
         0f, 0f, 600f, 1400f, 2200f, 3200f, 4400f, 5800f,
-        800f, 1000f, 1200f, 1600f, 1800f, 2000f, 2400f, 400f, 700f, 2600f, 3000f,
+        800f, 1000f, 1200f, 1600f, 1800f, 2000f, 2400f, 3000f,
     };
 
     public static float CostFor(int index)
@@ -252,7 +255,12 @@ public class shopingShips : MonoBehaviour {
 
     public static Sprite IdleSpriteFor(int index, int damageState, int idleFrame)
     {
-        if (index >= 8) return OriginalShipArt.SpriteFor(index);
+        // The eight single-image legacy ships (Lightning onward) had no idle
+        // frames at all -- this always returned the same static sprite, so
+        // they never bobbed like the Retro80s ships do. OriginalIdleSpriteFor
+        // now supplies genuine frames for them; falls back to the static
+        // sprite only if a frame is actually missing.
+        if (index >= 8) return OriginalShipArt.OriginalIdleSpriteFor(index, idleFrame);
         string[] keys = { "", "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo",
                           "IonLancer", "JadePhantom", "GoldWarden" };
         string[] states = { "intact", "damaged", "critical" };
