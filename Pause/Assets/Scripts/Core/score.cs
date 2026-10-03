@@ -76,7 +76,7 @@ public class score : MonoBehaviour {
         {
             pauseCounter = PAUSECOUNTER;
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
-            speedValue.text = "Currnet Speed : 0";
+            speedValue.text = "Current Speed : 0";
             totalCurrency = currencyHolder;
             runStartCurrency = totalCurrency;
         }
@@ -84,7 +84,7 @@ public class score : MonoBehaviour {
         {
             pauseCounter = TUTPAUSECOUNTER;
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
-            speedValue.text = "Currnet Speed : 0";
+            speedValue.text = "Current Speed : 0";
             totalCurrency = 0f;
             runStartCurrency = 0f;
         }

@@ -1,12 +1,17 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Forces a real layout pass (edit mode, no Play mode needed) so the checks
-// see the same rects the VerticalLayoutGroups actually compute at runtime,
-// not the (0,0) placeholders Unity leaves in the serialized scene for
-// layout-driven children.
+// Builds the real Flight Complete panel from gameS1's own Texts and Buttons
+// (edit mode, no Play mode needed), jumps it to its settled end state and
+// checks the layout invariants the old panel broke: no overlapping cards,
+// everything inside the frame, nothing left over from the scene's layout
+// groups, properly sized equal-width buttons, no stray particles, and
+// animation driven by unscaled time.
 public static class DeathPanelTest
 {
     static int fails;
@@ -26,63 +31,252 @@ public static class DeathPanelTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
+        CheckStaticLayout();
+        CheckFit();
+        CheckUnscaledTime();
+
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
-
-        var modelPanel = SceneUtil.FindAny("Model Panel").GetComponent<RectTransform>();
-        var dialauge = SceneUtil.FindAny("Model Dialauge").GetComponent<RectTransform>();
-        var results = SceneUtil.FindAny("ResultsPanel").GetComponent<RectTransform>();
-        var panelBg = SceneUtil.FindAny("PanelBackground").GetComponent<RectTransform>();
-        var buttonPanel = SceneUtil.FindAny("Button Panel").GetComponent<RectTransform>();
-
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(panelBg);
-        LayoutRebuilder.ForceRebuildLayoutImmediate(buttonPanel);
-        // Nested layout groups sometimes need a second pass to fully settle;
-        // also rebuild each button's own rect directly.
-        LayoutRebuilder.ForceRebuildLayoutImmediate(buttonPanel);
-        foreach (var n in new[] { "Replay", "MainMenu" })
-            LayoutRebuilder.ForceRebuildLayoutImmediate(SceneUtil.FindAny(n).GetComponent<RectTransform>());
-
-        Check("panel is bigger than the old 300x412", modelPanel.sizeDelta.x > 300 && modelPanel.sizeDelta.y > 412);
-        Check("inner frame fits inside the panel",
-              dialauge.sizeDelta.x < modelPanel.sizeDelta.x && dialauge.sizeDelta.y < modelPanel.sizeDelta.y);
-        Check("results box fits inside the frame",
-              results.sizeDelta.x < dialauge.sizeDelta.x && results.sizeDelta.y < dialauge.sizeDelta.y);
-
-        var texts = new[] { "playerDeadHighestSpeed", "deathSpeedReachedThisRoundText", "playerDeadHighScore" };
-        var rects = new System.Collections.Generic.List<Rect>();
-        foreach (var n in texts)
-        {
-            var go = SceneUtil.FindAny(n);
-            var rt = go.GetComponent<RectTransform>();
-            var txt = go.GetComponent<Text>();
-
-            Check(n + " has a non-zero laid-out height", rt.rect.height > 5f);
-            Check(n + " font is readable (>=20)", txt.fontSize >= 20);
-            rects.Add(new Rect(rt.anchoredPosition - rt.rect.size * rt.pivot, rt.rect.size));
-        }
-
-        // The whole point of the fix: three lines that used to sit on the
-        // exact same point must now occupy distinct vertical bands.
-        var centersY = new float[3];
-        for (int i = 0; i < 3; i++) centersY[i] = rects[i].center.y;
-        bool allDistinct = Mathf.Abs(centersY[0] - centersY[1]) > 5f
-                         && Mathf.Abs(centersY[1] - centersY[2]) > 5f
-                         && Mathf.Abs(centersY[0] - centersY[2]) > 5f;
-        Check("the three stat lines no longer share one point (y = " +
-              string.Join(", ", System.Array.ConvertAll(centersY, v => v.ToString("F1"))) + ")", allDistinct);
-
-        // Button panel: taller than the old 176, and its buttons must have
-        // real (nonzero) laid-out height once the layout group resolves.
-        Check("button panel is at least as tall as before", buttonPanel.sizeDelta.y >= 150);
-        foreach (var n in new[] { "Replay", "MainMenu" })
-        {
-            var go = SceneUtil.FindAny(n);
-            var rt = go.GetComponent<RectTransform>();
-            Check(n + " button has a non-zero laid-out height", rt.rect.height > 5f);
-        }
+        CheckBuiltPanel();
 
         Debug.Log("[DPT] failures: " + fails);
         return fails;
+    }
+
+    // ---- The layout constants themselves ----
+
+    static void CheckStaticLayout()
+    {
+        var panel = DeathPanelView.PanelRect;
+        var inner = Inset(panel, 16f);
+
+        var rows = new List<KeyValuePair<string, Rect>>
+        {
+            new KeyValuePair<string, Rect>("header", DeathPanelView.HeaderRect),
+            new KeyValuePair<string, Rect>("divider", DeathPanelView.DividerRect),
+        };
+        for (int i = 0; i < DeathPanelView.CardRects.Length; i++)
+            rows.Add(new KeyValuePair<string, Rect>("card" + i, DeathPanelView.CardRects[i]));
+        rows.Add(new KeyValuePair<string, Rect>("replay", DeathPanelView.ReplayRect));
+        rows.Add(new KeyValuePair<string, Rect>("menu", DeathPanelView.MenuRect));
+
+        foreach (var row in rows)
+            Check(row.Key + " sits inside the panel with padding", Contains(inner, row.Value));
+
+        for (int i = 0; i < rows.Count; i++)
+            for (int j = i + 1; j < rows.Count; j++)
+                Check(rows[i].Key + " does not overlap " + rows[j].Key, !rows[i].Value.Overlaps(rows[j].Value));
+
+        var cards = DeathPanelView.CardRects;
+        for (int i = 0; i + 1 < cards.Length; i++)
+            Check("card" + i + " / card" + (i + 1) + " gap is >= 12", cards[i].yMin - cards[i + 1].yMax >= 12f);
+        bool sameColumn = true;
+        foreach (var c in cards) sameColumn &= Mathf.Approximately(c.xMin, cards[0].xMin) && Mathf.Approximately(c.width, cards[0].width);
+        Check("cards share one column (same x and width)", sameColumn);
+        Check("cards are horizontally centred", Mathf.Abs(cards[0].center.x) < .01f);
+
+        var replay = DeathPanelView.ReplayRect;
+        var menu = DeathPanelView.MenuRect;
+        Check("buttons have equal width", Mathf.Approximately(replay.width, menu.width));
+        Check("buttons have equal height", Mathf.Approximately(replay.height, menu.height));
+        Check("buttons share one row", Mathf.Approximately(replay.center.y, menu.center.y));
+        Check("button pair is centred", Mathf.Abs(replay.center.x + menu.center.x) < .01f);
+        Check("button pair spans the card column",
+              Mathf.Abs(replay.xMin - cards[0].xMin) < .01f && Mathf.Abs(menu.xMax - cards[0].xMax) < .01f);
+        // 96 canvas units ~= 44pt on a 375pt-wide phone (canvas is 800 units wide).
+        Check("buttons meet the ~44pt tap target (>= 96 units)", replay.height >= 96f && replay.width >= 96f);
+        Check("intro is short (<= 1.25s)", DeathPanelView.IntroDuration <= 1.25f);
+    }
+
+    // ---- Fitting to screens / safe areas / the top-right quick actions ----
+
+    static void CheckFit()
+    {
+        var cases = new[]
+        {
+            ("tall phone 1080x2340", new Rect(-400f, -866f, 800f, 1733f), (Rect?)null),
+            ("phone with notch + home bar", new Rect(-400f, -820f, 800f, 1640f), (Rect?)null),
+            ("iPad 1536x2048", new Rect(-400f, -533f, 800f, 1066f), (Rect?)null),
+            ("landscape Mac window", new Rect(-480f, -300f, 960f, 600f), (Rect?)null),
+            ("iPad with quick actions top-right", new Rect(-400f, -533f, 800f, 1066f),
+                (Rect?)new Rect(220f, 340f, 170f, 180f)),
+        };
+        foreach (var (name, safe, blocker) in cases)
+        {
+            DeathPanelView.ComputeFit(safe, blocker, out var centre, out var scale);
+            float w = (DeathPanelView.Width + 2f * DeathPanelView.GlowMargin) * scale;
+            float h = (DeathPanelView.Height + 2f * DeathPanelView.GlowMargin) * scale;
+            var visual = new Rect(centre.x - w * .5f, centre.y - h * .5f, w, h);
+            Check(name + ": panel and glow fit the safe area", Contains(safe, visual));
+            Check(name + ": never scaled above 1", scale <= 1f);
+            if (blocker.HasValue)
+                Check(name + ": clears the quick actions", !blocker.Value.Overlaps(visual));
+            if (safe.height > 1000f && !blocker.HasValue)
+                Check(name + ": portrait phone keeps full size (tap targets intact)", Mathf.Approximately(scale, 1f));
+        }
+    }
+
+    // ---- Source checks: everything animated on unscaled time ----
+
+    static void CheckUnscaledTime()
+    {
+        var scaled = new Regex(@"Time\.(time|deltaTime|fixedDeltaTime|smoothDeltaTime)\b|WaitForSeconds\(");
+        foreach (var path in new[] { "Assets/Scripts/UI/DeathPanelView.cs", "Assets/Scripts/UI/DeathPanelPress.cs",
+                                     "Assets/Scripts/Gameplay/playerIsDead.cs" })
+        {
+            string src = File.ReadAllText(path);
+            Check(System.IO.Path.GetFileName(path) + " never reads scaled time", !scaled.IsMatch(src));
+        }
+        Check("DeathPanelView animates on Time.unscaledTime",
+              File.ReadAllText("Assets/Scripts/UI/DeathPanelView.cs").Contains("Time.unscaledTime"));
+        Check("DeathPanelPress springs on Time.unscaledDeltaTime",
+              File.ReadAllText("Assets/Scripts/UI/DeathPanelPress.cs").Contains("Time.unscaledDeltaTime"));
+    }
+
+    // ---- The real panel, built from gameS1's objects ----
+
+    static void CheckBuiltPanel()
+    {
+        var canvas = SceneUtil.FindAny("PopUpCanvas");
+        var best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
+        var run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
+        var dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
+        var replay = SceneUtil.FindAny("Replay").GetComponent<Button>();
+        var menu = SceneUtil.FindAny("MainMenu").GetComponent<Button>();
+
+        // Wide numbers on purpose: the layout has to hold up at its worst.
+        var view = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
+        {
+            bestSpeed = 999, runSpeed = 999, newBest = true, dustAtStart = 99987.65f, dustWon = 12.34f,
+        });
+        view.Skip();
+        Canvas.ForceUpdateCanvases();
+
+        var panel = view.Panel;
+        Check("intro skip lands on the end state", view.IntroFinished);
+        Check("old scene dialog (Model Panel) is switched off", !canvas.transform.Find("Model Panel").gameObject.activeSelf);
+        Check("panel sits at full intro scale after skip",
+              Mathf.Abs(panel.localScale.x - panel.localScale.y) < .001f && panel.localScale.x > .5f);
+
+        // Values: final numbers, formatted on separate lines for star dust.
+        Check("best speed shows its final value", best.text == "999");
+        Check("this run shows its final value", run.text == "999");
+        Check("star dust earned shows +12.34 (got '" + dust.text + "')", dust.text == "+12.34");
+        var total = dust.transform.parent.Find("Total").GetComponent<Text>();
+        Check("total sits on its own line (got '" + total.text + "')", total.text == "TOTAL  99999.99" && !dust.text.Contains("\n"));
+
+        var panelRect = DeathPanelView.PanelRect;
+        foreach (var t in new[] { best, run, dust })
+        {
+            Check(t.name + " moved into the new panel", t.transform.IsChildOf(panel));
+            Check(t.name + " is active", t.gameObject.activeInHierarchy || !canvas.activeInHierarchy);
+            Check(t.name + " font is readable (>=20)", t.fontSize >= 20);
+            Check(t.name + " is no longer driven by a layout group", t.GetComponentInParent<LayoutGroup>() == null);
+        }
+
+        // Every visible element sits inside the panel body (glows excepted,
+        // they are meant to bloom past the edge).
+        foreach (var g in panel.GetComponentsInChildren<Graphic>(false))
+        {
+            if (g.name == "Frame" || g.name == "Glow" || g.name == "NewBestGlow" ||
+                g.name == "DustBurst" || g.name == "BestBurst") continue;
+            var r = PanelSpace(panel, g.rectTransform);
+            Check(NodePath(g.transform, panel) + " is inside the panel", Contains(Inset(panelRect, -0.5f), r));
+            if (g is Text text && text.horizontalOverflow == HorizontalWrapMode.Overflow)
+                Check(NodePath(g.transform, panel) + " text fits its rect ('" + text.text + "')",
+                      text.preferredWidth <= r.width + 1f);
+        }
+
+        // Cards: laid out where the constants say, not overlapping, and the
+        // label column never runs into the value column.
+        var cardRects = new List<Rect>();
+        for (int i = 0; i < 3; i++)
+        {
+            var card = (RectTransform)panel.Find("Card" + i);
+            var r = PanelSpace(panel, card);
+            cardRects.Add(r);
+            Check("Card" + i + " is where the layout puts it", Near(r, DeathPanelView.CardRects[i]));
+            var label = card.Find("Label").GetComponent<Text>();
+            var value = i == 0 ? best : i == 1 ? run : dust;
+            float labelRight = PanelSpace(panel, label.rectTransform).xMin + label.preferredWidth;
+            float valueLeft = PanelSpace(panel, value.rectTransform).xMax - value.preferredWidth;
+            Check("Card" + i + " label and value keep apart", labelRight + 16f <= valueLeft);
+        }
+        for (int i = 0; i < 3; i++)
+            for (int j = i + 1; j < 3; j++)
+                Check("Card" + i + " does not overlap Card" + j, !cardRects[i].Overlaps(cardRects[j]));
+
+        var pill = panel.Find("Card0/NewBest");
+        Check("NEW BEST badge is shown for a record run", pill != null && pill.gameObject.activeSelf && pill.localScale.x > .9f);
+
+        // Buttons: the scene's own Buttons, re-skinned, still wired.
+        var rr = PanelSpace(panel, (RectTransform)replay.transform);
+        var mr = PanelSpace(panel, (RectTransform)menu.transform);
+        Check("Replay button is the scene button, inside the panel", replay.transform.IsChildOf(panel));
+        Check("buttons have equal width (" + rr.width + " / " + mr.width + ")", Mathf.Abs(rr.width - mr.width) < .5f);
+        Check("buttons are >= 96 units tall", rr.height >= 96f && mr.height >= 96f);
+        Check("buttons are not scaled down by the scene's old 0.44 scale",
+              Mathf.Abs(replay.transform.localScale.x - 1f) < .01f && Mathf.Abs(menu.transform.localScale.x - 1f) < .01f);
+        Check("buttons don't overlap", !rr.Overlaps(mr));
+        foreach (var c in cardRects) Check("buttons clear the cards", !rr.Overlaps(c) && !mr.Overlaps(c));
+        Check("Replay still calls buttonClicks.replay",
+              replay.onClick.GetPersistentEventCount() > 0 && replay.onClick.GetPersistentMethodName(0) == "replay");
+        Check("Menu still calls buttonClicks.mainMenuButton",
+              menu.onClick.GetPersistentEventCount() > 0 && menu.onClick.GetPersistentMethodName(0) == "mainMenuButton");
+        Check("buttons have press feedback", replay.GetComponent<DeathPanelPress>() != null && menu.GetComponent<DeathPanelPress>() != null);
+        Check("Replay shows the shared replay glyph", replay.transform.Find("Icon") != null &&
+              replay.transform.Find("Icon").GetComponent<Image>().sprite != null);
+
+        // Sprites came from the SVG-sourced set.
+        var frame = panel.Find("Frame").GetComponent<Image>();
+        Check("frame uses the 9-sliced dp_panel sprite",
+              frame.sprite != null && frame.sprite.name == "dp_panel" && frame.sprite.border.x > 0f && frame.type == Image.Type.Sliced);
+
+        // No stray particles once the intro has settled.
+        int liveSparkles = 0;
+        foreach (var g in panel.GetComponentsInChildren<Graphic>(false))
+            if (g.name == "DustBurst" || g.name == "BestBurst") liveSparkles++;
+        Check("no sparkle particles linger after the intro (" + liveSparkles + ")", liveSparkles == 0);
+        Check("old dust-bit squares are gone", SceneUtil.FindAny("DustBit") == null && SceneUtil.FindAny("DeathResultsBadge") == null);
+
+        // Mid-intro the panel is still animating and can be skipped again.
+        view.ApplyAt(.3f);
+        Check("mid-intro state is not final", !view.IntroFinished);
+        view.Skip();
+        Check("a second skip settles again", view.IntroFinished && dust.text == "+12.34");
+
+        // The quick-action hit test must still be callable.
+        bool threw = false;
+        try { PauseQuickActions.IsScreenPointOnAction(Vector2.zero); } catch (System.Exception) { threw = true; }
+        Check("PauseQuickActions.IsScreenPointOnAction still works", !threw);
+    }
+
+    // ---- helpers ----
+
+    static Rect PanelSpace(RectTransform panel, RectTransform rt)
+    {
+        var corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+        Vector2 min = panel.InverseTransformPoint(corners[0]);
+        Vector2 max = panel.InverseTransformPoint(corners[2]);
+        return Rect.MinMaxRect(Mathf.Min(min.x, max.x), Mathf.Min(min.y, max.y), Mathf.Max(min.x, max.x), Mathf.Max(min.y, max.y));
+    }
+
+    static string NodePath(Transform t, Transform root)
+    {
+        string p = t.name;
+        while (t.parent != null && t.parent != root) { t = t.parent; p = t.name + "/" + p; }
+        return p;
+    }
+
+    static Rect Inset(Rect r, float by) { return Rect.MinMaxRect(r.xMin + by, r.yMin + by, r.xMax - by, r.yMax - by); }
+    static bool Contains(Rect outer, Rect inner)
+    {
+        return inner.xMin >= outer.xMin - .01f && inner.xMax <= outer.xMax + .01f &&
+               inner.yMin >= outer.yMin - .01f && inner.yMax <= outer.yMax + .01f;
+    }
+    static bool Near(Rect a, Rect b)
+    {
+        return Mathf.Abs(a.xMin - b.xMin) < .5f && Mathf.Abs(a.yMin - b.yMin) < .5f &&
+               Mathf.Abs(a.width - b.width) < .5f && Mathf.Abs(a.height - b.height) < .5f;
     }
 }

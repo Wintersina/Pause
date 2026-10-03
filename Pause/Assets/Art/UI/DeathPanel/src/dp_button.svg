@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Action button - neutral template, tinted per action (cyan replay / coral menu).
+  The fill is a desaturated navy so the tint darkens it to a deep accent glass;
+  the edge is white so the tint makes it a pure neon line.
+  Units are UI canvas units; rasterize at 2x (192x160 px, sprite ppu 200).
+  Corner radius 18. 9-slice border 24u on all sides.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="80" viewBox="0 0 96 80">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a4870" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#1c2442" stop-opacity="0.96"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="94" height="78" rx="18" fill="url(#body)"/>
+  <rect x="1" y="1" width="94" height="78" rx="18" fill="url(#gloss)"/>
+  <rect x="2" y="2" width="92" height="76" rx="17" fill="none"
+        stroke="#ffffff" stroke-width="2.5"/>
+</svg>

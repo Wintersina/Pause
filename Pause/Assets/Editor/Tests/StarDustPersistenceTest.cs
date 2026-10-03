@@ -144,6 +144,7 @@ public static class StarDustPersistenceTest
         var hud = MakeHud();
         Call(hud, "Awake");
         Call(hud, "Start");
+        Check("speed readout is spelled \"Current\"", hud.speedValue.text == "Current Speed : 0");
         score.AwardStarDust(2f);
         score.totalCurrency = 0f;
         Call(hud, "OnDestroy");
