@@ -14,6 +14,7 @@ public static class AllTests
 {
     static readonly (string name, Func<int> execute)[] Suites =
     {
+        ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),

@@ -77,27 +77,9 @@ public static class SocialBridge
         ReportProgress(achievementId, 100.0, callback);
     }
 
-    // Incremental achievements. Unity's portable API has no "increment", so the
-    // running count is kept in PlayerPrefs and reported as percent-complete.
-    // These counters are small enough that count maps directly onto percent;
-    // revisit if an achievement ever needs more than 100 steps.
-    public static void IncrementAchievement(string achievementId, int steps, SocialCallback callback = null)
-    {
-        if (string.IsNullOrEmpty(achievementId))
-        {
-            if (callback != null) callback(false);
-            return;
-        }
-
-        string key = "achv_progress_" + achievementId;
-        int progress = Mathf.Clamp(PlayerPrefs.GetInt(key, 0) + steps, 0, 100);
-        PlayerPrefs.SetInt(key, progress);
-        PlayerPrefs.Save();
-
-        ReportProgress(achievementId, progress, callback);
-    }
-
-    static void ReportProgress(string achievementId, double percent, SocialCallback callback)
+    // Tiered achievements report percent-complete here; AchievementTiers keeps
+    // the counts, since Unity's portable API has no "increment".
+    public static void ReportProgress(string achievementId, double percent, SocialCallback callback = null)
     {
         if (string.IsNullOrEmpty(achievementId) || !IsAuthenticated)
         {
