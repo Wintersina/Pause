@@ -82,6 +82,7 @@ public class collisionDetection : MonoBehaviour {
     public static void AwardDestroyedTarget(GameObject target)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        Codex.Discover(target);   // ultimate kills count as meeting it too
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
     }
@@ -202,7 +203,8 @@ public class collisionDetection : MonoBehaviour {
     
     void OnTriggerEnter2D(Collider2D hit)
     {
-        
+        Codex.Discover(hit.gameObject);   // first touch unlocks its codex entry (enemy, rock, atom, portal)
+
         #region
         //------------------------- Colliding with Enimies ---------------------------------------------
         if (hit.gameObject.tag == "Enimey" || hit.gameObject.tag == "Astr" )
