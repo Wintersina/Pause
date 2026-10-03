@@ -119,6 +119,7 @@ public class TitleScreenTraffic : MonoBehaviour
         public Sprite[] shards;               // hull quarters for crash debris
         public float normScale;               // NormalizedHullScale for its sprite
         public bool wind;                     // Ninja / UFO: spinning craft, no flame
+        public ShipSpinDrift drift;           // ...their spin drift instead (gameplay's)
         public int slot;                      // pool index, for sorting
 
         public bool active;
@@ -137,7 +138,7 @@ public class TitleScreenTraffic : MonoBehaviour
         public float speedMul, flame, stretchX, stretchY;
         public Flyer partner;                 // pursuit target / formation leader
         public Vector2 wingOffset;
-        public Vector2 drift;
+        public Vector2 tumble;              // dizzy knock-back velocity
         public bool zoomer;
         // dock-launch zips (DockLaunch curves): Bezier p0 -> p1 -> p2
         public Vector2 zipP0, zipP1, zipP2, zipRest, zipDir;
@@ -333,11 +334,30 @@ public class TitleScreenTraffic : MonoBehaviour
             if (boost != null)
             {
                 boost.gameObject.layer = 2;
-                boost.gameObject.SetActive(true);
+                // lit for nozzle ships (it is their flame); a spinner's stays dark,
+                // since ShipSpinDrift reads a lit holder as "boosting"
+                boost.gameObject.SetActive(!f.wind);
                 f.nozzles = boost.GetComponentsInChildren<SpriteRenderer>(true);
                 for (int i = 0; i < f.nozzles.Length; i++) f.nozzles[i].gameObject.layer = 2;
             }
             else f.nozzles = new SpriteRenderer[0];
+            if (f.wind)
+            {
+                // Spinners get gameplay's spin drift, set up the way
+                // ShipThruster sets it up for a ship something else steers:
+                // the ring turns on its own, the wake hangs behind the nose
+                // (traffic flies every direction). Disabled so it doesn't
+                // tick on scaled time; Step drives it on unscaled time.
+                var drift = go.AddComponent<ShipSpinDrift>();
+                drift.spinHull = false;
+                drift.spinRing = true;
+                drift.wakeFollowsHeading = true;
+                drift.respondToPause = false;
+                drift.Rebuild();
+                drift.enabled = false;
+                foreach (var r in go.GetComponentsInChildren<Transform>(true)) r.gameObject.layer = 2;
+                f.drift = drift;
+            }
             f.shards = Quarters(sr.sprite);
             go.SetActive(false);
             pool[slot++] = f;
@@ -548,13 +568,13 @@ public class TitleScreenTraffic : MonoBehaviour
         f.zipFlying = false;
         f.nextZip = float.MaxValue;
         f.alpha = 1f;
-        f.spin = 0f; f.spinVel = f.wind ? Random.Range(170f, 260f) * (Random.value < .5f ? -1f : 1f) : 0f;
+        f.spin = 0f; f.spinVel = 0f;
         f.phase = Random.Range(0f, 6.283f);
         f.wobF = Random.Range(2.2f, 3.6f);
         f.wobA = ReferenceHull * f.scale * Random.Range(.04f, .08f);
         f.trick = Trick.None;
         f.partner = null;
-        f.drift = Vector2.zero;
+        f.tumble = Vector2.zero;
         f.pendingPop = false;
         f.born = now;
         f.nextBoost = now + Random.Range(2.5f, 8f);
@@ -685,6 +705,12 @@ public class TitleScreenTraffic : MonoBehaviour
         {
             f.nozzles[i].sortingOrder = order + 2;
             if (mat != null) f.nozzles[i].sharedMaterial = mat;
+        }
+        if (f.drift != null && f.drift.Ring != null)
+        {
+            f.drift.Ring.sortingOrder = order + 2;
+            f.drift.Wake.sortingOrder = order + 1;
+            if (mat != null) { f.drift.Ring.sharedMaterial = mat; f.drift.Wake.sharedMaterial = mat; }
         }
     }
 
@@ -1009,8 +1035,8 @@ public class TitleScreenTraffic : MonoBehaviour
     void FlyDizzy(Flyer f, float dt)
     {
         // tumbling off from the bump, slowing down, spinning less and less
-        f.pos += f.drift * dt;
-        f.drift *= Mathf.Exp(-1.6f * dt);
+        f.pos += f.tumble * dt;
+        f.tumble *= Mathf.Exp(-1.6f * dt);
         f.spinVel = Mathf.Lerp(f.spinVel, Mathf.Sign(f.spinVel) * 160f, 1f - Mathf.Exp(-2f * dt));
         f.spin += f.spinVel * dt;
         f.flame = .15f;
@@ -1026,7 +1052,7 @@ public class TitleScreenTraffic : MonoBehaviour
             return;
         }
         f.spin = 0f;
-        f.spinVel = f.wind ? 200f : 0f;
+        f.spinVel = 0f;
         f.heading = Mathf.Atan2(safe.center.y - f.pos.y, safe.center.x - f.pos.x) + Random.Range(-.6f, .6f);
         f.waypoint = ExitPoint(f);
         f.waypointsLeft = 0;
@@ -1128,7 +1154,7 @@ public class TitleScreenTraffic : MonoBehaviour
             b.partner = null;
             b.speedMul = 1f;
             Vector2 away = (b.pos - at).sqrMagnitude > 1e-6f ? (b.pos - at).normalized : Vector2.up;
-            b.drift = away * spec.speed * 1.6f;
+            b.tumble = away * spec.speed * 1.6f;
             b.spinVel = (Random.value < .5f ? -1f : 1f) * 900f;
             b.pendingPop = Random.value < .45f;
             AttachStars(b);
@@ -1220,7 +1246,7 @@ public class TitleScreenTraffic : MonoBehaviour
             bank = Mathf.Cos(pose * (2f * Tick) / .5f * 6.283f);
             if (Mathf.Abs(bank) < .18f) bank = .18f * (bank < 0f ? -1f : 1f);
         }
-        float angle = f.wind ? f.spin : f.heading * Mathf.Rad2Deg - 90f + lean + f.spin;
+        float angle = f.heading * Mathf.Rad2Deg - 90f + lean + f.spin;
         f.tr.rotation = Quaternion.Euler(0f, 0f, angle);
         float k = f.normScale * f.scale;
         k *= f.grow;
@@ -1242,6 +1268,18 @@ public class TitleScreenTraffic : MonoBehaviour
         {
             float fl = f.wind ? 0f : f.flame * Mathf.Clamp01((f.alpha - .2f) / .6f);
             f.boost.localScale = new Vector3(fl, fl, 1f);
+        }
+
+        if (f.drift != null)
+        {
+            // boost drawings while it boosts or zips, cruise drawings otherwise;
+            // the wake hides while it tumbles dizzy (no heading to trail) and
+            // the whole drift fades out with a front ship crossing the logo
+            var d = f.drift;
+            d.boost = f.state == State.Boost || f.state == State.ZipIn || f.state == State.ZipOut;
+            d.powered = f.alpha > .35f;
+            d.Step(dt);
+            if (f.state == State.Dizzy && d.Wake != null) d.Wake.enabled = false;
         }
 
         if (f.trail != null)
