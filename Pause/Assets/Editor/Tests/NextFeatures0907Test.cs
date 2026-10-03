@@ -48,6 +48,7 @@ public static class NextFeatures0907Test
         Check("green heal atom targets the authored 28px pickup size",
               Mathf.Approximately(28f / 100f, .28f));
         PlayerPrefs.SetString("HasDoneTut", "true");
+        score.paysRealDust = true;   // a real (non-tutorial) run
         score.totalCurrency = 0f;
         score.AwardStarDust(.12f);
         Check("destroying an enemy can award a small star-dust payout",
@@ -178,6 +179,28 @@ public static class NextFeatures0907Test
 
         Check("replay clone is anchored top-right", replay.GetComponent<RectTransform>().anchorMin == new Vector2(1f, 1f));
 
+        // Icons: matched square SVG-sourced sprites, never stretched.
+        foreach (var (action, path) in new[] { (replay, PauseQuickActions.ReplayIconPath), (leave, PauseQuickActions.HomeIconPath) })
+        {
+            var img = action.GetComponent<UnityEngine.UI.Image>();
+            var expected = Resources.Load<Sprite>(path);
+            Check(action.name + " icon sprite loads from Resources", expected != null);
+            Check(action.name + " uses the SVG-sourced icon", img != null && expected != null && img.sprite == expected);
+            Check(action.name + " preserves aspect", img != null && img.preserveAspect);
+            var size = action.GetComponent<RectTransform>().sizeDelta;
+            Check(action.name + " is a square tap target of ButtonSize", size == new Vector2(PauseQuickActions.ButtonSize, PauseQuickActions.ButtonSize));
+            if (expected != null)
+            {
+                Check(action.name + " sprite is square", Mathf.Approximately(expected.rect.width, expected.rect.height));
+                Check(action.name + " texture has no mipmaps", expected.texture.mipmapCount == 1);
+            }
+        }
+        var rRect = replay.GetComponent<RectTransform>();
+        var lRect = leave.GetComponent<RectTransform>();
+        Check("home icon sits left of replay without overlap",
+              lRect.anchoredPosition.x + 0.01f < rRect.anchoredPosition.x - PauseQuickActions.ButtonSize);
+        Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
+
         var replayButton = replay.GetComponent<UnityEngine.UI.Button>();
         bool wiredToReplay = false;
         for (int i = 0; i < replayButton.onClick.GetPersistentEventCount(); i++)
@@ -213,6 +236,26 @@ public static class NextFeatures0907Test
         score.pauseCounter = 3;
         comp.SendMessage("Update");
         Check("shown during an ordinary pause", replay.activeSelf && leave.activeSelf);
+
+        // movePlayer ignores presses that land on an action. The hit-test must
+        // cover each icon's whole square, including its corners, and nothing
+        // well outside it.
+        Canvas.ForceUpdateCanvases();
+        foreach (var action in new[] { replay, leave })
+        {
+            var corners = new Vector3[4];
+            action.GetComponent<RectTransform>().GetWorldCorners(corners);
+            Vector2 centre = (corners[0] + corners[2]) * 0.5f;
+            Vector2 nearCorner = Vector2.Lerp(corners[0], corners[2], 0.04f);
+            Check(action.name + " centre counts as on-action", PauseQuickActions.IsScreenPointOnAction(centre));
+            Check(action.name + " square corner counts as on-action", PauseQuickActions.IsScreenPointOnAction(nearCorner));
+        }
+        {
+            var corners = new Vector3[4];
+            leave.GetComponent<RectTransform>().GetWorldCorners(corners);
+            Vector2 below = new Vector2((corners[0].x + corners[2].x) * 0.5f, corners[0].y - (corners[2].y - corners[0].y));
+            Check("point below the icons is not on-action", !PauseQuickActions.IsScreenPointOnAction(below));
+        }
 
         buttonClicks.playerDied = false;
         Object.DestroyImmediate(go);

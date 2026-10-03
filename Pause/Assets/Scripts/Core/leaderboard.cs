@@ -16,6 +16,9 @@ public class leaderboard : MonoBehaviour {
     {
         if (AdMob.isAdsShowwing)
             AdMob.hide();
+        // Replaying used to skip this, so the tutorial ran as a real run: it
+        // paid real star dust and handed out 5 pauses instead of 50.
+        startMenu.PrepareTutorialRun();
         UnityEngine.SceneManagement.SceneManager.LoadScene("tutorialS5");
     }
 	

@@ -221,31 +221,13 @@ public class collisionDetection : MonoBehaviour {
                 // acchivment reporting
                 if (PrefabName.Is(hit.gameObject, "alien1"))
                 {
-                    //------------------------- Kill 5 Alieans ------------##08-------------------
-                    achievementAPICalls.achievement_aliens();
-                    //------------------------- Kill 25 Alieans ---------------##09----------------
-                    achievementAPICalls.achievement_aliens_2();
-                    //------------------------- Kill 50 Alieans -------------------##10------------
-                    achievementAPICalls.achievement_aliens_3();
-                    //------------------------- Kill 150 Alieans -----------------##11--------------
-                    achievementAPICalls.achievement_aliens_4();
-                    //------------------------- Kill 1000 Alieans --------------------##12-----------
-                    achievementAPICalls.achievement_aliens_5();
-                    //------------------------- Kill 3500 Alieans ------------------------##13-------
-                    achievementAPICalls.achievement_aliens_6();
-                }if(hit.gameObject.tag == "Astr")
+                    //------------------------- Kill 5/25/50/150/1000/3500 Aliens ---##08-13---
+                    achievementAPICalls.alien_killed();
+                }
+                if (hit.gameObject.tag == "Astr")
                 {
-                    //------------------------- Destroy 5 Astroid ------------##14-------------------
-                    achievementAPICalls.achievement_destroyer();
-                    //------------------------- Destroy 25 Astroid------------##15-------------------
-                    achievementAPICalls.achievement_destroyer_2();
-                    //------------------------- Destroy 50 Astroid ------------##16-------------------
-                    achievementAPICalls.achievement_destroyer_3();
-                    //------------------------- Destroy 100 Astroid ------------##17-------------------
-                    achievementAPICalls.achievement_destroyer_4();
-                    //------------------------- Destroy 1500 Astroid ------------##18-------------------
-                    achievementAPICalls.achievement_destroyer_5();
-
+                    //------------------------- Destroy 5/25/50/100/1500 Asteroids ---##14-18---
+                    achievementAPICalls.asteroid_destroyed();
                 }
                 // show the texts for only half of a second.
                 savedTimer = .4f;
@@ -283,21 +265,12 @@ public class collisionDetection : MonoBehaviour {
                 if (lifeCounter >= MAXLIFE)
                 {
                     buttonClicks.playerDied = true;
-                    //--------------------FIRST DEATH ACHIVEMENT-------##01----------------------------------------
-                    achievementAPICalls.achievement_first_death();
-                    //-------------------------------------------------------------------------------------------
-                    //--------------------5th DEATH ACHIVEMENT-------##02----------------------------------------
-                    achievementAPICalls.achievement_death_2();
-                    //--------------------------------------------------------------------------------------------
-                    //--------------------10th DEATH ACHIVEMENT-------##03----------------------------------------
-                    achievementAPICalls.achievement_death_3();
-                    //--------------------------------------------------------------------------------------------
-                    //--------------------50th DEATH ACHIVEMENT-------##04----------------------------------------
-                    achievementAPICalls.achievement_death_4();
-                    //--------------------100th DEATH ACHIVMENT---------------------------------------------------
-                    achievementAPICalls.achievement_death_5();
+                    //--------------------1st/5th/10th/50th/100th DEATH ---##01-04-----------------
+                    achievementAPICalls.player_died();
 
                     achievementAPICalls.leaderboard_highest_speed_reached(Mathf.Round(moveBackGround.speed * 100));
+                    // End of the run: flush the batched achievement counters.
+                    PrefsSaver.SaveNow();
                     Destroy(gameObject);
                 }
                 Destroy(hit.gameObject);
@@ -313,10 +286,8 @@ public class collisionDetection : MonoBehaviour {
 
             if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
-                //--------------------PicUp Stars 150-------##06----------------------------------------
-                achievementAPICalls.achievement_stars();
-                //--------------------PickUp Stats 1000-------##07----------------------------------------
-                achievementAPICalls.achievement_stars_2();
+                //--------------------PickUp Stars 150/1000-------##06-07--------------------
+                achievementAPICalls.star_collected();
             }
 
                 // calculate different scores for each items.

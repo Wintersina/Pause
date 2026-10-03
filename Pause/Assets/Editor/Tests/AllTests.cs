@@ -14,13 +14,16 @@ public static class AllTests
 {
     static readonly (string name, Func<int> execute)[] Suites =
     {
+        ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
+        ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
+        ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
@@ -31,8 +34,10 @@ public static class AllTests
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
+        ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
+        ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };

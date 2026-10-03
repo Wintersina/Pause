@@ -32,6 +32,9 @@ public static class GameStateReset
         Time.timeScale = 1f;
         buttonClicks.playerDied = false;
         startMenu.playerDied = false;
+        // Set again by startMenu.PrepareTutorialRun on the way into the
+        // tutorial; must not leak out of one (e.g. via Back) into a real run.
+        startMenu.youAreInTutorial = false;
 
         // collisionDetection.lifeCounter/atomCheck/invTimer are statics too,
         // and the shop's own ship1-ship3 (authored directly in shopS6 with

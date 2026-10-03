@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Flight Complete panel frame - 9-slice source.
+  Units are UI canvas units; rasterize at 2x (320x320 px, sprite ppu 200).
+  Layout: 20u glow margin on every side, frame rect 20..140, corner radius 26.
+  9-slice border = 64u (128 px) on all four sides, so the corner brackets
+  and the rounded corners never stretch.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <defs>
+    <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1a3d" stop-opacity="0.97"/>
+      <stop offset="1" stop-color="#050a1f" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fe9ff" stop-opacity="0.16"/>
+      <stop offset="0.35" stop-color="#8fe9ff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+  <!-- outer neon bloom -->
+  <rect x="20" y="20" width="120" height="120" rx="26" fill="none"
+        stroke="#3fd8ff" stroke-width="5" stroke-opacity="0.55" filter="url(#glow)"/>
+  <!-- space-glass body -->
+  <rect x="20" y="20" width="120" height="120" rx="26" fill="url(#fill)"/>
+  <rect x="20" y="20" width="120" height="120" rx="26" fill="url(#sheen)"/>
+  <!-- inner hairline -->
+  <rect x="25.5" y="25.5" width="109" height="109" rx="21" fill="none"
+        stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+  <!-- crisp neon edge -->
+  <rect x="21" y="21" width="118" height="118" rx="25" fill="none"
+        stroke="#52e6ff" stroke-width="2" stroke-opacity="0.95"/>
+  <!-- HUD corner brackets, hugging each rounded corner -->
+  <g fill="none" stroke="#c4f7ff" stroke-width="3.5" stroke-linecap="round">
+    <path d="M21 60 L21 46 A25 25 0 0 1 46 21 L60 21"/>
+    <path d="M100 21 L114 21 A25 25 0 0 1 139 46 L139 60"/>
+    <path d="M139 100 L139 114 A25 25 0 0 1 114 139 L100 139"/>
+    <path d="M60 139 L46 139 A25 25 0 0 1 21 114 L21 100"/>
+  </g>
+</svg>

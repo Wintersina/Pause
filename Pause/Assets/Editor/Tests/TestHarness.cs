@@ -125,6 +125,14 @@ public static class TestHarness
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 
+        // Tiered achievement counts, plus the old per-tier keys they migrate from.
+        foreach (AchievementCategory category in System.Enum.GetValues(typeof(AchievementCategory)))
+        {
+            keys.Add(AchievementTiers.CounterKey(category));
+            foreach (var tier in AchievementTiers.For(category))
+                keys.Add(AchievementTiers.LegacyProgressKey(tier.id));
+        }
+
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string> { "HasDoneTut", WorldManager.PrefsHighestWorld };
         for (int i = 0; i <= shopingShips.shipTotal; i++) backed.Add("boughtship" + i);

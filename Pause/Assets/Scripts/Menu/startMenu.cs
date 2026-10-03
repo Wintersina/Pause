@@ -132,11 +132,18 @@ public class startMenu : MonoBehaviour {
         }
         else
         {
-            youAreInTutorial = true;
-            moveBackGround.speed = 0f;
-            score.totalCurrency = 0;
+            PrepareTutorialRun();
             SceneManager.LoadScene("tutorialS5");
         }
+    }
+
+    // Every way into the tutorial -- first launch or replaying it from the
+    // leaderboard screen -- goes through here, so they behave identically.
+    public static void PrepareTutorialRun()
+    {
+        youAreInTutorial = true;
+        moveBackGround.speed = 0f;
+        score.totalCurrency = 0;
     }
 
     public void logoutButton()

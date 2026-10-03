@@ -161,6 +161,9 @@ public class Hints : MonoBehaviour {
         }
         else if (dialougeCount == 11)
         {
+            // Marks the tutorial complete for the menu. It no longer affects
+            // this run: score decides once, at load, that the tutorial scene
+            // never pays real star dust.
             PlayerPrefs.SetString("HasDoneTut", "true");
             animationTimer = 7f;
             reachedTheEndOfTut = true;

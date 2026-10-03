@@ -60,11 +60,6 @@ public class achievementAPICalls : MonoBehaviour
         SocialBridge.UnlockAchievement(StringHolder.achievement_you_have_unlocked_the_secret_ship);
     }
 
-    public static void achievement_first_death()
-    {
-        SocialBridge.UnlockAchievement(StringHolder.achievement_first_death);
-    }
-
     public static void achievement_correct_pause()
     {
         SocialBridge.UnlockAchievement(StringHolder.achievement_correct_pause);
@@ -75,90 +70,27 @@ public class achievementAPICalls : MonoBehaviour
         SocialBridge.UnlockAchievement(StringHolder.achievement_paused);
     }
 
-    // ---- Incremental achievements ----
+    // ---- Tiered achievements ----
+    // One call per event; AchievementTiers advances every tier of the
+    // category against its own threshold.
 
-    public static void achievement_stars()
+    public static void star_collected()
     {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_stars, 1);
+        AchievementTiers.Record(AchievementCategory.Stars);
     }
 
-    public static void achievement_stars_2()
+    public static void alien_killed()
     {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_stars_2, 1);
+        AchievementTiers.Record(AchievementCategory.Aliens);
     }
 
-    public static void achievement_destroyer()
+    public static void asteroid_destroyed()
     {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_destroyer, 1);
+        AchievementTiers.Record(AchievementCategory.Asteroids);
     }
 
-    public static void achievement_destroyer_2()
+    public static void player_died()
     {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_destroy_2, 1);
-    }
-
-    public static void achievement_destroyer_3()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_destroyer_3, 1);
-    }
-
-    public static void achievement_destroyer_4()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_destroyer_4, 1);
-    }
-
-    public static void achievement_destroyer_5()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_destroyer_5, 1);
-    }
-
-    public static void achievement_death_2()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_death_2, 1);
-    }
-
-    public static void achievement_death_3()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_death_3, 1);
-    }
-
-    public static void achievement_death_4()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_death_4, 1);
-    }
-
-    public static void achievement_death_5()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_death_5, 1);
-    }
-
-    public static void achievement_aliens()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens, 1);
-    }
-
-    public static void achievement_aliens_2()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens_2, 1);
-    }
-
-    public static void achievement_aliens_3()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens_3, 1);
-    }
-
-    public static void achievement_aliens_4()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens_4, 1);
-    }
-
-    public static void achievement_aliens_5()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens_5, 1);
-    }
-
-    public static void achievement_aliens_6()
-    {
-        SocialBridge.IncrementAchievement(StringHolder.achievement_aliens_6, 1);
+        AchievementTiers.Record(AchievementCategory.Deaths);
     }
 }
