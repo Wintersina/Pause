@@ -161,7 +161,7 @@ public static class CodexCatalogue
             if (!ShipLore.TryGetValue(key, out lore))
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
-                () => shopingShips.SpriteFor(index), lore));
+                () => ShipHullArt.StockRest(index), lore));
         }
 
         list.InsertRange(RosterInsertIndex(list), RosterEntries());

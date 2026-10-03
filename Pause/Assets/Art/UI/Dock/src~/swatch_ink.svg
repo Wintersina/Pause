@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Skin swatch: INK contour plus one BONE kick on the leading edge. Drawn
+     over the tinted body; never tinted. Same frame as swatch.svg. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="14" viewBox="0 0 22 14">
+  <path d="M5.2 2.2 H12" fill="none" stroke="#F4EAD4" stroke-width="1" stroke-opacity="0.8"/>
+  <path d="M4 0.8 H21.2 L18 13.2 H0.8 Z" fill="none" stroke="#140C14" stroke-width="1.4" stroke-linejoin="miter"/>
+</svg>
