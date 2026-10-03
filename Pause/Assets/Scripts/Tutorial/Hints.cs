@@ -53,7 +53,7 @@ public class Hints : MonoBehaviour {
     TutorialSignals signals, stepStart;
     bool sampling;
     bool lastPressed;
-    int lastPauseCounter, lastDustPickups;
+    int lastPauseCounter, lastDustPickups, lastHeal, lastShield, lastRed;
     float startedAt;
     float endedAt = -1f;
     bool panelShown;
@@ -112,7 +112,7 @@ public class Hints : MonoBehaviour {
         }
 
         var current = TutorialScript.Steps[step];
-        if (current.cue == TutorialCue.SpawnRedAtom) guides.PointAt(spawnGoodStuffTut.LiveRedAtom);
+        if (AtomFor(current.cue) != TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
 
         if (speaker.LineFinished && speaker.SinceLineFinished >= readSeconds
             && TutorialScript.IsMet(current, stepStart, signals))
@@ -133,6 +133,9 @@ public class Hints : MonoBehaviour {
         {
             sampling = true;
             lastPauseCounter = score.pauseCounter;
+            lastHeal = collisionDetection.healAtomPickups;
+            lastShield = collisionDetection.shieldAtomPickups;
+            lastRed = collisionDetection.pauseAtomPickups;
             lastDustPickups = score.dustPickups;
             lastPressed = TouchInput.IsPressed;
         }
@@ -148,8 +151,11 @@ public class Hints : MonoBehaviour {
 
         int pauses = score.pauseCounter;
         if (pauses < lastPauseCounter) signals.pausesSpent += lastPauseCounter - pauses;
-        else if (pauses > lastPauseCounter) signals.redAtomsCollected++;   // only a red atom adds pauses here
         lastPauseCounter = pauses;
+
+        signals.greenAtomsCollected += Count(collisionDetection.healAtomPickups, ref lastHeal);
+        signals.blueAtomsCollected += Count(collisionDetection.shieldAtomPickups, ref lastShield);
+        signals.redAtomsCollected += Count(collisionDetection.pauseAtomPickups, ref lastRed);
 
         if (score.dustPickups != lastDustPickups)
         {
@@ -174,14 +180,17 @@ public class Hints : MonoBehaviour {
                 guides.ShowTouch(true);
                 break;
             case TutorialCue.PointAtPauses:
+                guides.ShowTouch(true);
                 guides.PointAt(pauseReadout);
                 break;
             case TutorialCue.SpawnStars:
                 spawnGoodStuffTut.StartStars();
                 guides.PointAt(dustReadout);
                 break;
+            case TutorialCue.SpawnGreenAtom:
+            case TutorialCue.SpawnBlueAtom:
             case TutorialCue.SpawnRedAtom:
-                spawnGoodStuffTut.keepRedAtomComing = true;
+                spawnGoodStuffTut.keepAtomComing = AtomFor(s.cue);
                 break;
         }
     }
@@ -189,7 +198,26 @@ public class Hints : MonoBehaviour {
     void EndStep(TutorialStep s)
     {
         guides.Clear();
-        if (s.cue == TutorialCue.SpawnRedAtom) spawnGoodStuffTut.keepRedAtomComing = false;
+        spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+    }
+
+    // Which atom a step's cue introduces (None for the other cues).
+    public static TutorialAtom AtomFor(TutorialCue cue)
+    {
+        switch (cue)
+        {
+            case TutorialCue.SpawnGreenAtom: return TutorialAtom.Green;
+            case TutorialCue.SpawnBlueAtom: return TutorialAtom.Blue;
+            case TutorialCue.SpawnRedAtom: return TutorialAtom.Red;
+            default: return TutorialAtom.None;
+        }
+    }
+
+    static int Count(int now, ref int last)
+    {
+        int d = Mathf.Max(0, now - last);
+        last = now;
+        return d;
     }
 
     // ---- The end: lift off, then the Tutorial Complete card ----
@@ -200,7 +228,7 @@ public class Hints : MonoBehaviour {
         reachedTheEndOfTut = true;
         speaker.HideAll();
         guides.Clear();
-        spawnGoodStuffTut.keepRedAtomComing = false;
+        spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
         if (skip != null) skip.SetVisible(false);
         if (script != null) script.enabled = false;
 

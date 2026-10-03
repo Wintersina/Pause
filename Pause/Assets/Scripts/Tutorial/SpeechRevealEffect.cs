@@ -3,8 +3,9 @@ using UnityEngine.UI;
 
 // Reveals a UI Text glyph by glyph without ever changing its string, so the
 // line is laid out (wrapped, best-fit) once and nothing reflows while the
-// robot talks. Glyphs past `Visible` get zero alpha; the newest batch pops in
-// (a quick scale-down from 140% and fade-up) so each syllable lands visibly.
+// robot talks. Glyphs past `Visible` get zero alpha; the newest batch lands
+// big (130%) for one held animation step and then snaps to size -- limited
+// animation, like the robot itself, rather than an eased tween.
 //
 // Relies on UI Text emitting one quad per visible character and none for
 // whitespace or rich-text tags (Unity 2019.1+). Add it *before* any Outline
@@ -16,8 +17,8 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Text))]
 public class SpeechRevealEffect : BaseMeshEffect
 {
-    public const float PopDuration = .14f;
-    const float PopScale = 1.4f;
+    public const float PopDuration = RobotSpeaker.Step;
+    const float PopScale = 1.3f;
 
     int visible = int.MaxValue;
     int popFrom;
@@ -65,9 +66,7 @@ public class SpeechRevealEffect : BaseMeshEffect
         if (!IsActive()) return;
         int quads = vh.currentVertCount / 4;
         float age = Mathf.Clamp01((Time.unscaledTime - popStartedAt) / PopDuration);
-        float popAlpha = age;
-        float inv = 1f - age;
-        float popScale = 1f + (PopScale - 1f) * inv * inv;
+        float popScale = PopScale;
 
         var v = new UIVertex();
         for (int q = 0; q < quads; q++)
@@ -97,7 +96,6 @@ public class SpeechRevealEffect : BaseMeshEffect
             {
                 vh.PopulateUIVertex(ref v, baseIndex + k);
                 v.position = centre + (v.position - centre) * popScale;
-                v.color.a = (byte)(v.color.a * popAlpha);
                 vh.SetUIVertex(v, baseIndex + k);
             }
         }

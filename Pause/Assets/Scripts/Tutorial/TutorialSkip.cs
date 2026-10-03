@@ -8,8 +8,9 @@ using UnityEngine.UI;
 // it cannot be knocked loose by scene edits and needs no wiring. Drop this
 // component on any object in the tutorial scene (or let it be added by code).
 //
-// Styled as a small neon pill from the Flight Complete family (dp_button,
-// Orbitron, a chevron glyph) instead of the old flat grey box, and parked
+// Styled as a flat cel pill in the tutorial's Akira palette (tut_button
+// tinted steel, ink outline, an orange chevron, Orbitron) instead of the old
+// flat grey box, and parked
 // just under the top-right quick actions (PauseQuickActions) -- it used to
 // sit exactly where they appear whenever the player lifts their finger. It
 // shares their canvas scaler (800x1000, match 0.5) so the offsets line up.
@@ -30,8 +31,6 @@ public class TutorialSkip : MonoBehaviour
 
     public const string ExitScene = "gameS1";
 
-    static readonly Color Muted = new Color(.62f, .72f, .92f);
-    static readonly Color Ink = new Color(0f, .03f, .12f, .9f);
 
     RectTransform buttonRect;
     RectTransform canvasRect;
@@ -61,9 +60,8 @@ public class TutorialSkip : MonoBehaviour
 
         if (group != null)
         {
-            float target = visible ? 1f : 0f;
-            if (!Mathf.Approximately(group.alpha, target))
-                group.alpha = Mathf.MoveTowards(group.alpha, target, Time.unscaledDeltaTime / .2f);
+            float target = visible ? 1f : 0f;   // snaps, like the rest of the tutorial UI
+            if (!Mathf.Approximately(group.alpha, target)) group.alpha = target;
         }
     }
 
@@ -106,10 +104,9 @@ public class TutorialSkip : MonoBehaviour
         buttonRect = rt;
 
         var img = btnGo.GetComponent<Image>();
-        img.sprite = Resources.Load<Sprite>("DeathPanel/dp_button");
+        img.sprite = Resources.Load<Sprite>("Tutorial/tut_button");
         img.type = Image.Type.Sliced;
-        img.pixelsPerUnitMultiplier = 1.6f;   // slimmer corners at pill size
-        img.color = Muted;
+        img.color = TutorialPalette.Steel;
 
         // Label + chevron as one centred group, drawn inside a holder that the
         // press spring scales (the button rect itself keeps its hit area).
@@ -123,15 +120,15 @@ public class TutorialSkip : MonoBehaviour
         var label = labelGo.GetComponent<Text>();
         label.text = "SKIP";
         label.alignment = TextAnchor.MiddleLeft;
-        label.color = Color.white;
+        label.color = TutorialPalette.Paper;
         label.fontSize = 22;
         label.fontStyle = FontStyle.Bold;
         label.font = SceneFont();
         label.horizontalOverflow = HorizontalWrapMode.Overflow;
         label.raycastTarget = false;
         var outline = labelGo.AddComponent<Outline>();
-        outline.effectColor = Ink;
-        outline.effectDistance = new Vector2(1.5f, -1.5f);
+        outline.effectColor = TutorialPalette.Ink;
+        outline.effectDistance = new Vector2(2f, -2f);
 
         const float chevron = 22f, gap = 8f;
         float textWidth = Mathf.Ceil(label.preferredWidth);
@@ -145,7 +142,7 @@ public class TutorialSkip : MonoBehaviour
         arrowGo.transform.SetParent(face, false);
         var arrow = arrowGo.GetComponent<Image>();
         arrow.sprite = Resources.Load<Sprite>("Tutorial/tut_arrow");
-        arrow.color = Color.white;
+        arrow.color = Color.white;   // colours baked in (orange, ink)
         arrow.raycastTarget = false;
         var art = arrow.rectTransform;
         art.anchorMin = art.anchorMax = art.pivot = new Vector2(.5f, .5f);
@@ -226,7 +223,7 @@ public class TutorialSkip : MonoBehaviour
         score.totalCurrency = 0;
         score.tutorialCurrency = 0;
         moveBackGround.speed = 0f;
-        spawnGoodStuffTut.keepRedAtomComing = false;
+        spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
         Time.timeScale = 1f;
 
         achievementAPICalls.achievement_tutorial_completed();

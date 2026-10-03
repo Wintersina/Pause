@@ -6,7 +6,7 @@ using System.Text;
 //
 //   id       - stable name for the step (tests and logs)
 //   line     - what the robot says. ASCII only, <= 60 characters. Wrap a word
-//              in *asterisks* to highlight it in gold.
+//              in *asterisks* to highlight it in sodium orange.
 //   advance  - the player action that completes the step (see TutorialAdvance)
 //   amount   - how much of that action (seconds, or a count)
 //   cue      - what the scene does to set the action up (see TutorialCue)
@@ -19,17 +19,18 @@ public static class TutorialScript
 {
     public static readonly TutorialStep[] Steps =
     {
-        //        id          line                                           advance when the player...           cue
-        new TutorialStep("hold",     "*Hold* anywhere to fly.",                     TutorialAdvance.FlySeconds, 1.2f,    TutorialCue.TouchPulse),
-        new TutorialStep("freeze",   "Let go. Time *freezes*!",                     TutorialAdvance.LetGo, .6f,          TutorialCue.None),
-        new TutorialStep("teleport", "Touch anywhere to *teleport* there.",         TutorialAdvance.Touch, 1f,           TutorialCue.TouchPulse),
-        new TutorialStep("pauses",   "*Pauses* are limited. At zero, no freezing.", TutorialAdvance.SpendPause, 1f,      TutorialCue.PointAtPauses),
-        new TutorialStep("dust",     "Grab stars. *Star dust* buys new ships!",     TutorialAdvance.CollectStar, 1f,     TutorialCue.SpawnStars),
-        new TutorialStep("enemies",  "Dodge aliens and asteroids, or *blast* them.", TutorialAdvance.FlySeconds, 2.5f,   TutorialCue.None),
-        new TutorialStep("atom",     "*Red atoms* refill pauses. Grab one!",        TutorialAdvance.CollectRedAtom, 1f,  TutorialCue.SpawnRedAtom),
+        //        id          line                                             advance when the player...            cue
+        new TutorialStep("hold",     "*Hold* anywhere to fly.",                       TutorialAdvance.FlySeconds, 1.2f,     TutorialCue.TouchPulse),
+        new TutorialStep("freeze",   "Let go. Time *freezes*!",                       TutorialAdvance.LetGo, .6f,           TutorialCue.None),
+        new TutorialStep("teleport", "Touch to teleport. Each costs a *pause*.",      TutorialAdvance.SpendPause, 1f,       TutorialCue.PointAtPauses),
+        new TutorialStep("dust",     "*Star dust*! Grab it, that's your cash.",       TutorialAdvance.CollectStar, 1f,      TutorialCue.SpawnStars),
+        new TutorialStep("heal",     "*Green* fixes your hull.",                      TutorialAdvance.CollectGreenAtom, 1f, TutorialCue.SpawnGreenAtom),
+        new TutorialStep("shield",   "*Blue* wraps you in a shield.",                 TutorialAdvance.CollectBlueAtom, 1f,  TutorialCue.SpawnBlueAtom),
+        new TutorialStep("refill",   "*Red* refills pauses. Zero means no freezing!", TutorialAdvance.CollectRedAtom, 1f,   TutorialCue.SpawnRedAtom),
+        new TutorialStep("enemies",  "Dodge aliens and asteroids, or *blast* them!",  TutorialAdvance.FlySeconds, 2.5f,     TutorialCue.None),
     };
 
-    public const int MaxSteps = 7;
+    public const int MaxSteps = 8;
     public const int MaxLineLength = 60;
 
     // The single rule every advance condition goes through. `start` is the
@@ -49,6 +50,10 @@ public static class TutorialScript
                 return now.pausesSpent - start.pausesSpent >= step.amount;
             case TutorialAdvance.CollectStar:
                 return now.starsCollected - start.starsCollected >= step.amount;
+            case TutorialAdvance.CollectGreenAtom:
+                return now.greenAtomsCollected - start.greenAtomsCollected >= step.amount;
+            case TutorialAdvance.CollectBlueAtom:
+                return now.blueAtomsCollected - start.blueAtomsCollected >= step.amount;
             case TutorialAdvance.CollectRedAtom:
                 return now.redAtomsCollected - start.redAtomsCollected >= step.amount;
         }
@@ -59,9 +64,11 @@ public static class TutorialScript
     // Turning a line into something the robot can speak
     // ---------------------------------------------------------------------
 
-    public const string HighlightColor = "#FFC942";
+    // Sodium orange (TutorialPalette.Orange); a const so the rich text is
+    // built without allocation per line. TutorialRobotTest checks it matches.
+    public const string HighlightColor = "#FF8A1E";
 
-    // Rich text for the bubble: *word* becomes a gold highlight.
+    // Rich text for the bubble: *word* becomes a sodium-orange highlight.
     public static string ToRichText(string line)
     {
         var sb = new StringBuilder(line.Length + 32);
@@ -226,6 +233,8 @@ public enum TutorialAdvance
     Touch,           // put a finger down `amount` times
     SpendPause,      // the pause counter drops by `amount`
     CollectStar,     // pick up `amount` star-dust stars
+    CollectGreenAtom, // pick up `amount` green (heal) atoms
+    CollectBlueAtom, // pick up `amount` blue (shield) atoms
     CollectRedAtom,  // pick up `amount` red (pause) atoms
 }
 
@@ -233,9 +242,11 @@ public enum TutorialCue
 {
     None,
     TouchPulse,      // a pulsing "touch here" ring while the world is frozen
-    PointAtPauses,   // arrow at the PAUSES readout
+    PointAtPauses,   // arrow at the PAUSES readout, plus the touch pulse
     SpawnStars,      // start the star clusters and point at the dust readout
-    SpawnRedAtom,    // keep a red atom coming until one is caught, arrow on it
+    SpawnGreenAtom,  // keep a green (heal) atom coming until one is caught, arrow on it
+    SpawnBlueAtom,   // same for the blue (shield) atom
+    SpawnRedAtom,    // same for the red (pause) atom
 }
 
 public struct TutorialStep
@@ -266,6 +277,8 @@ public struct TutorialSignals
     public int presses;           // finger-down edges
     public int pausesSpent;
     public int starsCollected;
+    public int greenAtomsCollected;
+    public int blueAtomsCollected;
     public int redAtomsCollected;
 }
 

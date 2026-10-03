@@ -2,10 +2,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// The end-of-tutorial card, from the same family as the Flight Complete panel
-// (DeathPanelView): same dark-glass frame, gold header with sparkles, accent
-// cards and equal-width neon buttons, the same pop-with-overshoot intro on
-// unscaled time.
+// The end-of-tutorial card. Same layout grammar as the Flight Complete panel
+// (DeathPanelView): header, divider, accent stat cards and two equal-width
+// buttons, built on its own root and fitted to the safe area below the
+// quick actions. Drawn in the tutorial's flat 80s-anime cel style (Akira
+// palette, ink outlines, chamfered panels, TutorialPalette) with limited
+// animation: held poses that snap on whole steps.
 //
 // It replaces the scene's grey "End of tutorial" dialog (Model Panel, which
 // still pointed players at an OPTIONS menu that no longer exists) and the
@@ -19,14 +21,14 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
 
     public const float Width = 680f, Height = 600f;
-    public const float GlowMargin = 20f;
+    public const float FrameMargin = 6f;      // tut_bubble's drop shadow outside the body
     public const float CardWidth = 600f;
     public const float ButtonWidth = 288f, ButtonHeight = 100f;
-    const float LabelLeft = -CardWidth * .5f + 40f;
+    const float LabelLeft = -CardWidth * .5f + 44f;
     const float ValueRight = CardWidth * .5f - 28f;
 
     public static readonly Rect HeaderRect = Centered(0f, 236f, 600f, 56f);
-    public static readonly Rect DividerRect = Centered(0f, 192f, 440f, 16f);
+    public static readonly Rect DividerRect = Centered(0f, 196f, 440f, 6f);
     public static readonly Rect[] CardRects =
     {
         Centered(0f, 110f, CardWidth, 112f),   // practice star dust
@@ -41,27 +43,21 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     public const string MenuButtonName = "MainMenuButton";
     public const string LegacyDialogName = "Model Panel";
 
-    // ---- Timeline (unscaled seconds since shown) ----
+    // ---- Timeline (unscaled seconds since shown), in whole steps ----
 
-    public const float IntroDuration = 1f;
-    const float PanelIn = .38f;
-    const float CardStart = .18f, CardStagger = .1f, CardDuration = .32f;
-    const float DustCountFrom = .3f, DustCountTo = .75f;
-    const float ButtonsStart = .55f, ButtonStagger = .07f, ButtonDuration = .3f;
+    const float Step = RobotSpeaker.Step;
+    public const float IntroDuration = 14f * Step;
+    const int CardStep = 3, CardStagger = 1, FooterStep = 6, ButtonStep = 7, ButtonStagger = 1;
+    const int DustCountFrom = 4, DustCountSteps = 6;
 
-    static readonly Color Cyan = new Color(.32f, .9f, 1f);
-    static readonly Color Coral = new Color(1f, .45f, .35f);
-    static readonly Color Gold = new Color(1f, .79f, .26f);
-    static readonly Color Green = new Color(.62f, 1f, .70f);   // HudStyler's pause colour
-    static readonly Color Ink = new Color(0f, .03f, .12f, .9f);
-    static readonly Color Muted = new Color(.8f, .87f, 1f, .6f);
+    static readonly Color Accent = TutorialPalette.Orange;
 
     float practiceDust;
     int realRunPauses;
     Font font;
     RectTransform panel;
-    CanvasGroup panelGroup;
-    Image scrim, divider;
+    Image scrim;
+    RectTransform divider;
     readonly RectTransform[] sparkles = new RectTransform[2];
     readonly RectTransform[] cards = new RectTransform[2];
     readonly CanvasGroup[] cardGroups = new CanvasGroup[2];
@@ -69,8 +65,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     CanvasGroup footer;
     readonly RectTransform[] buttonSlots = new RectTransform[2];
     readonly CanvasGroup[] buttonGroups = new CanvasGroup[2];
-    readonly Image[] buttonGlows = new Image[2];
-    readonly DeathPanelPress[] presses = new DeathPanelPress[2];
+    CanvasGroup panelGroup;
 
     float startedAt = -1f;
     bool finalApplied;
@@ -94,8 +89,8 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
         var playGo = SceneUtil.FindAny(PlayButtonName);
         var menuGo = SceneUtil.FindAny(MenuButtonName);
-        // The HUD's Orbitron, like the Flight Complete panel (the dialog's
-        // own button labels use the legacy default font).
+        // The HUD's Orbitron (the dialog's own button labels use the legacy
+        // default font).
         var hud = Object.FindFirstObjectByType<score>();
         Font font = hud != null && hud.currencyText != null ? hud.currencyText.font : null;
         return Build(canvasGo.transform,
@@ -134,7 +129,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void BuildScrim(RectTransform root)
     {
-        scrim = NewImage("Scrim", root, null, new Color(0f, .01f, .05f, 0f));
+        scrim = NewImage("Scrim", root, null, new Color(TutorialPalette.Night.r, TutorialPalette.Night.g, TutorialPalette.Night.b, 0f));
         Stretch(scrim.rectTransform);
         scrim.raycastTarget = true;   // blocks the frozen game; a tap skips the intro
     }
@@ -147,41 +142,43 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         Place(panel, PanelRect);
         panelGroup = go.GetComponent<CanvasGroup>();
 
-        var frame = NewImage("Frame", panel, LoadPanel("dp_panel"), Color.white);
+        var frame = NewImage("Frame", panel, Load("tut_bubble"), Color.white);
         frame.type = Image.Type.Sliced;
         frame.raycastTarget = true;
         var r = PanelRect;
-        Place(frame.rectTransform, new Rect(r.xMin - GlowMargin, r.yMin - GlowMargin,
-                                            r.width + 2f * GlowMargin, r.height + 2f * GlowMargin));
+        Place(frame.rectTransform, new Rect(r.xMin - FrameMargin, r.yMin - FrameMargin,
+                                            r.width + 2f * FrameMargin, r.height + 2f * FrameMargin));
     }
 
     void BuildHeader()
     {
-        var title = NewText("Title", panel, "TUTORIAL COMPLETE", 40, Gold, TextAnchor.MiddleCenter);
+        var title = NewText("Title", panel, "TUTORIAL COMPLETE", 40, Accent, TextAnchor.MiddleCenter);
         Place(title.rectTransform, HeaderRect);
-        AddOutline(title.gameObject, Ink, 2f);
+        AddOutline(title.gameObject, TutorialPalette.Ink, 3f);
 
         float half = Mathf.Min(title.preferredWidth, HeaderRect.width - 80f) * .5f + 28f;
         for (int i = 0; i < 2; i++)
         {
-            var sparkle = NewImage(i == 0 ? "SparkleLeft" : "SparkleRight", panel, LoadPanel("dp_sparkle"), Gold);
-            Place(sparkle.rectTransform, Centered(i == 0 ? -half : half, HeaderRect.center.y, 30f, 30f));
-            sparkles[i] = sparkle.rectTransform;
+            var spark = NewImage(i == 0 ? "SparkLeft" : "SparkRight", panel, Load("tut_glow"), TutorialPalette.Red);
+            Place(spark.rectTransform, Centered(i == 0 ? -half : half, HeaderRect.center.y, 30f, 30f));
+            sparkles[i] = spark.rectTransform;
         }
 
-        divider = NewImage("Divider", panel, LoadPanel("dp_divider"), Color.white);
-        divider.preserveAspect = true;
-        Place(divider.rectTransform, DividerRect);
+        // A flat orange rule with an ink edge.
+        var rule = NewImage("Divider", panel, null, Accent);
+        Place(rule.rectTransform, DividerRect);
+        AddOutline(rule.gameObject, TutorialPalette.Ink, 2f);
+        divider = rule.rectTransform;
     }
 
     void BuildCards()
     {
         Text pausesValue;
-        cards[0] = BuildCard(0, "STAR DUST", "PRACTICE, NOT SAVED", Gold, out dustValue);
-        cards[1] = BuildCard(1, "PAUSES", "PER REAL RUN", Green, out pausesValue);
+        cards[0] = BuildCard(0, "STAR DUST", "PRACTICE, NOT SAVED", TutorialPalette.Orange, out dustValue);
+        cards[1] = BuildCard(1, "PAUSES", "PER REAL RUN", TutorialPalette.Teal, out pausesValue);
         pausesValue.text = realRunPauses.ToString();
 
-        var footerText = NewText("Footer", panel, "Replay this anytime from the leaderboard.", 20, Muted, TextAnchor.MiddleCenter);
+        var footerText = NewText("Footer", panel, "Replay this anytime from the leaderboard.", 20, TutorialPalette.Muted, TextAnchor.MiddleCenter);
         Place(footerText.rectTransform, FooterRect);
         footer = footerText.gameObject.AddComponent<CanvasGroup>();
     }
@@ -194,26 +191,27 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         Place(card, CardRects[index]);
         cardGroups[index] = go.GetComponent<CanvasGroup>();
 
-        var bg = NewImage("Background", card, LoadPanel("dp_card"), accent);
+        var bg = NewImage("Background", card, Load("tut_card"), accent);
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
 
         var title = NewText("Label", card, label, 26, accent, TextAnchor.MiddleLeft);
         Place(title.rectTransform, Centered(LabelLeft + 150f, 18f, 300f, 36f));
-        AddOutline(title.gameObject, Ink, 1.5f);
-        var subText = NewText("Sub", card, sub, 18, Muted, TextAnchor.MiddleLeft);
+        AddOutline(title.gameObject, TutorialPalette.Ink, 2f);
+        var subText = NewText("Sub", card, sub, 18, TutorialPalette.Muted, TextAnchor.MiddleLeft);
         Place(subText.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
 
-        value = NewText("Value", card, "", 56, Color.Lerp(Color.white, accent, .35f), TextAnchor.MiddleRight);
+        value = NewText("Value", card, "", 56, TutorialPalette.Paper, TextAnchor.MiddleRight);
         Place(value.rectTransform, Centered(ValueRight - 130f, 0f, 260f, 80f));
-        AddOutline(value.gameObject, Ink, 2f);
+        AddOutline(value.gameObject, TutorialPalette.Ink, 3f);
         return card;
     }
 
     void BuildButtons(Button play, Button menu)
     {
-        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", Cyan, PlayRect);
-        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", Coral, MenuRect);
+        // PLAY is the hero action: Kaneda red. MENU is secondary steel.
+        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", TutorialPalette.Red, PlayRect);
+        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", TutorialPalette.Steel, MenuRect);
     }
 
     RectTransform BuildButton(int index, Button button, Sprite glyph, string label, Color accent, Rect rect)
@@ -223,11 +221,6 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         var slot = (RectTransform)slotGo.transform;
         Place(slot, rect);
         buttonGroups[index] = slotGo.GetComponent<CanvasGroup>();
-
-        var glow = NewImage("Glow", slot, LoadPanel("dp_glow"), new Color(accent.r, accent.g, accent.b, 0f));
-        glow.type = Image.Type.Sliced;
-        Place(glow.rectTransform, Centered(0f, 0f, rect.width + 40f, rect.height + 40f));
-        buttonGlows[index] = glow;
 
         if (button == null) return slot;
 
@@ -247,7 +240,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         var frame = button.GetComponent<Image>();
         if (frame != null)
         {
-            frame.sprite = LoadPanel("dp_button");
+            frame.sprite = Load("tut_button");
             frame.type = Image.Type.Sliced;
             frame.preserveAspect = false;
             frame.color = accent;
@@ -260,12 +253,12 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         }
 
         var text = button.GetComponentInChildren<Text>(true);
-        if (text == null) text = NewText("Label", rt, label, 28, Color.white, TextAnchor.MiddleLeft);
+        if (text == null) text = NewText("Label", rt, label, 28, TutorialPalette.Paper, TextAnchor.MiddleLeft);
         text.text = label;
         text.font = font;
         text.fontSize = 28;
         text.fontStyle = FontStyle.Bold;
-        text.color = Color.white;
+        text.color = TutorialPalette.Paper;
         text.alignment = TextAnchor.MiddleLeft;
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -273,7 +266,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         text.raycastTarget = false;
         text.gameObject.SetActive(true);
         foreach (var le in text.GetComponents<LayoutElement>()) le.ignoreLayout = true;
-        AddOutline(text.gameObject, Ink, 1.5f);
+        AddOutline(text.gameObject, TutorialPalette.Ink, 2f);
 
         const float iconSize = 40f, gap = 14f;
         float textWidth = Mathf.Ceil(text.preferredWidth);
@@ -283,19 +276,19 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         {
             var icon = NewImage("Icon", rt, glyph, Color.white);
             icon.preserveAspect = true;
-            Place(icon.rectTransform, Centered(x + iconSize * .5f, 0f, iconSize, iconSize));
+            Place(icon.rectTransform, Centered(x + iconSize * .5f, 4f, iconSize, iconSize));
             x += iconSize + gap;
         }
-        Place(text.rectTransform, new Rect(x, -24f, textWidth + 4f, 48f));
+        // Nudged up a little: the button art's bottom band is its shade.
+        Place(text.rectTransform, new Rect(x, -20f, textWidth + 4f, 48f));
 
         var press = button.GetComponent<DeathPanelPress>() ?? button.gameObject.AddComponent<DeathPanelPress>();
         press.target = rt;
-        presses[index] = press;
         return slot;
     }
 
     // ---------------------------------------------------------------------
-    // Animation (unscaled time)
+    // Animation (unscaled time, limited: held poses on whole steps)
     // ---------------------------------------------------------------------
 
     void Update()
@@ -321,36 +314,38 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         if (t < IntroDuration)
         {
             finalApplied = false;
-            AnimateIntro(t);
+            AnimateIntro(Mathf.FloorToInt(t / Step));
         }
         else if (!finalApplied)
         {
-            AnimateIntro(IntroDuration);
+            AnimateIntro(int.MaxValue / 2);
             finalApplied = true;
         }
-        AnimateIdle(t);
+        AnimateIdle(Mathf.FloorToInt(t / RobotSpeaker.SlowStep));
     }
 
-    void AnimateIntro(float t)
+    void AnimateIntro(int k)
     {
-        SetAlpha(scrim, .5f * EaseOutCubic(t / .3f));
-        panelGroup.alpha = EaseOutCubic(t / .2f);
-        panel.localScale = Vector3.one * (fitScale * Mathf.LerpUnclamped(.86f, 1f, EaseOutBack(t / PanelIn)));
+        SetAlpha(scrim, k <= 0 ? .3f : .55f);
+        panelGroup.alpha = 1f;
+        float pop = k <= 0 ? .8f : k == 1 ? 1.06f : 1f;
+        panel.localScale = Vector3.one * (fitScale * pop);
 
-        var d = divider.rectTransform.localScale;
-        d.x = EaseOutCubic((t - .14f) / .32f);
-        divider.rectTransform.localScale = d;
+        var d = divider.localScale;
+        d.x = k < 1 ? 0f : k == 1 ? .4f : k == 2 ? .8f : 1f;
+        divider.localScale = d;
 
         for (int i = 0; i < cards.Length; i++)
         {
-            float c = EaseOutCubic((t - (CardStart + i * CardStagger)) / CardDuration);
-            cardGroups[i].alpha = c;
-            cards[i].anchoredPosition = CardRects[i].center + new Vector2((1f - c) * 48f, 0f);
+            int c = k - (CardStep + i * CardStagger);
+            cardGroups[i].alpha = c < 0 ? 0f : 1f;
+            float slide = c < 0 ? 48f : c == 0 ? 20f : c == 1 ? -4f : 0f;
+            cards[i].anchoredPosition = CardRects[i].center + new Vector2(slide, 0f);
         }
-        footer.alpha = EaseOutCubic((t - (CardStart + 2f * CardStagger)) / CardDuration);
+        footer.alpha = k < FooterStep ? 0f : 1f;
 
-        float won = practiceDust * EaseOutCubic(Mathf.Clamp01((t - DustCountFrom) / (DustCountTo - DustCountFrom)));
-        int cents = Mathf.RoundToInt(won * 100f);
+        float p = Mathf.Clamp01((k - DustCountFrom) / (float)DustCountSteps);
+        int cents = Mathf.RoundToInt(practiceDust * p * 100f);
         if (cents != shownDustCents)
         {
             shownDustCents = cents;
@@ -359,27 +354,20 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
         for (int i = 0; i < 2; i++)
         {
-            float b = EaseOutCubic((t - (ButtonsStart + i * ButtonStagger)) / ButtonDuration);
-            buttonGroups[i].alpha = b;
-            buttonGroups[i].interactable = b > .5f;
-            buttonSlots[i].anchoredPosition = (i == 0 ? PlayRect : MenuRect).center + new Vector2(0f, (1f - b) * -24f);
+            int b = k - (ButtonStep + i * ButtonStagger);
+            buttonGroups[i].alpha = b < 0 ? 0f : 1f;
+            buttonGroups[i].interactable = b >= 0;
+            float drop = b < 0 ? -24f : b == 0 ? 6f : 0f;
+            buttonSlots[i].anchoredPosition = (i == 0 ? PlayRect : MenuRect).center + new Vector2(0f, drop);
         }
     }
 
-    void AnimateIdle(float t)
+    void AnimateIdle(int slowStep)
     {
-        float settle = Mathf.Clamp01((t - ButtonsStart) / .5f);
-        for (int i = 0; i < 2; i++)
-        {
-            // The primary action (PLAY) breathes a little stronger.
-            float breathe = .5f + .5f * Mathf.Sin(t * 2.2f + i * 1.6f);
-            float strength = i == 0 ? 1.3f : 1f;
-            float pressed = presses[i] != null ? presses[i].Pressed01 : 0f;
-            SetAlpha(buttonGlows[i], settle * strength * (.16f + .14f * breathe) + .4f * pressed);
-        }
-        float twinkle = 1f + .1f * Mathf.Sin(t * 3.1f);
-        sparkles[0].localScale = Vector3.one * twinkle;
-        sparkles[1].localScale = Vector3.one * (2f - twinkle);
+        // Header sparks alternate between two held sizes.
+        bool big = (slowStep & 2) == 0;
+        sparkles[0].localScale = Vector3.one * (big ? 1.15f : .85f);
+        sparkles[1].localScale = Vector3.one * (big ? .85f : 1.15f);
     }
 
     // ---------------------------------------------------------------------
@@ -431,7 +419,8 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         Rect area = safe;
         for (int pass = 0; pass < 2; pass++)
         {
-            float w = Width + 2f * GlowMargin, h = Height + 2f * GlowMargin;
+            // 1.06: the pop-in overshoot must stay on screen too.
+            float w = (Width + 2f * FrameMargin) * 1.06f, h = (Height + 2f * FrameMargin) * 1.06f;
             scale = Mathf.Max(.1f, Mathf.Min(1f, (area.width - 2f * margin) / w, (area.height - 2f * margin) / h));
             centre = area.center;
             var visual = new Rect(centre.x - w * scale * .5f, centre.y - h * scale * .5f, w * scale, h * scale);
@@ -450,7 +439,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     // Helpers
     // ---------------------------------------------------------------------
 
-    static Sprite LoadPanel(string name) { return Resources.Load<Sprite>("DeathPanel/" + name); }
+    static Sprite Load(string name) { return Resources.Load<Sprite>("Tutorial/" + name); }
 
     static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
     {
@@ -509,14 +498,5 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         if (Mathf.Approximately(c.a, a)) return;
         c.a = a;
         g.color = c;
-    }
-
-    static float EaseOutCubic(float x) { x = Mathf.Clamp01(x); float i = 1f - x; return 1f - i * i * i; }
-    static float EaseOutBack(float x)
-    {
-        x = Mathf.Clamp01(x);
-        const float c1 = 1.70158f, c3 = c1 + 1f;
-        float m = x - 1f;
-        return 1f + c3 * m * m * m + c1 * m * m;
     }
 }

@@ -6,15 +6,17 @@ using UnityEngine.UI;
 //
 // The robot used to be a still sprite with a plain Text box beside it that
 // typed one character per tick. It now talks: lines come out a syllable at a
-// time, and every syllable drives the robot -- an equalizer mouth on its face
-// screen, a pulsing antenna light, a squash-and-bob on stressed beats, glow
-// rings radiating off the loud ones and a short pitch-varied chirp (generated
-// here with AudioClip.Create, no audio assets). When it is quiet it hovers and
-// blinks.
+// time, and every syllable drives the robot -- a mouth frame picked from the
+// syllable's vowel, a flash of the red antenna lamp, a jolt on stressed beats
+// with a hard octagon pulse stepping off it, and a short pitch-varied chirp
+// (generated here with AudioClip.Create, no audio assets). When it is quiet
+// it hovers and blinks.
 //
-// Styled with the Flight Complete family (DeathPanelView): dark space glass,
-// cyan neon edges, gold highlights, the scene's Orbitron font. Art is in
-// Art/Resources/Tutorial, rasterized from Art/UI/Tutorial/src~.
+// Art direction: flat 2D 80s anime in the Akira palette (TutorialPalette).
+// Every moving part is a separate SVG-sourced sprite frame (Art/UI/Tutorial/
+// src~, rendered into Art/Resources/Tutorial) and the motion is limited
+// animation: poses are held for whole steps of 1/12 s ("on 2s") or 1/8 s
+// ("on 3s") and snap between them, cartoon style, rather than easing.
 //
 // Everything runs on unscaled time -- the tutorial world sits at timeScale 0
 // whenever the player lifts their finger, and the robot must keep talking --
@@ -28,43 +30,50 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = .5f;
 
-    public const float RobotSize = 128f;
+    public const float RobotArt = 128f;        // tut_robot.svg's canvas, in its own units
+    public const float RobotSize = 150f;       // what it occupies on screen
+    const float ArtScale = RobotSize / RobotArt;
     public const float BubbleHeight = 116f;
     public const float MaxBubbleWidth = 480f;
     public const float MinBubbleWidth = 300f;
     public const float RobotBubbleGap = 14f;   // the tail spans it
+    public const float TailReach = 19f;        // tail tip, left of the bubble body
     public const float Margin = 22f;           // from the safe area, > hover + pop travel
-    public const float BubbleGlow = 12f;       // tut_bubble's bloom outside the body
+    public const float BubbleMargin = 6f;      // tut_bubble's drop shadow outside the body
     public const float TopGap = 10f;           // below whatever is blocking the top
     public const float TextPadX = 22f, TextPadY = 12f;
     public const int FontMax = 28, FontMin = 18;
-    // How far the idle hover, squash and pop overshoot can push art past its
+    // How far the hover, jolt and pop overshoot can push art past its
     // laid-out rect. Margin must exceed it so nothing leaves the safe area.
-    public const float MaxAnimatedOverhang = 8f;
+    public const float MaxAnimatedOverhang = 12f;
 
     // ---- Timing (seconds) ----
 
+    public const float Step = 1f / 12f;        // "on 2s" at 24 fps
+    public const float SlowStep = 1f / 8f;     // "on 3s"
     public const float SyllableSeconds = .105f;
     public const float StressExtra = .035f;
     public const float FirstSyllableDelay = .22f;
-    const float BubbleIn = .32f, BubbleOut = .2f, RobotIn = .45f, LineSwap = .2f;
-
-    static readonly Color Cyan = new Color(.32f, .9f, 1f);
-    static readonly Color Gold = new Color(1f, .79f, .26f);
-    static readonly Color Ink = new Color(0f, .03f, .12f, .9f);
-    static readonly Color TextColor = new Color(.93f, .97f, 1f);
 
     const string SpriteRoot = "Tutorial/";
-    const int Bars = 5, RingCount = 3;
+    const int RingCount = 3;
+
+    // Mouth frames, by index.
+    const int MouthRest = 0, MouthE = 1, MouthA = 2, MouthO = 3, MouthBig = 4;
+    static readonly string[] MouthNames = { "rest", "e", "a", "o", "big" };
+    // Eye frames, by index.
+    const int EyeOpen = 0, EyeHalf = 1, EyeShut = 2, EyeHappy = 3;
+    static readonly string[] EyeNames = { "open", "half", "shut", "happy" };
 
     // ---- Built state ----
 
     Canvas canvas;
     RectTransform root, robotAnchor, robotBody, bubbleAnchor;
     CanvasGroup bubbleGroup;
-    Image antenna, jet;
-    RectTransform eyeL, eyeR, antennaRt;
-    readonly RectTransform[] bars = new RectTransform[Bars];
+    Image eyeL, eyeR, mouth, jet, lampFlash;
+    readonly Sprite[] mouthFrames = new Sprite[5];
+    readonly Sprite[] eyeFrames = new Sprite[4];
+    readonly Sprite[] jetFrames = new Sprite[2];
     readonly Image[] rings = new Image[RingCount];
     readonly float[] ringBornAt = new float[RingCount];
     Text text;
@@ -78,9 +87,11 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     int spoken;
     float nextSyllableAt;
     float lineDoneAt = -1f;
-    float envelope;          // 0..~1.3, kicked by each syllable, decays fast
-    char currentVowel = 'a';
-    float squash, squashVel;
+    int mouthFrame = MouthRest;
+    float mouthHeldUntil;
+    float beatAt = -10f;          // last syllable
+    bool beatStressed;
+    float happyUntil = -10f;
     int nextRing;
 
     // ---- Show/hide state ----
@@ -92,6 +103,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     float lastScaleFactor;
     Rect lastSafe;
     float topBlocked;
+    float fitScale = 1f;
 
     public float voiceVolume = .45f;
 
@@ -103,6 +115,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     // Unscaled seconds since the current line finished (0 while talking).
     public float SinceLineFinished { get { return LineFinished ? Time.unscaledTime - lineDoneAt : 0f; } }
     public Text Text { get { return text; } }
+    public int MouthFrame { get { return mouthFrame; } }
 
     // ---------------------------------------------------------------------
     // Building
@@ -129,43 +142,48 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     void Build(Font font)
     {
         root = (RectTransform)transform;
+        for (int i = 0; i < mouthFrames.Length; i++) mouthFrames[i] = Load("tut_mouth_" + MouthNames[i]);
+        for (int i = 0; i < eyeFrames.Length; i++) eyeFrames[i] = Load("tut_eye_" + EyeNames[i]);
+        jetFrames[0] = Load("tut_jet_a");
+        jetFrames[1] = Load("tut_jet_b");
 
-        // Robot: rings and hover jet behind, then the body with its moving face.
+        // Robot: pulses and the hover jet behind, then the body and its face.
         robotAnchor = NewRect("Robot", root);
         robotAnchor.sizeDelta = new Vector2(RobotSize, RobotSize);
         for (int i = 0; i < RingCount; i++)
         {
-            rings[i] = NewImage("VoiceRing", robotAnchor, Load("tut_ring"), new Color(Cyan.r, Cyan.g, Cyan.b, 0f));
+            rings[i] = NewImage("VoicePulse", robotAnchor, Load("tut_ring"), TutorialPalette.Teal);
             Place(rings[i].rectTransform, 0f, 0f, RobotSize, RobotSize);
+            rings[i].enabled = false;
             ringBornAt[i] = -10f;
         }
-        jet = NewImage("HoverJet", robotAnchor, Load("tut_glow"), new Color(Cyan.r, Cyan.g, Cyan.b, .3f));
-        Place(jet.rectTransform, 0f, -RobotSize * .5f + 4f, 64f, 26f);
 
+        // The body is laid out in the art's own 128 units and scaled up.
         robotBody = NewRect("Body", robotAnchor);
-        robotBody.sizeDelta = new Vector2(RobotSize, RobotSize);
+        robotBody.sizeDelta = new Vector2(RobotArt, RobotArt);
         robotBody.pivot = new Vector2(.5f, .2f);              // squash from near the chin
         robotBody.anchoredPosition = new Vector2(0f, -RobotSize * .3f);
+        robotBody.localScale = Vector3.one * ArtScale;
+
+        jet = NewImage("HoverJet", robotBody, jetFrames[0], Color.white);
+        PlaceSvg(jet.rectTransform, 64f, 108f + 13f - 2f, 30f, 26f);
         var shell = NewImage("Shell", robotBody, Load("tut_robot"), Color.white);
         shell.raycastTarget = true;                           // tap the robot to skip ahead
         Stretch(shell.rectTransform);
 
-        // Face-screen coordinates from tut_robot.svg (y down from the top).
-        antenna = NewImage("Antenna", robotBody, Load("tut_glow"), Gold);
-        antennaRt = antenna.rectTransform;
-        PlaceSvg(antennaRt, 64f, 9f, 22f, 22f);
-        eyeL = NewImage("EyeL", robotBody, Load("tut_eye"), Cyan).rectTransform;
-        eyeR = NewImage("EyeR", robotBody, Load("tut_eye"), Cyan).rectTransform;
-        PlaceSvg(eyeL, 50f, 58f, 20f, 24f);
-        PlaceSvg(eyeR, 78f, 58f, 20f, 24f);
-        var barSprite = Load("tut_bar");
-        for (int i = 0; i < Bars; i++)
-        {
-            var bar = NewImage("MouthBar", robotBody, barSprite, Cyan);
-            bar.type = Image.Type.Sliced;
-            PlaceSvg(bar.rectTransform, 64f + (i - 2) * 9f, 80f, 6f, 4f);
-            bars[i] = bar.rectTransform;
-        }
+        // Face parts at tut_robot.svg coordinates (y down from the top).
+        lampFlash = NewImage("LampFlash", robotBody, Load("tut_glow"), TutorialPalette.Red);
+        PlaceSvg(lampFlash.rectTransform, 77f, 9f, 26f, 26f);
+        lampFlash.enabled = false;
+        var lamp = NewImage("Lamp", robotBody, Load("tut_lamp"), Color.white);
+        PlaceSvg(lamp.rectTransform, 77f, 9f, 12f, 12f);
+        eyeL = NewImage("EyeL", robotBody, eyeFrames[EyeOpen], Color.white);
+        eyeR = NewImage("EyeR", robotBody, eyeFrames[EyeOpen], Color.white);
+        PlaceSvg(eyeL.rectTransform, 47f, 57f, 26f, 20f);
+        PlaceSvg(eyeR.rectTransform, 81f, 57f, 26f, 20f);
+        eyeR.rectTransform.localScale = new Vector3(-1f, 1f, 1f);   // same frames, mirrored
+        mouth = NewImage("Mouth", robotBody, mouthFrames[MouthRest], Color.white);
+        PlaceSvg(mouth.rectTransform, 64f, 79f, 36f, 20f);
 
         // Bubble: pivot on its left edge so it grows out of the tail.
         bubbleAnchor = NewRect("Bubble", root);
@@ -179,8 +197,8 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         frame.raycastTarget = true;                           // tap the bubble to finish the line
         frame.rectTransform.anchorMin = Vector2.zero;
         frame.rectTransform.anchorMax = Vector2.one;
-        frame.rectTransform.offsetMin = new Vector2(-BubbleGlow, -BubbleGlow);
-        frame.rectTransform.offsetMax = new Vector2(BubbleGlow, BubbleGlow);
+        frame.rectTransform.offsetMin = new Vector2(-BubbleMargin, -BubbleMargin);
+        frame.rectTransform.offsetMax = new Vector2(BubbleMargin, BubbleMargin);
 
         var tail = NewImage("Tail", bubbleAnchor, Load("tut_tail"), Color.white);
         var tailRt = tail.rectTransform;
@@ -205,7 +223,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         text.verticalOverflow = VerticalWrapMode.Truncate;
         text.lineSpacing = 1.05f;
         text.supportRichText = true;
-        text.color = TextColor;
+        text.color = TutorialPalette.Paper;
         text.raycastTarget = false;
         text.rectTransform.anchorMin = Vector2.zero;
         text.rectTransform.anchorMax = Vector2.one;
@@ -213,8 +231,8 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         text.rectTransform.offsetMax = new Vector2(-TextPadX, -TextPadY);
         reveal = text.gameObject.AddComponent<SpeechRevealEffect>();
         var outline = text.gameObject.AddComponent<Outline>();   // after the reveal, so it copies its alpha
-        outline.effectColor = Ink;
-        outline.effectDistance = new Vector2(1.5f, -1.5f);
+        outline.effectColor = TutorialPalette.Ink;
+        outline.effectDistance = new Vector2(2f, -2f);
 
         voice = gameObject.AddComponent<AudioSource>();
         voice.playOnAwake = false;
@@ -254,7 +272,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
             bubbleShown = true;
             bubbleShownAt = now;
             bubbleGroup.blocksRaycasts = true;
-            nextSyllableAt = now + FirstSyllableDelay + .08f;
+            nextSyllableAt = now + FirstSyllableDelay + Step;
         }
         else
         {
@@ -271,7 +289,8 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         spoken = line.SyllableCount;
         reveal.Reveal(line.totalGlyphs, now);
         lineDoneAt = now;
-        Kick(true, now);
+        Beat(true, MouthBig, now);
+        FinishLine(now);
     }
 
     public void HideBubble()
@@ -297,34 +316,31 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     }
 
     // ---------------------------------------------------------------------
-    // Animation
+    // Animation: limited, held poses that snap on whole steps
     // ---------------------------------------------------------------------
 
     void Update()
     {
         float now = Time.unscaledTime;
-        float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
         Fit(false);
 
         // Speak.
         if (line != null && bubbleShown && spoken < line.SyllableCount && now >= nextSyllableAt)
         {
             bool stressed = line.stressed[spoken];
-            currentVowel = line.vowel[spoken];
+            char vowel = line.vowel[spoken];
             reveal.Reveal(line.glyphsVisible[spoken], now);
-            Chirp(spoken, stressed);
-            Kick(stressed, now);
+            Chirp(spoken, vowel, stressed);
+            Beat(stressed, stressed ? MouthBig : VowelMouth(vowel), now);
             nextSyllableAt = now + SyllableSeconds + (stressed ? StressExtra : 0f) + line.pauseAfter[spoken];
             spoken++;
-            if (spoken >= line.SyllableCount) lineDoneAt = now;
+            if (spoken >= line.SyllableCount)
+            {
+                lineDoneAt = now;
+                FinishLine(now);
+            }
         }
         reveal.Tick(now);
-
-        envelope *= Mathf.Exp(-dt * 13f);
-        // Squash spring.
-        float acc = -320f * squash - 16f * squashVel;
-        squashVel += acc * dt;
-        squash += squashVel * dt;
 
         AnimateRobot(now);
         AnimateFace(now);
@@ -332,10 +348,12 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         AnimateBubble(now);
     }
 
-    void Kick(bool stressed, float now)
+    void Beat(bool stressed, int mouthShape, float now)
     {
-        envelope = stressed ? 1.3f : 1f;
-        squashVel += stressed ? 7f : 2.6f;
+        beatAt = now;
+        beatStressed = stressed;
+        mouthFrame = mouthShape;
+        mouthHeldUntil = now + Step * (stressed ? 3f : 2f);
         if (stressed)
         {
             ringBornAt[nextRing] = now;
@@ -343,77 +361,89 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         }
     }
 
+    void FinishLine(float now)
+    {
+        if (line.plainText[line.plainText.Length - 1] == '!') happyUntil = now + .7f;
+    }
+
+    // Whole steps elapsed since `t` (0 on the step it happened).
+    static int StepsSince(float now, float t, float step) { return Mathf.FloorToInt((now - t) / step); }
+
     void AnimateRobot(float now)
     {
+        // Pop in/out: held poses that overshoot, not an eased tween.
         float scale;
-        if (robotShown) scale = Mathf.LerpUnclamped(0f, 1f, EaseOutBack(Mathf.Clamp01((now - robotShownAt) / RobotIn)));
-        else scale = 1f - EaseInCubic(Mathf.Clamp01((now - robotHiddenAt) / BubbleOut));
-        robotAnchor.localScale = Vector3.one * (Mathf.Max(0f, scale) * fitScale);
+        if (robotShown)
+        {
+            int k = StepsSince(now, robotShownAt, Step);
+            scale = k <= 0 ? .5f : k == 1 ? 1.12f : k == 2 ? .96f : 1f;
+        }
+        else
+        {
+            int k = StepsSince(now, robotHiddenAt, Step);
+            scale = k <= 0 ? 1.08f : k == 1 ? .6f : 0f;
+        }
+        SetScale(robotAnchor, scale * fitScale, scale * fitScale);
 
-        // Idle hover and sway; talking adds a lift on every beat and a little
-        // nodding tilt.
-        float hover = 4f * Mathf.Sin(now * 2.2f) + 3f * Mathf.Min(envelope, 1f);
-        float tilt = 2.5f * Mathf.Sin(now * 1.4f) + 3.5f * Mathf.Sin(now * 9f) * Mathf.Min(envelope, 1f);
-        robotBody.anchoredPosition = new Vector2(0f, -RobotSize * .3f + hover);
+        // Idle hover on 3s, in whole units; a jolt on every beat, bigger and
+        // with a tilt and squash on stressed ones.
+        float slow = Mathf.Floor(now / SlowStep) * SlowStep;
+        float hover = Mathf.Round(3f * Mathf.Sin(slow * 2.4f));
+        float y = 0f, tilt = 0f, sx = 1f, sy = 1f;
+        int b = StepsSince(now, beatAt, Step);
+        if (beatStressed)
+        {
+            if (b == 0) { y = 6f; tilt = -5f; sx = .94f; sy = 1.08f; }
+            else if (b == 1) { y = 3f; tilt = -2f; sx = 1.06f; sy = .95f; }
+            else if (b == 2) { y = -1f; }
+        }
+        else if (b == 0) y = 2f;
+        robotBody.anchoredPosition = new Vector2(0f, -RobotSize * .3f + hover + y);
         robotBody.localRotation = Quaternion.Euler(0f, 0f, tilt);
-        float s = Mathf.Clamp(squash, -.6f, .6f) * .09f;
-        robotBody.localScale = new Vector3(1f + s, 1f - s, 1f);
+        SetScale(robotBody, sx * ArtScale, sy * ArtScale);
 
-        // Hover jet flickers, flaring as the robot bobs down.
-        SetAlpha(jet, .22f + .08f * Mathf.Sin(now * 23f) + .06f * Mathf.Sin(now * 2.2f + Mathf.PI));
+        // Two-frame jet flicker on 2s.
+        jet.sprite = jetFrames[(Mathf.FloorToInt(now / Step) & 1)];
     }
 
     void AnimateFace(float now)
     {
-        float e = Mathf.Min(envelope, 1.3f);
-        bool silent = !Talking && e < .05f;
+        // Mouth: the beat's shape for two or three steps, then shut.
+        int m = now < mouthHeldUntil ? mouthFrame : MouthRest;
+        if (mouth.sprite != mouthFrames[m]) mouth.sprite = mouthFrames[m];
 
-        // Equalizer mouth: bar shape by vowel, height by the envelope, a fast
-        // wobble on top so held beats shimmer. Flat dashes when silent.
-        for (int i = 0; i < Bars; i++)
-        {
-            float shape = VowelShape(currentVowel, i);
-            float wobble = .14f * Mathf.Sin(now * 31f + i * 1.7f);
-            float h = 4f + 20f * e * Mathf.Clamp01(shape + wobble);
-            if (silent) h = 4f + .8f * Mathf.Sin(now * 2.4f + i * .9f);
-            var size = bars[i].sizeDelta;
-            if (!Mathf.Approximately(size.y, h)) bars[i].sizeDelta = new Vector2(size.x, h);
-        }
-
-        // Eyes: blink every few seconds, squint a touch on loud beats.
+        // Eyes: frame-by-frame blink (half, shut, half), happy after an
+        // exclamation.
         if (now >= nextBlinkAt)
         {
             blinkStartedAt = now;
             nextBlinkAt = now + Random.Range(2.2f, 4.4f);
         }
-        float blink = Mathf.Clamp01((now - blinkStartedAt) / .16f);
-        float lid = blink < 1f ? 1f - .9f * Mathf.Sin(blink * Mathf.PI) : 1f;
-        float eyeY = lid * (1f - .14f * Mathf.Clamp01(e - .9f) * 2f);
-        var eyeScale = new Vector3(1f, Mathf.Max(.1f, eyeY), 1f);
-        eyeL.localScale = eyeScale;
-        eyeR.localScale = eyeScale;
+        int k = StepsSince(now, blinkStartedAt, Step);
+        int eye = k == 0 || k == 2 ? EyeHalf : k == 1 ? EyeShut : EyeOpen;
+        if (now < happyUntil && eye == EyeOpen) eye = EyeHappy;
+        var eyeSprite = eyeFrames[eye];
+        if (eyeL.sprite != eyeSprite) { eyeL.sprite = eyeSprite; eyeR.sprite = eyeSprite; }
 
-        // Antenna light: slow idle throb, flashes with the voice.
-        float idle = .35f + .15f * Mathf.Sin(now * 3f);
-        SetAlpha(antenna, Mathf.Clamp01(idle + .65f * e));
-        antennaRt.localScale = Vector3.one * (1f + .5f * Mathf.Min(e, 1f));
+        // Antenna lamp: hard flash on each beat, a slow indicator blink idle.
+        bool flash = StepsSince(now, beatAt, Step) <= (beatStressed ? 1 : 0)
+                     || (!Talking && Mathf.Repeat(now, 1.2f) < Step * 2f);
+        if (lampFlash.enabled != flash) lampFlash.enabled = flash;
     }
 
     void AnimateRings(float now)
     {
-        const float life = .6f;
+        // A hard octagon pulse stepping out on 3s: three held sizes, then gone.
         for (int i = 0; i < RingCount; i++)
         {
-            float p = (now - ringBornAt[i]) / life;
+            int k = StepsSince(now, ringBornAt[i], SlowStep);
             var ring = rings[i];
-            if (p < 0f || p >= 1f)
-            {
-                SetAlpha(ring, 0f);
-                continue;
-            }
-            float e = EaseOutCubic(p);
-            ring.rectTransform.localScale = Vector3.one * Mathf.Lerp(.85f, 1.9f, e);
-            SetAlpha(ring, .55f * (1f - p) * (1f - p));
+            bool on = k >= 0 && k < 3;
+            if (ring.enabled != on) ring.enabled = on;
+            if (!on) continue;
+            float s = k == 0 ? 1f : k == 1 ? 1.2f : 1.4f;
+            SetScale(ring.rectTransform, s, s);
+            SetAlpha(ring, k == 0 ? 1f : k == 1 ? .65f : .3f);
         }
     }
 
@@ -422,32 +452,41 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         float scale, alpha;
         if (bubbleShown)
         {
-            float p = Mathf.Clamp01((now - bubbleShownAt) / BubbleIn);
-            scale = Mathf.LerpUnclamped(.55f, 1f, EaseOutBack(p));
-            alpha = EaseOutCubic(p / .6f);
-            // New line on an open bubble: a quick punch.
-            float q = Mathf.Clamp01((now - lineSwapAt) / LineSwap);
-            if (q < 1f) scale *= Mathf.LerpUnclamped(.94f, 1f, EaseOutBack(q));
+            int k = StepsSince(now, bubbleShownAt, Step);
+            scale = k <= 0 ? .75f : k == 1 ? 1.08f : 1f;
+            alpha = 1f;
+            // New line on an open bubble: one held punch.
+            if (StepsSince(now, lineSwapAt, Step) == 0) scale *= .95f;
         }
         else
         {
-            float p = Mathf.Clamp01((now - bubbleHiddenAt) / BubbleOut);
-            scale = Mathf.Lerp(1f, .7f, EaseInCubic(p));
-            alpha = 1f - EaseOutCubic(p);
+            int k = StepsSince(now, bubbleHiddenAt, Step);
+            scale = k <= 0 ? .9f : .65f;
+            alpha = k <= 0 ? 1f : k == 1 ? .5f : 0f;
         }
-        bubbleAnchor.localScale = Vector3.one * (scale * fitScale);
+        SetScale(bubbleAnchor, scale * fitScale, scale * fitScale);
         if (!Mathf.Approximately(bubbleGroup.alpha, alpha)) bubbleGroup.alpha = alpha;
+    }
+
+    static int VowelMouth(char v)
+    {
+        switch (v)
+        {
+            case 'i': case 'y': case 'e': return MouthE;
+            case 'o': case 'u': return MouthO;
+            default: return MouthA;
+        }
     }
 
     // ---------------------------------------------------------------------
     // Voice
     // ---------------------------------------------------------------------
 
-    void Chirp(int index, bool stressed)
+    void Chirp(int index, char vowel, bool stressed)
     {
         if (voice == null || chirps == null) return;
-        int clip = VowelClip(currentVowel);
-        float pitch = VowelPitch(currentVowel) * (stressed ? 1.1f : 1f) * Random.Range(.96f, 1.04f);
+        int clip = VowelClip(vowel);
+        float pitch = VowelPitch(vowel) * (stressed ? 1.1f : 1f) * Random.Range(.96f, 1.04f);
         // Statements settle on the last beat, exclamations jump up.
         if (index == line.SyllableCount - 1)
             pitch *= line.plainText[line.plainText.Length - 1] == '!' ? 1.12f : .9f;
@@ -475,19 +514,6 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
             case 'a': return 1f;
             case 'o': return .9f;
             default: return .84f;
-        }
-    }
-
-    static float VowelShape(char v, int bar)
-    {
-        // Five bars, centre-heavy for open vowels, flat and wide for e/i,
-        // narrow for o/u.
-        int d = Mathf.Abs(bar - 2);
-        switch (v)
-        {
-            case 'i': case 'y': case 'e': return d == 0 ? .75f : d == 1 ? .85f : .6f;
-            case 'o': case 'u': return d == 0 ? 1f : d == 1 ? .6f : .2f;
-            default: return d == 0 ? 1f : d == 1 ? .8f : .45f;
         }
     }
 
@@ -532,8 +558,6 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     // Layout and the safe area
     // ---------------------------------------------------------------------
 
-    float fitScale = 1f;
-
     // Anything above this many canvas units from the top of the safe area is
     // taken (the HUD panel, the skip button). Set by the director.
     public void SetTopBlocked(float units)
@@ -573,10 +597,10 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     // its right, the pair as wide as the screen allows (up to
     // MaxBubbleWidth), scaled down as a unit only when even MinBubbleWidth
     // will not fit. Returned rects are the bodies, already scaled; the
-    // bubble's bloom adds BubbleGlow * scale around it.
+    // bubble's shadow adds BubbleMargin * scale around it.
     public static void ComputeLayout(Rect safe, float topBlocked, out Rect robot, out Rect bubble, out float scale)
     {
-        float inner = safe.width - 2f * (Margin + BubbleGlow);
+        float inner = safe.width - 2f * (Margin + BubbleMargin);
         float bubbleWidth = Mathf.Min(MaxBubbleWidth, inner - RobotSize - RobotBubbleGap);
         scale = 1f;
         if (bubbleWidth < MinBubbleWidth)
@@ -584,14 +608,14 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
             scale = Mathf.Max(.2f, inner / (RobotSize + RobotBubbleGap + MinBubbleWidth));
             bubbleWidth = MinBubbleWidth;
         }
-        float rowHeight = Mathf.Max(RobotSize, BubbleHeight + 2f * BubbleGlow) * scale;
+        float rowHeight = Mathf.Max(RobotSize, BubbleHeight + 2f * BubbleMargin) * scale;
         float top = safe.yMax - Mathf.Max(0f, topBlocked) - TopGap;
         // Never pushed below the safe area on a very short screen.
         top = Mathf.Max(top, safe.yMin + Margin + rowHeight);
         top = Mathf.Min(top, safe.yMax - Margin);
         float centreY = top - rowHeight * .5f;
 
-        float left = safe.xMin + Margin + BubbleGlow * scale;
+        float left = safe.xMin + Margin + BubbleMargin * scale;
         robot = new Rect(left, centreY - RobotSize * scale * .5f, RobotSize * scale, RobotSize * scale);
         float bx = robot.xMax + RobotBubbleGap * scale;
         bubble = new Rect(bx, centreY - BubbleHeight * scale * .5f, bubbleWidth * scale, BubbleHeight * scale);
@@ -630,11 +654,11 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         rt.sizeDelta = new Vector2(w, h);
     }
 
-    // Places a child of the 128-unit robot body by tut_robot.svg coordinates
-    // (origin top-left, y down).
+    // Places a child of the robot body by tut_robot.svg coordinates (origin
+    // top-left, y down, in the art's 128 units).
     static void PlaceSvg(RectTransform rt, float x, float y, float w, float h)
     {
-        Place(rt, x - RobotSize * .5f, RobotSize * .5f - y, w, h);
+        Place(rt, x - RobotArt * .5f, RobotArt * .5f - y, w, h);
     }
 
     static void Stretch(RectTransform rt)
@@ -643,21 +667,18 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         rt.offsetMin = rt.offsetMax = Vector2.zero;
     }
 
+    static void SetScale(Transform t, float x, float y)
+    {
+        var s = t.localScale;
+        if (Mathf.Approximately(s.x, x) && Mathf.Approximately(s.y, y)) return;
+        t.localScale = new Vector3(x, y, 1f);
+    }
+
     static void SetAlpha(Graphic g, float a)
     {
         var c = g.color;
         if (Mathf.Approximately(c.a, a)) return;
         c.a = a;
         g.color = c;
-    }
-
-    static float EaseOutCubic(float x) { x = Mathf.Clamp01(x); float i = 1f - x; return 1f - i * i * i; }
-    static float EaseInCubic(float x) { x = Mathf.Clamp01(x); return x * x * x; }
-    static float EaseOutBack(float x)
-    {
-        x = Mathf.Clamp01(x);
-        const float c1 = 1.70158f, c3 = c1 + 1f;
-        float m = x - 1f;
-        return 1f + c3 * m * m * m + c1 * m * m;
     }
 }

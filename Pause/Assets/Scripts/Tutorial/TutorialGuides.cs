@@ -5,20 +5,19 @@ using UnityEngine.UI;
 //
 //  - a pulsing "touch here" ring in the lower middle of the screen, shown only
 //    while the world is frozen and the step wants a finger down;
-//  - a gold double-chevron hint arrow that points at a HUD readout (another
+//  - a sodium-orange double-chevron hint arrow that points at a HUD readout (another
 //    canvas's Text) or at something in the world (the red atom), bobbing
 //    toward it.
 //
 // Replaces nothing authored in the scene -- the old tutorial had no pointers,
-// only text. Unscaled time throughout, nothing allocated per frame.
+// only text. Flat cel art and limited animation like the robot: held poses
+// that snap on whole steps, no fades. Unscaled time throughout, nothing
+// allocated per frame.
 public class TutorialGuides : MonoBehaviour
 {
-    static readonly Color Cyan = new Color(.32f, .9f, 1f);
-    static readonly Color Gold = new Color(1f, .79f, .26f);
 
     public const float ArrowSize = 46f;
     const float ArrowGap = 18f;          // from the target's edge to the arrow tip
-    const float FadeSeconds = .2f;
 
     RectTransform root;
     Canvas canvas;
@@ -59,13 +58,13 @@ public class TutorialGuides : MonoBehaviour
         var ring = Resources.Load<Sprite>("Tutorial/tut_ring");
         for (int i = 0; i < touchRings.Length; i++)
         {
-            touchRings[i] = NewImage("Ring", touch, ring, Cyan);
+            touchRings[i] = NewImage("Ring", touch, ring, TutorialPalette.Teal);
             Stretch(touchRings[i].rectTransform);
         }
-        touchDot = NewImage("Dot", touch, Resources.Load<Sprite>("Tutorial/tut_glow"), Cyan);
+        touchDot = NewImage("Dot", touch, Resources.Load<Sprite>("Tutorial/tut_glow"), TutorialPalette.Teal);
         touchDot.rectTransform.sizeDelta = new Vector2(64f, 64f);
 
-        arrowImage = NewImage("HintArrow", root, Resources.Load<Sprite>("Tutorial/tut_arrow"), Gold);
+        arrowImage = NewImage("HintArrow", root, Resources.Load<Sprite>("Tutorial/tut_arrow"), Color.white);   // colours baked in
         arrow = arrowImage.rectTransform;
         arrow.sizeDelta = new Vector2(ArrowSize, ArrowSize);
         Apply(0f, 0f);
@@ -105,16 +104,16 @@ public class TutorialGuides : MonoBehaviour
     void Update()
     {
         float now = Time.unscaledTime;
-        float dt = Time.unscaledDeltaTime;
         bool frozen = !TouchInput.IsPressed && score.pauseCounter > 0;
-        touchAlpha = Mathf.MoveTowards(touchAlpha, touchWanted && frozen ? 1f : 0f, dt / FadeSeconds);
+        touchAlpha = touchWanted && frozen ? 1f : 0f;
 
         Vector2 tip, dir;
         bool hasArrow = ArrowTarget(out tip, out dir);
-        arrowAlpha = Mathf.MoveTowards(arrowAlpha, hasArrow ? 1f : 0f, dt / FadeSeconds);
+        arrowAlpha = hasArrow ? 1f : 0f;
         if (hasArrow)
         {
-            float bob = 7f * (.5f + .5f * Mathf.Sin(now * 7f));
+            // Two held positions on 3s: a cartoon "nudge" toward the target.
+            float bob = (Mathf.FloorToInt(now / RobotSpeaker.SlowStep) & 1) * 8f;
             // The arrow's tip is its top edge (the art points up); sit the tip
             // ArrowGap + bob away from the target, pointing at it.
             Vector2 centre = tip - dir * (ArrowGap + bob + ArrowSize * .5f);
@@ -129,12 +128,14 @@ public class TutorialGuides : MonoBehaviour
     {
         for (int i = 0; i < touchRings.Length; i++)
         {
-            float p = Mathf.Repeat(now * .9f + i * .5f, 1f);
-            touchRings[i].rectTransform.localScale = Vector3.one * Mathf.Lerp(.35f, 1.15f, p);
-            SetAlpha(touchRings[i], tAlpha * .7f * (1f - p));
+            // Four held sizes per cycle, stepping outward.
+            float p = Mathf.Floor(Mathf.Repeat(now * .9f + i * .5f, 1f) * 4f) / 4f;
+            touchRings[i].rectTransform.localScale = Vector3.one * Mathf.Lerp(.4f, 1.15f, p);
+            SetAlpha(touchRings[i], tAlpha * (1f - p * .8f));
         }
-        touchDot.rectTransform.localScale = Vector3.one * (.9f + .12f * Mathf.Sin(now * 5f));
-        SetAlpha(touchDot, tAlpha * .85f);
+        bool dotBig = (Mathf.FloorToInt(now / RobotSpeaker.SlowStep) & 3) == 0;
+        touchDot.rectTransform.localScale = Vector3.one * (dotBig ? 1.15f : 1f);
+        SetAlpha(touchDot, tAlpha);
         SetAlpha(arrowImage, arrowAlpha);
     }
 

@@ -1,12 +1,12 @@
 using UnityEngine;
 
 // Spawns the tutorial's pickups when the script (Hints) asks for them: star
-// clusters once the star-dust step starts, and a red pause atom that keeps
-// coming back until the player catches one. Like the real spawner it only
-// runs while the world is moving.
-//
-// The blue (power-up) and green (repair) atom lessons were cut with the
-// script rewrite; their prefab slot stays serialized in the scene but unused.
+// clusters once the star-dust step starts, then each atom -- green (heal),
+// blue (shield), red (pauses) -- the moment its line is spoken, coming back
+// until the player catches one. Like the real spawner it only runs while the
+// world is moving.
+public enum TutorialAtom { None, Green, Blue, Red }
+
 public class spawnGoodStuffTut: MonoBehaviour {
 
     public GameObject smStar;
@@ -16,13 +16,13 @@ public class spawnGoodStuffTut: MonoBehaviour {
     public static float smStarTimer;
     public static float midStarTimer;
 
-    // Set by Hints for the red-atom step. While true, a red atom is spawned
-    // whenever none is on screen (the last one was caught or scrolled off).
-    public static bool keepRedAtomComing;
-    public static Transform LiveRedAtom { get; private set; }
-    static float redAtomDelay;
+    // Set by Hints for an atom step. While set, that atom is spawned whenever
+    // none is on screen (the last one was caught or scrolled off).
+    public static TutorialAtom keepAtomComing;
+    public static Transform LiveAtom { get; private set; }
+    static float atomDelay;
 
-    const float RedAtomRespawnSeconds = 1.2f;
+    const float AtomRespawnSeconds = 1.2f;
     const float Never = 1000f;
 
     // used for random int for generating stars
@@ -31,9 +31,9 @@ public class spawnGoodStuffTut: MonoBehaviour {
 	void Start () {
         smStarTimer = Never;
         midStarTimer = Never;
-        keepRedAtomComing = false;
-        LiveRedAtom = null;
-        redAtomDelay = .6f;
+        keepAtomComing = TutorialAtom.None;
+        LiveAtom = null;
+        atomDelay = .6f;
 	}
 
     // Starts the star clusters (they then repeat on their own timers).
@@ -84,13 +84,13 @@ public class spawnGoodStuffTut: MonoBehaviour {
             }
         }
 
-        if (keepRedAtomComing && LiveRedAtom == null)
+        if (keepAtomComing != TutorialAtom.None && LiveAtom == null)
         {
-            redAtomDelay -= Time.deltaTime;
-            if (redAtomDelay <= 0f)
+            atomDelay -= Time.deltaTime;
+            if (atomDelay <= 0f)
             {
-                redAtomDelay = RedAtomRespawnSeconds;
-                spawnRedAtom();
+                atomDelay = AtomRespawnSeconds;
+                spawnAtom(keepAtomComing);
             }
         }
     }
@@ -109,11 +109,12 @@ public class spawnGoodStuffTut: MonoBehaviour {
     }
 
     // Kept closer to the middle than stars so it is easy to reach.
-    void spawnRedAtom()
+    void spawnAtom(TutorialAtom kind)
     {
         Vector3 pos = new Vector3(Random.Range(-1.6f, 1.6f), transform.position.y, transform.rotation.z);
-        var atom = Instantiate(redAtom, pos, transform.rotation) as GameObject;
-        AtomSpin.AddTo(atom);
-        LiveRedAtom = atom.transform;
+        GameObject atom;
+        if (kind == TutorialAtom.Green) atom = HealAtom.Spawn(pos);
+        else atom = AtomSpin.AddTo(Instantiate(kind == TutorialAtom.Blue ? Atom : redAtom, pos, transform.rotation) as GameObject);
+        LiveAtom = atom != null ? atom.transform : null;
     }
 }
