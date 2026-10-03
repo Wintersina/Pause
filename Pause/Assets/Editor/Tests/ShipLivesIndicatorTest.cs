@@ -144,9 +144,9 @@ public static class ShipLivesIndicatorTest
     static void ShieldBubbleAttachesToAnyHull()
     {
         var ship = new GameObject("AnyRosterHull", typeof(SpriteRenderer));
-        var bubble = ShipShieldBubble.For(ship);
+        var bubble = ShipShield.For(ship);
         Check("every hull receives a shield visual", bubble.Visual != null);
-        bubble.Show(.35f);
+        bubble.Show();
         Check("blue atom shield can be shown on every hull",
               bubble.Visual != null && bubble.Visual.activeSelf);
         bubble.Hide();
