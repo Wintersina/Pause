@@ -44,6 +44,7 @@ public static class EnemyRosterTest
         SceneSlotsAreNeverNull();
         RetiredMeteorsAreGone();
         PaletteCompliance();
+        FloatingRocks();
 
         Debug.Log("[ER] failures: " + fails);
         return fails;
@@ -74,7 +75,8 @@ public static class EnemyRosterTest
                 Check(W(w) + " fills the " + role + " role", EnemyRoster.For(w, role).Count > 0);
             for (int tier = 1; tier <= 4; tier++)
                 Check(W(w) + " has a tier " + tier + " fighter", EnemyRoster.Fighter(w, tier) != null);
-            Check(W(w) + " has three rocks", EnemyRoster.For(w, EnemyRole.Rock).Count == 3);
+            int rocks = EnemyRoster.For(w, EnemyRole.Rock).Count;
+            Check(W(w) + " has three or four rocks (" + rocks + ")", rocks >= 3 && rocks <= 4);
         }
         foreach (var d in EnemyRoster.All)
         {
@@ -152,7 +154,12 @@ public static class EnemyRosterTest
 
     static bool[] Mask(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        return Mask("Assets/Art/Resources/" + d.StripPath + ".png");
+    }
+
+    // One frame's alpha > 50% silhouette from any flipbook strip on disk.
+    static bool[] Mask(string path, int frame = 0)
+    {
         if (!File.Exists(path)) return new bool[0];
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -161,7 +168,7 @@ public static class EnemyRosterTest
         var mask = new bool[h * h];
         for (int y = 0; y < h; y++)
             for (int x = 0; x < h; x++)
-                mask[y * h + x] = px[y * tex.width + x].a > 128;
+                mask[y * h + x] = px[y * tex.width + frame * h + x].a > 128;
         UnityEngine.Object.DestroyImmediate(tex);
         return mask;
     }
@@ -557,5 +564,60 @@ public static class EnemyRosterTest
         foreach (var d in EnemyRoster.All)
             Check(d.key + " sources exist", File.Exists(ArtSrc + "svg/" + d.key + "_0.svg") &&
                                             File.Exists(ArtSrc + "svg/" + d.key + "_" + EnemyRoster.HitFrame + ".svg"));
+    }
+
+    // ---- 7: floating rocks -------------------------------------------------------
+
+    // The first-pass grass-capped Spore Rock (commit 18b5e5f) the restored
+    // Verdant rock is held to.
+    const string FirstPassSpore = ArtSrc + "reference/verdant_rock_spore_firstpass.png";
+
+    static void FloatingRocks()
+    {
+        var floatingKeys = new HashSet<string>();
+        var py = Regex.Match(File.ReadAllText(ArtSrc + "rocks.py"), @"FLOATING\s*=\s*\(([^)]*)\)");
+        Check("rocks.py lists its floating rocks", py.Success);
+        if (py.Success)
+            foreach (Match m in Regex.Matches(py.Groups[1].Value, "\"([a-z_0-9]+)\""))
+                floatingKeys.Add(m.Groups[1].Value);
+
+        for (int w = 0; w < Worlds; w++)
+        {
+            int n = 0;
+            foreach (var d in EnemyRoster.For(w, EnemyRole.Rock)) if (d.floating) n++;
+            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1);
+        }
+        foreach (var d in EnemyRoster.All)
+        {
+            if (d.floating) Check(d.key + " (floating) is a rock", d.role == EnemyRole.Rock);
+            Check(d.key + (d.floating ? " is" : " is not") + " drawn as a floating rock in rocks.py",
+                  floatingKeys.Contains(d.key) == d.floating);
+            if (d.role != EnemyRole.Rock) continue;
+            var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
+            var spin = go.GetComponent<AsteroidSpin>();
+            Check(d.key + (d.floating ? " sways upright (" + EnemyRoster.FloatSwayDegrees + " deg)" : " tumbles"),
+                  spin != null && spin.Sways == d.floating &&
+                  (!d.floating || spin.swayDegrees > 0f && spin.swayDegrees <= 15f));
+            UnityEngine.Object.DestroyImmediate(go);
+            if (!d.floating) continue;
+            // the drawn bob: idle frames 1-3 move against the key pose
+            string strip = "Assets/Art/Resources/" + d.StripPath + ".png";
+            var keyPose = Mask(strip, 0);
+            bool bobs = false;
+            foreach (int k in new[] { 1, 2, 3 }) bobs |= keyPose.Length > 0 && IoU(keyPose, Mask(strip, k)) < .97f;
+            Check(d.key + " draws its float bob into the idle frames", bobs);
+        }
+
+        // The restored Verdant Spore Rock keeps the first-pass grass-cap
+        // silhouette the player liked.
+        var spore = EnemyRoster.Find("verdant_rock_spore");
+        Check("the Verdant spore rock exists and floats", spore != null && spore.floating && spore.world == 2);
+        Check("the first-pass spore rock reference is kept (" + FirstPassSpore + ")", File.Exists(FirstPassSpore));
+        if (spore != null && File.Exists(FirstPassSpore))
+        {
+            float iou = IoU(Mask(spore), Mask(FirstPassSpore));
+            Check(string.Format("verdant_rock_spore keeps the first-pass grass-cap silhouette (IoU {0:F3} >= 0.85)", iou),
+                  iou >= .85f);
+        }
     }
 }

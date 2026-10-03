@@ -4,7 +4,8 @@ using UnityEngine;
 // carried -- art, trigger collider, tag, mover -- so collisionDetection, the
 // ultimate's targeting and the cinematic clear all treat it like any hazard:
 //
-//   Rock     tag Astr, moveEnimes (zig-zag) + AsteroidSpin
+//   Rock     tag Astr, moveEnimes (zig-zag) + AsteroidSpin (floating rocks
+//            sway upright instead of tumbling)
 //   Alien    tag Enimey, moveEnimes, named "alien1"
 //   Mine     tag Enimey, moveItemEnmInStrightLine + RailBombAnimator, named
 //            "mine" (the spawner adds the RailMineMount)
@@ -36,6 +37,13 @@ public static class EnemyFactory
                 go.AddComponent<moveEnimes>();
                 var spin = go.AddComponent<AsteroidSpin>();
                 spin.speedRange = new Vector2(15f, 60f);   // the aestroid_* prefabs' tuning
+                if (def.floating)
+                {
+                    // a chunk of the world's ground: it stays upright (cap on
+                    // top) and rocks gently; its frames draw the bob
+                    spin.swayDegrees = EnemyRoster.FloatSwayDegrees;
+                    spin.swayPeriod = EnemyRoster.FloatSwayPeriod;
+                }
                 break;
             case EnemyRole.Alien:
                 go.AddComponent<moveEnimes>();
