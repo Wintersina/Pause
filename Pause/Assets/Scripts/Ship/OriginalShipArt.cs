@@ -25,7 +25,7 @@ public static class OriginalShipArt
         int slot = index - 8;
         if (slot < 0 || slot >= names.Length) return null;
         Sprite sprite;
-        if (cache.TryGetValue(index, out sprite)) return sprite;
+        if (cache.TryGetValue(index, out sprite) && sprite != null) return sprite;
         var texture = Resources.Load<Texture2D>("ShipArt/Originals/" + names[slot]);
         if (texture == null) return null;
         sprite = Sprite.Create(texture, rects[slot], new Vector2(.5f, .5f), 100f);
@@ -47,7 +47,7 @@ public static class OriginalShipArt
         int frame = Mathf.Clamp(idleFrame, 0, 2);
         int key = index * 10 + frame;
         Sprite sprite;
-        if (idleCache.TryGetValue(key, out sprite)) return sprite;
+        if (idleCache.TryGetValue(key, out sprite) && sprite != null) return sprite;
 
         var texture = Resources.Load<Texture2D>("ShipArt/OriginalsIdle/" + names[slot] + "_idle" + frame);
         if (texture == null) return SpriteFor(index);

@@ -9,9 +9,8 @@ using System.Reflection;
 // carries) kept reading the last run's damage state -- scorched sprite,
 // ShipDamageFx's fire and sparks -- because collisionDetection.lifeCounter
 // is a static and nothing reset it outside gameplay. Also covers a related
-// bug spotted along the way: the ship-purchase confirm dialog's preview
-// froze on a single static frame instead of idle-cycling like every other
-// ship display in the shop.
+// bug spotted along the way (the confirm dialog's frozen preview) went away
+// with the dialog itself; the dock's hulls are now checked directly.
 public static class ShopHealthCarryoverTest
 {
     static int fails;
@@ -34,7 +33,7 @@ public static class ShopHealthCarryoverTest
         GameStateResetZeroesCombatState();
         DockShipsIgnoreStaleDamageOutsideGameplay();
         GameplayShipsStillShowRealDamage();
-        ConfirmDialogPreviewAnimates();
+        DockShipsAreCleanHulls();
 
         Debug.Log("[SH] failures: " + fails);
         return fails;
@@ -116,54 +115,28 @@ public static class ShopHealthCarryoverTest
         Object.DestroyImmediate(go);
     }
 
-    static void ConfirmDialogPreviewAnimates()
+    // The dock's hulls are plain sprites built by SpaceDock -- none of the
+    // collisionDetection/lifeControler/movePlayer pair the old authored
+    // ship1-ship3 carried -- so a run's leftover damage has nothing to read
+    // it. With stale damage still set, every parked hull shows its intact
+    // art and gets no damage fire.
+    static void DockShipsAreCleanHulls()
     {
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
+        collisionDetection.lifeCounter = 2;
+        ShopSceneExtender.Build();
 
-        var shop = Object.FindFirstObjectByType<shopingShips>();
-        Check("shop scene has a shopingShips instance", shop != null);
-        if (shop == null) return;
-        shop.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
-
-        var popUp = shopingShips.popUpCanvis;
-        Check("shop resolves its popup canvas", popUp != null);
-        if (popUp == null) return;
-        popUp.SetActive(true);
-        shopingShips.shipNumber = 1;
-
-        // Seed shipImg the way shipselected() normally would (setShipImage
-        // is private; called the same way SendMessage reaches Start/Update
-        // elsewhere in this suite).
-        var setShipImage = typeof(shopingShips).GetMethod("setShipImage", BindingFlags.NonPublic | BindingFlags.Instance);
-        setShipImage.Invoke(shop, new object[] { 1 });
-        var seeded = shop.shipImg.sprite;
-        Check("setShipImage seeds a real sprite", seeded != null);
-
-        // Time.unscaledTime does not advance outside Play mode (confirmed
-        // elsewhere this session: batch-mode -executeMethod never ticks the
-        // player loop), so the idle-cycle index this reuses from
-        // DockShipIdleAnimator's own approach can't be shown changing frame-
-        // to-frame here. What this confirms instead: Update() actively
-        // re-derives shipImg from IdleSpriteFor every frame the dialog is
-        // open, rather than only ever setting it once in setShipImage --
-        // i.e. it's now driven by the same live mechanism as every other
-        // idle-cycling ship display in the shop, not a one-shot snapshot.
-        shop.SendMessage("Update");
-        // Mirrors Update()'s own idleFrame formula exactly, rather than
-        // trying every frame 0-2: ship1 may or may not have idle art at
-        // all, and either way is a legitimate outcome -- what matters is
-        // that whichever IdleSpriteFor(1, 0, ...) actually resolves to is
-        // what's now showing, not a snapshot frozen from setShipImage().
-        int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
-        Sprite expectedIdle = shopingShips.IdleSpriteFor(1, 0, idleFrame);
-        if (expectedIdle != null)
-            Check("confirm dialog's ship preview is driven by IdleSpriteFor while open",
-                  shop.shipImg.sprite == expectedIdle);
-        else
-            Check("confirm dialog's ship preview still resolves to a sprite when no idle art exists for this hull",
-                  shop.shipImg.sprite != null);
-
-        popUp.SetActive(false);
-        shopingShips.shipNumber = 0;
+        for (int i = 1; i < shopingShips.shipTotal; i++)
+        {
+            var ship = SceneUtil.FindAny("ship" + i);
+            if (ship == null) { Check("dock ship" + i + " exists", false); continue; }
+            Check("dock ship" + i + " has no live-gameplay damage components",
+                  ship.GetComponent<lifeControler>() == null && ship.GetComponent<collisionDetection>() == null &&
+                  ship.GetComponent<ShipDamageFx>() == null);
+            var sr = ship.GetComponent<SpriteRenderer>();
+            Check("dock ship" + i + " shows its intact hull despite lifeCounter=2",
+                  sr != null && (sr.sprite == shopingShips.SpriteFor(i, 0) || MatchesDamageFrame(sr.sprite, i, 0)));
+        }
+        collisionDetection.lifeCounter = 0;
     }
 }

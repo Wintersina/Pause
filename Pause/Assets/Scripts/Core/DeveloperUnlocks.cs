@@ -8,6 +8,10 @@ public static class DeveloperUnlocks
     public const string EnabledKey = "developerUnlockEverything";
     public const string SelectedWorldKey = "developerSelectedWorld";
 
+    // Raised after the override flips ship ownership, so an open space dock
+    // can refresh its owned/price markers without polling PlayerPrefs.
+    public static event System.Action Changed;
+
     public static bool Enabled { get { return PlayerPrefs.GetInt(EnabledKey, 0) == 1; } }
 
     public static void SetEnabled(bool enabled)
@@ -24,6 +28,7 @@ public static class DeveloperUnlocks
         else RestoreProgress();
         PlayerPrefs.Save();
         Debug.Log("[DeveloperUnlocks] " + (enabled ? "all ships and worlds unlocked" : "override disabled"));
+        if (Changed != null) Changed();
     }
 
     public static void SelectWorld(int index)
