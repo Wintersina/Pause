@@ -130,9 +130,16 @@ public static class TestHarness
         foreach (AchievementCategory category in System.Enum.GetValues(typeof(AchievementCategory)))
         {
             keys.Add(AchievementTiers.CounterKey(category));
+            keys.Add(AchievementSync.SyncedKey(category));
             foreach (var tier in AchievementTiers.For(category))
                 keys.Add(AchievementTiers.LegacyProgressKey(tier.id));
         }
+
+        // Account cloud-save bookkeeping.
+        keys.Add(CloudSync.LastAccountKey);
+        keys.Add(CloudSync.LocalSavedAtKey);
+        keys.Add(CloudSync.LocalHashKey);
+        keys.Add(CloudSync.BackupsKey);
 
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string>

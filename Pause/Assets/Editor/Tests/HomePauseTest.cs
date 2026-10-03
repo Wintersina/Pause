@@ -33,7 +33,8 @@ public static class HomePauseTest
             Canvas.ForceUpdateCanvases();
             var panel = GameObject.Find("UIPanel").GetComponent<RectTransform>();
             Check("actions stay in a compact group", panel.sizeDelta.y <= 330f && panel.sizeDelta.y > 0f);
-            foreach (string name in new[] { "LogOutButton", "QuitButton" })
+            // The log-out button is gone (sign-in is automatic); Quit is the footer.
+            foreach (string name in new[] { "QuitButton" })
             {
                 var footer = GameObject.Find(name).GetComponent<RectTransform>();
                 Check(name + " anchors to bottom", footer.anchorMin.y == 0f && footer.anchorMax.y == 0f);

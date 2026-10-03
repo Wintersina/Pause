@@ -10,27 +10,16 @@ public class startMenu : MonoBehaviour {
     public static bool playerDied;
     public static bool youAreInTutorial;
     public static int spawnTracker;
-    private Text loggedoutTextObj;
-    private float logoutTimer;
     private int layoutWidth, layoutHeight;
 
     void Start()
     {
         Time.timeScale = 1;
-        // initilize all game materials
-        logoutTimer = 0;
-
         // will change scenes based on char selection
         playerDied = false;
         playB.gameObject.SetActive(true);
         aboutB.gameObject.SetActive(true);
         quitB.gameObject.SetActive(true);
-        // find it and turn it off.
-        // Inactive objects are invisible to GameObject.Find, and a null here
-        // used to abort the rest of Start().
-        GameObject loggedOut = SceneUtil.FindAny("LoggedoutText");
-        loggedoutTextObj = loggedOut != null ? loggedOut.GetComponent<Text>() : null;
-        if (loggedoutTextObj != null) loggedoutTextObj.gameObject.SetActive(false);
         // if ads are showing in main menu, turn them off.
         if (AdMob.isAdsShowwing)
             AdMob.hide();
@@ -48,14 +37,6 @@ public class startMenu : MonoBehaviour {
         {
             Application.Quit();
             return;
-        }
-
-        // used for logout display.
-        if (logoutTimer > 0)
-        {
-            logoutTimer -= Time.deltaTime;
-            if (logoutTimer <= 0 && loggedoutTextObj != null)
-                loggedoutTextObj.gameObject.SetActive(false);
         }
     }
 
@@ -87,15 +68,11 @@ public class startMenu : MonoBehaviour {
             group.spacing = 12f;
             group.childAlignment = TextAnchor.MiddleCenter;
         }
+        // Sign-in is automatic now, so the footer is just Quit.
         float footerWidth = Mathf.Min(180f, (width - 64f) * 0.5f);
-        Place("LogOutButton", new Vector2(0.5f, 0f),
-              new Vector2(-footerWidth * 0.5f - 12f, 44f + safeBottom), new Vector2(footerWidth, 56f));
         Place("QuitButton", new Vector2(0.5f, 0f),
-              new Vector2(footerWidth * 0.5f + 12f, 44f + safeBottom), new Vector2(footerWidth, 56f));
-        Place("LoggedoutText", new Vector2(0.5f, 0f), new Vector2(0f, 110f + safeBottom),
-              new Vector2(Mathf.Min(430f, width - 32f), 44f));
-        Place("LoginButton", new Vector2(1f, 1f), new Vector2(-64f, -64f), new Vector2(80f, 80f));
-        foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "CreditsButton", "LogOutButton", "QuitButton" })
+              new Vector2(0f, 44f + safeBottom), new Vector2(footerWidth, 56f));
+        foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "CreditsButton", "QuitButton" })
         {
             var button = SceneUtil.FindAny(name);
             if (button == null) continue;
@@ -103,7 +80,7 @@ public class startMenu : MonoBehaviour {
             {
                 label.resizeTextForBestFit = true;
                 label.resizeTextMinSize = 22;
-                label.resizeTextMaxSize = name == "LogOutButton" || name == "QuitButton" ? 28 : 38;
+                label.resizeTextMaxSize = name == "QuitButton" ? 28 : 38;
             }
         }
         layoutWidth = Screen.width;
@@ -146,13 +123,6 @@ public class startMenu : MonoBehaviour {
         score.totalCurrency = 0;
     }
 
-    public void logoutButton()
-    {
-        logoutTimer = 2f;
-        if (loggedoutTextObj != null) loggedoutTextObj.gameObject.SetActive(true);
-        SocialBridge.SignOut();
-    }
-
    public void achivements()
     {
         SceneManager.LoadScene("leaderboardS3");
@@ -168,14 +138,5 @@ public class startMenu : MonoBehaviour {
     public void quit()
     {
         Application.Quit();
-    }
-    public void login()
-    {
-        // No longer Android-only; on iOS this signs in to Game Center.
-        SocialBridge.Authenticate(success =>
-        {
-            if (success)
-                achievementAPICalls.achievement_logged_on_successfully();
-        });
     }
 }
