@@ -13,6 +13,21 @@ public class HealAtom : MonoBehaviour
 
     static Sprite cached;
 
+    // World-space diameter of the authored red/blue atoms: 28 px at 100 PPU.
+    public const float TargetDiameter = 28f / 100f;
+
+    // How strongly the tint pulses so it still reads as special. Only the
+    // colour pulses: the size stays locked to the other atoms.
+    const float GlowAmount = 0.18f;
+
+    SpriteRenderer sr;
+
+    public static float VisualScaleFor(Sprite sprite)
+    {
+        float source = sprite != null ? Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y) : TargetDiameter;
+        return TargetDiameter / Mathf.Max(0.0001f, source);
+    }
+
     public static GameObject Spawn(Vector3 position)
     {
         var go = new GameObject(ObjectName);
@@ -25,14 +40,14 @@ public class HealAtom : MonoBehaviour
 
         // The generated art is high resolution, while the authored red/blue
         // atoms are 28 px sprites at 100 PPU. Match their world-space size.
-        float targetDiameter = 28f / 100f;
-        float sourceDiameter = sr.sprite != null ? sr.sprite.bounds.size.x : targetDiameter;
-        float visualScale = targetDiameter / Mathf.Max(0.001f, sourceDiameter);
-        go.transform.localScale = Vector3.one * visualScale;
+        float visualScale = VisualScaleFor(sr.sprite);
+        go.transform.localScale = new Vector3(visualScale, visualScale, 1f);
 
+        // 0.14 world units of radius, the same footprint as the red/blue
+        // atoms' 0.28 box -- expressed in local space so the scale cancels.
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.14f / Mathf.Max(0.001f, visualScale);
+        col.radius = (TargetDiameter * 0.5f) / visualScale;
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
@@ -46,13 +61,32 @@ public class HealAtom : MonoBehaviour
         return go;
     }
 
+    void Awake()
+    {
+        sr = GetComponent<SpriteRenderer>();
+    }
+
     void Update()
     {
-        // gentle pulse so it reads as special against the red and blue atoms
-        float k = 1f + Mathf.Sin(Time.time * 4f) * 0.08f;
-        transform.localScale = new Vector3(k, k, 1f);
+        // Gentle glow so it reads as special against the red and blue atoms.
+        // This used to pulse transform.localScale around 1.0, which threw away
+        // the ~0.04 fit scale set in Spawn and drew the atom ~25x too large.
+        if (sr != null)
+        {
+            float k = 1f - GlowAmount * 0.5f * (1f + Mathf.Sin(Time.time * 4f));
+            sr.color = new Color(k, 1f, k, 1f);
+        }
 
         if (transform.position.y < -12f) Destroy(gameObject);
+    }
+
+    // Square crop around the opaque art of heal_atom_green.png (1254 x 1254).
+    // Falls back to the full texture if the art is ever replaced at another size.
+    public static Rect ArtRect(int width, int height)
+    {
+        if (width != 1254 || height != 1254) return new Rect(0, 0, width, height);
+        const float side = 944f;                 // tallest extent with alpha > 1
+        return new Rect(627f - side * 0.5f, 634.5f - side * 0.5f, side, side);
     }
 
     // A green nucleus with three orbiting lobes, echoing the existing atoms.
@@ -65,7 +99,12 @@ public class HealAtom : MonoBehaviour
         var authored = Resources.Load<Texture2D>("Pickups/heal_atom_green");
         if (authored != null)
         {
-            cached = Sprite.Create(authored, new Rect(0, 0, authored.width, authored.height),
+            // The 1254 px canvas has wide transparent margins (the opaque art
+            // spans only x 210-1044, y 163-1106 measured from the bottom),
+            // while the red/blue sprites fill their 28 px canvas edge to edge.
+            // Crop to a square around the art so the sprite bounds are the
+            // visible atom and the fit scale matches what players see.
+            cached = Sprite.Create(authored, ArtRect(authored.width, authored.height),
                 new Vector2(.5f, .5f), 180f);
             return cached;
         }
