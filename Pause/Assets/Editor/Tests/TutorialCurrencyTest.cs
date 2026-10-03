@@ -85,6 +85,7 @@ public static class TutorialCurrencyTest
         Check(label + ": does not pay real dust", !score.paysRealDust);
         Check(label + ": gets the tutorial's 50 pauses", score.pauseCounter == 50);
         Check(label + ": HUD starts at 0 dust", hud.currencyText.text == "Star Dust : 0");
+        Check(label + ": speed readout is spelled \"Current\"", hud.speedValue.text == "Current Speed : 0");
 
         score.AwardStarDust(3f);
         // Hints marks the tutorial done part-way through.
