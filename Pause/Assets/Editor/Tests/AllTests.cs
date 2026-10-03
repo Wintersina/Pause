@@ -27,6 +27,7 @@ public static class AllTests
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
+        ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
