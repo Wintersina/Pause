@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Equalizer mouth bar - white rounded capsule, tinted at runtime. Drawn as a
-  9-slice (3u caps top and bottom) so a bar can stretch to any height.
-  Units are UI canvas units; rasterize at 2x (12x24 px, sprite ppu 200).
--->
-<svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12">
-  <rect x="0" y="0" width="6" height="12" rx="3" fill="#ffffff"/>
-</svg>

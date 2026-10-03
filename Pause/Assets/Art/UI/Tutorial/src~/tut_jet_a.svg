@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hover jet under the robot, frame A of a two-frame flicker (tut_jet_b).
+  Flat sodium-orange flame, one light core, ink outline.
+  30x26 units, rasterize at 2x (60x52 px).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="26" viewBox="0 0 30 26">
+  <path d="M7 2 L23 2 L19 14 L15 24 L11 14 Z" fill="@ORANGE@" stroke="@INK@" stroke-width="2.5" stroke-linejoin="miter"/>
+  <path d="M11 3 L19 3 L17 10 L15 16 L13 10 Z" fill="@ORANGE_LIGHT@"/>
+</svg>

@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Soft round light - white template, tinted at runtime. The antenna bulb,
-  the hover jet under the robot and the touch-hint dot.
-  Units are UI canvas units; rasterize at 2x (128x128 px, sprite ppu 200).
+  Hard-edged cel glow: three flat concentric diamonds stepping down in
+  alpha, no blur. White template, tinted at runtime (red lamp flash, teal
+  touch dot, orange header sparks). 32x32 units, rasterize at 2x (64x64 px).
+  Colours are palette.env names, filled in by render.sh.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <defs>
-    <radialGradient id="g" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
-      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.9"/>
-      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.3"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <circle cx="32" cy="32" r="32" fill="url(#g)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <path d="M16 0 L32 16 L16 32 L0 16 Z" fill="#FFFFFF" fill-opacity="0.22"/>
+  <path d="M16 6 L26 16 L16 26 L6 16 Z" fill="#FFFFFF" fill-opacity="0.5"/>
+  <path d="M16 11 L21 16 L16 21 L11 16 Z" fill="#FFFFFF"/>
 </svg>
