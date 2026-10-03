@@ -20,15 +20,8 @@ public class tutButtonClicks : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        // Back/Escape. Was Android-gated, and the touchCount == 0 guard
-        // swallowed the key on every other platform.
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                SceneManager.LoadScene("startS4");
-                return;
-            }
-        }
+        // Back/Escape is BackNavigator's: in tutorialS5 it goes home, like
+        // mainMenuButton / the Home quick action.
         if (buttonClicks.playerDied)
         {
          
@@ -44,7 +37,7 @@ public class tutButtonClicks : MonoBehaviour {
     }
     public void quit()
     {
-        Application.Quit();
+        BackNavigator.QuitNow();
     }
     void showButton()
     {
