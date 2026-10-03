@@ -46,6 +46,11 @@ def rail_mine(world, i):
     p.ink += inkpoly(plate, 3.5) + inkpoly(arm, 3)
     p.base += poly(chamfer_rect(13, 64, 5, 34, 1.5), INK) + poly(chamfer_rect(30, 64, 10, 8, 2), INK)
     p.glow += poly(chamfer_rect(13, 64, 2.6, 30, 1), slot) + poly(chamfer_rect(30, 64, 7, 5, 1.5), slot)
+    # detail pass: bolted clamp, a hazard band, a vent on the arm
+    rivets(p, [(13, 40), (13, 88), (22, 58.5), (40, 58.5), (22, 69.5), (40, 69.5)], 1.5, layer="ink")
+    stripes(p, 13, 33, 9, 4, n=2, layer="ink")
+    stripes(p, 13, 95, 9, 4, n=2, layer="ink")
+    spec(p, [(9, 42), (9, 60)], 1.2, layer="ink")
     if world == "frost":   # icicles hang off the clamp
         for x, L in ((9, 14), (14, 20), (18, 10)):
             ic = [(x - 2.5, 91), (x + 2.5, 91), (x, 91 + L)]
@@ -64,6 +69,10 @@ def rail_mine(world, i):
         p.ink += inkpoly(lug, 3)
         win = chamfer_rect(lx, ly, 10, 3.6, 1, rot=a + 90)
         p.glow += poly(win, slot)
+        # bolts at each lug's ends, and the lug lights chase round in idle
+        rivets(p, xf([(lx - 8, ly), (lx + 8, ly)], lx, ly, rot=a + 90), 1.3, layer="ink")
+        if world == "space" and lit and i in (1, 3) and k == (0 if i == 1 else 2):
+            p.glow += poly(chamfer_rect(lx, ly, 13, 5.6, 1.4, rot=a + 90), light, 'opacity="0.35"')
         if world == "verdant":   # magenta thorn tip on every lug
             tx, ty = CX + 52 * s * math.cos(r), CY + 52 * s * math.sin(r)
             n = (-math.sin(r) * 4, math.cos(r) * 4)
@@ -83,6 +92,15 @@ def rail_mine(world, i):
     p.ink += inkpoly(ring, 2)
     for k in (0, 2, 4, 6):
         p.ink += line([hub[k], ring[k]], 2)
+    if world == "space":
+        # hub panel bolts, a BONE kick on the lit edge, a sensor stub and a
+        # unit glyph -- the approved bomb, only better dressed
+        rivets(p, [lerp_pts([hub[k]], [(CX, CY)], 0.2)[0] for k in (1, 3, 5, 7)], 1.6, layer="ink")
+        rivets(p, [lerp_pts([ring[k]], [(CX, CY)], -0.12)[0] for k in (1, 3, 5, 7)], 1.2, layer="ink")
+        spec(p, lerp_pts([hub[5], hub[6], hub[7]], [(CX, CY)] * 3, 0.09), 1.6, layer="highlight")
+        glyph(p, CX - 15, CY + 21, 1.8, seed=3, layer="ink")
+        antenna(p, CX + 9 * s, CY - 34 * s, 10, 18, 1.0 if i in (0, 2, 4, 5) else 0.2, light, tip=1.8, layer="base")
+        grille(p, CX + 18 * s, CY + 22 * s, 7, 6, 2, rot=-45, layer="ink")
 
     if world == "frost":   # faceted crystal hub + a crystal horn
         for k in range(8):
@@ -176,12 +194,28 @@ def geode(i):
         bx, by = gx + 26 * math.cos(r), gy + 30 * math.sin(r)
         ln = L + grow * (1.0 if a != 150 else 0.6)
         pr = xf([(bx - w / 2, by), (bx - w / 2 * 0.8, by - ln * 0.7), (bx, by - ln), (bx + w / 2 * 0.8, by - ln * 0.7), (bx + w / 2, by)], bx, by, rot=a)
-        cel(p, S(pr), ICE, ICE_SH, ICE_HI, sh_off=(w * 0.4, 2), ink_w=2.5)
+        cel(p, S(pr), ICE, ICE_SH, ICE_HI, sh_off=(w * 0.4, 2), ink_w=2.8)
+        p.highlight += line(S(xf([(bx, by - 2), (bx, by - ln + 3)], bx, by, rot=a)), 1.2)
+    # frozen bolts where the hooks bite the bar, and rime ridges on the hooks
+    rivets(p, [(8, 34), (8, 46), (8, 82), (8, 94)], 1.5, color=ICE_HI, layer="ink")
+    for y, d in ((40, 1), (88, -1)):
+        p.ink += line([(18, y - 4 * d), (34, y - 1 * d)], 1.3) + line([(20, y + 3 * d), (36, y + 5 * d)], 1.3)
+    stripes(p, 7, 64, 5, 14, n=3, rot=90, color=ICE_HI, layer="ink")
     body = S([(gx, gy - 46), (gx + 26, gy - 26), (gx + 28, gy + 22), (gx, gy + 48), (gx - 26, gy + 24), (gx - 28, gy - 24)])
-    cel(p, body, ICE, ICE_SH, ICE_HI, sh_off=(10, 6), detail=True)
+    cid = cel(p, body, ICE, ICE_SH, ICE_HI, sh_off=(4, 3), ink_w=0, detail=True)
+    p.detail += plane_svg(cid, S([(gx, gy - 60), (gx + 40, gy - 60), (gx + 40, gy + 60), (gx - 4, gy + 60), (gx + 4, gy)]), ICE_SH)
+    p.detail += inkpoly(body, 4.4)
+    spec(p, S([(gx - 25, gy - 20), (gx - 2, gy - 41)]), 1.6)
     inner = S(ngon(gx, gy, 16, 6, 0))
     for a, b in zip(body, [inner[0], inner[1], inner[2], inner[3], inner[4], inner[5]]):
         p.detail += line([a, b], 1.6)
+    # secondary facets and embedded frost sparks that twinkle in turn
+    for a, b in (((gx - 27, gy), (gx - 16, gy)), ((gx + 28, gy - 2), (gx + 16, gy)), ((gx - 12, gy - 36), (gx - 6, gy - 22)),
+                 ((gx + 12, gy + 36), (gx + 6, gy + 22))):
+        p.detail += line(S([a, b]), 1.2)
+    for k, (x, y) in enumerate(((gx - 15, gy - 28), (gx + 16, gy + 30), (gx - 18, gy + 20))):
+        hexlight(p, *S([(x, y)])[0], 2, 1.0 if (i + k) % 3 == 0 else 0.2, CYAN, rot=0)
+    glyph(p, *S([(gx + 15, gy - 14)])[0], 1.7, seed=5, color=ICE_HI, w=1.1)
     p.detail += poly(inner, INK)
     core(p, gx, gy, 10 * s, CYAN, level, n=6, rot=0, socket=False)
     if level >= 0.4:   # snowflake heart
@@ -228,7 +262,20 @@ def burr(i):
             a = math.radians(a0 + t * 15)
             r = 36 if t % 2 == 0 else 30
             seg.append((bx + ox + r * s * math.cos(a), by + oy + r * s * math.sin(a)))
-        cel(p, seg, BARK, BARK_SH, BARK_HI, sh_off=(6, 6), ink_w=3, detail=True)
+        cel(p, seg, BARK, BARK_SH, BARK_HI, sh_off=(6, 6), ink_w=3.6, detail=True)
+        # chitin ridges: two nested chevrons per husk segment, seed bumps
+        cx_, cy_ = bx + ox, by + oy
+        for rr in (14, 23):
+            arc = [(cx_ + rr * s * math.cos(math.radians(a0 + t * 30)), cy_ + rr * s * math.sin(math.radians(a0 + t * 30)))
+                   for t in range(1, 4)]
+            p.detail += line(arc, 1.4)
+        for t in (1, 3):
+            a = math.radians(a0 + t * 30)
+            q = ngon(cx_ + 29 * s * math.cos(a), cy_ + 29 * s * math.sin(a), 2.4, 4, 45)
+            p.detail += poly(q, BARK_HI) + inkpoly(q, 1)
+        a = math.radians(a0 + 60)
+        q = ngon(cx_ + 19 * s * math.cos(a), cy_ + 19 * s * math.sin(a), 2.2, 4, 45)
+        p.detail += poly(q, MAGENTA_SH) + inkpoly(q, 1)
         for t in range(0, 9, 2):   # thorns off the husk
             a = math.radians(a0 + t * 15)
             tx, ty = bx + ox + 34 * s * math.cos(a), by + oy + 34 * s * math.sin(a)
@@ -242,6 +289,15 @@ def burr(i):
         seam = [(bx, by), (bx + 34 * math.cos(a), by + 34 * math.sin(a))]
         p.detail += line(seam, 4 + split * 0.8)
         p.glow += line(seam, 1.6 + split * 0.4, BILE_LIGHT if lit else BILE_SH)
+        # spore pores at the seam ends, blinking round the burr
+        hexlight(p, bx + 30 * math.cos(a), by + 30 * math.sin(a), 2.2, 1.0 if (i + k) % 3 == 0 and lit else 0.2, BILE_LIGHT, rot=0)
+    # nodes and extra leaves on the tendrils
+    for x, y in ((24, 26), (18, 36), (28, 100)):
+        q = ngon(x, y, 3, 4, 45)
+        p.ink += poly(q, BILE_HI) + inkpoly(q, 1.2)
+    for x, y, a in ((42, 40, 30), (16, 110, 150)):
+        lf = xf([(x, y), (x - 4, y - 7), (x, y - 14), (x + 4, y - 7)], x, y, rot=a)
+        p.ink += poly(lf, BILE_HI) + poly([lf[0], lf[2], lf[3]], BILE) + inkpoly(lf, 1.6) + line([lf[0], lf[2]], 1)
     core(p, bx, by, (7 + split * 0.5) * s, BILE_LIGHT, level, n=6, rot=0)
     if fx == "arc":
         for x, y, r in ((116, 30, 6), (114, 104, 5), (60, 118, 5)):
@@ -270,13 +326,28 @@ def crucible(i):
     hookbar = [(2, 28), (8, 26), (8, 74), (2, 76)]
     cel(p, hookbar, GUN, GUN_SH, GUN_HI, sh_off=(2, 0), ink_w=3)
     # the crucible: wide rim, tapering bowl, two lugs
+    rivets(p, [(5, 32), (5, 70)], 1.4, layer="ink")
     bowl = [(36, 36), (112, 36), (106, 60), (96, 100), (84, 112), (64, 112), (52, 100), (42, 60)]
-    cel(p, S_(bowl, s), CHAR, CHAR_SH, CHAR_HI, sh_off=(12, 6))
+    cid = cel(p, S_(bowl, s), CHAR, CHAR_SH, CHAR_HI, sh_off=(5, 4), ink_w=0)
+    plane(p, cid, S_([(80, 30), (130, 30), (130, 120), (70, 120), (78, 70)], s), CHAR_SH)
+    p.ink += inkpoly(S_(bowl, s), 4.4)
+    # an iron band round the belly, bolted, with a hazard plate
+    band = S_([(41, 54), (107, 54), (105, 62), (43, 62)], s)
+    p.ink += poly(band, GUN) + poly(S_([(78, 54), (107, 54), (105, 62), (78, 62)], s), GUN_SH) + inkpoly(band, 2)
+    rivets(p, S_([(48, 58), (60, 58), (88, 58), (100, 58)], s), 1.4, layer="ink")
+    stripes(p, *S_([(74, 104)], s)[0], 14, 4.4, n=3, layer="ink")
+    glyph(p, *S_([(92, 86)], s)[0], 2, seed=0, color=SODIUM if lit else SODIUM_SH, w=1.2, layer="ink")
+    spec(p, S_([(39, 40), (44, 60), (54, 98)], s), 1.5, layer="ink")
+    seams(p, [S_([(64, 112), (68, 100)], s), S_([(84, 112), (82, 100)], s)], 1.3, layer="ink")
+    grille(p, *S_([(86, 94)], s)[0], 8, 6, 2, rot=-24, layer="ink")
+    hexlight(p, *S_([(52, 88)], s)[0], 2.2, 1.0 if i in (0, 2, 5) else 0.2, SODIUM, rot=0)
     for x in (40, 108):
         ear = chamfer_rect(x, 48, 10, 14, 3)
         cel(p, ear, GUN, GUN_SH, GUN_HI, sh_off=(2, 2), ink_w=2.5, detail=True)
+        rivets(p, [(x, 48)], 1.6)
     rim = chamfer_rect(74, 34, 84, 12, 4)
-    cel(p, S_(rim, s), CHAR_HI, CHAR, None, sh_off=(0, 4), ink_w=3, detail=True)
+    cel(p, S_(rim, s), CHAR_HI, CHAR, None, sh_off=(0, 4), ink_w=3.4, detail=True)
+    rivets(p, S_([(44, 36), (60, 36), (88, 36), (104, 36)], s), 1.3)
     # magma surface inside the rim, bulging as it boils
     hot = (AMBER if level >= 1 else SODIUM) if lit else SODIUM_SH
     surf = [(38, 30), (56, 26 - boil * 0.4), (74, 22 - boil), (92, 26 - boil * 0.5), (110, 30), (104, 34), (44, 34)]
