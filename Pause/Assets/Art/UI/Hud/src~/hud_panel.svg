@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  HUD read-out panel (speed / star dust / pauses), drawn final, 9-sliced.
+  Akira style (docs/art-style.md, art-samples/ui_hud.png): flat NIGHT_1 at
+  88%, chamfered top-right and bottom-left corners, INK contour, and the red
+  title-card tab in the top-left corner.
+  Units are UI canvas units; rasterize at 2x (128x128 px, sprite ppu 200).
+  9-slice border 20u (40 px) on all sides.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <polygon points="2,2 48,2 62,16 62,62 16,62 2,48" fill="#0E1424" fill-opacity="0.88"/>
+  <polygon points="2,2 18,2 13,8 2,8" fill="#D8232C"/>
+  <polygon points="2,2 48,2 62,16 62,62 16,62 2,48" fill="none" stroke="#140C14" stroke-width="3.5" stroke-linejoin="miter"/>
+  <polyline points="18,2 13,8 2,8" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="miter"/>
+</svg>

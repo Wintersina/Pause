@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Card accent bar: a slanted slab, white template with an INK contour,
+  tinted per row (cyan / red / amber) by Image.color. Not sliced.
+  Units are UI canvas units; rasterize at 2x (32x144 px, sprite ppu 200).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="72" viewBox="0 0 16 72">
+  <polygon points="6,2 14,2 10,70 2,70" fill="#FFFFFF"/>
+  <polygon points="6,2 14,2 10,70 2,70" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="miter"/>
+</svg>
