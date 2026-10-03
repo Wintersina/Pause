@@ -21,6 +21,7 @@ public static class AllTests
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
+        ("CodexTest", CodexTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
