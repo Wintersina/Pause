@@ -10,6 +10,7 @@ public class movePlayer : MonoBehaviour
     private RectTransform boostText;
     private RectTransform hypeText;
     float startTimerCounter, goTimer;
+    int startTimerBaseFontSize;
     private AudioSource goClip;
     private bool playoneshot;
     private bool teleported;
@@ -26,6 +27,15 @@ public class movePlayer : MonoBehaviour
 
     private float nextTeleportAt;
 
+    // The launch countdown ("2.00" -> "GO!!!!"), and how long GO stays up.
+    public const float CountdownSeconds = 2f;
+    public const float GoSeconds = 2f;
+    // The countdown text grows to this multiple of its authored size.
+    public const float CountdownMaxGrowth = 1.6f;
+    // One long hitch (e.g. the first frame after a scene load) must not eat
+    // the whole countdown.
+    const float MaxCountdownStep = 0.1f;
+
     void Start()
     {
         teleported = false;
@@ -35,8 +45,9 @@ public class movePlayer : MonoBehaviour
         hypeText = GameObject.Find("hypeText").GetComponent<RectTransform>();
         startTimer = GameObject.Find("goText").GetComponent<Text>();
         goClip = GameObject.Find("GOSound").GetComponent<AudioSource>();
-        startTimerCounter = 2f;
-        goTimer = 2f;
+        startTimerCounter = CountdownSeconds;
+        goTimer = GoSeconds;
+        startTimerBaseFontSize = startTimer.fontSize;
         playoneshot = true;
 
         startTimer.text = startTimerCounter.ToString("F2");
@@ -54,9 +65,13 @@ public class movePlayer : MonoBehaviour
             // the UI click completed, making the pause actions appear broken.
             if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
 
-            // show start timer, give player 2 seconds to prep
-            startTimerCounter -= Time.timeSinceLevelLoad;
-            startTimer.fontSize += 3;
+            // show start timer, give player 2 seconds to prep. This used to
+            // subtract Time.timeSinceLevelLoad (the whole time since load)
+            // every frame, so the countdown was gone in a few frames, and the
+            // font grew by 3 every frame without limit. Unscaled: the world is
+            // still frozen at timeScale 0 on the frame the finger lands.
+            startTimerCounter = TickCountdown(startTimerCounter, Time.unscaledDeltaTime);
+            startTimer.fontSize = CountdownFontSize(startTimerBaseFontSize, startTimerCounter);
 
             if (startTimerCounter <= 0)
             {
@@ -68,7 +83,7 @@ public class movePlayer : MonoBehaviour
                     playoneshot = false;
                 }
 
-                goTimer -= Time.timeSinceLevelLoad;
+                goTimer = TickCountdown(goTimer, Time.unscaledDeltaTime);
                 //"GO!" end "GO" and start game
                 if (goTimer <= 0)
                 {
@@ -122,6 +137,19 @@ public class movePlayer : MonoBehaviour
             teleportLockedUntilRelease = false;
         }
 
+    }
+
+    public static float TickCountdown(float remaining, float deltaTime)
+    {
+        return Mathf.Max(0f, remaining - Mathf.Clamp(deltaTime, 0f, MaxCountdownStep));
+    }
+
+    // Grows from the authored size to CountdownMaxGrowth times it as the
+    // countdown runs out, then holds there for GO.
+    public static int CountdownFontSize(int baseSize, float remaining)
+    {
+        float t = 1f - Mathf.Clamp01(remaining / CountdownSeconds);
+        return Mathf.RoundToInt(Mathf.Lerp(baseSize, baseSize * CountdownMaxGrowth, t));
     }
 
     // A teleport is free while the player still holds pauses -- spending one is

@@ -22,6 +22,7 @@ public static class AllTests
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
+        ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
