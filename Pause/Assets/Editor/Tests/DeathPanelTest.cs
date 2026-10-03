@@ -223,8 +223,12 @@ public static class DeathPanelTest
         Check("Menu still calls buttonClicks.mainMenuButton",
               menu.onClick.GetPersistentEventCount() > 0 && menu.onClick.GetPersistentMethodName(0) == "mainMenuButton");
         Check("buttons have press feedback", replay.GetComponent<DeathPanelPress>() != null && menu.GetComponent<DeathPanelPress>() != null);
-        Check("Replay shows the shared replay glyph", replay.transform.Find("Icon") != null &&
-              replay.transform.Find("Icon").GetComponent<Image>().sprite != null);
+        Check("Replay shows the quick actions' replay glyph", GlyphName(replay) == "QuickAction_replay_glyph");
+        Check("Menu shows the quick actions' home glyph", GlyphName(menu) == "QuickAction_home_glyph");
+        foreach (var b in new[] { replay, menu })
+            foreach (var img in b.GetComponentsInChildren<Image>(true))
+                Check(b.name + " no longer uses the old clip-art (" + img.name + ")",
+                      img.sprite == null || (img.sprite.name != "redo-512" && img.sprite.name != "taxes-menu-icon"));
 
         // Sprites came from the SVG-sourced set.
         var frame = panel.Find("Frame").GetComponent<Image>();
@@ -266,6 +270,13 @@ public static class DeathPanelTest
         string p = t.name;
         while (t.parent != null && t.parent != root) { t = t.parent; p = t.name + "/" + p; }
         return p;
+    }
+
+    static string GlyphName(Button b)
+    {
+        var icon = b.transform.Find("Icon");
+        var img = icon != null ? icon.GetComponent<Image>() : null;
+        return img != null && img.sprite != null ? img.sprite.name : "(none)";
     }
 
     static Rect Inset(Rect r, float by) { return Rect.MinMaxRect(r.xMin + by, r.yMin + by, r.xMax - by, r.yMax - by); }

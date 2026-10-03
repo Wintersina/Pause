@@ -14,14 +14,18 @@ public static class AllTests
 {
     static readonly (string name, Func<int> execute)[] Suites =
     {
+        ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
+        ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
+        ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
+        ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
