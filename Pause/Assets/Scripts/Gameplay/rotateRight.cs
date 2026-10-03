@@ -28,7 +28,7 @@ public class rotateRight : MonoBehaviour {
         if (dock != null)
         {
             flyOffChecker = false;
-            if (!dock.Launching) dock.LaunchEquipped();
+            if (!dock.Launching) dock.LiftOff();
             return;
         }
         // No dock (should not happen in shopS6): fall back to the old timer.

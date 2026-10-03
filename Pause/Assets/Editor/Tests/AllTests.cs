@@ -36,6 +36,7 @@ public static class AllTests
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
+        ("ShipSelectionTest", ShipSelectionTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
