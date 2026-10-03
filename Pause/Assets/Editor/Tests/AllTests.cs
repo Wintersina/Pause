@@ -18,6 +18,7 @@ public static class AllTests
         ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
+        ("BackNavigationTest", BackNavigationTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
