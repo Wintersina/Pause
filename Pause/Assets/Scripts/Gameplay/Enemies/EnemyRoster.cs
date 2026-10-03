@@ -249,8 +249,8 @@ public static class EnemyRoster
                 "aestroiddark", "aestroidgay3"),
             Def("space_mine", "Rail Mine", M, 0, 0, "hazard_mine", Mine,
                 "The approved rail bomb: gunmetal clamp, steel hub, four lugs, cyan core that arms to a burst.",
-                "Bombs clamped to the side rails of every world, painted to match the local scenery. They " +
-                "never leave their rail, and the core arms as you pass - hug the middle lanes.",
+                "Bombs clamped to the side rails of deep space. They never leave their rail, and the core " +
+                "arms as you pass - hug the middle lanes.",
                 "mine"),
             Def("space_big", "Bastion", B, 0, 0, "enemy_space_big", Metal,
                 "Octagonal armoured pod, four bruise plates, twin cannon prongs, one big magenta reactor eye.",
@@ -292,13 +292,14 @@ public static class EnemyRoster
             Def("frost_rock_rime", "Rime Star", R, 1, 3, "hazard_frost_rock_rime", Ice,
                 "Six-point ice star with a hex cyan core.",
                 "A snowflake the size of a car, spinning slowly: pretty, deadly, mostly deadly."),
-            Def("frost_mine", "Frost Mine", M, 1, 0, "hazard_frost_mine", Mine,
-                "The rail mine as faceted ice: crystal horn, snowflake core, icicles on the clamp.",
-                "The Frost rails grow their own bombs: ice over a steel heart, with a snowflake that turns " +
-                "white-hot when you get close."),
-            Def("frost_big", "Cryo Bastion", B, 1, 0, "enemy_frost_big", Ice,
-                "Ice-armoured pod under a crown of ice spikes; a cyan cryo core.",
-                "A fortress of ice with a cold star inside. When the spikes grow, it's about to spit frost."),
+            Def("frost_mine", "Geode Mine", M, 1, 0, "hazard_frost_mine", Mine,
+                "A tall crystal geode held off the rail by two ice hooks; arming grows crystals that shoot out in a frost star.",
+                "A geode the Frost rails grew around a cold star. Get close and the crystals start to grow - " +
+                "then they all come out at once."),
+            Def("frost_big", "Glacier Golem", B, 1, 0, "enemy_frost_big", Ice,
+                "A hunched iceberg hulk with crystal shoulders, one cyan visor and a jagged ice maw that cracks open.",
+                "A walking iceberg with one cold eye. When its crystal jaw cracks open, the frost is coming " +
+                "your way."),
             Def("frost_fighter_1", "Flake", F, 1, 1, "enemy_frost_fighter_1", Ice,
                 "Hex drone, two swept crystal blades and an icicle lance.",
                 "A tiny drone with a big icicle. It drifts like a snowflake until it decides you're the target."),
@@ -312,12 +313,13 @@ public static class EnemyRoster
                 "Armoured-collar drone, seven crystal blades, double lance.",
                 "The drone the others form up behind. When it flares, the whole sky glitters."),
             Def("frost_chaser", "Frost Lancer", C, 1, 0, "enemy_frost_chaser", Ice,
-                "Ice-hulled hound; an icicle lance shoots out between its jaws on the lunge.",
+                "A needle of ice that hunts from below; its lance shoots out of its nose and its fins fold back on the lunge.",
                 "It hunts from below with an icicle for a nose. The lance shoots out when it lunges, so " +
                 "don't be where it's pointing."),
-            Def("frost_alien", "Cryo Mite", A, 1, 0, "enemy_frost_alien", Ice,
-                "Crowned bug in an ice-blue shell, rime on the shoulders, magenta eye.",
-                "The mites followed you here and grew winter coats. Same lines, same wiggle, colder bite."),
+            Def("frost_alien", "Cryo Jelly", A, 1, 0, "enemy_frost_alien", Ice,
+                "A crystal-domed jellyfish with one magenta eye, trailing icicle tentacles that lash.",
+                "Ice jellies drifting in lines, tentacles swaying. They pull them in, then lash - keep to " +
+                "the gaps."),
 
             // ============================================================== VERDANT
             Def("verdant_rock_pod", "Thorn Pod", R, 2, 1, "hazard_verdant_rock_pod", Spore,
@@ -331,10 +333,10 @@ public static class EnemyRoster
             Def("verdant_rock_knot", "Bramble Knot", R, 2, 3, "hazard_verdant_rock_knot", Spore,
                 "Three thorny branches knotted round a glowing bile bud.",
                 "Branches tangled into a spinning thorn ball. It catches anything - including lost pilots."),
-            Def("verdant_mine", "Vine Mine", M, 2, 0, "hazard_verdant_mine", Mine,
-                "The rail mine as bark and vine: thorn-tipped lugs, bile core, leaf burst.",
-                "On Verdant the rail bombs are grown, not built: bark shell, vine wrap, a bile-green core " +
-                "that blooms when you pass."),
+            Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
+                "A thorny seed burr hanging from a coiled vine tendril; its husk splits along glowing seams to arm.",
+                "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
+                "to scatter thorns everywhere."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
                 "Five-petal carnivorous bud; the petals fold back to show a toothed glowing maw.",
                 "A flower that eats ships. Shut, it's just a big bud; when the petals snap open, it's " +
@@ -351,13 +353,13 @@ public static class EnemyRoster
             Def("verdant_fighter_4", "Hornet Queen", F, 2, 4, "enemy_verdant_fighter_4", Spore,
                 "Four-winged armoured queen with scythes and stinger.",
                 "The swarm's queen: four wings, two scythes and one stinger, all pointed your way."),
-            Def("verdant_chaser", "Stinger", C, 2, 0, "enemy_verdant_chaser", Spore,
-                "Up-facing wasp hunter; its stinger stabs forward on the lunge.",
-                "It rises from the canopy below and chases with its stinger out. Slide sideways and let it " +
-                "stab the air."),
-            Def("verdant_alien", "Sprout Mite", A, 2, 0, "enemy_verdant_alien", Spore,
-                "Crowned bug with a leaf crown and magenta bud, moss shell.",
-                "The mites took root here. They've sprouted leaves, but they still march in lines."),
+            Def("verdant_chaser", "Dragonsting", C, 2, 0, "enemy_verdant_chaser", Spore,
+                "A four-winged dragonfly with bile compound eyes, forward mandibles and a long barbed tail.",
+                "It rises out of the canopy on four blurring wings and snaps at your engines. Slide sideways " +
+                "and let it bite the air."),
+            Def("verdant_alien", "Snap Sprout", A, 2, 0, "enemy_verdant_alien", Spore,
+                "A walking flytrap on root legs; its jaws gape and snap around a bile gullet.",
+                "Flytraps that learned to march in lines. Their jaws snap shut on anything slow."),
 
             // ================================================================ EMBER
             Def("ember_rock_magma", "Magma Rock", R, 3, 1, "hazard_ember_rock_magma", Magma,
@@ -369,12 +371,13 @@ public static class EnemyRoster
             Def("ember_rock_obsidian", "Obsidian Shard", R, 3, 3, "hazard_ember_rock_obsidian", Magma,
                 "Tall violet obsidian blade with a sodium rim and one lava vein.",
                 "Volcanic glass sharpened by the heat. It reflects the lava so well you might miss it."),
-            Def("ember_mine", "Molten Mine", M, 3, 0, "hazard_ember_mine", Mine,
-                "The rail mine as basalt with magma cracks; sodium core, ember burst.",
-                "Ember's rail bombs run hot even asleep. When the cracks glow white, it's armed."),
-            Def("ember_big", "Furnace Hulk", B, 3, 0, "enemy_ember_big", Magma,
-                "Horned basalt hulk with a furnace-grille core.",
-                "A walking furnace with horns. The grille glows brighter right before it slams open."),
+            Def("ember_mine", "Crucible Mine", M, 3, 0, "hazard_ember_mine", Mine,
+                "A basalt crucible slung from the rail on chains; its magma boils over and erupts when armed.",
+                "A pot of magma on a chain. It simmers as you pass and boils over if you linger - don't."),
+            Def("ember_big", "Magma Skull", B, 3, 0, "enemy_ember_big", Magma,
+                "A horned basalt skull whose furnace jaw glows behind a grille and drops open.",
+                "A skull of cooled lava with a furnace for a jaw. The grille glows brighter right before it " +
+                "drops open."),
             Def("ember_fighter_1", "Cinder", F, 3, 1, "enemy_ember_fighter_1", Metal,
                 "Charred arrowhead with molten vents and a magenta visor.",
                 "A scorched little dart that leaves a smell of burnt metal everywhere it goes."),
@@ -388,11 +391,12 @@ public static class EnemyRoster
                 "Horned, flame-finned heavy with a sodium core.",
                 "The fire fleet's champion: horns, flames and a core like a small sun. Shield up, grin on."),
             Def("ember_chaser", "Cinder Fang", C, 3, 0, "enemy_ember_chaser", Metal,
-                "Char hound with a molten spine and a flame thruster.",
-                "It climbs out of the lava glow below and snaps at your heels until it overheats."),
-            Def("ember_alien", "Flame Mite", A, 3, 0, "enemy_ember_alien", Magma,
-                "Basalt-shelled bug with a flame crown and lava cracks.",
-                "Even the mites are on fire here. They don't seem to mind. You should."),
+                "A wide salamander head whose upper and lower jaws hinge apart to show a molten throat.",
+                "It climbs out of the lava glow below and gapes its molten jaws at your heels until it " +
+                "overheats."),
+            Def("ember_alien", "Ember Imp", A, 3, 0, "enemy_ember_alien", Magma,
+                "A living flame wearing a horned basalt mask with two magenta eyes.",
+                "Little flames in basalt masks, grinning in formation. They flare up when you get close."),
         };
     }
 }

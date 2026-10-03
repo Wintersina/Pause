@@ -34,6 +34,7 @@ public static class EnemyRosterTest
 
         EveryWorldFillsEveryRole();
         OnlySpaceHasSpaceRocks();
+        NoArtIsSharedBetweenWorlds();
         SizesStayWithinFifteenPercent();
         EveryEnemyIsAClearTarget();
         FlipbooksLoadAndAnimate();
@@ -103,6 +104,78 @@ public static class EnemyRosterTest
         foreach (var d in EnemyRoster.For(0, EnemyRole.Rock))
             Check("Space keeps the crater rocks: " + d.key, d.key.StartsWith("space_rock_"));
         Check("Space keeps the rail mine", EnemyRoster.One(0, EnemyRole.Mine).codexId == "hazard_mine");
+    }
+
+    // No sprite, texture or drawing is shared between worlds: every texture
+    // GUID belongs to one world, and for every role the silhouettes of any
+    // two worlds differ (not a palette swap of one shape).
+    static void NoArtIsSharedBetweenWorlds()
+    {
+        var owner = new Dictionary<string, int>();
+        foreach (var d in EnemyRoster.All)
+        {
+            var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
+            var sr = go.GetComponent<SpriteRenderer>();
+            string guid = sr.sprite != null ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite.texture)) : "";
+            UnityEngine.Object.DestroyImmediate(go);
+            Check(d.key + " has its own texture asset", !string.IsNullOrEmpty(guid));
+            int w;
+            if (owner.TryGetValue(guid, out w))
+                Check(d.key + " texture " + guid + " is not also used by " + W(w), w == d.world);
+            else owner[guid] = d.world;
+        }
+        var guidWorlds = new Dictionary<string, HashSet<int>>();
+        foreach (var d in EnemyRoster.All)
+        {
+            string guid = AssetDatabase.AssetPathToGUID("Assets/Art/Resources/" + d.StripPath + ".png");
+            if (!guidWorlds.ContainsKey(guid)) guidWorlds[guid] = new HashSet<int>();
+            guidWorlds[guid].Add(d.world);
+        }
+        int shared = 0;
+        foreach (var pair in guidWorlds) if (pair.Value.Count > 1) shared++;
+        Check("no texture GUID appears in more than one world's roster (" + shared + " shared)", shared == 0);
+
+        var masks = new Dictionary<string, bool[]>();
+        foreach (var d in EnemyRoster.All) masks[d.key] = Mask(d);
+        foreach (var role in Roles)
+            for (int a = 0; a < Worlds; a++)
+                for (int b = a + 1; b < Worlds; b++)
+                    foreach (var da in EnemyRoster.For(a, role))
+                        foreach (var db in EnemyRoster.For(b, role))
+                        {
+                            if (role == EnemyRole.Fighter && da.tier != db.tier) continue;
+                            float iou = IoU(masks[da.key], masks[db.key]);
+                            Check(string.Format("{0} and {1} are different drawings (silhouette overlap {2:P0} < 80%)",
+                                                da.key, db.key, iou), iou < .8f);
+                        }
+    }
+
+    static bool[] Mask(EnemyDef d)
+    {
+        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        if (!File.Exists(path)) return new bool[0];
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(path));
+        int h = tex.height;
+        var px = tex.GetPixels32();
+        var mask = new bool[h * h];
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < h; x++)
+                mask[y * h + x] = px[y * tex.width + x].a > 128;
+        UnityEngine.Object.DestroyImmediate(tex);
+        return mask;
+    }
+
+    static float IoU(bool[] a, bool[] b)
+    {
+        if (a.Length == 0 || a.Length != b.Length) return 1f;
+        int both = 0, either = 0;
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (a[i] && b[i]) both++;
+            if (a[i] || b[i]) either++;
+        }
+        return either == 0 ? 1f : both / (float)either;
     }
 
     // ---- 2: sizes ----------------------------------------------------------------
