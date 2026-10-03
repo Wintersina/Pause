@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Button / pill, 9-slice white template tinted per action at runtime: flat
+  fill, one hard shade band along the bottom, ink outline, chamfered corners.
+  Multiplying by the tint keeps the ink black. 48x40 units, 2x render.
+  9-slice border = 14u (28 px).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <path d="M8 2 L46 2 L46 32 L40 38 L2 38 L2 8 Z" fill="#FFFFFF"/>
+  <path d="M2 28 L46 28 L46 32 L40 38 L2 38 Z" fill="@TEMPLATE_SHADE@"/>
+  <path d="M8 2 L46 2 L46 32 L40 38 L2 38 L2 8 Z" fill="none" stroke="@INK@" stroke-width="3" stroke-linejoin="miter"/>
+</svg>

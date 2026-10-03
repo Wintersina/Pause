@@ -32,6 +32,7 @@ public static class AllTests
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
+        ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
@@ -44,6 +45,7 @@ public static class AllTests
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
+        ("TutorialRobotTest", TutorialRobotTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };
 

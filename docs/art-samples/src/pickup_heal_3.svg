@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Heal cell pulse, frame 3. Hold 3 ticks. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="glow-back"><polygon points="32,5 55.4,18.5 55.4,45.5 32,59 8.6,45.5 8.6,18.5" fill="#2EE6A6" opacity="0.51" filter="url(#glowM)"/></g>
+<g id="base"><polygon points="32,5 55.4,18.5 55.4,45.5 32,59 8.6,45.5 8.6,18.5" fill="#0F5E6A" /><polygon points="32,15 46.7,23.5 46.7,40.5 32,49 17.3,40.5 17.3,23.5" fill="#2EE6A6" /></g>
+<g id="shadow"><polygon points="55.4,18.5 55.4,45.5 32,59 32,49 46.7,40.5 46.7,23.5" fill="#0E5A50" /><polygon points="46.7,23.5 46.7,40.5 32,49 32,32" fill="#0E5A50" opacity="0.6"/></g>
+<g id="highlight"><polygon points="8.6,18.5 32,5 32,15 17.3,23.5" fill="#0F5E6A" /><polygon points="22,20 28,15 24,22" fill="#F4EAD4" /><polygon points="28,20 36,20 36,28 44,28 44,36 36,36 36,44 28,44 28,36 20,36 20,28 28,28" fill="#F4EAD4" /><polygon points="33.6,8.4 33.6,11.6 30.4,11.6 30.4,8.4" fill="#2EE6A6" /><polygon points="52.6,41.4 52.6,44.6 49.5,44.6 49.5,41.4" fill="#2EE6A6" /><polygon points="14.5,41.4 14.5,44.6 11.4,44.6 11.4,41.4" fill="#2EE6A6" /></g>
+<g id="ink"><polygon points="32,5 55.4,18.5 55.4,45.5 32,59 8.6,45.5 8.6,18.5" fill="none" stroke="#140C14" stroke-width="3.2" stroke-linejoin="round" /><polygon points="32,15 46.7,23.5 46.7,40.5 32,49 17.3,40.5 17.3,23.5" fill="none" stroke="#140C14" stroke-width="2.2" stroke-linejoin="round" /><polygon points="28,20 36,20 36,28 44,28 44,36 36,36 36,44 28,44 28,36 20,36 20,28 28,28" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" /><polyline points="32,5 32,15" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /><polyline points="55.4,18.5 46.7,23.5" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /><polyline points="55.4,45.5 46.7,40.5" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /><polyline points="32,59 32,49" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /><polyline points="8.6,45.5 17.3,40.5" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /><polyline points="8.6,18.5 17.3,23.5" fill="none" stroke="#140C14" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="glow"><polygon points="32,15 46.7,23.5 46.7,40.5 32,49 17.3,40.5 17.3,23.5" fill="#F4EAD4" opacity="0.22000000000000003"/><polygon points="28,20 36,20 36,28 44,28 44,36 36,36 36,44 28,44 28,36 20,36 20,28 28,28" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" /></g>
+</svg>

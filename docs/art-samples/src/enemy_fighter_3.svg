@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Common enemy fighter idle, frame 3. Hold 3 ticks. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="104" viewBox="0 0 128 104">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="base"><polygon points="64,13 52,13 40,5 8,17 4,31 22,39 28,59 32.8,95 42.8,91 46,69 54,65 58,83 64,89 64,89 70,83 74,65 82,69 85.2,91 95.2,95 100,59 106,39 124,31 120,17 88,5 76,13 64,13" fill="#5A6A88" /><polygon points="40,7 10,18 7,29 22,36 34,29" fill="#74409A" /><polygon points="88,7 118,18 121,29 106,36 94,29" fill="#74409A" /><polygon points="52,41 76,41 72,51 56,51" fill="#140C14" /></g>
+<g id="shadow"><polygon points="64,13 76,13 82,29 82,65 74,65 70,83 64,89" fill="#262D44" /><polygon points="88,7 118,18 121,29 106,36 94,29" fill="#3A1E52" /><polygon points="100,59 95.2,95 85.2,91 82,69" fill="#262D44" /></g>
+<g id="highlight"><polygon points="52,14 40,7 12,18 14,20 40,10" fill="#A3B4CC" /><polygon points="29,61 32.8,91 32,61" fill="#A3B4CC" /></g>
+<g id="ink"><polygon points="64,13 52,13 40,5 8,17 4,31 22,39 28,59 32.8,95 42.8,91 46,69 54,65 58,83 64,89 64,89 70,83 74,65 82,69 85.2,91 95.2,95 100,59 106,39 124,31 120,17 88,5 76,13 64,13" fill="none" stroke="#140C14" stroke-width="4" stroke-linejoin="round" /><polygon points="40,7 10,18 7,29 22,36 34,29" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" /><polygon points="88,7 118,18 121,29 106,36 94,29" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" /><polyline points="64,15 64,39" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="64,53 64,85" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="46,69 40,43 52,41" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="82,69 88,43 76,41" fill="none" stroke="#140C14" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polygon points="52,41 76,41 72,51 56,51" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="round" /></g>
+<g id="glow"><polygon points="48,39 80,39 74,54 54,54" fill="#FF2E88" opacity="0.5249999999999999" filter="url(#glowM)"/><polygon points="55,43 73,43 70.5,49 57.5,49" fill="#FF2E88" /><polygon points="58,44 64,44 62,48 59,48" fill="#F4EAD4" opacity="0.75"/></g>
+</svg>

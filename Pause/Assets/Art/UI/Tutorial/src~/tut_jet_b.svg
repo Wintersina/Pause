@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hover jet, frame B (shorter, wider) of the two-frame flicker.
+  30x26 units, rasterize at 2x (60x52 px).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="26" viewBox="0 0 30 26">
+  <path d="M5 2 L25 2 L20 11 L15 18 L10 11 Z" fill="@ORANGE@" stroke="@INK@" stroke-width="2.5" stroke-linejoin="miter"/>
+  <path d="M10 3 L20 3 L17 8 L15 12 L13 8 Z" fill="@ORANGE_LIGHT@"/>
+</svg>
