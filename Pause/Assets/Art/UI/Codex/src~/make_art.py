@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """Codex UI art: parametric SVG sources + rasterized sprites + the C# palette.
 
-Style: 80s anime, Akira (1988) palette, cartoony flat 2D cels.
-  * hard-edged angular shapes (chamfered corners, no rounded bubbles)
-  * thick ink outlines, flat fills, at most ONE shadow tone
-  * no gloss, bevels, blurs or gradients
-  * deep indigo / blue-black base; teal or sodium-orange accents;
-    Kaneda red for highlights and selection; magenta used sparingly
+Follows docs/art-style.md (80s anime, Akira 1988 palette, flat cartoon cels):
+  * flat colour shapes, at most base + ONE hard shadow + ONE highlight kick
+  * thick warm-black INK contour on every solid (4-5 u for UI plates),
+    miter joins on UI, chamfers and wedges -- no rounded rects, pills, gloss,
+    bevels or gradients
+  * layer stack per sprite: base, shadow, highlight, ink (no glows on UI)
+  * TEAL accents, Kaneda RED for highlights/selection, SODIUM/AMBER warm
+    accents, MAGENTA at most once per screen (only the Pilot's Log art)
 
-PALETTE below is the single source of truth. Running this script
+PALETTE below uses the style guide's names and hex values
+(docs/art-samples/src/akira.py) and is the single source for the codex.
+Running this script (or ./render.sh)
   1. writes every SVG next to it (this "~" folder is ignored by Unity),
   2. rasterizes them with resvg into Art/Resources/Codex (2x, sprite ppu 200,
-     so one SVG unit == one UI canvas unit), and
-  3. regenerates Scripts/Codex/CodexPalette.cs from the same values, so the
-     runtime tints can never drift from the art.
+     so one SVG unit == one UI canvas unit; entry art at 4x, ppu 400), and
+  3. regenerates Scripts/Codex/CodexPalette.cs from the same values.
 
-Requires resvg (brew install resvg).  Usage: python3 make_art.py
+Requires resvg (brew install resvg).
 """
+import math
 import os
 import subprocess
 
@@ -25,178 +29,237 @@ OUT = os.path.normpath(os.path.join(HERE, "../../../Resources/Codex"))
 CS = os.path.normpath(os.path.join(HERE, "../../../../Scripts/Codex/CodexPalette.cs"))
 
 # --------------------------------------------------------------------------
-# Palette (hex, alpha 0-1). Names are used verbatim in CodexPalette.cs.
+# Palette: style-guide name -> (C# name, hex, alpha)
 # --------------------------------------------------------------------------
 PALETTE = {
-    "Ink":        ("#06060f", 1.0),   # outlines, locked blackout silhouettes
-    "Night":      ("#0b0c26", 1.0),   # deep indigo base (panel body)
-    "Shadow":     ("#171944", 1.0),   # the one shadow tone (cards, idle tabs)
-    "Slate":      ("#3a3f78", 1.0),   # muted edge for locked / idle states
-    "Teal":       ("#21d4c8", 1.0),   # primary accent
-    "Sodium":     ("#ff8c1a", 1.0),   # secondary accent (titles, counters)
-    "SodiumShade":("#b85a10", 1.0),   # the sodium accent's single shadow tone
-    "KanedaRed":  ("#e3202c", 1.0),   # highlights and selection
-    "Magenta":    ("#d6268f", 1.0),   # sparse accent
-    "Paper":      ("#f1e9d6", 1.0),   # body text / glyph fill
-    "Muted":      ("#9a9cc8", 1.0),   # secondary text
-    "Scrim":      ("#05050f", 0.86),  # full-screen dim behind the panel
+    "INK":       ("Ink", "#140C14", 1.0),         # every outline; locked blackout silhouettes
+    "NIGHT_0":   ("Night0", "#070A16", 1.0),      # deepest
+    "NIGHT_1":   ("Night1", "#0E1424", 1.0),      # UI panel fill
+    "INDIGO_0":  ("Indigo0", "#1A1F45", 1.0),     # cards / idle tabs (the one shadow tone)
+    "INDIGO_1":  ("Indigo1", "#2A2E6B", 1.0),     # locked edges
+    "RED":       ("Red", "#D8232C", 1.0),         # Kaneda red: selection, highlights
+    "RED_SH":    ("RedShadow", "#86121F", 1.0),
+    "SODIUM":    ("Sodium", "#F2862B", 1.0),      # title, counters
+    "AMBER":     ("Amber", "#FFB43C", 1.0),
+    "SODIUM_SH": ("SodiumShadow", "#A9481A", 1.0),
+    "TEAL":      ("Teal", "#1FB5B9", 1.0),        # primary UI accent
+    "CYAN":      ("Cyan", "#6EF2EE", 1.0),
+    "TEAL_SH":   ("TealShadow", "#0F5E6A", 1.0),
+    "MAGENTA":   ("Magenta", "#FF2E88", 1.0),     # one accent per screen at most
+    "BONE":      ("Bone", "#F4EAD4", 1.0),        # type, kicks (never #FFF)
+    "STEEL_HI":  ("SteelHi", "#A3B4CC", 1.0),     # secondary / muted type
+    "SCRIM":     ("Scrim", "#070A16", 0.88),      # full-screen dim behind the panel
 }
 
 def c(name):
-    return PALETTE[name][0]
+    return PALETTE[name][1]
 
-INK_W = 5.0  # thick ink line, canvas units
+UI_INK = 5.0      # outer contour for UI plates (guide: 4 to 5 u)
+PANEL_LINE = 2.0  # interior panel lines
 
 # --------------------------------------------------------------------------
-# Geometry helpers
+# Geometry + layered SVG
 # --------------------------------------------------------------------------
 
-def chamfer(x, y, w, h, cuts):
-    """Polygon points for a rect with straight corner cuts (tl, tr, br, bl)."""
+def chamfer_pts(x, y, w, h, cuts):
+    """Rect with straight corner cuts (tl, tr, br, bl)."""
     tl, tr, br, bl = cuts
-    pts = [
-        (x + tl, y), (x + w - tr, y), (x + w, y + tr), (x + w, y + h - br),
-        (x + w - br, y + h), (x + bl, y + h), (x, y + h - bl), (x, y + tl),
-    ]
-    return " ".join("%.2f,%.2f" % p for p in pts)
+    return [(x + tl, y), (x + w - tr, y), (x + w, y + tr), (x + w, y + h - br),
+            (x + w - br, y + h), (x + bl, y + h), (x, y + h - bl), (x, y + tl)]
 
-def inset_cuts(cuts, d):
-    # Shrinking a 45-degree chamfer by d keeps the edge parallel when the cut
-    # shrinks by d*(sqrt2 - 1); close enough to read as parallel at UI sizes.
-    k = d * 0.4142
+def pts(p):
+    return " ".join("%.2f,%.2f" % q for q in p)
+
+def inset(cuts, d):
+    k = d * 0.4142   # keeps a 45-degree chamfer parallel when inset by d
     return tuple(max(0.0, cut - k) for cut in cuts)
 
-def shape(w, h, cuts, fill, ink=INK_W, edge=None, edge_w=3.0, edge_gap=4.0, extra=""):
-    """A flat cel panel: ink outline, flat fill, optional inner rule."""
+class Sprite:
+    """Collects shapes into the guide's layer stack."""
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+        self.layers = {"base": [], "shadow": [], "highlight": [], "ink": []}
+
+    def poly(self, layer, p, fill="none", stroke=None, width=0, join="miter"):
+        s = '<polygon points="%s" fill="%s"' % (pts(p), fill)
+        if stroke:
+            s += ' stroke="%s" stroke-width="%.2f" stroke-linejoin="%s"' % (stroke, width, join)
+        self.layers[layer].append(s + "/>")
+
+    def raw(self, layer, s):
+        self.layers[layer].append(s)
+
+    def svg(self, note):
+        body = "\n".join('  <g id="%s">%s</g>' % (k, "".join(v)) for k, v in self.layers.items() if v)
+        return ('<?xml version="1.0" encoding="UTF-8"?>\n<!-- %s\n     Generated by make_art.py from the '
+                'docs/art-style.md palette - edit the script, not this file. -->\n'
+                '<svg xmlns="http://www.w3.org/2000/svg" width="%g" height="%g" viewBox="0 0 %g %g">\n%s\n</svg>\n'
+                % (note, self.w, self.h, self.w, self.h, body))
+
+def plate(sp, cuts, base, ink=UI_INK, shadow=None, kick=True):
+    """A flat UI plate: base fill, a hard shadow strip along the lower-right
+    edges (light from the upper left), a BONE kick on the top-left edge, and
+    the INK contour."""
+    w, h = sp.w, sp.h
     i = ink / 2.0
-    body = '<polygon points="%s" fill="%s" stroke="%s" stroke-width="%.2f" stroke-linejoin="miter"/>' % (
-        chamfer(i, i, w - ink, h - ink, inset_cuts(cuts, i)), fill, c("Ink"), ink)
-    rule = ""
-    if edge:
-        d = ink + edge_gap + edge_w / 2.0
-        rule = '<polygon points="%s" fill="none" stroke="%s" stroke-width="%.2f" stroke-linejoin="miter"/>' % (
-            chamfer(d, d, w - 2 * d, h - 2 * d, inset_cuts(cuts, d)), edge, edge_w)
-    return body + rule + extra
+    outline = chamfer_pts(i, i, w - ink, h - ink, inset(cuts, i))
+    sp.poly("base", outline, fill=base)
+    if shadow:
+        t = 5.0
+        sp.poly("shadow", [(w - ink, cuts[1] + ink), (w - ink, h - cuts[2] - ink), (w - cuts[2] - ink, h - ink),
+                           (cuts[3] + ink, h - ink), (cuts[3] + ink + t, h - ink - t),
+                           (w - cuts[2] - ink - t * .6, h - ink - t), (w - ink - t, h - cuts[2] - ink - t * .6),
+                           (w - ink - t, cuts[1] + ink + t)], fill=shadow)
+    if kick:
+        k = 3.0
+        x0 = ink + cuts[0] * .55 + 4
+        sp.poly("highlight", [(x0, ink + 1), (x0 + 22, ink + 1), (x0 + 19, ink + 1 + k), (x0 - 3, ink + 1 + k)], fill=c("BONE"))
+    sp.poly("ink", outline, stroke=c("INK"), width=ink)
+    return outline
 
-def edge_only(w, h, cuts, ink=INK_W, edge_w=3.0, edge_gap=4.0, extra=""):
-    """White inner rule alone, tinted at runtime (state colour)."""
-    d = ink + edge_gap + edge_w / 2.0
-    return '<polygon points="%s" fill="none" stroke="#ffffff" stroke-width="%.2f" stroke-linejoin="miter"/>%s' % (
-        chamfer(d, d, w - 2 * d, h - 2 * d, inset_cuts(cuts, d)), edge_w, extra)
-
-def svg(w, h, body, note):
-    return ('<?xml version="1.0" encoding="UTF-8"?>\n<!-- %s\n     Generated by make_art.py - edit the script, not this file. -->\n'
-            '<svg xmlns="http://www.w3.org/2000/svg" width="%g" height="%g" viewBox="0 0 %g %g">\n%s\n</svg>\n'
-            % (note, w, h, w, h, body))
+def rule(sp, cuts, ink=UI_INK, gap=4.0, width=3.0, colour="#ffffff"):
+    """Inner accent rule (white template, tinted at runtime)."""
+    d = ink + gap + width / 2.0
+    sp.poly("highlight", chamfer_pts(d, d, sp.w - 2 * d, sp.h - 2 * d, inset(cuts, d)), stroke=colour, width=width)
 
 # --------------------------------------------------------------------------
 # Sprites: name -> (svg, zoom, 9-slice border in canvas units)
 # --------------------------------------------------------------------------
 SPRITES = {}
 
-def add(name, w, h, body, note, border=0, zoom=2):
-    SPRITES[name] = (svg(w, h, body, note), zoom, border)
+def add(name, sp, note, border=0, zoom=2):
+    SPRITES[name] = (sp.svg(note), zoom, border)
 
-# Panel frame: big angular cel, indigo body, teal inner rule, a red tab
-# notch on the top edge and a magenta tick bottom-right (sparse).
+# Panel frame: night plate, teal inner rule, a red tab notch top-left and an
+# amber tick bottom-right (both inside the 9-slice corners).
 P = 160
-add("cx_panel", P, P, shape(P, P, (34, 10, 34, 10), c("Night"), ink=7, edge=c("Teal"), edge_w=3, edge_gap=6,
-    extra='<polygon points="38,0 66,0 60,8 44,8" fill="%s" stroke="%s" stroke-width="3"/>'
-          '<rect x="%d" y="%d" width="22" height="5" fill="%s"/>'
-          % (c("KanedaRed"), c("Ink"), P - 60, P - 14, c("Magenta"))),
-    "Codex panel frame - 9-slice, border 64u.", border=64)
+sp = Sprite(P, P)
+CUTS = (34, 10, 34, 10)
+plate(sp, CUTS, c("NIGHT_1"), shadow=c("INDIGO_0"), kick=False)
+rule(sp, CUTS, gap=7, colour=c("TEAL"))
+sp.poly("highlight", [(40, 0), (64, 0), (58, 9), (46, 9)], fill=c("RED"), stroke=c("INK"), width=2.5)
+sp.poly("highlight", [(P - 60, P - 15), (P - 38, P - 15), (P - 41, P - 10), (P - 63, P - 10)], fill=c("AMBER"))
+add("cx_panel", sp, "Codex panel frame - 9-slice, border 64u.", border=64)
 
-# Card: shadow-tone body with a cut top-right corner; edge layer tinted.
-add("cx_card", 96, 96, shape(96, 96, (0, 18, 0, 8), c("Shadow")),
-    "Codex card body (flat shadow tone) - 9-slice, border 28u.", border=28)
-add("cx_card_edge", 96, 96, edge_only(96, 96, (0, 18, 0, 8)),
-    "Codex card inner rule - white, tinted per state - 9-slice, border 28u.", border=28)
+# Card: one shadow tone body (INDIGO_0) with a cut top-right corner.
+CARD = (0, 18, 0, 8)
+sp = Sprite(96, 96)
+plate(sp, CARD, c("INDIGO_0"), ink=4.5, shadow=c("NIGHT_1"))
+add("cx_card", sp, "Codex card body - 9-slice, border 28u.", border=28)
+sp = Sprite(96, 96)
+rule(sp, CARD, ink=4.5)
+add("cx_card_edge", sp, "Codex card inner rule - white, tinted per state - 9-slice, border 28u.", border=28)
 
-# Button: angular slab, edge layer adds a solid accent block on the left.
-add("cx_button", 96, 80, shape(96, 80, (18, 0, 18, 0), c("Shadow"), ink=6),
-    "Codex button body - 9-slice, border 30u.", border=30)
-add("cx_button_edge", 96, 80, edge_only(96, 80, (18, 0, 18, 0), ink=6,
-    extra='<polygon points="12,22 20,14 20,66 12,66" fill="#ffffff"/>'),
-    "Codex button inner rule + accent block - white, tinted - 9-slice, border 30u.", border=30)
+# Button: angular slab; its edge layer adds a solid accent wedge on the left.
+BTN = (18, 0, 18, 0)
+sp = Sprite(96, 80)
+plate(sp, BTN, c("INDIGO_0"), ink=5, shadow=c("NIGHT_1"))
+add("cx_button", sp, "Codex button body - 9-slice, border 30u.", border=30)
+sp = Sprite(96, 80)
+rule(sp, BTN, ink=5)
+sp.poly("highlight", [(12, 24), (20, 16), (20, 66), (12, 66)], fill="#ffffff")
+add("cx_button_edge", sp, "Codex button inner rule + accent wedge - white, tinted - 9-slice, border 30u.", border=30)
 
-# Tab / category tag: slanted cel, white fill tinted (red when selected).
-add("cx_tab", 56, 32, '<polygon points="%s" fill="#ffffff" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-    % (chamfer(2, 2, 52, 28, (10, 0, 10, 0)), c("Ink")),
-    "Codex tab / tag - white fill tinted at runtime, ink outline - 9-slice, border 14u.", border=14)
+# Tab / category tag: slanted cel, white base tinted at runtime (RED = selected).
+sp = Sprite(56, 32)
+o = chamfer_pts(2, 2, 52, 28, (10, 0, 10, 0))
+sp.poly("base", o, fill="#ffffff")
+sp.poly("ink", o, stroke=c("INK"), width=4)
+add("cx_tab", sp, "Codex tab / tag - white base tinted at runtime, INK contour - 9-slice, border 14u.", border=14)
 
-# Toast: small night cel with a sodium-orange block on the left.
-add("cx_toast", 80, 48, shape(80, 48, (12, 0, 12, 0), c("Night"), ink=5,
-    extra='<polygon points="5,17 17,5 22,5 22,43 5,43" fill="%s"/>' % c("Sodium")),
-    "New-entry toast - 9-slice, border 24u.", border=24)
+# Toast: small night plate with a sodium wedge on the left.
+sp = Sprite(80, 48)
+plate(sp, (12, 0, 12, 0), c("NIGHT_1"), ink=4.5, kick=False)
+sp.poly("highlight", [(5, 17), (17, 5), (22, 5), (22, 43), (5, 43)], fill=c("SODIUM"))
+sp.raw("ink", '<line x1="22" y1="5" x2="22" y2="43" stroke="%s" stroke-width="%g"/>' % (c("INK"), PANEL_LINE))
+add("cx_toast", sp, "New-entry toast - 9-slice, border 24u.", border=24)
 
-# Divider: hard teal rule with a red block in the middle.
-add("cx_divider", 440, 16,
-    '<polygon points="0,8 12,3 208,3 208,13 12,13" fill="%s" stroke="%s" stroke-width="2"/>'
-    '<polygon points="440,8 428,3 232,3 232,13 428,13" fill="%s" stroke="%s" stroke-width="2"/>'
-    '<polygon points="212,1 228,1 228,15 212,15" fill="%s" stroke="%s" stroke-width="2"/>'
-    % (c("Teal"), c("Ink"), c("Teal"), c("Ink"), c("KanedaRed"), c("Ink")),
-    "Header divider (not sliced).")
+# Divider: hard teal rails with a red block in the middle.
+sp = Sprite(440, 16)
+for p in ([(0, 8), (12, 3), (208, 3), (208, 13), (12, 13)], [(440, 8), (428, 3), (232, 3), (232, 13), (428, 13)]):
+    sp.poly("base", p, fill=c("TEAL"), stroke=c("INK"), width=PANEL_LINE)
+sp.poly("highlight", [(212, 1), (228, 1), (228, 15), (212, 15)], fill=c("RED"), stroke=c("INK"), width=PANEL_LINE)
+add("cx_divider", sp, "Header divider (not sliced).")
 
-# Header marker: a red angular chevron block.
-add("cx_marker", 32, 32, '<polygon points="4,4 18,4 28,16 18,28 4,28 14,16" fill="%s" stroke="%s" stroke-width="3" stroke-linejoin="miter"/>'
-    % (c("KanedaRed"), c("Ink")), "Header marker chevron.")
+# Header marker: red chevron wedge.
+sp = Sprite(32, 32)
+m = [(4, 4), (18, 4), (28, 16), (18, 28), (4, 28), (14, 16)]
+sp.poly("base", m, fill=c("RED"))
+sp.poly("shadow", [(18, 28), (28, 16), (23, 16), (15, 25)], fill=c("RED_SH"))
+sp.poly("ink", m, stroke=c("INK"), width=3)
+add("cx_marker", sp, "Header marker chevron.")
 
-# Glyphs: flat paper/white fills with ink outlines.
-add("cx_lock", 32, 32,
-    '<path d="M10 15 V10 H22 V15" fill="none" stroke="%s" stroke-width="7" stroke-linejoin="miter"/>'
-    '<path d="M10 15 V10 H22 V15" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="miter"/>'
-    '<polygon points="6,14 26,14 26,28 6,28" fill="#ffffff" stroke="%s" stroke-width="3"/>'
-    '<rect x="14.5" y="18" width="3" height="6" fill="%s"/>' % (c("Ink"), c("Ink"), c("Ink")),
-    "Locked glyph - white, tinted at runtime.")
-add("cx_back", 64, 64,
-    '<polygon points="40,10 48,18 34,32 48,46 40,54 18,32" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-    % (c("Paper"), c("Ink")), "Back chevron.")
-add("cx_book", 64, 64,
-    '<polygon points="32,18 56,12 56,50 32,56 8,50 8,12" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-    '<polygon points="32,18 32,56 8,50 8,12" fill="%s"/>'
-    '<polygon points="32,18 56,12 56,50 32,56 8,50 8,12" fill="none" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-    '<line x1="32" y1="18" x2="32" y2="56" stroke="%s" stroke-width="4"/>'
-    '<polygon points="42,8 50,6 50,26 46,22 42,27" fill="%s" stroke="%s" stroke-width="2.5" stroke-linejoin="miter"/>'
-    % (c("Paper"), c("Ink"), c("Muted"), c("Ink"), c("Ink"), c("KanedaRed"), c("Ink")),
-    "Codex book glyph (paper + one shadow tone, red bookmark).")
-add("cx_circle", 64, 64, '<circle cx="32" cy="32" r="31.5" fill="#ffffff"/>', "Round mask for world art.")
+# Glyphs.
+sp = Sprite(32, 32)
+sp.raw("ink", '<path d="M10 15 V9 H22 V15" fill="none" stroke="%s" stroke-width="7" stroke-linejoin="miter"/>' % c("INK"))
+sp.raw("ink", '<path d="M10 15 V9 H22 V15" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="miter"/>')
+sp.poly("ink", [(6, 14), (26, 14), (26, 28), (6, 28)], fill="#ffffff", stroke=c("INK"), width=3)
+sp.raw("ink", '<rect x="14.5" y="18" width="3" height="6" fill="%s"/>' % c("INK"))
+add("cx_lock", sp, "Locked glyph - white, tinted at runtime.")
 
-# Entry art: the black hole (Pilot's Log) and the wormhole gift.
+sp = Sprite(64, 64)
+chev = [(40, 10), (48, 18), (34, 32), (48, 46), (40, 54), (18, 32)]
+sp.poly("base", chev, fill=c("BONE"))
+sp.poly("shadow", [(34, 32), (48, 46), (40, 54), (37, 51), (43, 45)], fill=c("STEEL_HI"))
+sp.poly("ink", chev, stroke=c("INK"), width=4)
+add("cx_back", sp, "Back chevron.")
+
+sp = Sprite(64, 64)
+book = [(32, 18), (56, 12), (56, 50), (32, 56), (8, 50), (8, 12)]
+sp.poly("base", book, fill=c("BONE"))
+sp.poly("shadow", [(32, 18), (32, 56), (8, 50), (8, 12)], fill=c("STEEL_HI"))
+sp.poly("ink", book, stroke=c("INK"), width=4)
+sp.raw("ink", '<line x1="32" y1="18" x2="32" y2="56" stroke="%s" stroke-width="%g"/>' % (c("INK"), PANEL_LINE * 2))
+sp.raw("ink", '<polygon points="42,8 50,6 50,26 46,22 42,27" fill="%s" stroke="%s" stroke-width="2.5" '
+              'stroke-linejoin="miter"/>' % (c("RED"), c("INK")))
+add("cx_book", sp, "Codex book glyph (BONE, one STEEL_HI shadow, red bookmark).")
+
+sp = Sprite(64, 64)
+sp.raw("base", '<circle cx="32" cy="32" r="31.5" fill="#ffffff"/>')
+add("cx_circle", sp, "Round mask for world art (graphic hidden at runtime).")
+
+# Entry art.
 def blackhole():
-    o = c("Ink")
-    return (
-        # sodium accretion ring (back), event horizon, ring (front) - flat cels
-        '<polygon points="10,70 30,56 98,50 118,58 98,72 30,78" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-        '<circle cx="64" cy="62" r="26" fill="%s" stroke="%s" stroke-width="4"/>'
-        '<path d="M38 62 A26 26 0 0 1 90 62" fill="none" stroke="%s" stroke-width="3"/>'
-        '<polygon points="10,70 30,78 98,72 118,58 112,66 96,80 30,86" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
-        '<polygon points="22,74 98,70 92,76 30,80" fill="%s"/>'
-        # the pilot, flung clear: paper hull, red stripe
-        '<polygon points="102,16 116,30 106,30 100,38 96,26 92,22" fill="%s" stroke="%s" stroke-width="3" stroke-linejoin="miter"/>'
-        '<polygon points="101,24 107,29 103,31" fill="%s"/>'
-        # speed streaks + sparse magenta stars
-        '<polyline points="84,40 94,32" stroke="%s" stroke-width="3"/><polyline points="88,46 98,38" stroke="%s" stroke-width="3"/>'
-        '<polygon points="20,22 23,28 20,34 17,28" fill="%s"/><polygon points="108,100 111,105 108,110 105,105" fill="%s"/>'
-        % (c("Sodium"), o, c("Ink"), o, c("Magenta"), c("Sodium"), o, c("SodiumShade"),
-           c("Paper"), o, c("KanedaRed"), c("Teal"), c("Teal"), c("Magenta"), c("Paper")))
-add("cx_blackhole", 128, 128, blackhole(), "Pilot's Log art: the black hole.", zoom=4)
+    sp = Sprite(128, 128)
+    ring = [(10, 70), (30, 56), (98, 50), (118, 58), (98, 72), (30, 78)]
+    front = [(10, 70), (30, 78), (98, 72), (118, 58), (112, 66), (96, 80), (30, 86)]
+    # The back half of the disc sits behind the horizon, so its contour is
+    # drawn under the hole rather than in the top ink group.
+    sp.poly("base", ring, fill=c("SODIUM"), stroke=c("INK"), width=4)
+    sp.raw("base", '<circle cx="64" cy="62" r="26" fill="%s" stroke="%s" stroke-width="4"/>' % (c("NIGHT_0"), c("INK")))
+    sp.poly("base", front, fill=c("SODIUM"))
+    sp.poly("shadow", [(22, 78), (98, 72), (92, 79), (30, 84)], fill=c("SODIUM_SH"))
+    sp.raw("highlight", '<path d="M46 60 A18 18 0 0 1 82 60" fill="none" stroke="%s" stroke-width="3"/>' % c("MAGENTA"))
+    sp.poly("highlight", [(20, 69), (34, 62), (40, 62), (26, 69)], fill=c("AMBER"))
+    ship = [(102, 16), (116, 30), (106, 30), (100, 38), (96, 26), (92, 22)]
+    sp.poly("base", ship, fill=c("RED"))
+    sp.poly("highlight", [(101, 21), (108, 27), (104, 28)], fill=c("BONE"))
+    for p in (front, ship):
+        sp.poly("ink", p, stroke=c("INK"), width=4)
+    sp.raw("highlight", '<polyline points="84,40 94,32" stroke="%s" stroke-width="3"/>'
+                        '<polyline points="88,46 98,38" stroke="%s" stroke-width="3"/>' % (c("CYAN"), c("CYAN")))
+    sp.poly("highlight", [(20, 22), (23, 28), (20, 34), (17, 28)], fill=c("BONE"))
+    sp.poly("highlight", [(108, 100), (111, 105), (108, 110), (105, 105)], fill=c("AMBER"))
+    return sp
+add("cx_blackhole", blackhole(), "Pilot's Log art: the black hole that swallowed the pilot.", zoom=4)
+
+def octagon(r):
+    return [(64 + r * math.cos(math.radians(22.5 + 45 * k)), 64 + r * math.sin(math.radians(22.5 + 45 * k)))
+            for k in range(8)]
 
 def wormhole():
-    o = c("Ink")
-    rings = ""
-    for r, col in ((54, c("Night")), (42, c("Teal")), (30, c("Shadow")), (18, c("Teal"))):
-        pts = []
-        import math
-        for k in range(8):
-            a = math.radians(22.5 + 45 * k)
-            pts.append("%.1f,%.1f" % (64 + r * math.cos(a), 64 + r * math.sin(a)))
-        rings += '<polygon points="%s" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>' % (" ".join(pts), col, o)
-    bars = ('<polygon points="50,44 60,44 60,84 50,84" fill="%s" stroke="%s" stroke-width="4"/>'
-            '<polygon points="68,44 78,44 78,84 68,84" fill="%s" stroke="%s" stroke-width="4"/>'
-            % (c("Paper"), o, c("Paper"), o))
-    slash = '<polygon points="6,30 22,24 18,34" fill="%s" stroke="%s" stroke-width="2"/>' % (c("KanedaRed"), o)
-    return rings + bars + slash
-add("cx_wormhole", 128, 128, wormhole(), "Wormhole Gift art: the pause at the heart of the wormhole.", zoom=4)
+    sp = Sprite(128, 128)
+    for r, col, layer in ((54, c("NIGHT_1"), "base"), (42, c("TEAL"), "base"), (30, c("INDIGO_0"), "shadow"),
+                          (18, c("TEAL_SH"), "shadow")):
+        sp.poly(layer, octagon(r), fill=col)
+    for r in (54, 42, 30, 18):
+        sp.poly("ink", octagon(r), stroke=c("INK"), width=4)
+    for x in (50, 68):
+        sp.raw("ink", '<polygon points="%s" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="miter"/>'
+               % (pts([(x, 44), (x + 10, 44), (x + 10, 84), (x, 84)]), c("BONE"), c("INK")))
+    sp.raw("ink", '<polygon points="6,30 22,24 18,34" fill="%s" stroke="%s" stroke-width="2"/>' % (c("RED"), c("INK")))
+    return sp
+add("cx_wormhole", wormhole(), "Wormhole Gift art: the pause at the heart of the wormhole.", zoom=4)
 
 # --------------------------------------------------------------------------
 # Output
@@ -206,18 +269,16 @@ def write_palette_cs():
     lines = [
         "using UnityEngine;",
         "",
-        "// GENERATED by Art/UI/Codex/src~/make_art.py from its PALETTE table -- edit",
-        "// the script and re-run it, not this file. The codex art is rendered from",
-        "// the same values, so runtime tints and sprites always agree.",
-        "//",
-        "// 80s anime, Akira (1988) palette: deep indigo base, teal / sodium-orange",
-        "// accents, Kaneda red for highlights and selection, sparse magenta.",
+        "// GENERATED by Art/UI/Codex/src~/make_art.py from its PALETTE table (the",
+        "// docs/art-style.md names and hex values) -- edit the script and re-run it,",
+        "// not this file. The codex sprites are rendered from the same values.",
         "public static class CodexPalette",
         "{",
     ]
-    for name, (hexv, a) in PALETTE.items():
+    for guide, (name, hexv, a) in PALETTE.items():
         r, g, b = (int(hexv[i:i + 2], 16) / 255.0 for i in (1, 3, 5))
-        lines.append("    public static readonly Color %s = new Color(%.3ff, %.3ff, %.3ff, %.2ff);" % (name, r, g, b, a))
+        lines.append("    public static readonly Color %s = new Color(%.3ff, %.3ff, %.3ff, %.2ff);   // %s %s"
+                     % (name, r, g, b, a, guide, hexv))
     lines.append("}")
     open(CS, "w").write("\n".join(lines) + "\n")
 
@@ -228,7 +289,6 @@ def main():
         open(src, "w").write(text)
         subprocess.check_call(["resvg", "--zoom", str(zoom), src, os.path.join(OUT, name + ".png")])
     write_palette_cs()
-    # Border table for the importer metas (pixels = units * zoom).
     with open(os.path.join(HERE, "borders.txt"), "w") as f:
         for name, (_, zoom, border) in SPRITES.items():
             f.write("%s %d %d\n" % (name, border * zoom, 100 * zoom))
