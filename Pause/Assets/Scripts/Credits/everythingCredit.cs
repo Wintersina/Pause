@@ -21,8 +21,9 @@ public class everythingCredit : MonoBehaviour {
 //      
 	
 	}
+    // BACK (UnityEvent-wired): credits -> home, via BackNavigator.
     public void back()
     {
-        SceneManager.LoadScene("startS4");
+        BackNavigator.Back();
     }
 }

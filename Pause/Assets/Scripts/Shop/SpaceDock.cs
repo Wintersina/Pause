@@ -51,6 +51,9 @@ public class SpaceDock : MonoBehaviour
     float lastPointerY;
     bool skipLaunch;
     bool rackPlaced;
+    // shopingShips' selection statics as they were before the current
+    // selection began, so Back can put them back.
+    int preSelectShipNumber, preSelectLastShip;
 
     // Where launching continues to: the same destination the PLAY button has
     // always had (menuButton.play): the game, or the tutorial first.
@@ -75,18 +78,52 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        BackNavigator.Register(this, OnBackPressed);
     }
 
     void OnDisable()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
 
     void OnDestroy()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
+    }
+
+    // BackNavigator layer. While launching, Back is swallowed (the choice is
+    // already saved and the scene is about to change; skipping would be a
+    // second, irreversible action). With a ship selected it undoes the
+    // selection. Otherwise it passes, and the scene root goes home.
+    bool OnBackPressed()
+    {
+        if (Launching) return true;
+        if (HasSelection) { UndoSelection(); return true; }
+        return false;
+    }
+
+    public bool HasSelection
+    {
+        get { return Selected > 0 || (popup != null && popup.Visible); }
+    }
+
+    // Back with a ship tapped: close the popup, power the ship down and show
+    // the equipped ship as the selection again. Nothing is saved.
+    public void UndoSelection()
+    {
+        if (Launching) return;
+        bool had = Selected > 0;
+        Deselect();
+        if (had)
+        {
+            shopingShips.shipNumber = preSelectShipNumber;
+            shopingShips.LastShipSelected = preSelectLastShip;
+        }
+        RefreshStatuses();
     }
 
     void Construct()
@@ -94,6 +131,7 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        BackNavigator.Register(this, OnBackPressed);
         cam = Camera.main;
         // Beyond the starfield (wide windows) show deep space, not the
         // scene's authored mid-blue clear colour.
@@ -281,6 +319,11 @@ public class SpaceDock : MonoBehaviour
             return;
         }
         if (Selected > 0 && bays[Selected] != null) bays[Selected].SetPowered(false);
+        if (Selected == 0)
+        {
+            preSelectShipNumber = shopingShips.shipNumber;
+            preSelectLastShip = shopingShips.LastShipSelected;
+        }
         Selected = index;
         shopingShips.LastShipSelected = shopingShips.shipNumber;
         shopingShips.shipNumber = index;

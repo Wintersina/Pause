@@ -28,18 +28,7 @@ public class buttonClicks : MonoBehaviour {
         }
         else if (AdMob.isAdsShowwing)
             AdMob.hide();
-
-        // Back/Escape. Was Android-gated, and the touchCount == 0 guard
-        // swallowed the key on every other platform.
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (AdMob.isAdsShowwing)
-                    AdMob.hide();
-                SceneManager.LoadScene("startS4");
-                return;
-            }
-        }
+        // Back/Escape is BackNavigator's: in gameS1 it does mainMenuButton.
     }
     public void replay()
     {
@@ -51,10 +40,7 @@ public class buttonClicks : MonoBehaviour {
     }
     public void quit()
     {
-        if (AdMob.isAdsShowwing)
-            AdMob.hide();
-        GameStateReset.Clear();
-        Application.Quit();
+        BackNavigator.QuitNow();
     }
     void showButton()
     {
@@ -64,12 +50,10 @@ public class buttonClicks : MonoBehaviour {
     }
     public void mainMenuButton()
     {
-        if(AdMob.isAdsShowwing)
-            AdMob.hide();
-
         // Death leaves timeScale at 0 and playerDied set; carrying either into
-        // the menu leaves it frozen and unresponsive.
-        GameStateReset.Clear();
-        SceneManager.LoadScene("startS4");
+        // the menu leaves it frozen and unresponsive. GoHome hides any ad,
+        // clears run state and loads startS4 -- the same path system back
+        // takes in gameS1.
+        BackNavigator.GoHome();
     }
 }

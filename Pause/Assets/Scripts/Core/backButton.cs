@@ -1,31 +1,7 @@
 using UnityEngine;
-using System.Collections;
-using UnityEngine.SceneManagement;
 
+// Kept so the menu scenes' serialized component still resolves. Back /
+// Escape is handled centrally by BackNavigator now (the leaderboard panel,
+// when open, is a back layer of its own; otherwise the scene goes home).
 public class backButton : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        // Back/Escape. Was Android-gated, and the touchCount == 0 guard
-        // swallowed the key on every other platform.
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                // Options: back closes the leaderboard panel first.
-                if (LeaderboardPanel.CloseIfOpen()) return;
-                // if you push the back key, turn off ads
-                if (AdMob.isAdsShowwing)
-                {
-                    AdMob.hide();
-                }
-                SceneManager.LoadScene("startS4");
-                return;
-            }
-        }
-    }
 }
