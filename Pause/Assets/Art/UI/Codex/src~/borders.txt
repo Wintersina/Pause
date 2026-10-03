@@ -1,0 +1,15 @@
+cx_panel 128 200
+cx_card 56 200
+cx_card_edge 56 200
+cx_button 60 200
+cx_button_edge 60 200
+cx_tab 28 200
+cx_toast 48 200
+cx_divider 0 200
+cx_marker 0 200
+cx_lock 0 200
+cx_back 0 200
+cx_book 0 200
+cx_circle 0 200
+cx_blackhole 0 400
+cx_wormhole 0 400

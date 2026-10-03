@@ -81,6 +81,7 @@ public class collisionDetection : MonoBehaviour {
     public static void AwardDestroyedTarget(GameObject target)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        Codex.Discover(target);   // ultimate kills count as meeting it too
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
     }
@@ -142,14 +143,17 @@ public class collisionDetection : MonoBehaviour {
     
     void OnTriggerEnter2D(Collider2D hit)
     {
-        
+        Codex.Discover(hit.gameObject);   // first touch unlocks its codex entry (enemy, rock, atom, portal)
+
         #region
         //------------------------- Colliding with Enimies ---------------------------------------------
         if (hit.gameObject.tag == "Enimey" || hit.gameObject.tag == "Astr" )
         {
 
             // creating different explotions for different enims
-            if (PrefabName.Is(hit.gameObject, "mine"))
+            // Under the boost shield the player destroys the mine, and the
+            // weapon explosion below covers it.
+            if (PrefabName.Is(hit.gameObject, "mine") && !atomCheck)
             {
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
@@ -173,13 +177,12 @@ public class collisionDetection : MonoBehaviour {
                 // show the texts for only half of a second.
                 savedTimer = .4f;
 
-                // create explotion and show it on the objets position.
-                GameObject exp = Instantiate(explosionAnimation) as GameObject;
-                exp.transform.position = hit.gameObject.transform.position;
-                ScrollWithWorld(exp);
+                // The player destroyed it: the pooled cartoon target
+                // explosion (metal / rock / mine), flashed in this ship's
+                // weapon colour.
+                TargetExplosion.Spawn(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
                 PlayExplosion();
 
-                Destroy(exp, 2);
                 AwardDestroyedTarget(hit.gameObject);
                 Destroy(hit.gameObject);
                 
