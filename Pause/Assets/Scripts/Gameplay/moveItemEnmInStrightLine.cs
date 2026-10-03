@@ -7,6 +7,8 @@ using System.Collections;
 
 public class moveItemEnmInStrightLine : MonoBehaviour {
 
+    void Awake() { ClearTarget.Ensure(gameObject); } // ultimate's early-clear registry
+
 
 	
 	// Update is called once per frame

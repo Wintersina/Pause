@@ -7,6 +7,8 @@ public class moveEnimes : MonoBehaviour {
     private float randPos;
     private bool alreadyMoved;
 
+    void Awake() { ClearTarget.Ensure(gameObject); } // ultimate's early-clear registry
+
     // Use this for initialization
     void Start () {
         itemSpeed = 30;

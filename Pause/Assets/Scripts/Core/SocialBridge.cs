@@ -3,11 +3,13 @@ using UnityEngine.SocialPlatforms;
 
 // Platform-neutral wrapper around Unity's built-in Social API.
 //
-// On iOS this talks to Game Center with no extra plugin. On Android it is inert
-// until a social plugin (e.g. Google Play Games v2) is installed and activated;
-// the calls stay safe no-ops until then, so nothing here is platform-gated.
+// Android: Google Play Games v2 (PlayGamesAccount activates it as Unity's
+// Social platform). iOS: Game Center, built into Unity. Elsewhere the calls
+// are safe no-ops.
 //
-// Replaces the Android-only GooglePlayGames calls the project used until 2016.
+// Sign-in is automatic at launch (CloudSyncRunner -> CloudSync); nothing here
+// needs a button. Achievement and leaderboard ids are the GPGS ids from
+// StringHolder; AchievementIds maps them to the Game Center ids on iOS.
 public static class SocialBridge
 {
     public delegate void SocialCallback(bool success);
@@ -17,6 +19,8 @@ public static class SocialBridge
         get { return Social.localUser != null && Social.localUser.authenticated; }
     }
 
+    // Interactive sign-in. Only used when the player asks for a platform UI
+    // while signed out; the launch sign-in is silent.
     public static void Authenticate(SocialCallback callback = null)
     {
         if (IsAuthenticated)
@@ -25,43 +29,38 @@ public static class SocialBridge
             return;
         }
 
-        Social.localUser.Authenticate(success =>
+        System.Action<bool> done = success =>
         {
             if (!success) Debug.Log("[SocialBridge] Sign-in failed or unavailable on this platform.");
             if (callback != null) callback(success);
-        });
+        };
+        if (CloudSync.Instance != null) CloudSync.Instance.SignInInteractive(done);
+        else PlayerAccounts.Current.SignIn(true, done);
     }
 
-    public static void SignOut()
+    // The id to send on this platform, or null when it has none.
+    static string PlatformId(string achievementId)
     {
-        // Unity's ISocialPlatform has no portable sign-out; Game Center manages
-        // the session itself. Android plugins expose their own call.
-        Debug.Log("[SocialBridge] Sign-out is handled by the platform.");
+        string id = AchievementIds.ForCurrentPlatform(achievementId);
+        if (string.IsNullOrEmpty(id)) Debug.Log("[SocialBridge] No id on this platform for " + achievementId);
+        return id;
     }
 
+    // Signed out: one interactive sign-in attempt, then the native UI.
     public static void ShowLeaderboard()
     {
-        if (!IsAuthenticated)
-        {
-            Debug.Log("[SocialBridge] Not signed in; skipping leaderboard UI.");
-            return;
-        }
-        Social.ShowLeaderboardUI();
+        Authenticate(success => { if (success) Social.ShowLeaderboardUI(); });
     }
 
     public static void ShowAchievements()
     {
-        if (!IsAuthenticated)
-        {
-            Debug.Log("[SocialBridge] Not signed in; skipping achievement UI.");
-            return;
-        }
-        Social.ShowAchievementsUI();
+        Authenticate(success => { if (success) Social.ShowAchievementsUI(); });
     }
 
     public static void ReportScore(long score, string leaderboardId, SocialCallback callback = null)
     {
-        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated)
+        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated ||
+            string.IsNullOrEmpty(leaderboardId = PlatformId(leaderboardId)))
         {
             if (callback != null) callback(false);
             return;
@@ -81,14 +80,27 @@ public static class SocialBridge
     // the counts, since Unity's portable API has no "increment".
     public static void ReportProgress(string achievementId, double percent, SocialCallback callback = null)
     {
-        if (string.IsNullOrEmpty(achievementId) || !IsAuthenticated)
+        if (string.IsNullOrEmpty(achievementId) || !IsAuthenticated ||
+            string.IsNullOrEmpty(achievementId = PlatformId(achievementId)))
         {
             if (callback != null) callback(false);
             return;
         }
-        Social.ReportProgress(achievementId, percent, success =>
+        Social.ReportProgress(achievementId, PlatformPercent(percent), success =>
         {
             if (callback != null) callback(success);
         });
+    }
+
+    // Game Center takes percentComplete (0-100) as is. Play Games turns the
+    // percentage of an incremental achievement back into steps with a
+    // truncating multiply, so 323 of 1000 (32.3%) came back as 322 steps;
+    // a nudge far below one step keeps the count exact.
+    public static double PlatformPercent(double percent)
+    {
+#if UNITY_ANDROID
+        if (percent > 0.0 && percent < 100.0) return System.Math.Min(100.0, percent + 1e-7);
+#endif
+        return percent;
     }
 }
