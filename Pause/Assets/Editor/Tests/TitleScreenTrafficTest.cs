@@ -107,6 +107,20 @@ public static class TitleScreenTrafficTest
               midTop < logoOrder && d[1].fxSort + 4 < logoOrder && d[0].fxSort + 4 < logoOrder);
         Check("front ships sort in front of the logo (they keep off it instead)", d[2].sortBase > logoOrder);
 
+        // The back layer must still draw over the menu's starfield, whatever
+        // the world-backdrop work does to it: either it stays an opaque pass
+        // (drawn before every sprite) or it sorts below the back band.
+        var sky = GameObject.Find("menuBackground");
+        var skyR = sky != null ? sky.GetComponent<Renderer>() : null;
+        bool skyBehind = true;
+        if (skyR != null)
+        {
+            var mat = skyR.sharedMaterial;
+            bool opaque = mat != null && mat.renderQueue < 2500;
+            skyBehind = opaque || (skyR.sortingLayerID == 0 && skyR.sortingOrder < d[0].sortBase);
+        }
+        Check("the menu starfield draws behind even the back layer", skyBehind);
+
         var t = Make("~TT_depth", 11);
         float[] sum = new float[3]; int[] n = new int[3];
         bool bands = true;
@@ -157,8 +171,12 @@ public static class TitleScreenTrafficTest
         Check("pool ids are the roster ids, named like ships", ok && ids.Count == ShipId.Count);
 
         bool hullArt = true;
-        foreach (var f in t.Pool) hullArt &= f.hull.sprite != null && f.hull.sprite == shopingShips.SpriteFor(f.id);
-        Check("hull art is the roster's runtime art (shopingShips / OriginalShipArt via ApplyHull)", hullArt);
+        foreach (var f in t.Pool)
+        {
+            var rest = shopingShips.SpriteFor(f.id);
+            hullArt &= f.hull.sprite != null && rest != null && f.hull.sprite.texture == rest.texture;
+        }
+        Check("hull art is the roster's runtime art (ShipHullArt's sheet via ApplyHull)", hullArt);
         Done(t);
     }
 
@@ -176,13 +194,16 @@ public static class TitleScreenTrafficTest
               boost != null && boost.name == "Boost" + f.id && boost.CompareTag("boost"));
         var flames = boost != null ? boost.GetComponentsInChildren<DockLaunchFlame>(true) : new DockLaunchFlame[0];
         Check("one animated plume per ShipNozzles nozzle", flames.Length == ShipNozzles.For(f.id).Length);
-        bool art = flames.Length > 0;
-        foreach (var fl in flames)
+        // Every ship's exhaust must be exactly what gameplay gives that ShipId
+        // (spawnShips.ApplyHull -> ShipExhaust.ConfigureBoost, with whatever
+        // flipbook / per-ship style it attaches), not a fixed sprite.
+        string why = null;
+        foreach (var c in t.Pool)
         {
-            var sr = fl.GetComponent<SpriteRenderer>();
-            art &= sr != null && sr.sprite == ShipExhaust.SpriteFor(f.id);
+            why = ExhaustDiff(c);
+            if (why != null) { why = ShipId.KeyOf(c.id) + ": " + why; break; }
         }
-        Check("plumes use the ship's own exhaust art", art);
+        Check("every ship's plumes are the same exhaust gameplay gives that ShipId" + (why != null ? " (" + why + ")" : ""), why == null);
 
         f.state = TitleScreenTraffic.State.Cruise;
         f.trick = TitleScreenTraffic.Trick.None;
@@ -211,6 +232,49 @@ public static class TitleScreenTrafficTest
         Check("ships hit the boost by themselves (" + t2.Boosts + " in 30 s)", t2.Boosts >= 2);
         Done(t2);
         Done(t);
+    }
+
+    // Compares a traffic ship's boost/plume hierarchy with a ship dressed by
+    // gameplay's own path for the same id. Null when they match.
+    static string ExhaustDiff(TitleScreenTraffic.Flyer f)
+    {
+        var reference = new GameObject("~TT_ref");
+        reference.AddComponent<SpriteRenderer>();
+        try
+        {
+            spawnShips.ApplyHull(reference, f.id);
+            var want = reference.transform.Find("Boost" + f.id);
+            if (want == null) return f.boost == null ? null : "gameplay has no boost root";
+            if (f.boost == null) return "no boost root";
+            if (f.boost.childCount != want.childCount) return "plume count " + f.boost.childCount + " vs " + want.childCount;
+            for (int i = 0; i < want.childCount; i++)
+            {
+                var w = want.GetChild(i);
+                var g = f.boost.Find(w.name);
+                if (g == null) return "missing " + w.name;
+                if (Components(g) != Components(w)) return w.name + " components " + Components(g) + " vs " + Components(w);
+                if ((g.localPosition - w.localPosition).sqrMagnitude > 1e-8f) return w.name + " mount";
+                if ((g.localScale - w.localScale).sqrMagnitude > 1e-8f) return w.name + " size";
+                var gs = g.GetComponent<SpriteRenderer>();
+                var ws = w.GetComponent<SpriteRenderer>();
+                if ((gs == null) != (ws == null)) return w.name + " renderer";
+                if (gs == null) continue;
+                if (gs.enabled != ws.enabled) return w.name + " enabled";
+                if (gs.color != ws.color) return w.name + " tint";
+                Texture gt = gs.sprite != null ? gs.sprite.texture : null, wt = ws.sprite != null ? ws.sprite.texture : null;
+                if (gt != wt) return w.name + " art " + (gt != null ? gt.name : "none") + " vs " + (wt != null ? wt.name : "none");
+            }
+            return null;
+        }
+        finally { Object.DestroyImmediate(reference); }
+    }
+
+    static string Components(Transform t)
+    {
+        var names = new List<string>();
+        foreach (var c in t.GetComponents<Component>()) if (c != null) names.Add(c.GetType().Name);
+        names.Sort();
+        return string.Join(",", names);
     }
 
     // The zip-off is SpaceDock's launch: same shared DockLaunch curves.

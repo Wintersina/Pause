@@ -1203,7 +1203,16 @@ public class TitleScreenTraffic : MonoBehaviour
         // lean into the turn and narrow a touch (a 2D bank)
         float turn = Mathf.Clamp(f.turn, -2.5f, 2.5f);
         float lean = f.state == State.Dizzy ? 0f : -turn * 5f;
-        float bank = 1f - Mathf.Min(.22f, Mathf.Abs(turn) * .09f);
+        float bank = 1f - Mathf.Min(.1f, Mathf.Abs(turn) * .05f);
+
+        // the hull's own flipbook (ShipHullArt): its idle loop, and its drawn
+        // bank poses in a hard turn -- the same drawings the flying ship uses
+        int column = ShipHullArt.IdleDrawingAt(now * ShipHullArt.TicksPerSecond + f.phase * 10f);
+        if (!f.wind && f.state != State.Dizzy && f.trick != Trick.Roll && Mathf.Abs(turn) > .9f)
+            column = turn > 0f ? ShipHullArt.BankLeft : ShipHullArt.BankRight;
+        var drawing = ShipHullArt.Get(f.id, 0, column);
+        if (drawing != null && f.hull.sprite != drawing) f.hull.sprite = drawing;
+
         if (f.trick == Trick.Roll)
         {
             // barrel roll, held on 2s: full width -> edge-on -> flipped -> back
