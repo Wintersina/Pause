@@ -427,18 +427,22 @@ public class enmiesOnBoard : MonoBehaviour {
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier());
     }
 
-    void spawn()
+    void spawn() { spawn(Time.deltaTime); }
+
+    // dt is explicit so a headless test can step a whole run: Time.deltaTime
+    // is 0 outside Play mode.
+    void spawn(float dt)
     {
-        railDelayTimer -= Time.deltaTime;
-        smEnmDelayTimer -= Time.deltaTime;
-        bigEnmDelayTimer -= Time.deltaTime;
-        smallAstroidDelayTimer -= Time.deltaTime;
-        midAstroidDelayTimer -= Time.deltaTime;
-        bigAstroidDelayTimer -= Time.deltaTime;
-        spawnAnimatedEnimeOneDelayTimer -= Time.deltaTime;
-        extraEnemyDelayTimer -= Time.deltaTime;
-        mineDelayTimer -= Time.deltaTime;
-        chaserDelayTimer -= Time.deltaTime;
+        railDelayTimer -= dt;
+        smEnmDelayTimer -= dt;
+        bigEnmDelayTimer -= dt;
+        smallAstroidDelayTimer -= dt;
+        midAstroidDelayTimer -= dt;
+        bigAstroidDelayTimer -= dt;
+        spawnAnimatedEnimeOneDelayTimer -= dt;
+        extraEnemyDelayTimer -= dt;
+        mineDelayTimer -= dt;
+        chaserDelayTimer -= dt;
 
         if (railDelayTimer <= 0)
         {
@@ -498,7 +502,13 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         var def = EnemyRoster.Pick(EnemyRoster.CurrentWorld, role);
         if (def != null && EnemyArt.Frames(def) != null)
-            return EnemyFactory.Create(def, new Vector3(x, transform.position.y, 0f), transform.rotation);
+        {
+            // Lane guard: keep a ship-width gap in this spawn row (see
+            // SpawnLane). No safe x this time -> skip; the timer rolls again.
+            float safeX;
+            if (!SpawnLane.PickX(def, x, transform.position.y, out safeX)) return null;
+            return EnemyFactory.Create(def, new Vector3(safeX, transform.position.y, 0f), transform.rotation);
+        }
         if (legacy == null || legacy.Length == 0) return null;
         return SpawnEnemy(legacy[Mathf.Clamp(astroidSelector, 0, legacy.Length - 1)], x);
     }
@@ -509,10 +519,12 @@ public class enmiesOnBoard : MonoBehaviour {
         SpawnRole(EnemyRole.Rock, astroid2, Random.Range(-2.2f, 2.4f));
     }
 
-    // "big enemy" slot: the world's armoured heavy
+    // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps to
+    // the middle of the lane (SpawnLane.HeavyMaxX), clear of the walls and
+    // the rail mines, and SpawnLane leaves a ship-width gap beside it.
     void spawnAstroid1()
     {
-        SpawnRole(EnemyRole.Big, astroid1, Random.Range(-2.2f, 2.4f));
+        SpawnRole(EnemyRole.Big, astroid1, Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
     }
 
     // will create a line of animated enimies that the player is able to doge through
@@ -527,6 +539,8 @@ public class enmiesOnBoard : MonoBehaviour {
             Vector3 newPositionForAnimatedAliean = new Vector3(randomEnmPosition.x + (i + .5f), randomEnmPosition.y, randomEnmPosition.z);
             if (newPositionForAnimatedAliean.x >= -2.4 && newPositionForAnimatedAliean.x <= 2.2)
             {
+                // the line stops short rather than close the row (SpawnLane)
+                if (roster && !SpawnLane.Fits(def, newPositionForAnimatedAliean.x, newPositionForAnimatedAliean.y)) break;
                 if (roster) EnemyFactory.Create(def, newPositionForAnimatedAliean, transform.rotation);
                 else if (alien1 != null) Instantiate(alien1, newPositionForAnimatedAliean, transform.rotation);
             }
@@ -561,7 +575,11 @@ public class enmiesOnBoard : MonoBehaviour {
             return;
         }
         var def = ChooseExtraDef(EnemyRoster.CurrentWorld, astroidSelector);
-        if (def != null && EnemyArt.Frames(def) != null) EnemyFactory.Create(def, pos, transform.rotation);
+        if (def == null || EnemyArt.Frames(def) == null) return;
+        float x = def.role == EnemyRole.Big ? Mathf.Clamp(pos.x, -SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX) : pos.x;
+        float safeX;
+        if (SpawnLane.PickX(def, x, pos.y, out safeX))
+            EnemyFactory.Create(def, new Vector3(safeX, pos.y, 0f), transform.rotation);
     }
 
     // Phase index -> fighter tier window: the extras start in phase 2, which
@@ -599,8 +617,12 @@ public class enmiesOnBoard : MonoBehaviour {
         var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine);
         if (def != null && EnemyArt.Frames(def) != null)
         {
+            float mineY = ReserveMineY(rail, transform.position.y);
+            // a mine never closes the last gap in its row (a heavy may sit
+            // beside the rail lane); it waits for the next roll instead
+            if (!SpawnLane.Fits(def, rail.position.x, mineY)) return;
             var built = EnemyFactory.Create(def,
-                new Vector3(rail.position.x, ReserveMineY(rail, transform.position.y), 0f), Quaternion.identity);
+                new Vector3(rail.position.x, mineY, 0f), Quaternion.identity);
             // The clamp is drawn on the left (toward a left-hand wall); a
             // right-hand rail mirrors it so it always grips its own wall.
             built.GetComponent<SpriteRenderer>().flipX = rail.position.x > 0f;

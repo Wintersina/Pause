@@ -89,10 +89,18 @@ class Parts:
         self.ink = ""
         self.detail = ""   # secondary forms that sit on top of the hull ink (vines, leaves, plates)
         self.glow = ""
+        # Optional SVG transform for the whole drawing (the floating rocks'
+        # drawn bob / wobble). The hit flash always uses the key pose (frame
+        # 0), which leaves this empty.
+        self.xform = ""
 
     def render(self, flash=False):
         if flash:
             return flash_layers(self)
+        body = self._layers()
+        return f'<g transform="{self.xform}">\n{body}\n</g>' if self.xform else body
+
+    def _layers(self):
         out = []
         if self.glow_back:
             out.append(f'<g id="glow-back">{self.glow_back}</g>')
@@ -252,3 +260,174 @@ def jag(cx, cy, radii, rot=0, sx=1, sy=1):
     n = len(radii)
     return [(cx + r * sx * math.cos(math.radians(rot + i * 360 / n - 90)),
              cy + r * sy * math.sin(math.radians(rot + i * 360 / n - 90))) for i, r in enumerate(radii)]
+
+
+# detail toolkit (the "more Akira, more detail" pass) -----------------------
+# Everything here stays inside the flat-cel rules: flat fills, INK lines,
+# BONE kicks, and lights that are flat shapes with a HARD bloom (a flat
+# translucent copy, never a blur) so they read as cel-painted light. Most
+# helpers draw on the detail layer (above the hull ink); pass layer= to
+# change that.
+
+def plane(p, cid, points, color):
+    """A hard shadow plane: an angular polygon clipped to a cel() form (pass
+    the cid cel() returns). Cut it like 80s mecha shading -- one confident
+    facet, not a crescent. Goes on the shadow layer (for base forms)."""
+    p.shadow += poly(points, color, f'clip-path="url(#{cid})"')
+
+
+def plane_svg(cid, points, color):
+    """plane() as a string, for forms drawn on the detail layer: append it
+    right after the cel(..., detail=True) call."""
+    return poly(points, color, f'clip-path="url(#{cid})"')
+
+
+def hexlight(p, x, y, r, lv, light, rot=30, sy=1.0):
+    """A hard-edged hex light: INK socket, flat light, BONE heart, and a small
+    hard bloom (a flat translucent hex, plus four hard rays when hot).
+    lv: <0.4 dim, 0.5 lit, 1 hot, 1.5 flare."""
+    sock = ngon(x, y, r + 2.6, 6, rot, 1, sy)
+    p.detail += poly(sock, INK)
+    on = lv >= 0.4
+    k = min(lv, 1.5)
+    if on:
+        p.glow += poly(ngon(x, y, r * (1.55 + 0.35 * k), 6, rot, 1, sy), light, f'opacity="{0.22 + 0.12 * k:.2f}"')
+    if lv >= 1:
+        p.glow += poly(star(x, y, r * (1.6 + 0.5 * (k - 1)), r * 0.26, 4, 0), light, 'opacity="0.6"')
+    p.glow += poly(ngon(x, y, r, 6, rot, 1, sy), light if on else DIM.get(light, light))
+    if on:
+        p.glow += poly(ngon(x, y, r * (0.28 + 0.16 * k), 6, rot, 1, sy), BONE)
+
+
+def slitlight(p, x, y, w, h, lv, light, rot=0):
+    """A slit light (visor / sensor bar): INK slot, flat light bar, BONE core
+    line, hard flat bloom when lit."""
+    def box(hw, hh):
+        return xf([(x - hw, y - hh), (x + hw, y - hh), (x + hw, y + hh), (x - hw, y + hh)], x, y, rot=rot)
+    p.detail += poly(box(w / 2 + 2, h / 2 + 2), INK)
+    on = lv >= 0.4
+    if on:
+        p.glow += poly(box(w / 2 + 4, h / 2 + 3), light, f'opacity="{0.2 + 0.15 * min(lv, 1.5):.2f}"')
+    p.glow += poly(box(w / 2, h / 2), light if on else DIM.get(light, light))
+    if on:
+        p.glow += line(xf([(x - w * 0.32, y), (x + w * 0.32, y)], x, y, rot=rot), max(0.8, h * 0.3), BONE)
+
+
+def _add(p, layer, s):
+    setattr(p, layer, getattr(p, layer) + s)
+
+
+def rivets(p, points, r=1.5, color=None, layer="detail"):
+    """Bolt heads: tiny flat squares with an INK rim."""
+    color = color or GUN_HI
+    s = ""
+    for x, y in points:
+        q = ngon(x, y, r, 4, 45)
+        s += poly(q, color) + inkpoly(q, 0.9)
+    _add(p, layer, s)
+
+
+def seams(p, lines_, w=1.5, layer="detail"):
+    """Panel lines / plating breaks: thin INK polylines."""
+    _add(p, layer, "".join(line(l, w) for l in lines_))
+
+
+def grille(p, x, y, w, h, n=3, rot=0, bars=None, layer="detail"):
+    """A vent grille: INK slot with n flat bars across it."""
+    bars = bars or GUN_HI
+    slot = xf([(x - w / 2, y - h / 2), (x + w / 2, y - h / 2), (x + w / 2, y + h / 2), (x - w / 2, y + h / 2)], x, y, rot=rot)
+    s = poly(slot, INK)
+    for k in range(n):
+        yy = y - h / 2 + h * (k + 0.5) / n
+        s += line(xf([(x - w / 2 + 1.2, yy), (x + w / 2 - 1.2, yy)], x, y, rot=rot), max(0.7, h / n * 0.45), bars)
+    _add(p, layer, s)
+
+
+def spec(p, points, w=1.4, color=None, layer="detail"):
+    """A hard specular kick: a thin BONE sliver along a lit edge."""
+    _add(p, layer, line(points, w, color or BONE))
+
+
+# kanji-like glyph decals: strokes on a 3x3 grid (0..2), deterministic.
+_GLYPHS = [
+    [((0, 0), (2, 0)), ((1, 0), (1, 2)), ((0, 2), (2, 2))],
+    [((0, 0), (0, 2)), ((0, 1), (2, 1)), ((2, 0), (2, 2))],
+    [((0, 0), (2, 0)), ((2, 0), (2, 2)), ((0, 1), (2, 1)), ((1, 1), (0, 2))],
+    [((1, 0), (1, 2)), ((0, 1), (2, 1)), ((0, 2), (2, 2))],
+    [((0, 0), (2, 0)), ((0, 0), (0, 2)), ((0, 2), (2, 2)), ((1, 0), (1, 1))],
+    [((0, 0), (2, 2)), ((2, 0), (1, 1)), ((0, 2), (2, 2))],
+]
+
+
+def glyph(p, x, y, s, seed=0, color=None, w=1.1, rot=0, layer="detail"):
+    """A tiny kanji-like decal (unit markings); s = grid cell size in u."""
+    color = color or BONE
+    out = ""
+    for a, b in _GLYPHS[seed % len(_GLYPHS)]:
+        pa = (x + (a[0] - 1) * s, y + (a[1] - 1) * s)
+        pb = (x + (b[0] - 1) * s, y + (b[1] - 1) * s)
+        out += line(xf([pa, pb], x, y, rot=rot), w, color)
+    _add(p, layer, out)
+
+
+def stripes(p, x, y, w, h, n=3, rot=0, color=None, layer="detail"):
+    """Warning stripes: a BONE (or given colour) plate with n hard diagonal
+    INK bars."""
+    color = color or BONE
+    plate = xf([(x - w / 2, y - h / 2), (x + w / 2, y - h / 2), (x + w / 2, y + h / 2), (x - w / 2, y + h / 2)], x, y, rot=rot)
+    s = poly(plate, color)
+    step = w / n
+    for k in range(n):
+        x0 = x - w / 2 + k * step
+        bar = [(x0, y + h / 2), (x0 + step * 0.45, y + h / 2), (x0 + step * 0.95, y - h / 2), (x0 + step * 0.5, y - h / 2)]
+        bar = [(min(max(px, x - w / 2), x + w / 2), py) for px, py in bar]
+        s += poly(xf(bar, x, y, rot=rot), INK)
+    s += inkpoly(plate, 1.1)
+    _add(p, layer, s)
+
+
+def antenna(p, x, y, length, rot, lv, light, tip=2.2, layer="detail"):
+    """A thin antenna / sensor whisker with a blinking tip light."""
+    tipp = xf([(x, y - length)], x, y, rot=rot)[0]
+    _add(p, layer, line([(x, y), tipp], 2.6) + line([(x, y), tipp], 1.1, GUN_HI))
+    p.detail += poly(ngon(tipp[0], tipp[1], tip + 1.4, 4, 45), INK)
+    p.glow += poly(ngon(tipp[0], tipp[1], tip, 4, 45), light if lv >= 0.4 else DIM.get(light, light))
+    if lv >= 1:
+        p.glow += poly(ngon(tipp[0], tipp[1], tip * 2.2, 4, 45), light, 'opacity="0.3"')
+
+
+def teeth(p, a, b, n, length, color=None, inward=1, layer="detail"):
+    """A row of n hard triangular teeth along edge a->b, pointing to the
+    edge's left (inward=1) or right (-1)."""
+    color = color or BONE
+    (ax, ay), (bx, by) = a, b
+    dx, dy = bx - ax, by - ay
+    L = math.hypot(dx, dy) or 1
+    nx, ny = -dy / L * inward, dx / L * inward
+    s = ""
+    for k in range(n):
+        t0, t1 = k / n, (k + 1) / n
+        p0 = (ax + dx * t0, ay + dy * t0)
+        p1 = (ax + dx * t1, ay + dy * t1)
+        tip = ((p0[0] + p1[0]) / 2 + nx * length, (p0[1] + p1[1]) / 2 + ny * length)
+        tri = [p0, p1, tip]
+        s += poly(tri, color) + inkpoly(tri, 1.1)
+    _add(p, layer, s)
+
+
+def scales(p, cx, cy, rows, cols, size, color, sh, layer="detail"):
+    """Chitin / scale plates: a grid of small diamond plates, each with its
+    one shadow half and an INK rim."""
+    s = ""
+    for r in range(rows):
+        for c in range(cols):
+            x = cx + (c - (cols - 1) / 2) * size + (size / 2 if r % 2 else 0)
+            y = cy + r * size * 0.75
+            q = [(x - size / 2, y), (x, y - size * 0.45), (x + size / 2, y), (x, y + size * 0.45)]
+            s += poly(q, color) + poly([q[1], q[2], q[3]], sh) + inkpoly(q, 1)
+    _add(p, layer, s)
+
+
+def teal_glint(p, x, y, r):
+    """A tiny teal accent glint (neon reflected off a hard edge)."""
+    p.glow += spark(x, y, r, CYAN, 45)
