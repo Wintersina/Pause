@@ -213,8 +213,8 @@ def glacier(phase):
     moraine, an ice-cliff snout and a meltwater lake whose dashes flow
     (4 frames). One shadow + one highlight tone per form; hazed."""
     w, h = 256, 256
-    lr = [(0, 14), (58, 0), (90, 40), (80, 110), (96, 176), (74, 214), (40, 256), (0, 256)]
-    rr = [(256, 24), (196, 0), (166, 50), (178, 120), (156, 182), (184, 220), (214, 256), (256, 256)]
+    lr = [(18, 34), (58, 4), (90, 40), (80, 110), (96, 176), (74, 214), (48, 246), (22, 222), (8, 150), (20, 84)]
+    rr = [(240, 42), (196, 4), (166, 50), (178, 120), (156, 182), (184, 220), (208, 248), (234, 226), (248, 150), (236, 92)]
     tl = [(76, 0), (96, 46), (86, 112), (100, 176), (112, 200)]
     tr = [(184, 0), (164, 52), (176, 120), (154, 180), (144, 200)]
     tongue = tl + list(reversed(tr))
@@ -223,10 +223,10 @@ def glacier(phase):
     g.append(f'<polygon points="{pts(lr)}" fill="{P["big"]["lit"]}"/>')
     g.append(f'<polygon points="{pts([(58, 0), (90, 40), (80, 110), (96, 176), (74, 214), (60, 214), (66, 120), (70, 40)])}" '
              f'fill="{P["big"]["dark"]}"/>')
-    g.append(f'<polygon points="{pts([(10, 14), (58, 2), (70, 22), (40, 26)])}" fill="{P["big"]["cap"]}"/>')
+    g.append(f'<polygon points="{pts([(22, 34), (58, 6), (72, 24), (40, 38)])}" fill="{P["big"]["cap"]}"/>')
     g.append(f'<polygon points="{pts(rr)}" fill="{P["big"]["dark"]}"/>')
     g.append(f'<polygon points="{pts([(196, 0), (166, 50), (178, 120), (196, 118), (186, 52), (214, 6)])}" fill="{P["big"]["lit"]}"/>')
-    g.append(f'<polygon points="{pts([(196, 2), (240, 22), (220, 30), (188, 22)])}" fill="{P["big"]["cap_dark"]}"/>')
+    g.append(f'<polygon points="{pts([(196, 6), (236, 42), (216, 46), (188, 24)])}" fill="{P["big"]["cap_dark"]}"/>')
     # ice tongue
     g.append(f'<polygon points="{pts(tongue)}" fill="{P["big"]["cap"]}"/>')
     g.append(f'<polygon points="{pts([(150, 0), (184, 0), (164, 52), (176, 120), (154, 180), (144, 200), (132, 200), (150, 120), (140, 50)])}" '
