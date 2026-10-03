@@ -44,7 +44,16 @@ public static class Codex
 
     public static CodexEntry[] Entries { get { return CodexCatalogue.All; } }
 
-    public static int Total { get { return Entries.Length; } }
+    // Secret entries (the bosses) only count once they are listed.
+    public static int Total
+    {
+        get
+        {
+            int n = 0;
+            foreach (var e in Entries) if (IsListed(e)) n++;
+            return n;
+        }
+    }
 
     public static int DiscoveredCount
     {
@@ -62,11 +71,27 @@ public static class Codex
         total = 0;
         foreach (var e in Entries)
         {
-            if (e.category != category) continue;
+            if (e.category != category || !IsListed(e)) continue;
             total++;
             if (IsDiscovered(e)) n++;
         }
         return n;
+    }
+
+    // Every entry of a category, listed or not (card capacity).
+    public static int CapacityIn(CodexCategory category)
+    {
+        int n = 0;
+        foreach (var e in Entries) if (e.category == category) n++;
+        return n;
+    }
+
+    // Whether the codex shows the entry at all: a secret entry stays off the
+    // list -- not even a "???" card -- until it is discovered (developer mode
+    // discovers, so lists, everything).
+    public static bool IsListed(CodexEntry entry)
+    {
+        return entry != null && (!entry.secret || IsDiscovered(entry));
     }
 
     public static CodexEntry Find(string id)

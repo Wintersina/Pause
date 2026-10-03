@@ -152,7 +152,8 @@ public static class CodexTest
         Check("every codex enemy/hazard entry is a roster enemy",
               Array.TrueForAll(Codex.Entries, e =>
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
-                  EnemyRoster.FindByCodexId(e.id) != null));
+                  EnemyRoster.FindByCodexId(e.id) != null ||
+                  BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
                                         "enemy_black", "enemy_blue", "enemy_green", "enemy_red" })
             Check("retired entry " + gone + " is gone", Codex.Find(gone) == null);

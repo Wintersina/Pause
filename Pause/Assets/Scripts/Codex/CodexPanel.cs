@@ -306,8 +306,7 @@ public class CodexPanel : MonoBehaviour
         int most = 0;
         foreach (var c in Tabs)
         {
-            int total;
-            Codex.DiscoveredIn(c, out total);
+            int total = Codex.CapacityIn(c);
             most = Mathf.Max(most, total);
         }
         cards = new Card[most];
@@ -636,7 +635,7 @@ public class CodexPanel : MonoBehaviour
         shownCount = 0;
         foreach (var e in Codex.Entries)
         {
-            if (e.category != c || shownCount >= cards.Length) continue;
+            if (e.category != c || shownCount >= cards.Length || !Codex.IsListed(e)) continue;
             var card = cards[shownCount++];
             card.entry = e;
             bool found = Codex.IsDiscovered(e);

@@ -283,6 +283,8 @@ public class ShipPowerController : MonoBehaviour
     void HitTarget(GameObject target, Color tint)
     {
         if (target == null) return;
+        // The boss is hit, not destroyed: it shortens the fight (BossTarget).
+        if (BossTarget.Intercept(target, shipIndex)) { CheckCleared(); return; }
         TargetExplosion.Spawn(target, shipIndex);
         collisionDetection.PlayExplosion();
         collisionDetection.AwardDestroyedTarget(target);

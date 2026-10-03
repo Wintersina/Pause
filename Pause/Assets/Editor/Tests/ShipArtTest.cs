@@ -268,17 +268,23 @@ public static class ShipArtTest
 
     static void Exhaust()
     {
+        // Each ship's plume is its own flipbook in the shared exhaust atlas
+        // (ShipExhaustStyle; ExhaustStyleTest covers the per-ship details).
         bool all = true;
-        for (int f = 0; f < ShipExhaust.FrameCount; f++)
+        foreach (int id in ShipId.All)
         {
-            var s = ShipExhaust.Frame(f);
-            all &= s != null && s.texture.name == "trail_strip";
+            if (ShipExhaust.UsesSpinDrift(id)) continue;
+            for (int f = 0; f < ShipExhaust.FrameCount(id); f++)
+            {
+                var s = ShipExhaust.Frame(id, false, f);
+                all &= s != null && s.texture.name == "exhaust_atlas";
+            }
         }
-        Check("the exhaust is the tail-light flipbook (" + ShipExhaust.FrameCount + " frames)", all);
+        Check("every nozzle ship's exhaust is a flipbook in the exhaust atlas", all);
         var seen = new HashSet<int>();
-        for (int t = 0; t < 12; t++) seen.Add(ShipExhaust.FrameAt(t));
-        Check("the exhaust loop visits every frame", seen.Count == ShipExhaust.FrameCount);
-        var head = ShipExhaust.Frame(0);
+        for (int t = 0; t < 16; t++) seen.Add(ShipExhaust.FrameAt(ShipId.Starter, t));
+        Check("the exhaust loop visits every frame", seen.Count == ShipExhaust.FrameCount(ShipId.Starter));
+        var head = ShipExhaust.Frame(ShipId.Starter, false, 0);
         Check("the plume is pivoted at its flame head", head != null && head.pivot.y > head.rect.height * .95f);
     }
 }

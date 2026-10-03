@@ -103,6 +103,10 @@ public class score : MonoBehaviour {
             StarDustLedger.Commit(ledgerRun);
         }
 
+        // The boss intro's freeze is scripted: a press during it, or the
+        // first one after it, never spends a pause (BossEncounter).
+        if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
+
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             // Holding the first touch must behave exactly like a normal held
