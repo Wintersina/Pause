@@ -41,10 +41,12 @@ public static class EnemyRosterTest
         NameKeysStillMatch();
         ExplosionVariantsMatchTheCast();
         SpawnerPicksFromTheCurrentWorld();
+        HeaviesKeepEveryRowPassable();
         SceneSlotsAreNeverNull();
         RetiredMeteorsAreGone();
         PaletteCompliance();
         FloatingRocks();
+        DetailFloor();
 
         Debug.Log("[ER] failures: " + fails);
         return fails;
@@ -196,7 +198,7 @@ public static class EnemyRosterTest
     {
         foreach (var d in EnemyRoster.All)
         {
-            Vector2 now = d.ColliderSize, before = EnemyRoster.LegacyCollider(d.role);
+            Vector2 now = d.ColliderSize, before = EnemyRoster.TargetCollider(d.role);
             Check(string.Format("{0} collider {1:F2}x{2:F2} within 15% of {3}'s {4:F2}x{5:F2}",
                                 d.key, now.x, now.y, d.role, before.x, before.y),
                   Within(now.x, before.x) && Within(now.y, before.y));
@@ -205,9 +207,26 @@ public static class EnemyRosterTest
             float edge = SilhouetteEdge(d);
             float world = edge * d.FrameWorldSize;
             Check(string.Format("{0} silhouette {1:F2} u within 15% of {2}'s {3:F2} u", d.key, world, d.role,
-                                EnemyRoster.LegacyWidth(d.role)),
-                  edge > 0f && Within(world, EnemyRoster.LegacyWidth(d.role)));
+                                EnemyRoster.TargetWidth(d.role)),
+                  edge > 0f && Within(world, EnemyRoster.TargetWidth(d.role)));
         }
+
+        // The heavies are the one role resized on purpose: properly big
+        // (1.0-1.2 u drawn), bigger than every fighter, with a collider that
+        // scales with the art but stays inset inside the drawing.
+        Check("the heavies target 1.0-1.2 u", EnemyRoster.BigWidth >= 1f && EnemyRoster.BigWidth <= 1.2f);
+        Check("the heavies out-size the fighters", EnemyRoster.BigWidth > EnemyRoster.LegacyWidth(EnemyRole.Fighter));
+        foreach (var d in EnemyRoster.All)
+        {
+            if (d.role != EnemyRole.Big) continue;
+            float drawn = SilhouetteEdge(d) * d.FrameWorldSize;
+            Vector2 col = d.ColliderSize;
+            Check(string.Format("{0} collider {1:F2} is inset inside its {2:F2} u drawing (65-92%)", d.key, col.x, drawn),
+                  col.x >= drawn * .65f && col.x <= drawn * .92f && col.y >= drawn * .65f && col.y <= drawn * .92f);
+        }
+        foreach (var d in EnemyRoster.All)
+            if (d.role == EnemyRole.Big)
+                Check(d.key + " is a large explosion", d.explosionSize == TargetExplosion.Size.Large);
     }
 
     // Longest edge of frame 0's alpha > 50% bounds, as a fraction of the frame.
@@ -389,7 +408,10 @@ public static class EnemyRosterTest
                 var before = new HashSet<EnemyIdentity>(UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None));
                 foreach (string slot in slots)
                     for (int k = 0; k < 6; k++)
+                    {
                         typeof(enmiesOnBoard).GetMethod(slot, BindingFlags.NonPublic | BindingFlags.Instance).Invoke(board, null);
+                        Scroll(1f, false);   // the board moves on between spawns (SpawnLane keeps each row open)
+                    }
                 var roles = new HashSet<EnemyRole>();
                 bool allHere = true;
                 int n = 0;
@@ -439,6 +461,89 @@ public static class EnemyRosterTest
             }
             int wantHi = Mathf.Clamp(phase, 1, 4), wantLo = Mathf.Max(1, wantHi - 2);
             Check("phase " + phase + " fields fighter tiers " + wantLo + "-" + wantHi + " (" + lo + "-" + hi + ")", lo == wantLo && hi == wantHi);
+        }
+    }
+
+    // Every live hazard (chasers aside: they steer) moves down the board.
+    static void Scroll(float dy, bool despawn = true)
+    {
+        foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+        {
+            if (id.Def != null && id.Def.role == EnemyRole.Chaser) continue;
+            id.transform.position += Vector3.down * dy;
+            if (despawn && id.transform.position.y < -14f) UnityEngine.Object.DestroyImmediate(id.gameObject);
+        }
+    }
+
+    // The heavies are ~1.1 u now. Over a simulated run in every world -- the
+    // real spawner's timers, phases and density ramp, stepped headless with
+    // the board scrolling at a steady speed -- no row of the board is ever
+    // closed: every window a ship has to pass through keeps a ship-width gap
+    // (SpawnLane.ShipGap) across the lane, heavies stay clear of the walls
+    // and rail mines, and they stay an occasional threat, not a wall.
+    static void HeaviesKeepEveryRowPassable()
+    {
+        EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
+        var wmGo = new GameObject("~ErRunWorlds");
+        var wm = wmGo.AddComponent<WorldManager>();
+        SetWorldManager(wm);
+        var spawn = typeof(enmiesOnBoard).GetMethod("spawn", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(float) }, null);
+        var select = typeof(enmiesOnBoard).GetMethod("SelectPhase", BindingFlags.NonPublic | BindingFlags.Instance);
+        var elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", BindingFlags.NonPublic | BindingFlags.Instance);
+        Check("the spawner steps with an explicit dt (spawn(float))", spawn != null && spawn.GetParameters().Length == 1);
+        if (spawn == null || select == null || elapsed == null) { SetWorldManager(null); UnityEngine.Object.DestroyImmediate(wmGo); return; }
+        const float dt = .1f, scrollSpeed = 3f, runSeconds = 240f;
+        float gap = SpawnLane.ShipGap;
+        try
+        {
+            for (int w = 0; w < Worlds; w++)
+            {
+                PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
+                UnityEngine.Random.InitState(9100 + w);
+                var board = new GameObject("~ErRunBoard").AddComponent<enmiesOnBoard>();
+                board.SendMessage("Start");
+                var seen = new HashSet<EnemyIdentity>();
+                int heavies = 0, total = 0, closedRows = 0, heavyOutOfLane = 0;
+                float tightest = 99f;
+                for (float t = 0f; t < runSeconds; t += dt)
+                {
+                    elapsed.SetValue(board, t);
+                    select.Invoke(board, null);
+                    spawn.Invoke(board, new object[] { dt });
+                    foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                    {
+                        if (!seen.Add(id) || id.Def == null) continue;
+                        total++;
+                        if (id.Def.role != EnemyRole.Big) continue;
+                        heavies++;
+                        float half = id.Def.FrameWorldSize * .5f * .85f;
+                        if (Mathf.Abs(id.transform.position.x) + half > SpawnLane.LaneHalf - .3f) heavyOutOfLane++;
+                    }
+                    // every window of the board near the spawn line, one ship gap tall
+                    for (float y = -3f; y <= 1.5f; y += .25f)
+                    {
+                        float widest = SpawnLane.WidestGap(SpawnLane.RowSpans(y, y + gap));
+                        tightest = Mathf.Min(tightest, widest);
+                        if (widest < gap - 1e-3f) closedRows++;
+                    }
+                    Scroll(scrollSpeed * dt);
+                }
+                Check(string.Format("{0}: {1:F0}s run, every row keeps a ship-width gap ({2} closed windows, tightest {3:F2} u >= {4:F2} u)",
+                                    W(w), runSeconds, closedRows, tightest, gap), closedRows == 0);
+                Check(string.Format("{0}: heavies spawn ({1} of {2} hazards)", W(w), heavies, total), heavies >= 5);
+                Check(string.Format("{0}: heavies stay an occasional threat ({1:P0} of spawns <= 25%)", W(w), heavies / (float)Mathf.Max(1, total)),
+                      heavies <= total * .25f);
+                Check(string.Format("{0}: the lane guard doesn't starve the board ({1} hazards in {2:F0}s)", W(w), total, runSeconds), total >= 200);
+                Check(W(w) + ": every heavy spawns clear of the walls and rail mines (" + heavyOutOfLane + " out)", heavyOutOfLane == 0);
+                foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                    UnityEngine.Object.DestroyImmediate(id.gameObject);
+                UnityEngine.Object.DestroyImmediate(board.gameObject);
+            }
+        }
+        finally
+        {
+            SetWorldManager(null);
+            UnityEngine.Object.DestroyImmediate(wmGo);
         }
     }
 
@@ -566,7 +671,34 @@ public static class EnemyRosterTest
                                             File.Exists(ArtSrc + "svg/" + d.key + "_" + EnemyRoster.HitFrame + ".svg"));
     }
 
-    // ---- 7: floating rocks -------------------------------------------------------
+    // ---- 7: detail floor ---------------------------------------------------------
+
+    // The art can't slide back to blobby simple shapes: every enemy's key
+    // pose (frame 0) is built from many inked sub-shapes (panel lines,
+    // rivets, plates, sockets, teeth...), counted straight from its SVG.
+    // The heavies, drawn twice as big, carry more.
+    public const int MinInkedShapes = 28, MinShapes = 60, MinInkedShapesBig = 40, MinShapesBig = 100;
+
+    static readonly Regex InkedShape = new Regex("<(?:polygon|polyline|path|circle)[^>]*(?:stroke|fill)=\"@INK@\"");
+    static readonly Regex AnyShape = new Regex("<(?:polygon|polyline|path|circle)");
+
+    static void DetailFloor()
+    {
+        foreach (var d in EnemyRoster.All)
+        {
+            string path = ArtSrc + "svg/" + d.key + "_0.svg";
+            if (!File.Exists(path)) { Check(d.key + " key pose source exists", false); continue; }
+            string src = File.ReadAllText(path);
+            int inked = InkedShape.Matches(src).Count, shapes = AnyShape.Matches(src).Count;
+            bool big = d.role == EnemyRole.Big;
+            int needInked = big ? MinInkedShapesBig : MinInkedShapes, needShapes = big ? MinShapesBig : MinShapes;
+            Check(string.Format("{0} key pose is detailed ({1} inked sub-shapes >= {2}, {3} shapes >= {4})",
+                                d.key, inked, needInked, shapes, needShapes),
+                  inked >= needInked && shapes >= needShapes);
+        }
+    }
+
+    // ---- 8: floating rocks -------------------------------------------------------
 
     // The first-pass grass-capped Spore Rock (commit 18b5e5f) the restored
     // Verdant rock is held to.

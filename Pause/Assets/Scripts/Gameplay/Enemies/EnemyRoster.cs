@@ -76,6 +76,23 @@ public static class EnemyRoster
     //   Chaser  kn_enemyRed5 + ChaserEnemy: 0.866 x 0.75, collider 0.71 x 0.615
     //   Alien   alien1: 0.64, collider 0.4 x 0.2
     //   Mine    runtime rail mine: ~0.8, collider 0.62 square
+    // Every role keeps to those, except the Big heavies: the user wanted them
+    // to read as properly big (they were smaller than the fighters), so they
+    // target BigWidth instead (TargetWidth / TargetCollider below).
+    public const float BigWidth = 1.1f;
+
+    // The size a role is held to (+/-15%, EnemyRosterTest): the legacy size,
+    // or the heavies' new one.
+    public static float TargetWidth(EnemyRole role)
+    {
+        return role == EnemyRole.Big ? BigWidth : LegacyWidth(role);
+    }
+
+    public static Vector2 TargetCollider(EnemyRole role)
+    {
+        return role == EnemyRole.Big ? ColliderSize(EnemyRole.Big) : LegacyCollider(role);
+    }
+
     public static Vector2 LegacyCollider(EnemyRole role)
     {
         switch (role)
@@ -106,7 +123,9 @@ public static class EnemyRoster
         switch (role)
         {
             case EnemyRole.Rock: return new Vector2(.472f, .472f);
-            case EnemyRole.Big: return new Vector2(.52f, .52f);      // +10%: it's the heavy
+            // ~78% of the 1.1 u drawing: scaled with the art, inset a little
+            // further than the rocks' 82% so a graze past the plating is fair
+            case EnemyRole.Big: return new Vector2(.86f, .86f);
             case EnemyRole.Fighter: return new Vector2(.68f, .61f);
             case EnemyRole.Chaser: return new Vector2(.66f, .62f);
             case EnemyRole.Alien: return new Vector2(.4f, .2f);
@@ -116,13 +135,13 @@ public static class EnemyRoster
 
     // The drawings fill ~75-100% of their 128 u frame, so a frame is a bit
     // larger in the world than the silhouette it holds (EnemyRosterTest
-    // measures the drawn silhouette against LegacyWidth).
+    // measures the drawn silhouette against TargetWidth).
     public static float FrameWorldSize(EnemyRole role)
     {
         switch (role)
         {
             case EnemyRole.Rock: return .66f;
-            case EnemyRole.Big: return .70f;
+            case EnemyRole.Big: return 1.3f;   // the drawing fills ~85%: ~1.1 u
             case EnemyRole.Fighter: return .9f;
             case EnemyRole.Chaser: return .95f;
             case EnemyRole.Alien: return .67f;
