@@ -103,10 +103,9 @@ public class WorldManager : MonoBehaviour
     void Start()
     {
         // Unlocks are permanent: once a planet has been reached, later runs
-        // start there rather than replaying the earlier worlds.
-        CurrentIndex = DeveloperUnlocks.Enabled ? DeveloperUnlocks.SelectedWorld : startAtHighestUnlocked
-            ? PlayerPrefs.GetInt(PrefsHighestWorld, 0)
-            : 0;
+        // start there rather than replaying the earlier worlds. Developer mode
+        // can pin a start world from Options instead.
+        CurrentIndex = DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
 
         timer = secondsPerWorld;
         WorldPainter.Apply(Current);
