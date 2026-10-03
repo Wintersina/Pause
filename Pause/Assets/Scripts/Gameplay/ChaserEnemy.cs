@@ -33,6 +33,9 @@ public class ChaserEnemy : MonoBehaviour
     Vector3 wanderCenter;
     bool wandering;
 
+    // True while it is still closing in (EnemyFlipbook loops its lunge then).
+    public bool IsChasing => !wandering;
+
     void Start()
     {
         chaseTimer = chaseSeconds;

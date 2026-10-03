@@ -104,6 +104,8 @@ public class LeaderboardPanel : MonoBehaviour
         panel.safeArea = safe;
         panel.Build();
         Current = panel;
+        // Back closes the panel before Options' own back (home) is reached.
+        BackNavigator.Register(panel, panel.OnBackPressed);
         panel.SelectFirstBoard();
         return panel;
     }
@@ -114,13 +116,14 @@ public class LeaderboardPanel : MonoBehaviour
     {
         if (Current == null) return;
         var go = Current.gameObject;
+        BackNavigator.Unregister(Current);
         Current = null;
         if (Application.isPlaying) Destroy(go);
         else DestroyImmediate(go);
     }
 
-    // Android back / Escape (backButton): closes the panel instead of leaving
-    // Options.
+    // Android back / Escape: closes the panel instead of leaving Options
+    // (the open panel is a BackNavigator layer; see Open).
     public static bool CloseIfOpen()
     {
         if (!IsOpen) return false;
@@ -128,8 +131,16 @@ public class LeaderboardPanel : MonoBehaviour
         return true;
     }
 
+    bool OnBackPressed()
+    {
+        if (Current != this) return false;
+        Close();
+        return true;
+    }
+
     void OnDestroy()
     {
+        BackNavigator.Unregister(this);
         if (Current == this) Current = null;
     }
 

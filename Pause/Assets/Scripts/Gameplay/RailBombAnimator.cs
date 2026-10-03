@@ -1,51 +1,23 @@
 using UnityEngine;
 
-// Presents the four-frame mine for the current world's rail material. Mounting
-// and movement remain the responsibility of RailMineMount and the existing
-// straight-line scroller.
-public class RailBombAnimator : MonoBehaviour
+// The rail mine's flipbook: the current world's mine from EnemyRoster
+// (Resources/Enemies/<world>_mine.png), idling dormant -> lit -> pulse and
+// arming to its burst while the ship is close. Mounting and movement remain
+// the responsibility of RailMineMount and the straight-line scroller.
+public class RailBombAnimator : EnemyFlipbook
 {
-    SpriteRenderer renderer;
-    static Sprite emberFrame1, emberFrame2;
-
-    void Awake()
+    protected override void Awake()
     {
-        renderer = GetComponent<SpriteRenderer>();
-        // The old mine Animator targets its legacy sprite frames. Disable it
-        // so it cannot overwrite the themed runtime animation.
+        // An old mine Animator would overwrite the flipbook's sprite.
         var legacy = GetComponent<Animator>();
         if (legacy != null) legacy.enabled = false;
-        ApplyFrame(0);
-    }
 
-    void Update()
-    {
-        ApplyFrame(Mathf.FloorToInt(Time.time * 6f));
-    }
-
-    void ApplyFrame(int frame)
-    {
-        if (renderer == null) return;
-        int world = WorldManager.Instance != null ? WorldManager.CurrentIndex : 0;
-        if (world == 3)
+        base.Awake();
+        if (!HasFrames)
         {
-            LoadEmberFrames();
-            renderer.sprite = (frame % 2 == 0) ? emberFrame1 : emberFrame2;
+            var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine);
+            if (def != null) Init(def);
         }
-        else renderer.sprite = RailBombSprites.FrameForWorld(world, frame);
-        renderer.sortingOrder = 12;
-    }
-
-    static void LoadEmberFrames()
-    {
-        if (emberFrame1 != null && emberFrame2 != null) return;
-        emberFrame1 = SpriteFrom(Resources.Load<Texture2D>("Vfx/rail_mine_ember_1"));
-        emberFrame2 = SpriteFrom(Resources.Load<Texture2D>("Vfx/rail_mine_ember_2"));
-    }
-
-    static Sprite SpriteFrom(Texture2D texture)
-    {
-        return texture == null ? null : Sprite.Create(texture,
-            new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 100f);
+        if (sr != null) sr.sortingOrder = 12;
     }
 }

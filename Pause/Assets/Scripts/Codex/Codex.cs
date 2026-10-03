@@ -214,7 +214,11 @@ public static class Codex
     {
         if (go == null) return null;
 
-        // The hunter reuses a Crimson hull; its behaviour is what sets it apart.
+        // Roster enemies know exactly which entry they are (aliens and mines
+        // share their legacy object names across worlds).
+        var roster = EnemyIdentity.Of(go);
+        if (roster != null) return roster.codexId;
+        // A chaser built from any other hull is still the Space chaser.
         if (go.GetComponent<ChaserEnemy>() != null) return "enemy_chaser";
 
         string raw = go.name;

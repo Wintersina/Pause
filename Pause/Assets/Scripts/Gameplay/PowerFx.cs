@@ -110,6 +110,16 @@ public static class PowerFx
         Runner.StartCoroutine(FollowAndFade(go, seconds));
     }
 
+    // Cloak's look: the pulsing lavender aura, held for exactly as long as
+    // collisionDetection's cloak clock runs (which pauses with the game), so
+    // the visual and the invulnerability always end together.
+    public static void CloakAura(Color tint, float seconds)
+    {
+        var go = Piece("vfx_light_02", Vector3.zero, tint, 1.6f, 40);
+        go.name = "~CloakAura";
+        Runner.StartCoroutine(FollowWhileCloaked(go, Mathf.Max(0.01f, seconds)));
+    }
+
     // ---- coroutines (unscaled: powers can fire while the world is frozen) ----
 
     static IEnumerator FadeOut(GameObject go, float seconds)
@@ -209,6 +219,29 @@ public static class PowerFx
             yield return null;
         }
         Object.Destroy(go);
+    }
+
+    static IEnumerator FollowWhileCloaked(GameObject go, float seconds)
+    {
+        var player = Object.FindFirstObjectByType<movePlayer>();
+        var sr = go.GetComponent<SpriteRenderer>();
+        Color start = sr != null ? sr.color : Color.white;
+        float t = 0f;
+        while (go != null && collisionDetection.Cloaked)
+        {
+            if (player != null) go.transform.position = player.transform.position;
+            if (sr != null)
+            {
+                // fades with what is left, so the last moments read as ending
+                float left = Mathf.Clamp01(collisionDetection.cloakTimer / seconds);
+                var c = start;
+                c.a = start.a * (0.55f + 0.45f * Mathf.Sin(t * 9f)) * (0.35f + 0.65f * left);
+                sr.color = c;
+            }
+            t += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        if (go != null) Object.Destroy(go);
     }
 }
 

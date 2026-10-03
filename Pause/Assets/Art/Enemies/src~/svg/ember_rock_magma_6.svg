@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ember_rock_magma frame 6 (hit), hold 2 ticks @24fps; colours are palette.env tokens -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="base"><clipPath id="c1183"><path d="M10,116 L26,84 L44,58 L72,32 L110,8 L102,40 L84,72 L54,100 Z"/></clipPath><polygon points="10,116 26,84 44,58 72,32 110,8 102,40 84,72 54,100" fill="@BONE@" /></g>
+<g id="shadow"><path d="M10,116 L26,84 L44,58 L72,32 L110,8 L102,40 L84,72 L54,100 Z M2,108 L18,76 L36,50 L64,24 L102,0 L94,32 L76,64 L46,92 Z" fill="@FLASH_SH@" fill-rule="evenodd" clip-path="url(#c1183)"/></g>
+<g id="highlight"><path d="M10,116 L26,84 L44,58 L72,32 L110,8 L102,40 L84,72 L54,100 Z M13.5,119.5 L29.5,87.5 L47.5,61.5 L75.5,35.5 L113.5,11.5 L105.5,43.5 L87.5,75.5 L57.5,103.5 Z" fill="@BONE@" fill-rule="evenodd" clip-path="url(#c1183)"/><polyline points="12,112 27,82 45,56 72,30" fill="none" stroke="@BONE@" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" /><polygon points="97.2,101.5 107.8,107.8 101.5,97.2" fill="@BONE@" /><polygon points="97.2,101.5 107.8,107.8 101.5,97.2" fill="none" stroke="@INK@" stroke-width="1.5" stroke-linejoin="round" /><polygon points="26.5,97.2 20.2,107.8 30.8,101.5" fill="@BONE@" /><polygon points="26.5,97.2 20.2,107.8 30.8,101.5" fill="none" stroke="@INK@" stroke-width="1.5" stroke-linejoin="round" /><polygon points="30.8,26.5 20.2,20.2 26.5,30.8" fill="@BONE@" /><polygon points="30.8,26.5 20.2,20.2 26.5,30.8" fill="none" stroke="@INK@" stroke-width="1.5" stroke-linejoin="round" /><polygon points="101.5,30.8 107.8,20.2 97.2,26.5" fill="@BONE@" /><polygon points="101.5,30.8 107.8,20.2 97.2,26.5" fill="none" stroke="@INK@" stroke-width="1.5" stroke-linejoin="round" /></g>
+<g id="ink"><polygon points="10,116 26,84 44,58 72,32 110,8 102,40 84,72 54,100" fill="none" stroke="@INK@" stroke-width="4" stroke-linejoin="round" /><polyline points="26,84 40,92" fill="none" stroke="@INK@" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="72,32 84,44" fill="none" stroke="@INK@" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="detail"><polyline points="24,100 40,82 52,80 66,60 80,52 96,26" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /><polyline points="52,80 58,92" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /><polyline points="66,60 60,50" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /></g>
+</svg>

@@ -42,12 +42,12 @@ public class menuButton : MonoBehaviour {
             SceneManager.LoadScene("tutorialS5");
         }
     }
+    // BACK (UnityEvent-wired): one level up via BackNavigator -- in the dock
+    // that first undoes a ship selection, on Options it closes the
+    // leaderboard panel, otherwise it goes home.
     public void back()
     {
-        if(AdMob.isAdsShowwing)
-            AdMob.hide();
-        GameStateReset.Clear();
-        SceneManager.LoadScene("startS4");
+        BackNavigator.Back();
     }
  
 }

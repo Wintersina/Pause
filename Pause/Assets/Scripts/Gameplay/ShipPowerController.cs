@@ -381,13 +381,22 @@ public class ShipPowerController : MonoBehaviour
             }
     }
 
-    IEnumerator DoCloak()
+    // Phase Cloak: cloakSeconds of real invulnerability with its own lavender
+    // phase look (ring + pulsing aura), not the blue-atom shield.
+    //
+    // It used to only bump collisionDetection.invTimer, but hazards are gated
+    // on atomCheck, which only a blue atom sets -- so Cloak never protected
+    // the ship (and, during a shield, it silently stretched the shield's own
+    // timer instead). It now runs collisionDetection's separate cloak clock;
+    // hazards check Invulnerable (shield or Cloak), so the two overlap
+    // cleanly and each ends on its own schedule.
+    public static readonly Color CloakTint = new Color(0.75f, 0.6f, 1f, 0.9f);
+
+    public void DoCloak()
     {
-        // reuse the existing invulnerability window
-        collisionDetection.invTimer = Mathf.Max(collisionDetection.invTimer, cloakSeconds);
-        PowerFx.Ring(transform.position, 2.2f, new Color(0.75f, 0.6f, 1f, 0.9f));
-        PowerFx.Aura(transform.position, new Color(0.75f, 0.6f, 1f, 0.7f), cloakSeconds);
-        yield return null;
+        collisionDetection.BeginCloak(cloakSeconds);
+        PowerFx.Ring(transform.position, 2.2f, CloakTint);
+        PowerFx.CloakAura(new Color(0.75f, 0.6f, 1f, 0.7f), cloakSeconds);
     }
 
     IEnumerator DoMagnet()

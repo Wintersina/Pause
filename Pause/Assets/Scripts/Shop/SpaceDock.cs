@@ -20,8 +20,8 @@ public class SpaceDock : MonoBehaviour
 {
     public static SpaceDock Instance { get; private set; }
 
-    public const float LaunchDuration = 2.1f;
-    const float UndockTime = .8f;
+    public const float LaunchDuration = DockLaunch.Duration;
+    const float UndockTime = DockLaunch.UndockTime;
     const float DragThresholdInches = .08f;
 
     public DockBay[] bays;            // by ship index; [0] unused
@@ -51,6 +51,9 @@ public class SpaceDock : MonoBehaviour
     float lastPointerY;
     bool skipLaunch;
     bool rackPlaced;
+    // shopingShips' selection statics as they were before the current
+    // selection began, so Back can put them back.
+    int preSelectShipNumber, preSelectLastShip;
 
     // Where launching continues to: the same destination the PLAY button has
     // always had (menuButton.play): the game, or the tutorial first.
@@ -75,18 +78,52 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        BackNavigator.Register(this, OnBackPressed);
     }
 
     void OnDisable()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
 
     void OnDestroy()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
+    }
+
+    // BackNavigator layer. While launching, Back is swallowed (the choice is
+    // already saved and the scene is about to change; skipping would be a
+    // second, irreversible action). With a ship selected it undoes the
+    // selection. Otherwise it passes, and the scene root goes home.
+    bool OnBackPressed()
+    {
+        if (Launching) return true;
+        if (HasSelection) { UndoSelection(); return true; }
+        return false;
+    }
+
+    public bool HasSelection
+    {
+        get { return Selected > 0 || (popup != null && popup.Visible); }
+    }
+
+    // Back with a ship tapped: close the popup, power the ship down and show
+    // the equipped ship as the selection again. Nothing is saved.
+    public void UndoSelection()
+    {
+        if (Launching) return;
+        bool had = Selected > 0;
+        Deselect();
+        if (had)
+        {
+            shopingShips.shipNumber = preSelectShipNumber;
+            shopingShips.LastShipSelected = preSelectLastShip;
+        }
+        RefreshStatuses();
     }
 
     void Construct()
@@ -94,6 +131,7 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        BackNavigator.Register(this, OnBackPressed);
         cam = Camera.main;
         // Beyond the starfield (wide windows) show deep space, not the
         // scene's authored mid-blue clear colour.
@@ -281,6 +319,11 @@ public class SpaceDock : MonoBehaviour
             return;
         }
         if (Selected > 0 && bays[Selected] != null) bays[Selected].SetPowered(false);
+        if (Selected == 0)
+        {
+            preSelectShipNumber = shopingShips.shipNumber;
+            preSelectLastShip = shopingShips.LastShipSelected;
+        }
         Selected = index;
         shopingShips.LastShipSelected = shopingShips.shipNumber;
         shopingShips.shipNumber = index;
@@ -389,14 +432,14 @@ public class SpaceDock : MonoBehaviour
         while (t < UndockTime && !skipLaunch)
         {
             t += Time.unscaledDeltaTime;
-            bay.SetClampOpen(DockTween.OutCubic(DockTween.Clamp01Range(t, 0f, .32f)));
-            float lift = DockTween.InOutCubic(DockTween.Clamp01Range(t, .12f, .75f));
-            float back = DockTween.InOutCubic(DockTween.Clamp01Range(t, .22f, .8f));
-            ship.localPosition = rest + new Vector3(0f, -.09f * back, 0f);
-            ship.localScale = restScale * (1f + .16f * lift);
+            bay.SetClampOpen(DockLaunch.Clamps(t));
+            float lift = DockLaunch.Lift(t);
+            float back = DockLaunch.BackOff(t);
+            ship.localPosition = rest + new Vector3(0f, -DockLaunch.BackOffDistance * back, 0f);
+            ship.localScale = restScale * (1f + DockLaunch.LiftGrow * lift);
             ship.localRotation = restRotation;
             bay.SetShadow(.1f * lift, .55f - .2f * lift);
-            if (thruster != null) thruster.idleScale = Mathf.Lerp(.55f, .7f, lift);
+            if (thruster != null) thruster.idleScale = DockLaunch.UndockFlame(lift);
             yield return null;
         }
 
@@ -408,7 +451,7 @@ public class SpaceDock : MonoBehaviour
         float halfH = cam != null ? cam.orthographicSize : 5f;
         float camX = cam != null ? cam.transform.position.x : 0f;
         float camTop = (cam != null ? cam.transform.position.y : 0f) + halfH;
-        Vector3 p1 = p0 + new Vector3(0f, 1.25f, 0f);
+        Vector3 p1 = p0 + new Vector3(0f, DockLaunch.ApproachDistance, 0f);
         Vector3 p2 = new Vector3(camX + (p0.x - camX) * .2f, camTop + 1.2f, p0.z);
         float flight = LaunchDuration - UndockTime;
         float f = 0f;
@@ -416,7 +459,7 @@ public class SpaceDock : MonoBehaviour
         while (f < 1f && !skipLaunch)
         {
             f = Mathf.Min(1f, f + Time.unscaledDeltaTime / flight);
-            float u = Mathf.Pow(f, 1.9f);
+            float u = DockLaunch.Flight(f);
             Vector3 pos = DockTween.Bezier(p0, p1, p2, u);
             ship.position = pos;
             if (bay.wind)
@@ -428,12 +471,12 @@ public class SpaceDock : MonoBehaviour
             {
                 Vector3 tangent = DockTween.BezierTangent(p0, p1, p2, u);
                 float heading = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg - 90f;
-                ship.rotation = Quaternion.Euler(0f, 0f, heading * Mathf.Clamp01(f * 3f));
+                ship.rotation = Quaternion.Euler(0f, 0f, heading * DockLaunch.TurnIn(f));
             }
-            float grow = 1f + .14f * DockTween.InOutCubic(f);
+            float grow = DockLaunch.FlightGrow(f);
             ship.localScale = new Vector3(worldScale.x * grow, worldScale.y * grow, 1f);
             bay.SetShadow(.1f + f * .4f, Mathf.Max(0f, .35f - f * .8f));
-            if (thruster != null) thruster.idleScale = Mathf.Lerp(.7f, 1.6f, DockTween.OutCubic(f * 1.4f));
+            if (thruster != null) thruster.idleScale = DockLaunch.Flare(f);
             yield return null;
         }
 

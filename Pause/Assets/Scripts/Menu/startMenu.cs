@@ -19,7 +19,8 @@ public class startMenu : MonoBehaviour {
         playerDied = false;
         playB.gameObject.SetActive(true);
         aboutB.gameObject.SetActive(true);
-        quitB.gameObject.SetActive(true);
+        // iOS has no system back and apps must not quit themselves: no Quit.
+        quitB.gameObject.SetActive(BackNavigator.QuitAllowed);
         // if ads are showing in main menu, turn them off.
         if (AdMob.isAdsShowwing)
             AdMob.hide();
@@ -31,13 +32,9 @@ public class startMenu : MonoBehaviour {
     {
         if (layoutWidth != Screen.width || layoutHeight != Screen.height)
             LayoutHome();
-        // Back/Escape quits. Was Android-gated and additionally required
-        // touchCount == 0, which swallowed the keypress on other platforms.
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-            return;
-        }
+        // Back/Escape is BackNavigator's: on the home screen it closes the
+        // codex one level at a time, then quits on a second press within
+        // two seconds ("press back again to quit").
     }
 
     // Keep the main actions together and the footer at the bottom, regardless
@@ -135,8 +132,9 @@ public class startMenu : MonoBehaviour {
     {
         SceneManager.LoadScene("creditsS7");
     }
+    // The Quit button: a deliberate quit, so no confirmation (never on iOS).
     public void quit()
     {
-        Application.Quit();
+        BackNavigator.QuitNow();
     }
 }

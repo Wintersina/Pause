@@ -60,19 +60,19 @@ because the roster art overrides both. `xenon2_ship.png` stays on HOLD.
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Kenney fighters, 4 tiers × 5 (Black, Blue, Green, Red) | `Art/Resources/Prefabs/Enemies/Kenney/enemy{Black,Blue,Green,Red}{1-5}.png` | flat but no ink, rounded, the Red tier breaks the player=red rule (4, 5) | **REDRAW**. Tiers map to Steel (Black), Steel+Bruise (Blue), Bile (Green), Bruise+Magenta (Red). Sample: `enemy_fighter` |
-| Chaser | `Art/Resources/Prefabs/Enemies/Kenney/enemyRed5.png` (via `Prefabs/Enemies/kn_enemyRed5`) | as above; currently red (5) | **REDRAW**. Hostile bruise/magenta, sharper prongs |
-| Alien | `Art/invader32x32x4.png` (`Resources/prefabs/alien1.prefab`) | shaded pixel, cute-round (1, 3, 4) | **REDRAW**. Sample: `enemy_alien` |
-| Rail mine / rail bomb (4 worlds × 4 frames) | `Art/Resources/Vfx/rail_bomb_themes_atlas.png` | painted glossy metal (1, 3) | **REDRAW**. Sample: `enemy_mine`. Keep the 4×4 layout |
-| Ember rail mine frames | `Art/Resources/Vfx/rail_mine_ember_1.png`, `rail_mine_ember_2.png` | same | **REDRAW** |
+| Kenney fighters, 4 tiers × 5 (Black, Blue, Green, Red) | `Art/Resources/Prefabs/Enemies/Kenney/enemy{Black,Blue,Green,Red}{1-5}.png` | flat but no ink, rounded, the Red tier breaks the player=red rule (4, 5) | **DONE (replaced)**. Out of the spawn pool: each world now fields its own four fighter tiers from `EnemyRoster` (`Art/Enemies/src~`, strips in `Art/Resources/Enemies`). The Kenney prefabs/PNGs are unreferenced and await a delete decision |
+| Chaser | `Art/Resources/Prefabs/Enemies/Kenney/enemyRed5.png` (via `Prefabs/Enemies/kn_enemyRed5`) | as above; currently red (5) | **DONE (replaced)**: per-world chasers (`<world>_chaser`) with a lunge tell |
+| Alien | `Art/invader32x32x4.png` (`Resources/prefabs/alien1.prefab`) | shaded pixel, cute-round (1, 3, 4) | **DONE (replaced)**: per-world aliens (`<world>_alien`), still named `alien1` in play; the prefab is only the spawner's fallback |
+| Rail mine / rail bomb (4 worlds × 4 frames) | `Art/Resources/Vfx/rail_bomb_themes_atlas.png` | painted glossy metal (1, 3) | **DONE**: Space keeps the approved design, restyled in flat ink; Frost (Geode), Verdant (Burr) and Ember (Crucible) are new, world-specific mines. The atlas is repacked from `<world>_mine` frames 0, 1, 4, 5 |
+| Ember rail mine frames | `Art/Resources/Vfx/rail_mine_ember_1.png`, `rail_mine_ember_2.png` | same | **DONE (restyled)** from `ember_mine` frames 0 and 5; the game now plays the full `ember_mine` flipbook, so these two are no longer read at runtime |
 | Legacy mine (animated) | `Art/Aestroids/1.png`, `Art/Aestroids/2.png` (`Art/Animation/mineAnime.anim`) | glossy red sphere with spikes (1, 3) | **REDRAW** if still spawned. Prefab `Prefabs/mine` was retired in code, so verify before working on it |
 
 ## Asteroids and hazards
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Pixel asteroids | `Art/Aestroids/aestroid_brown.png`, `aestroid_brown_1.png`, `aestroid_dark.png`, `aestroid_dark_1.png`, `aestroid_gay_1.png`, `aestroid_gay_3.png`, `aestroid_gray_crooked_1.png`, `aestroid_gray_crooked_2.png` | sphere-shaded, glossy pits (1, 3, 4) | **REDRAW**. Sample: `asteroid` |
-| Kenney meteors (brown + grey, big/med/small/tiny, 20 files) | `Art/Resources/Prefabs/Enemies/Kenney/meteor{Brown,Grey}_{big1-4,med1-3,small1-2,tiny1-2}.png` | flat but no ink, blobby (3, 4) | **REDRAW** (faceted, ink, amber rim) |
+| Pixel asteroids | `Art/Aestroids/aestroid_brown.png`, `aestroid_brown_1.png`, `aestroid_dark.png`, `aestroid_dark_1.png`, `aestroid_gay_1.png`, `aestroid_gay_3.png`, `aestroid_gray_crooked_1.png`, `aestroid_gray_crooked_2.png` | sphere-shaded, glossy pits (1, 3, 4) | **DONE (replaced)**: Space spawns `space_rock_{crater,cluster,dark}`; these prefabs stay only as the scene-array fallback |
+| Kenney meteors (brown + grey, 8 big files left) | `Art/Resources/Prefabs/Enemies/Kenney/meteor{Brown,Grey}_big1-4.png` | flat but no ink, blobby (3, 4) | tiny/small/medium **DELETED** (12 prefabs + PNGs). big1-4 **AMBIGUOUS**: kept but no longer spawned |
 | Legacy asteroid | `Legacy/Art/Aestroids/asteroid6.png` | only used as the editor's default cursor | **UNUSED** (leave it alone) |
 
 ## Atoms and pickups

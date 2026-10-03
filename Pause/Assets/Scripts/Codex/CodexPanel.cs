@@ -139,7 +139,6 @@ public class CodexPanel : MonoBehaviour
     RectTransform detailArtBox;
     RectTransform backSlot;
     Button backBtn;
-    Behaviour sceneBack;   // the scene's Escape handler, muted while open
 
     Layout layout;
     CodexCategory category = CodexCategory.Log;
@@ -542,14 +541,9 @@ public class CodexPanel : MonoBehaviour
         gameObject.SetActive(true);
         Codex.Reload();
         RefreshCounter();
-        if (sceneBack == null)
-        {
-            // The home screen quits on Escape (startMenu); other menus go
-            // back (backButton). Either way the codex owns Escape while open.
-            Behaviour home = FindFirstObjectByType<startMenu>();
-            sceneBack = home != null ? home : FindFirstObjectByType<global::backButton>();
-        }
-        if (sceneBack != null) sceneBack.enabled = false;
+        // The codex owns Back/Escape while it is up (BackNavigator layer), so
+        // the home screen's back-to-quit never sees those presses.
+        BackNavigator.Register(this, OnBackPressed);
 
         inDetail = false;
         detailEntry = null;
@@ -566,6 +560,15 @@ public class CodexPanel : MonoBehaviour
         if (phase == Phase.Hidden || phase == Phase.Closing) return;
         phase = Phase.Closing;
         phaseAt = Time.unscaledTime;
+    }
+
+    // BackNavigator layer: consumes every press until fully hidden (a press
+    // during the close animation must not fall through to quit).
+    bool OnBackPressed()
+    {
+        if (phase == Phase.Hidden) return false;
+        Back();
+        return true;
     }
 
     // Back button / Escape: detail -> grid -> closed.
@@ -702,7 +705,6 @@ public class CodexPanel : MonoBehaviour
     void Update()
     {
         if (Screen.width != lastW || Screen.height != lastH || Screen.safeArea != lastSafe) Fit();
-        if (Input.GetKeyDown(KeyCode.Escape)) Back();
         ApplyFrame(Time.unscaledTime);
     }
 
@@ -731,7 +733,7 @@ public class CodexPanel : MonoBehaviour
             if (p >= 1f)
             {
                 phase = Phase.Hidden;
-                if (sceneBack != null) sceneBack.enabled = true;
+                BackNavigator.Unregister(this);
                 gameObject.SetActive(false);
                 var handler = Closed;
                 if (handler != null) handler();
