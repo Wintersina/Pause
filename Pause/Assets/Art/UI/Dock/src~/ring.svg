@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Landing ring glow under a powered ship. Drawn white; the game tints it. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="76" height="76" viewBox="0 0 76 76">
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+  </defs>
+  <circle cx="38" cy="38" r="31" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.55" filter="url(#glow)"/>
+  <circle cx="38" cy="38" r="31" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-dasharray="9 4.2"/>
+  <g stroke="#FFFFFF" stroke-width="2" stroke-linecap="square">
+    <line x1="38" y1="2" x2="38" y2="8"/>
+    <line x1="38" y1="68" x2="38" y2="74"/>
+    <line x1="2" y1="38" x2="8" y2="38"/>
+    <line x1="68" y1="38" x2="74" y2="38"/>
+  </g>
+</svg>

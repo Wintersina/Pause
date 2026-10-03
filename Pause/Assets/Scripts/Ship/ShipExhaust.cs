@@ -6,6 +6,11 @@ public static class ShipExhaust
     static readonly Sprite[] sprites = new Sprite[4];
     static readonly string[] paths = { "Engine_exhaust1_frames", "Engine_exhaust2_frames", "Engine_exhaust3_frames", "Engine_exhaust3_frames_1" };
     static readonly Rect[] rects = { new Rect(0, 12, 28, 79), new Rect(11, 11, 65, 106), new Rect(1, 0, 32, 60), new Rect(1, 0, 32, 60) };
+    // The plume art does not start at the top of its rect: exhaust2 carries
+    // ~19% of transparent halo above the hot core, exhaust1 ~6%, exhaust3
+    // ~12%. A (0.5, 1) pivot therefore hung the visible flame well below the
+    // nozzle it was mounted on. Pivot each sheet at its own flame head.
+    static readonly float[] pivotY = { .93f, .80f, .875f, .875f };
 
     public static int IndexFor(GameObject ship)
     {
@@ -27,7 +32,7 @@ public static class ShipExhaust
         if (sprites[slot] == null)
         {
             var tex = Resources.Load<Texture2D>("ShipArt/Exhaust/" + paths[slot]);
-            if (tex != null) sprites[slot] = Sprite.Create(tex, rects[slot], new Vector2(.5f, 1f), 100f);
+            if (tex != null) sprites[slot] = Sprite.Create(tex, rects[slot], new Vector2(.5f, pivotY[slot]), 100f);
         }
         return sprites[slot];
     }
@@ -46,33 +51,29 @@ public static class ShipExhaust
         return mounts.Length > 0 ? mounts[0] : new Vector3(0f, -.2f, .05f);
     }
 
-    // A hull's nozzle count is part of its silhouette. Keeping these mounts
-    // here makes the normal flight flame and the dock launch flame agree.
+    // Where each plume leaves the hull, in the hull's local space. Read from
+    // ShipNozzles' per-ship pixel table, so the flight flame, the dock flame
+    // and the launch flare all leave the same painted nozzles.
     public static Vector3[] MountsFor(Sprite hull, int index)
     {
         if (hull == null) return new[] { new Vector3(0f, -.2f, .05f) };
-        float rear = hull.bounds.min.y;
-        // These two hulls have swept wings extending below the central nozzle.
-        if (index == 4) rear += .05f;
-        if (index == 6) rear += .06f;
-        if (index == 8) rear += .03f;
-        if (index == 16) rear += .01f;
-        Vector3 center = new Vector3(0f, rear + .01f, .05f);
-        float halfSpan;
-        switch (index)
+        var nozzles = ShipNozzles.For(index);
+        var mounts = new Vector3[nozzles.Length];
+        for (int i = 0; i < nozzles.Length; i++)
         {
-            // Volt Viper, Lightning and Paranoid visibly have two engines.
-            // Their plumes must leave the two nozzles, never the fuselage.
-            case 2:  halfSpan = hull.bounds.size.x * .27f; break;
-            case 8:  halfSpan = hull.bounds.size.x * .25f; break;
-            case 10: halfSpan = hull.bounds.size.x * .23f; break;
-            default: return new[] { center };
+            Vector2 local = ShipNozzles.ToLocal(hull, nozzles[i]);
+            mounts[i] = new Vector3(local.x, local.y, .05f);
         }
-        return new[]
-        {
-            center + Vector3.left * halfSpan,
-            center + Vector3.right * halfSpan,
-        };
+        return mounts;
+    }
+
+    // Relative plume size per nozzle: a twin-engine ship splits its thrust,
+    // and small auxiliary nozzles get a smaller flame than the main one.
+    public static float NozzleScale(int index, int nozzle)
+    {
+        var nozzles = ShipNozzles.For(index);
+        if (nozzle < 0 || nozzle >= nozzles.Length) return 1f;
+        return nozzles[nozzle].scale;
     }
 
     public static Vector3 ScaleFor(Sprite hull, int index)
@@ -133,9 +134,8 @@ public static class ShipExhaust
             sr.sortingOrder = hull != null ? hull.sortingOrder - 1 : 3;
             plume.transform.localPosition = mounts[i];
             plume.transform.localRotation = Quaternion.identity;
-            plume.transform.localScale = mounts.Length > 1
-                ? new Vector3(scale.x * .72f, scale.y, scale.z)
-                : scale;
+            float k = NozzleScale(index, i);
+            plume.transform.localScale = new Vector3(scale.x * k, scale.y * Mathf.Sqrt(k), scale.z);
             var animation = plume.GetComponent<DockLaunchFlame>();
             if (animation == null) animation = plume.AddComponent<DockLaunchFlame>();
             animation.Refresh();

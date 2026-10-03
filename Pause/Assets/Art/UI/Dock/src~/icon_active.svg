@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Equipped: the ship you will fly. Solid cyan badge with an up chevron. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10.5" fill="#2EE6FF"/>
+  <path d="M6.8 14.6 L12 9.2 L17.2 14.6" fill="none" stroke="#06223A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

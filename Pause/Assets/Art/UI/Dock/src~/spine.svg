@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Vertical support spine between berth columns. Tiles every 40 units on y.
+     A cyan conduit runs down its middle. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="40" viewBox="0 0 12 40">
+  <rect x="1" y="0" width="10" height="40" fill="#101D33"/>
+  <rect x="1" y="0" width="2" height="40" fill="#22385A"/>
+  <rect x="9" y="0" width="2" height="40" fill="#1A2C48"/>
+  <rect x="5.2" y="0" width="1.6" height="40" fill="#2EE6FF" opacity="0.28"/>
+  <rect x="3" y="18" width="6" height="4" fill="#1C3152"/>
+  <rect x="4" y="19" width="4" height="2" fill="#2EE6FF" opacity="0.55"/>
+</svg>

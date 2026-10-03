@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Floating ship popup body. Chamfered HUD panel, 9-sliced (border 12). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <path d="M8 1 H32 L39 8 V32 L32 39 H8 L1 32 V8 Z" fill="#081428" stroke="#2EE6FF" stroke-width="1.5"/>
+  <path d="M9 4 H31 L36 9" fill="none" stroke="#2EE6FF" stroke-opacity="0.35" stroke-width="0.8"/>
+</svg>

@@ -15,6 +15,10 @@ public static class DeveloperUnlocks
     // The start world picked in Options. Only read while the mode is on.
     public const string SelectedWorldKey = "developerSelectedWorld";
 
+    // Raised after the override flips ship ownership, so an open space dock
+    // can refresh its owned/price markers without polling PlayerPrefs.
+    public static event System.Action Changed;
+
     // The Application.buildGUID of the build in which the player last switched
     // the mode on or off themselves. A developer build (PAUSE_DEV) defaults the
     // mode on unless that choice was made in this very build.
@@ -65,6 +69,7 @@ public static class DeveloperUnlocks
         else if (was) RestoreProgress();
         PlayerPrefs.Save();
         Debug.Log("[DeveloperUnlocks] " + (enabled ? "all ships and worlds unlocked" : "override disabled"));
+        if (Changed != null) Changed();
     }
 
     // The Options switch (and the F10 hotkey): an explicit choice, remembered

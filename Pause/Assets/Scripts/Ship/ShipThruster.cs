@@ -30,6 +30,18 @@ public class ShipThruster : MonoBehaviour
 
     readonly System.Collections.Generic.List<Transform> flames = new System.Collections.Generic.List<Transform>();
     readonly System.Collections.Generic.List<SpriteRenderer> flameRenderers = new System.Collections.Generic.List<SpriteRenderer>();
+    readonly System.Collections.Generic.List<float> flameScales = new System.Collections.Generic.List<float>();
+
+    [Tooltip("False keeps the engine cold: no flame at all. The space dock " +
+             "parks ships powered down and lights them when selected.")]
+    public bool powered = true;
+    bool wasPowered = true;
+
+    // True while at least one idle plume is actually being drawn.
+    public bool IsBurning
+    {
+        get { return flameRenderers.Count > 0 && flameRenderers[0].enabled; }
+    }
     GameObject boostObject;      // the big flame, so we never draw both
     Vector3 baseScale = Vector3.one;
     float seed;
@@ -66,6 +78,7 @@ public class ShipThruster : MonoBehaviour
             go.transform.localRotation = Quaternion.identity;
             flames.Add(go.transform);
             flameRenderers.Add(renderer);
+            flameScales.Add(ShipExhaust.NozzleScale(index, i));
         }
     }
 
@@ -75,8 +88,19 @@ public class ShipThruster : MonoBehaviour
 
         // Never draw the idle flame under the real boost flame.
         bool boosting = boostObject != null && boostObject.activeInHierarchy;
-        foreach (var renderer in flameRenderers) renderer.enabled = !boosting;
-        if (boosting) return;
+        bool show = powered && !boosting;
+        for (int i = 0; i < flameRenderers.Count; i++) flameRenderers[i].enabled = show;
+        if (!show)
+        {
+            wasPowered = false;
+            return;
+        }
+        // Re-ignite from nothing so a powering-up engine visibly lights.
+        if (!wasPowered)
+        {
+            wasPowered = true;
+            for (int i = 0; i < flames.Count; i++) flames[i].localScale = new Vector3(0f, 0f, 1f);
+        }
 
         float target = idleScale;
 
@@ -101,10 +125,13 @@ public class ShipThruster : MonoBehaviour
         Vector3 want = new Vector3(baseScale.x * Mathf.Sqrt(target) * wobble,
                                    baseScale.y * target * wobble, 1f);
 
-        if (flames.Count > 1) want.x *= .72f;
-        foreach (var flame in flames)
-            flame.localScale = Vector3.Lerp(flame.localScale, want,
-                                             1f - Mathf.Exp(-14f * Time.unscaledDeltaTime));
+        float blend = 1f - Mathf.Exp(-14f * Time.unscaledDeltaTime);
+        for (int i = 0; i < flames.Count; i++)
+        {
+            float k = flameScales[i];
+            Vector3 nozzleWant = new Vector3(want.x * k, want.y * Mathf.Sqrt(k), 1f);
+            flames[i].localScale = Vector3.Lerp(flames[i].localScale, nozzleWant, blend);
+        }
     }
 }
 
