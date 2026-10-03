@@ -1,7 +1,11 @@
-"""Rail mine, one per world: the approved rail_bomb_themes_atlas design
-(rail clamp on the left, armoured hub, four lugs, glowing core, arming
-build-up to a burst), redrawn as flat ink cels. The clamp side faces the wall
-it hangs on; the game flips the sprite for right-hand rails."""
+"""Rail mines, one distinct design per world. Each hangs from its rail on
+the left (the game mirrors it on right-hand rails), idles with a breathing
+core and arms to a burst when the ship is close:
+
+  space    Rail Mine      the approved rail bomb: clamp, steel hub, four lugs
+  frost    Geode Mine     a crystal geode gripped by two ice hooks
+  verdant  Burr Mine      a thorny seed burr on a vine tendril; splits to arm
+  ember    Crucible Mine  a basalt crucible on chains; its magma boils over"""
 from common import *
 
 CX, CY = 72, 64
@@ -10,9 +14,6 @@ LUG_ANGLES = (-118, -42, 42, 118)
 SKINS = {
     # world: hub, hub shadow, hub highlight, light
     "space": (STEEL, STEEL_SH, STEEL_HI, CYAN),
-    "frost": (ICE, ICE_SH, ICE_HI, CYAN),
-    "verdant": (BARK, BARK_SH, BARK_HI, BILE_LIGHT),
-    "ember": (CHAR, CHAR_SH, CHAR_HI, SODIUM),
 }
 
 # (core level, slot lit, hub scale, extra fx) -- 0..3 idle, 4..5 arming tell
@@ -28,7 +29,8 @@ IDLE_TICKS = [6, 2, 2, 4]
 TELL_TICKS = [2, 2]
 
 
-def draw(world, i):
+def rail_mine(world, i):
+    """The approved rail bomb (Space). Kept parametric over SKINS."""
     hub_c, hub_sh, hub_hi, light = SKINS[world]
     level, lit, s, fx = FRAMES[i]
     p = Parts()
@@ -151,3 +153,168 @@ def draw(world, i):
         p.glow += poly(small, light) + poly(big, light) + poly(star(CX, CY, 46, 3, 4, 0), BONE)
         p.glow += (f'<circle cx="{CX}" cy="{CY}" r="50" fill="none" stroke="{light}" stroke-width="2" opacity="0.8"/>')
     return p
+
+
+# ------------------------------------------------------------------ Frost ----
+def geode(i):
+    """A tall hexagonal crystal geode held off the rail by two ice hooks.
+    Arming: crystals grow out of it, then shoot out in a frost star."""
+    level, lit, s, fx = FRAMES[i]
+    grow = {None: 0, "conduit": 3, "arc": 8, "burst": 18}[fx]
+    p = Parts()
+    gx, gy = 72, 62
+    S = lambda q: xf(q, gx, gy, s, s)
+    # the rail bar and two crystal hooks that grip the geode
+    bar = [(4, 26), (10, 22), (12, 104), (6, 108)]
+    cel(p, bar, ICE_SH, INK, ICE, sh_off=(2, 0), ink_w=3)
+    for y, d in ((40, 1), (88, -1)):
+        hook = [(8, y - 6 * d), (40, y - 2 * d), (48, y + 8 * d), (38, y + 6 * d), (10, y + 4 * d)]
+        cel(p, hook, ICE_HI, ICE, None, sh_off=(0, 3 * d), ink_w=3)
+    # crystals growing out of the geode (behind it)
+    for a, L, w in ((-60, 22, 12), (10, 26, 13), (70, 20, 11), (150, 16, 10)):
+        r = math.radians(a - 90)
+        bx, by = gx + 26 * math.cos(r), gy + 30 * math.sin(r)
+        ln = L + grow * (1.0 if a != 150 else 0.6)
+        pr = xf([(bx - w / 2, by), (bx - w / 2 * 0.8, by - ln * 0.7), (bx, by - ln), (bx + w / 2 * 0.8, by - ln * 0.7), (bx + w / 2, by)], bx, by, rot=a)
+        cel(p, S(pr), ICE, ICE_SH, ICE_HI, sh_off=(w * 0.4, 2), ink_w=2.5)
+    body = S([(gx, gy - 46), (gx + 26, gy - 26), (gx + 28, gy + 22), (gx, gy + 48), (gx - 26, gy + 24), (gx - 28, gy - 24)])
+    cel(p, body, ICE, ICE_SH, ICE_HI, sh_off=(10, 6), detail=True)
+    inner = S(ngon(gx, gy, 16, 6, 0))
+    for a, b in zip(body, [inner[0], inner[1], inner[2], inner[3], inner[4], inner[5]]):
+        p.detail += line([a, b], 1.6)
+    p.detail += poly(inner, INK)
+    core(p, gx, gy, 10 * s, CYAN, level, n=6, rot=0, socket=False)
+    if level >= 0.4:   # snowflake heart
+        for k in range(3):
+            a = math.radians(k * 60 + 90)
+            p.glow += line([(gx - 9 * math.cos(a), gy - 9 * math.sin(a)), (gx + 9 * math.cos(a), gy + 9 * math.sin(a))], 1.6, BONE)
+    if fx == "arc":
+        p.glow += line(S([(gx - 10, gy - 30), (gx - 4, gy - 18), (gx - 12, gy - 8)]), 1.6, BONE)
+        p.glow += line(S([(gx + 12, gy + 18), (gx + 6, gy + 30)]), 1.6, BONE)
+        for x, y in ((112, 20), (118, 96), (40, 116)):
+            p.glow += spark(x, y, 5, ICE_HI)
+    if fx == "burst":
+        st = star(gx, gy, 58, 10, 6, 0)
+        p.glow_back += halo(st, CYAN, 0.75)
+        p.glow += poly(st, ICE_HI) + inkpoly(st, 2) + poly(star(gx, gy, 40, 6, 6, 30), CYAN)
+    return p
+
+
+# ---------------------------------------------------------------- Verdant ----
+def burr(i):
+    """A spiky seed burr hung from a coiled vine tendril. Arming: its husk
+    splits along three glowing seams, then bursts into thorns and spores."""
+    level, lit, s, fx = FRAMES[i]
+    split = {None: 0, "conduit": 1, "arc": 5, "burst": 10}[fx]
+    p = Parts()
+    bx, by = 74, 64
+    # tendril from the rail, curling onto the burr's stalk
+    tendril = [(2, 22), (14, 18), (24, 26), (18, 36), (28, 44), (42, 40), (50, 50)]
+    p.ink += line(tendril, 8)
+    p.ink += line(tendril, 4.4, BILE)
+    low = [(2, 104), (16, 110), (28, 100), (40, 86)]
+    p.ink += line(low, 7)
+    p.ink += line(low, 3.6, BILE)
+    for x, y, a in ((14, 18, -40), (28, 100, 200), (24, 26, 60)):
+        lf = xf([(x, y), (x - 4, y - 7), (x, y - 14), (x + 4, y - 7)], x, y, rot=a)
+        p.ink += poly(lf, BILE_HI) + inkpoly(lf, 1.6)
+    # the husk: three segments that pull apart from the centre
+    for k in range(3):
+        a0 = k * 120 - 90
+        mid = math.radians(a0 + 60)
+        ox, oy = split * math.cos(mid), split * math.sin(mid)
+        seg = [(bx + ox, by + oy)]
+        for t in range(9):
+            a = math.radians(a0 + t * 15)
+            r = 36 if t % 2 == 0 else 30
+            seg.append((bx + ox + r * s * math.cos(a), by + oy + r * s * math.sin(a)))
+        cel(p, seg, BARK, BARK_SH, BARK_HI, sh_off=(6, 6), ink_w=3, detail=True)
+        for t in range(0, 9, 2):   # thorns off the husk
+            a = math.radians(a0 + t * 15)
+            tx, ty = bx + ox + 34 * s * math.cos(a), by + oy + 34 * s * math.sin(a)
+            th = [(tx - 4 * math.sin(a), ty + 4 * math.cos(a)),
+                  (tx + (14 + split * 0.6) * math.cos(a), ty + (14 + split * 0.6) * math.sin(a)),
+                  (tx + 4 * math.sin(a), ty - 4 * math.cos(a))]
+            p.detail += poly(th, MAGENTA if t % 4 == 0 else BILE_HI) + inkpoly(th, 1.6)
+    # glowing seams between the segments
+    for k in range(3):
+        a = math.radians(k * 120 - 90)
+        seam = [(bx, by), (bx + 34 * math.cos(a), by + 34 * math.sin(a))]
+        p.detail += line(seam, 4 + split * 0.8)
+        p.glow += line(seam, 1.6 + split * 0.4, BILE_LIGHT if lit else BILE_SH)
+    core(p, bx, by, (7 + split * 0.5) * s, BILE_LIGHT, level, n=6, rot=0)
+    if fx == "arc":
+        for x, y, r in ((116, 30, 6), (114, 104, 5), (60, 118, 5)):
+            puff = ngon(x, y, r, 5, 15)
+            p.glow += poly(puff, BILE_LIGHT) + inkpoly(puff, 1.4)
+    if fx == "burst":
+        st = star(bx, by, 56, 9, 9, 10)
+        p.glow_back += halo(st, BILE_LIGHT, 0.7)
+        p.glow += poly(st, BILE_LIGHT) + poly(star(bx, by, 36, 6, 9, 30), BONE)
+    return p
+
+
+# ------------------------------------------------------------------ Ember ----
+def crucible(i):
+    """A basalt crucible slung from the rail on chains. Its magma breathes
+    under the rim; arming, it boils over and erupts."""
+    level, lit, s, fx = FRAMES[i]
+    boil = {None: 0, "conduit": 3, "arc": 7, "burst": 12}[fx]
+    p = Parts()
+    # chain from the rail to the crucible's ear
+    for k in range(3):
+        x = 8 + k * 11
+        link = chamfer_rect(x, 50, 12, 7, 2.5)
+        p.base += poly(link, GUN)
+        p.ink += inkpoly(link, 2.5) + poly(chamfer_rect(x, 50, 5, 2.4, 0.8), INK)
+    hookbar = [(2, 28), (8, 26), (8, 74), (2, 76)]
+    cel(p, hookbar, GUN, GUN_SH, GUN_HI, sh_off=(2, 0), ink_w=3)
+    # the crucible: wide rim, tapering bowl, two lugs
+    bowl = [(36, 36), (112, 36), (106, 60), (96, 100), (84, 112), (64, 112), (52, 100), (42, 60)]
+    cel(p, S_(bowl, s), CHAR, CHAR_SH, CHAR_HI, sh_off=(12, 6))
+    for x in (40, 108):
+        ear = chamfer_rect(x, 48, 10, 14, 3)
+        cel(p, ear, GUN, GUN_SH, GUN_HI, sh_off=(2, 2), ink_w=2.5, detail=True)
+    rim = chamfer_rect(74, 34, 84, 12, 4)
+    cel(p, S_(rim, s), CHAR_HI, CHAR, None, sh_off=(0, 4), ink_w=3, detail=True)
+    # magma surface inside the rim, bulging as it boils
+    hot = (AMBER if level >= 1 else SODIUM) if lit else SODIUM_SH
+    surf = [(38, 30), (56, 26 - boil * 0.4), (74, 22 - boil), (92, 26 - boil * 0.5), (110, 30), (104, 34), (44, 34)]
+    p.glow += poly(surf, hot) + inkpoly(surf, 2.5)
+    if level >= 1:
+        p.glow_back += halo(surf, SODIUM, 0.75)
+        for x, y, r in ((58, 22 - boil, 3.5), (86, 20 - boil, 3)):
+            p.glow += poly(ngon(x, y, r, 6, 0), BONE) + inkpoly(ngon(x, y, r, 6, 0), 1.2)
+    # cracks down the bowl and the core window
+    for c in ([(56, 44), (62, 62), (56, 78)], [(94, 46), (88, 66), (96, 84)]):
+        p.detail += line(c, 4.5)
+        p.glow += line(c, 2, hot)
+    win = [(66, 60), (82, 60), (88, 76), (74, 92), (60, 76)]
+    p.detail += poly(win, INK)
+    core(p, 74, 74, 8 * s, SODIUM, level, n=5, rot=0, socket=False)
+    if fx == "arc":   # magma drips over the rim
+        for x, L in ((50, 14), (100, 10)):
+            d = [(x - 3, 36), (x + 3, 36), (x, 36 + L)]
+            p.glow += poly(d, SODIUM) + inkpoly(d, 1.4)
+    if fx == "burst":   # eruption
+        flame = [(40, 34), (50, 2), (60, 24), (74, -4), (88, 22), (98, 4), (108, 34)]
+        p.glow_back += halo(flame, SODIUM, 0.8)
+        p.glow += poly(flame, SODIUM) + poly(lerp_pts(flame, [(74, 34)] * 7, 0.45), AMBER) + inkpoly(flame, 2.5)
+        for x, y in ((24, 10), (120, 16), (118, 96), (30, 116)):
+            e = ngon(x, y, 4, 4, 45)
+            p.glow += poly(e, AMBER) + inkpoly(e, 1.3)
+    return p
+
+
+def S_(q, s, cx=74, cy=74):
+    return xf(q, cx, cy, s, s)
+
+
+def draw(world, i):
+    if world == "frost":
+        return geode(i)
+    if world == "verdant":
+        return burr(i)
+    if world == "ember":
+        return crucible(i)
+    return rail_mine(world, i)

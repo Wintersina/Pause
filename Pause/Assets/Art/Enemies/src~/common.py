@@ -62,6 +62,17 @@ def line(points, w, color=INK, extra=""):
     return _akira.line(points, w, color, extra)
 
 
+# Each world's enemy look, for art that must join a world's cast (the
+# per-world bosses): hull base, its one shadow and one highlight, an accent
+# material, the signature light and its dimmed tone. Mirrored at runtime by
+# EnemyPalette.ThemeFor(world).
+WORLD_THEMES = {
+    "space":   dict(hull=STEEL, hull_sh=STEEL_SH, hull_hi=STEEL_HI, accent=BRUISE, light=MAGENTA, light_dim=MAGENTA_SH),
+    "frost":   dict(hull=ICE, hull_sh=ICE_SH, hull_hi=ICE_HI, accent=STEEL, light=CYAN, light_dim=TEAL_SH),
+    "verdant": dict(hull=BILE, hull_sh=BILE_SH, hull_hi=BILE_HI, accent=BRUISE, light=BILE_LIGHT, light_dim=BILE_SH),
+    "ember":   dict(hull=CHAR, hull_sh=CHAR_SH, hull_hi=CHAR_HI, accent=GUN, light=SODIUM, light_dim=SODIUM_SH),
+}
+
 # A light's dimmed (charging / dormant) tone.
 DIM = {MAGENTA: MAGENTA_SH, CYAN: TEAL_SH, TEAL: TEAL_SH, BILE_LIGHT: BILE_SH,
        AMBER: SODIUM_SH, SODIUM: SODIUM_SH, ICE_HI: ICE_SH}

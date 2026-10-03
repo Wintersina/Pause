@@ -170,10 +170,10 @@ def ember(tier, i):
             fin = [(64 + side * 30, 26), (64 + side * (52 + sp), 8 - flick), (64 + side * 46, 26), (64 + side * (58 + sp), 22 - flick * 0.5), (64 + side * 40, 44)]
             p.glow_back += halo(T(fin), SODIUM, 0.55)
             p.glow += poly(T(fin), SODIUM) + poly(T(lerp_pts(fin, [(64 + side * 40, 30)] * 5, 0.45)), AMBER) + inkpoly(T(fin), 2)
-    if tier == 1:
-        half = [(64, 10), (46, 12), (10, 30), (26, 48), (46, 52), (56, 90), (64, 104)]
-    else:
-        half = [(64, 10), (48, 12), (14, 24), (10, 40), (28, 46), (34 - sp, 70), (40 - sp, 100), (50, 82), (56, 72), (64, 88)]
+    # scorched bat-wing: scalloped trailing edge, a hooked tail at the player
+    span = {1: 0.84, 2: 0.94, 3: 1.0, 4: 1.0}[tier]
+    half = [(64, 6), (54, 20), (30, 12), (4, 28), (14, 42), (6, 60), (28, 58), (36 - sp, 82), (50, 70), (58, 96 + sp), (64, 104 + sp)]
+    half = [(64 + (x - 64) * span, y) for x, y in half]
     out = T(mirror(half, 64))
     cel(p, out, CHAR, CHAR_SH, CHAR_HI, sh_off=(10, 6))
     if tier == 4:   # pyre: horns + exhaust grille

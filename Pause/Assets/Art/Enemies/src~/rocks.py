@@ -119,28 +119,26 @@ def frost_shard(i):
 
 
 def frost_chunk(i):
+    """A wide slab of frozen crater rock under a crust of ice spires."""
     lv, gl = FRAMES[i]
     p = Parts()
-    O = [(30, 22), (74, 12), (110, 30), (116, 74), (96, 112), (48, 116), (14, 90), (12, 50)]
-    cel(p, O, STEEL, STEEL_SH, None, sh_off=(14, 14))
-    # frost crust over the top half (ICE), one frozen crater below with ice inside
-    crust = [(30, 22), (74, 12), (110, 30), (114, 56), (92, 52), (78, 64), (56, 54), (36, 66), (13, 58), (12, 50)]
-    cel(p, crust, ICE, ICE_SH, ICE_HI, sh_off=(6, 8), ink_w=3, detail=True)
-    x, y, r = 62, 90, 15
-    c = ngon(x, y, r, 6, 15, 1, 0.8)
+    for x, top, w in ((30, 16, 14), (52, 6, 16), (84, 20, 13), (104, 34, 10)):
+        sp = [(x - w / 2, 50), (x - w * 0.3, top + 12), (x, top), (x + w * 0.3, top + 12), (x + w / 2, 50)]
+        cel(p, sp, ICE_HI, ICE, None, sh_off=(w * 0.3, 0), ink_w=2.5)
+    O = [(6, 64), (20, 46), (60, 40), (104, 44), (122, 62), (114, 86), (72, 96), (20, 90)]
+    cel(p, O, STEEL, STEEL_SH, None, sh_off=(12, 12))
+    crust = [(6, 64), (20, 46), (60, 40), (104, 44), (122, 62), (100, 64), (78, 58), (54, 66), (30, 60)]
+    cel(p, crust, ICE, ICE_SH, ICE_HI, sh_off=(6, 6), ink_w=3, detail=True)
+    x, y, r = 64, 78, 12
+    c = ngon(x, y, r, 6, 15, 1.3, 0.7)
     p.detail += poly(c, ICE_SH) + inkpoly(c, 2.5)
-    p.glow += poly(ngon(x, y, r * 0.55, 6, 15, 1, 0.8), CYAN if lv >= 0.4 else TEAL_SH)
-    p.detail += line([(30, 84), (40, 92), (36, 104)], 1.8) + line([(92, 72), (100, 88)], 1.8)
-    for x, L in ((40, 12), (60, 18), (98, 10)):   # icicles off the crust edge
-        y = 60 if x < 70 else 52
-        ic = [(x - 3, y), (x + 3, y), (x, y + L)]
-        p.detail += poly(ic, ICE_HI) + inkpoly(ic, 1.5)
+    p.glow += poly(ngon(x, y, r * 0.55, 6, 15, 1.3, 0.7), CYAN if lv >= 0.4 else TEAL_SH)
+    p.detail += line([(22, 76), (32, 84)], 1.8) + line([(100, 72), (108, 82)], 1.8)
     if gl:
-        glint(p, 40, 26, 8 * lv)
+        glint(p, 52, 10, 8 * lv)
     if i == 5:
-        p.glow += spark(100, 96, 6, CYAN, 0)
+        p.glow += spark(116, 92, 6, CYAN, 0)
     return p
-
 
 def frost_rime(i):
     lv, gl = FRAMES[i]
@@ -195,27 +193,34 @@ def verdant_pod(i):
 
 
 def verdant_spore(i):
+    """A mossy rock sprouting three angular spore caps whose gills glow and
+    puff."""
     lv, gl = FRAMES[i]
     p = Parts()
-    O = [(36, 18), (84, 14), (114, 44), (110, 88), (82, 114), (40, 112), (14, 84), (16, 42)]
-    cel(p, O, BARK, BARK_SH, BARK_HI, sh_off=(14, 14))
-    moss = [(36, 18), (84, 14), (114, 44), (100, 50), (80, 40), (60, 50), (40, 42), (22, 52), (16, 42)]
-    cel(p, moss, MOSS, BILE_SH, BILE_HI, sh_off=(4, 6), ink_w=3, detail=True)
-    vents = [(34, 70, 8, -30), (70, 70, 13, 10), (88, 98, 8, 40), (52, 100, 6, -10)]
-    for x, y, r, rot in vents:
-        v = xf([(x - r, y), (x - r * 0.4, y - r * 0.7), (x + r * 0.4, y - r * 0.7), (x + r, y), (x + r * 0.4, y + r * 0.7), (x - r * 0.4, y + r * 0.7)], x, y, rot=rot)
-        p.detail += poly(v, INK)
-        p.glow += poly(lerp_pts(v, [(x, y)] * 6, 0.3), BILE_LIGHT if lv >= 0.4 else BILE_SH)
+    O = [(20, 80), (40, 66), (88, 64), (110, 80), (102, 108), (64, 118), (26, 106)]
+    cel(p, O, BARK, BARK_SH, BARK_HI, sh_off=(12, 10))
+    p.ink += line([(44, 90), (60, 100), (58, 112)], 1.8) + line([(86, 86), (94, 100)], 1.8)
+    gill = BILE_LIGHT if lv >= 0.4 else BILE_SH
+    for cx, cy, w, h, rot in ((36, 50, 40, 20, -18), (74, 30, 50, 24, 6), (104, 58, 28, 16, 24)):
+        stalk = xf([(cx - 5, cy + 4), (cx + 5, cy + 4), (cx + 6, cy + 24), (cx - 6, cy + 24)], cx, cy, rot=rot)
+        cel(p, stalk, BILE_HI, BILE, None, sh_off=(3, 0), ink_w=2.5, detail=True)
+        cap = xf([(cx - w / 2, cy + 4), (cx - w * 0.4, cy - h * 0.6), (cx, cy - h), (cx + w * 0.4, cy - h * 0.6), (cx + w / 2, cy + 4)], cx, cy, rot=rot)
+        cel(p, cap, MOSS, BILE_SH, BILE_HI, sh_off=(5, 4), ink_w=3, detail=True)
+        g = xf([(cx - w / 2 + 3, cy + 4), (cx + w / 2 - 3, cy + 4), (cx + w * 0.3, cy + 8), (cx - w * 0.3, cy + 8)], cx, cy, rot=rot)
+        p.detail += poly(g, INK)
+        p.glow += poly(lerp_pts(g, [xf([(cx, cy + 6)], cx, cy, rot=rot)[0]] * 4, 0.25), gill)
         if lv >= 1:
-            p.glow_back += halo_circle(x, y, r * 1.6, BILE_LIGHT, 0.6)
-    if i == 5:   # spore puff: angular cels popping out of the vents
-        for x, y, s in ((36, 50, 7), (92, 40, 8), (70, 120, 6), (100, 104, 5)):
-            puff = ngon(x, y, s, 5, 10)
-            p.glow += poly(puff, BILE_LIGHT) + inkpoly(puff, 1.5)
+            p.glow_back += halo(g, BILE_LIGHT, 0.7)
+        for k in (-1, 1):
+            dot = xf([(cx + k * w * 0.18, cy - h * 0.45)], cx, cy, rot=rot)[0]
+            p.detail += poly(ngon(dot[0], dot[1], 3, 5, 0), BILE_HI) + inkpoly(ngon(dot[0], dot[1], 3, 5, 0), 1.2)
+    if i == 5:   # spore puff
+        for x, y, r in ((18, 24, 6), (56, 4, 5), (110, 20, 6), (122, 44, 4)):
+            puff = ngon(x, y, r, 5, 10)
+            p.glow += poly(puff, BILE_LIGHT) + inkpoly(puff, 1.4)
     if gl:
-        glint(p, 34, 28, 6 * lv)
+        glint(p, 60, 14, 6 * lv)
     return p
-
 
 def verdant_knot(i):
     lv, gl = FRAMES[i]
@@ -248,54 +253,63 @@ def lava_cracks(p, cracks, lv):
 
 
 def ember_magma(i):
+    """A volcanic bomb: a twisted basalt spindle flung out of an eruption,
+    split by magma cracks that pulse."""
     lv, gl = FRAMES[i]
     p = Parts()
-    O = [(46, 12), (82, 12), (110, 34), (116, 70), (98, 106), (62, 118), (26, 104), (12, 70), (20, 34)]
-    cel(p, O, CHAR, CHAR_SH, CHAR_HI, sh_off=(12, 12))
-    lava_cracks(p, [[(30, 40), (46, 52), (44, 70), (60, 80), (58, 100)],
-                    [(46, 52), (70, 44), (84, 26)],
-                    [(60, 80), (86, 76), (100, 90)],
-                    [(86, 76), (96, 54)]], lv)
-    rim(p, [(14, 68), (21, 36), (46, 14)], lv, SODIUM)
+    O = [(10, 116), (26, 84), (44, 58), (72, 32), (110, 8), (102, 40), (84, 72), (54, 100)]
+    cel(p, O, CHAR, CHAR_SH, CHAR_HI, sh_off=(8, 8))
+    p.ink += line([(26, 84), (40, 92)], 2) + line([(72, 32), (84, 44)], 2)
+    lava_cracks(p, [[(24, 100), (40, 82), (52, 80), (66, 60), (80, 52), (96, 26)],
+                    [(52, 80), (58, 92)], [(66, 60), (60, 50)]], lv)
+    rim(p, [(12, 112), (27, 82), (45, 56), (72, 30)], lv, SODIUM)
     if i == 5:
-        for x, y in ((20, 20), (108, 18), (116, 108)):
+        for x, y in ((14, 70), (40, 22), (118, 64), (100, 104)):
             e = ngon(x, y, 4, 4, 45)
             p.glow += poly(e, AMBER) + inkpoly(e, 1.3)
     return p
 
-
 def ember_cinder(i):
+    """Three basalt columns fused together; magma glows in the seams and
+    through a split in the tallest."""
     lv, gl = FRAMES[i]
     p = Parts()
-    O = [(24, 22), (100, 16), (116, 52), (108, 100), (70, 116), (20, 106), (10, 62)]
-    cel(p, O, CHAR, CHAR_SH, CHAR_HI, sh_off=(16, 12))
-    p.ink += line([(24, 22), (52, 50), (100, 16)], 2) + line([(52, 50), (40, 108)], 2) + line([(52, 50), (112, 76)], 2)
-    # molten window: the core shows through a split
-    win = [(62, 58), (84, 54), (92, 74), (80, 92), (60, 86)]
+    hot = (AMBER if lv >= 1 else SODIUM) if lv >= 0.4 else SODIUM_SH
+    for x0, x1, top, bot in ((14, 48, 44, 110), (80, 114, 56, 116), (44, 84, 12, 106)):
+        mid = (x0 + x1) / 2
+        col = [(x0, top + 8), (mid, top), (x1, top + 8), (x1, bot - 6), (mid, bot), (x0, bot - 6)]
+        cel(p, col, CHAR, CHAR_SH, CHAR_HI, sh_off=(8, 4), ink_w=3.5, detail=True)
+        face = [(x0, top + 8), (mid, top), (x1, top + 8), (mid, top + 16)]
+        p.detail += poly(face, CHAR_HI) + inkpoly(face, 2)
+        p.detail += line([(mid, top + 16), (mid, bot)], 1.8)
+    for seam in ([(46, 60), (46, 104)], [(82, 70), (82, 108)]):
+        p.glow += line(seam, 2.2, hot)
+    win = [(56, 50), (72, 48), (74, 70), (64, 80), (54, 70)]
     p.detail += poly(win, INK)
-    col = (AMBER if lv >= 1 else SODIUM) if lv >= 0.4 else SODIUM_SH
-    p.glow += poly(lerp_pts(win, [(76, 72)] * 5, 0.2), col)
-    if lv >= 0.4:
-        p.glow += poly(lerp_pts(win, [(76, 72)] * 5, 0.62), BONE if lv >= 1 else AMBER)
+    p.glow += poly(lerp_pts(win, [(64, 63)] * 5, 0.25), hot)
     if lv >= 1:
         p.glow_back += halo(win, SODIUM, 0.7)
-    p.detail += inkpoly(win, 3)
-    rim(p, [(12, 60), (24, 24), (60, 20)], lv, SODIUM)
+        p.glow += poly(lerp_pts(win, [(64, 63)] * 5, 0.65), BONE)
     return p
 
-
 def ember_obsidian(i):
+    """Volcanic glass: a tall violet blade with a second shard forking off
+    it, a sodium rim and one lava vein."""
     lv, gl = FRAMES[i]
     p = Parts()
-    O = [(62, 4), (86, 36), (100, 80), (78, 124), (46, 118), (28, 74), (40, 30)]
-    cel(p, O, BRUISE, OBSIDIAN, BRUISE_HI, sh_off=(14, 6))
-    p.shadow += poly([(62, 4), (86, 36), (100, 80), (78, 124), (64, 70)], OBSIDIAN)
-    p.ink += line([(62, 4), (64, 70), (78, 124)], 2) + line([(28, 74), (64, 70), (100, 80)], 2)
-    p.highlight += poly([(58, 12), (44, 34), (36, 66), (46, 36)], BONE)
-    rim(p, [(30, 78), (42, 30), (60, 8)], lv, SODIUM)
-    lava_cracks(p, [[(64, 70), (56, 92), (62, 108)]], lv)
+    side = [(70, 66), (116, 30), (112, 64), (84, 104)]
+    cel(p, side, BRUISE, OBSIDIAN, BRUISE_HI, sh_off=(8, 4), ink_w=3.5)
+    p.ink += line([(70, 66), (112, 46)], 1.8)
+    O = [(46, 4), (68, 34), (78, 80), (62, 124), (36, 116), (22, 72), (30, 28)]
+    cel(p, O, BRUISE, OBSIDIAN, BRUISE_HI, sh_off=(14, 6), detail=True)
+    p.detail += poly([(46, 4), (68, 34), (78, 80), (62, 124), (48, 70)], OBSIDIAN)
+    p.detail += line([(46, 4), (48, 70), (62, 124)], 2) + line([(22, 72), (48, 70), (78, 80)], 2)
+    p.detail += inkpoly(O, 4)
+    p.detail += poly([(42, 12), (30, 34), (26, 66), (34, 36)], BONE)
+    rim(p, [(24, 76), (32, 30), (44, 8)], lv, SODIUM)
+    lava_cracks(p, [[(48, 70), (40, 92), (46, 108)]], lv)
     if gl:
-        glint(p, 50, 26, 7 * lv)
+        glint(p, 36, 26, 7 * lv)
     return p
 
 
