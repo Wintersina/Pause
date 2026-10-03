@@ -123,6 +123,7 @@ public static class TestHarness
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
             DeveloperUnlocks.ChoiceBuildKey,
+            Codex.PrefsKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 
