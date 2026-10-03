@@ -537,7 +537,7 @@ public class FrostDirector : PlanetDirector
 public class VerdantDirector : PlanetDirector
 {
     BackdropPool waterfalls, ruins, glowspores, spores;
-    Sprite[] fall, ruin;
+    Sprite[] fall, ruin, firefly, spore;
     Timer fallTimer = new Timer(10f, 16f, 7f);
     Timer ruinTimer = new Timer(7f, 12f, 3f);
 
@@ -547,15 +547,21 @@ public class VerdantDirector : PlanetDirector
     {
         fall = anim.Frames("waterfall");
         ruin = anim.Frames("ruin");
+        firefly = fx.Frames("firefly");
+        spore = fx.Frames("spore");
         waterfalls = LandmarkPool("waterfalls", 1);
         ruins = LandmarkPool("ruins", 3);
         BuildAir();
         glowspores = Pool("glowspores", 14);
         spores = Pool("spores", 12);
-        Scatter(glowspores, fx.Get("dot"), 0.06f, 0.1f, new[] { new Color(0.75f, 1f, 0.45f, 0.8f),
-            new Color(1f, 0.75f, 0.35f, 0.7f) }, set.Spec.Rate("glowspores"));
-        Scatter(spores, fx.Get("dot"), 0.04f, 0.08f, new[] { new Color(0.6f, 0.95f, 0.9f, 0.35f),
-            new Color(0.85f, 0.75f, 0.6f, 0.3f) }, set.Spec.Rate("spores"));
+        // Fireflies and spores are drawn flipbooks (blink / tumble on held
+        // drawings); the tint only sets how bright each one is.
+        Scatter(glowspores, firefly.Length > 0 ? firefly[0] : fx.Get("dot"), 0.13f, 0.19f,
+                new[] { new Color(1f, 1f, 1f, 0.95f), new Color(1f, 0.9f, 0.8f, 0.8f) }, set.Spec.Rate("glowspores"));
+        Scatter(spores, spore.Length > 0 ? spore[0] : fx.Get("dot"), 0.07f, 0.1f,
+                new[] { new Color(1f, 1f, 1f, 0.6f), new Color(0.8f, 1f, 0.9f, 0.45f) }, set.Spec.Rate("spores"));
+        foreach (var f in glowspores.items) { f.frames = firefly.Length > 0 ? firefly : null; f.fps = 8f; f.age = Rand(0f, 3f); }
+        foreach (var s in spores.items) { s.frames = spore.Length > 0 ? spore : null; s.fps = 4f; s.age = Rand(0f, 3f); }
         SpawnFall(Rand(-HalfH * 0.1f, HalfH * 0.5f));
     }
 
@@ -581,12 +587,13 @@ public class VerdantDirector : PlanetDirector
         foreach (var f in glowspores.items)
         {
             Recycle(f, 0.25f, dt, v, 0.9f);
-            float b = Mathf.Sin(f.age * 2.4f + f.phase);
-            Paint(f, b > 0.55f ? 1f : 0.06f);
+            if (f.frames != null) { f.Animate(); Paint(f, 1f); }
+            else Paint(f, Mathf.Sin(f.age * 2.4f + f.phase) > 0.55f ? 1f : 0.06f);
         }
         foreach (var s in spores.items)
         {
             Recycle(s, 0.5f, dt, v, 0.4f);
+            s.Animate();
             Paint(s, 1f);
         }
     }
@@ -605,12 +612,12 @@ public class VerdantDirector : PlanetDirector
     {
         if (Chance(0.6) && ruin.Length > 0)
         {
-            var r = SpawnLandmark(ruins, ruin[0], Rand(0.6f, 0.85f), "ruins", float.NaN);
+            var r = SpawnLandmark(ruins, ruin[0], Rand(0.9f, 1.15f), "ruins", float.NaN);
             if (r != null) { r.frames = ruin; r.fps = 3f; }
         }
         else
         {
-            var o = SpawnLandmark(ruins, fx.Get(Chance(0.5) ? "obelisk0" : "obelisk1"), Rand(0.3f, 0.42f), "ruins", float.NaN);
+            var o = SpawnLandmark(ruins, fx.Get(Chance(0.5) ? "obelisk0" : "obelisk1"), Rand(0.42f, 0.55f), "ruins", float.NaN);
             if (o != null) o.phase = Rand(0f, 1f);
         }
     }

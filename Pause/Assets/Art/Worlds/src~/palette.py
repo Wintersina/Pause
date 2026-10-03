@@ -75,23 +75,34 @@ FROST = dict(
 )
 
 VERDANT = dict(
-    sky=["#05100E", "#0B1F1C", "#143430", "#0B1F1C", "#05100E"],
+    # 80s anime night forest: blue-black / indigo sky and canopy shadows,
+    # greens on three distinct value steps (far teal-green, near blue-green,
+    # a lit kick), a teal river with cyan dashes, sodium shrine lanterns and
+    # fireflies. Kept cool (blue-green, never olive) and darker than the
+    # olive/lime Verdant enemies so they pop; RED only as 1-2 px lantern dots.
+    sky=["#05070F", "#0A0F20", "#10183A", "#0A0F20", "#05070F"],
     lane="#0B1F1C",
-    vignette="#05100E",
-    canopy=["#0c221e", "#0f2824", "#11302a"], canopy_hi="#1E4A3C",
-    blossom=[SODIUM, TEAL],
-    mist="#143430",
-    far=dict(lit="#173a30", dark="#0f2824", cap="#1E4A3C", cap_dark="#173a30"),
-    near=dict(lit="#1E4A3C", dark="#12302a", cap="#2C5A40", cap_dark="#214a36"),
-    rim="#7FAF6A",
-    bank="#10241e", water="#0a1c22", water_shadow="#07141a", water_dash=TEAL,
-    pad="#1E4A3C", stone="#1a2a2a",
-    tree="#173a30", tree_dark="#0a1a16", tree_hi="#2C5A40",
-    cliff="#1a2e2a", cliff_dark="#0f1e1c", fall="#0e4a54", fall_hi=CYAN, fall_shadow="#0a343c",
-    stone_lit="#1E4A3C", stone_dark="#10261f", glyph_a=TEAL, glyph_b=SODIUM,
-    obelisk="#1a2e2e", obelisk_dark="#0e1c1c", obelisk_light=SODIUM,
-    air="#18322c", cloud="#3a564c", cloud_shadow="#22362f", band="#2a4840",
-    plateau="#1E4A3C", plateau_dark="#143428", rock="#24302e", rock_dark="#141c1c", rock_hi="#3a4a46",
+    vignette="#04060C",
+    canopy=["#0B1828", "#0D2030", "#0F2634"], canopy_hi="#15403A", canopy_gap="#070B18",
+    blossom=[SODIUM, TEAL, AMBER],
+    lantern_red="#D8232C",                      # Kaneda red: tiny lantern dots only
+    # far pines: teal-green on indigo shadow
+    far=dict(lit="#0F3A32", dark="#0A1A2E", kick="#1A5446", foot="#081426"),
+    # near pines: one value step up, bluer green
+    near=dict(lit="#185038", dark="#0D2A30", kick="#2E7A52", foot="#0A1A26"),
+    rim="#4FA67A",
+    bank="#0A1824", water="#0A3E4A", water_shadow="#08303E", water_edge=TEAL_SH, water_dash=TEAL,
+    water_hi=CYAN,
+    tree="#164A3A", tree_dark="#0B1C2A", tree_hi="#2A7050",
+    cliff="#262E4C", cliff_dark="#141A30", cliff_hi="#44507A",
+    fall=TEAL, fall_hi=CYAN, fall_shadow=TEAL_SH, fall_kick=BONE,
+    stone_lit="#323C64", stone_dark="#181D36", stone_hi="#56649A", vine="#1E6A46", vine_hi="#3A9A62",
+    glyph_a=CYAN, glyph_b=SODIUM, glyph_off="#10152A",
+    obelisk="#303A60", obelisk_dark="#141A30", obelisk_light=TEAL, obelisk_tip=SODIUM,
+    firefly=AMBER, firefly_core=BONE, spore=CYAN, spore_b="#7FE0A0",
+    # altitude: air between the ship and the ground (light touch only)
+    air="#121A36", cloud="#283258", cloud_shadow="#181E3C", band="#18213F",
+    plateau="#1A5A40", plateau_dark="#0E2E34", plateau_hi="#2E7A52",
 )
 
 EMBER = dict(
