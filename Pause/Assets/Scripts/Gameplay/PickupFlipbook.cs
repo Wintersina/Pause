@@ -51,7 +51,8 @@ public class PickupFlipbook : MonoBehaviour
                 child = new GameObject("HealGlint").transform;
                 child.SetParent(transform, false);
             }
-            target = child.GetComponent<SpriteRenderer>() ?? child.gameObject.AddComponent<SpriteRenderer>();
+            target = child.GetComponent<SpriteRenderer>();
+            if (target == null) target = child.gameObject.AddComponent<SpriteRenderer>();
             if (own != null) target.sortingOrder = own.sortingOrder + 1;
         }
         else
@@ -69,6 +70,7 @@ public class PickupFlipbook : MonoBehaviour
     // Exposed for tests: advance the clock by dt seconds of game time.
     public void Advance(float dt)
     {
+        if (frames == null) Init();   // e.g. instantiated in edit mode, where Awake doesn't run
         if (frames == null || frames.Length == 0 || dt <= 0f) return;
         clock += dt;
         int guard = 0;
