@@ -1,34 +1,48 @@
 using UnityEngine;
-using System.Collections;
 
+// Spawns the tutorial's pickups when the script (Hints) asks for them: star
+// clusters once the star-dust step starts, and a red pause atom that keeps
+// coming back until the player catches one. Like the real spawner it only
+// runs while the world is moving.
+//
+// The blue (power-up) and green (repair) atom lessons were cut with the
+// script rewrite; their prefab slot stays serialized in the scene but unused.
 public class spawnGoodStuffTut: MonoBehaviour {
 
     public GameObject smStar;
     public GameObject midStar;
     public GameObject Atom;
     public GameObject redAtom;
-    public static float redAtomDelayTimer;
-    public static float atomDelayTimer;
-    public static float greenAtomDelayTimer;
     public static float smStarTimer;
     public static float midStarTimer;
 
+    // Set by Hints for the red-atom step. While true, a red atom is spawned
+    // whenever none is on screen (the last one was caught or scrolled off).
+    public static bool keepRedAtomComing;
+    public static Transform LiveRedAtom { get; private set; }
+    static float redAtomDelay;
+
+    const float RedAtomRespawnSeconds = 1.2f;
+    const float Never = 1000f;
 
     // used for random int for generating stars
     int max;
-    int redAtomsShown, blueAtomsShown, greenAtomsShown;
 
-	// Use this for initialization
 	void Start () {
-
-        smStarTimer = 1000;
-        midStarTimer = 1000;
-        atomDelayTimer = 1000;
-        redAtomDelayTimer = 1000;
-        greenAtomDelayTimer = 1000;
+        smStarTimer = Never;
+        midStarTimer = Never;
+        keepRedAtomComing = false;
+        LiveRedAtom = null;
+        redAtomDelay = .6f;
 	}
-	
-	// Update is called once per frame
+
+    // Starts the star clusters (they then repeat on their own timers).
+    public static void StartStars()
+    {
+        smStarTimer = Mathf.Min(smStarTimer, .4f);
+        midStarTimer = Mathf.Min(midStarTimer, 1.6f);
+    }
+
 	void Update () {
 	    if((TouchInput.IsPressed) && !buttonClicks.playerDied)
         {
@@ -44,9 +58,6 @@ public class spawnGoodStuffTut: MonoBehaviour {
     {
         smStarTimer -= Time.deltaTime;
         midStarTimer -= Time.deltaTime;
-        atomDelayTimer -= Time.deltaTime;
-        redAtomDelayTimer -= Time.deltaTime;
-        greenAtomDelayTimer -= Time.deltaTime;
 
         if(smStarTimer <= 0)
         {
@@ -58,7 +69,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
             {
                 spawnSmStar(i, randomStarPos);
             }
-           
+
         }
         if(midStarTimer <= 0)
         {
@@ -70,25 +81,18 @@ public class spawnGoodStuffTut: MonoBehaviour {
             for (int i = 0; i < max; i++)
             {
                 spawnMidStar(i, randomStarPos);
-            }  
-        }
-        if(atomDelayTimer <= 0 && blueAtomsShown == 0)
-        {
-            atomDelayTimer = 1000f;
-            spawnBlueAtom();       
-        }
-        if(redAtomDelayTimer <= 0 && redAtomsShown == 0)
-        {
-            redAtomDelayTimer = 1000f;
-            spawnRedAtom();
-        }
-        if (greenAtomDelayTimer <= 0 && greenAtomsShown == 0)
-        {
-            greenAtomDelayTimer = 1000f;
-            greenAtomsShown++;
-            HealAtom.Spawn(new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z));
+            }
         }
 
+        if (keepRedAtomComing && LiveRedAtom == null)
+        {
+            redAtomDelay -= Time.deltaTime;
+            if (redAtomDelay <= 0f)
+            {
+                redAtomDelay = RedAtomRespawnSeconds;
+                spawnRedAtom();
+            }
+        }
     }
     // See spawnGoodStuff.spawnSmStar/spawnMidStar: was vPos.x for the whole
     // cluster (a straight vertical line at one x), now a fresh roll per star.
@@ -103,18 +107,13 @@ public class spawnGoodStuffTut: MonoBehaviour {
         Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
         Instantiate(midStar, spawner, transform.rotation);
     }
-    // will make you invensiable for a few seconds.
-    void spawnBlueAtom()
-    {
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        AtomSpin.AddTo(Instantiate(Atom, randomStarPos, transform.rotation) as GameObject);
-        blueAtomsShown++;
-    }
 
+    // Kept closer to the middle than stars so it is easy to reach.
     void spawnRedAtom()
     {
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        AtomSpin.AddTo(Instantiate(redAtom, randomStarPos, transform.rotation) as GameObject);
-        redAtomsShown++;
+        Vector3 pos = new Vector3(Random.Range(-1.6f, 1.6f), transform.position.y, transform.rotation.z);
+        var atom = Instantiate(redAtom, pos, transform.rotation) as GameObject;
+        AtomSpin.AddTo(atom);
+        LiveRedAtom = atom.transform;
     }
 }
