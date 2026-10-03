@@ -539,6 +539,23 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
                 minY = Mathf.Min(minY, c.y); maxY = Mathf.Max(maxY, c.y);
             }
         }
+        // The score read-out shares that top band (pinned top-left by
+        // HudStyler, top-aligned with the actions), so the panel drops below
+        // it as well rather than covering the final speed / star dust.
+        var hud = FindFirstObjectByType<HudStyler>();
+        if (hud != null && hud.HudRoot != null && hud.HudRoot.gameObject.activeInHierarchy)
+        {
+            var hudCanvas = hud.HudRoot.GetComponentInParent<Canvas>();
+            Camera cam = hudCanvas != null && hudCanvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? hudCanvas.worldCamera : null;
+            hud.HudRoot.GetWorldCorners(corners);
+            foreach (var w in corners)
+            {
+                Vector2 c = RectTransformUtility.WorldToScreenPoint(cam, w);
+                minX = Mathf.Min(minX, c.x); maxX = Mathf.Max(maxX, c.x);
+                minY = Mathf.Min(minY, c.y); maxY = Mathf.Max(maxY, c.y);
+            }
+        }
         if (minX <= maxX)
             blocker = new Rect(minX / sf - rootRect.width * .5f, minY / sf - rootRect.height * .5f,
                                (maxX - minX) / sf, (maxY - minY) / sf);
@@ -551,8 +568,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // Pure, so it can be tested for any screen: places the panel (including
     // its glow) inside `safe` with a small margin, never above full size, and
-    // drops it below `blocker` (the top-right quick actions) if they would
-    // otherwise overlap.
+    // drops it below `blocker` (the top band: the top-right quick actions and
+    // the top-left score read-out) if they would otherwise overlap.
     public static void ComputeFit(Rect safe, Rect? blocker, out Vector2 centre, out float scale)
     {
         const float margin = 12f;

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Station hull plate behind the berths. 9-sliced in game (border 14). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <path d="M10 1 H38 L47 10 V38 L38 47 H10 L1 38 V10 Z" fill="#070F1D" fill-opacity="0.9" stroke="#1E3A60" stroke-width="1.4"/>
+  <path d="M11 4 H37 L44 11 V37 L37 44 H11 L4 37 V11 Z" fill="none" stroke="#2EE6FF" stroke-opacity="0.16" stroke-width="0.8"/>
+</svg>

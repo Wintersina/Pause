@@ -40,8 +40,7 @@ public class ShipSpinWind : MonoBehaviour
 
     void Update()
     {
-        bool docked = GetComponent<DockShipIdleAnimator>() != null;
-        bool flying = !docked && !buttonClicks.playerDied &&
+        bool flying = !buttonClicks.playerDied &&
                       (TouchInput.IsPressed || score.pauseCounter <= 0);
         if (flying) transform.Rotate(0f, 0f, degreesPerSecond * Time.deltaTime);
         if (wind == null || ribbons == null) return;

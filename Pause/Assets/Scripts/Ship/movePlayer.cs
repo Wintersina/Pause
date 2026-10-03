@@ -11,6 +11,7 @@ public class movePlayer : MonoBehaviour
     private RectTransform hypeText;
     float startTimerCounter, goTimer;
     int startTimerBaseFontSize;
+    Color startTimerBaseColor;
     private AudioSource goClip;
     private bool playoneshot;
     private bool teleported;
@@ -27,14 +28,21 @@ public class movePlayer : MonoBehaviour
 
     private float nextTeleportAt;
 
-    // The launch countdown ("2.00" -> "GO!!!!"), and how long GO stays up.
-    public const float CountdownSeconds = 2f;
-    public const float GoSeconds = 2f;
+    // The launch countdown: one second of "READY" from the first touch, then
+    // "GO!!!!" and the ship steers on that same frame. GO only lingers as a
+    // fade-out; it never holds control back. (It used to be a 2s count plus a
+    // 2s GO banner, so the start felt about three seconds long.)
+    public const float CountdownSeconds = 1f;
+    public const float GoSeconds = 0.5f;
+    public const string ReadyLabel = "READY";
+    public const string GoLabel = "GO!!!!";
     // The countdown text grows to this multiple of its authored size.
     public const float CountdownMaxGrowth = 1.6f;
     // One long hitch (e.g. the first frame after a scene load) must not eat
     // the whole countdown.
     const float MaxCountdownStep = 0.1f;
+    // Float drift after N steps of 1/N must not cost an extra frame.
+    const float CountdownEpsilon = 1e-4f;
 
     void Start()
     {
@@ -48,16 +56,27 @@ public class movePlayer : MonoBehaviour
         startTimerCounter = CountdownSeconds;
         goTimer = GoSeconds;
         startTimerBaseFontSize = startTimer.fontSize;
+        startTimerBaseColor = startTimer.color;
         playoneshot = true;
 
-        startTimer.text = startTimerCounter.ToString("F2");
-        
+        startTimer.text = LaunchLabel(startTimerCounter);
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        // GO is purely visual: it fades on real time whether or not the finger
+        // is down, and steering never waits for it.
+        if (!playoneshot && goTimer > 0f)
+        {
+            goTimer = TickCountdown(goTimer, Time.unscaledDeltaTime);
+            Color c = startTimerBaseColor;
+            c.a *= GoAlpha(goTimer);
+            startTimer.color = c;
+            if (goTimer <= 0f) startTimer.gameObject.SetActive(false);
+        }
+
         if (TouchInput.IsPressed)
         {
             // A press on Replay or Menu belongs to the UI. Without this
@@ -65,31 +84,24 @@ public class movePlayer : MonoBehaviour
             // the UI click completed, making the pause actions appear broken.
             if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
 
-            // show start timer, give player 2 seconds to prep. This used to
+            // show start timer, give player 1 second to prep. This used to
             // subtract Time.timeSinceLevelLoad (the whole time since load)
             // every frame, so the countdown was gone in a few frames, and the
             // font grew by 3 every frame without limit. Unscaled: the world is
             // still frozen at timeScale 0 on the frame the finger lands.
-            startTimerCounter = TickCountdown(startTimerCounter, Time.unscaledDeltaTime);
+            bool live = StepLaunch(ref startTimerCounter, Time.unscaledDeltaTime);
             startTimer.fontSize = CountdownFontSize(startTimerBaseFontSize, startTimerCounter);
 
-            if (startTimerCounter <= 0)
+            if (live)
             {
-
-                startTimer.text = "GO!!!!";
                 if (playoneshot)
                 {
+                    // GO text, GO sound and control all land on this frame.
+                    startTimer.text = LaunchLabel(startTimerCounter);
                     goClip.Play();
                     playoneshot = false;
                 }
 
-                goTimer = TickCountdown(goTimer, Time.unscaledDeltaTime);
-                //"GO!" end "GO" and start game
-                if (goTimer <= 0)
-                {
-                    startTimer.gameObject.SetActive(false);
-
-                }
                 if (TouchInput.IsPressed)
                 {
                     fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
@@ -127,7 +139,7 @@ public class movePlayer : MonoBehaviour
             }
             else
             {
-                startTimer.text = startTimerCounter.ToString("F2");
+                startTimer.text = LaunchLabel(startTimerCounter);
             }
 
         }
@@ -141,7 +153,28 @@ public class movePlayer : MonoBehaviour
 
     public static float TickCountdown(float remaining, float deltaTime)
     {
-        return Mathf.Max(0f, remaining - Mathf.Clamp(deltaTime, 0f, MaxCountdownStep));
+        float next = remaining - Mathf.Clamp(deltaTime, 0f, MaxCountdownStep);
+        return next <= CountdownEpsilon ? 0f : next;
+    }
+
+    // One held-touch frame of the launch. Returns true when the player has
+    // control this frame -- which includes the frame the countdown hits zero
+    // (the GO frame); there is no extra hold after GO.
+    public static bool StepLaunch(ref float remaining, float deltaTime)
+    {
+        remaining = TickCountdown(remaining, deltaTime);
+        return remaining <= 0f;
+    }
+
+    public static string LaunchLabel(float remaining)
+    {
+        return remaining <= 0f ? GoLabel : ReadyLabel;
+    }
+
+    // GO fades from full to nothing over GoSeconds.
+    public static float GoAlpha(float goRemaining)
+    {
+        return Mathf.Clamp01(goRemaining / GoSeconds);
     }
 
     // Grows from the authored size to CountdownMaxGrowth times it as the

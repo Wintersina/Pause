@@ -64,7 +64,7 @@ public static class ThrusterTest
                 Check("ship" + i + " flame draws under the hull",
                       sr.sortingOrder < hull.sortingOrder);
 
-            int expectedNozzles = (i == 2 || i == 8 || i == 10) ? 2 : 1;
+            int expectedNozzles = ShipNozzles.For(i).Length;
             var idleNozzles = ship.GetComponentsInChildren<SpriteRenderer>(true);
             int idleFlames = 0;
             foreach (var renderer in idleNozzles)
@@ -78,14 +78,14 @@ public static class ThrusterTest
             Check("ship" + i + " has " + expectedNozzles + " matching boost nozzle(s)",
                   boostNozzles == expectedNozzles);
 
-            if (expectedNozzles == 2)
+            // Every plume sits on its own painted nozzle (ShipNozzles), not
+            // on a shared bottom-edge rule.
+            for (int n = 0; n < expectedNozzles; n++)
             {
-                var left = ship.transform.Find("~Thruster");
-                var right = ship.transform.Find("~Thruster1");
-                Check("ship" + i + " twin flames are symmetrically mounted",
-                      left != null && right != null &&
-                      left.localPosition.x < 0f && right.localPosition.x > 0f &&
-                      Mathf.Abs(left.localPosition.x + right.localPosition.x) < 0.001f);
+                var plume = ship.transform.Find(n == 0 ? "~Thruster" : "~Thruster" + n);
+                Vector2 want = ShipNozzles.ToLocal(hull.sprite, ShipNozzles.For(i)[n]);
+                Check("ship" + i + " plume " + n + " leaves its nozzle",
+                      plume != null && Vector2.Distance((Vector2)plume.localPosition, want) < .001f);
             }
         }
 

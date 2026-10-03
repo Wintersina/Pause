@@ -53,6 +53,8 @@ public static class NextFeatures0907Test
               Mathf.Approximately(score.totalCurrency, .12f));
         RailsCoverTallCamera();
         PauseQuickActionsVisibility();
+        QuickActionIconFiles();
+        HudPinnedTopLeft();
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();
 
         Debug.Log("[NF] failures: " + fails);
@@ -257,6 +259,140 @@ public static class NextFeatures0907Test
 
         buttonClicks.playerDied = false;
         Object.DestroyImmediate(go);
+    }
+
+    // Every quick-action sprite (full tiles and the death panel's glyph-only
+    // variants) stays a square, uncompressed-looking, mip-free Resources
+    // sprite, whatever the art inside it looks like.
+    static void QuickActionIconFiles()
+    {
+        foreach (string basePath in new[] { PauseQuickActions.ReplayIconPath, PauseQuickActions.HomeIconPath })
+        {
+            foreach (string path in new[] { basePath, basePath + DeathPanelView.GlyphSuffix })
+            {
+                var sprite = Resources.Load<Sprite>(path);
+                Check(path + " loads as a sprite", sprite != null);
+                if (sprite == null) continue;
+                Check(path + " is square (" + sprite.rect.width + "x" + sprite.rect.height + ")",
+                      Mathf.Approximately(sprite.rect.width, sprite.rect.height));
+                Check(path + " is at least 128px", sprite.rect.width >= 128f);
+                Check(path + " has no mipmaps", sprite.texture.mipmapCount == 1);
+                var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(sprite.texture)) as TextureImporter;
+                Check(path + " importer keeps mipmaps off", importer != null && !importer.mipmapEnabled);
+            }
+        }
+    }
+
+    // The score read-out (SPEED / star dust / PAUSES) is pinned to the
+    // safe area's top-left corner with the quick actions' margin, top-aligned
+    // with them, and never runs into them -- on every aspect ratio and notch.
+    static void HudPinnedTopLeft()
+    {
+        // Real phones/tablets, with their safe areas in pixels (origin bottom-left).
+        var screens = new (string name, Vector2 size, Rect safe)[]
+        {
+            ("540x1170 window",        new Vector2(540, 1170),  new Rect(0, 0, 540, 1170)),
+            ("iPhone SE 750x1334",     new Vector2(750, 1334),  new Rect(0, 0, 750, 1334)),
+            ("iPhone 13 1170x2532",    new Vector2(1170, 2532), new Rect(0, 102, 1170, 2532 - 102 - 141)),
+            ("iPhone 15 Pro Max",      new Vector2(1290, 2796), new Rect(0, 102, 1290, 2796 - 102 - 177)),
+            ("Pixel 1080x2400 cutout", new Vector2(1080, 2400), new Rect(0, 0, 1080, 2400 - 118)),
+            ("Z Flip 1080x2640",       new Vector2(1080, 2640), new Rect(0, 0, 1080, 2640 - 96)),
+            ("side inset 1080x2340",   new Vector2(1080, 2340), new Rect(60, 40, 1080 - 120, 2340 - 140)),
+            ("iPad 1536x2048",         new Vector2(1536, 2048), new Rect(0, 0, 1536, 2048)),
+            ("iPad Pro 2048x2732",     new Vector2(2048, 2732), new Rect(0, 40, 2048, 2732 - 80)),
+        };
+
+        foreach (var scenePath in new[] { "Assets/Scenes/gameS1.unity", "Assets/Scenes/tutorialS5.unity" })
+        {
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            string scene = scenePath.Contains("tutorial") ? "tutorialS5" : "gameS1";
+            var go = new GameObject("~HudPlacementTest");
+            var styler = go.AddComponent<HudStyler>();
+            styler.SendMessage("Start");
+
+            var root = styler.HudRoot;
+            Check(scene + ": HUD root found", root != null);
+            if (root == null) { Object.DestroyImmediate(go); continue; }
+            Check(scene + ": HUD root is a direct child of the root canvas",
+                  root.parent != null && root.parent.GetComponent<Canvas>() != null &&
+                  root.parent.GetComponent<Canvas>().isRootCanvas);
+            Check(scene + ": HUD anchored and pivoted top-left",
+                  root.anchorMin == new Vector2(0f, 1f) && root.anchorMax == new Vector2(0f, 1f) &&
+                  root.pivot == new Vector2(0f, 1f));
+            if (scene == "gameS1")
+                Check("gameS1: HUD root is the score panel (Model Panel)", root.name == "Model Panel");
+
+            var canvas = root.parent.GetComponent<Canvas>();
+            var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+            Vector2 hudSize = root.rect.size;
+
+            foreach (var s in screens)
+            {
+                float hudScale = HudStyler.HudCanvasScale(canvas, scaler, s.size);
+                Rect hud = HudStyler.HudScreenRect(s.safe, s.size, hudScale, hudSize);
+                Rect actions = PauseQuickActions.ScreenRectFor(s.safe, s.size);
+                float actionScale = PauseQuickActions.CanvasScaleFor(s.size);
+                float margin = PauseQuickActions.EdgeMargin * actionScale;
+                string tag = scene + " @ " + s.name + ": ";
+
+                Check(tag + "HUD left edge sits one margin in from the safe area (" +
+                      (hud.xMin - s.safe.xMin).ToString("F1") + "px vs " + margin.ToString("F1") + ")",
+                      Mathf.Abs(hud.xMin - s.safe.xMin - margin) < 1f);
+                Check(tag + "HUD top edge sits one margin below the safe area's top",
+                      Mathf.Abs(s.safe.yMax - hud.yMax - margin) < 1f);
+                Check(tag + "HUD top aligned with the quick actions (" +
+                      ((hud.yMax - actions.yMax) / actionScale).ToString("F2") + " units)",
+                      Mathf.Abs(hud.yMax - actions.yMax) / actionScale < 3f);
+                Check(tag + "HUD inside the safe area", s.safe.Contains(hud.min) && s.safe.Contains(hud.max));
+                Check(tag + "HUD does not overlap the quick actions", !hud.Overlaps(actions));
+                Check(tag + "HUD stays in the top quarter", hud.yMin > s.size.y * 0.75f);
+                Check(tag + "HUD keeps a readable size (>= 30% of the safe width)",
+                      hud.width >= s.safe.width * 0.3f);
+
+                // The death panel (DeathPanelView.Fit) treats the HUD and the
+                // quick actions as one top band and drops below both.
+                var popup = scene == "gameS1" ? SceneUtil.FindAny("PopUpCanvas") : null;
+                var popupScaler = popup != null ? popup.GetComponent<UnityEngine.UI.CanvasScaler>() : null;
+                if (popupScaler != null)
+                {
+                    float sf = HudStyler.HudCanvasScale(popup.GetComponent<Canvas>(), popupScaler, s.size);
+                    Vector2 half = s.size / sf * 0.5f;
+                    System.Func<Rect, Rect> toUnits = r => new Rect(r.x / sf - half.x, r.y / sf - half.y, r.width / sf, r.height / sf);
+                    Rect band = Rect.MinMaxRect(Mathf.Min(hud.xMin, actions.xMin), Mathf.Min(hud.yMin, actions.yMin),
+                                                Mathf.Max(hud.xMax, actions.xMax), Mathf.Max(hud.yMax, actions.yMax));
+                    Vector2 centre; float scale;
+                    DeathPanelView.ComputeFit(toUnits(s.safe), toUnits(band), out centre, out scale);
+                    float w = (DeathPanelView.Width + 2f * DeathPanelView.GlowMargin) * scale;
+                    float h = (DeathPanelView.Height + 2f * DeathPanelView.GlowMargin) * scale;
+                    var panel = new Rect(centre.x - w * .5f, centre.y - h * .5f, w, h);
+                    Check(tag + "death panel stays clear of the HUD (scale " + scale.ToString("F2") + ")",
+                          !panel.Overlaps(toUnits(hud)) && scale >= 0.5f);
+                }
+            }
+
+            Object.DestroyImmediate(go);
+        }
+
+        // Before: centre-anchored at (-137, 583) on an 800-wide match-width
+        // canvas, it hung ~200 units below the top on a 540x1170 screen.
+        {
+            Vector2 pos; float fit;
+            HudStyler.ComputeHudLayout(new Rect(0, 0, 540, 1170), new Vector2(540, 1170), 540f / 800f,
+                                       new Vector2(351, 171), out pos, out fit);
+            Check("540x1170: panel top is ~16px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
+                  -pos.y * 540f / 800f < 20f);
+            Check("540x1170: panel keeps full size", Mathf.Approximately(fit, 1f));
+        }
+
+        // A pathologically narrow screen shrinks the panel instead of overlapping.
+        {
+            var size = new Vector2(400, 2400);
+            var safe = new Rect(0, 0, 400, 2400);
+            float hudScale = 400f / 800f * 1.6f;   // a canvas wider-scaled than gameS1's
+            Rect hud = HudStyler.HudScreenRect(safe, size, hudScale, new Vector2(351, 171));
+            Check("narrow screen: HUD shrinks to stay clear of the quick actions",
+                  !hud.Overlaps(PauseQuickActions.ScreenRectFor(safe, size)));
+        }
     }
 
     // ---- 4: ultimate power --------------------------------------------------

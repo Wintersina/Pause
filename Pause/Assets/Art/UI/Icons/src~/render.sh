@@ -13,10 +13,12 @@ out="../../../Resources/QuickActions"
 if [ "$1" = "--glyph" ]; then
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
-  for name in replay home; do
-    # The plate and rim are the only <rect> elements in each source; the
-    # viewBox is cropped to the glyph (plus its glow) so it fills the sprite.
-    sed -e '/<rect /d' -e 's/viewBox="0 0 128 128"/viewBox="18 18 92 92"/' \
+  # play has no quick action; its glyph is the tutorial end card's PLAY.
+  for name in replay home play; do
+    # Every plate element (fill, horizon grid, scanlines, neon rim) is one
+    # line marked class="plate"; the viewBox is cropped to the glyph (plus
+    # its neon bloom) so it fills the sprite.
+    sed -e '/class="plate"/d' -e 's/viewBox="0 0 128 128"/viewBox="18 18 92 92"/' \
       "icon_$name.svg" > "$tmp/icon_$name.svg"
     resvg -w 256 -h 256 "$tmp/icon_$name.svg" "$out/QuickAction_${name}_glyph.png"
   done

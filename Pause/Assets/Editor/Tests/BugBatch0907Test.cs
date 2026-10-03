@@ -119,12 +119,14 @@ public static class BugBatch0907Test
         Check("continue button is wired to tutButtonClicks.replay()", wired);
     }
 
+    // The tutorial introduces every atom by spawning it the moment its line
+    // is spoken (see TutorialRobotTest for the full coverage check).
     static void TutorialAtomLessonsAreBalanced()
     {
         Check("tutorial includes a green atom lesson",
-              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/Hints.cs").Contains("green ATOM"));
-        Check("tutorial has a one-shot green atom cue",
-              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("greenAtomsShown == 0"));
+              System.Array.Exists(TutorialScript.Steps, s => s.advance == TutorialAdvance.CollectGreenAtom));
+        Check("tutorial keeps the step's atom coming until one is caught",
+              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("keepAtomComing != TutorialAtom.None && LiveAtom == null"));
         Check("green atom uses the shared slow spin", typeof(HealAtom).GetMethod("Spawn") != null);
     }
 

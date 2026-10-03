@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Star dust cell spin, frame 2. Hold 1 ticks. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="glow-back"><polygon points="32,4 32.8,25 35.1,32 32.8,39 32,60 31.2,39 28.9,32 31.2,25" fill="#FFB43C" opacity="0.45" filter="url(#glowS)"/></g>
+<g id="base"><polygon points="32,4 32.8,25 35.1,32 32.8,39 32,60 31.2,39 28.9,32 31.2,25" fill="#F4EAD4" /></g>
+<g id="shadow"><polygon points="32,32 35.1,32 32.8,39 32,60" fill="#A9481A" /><polygon points="32,32 32.8,25 35.1,32" fill="#F2862B" /></g>
+<g id="highlight"></g>
+<g id="ink"><polyline points="32,2 32,62" fill="none" stroke="#140C14" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" /><polygon points="30.5,6 33.5,6 33.5,58 30.5,58" fill="#F4EAD4" /></g>
+</svg>

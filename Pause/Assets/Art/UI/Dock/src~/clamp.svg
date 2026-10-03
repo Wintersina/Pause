@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Docking clamp arm, reaching right toward the hull. The left-hand clamp
+     uses it as is; the right-hand one is mirrored in game. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" viewBox="0 0 40 18">
+  <!-- piston body -->
+  <path d="M0 3 H14 L16 5 V13 L14 15 H0 Z" fill="#22385A"/>
+  <line x1="0" y1="3.6" x2="14" y2="3.6" stroke="#3F6A9C" stroke-width="1"/>
+  <rect x="3" y="7" width="8" height="4" fill="#15243C"/>
+  <!-- rod -->
+  <rect x="16" y="7" width="14" height="4" fill="#5C7EA8"/>
+  <line x1="16" y1="7.5" x2="30" y2="7.5" stroke="#9BB8DA" stroke-width="0.8"/>
+  <!-- jaw -->
+  <path d="M29 2 H35 L38 5 V13 L35 16 H29 Z" fill="#2C4870"/>
+  <path d="M35 4 L38 6 V12 L35 14 Z" fill="#FFC943"/>
+  <line x1="29" y1="2.6" x2="35" y2="2.6" stroke="#5C86B8" stroke-width="0.8"/>
+</svg>
