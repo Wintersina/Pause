@@ -326,7 +326,7 @@ public static class ResumeSlowMoTest
     {
         string src = File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs");
         Check("moveBackGround applies ResumeSlowMo on running frames",
-              src.Contains("Time.timeScale = ResumeSlowMo.Apply(1f);"));
+              src.Contains("Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale;"));  // hit-stop / Time Bubble on top
         Check("moveBackGround reports freezes", src.Contains("Time.timeScale = ResumeSlowMo.Freeze();"));
         int cinematic = src.IndexOf("ShipPowerController.CinematicTimeScale");
         int apply = src.IndexOf("ResumeSlowMo.Apply");

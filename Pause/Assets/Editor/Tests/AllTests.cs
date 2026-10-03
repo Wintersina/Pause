@@ -41,6 +41,7 @@ public static class AllTests
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
+        ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShipSelectionTest", ShipSelectionTest.Execute),

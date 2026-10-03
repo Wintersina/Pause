@@ -285,7 +285,8 @@ public static class WeaponChargeTest
         Check("the release empties the charge", ind.Shown == 0f && !ind.Ready);
         var gun = c.GetComponentInChildren<UltimateGun>();
         Check("the gun plays its muzzle flash flipbook", gun != null && gun.Flashing);
-        Check("a homing shot launched from the pool", WeaponFx.ActiveShots >= 1);
+        // Ninja (11) is not top tier: its ricochet star comes from the attack pool.
+        Check("its attack launched from the pool", AttackPool.ActiveProjectiles >= 1);
         ind.Step(.02f, ChargeIndicator.ReleaseSeconds + .01f);
         Check("the release finishes and charging starts over", !ind.Releasing);
         Object.DestroyImmediate(hazard);

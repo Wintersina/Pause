@@ -407,11 +407,11 @@ public static class NextFeatures0907Test
     {
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
 
-        // Ship 0 -> Laser, a synchronous effect (not a coroutine), so firing
-        // it here doesn't depend on the player loop actually ticking.
-        PlayerPrefs.SetInt("spawnShip", 0);
+        // Gold Warden: a top-tier hull, the only kind whose ultimate is the
+        // cinematic volley (ShipLoadoutTable).
+        PlayerPrefs.SetInt("spawnShip", 7);
 
-        var shipGo = new GameObject("ship0", typeof(SpriteRenderer));
+        var shipGo = new GameObject("ship7", typeof(SpriteRenderer));
         var controller = shipGo.AddComponent<ShipPowerController>();
         // Outside Play mode, AddComponent does not auto-invoke Awake() any
         // more than it auto-invokes Start() -- every other test in this
