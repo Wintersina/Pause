@@ -125,31 +125,40 @@ public static class CodexTest
             CheckMaps("enmiesOnBoard alien", spawner.alien1, "enemy_alien");
         }
 
-        var extras = Resources.LoadAll<GameObject>("Prefabs/Enemies");
-        Check("Resources/Prefabs/Enemies loads (" + extras.Length + ")", extras.Length > 0);
-        foreach (var prefab in extras)
+        // Every world's roster (EnemyRoster) -- what enmiesOnBoard actually
+        // spawns -- maps to its own entry, built exactly as the spawner builds
+        // it, in all four worlds (aliens and mines share their legacy object
+        // names, so the per-world entry comes from EnemyIdentity).
+        var built = new List<GameObject>();
+        for (int world = 0; world < WorldManager.Worlds.Length; world++)
         {
-            CheckMaps("spawn-table prefab " + prefab.name, prefab, null);
-            var e = Codex.Find(Codex.IdFor(prefab));
-            Check("spawn-table prefab " + prefab.name + " is in a family entry",
-                  e != null && Array.IndexOf(e.matches, CodexCatalogue.FamilyOf(prefab.name)) >= 0);
+            int roles = 0;
+            foreach (EnemyRole role in Enum.GetValues(typeof(EnemyRole)))
+                foreach (var def in EnemyRoster.For(world, role))
+                {
+                    roles++;
+                    var go = EnemyFactory.Create(def, Vector3.zero, Quaternion.identity);
+                    go.name += "(Clone)";
+                    built.Add(go);
+                    CheckMaps(WorldManager.Worlds[world].displayName + " " + role + " " + def.key, go, def.codexId);
+                    var e = Codex.Find(def.codexId);
+                    Check(def.codexId + " is named and filed as its roster entry",
+                          e != null && e.name == def.displayName &&
+                          e.category == (def.IsHazard ? CodexCategory.Hazards : CodexCategory.Enemies));
+                }
+            Check(WorldManager.Worlds[world].displayName + " roster is covered (" + roles + " enemies)", roles >= 6);
         }
-        // Families are read from the live folder, so these only apply while
-        // the art they name is still there (another pass may redraw enemies).
-        if (Find(extras, "kn_enemyBlack3") != null) CheckMaps("kn_enemyBlack3", Find(extras, "kn_enemyBlack3"), "enemy_black");
-        if (Find(extras, "kn_meteorGrey_tiny2") != null) CheckMaps("kn_meteorGrey_tiny2", Find(extras, "kn_meteorGrey_tiny2"), "hazard_meteor_tiny");
-        if (Find(extras, "kn_meteorBrown_big4") != null) CheckMaps("kn_meteorBrown_big4", Find(extras, "kn_meteorBrown_big4"), "hazard_meteor_big");
+        foreach (var go in built) UnityEngine.Object.DestroyImmediate(go);
+        Check("every codex enemy/hazard entry is a roster enemy",
+              Array.TrueForAll(Codex.Entries, e =>
+                  (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
+                  EnemyRoster.FindByCodexId(e.id) != null));
+        foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
+                                        "enemy_black", "enemy_blue", "enemy_green", "enemy_red" })
+            Check("retired entry " + gone + " is gone", Codex.Find(gone) == null);
         Check("family key drops the variant number", CodexCatalogue.FamilyOf("kn_enemyBlack3(Clone)") == "knenemyblack" &&
               CodexCatalogue.FamilyOf("kn_meteorGrey_big2") == "knmeteorgreybig");
         Check("an unknown family still gets a readable name", CodexCatalogue.FallbackName("kn_enemyPurple2") == "Enemy Purple");
-        // No entry from the spawn table without live art behind it.
-        foreach (var e in Codex.Entries)
-        {
-            if (e.matches.Length == 0 || !(e.id.StartsWith("enemy_") || e.id.StartsWith("hazard_meteor"))) continue;
-            bool live = false;
-            foreach (var prefab in extras) live |= Array.IndexOf(e.matches, CodexCatalogue.FamilyOf(prefab.name)) >= 0;
-            if (e.id != "enemy_alien") Check(e.id + " is backed by live spawn-table art", live);
-        }
 
         var goods = UnityEngine.Object.FindFirstObjectByType<spawnGoodStuff>();
         Check("gameS1 has the pickup spawner", goods != null);
@@ -169,14 +178,12 @@ public static class CodexTest
         CheckMaps("rail mine (enmiesOnBoard.spawnMine)", temp[temp.Count - 1], "hazard_mine");
         temp.Add(new GameObject("~Portal"));
         CheckMaps("portal (Portal.Spawn)", temp[temp.Count - 1], CodexCatalogue.PortalId);
-        // The chaser borrows a spawn-table hull (enmiesOnBoard.chaser); its
-        // behaviour, not its art, is what makes it the Hunter.
-        var hull = Resources.Load<GameObject>("Prefabs/Enemies/kn_enemyRed5") ?? extras[0];
-        var chaser = (GameObject)PrefabUtility.InstantiatePrefab(hull);
-        chaser.name = hull.name + "(Clone)";
+        // A chaser built from any other hull (an inspector override) is still
+        // the Space chaser entry.
+        var chaser = new GameObject("someHull(Clone)");
         chaser.AddComponent<ChaserEnemy>();
         temp.Add(chaser);
-        CheckMaps("chaser (kn_enemyRed5 + ChaserEnemy)", chaser, "enemy_chaser");
+        CheckMaps("chaser (override hull + ChaserEnemy)", chaser, "enemy_chaser");
         var clone = new GameObject("smStar_1(Clone)");
         temp.Add(clone);
         CheckMaps("a (Clone) suffix is ignored", clone, "atom_stardust");
@@ -208,24 +215,24 @@ public static class CodexTest
         Codex.Discovered += handler;
         try
         {
-            var black = new GameObject("kn_enemyBlack3(Clone)");
-            Check("fresh profile: enemy undiscovered", !Codex.IsDiscovered("enemy_black"));
+            var black = new GameObject("space_fighter_1(Clone)");
+            Check("fresh profile: enemy undiscovered", !Codex.IsDiscovered("enemy_space_fighter_1"));
             Check("first contact discovers", Codex.Discover(black));
-            Check("discovery raised one event for the right entry", events == 1 && lastEvent == "enemy_black");
-            Check("second contact is a no-op", !Codex.Discover(black) && !Codex.Discover("enemy_black"));
+            Check("discovery raised one event for the right entry", events == 1 && lastEvent == "enemy_space_fighter_1");
+            Check("second contact is a no-op", !Codex.Discover(black) && !Codex.Discover("enemy_space_fighter_1"));
             Check("no duplicate event", events == 1);
             UnityEngine.Object.DestroyImmediate(black);
 
             Check("discovery is written to PlayerPrefs '" + Codex.PrefsKey + "'",
-                  PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black");
+                  PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1");
             Check("discovery marks the batched saver dirty", PrefsSaver.Dirty);
             Codex.Discover("atom_red");
             Check("list is comma separated, in discovery order",
-                  PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+                  PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1,atom_red");
 
             Codex.Reload();
-            Check("discoveries survive a reload", Codex.IsDiscovered("enemy_black") && Codex.IsDiscovered("atom_red"));
-            Check("a reload does not duplicate ids", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+            Check("discoveries survive a reload", Codex.IsDiscovered("enemy_space_fighter_1") && Codex.IsDiscovered("atom_red"));
+            Check("a reload does not duplicate ids", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1,atom_red");
             Check("still idempotent after a reload", !Codex.Discover("atom_red"));
 
             PlayerPrefs.SetString(Codex.PrefsKey, "hazard_mine, ,some_future_id,hazard_mine");
@@ -259,16 +266,16 @@ public static class CodexTest
             // The tutorial is practice: nothing met there counts.
             EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
             int evBefore = events;
-            Check("tutorial contact does not discover", !Codex.Discover("enemy_blue") && !Codex.IsDiscovered("enemy_blue"));
+            Check("tutorial contact does not discover", !Codex.Discover("enemy_space_fighter_2") && !Codex.IsDiscovered("enemy_space_fighter_2"));
             Check("tutorial contact raises no toast event", events == evBefore);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            Check("... and the same contact counts in a real run", Codex.Discover("enemy_blue"));
+            Check("... and the same contact counts in a real run", Codex.Discover("enemy_space_fighter_2"));
 
             // Locked entries keep their secrets.
-            var locked = Codex.Find("enemy_red");
+            var locked = Codex.Find("enemy_space_fighter_4");
             Check("undiscovered: name hidden", Codex.DisplayName(locked) == Codex.LockedName && Codex.LockedName == "???");
             Check("undiscovered: lore hidden", Codex.DisplayLore(locked) == string.Empty);
-            var found = Codex.Find("enemy_blue");
+            var found = Codex.Find("enemy_space_fighter_2");
             Check("discovered: real name and lore", Codex.DisplayName(found) == found.name && Codex.DisplayLore(found) == found.lore);
         }
         finally
@@ -283,12 +290,12 @@ public static class CodexTest
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_black,atom_red");
+        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1,atom_red");
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         Codex.Reload();
         int realCount = Codex.DiscoveredCount;
-        Check("dev mode off: only the real set is discovered", realCount < Codex.Total && !Codex.IsDiscovered("enemy_red"));
+        Check("dev mode off: only the real set is discovered", realCount < Codex.Total && !Codex.IsDiscovered("enemy_space_fighter_4"));
 
         int events = 0;
         Action<CodexEntry> handler = e => events++;
@@ -300,16 +307,16 @@ public static class CodexTest
             foreach (var e in Codex.Entries) all &= Codex.IsDiscovered(e) && Codex.DisplayName(e) == e.name && Codex.DisplayLore(e) == e.lore;
             Check("dev mode on: every entry is visible", all);
             Check("dev mode on: counter is N/N", Codex.DiscoveredCount == Codex.Total);
-            Check("dev mode on: codexSeen is not rewritten", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+            Check("dev mode on: codexSeen is not rewritten", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1,atom_red");
             Check("dev mode on: contacts record nothing and toast nothing",
-                  !Codex.Discover("enemy_green") && events == 0 && PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+                  !Codex.Discover("enemy_space_fighter_3") && events == 0 && PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1,atom_red");
 
             DeveloperUnlocks.SetEnabled(false);
             Codex.Reload();
             Check("dev mode off: back to the real discoveries", Codex.DiscoveredCount == realCount &&
-                  Codex.IsDiscovered("enemy_black") && !Codex.IsDiscovered("enemy_red") && !Codex.IsDiscovered("enemy_green"));
-            Check("dev mode off: codexSeen unchanged by the round trip", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
-            Check("dev mode off: discovery works again", Codex.Discover("enemy_green") && events == 1);
+                  Codex.IsDiscovered("enemy_space_fighter_1") && !Codex.IsDiscovered("enemy_space_fighter_4") && !Codex.IsDiscovered("enemy_space_fighter_3"));
+            Check("dev mode off: codexSeen unchanged by the round trip", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_space_fighter_1,atom_red");
+            Check("dev mode off: discovery works again", Codex.Discover("enemy_space_fighter_3") && events == 1);
         }
         finally
         {
@@ -392,7 +399,7 @@ public static class CodexTest
         Check("creditsS7 has no CODEX button",
               UnityEngine.Object.FindFirstObjectByType<CodexHomeButton>() == null && SceneUtil.FindAny("CodexButton") == null);
 
-        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_black,atom_stardust,hazard_mine");
+        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1,atom_stardust,hazard_mine");
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         Codex.Reload();
 
@@ -510,10 +517,10 @@ public static class CodexTest
         Check("BACK from detail returns to the grid", !panel.InDetail && panel.IsOpen);
 
         // Detail view, discovered.
-        panel.ShowDetail(Codex.Find("enemy_black"));
+        panel.ShowDetail(Codex.Find("enemy_space_fighter_1"));
         panel.SkipAnimations();
-        Check("discovered detail shows the name", panel.DetailName.text == "Shadow Wing");
-        Check("discovered detail shows the lore", panel.DetailLore.text == Codex.Find("enemy_black").lore);
+        Check("discovered detail shows the name", panel.DetailName.text == "Needle");
+        Check("discovered detail shows the lore", panel.DetailLore.text == Codex.Find("enemy_space_fighter_1").lore);
         panel.ShowGrid();
 
         // Layout of the real panel across screens: everything inside, text fits.
@@ -570,8 +577,8 @@ public static class CodexTest
 
         // The toast builds and shows a name without any raycast targets.
         var toast = CodexToast.Build();
-        toast.Enqueue(Codex.Find("enemy_black"));
-        Check("toast shows the entry name", toast.Showing && toast.ShowingName == "Shadow Wing");
+        toast.Enqueue(Codex.Find("enemy_space_fighter_1"));
+        Check("toast shows the entry name", toast.Showing && toast.ShowingName == "Needle");
         bool blocks = toast.GetComponent<GraphicRaycaster>() != null;
         foreach (var g in toast.GetComponentsInChildren<Graphic>(true)) blocks |= g.raycastTarget;
         Check("toast can never block a touch", !blocks);
