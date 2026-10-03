@@ -97,7 +97,7 @@ public class SpaceDock : MonoBehaviour
         cam = Camera.main;
         // Beyond the starfield (wide windows) show deep space, not the
         // scene's authored mid-blue clear colour.
-        if (cam != null) cam.backgroundColor = new Color(.012f, .02f, .05f, 1f);
+        if (cam != null) cam.backgroundColor = AkiraPalette.Night0;
         shop = Object.FindFirstObjectByType<shopingShips>();
         var font = DockArt.FindSceneFont();
 
@@ -557,7 +557,7 @@ public class SpaceDock : MonoBehaviour
             var instruction = instructionGo.GetComponent<Text>();
             instruction.text = "SPACE DOCK  ·  TAP A SHIP";
             instruction.fontSize = 19;
-            instruction.color = new Color(.55f, .88f, 1f, .85f);
+            instruction.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .85f);
             instruction.rectTransform.anchoredPosition = new Vector2(0, -60);
             instruction.rectTransform.sizeDelta = new Vector2(650, 30);
         }

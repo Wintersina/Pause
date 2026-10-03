@@ -2,6 +2,7 @@
 <!-- Pointer under the popup, aimed at the ship. Its flat top overlaps the
      panel's bottom edge so the outline reads as one shape. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="10" viewBox="0 0 16 10">
-  <path d="M0 0 H16 L8 9 Z" fill="#081428"/>
-  <path d="M0.6 1.2 L8 9 L15.4 1.2" fill="none" stroke="#2EE6FF" stroke-width="1.5" stroke-linejoin="miter"/>
+  <path d="M0 0 H16 L8 9 Z" fill="#0E1424"/>
+  <path d="M0.6 1.2 L8 9 L15.4 1.2" fill="none" stroke="#140C14" stroke-width="2.2" stroke-linejoin="miter"/>
+  <path d="M2.4 1.2 L8 7.2 L13.6 1.2" fill="none" stroke="#1FB5B9" stroke-width="0.9" stroke-linejoin="miter"/>
 </svg>

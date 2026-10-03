@@ -80,7 +80,7 @@ public class DockPopup : MonoBehaviour
         tailImage.sprite = DockArt.Get("popup_tail");
         tailImage.raycastTarget = false;
 
-        title = Label("Title", panel, font, 10, TextAnchor.MiddleLeft, new Color(.86f, .95f, 1f));
+        title = Label("Title", panel, font, 10, TextAnchor.MiddleLeft, AkiraPalette.Bone);
         title.horizontalOverflow = HorizontalWrapMode.Wrap;
         title.verticalOverflow = VerticalWrapMode.Truncate;
         title.resizeTextForBestFit = true;
@@ -110,6 +110,7 @@ public class DockPopup : MonoBehaviour
         colors.selectedColor = Color.white;
         button.colors = colors;
         button.onClick.AddListener(Clicked);
+        CelPress.AddTo(buttonRect.gameObject);   // cartoon squash-and-pop on press
         buttonLabel = Label("Label", buttonRect, font, 12, TextAnchor.MiddleCenter, DockArt.Ink);
         Stretch(buttonLabel.rectTransform);
         buttonLabel.fontStyle = FontStyle.Bold;
@@ -131,7 +132,7 @@ public class DockPopup : MonoBehaviour
             CurrentMode = Mode.Launch;
             // LAUNCH already says it's yours; only call out the equipped one.
             status.text = equipped ? "EQUIPPED" : "";
-            status.color = new Color(.55f, .8f, .9f, .9f);
+            status.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
             status.fontSize = 8;
             dustIcon.gameObject.SetActive(false);
             buttonLabel.text = "LAUNCH";
@@ -147,7 +148,7 @@ public class DockPopup : MonoBehaviour
             dustIcon.gameObject.SetActive(true);
             dustIcon.anchoredPosition = new Vector2(-11f - status.preferredWidth - 8f, -17f);
             buttonLabel.text = "BUY";
-            buttonImage.color = affordable ? DockArt.Gold : new Color(.55f, .5f, .42f, 1f);
+            buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
         // The name gets whatever width the status leaves, shrinking to fit
         // long names rather than running into the price.

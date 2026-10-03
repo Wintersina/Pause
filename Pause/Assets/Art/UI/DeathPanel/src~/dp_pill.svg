@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Capsule badge ("NEW BEST") - white template, tinted gold at runtime.
+  Tag badge ("NEW BEST") - chamfered, INK contour, white template tinted
+  amber at runtime.
   Units are UI canvas units; rasterize at 2x (96x56 px, sprite ppu 200).
-  9-slice border 14u on all sides (= the capsule radius).
+  9-slice border 14u on all sides.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="28" viewBox="0 0 48 28">
-  <rect x="0.5" y="0.5" width="47" height="27" rx="13.5" fill="#ffffff"/>
+  <polygon points="10,1.5 38,1.5 46.5,10 46.5,18 38,26.5 10,26.5 1.5,18 1.5,10" fill="#FFFFFF"/>
+  <polygon points="10,1.5 38,1.5 46.5,10 46.5,18 38,26.5 10,26.5 1.5,18 1.5,10" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="miter"/>
 </svg>

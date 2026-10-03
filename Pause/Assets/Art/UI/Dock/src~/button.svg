@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Popup action button. Drawn in light greys so the game can tint it cyan
-     (LAUNCH) or gold (BUY). 9-sliced (border 8). -->
+     (LAUNCH) or amber (BUY); the INK contour stays ink under any tint.
+     Chamfered, flat two-tone (lower band one shade down). 9-sliced (border 8). -->
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="24" viewBox="0 0 32 24">
-  <path d="M6 0 H26 L32 6 V18 L26 24 H6 L0 18 V6 Z" fill="#C9D2DD"/>
-  <path d="M6 0 H26 L32 6 V15 H0 V6 Z" fill="#FFFFFF"/>
-  <path d="M6.6 1.4 H25.4" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M6 0.8 H26 L31.2 6 V18 L26 23.2 H6 L0.8 18 V6 Z" fill="#B8B8B8"/>
+  <path d="M6 0.8 H26 L31.2 6 V15 H0.8 V6 Z" fill="#FFFFFF"/>
+  <path d="M6 0.8 H26 L31.2 6 V18 L26 23.2 H6 L0.8 18 V6 Z" fill="none" stroke="#140C14" stroke-width="1.5" stroke-linejoin="miter"/>
 </svg>
