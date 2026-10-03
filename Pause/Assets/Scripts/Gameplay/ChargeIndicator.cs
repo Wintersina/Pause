@@ -151,10 +151,19 @@ public class ChargeIndicator : MonoBehaviour
     void Place()
     {
         var t = view.transform;
-        float hullTop = hull != null && hull.sprite != null
-            ? hull.sprite.bounds.extents.y * Mathf.Abs(transform.lossyScale.y)
-            : .3f;
-        Vector3 rest = transform.position + Vector3.up * (hullTop + WorldSize * .5f);
+        // The nose: the top of whatever hull sprite is showing this frame
+        // (bounds, not authored offsets, so redrawn hulls still fit). Spinning
+        // hulls (Ninja, UFO) use their radius so the indicator never clips.
+        float nose = .3f;
+        if (hull != null && hull.sprite != null)
+        {
+            Bounds b = hull.sprite.bounds;
+            float sy = Mathf.Abs(transform.lossyScale.y);
+            nose = ShipExhaust.UsesWind(ship)
+                ? Mathf.Max(b.extents.x, b.extents.y) * Mathf.Max(Mathf.Abs(transform.lossyScale.x), sy)
+                : (b.max.y) * sy;
+        }
+        Vector3 rest = transform.position + Vector3.up * (nose + WorldSize * .5f);
         Vector3 pos = rest;
         if (gun != null)
             pos = Vector3.Lerp(rest, gun.MuzzlePosition + Vector3.up * WorldSize * .3f, gun.Extend01);

@@ -42,7 +42,7 @@ public class UltimateGun : MonoBehaviour
         var hull = GetComponentInParent<SpriteRenderer>();
         Vector2 extents = hull != null && hull.sprite != null ? hull.sprite.bounds.extents : new Vector2(0.4f, 0.5f);
 
-        shipIndex = ShipExhaust.IndexFor(hull != null ? hull.gameObject : gameObject);
+        shipIndex = ShipId.Of(hull != null ? hull.gameObject : gameObject, ShipId.Equipped());
         barrelLength = extents.x * 0.92f;
         // A companion weapon hovers beside its owner while charging, then
         // drifts into the forward firing slot just before the sweep begins.

@@ -35,6 +35,7 @@ public static class WeaponChargeTest
         ReadyTellInTheFinalSecond();
         IndicatorFreezesAtTimeScaleZero();
         PickupsCatchUpSmoothly();
+        SitsJustAboveTheNose();
         FireReleasesTheIndicator();
         ShotPoolStaysBounded();
         ExplosionVariantsCoverEveryTarget();
@@ -91,10 +92,11 @@ public static class WeaponChargeTest
         FreshScene();
         var charges = new HashSet<ChargeStyle>();
         var shots = new HashSet<ShotStyle>();
-        int roster = shopingShips.Roster.Length;
-        bool all = true, frames = true;
-        for (int ship = 1; ship < roster; ship++)
+        int roster = ShipId.Count + 1;
+        bool all = true, frames = true, keyed = true;
+        foreach (int ship in ShipId.All)
         {
+            keyed &= WeaponStyleTable.For(ship).artKey == ShipId.KeyOf(ship);
             if (!WeaponStyleTable.Has(ship) || WeaponStyleTable.For(ship).shipId != ship)
             {
                 all = false;
@@ -116,12 +118,14 @@ public static class WeaponChargeTest
             if (!ok) Debug.Log("[WC] missing frames for ship " + ship + " (" + style.artKey + ")");
             frames &= ok;
         }
-        Check("every roster ship has a weapon table entry", all);
+        Check("every ShipId.All entry has a weapon table entry", all && ShipId.Count == 15);
+        Check("each weapon entry's art key is its ShipId key", keyed);
         Check("every ship's indicator/shot/impact/muzzle frames resolve", frames);
         Check("every ship has its own charge indicator style", charges.Count == roster - 1);
         Check("every ship has its own shot style", shots.Count == roster - 1);
         Check("an unknown ship id falls back to the starter's weapon",
-              WeaponStyleTable.For(999).shipId == shopingShips.StarterShip);
+              WeaponStyleTable.For(999).shipId == ShipId.Starter &&
+              WeaponStyleTable.For(ShipId.None).shipId == ShipId.Starter);
         Check("frames are one world unit at scale 1",
               Mathf.Abs(WeaponArt.Charge(1, 0).bounds.size.x - 1f) < .01f);
     }
@@ -241,6 +245,27 @@ public static class WeaponChargeTest
               oneFrame > before && oneFrame < target - .02f);
         for (int i = 0; i < 30; i++) ind.Step(1f / 60f, 1f / 60f);
         Check("it catches up within about half a second", Mathf.Abs(ind.Shown - target) < .01f);
+        Teardown(c);
+    }
+
+    // Placement comes from the hull sprite's bounds, so a redrawn hull of a
+    // different size still gets its indicator just clear of its nose.
+    static void SitsJustAboveTheNose()
+    {
+        FreshScene();
+        var c = Ship(6);
+        var sr = c.GetComponent<SpriteRenderer>();
+        bool ok = true;
+        foreach (int px in new[] { 32, 96 })
+        {
+            var tex = new Texture2D(px, px * 2);
+            sr.sprite = Sprite.Create(tex, new Rect(0, 0, px, px * 2), new Vector2(.5f, .5f), 100f);
+            c.Indicator.Step(.02f, .02f);
+            float nose = sr.bounds.max.y;
+            float bottom = c.Indicator.View.position.y - ChargeIndicator.WorldSize * .5f;
+            ok &= bottom >= nose - .01f && bottom <= nose + .05f;
+        }
+        Check("the indicator sits just above the nose for any hull size", ok);
         Teardown(c);
     }
 

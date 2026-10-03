@@ -240,7 +240,7 @@ public class collisionDetection : MonoBehaviour {
                 // The player destroyed it: the pooled cartoon target
                 // explosion (metal / rock / mine), flashed in this ship's
                 // weapon colour.
-                TargetExplosion.Spawn(hit.gameObject, ShipExhaust.IndexFor(gameObject));
+                TargetExplosion.Spawn(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
                 PlayExplosion();
 
                 AwardDestroyedTarget(hit.gameObject);

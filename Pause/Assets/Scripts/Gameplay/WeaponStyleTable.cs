@@ -56,8 +56,9 @@ public struct WeaponStyle
 // art for every ship's ultimate. Everything about how a weapon looks is
 // here or in its atlas; nothing is derived from the ship index elsewhere.
 //
-// Lives apart from shopingShips (the roster) on purpose -- it only reads
-// the roster's numbering.
+// Indexed by ShipId; each row's artKey is that ship's ShipId.KeyOf, which
+// the tests check, so a roster reorder can't silently mismatch weapons.
+// Lives apart from shopingShips (the roster) on purpose.
 public static class WeaponStyleTable
 {
     static Color Hex(string hex)
@@ -111,14 +112,16 @@ public static class WeaponStyleTable
 
     public static int Count => table.Length;
 
+    // Keyed by ShipId (the roster id, 1..15). Index 0 (ShipId.None) holds
+    // the starter's weapon so a stray id still draws something.
     public static bool Has(int shipId)
     {
-        return shipId >= 0 && shipId < table.Length;
+        return ShipId.IsValid(shipId) && shipId < table.Length;
     }
 
     public static WeaponStyle For(int shipId)
     {
-        if (!Has(shipId)) shipId = shopingShips.StarterShip;
+        if (!Has(shipId)) shipId = ShipId.Starter;
         return table[shipId];
     }
 }
