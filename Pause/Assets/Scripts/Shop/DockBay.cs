@@ -24,16 +24,17 @@ public class DockBay : MonoBehaviour
         new Vector3(-.69f, -.36f), new Vector3(.69f, -.36f),
     };
     static readonly Color OffTint = new Color(.62f, .68f, .80f, 1f);
-    static readonly Color LightOff = new Color(1f, .55f, .22f, .38f);
-    static readonly Color LightOn = new Color(.35f, .95f, 1f, 1f);
-    static readonly Color NameOwned = new Color(.86f, .93f, 1f, .95f);
-    static readonly Color NameLocked = new Color(.58f, .65f, .78f, .9f);
+    static readonly Color LightOff = AkiraPalette.WithAlpha(AkiraPalette.Sodium, .38f);
+    static readonly Color LightOn = AkiraPalette.Cyan;
+    static readonly Color NameOwned = AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f);
+    static readonly Color NameLocked = AkiraPalette.WithAlpha(AkiraPalette.Muted, .9f);
     static int saturationId;
 
     public int index;
     public Transform ship;
     public SpriteRenderer hull;
     public ShipThruster thruster;
+    public ShipSpinDrift drift;             // spinners' engine instead of a thruster
     public bool wind;
     public Vector2 hullHalfSize;            // in berth-local units
 
@@ -116,6 +117,15 @@ public class DockBay : MonoBehaviour
             thruster.idleScale = .55f;
             thruster.flicker = .12f;
             thruster.powered = false;
+        }
+        else
+        {
+            // Spinners: their spin drift, turned by this berth's own spin.
+            drift = shipGo.AddComponent<ShipSpinDrift>();
+            drift.spinHull = false;
+            drift.respondToPause = false;
+            drift.powered = false;
+            drift.wakeScale = .5f;    // keep the wake inside the berth
         }
 
         // Name plate, set into the recess along the berth's back wall.
@@ -273,6 +283,11 @@ public class DockBay : MonoBehaviour
         float rs = Mathf.Lerp(.86f, 1f, p);
         ring.transform.localScale = new Vector3(rs, rs, 1f);
         if (thruster != null) thruster.powered = Launching || (Powered && power > .3f);
+        if (drift != null)
+        {
+            drift.powered = Launching || (Powered && power > .3f);
+            drift.boost = Launching;
+        }
     }
 
     // Jumps straight to the current power target (no fade). Used when the

@@ -8,6 +8,6 @@ set -e
 here="$(cd "$(dirname "$0")" && pwd)"
 out="$here/../../../Resources/DeathPanel"
 mkdir -p "$out"
-for name in dp_panel dp_card dp_button dp_glow dp_divider dp_sparkle dp_pill; do
+for name in dp_panel dp_card dp_bar dp_button dp_glow dp_divider dp_sparkle dp_pill dp_slab; do
   resvg --zoom 2 "$here/$name.svg" "$out/$name.png"
 done

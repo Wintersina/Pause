@@ -7,11 +7,34 @@ public class collisionDetection : MonoBehaviour {
 
     public static bool atomCheck;
 
+    // Phase Cloak (ShipPowerController.DoCloak). Its own clock, separate from
+    // the blue atom's invTimer: Cloak makes the ship invulnerable without
+    // raising the shield, the boost or the boost music, and neither state can
+    // shorten or stretch the other. Ticks on the same running-world clock as
+    // invTimer (turnTextsOff), so it never drains while the game is paused.
+    public static float cloakTimer;
+    public static bool Cloaked { get { return cloakTimer > 0f; } }
+
+    // What hazards check: the blue-atom shield, Cloak, or both.
+    public static bool Invulnerable { get { return atomCheck || Cloaked; } }
+
+    // Starts (or refreshes) Cloak; never shortens one already running.
+    public static void BeginCloak(float seconds)
+    {
+        cloakTimer = Mathf.Max(cloakTimer, seconds);
+    }
+
+    // Runs the cloak clock down; clamps at zero so it can never read as
+    // still running once it has ended.
+    public static void TickCloak(float dt)
+    {
+        if (cloakTimer > 0f) cloakTimer = Mathf.Max(0f, cloakTimer - dt);
+    }
+
 
     private static float savedTimer;
     public static float invTimer;
     private float boostTimer;
-    public Text atomTimerText;
     public Text hypeText;
     public Text boostText;
     private int atomCounter;
@@ -101,7 +124,6 @@ public class collisionDetection : MonoBehaviour {
 
         MAXLIFE = 3;
         // Fills the needed componets for this player.
-        atomTimerText = GameObject.Find("gotAtomText").GetComponent<Text>();
         hypeText = GameObject.Find("hypeText").GetComponent<Text>();
         boostText = GameObject.Find("boostText").GetComponent<Text>();
         //destructionComboText = GameObject.Find("DestructionText").GetComponent<Text>();
@@ -120,9 +142,9 @@ public class collisionDetection : MonoBehaviour {
 
         // making sure atom is not active until player picks it up
         atomCheck = false;
+        cloakTimer = 0f;
 
-        // empty out any text or counters
-        atomTimerText.text = "";
+        // empty out any counters
         atomCounter = 0;
         lifeCounter = 0;
     }
@@ -151,16 +173,16 @@ public class collisionDetection : MonoBehaviour {
         {
 
             // creating different explotions for different enims
-            // Under the boost shield the player destroys the mine, and the
-            // weapon explosion below covers it.
-            if (PrefabName.Is(hit.gameObject, "mine") && !atomCheck)
+            // Under the boost shield (or Cloak) the player destroys the
+            // mine, and the weapon explosion below covers it.
+            if (PrefabName.Is(hit.gameObject, "mine") && !Invulnerable)
             {
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);
             }
 
-            if (atomCheck)
+            if (Invulnerable)
             {
                 // acchivment reporting
                 if (PrefabName.Is(hit.gameObject, "alien1"))
@@ -173,6 +195,8 @@ public class collisionDetection : MonoBehaviour {
                     //------------------------- Destroy 5/25/50/100/1500 Asteroids ---##14-18---
                     achievementAPICalls.asteroid_destroyed();
                 }
+                // Shows the hit on the shield; a no-op under Cloak alone,
+                // where no shield is up.
                 ShipShield.For(gameObject).Absorb(hit.transform.position);
                 // show the texts for only half of a second.
                 savedTimer = .4f;
@@ -227,6 +251,9 @@ public class collisionDetection : MonoBehaviour {
         //-------------------- PICK UP ITEMS, Such as STARS, and ATOMS ------------------------------------------
         else if (hit.gameObject.tag == "pickUp")
         {
+            // Every pickup pops in its own pixel-art burst where it was caught.
+            PickupBurst.Play(hit.gameObject);
+
 
             if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
@@ -276,7 +303,6 @@ public class collisionDetection : MonoBehaviour {
 
                 ShipShield.For(gameObject).Show();
                 awardDust(blueAtomValue);
-                atomTimerText.text = "0.00";
                 boostText.text = "Boost!";
                 Destroy(hit.gameObject);
 
@@ -298,11 +324,7 @@ public class collisionDetection : MonoBehaviour {
         invTimer -= Time.deltaTime;
         savedTimer -= Time.deltaTime;
         boostTimer -= Time.deltaTime;
-        if (atomCheck)
-        {
-            atomTimerText.text = invTimer.ToString("F2");     
-           
-        }
+        TickCloak(Time.deltaTime);
 
         // check if atom is captrured and its time to reduce it.
         if (atomCheck && invTimer <= 0)
@@ -310,8 +332,6 @@ public class collisionDetection : MonoBehaviour {
             // turn shields off
             ShipShield.For(gameObject).Hide();
             boost.SetActive(false);
-            // let player know shild is off
-            atomTimerText.text = "";
             atomCheck = false;
             moveBackGround.speed -= BossEncounter.FilterSpeedChange(.05f * atomCounter);
             atomCounter = 0;

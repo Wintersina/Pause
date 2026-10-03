@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Title slab behind "FLIGHT COMPLETE": the Akira title-card stripe. A RED
+  parallelogram with a RED_HI top band, INK contour and a hard INK cel
+  offset. Drawn in its final colours. Not sliced.
+  Units are UI canvas units; rasterize at 2x (1280x176 px, sprite ppu 200).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="88" viewBox="0 0 640 88">
+  <polygon points="40,14 636,14 610,86 14,86" fill="#140C14"/>
+  <polygon points="30,4 626,4 600,76 4,76" fill="#D8232C"/>
+  <polygon points="30,4 626,4 622,15 26,15" fill="#FF5B45"/>
+  <polygon points="30,4 626,4 600,76 4,76" fill="none" stroke="#140C14" stroke-width="4" stroke-linejoin="miter"/>
+</svg>

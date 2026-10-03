@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pause glow variant B: two slanted RED slab bars, RED_SH shadow, BONE kick, INK contour and cel offset. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <polygon points="49.0,30.0 71.0,30.0 63.0,110.0 41.0,110.0" fill="#140C14"/>
+  <polygon points="85.0,30.0 107.0,30.0 99.0,110.0 77.0,110.0" fill="#140C14"/>
+  <polygon points="44.0,24.0 66.0,24.0 58.0,104.0 36.0,104.0" fill="#D8232C"/>
+  <polygon points="59.0,24.0 66.0,24.0 58.0,104.0 51.0,104.0" fill="#86121F"/>
+  <polygon points="48.0,29.0 52.0,29.0 41.0,90.0 37.0,90.0" fill="#F4EAD4"/>
+  <polygon points="44.0,24.0 66.0,24.0 58.0,104.0 36.0,104.0" fill="none" stroke="#140C14" stroke-width="5" stroke-linejoin="miter"/>
+  <polygon points="80.0,24.0 102.0,24.0 94.0,104.0 72.0,104.0" fill="#D8232C"/>
+  <polygon points="95.0,24.0 102.0,24.0 94.0,104.0 87.0,104.0" fill="#86121F"/>
+  <polygon points="84.0,29.0 88.0,29.0 77.0,90.0 73.0,90.0" fill="#F4EAD4"/>
+  <polygon points="80.0,24.0 102.0,24.0 94.0,104.0 72.0,104.0" fill="none" stroke="#140C14" stroke-width="5" stroke-linejoin="miter"/>
+  <path d="M18 40 L18 16 L42 16" fill="none" stroke="#140C14" stroke-width="11" stroke-linejoin="miter"/>
+  <path d="M18 40 L18 16 L42 16" fill="none" stroke="#FFB43C" stroke-width="5" stroke-linejoin="miter"/>
+  <path d="M110 88 L110 112 L86 112" fill="none" stroke="#140C14" stroke-width="11" stroke-linejoin="miter"/>
+  <path d="M110 88 L110 112 L86 112" fill="none" stroke="#FFB43C" stroke-width="5" stroke-linejoin="miter"/>
+</svg>

@@ -65,28 +65,34 @@ public static class NextFeatures0907Test
 
     static void AsteroidsSpinSomeAtTieredSpeeds()
     {
-        // A spinning representative and a deliberately-not-spinning one.
+        // A spinning representative and a deliberately-not-spinning one. The
+        // pebble/small/medium Kenney meteors this used were deleted with the
+        // per-world enemy redraw; a roster fighter is the non-spinner now and
+        // the roster rocks are the "lighter" rocks the big meteors compare to.
         var spinning = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/aestroid_brown.prefab");
-        var notSpinning = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Enemies/kn_meteorGrey_tiny1.prefab");
         var bigMeteor = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Enemies/kn_meteorBrown_big1.prefab");
-        var medMeteor = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Enemies/kn_meteorBrown_med1.prefab");
+        var notSpinning = EnemyFactory.Create(EnemyRoster.Fighter(0, 1), Vector3.zero, Quaternion.identity);
+        var rosterRock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), Vector3.zero, Quaternion.identity);
 
         Check("aestroid_brown loaded", spinning != null);
-        Check("kn_meteorGrey_tiny1 loaded", notSpinning != null);
-        if (spinning == null || notSpinning == null || bigMeteor == null || medMeteor == null) return;
+        Check("a roster fighter builds", notSpinning != null);
+        Check("a roster rock builds", rosterRock != null);
+        if (spinning == null || notSpinning == null || bigMeteor == null || rosterRock == null) return;
 
         var spin = spinning.GetComponent<AsteroidSpin>();
         Check("aestroid_brown has AsteroidSpin", spin != null);
-        Check("kn_meteorGrey_tiny1 was deliberately left without spin",
+        Check("fighters are deliberately left without spin",
               notSpinning.GetComponent<AsteroidSpin>() == null);
 
         var big = bigMeteor.GetComponent<AsteroidSpin>();
-        var med = medMeteor.GetComponent<AsteroidSpin>();
+        var rock = rosterRock.GetComponent<AsteroidSpin>();
         Check("big meteors have AsteroidSpin", big != null);
-        Check("med meteors have AsteroidSpin", med != null);
-        if (big != null && med != null)
-            Check("big meteors are tuned to spin slower than med ones (heavier reads slower)",
-                  big.speedRange.y <= med.speedRange.y);
+        Check("roster rocks have AsteroidSpin", rock != null);
+        if (big != null && rock != null)
+            Check("big meteors are tuned to spin slower than the rocks (heavier reads slower)",
+                  big.speedRange.y <= rock.speedRange.y);
+        Object.DestroyImmediate(notSpinning);
+        Object.DestroyImmediate(rosterRock);
 
         // zigzag (moveEnimes) must still be present -- spin is additive.
         Check("aestroid_brown kept its zigzag movement (moveEnimes)",

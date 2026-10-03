@@ -7,7 +7,9 @@ using UnityEngine;
 // flash, a held hard-edged star burst, then ink-outlined smoke puffs that
 // drift out and break up while debris tumbles clear (Art/Weapons/src~,
 // Explosions.png). Hostile craft burst magenta-violet with metal plates,
-// asteroids in rock browns with sodium fire, mines bigger and hotter. Under
+// asteroids in rock browns with sodium fire, mines bigger and hotter, and the
+// per-world casts (EnemyRoster) their own: ice shatters cold, Verdant's
+// organics burst in spore green, Ember's magma in hot sodium. Under
 // it, a flash star and a shockwave ring in the firing weapon's own energy
 // colour tie the hit to the ship that made it. Three sizes from the target's
 // bounds, and a small camera kick on the bigger two.
@@ -16,7 +18,8 @@ using UnityEngine;
 // moving at a readable rate through the ultimate's deep slow motion.
 public static class TargetExplosion
 {
-    public enum Kind { Metal = 0, Rock = 1, Mine = 2 }
+    // Row order in Weapons/Explosions.png (Art/Weapons/src~ EXPLOSION_ROWS).
+    public enum Kind { Metal = 0, Rock = 1, Mine = 2, Ice = 3, Spore = 4, Magma = 5 }
     public enum Size { Small, Medium, Large }
 
     public static Kind KindFor(string tag, string name)
@@ -29,6 +32,9 @@ public static class TargetExplosion
     public static Kind KindFor(GameObject target)
     {
         if (target == null) return Kind.Metal;
+        // Roster enemies name their own variant (EnemyRoster: def.explosion).
+        var def = EnemyIdentity.Of(target);
+        if (def != null) return def.explosion;
         return KindFor(target.CompareTag("Astr") ? "Astr" : target.tag, target.name);
     }
 
@@ -42,6 +48,8 @@ public static class TargetExplosion
     public static Size SizeFor(GameObject target)
     {
         if (target == null) return Size.Medium;
+        var def = EnemyIdentity.Of(target);
+        if (def != null) return def.explosionSize;
         var r = target.GetComponentInChildren<Renderer>();
         if (r == null) return Size.Medium;
         Vector3 s = r.bounds.size;

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 // DeveloperUnlocks.Available (editor, development and PAUSE_DEV builds).
 public class DeveloperOptions : MonoBehaviour
 {
-    static readonly Color DevTint = new Color(1f, 0.79f, 0.26f);
+    static readonly Color DevTint = AkiraPalette.Amber;
 
     Text toggleLabel, worldLabel, bossLabel;
     GameObject worldRow, bossRow;

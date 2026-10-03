@@ -170,32 +170,4 @@ public class CelShape : MaskableGraphic
     }
 }
 
-// docs/art-style.md section 1.1 (names match art-samples/src/akira.py).
-public static class AkiraPalette
-{
-    public static readonly Color Night0 = Hex(0x070A16);
-    public static readonly Color Night1 = Hex(0x0E1424);
-    public static readonly Color Card = Hex(0x151B30);      // ui.py CARD
-    public static readonly Color Indigo0 = Hex(0x1A1F45);
-    public static readonly Color Indigo1 = Hex(0x2A2E6B);
-    public static readonly Color Hairline = Hex(0x2E3560);  // ui.py inner panel line
-    public static readonly Color Muted = Hex(0x8C93B8);     // ui.py MUTED
-    public static readonly Color Red = Hex(0xD8232C);
-    public static readonly Color RedShadow = Hex(0x86121F);
-    public static readonly Color RedHi = Hex(0xFF5B45);
-    public static readonly Color Sodium = Hex(0xF2862B);
-    public static readonly Color Amber = Hex(0xFFB43C);
-    public static readonly Color Teal = Hex(0x1FB5B9);
-    public static readonly Color Cyan = Hex(0x6EF2EE);
-    public static readonly Color TealShadow = Hex(0x0F5E6A);
-    public static readonly Color Magenta = Hex(0xFF2E88);
-    public static readonly Color Ink = Hex(0x140C14);
-    public static readonly Color Bone = Hex(0xF4EAD4);
-
-    public static Color Hex(int rgb, float a = 1f)
-    {
-        return new Color(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, a);
-    }
-
-    public static Color WithAlpha(Color c, float a) { c.a = a; return c; }
-}
+// AkiraPalette now lives in Scripts/UI/AkiraPalette.cs (shared with the rest of the UI).

@@ -68,10 +68,10 @@ public class moveBackGround : MonoBehaviour {
         if (wallMaterial != null) wallMaterial.mainTextureOffset = new Vector2(0f, offsetY);
     }
 
-    // game speeds up as the time progresses.
+    // game speeds up as the time progresses. Both walls call this; SpeedRamp
+    // ticks once per frame, so the ramp doesn't run once per wall.
     void speedUp()
     {
-        if (speed >= maxSpeed) return;
-        speed = Mathf.Min(speed + speedRampPerSecond * Time.deltaTime, maxSpeed);
+        SpeedRamp.Tick(speedRampPerSecond, maxSpeed);
     }
 }

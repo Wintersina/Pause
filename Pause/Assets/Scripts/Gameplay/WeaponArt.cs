@@ -105,10 +105,18 @@ public static class WeaponArt
 
     // ---- target explosions --------------------------------------------------
 
-    // Explosions.png: rows metal / rock / mine, ten frames each; row 0
-    // columns 10-12 are white overlays (flash star x2, shockwave ring) that
-    // are tinted with the firing weapon's colour at runtime.
-    const int FlashAt = 30, RingAt = 32, ExplosionSpriteCount = 33;
+    // Explosions.png: one row per TargetExplosion.Kind (metal, rock, mine,
+    // ice, spore, magma), ten frames each, 16 columns; row 0 columns 10-12
+    // are white overlays (flash star x2, shockwave ring) that are tinted with
+    // the firing weapon's colour at runtime.
+    public const int ExplosionKinds = 6;
+    const int FlashAt = ExplosionKinds * ExplosionFrames, RingAt = FlashAt + 2, ExplosionSpriteCount = RingAt + 1;
+
+    static Sprite ExplosionCell(Texture2D tex, int col, int row)
+    {
+        float w = tex.width / (float)Columns, h = tex.height / (float)ExplosionKinds;
+        return Sprite.Create(tex, new Rect(col * w, (ExplosionKinds - 1 - row) * h, w, h), new Vector2(.5f, .5f), w);
+    }
 
     static Sprite[] Explosions()
     {
@@ -117,9 +125,12 @@ public static class WeaponArt
         var tex = Resources.Load<Texture2D>("Weapons/Explosions");
         if (tex != null)
         {
-            for (int row = 0; row < 3; row++) Put(explosionSheet, row * ExplosionFrames, tex, row, 0, ExplosionFrames);
-            Put(explosionSheet, FlashAt, tex, 0, 10, 2);
-            explosionSheet[RingAt] = Cell(tex, 12, 0);
+            for (int row = 0; row < ExplosionKinds; row++)
+                for (int i = 0; i < ExplosionFrames; i++)
+                    explosionSheet[row * ExplosionFrames + i] = ExplosionCell(tex, i, row);
+            explosionSheet[FlashAt] = ExplosionCell(tex, 10, 0);
+            explosionSheet[FlashAt + 1] = ExplosionCell(tex, 11, 0);
+            explosionSheet[RingAt] = ExplosionCell(tex, 12, 0);
         }
         return explosionSheet;
     }

@@ -65,11 +65,14 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     const float DustBurstAt = .82f, BurstDuration = .38f;
     const float ButtonsStart = .66f, ButtonStagger = .07f, ButtonDuration = .3f;
 
-    static readonly Color Cyan = new Color(.32f, .9f, 1f);
-    static readonly Color Coral = new Color(1f, .45f, .35f);
-    static readonly Color Gold = new Color(1f, .79f, .26f);
-    static readonly Color Ink = new Color(0f, .03f, .12f, .9f);
-    static readonly Color Muted = new Color(.8f, .87f, 1f, .6f);
+    // Akira palette (docs/art-style.md): CYAN best speed, Kaneda RED for this
+    // run and MENU, AMBER star dust, BONE type over INK.
+    static readonly Color Cyan = AkiraPalette.Cyan;
+    static readonly Color Coral = AkiraPalette.Red;
+    static readonly Color Gold = AkiraPalette.Amber;
+    static readonly Color Ink = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
+    static readonly Color Muted = AkiraPalette.Muted;
+    static readonly Color Bone = AkiraPalette.Bone;
 
     const string SpriteRoot = "DeathPanel/";
     const int SparklesPerBurst = 10;
@@ -80,7 +83,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     Font font;
     RectTransform panel;
     CanvasGroup panelGroup;
-    Image scrim, divider, bestGlow;
+    Image scrim, divider, bestGlow, slab;
     RectTransform[] headerSparkles = new RectTransform[2];
     RectTransform[] cards = new RectTransform[3];
     CanvasGroup[] cardGroups = new CanvasGroup[3];
@@ -150,7 +153,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     void BuildScrim(RectTransform root)
     {
-        scrim = NewImage("Scrim", root, null, new Color(0f, .01f, .05f, 0f));
+        scrim = NewImage("Scrim", root, null, AkiraPalette.WithAlpha(AkiraPalette.Night0, 0f));
         var rt = scrim.rectTransform;
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = rt.offsetMax = Vector2.zero;
@@ -177,7 +180,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     void BuildHeader()
     {
-        var title = NewText("Title", panel, "FLIGHT COMPLETE", 40, Gold, TextAnchor.MiddleCenter);
+        // The Akira title-card stripe: a red slab behind the heading.
+        slab = NewImage("TitleSlab", panel, Load("dp_slab"), Color.white);
+        Place(slab.rectTransform, Centered(0f, HeaderRect.center.y + 2f, 640f, 88f));
+
+        var title = NewText("Title", panel, "FLIGHT COMPLETE", 40, Bone, TextAnchor.MiddleCenter);
         Place(title.rectTransform, HeaderRect);
         AddOutline(title.gameObject, Ink, 2f);
 
@@ -225,7 +232,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var p = NewImage("NewBest", cards[0], Load("dp_pill"), Gold);
             p.type = Image.Type.Sliced;
             Place(p.rectTransform, Centered(LabelLeft + 72f, -20f, 144f, 32f));
-            var label = NewText("Label", p.rectTransform, "NEW BEST", 18, new Color(.04f, .06f, .16f), TextAnchor.MiddleCenter);
+            var label = NewText("Label", p.rectTransform, "NEW BEST", 18, AkiraPalette.Ink, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform);
             pill = p.rectTransform;
         }
@@ -240,9 +247,13 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(card, rect);
         cardGroups[index] = go.GetComponent<CanvasGroup>();
 
-        var bg = NewImage("Background", card, Load("dp_card"), accent);
+        // The card is drawn in its final colours; the accent is a slanted
+        // slab down its left edge (dp_bar, tinted).
+        var bg = NewImage("Background", card, Load("dp_card"), Color.white);
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
+        var bar = NewImage("Accent", card, Load("dp_bar"), accent);
+        Place(bar.rectTransform, Centered(-CardWidth * .5f + 20f, 0f, 14f, rect.height - 30f));
 
         // Label column: name on top, a quieter sub-label (or the NEW BEST
         // capsule) underneath, both starting just right of the accent bar.
@@ -269,7 +280,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         value.horizontalOverflow = HorizontalWrapMode.Overflow;
         value.verticalOverflow = VerticalWrapMode.Overflow;
         value.raycastTarget = false;
-        value.color = Color.Lerp(Color.white, accent, .35f);
+        value.color = Bone;
         Place(value.rectTransform, Centered(ValueRight - 130f, 0f, 260f, 80f));
         AddOutline(value.gameObject, Ink, 2f);
         valueOut = value;
@@ -324,12 +335,12 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // Icon + label as one centred group.
         var text = button.GetComponentInChildren<Text>(true);
-        if (text == null) text = NewText("Label", rt, label, 28, Color.white, TextAnchor.MiddleLeft);
+        if (text == null) text = NewText("Label", rt, label, 28, Bone, TextAnchor.MiddleLeft);
         text.text = label;
         text.font = font;
         text.fontSize = 28;
         text.fontStyle = FontStyle.Bold;
-        text.color = Color.white;
+        text.color = Bone;
         text.alignment = TextAnchor.MiddleLeft;
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -412,21 +423,32 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     void AnimateIntro(float t)
     {
+        // Moves are held on 2s (12 drawings a second) like the art guide's
+        // flipbooks; fades and the counting numbers stay smooth.
+        float tq = OnTwos(t);
         // Backdrop dim and panel pop with a slight overshoot.
-        SetAlpha(scrim, .5f * EaseOutCubic(t / .3f));
-        float p = Mathf.Clamp01(t / PanelIn);
+        SetAlpha(scrim, .6f * EaseOutCubic(t / .3f));
+        float p = Mathf.Clamp01(tq / PanelIn);
         panelGroup.alpha = EaseOutCubic(t / .2f);
         panel.localScale = Vector3.one * (fitScale * Mathf.LerpUnclamped(.86f, 1f, EaseOutBack(p)));
 
         var d = divider.rectTransform.localScale;
-        d.x = EaseOutCubic((t - .14f) / .32f);
+        d.x = EaseOutCubic((tq - .14f) / .32f);
         divider.rectTransform.localScale = d;
+
+        // Title slab: snaps in from the left, overshoots, settles.
+        if (slab != null)
+        {
+            float sp = Progress(tq, .08f, .34f);
+            slab.rectTransform.localScale = new Vector3(EaseOutBack(sp), sp <= 0f ? 0f : 1f, 1f);
+        }
 
         for (int i = 0; i < 3; i++)
         {
             float c = EaseOutCubic((t - (CardStart + i * CardStagger)) / CardDuration);
             cardGroups[i].alpha = c;
-            cards[i].anchoredPosition = CardRects[i].center + new Vector2((1f - c) * 48f, 0f);
+            float cq = EaseOutBack(Progress(tq, CardStart + i * CardStagger, CardStart + i * CardStagger + CardDuration));
+            cards[i].anchoredPosition = CardRects[i].center + new Vector2((1f - cq) * 48f, 0f);
         }
 
         int best = Mathf.RoundToInt(results.bestSpeed * EaseOutCubic(Progress(t, BestCountFrom, BestCountTo)));
@@ -458,7 +480,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             float b = EaseOutCubic((t - (ButtonsStart + i * ButtonStagger)) / ButtonDuration);
             buttonGroups[i].alpha = b;
             buttonGroups[i].interactable = b > .5f;
-            buttonSlots[i].anchoredPosition = (i == 0 ? ReplayRect : MenuRect).center + new Vector2(0f, (1f - b) * -24f);
+            float bq = EaseOutBack(Progress(tq, ButtonsStart + i * ButtonStagger, ButtonsStart + i * ButtonStagger + ButtonDuration));
+            buttonSlots[i].anchoredPosition = (i == 0 ? ReplayRect : MenuRect).center + new Vector2(0f, (1f - bq) * -24f);
         }
     }
 
@@ -467,21 +490,26 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         float settle = Mathf.Clamp01((t - ButtonsStart) / .5f);
         for (int i = 0; i < 2; i++)
         {
-            float breathe = .5f + .5f * Mathf.Sin(t * 2.2f + i * 1.6f);
+            // A rim flash on a beat (2 ticks bright, 2 ticks half), the two
+            // buttons a half-beat apart, instead of a soft breathing bloom.
             float pressed = presses[i] != null ? presses[i].Pressed01 : 0f;
-            SetAlpha(buttonGlows[i], settle * (.16f + .14f * breathe) + .4f * pressed);
+            SetAlpha(buttonGlows[i], settle * BeatFlash(t + i * 1.2f, 2.4f) + .6f * pressed);
         }
 
-        float twinkle = 1f + .1f * Mathf.Sin(t * 3.1f);
+        // Header sparkles twinkle on 3s: rest, big, small, rest.
+        int step = Mathf.FloorToInt(t * 8f) % 12;
+        float twinkle = step == 9 ? 1.25f : step == 10 ? .8f : 1f;
         if (headerSparkles[0] != null) headerSparkles[0].localScale = Vector3.one * twinkle;
-        if (headerSparkles[1] != null) headerSparkles[1].localScale = Vector3.one * (2f - twinkle);
+        int step2 = (step + 6) % 12;
+        float twinkle2 = step2 == 9 ? 1.25f : step2 == 10 ? .8f : 1f;
+        if (headerSparkles[1] != null) headerSparkles[1].localScale = Vector3.one * twinkle2;
 
         if (bestGlow != null)
         {
             // A strong pulse on the new record, then a slow breathing glow.
             float pulse = Progress(t, NewBestAt, NewBestAt + .5f);
             float flash = pulse > 0f && pulse < 1f ? Mathf.Sin(pulse * Mathf.PI) * .5f : 0f;
-            float idle = pulse >= 1f ? .1f + .06f * Mathf.Sin(t * 3f) : 0f;
+            float idle = pulse >= 1f ? .1f + .5f * BeatFlash(t, 1.6f) : 0f;
             SetAlpha(bestGlow, Mathf.Max(flash, idle));
         }
     }
@@ -675,6 +703,16 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         c.a = a;
         g.color = c;
     }
+
+    // 0 most of the time; a hard two-step flash once per period (seconds).
+    static float BeatFlash(float t, float period)
+    {
+        float k = Mathf.Repeat(t, period) * 24f;
+        return k < 2f ? .7f : k < 4f ? .35f : .08f;
+    }
+
+    // Hold each pose two 24 fps ticks; the settled end time stays exact.
+    static float OnTwos(float t) { return t >= IntroDuration ? t : Mathf.Floor(t * 12f) / 12f; }
 
     static float Progress(float t, float from, float to) { return Mathf.Clamp01((t - from) / (to - from)); }
     static float EaseOutCubic(float x) { x = Mathf.Clamp01(x); float i = 1f - x; return 1f - i * i * i; }

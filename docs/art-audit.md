@@ -26,8 +26,8 @@ Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/
 | PAUSE title logo | `Art/pause_title_2.png` | `Scenes/startS4.unity` | **PROTECTED** |
 | PAUSE title logo (README) | `docs/pause-title.png` | `README.md` | **PROTECTED** |
 | HapticGate studio splash mark | `Art/HapticGate.png` | `Scenes/spashS7.unity` | **PROTECTED** |
-| "PAUSED" wordmark (provisional; confirm) | `Art/paused_1.png` | `Scenes/gameS1.unity`, `Scenes/tutorialS5.unity` | **PROTECTED** |
-| Pause-glow bars (provisional; confirm) | `Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` | **PROTECTED** |
+| "PAUSED" wordmark | `Art/paused_1.png` | `Scenes/gameS1.unity`, `Scenes/tutorialS5.unity` | **Not protected** (user decision). **RESTYLED**: red title slab, BONE Orbitron, ink (`Art/UI/Pause/src~`) |
+| Pause-glow bars | `Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` | **Not protected** (user decision). **RESTYLED**: inked red slab bars + pop-in/glint flipbook (`PausedOverlayAnim`) |
 
 ## Player ships
 
@@ -60,29 +60,29 @@ because the roster art overrides both. `xenon2_ship.png` stays on HOLD.
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Kenney fighters, 4 tiers × 5 (Black, Blue, Green, Red) | `Art/Resources/Prefabs/Enemies/Kenney/enemy{Black,Blue,Green,Red}{1-5}.png` | flat but no ink, rounded, the Red tier breaks the player=red rule (4, 5) | **REDRAW**. Tiers map to Steel (Black), Steel+Bruise (Blue), Bile (Green), Bruise+Magenta (Red). Sample: `enemy_fighter` |
-| Chaser | `Art/Resources/Prefabs/Enemies/Kenney/enemyRed5.png` (via `Prefabs/Enemies/kn_enemyRed5`) | as above; currently red (5) | **REDRAW**. Hostile bruise/magenta, sharper prongs |
-| Alien | `Art/invader32x32x4.png` (`Resources/prefabs/alien1.prefab`) | shaded pixel, cute-round (1, 3, 4) | **REDRAW**. Sample: `enemy_alien` |
-| Rail mine / rail bomb (4 worlds × 4 frames) | `Art/Resources/Vfx/rail_bomb_themes_atlas.png` | painted glossy metal (1, 3) | **REDRAW**. Sample: `enemy_mine`. Keep the 4×4 layout |
-| Ember rail mine frames | `Art/Resources/Vfx/rail_mine_ember_1.png`, `rail_mine_ember_2.png` | same | **REDRAW** |
+| Kenney fighters, 4 tiers × 5 (Black, Blue, Green, Red) | `Art/Resources/Prefabs/Enemies/Kenney/enemy{Black,Blue,Green,Red}{1-5}.png` | flat but no ink, rounded, the Red tier breaks the player=red rule (4, 5) | **DONE (replaced)**. Out of the spawn pool: each world now fields its own four fighter tiers from `EnemyRoster` (`Art/Enemies/src~`, strips in `Art/Resources/Enemies`). The Kenney prefabs/PNGs are unreferenced and await a delete decision |
+| Chaser | `Art/Resources/Prefabs/Enemies/Kenney/enemyRed5.png` (via `Prefabs/Enemies/kn_enemyRed5`) | as above; currently red (5) | **DONE (replaced)**: per-world chasers (`<world>_chaser`) with a lunge tell |
+| Alien | `Art/invader32x32x4.png` (`Resources/prefabs/alien1.prefab`) | shaded pixel, cute-round (1, 3, 4) | **DONE (replaced)**: per-world aliens (`<world>_alien`), still named `alien1` in play; the prefab is only the spawner's fallback |
+| Rail mine / rail bomb (4 worlds × 4 frames) | `Art/Resources/Vfx/rail_bomb_themes_atlas.png` | painted glossy metal (1, 3) | **DONE**: Space keeps the approved design, restyled in flat ink; Frost (Geode), Verdant (Burr) and Ember (Crucible) are new, world-specific mines. The atlas is repacked from `<world>_mine` frames 0, 1, 4, 5 |
+| Ember rail mine frames | `Art/Resources/Vfx/rail_mine_ember_1.png`, `rail_mine_ember_2.png` | same | **DONE (restyled)** from `ember_mine` frames 0 and 5; the game now plays the full `ember_mine` flipbook, so these two are no longer read at runtime |
 | Legacy mine (animated) | `Art/Aestroids/1.png`, `Art/Aestroids/2.png` (`Art/Animation/mineAnime.anim`) | glossy red sphere with spikes (1, 3) | **REDRAW** if still spawned. Prefab `Prefabs/mine` was retired in code, so verify before working on it |
 
 ## Asteroids and hazards
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Pixel asteroids | `Art/Aestroids/aestroid_brown.png`, `aestroid_brown_1.png`, `aestroid_dark.png`, `aestroid_dark_1.png`, `aestroid_gay_1.png`, `aestroid_gay_3.png`, `aestroid_gray_crooked_1.png`, `aestroid_gray_crooked_2.png` | sphere-shaded, glossy pits (1, 3, 4) | **REDRAW**. Sample: `asteroid` |
-| Kenney meteors (brown + grey, big/med/small/tiny, 20 files) | `Art/Resources/Prefabs/Enemies/Kenney/meteor{Brown,Grey}_{big1-4,med1-3,small1-2,tiny1-2}.png` | flat but no ink, blobby (3, 4) | **REDRAW** (faceted, ink, amber rim) |
+| Pixel asteroids | `Art/Aestroids/aestroid_brown.png`, `aestroid_brown_1.png`, `aestroid_dark.png`, `aestroid_dark_1.png`, `aestroid_gay_1.png`, `aestroid_gay_3.png`, `aestroid_gray_crooked_1.png`, `aestroid_gray_crooked_2.png` | sphere-shaded, glossy pits (1, 3, 4) | **DONE (replaced)**: Space spawns `space_rock_{crater,cluster,dark}`; these prefabs stay only as the scene-array fallback |
+| Kenney meteors (brown + grey, 8 big files left) | `Art/Resources/Prefabs/Enemies/Kenney/meteor{Brown,Grey}_big1-4.png` | flat but no ink, blobby (3, 4) | tiny/small/medium **DELETED** (12 prefabs + PNGs). big1-4 **AMBIGUOUS**: kept but no longer spawned |
 | Legacy asteroid | `Legacy/Art/Aestroids/asteroid6.png` | only used as the editor's default cursor | **UNUSED** (leave it alone) |
 
 ## Atoms and pickups
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Blue power atom | `Art/Atoms/atom3a.png` (`prefabs/atom3a.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `CYAN`/`TEAL` energy cell |
-| Red pause atom | `Art/Atoms/pauseAtom.png` (`prefabs/pauseAtom.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `RED`/`BONE` energy cell |
-| Green heal atom | `Art/Resources/Pickups/heal_atom_green.png` | atom/orbit glyph with glossy balls (3) | **REDRAW**. Sample: `pickup_heal` |
-| Star dust | `Art/Retro80s/Pickups/StarDustLarge.png`, `StarDustSmall.png` | confetti squares, off-palette (5) | **REDRAW**. Sample: `pickup_stardust` |
+| Blue shield atom | `Art/Atoms/atom3a.png` (`prefabs/atom3a.prefab`) | glossy bubble balls (1, 3) | **DONE (redrawn)**: pixel-art sibling of the green atom, teal/cyan hex cage + shield nucleus, idle + burst (art-style §5.1) |
+| Red pause atom | `Art/Atoms/pauseAtom.png` (`prefabs/pauseAtom.prefab`) | glossy bubble balls (1, 3) | **DONE (redrawn)**: pixel-art sibling, crossed orbits + pause-bar nucleus, idle + burst |
+| Green heal atom | `Art/Resources/Pickups/heal_atom_green.png` | the user's benchmark (pixel art) | **KEEP** (user decision): original pixels untouched; **animated** with overlay frames (glints, nucleus pulse) + burst |
+| Star dust | `Art/Retro80s/Pickups/StarDustLarge.png`, `StarDustSmall.png` | confetti squares, off-palette (5) | **DONE (redrawn)**: pixel-art four-point star, twinkle/spin idle + burst |
 | Gold stars (credits, menus, star pickups) | `Art/Stars/0.png`, `00.png`, `1.png`-`5.png` (`Art/Stars/starRotateAnime.anim`, `prefabs/LargeStar*`, `smStar*`, `superStar`, `CreditStar*`) | bevelled gold, 3D faceting with glow (1, 3) | **REDRAW** to match the star dust cell |
 | Life heart | `Art/Resources/Vfx/lifeHeart.png` | flat pixel, round (3, 4) | **RESTYLE**: angular heart, `RED` + `BONE` kick + ink |
 
@@ -117,11 +117,14 @@ because the roster art overrides both. `xenon2_ship.png` stays on HOLD.
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Quick-action icons (Replay, Home) | sources `Art/UI/Icons/src~/icon_replay.svg`, `icon_home.svg`; outputs `Art/Resources/QuickActions/QuickAction_{replay,home}[_glyph].png` | rounded plate, neon-tube bloom glyph, synthwave grid (3) | **RESTYLE** (chamfered plate, inked off-white glyph, red cel shadow). Sample: `ui_icon_*` |
-| Death panel sprites | sources `Art/UI/DeathPanel/src~/dp_panel.svg`, `dp_card.svg`, `dp_button.svg`, `dp_glow.svg`, `dp_divider.svg`, `dp_sparkle.svg`, `dp_pill.svg`; outputs `Art/Resources/DeathPanel/*.png` | rounded corners, soft glow, wash gradient (1, 3) | **RESTYLE** (keep the 9-slice borders). Sample: `ui_death_panel`. `DeathPanelView` colour constants change in a code phase |
-| Space dock | sources `Art/UI/Dock/src~/*.svg` (backplate, bay, button, chip, clamp, gantry, gate, icon_active, icon_dust, icon_owned, light, popup, popup_tail, ring, shadow, spine, wall); outputs `Art/UI/Dock/Resources/Dock/*.png` | mostly flat and panelled already; rounded button, soft glows, cyan neon popup (3, 5) | **RESTYLE**: the closest to compliant. Add ink weight, chamfer the button, swap neon cyan for palette `TEAL`/`RED` |
+| Quick-action icons (Replay, Home, Play glyph) | sources `Art/UI/Icons/src~/build_icons.py` → `icon_*.svg`; outputs `Art/Resources/QuickActions/QuickAction_{replay,home}[_glyph].png`, `QuickAction_play_glyph.png`, `Shine/*` | rounded plate, neon-tube bloom glyph, synthwave grid (3) | **DONE (restyled)**: chamfered plate, inked BONE glyph, red cel shadow; press squash (`CelPress`) and glint shimmer (`UiShimmer`) |
+| Death panel sprites | sources `Art/UI/DeathPanel/src~/*.svg` (+ new `dp_bar`, `dp_slab`); outputs `Art/Resources/DeathPanel/*.png` | rounded corners, soft glow, wash gradient (1, 3) | **DONE (restyled)**, 9-slice borders kept; `DeathPanelView` on the palette, title slab, motion held on 2s, beat flashes |
+| Space dock | sources `Art/UI/Dock/src~/*.svg`; outputs `Art/UI/Dock/Resources/Dock/*.png` | mostly flat and panelled already; rounded button, soft glows, cyan neon popup (3, 5) | **DONE (restyled)**: flat palette fills, ink contours, chamfers, hex badges, hard ring/shadow; dock code colours on `AkiraPalette`; popup button press |
 | Dock shader | `Art/UI/Dock/Resources/Dock/DockSprite.shader` | not art | **KEEP** |
-| HUD | `Scripts/UI/HudStyler.cs` (colours in code, no sprites) | synthwave violet/magenta panel (5) | **RESTYLE** in a code phase. Sample: `ui_hud` |
+| HUD | `Scripts/UI/HudStyler.cs` + `Art/UI/Hud/src~` (`hud_panel`, `hud_meter`) | synthwave violet/magenta panel (5) | **DONE (restyled)**: chamfered night panel with red tab, CYAN/AMBER/RED read-outs, segmented pause meter, stepped punches and a low-pause blink |
+| World banner | `Scripts/Worlds/WorldBanner.cs` | plain white text with a fade | **DONE (restyled)**: BONE type on the red title slab, flipbook in/out |
+| Menu buttons (start, Options) | `Scripts/UI/MenuStyler.cs` (runtime; scenes untouched) | default text buttons | **DONE (restyled)**: BONE + ink + red cel drop, press squash, PLAY beat flash |
+| Tutorial UI palette | `Art/UI/Tutorial/src~/palette.env`, `Scripts/Tutorial/TutorialPalette.cs` | near-guide colours | **DONE**: aligned to the guide hexes and re-rendered (art not redesigned) |
 | In-game replay / menu buttons | `Art/redo-512.png`, `Art/taxes-menu-icon.png` (`gameS1`, `tutorialS5`) | flat white glyphs, no ink, round (3, 4) | **RESTYLE** (or replace with the new quick-action glyphs) |
 | Login icon | `Art/loginIcon.png` | not referenced | **UNUSED** |
 | Font | `Art/Orbitron/Orbitron-Bold.ttf` | fits the look | **KEEP** |
