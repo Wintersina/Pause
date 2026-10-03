@@ -13,9 +13,12 @@ public class achievementAPICalls : MonoBehaviour
         SocialBridge.ShowLeaderboard();
     }
 
+    // Goes through LeaderboardService, which drops it in developer mode and
+    // the tutorial, keeps it queued while signed out and only sends an
+    // improvement. (LeaderboardRunTracker offers the same value at run end.)
     public static void leaderboard_highest_speed_reached(float value)
     {
-        SocialBridge.ReportScore((long)value, StringHolder.leaderboard_highest_speed_reached);
+        LeaderboardService.Instance.Offer(LeaderboardBoards.TopSpeed, (long)value);
     }
 
     // ---- One-shot achievements ----
