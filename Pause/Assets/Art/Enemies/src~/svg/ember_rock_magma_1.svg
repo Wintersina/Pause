@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ember_rock_magma frame 1 (idle), hold 3 ticks @24fps; colours are palette.env tokens -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="base"><clipPath id="c1024"><path d="M46,12 L82,12 L110,34 L116,70 L98,106 L62,118 L26,104 L12,70 L20,34 Z"/></clipPath><polygon points="46,12 82,12 110,34 116,70 98,106 62,118 26,104 12,70 20,34" fill="@CHAR@" /></g>
+<g id="shadow"><path d="M46,12 L82,12 L110,34 L116,70 L98,106 L62,118 L26,104 L12,70 L20,34 Z M34,0 L70,0 L98,22 L104,58 L86,94 L50,106 L14,92 L0,58 L8,22 Z" fill="@CHAR_SH@" fill-rule="evenodd" clip-path="url(#c1024)"/></g>
+<g id="highlight"><path d="M46,12 L82,12 L110,34 L116,70 L98,106 L62,118 L26,104 L12,70 L20,34 Z M49.5,15.5 L85.5,15.5 L113.5,37.5 L119.5,73.5 L101.5,109.5 L65.5,121.5 L29.5,107.5 L15.5,73.5 L23.5,37.5 Z" fill="@CHAR_HI@" fill-rule="evenodd" clip-path="url(#c1024)"/><polyline points="14,68 21,36 46,14" fill="none" stroke="@SODIUM_SH@" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="ink"><polygon points="46,12 82,12 110,34 116,70 98,106 62,118 26,104 12,70 20,34" fill="none" stroke="@INK@" stroke-width="4" stroke-linejoin="round" /></g>
+<g id="detail"><polyline points="30,40 46,52 44,70 60,80 58,100" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /><polyline points="46,52 70,44 84,26" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /><polyline points="60,80 86,76 100,90" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /><polyline points="86,76 96,54" fill="none" stroke="@INK@" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="glow"><polyline points="30,40 46,52 44,70 60,80 58,100" fill="none" stroke="@SODIUM_SH@" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" /><polyline points="46,52 70,44 84,26" fill="none" stroke="@SODIUM_SH@" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" /><polyline points="60,80 86,76 100,90" fill="none" stroke="@SODIUM_SH@" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" /><polyline points="86,76 96,54" fill="none" stroke="@SODIUM_SH@" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" /></g>
+</svg>

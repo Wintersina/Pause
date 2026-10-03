@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ember_rock_cinder frame 4 (tell), hold 2 ticks @24fps; colours are palette.env tokens -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="base"><clipPath id="c1034"><path d="M24,22 L100,16 L116,52 L108,100 L70,116 L20,106 L10,62 Z"/></clipPath><polygon points="24,22 100,16 116,52 108,100 70,116 20,106 10,62" fill="@CHAR@" /></g>
+<g id="shadow"><path d="M24,22 L100,16 L116,52 L108,100 L70,116 L20,106 L10,62 Z M8,10 L84,4 L100,40 L92,88 L54,104 L4,94 L-6,50 Z" fill="@CHAR_SH@" fill-rule="evenodd" clip-path="url(#c1034)"/></g>
+<g id="highlight"><path d="M24,22 L100,16 L116,52 L108,100 L70,116 L20,106 L10,62 Z M27.5,25.5 L103.5,19.5 L119.5,55.5 L111.5,103.5 L73.5,119.5 L23.5,109.5 L13.5,65.5 Z" fill="@CHAR_HI@" fill-rule="evenodd" clip-path="url(#c1034)"/><polyline points="12,60 24,24 60,20" fill="none" stroke="@SODIUM_SH@" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="ink"><polygon points="24,22 100,16 116,52 108,100 70,116 20,106 10,62" fill="none" stroke="@INK@" stroke-width="4" stroke-linejoin="round" /><polyline points="24,22 52,50 100,16" fill="none" stroke="@INK@" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="52,50 40,108" fill="none" stroke="@INK@" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /><polyline points="52,50 112,76" fill="none" stroke="@INK@" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /></g>
+<g id="detail"><polygon points="62,58 84,54 92,74 80,92 60,86" fill="@INK@" /><polygon points="62,58 84,54 92,74 80,92 60,86" fill="none" stroke="@INK@" stroke-width="3" stroke-linejoin="round" /></g>
+<g id="glow"><polygon points="64.8,60.8 82.4,57.6 88.8,73.6 79.2,88 63.2,83.2" fill="@SODIUM_SH@" /></g>
+</svg>
