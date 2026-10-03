@@ -193,7 +193,8 @@ public static class WeaponChargeTest
         Check("staying in the window doesn't re-trigger the tell", ind.ReadyTellCount == 1);
         SetTimer(c, .1f);
         ind.Step(.02f, .02f);
-        Check("anticipation squash just before it fires", ind.View.localScale.x > ind.View.localScale.y);
+        Check("the drawn squash pose holds as anticipation just before it fires",
+              ind.CurrentSprite == WeaponArt.Release(7, 0));
         Teardown(c);
     }
 
@@ -238,7 +239,6 @@ public static class WeaponChargeTest
         float oneFrame = ind.Shown;
         Check("a pickup doesn't snap the indicator forward in one frame",
               oneFrame > before && oneFrame < target - .02f);
-        Check("it squashes with a little gulp", ind.View.localScale.x > ind.View.localScale.y * 1.05f);
         for (int i = 0; i < 30; i++) ind.Step(1f / 60f, 1f / 60f);
         Check("it catches up within about half a second", Mathf.Abs(ind.Shown - target) < .01f);
         Teardown(c);
@@ -256,7 +256,7 @@ public static class WeaponChargeTest
         ind.Step(.02f, .02f);
         typeof(ShipPowerController).GetMethod("Fire", Inst).Invoke(c, null);
         Check("Fire() releases the indicator", ind.Releasing && ind.ReleaseCount == 1);
-        Check("the release plays the release frames", ind.CurrentSprite == WeaponArt.Release(11, 0));
+        Check("the release plays the release drawings", ind.CurrentSprite == WeaponArt.Release(11, 1));
         Check("the release empties the charge", ind.Shown == 0f && !ind.Ready);
         var gun = c.GetComponentInChildren<UltimateGun>();
         Check("the gun plays its muzzle flash flipbook", gun != null && gun.Flashing);
@@ -298,6 +298,8 @@ public static class WeaponChargeTest
         Check("the shot pool is capped", WeaponFx.ShotPoolSize == WeaponFx.MaxShots);
         Check("over-cap shots still hit their target", capHits == 10);
 
+        foreach (var s in Object.FindObjectsByType<WeaponShot>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            s.Finish(false); // land the capped volley so the pool has room again
         int fizzled = 0;
         var doomed = new GameObject("doomed").transform;
         var shot = WeaponFx.Launch(4, Vector3.zero, doomed, 2.4f, () => fizzled++);
@@ -388,7 +390,9 @@ public static class WeaponChargeTest
         Time.timeScale = 1f;
         blast.Tick(.2f);
         Check("it plays on once the world runs", blast.Frame > 0);
-        Check("the blast's key frames squash and stretch",
-              blast.transform.localScale.x != blast.transform.localScale.y || blast.Frame > 4);
+        Check("frames are held for the art's tick table (24 fps)",
+              WeaponArt.FrameAt(WeaponArt.ExplosionTicks, 2.5f / 24f, false) == 2 &&
+              WeaponArt.FrameAt(WeaponArt.ExplosionTicks, 5.5f / 24f, false) == 3 &&
+              WeaponArt.FrameAt(WeaponArt.ExplosionTicks, 99f, false) == WeaponArt.ExplosionFrames);
     }
 }

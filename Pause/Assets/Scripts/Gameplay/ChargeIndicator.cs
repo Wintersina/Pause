@@ -13,19 +13,21 @@ using UnityEngine;
 //  * builds steadily with the cooldown, on gameplay time: no progress and no
 //    idle motion while the world is frozen;
 //  * a pickup that shortens the cooldown makes the drawing catch up quickly
-//    with a little squash "gulp" instead of snapping;
-//  * the last second is the ready tell: a held looping pose, a snappy pulse,
-//    and three rising ticks; as the gun slides into its firing slot the
-//    indicator rides onto its muzzle; a squash of anticipation just before;
-//  * Fire() calls Release(): a squash / stretch / flash / speed-lines burst,
-//    after which it starts again from empty.
+//    (a fast ease through the in-between drawings) instead of snapping;
+//  * the last second is the ready tell: a held key pose and a drawn pulse on
+//    2s, and three rising ticks; as the gun slides into its firing slot the
+//    indicator rides onto its muzzle; the squash drawing holds as
+//    anticipation just before it fires;
+//  * Fire() calls Release(): stretch / flash / speed-lines drawings, after
+//    which it starts again from empty.
+// Squash and stretch are drawn into the frames (docs/art-style.md), never
+// tweened here.
 public class ChargeIndicator : MonoBehaviour
 {
     public const float ReadySeconds = 1f;
     public const float AnticipationSeconds = .14f;
-    public const float ReleaseSeconds = .3f;
+    public static float ReleaseSeconds => WeaponArt.Seconds(WeaponArt.ReleaseTicks) - WeaponArt.ReleaseTicks[0] * WeaponArt.Tick;
     public const float WorldSize = .42f;
-    const float ReadyFps = 10f;
     const float CatchUp = 9f;     // per second, exponential catch-up after a pickup
     const float MinRate = .02f;   // charge per second, so a tiny gap still closes
     static readonly float[] TickAt = { 1f, .66f, .33f };
@@ -37,7 +39,7 @@ public class ChargeIndicator : MonoBehaviour
     WeaponStyle style;
     int ship;
 
-    float shown, ambient, pop, spin, releaseT;
+    float shown, ambient, spin, releaseT;
     bool releasing;
     int nextTick;
 
@@ -79,7 +81,7 @@ public class ChargeIndicator : MonoBehaviour
         view = go.GetComponent<SpriteRenderer>();
         view.sortingOrder = (hull != null ? hull.sortingOrder : 0) + 4;
         view.sprite = WeaponArt.Charge(ship, 0);
-        Place(Vector3.one);
+        Place();
     }
 
     void LateUpdate()
@@ -106,10 +108,8 @@ public class ChargeIndicator : MonoBehaviour
         {
             ambient += dt;
             float gap = target - shown;
-            if (gap > .04f) pop = Mathf.Max(pop, Mathf.Clamp01(gap * 5f));
             if (gap > 0f)
                 shown = Mathf.Min(target, shown + gap * (1f - Mathf.Exp(-CatchUp * dt)) + MinRate * dt);
-            pop = Mathf.Max(0f, pop - dt * 4f);
             spin += style.indicatorSpin * shown * shown * dt;
         }
 
@@ -127,31 +127,28 @@ public class ChargeIndicator : MonoBehaviour
             }
         }
 
-        Vector3 squash = Vector3.one;
         if (releasing)
         {
-            int f = Mathf.Min(WeaponArt.ReleaseFrames - 1,
-                              Mathf.FloorToInt(releaseT / ReleaseSeconds * WeaponArt.ReleaseFrames));
-            view.sprite = WeaponArt.Release(ship, f);
+            // the release drawings after the squash (which already played
+            // as the anticipation)
+            int f = WeaponArt.FrameAt(WeaponArt.ReleaseTicks, releaseT + WeaponArt.ReleaseTicks[0] * WeaponArt.Tick, false);
+            view.sprite = WeaponArt.Release(ship, Mathf.Clamp(f, 1, WeaponArt.ReleaseFrames - 1));
         }
         else if (ready)
         {
-            int f = Mathf.FloorToInt(ambient * ReadyFps);
-            view.sprite = WeaponArt.Ready(ship, f);
-            if (left <= AnticipationSeconds) squash = new Vector3(1.22f, .8f, 1f);
-            else if ((f & 1) == 0) squash = new Vector3(1.12f, 1.12f, 1f);
+            view.sprite = left <= AnticipationSeconds
+                ? WeaponArt.Release(ship, 0) // anticipation: the drawn squash pose
+                : WeaponArt.Ready(ship, WeaponArt.FrameAt(WeaponArt.ReadyTicks, ambient, true));
         }
         else
         {
             ChargeFrame = ChargeFrameFor(shown);
             view.sprite = WeaponArt.Charge(ship, ChargeFrame);
-            float breathe = 1f + .03f * Mathf.Sin(ambient * 3.2f);
-            squash = new Vector3(breathe * (1f + .24f * pop), breathe * (1f - .16f * pop), 1f);
         }
-        Place(squash);
+        Place();
     }
 
-    void Place(Vector3 squash)
+    void Place()
     {
         var t = view.transform;
         float hullTop = hull != null && hull.sprite != null
@@ -165,8 +162,8 @@ public class ChargeIndicator : MonoBehaviour
         t.position = pos;
         t.rotation = Quaternion.Euler(0f, 0f, -spin);
         Vector3 lossy = transform.lossyScale;
-        t.localScale = new Vector3(WorldSize * squash.x / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
-                                   WorldSize * squash.y / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
+        t.localScale = new Vector3(WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
+                                   WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
     }
 
     // The ultimate just went off.
@@ -176,9 +173,8 @@ public class ChargeIndicator : MonoBehaviour
         releaseT = 0f;
         ReleaseCount++;
         shown = 0f;
-        pop = 0f;
         Ready = false;
         nextTick = 0;
-        if (view != null) view.sprite = WeaponArt.Release(ship, 0);
+        if (view != null) view.sprite = WeaponArt.Release(ship, 1);
     }
 }

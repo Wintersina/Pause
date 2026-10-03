@@ -17,6 +17,38 @@ public static class WeaponArt
     public const int ImpactFrames = 6, MuzzleFrames = 4, ReleaseFrames = 4, TrailFrames = 2;
     public const int ExplosionFrames = 10;
 
+    // Hold of each drawing in ticks at 24 fps (docs/art-style.md section 3),
+    // the same tables weapons.py writes into each SVG's header.
+    public const float Tick = 1f / 24f;
+    public static readonly int[] ReadyTicks = { 4, 2, 2, 2 };
+    public static readonly int[] ShotTicks = { 2, 2, 2, 2, 1, 1 };
+    public static readonly int[] ImpactTicks = { 1, 1, 2, 2, 2, 3 };
+    public static readonly int[] MuzzleTicks = { 1, 1, 1, 2 };
+    public static readonly int[] ReleaseTicks = { 2, 1, 1, 3 };
+    public static readonly int[] ExplosionTicks = { 1, 1, 1, 3, 2, 2, 2, 2, 3, 3 };
+
+    public static float Seconds(int[] ticks)
+    {
+        int n = 0;
+        for (int i = 0; i < ticks.Length; i++) n += ticks[i];
+        return n * Tick;
+    }
+
+    // Which drawing of a held-tick sequence is showing `seconds` in (the
+    // last one once it has run out, or wrapped when looping).
+    public static int FrameAt(int[] ticks, float seconds, bool loop)
+    {
+        float total = Seconds(ticks);
+        if (loop && total > 0f) seconds = Mathf.Repeat(seconds, total);
+        float t = seconds;
+        for (int i = 0; i < ticks.Length; i++)
+        {
+            t -= ticks[i] * Tick;
+            if (t < 0f) return i;
+        }
+        return ticks.Length; // finished (one past the end)
+    }
+
     // Flat index of each section inside a ship's sprite array.
     const int ChargeAt = 0, ReadyAt = 16, ShotAt = 20, ImpactAt = 26, MuzzleAt = 32, ReleaseAt = 36, TrailAt = 40;
     const int SpriteCount = 42;

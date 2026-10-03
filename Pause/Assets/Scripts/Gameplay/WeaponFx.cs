@@ -137,10 +137,10 @@ public static class WeaponFx
 }
 
 // One homing shot: a flipbook body that steers into its target, a long
-// hard-edged light streak behind it (ink / weapon colour / energy / white
-// core bands, like a bike tail-light smeared across the frame), and little
-// trail emblems dropped along the way. Runs on unscaled time so it stays
-// readable through the cinematic slow motion.
+// hard-edged light streak behind it (weapon colour / energy / BONE core
+// bands, the Akira bike tail-light smeared across the frame -- a light, so no
+// ink), and little trail emblems dropped along the way. Runs on unscaled time
+// so it stays readable through the cinematic slow motion.
 public class WeaponShot : MonoBehaviour
 {
     public const float BodySize = .5f;
@@ -149,10 +149,10 @@ public class WeaponShot : MonoBehaviour
     const float TrailWidth = .13f;
     const int PuffCount = 4;
     const float PuffEvery = .055f, PuffLife = .32f, PuffSize = .2f;
-    static readonly Color Ink = new Color(.043f, .039f, .11f, 1f);
+    static readonly Color Bone = new Color(.957f, .918f, .831f, 1f); // #F4EAD4
 
     SpriteRenderer body;
-    SpriteRenderer[] ink, outer, energy, core;
+    SpriteRenderer[] outer, energy, core;
     SpriteRenderer[] puffs;
     float[] puffAge;
     readonly Vector3[] hist = new Vector3[Segments + 1];
@@ -176,7 +176,6 @@ public class WeaponShot : MonoBehaviour
         bodyGo.transform.SetParent(transform, false);
         body = bodyGo.GetComponent<SpriteRenderer>();
         body.sortingOrder = 72;
-        ink = Layer("Ink", 69);
         outer = Layer("Outer", 70);
         energy = Layer("Energy", 70);
         core = Layer("Core", 71);
@@ -229,8 +228,7 @@ public class WeaponShot : MonoBehaviour
         for (int i = 0; i < PuffCount; i++) { puffs[i].enabled = false; puffAge[i] = PuffLife; }
         Tint(outer, style.main);
         Tint(energy, style.energy);
-        Tint(core, Color.white);
-        Tint(ink, Ink);
+        Tint(core, Bone);
         Active = true;
         gameObject.SetActive(true);
         body.sprite = WeaponArt.Shot(ship, WeaponArt.ShotLoopFrames); // launch smear
@@ -269,18 +267,20 @@ public class WeaponShot : MonoBehaviour
         bool smear = age < .07f || turnRate > 420f;
         int frame = smear
             ? WeaponArt.ShotLoopFrames + (Mathf.FloorToInt(age * 30f) & 1)
-            : Mathf.FloorToInt(age * style.shotFps) % WeaponArt.ShotLoopFrames;
+            : WeaponArt.FrameAt(LoopTicks, age, true);
         body.sprite = WeaponArt.Shot(ship, frame);
         Draw(dt);
         if (velocity.sqrMagnitude > .0001f && style.shotSpin == 0f)
             body.transform.up = velocity.normalized;
     }
 
+    // the flight loop part of WeaponArt.ShotTicks (the smear frames follow it)
+    static readonly int[] LoopTicks = { 2, 2, 2, 2 };
+
     void Draw(float dt)
     {
-        // body: launch stretch that settles, optional spin
-        float stretch = 1f + .55f * Mathf.Exp(-age * 14f);
-        body.transform.localScale = new Vector3(BodySize / Mathf.Sqrt(stretch), BodySize * stretch, 1f);
+        // body: the stretch is in the smear drawings; spin is motion
+        body.transform.localScale = Vector3.one * BodySize;
         if (style.shotSpin != 0f)
         {
             spinAngle += style.shotSpin * dt;
@@ -299,7 +299,6 @@ public class WeaponShot : MonoBehaviour
         {
             bool on = i + 1 < histCount;
             float taper = 1f - i / (float)Segments;
-            Segment(ink[i], on, hist[i], hist[i + 1], TrailWidth * taper + .035f);
             Segment(outer[i], on, hist[i], hist[i + 1], TrailWidth * taper);
             Segment(energy[i], on, hist[i], hist[i + 1], TrailWidth * taper * .55f);
             Segment(core[i], on && i < Segments / 2, hist[i], hist[i + 1], TrailWidth * taper * .22f);
@@ -359,7 +358,9 @@ public class WeaponShot : MonoBehaviour
 }
 
 // A pooled, flipbook-driven sprite: a weapon's impact burst, a target
-// explosion, or one of the explosion's tinted overlays. Explosions and impacts
+// explosion, or one of the explosion's tinted overlays. Frames are held for
+// the art's tick table (24 fps); squash and stretch are drawn into the frames,
+// only the shockwave ring is scaled here (it is motion, not a pose). Explosions and impacts
 // run on gameplay time (TargetExplosion.Delta), so they freeze with the world
 // when it pauses, and drift down with the scrolling world like the debris
 // they are.
@@ -367,10 +368,8 @@ public class FlipbookFx : MonoBehaviour
 {
     public enum Mode { WeaponImpact, Explosion, Flash, Ring }
 
-    static readonly float[] ExplosionTimes = { .035f, .04f, .05f, .09f, .06f, .065f, .07f, .08f, .085f, .09f };
-    static readonly float[] ImpactTimes = { .035f, .045f, .06f, .065f, .07f, .08f };
-    static readonly float[] FlashTimes = { .04f, .05f };
-    const float RingSeconds = .17f;
+    static readonly int[] FlashTicks = { 1, 1 };
+    const float RingSeconds = 4f / 24f;
 
     SpriteRenderer sr;
     Mode mode;
@@ -414,13 +413,13 @@ public class FlipbookFx : MonoBehaviour
         Apply();
     }
 
-    float[] Times()
+    int[] Ticks()
     {
         switch (mode)
         {
-            case Mode.Explosion: return ExplosionTimes;
-            case Mode.WeaponImpact: return ImpactTimes;
-            default: return FlashTimes;
+            case Mode.Explosion: return WeaponArt.ExplosionTicks;
+            case Mode.WeaponImpact: return WeaponArt.ImpactTicks;
+            default: return FlashTicks;
         }
     }
 
@@ -443,11 +442,9 @@ public class FlipbookFx : MonoBehaviour
             Apply();
             return;
         }
-        var times = Times();
-        float t = clock;
-        int f = 0;
-        while (f < times.Length && t >= times[f] * hold) { t -= times[f] * hold; f++; }
-        if (f >= times.Length) { Stop(); return; }
+        var ticks = Ticks();
+        int f = WeaponArt.FrameAt(ticks, clock / hold, false);
+        if (f >= ticks.Length) { Stop(); return; }
         if (f != Frame) { Frame = f; Apply(); }
     }
 
@@ -457,15 +454,15 @@ public class FlipbookFx : MonoBehaviour
         {
             case Mode.Explosion:
                 sr.sprite = WeaponArt.Explosion(kind, Frame);
-                transform.localScale = Squash(Frame) * size;
+                transform.localScale = Vector3.one * size;
                 break;
             case Mode.WeaponImpact:
                 sr.sprite = WeaponArt.Impact(ship, Frame);
-                transform.localScale = Vector3.one * size * (Frame == 1 ? 1.15f : 1f);
+                transform.localScale = Vector3.one * size;
                 break;
             case Mode.Flash:
                 sr.sprite = WeaponArt.ExplosionFlash(Frame);
-                transform.localScale = Vector3.one * size * (Frame == 0 ? 1.1f : .9f);
+                transform.localScale = Vector3.one * size;
                 break;
             case Mode.Ring:
                 float k = Mathf.Clamp01(clock / (RingSeconds * hold));
@@ -474,20 +471,6 @@ public class FlipbookFx : MonoBehaviour
                 transform.localScale = Vector3.one * size * Mathf.Lerp(.3f, 1f, e);
                 var c = tint; c.a = tint.a * (1f - k); sr.color = c;
                 break;
-        }
-    }
-
-    // Cartoon squash and stretch on the key frames: the flash pops, the key
-    // burst squashes, then springs tall before settling.
-    static Vector3 Squash(int frame)
-    {
-        switch (frame)
-        {
-            case 0: return new Vector3(.8f, .8f, 1f);
-            case 1: return new Vector3(1.12f, 1.12f, 1f);
-            case 3: return new Vector3(1.14f, .9f, 1f);
-            case 4: return new Vector3(.95f, 1.07f, 1f);
-            default: return Vector3.one;
         }
     }
 

@@ -21,7 +21,6 @@ public class UltimateGun : MonoBehaviour
     float mountY, barrelLength;
     float extend; // 0 retracted .. 1 fully extended, eased toward Tick's target
     float flashT = -1f; // seconds since Fire() on unscaled time; < 0 when idle
-    const float MuzzleFps = 18f;
     const float MuzzleWorldSize = .62f;
     float firePop;
     int shipIndex;
@@ -105,10 +104,11 @@ public class UltimateGun : MonoBehaviour
 
         if (flashT >= 0f && muzzleRenderer != null)
         {
-            // pinch, flash, forward smear, speed lines -- unscaled so the
+            // pinch, flash, forward smear, speed lines, held on the art's
+            // tick table -- unscaled so the
             // cinematic slow motion doesn't hold the flash on screen
             flashT += Time.unscaledDeltaTime;
-            int frame = Mathf.FloorToInt(flashT * MuzzleFps);
+            int frame = WeaponArt.FrameAt(WeaponArt.MuzzleTicks, flashT, false);
             if (frame >= WeaponArt.MuzzleFrames)
             {
                 flashT = -1f;
@@ -119,8 +119,7 @@ public class UltimateGun : MonoBehaviour
                 muzzleRenderer.enabled = true;
                 muzzleRenderer.sprite = WeaponArt.Muzzle(shipIndex, frame);
                 float world = MuzzleWorldSize / Mathf.Max(.0001f, Mathf.Abs(transform.lossyScale.x));
-                Vector3 squash = frame == 2 ? new Vector3(.85f, 1.3f, 1f) : frame == 1 ? new Vector3(1.1f, 1.1f, 1f) : Vector3.one;
-                muzzle.localScale = Vector3.Scale(muzzleBaseScale, squash) * world;
+                muzzle.localScale = muzzleBaseScale * world; // the smear is drawn
                 muzzle.rotation = Quaternion.identity;
             }
         }
