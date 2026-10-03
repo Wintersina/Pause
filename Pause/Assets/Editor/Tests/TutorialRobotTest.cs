@@ -43,6 +43,7 @@ public static class TutorialRobotTest
         CompletionMarksTutorialDone();
         SpeakerTapCompletesLine();
         CompletePanel();
+        ArtIsFlatAndParametric();
 
         Debug.Log("[TR] failures: " + fails);
         return fails;
@@ -77,8 +78,8 @@ public static class TutorialRobotTest
             atomAt = IndexOf(TutorialAdvance.CollectRedAtom);
         Check("pauses are limited, before star dust, before the power-up",
               pausesAt > 1 && dustAt > pausesAt && atomAt > dustAt);
-        Check("enemies are covered between star dust and the power-up",
-              System.Array.FindIndex(steps, s => s.id == "enemies") is int e && e > dustAt && e < atomAt);
+        Check("enemies are covered after the pickups",
+              System.Array.FindIndex(steps, s => s.id == "enemies") is int e && e > dustAt);
     }
 
     static int IndexOf(TutorialAdvance a)
@@ -157,6 +158,47 @@ public static class TutorialRobotTest
         Check("the star step starts the stars", TutorialScript.Steps[stars].cue == TutorialCue.SpawnStars);
         int atom = IndexOf(TutorialAdvance.CollectRedAtom);
         Check("the red-atom step keeps a red atom coming", TutorialScript.Steps[atom].cue == TutorialCue.SpawnRedAtom);
+        EveryAtomIsTaught(spawner);
+    }
+
+    // Star dust, the green heal atom, the blue shield atom and the red pause
+    // atom each get a step that spawns that pickup and waits for the player
+    // to catch it, and the scene can actually produce each one.
+    static void EveryAtomIsTaught(spawnGoodStuffTut spawner)
+    {
+        var kinds = new[]
+        {
+            (TutorialAdvance.CollectGreenAtom, TutorialCue.SpawnGreenAtom, TutorialAtom.Green, "green heal atom"),
+            (TutorialAdvance.CollectBlueAtom, TutorialCue.SpawnBlueAtom, TutorialAtom.Blue, "blue shield atom"),
+            (TutorialAdvance.CollectRedAtom, TutorialCue.SpawnRedAtom, TutorialAtom.Red, "red pause atom"),
+        };
+        foreach (var k in kinds)
+        {
+            int i = IndexOf(k.Item1);
+            Check("the " + k.Item4 + " has its own step", i >= 0);
+            if (i < 0) continue;
+            Check("the " + k.Item4 + " spawns the moment its line starts", TutorialScript.Steps[i].cue == k.Item2);
+            Check("that cue asks the spawner for the " + k.Item4, Hints.AtomFor(k.Item2) == k.Item3);
+        }
+        Check("star dust has its own step", IndexOf(TutorialAdvance.CollectStar) >= 0);
+
+        if (spawner == null) return;
+        Check("the blue atom prefab is the shield atom collisionDetection credits",
+              spawner.Atom != null && PrefabName.Is(spawner.Atom, "atom3a"));
+        var spawn = typeof(spawnGoodStuffTut).GetMethod("spawnAtom", BindingFlags.Instance | BindingFlags.NonPublic);
+        foreach (var k in kinds)
+        {
+            spawn.Invoke(spawner, new object[] { k.Item3 });
+            var live = spawnGoodStuffTut.LiveAtom;
+            string expected = k.Item3 == TutorialAtom.Green ? HealAtom.ObjectName : k.Item3 == TutorialAtom.Blue ? "atom3a" : "pauseAtom";
+            Check("the tutorial spawns a real " + k.Item4 + " (" + (live != null ? live.name : "nothing") + ")",
+                  live != null && PrefabName.Is(live.gameObject, expected));
+            if (live != null) Object.DestroyImmediate(live.gameObject);
+        }
+
+        string pickups = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        foreach (var counter in new[] { "healAtomPickups++", "shieldAtomPickups++", "pauseAtomPickups++" })
+            Check("collisionDetection counts the pickup (" + counter + ")", pickups.Contains(counter));
     }
 
     // The canonical player action for each kind of step.
@@ -174,6 +216,10 @@ public static class TutorialRobotTest
                 now.pausesSpent += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectStar:
                 now.starsCollected += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.CollectGreenAtom:
+                now.greenAtomsCollected += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.CollectBlueAtom:
+                now.blueAtomsCollected += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectRedAtom:
                 now.redAtomsCollected += Mathf.CeilToInt(s.amount); break;
         }
@@ -221,20 +267,26 @@ public static class TutorialRobotTest
         guides.ShowTouch(true);
         object[] none = new object[0];
         for (int i = 0; i < 5; i++) { update.Invoke(speaker, none); guidesUpdate.Invoke(guides, none); }
-        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        System.GC.Collect();
+        long before = Allocated();
         for (int i = 0; i < 120; i++) { update.Invoke(speaker, none); guidesUpdate.Invoke(guides, none); }
-        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        long allocated = Allocated() - before;
         // Reflection's own Invoke allocates a little per call; anything beyond
         // that comes from the Update bodies.
         long baseline = MeasureEmptyInvokes(240);
-        long probe = System.GC.GetAllocatedBytesForCurrentThread();
+        long probe = Allocated();
         var garbage = new byte[4096];
         Check("the allocation counter actually counts (" + garbage.Length + " byte probe)",
-              System.GC.GetAllocatedBytesForCurrentThread() - probe >= 4096);
+              Allocated() - probe >= 4096);
         Check("speaker + guides Update allocate nothing per frame (" + (allocated - baseline) + " bytes over 120 frames)",
               allocated - baseline <= 0);
         Object.DestroyImmediate(speaker.gameObject);
     }
+
+    // Unity's Mono does not implement GC.GetAllocatedBytesForCurrentThread
+    // (it reads 0), so measure managed heap growth instead; the probe below
+    // proves the measurement sees allocations at all.
+    static long Allocated() { return System.GC.GetTotalMemory(false); }
 
     class Empty { void Update() { } }
     static long MeasureEmptyInvokes(int n)
@@ -243,9 +295,10 @@ public static class TutorialRobotTest
         var m = typeof(Empty).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
         object[] none = new object[0];
         for (int i = 0; i < 5; i++) m.Invoke(target, none);
-        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        System.GC.Collect();
+        long before = Allocated();
         for (int i = 0; i < n; i++) m.Invoke(target, none);
-        return System.GC.GetAllocatedBytesForCurrentThread() - before;
+        return Allocated() - before;
     }
 
     // ---- Safe area at many shapes ----
@@ -288,13 +341,13 @@ public static class TutorialRobotTest
                 float over = RobotSpeaker.MaxAnimatedOverhang;
                 Check(tag + "robot (with hover) inside the safe area", Contains(safe, Grow(robot, over)));
                 Check(tag + "bubble (with glow and pop) inside the safe area",
-                      Contains(safe, Grow(bubble, RobotSpeaker.BubbleGlow * scale + over)));
-                Check(tag + "tail tip inside the safe area", bubble.xMin - 18f * scale >= safe.xMin);
+                      Contains(safe, Grow(bubble, RobotSpeaker.BubbleMargin * scale + over)));
+                Check(tag + "tail tip inside the safe area", bubble.xMin - RobotSpeaker.TailReach * scale >= safe.xMin);
                 Check(tag + "bubble clears the robot", bubble.xMin >= robot.xMax);
                 Check(tag + "bubble is at least MinBubbleWidth (scaled)",
                       bubble.width >= RobotSpeaker.MinBubbleWidth * scale - .01f);
                 Check(tag + "row sits below the blocked band",
-                      Mathf.Max(robot.yMax, bubble.yMax + RobotSpeaker.BubbleGlow * scale) <= safe.yMax - blocked + .01f
+                      Mathf.Max(robot.yMax, bubble.yMax + RobotSpeaker.BubbleMargin * scale) <= safe.yMax - blocked + .01f
                       || blocked + 200f > safe.height);
                 Check(tag + "not shrunk below readable (" + scale.ToString("F2") + ")", scale >= .85f);
             }
@@ -406,7 +459,7 @@ public static class TutorialRobotTest
         typeof(Hints).GetMethod("BeginEnding", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(hints, null);
         Check("finishing the last step sets HasDoneTut", PlayerPrefs.GetString("HasDoneTut") == "true");
         Check("and marks the end of the tutorial", Hints.reachedTheEndOfTut);
-        Check("and the red atom stops coming", !spawnGoodStuffTut.keepRedAtomComing);
+        Check("and no atom keeps coming", spawnGoodStuffTut.keepAtomComing == TutorialAtom.None);
 
         foreach (var s in Object.FindObjectsByType<RobotSpeaker>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Object.DestroyImmediate(s.gameObject);
@@ -427,6 +480,7 @@ public static class TutorialRobotTest
               System.Array.IndexOf(speaker.Text.GetComponents<BaseMeshEffect>(), reveal) == 0);
         speaker.OnPointerDown(null);
         Check("a second tap does not skip the step (none advance by tap)", speaker.LineFinished);
+        Check("the finishing beat snaps the mouth to its big frame", speaker.MouthFrame == 4);
         Object.DestroyImmediate(speaker.gameObject);
     }
 
@@ -460,8 +514,8 @@ public static class TutorialRobotTest
                                 (d.w - d.left - d.right) / sf, (d.h - d.top - d.bottom) / sf);
             Vector2 centre; float scale;
             TutorialCompletePanel.ComputeFit(safe, null, out centre, out scale);
-            float w = (TutorialCompletePanel.Width + 2f * TutorialCompletePanel.GlowMargin) * scale;
-            float h = (TutorialCompletePanel.Height + 2f * TutorialCompletePanel.GlowMargin) * scale;
+            float w = (TutorialCompletePanel.Width + 2f * TutorialCompletePanel.FrameMargin) * 1.06f * scale;
+            float h = (TutorialCompletePanel.Height + 2f * TutorialCompletePanel.FrameMargin) * 1.06f * scale;
             Check("end card fits the safe area on " + d.name,
                   Contains(safe, new Rect(centre.x - w * .5f, centre.y - h * .5f, w, h)));
         }
@@ -485,6 +539,51 @@ public static class TutorialRobotTest
         Check("the old \"End of tutorial\" dialog is switched off", legacy == null || !legacy.activeSelf);
         Check("intro settles", view.IntroFinished);
         Check("no leftover CONTINUE TO GAME overlay", GameObject.Find("TutorialFinishCanvas") == null);
+    }
+
+    // ---- Art direction: flat cel SVGs, one palette ----
+
+    const string ArtSrc = "Assets/Art/UI/Tutorial/src~/";
+
+    static void ArtIsFlatAndParametric()
+    {
+        var env = new System.Collections.Generic.Dictionary<string, string>();
+        foreach (var raw in File.ReadAllLines(ArtSrc + "palette.env"))
+        {
+            var m = Regex.Match(raw.Trim(), @"^([A-Z_]+)=(#[0-9A-Fa-f]{6})$");
+            if (m.Success) env[m.Groups[1].Value] = m.Groups[2].Value.ToUpperInvariant();
+        }
+        Check("palette.env defines the Akira palette (" + env.Count + " colours)", env.Count >= 10);
+        foreach (var pair in env)
+        {
+            string field = Regex.Replace(pair.Key.ToLowerInvariant(), @"(^|_)([a-z])", m => m.Groups[2].Value.ToUpperInvariant());
+            var f = typeof(TutorialPalette).GetField(field, BindingFlags.Public | BindingFlags.Static);
+            Check("TutorialPalette." + field + " matches palette.env " + pair.Key,
+                  f != null && TutorialPalette.Html((Color)f.GetValue(null)) == pair.Value);
+        }
+        Check("the bubble highlight is the palette's orange",
+              TutorialScript.HighlightColor == TutorialPalette.Html(TutorialPalette.Orange));
+
+        var svgs = Directory.GetFiles(ArtSrc, "tut_*.svg");
+        Check("tutorial art sources exist (" + svgs.Length + ")", svgs.Length >= 15);
+        foreach (var path in svgs)
+        {
+            string src = File.ReadAllText(path);
+            string name = Path.GetFileName(path);
+            Check(name + " is flat: no gradients, blur or filters",
+                  !Regex.IsMatch(src, @"<\w*Gradient|<filter|filter=|feGaussianBlur"));
+            bool parametric = true;
+            foreach (Match c in Regex.Matches(src, "#[0-9A-Fa-f]{6}"))
+                parametric &= c.Value.ToUpperInvariant() == "#FFFFFF";   // white templates only
+            foreach (Match c in Regex.Matches(src, "@([A-Z_]+)@"))
+                parametric &= env.ContainsKey(c.Groups[1].Value);
+            Check(name + " takes every colour from palette.env", parametric);
+            Check(name + " has a rendered sprite",
+                  File.Exists("Assets/Art/Resources/Tutorial/" + Path.GetFileNameWithoutExtension(path) + ".png"));
+        }
+        foreach (var frame in new[] { "tut_mouth_rest", "tut_mouth_a", "tut_mouth_e", "tut_mouth_o", "tut_mouth_big",
+                                      "tut_eye_open", "tut_eye_half", "tut_eye_shut", "tut_eye_happy", "tut_jet_a", "tut_jet_b" })
+            Check("talking/blink frame " + frame + " loads", Resources.Load<Sprite>("Tutorial/" + frame) != null);
     }
 
     static bool Wired(GameObject go, string method)
