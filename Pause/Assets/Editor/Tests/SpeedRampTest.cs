@@ -127,6 +127,9 @@ public static class SpeedRampTest
             names.Sort();
             Debug.Log("[SR] " + scene + " moveBackGround instances: " + string.Join(", ", names));
             Check(scene + " has the two walls the fix is about (" + walls.Length + ")", walls.Length == 2);
+            if (scene == "tutorialS5")
+                Check("tutorialS5 walls ramp at 0.0023/s (the pre-fix felt pace)",
+                      System.Array.TrueForAll(walls, w => Mathf.Approximately(w.speedRampPerSecond, 0.0023f)));
         }
     }
 
@@ -167,10 +170,16 @@ public static class SpeedRampTest
         }
     }
 
+    // Seconds to HUD speed 15 before the fix, when both walls ramped
+    // (world rate + the scene's 0.002/s). The retuned rates keep this pace.
+    static readonly float[] FeltSecondsTo15 = { 46.0f, 43.9f, 42.0f, 39.7f };
+    const float LevelSeconds = 180f; // WorldManager.secondsPerWorld
+
     static void NeverExceedsWorldMax()
     {
-        foreach (var theme in WorldManager.Worlds)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
+            var theme = WorldManager.Worlds[w];
             Fresh();
             dt = 0.05f; // coarser steps keep the 450s run quick; the cap doesn't care
             var walls = MakeWalls(2, theme);
@@ -184,7 +193,11 @@ public static class SpeedRampTest
             });
             Debug.Log("[SR] " + theme.displayName + ": rate " + theme.speedRampPerSecond + "/s, max " + theme.maxSpeed +
                       ", reaches max at " + reachedAt.ToString("F1") + "s, HUD 15 at " + at15.ToString("F1") +
-                      "s, speed at 180s " + (theme.speedRampPerSecond * 180f).ToString("F3"));
+                      "s, speed at 180s " + Mathf.Min(theme.speedRampPerSecond * 180f, theme.maxSpeed).ToString("F3"));
+            Check(theme.displayName + ": HUD 15 within 2s of the pre-fix " + FeltSecondsTo15[w] + "s (" + at15.ToString("F1") + "s)",
+                  at15 >= 0f && Mathf.Abs(at15 - FeltSecondsTo15[w]) <= 2f);
+            Check(theme.displayName + ": reaches maxSpeed inside the " + LevelSeconds + "s level (" + reachedAt.ToString("F1") + "s)",
+                  reachedAt >= 0f && reachedAt <= LevelSeconds);
             Check(theme.displayName + ": speed never exceeds maxSpeed " + theme.maxSpeed + " (peak " + peak.ToString("F4") + ")",
                   peak <= theme.maxSpeed + 1e-6f);
             Check(theme.displayName + ": speed settles exactly on maxSpeed", Mathf.Approximately(moveBackGround.speed, theme.maxSpeed));

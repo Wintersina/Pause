@@ -36,30 +36,38 @@ public class WorldManager : MonoBehaviour
     // instead -- enmiesOnBoard's phases are keyed on elapsed flight time, not
     // speed, so density keeps escalating for the rest of the level even after
     // the (now lower, still per-world-distinct) speed cap is reached.
+    //
+    // speedRampPerSecond is the real per-second ramp: SpeedRamp ticks it once
+    // per frame. The ramp used to run once per wall (both walls carry
+    // moveBackGround), and the second wall added the scene's 0.002/s on top,
+    // so the pace players knew was rate + 0.002. These values bake that pace
+    // in (0.00115/0.00130/0.00145/0.00165 + 0.002): HUD speed 15 at about
+    // 46/44/42/40s, and each world reaches its maxSpeed in 146-170s, inside
+    // the 180s level.
     public static readonly WorldTheme[] Worlds =
     {
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
             portalColor = new Color(0.55f, 0.85f, 1f),
-            speedRampPerSecond = 0.00115f, maxSpeed = 0.46f, enemyRampScale = 1.00f,
+            speedRampPerSecond = 0.00315f, maxSpeed = 0.46f, enemyRampScale = 1.00f,
         },
         new WorldTheme {
             displayName = "Frost", resourceFolder = "Frost",
             musicResource = "WorldMusic/Frost",
             portalColor = new Color(0.62f, 0.92f, 1f),
-            speedRampPerSecond = 0.00130f, maxSpeed = 0.51f, enemyRampScale = 1.10f,
+            speedRampPerSecond = 0.00330f, maxSpeed = 0.51f, enemyRampScale = 1.10f,
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
             musicResource = "WorldMusic/Verdant",
             portalColor = new Color(0.60f, 1f, 0.62f),
-            speedRampPerSecond = 0.00145f, maxSpeed = 0.56f, enemyRampScale = 1.20f,
+            speedRampPerSecond = 0.00345f, maxSpeed = 0.56f, enemyRampScale = 1.20f,
         },
         new WorldTheme {
             displayName = "Ember", resourceFolder = "Ember",
             musicResource = "WorldMusic/Ember",
             portalColor = new Color(1f, 0.62f, 0.35f),
-            speedRampPerSecond = 0.00165f, maxSpeed = 0.62f, enemyRampScale = 1.35f,
+            speedRampPerSecond = 0.00365f, maxSpeed = 0.62f, enemyRampScale = 1.35f,
         },
     };
 
