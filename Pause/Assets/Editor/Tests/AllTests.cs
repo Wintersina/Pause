@@ -19,6 +19,7 @@ public static class AllTests
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
+        ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),

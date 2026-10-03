@@ -48,17 +48,52 @@ public class ShipPowerController : MonoBehaviour
     public float dilationSeconds = 4f;
     public int overchargePauses = 2;
 
+    [Header("Cinematic clear")]
+    [Tooltip("Real seconds the world is held slowed after the last homing shot " +
+             "launches -- the normal end of the ultimate's slow motion.")]
+    public float cinematicHoldSeconds = 2.5f;
+
+    [Tooltip("Real seconds to ease from the cinematic slow motion back up to " +
+             "full speed when it ends, instead of snapping.")]
+    public float cinematicEaseOutSeconds = 0.2f;
+
     public static ShipPowerController Instance { get; private set; }
+    // True from the moment the ultimate fires until the world is fully back
+    // to normal speed -- including the short ease-out at the end.
     public static bool CinematicClearActive { get; private set; }
+    // True only during that closing ease-out.
+    public static bool CinematicExiting => CinematicClearActive && exiting;
+    // Set when the slow motion ended early because every on-screen target
+    // was gone, rather than by the hold timer running out.
+    public static bool LastCinematicEndedEarly { get; private set; }
+
     // Deliberately dramatic: threats crawl while the homing shots remain
     // readable, giving every target impact its own moment on screen.
-    public static float CinematicTimeScale => CinematicClearActive ? 0.06f : 1f;
+    public const float CinematicSlowScale = 0.06f;
+    public static float CinematicTimeScale
+    {
+        get
+        {
+            if (!CinematicClearActive) return 1f;
+            if (!exiting) return CinematicSlowScale;
+            float t = Mathf.Clamp01((Time.unscaledTime - exitStartedAt) / Mathf.Max(0.0001f, exitSeconds));
+            return Mathf.Lerp(CinematicSlowScale, 1f, t * t * (3f - 2f * t));
+        }
+    }
+
+    static bool exiting;
+    static float exitStartedAt; // unscaled
+    static float exitSeconds;
 
     ShipPower power;
     int shipIndex;
     float timer;
     float cooldown;
     UltimateGun gun;
+    // Cinematic clear bookkeeping (see BeginCinematic / TickCinematic).
+    int onScreenAtStart;
+    bool launchesDone;
+    float holdUntil;
     public float Charge01 => cooldown <= 0f ? 1f : Mathf.Clamp01(1f - timer / cooldown);
 
     void Awake()
@@ -69,7 +104,7 @@ public class ShipPowerController : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
-        CinematicClearActive = false;
+        FinishCinematic();
     }
 
     void Start()
@@ -84,6 +119,8 @@ public class ShipPowerController : MonoBehaviour
 
     void Update()
     {
+        TickCinematic();
+
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
 
@@ -113,43 +150,135 @@ public class ShipPowerController : MonoBehaviour
     {
         if (gun != null) gun.Fire();
         UltimateShotSound.Play(shipIndex);
-        StartCoroutine(CinematicClear());
+        if (!BeginCinematic()) return;
+        StartCoroutine(CinematicClear(SnapshotTargets()));
+    }
+
+    // ---- cinematic clear -------------------------------------------------
+    //
+    // The ultimate slows the world to CinematicSlowScale (moveBackGround
+    // applies CinematicTimeScale while CinematicClearActive), sends a homing
+    // shot at every hazard, and holds the slow motion until cinematicHoldSeconds
+    // after the last launch. It also ends the moment every hazard that was on
+    // screen is gone -- shot down, scrolled off, or destroyed some other way --
+    // so the player isn't left waiting in slow motion over an empty screen.
+    // Both endings go through BeginExit(), which eases back to full speed.
+
+    bool BeginCinematic()
+    {
+        if (CinematicClearActive) return false;
+        CinematicClearActive = true;
+        LastCinematicEndedEarly = false;
+        exiting = false;
+        launchesDone = false;
+        holdUntil = float.MaxValue;
+        onScreenAtStart = 0; // counted by SnapshotTargets
+        return true;
+    }
+
+    List<GameObject> SnapshotTargets()
+    {
+        var targets = new List<GameObject>();
+        foreach (var target in Targets())
+        {
+            ClearTarget.Ensure(target);
+            targets.Add(target);
+        }
+        targets.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
+        // Counted once every snapshotted hazard is registered. Nothing on
+        // screen when it fired means there is nothing to "clear": keep the
+        // ordinary hold so the shot still gets its moment, rather than ending
+        // the slow motion on the very first frame.
+        onScreenAtStart = ClearTarget.CountOnScreen(Camera.main);
+        return targets;
+    }
+
+    // Per frame, on unscaled time. Ends the state on death, when the hold
+    // timer runs out, or when the screen has been cleared.
+    void TickCinematic()
+    {
+        if (!CinematicClearActive) return;
+
+        if (buttonClicks.playerDied) { FinishCinematic(); return; }
+
+        if (CinematicExiting)
+        {
+            // Lifting the finger mid-ease means the world is about to freeze
+            // anyway; finishing now hands timeScale straight back to
+            // moveBackGround rather than ramping up only to snap to 0.
+            bool worldRuns = TouchInput.IsPressed || score.pauseCounter <= 0;
+            if (!worldRuns || Time.unscaledTime - exitStartedAt >= exitSeconds) FinishCinematic();
+            return;
+        }
+
+        if (launchesDone && Time.unscaledTime >= holdUntil) { BeginExit(early: false); return; }
+        CheckCleared();
+    }
+
+    // Called every frame and straight from each hit, so the slow motion
+    // starts lifting on the same frame the last target is destroyed.
+    void CheckCleared()
+    {
+        if (!CinematicClearActive || CinematicExiting) return;
+        if (onScreenAtStart <= 0) return;
+        if (ClearTarget.CountOnScreen(Camera.main) > 0) return;
+        PowerFx.Ring(transform.position, 2.2f, ShipExhaust.TintFor(shipIndex), .3f);
+        BeginExit(early: true);
+    }
+
+    // The one way the slow motion ends while the player is alive.
+    void BeginExit(bool early)
+    {
+        if (!CinematicClearActive || CinematicExiting) return;
+        LastCinematicEndedEarly = early;
+        exitSeconds = Mathf.Max(0f, cinematicEaseOutSeconds);
+        exitStartedAt = Time.unscaledTime;
+        exiting = true;
+        if (exitSeconds <= 0f) FinishCinematic();
+    }
+
+    static void FinishCinematic()
+    {
+        CinematicClearActive = false;
+        exiting = false;
     }
 
     // The ultimate is intentionally input-independent once it has begun:
     // lifting a finger cannot cancel shots already hunting the screen's
     // hazards. Unscaled timing keeps the sequence smooth while the world is
-    // slowed to make every impact readable.
-    IEnumerator CinematicClear()
+    // slowed to make every impact readable. Shots keep launching even if the
+    // slow motion has already lifted (the screen cleared, but hazards above
+    // it were snapshotted too); a shot whose target is gone fizzles in
+    // PowerFx.HomeTo rather than retargeting.
+    IEnumerator CinematicClear(List<GameObject> targets)
     {
-        if (CinematicClearActive) yield break;
-        CinematicClearActive = true;
-        var targets = new List<GameObject>();
-        foreach (var target in Targets()) targets.Add(target);
-        targets.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
-
         Color tint = ShipExhaust.TintFor(shipIndex);
         for (int i = 0; i < targets.Count; i++)
         {
             var target = targets[i];
             if (target == null) continue;
             Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
-            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () =>
-            {
-                if (target == null) return;
-                PowerFx.Burst(target.transform.position, tint, 6);
-                collisionDetection.PlayExplosion();
-                collisionDetection.AwardDestroyedTarget(target);
-                Destroy(target);
-            });
+            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () => HitTarget(target, tint));
             yield return new WaitForSecondsRealtime(.11f);
         }
 
         // Let the final dart land before returning the normal simulation rate.
         // HomeTo has a 2.4s unscaled safety limit; keep the world slowed until
-        // even the last, farthest arc has had time to connect.
-        yield return new WaitForSecondsRealtime(2.5f);
-        CinematicClearActive = false;
+        // even the last, farthest arc has had time to connect -- unless the
+        // screen clears first (TickCinematic).
+        launchesDone = true;
+        holdUntil = Time.unscaledTime + cinematicHoldSeconds;
+    }
+
+    void HitTarget(GameObject target, Color tint)
+    {
+        if (target == null) return;
+        PowerFx.Burst(target.transform.position, tint, 6);
+        collisionDetection.PlayExplosion();
+        collisionDetection.AwardDestroyedTarget(target);
+        ClearTarget.Release(target);
+        Destroy(target);
+        CheckCleared();
     }
 
     // Clears the lanes either side of the ship, leaving the centre alone.
