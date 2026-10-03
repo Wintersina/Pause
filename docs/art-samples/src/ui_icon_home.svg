@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Quick action: Home. Chamfered plate, off-white glyph, ink, hard red cel shadow. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<polygon points="30,8 98,8 120,30 120,98 98,120 30,120 8,98 8,30" fill="#0E1424" /><polygon points="32,14 96,14 114,32 114,96 96,114 32,114 14,96 14,32" fill="#1A1F45" /><polygon points="14,32 32,14 60,14 14,60" fill="#22285A" /><polygon points="30,8 98,8 120,30 120,98 98,120 30,120 8,98 8,30" fill="none" stroke="#140C14" stroke-width="5" stroke-linejoin="round" /><polygon points="32,14 96,14 114,32 114,96 96,114 32,114 14,96 14,32" fill="none" stroke="#D8232C" stroke-width="2" stroke-linejoin="round" /><polygon points="69,31 105,63 95,63 95,103 77,103 77,81 61,81 61,103 43,103 43,63 33,63" fill="#D8232C" /><polygon points="69,31 105,63 95,63 95,103 77,103 77,81 61,81 61,103 43,103 43,63 33,63" fill="none" stroke="#D8232C" stroke-width="10" stroke-linejoin="round" /><polygon points="64,26 100,58 90,58 90,98 72,98 72,76 56,76 56,98 38,98 38,58 28,58" fill="#140C14" /><polygon points="64,26 100,58 90,58 90,98 72,98 72,76 56,76 56,98 38,98 38,58 28,58" fill="none" stroke="#140C14" stroke-width="10" stroke-linejoin="round" /><polygon points="64,26 100,58 90,58 90,98 72,98 72,76 56,76 56,98 38,98 38,58 28,58" fill="#F4EAD4" /><polygon points="64,31 92,56 86,56 64,37" fill="#C9BFA8" />
+</svg>
