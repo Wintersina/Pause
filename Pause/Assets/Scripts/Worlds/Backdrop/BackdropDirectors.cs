@@ -7,19 +7,19 @@ public class SpaceDirector : BackdropDirector
 {
     BackdropPool wisps, galaxies, stars, stations, planets, rings, moons, rocky, comets, shooters, dust;
     Sprite[] giant, rockyFrames, ringBack, ringFront, comet, station;
-    Timer planetTimer = new Timer(16f, 28f, 3f);
+    Timer planetTimer = new Timer(16f, 28f, 14f);
     Timer rockyTimer = new Timer(11f, 20f, 9f);
     Timer galaxyTimer = new Timer(20f, 34f, 1f);
-    Timer stationTimer = new Timer(26f, 40f, 15f);
-    Timer cometTimer = new Timer(14f, 26f, 7f);
+    Timer stationTimer = new Timer(26f, 40f, 7f);
+    Timer cometTimer = new Timer(14f, 26f, 3.5f);
     Timer shooterTimer = new Timer(2.5f, 6f, 1.5f);
 
     static readonly Color[] PlanetTints =
     {
-        new Color(0.78f, 0.62f, 0.66f), // amber-rose
-        new Color(0.55f, 0.72f, 0.80f), // teal
-        new Color(0.70f, 0.60f, 0.82f), // indigo-violet
-        new Color(0.82f, 0.66f, 0.52f), // sodium amber
+        new Color(0.62f, 0.48f, 0.52f), // dusky rose
+        new Color(0.42f, 0.56f, 0.64f), // teal
+        new Color(0.52f, 0.47f, 0.66f), // indigo-violet
+        new Color(0.66f, 0.52f, 0.40f), // sodium amber
     };
 
     public SpaceDirector() : base(1988) { }
@@ -51,6 +51,10 @@ public class SpaceDirector : BackdropDirector
         Scatter(dust, fx.Get("streak"), 0.35f, 0.6f, new[] { new Color(0.6f, 0.85f, 1f, 0.16f) },
                 set.Spec.Rate("dust"));
         foreach (var d in dust.items) d.body.localRotation = Quaternion.Euler(0, 0, 90f);
+
+        // Open on a planet already sweeping past, so a run never starts empty.
+        SpawnPlanet(HalfH * 0.3f);
+        SpawnGalaxy();
 
         // Two nebula wisps are always present and simply recycle.
         for (int i = 0; i < 2; i++)
@@ -105,7 +109,7 @@ public class SpaceDirector : BackdropDirector
 
         if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy();
         if (stationTimer.Tick(dt, rng)) SpawnStation();
-        if (planetTimer.Tick(dt, rng) && planets.ActiveCount == 0) SpawnPlanet();
+        if (planetTimer.Tick(dt, rng) && planets.ActiveCount == 0) SpawnPlanet(float.NaN);
         if (rockyTimer.Tick(dt, rng)) SpawnRocky();
         if (cometTimer.Tick(dt, rng)) SpawnComet();
         if (shooterTimer.Tick(dt, rng)) SpawnShooter();
@@ -217,7 +221,7 @@ public class SpaceDirector : BackdropDirector
         s.color = new Color(0.78f, 0.78f, 0.86f, 0.9f);
     }
 
-    void SpawnPlanet()
+    void SpawnPlanet(float y)
     {
         if (giant.Length == 0) return;
         var p = planets.Spawn();
@@ -228,7 +232,7 @@ public class SpaceDirector : BackdropDirector
         SetSprite(p, giant[0], size);
         if (Chance(0.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);   // spin the other way
         p.x = (Chance(0.5) ? -1f : 1f) * Rand(0.6f, 1.5f);
-        p.y = SpawnY(size * 1.5f);
+        p.y = float.IsNaN(y) ? SpawnY(size * 1.5f) : y;
         p.rate = set.Spec.Rate("planets") * (size / 3.4f);
         p.vx = -Mathf.Sign(p.x) * Rand(0.02f, 0.07f);
         p.color = Pick(PlanetTints);
@@ -398,8 +402,9 @@ public class FrostDirector : BackdropDirector
         SetSprite(p, fx.Get(Pick(names)), Rand(2.3f, 3.3f));
         side = 1 - side;
         float s = side == 0 ? -1f : 1f;
-        p.x = s * (EdgeX - Rand(0.2f, 0.7f));
-        p.body.localScale = new Vector3(Chance(0.5) ? -1f : 1f, 1f, 1f);
+        // The art's skirt slopes off its left edge: mirror it on the right.
+        p.x = s * (EdgeX - p.size * Rand(0.3f, 0.42f));
+        p.body.localScale = new Vector3(s, 1f, 1f);
         p.y = float.IsNaN(y) ? SpawnY(p.size) : y;
         p.rate = set.Spec.Rate("peaks");
         p.color = Color.white;
@@ -451,11 +456,11 @@ public class FrostDirector : BackdropDirector
 
 public class VerdantDirector : BackdropDirector
 {
-    BackdropPool waterfalls, ruins, mushrooms, fireflies, spores;
+    BackdropPool waterfalls, ruins, obelisks, fireflies, spores;
     Sprite[] fall, ruin;
     Timer fallTimer = new Timer(7f, 12f, 1.5f);
     Timer ruinTimer = new Timer(11f, 18f, 6f);
-    Timer shroomTimer = new Timer(6f, 10f, 3f);
+    Timer obeliskTimer = new Timer(6f, 10f, 3f);
 
     public VerdantDirector() : base(1990) { }
 
@@ -465,7 +470,7 @@ public class VerdantDirector : BackdropDirector
         ruin = anim.Frames("ruin");
         waterfalls = Pool("waterfalls", 2);
         ruins = Pool("ruins", 1);
-        mushrooms = Pool("ruins", 2, false, 3);
+        obelisks = Pool("ruins", 2, false, 3);
         fireflies = Pool("fireflies", 16);
         spores = Pool("spores", 12);
         Scatter(fireflies, fx.Get("dot"), 0.08f, 0.14f, new[] { new Color(0.75f, 1f, 0.45f, 0.8f),
@@ -479,7 +484,7 @@ public class VerdantDirector : BackdropDirector
     {
         if (fallTimer.Tick(dt, rng)) SpawnFall(float.NaN);
         if (ruinTimer.Tick(dt, rng)) SpawnRuin();
-        if (shroomTimer.Tick(dt, rng)) SpawnShroom();
+        if (obeliskTimer.Tick(dt, rng)) SpawnObelisk();
 
         foreach (var w in waterfalls.items)
         {
@@ -493,7 +498,7 @@ public class VerdantDirector : BackdropDirector
             r.Animate();
             Paint(r, 1f);
         }
-        foreach (var m in mushrooms.items)
+        foreach (var m in obelisks.items)
         {
             if (!m.active || !Drift(m, dt, v)) continue;
             // Snappy pulse: a quick swell every couple of seconds.
@@ -527,7 +532,7 @@ public class VerdantDirector : BackdropDirector
         w.x = (Chance(0.5) ? -1f : 1f) * Rand(1.25f, 1.7f);
         w.y = float.IsNaN(y) ? SpawnY(w.size * 2f) : y;
         w.rate = set.Spec.Rate("waterfalls");
-        w.color = new Color(0.8f, 0.9f, 0.9f, 1f);
+        w.color = new Color(0.62f, 0.72f, 0.74f, 1f);
     }
 
     void SpawnRuin()
@@ -545,11 +550,11 @@ public class VerdantDirector : BackdropDirector
         r.color = new Color(0.85f, 0.9f, 0.88f, 1f);
     }
 
-    void SpawnShroom()
+    void SpawnObelisk()
     {
-        var m = mushrooms.Spawn();
+        var m = obelisks.Spawn();
         if (m == null) return;
-        SetSprite(m, fx.Get(Chance(0.5) ? "mushroom0" : "mushroom1"), Rand(0.8f, 1.2f));
+        SetSprite(m, fx.Get(Chance(0.5) ? "obelisk0" : "obelisk1"), Rand(0.7f, 1.0f));
         m.x = (Chance(0.5) ? -1f : 1f) * Rand(1.1f, 1.9f);
         m.y = SpawnY(m.size);
         m.phase = Rand(0f, 1f);
@@ -570,7 +575,7 @@ public class EmberDirector : BackdropDirector
     protected override void Build()
     {
         eruption = anim.Frames("eruption");
-        bubble = anim.Frames("bubble");
+        bubble = anim.Frames("burst");
         bubbles = Pool("bubbles", 3);
         volcanoes = Pool("volcanoes", 2);
         plumes = Pool("volcanoes", 2, false, 2);
@@ -599,8 +604,12 @@ public class EmberDirector : BackdropDirector
             float burst = Mathf.Repeat(plume.age * 0.25f + plume.phase, 1f);
             float k = burst < 0.3f ? 1f + 0.5f * Mathf.Sin(burst / 0.3f * Mathf.PI) : 1f;
             plume.body.localScale = new Vector3(k, k, 1f);
-            plume.x = vo.x;
-            plume.y = vo.y + vo.size * 0.37f + plume.size * 0.62f * k;
+            // Crater: (0.55, 0.14) of the 300x260 volcano art, mirrored with it.
+            float craterX = vo.x + vo.phase * vo.size * 0.05f;
+            float craterY = vo.y + vo.size * 0.312f;
+            float plumeH = plume.size * 256f / 192f;
+            plume.x = craterX;
+            plume.y = craterY + plumeH * 0.5f * k - 0.03f;
             Place(plume);
             plume.Animate();
             Paint(plume, 1f);
@@ -630,7 +639,10 @@ public class EmberDirector : BackdropDirector
         var vo = volcanoes.Spawn();
         if (vo == null) return;
         SetSprite(vo, fx.Get("volcano"), Rand(2.4f, 3.2f));
-        vo.x = (Chance(0.5) ? -1f : 1f) * (EdgeX - Rand(0.3f, 0.8f));
+        float s = Chance(0.5) ? -1f : 1f;
+        vo.x = s * (EdgeX - vo.size * Rand(0.3f, 0.42f));
+        vo.body.localScale = new Vector3(s, 1f, 1f);     // skirt slopes off the near screen edge
+        vo.phase = s;
         vo.y = float.IsNaN(y) ? SpawnY(vo.size) : y;
         vo.rate = set.Spec.Rate("volcanoes");
         vo.color = Color.white;
@@ -641,7 +653,7 @@ public class EmberDirector : BackdropDirector
         p.frames = eruption;
         p.fps = 12f;
         p.phase = Rand(0f, 1f);
-        SetSprite(p, eruption[0], vo.size * 0.6f);
+        SetSprite(p, eruption[0], vo.size * 0.72f);
         p.color = new Color(0.9f, 0.8f, 0.75f, 0.9f);
         vo.children[0] = p;
     }

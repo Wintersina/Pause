@@ -24,7 +24,7 @@ using UnityEngine.SceneManagement;
 //   else. Nothing here uses unscaled time for animation.
 public class WorldBackdrop : MonoBehaviour
 {
-    public const float BaseSpeed = 0.15f;       // added to moveBackGround.speed
+    public const float BaseSpeed = 0.2f;        // added to moveBackGround.speed
     public const float UnitsPerSpeed = 30f;     // matches the hazards' speed * 30
     public const float CrossfadeSeconds = 1.1f;
 

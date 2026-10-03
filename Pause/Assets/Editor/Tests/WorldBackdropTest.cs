@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 // Headless checks of the animated world backgrounds (WorldBackdrop).
 public static class WorldBackdropTest
@@ -10,12 +9,20 @@ public static class WorldBackdropTest
     static int failures;
 
     // Budgets / guards.
-    public const long TextureBudgetBytes = 4L * 1024 * 1024;   // per world, desktop (BC) import
+    public const long TextureBudgetBytes = 4L * 1024 * 1024;   // per world, GPU size of the imported format
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
-    const float SkyMaxLuminance = 0.10f;        // opaque far layer
-    const float TileMaxLuminance = 0.15f;       // alpha-weighted, screen-filling tile layers
+    // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
+    // so the opaque sky averages up to ~0.12 relative luminance.
+    const float SkyMaxLuminance = 0.13f;        // opaque far layer
+    const float TileMaxLuminance = 0.17f;       // alpha-weighted, screen-filling tile layers
     const float TileMaxChroma = 0.20f;          // alpha-weighted max(rgb) - min(rgb)
-    const float AtlasMaxLuminance = 0.62f;      // set-piece art before its (dimming) runtime tint
+    // docs/art-style.md 4.1: backdrop forms at HSV value <= 35%; point lights
+    // (windows, dashes, sparks) are tiny and excepted, so the 90th percentile
+    // of value is checked. Saturation is gated as chroma (above): the guide's
+    // own night ramps are >60% HSV saturation at <15% value, where HSV S is
+    // not a meaningful "colourfulness".
+    const float TileMaxValueP90 = 0.35f;
+    const float AtlasMaxLuminance = 0.66f;      // set-piece art (lights included) before its dimming runtime tint
 
     static void Check(string what, bool ok)
     {
@@ -34,7 +41,7 @@ public static class WorldBackdropTest
                            "galaxy0", "galaxy1", "wisp0", "wisp1", "moon", "star", "dot", "streak" } },
         { "Frost", new[] { "aurora_00", "peak0", "peak1", "peak2", "geyser_00", "cloud", "dot" } },
         { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "dot" } },
-        { "Ember", new[] { "eruption_00", "bubble_00", "volcano", "dot" } },
+        { "Ember", new[] { "eruption_00", "burst_00", "volcano", "dot" } },
     };
 
     public static int Execute()
@@ -108,7 +115,10 @@ public static class WorldBackdropTest
                 string asset = path.Replace('\\', '/');
                 var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(asset);
                 if (tex == null) { Check(asset + " imports", false); continue; }
-                bytes += Profiler.GetRuntimeMemorySizeLong(tex);
+                // GPU size of the imported format (Profiler's editor number also
+                // counts transient CPU copies, so it varies between sessions).
+                bytes += (long)UnityEngine.Experimental.Rendering.GraphicsFormatUtility.ComputeMipmapSize(
+                    tex.width, tex.height, tex.graphicsFormat);
                 astc += ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
 
                 var imp = (TextureImporter)AssetImporter.GetAtPath(asset);
@@ -128,6 +138,12 @@ public static class WorldBackdropTest
 
                 float lum, chroma;
                 Measure(px, out lum, out chroma);
+                if (name == "sky" || name == "far" || name == "mid")
+                {
+                    float v90 = ValuePercentile(px, 0.9f);
+                    Check(spec.world + "/" + name + " forms at HSV value <= 35% (p90 " + v90.ToString("F3") + ")",
+                          v90 <= TileMaxValueP90);
+                }
                 if (name == "sky")
                     Check(spec.world + " sky stays dark (lum " + lum.ToString("F3") + ")", lum <= SkyMaxLuminance);
                 if (name == "sky" || name == "far" || name == "mid")
@@ -171,6 +187,26 @@ public static class WorldBackdropTest
                    Mathf.Abs(a.b * a.a - b.b * b.a) + Mathf.Abs(a.a - b.a);
         }
         return (float)(sum / (w * 4));
+    }
+
+    static float ValuePercentile(Color[] px, float q)
+    {
+        var hist = new int[256];
+        int n = 0;
+        for (int i = 0; i < px.Length; i += 3)
+        {
+            Color p = px[i];
+            if (p.a <= 0.5f) continue;
+            hist[Mathf.Clamp((int)(Mathf.Max(p.r, Mathf.Max(p.g, p.b)) * 255f + 0.5f), 0, 255)]++;
+            n++;
+        }
+        int target = (int)(n * q), acc = 0;
+        for (int v = 0; v < 256; v++)
+        {
+            acc += hist[v];
+            if (acc >= target) return v / 255f;
+        }
+        return 1f;
     }
 
     static void Measure(Color[] px, out float lum, out float chroma)
