@@ -47,6 +47,7 @@ public static class TitleScreenTrafficTest
         NoDuplicateHullsInTheAir();
         BoostsUseTheShipsOwnBoostFlame();
         ZipsFlyTheDockLaunchCurve();
+        SpinnersFlyTheirSpinDrift();
         CrashesOnlyWithinALayerAndRateLimited();
         LongRunStaysBoundedAndLively();
         SafeAreaAndAspectRatios();
@@ -349,6 +350,132 @@ public static class TitleScreenTrafficTest
         Done(t);
     }
 
+    // Ninja and UFO: gameplay's ShipSpinDrift (ring + wake), cruise and boost
+    // drawings, wake trailing the travel direction. Everyone else: plumes.
+    static void SpinnersFlyTheirSpinDrift()
+    {
+        var t = Make("~TT_drift", 13, x => { x.layerTargets = new[] { 0, 0, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextCrashAt = 1e9f;
+        int spinners = 0;
+        string why = null;
+        bool plumes = true;
+        foreach (var f in t.Pool)
+        {
+            bool spins = ShipExhaust.UsesSpinDrift(f.id);
+            if (!spins)
+            {
+                plumes &= f.drift == null && f.go.GetComponent<ShipSpinDrift>() == null && f.nozzles.Length > 0;
+                foreach (var n in f.nozzles) plumes &= n.enabled && n.sprite != null;
+                continue;
+            }
+            spinners++;
+            if (why == null) why = DriftDiff(f);
+        }
+        Check("both spinners are in the pool", spinners == 2);
+        Check("non-spinners keep their themed nozzle plumes and get no drift", plumes);
+        Check("each spinner's drift is gameplay's ShipSpinDrift for that ShipId" + (why != null ? " (" + why + ")" : ""), why == null);
+
+        foreach (var f in t.Pool)
+        {
+            if (f.drift == null) continue;
+            var d = f.drift;
+            Check(ShipId.KeyOf(f.id) + ": drift is driven by the traffic (unscaled), not its own scaled-time Update",
+                  !d.enabled && !d.spinHull && d.spinRing && d.wakeFollowsHeading && !d.respondToPause);
+
+            var at = new Vector2(t.Safe.center.x + .7f, t.Safe.yMin + 2f);
+            var g = Place(t, TitleScreenTraffic.Depth.Mid, at, 0f);
+            if (g != f)
+            {
+                // Place takes a random free hull; walk until it lands on this spinner
+                int guard = 0;
+                while (g != f && guard++ < 40)
+                {
+                    if (g != null) { g.active = false; g.go.SetActive(false); }
+                    g = Place(t, TitleScreenTraffic.Depth.Mid, at, 0f);
+                }
+            }
+            if (g != f) { Check(ShipId.KeyOf(f.id) + ": could be launched", false); continue; }
+            for (int i = 0; i < 6; i++) t.Step(Dt);
+            Check(ShipId.KeyOf(f.id) + ": ring and wake are showing while it cruises",
+                  d.Ring.enabled && d.Wake.enabled && d.Ring.sprite != null && d.Wake.sprite != null);
+            Check(ShipId.KeyOf(f.id) + ": cruise drawings while cruising", !d.ShowingBoost);
+
+            // the wake hangs behind the direction of travel, whichever way that is
+            bool behind = true;
+            for (int k = 0; k < 4; k++)
+            {
+                f.heading = k * 1.7f + .4f;
+                f.waypoint = f.pos + new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading)) * 3f;
+                t.Step(.001f);
+                Vector2 dir = new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading));
+                Vector2 off = (Vector2)(d.Wake.transform.position - f.tr.position);
+                behind &= Vector2.Dot(off, dir) < 0f;
+            }
+            Check(ShipId.KeyOf(f.id) + ": the wake trails behind the travel direction on any heading", behind);
+
+            int sorted = TitleScreenTraffic.Depths[1].sortBase + f.slot * TitleScreenTraffic.SortSlots;
+            Check(ShipId.KeyOf(f.id) + ": ring and wake sort just under the hull, inside the layer's band",
+                  d.Ring.sortingOrder < f.hull.sortingOrder && d.Wake.sortingOrder < d.Ring.sortingOrder && d.Wake.sortingOrder >= sorted);
+
+            t.StartBoost(f);
+            for (int i = 0; i < 12; i++) t.Step(TitleScreenTraffic.Tick);
+            Check(ShipId.KeyOf(f.id) + ": boost drawings while it boosts", d.ShowingBoost);
+            int steps = 0;
+            while (f.state == TitleScreenTraffic.State.Boost && steps++ < 200) t.Step(TitleScreenTraffic.Tick);
+            t.Step(TitleScreenTraffic.Tick);
+            Check(ShipId.KeyOf(f.id) + ": back to cruise drawings after", !d.ShowingBoost);
+
+            f.pos = at; f.heading = Mathf.PI * .5f;
+            t.StartZip(f);
+            for (int i = 0; i < 30; i++) t.Step(TitleScreenTraffic.Tick);
+            Check(ShipId.KeyOf(f.id) + ": boost drawings while it zips dock-style", f.state == TitleScreenTraffic.State.ZipOut && d.ShowingBoost);
+            steps = 0;
+            while (f.active && steps++ < 400) t.Step(TitleScreenTraffic.Tick);
+        }
+
+        // back-layer spinners keep the depth haze on their drift too
+        var hazeShader = Resources.Load<Shader>("TitleTraffic/TitleTrafficHaze");
+        bool hazed = true; int seen = 0;
+        for (int tries = 0; tries < 60 && seen == 0; tries++)
+        {
+            var g = t.Launch(TitleScreenTraffic.Depth.Back, true, false, null);
+            if (g == null) break;
+            if (g.drift == null) { g.active = false; g.go.SetActive(false); continue; }
+            seen++;
+            hazed &= g.drift.Ring.sharedMaterial != null && g.drift.Ring.sharedMaterial.shader == hazeShader &&
+                     g.drift.Wake.sharedMaterial != null && g.drift.Wake.sharedMaterial.shader == hazeShader;
+        }
+        Check("a back-layer spinner's ring and wake wear the depth haze", seen > 0 && hazed);
+        Done(t);
+    }
+
+    // A traffic spinner's drift vs a ship dressed by gameplay for the same id
+    // (ApplyHull, then ShipSpinDrift.Rebuild). Null when they match.
+    static string DriftDiff(TitleScreenTraffic.Flyer f)
+    {
+        if (f.drift == null) return ShipId.KeyOf(f.id) + " has no drift";
+        var reference = new GameObject("~TT_driftref");
+        reference.AddComponent<SpriteRenderer>();
+        try
+        {
+            spawnShips.ApplyHull(reference, f.id);
+            var want = reference.AddComponent<ShipSpinDrift>();
+            want.Rebuild();
+            var got = f.drift;
+            string k = ShipId.KeyOf(f.id) + ": ";
+            if (got.ShipIndex != f.id || want.ShipIndex != f.id) return k + "ship index " + got.ShipIndex;
+            if (got.Ring == null || got.Wake == null) return k + "missing ring/wake";
+            if (got.Ring.color != want.Ring.color || got.Wake.color != want.Wake.color) return k + "tint";
+            Texture gr = got.Ring.sprite != null ? got.Ring.sprite.texture : null, wr = want.Ring.sprite != null ? want.Ring.sprite.texture : null;
+            Texture gw = got.Wake.sprite != null ? got.Wake.sprite.texture : null, ww = want.Wake.sprite != null ? want.Wake.sprite.texture : null;
+            if (gr == null || gr != wr || gw != ww) return k + "art";
+            if ((got.Ring.transform.localScale - want.Ring.transform.localScale).sqrMagnitude > 1e-8f) return k + "ring size";
+            if ((got.Wake.transform.localScale - want.Wake.transform.localScale).sqrMagnitude > 1e-8f) return k + "wake size";
+            return null;
+        }
+        finally { Object.DestroyImmediate(reference); }
+    }
+
     static TitleScreenTraffic.Flyer Place(TitleScreenTraffic t, TitleScreenTraffic.Depth layer, Vector2 at, float heading)
     {
         var f = t.Launch(layer, true, false, null);
@@ -575,9 +702,14 @@ public static class TitleScreenTrafficTest
 
     static void NoPerFrameAllocations()
     {
-        var t = Make("~TT_alloc", 77);
+        // a full sky (14 of the 15 hulls), so at least one spinner and its
+        // drift is always in the air during the measured window
+        var t = Make("~TT_alloc", 77, x => { x.maxShips = TitleScreenTraffic.MaxCap; x.layerTargets = new[] { 6, 5, 3 }; });
         // warm up: every pool grown, every effect seen at least once
         for (int i = 0; i < 30 * 150; i++) t.Step(Dt);
+        int spinners = 0;
+        foreach (var f in t.Pool) if (f.active && f.drift != null) spinners++;
+        Check("a spinner is flying during the allocation window (" + spinners + ")", spinners > 0);
         System.GC.Collect();
         long before = System.GC.GetTotalMemory(false);
         for (int i = 0; i < 900; i++) t.Step(Dt);
