@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Capsule badge ("NEW BEST") - white template, tinted gold at runtime.
+  Units are UI canvas units; rasterize at 2x (96x56 px, sprite ppu 200).
+  9-slice border 14u on all sides (= the capsule radius).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="28" viewBox="0 0 48 28">
+  <rect x="0.5" y="0.5" width="47" height="27" rx="13.5" fill="#ffffff"/>
+</svg>
