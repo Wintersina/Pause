@@ -30,7 +30,9 @@ public class ShipLivesIndicator : MonoBehaviour
 
     void Start()
     {
-        int shipIndex = PlayerPrefs.GetInt("spawnShip", 0);
+        // The flown ship's own id (its name), not the raw saved selection:
+        // an unowned selection flies the starter, which has damage art.
+        int shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
         if (shipIndex < FirstShipWithoutDamageArt)
         {
             Destroy(this);

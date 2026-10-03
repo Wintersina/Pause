@@ -14,9 +14,7 @@ public static class ShipExhaust
 
     public static int IndexFor(GameObject ship)
     {
-        string name = ship.name.Replace("(Clone)", "").Replace("ship", "");
-        int index;
-        return int.TryParse(name, out index) ? index : shopingShips.StarterShip;
+        return ShipId.Of(ship, ShipId.Starter);
     }
 
     // Ninja and UFO are spinning craft, not nozzle-driven ships. A fixed

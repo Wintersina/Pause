@@ -23,11 +23,11 @@ public class menuButton : MonoBehaviour {
     {
         moveBackGround.speed = 0f;
         score.totalCurrency = 0;
-        // In the space dock, lift-off undocks the equipped ship and the dock
+        // In the space dock, lift-off undocks the selected (else equipped) ship and the dock
         // continues to the same place this always went (game, or tutorial).
         if (SpaceDock.Instance != null)
         {
-            SpaceDock.Instance.LaunchEquipped();
+            SpaceDock.Instance.LiftOff();
             return;
         }
         if (PlayerPrefs.GetString("HasDoneTut") == "true")
