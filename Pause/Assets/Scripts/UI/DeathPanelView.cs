@@ -125,9 +125,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.results = results;
         view.font = dustText.font;
 
-        // Capture each button's current glyph before the button is re-skinned.
-        Sprite replayGlyph = ResolveIcon("replayQuickAction", "replayWhenPausedButton", OwnSprite(replay));
-        Sprite menuGlyph = ResolveIcon("leaveQuickAction", "mainMenuWhenPausedButton", OwnSprite(menu));
+        // MENU leaves to the start menu, so it wears the quick actions' home glyph.
+        Sprite replayGlyph = QuickActionGlyph(PauseQuickActions.ReplayIconPath);
+        Sprite menuGlyph = QuickActionGlyph(PauseQuickActions.HomeIconPath);
 
         // The old scene dialog: retire it once its parts have been moved out.
         Transform legacyDialog = dustText.transform;
@@ -579,29 +579,16 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // Helpers
     // ---------------------------------------------------------------------
 
-    // The death buttons use the same glyphs as the top-right quick actions.
-    // Those are cloned from the scene templates (replayWhenPausedButton /
-    // mainMenuWhenPausedButton), so read the glyph from the same place: an
-    // explicit "Icon" child on the live quick action first, then the template,
-    // then whatever this button carried itself.
-    static Sprite ResolveIcon(string quickAction, string template, Sprite fallback)
-    {
-        var live = SceneUtil.FindAny(quickAction);
-        if (live != null)
-            foreach (var img in live.GetComponentsInChildren<Image>(true))
-                if (img.gameObject != live && img.sprite != null &&
-                    img.name.IndexOf("Icon", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                    return img.sprite;
-        var source = SceneUtil.FindAny(template);
-        var image = source != null ? source.GetComponent<Image>() : null;
-        if (image != null && image.sprite != null) return image.sprite;
-        return fallback;
-    }
+    // The death buttons use the same icon set as the top-right quick actions
+    // (PauseQuickActions.ReplayIconPath / HomeIconPath), in the glyph-only
+    // variant: the full quick-action tiles carry their own plate and rim,
+    // which would read as a box inside this panel's button frame. Both are
+    // rendered from Art/UI/Icons/src~ (render.sh / render.sh --glyph).
+    public const string GlyphSuffix = "_glyph";
 
-    static Sprite OwnSprite(Button b)
+    static Sprite QuickActionGlyph(string iconPath)
     {
-        var img = b != null ? b.GetComponent<Image>() : null;
-        return img != null ? img.sprite : null;
+        return Resources.Load<Sprite>(iconPath + GlyphSuffix);
     }
 
     static Sprite Load(string name)
