@@ -122,6 +122,7 @@ public static class TestHarness
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed",
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
+            DeveloperUnlocks.ChoiceBuildKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 
@@ -134,7 +135,10 @@ public static class TestHarness
         }
 
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
-        var backed = new List<string> { "HasDoneTut", WorldManager.PrefsHighestWorld };
+        var backed = new List<string>
+        {
+            "HasDoneTut", WorldManager.PrefsHighestWorld, WorldManager.PrefsCurrentWorld,
+        };
         for (int i = 0; i <= shopingShips.shipTotal; i++) backed.Add("boughtship" + i);
         foreach (string k in backed)
         {
