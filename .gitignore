@@ -10,7 +10,7 @@
 [Rr]ecordings/
 
 # Asset meta data (only ignore for folders Unity ignores)
-!/[Aa]ssets/**/*.meta
+!/Pause/[Aa]ssets/**/*.meta
 
 # Visual Studio / Rider / VS Code
 .vs/
