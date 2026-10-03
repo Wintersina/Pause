@@ -16,6 +16,8 @@ public class backButton : MonoBehaviour {
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                // Options: back closes the leaderboard panel first.
+                if (LeaderboardPanel.CloseIfOpen()) return;
                 // if you push the back key, turn off ads
                 if (AdMob.isAdsShowwing)
                 {
