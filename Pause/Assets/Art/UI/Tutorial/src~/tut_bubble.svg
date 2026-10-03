@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Robot speech bubble body - 9-slice source. Same family as the Flight
+  Complete frame (Art/UI/DeathPanel/src/dp_panel.svg): dark space glass, a
+  crisp cyan neon edge and a soft bloom, but a flat fill so the separate tail
+  sprite (tut_tail.svg) can overlap the left edge without a visible seam.
+  Units are UI canvas units; rasterize at 2x (192x192 px, sprite ppu 200).
+  Layout: 12u glow margin, body 12..84, corner radius 18.
+  9-slice border = 32u (64 px) on all four sides.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fe9ff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#8fe9ff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="72" height="72" rx="18" fill="none"
+        stroke="#3fd8ff" stroke-width="4" stroke-opacity="0.5" filter="url(#glow)"/>
+  <rect x="12" y="12" width="72" height="72" rx="18" fill="#0a132f" fill-opacity="0.95"/>
+  <path d="M12 30 A18 18 0 0 1 30 12 L66 12 A18 18 0 0 1 84 30 Z" fill="url(#sheen)"/>
+  <rect x="13" y="13" width="70" height="70" rx="17" fill="none"
+        stroke="#52e6ff" stroke-width="2" stroke-opacity="0.95"/>
+</svg>

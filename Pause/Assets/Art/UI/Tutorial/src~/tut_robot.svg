@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The tutorial robot: helmet shell, ear pods, antenna stalk and an empty
+  face screen. The parts that move: eyes, the equalizer mouth, the antenna
+  light and the hover jet, are separate sprites animated by RobotSpeaker.cs
+  on top of this, at the coordinates below (y measured down from the top).
+  Units are UI canvas units; rasterize at 2x (256x256 px, sprite ppu 200).
+  Face screen: x 29..99, y 37..95. Eyes centred at y 58, x 50 / 78.
+  Mouth centred at (64, 80). Antenna bulb at (64, 9).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a5a8f"/>
+      <stop offset="0.55" stop-color="#1b2d58"/>
+      <stop offset="1" stop-color="#0c1736"/>
+    </linearGradient>
+    <linearGradient id="shellSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pod" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c4675"/>
+      <stop offset="1" stop-color="#0e1a3c"/>
+    </linearGradient>
+    <radialGradient id="screen" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#0b1d40"/>
+      <stop offset="1" stop-color="#030816"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bff4ff" stop-opacity="0.18"/>
+      <stop offset="0.35" stop-color="#bff4ff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  <!-- antenna stalk -->
+  <rect x="62" y="10" width="4" height="16" rx="2" fill="#7f9cc8"/>
+  <rect x="58" y="22" width="12" height="6" rx="3" fill="#2c4675" stroke="#52e6ff" stroke-width="1" stroke-opacity="0.7"/>
+  <!-- ear pods -->
+  <rect x="6" y="50" width="16" height="34" rx="7" fill="url(#pod)" stroke="#52e6ff" stroke-width="1.5" stroke-opacity="0.85"/>
+  <rect x="106" y="50" width="16" height="34" rx="7" fill="url(#pod)" stroke="#52e6ff" stroke-width="1.5" stroke-opacity="0.85"/>
+  <rect x="11" y="58" width="6" height="18" rx="3" fill="#52e6ff" fill-opacity="0.55"/>
+  <rect x="111" y="58" width="6" height="18" rx="3" fill="#52e6ff" fill-opacity="0.55"/>
+  <!-- neon bloom around the helmet -->
+  <rect x="18" y="26" width="92" height="82" rx="30" fill="none" stroke="#3fd8ff"
+        stroke-width="3" stroke-opacity="0.45" filter="url(#glow)"/>
+  <!-- helmet shell -->
+  <rect x="18" y="26" width="92" height="82" rx="30" fill="url(#shell)"/>
+  <rect x="18" y="26" width="92" height="82" rx="30" fill="url(#shellSheen)"/>
+  <rect x="19" y="27" width="90" height="80" rx="29" fill="none" stroke="#52e6ff" stroke-width="2" stroke-opacity="0.95"/>
+  <!-- chin vent -->
+  <rect x="52" y="100" width="24" height="3" rx="1.5" fill="#52e6ff" fill-opacity="0.35"/>
+  <!-- face screen -->
+  <rect x="29" y="37" width="70" height="58" rx="20" fill="url(#screen)"/>
+  <rect x="29" y="37" width="70" height="58" rx="20" fill="url(#glass)"/>
+  <rect x="29.75" y="37.75" width="68.5" height="56.5" rx="19.25" fill="none" stroke="#52e6ff" stroke-width="1.5" stroke-opacity="0.5"/>
+</svg>

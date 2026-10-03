@@ -4,6 +4,6 @@
 # Requires resvg (brew install resvg).
 set -e
 cd "$(dirname "$0")"
-for name in replay home; do
+for name in replay home play; do
   resvg -w 256 -h 256 "icon_$name.svg" "../../../Resources/QuickActions/QuickAction_$name.png"
 done
