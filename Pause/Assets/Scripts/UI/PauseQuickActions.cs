@@ -24,8 +24,14 @@ public class PauseQuickActions : MonoBehaviour
     // (match 0.5). On a 390x844pt phone that is ~46pt per button, above the
     // ~44pt minimum comfortable tap target.
     public const float ButtonSize = 72f;
-    const float ButtonGap = 14f;
-    const float EdgeMargin = 18f;
+    public const float ButtonGap = 14f;
+    // Inset from the safe area's top/right edges. HudStyler pins the score
+    // read-out to the top-left corner with this same margin (converted to
+    // screen pixels) and the same top edge, so the two blocks frame the top
+    // of the screen symmetrically.
+    public const float EdgeMargin = 18f;
+    public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
+    public const float MatchWidthOrHeight = 0.5f;
 
     public const string ReplayIconPath = "QuickActions/QuickAction_replay";
     public const string HomeIconPath = "QuickActions/QuickAction_home";
@@ -58,6 +64,26 @@ public class PauseQuickActions : MonoBehaviour
         return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPoint, null);
     }
 
+    // Screen pixels per canvas unit on RunActionCanvas for a given screen size
+    // (CanvasScaler ScaleWithScreenSize, MatchWidthOrHeight).
+    public static float CanvasScaleFor(Vector2 screen)
+    {
+        return HudStyler.ScaleWithScreenSize(screen, ReferenceResolution,
+            CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, MatchWidthOrHeight);
+    }
+
+    // The screen-pixel rect (origin bottom-left) covered by both buttons for
+    // a given safe area and screen: what the HUD must keep clear of.
+    public static Rect ScreenRectFor(Rect safeArea, Vector2 screen)
+    {
+        float s = CanvasScaleFor(screen);
+        float right = safeArea.xMax - EdgeMargin * s;
+        float top = safeArea.yMax - EdgeMargin * s;
+        float width = (2f * ButtonSize + ButtonGap) * s;
+        float height = ButtonSize * s;
+        return new Rect(right - width, top - height, width, height);
+    }
+
     void Start()
     {
         var replaySource = SceneUtil.FindAny("replayWhenPausedButton");
@@ -70,8 +96,8 @@ public class PauseQuickActions : MonoBehaviour
         canvas.sortingOrder = 90;
         var scaler = holder.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(800f, 1000f);
-        scaler.matchWidthOrHeight = 0.5f;
+        scaler.referenceResolution = ReferenceResolution;
+        scaler.matchWidthOrHeight = MatchWidthOrHeight;
 
         // Notch / status-bar / rounded-corner aware container.
         var safeGo = new GameObject("SafeArea", typeof(RectTransform));
