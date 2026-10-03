@@ -253,17 +253,13 @@ public class SpaceDock : MonoBehaviour
 
     public static bool IsOwned(int index)
     {
-        return index == shopingShips.StarterShip ||
-               PlayerPrefs.GetString("boughtship" + index) == "True";
+        return ShipId.IsOwned(index);
     }
 
     // The ship gameS1 will spawn, validated the same way spawnShips does.
     public static int EquippedIndex()
     {
-        int index = PlayerPrefs.GetInt("spawnShip", shopingShips.StarterShip);
-        if (index < 1 || index >= shopingShips.shipTotal || !IsOwned(index))
-            index = shopingShips.StarterShip;
-        return index;
+        return ShipId.Equipped();
     }
 
     public void RefreshStatuses()
@@ -336,7 +332,7 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length || bays[index] == null) return;
         if (!IsOwned(index)) { Buy(index); return; }
-        PlayerPrefs.SetInt("spawnShip", index);
+        ShipId.Equip(index);
         PrefsSaver.SaveNow();
         startMenu.spawnTracker = index;
         rotateRight.shipSelected = index;
@@ -352,10 +348,25 @@ public class SpaceDock : MonoBehaviour
         if (Application.isPlaying) StartCoroutine(LaunchRoutine(index));
     }
 
-    // PLAY / lift-off button: launch whatever ship is equipped.
+    // Launches the equipped ship (ignores the current selection).
     public void LaunchEquipped()
     {
         Launch(EquippedIndex());
+    }
+
+    // The ship the LIFT-OFF button launches: the one selected in the dock if
+    // it is owned, else the equipped one. LIFT-OFF used to always launch the
+    // equipped ship, so tapping a ship (its popup offering LAUNCH) and then
+    // pressing LIFT-OFF flew whichever ship had been equipped before.
+    public int LiftOffIndex()
+    {
+        return Selected > 0 && IsOwned(Selected) ? Selected : EquippedIndex();
+    }
+
+    // PLAY / LIFT-OFF button.
+    public void LiftOff()
+    {
+        Launch(LiftOffIndex());
     }
 
     IEnumerator LaunchRoutine(int index)

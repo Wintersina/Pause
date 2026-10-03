@@ -109,8 +109,10 @@ public class ShipPowerController : MonoBehaviour
 
     void Start()
     {
-        power = ShipPowerTable.For(PlayerPrefs.GetInt("spawnShip", 0));
-        shipIndex = ShipExhaust.IndexFor(gameObject);
+        // Both from the ship actually flying, so an unowned saved selection
+        // (which flies the starter) can't hand the starter another's power.
+        shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
+        power = ShipPowerTable.For(shipIndex);
         cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);

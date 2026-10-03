@@ -32,7 +32,7 @@ public class shopingShips : MonoBehaviour {
 
     void Start() {
 
-        PlayerPrefs.SetString("boughtship" + StarterShip, "True");
+        PlayerPrefs.SetString(ShipId.OwnedKey(StarterShip), "True");
 
         if (ships == null || ships.Length < shipTotal)
             ships = new GameObject[shipTotal];
@@ -89,8 +89,8 @@ public class shopingShips : MonoBehaviour {
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
         if (dust < cost) return false;
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - cost);
-        PlayerPrefs.SetString("boughtship" + index.ToString(), "True");
-        PlayerPrefs.SetInt("spawnShip", index);
+        PlayerPrefs.SetString(ShipId.OwnedKey(index), "True");
+        ShipId.Equip(index);
         PrefsSaver.SaveNow();
         return true;
     }
