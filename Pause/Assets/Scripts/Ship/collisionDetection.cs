@@ -17,7 +17,6 @@ public class collisionDetection : MonoBehaviour {
     private int atomCounter;
     public static int lifeCounter;
     public static int MAXLIFE;
-    //private string[] savedString = new string[12];
 
     public GameObject shield;
 
@@ -185,23 +184,6 @@ public class collisionDetection : MonoBehaviour {
         atomTimerText.text = "";
         atomCounter = 0;
         lifeCounter = 0;
-
-        // create an array of  string for  hyped words
-        /*
-        savedString[0] = "POOF!";
-        savedString[1] = "DANG!";
-        savedString[2] = "BOOM!!";
-        savedString[3] = "MAYHEM!";
-        savedString[4] = "DESTROYER!";
-        savedString[5] = "DOMINATION!";
-        savedString[6] = "SAVAGE!";
-        savedString[7] = "ANNIHILATOR!";
-        savedString[8] = "DISPOSER!";
-        savedString[9] = "HOLYYY!!";
-        savedString[10] = "EXTERMINATOR!";
-        // killing it
-        // How??
-        */
     }
 	
 	// Update is called once per frame
@@ -267,11 +249,6 @@ public class collisionDetection : MonoBehaviour {
                 }
                 // show the texts for only half of a second.
                 savedTimer = .4f;
-
-
-                //show random texts as user hits and destroyes obsticals
-
-                //hypeText.text = savedString[Random.Range(0,10)];
 
                 // create explotion and show it on the objets position.
                 GameObject exp = Instantiate(explosionAnimation) as GameObject;
