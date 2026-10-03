@@ -103,6 +103,7 @@ public sealed class CloudSync
             Debug.Log("[CloudSave] not signed in to " + account.PlatformName + "; playing with local saves only.");
             return;
         }
+        SocialBridge.NotifySignedIn();
         if (Current == State.Loading || Current == State.Ready) return;
         Debug.Log("[CloudSave] signed in to " + account.PlatformName + ".");
         achievementAPICalls.achievement_logged_on_successfully();

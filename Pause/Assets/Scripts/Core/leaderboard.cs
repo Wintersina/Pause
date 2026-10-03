@@ -8,9 +8,10 @@ public class leaderboard : MonoBehaviour {
     {
         AdMob.show();
     }
+	// The LeaderBoard button: the in-game rankings panel. Its "View all"
+	// opens the store's own leaderboard screen.
 	public void pull_up_leaderboard () {
-      
-        achievementAPICalls.showLeaderboard();
+        LeaderboardPanel.Open();
 	}
     public void playTut()
     {

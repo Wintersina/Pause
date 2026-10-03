@@ -9,8 +9,9 @@ using UnityEngine;
 // regardless of that ship's own scale. It stays tucked in against the hull's
 // left edge almost all the time; ShipPowerController calls Tick() every
 // frame with how close the cooldown is to firing, and this eases the barrel
-// out over that last stretch, then Fire() flashes the muzzle the instant it
-// actually goes off, and the barrel slides back in as the cooldown resets.
+// out over that last stretch, then Fire() plays the ship's own muzzle-flash
+// flipbook (WeaponArt) the instant it actually goes off, and the barrel
+// slides back in as the cooldown resets.
 public class UltimateGun : MonoBehaviour
 {
     Transform barrel;
@@ -19,7 +20,8 @@ public class UltimateGun : MonoBehaviour
 
     float mountY, barrelLength;
     float extend; // 0 retracted .. 1 fully extended, eased toward Tick's target
-    float flash;  // 1 right after firing, decays to 0
+    float flashT = -1f; // seconds since Fire() on unscaled time; < 0 when idle
+    const float MuzzleWorldSize = .62f;
     float firePop;
     int shipIndex;
     Vector3 restingOffset, firingOffset;
@@ -40,7 +42,7 @@ public class UltimateGun : MonoBehaviour
         var hull = GetComponentInParent<SpriteRenderer>();
         Vector2 extents = hull != null && hull.sprite != null ? hull.sprite.bounds.extents : new Vector2(0.4f, 0.5f);
 
-        shipIndex = ShipExhaust.IndexFor(hull != null ? hull.gameObject : gameObject);
+        shipIndex = ShipId.Of(hull != null ? hull.gameObject : gameObject, ShipId.Equipped());
         barrelLength = extents.x * 0.92f;
         // A companion weapon hovers beside its owner while charging, then
         // drifts into the forward firing slot just before the sweep begins.
@@ -68,13 +70,13 @@ public class UltimateGun : MonoBehaviour
         var muzzleGo = new GameObject("Muzzle", typeof(SpriteRenderer));
         muzzleGo.transform.SetParent(transform, false);
         muzzleRenderer = muzzleGo.GetComponent<SpriteRenderer>();
-        muzzleRenderer.sprite = LoadVfx("vfx_light_02");
-        var muzzleTint = ShipExhaust.TintFor(shipIndex);
-        muzzleRenderer.color = new Color(muzzleTint.r, muzzleTint.g, muzzleTint.b, 0f);
-        muzzleRenderer.sortingOrder = barrelRenderer.sortingOrder + 1;
-        muzzleGo.transform.localScale = Vector3.one * extents.y * 0.6f;
+        // The ship's own flat cel muzzle flash flipbook (WeaponArt), hidden
+        // until Fire().
+        muzzleRenderer.sprite = WeaponArt.Muzzle(shipIndex, 0);
+        muzzleRenderer.enabled = false;
+        muzzleRenderer.sortingOrder = barrelRenderer.sortingOrder + 6;
         muzzle = muzzleGo.transform;
-        muzzleBaseScale = muzzleGo.transform.localScale;
+        muzzleBaseScale = Vector3.one;
 
         Reposition(0f);
     }
@@ -100,28 +102,38 @@ public class UltimateGun : MonoBehaviour
         float scale = 1f + extend * .14f + firePop * .24f;
         transform.localScale = Vector3.one * scale;
 
-        if (flash > 0f)
+        if (flashT >= 0f && muzzleRenderer != null)
         {
-            flash = Mathf.Max(0f, flash - Time.deltaTime * 2.2f);
-            var c = muzzleRenderer.color;
-            c.a = flash;
-            muzzleRenderer.color = c;
-            float burstScale = 1f + firePop * (.38f + (shipIndex % 4) * .12f);
-            muzzle.localScale = muzzleBaseScale * burstScale;
-            muzzle.localRotation = Quaternion.Euler(0f, 0f, shipIndex * 17f + flash * 90f);
-        }
-        else if (muzzle != null)
-        {
-            muzzle.localScale = muzzleBaseScale;
-            muzzle.localRotation = Quaternion.identity;
+            // pinch, flash, forward smear, speed lines, held on the art's
+            // tick table -- unscaled so the
+            // cinematic slow motion doesn't hold the flash on screen
+            flashT += Time.unscaledDeltaTime;
+            int frame = WeaponArt.FrameAt(WeaponArt.MuzzleTicks, flashT, false);
+            if (frame >= WeaponArt.MuzzleFrames)
+            {
+                flashT = -1f;
+                muzzleRenderer.enabled = false;
+            }
+            else
+            {
+                muzzleRenderer.enabled = true;
+                muzzleRenderer.sprite = WeaponArt.Muzzle(shipIndex, frame);
+                float world = MuzzleWorldSize / Mathf.Max(.0001f, Mathf.Abs(transform.lossyScale.x));
+                muzzle.localScale = muzzleBaseScale * world; // the smear is drawn
+                muzzle.rotation = Quaternion.identity;
+            }
         }
     }
 
     public void Fire()
     {
-        flash = 1f;
+        flashT = 0f;
         firePop = 1f;
     }
+
+    // 0 tucked beside the hull .. 1 in the forward firing slot.
+    public float Extend01 => extend;
+    public bool Flashing => flashT >= 0f;
 
     public Vector3 MuzzlePosition => muzzle != null ? muzzle.position : transform.position + Vector3.up;
 
@@ -174,9 +186,4 @@ public class UltimateGun : MonoBehaviour
         return solidCache;
     }
 
-    static Sprite LoadVfx(string file)
-    {
-        var tex = Resources.Load<Texture2D>("Prefabs/Vfx/" + file);
-        return tex != null ? Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f) : null;
-    }
 }

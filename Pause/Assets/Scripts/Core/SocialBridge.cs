@@ -14,6 +14,16 @@ public static class SocialBridge
 {
     public delegate void SocialCallback(bool success);
 
+    // Raised every time a sign-in succeeds (the silent launch one and any
+    // interactive one). LeaderboardService flushes its offline queue on it.
+    public static event System.Action SignedIn;
+
+    public static void NotifySignedIn()
+    {
+        var handler = SignedIn;
+        if (handler != null) handler();
+    }
+
     public static bool IsAuthenticated
     {
         get { return Social.localUser != null && Social.localUser.authenticated; }
@@ -35,7 +45,11 @@ public static class SocialBridge
             if (callback != null) callback(success);
         };
         if (CloudSync.Instance != null) CloudSync.Instance.SignInInteractive(done);
-        else PlayerAccounts.Current.SignIn(true, done);
+        else PlayerAccounts.Current.SignIn(true, success =>
+        {
+            if (success) NotifySignedIn();   // CloudSync raises it itself
+            done(success);
+        });
     }
 
     // The id to send on this platform, or null when it has none.

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Impact flipbook: the frame a hazard is absorbed by the contour shield.
+     Four held key poses, 128x128 each, played left to right (~50 ms each):
+       0 contact   - small hard 4-point glint (anticipation)
+       1 impact    - big jagged starburst: pure-white 1-tick core, cyan rim, ink outline
+       2 smear     - broken angular ring fragments flying out
+       3 sparks    - a few flat sparks (one amber) as it dies off
+     Flat fills, ink outlines, no gradients. The burst points UP (+y in the
+     sprite = away from the hull); ShipShield rotates it to the hit normal. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128">
+  <!-- 0 contact -->
+  <g transform="translate(64,64)">
+    <polygon points="0,-30 7,-7 30,0 7,7 0,30 -7,7 -30,0 -7,-7" fill="#F4EAD4" stroke="#140C14" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="0,-14 3,-3 14,0 3,3 0,14 -3,3 -14,0 -3,-3" fill="#6EF2EE"/>
+  </g>
+  <!-- 1 impact -->
+  <g transform="translate(192,64)">
+    <polygon points="0,-60 12,-26 42,-44 28,-12 60,-4 28,8 46,40 12,24 0,58 -12,24 -46,40 -28,8 -60,-4 -28,-12 -42,-44 -12,-26" fill="#6EF2EE" stroke="#140C14" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="0,-40 8,-16 28,-28 18,-6 40,0 18,6 28,26 8,14 0,38 -8,14 -28,26 -18,6 -40,0 -18,-6 -28,-28 -8,-16" fill="#FFFFFF"/>
+  </g>
+  <!-- 2 smear -->
+  <g transform="translate(320,64)" stroke="#140C14" stroke-width="5" stroke-linejoin="round">
+    <polygon points="-14,-56 14,-56 10,-42 -10,-42" fill="#6EF2EE"/>
+    <polygon points="38,-40 54,-20 42,-14 30,-30" fill="#6EF2EE"/>
+    <polygon points="56,8 50,30 38,24 44,6" fill="#6EF2EE"/>
+    <polygon points="-38,-40 -54,-20 -42,-14 -30,-30" fill="#6EF2EE"/>
+    <polygon points="-56,8 -50,30 -38,24 -44,6" fill="#6EF2EE"/>
+    <polygon points="0,-16 10,0 0,16 -10,0" fill="#F4EAD4"/>
+  </g>
+  <!-- 3 sparks -->
+  <g transform="translate(448,64)" stroke="#140C14" stroke-width="4" stroke-linejoin="round">
+    <polygon points="0,-58 6,-44 -6,-44" fill="#6EF2EE"/>
+    <polygon points="48,-34 50,-20 38,-26" fill="#FFB43C"/>
+    <polygon points="-48,-34 -50,-20 -38,-26" fill="#6EF2EE"/>
+    <polygon points="56,18 46,26 44,14" fill="#6EF2EE"/>
+    <polygon points="-56,18 -46,26 -44,14" fill="#6EF2EE"/>
+  </g>
+</svg>

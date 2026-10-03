@@ -132,6 +132,7 @@ public static class TestHarness
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
             DeveloperUnlocks.ChoiceBuildKey,
+            Codex.PrefsKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 
@@ -149,6 +150,10 @@ public static class TestHarness
         keys.Add(CloudSync.LocalSavedAtKey);
         keys.Add(CloudSync.LocalHashKey);
         keys.Add(CloudSync.BackupsKey);
+
+        // Leaderboard queue (device-local).
+        keys.Add(LeaderboardService.PendingKey);
+        keys.Add(LeaderboardService.SubmittedKey);
 
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string>

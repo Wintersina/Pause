@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Activation anticipation flipbook, played at the hull's nose before the
+     contour shield zips around it. 128x128 key poses, left to right:
+       0 gather    - tiny hard diamond (the charge pulling in)
+       1 squash    - flattened lens, wide and short
+       2 stretch   - tall spike released along the ship's heading
+       3 glint     - cross glint as the zip leaves the nose
+     Flat bone/cyan with ink outline. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128">
+  <g transform="translate(64,64)">
+    <polygon points="0,-16 12,0 0,16 -12,0" fill="#F4EAD4" stroke="#140C14" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(192,64)">
+    <polygon points="-56,0 -14,-12 0,-16 14,-12 56,0 14,12 0,16 -14,12" fill="#6EF2EE" stroke="#140C14" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="-30,0 0,-7 30,0 0,7" fill="#F4EAD4"/>
+  </g>
+  <g transform="translate(320,64)">
+    <polygon points="0,-60 12,-10 8,40 0,58 -8,40 -12,-10" fill="#6EF2EE" stroke="#140C14" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="0,-40 5,-6 0,30 -5,-6" fill="#F4EAD4"/>
+  </g>
+  <g transform="translate(448,64)">
+    <polygon points="0,-54 9,-9 54,0 9,9 0,54 -9,9 -54,0 -9,-9" fill="#F4EAD4" stroke="#140C14" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="0,-22 4,-4 22,0 4,4 0,22 -4,4 -22,0 -4,-4" fill="#6EF2EE"/>
+  </g>
+</svg>

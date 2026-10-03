@@ -40,6 +40,9 @@ public static class WorldLogicTest
         Check("world music exposes level-clock escalation", typeof(WorldMusic).GetMethod("TryEscalate") != null);
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);
         PlayerPrefs.DeleteKey("boughtship15");
+        // The editor shares PlayerPrefs with the Mac build; developer mode may
+        // already be on there. Start from off so turning it on snapshots.
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         DeveloperUnlocks.SetEnabled(true);
         Check("developer flag unlocks every ship", PlayerPrefs.GetString("boughtship15") == "True");
         Check("developer flag unlocks every world", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 3);

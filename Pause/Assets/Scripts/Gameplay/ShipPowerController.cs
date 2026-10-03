@@ -12,7 +12,9 @@ using UnityEngine;
 // and easy to miss entirely. It now fires itself the moment it is ready, no
 // input at all, and UltimateGun gives the player something to watch coming:
 // a small weapon that slides out of the ship's left side over the last
-// second or so before it goes off. Collecting star dust or an atom shaves
+// second or so before it goes off, and ChargeIndicator -- a per-ship
+// animated piece of that weapon in front of the hull -- shows the charge
+// building (see WeaponStyleTable). Collecting star dust or an atom shaves
 // time off the current countdown (see ReduceTimer, called from
 // collisionDetection's pickup handling), so playing well gets the ultimate
 // back faster.
@@ -90,11 +92,16 @@ public class ShipPowerController : MonoBehaviour
     float timer;
     float cooldown;
     UltimateGun gun;
+    ChargeIndicator indicator;
     // Cinematic clear bookkeeping (see BeginCinematic / TickCinematic).
     int onScreenAtStart;
     bool launchesDone;
     float holdUntil;
     public float Charge01 => cooldown <= 0f ? 1f : Mathf.Clamp01(1f - timer / cooldown);
+    // Seconds of running world time until the ultimate fires.
+    public float SecondsLeft => timer;
+    public int ShipIndex => shipIndex;
+    public ChargeIndicator Indicator => indicator;
 
     void Awake()
     {
@@ -116,7 +123,7 @@ public class ShipPowerController : MonoBehaviour
         cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);
-        if (GetComponent<PowerReadyIndicator>() == null) gameObject.AddComponent<PowerReadyIndicator>();
+        indicator = ChargeIndicator.Attach(this);
     }
 
     void Update()
@@ -151,6 +158,7 @@ public class ShipPowerController : MonoBehaviour
     void Fire()
     {
         if (gun != null) gun.Fire();
+        if (indicator != null) indicator.Release();
         UltimateShotSound.Play(shipIndex);
         if (!BeginCinematic()) return;
         StartCoroutine(CinematicClear(SnapshotTargets()));
@@ -275,7 +283,7 @@ public class ShipPowerController : MonoBehaviour
     void HitTarget(GameObject target, Color tint)
     {
         if (target == null) return;
-        PowerFx.Burst(target.transform.position, tint, 6);
+        TargetExplosion.Spawn(target, shipIndex);
         collisionDetection.PlayExplosion();
         collisionDetection.AwardDestroyedTarget(target);
         ClearTarget.Release(target);

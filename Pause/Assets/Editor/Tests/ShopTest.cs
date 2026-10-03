@@ -242,6 +242,9 @@ public static class ShopTest
 
     static void Unlocks(SpaceDock dock)
     {
+        // The editor shares PlayerPrefs with the Mac build; developer mode may
+        // already be on there. Start from off so turning it on snapshots.
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         DeveloperUnlocks.SetEnabled(true);
         bool allOwned = true;
         for (int i = 1; i < shopingShips.shipTotal; i++) allOwned &= dock.bays[i].ShowsStatusIcon && !dock.bays[i].ShowsPrice;

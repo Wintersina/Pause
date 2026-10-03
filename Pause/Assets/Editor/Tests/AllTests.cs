@@ -21,6 +21,7 @@ public static class AllTests
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
+        ("CodexTest", CodexTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
@@ -28,6 +29,7 @@ public static class AllTests
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
+        ("LeaderboardTest", LeaderboardTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
@@ -46,6 +48,7 @@ public static class AllTests
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("TutorialRobotTest", TutorialRobotTest.Execute),
+        ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };

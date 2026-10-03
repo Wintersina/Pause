@@ -113,6 +113,7 @@ public class WorldManager : MonoBehaviour
         WorldBackdrop.Apply(Current, false);
         ApplyDifficulty(Current);
         WorldBanner.Show(Current.displayName);
+        Codex.Discover(Codex.WorldId(CurrentIndex));
     }
 
     void Update()
@@ -172,6 +173,7 @@ public class WorldManager : MonoBehaviour
         WorldBackdrop.Apply(theme, true);
         ApplyDifficulty(theme);
         WorldBanner.Show(theme.displayName);
+        Codex.Discover(Codex.WorldId(CurrentIndex));
 
         portalOpen = false;
         timer = secondsPerWorld;
