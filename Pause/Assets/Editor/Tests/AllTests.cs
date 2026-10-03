@@ -31,6 +31,7 @@ public static class AllTests
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
+        ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),

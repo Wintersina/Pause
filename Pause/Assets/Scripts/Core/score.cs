@@ -32,6 +32,13 @@ public class score : MonoBehaviour {
     private const int PAUSECOUNTER = 5;
     private const int TUTPAUSECOUNTER = 50;
 
+    // Whether this run's dust is real (credited to the saved total). Decided
+    // once when the run's scene loads so nothing mid-run can flip it.
+    public static bool paysRealDust;
+    // This run's StarDustLedger token, and whether death already committed it.
+    private int ledgerRun;
+    private bool committedOnDeath;
+
 
     // at awake, load up all the correct numbers for scores.
     void Awake()
@@ -39,11 +46,13 @@ public class score : MonoBehaviour {
         
         // currencyText.text = "Currency Gathered : " + PlayerPrefs.GetInt("brickScore").ToString();
         tutorialCurrency = 0;
-        if (PlayerPrefs.GetString("HasDoneTut") == "true")
+        paysRealDust = PlayerPrefs.GetString("HasDoneTut") == "true" && !startMenu.youAreInTutorial;
+        ledgerRun = StarDustLedger.BeginRun(paysRealDust);
+        committedOnDeath = false;
+        if (paysRealDust)
         {
-  
-            currencyText.text = "Star Dust : " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
-            currencyHolder = PlayerPrefs.GetFloat("PlayerCurrecny");
+            currencyHolder = StarDustLedger.Balance;
+            currencyText.text = "Star Dust : " + currencyHolder.ToString("F2");
         }
         else
         {
@@ -77,6 +86,15 @@ public class score : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        // Bank the run the moment it ends. playerIsDead also writes the
+        // total; the ledger writes the same absolute value, so the order of
+        // the two does not matter and nothing is counted twice.
+        if (buttonClicks.playerDied && !committedOnDeath)
+        {
+            committedOnDeath = true;
+            StarDustLedger.Commit(ledgerRun);
+        }
+
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             // Holding the first touch must behave exactly like a normal held
@@ -89,44 +107,46 @@ public class score : MonoBehaviour {
             }
             else if (ShouldSpendPause(hasStartedRun, pauseCounterBool))
                 pauseCounterFunction();
-            if (PlayerPrefs.GetString("HasDoneTut") == "true" && !startMenu.youAreInTutorial)
-            {
-                calcScore(ref totalCurrency);
-            }
-            else
-            {
-                calcScore(ref tutorialCurrency);
-            }
+            payDust();
             // calculate speed
             showSpeed();
 
         }
         else if (pauseCounter <= 0 && !buttonClicks.playerDied)
         {
-            if (PlayerPrefs.GetString("HasDoneTut") == "true" && !startMenu.youAreInTutorial)
-            {
-                calcScore(ref totalCurrency);
-            }
-            else
-            {
-                calcScore(ref tutorialCurrency);
-            }
+            payDust();
             // calculate speed
             showSpeed();
         }
         else
             pauseCounterBool = false;
 	}
-    // calculates score and updates canvis
-    void calcScore(ref float tc)
+    // Leaving the run by any route (Menu, Replay, Back, scene change) banks
+    // what it earned. Replay/Menu zero totalCurrency first, which is why the
+    // ledger, not that field, is what gets saved.
+    void OnDestroy()
+    {
+        StarDustLedger.EndRun(ledgerRun);
+    }
+
+    void payDust()
+    {
+        if (paysRealDust) StarDustLedger.Earn(calcScore(ref totalCurrency));
+        else calcScore(ref tutorialCurrency);
+    }
+
+    // calculates score and updates canvis; returns the dust just earned
+    float calcScore(ref float tc)
     {
         // Was `(int)speed + .001f`. speed never reaches 1, so the cast was
         // always 0 and this was really a flat .001 *per frame* -- framerate
         // dependent, paying out twice as fast at 120Hz as at 60Hz.
         float t = topSpeed <= 0 ? 0 : Mathf.Clamp01(moveBackGround.speed / topSpeed);
-        tc += dustPerSecondAtTopSpeed * t * Time.deltaTime;
+        float earned = dustPerSecondAtTopSpeed * t * Time.deltaTime;
+        tc += earned;
         currencyText.text = "Star Dust : " + tc.ToString("F2");
         pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+        return earned;
     }
     
     // calculates speed and updates canvis.
@@ -148,13 +168,17 @@ public class score : MonoBehaviour {
 
     public static void AwardStarDust(float amount)
     {
-        if (PlayerPrefs.GetString("HasDoneTut") == "true") totalCurrency += amount;
+        if (paysRealDust)
+        {
+            totalCurrency += amount;
+            StarDustLedger.Earn(amount);
+        }
         else tutorialCurrency += amount;
 
         var hud = Object.FindFirstObjectByType<score>();
         if (hud != null && hud.currencyText != null)
         {
-            float value = PlayerPrefs.GetString("HasDoneTut") == "true" ? totalCurrency : tutorialCurrency;
+            float value = paysRealDust ? totalCurrency : tutorialCurrency;
             hud.currencyText.text = "Star Dust : " + value.ToString("F2");
         }
     }

@@ -48,6 +48,7 @@ public static class NextFeatures0907Test
         Check("green heal atom targets the authored 28px pickup size",
               Mathf.Approximately(28f / 100f, .28f));
         PlayerPrefs.SetString("HasDoneTut", "true");
+        score.paysRealDust = true;   // a real (non-tutorial) run
         score.totalCurrency = 0f;
         score.AwardStarDust(.12f);
         Check("destroying an enemy can award a small star-dust payout",

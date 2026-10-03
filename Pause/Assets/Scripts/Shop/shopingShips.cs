@@ -184,22 +184,20 @@ public class shopingShips : MonoBehaviour {
                 spawnShipNumber = shipNumber;
                 startMenu.spawnTracker = spawnShipNumber;               // used incase player goses back to main menu
                 PlayerPrefs.SetInt("spawnShip", spawnShipNumber);
+                PrefsSaver.SaveNow();
                 rotateRight.shipSelected = shipNumber;
                 buttonCanvis.SetActive(true);
                 popUpCanvis.SetActive(false);
             }   //if the player has not bought the ship
-            else if (PlayerPrefs.GetFloat("PlayerCurrecny") >= shipCost[shipNumber])
+            else if (TryPurchase(shipNumber, shipCost[shipNumber]))
             {
                 spawnShipNumber = shipNumber;
                 startMenu.spawnTracker = spawnShipNumber;               // used incase player goes back to main menu
-                PlayerPrefs.SetInt("spawnShip", spawnShipNumber);
                 rotateRight.shipSelected = shipNumber;
-                // reduce cost, switch canvases and show new cost
-                PlayerPrefs.SetFloat("PlayerCurrecny", PlayerPrefs.GetFloat("PlayerCurrecny") - shipCost[shipNumber]);
+                // switch canvases and show new cost
                 updateStarDustLabel();
                 buttonCanvis.SetActive(true);
                 popUpCanvis.SetActive(false);
-                PlayerPrefs.SetString("boughtship" + shipNumber.ToString(), "True");
             } // else they dont have enough star dust
             else
             {
@@ -218,6 +216,20 @@ public class shopingShips : MonoBehaviour {
         }
     }
        
+    // Spends the dust, marks the ship owned and selects it, then saves at
+    // once: a purchase used to sit in memory until something else happened
+    // to save, so killing the app from the shop could undo it.
+    public static bool TryPurchase(int index, float cost)
+    {
+        float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+        if (dust < cost) return false;
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - cost);
+        PlayerPrefs.SetString("boughtship" + index.ToString(), "True");
+        PlayerPrefs.SetInt("spawnShip", index);
+        PrefsSaver.SaveNow();
+        return true;
+    }
+
     // Roster names, available before this component's Start() has run.
     // Scout, Interceptor and Xenon were removed: reskins/duplicates of the
     // roster's own Neon Comet, Volt Viper and Solar Fang (indices 1-3), so
