@@ -32,11 +32,13 @@ public class CodexHomeButton : MonoBehaviour
     void OnEnable()
     {
         CodexPanel.Closed += Refresh;
+        DeveloperUnlocks.Changed += Refresh;   // N/N while developer mode is on
     }
 
     void OnDisable()
     {
         CodexPanel.Closed -= Refresh;
+        DeveloperUnlocks.Changed -= Refresh;
     }
 
     // Idempotent; public so the edit-mode tests can build it without Play mode.

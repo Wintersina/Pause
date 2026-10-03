@@ -197,6 +197,8 @@ public class CodexPanel : MonoBehaviour
         view.canvas = canvas;
         view.font = font != null ? font : CodexUi.FindFont();
         view.BuildAll();
+        DeveloperUnlocks.Changed -= OnDeveloperModeChanged;
+        DeveloperUnlocks.Changed += OnDeveloperModeChanged;
         return view;
     }
 
@@ -223,6 +225,7 @@ public class CodexPanel : MonoBehaviour
 
         title = CodexUi.NewText("Title", panel, font, "CODEX", 44, CodexUi.Title, TextAnchor.MiddleLeft);
         CodexUi.AddOutline(title.gameObject, CodexUi.Ink, 3f);
+        title.fontStyle = FontStyle.BoldAndItalic;   // style guide: headings lean forward
         var markerImage = CodexUi.NewImage("Marker", panel, CodexUi.CodexSprite("cx_marker"), Color.white);
         markerImage.preserveAspect = true;
         marker = markerImage.rectTransform;
@@ -376,6 +379,7 @@ public class CodexPanel : MonoBehaviour
         detailName.resizeTextMinSize = 22;
         detailName.resizeTextMaxSize = 40;
         CodexUi.AddOutline(detailName.gameObject, CodexUi.Ink, 3f);
+        detailName.fontStyle = FontStyle.BoldAndItalic;
 
         detailPill = CodexUi.NewImage("Category", detail, CodexUi.CodexSprite("cx_tab"), CodexUi.Accent, true);
         detailPillLabel = CodexUi.NewText("Label", detailPill.rectTransform, font, "", 18, CodexUi.Ink,
@@ -663,6 +667,27 @@ public class CodexPanel : MonoBehaviour
         art.color = found ? Color.white : CodexUi.Silhouette;
         maskComp.enabled = e.round;
         mask.enabled = e.round;
+    }
+
+    // Developer mode reveals (or hides again) every entry; an open panel
+    // redraws in place, keeping the tab and any open detail.
+    static void OnDeveloperModeChanged()
+    {
+        if (instance != null) instance.Refresh();
+    }
+
+    public void Refresh()
+    {
+        if (phase == Phase.Hidden) return;
+        RefreshCounter();
+        var open = inDetail ? detailEntry : null;
+        Populate(category);
+        if (open != null)
+        {
+            ShowDetail(open);
+            swapAt = -100f;
+        }
+        ApplyFrame(Time.unscaledTime);
     }
 
     void RefreshCounter()

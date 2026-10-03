@@ -29,12 +29,14 @@ public static class CodexTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.DeleteKey(Codex.PrefsKey);
         Codex.Reload();
 
         CheckCatalogue();
         CheckSpawnerCoverage();
         CheckDiscovery();
+        CheckDeveloperMode();
         CheckHooksAndSources();
         CheckLayoutMath();
         CheckHomeAndPanel();
@@ -246,6 +248,47 @@ public static class CodexTest
         }
     }
 
+    // ---- Developer mode: everything visible, nothing written ----
+
+    static void CheckDeveloperMode()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_black,atom_red");
+        PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
+        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        Codex.Reload();
+        int realCount = Codex.DiscoveredCount;
+        Check("dev mode off: only the real set is discovered", realCount < Codex.Total && !Codex.IsDiscovered("enemy_red"));
+
+        int events = 0;
+        Action<CodexEntry> handler = e => events++;
+        Codex.Discovered += handler;
+        try
+        {
+            DeveloperUnlocks.SetEnabled(true);
+            bool all = true;
+            foreach (var e in Codex.Entries) all &= Codex.IsDiscovered(e) && Codex.DisplayName(e) == e.name && Codex.DisplayLore(e) == e.lore;
+            Check("dev mode on: every entry is visible", all);
+            Check("dev mode on: counter is N/N", Codex.DiscoveredCount == Codex.Total);
+            Check("dev mode on: codexSeen is not rewritten", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+            Check("dev mode on: contacts record nothing and toast nothing",
+                  !Codex.Discover("enemy_green") && events == 0 && PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+
+            DeveloperUnlocks.SetEnabled(false);
+            Codex.Reload();
+            Check("dev mode off: back to the real discoveries", Codex.DiscoveredCount == realCount &&
+                  Codex.IsDiscovered("enemy_black") && !Codex.IsDiscovered("enemy_red") && !Codex.IsDiscovered("enemy_green"));
+            Check("dev mode off: codexSeen unchanged by the round trip", PlayerPrefs.GetString(Codex.PrefsKey) == "enemy_black,atom_red");
+            Check("dev mode off: discovery works again", Codex.Discover("enemy_green") && events == 1);
+        }
+        finally
+        {
+            Codex.Discovered -= handler;
+            PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        }
+    }
+
     // ---- The one-line hooks and the animation sources ----
 
     static void CheckHooksAndSources()
@@ -405,6 +448,22 @@ public static class CodexTest
             }
         }
         Check("enemies tab mixes locked and discovered", lockedSeen > 0 && foundSeen > 0);
+
+        // Developer mode on with the panel open: it redraws with everything revealed.
+        string realSeen = PlayerPrefs.GetString(Codex.PrefsKey);
+        DeveloperUnlocks.SetEnabled(true);
+        bool allNamed = true;
+        for (int i = 0; i < panel.VisibleCards; i++)
+            allNamed &= panel.CardName(i).text == panel.CardEntry(i).name && panel.CardArt(i).color == Color.white;
+        Check("dev mode: the open panel refreshes to show every entry", allNamed);
+        Check("dev mode: panel counter reads N/N", panel.Counter.text.StartsWith(Codex.Total + " / " + Codex.Total));
+        entry.Refresh();
+        Check("dev mode: home counter reads N/N", entry.Counter.text == Codex.Total + "/" + Codex.Total + " DISCOVERED");
+        DeveloperUnlocks.SetEnabled(false);
+        int relocked = 0;
+        for (int i = 0; i < panel.VisibleCards; i++) if (panel.CardName(i).text == "???") relocked++;
+        Check("dev mode off: the open panel returns to the real discoveries", relocked == lockedSeen);
+        Check("dev mode round trip leaves codexSeen untouched", PlayerPrefs.GetString(Codex.PrefsKey) == realSeen);
 
         // Detail view, locked: no name, no lore.
         int lockedIndex = -1;

@@ -12,12 +12,12 @@ public static class CodexUi
     // a colour is for and the palette itself lives in one place.
     public static Color Accent { get { return CodexPalette.Teal; } }
     public static Color Title { get { return CodexPalette.Sodium; } }
-    public static Color Select { get { return CodexPalette.KanedaRed; } }
+    public static Color Select { get { return CodexPalette.Red; } }
     public static Color Ink { get { return CodexPalette.Ink; } }
-    public static Color Muted { get { return CodexPalette.Muted; } }
-    public static Color Body { get { return CodexPalette.Paper; } }
-    public static Color Idle { get { return CodexPalette.Shadow; } }
-    public static Color Locked { get { return CodexPalette.Slate; } }
+    public static Color Muted { get { return CodexPalette.SteelHi; } }
+    public static Color Body { get { return CodexPalette.Bone; } }
+    public static Color Idle { get { return CodexPalette.Indigo0; } }
+    public static Color Locked { get { return CodexPalette.Indigo1; } }
     // Undiscovered art: the sprite's own shape, blacked out in flat ink.
     public static Color Silhouette { get { return CodexPalette.Ink; } }
 

@@ -12,7 +12,7 @@ using UnityEngine.UI;
 public class CodexToast : MonoBehaviour
 {
     public const float Width = 460f, Height = 76f;
-    public const float TopMargin = 132f;   // clears the HUD's top stat row
+    public const float TopMargin = 236f;   // clears the HUD stat panel (top-left)
     public const float InDuration = .25f, HoldDuration = 2.2f, OutDuration = .35f;
     const int QueueSize = 4;
 

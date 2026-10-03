@@ -24,6 +24,9 @@ using UnityEngine.SceneManagement;
 // PrefsKey, so they can never drift from what the shop and WorldManager say.
 //
 // The tutorial is practice: nothing met in tutorialS5 counts.
+//
+// Developer mode (DeveloperUnlocks.Enabled) shows every entry as discovered
+// but never writes PrefsKey; turning it off brings back the real set.
 public static class Codex
 {
     public const string PrefsKey = "codexSeen";
@@ -99,6 +102,9 @@ public static class Codex
     {
         if (id == null || Find(id) == null) return false;
         if (InTutorial()) return false;
+        // Developer mode shows everything already, and its runs are not the
+        // player's real progress: nothing is recorded and no toast fires.
+        if (DeveloperUnlocks.Enabled) return false;
 
         EnsureLoaded();
         if (!seen.Add(id)) return false;
@@ -121,6 +127,10 @@ public static class Codex
     {
         if (entry == null) return false;
         if (entry.category == CodexCategory.Log) return true;
+        // Developer mode reveals every entry without touching PrefsKey, so
+        // switching it off returns the codex to the real discoveries (the same
+        // way DeveloperUnlocks restores real ships and worlds).
+        if (DeveloperUnlocks.Enabled) return true;
 
         EnsureLoaded();
         if (seen.Contains(entry.id)) return true;
