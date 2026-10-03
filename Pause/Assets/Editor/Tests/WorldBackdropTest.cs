@@ -39,9 +39,10 @@ public static class WorldBackdropTest
     {
         { "Space", new[] { "giant_00", "rocky_00", "ringback_00", "ringfront_00", "comet_00", "station_00",
                            "galaxy0", "galaxy1", "wisp0", "wisp1", "moon", "star", "dot", "streak" } },
-        { "Frost", new[] { "aurora_00", "peak0", "peak1", "peak2", "geyser_00", "cloud", "dot" } },
-        { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "dot" } },
-        { "Ember", new[] { "eruption_00", "burst_00", "volcano", "dot" } },
+        { "Frost", new[] { "aurora_00", "glacier_00", "massif0", "massif1", "geyser_00",
+                           "cloud0", "cloud1", "haze", "dot" } },
+        { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "cloud0", "cloud1", "haze", "dot" } },
+        { "Ember", new[] { "volcano_00", "burst_00", "cloud0", "cloud1", "haze", "dot" } },
     };
 
     public static int Execute()
@@ -80,6 +81,7 @@ public static class WorldBackdropTest
             Check(theme.displayName + " parallax rates strictly increase far -> near", increasing);
             Check(theme.displayName + " far layer is an opaque sky tile",
                   spec.layers[0].kind == BackdropCatalog.Kind.Tile && spec.layers[0].name == "sky");
+            if (spec.world != "Space") CheckDepthModel(spec);
 
             string folder = BackdropCatalog.Folder(spec.world);
             foreach (var l in spec.layers)
@@ -101,6 +103,57 @@ public static class WorldBackdropTest
             fx.Destroy();
             anim.Destroy();
         }
+    }
+
+    // The ship flies at atmosphere level: ground and landmarks are far below
+    // on slow parallax, only atmospheric layers (air, clouds, particles) may
+    // move fast, and at least one cloud/haze layer sits between ground and ship.
+    static void CheckDepthModel(BackdropCatalog.Spec spec)
+    {
+        float maxGround = 0f;
+        bool groundFar = true, nearAtmospheric = true;
+        foreach (var l in spec.layers)
+        {
+            bool ground = l.role == BackdropCatalog.Role.Ground || l.role == BackdropCatalog.Role.Landmark;
+            if (ground)
+            {
+                maxGround = Mathf.Max(maxGround, l.rate);
+                if (l.rate > BackdropCatalog.MaxGroundRate) groundFar = false;
+            }
+            else if (l.rate > BackdropCatalog.MaxGroundRate &&
+                     l.role != BackdropCatalog.Role.Atmosphere && l.role != BackdropCatalog.Role.Cloud)
+                nearAtmospheric = false;
+        }
+        Check(spec.world + " ground and landmark layers use far parallax (<= " + BackdropCatalog.MaxGroundRate + ")",
+              groundFar);
+        Check(spec.world + " near layers are atmospheric only", nearAtmospheric);
+        bool cloudBetween = false;
+        foreach (var l in spec.layers)
+            if (l.role == BackdropCatalog.Role.Cloud && l.rate > maxGround && l.rate < 1f) cloudBetween = true;
+        Check(spec.world + " has a cloud/haze layer between the ground and the ship", cloudBetween);
+        bool hasLandmark = false;
+        foreach (var l in spec.layers) if (l.role == BackdropCatalog.Role.Landmark) hasLandmark = true;
+        Check(spec.world + " has landmark set pieces", hasLandmark);
+    }
+
+    static float largestLandmark;
+
+    static bool LandmarksSmall(WorldBackdrop wb)
+    {
+        var pd = wb.Current.Director as PlanetDirector;
+        if (pd == null) return true;
+        bool ok = true;
+        foreach (var pool in pd.Landmarks)
+            foreach (var p in pool.items)
+            {
+                if (!p.active) continue;
+                Vector3 size = p.sr.bounds.size;
+                float m = Mathf.Max(size.x, size.y);
+                largestLandmark = Mathf.Max(largestLandmark, m);
+                if (m > BackdropCatalog.MaxLandmarkSize * 1.15f) ok = false;   // height may exceed width a little
+                if (p.rate > BackdropCatalog.MaxGroundRate) ok = false;
+            }
+        return ok;
     }
 
     // Pixels: seamless tiles, contrast guard, texture budget.
@@ -272,6 +325,8 @@ public static class WorldBackdropTest
                 int transforms = go.GetComponentsInChildren<Transform>(true).Length;
                 int capacity = wb.Current.PieceCount;
                 bool withinCapacity = true;
+                bool landmarksSmall = true;
+                largestLandmark = 0f;
                 for (int i = 0; i < 20 * 60 * 30; i++)           // 20 minutes at 30 fps
                 {
                     moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
@@ -279,10 +334,15 @@ public static class WorldBackdropTest
                     if (i % 600 == 0)
                         foreach (var p in wb.Current.Director.Pools)
                             if (p.ActiveCount > p.Capacity) withinCapacity = false;
+                    if (i % 30 == 0 && !LandmarksSmall(wb)) landmarksSmall = false;
                 }
                 Check(spec.world + " pooled set pieces stay bounded over a 20-minute run (" + transforms + " transforms, " +
                       capacity + " pooled)", withinCapacity && wb.Current.PieceCount == capacity &&
                       go.GetComponentsInChildren<Transform>(true).Length == transforms);
+                if (spec.world != "Space")
+                    Check(spec.world + " landmarks stay small and far over a long run (largest " +
+                          largestLandmark.ToString("F2") + " u, limit " + BackdropCatalog.MaxLandmarkSize + ")",
+                          landmarksSmall && largestLandmark > 0f);
                 int activeNow = 0;
                 foreach (var p in wb.Current.Director.Pools) activeNow += p.ActiveCount;
                 Check(spec.world + " still spawning set pieces late in a run (" + activeNow + " active)", activeNow > 0);

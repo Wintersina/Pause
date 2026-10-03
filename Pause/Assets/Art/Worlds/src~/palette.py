@@ -69,6 +69,9 @@ FROST = dict(
     pine="#060e18",
     aurora_core=CYAN, aurora_body=TEAL, aurora_fringe=DUSK,
     geyser="#9FE8F0", geyser_shadow=TEAL_SH,
+    # altitude: aerial haze colour, clouds between the ship and the ground
+    air="#1d3a52", cloud="#3e5c74", cloud_shadow="#24384c", band="#2a4a62",
+    ice_hi="#4f7f9c", lake="#0c3a4a",
 )
 
 VERDANT = dict(
@@ -87,6 +90,8 @@ VERDANT = dict(
     cliff="#1a2e2a", cliff_dark="#0f1e1c", fall="#0e4a54", fall_hi=CYAN, fall_shadow="#0a343c",
     stone_lit="#1E4A3C", stone_dark="#10261f", glyph_a=TEAL, glyph_b=SODIUM,
     obelisk="#1a2e2e", obelisk_dark="#0e1c1c", obelisk_light=SODIUM,
+    air="#18322c", cloud="#3a564c", cloud_shadow="#22362f", band="#2a4840",
+    plateau="#1E4A3C", plateau_dark="#143428", rock="#24302e", rock_dark="#141c1c", rock_hi="#3a4a46",
 )
 
 EMBER = dict(
@@ -105,4 +110,6 @@ EMBER = dict(
     rock="#140a0c", rock_hi="#2e1a1c",
     eruption_hot=SODIUM, eruption_hi=AMBER, eruption_core=BONE,
     smoke_cel=DUSK, smoke_cel_dark=INDIGO_0,
+    air="#3e1418", cloud="#3a2a40", cloud_shadow="#22182a", band="#40161c",
+    cone_lit="#4a2a2a", cone_dark="#1e1016", cone_hi="#6a3a34", apron="#2a161a",
 )

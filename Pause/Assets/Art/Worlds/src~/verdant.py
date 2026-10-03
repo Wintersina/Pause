@@ -1,13 +1,14 @@
-"""Verdant: a night jungle in flat anime cels. Spiky canopy far below,
-layered green ridges, a river with travelling highlight dashes, cliffs with
-cascading waterfalls, overgrown ruin towers with blinking neon glyphs,
-pulsing signal obelisks, fireflies and drifting spores."""
+"""Verdant, seen from atmosphere level: the night canopy far below with
+distant hazed hills, a narrow jungle river valley, small far-off landmarks
+(plateau waterfalls, overgrown ruins with blinking glyphs, signal
+obelisks), and cloud cels / haze bands / spores passing close by."""
 import math
 import random
 
 from bgkit import (TAU, World, doc, blur, lin, wrap_y, PNoise, edge_range, pts, ink_attr, hard_glow,
                    jitter_ridge, grain_defs, grain)
 from palette import VERDANT as P
+from altitude import hazed, haze_doc, cloud_cel, haze_band, scatter_peaks
 import space
 
 W, H = 512, 1024
@@ -67,105 +68,122 @@ def sky():
 
 
 def far():
+    """Distant green hills scattered far below, heavily hazed."""
     rnd = random.Random(111)
-    d, b = edge_range(rnd, W, H, P["far"], 7, 180, 280, 100, 170, 170, cap=0.18, ink=2.2,
-                      foot=P["far"]["dark"])
-    return doc(W, H, b, d)
+    d, b = scatter_peaks(rnd, W, H, P["far"], 30, 26, 52, cap=0.22, ink=1.2)
+    hd, hb = hazed(b, P["air"], 0.45)
+    return doc(W, H, hb, d + hd)
 
 
 def river_geom():
     rnd = random.Random(121)
     n1, n2 = PNoise(rnd), PNoise(rnd)
-    return (lambda y: W / 2 + 14 * n1(y / H)), (lambda y: 62 + 10 * n2(y / H))
+    return (lambda y: W / 2 + 9 * n1(y / H)), (lambda y: 20 + 4 * n2(y / H))
 
 
 def mid():
+    """The jungle valley far below: a narrow river, banks, small crowns and
+    low ridges along the edges. Moderate haze."""
     rnd = random.Random(131)
     cxf, hwf = river_geom()
     ys = [H * i / 48 for i in range(49)]
     body = []
-    bl = [(cxf(y) - hwf(y) - 22, y) for y in ys]
-    br = [(cxf(y) + hwf(y) + 22, y) for y in ys]
+    bl = [(cxf(y) - hwf(y) - 10, y) for y in ys]
+    br = [(cxf(y) + hwf(y) + 10, y) for y in ys]
     body.append(f'<polygon points="{pts(bl + list(reversed(br)))}" fill="{P["bank"]}"/>')
     left = [(cxf(y) - hwf(y), y) for y in ys]
     right = [(cxf(y) + hwf(y), y) for y in ys]
     body.append(f'<polygon points="{pts(left + list(reversed(right)))}" fill="{P["water"]}"/>')
     sh = [(cxf(y) + hwf(y) * 0.4, y) for y in ys]
     body.append(f'<polygon points="{pts(sh + list(reversed(right)))}" fill="{P["water_shadow"]}"/>')
-    pads = []
-    for i in range(40):
-        y = rnd.uniform(0, H)
-        sd = rnd.choice((-1, 1))
-        x = cxf(y) + sd * hwf(y) * rnd.uniform(0.6, 0.92)
-        r = rnd.uniform(3, 6)
-        c = rnd.choice([P["pad"], P["stone"]])
-        pads.append((y, lambda dy, x=x, y=y, r=r, c=c:
-                     f'<polygon points="{x - r:.1f},{y + dy:.1f} {x:.1f},{y + dy - r * 0.8:.1f} {x + r:.1f},{y + dy:.1f} '
-                     f'{x:.1f},{y + dy + r * 0.8:.1f}" fill="{c}" {ink_attr(1.2)}/>'))
-    body.append(wrap_y(pads, H))
     for side in (left, right, bl, br):
-        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(2.5)}/>')
+        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(1.6)}/>')
     trees = []
-    for i in range(40):
+    for i in range(110):
         y = rnd.uniform(0, H)
         sd = rnd.choice((-1, 1))
-        x = cxf(y) + sd * (hwf(y) + rnd.uniform(30, 110))
-        r = rnd.uniform(14, 26)
+        x = cxf(y) + sd * (hwf(y) + rnd.uniform(14, 70))
+        r = rnd.uniform(5, 10)
         seed = rnd.random()
         trees.append((y, lambda dy, x=x, y=y, r=r, seed=seed:
                       crown(random.Random(seed), x + r * 0.25, y + r * 0.3, r, P["tree_dark"], P["tree_dark"], dy)
-                      + crown(random.Random(seed), x, y, r, P["tree"], P["tree_hi"], dy, ink=2)))
+                      + crown(random.Random(seed), x, y, r, P["tree"], P["tree_hi"], dy, ink=1.2)))
     body.append(wrap_y(trees, H))
-    d, b = edge_range(rnd, W, H, P["near"], 5, 140, 210, 110, 180, 118, cap=0.2, rim=P["rim"], ink=3,
+    d, b = edge_range(rnd, W, H, P["near"], 12, 50, 84, 34, 60, 100, cap=0.2, rim=P["rim"], ink=1.4,
                       foot=P["near"]["dark"])
-    return doc(W, H, "".join(body) + b, d)
+    hd, hb = hazed("".join(body) + b, P["air"], 0.25)
+    return doc(W, H, hb, d + hd)
 
 
 def flow():
     w = 128
     rnd = random.Random(141)
     items = []
-    for i in range(30):
-        x = rnd.uniform(40, 88)
+    for i in range(34):
+        x = rnd.uniform(57, 71)
         y = rnd.uniform(0, H)
-        L = rnd.uniform(12, 36)
+        L = rnd.uniform(6, 14)
         items.append((y, lambda dy, x=x, y=y, L=L:
-                      f'<rect x="{x - 1.5:.1f}" y="{y + dy - L / 2:.1f}" width="3" height="{L:.1f}" '
-                      f'fill="{P["water_dash"]}" opacity="0.75"/>'))
+                      f'<rect x="{x - 1:.1f}" y="{y + dy - L / 2:.1f}" width="2" height="{L:.1f}" '
+                      f'fill="{P["water_dash"]}" opacity="0.7"/>'))
     return doc(w, H, wrap_y(items, H), "")
 
 
 def waterfall(phase):
-    """Cliff ledge with a cascade: flat water sheet, highlight dashes that
-    fall on a snappy cycle, and a splash crown at the foot."""
-    w, h = 128, 256
+    """A mesa-edge waterfall seen from altitude: an angular plateau island
+    with a few crowns and a river running to its lip, an inked cliff band
+    (one shadow plane, strata lines), the falling sheet with highlight
+    dashes that drop each frame, angular mist cels at the plunge pool and a
+    short river tail. 8 frames; mist steps between two sizes (snappy)."""
+    w, h = 256, 256
     rnd = random.Random(7)
-    top = 36
-    ledge = [(0, 44), (16, 22), (40, 30), (62, 16), (90, 28), (112, 18), (128, 34), (128, 84), (0, 92)]
-    body = [f'<polygon points="{pts(ledge)}" fill="{P["cliff"]}" {ink_attr(3)}/>',
-            f'<polygon points="64,16 90,28 112,18 128,34 128,84 64,88" fill="{P["cliff_dark"]}"/>',
-            f'<polygon points="{pts(ledge)}" fill="none" {ink_attr(3)}/>',
-            f'<polygon points="44,{top} 84,{top} 88,{h - 40} 40,{h - 40}" fill="{P["fall"]}" {ink_attr(2.5)}/>',
-            f'<polygon points="70,{top} 84,{top} 88,{h - 40} 72,{h - 40}" fill="{P["fall_shadow"]}"/>']
-    for i in range(14):
-        x = 46 + rnd.uniform(0, 34)
-        L = rnd.uniform(16, 40)
-        y = top + ((rnd.uniform(0, 1) + phase) % 1) * (h - 40 - top)
-        body.append(f'<rect x="{x:.1f}" y="{y - L:.1f}" width="2.5" height="{L:.1f}" fill="{P["fall_hi"]}"/>')
-    body.append(f'<rect x="40" y="{top}" width="48" height="{h - 40 - top}" fill="none"/>')
-    # Splash: angular spray that pulses with the cycle.
-    k = 0.5 + 0.5 * math.sin(phase * TAU * 2)
-    spray = []
-    for i in range(9):
-        a = math.pi + i * math.pi / 8
-        r = 26 + 8 * k + (6 if i % 2 else 0)
-        spray.append((64 + r * math.cos(a), h - 36 + r * 0.55 * math.sin(a)))
-    spray = [(36, h - 30)] + spray + [(92, h - 30)]
-    body.append(f'<polygon points="{pts(spray)}" fill="{P["fall_hi"]}" opacity="0.85" {ink_attr(2)}/>')
-    body.append(f'<polygon points="30,{h - 30} 98,{h - 30} 90,{h - 20} 38,{h - 20}" fill="{P["fall"]}" {ink_attr(2)}/>')
-    return doc(w, h, "".join(body))
-
-
+    top_edge = [(24, 40), (70, 12), (128, 4), (190, 10), (236, 40)]
+    lip = [(240, 92), (198, 104), (150, 100), (128, 108), (106, 100), (54, 106), (16, 92)]
+    plateau = top_edge + lip
+    drop = 58
+    cliff = list(reversed(lip)) + [(x, y + drop + (6 if i % 2 else 0)) for i, (x, y) in enumerate(lip)]
+    cliff_shadow = [(150, 100), (198, 104), (240, 92), (240, 150), (198, 166), (150, 158)]
+    river_top = [(120, 6), (136, 6), (142, 46), (136, 76), (140, 104), (116, 104), (120, 76), (114, 46)]
+    fall = [(116, 104), (140, 104), (144, 166), (112, 166)]
+    pool = [(92, 164), (164, 162), (178, 182), (150, 196), (104, 196), (82, 182)]
+    tail = [(114, 194), (142, 194), (146, 222), (130, 250), (112, 222)]
+    g = [f'<polygon points="{pts(plateau)}" fill="{P["plateau"]}"/>',
+         f'<polygon points="{pts([(150, 6), (190, 10), (236, 40), (240, 92), (198, 104), (150, 100)])}" fill="{P["plateau_dark"]}"/>']
+    for i in range(10):
+        x, y = rnd.uniform(40, 220), rnd.uniform(26, 86)
+        if 100 < x < 156:
+            continue
+        g.append(crown(random.Random(rnd.random()), x, y, rnd.uniform(6, 10), P["tree"], P["tree_hi"], 0, ink=1.4))
+    g.append(f'<polygon points="{pts(river_top)}" fill="{P["water"]}"/>')
+    g.append(f'<polygon points="{pts(cliff)}" fill="{P["rock"]}"/>')
+    g.append(f'<polygon points="{pts(cliff_shadow)}" fill="{P["rock_dark"]}"/>')
+    g.append(f'<polyline points="16,95 54,109 106,103" stroke="{P["rock_hi"]}" stroke-width="3" fill="none"/>')
+    for x in (40, 80, 176, 216):
+        g.append(f'<polyline points="{x},{110} {x + 4},{130} {x - 2},{150}" fill="none" {ink_attr(1.4)}/>')
+    g.append(f'<polygon points="{pts(pool)}" fill="{P["water"]}"/>')
+    g.append(f'<polygon points="{pts(tail)}" fill="{P["water"]}"/>')
+    ink = (f'<polygon points="{pts(plateau)}" fill="none" {ink_attr(3)}/>'
+           f'<polygon points="{pts(cliff)}" fill="none" {ink_attr(3)}/>'
+           f'<polygon points="{pts(river_top)}" fill="none" {ink_attr(2)}/>'
+           f'<polygon points="{pts(pool)}" fill="none" {ink_attr(2.5)}/>'
+           f'<polygon points="{pts(tail)}" fill="none" {ink_attr(2)}/>')
+    d, body = hazed("".join(g) + ink, P["air"], 0.3)
+    out = [f'<polygon points="{pts(fall)}" fill="{P["fall"]}" {ink_attr(2.5)}/>',
+           f'<polygon points="{pts([(130, 104), (140, 104), (144, 166), (132, 166)])}" fill="{P["fall_shadow"]}"/>']
+    for i in range(6):
+        x = 118 + i * 4
+        L = 10 + (i * 7) % 9
+        y = 104 + ((i * 0.37 + phase) % 1) * 62
+        out.append(f'<rect x="{x}" y="{y - L / 2:.1f}" width="2" height="{L}" fill="{P["fall_hi"]}" opacity="0.85"/>')
+    big = int(phase * 8) % 2 == 0
+    for j, (mx, my) in enumerate([(106, 170), (128, 166), (150, 170)]):
+        r = (11 if big else 8) + (j % 2) * 2
+        p = [(mx + r * math.cos(a), my + r * 0.7 * math.sin(a)) for a in [k * TAU / 6 + j for k in range(6)]]
+        out.append(f'<polygon points="{pts(p)}" fill="{P["fall_hi"]}" opacity="0.45" {ink_attr(1.2)}/>')
+    for i in range(3):
+        y = 198 + ((i / 3 + phase) % 1) * 40
+        out.append(f'<rect x="{125 + (i % 2) * 5}" y="{y:.1f}" width="2" height="8" fill="{P["water_dash"]}" opacity="0.7"/>')
+    return doc(w, h, body + "".join(out), d)
 def ruin(phase):
     """Overgrown ruin tower: angular slabs, one shadow plane, ink outlines;
     neon glyphs blink in a 4-step sequence with hard bloom."""
@@ -223,9 +241,12 @@ def build():
     w.tile("mid", mid())
     w.tile("flow", flow())
     w.flipbook("anim", "waterfall", 8, waterfall)
-    w.flipbook("anim", "ruin", 4, ruin)
-    w.sprite("fx", "obelisk0", obelisk(1))
-    w.sprite("fx", "obelisk1", obelisk(5))
+    w.flipbook("anim", "ruin", 4, lambda p: haze_doc(ruin(p), P["air"], 0.3))
+    w.sprite("fx", "obelisk0", haze_doc(obelisk(1), P["air"], 0.3))
+    w.sprite("fx", "obelisk1", haze_doc(obelisk(5), P["air"], 0.3))
+    w.sprite("fx", "cloud0", cloud_cel(4, P["cloud"], P["cloud_shadow"]))
+    w.sprite("fx", "cloud1", cloud_cel(9, P["cloud"], P["cloud_shadow"]))
+    w.sprite("fx", "haze", haze_band(P["band"]), size=(256, 48))
     w.sprite("fx", "star", space.star_sprite())
     w.sprite("fx", "dot", space.soft_dot())
     w.sprite("fx", "streak", space.streak())
@@ -233,24 +254,21 @@ def build():
 
 
 def preview(t):
-    v = 30 * (0.15 + 0.25)
+    v = 30 * (0.2 + 0.25)
     fr = lambda n, fps: int(t * fps) % n
-    c = [("tile", "sky", t * v * 0.010, 1, (1, 1, 1, 1)),
-         ("tile", "far", t * v * 0.04, 1, (1, 1, 1, 1)),
-         ("tile", "mid", t * v * 0.10, 1, (1, 1, 1, 1)),
-         ("strip", "flow", t * v * 0.10 + t * 1.4, 0.25, 1)]
-    c.append(("sprite", "anim", f"waterfall_{fr(8, 12):02d}", -1.6, 7 - (t * v * 0.10 + 2) % 15, 1.2, 0, (0.8, 0.9, 0.9, 1), False))
-    c.append(("sprite", "anim", f"ruin_{fr(4, 3):02d}", 1.6, 7 - (t * v * 0.16 + 6) % 16, 1.9, 0, (0.85, 0.9, 0.88, 1), False))
-    beat = (t * 0.6) % 1
-    pop = 1.08 if beat < 0.12 else 1.0
-    c.append(("sprite", "fx", "obelisk0", -1.7, 7 - (t * v * 0.16 + 12) % 16, 0.9 * pop, 0, (0.7, 0.75, 0.8, 0.9), False))
+    c = [("tile", "sky", t * v * 0.006, 1, (1, 1, 1, 1)),
+         ("tile", "far", t * v * 0.014, 1, (1, 1, 1, 1)),
+         ("tile", "mid", t * v * 0.024, 1, (1, 1, 1, 1)),
+         ("strip", "flow", t * v * 0.024 + t * 0.3, 0.25, 1)]
+    c.append(("sprite", "anim", f"waterfall_{fr(8, 12):02d}", -1.3, 2 - (t * v * 0.03) % 12, 1.5, 0, (1, 1, 1, 1), False))
+    c.append(("sprite", "anim", f"ruin_{fr(4, 3):02d}", 1.4, -2 - (t * v * 0.036) % 12 + 6, 0.9, 0, (1, 1, 1, 1), False))
+    c.append(("sprite", "fx", "haze", 0.0, 4 - (t * v * 0.12) % 14, 7.0, 0, (1, 1, 1, 0.35), False))
+    c.append(("sprite", "fx", "cloud1", -0.6, 7 - (t * v * 0.3 + 9) % 20, 2.4, 0, (1, 1, 1, 0.35), False))
     for i in range(16):
         x = ((i * 0.618 + 0.2 * math.sin(t * 0.7 + i)) % 1) * 5 - 2.5
-        y = (((i * 0.377) % 1) * 13 - t * v * 0.35 + t * 0.25) % 13 - 6.5
+        y = (((i * 0.377) % 1) * 13 - t * v * 0.4 + t * 0.25) % 13 - 6.5
         blink = math.sin(t * 2.4 + i * 2.1) > 0.55
-        c.append(("sprite", "fx", "dot", x, y, 0.11, 0, (0.75, 1, 0.45, 0.8 if blink else 0.05), False))
+        c.append(("sprite", "fx", "dot", x, y, 0.08, 0, (0.75, 1, 0.45, 0.7 if blink else 0.05), False))
     return c
-
-
 if __name__ == "__main__":
     build()

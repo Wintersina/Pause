@@ -337,15 +337,118 @@ public class SpaceDirector : BackdropDirector
     }
 }
 
-public class FrostDirector : BackdropDirector
+// Shared depth model for the planet worlds. The ship flies at atmosphere
+// level: ground tiles and landmark set pieces are far below (slow parallax,
+// small, art pre-hazed toward the air colour); only haze bands, cloud cels
+// and particles pass close. Landmarks are spaced so at most a couple are in
+// view, and never spawn on top of each other.
+public abstract class PlanetDirector : BackdropDirector
 {
-    BackdropPool peaks, aurora, geysers, snow, clouds;
-    Sprite[] auroraFrames, geyserFrames;
-    Timer peakTimer = new Timer(4.5f, 8f, 1f);
-    Timer auroraTimer = new Timer(8f, 14f, 2f);
-    Timer geyserTimer = new Timer(5f, 9f, 3f);
-    Timer cloudTimer = new Timer(10f, 18f, 8f);
-    int side;
+    protected BackdropPool haze, clouds;
+    readonly Timer hazeTimer = new Timer(6f, 11f, 2.5f);
+    readonly Timer cloudTimer = new Timer(7f, 14f, 4f);
+    protected readonly System.Collections.Generic.List<BackdropPool> landmarks =
+        new System.Collections.Generic.List<BackdropPool>();
+
+    protected PlanetDirector(int seed) : base(seed) { }
+
+    public System.Collections.Generic.IList<BackdropPool> Landmarks { get { return landmarks; } }
+
+    protected void BuildAir()
+    {
+        haze = Pool("haze", 2);
+        clouds = Pool("clouds", 2);
+        SpawnHaze(Rand(-HalfH * 0.3f, HalfH * 0.5f));
+    }
+
+    protected BackdropPool LandmarkPool(string layer, int capacity, int orderOffset = 0)
+    {
+        var p = Pool(layer, capacity, false, orderOffset);
+        landmarks.Add(p);
+        return p;
+    }
+
+    protected void StepAir(float dt, float v)
+    {
+        if (hazeTimer.Tick(dt, rng)) SpawnHaze(float.NaN);
+        if (cloudTimer.Tick(dt, rng)) SpawnCloud();
+        foreach (var h in haze.items)
+            if (h.active && Drift(h, dt, v)) Paint(h, 1f);
+        foreach (var c in clouds.items)
+            if (c.active && Drift(c, dt, v)) Paint(c, 1f);
+    }
+
+    void SpawnHaze(float y)
+    {
+        var h = haze.Spawn();
+        if (h == null) return;
+        SetSprite(h, fx.Get("haze"), HalfW * 2f * Rand(1.15f, 1.35f));
+        h.root.localScale = new Vector3(h.root.localScale.x, h.root.localScale.y * Rand(1.2f, 2.2f), 1f);
+        h.x = Rand(-0.3f, 0.3f);
+        h.y = float.IsNaN(y) ? HalfH + 1.2f : y;
+        h.size = 1.5f;
+        h.rate = set.Spec.Rate("haze");
+        h.color = new Color(1f, 1f, 1f, Rand(0.22f, 0.32f));
+    }
+
+    void SpawnCloud()
+    {
+        var c = clouds.Spawn();
+        if (c == null) return;
+        SetSprite(c, fx.Get(Chance(0.5) ? "cloud0" : "cloud1"), Rand(2.0f, 3.0f));
+        if (Chance(0.5)) c.body.localScale = new Vector3(-1f, 1f, 1f);
+        c.x = Rand(-HalfW * 0.6f, HalfW * 0.6f);
+        c.y = SpawnY(1f);
+        c.vx = Rand(-0.12f, 0.12f);
+        c.rate = set.Spec.Rate("clouds");
+        c.color = new Color(1f, 1f, 1f, Rand(0.26f, 0.36f));
+    }
+
+    // True when the top of the view is clear of other landmarks, so a new
+    // one entering doesn't overlap one that just arrived.
+    protected bool TopClear(float size)
+    {
+        foreach (var pool in landmarks)
+            foreach (var p in pool.items)
+                if (p.active && p.size > 0.6f && p.y > HalfH - (p.size + size) * 0.6f) return false;
+        return true;
+    }
+
+    // A landmark far below: small, pre-hazed art, far parallax, anywhere
+    // across the ground (it's far beneath the play area, not beside it).
+    protected BackdropPiece SpawnLandmark(BackdropPool pool, Sprite first, float size, string layer, float y)
+    {
+        if (first == null || (float.IsNaN(y) && !TopClear(size))) return null;
+        var p = pool.Spawn();
+        if (p == null) return null;
+        SetSprite(p, first, Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
+        p.x = Rand(-EdgeX + p.size * 0.35f, EdgeX - p.size * 0.35f);
+        p.y = float.IsNaN(y) ? SpawnY(p.size) : y;
+        p.rate = set.Spec.Rate(layer);
+        p.color = Color.white;
+        if (Chance(0.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);
+        return p;
+    }
+
+    protected void StepLandmarks(BackdropPool pool, float dt, float v)
+    {
+        foreach (var p in pool.items)
+        {
+            if (!p.active || !Drift(p, dt, v)) continue;
+            p.Animate();
+            if (p.Finished) { Despawn(p); continue; }
+            Paint(p, 1f);
+        }
+    }
+}
+
+public class FrostDirector : PlanetDirector
+{
+    BackdropPool glaciers, geysers, aurora, snow;
+    Sprite[] auroraFrames, geyserFrames, glacierFrames;
+    Timer glacierTimer = new Timer(9f, 15f, 6f);
+    Timer geyserTimer = new Timer(5f, 9f, 2f);
+    Timer auroraTimer = new Timer(9f, 15f, 1.5f);
 
     public FrostDirector() : base(1989) { }
 
@@ -353,64 +456,64 @@ public class FrostDirector : BackdropDirector
     {
         auroraFrames = anim.Frames("aurora");
         geyserFrames = fx.Frames("geyser");
-        geysers = Pool("geysers", 2);
-        peaks = Pool("peaks", 3);
+        glacierFrames = fx.Frames("glacier");
+        geysers = LandmarkPool("geysers", 2);
+        glaciers = LandmarkPool("glaciers", 2);
         aurora = Pool("aurora", 2);
+        BuildAir();
         snow = Pool("snow", 30);
-        clouds = Pool("snow", 1, false, 5);
-        Scatter(snow, fx.Get("dot"), 0.05f, 0.12f, new[] { new Color(0.8f, 0.9f, 1f, 0.5f),
+        Scatter(snow, fx.Get("dot"), 0.05f, 0.11f, new[] { new Color(0.8f, 0.9f, 1f, 0.5f),
             new Color(0.7f, 0.85f, 1f, 0.35f) }, set.Spec.Rate("snow"));
-        // One peak already in view so the world doesn't open empty.
-        SpawnPeak(Rand(-HalfH * 0.2f, HalfH * 0.5f));
+        SpawnGlacier(Rand(-HalfH * 0.1f, HalfH * 0.5f));
     }
 
     protected override void Step(float dt, float v)
     {
-        if (peakTimer.Tick(dt, rng)) SpawnPeak(float.NaN);
-        if (auroraTimer.Tick(dt, rng)) SpawnAurora();
+        if (glacierTimer.Tick(dt, rng)) SpawnGlacier(float.NaN);
         if (geyserTimer.Tick(dt, rng)) SpawnGeyser();
-        if (cloudTimer.Tick(dt, rng)) SpawnCloud();
-
-        foreach (var p in peaks.items)
-            if (p.active && Drift(p, dt, v)) Paint(p, 1f);
+        if (auroraTimer.Tick(dt, rng)) SpawnAurora();
+        StepLandmarks(glaciers, dt, v);
+        StepLandmarks(geysers, dt, v);
         foreach (var a in aurora.items)
         {
             if (!a.active || !Drift(a, dt, v)) continue;
             a.Animate();
-            // Flare: some curtains surge brighter mid-pass.
             float flare = a.kind == 1 ? Mathf.Max(0f, Mathf.Sin(a.age * 1.3f)) : 0f;
-            Paint(a, 0.75f + 0.5f * flare * flare);
+            Paint(a, 0.7f + 0.45f * flare * flare);
         }
-        foreach (var g in geysers.items)
-        {
-            if (!g.active || !Drift(g, dt, v)) continue;
-            g.Animate();
-            if (g.Finished) { Despawn(g); continue; }
-            Paint(g, 1f);
-        }
+        StepAir(dt, v);
         foreach (var s in snow.items)
         {
             Recycle(s, -0.6f, dt, v, 0.5f);
             Paint(s, 1f);
         }
-        foreach (var c in clouds.items)
-            if (c.active && Drift(c, dt, v)) Paint(c, 1f);
     }
 
-    void SpawnPeak(float y)
+    void SpawnGlacier(float y)
     {
-        var p = peaks.Spawn();
-        if (p == null) return;
-        string[] names = { "peak0", "peak1", "peak2" };
-        SetSprite(p, fx.Get(Pick(names)), Rand(2.3f, 3.3f));
-        side = 1 - side;
-        float s = side == 0 ? -1f : 1f;
-        // The art's skirt slopes off its left edge: mirror it on the right.
-        p.x = s * (EdgeX - p.size * Rand(0.3f, 0.42f));
-        p.body.localScale = new Vector3(s, 1f, 1f);
-        p.y = float.IsNaN(y) ? SpawnY(p.size) : y;
-        p.rate = set.Spec.Rate("peaks");
-        p.color = Color.white;
+        // Two landmark kinds: a valley glacier (animated meltwater) or a
+        // small ice massif.
+        if (Chance(0.6) && glacierFrames.Length > 0)
+        {
+            var g = SpawnLandmark(glaciers, glacierFrames[0], Rand(1.3f, 1.7f), "glaciers", y);
+            if (g != null) { g.frames = glacierFrames; g.fps = 4f; g.body.localScale = Vector3.one; }
+        }
+        else
+        {
+            SpawnLandmark(glaciers, fx.Get(Chance(0.5) ? "massif0" : "massif1"), Rand(1.1f, 1.5f), "glaciers", y);
+        }
+    }
+
+    void SpawnGeyser()
+    {
+        if (geyserFrames.Length == 0) return;
+        var g = SpawnLandmark(geysers, geyserFrames[0], Rand(0.26f, 0.36f), "geysers", Rand(-HalfH * 0.4f, HalfH * 0.7f));
+        if (g == null) return;
+        g.frames = geyserFrames;
+        g.fps = 9f;
+        g.loop = false;
+        g.body.localScale = Vector3.one;
+        g.color = new Color(0.75f, 0.88f, 1f, 0.8f);
     }
 
     void SpawnAurora()
@@ -427,43 +530,16 @@ public class FrostDirector : BackdropDirector
         a.kind = Chance(0.45) ? 1 : 0;
         a.root.localRotation = Quaternion.Euler(0, 0, Rand(-12f, 12f));
         if (Chance(0.5)) a.body.localScale = new Vector3(-1f, 1f, 1f);
-        a.color = new Color(0.75f, 0.9f, 0.9f, 0.55f);
-    }
-
-    void SpawnGeyser()
-    {
-        if (geyserFrames.Length == 0) return;
-        var g = geysers.Spawn();
-        if (g == null) return;
-        g.frames = geyserFrames;
-        g.fps = 9f;
-        g.loop = false;
-        SetSprite(g, geyserFrames[0], Rand(0.7f, 1.0f));
-        g.x = (Chance(0.5) ? -1f : 1f) * Rand(0.9f, 1.6f);
-        g.y = Rand(-HalfH * 0.2f, HalfH * 0.7f);
-        g.rate = set.Spec.Rate("geysers");
-        g.color = new Color(0.7f, 0.88f, 1f, 0.8f);
-    }
-
-    void SpawnCloud()
-    {
-        var c = clouds.Spawn();
-        if (c == null) return;
-        SetSprite(c, fx.Get("cloud"), Rand(3.5f, 5f));
-        c.x = Rand(-1.2f, 1.2f);
-        c.y = SpawnY(2f);
-        c.rate = set.Spec.Rate("snow") * 1.3f;
-        c.color = new Color(0.75f, 0.85f, 1f, 0.16f);
+        a.color = new Color(0.75f, 0.9f, 0.9f, 0.5f);
     }
 }
 
-public class VerdantDirector : BackdropDirector
+public class VerdantDirector : PlanetDirector
 {
-    BackdropPool waterfalls, ruins, obelisks, fireflies, spores;
+    BackdropPool waterfalls, ruins, glowspores, spores;
     Sprite[] fall, ruin;
-    Timer fallTimer = new Timer(7f, 12f, 1.5f);
-    Timer ruinTimer = new Timer(11f, 18f, 6f);
-    Timer obeliskTimer = new Timer(6f, 10f, 3f);
+    Timer fallTimer = new Timer(10f, 16f, 7f);
+    Timer ruinTimer = new Timer(7f, 12f, 3f);
 
     public VerdantDirector() : base(1990) { }
 
@@ -471,46 +547,38 @@ public class VerdantDirector : BackdropDirector
     {
         fall = anim.Frames("waterfall");
         ruin = anim.Frames("ruin");
-        waterfalls = Pool("waterfalls", 2);
-        ruins = Pool("ruins", 1);
-        obelisks = Pool("ruins", 2, false, 3);
-        fireflies = Pool("fireflies", 16);
+        waterfalls = LandmarkPool("waterfalls", 1);
+        ruins = LandmarkPool("ruins", 3);
+        BuildAir();
+        glowspores = Pool("glowspores", 14);
         spores = Pool("spores", 12);
-        Scatter(fireflies, fx.Get("dot"), 0.08f, 0.14f, new[] { new Color(0.75f, 1f, 0.45f, 0.8f),
-            new Color(1f, 0.75f, 0.35f, 0.7f) }, set.Spec.Rate("fireflies"));
-        Scatter(spores, fx.Get("dot"), 0.05f, 0.1f, new[] { new Color(0.6f, 0.95f, 0.9f, 0.35f),
-            new Color(0.85f, 0.6f, 0.9f, 0.3f) }, set.Spec.Rate("spores"));
-        SpawnFall(Rand(0f, HalfH * 0.5f));
+        Scatter(glowspores, fx.Get("dot"), 0.06f, 0.1f, new[] { new Color(0.75f, 1f, 0.45f, 0.8f),
+            new Color(1f, 0.75f, 0.35f, 0.7f) }, set.Spec.Rate("glowspores"));
+        Scatter(spores, fx.Get("dot"), 0.04f, 0.08f, new[] { new Color(0.6f, 0.95f, 0.9f, 0.35f),
+            new Color(0.85f, 0.75f, 0.6f, 0.3f) }, set.Spec.Rate("spores"));
+        SpawnFall(Rand(-HalfH * 0.1f, HalfH * 0.5f));
     }
 
     protected override void Step(float dt, float v)
     {
         if (fallTimer.Tick(dt, rng)) SpawnFall(float.NaN);
         if (ruinTimer.Tick(dt, rng)) SpawnRuin();
-        if (obeliskTimer.Tick(dt, rng)) SpawnObelisk();
-
-        foreach (var w in waterfalls.items)
-        {
-            if (!w.active || !Drift(w, dt, v)) continue;
-            w.Animate();
-            Paint(w, 1f);
-        }
+        StepLandmarks(waterfalls, dt, v);
         foreach (var r in ruins.items)
         {
             if (!r.active || !Drift(r, dt, v)) continue;
-            r.Animate();
+            if (r.frames != null) r.Animate();
+            else
+            {
+                // Obelisk beacon: a snappy beat, held off between beats.
+                float beat = Mathf.Repeat(r.age * 0.6f + r.phase, 1f);
+                r.sr.color = new Color(1f, 1f, 1f, beat < 0.12f ? 1f : 0.8f) * new Color(1, 1, 1, set.Alpha);
+                continue;
+            }
             Paint(r, 1f);
         }
-        foreach (var m in obelisks.items)
-        {
-            if (!m.active || !Drift(m, dt, v)) continue;
-            // Snappy pulse: a quick swell every couple of seconds.
-            float beat = Mathf.Repeat(m.age * 0.6f + m.phase, 1f);
-            float pop = beat < 0.12f ? 1f + 0.08f * Mathf.Sin(beat / 0.12f * Mathf.PI) : 1f;
-            m.body.localScale = new Vector3(pop, pop, 1f);
-            Paint(m, beat < 0.12f ? 1f : 0.8f);
-        }
-        foreach (var f in fireflies.items)
+        StepAir(dt, v);
+        foreach (var f in glowspores.items)
         {
             Recycle(f, 0.25f, dt, v, 0.9f);
             float b = Mathf.Sin(f.age * 2.4f + f.phase);
@@ -526,65 +594,47 @@ public class VerdantDirector : BackdropDirector
     void SpawnFall(float y)
     {
         if (fall.Length == 0) return;
-        var w = waterfalls.Spawn();
+        var w = SpawnLandmark(waterfalls, fall[0], Rand(1.3f, 1.7f), "waterfalls", y);
         if (w == null) return;
         w.frames = fall;
         w.fps = 12f;
-        w.age = Rand(0f, 1f);
-        SetSprite(w, fall[0], Rand(1.0f, 1.3f));
-        w.x = (Chance(0.5) ? -1f : 1f) * Rand(1.25f, 1.7f);
-        w.y = float.IsNaN(y) ? SpawnY(w.size * 2f) : y;
-        w.rate = set.Spec.Rate("waterfalls");
-        w.color = new Color(0.62f, 0.72f, 0.74f, 1f);
+        w.body.localScale = Vector3.one;      // water falls toward the bottom of the art
     }
 
     void SpawnRuin()
     {
-        if (ruin.Length == 0) return;
-        var r = ruins.Spawn();
-        if (r == null) return;
-        r.frames = ruin;
-        r.fps = 3f;
-        SetSprite(r, ruin[0], Rand(1.6f, 2.1f));
-        r.x = (Chance(0.5) ? -1f : 1f) * Rand(1.2f, 1.7f);
-        r.y = SpawnY(r.size);
-        r.rate = set.Spec.Rate("ruins");
-        r.root.localRotation = Quaternion.Euler(0, 0, Rand(-8f, 8f));
-        r.color = new Color(0.85f, 0.9f, 0.88f, 1f);
-    }
-
-    void SpawnObelisk()
-    {
-        var m = obelisks.Spawn();
-        if (m == null) return;
-        SetSprite(m, fx.Get(Chance(0.5) ? "obelisk0" : "obelisk1"), Rand(0.7f, 1.0f));
-        m.x = (Chance(0.5) ? -1f : 1f) * Rand(1.1f, 1.9f);
-        m.y = SpawnY(m.size);
-        m.phase = Rand(0f, 1f);
-        m.rate = set.Spec.Rate("ruins");
-        m.color = new Color(0.7f, 0.65f, 0.75f, 0.85f);
+        if (Chance(0.6) && ruin.Length > 0)
+        {
+            var r = SpawnLandmark(ruins, ruin[0], Rand(0.6f, 0.85f), "ruins", float.NaN);
+            if (r != null) { r.frames = ruin; r.fps = 3f; }
+        }
+        else
+        {
+            var o = SpawnLandmark(ruins, fx.Get(Chance(0.5) ? "obelisk0" : "obelisk1"), Rand(0.3f, 0.42f), "ruins", float.NaN);
+            if (o != null) o.phase = Rand(0f, 1f);
+        }
     }
 }
 
-public class EmberDirector : BackdropDirector
+public class EmberDirector : PlanetDirector
 {
-    BackdropPool volcanoes, plumes, bubbles, embers, ash;
-    Sprite[] eruption, bubble;
-    Timer volcanoTimer = new Timer(7f, 12f, 1f);
-    Timer bubbleTimer = new Timer(1.6f, 3.5f, 1f);
+    BackdropPool volcanoes, bursts, embers, ash;
+    Sprite[] volcano, burst;
+    Timer volcanoTimer = new Timer(8f, 13f, 5f);
+    Timer burstTimer = new Timer(1.8f, 3.8f, 1f);
 
     public EmberDirector() : base(1991) { }
 
     protected override void Build()
     {
-        eruption = anim.Frames("eruption");
-        bubble = anim.Frames("burst");
-        bubbles = Pool("bubbles", 3);
-        volcanoes = Pool("volcanoes", 2);
-        plumes = Pool("volcanoes", 2, false, 2);
+        volcano = anim.Frames("volcano");
+        burst = fx.Frames("burst");
+        bursts = LandmarkPool("bursts", 3);
+        volcanoes = LandmarkPool("volcanoes", 2);
+        BuildAir();
         embers = Pool("embers", 24);
         ash = Pool("ash", 12);
-        Scatter(embers, fx.Get("dot"), 0.05f, 0.11f, new[] { new Color(1f, 0.55f, 0.18f, 0.75f),
+        Scatter(embers, fx.Get("dot"), 0.05f, 0.1f, new[] { new Color(1f, 0.55f, 0.18f, 0.75f),
             new Color(1f, 0.75f, 0.3f, 0.6f) }, set.Spec.Rate("embers"));
         Scatter(ash, fx.Get("dot"), 0.04f, 0.08f, new[] { new Color(0.45f, 0.4f, 0.42f, 0.5f) },
                 set.Spec.Rate("ash"));
@@ -594,36 +644,10 @@ public class EmberDirector : BackdropDirector
     protected override void Step(float dt, float v)
     {
         if (volcanoTimer.Tick(dt, rng)) SpawnVolcano(float.NaN);
-        if (bubbleTimer.Tick(dt, rng)) SpawnBubble();
-
-        foreach (var vo in volcanoes.items)
-        {
-            if (!vo.active || !Drift(vo, dt, v)) continue;
-            Paint(vo, 1f);
-            var plume = vo.children != null ? vo.children[0] : null;
-            if (plume == null || !plume.active) continue;
-            plume.age += dt;
-            // Eruption bursts: every few seconds the plume kicks up bigger.
-            float burst = Mathf.Repeat(plume.age * 0.25f + plume.phase, 1f);
-            float k = burst < 0.3f ? 1f + 0.5f * Mathf.Sin(burst / 0.3f * Mathf.PI) : 1f;
-            plume.body.localScale = new Vector3(k, k, 1f);
-            // Crater: (0.55, 0.14) of the 300x260 volcano art, mirrored with it.
-            float craterX = vo.x + vo.phase * vo.size * 0.05f;
-            float craterY = vo.y + vo.size * 0.312f;
-            float plumeH = plume.size * 256f / 192f;
-            plume.x = craterX;
-            plume.y = craterY + plumeH * 0.5f * k - 0.03f;
-            Place(plume);
-            plume.Animate();
-            Paint(plume, 1f);
-        }
-        foreach (var b in bubbles.items)
-        {
-            if (!b.active || !Drift(b, dt, v)) continue;
-            b.Animate();
-            if (b.Finished) { Despawn(b); continue; }
-            Paint(b, 1f);
-        }
+        if (burstTimer.Tick(dt, rng)) SpawnBurst();
+        StepLandmarks(volcanoes, dt, v);
+        StepLandmarks(bursts, dt, v);
+        StepAir(dt, v);
         foreach (var e in embers.items)
         {
             Recycle(e, 1.1f, dt, v, 0.7f);
@@ -639,40 +663,26 @@ public class EmberDirector : BackdropDirector
 
     void SpawnVolcano(float y)
     {
-        var vo = volcanoes.Spawn();
+        if (volcano.Length == 0) return;
+        var vo = SpawnLandmark(volcanoes, volcano[0], Rand(1.1f, 1.5f), "volcanoes", y);
         if (vo == null) return;
-        SetSprite(vo, fx.Get("volcano"), Rand(2.4f, 3.2f));
-        float s = Chance(0.5) ? -1f : 1f;
-        vo.x = s * (EdgeX - vo.size * Rand(0.3f, 0.42f));
-        vo.body.localScale = new Vector3(s, 1f, 1f);     // skirt slopes off the near screen edge
-        vo.phase = s;
-        vo.y = float.IsNaN(y) ? SpawnY(vo.size) : y;
-        vo.rate = set.Spec.Rate("volcanoes");
-        vo.color = Color.white;
-        vo.children = new BackdropPiece[1];
-        if (eruption.Length == 0) return;
-        var p = plumes.Spawn();
-        if (p == null) return;
-        p.frames = eruption;
-        p.fps = 12f;
-        p.phase = Rand(0f, 1f);
-        SetSprite(p, eruption[0], vo.size * 0.72f);
-        p.color = new Color(0.9f, 0.8f, 0.75f, 0.9f);
-        vo.children[0] = p;
+        vo.frames = volcano;
+        vo.fps = 6f;
+        vo.age = Rand(0f, 2f);       // eruptions out of step with each other
     }
 
-    void SpawnBubble()
+    void SpawnBurst()
     {
-        if (bubble.Length == 0) return;
-        var b = bubbles.Spawn();
+        if (burst.Length == 0) return;
+        var b = bursts.Spawn();
         if (b == null) return;
-        b.frames = bubble;
+        b.frames = burst;
         b.fps = 10f;
         b.loop = false;
-        SetSprite(b, bubble[0], Rand(0.45f, 0.7f));
-        b.x = Rand(-0.45f, 0.45f) * set.TileScale;
+        SetSprite(b, burst[0], Rand(0.22f, 0.32f));
+        b.x = Rand(-0.12f, 0.12f) * set.TileScale;     // on the lava river, far below
         b.y = Rand(-HalfH * 0.6f, HalfH * 0.8f);
-        b.rate = set.Spec.Rate("bubbles");
-        b.color = new Color(0.9f, 0.75f, 0.65f, 0.85f);
+        b.rate = set.Spec.Rate("bursts");
+        b.color = new Color(0.9f, 0.78f, 0.68f, 0.85f);
     }
 }
