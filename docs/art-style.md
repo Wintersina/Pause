@@ -81,7 +81,7 @@ world, which is what keeps them readable.
 |---|---|---|---|---|---|
 | Space | `#070A16` > `#0E1424` > `#1A1F45` > `#2A1E48` | `#1A1C3A`, planet `#2A2E6B` / `#141838` | `SODIUM` city lights, `CYAN` planet rim | `CYAN` dust, 35% | `CYAN` |
 | Frost | `#04080F` > `#0A1A2A` > `#123248` | towers `#0F2134`, crags `#16324A` | ice rim `#9FE8F0`, `AMBER` windows (sparse) | `CYAN` ice flecks | `#9FE8F0` |
-| Verdant | `#05100E` > `#0B1F1C` > `#143430` | `#1E4A3C`, overgrowth `#2C5A40` | moss rim `#7FAF6A`, `SODIUM` lamps | spores `#7FAF6A` | `#7FAF6A` |
+| Verdant | `#05070F` > `#0A0F20` > `#10183A` (indigo night) | pines far `#0F3A32`, near `#185038`, kick `#2E7A52` on indigo shadow `#0A1A2E` | `TEAL`/`CYAN` river and glyphs, `SODIUM` lanterns, 2 px `RED` lantern dots only | `AMBER` fireflies, `CYAN` spores (flipbooks) | `#7FAF6A` |
 | Ember | `#120608` > `#24090E` > `#3E1016` | basalt `#2A1416`, `#5A1A1A` | lava `SODIUM` / `AMBER`, hard-edged | embers `SODIUM` | `AMBER` |
 
 Ember is the only world where a warm colour dominates the backdrop. To keep the red player readable
@@ -199,7 +199,7 @@ Keep the silhouette's mass filling the collider box (Kenney colliders are about 
 | Atoms / pickups | pixel art, see §5.1 | 0.28 u (`HealAtom.TargetDiameter`); star dust 0.256 u / 0.064 u | 49-cell grid | 196×196 (x4 nearest) | 700 | heal atom: the original 1254 px art, untouched |
 | Explosions / FX | 256 px frames, PPU 100 | about 1-2.5 u | 128 u | 256 per frame | 100-200 | sheet in a single row |
 | World backdrop | 1024×4096, seamless vertical tile | full screen | 512×2048 u | 1024×4096 | 100 | seamless top/bottom. Layers L0-L4 in one texture |
-| World walls | 64×448, seamless | 0.64 u wide | 32×224 u | 64×448 | 100 | |
+| World walls | 64×448, seamless | quad 1.43 u wide, inner ~0.36 u on screen | 64×448 px, crisp | 64×448 | 100 | flat cel walls from `Art/Worlds/src~/walls.py` (Space writes `Art/left.png`/`right.png`); face, lights and spikes in the inner 20 px; right = mirror of left |
 | Quick-action icons | 256×256, PPU 256 | UI | 128 u | 256×256 (`render.sh --glyph` variant too) | 256 | |
 | Death panel | `dp_*` at 2× zoom, PPU 200 | UI | canvas units | 2× | 200 | keep the 9-slice borders listed in each SVG header |
 | Dock | SVG at 100 u = 1 world unit, 3× zoom | world | as now | 3× | 300 | `DockArt.PixelsPerUnit` |
