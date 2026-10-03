@@ -76,6 +76,7 @@ public class ShipThruster : MonoBehaviour
             renderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
             go.transform.localPosition = mounts[i];
             go.transform.localRotation = Quaternion.identity;
+            ShipFlameFlipbook.Attach(renderer, i);
             flames.Add(go.transform);
             flameRenderers.Add(renderer);
             flameScales.Add(ShipExhaust.NozzleScale(index, i));

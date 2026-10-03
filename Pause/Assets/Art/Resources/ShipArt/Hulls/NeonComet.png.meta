@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: 449bd749e37584213a4df5db0c19c1e9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -112626131126952335
+    second: NeonComet_0
+  - first:
+      213: -2907263953730985709
+    second: NeonComet_1
+  - first:
+      213: 26293843997993191
+    second: NeonComet_2
+  - first:
+      213: 3683099773097899903
+    second: NeonComet_3
+  - first:
+      213: 9210616565023293554
+    second: NeonComet_4
+  - first:
+      213: -723415485677030331
+    second: NeonComet_5
+  - first:
+      213: -6706994426328420704
+    second: NeonComet_6
+  - first:
+      213: 4731853046825556902
+    second: NeonComet_7
+  - first:
+      213: -664326749713075455
+    second: NeonComet_8
+  - first:
+      213: 5459539166166552099
+    second: NeonComet_9
+  - first:
+      213: 8193025121251748892
+    second: NeonComet_10
+  - first:
+      213: 8813373516594107860
+    second: NeonComet_11
+  - first:
+      213: -3659805834483519301
+    second: NeonComet_12
+  - first:
+      213: 8942594097528326786
+    second: NeonComet_13
+  - first:
+      213: -8262710334708274348
+    second: NeonComet_14
+  - first:
+      213: 1208812515451188183
+    second: NeonComet_15
+  - first:
+      213: 2725401402329022721
+    second: NeonComet_16
+  - first:
+      213: 8928607249777146529
+    second: NeonComet_17
+  - first:
+      213: -1159065722185930999
+    second: NeonComet_18
+  - first:
+      213: -151864817149559514
+    second: NeonComet_19
+  - first:
+      213: -6594319104226867861
+    second: NeonComet_20
+  - first:
+      213: 1035157148127157017
+    second: NeonComet_21
+  - first:
+      213: -7680056975663998515
+    second: NeonComet_22
+  - first:
+      213: -5979665895799733214
+    second: NeonComet_23
+  - first:
+      213: 6849623564200400306
+    second: NeonComet_24
+  - first:
+      213: 511968934125325747
+    second: NeonComet_25
+  - first:
+      213: -4020951989528827260
+    second: NeonComet_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: NeonComet_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 534
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17e50c5612fdf6ef0800000000000000
+      internalID: -112626131126952335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_1
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 538
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 311219166d257a7d0800000000000000
+      internalID: -2907263953730985709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_2
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 538
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e8a74f9c1a6d5000800000000000000
+      internalID: 26293843997993191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_3
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 534
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7772dfcabffc1330800000000000000
+      internalID: 3683099773097899903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_4
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 534
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 270ca8847fea2df70800000000000000
+      internalID: 9210616565023293554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_5
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 530
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5443437d279e5f5f0800000000000000
+      internalID: -723415485677030331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_6
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 534
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ae6b2cba18fbe2a0800000000000000
+      internalID: -6706994426328420704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_7
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 534
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ab1361964beaa140800000000000000
+      internalID: 4731853046825556902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_8
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 534
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 103ff844756d7c6f0800000000000000
+      internalID: -664326749713075455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_9
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 278
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32e80bc12fd24cb40800000000000000
+      internalID: 5459539166166552099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_10
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 282
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1cef0470f873b170800000000000000
+      internalID: 8193025121251748892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_11
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 282
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d55d61a4846f4a70800000000000000
+      internalID: 8813373516594107860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_12
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 278
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb035b8ebf1c53dc0800000000000000
+      internalID: -3659805834483519301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_13
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 278
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28a4ea9a3f97a1c70800000000000000
+      internalID: 8942594097528326786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_14
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 274
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45ba3c17ab4f45d80800000000000000
+      internalID: -8262710334708274348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_15
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 278
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d3b387049096c010800000000000000
+      internalID: 1208812515451188183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_16
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 278
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1014c28b22292d520800000000000000
+      internalID: 2725401402329022721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_17
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 278
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aab1f5ecf8c8eb70800000000000000
+      internalID: 8928607249777146529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_18
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 22
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 907a6cddddb2aefe0800000000000000
+      internalID: -1159065722185930999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_19
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 26
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62dbbefd0c774edf0800000000000000
+      internalID: -151864817149559514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_20
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 26
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b654cf086b54c74a0800000000000000
+      internalID: -6594319104226867861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_21
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 22
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91b53d411fd9d5e00800000000000000
+      internalID: 1035157148127157017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_22
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 22
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc959ce0fd4fa6590800000000000000
+      internalID: -7680056975663998515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_23
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 18
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 224c655ac85f30da0800000000000000
+      internalID: -5979665895799733214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_24
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 22
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b55f4d3750ce0f50800000000000000
+      internalID: 6849623564200400306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_25
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 22
+        width: 206
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bd43967801ea1700800000000000000
+      internalID: 511968934125325747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NeonComet_26
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 22
+        width: 234
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48aeb3d2875b238c0800000000000000
+      internalID: -4020951989528827260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

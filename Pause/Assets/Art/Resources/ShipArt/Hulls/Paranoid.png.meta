@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: 37a491114d79e4f818e7d636492a235f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5338993089689406628
+    second: Paranoid_0
+  - first:
+      213: -4818281316923539360
+    second: Paranoid_1
+  - first:
+      213: -171589481875348793
+    second: Paranoid_2
+  - first:
+      213: -4546899622118704298
+    second: Paranoid_3
+  - first:
+      213: -2593905391046225975
+    second: Paranoid_4
+  - first:
+      213: 4474861441250273916
+    second: Paranoid_5
+  - first:
+      213: -8541939593761238948
+    second: Paranoid_6
+  - first:
+      213: -689036763168939264
+    second: Paranoid_7
+  - first:
+      213: -8720571643372282308
+    second: Paranoid_8
+  - first:
+      213: 2635698058334142213
+    second: Paranoid_9
+  - first:
+      213: -3192600549917865728
+    second: Paranoid_10
+  - first:
+      213: 7727175668703511639
+    second: Paranoid_11
+  - first:
+      213: -4437278998270658510
+    second: Paranoid_12
+  - first:
+      213: 4947354834543378803
+    second: Paranoid_13
+  - first:
+      213: -1908277954954955763
+    second: Paranoid_14
+  - first:
+      213: 5166525975041465427
+    second: Paranoid_15
+  - first:
+      213: -3786156448824810575
+    second: Paranoid_16
+  - first:
+      213: 6685279693067593026
+    second: Paranoid_17
+  - first:
+      213: 2650438745961768497
+    second: Paranoid_18
+  - first:
+      213: 7748468918371636080
+    second: Paranoid_19
+  - first:
+      213: -2096085918142939871
+    second: Paranoid_20
+  - first:
+      213: -7461193984980401700
+    second: Paranoid_21
+  - first:
+      213: -4065807440127158950
+    second: Paranoid_22
+  - first:
+      213: 6517840628680140999
+    second: Paranoid_23
+  - first:
+      213: 2183692206556375673
+    second: Paranoid_24
+  - first:
+      213: 1261059649537648901
+    second: Paranoid_25
+  - first:
+      213: -2946439243285903250
+    second: Paranoid_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Paranoid_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 555
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c533cc6721618e5b0800000000000000
+      internalID: -5338993089689406628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_1
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 559
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0600fdcaba6022db0800000000000000
+      internalID: -4818281316923539360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_2
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 559
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c260ad76446e9df0800000000000000
+      internalID: -171589481875348793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_3
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 555
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65bb14a52ea26e0c0800000000000000
+      internalID: -4546899622118704298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_4
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 555
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cf08b93ac8900cd0800000000000000
+      internalID: -2593905391046225975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_5
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 551
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7aa0d0a5c6e91e30800000000000000
+      internalID: 4474861441250273916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_6
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 554
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c505405523fe47980800000000000000
+      internalID: -8541939593761238948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_7
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 554
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 003612ee6bc0076f0800000000000000
+      internalID: -689036763168939264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_8
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 555
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3e537e3b4e4af680800000000000000
+      internalID: -8720571643372282308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_9
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 299
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50f71366b61e39420800000000000000
+      internalID: 2635698058334142213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_10
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 303
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 009cd6807ba91b3d0800000000000000
+      internalID: -3192600549917865728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_11
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 303
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7544d1294517c3b60800000000000000
+      internalID: 7727175668703511639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_12
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 299
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 238b6c2c24e9b62c0800000000000000
+      internalID: -4437278998270658510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_13
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 299
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37105c2820988a440800000000000000
+      internalID: 4947354834543378803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_14
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 295
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d04733a7f4f6485e0800000000000000
+      internalID: -1908277954954955763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_15
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 298
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35cdc29300033b740800000000000000
+      internalID: 5166525975041465427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_16
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 298
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b32ebb05ced47bc0800000000000000
+      internalID: -3786156448824810575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_17
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 299
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2452d61f572e6cc50800000000000000
+      internalID: 6685279693067593026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_18
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 43
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 136abff2fff38c420800000000000000
+      internalID: 2650438745961768497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_19
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 47
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07352b89d67188b60800000000000000
+      internalID: 7748468918371636080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_20
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 47
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12d346686f439e2e0800000000000000
+      internalID: -2096085918142939871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_21
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 43
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd146fc0a93847890800000000000000
+      internalID: -7461193984980401700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_22
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 43
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a55941ebca95397c0800000000000000
+      internalID: -4065807440127158950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_23
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 39
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c8a61fc485047a50800000000000000
+      internalID: 6517840628680140999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_24
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 42
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97ae49efd780e4e10800000000000000
+      internalID: 2183692206556375673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_25
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 42
+        width: 206
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5092543e11f208110800000000000000
+      internalID: 1261059649537648901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Paranoid_26
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 43
+        width: 234
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e684caf7e152c17d0800000000000000
+      internalID: -2946439243285903250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
