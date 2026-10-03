@@ -14,7 +14,7 @@ using UnityEngine;
 // Animation is contour-driven and stepped like a flipbook (held key poses):
 //   Show()    anticipation flash at the nose (squash -> stretch -> glint),
 //             then the shield zips round both sides of the hull in ~0.25 s
-//             with a white-hot leading edge, and lands with a stretch/squash.
+//             with a bone-hot leading edge (drawn squash/stretch is in the flipbook).
 //   idle      highlight dashes march round the outline; a brief flicker.
 //   Absorb()  impact frame (whole line white for a beat), an impact flipbook
 //             at the hit point, a hard ripple running both ways round the
@@ -34,10 +34,9 @@ public class ShipShield : MonoBehaviour
 
     public const float AnticipationTime = .08f;
     public const float ZipTime = .18f;
-    public const float LandTime = .1f;
-    public const float FlipbookFps = 20f;     // flash / impact frame rate
-    public const float StepFps = 15f;         // marching dashes step rate
-    public const float ImpactFrameTime = .05f;
+    public const float FlipbookFps = 24f;     // flash / impact: one drawing per 24 fps tick
+    public const float StepFps = 12f;         // marching dashes, on 2s
+    public const float ImpactFrameTime = 1f / 24f;   // one tick
     public const float RippleTime = .3f;
     public const float ExpireWindow = 1.5f;
     public const int DashCount = 3;
@@ -64,11 +63,11 @@ public class ShipShield : MonoBehaviour
     float clock;               // time in the current phase
     float life;                // time since Show (idle effects)
     float hitAge = 99f, hitArc;
+    float sparkReplay = 99f;   // re-pickup: replay the nose glint
     Vector2 hitLocal, hitNormal;
     float blinkPhase;
     float flickerTimer = .7f, flickerLeft;
     int flickerSeed;
-    float landAge = 99f;
 
     public static ShipShield For(GameObject ship)
     {
@@ -151,23 +150,17 @@ public class ShipShield : MonoBehaviour
         return sr;
     }
 
-    // Ship index from "ship<N>" / "ship<N>(Clone)", without allocating.
-    public static int ShipIndex(string name)
-    {
-        if (name == null || !name.StartsWith("ship", System.StringComparison.Ordinal)) return 0;
-        int n = 0, i = 4;
-        for (; i < name.Length && name[i] >= '0' && name[i] <= '9'; i++) n = n * 10 + (name[i] - '0');
-        return i > 4 ? n : 0;
-    }
-
     // The hull the contour is cut from: the ship type's intact art (stable
     // across idle bob frames and damage states), else whatever is showing.
     Sprite ContourSprite()
     {
-        int index = ShipIndex(gameObject.name);
-        if (index > 0)
+        // Looked up once per shield (the contour is then held), keyed by the
+        // canonical ShipId. The cache itself is keyed by the hull sprite, so
+        // redrawn hull art gets a fresh contour with nothing to re-tune.
+        int id = ShipId.Of(gameObject);
+        if (id != ShipId.None)
         {
-            var s = shopingShips.SpriteFor(index, 0);
+            var s = shopingShips.SpriteFor(id, 0);
             if (s != null) return s;
         }
         var hull = GetComponent<SpriteRenderer>();
@@ -212,7 +205,7 @@ public class ShipShield : MonoBehaviour
             clock = 0f;
             life = 0f;
             hitAge = 99f;
-            landAge = 99f;
+            sparkReplay = 99f;
             blinkPhase = 0f;
             if (cracked != null) System.Array.Clear(cracked, 0, cracked.Length);
             if (uvs != null) System.Array.Copy(contour.Uvs, uvs, uvs.Length);
@@ -220,8 +213,8 @@ public class ShipShield : MonoBehaviour
         else
         {
             // Another blue atom while already shielded: a fresh charge reads
-            // as a land beat and the cracks are mended.
-            landAge = 0f;
+            // as the nose glint again and the cracks are mended.
+            sparkReplay = 0f;
             blinkPhase = 0f;
             if (cracked != null) System.Array.Clear(cracked, 0, cracked.Length);
         }
@@ -300,7 +293,7 @@ public class ShipShield : MonoBehaviour
         clock += dt;
         life += dt;
         hitAge += dt;
-        landAge += dt;
+        sparkReplay += dt;
 
         if (phase == Phase.Anticipation && clock >= AnticipationTime)
         {
@@ -308,7 +301,7 @@ public class ShipShield : MonoBehaviour
         }
         if (phase == Phase.Zip && clock >= ZipTime)
         {
-            phase = Phase.Idle; clock -= ZipTime; landAge = 0f;
+            phase = Phase.Idle; clock -= ZipTime;
         }
 
         // Flicker: a two-frame dip every ~0.5-1.4 s.
@@ -375,7 +368,8 @@ public class ShipShield : MonoBehaviour
             else if (kind == ShieldContour.KindInk) c = ShieldArt.Ink;
             else if (kind == ShieldContour.KindLine)
             {
-                if (edge || impactFrame || rippleHot) c = ShieldArt.Hot;
+                if (impactFrame) c = ShieldArt.ImpactWhite;
+                else if (edge || rippleHot) c = ShieldArt.Hot;
                 else if (IsDash(arc, dashPhase)) c = ShieldArt.Dash;
                 else c = flicker ? ShieldArt.LineDim : ShieldArt.Line;
             }
@@ -393,14 +387,6 @@ public class ShipShield : MonoBehaviour
         }
         mesh.colors32 = colors;
         mesh.uv = uvs;
-
-        // Stretch on landing, then squash, then rest: held poses.
-        Vector3 pose = Vector3.one;
-        if (landAge < LandTime)
-            pose = landAge < LandTime * .5f ? new Vector3(.95f, 1.08f, 1f) : new Vector3(1.04f, .97f, 1f);
-        else if (hitAge < ImpactFrameTime * 2f)
-            pose = new Vector3(1.04f, 1.04f, 1f);
-        root.transform.localScale = pose;
 
         UpdateFlipbooks();
     }
@@ -432,7 +418,7 @@ public class ShipShield : MonoBehaviour
         // Anticipation at the nose: gather, squash, stretch, then the glint
         // carries a frame into the zip.
         float sparkT = phase == Phase.Anticipation ? clock
-                     : phase == Phase.Zip ? AnticipationTime + clock : 99f;
+                     : phase == Phase.Zip ? AnticipationTime + clock : sparkReplay;
         int sparkFrame = Mathf.FloorToInt(sparkT / (AnticipationTime + ZipTime * .35f) * 4f);
         if (sparkFrame >= 0 && sparkFrame < 4 && contour != null)
         {

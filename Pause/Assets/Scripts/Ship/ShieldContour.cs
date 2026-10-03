@@ -59,7 +59,7 @@ public sealed class ShieldContour
     public int QuadCount;
     public byte[] QuadKind;
     public float[] QuadArc;       // 0..1 from the nose
-    public bool[] QuadShadow;     // plates facing away from the light (down)
+    public bool[] QuadShadow;     // plates facing away from the upper-left light
     public int PlateCount;
     public int[] PlateQuad;       // quad index of each plate
     public Vector2[] PlateCenter; // sprite-local
@@ -656,7 +656,7 @@ public sealed class ShieldContour
                 plateA[p] + nrm * inner, plateA[p] + nrm * outer,
                 plateB[p] + nrm * outer, plateB[p] + nrm * inner,
                 CellPlate, KindPlate, plateArc[p]);
-            QuadShadow[q] = nrm.y < -.35f;
+            QuadShadow[q] = Vector2.Dot(nrm, new Vector2(-.6f, .8f)) < -.25f;   // lit from the upper left
             PlateQuad[p] = q;
             PlateCenter[p] = (plateA[p] + plateB[p]) * .5f + nrm * ((inner + outer) * .5f);
             PlateNormal[p] = nrm;
