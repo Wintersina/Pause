@@ -119,12 +119,15 @@ public static class BugBatch0907Test
         Check("continue button is wired to tutButtonClicks.replay()", wired);
     }
 
+    // The tutorial script was cut down to what a new player needs: of the
+    // three atoms only the red one (pauses) is still taught -- the blue and
+    // green lessons went with the rewrite (see TutorialRobotTest).
     static void TutorialAtomLessonsAreBalanced()
     {
-        Check("tutorial includes a green atom lesson",
-              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/Hints.cs").Contains("green ATOM"));
-        Check("tutorial has a one-shot green atom cue",
-              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("greenAtomsShown == 0"));
+        Check("tutorial teaches the red pause atom",
+              System.Array.Exists(TutorialScript.Steps, s => s.advance == TutorialAdvance.CollectRedAtom));
+        Check("tutorial keeps a red atom coming until one is caught",
+              System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("keepRedAtomComing && LiveRedAtom == null"));
         Check("green atom uses the shared slow spin", typeof(HealAtom).GetMethod("Spawn") != null);
     }
 
