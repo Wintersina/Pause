@@ -34,6 +34,7 @@ public static class ShieldFitTest
         using var sandbox = new TestHarness.Sandbox();
 
         RosterContoursHugEveryHull();
+        ContoursFollowWhateverHullIsPresent();
         ContourIsCachedPerShipType();
         SequencesPlay();
         FrozenAtTimeScaleZero();
@@ -48,7 +49,8 @@ public static class ShieldFitTest
 
     static void RosterContoursHugEveryHull()
     {
-        for (int i = 1; i < shopingShips.shipTotal; i++)
+        int covered = 0;
+        foreach (int i in ShipId.All)
         {
             string name = "ship" + i + " " + shopingShips.NameFor(i);
             Sprite sprite = shopingShips.SpriteFor(i, 0);
@@ -133,7 +135,52 @@ public static class ShieldFitTest
             Check(name + " has plates, line and ink geometry",
                   contour.PlateCount >= 6 && contour.QuadCount > contour.PlateCount &&
                   contour.Triangles.Length % 3 == 0);
+            if (uncovered == 0) covered++;
         }
+        Check("every ShipId (" + ShipId.Count + ") gets a covering contour shield (" + covered + ")",
+              covered == ShipId.Count);
+    }
+
+    // Hull art is being redrawn: nothing may be tuned per ship. A ship dressed
+    // by spawnShips.ApplyHull wraps exactly the sprite it was given, and a new
+    // drawing of any shape gets its own fitted contour automatically.
+    static void ContoursFollowWhateverHullIsPresent()
+    {
+        foreach (int id in ShipId.All)
+        {
+            var go = new GameObject("ship" + id + "(Clone)", typeof(SpriteRenderer), typeof(BoxCollider2D));
+            spawnShips.ApplyHull(go, id);
+            var shield = ShipShield.For(go);
+            shield.Show();
+            var hull = go.GetComponent<SpriteRenderer>().sprite;
+            Check("ShipId " + id + " (" + ShipId.KeyOf(id) + ") shield is cut from the hull ApplyHull set",
+                  hull != null && ReferenceEquals(shield.Contour, ShieldContour.For(hull)));
+            shield.Hide();
+            Object.DestroyImmediate(go);
+        }
+
+        // A hypothetical redraw: an L-shaped 40x24 hull nobody has seen.
+        const int W = 40, H = 24;
+        var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        var px = new Color32[W * H];
+        for (int y = 0; y < H; y++)
+            for (int x = 0; x < W; x++)
+                px[y * W + x] = (x < 10 || y < 8) ? new Color32(216, 35, 44, 255) : new Color32(0, 0, 0, 0);
+        tex.SetPixels32(px);
+        tex.Apply();
+        var redraw = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(.5f, .5f), 100f);
+        int builds = ShieldContour.BuildCount;
+        var c = ShieldContour.For(redraw);
+        bool covers = c != null;
+        for (int y = 0; y < H && covers; y++)
+            for (int x = 0; x < W && covers; x++)
+                if (px[y * W + x].a > 0)
+                    covers = ShieldContour.PointInPolygon(c.Polygon, new Vector2((x + .5f - W * .5f) / 100f, (y + .5f - H * .5f) / 100f));
+        // The notch (top-right) stays outside: it hugs the L, it is not a box.
+        bool hugsNotch = c != null && !ShieldContour.PointInPolygon(c.Polygon, new Vector2((32 - W * .5f) / 100f, (19 - H * .5f) / 100f));
+        Check("new hull art gets a fresh fitted contour automatically (built " + (ShieldContour.BuildCount - builds) + ")",
+              ShieldContour.BuildCount == builds + 1 && covers && hugsNotch);
+        Object.DestroyImmediate(tex);
     }
 
     static GameObject MakeShip(int index)
@@ -236,7 +283,7 @@ public static class ShieldFitTest
         shield.Absorb(right);
         Check("a hit shows the impact frame (line flashes white) and the impact flipbook",
               shield.FlashShowing &&
-              Count(shield, ShieldContour.KindLine, ShieldArt.Hot) == Total(shield, ShieldContour.KindLine));
+              Count(shield, ShieldContour.KindLine, ShieldArt.ImpactWhite) == Total(shield, ShieldContour.KindLine));
         Check("the plates at the hit crack (" + shield.CrackedCount + ")", shield.CrackedCount >= 1);
         for (int i = 0; i < 6; i++) shield.Tick(dt);
         int rippleHot = Count(shield, ShieldContour.KindLine, ShieldArt.Hot);
