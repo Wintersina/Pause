@@ -110,7 +110,7 @@ public class WorldManager : MonoBehaviour
         timer = secondsPerWorld;
         WorldPainter.Apply(Current);
         WorldMusic.Apply(Current);
-        WorldAtmosphere.Apply(Current);
+        WorldBackdrop.Apply(Current, false);
         ApplyDifficulty(Current);
         WorldBanner.Show(Current.displayName);
         Codex.Discover(Codex.WorldId(CurrentIndex));
@@ -170,7 +170,7 @@ public class WorldManager : MonoBehaviour
         var theme = Current;
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
-        WorldAtmosphere.Apply(theme);
+        WorldBackdrop.Apply(theme, true);
         ApplyDifficulty(theme);
         WorldBanner.Show(theme.displayName);
         Codex.Discover(Codex.WorldId(CurrentIndex));

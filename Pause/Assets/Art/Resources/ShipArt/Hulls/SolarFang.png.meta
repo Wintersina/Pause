@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: fe1be9f7fee0444868768728d97c85a4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6438603371900977417
+    second: SolarFang_0
+  - first:
+      213: -3392688267451100360
+    second: SolarFang_1
+  - first:
+      213: -4337822203401255140
+    second: SolarFang_2
+  - first:
+      213: -6648868736858672354
+    second: SolarFang_3
+  - first:
+      213: -6481077407142399155
+    second: SolarFang_4
+  - first:
+      213: 3724606374653105443
+    second: SolarFang_5
+  - first:
+      213: 1954202692644320953
+    second: SolarFang_6
+  - first:
+      213: 4454448541884913988
+    second: SolarFang_7
+  - first:
+      213: 7684676291557501881
+    second: SolarFang_8
+  - first:
+      213: -3188567481536411176
+    second: SolarFang_9
+  - first:
+      213: 5910407646090419094
+    second: SolarFang_10
+  - first:
+      213: -5384248156031023154
+    second: SolarFang_11
+  - first:
+      213: -2076184112999635614
+    second: SolarFang_12
+  - first:
+      213: 7791213420211944819
+    second: SolarFang_13
+  - first:
+      213: -4325412104530916759
+    second: SolarFang_14
+  - first:
+      213: -5109391522565676187
+    second: SolarFang_15
+  - first:
+      213: 5392330674081499635
+    second: SolarFang_16
+  - first:
+      213: -8921840002374445683
+    second: SolarFang_17
+  - first:
+      213: 2445342010893820207
+    second: SolarFang_18
+  - first:
+      213: 8604404907718323035
+    second: SolarFang_19
+  - first:
+      213: 2581414353223627484
+    second: SolarFang_20
+  - first:
+      213: 3836581689955847935
+    second: SolarFang_21
+  - first:
+      213: 4941693696456740561
+    second: SolarFang_22
+  - first:
+      213: -1254912488567137862
+    second: SolarFang_23
+  - first:
+      213: -3024480610884387610
+    second: SolarFang_24
+  - first:
+      213: -1982432648505442867
+    second: SolarFang_25
+  - first:
+      213: 1702641751348413528
+    second: SolarFang_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SolarFang_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 527
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9014acf47a38a5950800000000000000
+      internalID: 6438603371900977417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_1
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 531
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83311f8feffbae0d0800000000000000
+      internalID: -3392688267451100360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_2
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 531
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c17477350b5fcc3c0800000000000000
+      internalID: -4337822203401255140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_3
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 527
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e13b65d6c197ab3a0800000000000000
+      internalID: -6648868736858672354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_4
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 527
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d43b779bf669e06a0800000000000000
+      internalID: -6481077407142399155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_5
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 523
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3259a5193c570b330800000000000000
+      internalID: 3724606374653105443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_6
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 525
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b63d22cef8be1b10800000000000000
+      internalID: 1954202692644320953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_7
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 525
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4499e41295161dd30800000000000000
+      internalID: 4454448541884913988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_8
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 527
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bba62c3f5475aa60800000000000000
+      internalID: 7684676291557501881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_9
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 271
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d909a0f4ceefb3d0800000000000000
+      internalID: -3188567481536411176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_10
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 275
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69bd8fe707cf50250800000000000000
+      internalID: 5910407646090419094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_11
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 275
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec7083d34de4745b0800000000000000
+      internalID: -5384248156031023154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_12
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 271
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 265e850ac89ef23e0800000000000000
+      internalID: -2076184112999635614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_13
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 271
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37d3df87353ff1c60800000000000000
+      internalID: 7791213420211944819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_14
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 267
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96a8242ab9c09f3c0800000000000000
+      internalID: -4325412104530916759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_15
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 269
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 563a41f1b7bc719b0800000000000000
+      internalID: -5109391522565676187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_16
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 269
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f90214ad2865da40800000000000000
+      internalID: 5392330674081499635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_17
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 271
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d85d99ba9c14f2480800000000000000
+      internalID: -8921840002374445683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_18
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 15
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f216aa95a999fe120800000000000000
+      internalID: 2445342010893820207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_19
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 19
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5bad2cecacf86770800000000000000
+      internalID: 8604404907718323035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_20
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 19
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd23df56da603d320800000000000000
+      internalID: 2581414353223627484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_21
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 15
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffe069d48b64e3530800000000000000
+      internalID: 3836581689955847935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_22
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 15
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1de47161c3c649440800000000000000
+      internalID: 4941693696456740561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_23
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 11
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab911ce8db7a59ee0800000000000000
+      internalID: -1254912488567137862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_24
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 13
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ecfd26a8e2e606d0800000000000000
+      internalID: -3024480610884387610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_25
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 13
+        width: 206
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcd32b2720cfc74e0800000000000000
+      internalID: -1982432648505442867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SolarFang_26
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 15
+        width: 234
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8540fd0e6aff0a710800000000000000
+      internalID: 1702641751348413528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

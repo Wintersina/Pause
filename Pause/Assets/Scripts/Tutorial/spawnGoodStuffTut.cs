@@ -108,13 +108,18 @@ public class spawnGoodStuffTut: MonoBehaviour {
         Instantiate(midStar, spawner, transform.rotation);
     }
 
-    // Kept closer to the middle than stars so it is easy to reach.
+    // Kept closer to the middle than stars so it is easy to reach. It drops in
+    // from just above the top edge and hovers in the ship's lane until caught
+    // (TutorialAtomDrift) instead of riding the world scroller, which barely
+    // moves at the tutorial's near-zero speed.
     void spawnAtom(TutorialAtom kind)
     {
-        Vector3 pos = new Vector3(Random.Range(-1.6f, 1.6f), transform.position.y, transform.rotation.z);
+        float x = Random.Range(-1.6f, 1.6f);
+        Vector3 pos = new Vector3(x, transform.position.y, transform.rotation.z);
         GameObject atom;
         if (kind == TutorialAtom.Green) atom = HealAtom.Spawn(pos);
         else atom = AtomSpin.AddTo(Instantiate(kind == TutorialAtom.Blue ? Atom : redAtom, pos, transform.rotation) as GameObject);
+        TutorialAtomDrift.AddTo(atom, x);
         LiveAtom = atom != null ? atom.transform : null;
     }
 }

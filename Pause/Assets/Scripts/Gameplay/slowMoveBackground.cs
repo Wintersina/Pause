@@ -6,6 +6,7 @@ public class slowMoveBackground : MonoBehaviour {
     public float startSpeed = .0001f;
     public static float speed;
     Vector2 offset;
+    Material material;
 
 
     // Use this for initialization
@@ -13,6 +14,8 @@ public class slowMoveBackground : MonoBehaviour {
     {
 
         speed = startSpeed;
+        var r = GetComponent<Renderer>();
+        material = r != null ? r.material : null;
 
         Screen.orientation = ScreenOrientation.Portrait;
     }
@@ -32,9 +35,10 @@ public class slowMoveBackground : MonoBehaviour {
     // this function moves background in the 'y' direction for illustion of player moving.
     void moveBackground()
     {
-        offset = new Vector2(0, Time.timeSinceLevelLoad * speed);
-        //GetComponent<Renderer>().material.mainTextureOffset = offset;
-        GetComponent<Renderer>().material.mainTextureOffset = offset;
+        // Constant speed, so time x speed is exact here; only the per-frame
+        // GetComponent/material lookup was wasteful.
+        offset.y = Time.timeSinceLevelLoad * speed;
+        if (material != null) material.mainTextureOffset = offset;
     }
     // game speeds up as the time progresses. 
   

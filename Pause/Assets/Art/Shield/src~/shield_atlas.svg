@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Contour shield plate atlas (ShipShield / ShieldContour).
+     Akira-palette flat cel art: one base tone, one hard shadow tone, one
+     hard highlight sliver, thick ink outline. No gradients, no blur.
+     Four 64x64 cells, mapped onto the hex plates that ring each hull:
+       0 plate      - idle energy plate
+       1 cracked    - plate after absorbing a hit (ink fracture, amber edge)
+       2 white      - solid cell; the mesh tints it per vertex (ink, line, fill)
+       3 hot        - flash pose: bone-hot plate used for zip / impact frames
+     In each cell the TOP edge is the plate's outer side (away from the hull),
+     the BOTTOM edge sits toward the hull, so the shadow tone is at the bottom.
+     Rasterize with ./render.sh. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="64" viewBox="0 0 256 64">
+  <!-- 0: plate -->
+  <g>
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="#1FB5B9"/>
+    <polygon points="7,44 57,44 54,56 10,56" fill="#0F5E6A"/>
+    <polygon points="14,14 42,14 38,21 12,21" fill="#6EF2EE"/>
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="none" stroke="#140C14" stroke-width="8" stroke-linejoin="round"/>
+  </g>
+  <!-- 1: cracked plate -->
+  <g transform="translate(64,0)">
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="#17979B"/>
+    <polygon points="7,40 57,40 54,56 10,56" fill="#0F5E6A"/>
+    <polyline points="22,8 30,22 24,31 36,42 30,56" fill="none" stroke="#FFB43C" stroke-width="9" stroke-linejoin="round"/>
+    <polyline points="22,8 30,22 24,31 36,42 30,56" fill="none" stroke="#140C14" stroke-width="5" stroke-linejoin="round"/>
+    <polygon points="38,13 50,13 47,19 36,19" fill="#6EF2EE"/>
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="none" stroke="#140C14" stroke-width="8" stroke-linejoin="round"/>
+  </g>
+  <!-- 2: solid white (vertex-tinted) -->
+  <rect x="128" y="0" width="64" height="64" fill="#FFFFFF"/>
+  <!-- 3: hot plate -->
+  <g transform="translate(192,0)">
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="#F4EAD4"/>
+    <polygon points="7,46 57,46 54,56 10,56" fill="#6EF2EE"/>
+    <polygon points="10,8 54,8 60,32 54,56 10,56 4,32" fill="none" stroke="#140C14" stroke-width="8" stroke-linejoin="round"/>
+  </g>
+</svg>

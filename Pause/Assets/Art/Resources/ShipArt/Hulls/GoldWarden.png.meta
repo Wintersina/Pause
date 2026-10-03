@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: e97448d61871d46beb893ce27462bcde
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -346245442453308199
+    second: GoldWarden_0
+  - first:
+      213: 3313901777080479401
+    second: GoldWarden_1
+  - first:
+      213: -6667539793586373300
+    second: GoldWarden_2
+  - first:
+      213: 3281112833259222067
+    second: GoldWarden_3
+  - first:
+      213: 1063860763886522398
+    second: GoldWarden_4
+  - first:
+      213: 6697503430918563001
+    second: GoldWarden_5
+  - first:
+      213: 4406765722220785720
+    second: GoldWarden_6
+  - first:
+      213: 8348459316691122019
+    second: GoldWarden_7
+  - first:
+      213: -1176165337803123432
+    second: GoldWarden_8
+  - first:
+      213: -5833385603044295220
+    second: GoldWarden_9
+  - first:
+      213: 4476485503221302852
+    second: GoldWarden_10
+  - first:
+      213: 5587230992175987431
+    second: GoldWarden_11
+  - first:
+      213: -2793501991314163630
+    second: GoldWarden_12
+  - first:
+      213: 7496611433692652191
+    second: GoldWarden_13
+  - first:
+      213: -1143887983217199947
+    second: GoldWarden_14
+  - first:
+      213: -5004288551353054032
+    second: GoldWarden_15
+  - first:
+      213: 6890466373911981169
+    second: GoldWarden_16
+  - first:
+      213: -8094418803441178556
+    second: GoldWarden_17
+  - first:
+      213: -1058747059861356550
+    second: GoldWarden_18
+  - first:
+      213: 7751174135039438454
+    second: GoldWarden_19
+  - first:
+      213: -650022988011917019
+    second: GoldWarden_20
+  - first:
+      213: 7284400330862345062
+    second: GoldWarden_21
+  - first:
+      213: 8768638322484424877
+    second: GoldWarden_22
+  - first:
+      213: 7427123591518068250
+    second: GoldWarden_23
+  - first:
+      213: 4459673718609323225
+    second: GoldWarden_24
+  - first:
+      213: 7722347480885613762
+    second: GoldWarden_25
+  - first:
+      213: 4647283522150808468
+    second: GoldWarden_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: GoldWarden_0
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 523
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dcf875ca93e13bf0800000000000000
+      internalID: -346245442453308199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_1
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 527
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aeea63cb185dfd20800000000000000
+      internalID: 3313901777080479401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_2
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 527
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4db08542e32873a0800000000000000
+      internalID: -6667539793586373300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_3
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 523
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 334346edcbad88d20800000000000000
+      internalID: 3281112833259222067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_4
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 523
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e109ee96ab793ce00800000000000000
+      internalID: 1063860763886522398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_5
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 519
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b46cd1b2ef42fc50800000000000000
+      internalID: 6697503430918563001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_6
+      rect:
+        serializedVersion: 2
+        x: 1572
+        y: 523
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8307659831af72d30800000000000000
+      internalID: 4406765722220785720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_7
+      rect:
+        serializedVersion: 2
+        x: 1819
+        y: 523
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 367bc29348fabd370800000000000000
+      internalID: 8348459316691122019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_8
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 523
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8151e1b5bdb6dafe0800000000000000
+      internalID: -1176165337803123432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_9
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 267
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccdbaac53b6ab0fa0800000000000000
+      internalID: -5833385603044295220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_10
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 271
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44601b509dbaf1e30800000000000000
+      internalID: 4476485503221302852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_11
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 271
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eaf3b62cf4d98d40800000000000000
+      internalID: 5587230992175987431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_12
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 267
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2587f505dbc7b39d0800000000000000
+      internalID: -2793501991314163630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_13
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 267
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f92e1645160590860800000000000000
+      internalID: 7496611433692652191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_14
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 263
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b4308990f71020f0800000000000000
+      internalID: -1143887983217199947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_15
+      rect:
+        serializedVersion: 2
+        x: 1572
+        y: 267
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bc0c0f83123d8ab0800000000000000
+      internalID: -5004288551353054032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_16
+      rect:
+        serializedVersion: 2
+        x: 1819
+        y: 267
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17c2cc9e8aadf9f50800000000000000
+      internalID: 6890466373911981169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_17
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 267
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44865adfbf8daaf80800000000000000
+      internalID: -8094418803441178556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_18
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 11
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aff79f598239e41f0800000000000000
+      internalID: -1058747059861356550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_19
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 15
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67ea83feec3b19b60800000000000000
+      internalID: 7751174135039438454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_20
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 15
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52136bf4987aaf6f0800000000000000
+      internalID: -650022988011917019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_21
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 11
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66bb9caa183671560800000000000000
+      internalID: 7284400330862345062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_22
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 11
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da0bf87981670b970800000000000000
+      internalID: 8768638322484424877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_23
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 7
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1e9b5f4e81721760800000000000000
+      internalID: 7427123591518068250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_24
+      rect:
+        serializedVersion: 2
+        x: 1572
+        y: 11
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d4aad36e91f3ed30800000000000000
+      internalID: 4459673718609323225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_25
+      rect:
+        serializedVersion: 2
+        x: 1819
+        y: 11
+        width: 193
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c4d15e7e1a4b2b60800000000000000
+      internalID: 7722347480885613762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoldWarden_26
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 11
+        width: 216
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49b3354bdb77e7040800000000000000
+      internalID: 4647283522150808468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

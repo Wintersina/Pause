@@ -37,6 +37,7 @@ public static class AllTests
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
+        ("ShipArtTest", ShipArtTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShipSelectionTest", ShipSelectionTest.Execute),
@@ -46,10 +47,12 @@ public static class AllTests
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
+        ("TutorialAtomFlowTest", TutorialAtomFlowTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("TutorialRobotTest", TutorialRobotTest.Execute),
         ("WeaponChargeTest", WeaponChargeTest.Execute),
+        ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };
 

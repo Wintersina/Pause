@@ -19,6 +19,7 @@ public class moveStarsBackground : MonoBehaviour {
     private bool wasShowingPause;
 
     private Vector2 offset;
+    private Material starMaterial;
 
     // Use this for initialization
     void Start()
@@ -38,6 +39,8 @@ public class moveStarsBackground : MonoBehaviour {
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
 
         starBackgroundSpeed = .005f;
+        var r = GetComponent<Renderer>();
+        starMaterial = r != null ? r.material : null;
     }
 
     // Update is called once per frame
@@ -81,8 +84,9 @@ public class moveStarsBackground : MonoBehaviour {
         {
             speedCap = moveBackGround.speed;
         }
-        offset = new Vector2(0, Time.timeSinceLevelLoad *  starBackgroundSpeed * (speedCap+1) );
-        GetComponent<Renderer>().material.mainTextureOffset = offset;
+        // Hidden behind WorldBackdrop in gameS1/tutorial; still cheap to run.
+        offset.y = Mathf.Repeat(offset.y + Time.deltaTime * starBackgroundSpeed * (speedCap + 1), 1f);
+        if (starMaterial != null) starMaterial.mainTextureOffset = offset;
 
     }
 

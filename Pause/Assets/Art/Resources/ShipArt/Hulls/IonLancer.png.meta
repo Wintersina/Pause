@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: 7d89c331599ec4d45a0f91f55415bb31
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6483326030652998805
+    second: IonLancer_0
+  - first:
+      213: 2125719127435083557
+    second: IonLancer_1
+  - first:
+      213: -5188026154370549805
+    second: IonLancer_2
+  - first:
+      213: 5168069857367665596
+    second: IonLancer_3
+  - first:
+      213: -7317037491861872331
+    second: IonLancer_4
+  - first:
+      213: -5551386958109066669
+    second: IonLancer_5
+  - first:
+      213: 8737114924689876728
+    second: IonLancer_6
+  - first:
+      213: 5671560236207167866
+    second: IonLancer_7
+  - first:
+      213: -7915714354710483718
+    second: IonLancer_8
+  - first:
+      213: -2217964216294521435
+    second: IonLancer_9
+  - first:
+      213: 2872025952108055105
+    second: IonLancer_10
+  - first:
+      213: -7483840564657101166
+    second: IonLancer_11
+  - first:
+      213: -8175366050406662860
+    second: IonLancer_12
+  - first:
+      213: -7412013831446673361
+    second: IonLancer_13
+  - first:
+      213: -2759120605495610622
+    second: IonLancer_14
+  - first:
+      213: -4241408371495021371
+    second: IonLancer_15
+  - first:
+      213: -1177966792671156223
+    second: IonLancer_16
+  - first:
+      213: -4221524709442667156
+    second: IonLancer_17
+  - first:
+      213: -7253638247672571395
+    second: IonLancer_18
+  - first:
+      213: 7206271756993559674
+    second: IonLancer_19
+  - first:
+      213: 8782335322029941648
+    second: IonLancer_20
+  - first:
+      213: -5961607111743698062
+    second: IonLancer_21
+  - first:
+      213: -1441679873246507332
+    second: IonLancer_22
+  - first:
+      213: -186882746987164440
+    second: IonLancer_23
+  - first:
+      213: -3851419476418063628
+    second: IonLancer_24
+  - first:
+      213: 8535886356488823932
+    second: IonLancer_25
+  - first:
+      213: 5247957965261629014
+    second: IonLancer_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: IonLancer_0
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 523
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6b72e343599606a0800000000000000
+      internalID: -6483326030652998805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_1
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 527
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52f750ba842108d10800000000000000
+      internalID: 2125719127435083557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_2
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 527
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d7be4f23bd6008b0800000000000000
+      internalID: -5188026154370549805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_3
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 523
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbbadc6572ca8b740800000000000000
+      internalID: 5168069857367665596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_4
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 523
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 531ab512b29a47a90800000000000000
+      internalID: -7317037491861872331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_5
+      rect:
+        serializedVersion: 2
+        x: 1308
+        y: 519
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35a3c2f59f285f2b0800000000000000
+      internalID: -5551386958109066669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_6
+      rect:
+        serializedVersion: 2
+        x: 1579
+        y: 523
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f667e79bb7704970800000000000000
+      internalID: 8737114924689876728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_7
+      rect:
+        serializedVersion: 2
+        x: 1827
+        y: 523
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a79db515cfd65be40800000000000000
+      internalID: 5671560236207167866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_8
+      rect:
+        serializedVersion: 2
+        x: 2076
+        y: 523
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afc6500dbbbb52290800000000000000
+      internalID: -7915714354710483718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_9
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 267
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a5cc3beb453831e0800000000000000
+      internalID: -2217964216294521435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_10
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 271
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14a8a15036c7bd720800000000000000
+      internalID: 2872025952108055105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_11
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 271
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29664f358ae042890800000000000000
+      internalID: -7483840564657101166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_12
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 267
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43df8b064e34b8e80800000000000000
+      internalID: -8175366050406662860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_13
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 267
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f28c65ad0bc332990800000000000000
+      internalID: -7412013831446673361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_14
+      rect:
+        serializedVersion: 2
+        x: 1308
+        y: 263
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20339f08d62a5b9d0800000000000000
+      internalID: -2759120605495610622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_15
+      rect:
+        serializedVersion: 2
+        x: 1579
+        y: 267
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c4dbadde8d7325c0800000000000000
+      internalID: -4241408371495021371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_16
+      rect:
+        serializedVersion: 2
+        x: 1827
+        y: 267
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10821a5717507afe0800000000000000
+      internalID: -1177966792671156223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_17
+      rect:
+        serializedVersion: 2
+        x: 2076
+        y: 267
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6db223b4a12a65c0800000000000000
+      internalID: -4221524709442667156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_18
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 11
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df91a46f176e55b90800000000000000
+      internalID: -7253638247672571395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_19
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 15
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7cf7868bf1d10460800000000000000
+      internalID: 7206271756993559674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_20
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 15
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 093e5ffc17f11e970800000000000000
+      internalID: 8782335322029941648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_21
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 11
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27b0316faed144da0800000000000000
+      internalID: -5961607111743698062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_22
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 11
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbecf4b2bcf1efbe0800000000000000
+      internalID: -1441679873246507332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_23
+      rect:
+        serializedVersion: 2
+        x: 1308
+        y: 7
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ec4e2bb12f086df0800000000000000
+      internalID: -186882746987164440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_24
+      rect:
+        serializedVersion: 2
+        x: 1579
+        y: 11
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f2941354620d8ac0800000000000000
+      internalID: -3851419476418063628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_25
+      rect:
+        serializedVersion: 2
+        x: 1827
+        y: 11
+        width: 178
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c74ae998a6f857670800000000000000
+      internalID: 8535886356488823932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IonLancer_26
+      rect:
+        serializedVersion: 2
+        x: 2076
+        y: 11
+        width: 200
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 656e99be6fd74d840800000000000000
+      internalID: 5247957965261629014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
