@@ -584,7 +584,7 @@ public class LeaderboardPanel : MonoBehaviour
         button.targetGraphic = shape;
         button.transition = Selectable.Transition.None;
         button.onClick.AddListener(onClick);
-        rt.gameObject.AddComponent<CelPress>();
+        rt.gameObject.AddComponent<LeaderboardCelPress>();
         return button;
     }
 
@@ -607,7 +607,7 @@ public class LeaderboardPanel : MonoBehaviour
 }
 
 // Snappy press: the plate drops onto its shadow while held (no easing).
-public class CelPress : MonoBehaviour, UnityEngine.EventSystems.IPointerDownHandler,
+public class LeaderboardCelPress : MonoBehaviour, UnityEngine.EventSystems.IPointerDownHandler,
                         UnityEngine.EventSystems.IPointerUpHandler, UnityEngine.EventSystems.IPointerExitHandler
 {
     Vector2 rest;

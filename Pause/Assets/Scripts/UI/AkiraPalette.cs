@@ -31,6 +31,7 @@ public static class AkiraPalette
     // Card fill and muted type used by the UI samples (ui.py CARD / MUTED)
     public static readonly Color Card = Hex(0x151B30);
     public static readonly Color Muted = Hex(0x8C93B8);
+    public static readonly Color Hairline = Hex(0x2E3560);  // ui.py inner panel line
     // Player metal
     public static readonly Color Gun = Hex(0x2C2D40);
     public static readonly Color GunHi = Hex(0x5A5C78);
