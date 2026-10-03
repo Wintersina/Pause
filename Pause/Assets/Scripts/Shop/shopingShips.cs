@@ -12,8 +12,6 @@ using System.Collections.Generic;
 // UnityEvents.
 public class shopingShips : MonoBehaviour {
 
-    static readonly Dictionary<string, Sprite> runtimeSprites = new Dictionary<string, Sprite>();
-
     // Ship 1 is the starter hull. It must never appear as a paid upgrade,
     // including for players carrying old PlayerPrefs from before the change.
     public const int StarterShip = 1;
@@ -126,8 +124,6 @@ public class shopingShips : MonoBehaviour {
         return Roster[index];
     }
 
-    // These deliberate paths keep each hull's three health states in the
-    // correct intact -> damaged -> critical order.
     // Reference world size every hull is normalised to on spawn, whatever its
     // source art's native resolution -- 0.58 world units along its longest
     // edge. Shared so any code that places a ship (the dynamic gameS1
@@ -142,53 +138,22 @@ public class shopingShips : MonoBehaviour {
         return extent > 0f ? ReferenceHullSize / extent : 1f;
     }
 
+    // Every hull, Retro80s (1-7) and originals (8-15) alike, is one Akira
+    // flipbook sheet now (ShipHullArt): the old 64x64 / 32x32 pixel art and
+    // its hard-coded crop rects are gone. damageState 0/1/2 = intact /
+    // damaged / critical; the sprite has the old hull's world size.
     public static Sprite SpriteFor(int index, int damageState = 0)
     {
-        if (index >= 8) return OriginalShipArt.SpriteFor(index);
-        string[] keys = { "", "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo",
-                          "IonLancer", "JadePhantom", "GoldWarden" };
-        string[] states = { "intact", "damaged", "critical" };
-        if (index <= 0 || index >= keys.Length) return null;
-        string state = states[Mathf.Clamp(damageState, 0, states.Length - 1)];
-        return LoadRuntimeSprite("Prefabs/Ships/Retro80s/" + keys[index] + "_" + state);
+        return ShipHullArt.Rest(index, damageState);
     }
 
+    // One of the hull's idle drawings (0..ShipHullArt.IdleDrawings-1). Which
+    // drawing shows when, and for how long, is ShipHullArt's tick table;
+    // ShipHullAnimator plays it in flight, DockBay in the dock.
     public static Sprite IdleSpriteFor(int index, int damageState, int idleFrame)
     {
-        // The eight single-image legacy ships (Lightning onward) had no idle
-        // frames at all -- this always returned the same static sprite, so
-        // they never bobbed like the Retro80s ships do. OriginalIdleSpriteFor
-        // now supplies genuine frames for them; falls back to the static
-        // sprite only if a frame is actually missing.
-        if (index >= 8) return OriginalShipArt.OriginalIdleSpriteFor(index, idleFrame);
-        string[] keys = { "", "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo",
-                          "IonLancer", "JadePhantom", "GoldWarden" };
-        string[] states = { "intact", "damaged", "critical" };
-        if (index <= 0 || index >= keys.Length) return null;
-        string path = "Prefabs/Ships/Retro80s/" + keys[index] + "_" +
-                      states[Mathf.Clamp(damageState, 0, states.Length - 1)] +
-                      "_idle" + Mathf.Clamp(idleFrame, 0, 2);
-        Sprite sprite = LoadRuntimeSprite(path);
+        Sprite sprite = ShipHullArt.Idle(index, damageState, idleFrame);
         return sprite != null ? sprite : SpriteFor(index, damageState);
-    }
-
-    static Sprite LoadRuntimeSprite(string path)
-    {
-        Sprite cached;
-        if (runtimeSprites.TryGetValue(path, out cached) && cached != null) return cached;
-        Texture2D texture = Resources.Load<Texture2D>(path);
-        if (texture == null) return null;
-        Rect rect = new Rect(0, 0, texture.width, texture.height);
-        if (path.Contains("/NeonComet_")) rect = new Rect(16, 18, 32, 29);
-        if (path.Contains("/VoltViper_")) rect = new Rect(18, 21, 28, 23);
-        if (path.Contains("/SolarFang_")) rect = new Rect(17, 18, 29, 28);
-        if (path.Contains("/CrimsonHalo_")) rect = new Rect(8, 4, 46, 57);
-        if (path.Contains("/IonLancer_")) rect = new Rect(9, 6, 47, 55);
-        if (path.Contains("/JadePhantom_")) rect = new Rect(4, 6, 56, 55);
-        if (path.Contains("/GoldWarden_")) rect = new Rect(7, 6, 51, 55);
-        Sprite sprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), 100f);
-        runtimeSprites[path] = sprite;
-        return sprite;
     }
 
     public static Sprite[] DamageSpritesFor(int index)

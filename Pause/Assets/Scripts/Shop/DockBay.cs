@@ -47,7 +47,7 @@ public class DockBay : MonoBehaviour
     readonly SpriteRenderer[] lights = new SpriteRenderer[4];
     readonly Transform[] clamps = new Transform[2];
     TextMesh nameText, chipText;
-    readonly Sprite[] idle = new Sprite[3];
+    readonly Sprite[] idle = new Sprite[ShipHullArt.IdleDrawings];
     Sprite rest;
     MaterialPropertyBlock block;
     float power;
@@ -230,7 +230,10 @@ public class DockBay : MonoBehaviour
             float t = Time.unscaledTime;
             float bob = Mathf.Sin(t * 2.4f + phase) * .022f * p;
             ship.localPosition = new Vector3(ShipRest.x, ShipRest.y + bob, 0f);
-            hull.sprite = p > .05f ? idle[Mathf.FloorToInt(t * 8f) % 3] : rest;
+            // The hull's own idle flipbook (lights blink, canopy glint), on
+            // the same tick table it flies with; a parked hull holds still.
+            int drawing = ShipHullArt.IdleDrawingAt(t * ShipHullArt.TicksPerSecond + phase * 10f);
+            hull.sprite = p > .05f ? idle[Mathf.Clamp(drawing, 0, idle.Length - 1)] : rest;
             if (wind)
             {
                 spin += 80f * p * dt;
