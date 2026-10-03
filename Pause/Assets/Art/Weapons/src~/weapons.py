@@ -44,40 +44,54 @@ COLS, ROWS = 16, 3
 CHARGE_FRAMES, READY_FRAMES, SHOT_FRAMES, IMPACT_FRAMES = 16, 4, 6, 6
 MUZZLE_FRAMES, RELEASE_FRAMES, TRAIL_FRAMES = 4, 4, 2
 
+# Hold of each drawing in ticks at 24 fps (docs/art-style.md section 3).
+# WeaponArt.cs / FlipbookFx.cs play them back with the same tables.
+READY_TICKS = [4, 2, 2, 2]          # held key pose, then the pulse on 2s
+SHOT_TICKS = [2, 2, 2, 2, 1, 1]     # flight loop on 2s; smear frames 1 tick
+IMPACT_TICKS = [1, 1, 2, 2, 2, 3]
+MUZZLE_TICKS = [1, 1, 1, 2]         # pinch, flash, smear, speed lines
+RELEASE_TICKS = [2, 1, 1, 3]        # squash, stretch, flash, speed lines
+EXPLOSION_TICKS = [1, 1, 1, 3, 2, 2, 2, 2, 3, 3]
+
 # ---------------------------------------------------------------- palette ----
 #
 # One row per ship. main/shade/hi are the weapon body's three cel tones,
 # energy/energy_hi the light it throws (always the bloom colour), spot a rare
 # accent. ink and night are shared.
-INK = "#0b0a1c"
-NIGHT = "#1d1a3c"      # unlit / empty slots: deep indigo
-NIGHT_HI = "#36305e"
-WHITE = "#fff8ec"      # warm paper white, not pure white
-SMOKE, SMOKE_SHADE = "#5a5478", "#3a3558"
+# Names and values follow docs/art-style.md section 1 (art-samples/src/akira.py).
+INK = "#140C14"        # every outline: warm near-black, never #000
+NIGHT_1 = "#0E1424"    # default backdrop (preview strips)
+NIGHT = "#1A1F45"      # INDIGO_0: unlit / empty slots
+NIGHT_HI = "#2A2E6B"   # INDIGO_1: empty-slot outlines
+BONE = "#F4EAD4"       # highlight kicks and light cores; never #FFF ...
+WHITE = BONE
+PURE = "#FFFFFF"       # ... except the one-tick impact flash
+SMOKE, SMOKE_SHADE = "#3A2A5C", "#1A1F45"   # DUSK / INDIGO_0 smoke cels
+GUN, GUN_SH, GUN_HI = "#2C2D40", "#1A1A28", "#5A5C78"
 
-KANEDA, KANEDA_SHADE, KANEDA_HI = "#e3202b", "#8a0f22", "#ff7a52"
-SODIUM, SODIUM_SHADE, SODIUM_HI = "#ff8a1a", "#b8450e", "#ffd06a"
-AMBER, AMBER_SHADE, AMBER_HI = "#ffb21f", "#c8601a", "#fff0a8"
-CYAN, CYAN_HI = "#33dcea", "#c8fbff"
-TEAL, TEAL_HI = "#22d6b0", "#c6fff0"
-MAGENTA = "#ff2e88"
+KANEDA, KANEDA_SHADE, KANEDA_HI = "#D8232C", "#86121F", "#FF5B45"   # RED, RED_SH, RED_HI
+SODIUM, SODIUM_SHADE, SODIUM_HI = "#F2862B", "#A9481A", "#FFB43C"   # SODIUM, SODIUM_SH, AMBER
+AMBER, AMBER_SHADE, AMBER_HI = "#FFB43C", "#A9481A", BONE
+CYAN, CYAN_HI = "#6EF2EE", BONE
+TEAL, TEAL_HI, TEAL_SH = "#1FB5B9", "#6EF2EE", "#0F5E6A"
+MAGENTA = "#FF2E88"    # enemy lights only: never on player weapons
 
 PALETTES = {
     #  ship: (main, shade, hi, energy, energy_hi, spot)
-    1:  (KANEDA, KANEDA_SHADE, KANEDA_HI, CYAN, CYAN_HI, MAGENTA),        # Neon Comet
+    1:  (KANEDA, KANEDA_SHADE, KANEDA_HI, CYAN, CYAN_HI, AMBER),          # Neon Comet
     2:  (SODIUM, SODIUM_SHADE, SODIUM_HI, TEAL, TEAL_HI, KANEDA),         # Volt Viper
     3:  (AMBER, AMBER_SHADE, AMBER_HI, SODIUM, AMBER_HI, KANEDA),         # Solar Fang
-    4:  (KANEDA, KANEDA_SHADE, KANEDA_HI, MAGENTA, "#ffd0e6", AMBER),     # Crimson Halo
+    4:  (KANEDA, KANEDA_SHADE, KANEDA_HI, AMBER, BONE, TEAL),             # Crimson Halo
     5:  (KANEDA, KANEDA_SHADE, KANEDA_HI, CYAN, CYAN_HI, AMBER),          # Ion Lancer
     6:  (SODIUM, SODIUM_SHADE, SODIUM_HI, TEAL, TEAL_HI, KANEDA),         # Jade Phantom
     7:  (AMBER, AMBER_SHADE, AMBER_HI, KANEDA, KANEDA_HI, CYAN),          # Gold Warden
     8:  (SODIUM, SODIUM_SHADE, SODIUM_HI, CYAN, CYAN_HI, AMBER),          # Lightning
     9:  (KANEDA, KANEDA_SHADE, SODIUM, AMBER, AMBER_HI, CYAN),            # Ligher
-    10: (KANEDA, KANEDA_SHADE, KANEDA_HI, TEAL, TEAL_HI, MAGENTA),        # Paranoid
-    11: ("#b8c0dc", "#5a6088", WHITE, KANEDA, KANEDA_HI, CYAN),           # Ninja
+    10: (KANEDA, KANEDA_SHADE, KANEDA_HI, TEAL, TEAL_HI, KANEDA),         # Paranoid
+    11: (BONE, GUN_HI, BONE, KANEDA, KANEDA_HI, CYAN),                    # Ninja
     12: (KANEDA, KANEDA_SHADE, KANEDA_HI, SODIUM, AMBER_HI, CYAN),        # Saboteur
     13: (SODIUM, SODIUM_SHADE, SODIUM_HI, CYAN, CYAN_HI, KANEDA),         # UFO
-    14: ("#f2ead8", "#b4a890", WHITE, AMBER, AMBER_HI, CYAN),             # Dove
+    14: (BONE, AMBER, BONE, SODIUM, AMBER, CYAN),                         # Dove
     15: (AMBER, AMBER_SHADE, AMBER_HI, TEAL, TEAL_HI, KANEDA),            # Turtle
 }
 
@@ -212,9 +226,14 @@ class Doc:
         return "%s%d" % (prefix, self.count)
 
 
-def svg(doc, body):
-    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">'
-            '<defs>%s</defs>%s</svg>\n' % ("".join(doc.defs), body))
+GLOW_FILTER = ('<filter id="glow" filterUnits="userSpaceOnUse" x="-32" y="-32" width="192" height="192">'
+               '<feGaussianBlur stdDeviation="3.2"/></filter>')
+
+
+def svg(doc, body, hold=None):
+    head = "<!-- hold: %d ticks @24fps -->" % hold if hold else ""
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">%s'
+            '<defs>%s%s</defs>%s</svg>\n' % (head, GLOW_FILTER, "".join(doc.defs), body))
 
 
 def g(body, op=None, tf=None, clip=None):
@@ -305,12 +324,15 @@ def inked_line(points, color, w, core=None, ink=INK_W):
 
 
 def light(points, color, bloom, core=WHITE, rings=2, grow=0.32):
-    """A light source: stepped, hard-edged bloom halos, then an inked core."""
+    """A light source (docs/art-style.md 2.7): a blurred copy of its shape
+    behind it, the flat light colour, a BONE core. Lights carry no ink.
+    rings scales the glow (0 = none)."""
     cx, cy = centroid(points)
     s = ""
-    for i in range(rings, 0, -1):
-        s += poly(scale_pts(points, cx, cy, 1 + grow * i), fill=bloom, op=0.16 + 0.14 * (rings - i))
-    s += poly(points, fill=color, stroke=INK, w=3.2)
+    if rings > 0:
+        s += g(poly(scale_pts(points, cx, cy, 1 + grow * rings), fill=bloom),
+               op=0.35 + 0.12 * min(rings, 2)).replace("<g ", '<g filter="url(#glow)" ', 1)
+    s += poly(points, fill=color)
     s += poly(scale_pts(points, cx, cy, 0.5), fill=core)
     return s
 
@@ -334,13 +356,24 @@ def speed_lines(rng, cx, cy, r0, r1, count, color, w=3, a0=0, a1=360):
     return s
 
 
-def puff(doc, x, y, r, rng, col=SMOKE, shade=SMOKE_SHADE):
-    """Ink-outlined cartoon smoke puff: a cluster of lobes, flat two-tone."""
-    lobes = [(x + rng.uniform(-r, r) * 0.55, y + rng.uniform(-r, r) * 0.45, r * rng.uniform(0.55, 0.8))
-             for _ in range(3)] + [(x, y, r * 0.75)]
-    s = "".join(circle(a, b, c + 2.4, fill=INK) for a, b, c in lobes)
-    s += "".join(circle(a, b, c, fill=col) for a, b, c in lobes)
-    s += "".join(circle(a + c * 0.25, b + c * 0.3, c * 0.6, fill=shade) for a, b, c in lobes[:2])
+def puff(doc, x, y, r, rng, col=SMOKE, shade=SMOKE_SHADE, rim=None):
+    """Ink-outlined smoke cel: an angular, chamfered lump (docs/art-style.md:
+    smoke as angular DUSK / INDIGO cels, never round puffs), flat two-tone
+    with a hard shadow on the lower right."""
+    sides = 7
+    rot = rng.uniform(0, 360)
+    pts_ = [P(x, y, r * rng.uniform(0.72, 1.0), rot + i * 360.0 / sides) for i in range(sides)]
+    s = poly(pts_, fill=col, stroke=INK, w=3.2)
+    sh = [(x, y)] + [p_ for p_ in pts_ if (p_[0] - x) + (p_[1] - y) > 0]
+    if len(sh) >= 3:
+        sh = sorted(sh[1:], key=lambda q: math.atan2(q[1] - y, q[0] - x))
+        s += poly([(x + r * 0.1, y + r * 0.1)] + sh, fill=shade)
+    s += poly(pts_, stroke=INK, w=3.2)
+    if rim:  # fire-lit kick on the upper-left edges so smoke reads on the night sky
+        lit = [p_ for p_ in pts_ if (p_[0] - x) + (p_[1] - y) < -r * 0.3]
+        if len(lit) >= 2:
+            lit = sorted(lit, key=lambda q: math.atan2(q[1] - y, q[0] - x))
+            s += line(scale_pts(lit, x, y, 0.82), rim, 2.4)
     return s
 
 
@@ -420,8 +453,8 @@ class Weapon:
 
     def impact(self, doc, k):
         rng = self.rng(7, 0)
-        if k == 0:   # 1-frame white flash
-            return poly(star(64, 64, 60, 24, self.flash_points + 2, 8), fill=WHITE, stroke=INK, w=3)
+        if k == 0:   # 1-tick impact frame: pure white, red outline
+            return poly(star(64, 64, 60, 24, self.flash_points + 2, 8), fill=PURE, stroke=KANEDA, w=4)
         if k == 1:   # red/ink key burst
             s = poly(burst(rng, 64, 64, 60, 28, 9, 0), fill=KANEDA, stroke=INK, w=5)
             s += poly(burst(rng, 64, 64, 40, 18, 9, 20), fill=self.hi)
@@ -889,11 +922,11 @@ class Ligher(Weapon):
             s += poly(self.flame_pts(base, h * 0.66, w * 0.6, jit * 0.5), fill=self.hi)
             s += poly(self.flame_pts(base, 8 + 6 * c, w * 0.42, 0, True), fill=self.spot)  # blue base
         # the lighter itself: chimney with vent holes, striker wheel, case
-        s += cel(doc, [(46, 86), (82, 86), (82, 98), (46, 98)], "#c4c2d8", "#7c7898", None, ink=4)
+        s += cel(doc, [(46, 86), (82, 86), (82, 98), (46, 98)], GUN_HI, GUN, None, ink=4)
         for i in range(4):
             s += poly(ngon(52 + i * 8, 92, 2.2, 4, 45), fill=INK)
         s += cel(doc, [(42, 98), (86, 98), (86, 118), (42, 118)], self.main, self.shade, self.hi, ink=4.5)
-        s += cel(doc, ngon(90, 92, 7, 8, k * 22.5), "#7c7898", INK, None, ink=3.5)
+        s += cel(doc, ngon(90, 92, 7, 8, k * 22.5), GUN_HI, INK, None, ink=3.5)
         for i in range(4):  # heat gauge on the case
             on = c * 4 >= i + 0.5
             s += poly([(48 + i * 9, 106), (54 + i * 9, 106), (54 + i * 9, 111), (48 + i * 9, 111)],
@@ -940,20 +973,20 @@ class Paranoid(Weapon):
         top = 64 - 40 * o
         bot = 64 + 30 * o
         eye = self.almond(top, bot)
-        s = poly(eye, fill=self.spot, stroke=INK, w=13)  # thick magenta lid rim
+        s = poly(eye, fill=self.main, stroke=INK, w=13)  # thick red lid rim
         s += poly(eye, fill=INK, stroke=INK, w=5)
         clip = doc.uid("eye")
         doc.defs.append('<clipPath id="%s"><polygon points="%s"/></clipPath>' % (clip, pts(eye)))
         dx, dy = self.looks[int(round(c * 15)) % len(self.looks)] if not ready else [(0, 0), (-3, 0), (3, 0), (0, 0)][k]
-        inner = poly(eye, fill="#efe6d4")
-        inner += poly([(18, 64), (110, 64), (110, 40), (18, 40)], fill="#c8bca8", op=0.6)  # lid shadow
+        inner = poly(eye, fill=BONE)
+        inner += poly([(18, 64), (110, 64), (110, 40), (18, 40)], fill=AMBER, op=0.6)  # lid shadow
         rng = self.rng(1, 3)
         for i in range(int(c * 6) + (2 if ready else 0)):
             side = -1 if i % 2 else 1
             inner += line(jag(rng, 64 + side * 46, 64 + rng.uniform(-8, 8), 64 + side * 20, 64 + rng.uniform(-12, 12), 3, 3),
                           KANEDA, 1.6)
         iris = ngon(64 + dx, 64 + dy, 18, 10, 0)
-        inner += cel(doc, iris, KANEDA if ready else self.energy, KANEDA_SHADE if ready else "#139c80", None, ink=3.5)
+        inner += cel(doc, iris, KANEDA if ready else self.energy, KANEDA_SHADE if ready else TEAL_SH, None, ink=3.5)
         if ready:
             inner += poly(ngon(64 + dx, 64 + dy, 4, 6), fill=INK)
         else:
@@ -978,9 +1011,9 @@ class Paranoid(Weapon):
         s = ""
         for i in range(3):
             q = [(64 + (i - 1) * 7 + math.sin(k * 1.57 + j * 0.9 + i) * (1.5 + j * 1.5), 58 + j * 11) for j in range(6)]
-            s += inked_line(q, self.spot if i == 1 else self.energy, 4 - i % 2, None, ink=3)
-        s += circle(64, 42, 18, fill=self.spot, stroke=INK, w=4)
-        s += circle(64, 42, 13, fill="#efe6d4")
+            s += inked_line(q, self.main if i == 1 else self.energy, 4 - i % 2, None, ink=3)
+        s += circle(64, 42, 18, fill=self.main, stroke=INK, w=4)
+        s += circle(64, 42, 13, fill=BONE)
         look = [(0, -4), (-2, -4), (0, -5), (2, -4)][k % 4]
         s += poly(ngon(64 + look[0], 42 + look[1], 8, 10), fill=KANEDA, stroke=INK, w=2.4)
         s += poly([(64 + look[0], 34 + look[1]), (66.5 + look[0], 42 + look[1]), (64 + look[0], 50 + look[1]),
@@ -989,7 +1022,7 @@ class Paranoid(Weapon):
         return s
 
     def motif(self, doc, x, y, s, rot, k):
-        return cel(doc, [(x - 7 * s, y), (x, y - 9 * s), (x + 7 * s, y), (x, y + 7 * s)], self.energy, "#139c80", None,
+        return cel(doc, [(x - 7 * s, y), (x, y - 9 * s), (x + 7 * s, y), (x, y + 7 * s)], self.energy, TEAL_SH, None,
                    ink=3)
 
 
@@ -1050,18 +1083,18 @@ class Saboteur(Weapon):
     flash_points = 6
 
     def heat_col(self, h):
-        ramp = ["#2a1820", KANEDA, SODIUM, AMBER_HI]
+        ramp = [GUN_SH, KANEDA, SODIUM, AMBER_HI]
         i = min(3, int(clamp01(h) * 3.999))
         return ramp[i]
 
     def charge(self, doc, c, ready, k):
-        s = cel(doc, ngon(64, 64, 48, 12, 15), "#3c3458", "#28223e", None, ink=5)
+        s = cel(doc, ngon(64, 64, 48, 12, 15), GUN, GUN_SH, None, ink=5)
         s += poly(ngon(64, 64, 38, 12, 15), stroke=INK, w=2.4)
         for j in range(6):
             ang = j * 60 + (k * 20 if ready else 0)
             x, y = P(64, 64, 24, ang)
             h = 1.0 if ready else clamp01(c * 6 - j)
-            s += poly(ngon(x, y, 11, 8, 22.5), fill="#5a5478", stroke=INK, w=3.4)
+            s += poly(ngon(x, y, 11, 8, 22.5), fill=GUN_HI, stroke=INK, w=3.4)
             bore = ngon(x, y, 6.5, 8, 22.5)
             if h > 0:
                 col = self.heat_col(h)
@@ -1069,7 +1102,7 @@ class Saboteur(Weapon):
                     poly(bore, fill=col, stroke=INK, w=2)
             else:
                 s += poly(bore, fill=INK)
-        s += cel(doc, ngon(64, 64, 9, 6, 0), "#7c7898", "#4a4468", None, ink=3)
+        s += cel(doc, ngon(64, 64, 9, 6, 0), GUN_HI, GUN, None, ink=3)
         # heat gauge wedge on the housing rim
         s += poly(band(64, 64, 49, 55, -60, 60), fill=INK)
         if c > 0:
@@ -1094,7 +1127,7 @@ class Saboteur(Weapon):
 
     def motif(self, doc, x, y, s, rot, k):
         shard = [P(x, y, 9 * s, rot), P(x, y, 5 * s, rot + 120), P(x, y, 7 * s, rot + 220)]
-        return cel(doc, shard, "#5a5478", INK, None, ink=3) + poly(ngon(x, y, 2 * s, 4), fill=self.energy)
+        return cel(doc, shard, GUN_HI, INK, None, ink=3) + poly(ngon(x, y, 2 * s, 4), fill=self.energy)
 
 
 # 13 -- UFO: drones swoop in and lock into formation ----------------------------
@@ -1257,9 +1290,12 @@ ROSTER = {1: NeonComet, 2: VoltViper, 3: SolarFang, 4: CrimsonHalo, 5: IonLancer
 EXPLOSION_FRAMES = 10
 EXPLOSIONS = {
     #        main        shade       hi          fire        fire_hi     smoke       smoke_shade debris
-    "metal": ("#b0249c", "#4e1466", "#ff7ad8", "#ff2e88", "#ffd0e6", "#7a6ea4", "#4e4478", "metal"),
-    "rock":  ("#9a6038", "#56321e", "#d09a62", SODIUM, AMBER_HI, "#94806c", "#62503e", "rock"),
-    "mine":  ("#d81c48", "#6e0c22", "#ff8a6a", SODIUM, AMBER_HI, "#76688e", "#4c4066", "metal"),
+    # hostile craft: BRUISE armour, STEEL plates, MAGENTA (enemy light) fire
+    "metal": ("#74409A", "#3A1E52", "#A86CD0", MAGENTA, BONE, SMOKE, SMOKE_SHADE, "metal"),
+    # rocks: ROCK tones with an AMBER rim kick, SODIUM fire
+    "rock":  ("#605878", "#2C2638", AMBER, SODIUM, AMBER, SMOKE, SMOKE_SHADE, "rock"),
+    # mines: BRUISE hub, hotter and bigger SODIUM / AMBER fire
+    "mine":  ("#74409A", "#3A1E52", "#A86CD0", SODIUM, AMBER, SMOKE, SMOKE_SHADE, "metal"),
 }
 EXPLOSION_ROWS = ["metal", "rock", "mine"]
 
@@ -1269,7 +1305,7 @@ def debris_chunk(doc, kind, x, y, s, rot, pal, seed):
     if kind == "metal":
         # bent hull plate with a stripe of the hull's paint
         pts_ = [P(x, y, 9 * s, rot), P(x, y, 7 * s, rot + 80), P(x, y, 9 * s, rot + 170), P(x, y, 5 * s, rot + 260)]
-        out = cel(doc, pts_, "#6a5a9a", "#3c3264", None, ink=3)
+        out = cel(doc, pts_, "#5A6A88", "#262D44", None, ink=3)
         out += line([P(x, y, 5 * s, rot + 20), P(x, y, 5 * s, rot + 200)], pal[0], 1.8 * s)
         return out
     sides = rng.randint(5, 6)
@@ -1285,18 +1321,28 @@ def explosion(doc, kind, k):
         s = speed_lines(random.Random(1), 64, 64, 26, 54, 12, WHITE, 3)
         s += poly(star(64, 64, 18, 6, 4, 45), fill=WHITE, stroke=INK, w=3)
         return s
-    if k == 1:   # white flash
-        return poly(star(64, 64, 58 * big, 26, 10, 0), fill=WHITE, stroke=INK, w=3)
+    if k == 1:   # 1-tick impact frame: pure white, red outline
+        return poly(star(64, 64, 58 * big, 26, 10, 0), fill=PURE, stroke=KANEDA, w=4)
     if k == 2:   # red flash with a white heart
         s = poly(burst(rng, 64, 64, 58 * big, 30, 9, 12), fill=KANEDA, stroke=INK, w=5)
         s += poly(burst(rng, 64, 64, 30, 14, 7, 0), fill=WHITE)
         return s
-    if k == 3:   # the held key pose: a hard anime star burst
-        s = poly(burst(rng, 64, 64, 57 * big, 30, 11, 6), fill=fire, stroke=INK, w=5)
-        s += poly(burst(rng, 64, 64, 40 * big, 22, 9, 26), fill=fire_hi)
+    if k == 3:   # the held key pose: a hard anime star burst, squashed wide
+        s = poly(burst(rng, 64, 64, 54 * big, 30, 11, 6), fill=fire, stroke=INK, w=5)
+        s += poly(burst(rng, 64, 64, 38 * big, 22, 9, 26), fill=fire_hi)
         s += poly(burst(rng, 64, 64, 22, 12, 7, 0), fill=WHITE)
-        return s
+        return g(s, tf="translate(64 64) scale(1.14 0.88) translate(-64 -64)")
     p = (k - 4) / 5.0
+    if k == 4:   # springs tall out of the squash
+        return g(_explosion_tail(doc, kind, p), tf="translate(64 64) scale(0.92 1.09) translate(-64 -64)")
+    return _explosion_tail(doc, kind, p)
+
+
+def _explosion_tail(doc, kind, p):
+    main, shade, hi, fire, fire_hi, smoke, smoke_shade, dkind = EXPLOSIONS[kind]
+    big = 1.1 if kind == "mine" else 1.0
+    rng = random.Random(len(kind) * 97 + 5)
+    k = int(round(p * 5)) + 4
     e = ease(p)
     s = ""
     if p < 0.3:  # the shockwave band, gone after two frames
@@ -1309,11 +1355,11 @@ def explosion(doc, kind, k):
         r = (21 if i % 2 else 17) * big * (1 - 0.3 * p)
         x, y = P(64, 64, dist, ang)
         if p < 0.55:
-            s += puff(None, x, y, r, random.Random(i * 7 + k), smoke, smoke_shade)
+            s += puff(None, x, y, r, random.Random(i * 7 + k), smoke, smoke_shade, fire_hi if p < 0.7 else fire)
         else:  # broken into two smaller puffs
             for j in (-1, 1):
                 bx, by = P(x, y, r * 0.7 * (0.6 + p), ang + 90 * j)
-                s += puff(None, bx, by, r * (1.4 - p) * 0.8, random.Random(i * 11 + j + k), smoke, smoke_shade)
+                s += puff(None, bx, by, r * (1.4 - p) * 0.8, random.Random(i * 11 + j + k), smoke, smoke_shade, fire)
     if p < 0.75:  # fire core shrinking inside the smoke
         f = 1 - p / 0.75
         s += poly(burst(rng, 64, 64, 34 * f * big + 4, 17 * f + 2, 9, k * 15), fill=fire, stroke=INK, w=4)
@@ -1349,7 +1395,7 @@ def build_explosions(preview_dir=None):
         cells = []
         for row, kind in enumerate(EXPLOSION_ROWS):
             for k in range(EXPLOSION_FRAMES):
-                cells.append(("%s_%d" % (kind, k), row, k, frame(explosion, kind, k)))
+                cells.append(("%s_%d" % (kind, k), row, k, frame(explosion, kind, k, hold=EXPLOSION_TICKS[k])))
         for k, name in enumerate(["flash_0", "flash_1", "ring"]):
             cells.append((name, 0, 10 + k, frame(overlay, k)))
         atlas = Image.new("RGBA", (COLS * CELL, ROWS * CELL), (0, 0, 0, 0))
@@ -1376,7 +1422,7 @@ def build_explosions(preview_dir=None):
             d = ImageDraw.Draw(bg)
             for r, kind in enumerate(EXPLOSION_ROWS):
                 y0 = r * (CELL + 60)
-                d.rectangle([0, y0 + CELL, W, y0 + CELL + 60], fill=rgb("#120f28") + (255,))
+                d.rectangle([0, y0 + CELL, W, y0 + CELL + 60], fill=rgb(NIGHT) + (255,))
                 for k in range(EXPLOSION_FRAMES):
                     im = images["%s_%d" % (kind, k)]
                     bg.alpha_composite(im, (k * CELL, y0))
@@ -1390,9 +1436,18 @@ def build_explosions(preview_dir=None):
 
 # ------------------------------------------------------------------- build ----
 
-def frame(fn, *args):
+def frame(fn, *args, hold=None):
     doc = Doc()
-    return svg(doc, fn(doc, *args))
+    return svg(doc, fn(doc, *args), hold)
+
+
+def ready_pose(w, doc, k):
+    """Ready loop: the full-charge drawing, swelling on the even (held) poses
+    -- the squash is drawn, not tweened in code."""
+    inner = w.charge(doc, 1.0, True, k)
+    if k % 2 == 0:
+        return g(inner, tf="translate(64 64) scale(1.1) translate(-64 -64)")
+    return inner
 
 
 def frames(w):
@@ -1401,15 +1456,16 @@ def frames(w):
     for i in range(CHARGE_FRAMES):
         out.append(("charge_%02d" % i, 0, i, frame(w.charge, i / (CHARGE_FRAMES - 1), False, 0)))
     for i in range(READY_FRAMES):
-        out.append(("ready_%d" % i, 1, i, frame(w.charge, 1.0, True, i)))
+        out.append(("ready_%d" % i, 1, i, frame(lambda d, k: ready_pose(w, d, k), i, hold=READY_TICKS[i])))
     for i in range(SHOT_FRAMES):
-        out.append(("shot_%d" % i, 1, 4 + i, frame(w.shot, i) if i < 4 else frame(w.smear, i - 4)))
+        out.append(("shot_%d" % i, 1, 4 + i, frame(w.shot, i, hold=SHOT_TICKS[i]) if i < 4
+                    else frame(w.smear, i - 4, hold=SHOT_TICKS[i])))
     for i in range(IMPACT_FRAMES):
-        out.append(("impact_%d" % i, 1, 10 + i, frame(w.impact, i)))
+        out.append(("impact_%d" % i, 1, 10 + i, frame(w.impact, i, hold=IMPACT_TICKS[i])))
     for i in range(MUZZLE_FRAMES):
-        out.append(("muzzle_%d" % i, 2, i, frame(w.muzzle, i)))
+        out.append(("muzzle_%d" % i, 2, i, frame(w.muzzle, i, hold=MUZZLE_TICKS[i])))
     for i in range(RELEASE_FRAMES):
-        out.append(("release_%d" % i, 2, 4 + i, frame(w.release, i)))
+        out.append(("release_%d" % i, 2, 4 + i, frame(w.release, i, hold=RELEASE_TICKS[i])))
     for i in range(TRAIL_FRAMES):
         out.append(("trail_%d" % i, 2, 8 + i, frame(w.trail, i)))
     return out
@@ -1466,7 +1522,7 @@ def preview(w, cells, out_dir):
     H = CELL + 60
     bg = Image.new("RGBA", (W, H), rgb(NIGHT) + (255,))
     d = ImageDraw.Draw(bg)
-    d.rectangle([0, CELL, W, H], fill=rgb("#120f28") + (255,))
+    d.rectangle([0, CELL, W, H], fill=rgb(NIGHT) + (255,))
     for i, name in enumerate(order):
         bg.alpha_composite(cells[name], (i * CELL, 0))
         small = cells[name].resize((48, 48), Image.LANCZOS)
