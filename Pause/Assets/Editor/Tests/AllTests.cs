@@ -44,6 +44,7 @@ public static class AllTests
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
+        ("TutorialRobotTest", TutorialRobotTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Explosion, frame 5. Hold 3 ticks. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<polygon points="28.3,49.8 20.6,43.4 22.3,33.6 31.7,30.2 39.4,36.6 37.7,46.4" fill="#1A1F45" opacity="0.9"/><polygon points="28.3,49.8 20.6,43.4 22.3,33.6 31.7,30.2 39.4,36.6 37.7,46.4" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/><polygon points="98,40.9 90,40.9 86,34 90,27.1 98,27.1 102,34" fill="#1A1F45" opacity="0.9"/><polygon points="98,40.9 90,40.9 86,34 90,27.1 98,27.1 102,34" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/><polygon points="99.1,98.5 90.2,96.9 87.1,88.4 92.9,81.5 101.8,83.1 104.9,91.6" fill="#1A1F45" opacity="0.9"/><polygon points="99.1,98.5 90.2,96.9 87.1,88.4 92.9,81.5 101.8,83.1 104.9,91.6" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/><polygon points="32.6,98.5 31.4,91.6 36.8,87.1 43.4,89.5 44.6,96.4 39.2,100.9" fill="#1A1F45" opacity="0.9"/><polygon points="32.6,98.5 31.4,91.6 36.8,87.1 43.4,89.5 44.6,96.4 39.2,100.9" fill="none" stroke="#140C14" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/><polygon points="97.8,38.2 97.8,41.8 94.2,41.8 94.2,38.2" fill="#F2862B" />
+</svg>

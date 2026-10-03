@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Explosion, frame 0. Hold 1 ticks. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<filter id="glowS" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="glowM" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glowL" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<polygon points="64,24.9 71.9,49.9 93.9,41.9 83.1,58.1 122.2,64 83.1,69.9 92.1,84.7 71.9,78.1 64,103.1 56.1,78.1 34.1,86.1 44.9,69.9 5.8,64 44.9,58.1 35.9,43.3 56.1,49.9" fill="#F4EAD4" /><polygon points="64,24.9 71.9,49.9 93.9,41.9 83.1,58.1 122.2,64 83.1,69.9 92.1,84.7 71.9,78.1 64,103.1 56.1,78.1 34.1,86.1 44.9,69.9 5.8,64 44.9,58.1 35.9,43.3 56.1,49.9" fill="none" stroke="#D8232C" stroke-width="4" stroke-linejoin="round" /><polygon points="75.3,52.7 71,64 75.3,75.3 64,71 52.7,75.3 57,64 52.7,52.7 64,57" fill="#D8232C" />
+</svg>

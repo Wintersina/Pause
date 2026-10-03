@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hard pulse: a flat octagon outline with an ink edge, stepped out from the
+  robot on stressed syllables and under the touch hint. White template,
+  tinted at runtime (the ink stays ink under any tint).
+  64x64 units, rasterize at 2x (128x128 px).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M22 4 L42 4 L60 22 L60 42 L42 60 L22 60 L4 42 L4 22 Z" fill="none" stroke="@INK@" stroke-width="7" stroke-linejoin="miter"/>
+  <path d="M22 4 L42 4 L60 22 L60 42 L42 60 L22 60 L4 42 L4 22 Z" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linejoin="miter"/>
+</svg>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hint arrow: two flat sodium-orange chevrons pointing UP (rotated at
+  runtime toward the target), thick ink outline, one light tone.
+  48x48 units, rasterize at 2x (96x96 px).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <path d="M6 24 L24 6 L42 24 L34 24 L24 14 L14 24 Z" fill="@ORANGE@" stroke="@INK@" stroke-width="3" stroke-linejoin="miter"/>
+  <path d="M6 40 L24 22 L42 40 L34 40 L24 30 L14 40 Z" fill="@ORANGE@" stroke="@INK@" stroke-width="3" stroke-linejoin="miter"/>
+  <path d="M10 23 L24 9 L26 11 L13 23 Z" fill="@ORANGE_LIGHT@"/>
+</svg>

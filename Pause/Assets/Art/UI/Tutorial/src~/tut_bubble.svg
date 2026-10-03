@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Speech bubble body, 9-slice: a flat cel panel. Flat indigo fill, thick
+  ink outline, a teal accent line inside it, chamfered corners and a hard
+  ink drop shadow. No gloss, no gradients.
+  Layout: 6u margin (the shadow sits in it), body 6..90, chamfer 10.
+  Units are UI canvas units; rasterize at 2x (192x192 px, sprite ppu 200).
+  9-slice border = 22u (44 px) on all four sides.
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <path d="M20 10 L94 10 L94 84 L84 94 L10 94 L10 20 Z" fill="@INK@"/>
+  <path d="M16 6 L90 6 L90 80 L80 90 L6 90 L6 16 Z" fill="@INDIGO@" stroke="@INK@" stroke-width="4" stroke-linejoin="miter"/>
+  <path d="M17 11 L85 11 M11 17 L11 85" stroke="@TEAL@" stroke-width="2"/>
+  <path d="M11 17 L17 11" stroke="@TEAL@" stroke-width="2"/>
+</svg>

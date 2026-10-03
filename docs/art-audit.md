@@ -1,0 +1,136 @@
+# Art audit: current assets vs the Akira style
+
+This list is classified against the **Audit rule** in [`art-style.md` §8](art-style.md#8-audit-rule-when-an-existing-asset-must-change).
+Paths are relative to `Pause/Assets/` unless they start with `docs/` or `ProjectSettings/`.
+"Used by" was checked by guid against scenes, prefabs, animations and materials, and by
+`Resources.Load` paths in `Scripts/`.
+
+| Verdict | Meaning |
+|---|---|
+| **PROTECTED** | The PAUSE logo and other marks. Never touch. ([§9](art-style.md#9-protected-assets-the-pause-logo)) |
+| **REDRAW** | New SVG from scratch, same world size, pivot and frame count |
+| **RESTYLE** | Edit the existing SVG source: palette, ink, chamfers, remove gradients and bloom |
+| **KEEP** | Compliant, or not art |
+| **UNUSED** | Not referenced anywhere; skip |
+| **HOLD** | Product decision needed before anyone touches it |
+
+Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/bubbly, 4 = no ink,
+5 = off-palette/role confusion, 6 = readability.
+
+---
+
+## Protected
+
+| Asset | Path | Used by | Verdict |
+|---|---|---|---|
+| PAUSE title logo | `Art/pause_title_2.png` | `Scenes/startS4.unity` | **PROTECTED** |
+| PAUSE title logo (README) | `docs/pause-title.png` | `README.md` | **PROTECTED** |
+| HapticGate studio splash mark | `Art/HapticGate.png` | `Scenes/spashS7.unity` | **PROTECTED** |
+| "PAUSED" wordmark (provisional; confirm) | `Art/paused_1.png` | `Scenes/gameS1.unity`, `Scenes/tutorialS5.unity` | **PROTECTED** |
+| Pause-glow bars (provisional; confirm) | `Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` | **PROTECTED** |
+
+## Player ships
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Retro80s hulls 1-7 (Neon Comet, Volt Viper, Solar Fang, Crimson Halo, Ion Lancer, Jade Phantom, Gold Warden), each `intact/damaged/critical` + `_idle0-2` (84 files) | `Art/Resources/Prefabs/Ships/Retro80s/<Name>_<state>[_idle<n>].png` | pixel art with gradient shading, no ink, off-palette hues (blue, green, gold hulls) (1, 4, 5) | **REDRAW**. Keep each hull's identity colour as a stripe or canopy accent over a red/warm base; see open questions |
+| Original hulls 8-15 (Lightning, Ligher, Paranoid, Ninja, Saboteur, UFO, Dove, Turtle) | `Art/Resources/ShipArt/Originals/*.png` (128×32 strips, Turtle 32×32) | shaded pixel art (1, 4, 5) | **REDRAW** |
+| Original hull idles | `Art/Resources/ShipArt/OriginalsIdle/<Name>_idle0-2.png` (24 files) | same | **REDRAW** (3 frames, on 2s) |
+| Legacy ship sheets (animated in-game prefabs) | `Art/Animation/{Dove,Ligher,Lightning,Ninja,Paranoid,Saboteur,UFO}.png` | used by `Resources/prefabs/Ships/*_0.prefab`, `inGameShips/ship*.prefab` (1, 4) | **REDRAW** (in step with the Originals) |
+| Turtle (prefab art) | `Art/Resources/Prefabs/Ships/Turtle.png` | shaded pixel (1) | **REDRAW** |
+| Source strips: player / ship | `Art/Retro80s/Ships/SourceStrips/player.png`, `ship.png` | `prefabs/Ships/player.prefab`, `ship.prefab`, title traffic in `startS4` (1, 4) | **REDRAW** |
+| Source strip: xenon2 (also the **app icon**) | `Art/Retro80s/Ships/SourceStrips/xenon2_ship.png` | `ProjectSettings/ProjectSettings.asset` default icon | **HOLD**. Changing the store icon is a product call |
+| Engine exhaust frames | `Art/Resources/ShipArt/Exhaust/Engine_exhaust1_frames.psd`, `Engine_exhaust2_frames.psd`, `Engine_exhaust3_frames.psd`, `Engine_exhaust3_frames_1.psd` | soft painted flame (1, 2) | **REDRAW** as the tail-light streak (`player_exhaust` sample) |
+| Engine exhaust (duplicate) | `Art/Engine_exhaust/Engine_exhaust2_frames.psd` | duplicate of the above | **REDRAW** (or delete with the above) |
+| Ship gun roster atlas | `Art/Resources/ShipArt/Guns/ship_gun_roster.png` | painted glossy guns (1, 3) | **REDRAW** |
+| Shield (Amadeus) | `Art/ShipShields/Amadeus-Shild.png` | glossy crystal gradient (1, 3) | **REDRAW** as a hard-edged hex/chevron shield |
+| Shield bubble | `Art/transparent-bubble.png` | used by all `inGameShips/ship*.prefab` and `Dove_1`; a literal glass bubble (3) | **REDRAW** as an angular energy shell (a cel hex lattice) |
+| Shop images | `Art/Proteus-Shop-Image.png`, `Art/Engine_exhaust/Amadeus-Shop-Image.png` | not referenced | **UNUSED** |
+
+## Enemies
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Kenney fighters, 4 tiers × 5 (Black, Blue, Green, Red) | `Art/Resources/Prefabs/Enemies/Kenney/enemy{Black,Blue,Green,Red}{1-5}.png` | flat but no ink, rounded, the Red tier breaks the player=red rule (4, 5) | **REDRAW**. Tiers map to Steel (Black), Steel+Bruise (Blue), Bile (Green), Bruise+Magenta (Red). Sample: `enemy_fighter` |
+| Chaser | `Art/Resources/Prefabs/Enemies/Kenney/enemyRed5.png` (via `Prefabs/Enemies/kn_enemyRed5`) | as above; currently red (5) | **REDRAW**. Hostile bruise/magenta, sharper prongs |
+| Alien | `Art/invader32x32x4.png` (`Resources/prefabs/alien1.prefab`) | shaded pixel, cute-round (1, 3, 4) | **REDRAW**. Sample: `enemy_alien` |
+| Rail mine / rail bomb (4 worlds × 4 frames) | `Art/Resources/Vfx/rail_bomb_themes_atlas.png` | painted glossy metal (1, 3) | **REDRAW**. Sample: `enemy_mine`. Keep the 4×4 layout |
+| Ember rail mine frames | `Art/Resources/Vfx/rail_mine_ember_1.png`, `rail_mine_ember_2.png` | same | **REDRAW** |
+| Legacy mine (animated) | `Art/Aestroids/1.png`, `Art/Aestroids/2.png` (`Art/Animation/mineAnime.anim`) | glossy red sphere with spikes (1, 3) | **REDRAW** if still spawned. Prefab `Prefabs/mine` was retired in code, so verify before working on it |
+
+## Asteroids and hazards
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Pixel asteroids | `Art/Aestroids/aestroid_brown.png`, `aestroid_brown_1.png`, `aestroid_dark.png`, `aestroid_dark_1.png`, `aestroid_gay_1.png`, `aestroid_gay_3.png`, `aestroid_gray_crooked_1.png`, `aestroid_gray_crooked_2.png` | sphere-shaded, glossy pits (1, 3, 4) | **REDRAW**. Sample: `asteroid` |
+| Kenney meteors (brown + grey, big/med/small/tiny, 20 files) | `Art/Resources/Prefabs/Enemies/Kenney/meteor{Brown,Grey}_{big1-4,med1-3,small1-2,tiny1-2}.png` | flat but no ink, blobby (3, 4) | **REDRAW** (faceted, ink, amber rim) |
+| Legacy asteroid | `Legacy/Art/Aestroids/asteroid6.png` | only used as the editor's default cursor | **UNUSED** (leave it alone) |
+
+## Atoms and pickups
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Blue power atom | `Art/Atoms/atom3a.png` (`prefabs/atom3a.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `CYAN`/`TEAL` energy cell |
+| Red pause atom | `Art/Atoms/pauseAtom.png` (`prefabs/pauseAtom.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `RED`/`BONE` energy cell |
+| Green heal atom | `Art/Resources/Pickups/heal_atom_green.png` | atom/orbit glyph with glossy balls (3) | **REDRAW**. Sample: `pickup_heal` |
+| Star dust | `Art/Retro80s/Pickups/StarDustLarge.png`, `StarDustSmall.png` | confetti squares, off-palette (5) | **REDRAW**. Sample: `pickup_stardust` |
+| Gold stars (credits, menus, star pickups) | `Art/Stars/0.png`, `00.png`, `1.png`-`5.png` (`Art/Stars/starRotateAnime.anim`, `prefabs/LargeStar*`, `smStar*`, `superStar`, `CreditStar*`) | bevelled gold, 3D faceting with glow (1, 3) | **REDRAW** to match the star dust cell |
+| Life heart | `Art/Resources/Vfx/lifeHeart.png` | flat pixel, round (3, 4) | **RESTYLE**: angular heart, `RED` + `BONE` kick + ink |
+
+## FX and weapons
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Red explosion (17 frames) | `Art/RedExplosion/1_0.png`-`1_16.png` (`redExplo.anim`, `halfRedAnime.anim`) | soft particle dots (1, 2) | **REDRAW** as cel explosion. Sample: `explosion` |
+| Blue explosion (17 frames) | `Art/BlueEffects/1_0.png`-`1_16.png` (`blueExplosion.anim`) | soft particles (1, 2) | **REDRAW** (cold variant for enemies: `CYAN`/`BRUISE` cels) |
+| Painted explosion sheet | `Art/Animation/explosion.png` (`prefabs/explosion_0.prefab`) | soft painted fireball (1, 2) | **REDRAW** |
+| Pixel explosion strip | `Art/Animation/explode_1.png` (`prefabs/explode1_0.prefab`, `AnimationGo.prefab`) | dotted gradient (1) | **REDRAW** |
+| Ultimate projectiles atlas | `Art/Resources/Vfx/ultimate_projectiles_atlas.png` | glossy painted bolts (1, 3) | **REDRAW** |
+| Ship damage FX atlas | `Art/Resources/Vfx/ship_damage_fx_atlas.png` | painted sparks and smoke (1, 2) | **REDRAW** (cel sparks, angular smoke) |
+| Teleport portal atlas | `Art/Resources/Vfx/teleport_portal_atlas.png` | swirly glossy vortex (1, 3) | **REDRAW** (hard-edged rings, tinted per world) |
+| Kenney particle textures | `Art/Resources/Prefabs/Vfx/vfx_circle_05.png`, `vfx_light_02.png`, `vfx_muzzle_02.png`, `vfx_smoke_08.png`, `vfx_spark_05.png`, `vfx_star_08.png`, `vfx_trace_01.png` (`PowerFx`, `UltimateGun`, `ShipSpinWind`) | soft/photo particles (1, 2) | **REDRAW** as hard-shaped cel textures. `vfx_trace_01` becomes the light-trail streak |
+| Code-drawn visuals | `Scripts/Worlds/WorldAtmosphere.cs`, `Scripts/Worlds/Portal.cs`, `Scripts/Gameplay/HealAtom.cs` (fallback), `Scripts/Gameplay/PowerReadyIndicator.cs`, `Scripts/Gameplay/UltimateGun.cs`, `Scripts/Ship/ShipShieldBubble.cs` | procedural soft textures / colours in code | **RESTYLE** in a code phase (palette constants, hard-edged shapes). Not part of art-only conversion |
+
+## Worlds and backgrounds
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Space: main-game starfield | `Art/Backgrounds/starFieldMainGame.png` (`starFieldMainGame.mat`, `starField_17.mat`, `pauseStarBackground.mat`) | painterly noise nebula (2) | **REDRAW**. Sample: `world_space` |
+| Start menu starfield | `Art/Backgrounds/startMenuStartField.png` | painterly (2) | **REDRAW**. Must sit quietly under the protected logo |
+| Shop backdrop | `Art/Backgrounds/shop.png` | painterly (2) | **REDRAW** |
+| Credits backdrop | `Art/Backgrounds/credits.png` | painterly (2) | **REDRAW** |
+| Space walls (pipes) | `Art/left.png`, `Art/right.png` (`left_1.mat`, `right_6.mat`, `right_7.mat`) | shaded thin pipes (1) | **REDRAW** (panelled wall, sodium lamps) |
+| Frost backdrop + walls | `Art/Resources/Worlds/Frost/backdrop.png`, `wallLeft.png`, `wallRight.png` | noise texture, soft (2) | **REDRAW**. Sample: `world_frost` |
+| Verdant backdrop + walls | `Art/Resources/Worlds/Verdant/backdrop.png`, `wallLeft.png`, `wallRight.png` | noise texture (2) | **REDRAW** |
+| Ember backdrop + walls | `Art/Resources/Worlds/Ember/backdrop.png`, `wallLeft.png`, `wallRight.png` | noise texture (2) | **REDRAW** |
+
+## UI
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Quick-action icons (Replay, Home) | sources `Art/UI/Icons/src~/icon_replay.svg`, `icon_home.svg`; outputs `Art/Resources/QuickActions/QuickAction_{replay,home}[_glyph].png` | rounded plate, neon-tube bloom glyph, synthwave grid (3) | **RESTYLE** (chamfered plate, inked off-white glyph, red cel shadow). Sample: `ui_icon_*` |
+| Death panel sprites | sources `Art/UI/DeathPanel/src~/dp_panel.svg`, `dp_card.svg`, `dp_button.svg`, `dp_glow.svg`, `dp_divider.svg`, `dp_sparkle.svg`, `dp_pill.svg`; outputs `Art/Resources/DeathPanel/*.png` | rounded corners, soft glow, wash gradient (1, 3) | **RESTYLE** (keep the 9-slice borders). Sample: `ui_death_panel`. `DeathPanelView` colour constants change in a code phase |
+| Space dock | sources `Art/UI/Dock/src~/*.svg` (backplate, bay, button, chip, clamp, gantry, gate, icon_active, icon_dust, icon_owned, light, popup, popup_tail, ring, shadow, spine, wall); outputs `Art/UI/Dock/Resources/Dock/*.png` | mostly flat and panelled already; rounded button, soft glows, cyan neon popup (3, 5) | **RESTYLE**: the closest to compliant. Add ink weight, chamfer the button, swap neon cyan for palette `TEAL`/`RED` |
+| Dock shader | `Art/UI/Dock/Resources/Dock/DockSprite.shader` | not art | **KEEP** |
+| HUD | `Scripts/UI/HudStyler.cs` (colours in code, no sprites) | synthwave violet/magenta panel (5) | **RESTYLE** in a code phase. Sample: `ui_hud` |
+| In-game replay / menu buttons | `Art/redo-512.png`, `Art/taxes-menu-icon.png` (`gameS1`, `tutorialS5`) | flat white glyphs, no ink, round (3, 4) | **RESTYLE** (or replace with the new quick-action glyphs) |
+| Login icon | `Art/loginIcon.png` | not referenced | **UNUSED** |
+| Font | `Art/Orbitron/Orbitron-Bold.ttf` | fits the look | **KEEP** |
+| Materials | `Art/Materials/*.mat`, `Art/Backgrounds/Materials/*.mat`, `Art/Black.mat` | not art | **KEEP** (repoint textures only) |
+
+## Tutorial robot
+
+| Asset | Path | Why | Verdict |
+|---|---|---|---|
+| Robot portrait | `Art/contra2.png` (sprite on `PlayerIcon` in `Scenes/tutorialS5.unity`) | detailed shaded pixel art, 3D chrome, red visor (1, 4) | **REDRAW** as a 3-frame talking portrait. Sample: `robot`, `robot_talk` |
+
+---
+
+### Suggested conversion order
+
+1. Palette and ink pass on the vector UI (**RESTYLE**: Icons, DeathPanel, Dock). This is lowest risk, and the sources exist.
+2. Player hull 1 + exhaust, enemies, pickups, asteroids (gameplay readability first).
+3. Explosions and FX atlases.
+4. World backdrops and walls (Space, Frost, Verdant, Ember), then the menu, shop and credits backdrops.
+5. The remaining hulls 2-15 and their damage states.
+6. Code-phase restyles (HudStyler, DeathPanelView colours, procedural FX).
