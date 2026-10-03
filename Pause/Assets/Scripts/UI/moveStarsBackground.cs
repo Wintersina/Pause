@@ -33,6 +33,8 @@ public class moveStarsBackground : MonoBehaviour {
         pauseText = SceneUtil.FindAny("paused");
         pauseRenderer = pauseText != null ? pauseText.GetComponent<SpriteRenderer>() : null;
         pauseGlowSprites = Resources.LoadAll<Sprite>("PauseGlow");
+        // Pop-in and idle glint flipbook for whichever variant is picked.
+        if (pauseRenderer != null) PausedOverlayAnim.AddTo(pauseText);
 
         if (replyB != null) replyB.gameObject.SetActive(false);
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
