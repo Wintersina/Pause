@@ -10,9 +10,9 @@ using UnityEngine;
 // game's own key strings byte for byte ("PlayerCurrecny" is misspelt on
 // purpose -- every existing install keeps its star dust under it).
 //
-// Developer mode (DeveloperUnlocks) overwrites HasDoneTut, highestWorld and
-// boughtship* with an unlocked-everything state and parks the real values in
-// developerBackup_* keys. Capture reads those backups instead, and Apply
+// Developer mode (DeveloperUnlocks) overwrites HasDoneTut, highestWorld,
+// currentWorld and boughtship* with an unlocked-everything state and parks the
+// real values in developerBackup_* keys. Capture reads those backups instead, and Apply
 // writes into them, so the cloud only ever sees the real progress and leaving
 // developer mode restores the merged real progress.
 [Serializable]
@@ -78,7 +78,7 @@ public class ProgressSnapshot
         s.currency = PlayerPrefs.GetFloat(CurrencyKey, 0f);
         s.highestSpeed = PlayerPrefs.GetFloat(HighestSpeedKey, 0f);
         s.spawnShip = PlayerPrefs.GetInt(SpawnShipKey, 0);
-        s.currentWorld = PlayerPrefs.GetInt(CurrentWorldKey, 0);
+        s.currentWorld = RealInt(CurrentWorldKey);
         s.highestWorld = RealInt(HighestWorldKey);
         s.hasDoneTut = RealString(TutorialKey) == "true";
 
@@ -121,7 +121,7 @@ public class ProgressSnapshot
         PlayerPrefs.SetFloat(CurrencyKey, currency);
         PlayerPrefs.SetFloat(HighestSpeedKey, highestSpeed);
         SetOrDelete(SpawnShipKey, spawnShip);
-        SetOrDelete(CurrentWorldKey, currentWorld);
+        WriteRealInt(CurrentWorldKey, currentWorld, currentWorld != 0);
         WriteRealInt(HighestWorldKey, highestWorld, highestWorld != 0);
         WriteRealString(TutorialKey, "true", hasDoneTut);
 
@@ -148,11 +148,11 @@ public class ProgressSnapshot
     static string BackupKey(string key) { return "developerBackup_" + key; }
     static string ExistsKey(string key) { return BackupKey(key) + "_exists"; }
 
+    // While developer mode is on, every key it snapshotted has its real value
+    // in the backup (DeveloperUnlocks leaves keys it has no snapshot of alone).
     static bool Overridden(string key)
     {
-        if (!DeveloperUnlocks.Enabled) return false;
-        return key == TutorialKey || key == HighestWorldKey ||
-               (key.StartsWith(BoughtShipPrefix) && PlayerPrefs.HasKey(ExistsKey(key)));
+        return DeveloperUnlocks.Enabled && PlayerPrefs.HasKey(ExistsKey(key));
     }
 
     static string RealString(string key)

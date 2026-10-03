@@ -243,7 +243,7 @@ public static class AccountCloudSaveTest
         Check("dev mode: snapshot has the real ships", string.Join(",", snap.boughtShips) == "1,3");
         Check("dev mode: snapshot has the real tutorial flag", !snap.hasDoneTut);
         Check("dev mode: snapshot has the real highestWorld", snap.highestWorld == 1);
-        Check("dev mode: currentWorld clamped to the real highest", snap.currentWorld == 1);
+        Check("dev mode: snapshot has the real currentWorld, not the dev run's", snap.currentWorld == 1);
         Check("dev mode: an unowned spawn ship isn't synced", snap.spawnShip == shopingShips.StarterShip);
         Check("dev mode: real currency still synced", snap.currency == 40f);
 
@@ -256,6 +256,7 @@ public static class AccountCloudSaveTest
         DeveloperUnlocks.SetEnabled(false);
         Check("dev mode off: merged real progress restored", Ships() == "1,3,5" &&
               PlayerPrefs.GetString("HasDoneTut") == "true" && PlayerPrefs.GetInt("highestWorld") == 2);
+        Check("dev mode off: merged real currentWorld restored", PlayerPrefs.GetInt("currentWorld") == 2);
     }
 
     // ---- sign-in / load failures ----
