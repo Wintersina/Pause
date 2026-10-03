@@ -23,6 +23,7 @@ public static class AllTests
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
+        ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
