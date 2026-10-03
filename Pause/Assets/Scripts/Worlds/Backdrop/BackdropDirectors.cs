@@ -16,10 +16,13 @@ public class SpaceDirector : BackdropDirector
 
     static readonly Color[] PlanetTints =
     {
-        new Color(0.62f, 0.48f, 0.52f), // dusky rose
-        new Color(0.42f, 0.56f, 0.64f), // teal
-        new Color(0.52f, 0.47f, 0.66f), // indigo-violet
-        new Color(0.66f, 0.52f, 0.40f), // sodium amber
+        // Multiplied into neutral-grey art: lands on the guide's planet tones
+        // (INDIGO_1 #2A2E6B and its family), never red.
+        new Color(0.62f, 0.66f, 1.00f), // INDIGO_1
+        new Color(0.48f, 0.74f, 0.86f), // teal
+        new Color(0.78f, 0.62f, 1.00f), // DUSK violet
+        new Color(0.62f, 0.66f, 1.00f), // INDIGO_1 (weighted: most planets are indigo)
+        new Color(0.86f, 0.66f, 0.50f), // sodium (rare)
     };
 
     public SpaceDirector() : base(1988) { }
