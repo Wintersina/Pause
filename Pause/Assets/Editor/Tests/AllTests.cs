@@ -25,6 +25,7 @@ public static class AllTests
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
+        ("EnemyRosterTest", EnemyRosterTest.Execute),
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
