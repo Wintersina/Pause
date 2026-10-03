@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Soft rounded-rect bloom - white template, tinted at runtime.
+  Drawn behind buttons (idle glow) and behind the best-speed card (new-best pulse).
+  Units are UI canvas units; rasterize at 2x (224x224 px, sprite ppu 200).
+  The bloom extends 20u outside the 72u core; 9-slice border 48u on all sides.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <defs>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <rect x="22" y="22" width="68" height="68" rx="20" fill="#ffffff" fill-opacity="0.9" filter="url(#blur)"/>
+</svg>
