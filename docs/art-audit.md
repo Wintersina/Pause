@@ -31,6 +31,15 @@ Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/
 
 ## Player ships
 
+**Converted.** All 15 roster hulls (Retro80s 1-7 and Originals 8-15, including Turtle) and the engine
+exhaust are redrawn. Each ship is one flipbook sheet, `Art/Resources/ShipArt/Hulls/<ShipId key>.png`,
+holding 6 idle drawings, bank left/right and a hit flash, each in intact/damaged/critical. The exhaust is
+`Art/Resources/ShipArt/Exhaust/trail_strip.png`. The generator is `Art/Resources/ShipArt/Hulls/src~/`
+(`build.py`, `exhaust.py`, `check.py`, `preview.py`). The old Retro80s, Originals, OriginalsIdle, prefab
+Turtle and exhaust `.psd` files were removed, because only code loaded them. Still open: the legacy
+`Art/Animation` sheets and the SourceStrips `player.png`/`ship.png`. Neither is shown in game any more,
+because the roster art overrides both. `xenon2_ship.png` stays on HOLD.
+
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
 | Retro80s hulls 1-7 (Neon Comet, Volt Viper, Solar Fang, Crimson Halo, Ion Lancer, Jade Phantom, Gold Warden), each `intact/damaged/critical` + `_idle0-2` (84 files) | `Art/Resources/Prefabs/Ships/Retro80s/<Name>_<state>[_idle<n>].png` | pixel art with gradient shading, no ink, off-palette hues (blue, green, gold hulls) (1, 4, 5) | **REDRAW**. Keep each hull's identity colour as a stripe or canopy accent over a red/warm base; see open questions |
