@@ -181,8 +181,9 @@ public class WorldManager : MonoBehaviour
 
     static void ApplyDifficulty(WorldTheme theme)
     {
-        var bg = Object.FindFirstObjectByType<moveBackGround>();
-        if (bg != null)
+        // Every wall, not just the first: SpeedRamp takes its rate and cap
+        // from whichever instance ticks first in a frame.
+        foreach (var bg in Object.FindObjectsByType<moveBackGround>(FindObjectsSortMode.None))
         {
             bg.speedRampPerSecond = theme.speedRampPerSecond;
             bg.maxSpeed = theme.maxSpeed;
