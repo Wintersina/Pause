@@ -1285,8 +1285,11 @@ ROSTER = {1: NeonComet, 2: VoltViper, 3: SolarFang, 4: CrimsonHalo, 5: IonLancer
 # frames (flash star, shockwave ring), so every hit still reads as "my ship
 # did that".
 #
-# Explosions.png: rows metal / rock / mine, 10 frames each in columns 0-9;
-# row 0 columns 10-12 hold the white overlays flash_0, flash_1, ring.
+# Explosions.png: rows metal / rock / mine / ice / spore / magma (the order of
+# TargetExplosion.Kind), 10 frames each in columns 0-9; row 0 columns 10-12
+# hold the white overlays flash_0, flash_1, ring. The last three are the
+# per-world enemy casts (EnemyRoster): Frost's ice, Verdant's organics and
+# Ember's magma.
 EXPLOSION_FRAMES = 10
 EXPLOSIONS = {
     #        main        shade       hi          fire        fire_hi     smoke       smoke_shade debris
@@ -1296,8 +1299,14 @@ EXPLOSIONS = {
     "rock":  ("#605878", "#2C2638", AMBER, SODIUM, AMBER, SMOKE, SMOKE_SHADE, "rock"),
     # mines: BRUISE hub, hotter and bigger SODIUM / AMBER fire
     "mine":  ("#74409A", "#3A1E52", "#A86CD0", SODIUM, AMBER, SMOKE, SMOKE_SHADE, "metal"),
+    # ice (Frost): ICE shards with an ICE_HI kick, cold CYAN flash
+    "ice":   ("#6AAED0", "#2C557E", "#CDF4F8", "#6EF2EE", BONE, SMOKE, SMOKE_SHADE, "rock"),
+    # spore (Verdant organics): BILE husk chunks, BILE_LIGHT burst
+    "spore": ("#8FA84E", "#3E5229", "#D4E68E", "#C8FF3A", BONE, SMOKE, SMOKE_SHADE, "rock"),
+    # magma (Ember): CHAR basalt chunks with an AMBER kick, SODIUM fire
+    "magma": ("#6A5462", "#2A1C26", AMBER, SODIUM, AMBER, SMOKE, SMOKE_SHADE, "rock"),
 }
-EXPLOSION_ROWS = ["metal", "rock", "mine"]
+EXPLOSION_ROWS = ["metal", "rock", "mine", "ice", "spore", "magma"]
 
 
 def debris_chunk(doc, kind, x, y, s, rot, pal, seed):
@@ -1398,7 +1407,7 @@ def build_explosions(preview_dir=None):
                 cells.append(("%s_%d" % (kind, k), row, k, frame(explosion, kind, k, hold=EXPLOSION_TICKS[k])))
         for k, name in enumerate(["flash_0", "flash_1", "ring"]):
             cells.append((name, 0, 10 + k, frame(overlay, k)))
-        atlas = Image.new("RGBA", (COLS * CELL, ROWS * CELL), (0, 0, 0, 0))
+        atlas = Image.new("RGBA", (COLS * CELL, len(EXPLOSION_ROWS) * CELL), (0, 0, 0, 0))
         jobs = []
         for name, row, col, text in cells:
             sp = os.path.join(src, name + ".svg")

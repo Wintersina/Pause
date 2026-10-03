@@ -48,6 +48,11 @@ public class enmiesOnBoard : MonoBehaviour {
         public Vector2 extraInterval = new Vector2(2.5f, 4.5f);
     }
 
+    // Which enemies spawn comes from EnemyRoster: each world (Space, Frost,
+    // Verdant, Ember) has its own cast filling the same roles, picked from
+    // the *current* world at every spawn, so a portal switches the set and the
+    // tutorial (no WorldManager) gets Space. The scene-wired arrays below are
+    // only the fallback if a roster entry's art is missing.
     public GameObject[] astroid1 = new GameObject[5];
     public GameObject[] astroid2 = new GameObject[5];
     public GameObject[] astroid3 = new GameObject[5];
@@ -58,13 +63,14 @@ public class enmiesOnBoard : MonoBehaviour {
     // world's wall textures; this field remains only for scene compatibility.
     public GameObject rails;
 
-    [Tooltip("Left empty, loads Resources/Prefabs/mine at startup.")]
+    [Tooltip("Left empty (the default), the current world's rail mine is built from EnemyRoster.")]
     public GameObject mine;
-    [Tooltip("Left empty, loads Resources/Prefabs/Enemies/kn_enemyRed5 at startup -- " +
-             "the visual/collider base; ChaserEnemy supplies the actual behaviour.")]
+    [Tooltip("Left empty (the default), the current world's chaser is built from EnemyRoster; " +
+             "a prefab here overrides it (ChaserEnemy is added at spawn).")]
     public GameObject chaser;
 
-    [Tooltip("Left empty, these load from Resources/Prefabs/Enemies at startup.")]
+    [Tooltip("Left empty (the default), the extras are the current world's tiered fighters " +
+             "from EnemyRoster; prefabs here override that.")]
     public GameObject[] extraEnemyPrefabs;
 
     [Tooltip("Multiplies elapsed flight time before checking phase thresholds -- set " +
@@ -109,15 +115,10 @@ public class enmiesOnBoard : MonoBehaviour {
         if (phases == null || phases.Length == 0)
             phases = DefaultPhases();
 
-        // Loading by folder means dropping new art in is enough -- no scene edit.
-        if (extraEnemyPrefabs == null || extraEnemyPrefabs.Length == 0)
-            extraEnemyPrefabs = Resources.LoadAll<GameObject>("Prefabs/Enemies");
-
-        // Neither lives in that folder scan: mine.prefab sits one level up
-        // (Resources/Prefabs, not Resources/Prefabs/Enemies), and the chaser
-        // reuses an existing enemy hull rather than needing new art.
+        // The extras, chaser and mine come from EnemyRoster per world (see
+        // ChooseExtraDef / spawnChaser / spawnMine); the fields stay as
+        // inspector overrides. The retired mine.prefab no longer exists.
         if (mine == null) mine = Resources.Load<GameObject>("Prefabs/mine");
-        if (chaser == null) chaser = Resources.Load<GameObject>("Prefabs/Enemies/kn_enemyRed5");
 
         phase = phases[0];
         astroidSelector = 0;
@@ -301,6 +302,7 @@ public class enmiesOnBoard : MonoBehaviour {
 
     GameObject SpawnEnemy(GameObject prefab, float x)
     {
+        if (prefab == null) return null;
         GameObject spawned = Instantiate(prefab, PlaceFor(prefab, x), transform.rotation);
         if (PrefabName.Is(prefab, "mine"))
         {
@@ -489,83 +491,89 @@ public class enmiesOnBoard : MonoBehaviour {
         }
     }
 
-    // spawns small enimes through the board
-    void spawnAstroid2()
+    // The current world's enemy for a role, at x on the spawn line; the
+    // scene array for this phase is the fallback if its art is missing.
+    GameObject SpawnRole(EnemyRole role, GameObject[] legacy, float x)
     {
-        GameObject prefab = astroid2[astroidSelector];
-        SpawnEnemy(prefab, Random.Range(-2.2f, 2.4f));
+        var def = EnemyRoster.Pick(EnemyRoster.CurrentWorld, role);
+        if (def != null && EnemyArt.Frames(def) != null)
+            return EnemyFactory.Create(def, new Vector3(x, transform.position.y, 0f), transform.rotation);
+        if (legacy == null || legacy.Length == 0) return null;
+        return SpawnEnemy(legacy[Mathf.Clamp(astroidSelector, 0, legacy.Length - 1)], x);
     }
 
-    // this spawn larg enimes though the board
+    // "small enemy" slot: one of the world's rocks
+    void spawnAstroid2()
+    {
+        SpawnRole(EnemyRole.Rock, astroid2, Random.Range(-2.2f, 2.4f));
+    }
+
+    // "big enemy" slot: the world's armoured heavy
     void spawnAstroid1()
     {
-        GameObject prefab = astroid1[astroidSelector];
-        SpawnEnemy(prefab, Random.Range(-2.2f, 2.4f));
+        SpawnRole(EnemyRole.Big, astroid1, Random.Range(-2.2f, 2.4f));
     }
 
     // will create a line of animated enimies that the player is able to doge through
     void spawnAnimatedEnimeOne()
     {
         Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2f), transform.position.y, transform.rotation.z);
+        var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Alien);
+        bool roster = def != null && EnemyArt.Frames(def) != null;
         int max = Random.Range(1, 5);
         for (int i = 0; i < max; i++)
         {
             Vector3 newPositionForAnimatedAliean = new Vector3(randomEnmPosition.x + (i + .5f), randomEnmPosition.y, randomEnmPosition.z);
             if (newPositionForAnimatedAliean.x >= -2.4 && newPositionForAnimatedAliean.x <= 2.2)
-                Instantiate(alien1, newPositionForAnimatedAliean, transform.rotation);
+            {
+                if (roster) EnemyFactory.Create(def, newPositionForAnimatedAliean, transform.rotation);
+                else if (alien1 != null) Instantiate(alien1, newPositionForAnimatedAliean, transform.rotation);
+            }
         }
     }
 
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
     {
-        GameObject prefab = astroid3[astroidSelector];
-        SpawnEnemy(prefab, Random.Range(-2.3f, 2.3f));
+        SpawnRole(EnemyRole.Rock, astroid3, Random.Range(-2.3f, 2.3f));
     }
 
     void spawnMidAstroid()
     {
-        GameObject prefab = astroid4[astroidSelector];
-        SpawnEnemy(prefab, Random.Range(-2.3f, 2f));
+        SpawnRole(EnemyRole.Rock, astroid4, Random.Range(-2.3f, 2f));
     }
 
     void spawnLargeAstroid()
     {
-        GameObject prefab = astroid5[astroidSelector];
-        SpawnEnemy(prefab, Random.Range(-2.3f, 2.3f));
+        SpawnRole(EnemyRole.Rock, astroid5, Random.Range(-2.3f, 2.3f));
     }
 
-    // Picks from the imported set, biased so later phases meet the nastier art:
-    // black and blue hulls early, green and red once things get serious.
+    // The current world's fighters, tiered so later phases meet the nastier
+    // hulls (see ChooseExtraDef). Prefabs in extraEnemyPrefabs override it.
     void spawnExtraEnemy()
     {
-        if (extraEnemyPrefabs == null || extraEnemyPrefabs.Length == 0) return;
-
-        GameObject pick = ChooseExtra();
-        if (pick == null) return;
-
         Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        Instantiate(pick, pos, transform.rotation);
+        if (extraEnemyPrefabs != null && extraEnemyPrefabs.Length > 0)
+        {
+            GameObject pick = extraEnemyPrefabs[Random.Range(0, extraEnemyPrefabs.Length)];
+            if (pick != null) Instantiate(pick, pos, transform.rotation);
+            return;
+        }
+        var def = ChooseExtraDef(EnemyRoster.CurrentWorld, astroidSelector);
+        if (def != null && EnemyArt.Frames(def) != null) EnemyFactory.Create(def, pos, transform.rotation);
     }
 
-    GameObject ChooseExtra()
+    // Phase index -> fighter tier window: the extras start in phase 2, which
+    // fields tiers 1-2; phase 3 tiers 1-3; phase 4 tiers 2-4. From phase 2 a
+    // quarter of the picks are the world's rocks or its heavy instead (where
+    // the Kenney meteors used to fold in).
+    public static EnemyDef ChooseExtraDef(int world, int phaseIndex)
     {
-        string[] tiers = { "Black", "Blue", "Green", "Red" };
-        string wanted = tiers[Mathf.Clamp(astroidSelector, 0, tiers.Length - 1)];
-
-        var shortlist = new System.Collections.Generic.List<GameObject>();
-        foreach (var go in extraEnemyPrefabs)
-            if (go != null && go.name.Contains(wanted)) shortlist.Add(go);
-
-        // meteors are colourless, so fold them in for the later phases
-        if (astroidSelector >= 2)
-            foreach (var go in extraEnemyPrefabs)
-                if (go != null && go.name.Contains("meteor")) shortlist.Add(go);
-
-        if (shortlist.Count == 0)
-            return extraEnemyPrefabs[Random.Range(0, extraEnemyPrefabs.Length)];
-
-        return shortlist[Random.Range(0, shortlist.Count)];
+        if (phaseIndex >= 2 && Random.value < .25f)
+            return EnemyRoster.Pick(world, Random.value < .7f ? EnemyRole.Rock : EnemyRole.Big);
+        int maxTier = Mathf.Clamp(phaseIndex, 1, 4);
+        int minTier = Mathf.Max(1, maxTier - 2);
+        return EnemyRoster.Fighter(world, Random.Range(minTier, maxTier + 1));
     }
 
     void spawnRails()
@@ -587,6 +595,22 @@ public class enmiesOnBoard : MonoBehaviour {
         if (rail == null) rail = SpawnRail(right);
         if (rail == null) return;
 
+        var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine);
+        if (def != null && EnemyArt.Frames(def) != null)
+        {
+            var built = EnemyFactory.Create(def,
+                new Vector3(rail.position.x, ReserveMineY(rail, transform.position.y), 0f), Quaternion.identity);
+            // The clamp is drawn on the left (toward a left-hand wall); a
+            // right-hand rail mirrors it so it always grips its own wall.
+            built.GetComponent<SpriteRenderer>().flipX = rail.position.x > 0f;
+            var builtMount = built.AddComponent<RailMineMount>();
+            builtMount.rail = rail;
+            builtMount.lockedX = rail.position.x;
+            liveMines.Add(built.transform);
+            return;
+        }
+
+        // Fallback without roster art: the legacy atlas-built mine.
         var go = new GameObject("mine", typeof(SpriteRenderer), typeof(BoxCollider2D),
             typeof(moveItemEnmInStrightLine), typeof(RailMineMount), typeof(RailBombAnimator));
         go.tag = "Enimey";
@@ -609,13 +633,16 @@ public class enmiesOnBoard : MonoBehaviour {
     // drift -- see ChaserEnemy for the actual behaviour.
     void spawnChaser()
     {
-        if (chaser == null) return;
+        var def = chaser == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Chaser) : null;
+        if (chaser == null && (def == null || EnemyArt.Frames(def) == null)) return;
 
         var cam = Camera.main;
         float bottomY = cam != null && cam.orthographic
             ? cam.transform.position.y - cam.orthographicSize - 1f
             : transform.position.y - 12f;
         Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), bottomY, 0f);
+
+        if (def != null) { EnemyFactory.Create(def, pos, Quaternion.identity); return; }
 
         GameObject spawned = Instantiate(chaser, pos, Quaternion.identity);
         // The borrowed hull's own straight-line scroller would fight
