@@ -16,6 +16,9 @@ public class collisionDetection : MonoBehaviour {
     public Text boostText;
     private int atomCounter;
     public static int lifeCounter;
+    // Atoms picked up this session, by kind. The tutorial watches these to
+    // know the player caught the atom it just introduced.
+    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups;
     public static int MAXLIFE;
 
     public GameObject shield;
@@ -243,6 +246,7 @@ public class collisionDetection : MonoBehaviour {
             }
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
             {
+                healAtomPickups++;
                 // repairs one point of hull damage; lifeControler picks the
                 // sprite back up from lifeCounter on the next frame
                 if (lifeCounter > 0) lifeCounter--;
@@ -252,12 +256,14 @@ public class collisionDetection : MonoBehaviour {
             }
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
+                pauseAtomPickups++;
                 score.incromentPause();
                 BoostUltimate(dust: false);
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
+                shieldAtomPickups++;
                 BoostUltimate(dust: false);
                 boostSound.Play();
                 // ---------------------------

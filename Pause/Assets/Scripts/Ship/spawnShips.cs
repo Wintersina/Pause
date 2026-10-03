@@ -1,25 +1,58 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
+// Spawns the player's ship in gameS1: the ship picked in the space dock
+// (ShipId.Equipped(): the saved "spawnShip" if owned, else the starter).
 public class spawnShips : MonoBehaviour
 {
     public GameObject ship;
 
+    public static readonly Vector3 SpawnPoint = new Vector3(0f, -2f, 1f);
+
     void Start()
     {
-        int index = PlayerPrefs.GetInt("spawnShip", shopingShips.StarterShip);
-        if (index < 1 || index >= shopingShips.shipTotal ||
-            (index != shopingShips.StarterShip && PlayerPrefs.GetString("boughtship" + index) != "True"))
-            index = shopingShips.StarterShip;
+        Spawn(ShipId.Equipped());
+    }
 
-        // Original hulls share the starter's gameplay components and effects.
-        // Their selected index remains on the instance for health art and exhaust.
-        int prefabIndex = index <= 7 ? index : shopingShips.StarterShip;
-        ship = Resources.Load<GameObject>("Prefabs/Ships/inGameShips/ship" + prefabIndex);
-        if (ship == null) return;
-        var instance = Instantiate(ship, new Vector3(0f, -2f, 1f), Quaternion.identity);
-        instance.name = "ship" + index + "(Clone)";
+    public GameObject Spawn(int id)
+    {
+        if (!ShipId.IsValid(id)) id = ShipId.Starter;
+        ship = Resources.Load<GameObject>(PrefabPathFor(id));
+        if (ship == null) return null;
+        var instance = Instantiate(ship, SpawnPoint, Quaternion.identity);
+        instance.name = ShipId.ObjectName(id) + "(Clone)";
+        ApplyHull(instance, id);
+        return instance;
+    }
+
+    // Original hulls share the starter's gameplay components and effects.
+    // Their id stays on the instance (its name) for health art and exhaust.
+    public static string PrefabPathFor(int id)
+    {
+        int prefab = ShipId.IsRetro(id) ? id : ShipId.Starter;
+        return "Prefabs/Ships/inGameShips/ship" + prefab;
+    }
+
+    // Dresses a gameplay ship (spawned, or authored into a scene like the
+    // tutorial's) as roster ship `id`: name, hull art, size, collider and
+    // engine. Whatever 2016 art the prefab carried must not show through.
+    public static void ApplyHull(GameObject instance, int id)
+    {
+        if (instance == null || !ShipId.IsValid(id)) return;
+        bool clone = instance.name.EndsWith("(Clone)");
+        instance.name = ShipId.ObjectName(id) + (clone ? "(Clone)" : "");
+
+        // The ship4/5/7 prefabs still carry an enabled 2016 Animator whose
+        // only clip animates the hull's sprite (Paranoid, Ligher and
+        // Lightning art). Animators write after Update, so it overwrote the
+        // roster art lifeControler sets every frame: picking Crimson Halo,
+        // Ion Lancer or Gold Warden flew a different ship. The hull's art
+        // comes from the roster now; the animator has nothing left to do.
+        var animator = instance.GetComponent<Animator>();
+        if (animator != null) animator.enabled = false;
+
         var hull = instance.GetComponent<SpriteRenderer>();
-        Sprite sprite = shopingShips.SpriteFor(index);
+        Sprite sprite = shopingShips.SpriteFor(id);
         if (hull != null && sprite != null)
         {
             hull.sprite = sprite;
@@ -32,6 +65,36 @@ public class spawnShips : MonoBehaviour
                 collider.size = (Vector2)sprite.bounds.size * .78f;
             }
         }
-        ShipExhaust.ConfigureBoost(instance, index);
+        ShipExhaust.ConfigureBoost(instance, id);
+    }
+}
+
+// The tutorial's ship is authored into tutorialS5 (a ship1 instance), so it
+// flew Neon Comet whatever was picked in the dock. Re-dress it as the
+// equipped ship as the scene loads -- after Awake, before any Start, so
+// lifeControler, the thruster and the damage fx all see the right id.
+public static class TutorialShipHull
+{
+    public const string Scene = "tutorialS5";
+
+    [RuntimeInitializeOnLoadMethod]
+    static void Init()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == Scene) Apply();
+    }
+
+    // Returns the tutorial ship it dressed, or null if there is none.
+    public static GameObject Apply()
+    {
+        var player = Object.FindFirstObjectByType<movePlayerInTut>();
+        if (player == null) return null;
+        spawnShips.ApplyHull(player.gameObject, ShipId.Equipped());
+        return player.gameObject;
     }
 }

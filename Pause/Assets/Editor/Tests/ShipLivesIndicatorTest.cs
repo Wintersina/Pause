@@ -56,6 +56,7 @@ public static class ShipLivesIndicatorTest
         // A legacy ship (no damage art) should get exactly MAXLIFE hearts,
         // all visible at full health.
         PlayerPrefs.SetInt("spawnShip", 8); // Lightning
+        PlayerPrefs.SetString("boughtship8", "True"); // an unowned selection flies the starter
         var legacy = new GameObject("Legacy", typeof(SpriteRenderer));
         var sr = legacy.GetComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(

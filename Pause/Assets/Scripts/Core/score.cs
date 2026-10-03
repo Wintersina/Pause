@@ -31,6 +31,8 @@ public class score : MonoBehaviour {
     private bool hasStartedRun;
     private const int PAUSECOUNTER = 5;
     private const int TUTPAUSECOUNTER = 50;
+    // A real run's allotment, for screens that explain it (tutorial end card).
+    public const int RealRunPauses = PAUSECOUNTER;
 
     public const string TutorialScene = "tutorialS5";
 
@@ -180,8 +182,13 @@ public class score : MonoBehaviour {
         return runHasStarted && !alreadySpentThisPress;
     }
 
+    // Counts every pickup that pays star dust (stars, the blue atom, a
+    // destroyed enemy). The tutorial watches it to know a star was caught.
+    public static int dustPickups;
+
     public static void AwardStarDust(float amount)
     {
+        dustPickups++;
         if (paysRealDust)
         {
             totalCurrency += amount;

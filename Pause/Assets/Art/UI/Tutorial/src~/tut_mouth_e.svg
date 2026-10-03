@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Robot mouth on the face screen, frame "e (wide, flat)". RobotSpeaker.cs picks the
+  frame per syllable from its vowel (rest between words, big on stressed
+  beats) and holds each for whole animation steps, cartoon style.
+  Flat teal light with an ink outline, one dark shade inside the opening.
+  36x20 units, rasterize at 2x (72x40 px, sprite ppu 200).
+  Colours are palette.env names, filled in by render.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="20" viewBox="0 0 36 20">
+  <path d="M4 6 L32 6 L29 14 L7 14 Z" fill="@TEAL@" stroke="@INK@" stroke-width="2.5" stroke-linejoin="miter"/>
+  <path d="M9 9 L27 9 L26 11 L10 11 Z" fill="@TEAL_SHADE@"/>
+</svg>

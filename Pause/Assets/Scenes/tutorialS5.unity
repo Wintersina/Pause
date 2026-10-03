@@ -1073,8 +1073,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00e62c0d81c301149a6945c2a3469391, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charsPerSecond: 45
-  lineHoldSeconds: 1.8
+  readSeconds: 0.7
+  introDelay: 0.6
+  liftOffSeconds: 1.4
   playerIcon: {fileID: 2099424278}
   script: {fileID: 0}
   startHintText: {fileID: 879661365}
@@ -2772,9 +2773,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Welcome to tuorial.
-
-    Place Finger On Screen'
+  m_Text: 
 --- !u!222 &1322089822
 CanvasRenderer:
   m_ObjectHideFlags: 0

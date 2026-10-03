@@ -13,7 +13,8 @@ out="../../../Resources/QuickActions"
 if [ "$1" = "--glyph" ]; then
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
-  for name in replay home; do
+  # play has no quick action; its glyph is the tutorial end card's PLAY.
+  for name in replay home play; do
     # Every plate element (fill, horizon grid, scanlines, neon rim) is one
     # line marked class="plate"; the viewBox is cropped to the glyph (plus
     # its neon bloom) so it fills the sprite.
