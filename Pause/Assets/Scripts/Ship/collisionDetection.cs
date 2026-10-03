@@ -214,7 +214,9 @@ public class collisionDetection : MonoBehaviour {
         {
 
             // creating different explotions for different enims
-            if (PrefabName.Is(hit.gameObject, "mine"))
+            // Under the boost shield the player destroys the mine, and the
+            // weapon explosion below covers it.
+            if (PrefabName.Is(hit.gameObject, "mine") && !atomCheck)
             {
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
@@ -237,13 +239,12 @@ public class collisionDetection : MonoBehaviour {
                 // show the texts for only half of a second.
                 savedTimer = .4f;
 
-                // create explotion and show it on the objets position.
-                GameObject exp = Instantiate(explosionAnimation) as GameObject;
-                exp.transform.position = hit.gameObject.transform.position;
-                ScrollWithWorld(exp);
+                // The player destroyed it: the pooled cartoon target
+                // explosion (metal / rock / mine), flashed in this ship's
+                // weapon colour.
+                TargetExplosion.Spawn(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
                 PlayExplosion();
 
-                Destroy(exp, 2);
                 AwardDestroyedTarget(hit.gameObject);
                 Destroy(hit.gameObject);
                 
