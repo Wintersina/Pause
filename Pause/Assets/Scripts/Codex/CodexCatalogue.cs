@@ -424,10 +424,11 @@ public static class CodexCatalogue
         return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
     }
 
-    // A square from the middle of a world's tall scrolling backdrop.
+    // A square from the middle of a world's tall scrolling sky tile (the far
+    // layer of its animated WorldBackdrop set; see BackdropCatalog).
     static Sprite Backdrop(string folder)
     {
-        return SquareOf(Resources.Load<Texture2D>("Worlds/" + folder + "/backdrop"));
+        return SquareOf(Resources.Load<Texture2D>(BackdropCatalog.Folder(folder) + "sky"));
     }
 
     // Space keeps the scene's own authored backdrop (WorldTheme leaves its
