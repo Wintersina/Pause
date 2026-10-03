@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Shatter shards: the contour shield's plates breaking off when it ends.
+     Four 64x64 shard shapes (picked per plate), each a flat teal base, one
+     hard shadow tone, one highlight sliver and a thick ink outline. Shard 3
+     is the white-hot one that reads as the breaking edge. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="64" viewBox="0 0 256 64">
+  <g stroke-linejoin="miter">
+    <polygon points="8,52 30,8 56,40" fill="#2BD9E8"/>
+    <polygon points="8,52 56,40 36,34" fill="#1A86A6"/>
+    <polygon points="26,18 30,10 36,22" fill="#D6FFFF"/>
+    <polygon points="8,52 30,8 56,40" fill="none" stroke="#0E0A24" stroke-width="6"/>
+  </g>
+  <g transform="translate(64,0)" stroke-linejoin="miter">
+    <polygon points="6,30 40,8 58,20 22,56" fill="#2BD9E8"/>
+    <polygon points="22,56 58,20 50,16 18,46" fill="#1A86A6"/>
+    <polygon points="14,28 38,13 42,17 18,31" fill="#D6FFFF"/>
+    <polygon points="6,30 40,8 58,20 22,56" fill="none" stroke="#0E0A24" stroke-width="6"/>
+  </g>
+  <g transform="translate(128,0)" stroke-linejoin="miter">
+    <polygon points="12,48 48,12 52,52" fill="#2BD9E8"/>
+    <polygon points="12,48 52,52 40,40" fill="#1A86A6"/>
+    <polygon points="12,48 48,12 52,52" fill="none" stroke="#0E0A24" stroke-width="6"/>
+  </g>
+  <g transform="translate(192,0)" stroke-linejoin="miter">
+    <polygon points="10,38 30,8 54,26 34,56" fill="#FFFFFF"/>
+    <polygon points="34,56 54,26 46,24 30,46" fill="#9FF8FF"/>
+    <polygon points="10,38 30,8 54,26 34,56" fill="none" stroke="#0E0A24" stroke-width="6"/>
+  </g>
+</svg>
