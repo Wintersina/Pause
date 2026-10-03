@@ -202,7 +202,9 @@ public class movePlayer : MonoBehaviour
     // will move the player left and right baised on touch positions.
     void moveLeft_Right(Vector3 fingerPos)
     {
-        float x = Mathf.Clamp(fingerPos.x, -2.4f, 2.4f);
+        // Blink Dash (a secret power) throws the hull sideways off the finger
+        // for a moment, then eases it back.
+        float x = Mathf.Clamp(fingerPos.x + SecretPowerController.DashOffsetX, -2.4f, 2.4f);
         float y = ClampPlayerY(fingerPos.y + 1f);
         this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
