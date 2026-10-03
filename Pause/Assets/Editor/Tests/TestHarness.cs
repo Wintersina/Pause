@@ -67,6 +67,15 @@ public static class TestHarness
                 statics.Add(new KeyValuePair<FieldInfo, object>(field, value));
             }
             timeScale = Time.timeScale;
+
+            // Start every suite with developer mode off. The editor shares
+            // PlayerPrefs with the Mac player, where a developer build turns
+            // it on by default; suites that test it turn it on themselves,
+            // and with it already on, its on -> off restore (the snapshot it
+            // takes only on an off -> on change) replays a stale snapshot.
+            // Written raw, not via SetEnabled, so nothing is restored here;
+            // the key itself is put back on Dispose like every other pref.
+            PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         }
 
         public void Dispose()
