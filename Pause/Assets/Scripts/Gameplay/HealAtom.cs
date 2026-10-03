@@ -16,12 +16,6 @@ public class HealAtom : MonoBehaviour
     // World-space diameter of the authored red/blue atoms: 28 px at 100 PPU.
     public const float TargetDiameter = 28f / 100f;
 
-    // How strongly the tint pulses so it still reads as special. Only the
-    // colour pulses: the size stays locked to the other atoms.
-    const float GlowAmount = 0.18f;
-
-    SpriteRenderer sr;
-
     public static float VisualScaleFor(Sprite sprite)
     {
         float source = sprite != null ? Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y) : TargetDiameter;
@@ -57,26 +51,18 @@ public class HealAtom : MonoBehaviour
         go.AddComponent<moveItemEnmInStrightLine>();
         go.AddComponent<HealAtom>();
         go.AddComponent<AtomSpin>();
+        // Its idle animation: light overlays flipped on top of the untouched
+        // original art (electron glints in sequence, then a nucleus pulse).
+        PickupFlipbook.AddTo(go, PickupKind.Heal);
 
         return go;
     }
 
-    void Awake()
-    {
-        sr = GetComponent<SpriteRenderer>();
-    }
-
     void Update()
     {
-        // Gentle glow so it reads as special against the red and blue atoms.
-        // This used to pulse transform.localScale around 1.0, which threw away
+        // The animation lives in PickupFlipbook (sprite overlays). Nothing here
+        // may touch transform.localScale: an old pulse around 1.0 threw away
         // the ~0.04 fit scale set in Spawn and drew the atom ~25x too large.
-        if (sr != null)
-        {
-            float k = 1f - GlowAmount * 0.5f * (1f + Mathf.Sin(Time.time * 4f));
-            sr.color = new Color(k, 1f, k, 1f);
-        }
-
         if (transform.position.y < -12f) Destroy(gameObject);
     }
 

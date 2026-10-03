@@ -36,7 +36,7 @@ public static class GameStateReset
         // tutorial; must not leak out of one (e.g. via Back) into a real run.
         startMenu.youAreInTutorial = false;
 
-        // collisionDetection.lifeCounter/atomCheck/invTimer are statics too,
+        // collisionDetection.lifeCounter/atomCheck/invTimer/cloakTimer are statics too,
         // and the shop's own ship1-ship3 (authored directly in shopS6 with
         // the same gameplay components as the real player ship) read
         // lifeCounter through lifeControler exactly like the ship you were
@@ -47,5 +47,6 @@ public static class GameStateReset
         collisionDetection.lifeCounter = 0;
         collisionDetection.atomCheck = false;
         collisionDetection.invTimer = 0f;
+        collisionDetection.cloakTimer = 0f;
     }
 }

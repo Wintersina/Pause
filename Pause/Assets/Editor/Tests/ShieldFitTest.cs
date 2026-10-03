@@ -388,7 +388,6 @@ public static class ShieldFitTest
         var cd = ship.AddComponent<collisionDetection>();
         cd.explosionAnimation = new GameObject("~TestExplosion");
         cd.boostSound = ship.AddComponent<AudioSource>();
-        cd.atomTimerText = new GameObject("~atomText", typeof(RectTransform)).AddComponent<Text>();
         cd.boostText = new GameObject("~boostText", typeof(RectTransform)).AddComponent<Text>();
         cd.hypeText = new GameObject("~hypeText", typeof(RectTransform)).AddComponent<Text>();
         cd.boost = new GameObject("~boost");
@@ -447,7 +446,7 @@ public static class ShieldFitTest
 
         collisionDetection.lifeCounter = 0;
         foreach (var go in new[] { atom, rock, rock2, cd.explosionAnimation, cd.boost,
-                                   cd.atomTimerText.gameObject, cd.boostText.gameObject, cd.hypeText.gameObject })
+                                   cd.boostText.gameObject, cd.hypeText.gameObject })
             if (go != null) Object.DestroyImmediate(go);
         Object.DestroyImmediate(ship);
     }

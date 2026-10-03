@@ -2,35 +2,25 @@
 <!-- One parking berth, seen from above. 100 units = 1 world unit.
      The ship parks nose-up over the landing ring; the hazard-striped mouth at
      the top is the way out. The recessed slot along the back wall carries the
-     ship's name plate (drawn by the game, not baked in). -->
+     ship's name plate (drawn by the game, not baked in).
+     Akira restyle (docs/art-style.md): flat fills only (no gradients), GUN
+     metal rails with one GUN_HI kick, INDIGO deck with panel lines, AMBER/INK
+     hazard stripes, TEAL deck brackets, INK contours. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="162" height="136" viewBox="0 0 162 136">
   <defs>
-    <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0C1B33"/>
-      <stop offset="1" stop-color="#08111F"/>
-    </linearGradient>
-    <linearGradient id="rail" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#141F33"/>
-      <stop offset="0.7" stop-color="#1A2C47"/>
-      <stop offset="1" stop-color="#223A5C"/>
-    </linearGradient>
-    <linearGradient id="railR" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0" stop-color="#141F33"/>
-      <stop offset="0.7" stop-color="#1A2C47"/>
-      <stop offset="1" stop-color="#223A5C"/>
-    </linearGradient>
     <pattern id="haz" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <rect width="3.5" height="7" fill="#FFC943"/>
-      <rect x="3.5" width="3.5" height="7" fill="#15171F"/>
+      <rect width="3.5" height="7" fill="#FFB43C"/>
+      <rect x="3.5" width="3.5" height="7" fill="#140C14"/>
     </pattern>
   </defs>
 
   <!-- floor slab -->
-  <path d="M9 2 H153 L160 9 V127 L153 134 H9 L2 127 V9 Z" fill="#081120" stroke="#1B3557" stroke-width="1.2"/>
+  <path d="M9 2 H153 L160 9 V127 L153 134 H9 L2 127 V9 Z" fill="#0E1424"/>
 
-  <!-- landing deck -->
-  <rect x="22" y="12" width="118" height="102" fill="url(#deck)"/>
-  <g stroke="#13284A" stroke-width="0.8">
+  <!-- landing deck: flat INDIGO_0, one hard shadow band on the lower right -->
+  <rect x="22" y="12" width="118" height="102" fill="#1A1F45"/>
+  <path d="M140 12 V114 H22 V106 H132 V12 Z" fill="#0E1424"/>
+  <g stroke="#2A2E6B" stroke-width="0.8">
     <line x1="22" y1="36" x2="140" y2="36"/>
     <line x1="22" y1="86" x2="140" y2="86"/>
     <line x1="52" y1="12" x2="52" y2="36"/>
@@ -39,29 +29,31 @@
     <line x1="110" y1="86" x2="110" y2="114"/>
   </g>
 
-  <!-- painted landing marks -->
-  <circle cx="81" cy="58" r="31" fill="none" stroke="#1A3A62" stroke-width="1.4"/>
-  <circle cx="81" cy="58" r="3" fill="#1A3A62"/>
-  <g stroke="#2A5A8C" stroke-width="1.6" stroke-linecap="square">
-    <line x1="81" y1="22" x2="81" y2="27"/>
-    <line x1="81" y1="89" x2="81" y2="94"/>
-    <line x1="45" y1="58" x2="50" y2="58"/>
-    <line x1="112" y1="58" x2="117" y2="58"/>
+  <!-- painted landing marks: an octagon pad, not a circle -->
+  <path d="M68.2 27 H93.8 L112 45.2 V70.8 L93.8 89 H68.2 L50 70.8 V45.2 Z" fill="none" stroke="#2A2E6B" stroke-width="1.6"/>
+  <rect x="78.5" y="55.5" width="5" height="5" fill="#2A2E6B"/>
+  <g stroke="#0F5E6A" stroke-width="1.8" stroke-linecap="butt">
+    <line x1="81" y1="21" x2="81" y2="27"/>
+    <line x1="81" y1="89" x2="81" y2="95"/>
+    <line x1="44" y1="58" x2="50" y2="58"/>
+    <line x1="112" y1="58" x2="118" y2="58"/>
   </g>
 
   <!-- deck corner brackets -->
-  <g fill="none" stroke="#2EE6FF" stroke-opacity="0.45" stroke-width="1.4">
+  <g fill="none" stroke="#1FB5B9" stroke-width="1.6" stroke-linejoin="miter">
     <path d="M26 24 V16 H34"/>
     <path d="M26 102 V110 H34"/>
     <path d="M136 102 V110 H128"/>
   </g>
 
-  <!-- side rails (cradle walls) -->
-  <path d="M4 10 L10 4 H22 V114 H4 Z" fill="url(#rail)"/>
-  <path d="M158 10 L152 4 H140 V114 H158 Z" fill="url(#railR)"/>
-  <line x1="21.4" y1="4" x2="21.4" y2="114" stroke="#335883" stroke-width="1"/>
-  <line x1="140.6" y1="4" x2="140.6" y2="114" stroke="#335883" stroke-width="1"/>
-  <g fill="#2E4B73">
+  <!-- side rails (cradle walls): flat GUN with a GUN_HI kick on the lit edge -->
+  <path d="M4 10 L10 4 H22 V114 H4 Z" fill="#2C2D40"/>
+  <path d="M158 10 L152 4 H140 V114 H158 Z" fill="#1A1A28"/>
+  <line x1="5.2" y1="10.4" x2="5.2" y2="114" stroke="#5A5C78" stroke-width="1"/>
+  <line x1="141.2" y1="4" x2="141.2" y2="114" stroke="#5A5C78" stroke-width="1"/>
+  <line x1="21.6" y1="4" x2="21.6" y2="114" stroke="#140C14" stroke-width="1.2"/>
+  <line x1="140.4" y1="4" x2="140.4" y2="114" stroke="#140C14" stroke-width="1.2"/>
+  <g fill="#5A5C78">
     <rect x="9" y="24" width="5" height="3"/>
     <rect x="9" y="38" width="5" height="3"/>
     <rect x="9" y="78" width="5" height="3"/>
@@ -72,23 +64,26 @@
     <rect x="148" y="92" width="5" height="3"/>
   </g>
   <!-- clamp slots -->
-  <rect x="15" y="50" width="7" height="16" fill="#060C18"/>
-  <rect x="140" y="50" width="7" height="16" fill="#060C18"/>
+  <rect x="15" y="50" width="7" height="16" fill="#070A16"/>
+  <rect x="140" y="50" width="7" height="16" fill="#070A16"/>
 
-  <!-- lamp housings (lights are separate sprites on top) -->
-  <g fill="#060C18" stroke="#223A5C" stroke-width="0.8">
-    <rect x="8" y="8" width="8" height="8" rx="1.5"/>
-    <rect x="146" y="8" width="8" height="8" rx="1.5"/>
-    <rect x="8" y="100" width="8" height="8" rx="1.5"/>
-    <rect x="146" y="100" width="8" height="8" rx="1.5"/>
+  <!-- lamp housings (lights are separate sprites on top), chamfered -->
+  <g fill="#070A16" stroke="#140C14" stroke-width="1">
+    <path d="M10 8 H14 L16 10 V14 L14 16 H10 L8 14 V10 Z"/>
+    <path d="M148 8 H152 L154 10 V14 L152 16 H148 L146 14 V10 Z"/>
+    <path d="M10 100 H14 L16 102 V106 L14 108 H10 L8 106 V102 Z"/>
+    <path d="M148 100 H152 L154 102 V106 L152 108 H148 L146 106 V102 Z"/>
   </g>
 
   <!-- hazard-striped mouth -->
-  <rect x="22" y="4" width="118" height="6" fill="url(#haz)" opacity="0.8"/>
-  <line x1="22" y1="10.5" x2="140" y2="10.5" stroke="#05090F" stroke-width="1"/>
+  <rect x="22" y="4" width="118" height="6" fill="url(#haz)"/>
+  <line x1="22" y1="10.5" x2="140" y2="10.5" stroke="#140C14" stroke-width="1.2"/>
 
-  <!-- back wall with name plate recess -->
-  <path d="M4 114 H158 V127 L152 133 H10 L4 127 Z" fill="#14233B"/>
-  <line x1="4" y1="114.5" x2="158" y2="114.5" stroke="#2E5583" stroke-width="1"/>
-  <path d="M26 117 H136 L139 120 V127 L136 130 H26 L23 127 V120 Z" fill="#071022" stroke="#1F416B" stroke-width="0.8"/>
+  <!-- back wall with name plate recess; a RED kick along its top edge -->
+  <path d="M4 114 H158 V127 L152 133 H10 L4 127 Z" fill="#1A1A28"/>
+  <line x1="4" y1="114.8" x2="158" y2="114.8" stroke="#D8232C" stroke-width="1.4"/>
+  <path d="M26 117 H136 L139 120 V127 L136 130 H26 L23 127 V120 Z" fill="#070A16" stroke="#140C14" stroke-width="1"/>
+
+  <!-- ink contour over everything -->
+  <path d="M9 2 H153 L160 9 V127 L153 134 H9 L2 127 V9 Z" fill="none" stroke="#140C14" stroke-width="2.2" stroke-linejoin="miter"/>
 </svg>

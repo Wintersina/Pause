@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Pause meter: five hard slanted cells on an ink bed (it is drawn only a few
+  pixels tall, so the cells are solid blocks), white template tinted at
+  runtime (RED, the dim back row INDIGO). One cell per pause of a run's five,
+  so a horizontal Filled image steps cell by cell.
+  Units are UI canvas units; rasterize at 2x (400x48 px, sprite ppu 200).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="24" viewBox="0 0 200 24">
+  <polygon points="4,1 39,1 37,23 2,23" fill="#140C14"/>
+  <polygon points="7,5 36,5 34.6,19 5.6,19" fill="#FFFFFF"/>
+  <polygon points="44,1 79,1 77,23 42,23" fill="#140C14"/>
+  <polygon points="47,5 76,5 74.6,19 45.6,19" fill="#FFFFFF"/>
+  <polygon points="84,1 119,1 117,23 82,23" fill="#140C14"/>
+  <polygon points="87,5 116,5 114.6,19 85.6,19" fill="#FFFFFF"/>
+  <polygon points="124,1 159,1 157,23 122,23" fill="#140C14"/>
+  <polygon points="127,5 156,5 154.6,19 125.6,19" fill="#FFFFFF"/>
+  <polygon points="164,1 199,1 197,23 162,23" fill="#140C14"/>
+  <polygon points="167,5 196,5 194.6,19 165.6,19" fill="#FFFFFF"/>
+</svg>

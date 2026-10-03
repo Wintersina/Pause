@@ -66,7 +66,7 @@ public static class TutorialScript
 
     // Sodium orange (TutorialPalette.Orange); a const so the rich text is
     // built without allocation per line. TutorialRobotTest checks it matches.
-    public const string HighlightColor = "#FF8A1E";
+    public const string HighlightColor = "#F2862B";
 
     // Rich text for the bubble: *word* becomes a sodium-orange highlight.
     public static string ToRichText(string line)

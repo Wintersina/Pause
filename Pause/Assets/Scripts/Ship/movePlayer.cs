@@ -6,7 +6,6 @@ public class movePlayer : MonoBehaviour
     Vector3 fingerPos;
     Vector3 textPos;
     private Text startTimer;
-    //private RectTransform atomTimerText;
     private RectTransform boostText;
     private RectTransform hypeText;
     float startTimerCounter, goTimer;
@@ -48,7 +47,6 @@ public class movePlayer : MonoBehaviour
     {
         teleported = false;
         //shild timer;
-        //atomTimerText = GameObject.Find("gotAtomText").GetComponent<RectTransform>();
         boostText = GameObject.Find("boostText").GetComponent<RectTransform>();
         hypeText = GameObject.Find("hypeText").GetComponent<RectTransform>();
         startTimer = GameObject.Find("goText").GetComponent<Text>();
@@ -209,10 +207,8 @@ public class movePlayer : MonoBehaviour
         this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
 
-            //atomTimerText.gameObject.SetActive(true);
             hypeText.gameObject.SetActive(true);
             boostText.gameObject.SetActive(true);
-            //atomTimerText.transform.position = textPos + new Vector3(0, 70, 0);
             hypeText.transform.position = textPos + new Vector3(0, 75, 0);
             boostText.transform.position = textPos + new Vector3(0, -60, 0);
     }

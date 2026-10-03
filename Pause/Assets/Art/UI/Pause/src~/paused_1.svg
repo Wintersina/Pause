@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PAUSED wordmark: BONE italic Orbitron on the red title slab, INK contour and cel offset. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="386" height="94" viewBox="0 0 386 94">
+  <polygon points="24,14 378,14 362,84 8,84" fill="#140C14"/>
+  <polygon points="20,8 372,8 356,78 4,78" fill="#D8232C"/>
+  <polygon points="20,8 372,8 369,18 17,18" fill="#FF5B45"/>
+  <polygon points="20,8 372,8 356,78 4,78" fill="none" stroke="#140C14" stroke-width="5" stroke-linejoin="miter"/>
+  <text x="200" y="70" transform="skewX(-8)" font-family="Orbitron" font-weight="bold" font-size="54" letter-spacing="6" text-anchor="middle" fill="#140C14" stroke="#140C14" stroke-width="8" stroke-linejoin="miter" paint-order="stroke">PAUSED</text>
+  <text x="196" y="66" transform="skewX(-8)" font-family="Orbitron" font-weight="bold" font-size="54" letter-spacing="6" text-anchor="middle" fill="#F4EAD4" stroke="#140C14" stroke-width="6" stroke-linejoin="miter" paint-order="stroke">PAUSED</text>
+</svg>

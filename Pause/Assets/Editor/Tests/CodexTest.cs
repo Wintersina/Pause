@@ -446,7 +446,6 @@ public static class CodexTest
 
         Check("the logo did not move", logo != null && logo.transform.position == logoPos && logo.transform.localScale == logoScale);
         Check("the logo kept its art and colour", logoSr != null && logoSr.sprite == logoSprite && logoSr.color == logoColor);
-        var sceneBack = (Behaviour)menu;
 
         entry.Button.onClick.Invoke();
         var panel = CodexPanel.Current;
@@ -454,7 +453,7 @@ public static class CodexTest
         if (panel == null) return;
         panel.SkipAnimations();
         Check("panel is fully shown after its intro", panel.IsOpen && panel.Panel.GetComponent<CanvasGroup>().alpha > .99f);
-        Check("home's Escape-to-quit is muted while the codex is open", !sceneBack.enabled);
+        Check("the open codex owns Back (top BackNavigator layer), not home's quit", BackNavigator.Top == (object)panel);
         Check("panel uses the cel frame",
               panel.Panel.Find("Frame").GetComponent<Image>().sprite != null &&
               panel.Panel.Find("Frame").GetComponent<Image>().sprite.name == "cx_panel");
@@ -567,7 +566,7 @@ public static class CodexTest
         panel.Close();
         panel.SkipAnimations();
         Check("closing hides the panel", !panel.IsOpen && !panel.gameObject.activeSelf);
-        Check("home's Escape handler is restored on close", sceneBack.enabled);
+        Check("closing hands Back back to the home screen", !BackNavigator.IsRegistered(panel));
 
         // Reopening reuses the same panel.
         entry.OpenCodex();

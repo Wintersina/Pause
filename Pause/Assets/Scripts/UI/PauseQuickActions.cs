@@ -179,9 +179,29 @@ public class PauseQuickActions : MonoBehaviour
             colors.normalColor = Color.white;
             colors.highlightedColor = Color.white;
             colors.selectedColor = Color.white;
-            colors.pressedColor = new Color(.75f, .9f, 1f, .8f);
+            colors.pressedColor = new Color(1f, .86f, .82f, 1f);
             button.colors = colors;
         }
+
+        // Motion: a cartoon squash-and-pop on press, and now and then a hard
+        // BONE glint sweeping across the plate (render.sh --shine frames).
+        CelPress.AddTo(go);
+        if (image != null)
+        {
+            var shine = new Sprite[ShineFrames];
+            for (int i = 0; i < ShineFrames; i++)
+                shine[i] = Resources.Load<Sprite>(ShinePath(resourcePath, i));
+            UiShimmer.AddTo(image, shine, 4.5f, resourcePath == HomeIconPath ? 0.35f : 0f);
+        }
+    }
+
+    public const int ShineFrames = 4;
+
+    // QuickActions/QuickAction_replay -> QuickActions/Shine/QuickAction_replay_shine_<i>
+    public static string ShinePath(string iconPath, int frame)
+    {
+        int slash = iconPath.LastIndexOf('/');
+        return iconPath.Substring(0, slash) + "/Shine/" + iconPath.Substring(slash + 1) + "_shine_" + frame;
     }
 
     void ApplySafeArea()
