@@ -1,0 +1,7443 @@
+fileFormatVersion: 2
+guid: b6c71f4a6ce84421fb40ad90a8a8246d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5855449730556832975
+    second: exhaust_atlas_0
+  - first:
+      213: 8662940746443288408
+    second: exhaust_atlas_1
+  - first:
+      213: -6745347515613339631
+    second: exhaust_atlas_2
+  - first:
+      213: 3488555711983433973
+    second: exhaust_atlas_3
+  - first:
+      213: 2733724099782807139
+    second: exhaust_atlas_4
+  - first:
+      213: -7627450183807365620
+    second: exhaust_atlas_5
+  - first:
+      213: -6490006662868779590
+    second: exhaust_atlas_6
+  - first:
+      213: 6509309911067017890
+    second: exhaust_atlas_7
+  - first:
+      213: 5308027471478820390
+    second: exhaust_atlas_8
+  - first:
+      213: 2754591003681757098
+    second: exhaust_atlas_9
+  - first:
+      213: -5249750667545820034
+    second: exhaust_atlas_10
+  - first:
+      213: -7437534450616293650
+    second: exhaust_atlas_11
+  - first:
+      213: 2641510904872579451
+    second: exhaust_atlas_12
+  - first:
+      213: -2969457902537108897
+    second: exhaust_atlas_13
+  - first:
+      213: -1045435639350424268
+    second: exhaust_atlas_14
+  - first:
+      213: -2704972232363920539
+    second: exhaust_atlas_15
+  - first:
+      213: -5825900154298427617
+    second: exhaust_atlas_16
+  - first:
+      213: 7486651677875752937
+    second: exhaust_atlas_17
+  - first:
+      213: -1459613697350513583
+    second: exhaust_atlas_18
+  - first:
+      213: 8450277139849533224
+    second: exhaust_atlas_19
+  - first:
+      213: 8191644850518713125
+    second: exhaust_atlas_20
+  - first:
+      213: -7953595834454858909
+    second: exhaust_atlas_21
+  - first:
+      213: 7871657075056943898
+    second: exhaust_atlas_22
+  - first:
+      213: -3117303774788868706
+    second: exhaust_atlas_23
+  - first:
+      213: 3733180605587068240
+    second: exhaust_atlas_24
+  - first:
+      213: 5811342295746052413
+    second: exhaust_atlas_25
+  - first:
+      213: 6258683515005118955
+    second: exhaust_atlas_26
+  - first:
+      213: 9148931696367841202
+    second: exhaust_atlas_27
+  - first:
+      213: -6167528504135567546
+    second: exhaust_atlas_28
+  - first:
+      213: -726602182625281763
+    second: exhaust_atlas_29
+  - first:
+      213: 6955548069973400596
+    second: exhaust_atlas_30
+  - first:
+      213: 3972878064006755626
+    second: exhaust_atlas_31
+  - first:
+      213: -8616302112390971621
+    second: exhaust_atlas_32
+  - first:
+      213: 3608150997228814130
+    second: exhaust_atlas_33
+  - first:
+      213: -6483755688229743798
+    second: exhaust_atlas_34
+  - first:
+      213: -2415298362380807635
+    second: exhaust_atlas_35
+  - first:
+      213: 4509895420045424441
+    second: exhaust_atlas_36
+  - first:
+      213: -4361801120506017286
+    second: exhaust_atlas_37
+  - first:
+      213: -2105935314023595839
+    second: exhaust_atlas_38
+  - first:
+      213: -2285865184611673130
+    second: exhaust_atlas_39
+  - first:
+      213: -1950661381224093778
+    second: exhaust_atlas_40
+  - first:
+      213: 143648467926106606
+    second: exhaust_atlas_41
+  - first:
+      213: -2195416481039140357
+    second: exhaust_atlas_42
+  - first:
+      213: -3083531626438320869
+    second: exhaust_atlas_43
+  - first:
+      213: 8790853086218994093
+    second: exhaust_atlas_44
+  - first:
+      213: -188589145085954159
+    second: exhaust_atlas_45
+  - first:
+      213: 2451742455871079777
+    second: exhaust_atlas_46
+  - first:
+      213: -6521778195937292547
+    second: exhaust_atlas_47
+  - first:
+      213: -8178548529810898332
+    second: exhaust_atlas_48
+  - first:
+      213: 1697646334194150732
+    second: exhaust_atlas_49
+  - first:
+      213: 637254412282218165
+    second: exhaust_atlas_50
+  - first:
+      213: -9205469787462968214
+    second: exhaust_atlas_51
+  - first:
+      213: -1390463537699322747
+    second: exhaust_atlas_52
+  - first:
+      213: -2936274505021295780
+    second: exhaust_atlas_53
+  - first:
+      213: -6859876929192447152
+    second: exhaust_atlas_54
+  - first:
+      213: 1424376446829671546
+    second: exhaust_atlas_55
+  - first:
+      213: -6154432553223690541
+    second: exhaust_atlas_56
+  - first:
+      213: -1833126872454934816
+    second: exhaust_atlas_57
+  - first:
+      213: 6803722978514412821
+    second: exhaust_atlas_58
+  - first:
+      213: -7974499835844580350
+    second: exhaust_atlas_59
+  - first:
+      213: 8256471641801295185
+    second: exhaust_atlas_60
+  - first:
+      213: 832592392948900029
+    second: exhaust_atlas_61
+  - first:
+      213: -6380725492987396154
+    second: exhaust_atlas_62
+  - first:
+      213: -5148398373835351141
+    second: exhaust_atlas_63
+  - first:
+      213: 1346643091881589639
+    second: exhaust_atlas_64
+  - first:
+      213: -8534638280462437485
+    second: exhaust_atlas_65
+  - first:
+      213: 8956793518910598
+    second: exhaust_atlas_66
+  - first:
+      213: -9054913311353009068
+    second: exhaust_atlas_67
+  - first:
+      213: 5810131822084625422
+    second: exhaust_atlas_68
+  - first:
+      213: 1653388184699875886
+    second: exhaust_atlas_69
+  - first:
+      213: 6868133452749316991
+    second: exhaust_atlas_70
+  - first:
+      213: 7142476817196977291
+    second: exhaust_atlas_71
+  - first:
+      213: 6912097395770157554
+    second: exhaust_atlas_72
+  - first:
+      213: 219709731972871987
+    second: exhaust_atlas_73
+  - first:
+      213: -1387907141260664280
+    second: exhaust_atlas_74
+  - first:
+      213: -5702655072548125105
+    second: exhaust_atlas_75
+  - first:
+      213: 5233584121781886857
+    second: exhaust_atlas_76
+  - first:
+      213: 301618450459935097
+    second: exhaust_atlas_77
+  - first:
+      213: 3945714004978613952
+    second: exhaust_atlas_78
+  - first:
+      213: 8831840155043611447
+    second: exhaust_atlas_79
+  - first:
+      213: 3218622674635872642
+    second: exhaust_atlas_80
+  - first:
+      213: 7712654650827449330
+    second: exhaust_atlas_81
+  - first:
+      213: 9037869800015941877
+    second: exhaust_atlas_82
+  - first:
+      213: -1849468846276998132
+    second: exhaust_atlas_83
+  - first:
+      213: -8677469773172573643
+    second: exhaust_atlas_84
+  - first:
+      213: -845642805218229251
+    second: exhaust_atlas_85
+  - first:
+      213: -1188619039207191878
+    second: exhaust_atlas_86
+  - first:
+      213: 2839504429456146164
+    second: exhaust_atlas_87
+  - first:
+      213: 6572378838738849368
+    second: exhaust_atlas_88
+  - first:
+      213: 5711712464266557912
+    second: exhaust_atlas_89
+  - first:
+      213: 6679014738781728197
+    second: exhaust_atlas_90
+  - first:
+      213: 4673627403162739218
+    second: exhaust_atlas_91
+  - first:
+      213: 9164590508184911374
+    second: exhaust_atlas_92
+  - first:
+      213: -2318500688483483064
+    second: exhaust_atlas_93
+  - first:
+      213: 664019090864685120
+    second: exhaust_atlas_94
+  - first:
+      213: 3939005724841119455
+    second: exhaust_atlas_95
+  - first:
+      213: -4441536290300319459
+    second: exhaust_atlas_96
+  - first:
+      213: 6598281406173142036
+    second: exhaust_atlas_97
+  - first:
+      213: -7150290615798729406
+    second: exhaust_atlas_98
+  - first:
+      213: 791259018298893391
+    second: exhaust_atlas_99
+  - first:
+      213: 8538282963500398104
+    second: exhaust_atlas_100
+  - first:
+      213: -7709173875010599973
+    second: exhaust_atlas_101
+  - first:
+      213: -5462194402085570830
+    second: exhaust_atlas_102
+  - first:
+      213: -8512255626105894948
+    second: exhaust_atlas_103
+  - first:
+      213: -2084736496886018587
+    second: exhaust_atlas_104
+  - first:
+      213: -1880297740077883128
+    second: exhaust_atlas_105
+  - first:
+      213: -7256364749698970660
+    second: exhaust_atlas_106
+  - first:
+      213: -9053704848809902098
+    second: exhaust_atlas_107
+  - first:
+      213: 2906133780768959294
+    second: exhaust_atlas_108
+  - first:
+      213: -1261747724526191585
+    second: exhaust_atlas_109
+  - first:
+      213: 8801651412217617318
+    second: exhaust_atlas_110
+  - first:
+      213: 3665971023994402218
+    second: exhaust_atlas_111
+  - first:
+      213: 5666974414507050240
+    second: exhaust_atlas_112
+  - first:
+      213: 5674720712705509561
+    second: exhaust_atlas_113
+  - first:
+      213: 5456241509846071910
+    second: exhaust_atlas_114
+  - first:
+      213: 4399800519067736853
+    second: exhaust_atlas_115
+  - first:
+      213: -8368357000466513398
+    second: exhaust_atlas_116
+  - first:
+      213: -6905918804987567887
+    second: exhaust_atlas_117
+  - first:
+      213: -8881370354537282897
+    second: exhaust_atlas_118
+  - first:
+      213: 5970324034274935812
+    second: exhaust_atlas_119
+  - first:
+      213: 8109772821005057036
+    second: exhaust_atlas_120
+  - first:
+      213: -5183760892700156979
+    second: exhaust_atlas_121
+  - first:
+      213: -1281854684215734248
+    second: exhaust_atlas_122
+  - first:
+      213: 7383569558832837713
+    second: exhaust_atlas_123
+  - first:
+      213: 5734710702805731713
+    second: exhaust_atlas_124
+  - first:
+      213: -2778882901082772676
+    second: exhaust_atlas_125
+  - first:
+      213: 5554065720115357786
+    second: exhaust_atlas_126
+  - first:
+      213: 8448562610802854069
+    second: exhaust_atlas_127
+  - first:
+      213: -2094086498423134931
+    second: exhaust_atlas_128
+  - first:
+      213: 275770417105705244
+    second: exhaust_atlas_129
+  - first:
+      213: 5184913805262753457
+    second: exhaust_atlas_130
+  - first:
+      213: 3921261828137786796
+    second: exhaust_atlas_131
+  - first:
+      213: 3109627809575382466
+    second: exhaust_atlas_132
+  - first:
+      213: 2733834622759466440
+    second: exhaust_atlas_133
+  - first:
+      213: -6262965173483370910
+    second: exhaust_atlas_134
+  - first:
+      213: -1164318988047745864
+    second: exhaust_atlas_135
+  - first:
+      213: 5493827733909636339
+    second: exhaust_atlas_136
+  - first:
+      213: -8040371830683430525
+    second: exhaust_atlas_137
+  - first:
+      213: 7760555116670027371
+    second: exhaust_atlas_138
+  - first:
+      213: -8482944130611625672
+    second: exhaust_atlas_139
+  - first:
+      213: -1528621769619054400
+    second: exhaust_atlas_140
+  - first:
+      213: -2743807121831297962
+    second: exhaust_atlas_141
+  - first:
+      213: -7937759551220026641
+    second: exhaust_atlas_142
+  - first:
+      213: 8930694166146505976
+    second: exhaust_atlas_143
+  - first:
+      213: 3059581075148339661
+    second: exhaust_atlas_144
+  - first:
+      213: 6063731899138920110
+    second: exhaust_atlas_145
+  - first:
+      213: 7667056442197455852
+    second: exhaust_atlas_146
+  - first:
+      213: -2965434779510223245
+    second: exhaust_atlas_147
+  - first:
+      213: 2039265387130106063
+    second: exhaust_atlas_148
+  - first:
+      213: -5166174875590329272
+    second: exhaust_atlas_149
+  - first:
+      213: 4686619274177997723
+    second: exhaust_atlas_150
+  - first:
+      213: -722988656118974040
+    second: exhaust_atlas_151
+  - first:
+      213: -8638483254499435494
+    second: exhaust_atlas_152
+  - first:
+      213: 8902609992459285447
+    second: exhaust_atlas_153
+  - first:
+      213: -1393568798113838758
+    second: exhaust_atlas_154
+  - first:
+      213: -2192379921480267407
+    second: exhaust_atlas_155
+  - first:
+      213: 6030303791495159339
+    second: exhaust_atlas_156
+  - first:
+      213: 6972472904483847076
+    second: exhaust_atlas_157
+  - first:
+      213: 6418248940257292397
+    second: exhaust_atlas_158
+  - first:
+      213: -6269126895371357488
+    second: exhaust_atlas_159
+  - first:
+      213: -192996935499598625
+    second: exhaust_atlas_160
+  - first:
+      213: 6944859034177822255
+    second: exhaust_atlas_161
+  - first:
+      213: -2977897118830587182
+    second: exhaust_atlas_162
+  - first:
+      213: -7925760070946765645
+    second: exhaust_atlas_163
+  - first:
+      213: -3501055242214245326
+    second: exhaust_atlas_164
+  - first:
+      213: 8797182543952084111
+    second: exhaust_atlas_165
+  - first:
+      213: -615971654496443558
+    second: exhaust_atlas_166
+  - first:
+      213: 8806996802502836798
+    second: exhaust_atlas_167
+  - first:
+      213: 2309084768559682566
+    second: exhaust_atlas_168
+  - first:
+      213: 3180849926702709475
+    second: exhaust_atlas_169
+  - first:
+      213: 2052003988479447591
+    second: exhaust_atlas_170
+  - first:
+      213: -5702000288053786036
+    second: exhaust_atlas_171
+  - first:
+      213: -9139002011503578185
+    second: exhaust_atlas_172
+  - first:
+      213: 499619650321614380
+    second: exhaust_atlas_173
+  - first:
+      213: 8758145587521060794
+    second: exhaust_atlas_174
+  - first:
+      213: -2426721683941393186
+    second: exhaust_atlas_175
+  - first:
+      213: 1281498539181308669
+    second: exhaust_atlas_176
+  - first:
+      213: -8687710494575725056
+    second: exhaust_atlas_177
+  - first:
+      213: -1377707797381170629
+    second: exhaust_atlas_178
+  - first:
+      213: 3483736426617710843
+    second: exhaust_atlas_179
+  - first:
+      213: 4329370330411353324
+    second: exhaust_atlas_180
+  - first:
+      213: -5220359134552857852
+    second: exhaust_atlas_181
+  - first:
+      213: -1577092053813411250
+    second: exhaust_atlas_182
+  - first:
+      213: 3890686396181165311
+    second: exhaust_atlas_183
+  - first:
+      213: -4540358130857989842
+    second: exhaust_atlas_184
+  - first:
+      213: 1505895797030268142
+    second: exhaust_atlas_185
+  - first:
+      213: 2597937922899129590
+    second: exhaust_atlas_186
+  - first:
+      213: 9120897822054145027
+    second: exhaust_atlas_187
+  - first:
+      213: -8673954760464932830
+    second: exhaust_atlas_188
+  - first:
+      213: 5944893258067306788
+    second: exhaust_atlas_189
+  - first:
+      213: 1844729828242559521
+    second: exhaust_atlas_190
+  - first:
+      213: 3203956409430972754
+    second: exhaust_atlas_191
+  - first:
+      213: -6281056504031051084
+    second: exhaust_atlas_192
+  - first:
+      213: -3890134896289697881
+    second: exhaust_atlas_193
+  - first:
+      213: 1810685260048274883
+    second: exhaust_atlas_194
+  - first:
+      213: -7746368693943963990
+    second: exhaust_atlas_195
+  - first:
+      213: -8052717646346529375
+    second: exhaust_atlas_196
+  - first:
+      213: -5231068873270513655
+    second: exhaust_atlas_197
+  - first:
+      213: -6715554017577198509
+    second: exhaust_atlas_198
+  - first:
+      213: -2033069069114977440
+    second: exhaust_atlas_199
+  - first:
+      213: 7493012040286017177
+    second: exhaust_atlas_200
+  - first:
+      213: -6736626392251690781
+    second: exhaust_atlas_201
+  - first:
+      213: 6175870494528996792
+    second: exhaust_atlas_202
+  - first:
+      213: -7284829533930354463
+    second: exhaust_atlas_203
+  - first:
+      213: 5926481014156171464
+    second: exhaust_atlas_204
+  - first:
+      213: -1315718268144182897
+    second: exhaust_atlas_205
+  - first:
+      213: 3010042834253881451
+    second: exhaust_atlas_206
+  - first:
+      213: 6391245011659525878
+    second: exhaust_atlas_207
+  - first:
+      213: -843640178620275391
+    second: exhaust_atlas_208
+  - first:
+      213: -157182943892047211
+    second: exhaust_atlas_209
+  - first:
+      213: -1120220624632788231
+    second: exhaust_atlas_210
+  - first:
+      213: -521503549117012110
+    second: exhaust_atlas_211
+  - first:
+      213: -3201044755868346053
+    second: exhaust_atlas_212
+  - first:
+      213: -1110069576510042818
+    second: exhaust_atlas_213
+  - first:
+      213: -4300184542181042632
+    second: exhaust_atlas_214
+  - first:
+      213: 8960517280393126987
+    second: exhaust_atlas_215
+  - first:
+      213: -3322096600247887607
+    second: exhaust_atlas_216
+  - first:
+      213: 3438779136468018972
+    second: exhaust_atlas_217
+  - first:
+      213: -8481536266921679048
+    second: exhaust_atlas_218
+  - first:
+      213: 4871935545607260657
+    second: exhaust_atlas_219
+  - first:
+      213: 3548488099305136209
+    second: exhaust_atlas_220
+  - first:
+      213: 6483701209276858293
+    second: exhaust_atlas_221
+  - first:
+      213: -7653105148703825877
+    second: exhaust_atlas_222
+  - first:
+      213: -7370878878675840441
+    second: exhaust_atlas_223
+  - first:
+      213: 1642181981081470206
+    second: exhaust_atlas_224
+  - first:
+      213: 784380033728038212
+    second: exhaust_atlas_225
+  - first:
+      213: 1262348018446575047
+    second: exhaust_atlas_226
+  - first:
+      213: 6836646698005502107
+    second: exhaust_atlas_227
+  - first:
+      213: 2542776949674658919
+    second: exhaust_atlas_228
+  - first:
+      213: 8081865509339083694
+    second: exhaust_atlas_229
+  - first:
+      213: -6863518508060867704
+    second: exhaust_atlas_230
+  - first:
+      213: 959403218238679247
+    second: exhaust_atlas_231
+  - first:
+      213: -654219862132087204
+    second: exhaust_atlas_232
+  - first:
+      213: -7031919786610679686
+    second: exhaust_atlas_233
+  - first:
+      213: 2453724239731069511
+    second: exhaust_atlas_234
+  - first:
+      213: -7106993274481302441
+    second: exhaust_atlas_235
+  - first:
+      213: 1795874325390112201
+    second: exhaust_atlas_236
+  - first:
+      213: 7959529923676316761
+    second: exhaust_atlas_237
+  - first:
+      213: 2964432392616254405
+    second: exhaust_atlas_238
+  - first:
+      213: 6151642245992362783
+    second: exhaust_atlas_239
+  - first:
+      213: -7537076527866010840
+    second: exhaust_atlas_240
+  - first:
+      213: 5860346198092304295
+    second: exhaust_atlas_241
+  - first:
+      213: -168697866045793516
+    second: exhaust_atlas_242
+  - first:
+      213: -7443446322312727750
+    second: exhaust_atlas_243
+  - first:
+      213: 4469109932982582439
+    second: exhaust_atlas_244
+  - first:
+      213: 4846617159203723511
+    second: exhaust_atlas_245
+  - first:
+      213: -1819759923593958031
+    second: exhaust_atlas_246
+  - first:
+      213: -2875124485009683998
+    second: exhaust_atlas_247
+  - first:
+      213: -1973852589500234336
+    second: exhaust_atlas_248
+  - first:
+      213: -7964312141242630932
+    second: exhaust_atlas_249
+  - first:
+      213: 4380117722224544181
+    second: exhaust_atlas_250
+  - first:
+      213: 4900951662371784394
+    second: exhaust_atlas_251
+  - first:
+      213: -5977690860138807229
+    second: exhaust_atlas_252
+  - first:
+      213: 549565440797380756
+    second: exhaust_atlas_253
+  - first:
+      213: -6509213030602670406
+    second: exhaust_atlas_254
+  - first:
+      213: 607515654913777414
+    second: exhaust_atlas_255
+  - first:
+      213: -895600164775652576
+    second: exhaust_atlas_256
+  - first:
+      213: -8117430290363962388
+    second: exhaust_atlas_257
+  - first:
+      213: -572832138571964066
+    second: exhaust_atlas_258
+  - first:
+      213: -8663703429240378975
+    second: exhaust_atlas_259
+  - first:
+      213: -8996628846111863496
+    second: exhaust_atlas_260
+  - first:
+      213: 2890927689616848314
+    second: exhaust_atlas_261
+  - first:
+      213: 8657737715034572237
+    second: exhaust_atlas_262
+  - first:
+      213: 6047763821853219261
+    second: exhaust_atlas_263
+  - first:
+      213: 3435550282603634306
+    second: exhaust_atlas_264
+  - first:
+      213: 1084490742807065008
+    second: exhaust_atlas_265
+  - first:
+      213: -3981606557997430698
+    second: exhaust_atlas_266
+  - first:
+      213: -2664999090412872871
+    second: exhaust_atlas_267
+  - first:
+      213: 1314025030768257672
+    second: exhaust_atlas_268
+  - first:
+      213: 5941220099050817401
+    second: exhaust_atlas_269
+  - first:
+      213: 2245605375492287362
+    second: exhaust_atlas_270
+  - first:
+      213: -7957946584856979711
+    second: exhaust_atlas_271
+  - first:
+      213: -3080741767473643765
+    second: exhaust_atlas_272
+  - first:
+      213: -5280962458419956077
+    second: exhaust_atlas_273
+  - first:
+      213: -1654499630579246940
+    second: exhaust_atlas_274
+  - first:
+      213: 3731925541785323007
+    second: exhaust_atlas_275
+  - first:
+      213: 8103328420048537864
+    second: exhaust_atlas_276
+  - first:
+      213: 5451260901724999106
+    second: exhaust_atlas_277
+  - first:
+      213: -6397251828015286646
+    second: exhaust_atlas_278
+  - first:
+      213: -3340983873393319959
+    second: exhaust_atlas_279
+  - first:
+      213: -7922524357304691761
+    second: exhaust_atlas_280
+  - first:
+      213: -4855994428775377844
+    second: exhaust_atlas_281
+  - first:
+      213: 3714225597864205053
+    second: exhaust_atlas_282
+  - first:
+      213: -3695381163297998505
+    second: exhaust_atlas_283
+  - first:
+      213: -2972071493035540494
+    second: exhaust_atlas_284
+  - first:
+      213: 3213800538192967628
+    second: exhaust_atlas_285
+  - first:
+      213: -7937087073397753738
+    second: exhaust_atlas_286
+  - first:
+      213: -3561808338354650446
+    second: exhaust_atlas_287
+  - first:
+      213: -9070362227543345693
+    second: exhaust_atlas_288
+  - first:
+      213: -655145885783835133
+    second: exhaust_atlas_289
+  - first:
+      213: 5839176832622868810
+    second: exhaust_atlas_290
+  - first:
+      213: 7404311239728723220
+    second: exhaust_atlas_291
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: exhaust_atlas_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 1352
+        width: 44
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 133d00a5e734dbea0800000000000000
+      internalID: -5855449730556832975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_1
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 1325
+        width: 44
+        height: 147
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85f620ee5b2f83870800000000000000
+      internalID: 8662940746443288408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_2
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 1281
+        width: 46
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 110ad454c26b362a0800000000000000
+      internalID: -6745347515613339631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_3
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 1307
+        width: 42
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f8bee7dfe6d96030800000000000000
+      internalID: 3488555711983433973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_4
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 1343
+        width: 46
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36e8a79b59320f520800000000000000
+      internalID: 2733724099782807139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_5
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 1331
+        width: 44
+        height: 141
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0e8c24487ad52690800000000000000
+      internalID: -7627450183807365620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_6
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 1330
+        width: 48
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abdb9cd535ddee5a0800000000000000
+      internalID: -6490006662868779590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_7
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 1301
+        width: 50
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a2441650e6b55a50800000000000000
+      internalID: 6509309911067017890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_8
+      rect:
+        serializedVersion: 2
+        x: 401
+        y: 1279
+        width: 46
+        height: 193
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62e8287bcd6e9a940800000000000000
+      internalID: 5308027471478820390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_9
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 1281
+        width: 46
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa710f36ce54a3620800000000000000
+      internalID: 2754591003681757098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_10
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 1321
+        width: 50
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e74cf8d05932527b0800000000000000
+      internalID: -5249750667545820034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_11
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 1308
+        width: 48
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee6294aa2d198c890800000000000000
+      internalID: -7437534450616293650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_12
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 1336
+        width: 43
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7130433c2888a420800000000000000
+      internalID: 2641510904872579451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_13
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 1316
+        width: 40
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f529ccf35cd5ac6d0800000000000000
+      internalID: -2969457902537108897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_14
+      rect:
+        serializedVersion: 2
+        x: 701
+        y: 1281
+        width: 46
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43d0cf033dddd71f0800000000000000
+      internalID: -1045435639350424268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_15
+      rect:
+        serializedVersion: 2
+        x: 752
+        y: 1327
+        width: 43
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56337a21612067ad0800000000000000
+      internalID: -2704972232363920539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_16
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 1307
+        width: 41
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1716263dae362fa0800000000000000
+      internalID: -5825900154298427617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_17
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 1342
+        width: 45
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9efcdd8f80ee5e760800000000000000
+      internalID: 7486651677875752937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_18
+      rect:
+        serializedVersion: 2
+        x: 903
+        y: 1321
+        width: 43
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15cc02c53196ebbe0800000000000000
+      internalID: -1459613697350513583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_19
+      rect:
+        serializedVersion: 2
+        x: 951
+        y: 1314
+        width: 47
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 827d556894a654570800000000000000
+      internalID: 8450277139849533224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_20
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 1291
+        width: 45
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 523635127919ea170800000000000000
+      internalID: 8191644850518713125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_21
+      rect:
+        serializedVersion: 2
+        x: 1051
+        y: 1279
+        width: 46
+        height: 193
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 363aa408ab62f9190800000000000000
+      internalID: -7953595834454858909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_22
+      rect:
+        serializedVersion: 2
+        x: 1100
+        y: 1304
+        width: 48
+        height: 168
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a13a578676ebd3d60800000000000000
+      internalID: 7871657075056943898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_23
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1281
+        width: 45
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e95a9b6abbc1db4d0800000000000000
+      internalID: -3117303774788868706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_24
+      rect:
+        serializedVersion: 2
+        x: 1199
+        y: 1320
+        width: 50
+        height: 152
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05515664bfbeec330800000000000000
+      internalID: 3733180605587068240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_25
+      rect:
+        serializedVersion: 2
+        x: 1251
+        y: 1297
+        width: 47
+        height: 175
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d318526370906a050800000000000000
+      internalID: 5811342295746052413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_26
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1343
+        width: 50
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be929793f7f4bd650800000000000000
+      internalID: 6258683515005118955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_27
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 1322
+        width: 50
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bf215c97e887fe70800000000000000
+      internalID: 9148931696367841202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_28
+      rect:
+        serializedVersion: 2
+        x: 1400
+        y: 1289
+        width: 49
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64737e0a089886aa0800000000000000
+      internalID: -6167528504135567546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_29
+      rect:
+        serializedVersion: 2
+        x: 1449
+        y: 1313
+        width: 50
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d19b8932a279ae5f0800000000000000
+      internalID: -726602182625281763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_30
+      rect:
+        serializedVersion: 2
+        x: 1499
+        y: 1334
+        width: 50
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41c1be81e12178060800000000000000
+      internalID: 6955548069973400596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_31
+      rect:
+        serializedVersion: 2
+        x: 1549
+        y: 1349
+        width: 50
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a25701dcc8f722730800000000000000
+      internalID: 3972878064006755626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_32
+      rect:
+        serializedVersion: 2
+        x: 1599
+        y: 1328
+        width: 50
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ffc7141eebc6880800000000000000
+      internalID: -8616302112390971621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_33
+      rect:
+        serializedVersion: 2
+        x: 1649
+        y: 1321
+        width: 50
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23f7bc5173ab21230800000000000000
+      internalID: 3608150997228814130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_34
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 1298
+        width: 50
+        height: 174
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a43d5a0dd821506a0800000000000000
+      internalID: -6483755688229743798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_35
+      rect:
+        serializedVersion: 2
+        x: 1750
+        y: 1279
+        width: 49
+        height: 193
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2295bbafe22b7ed0800000000000000
+      internalID: -2415298362380807635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_36
+      rect:
+        serializedVersion: 2
+        x: 1799
+        y: 1288
+        width: 50
+        height: 184
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 937f7f57dfd569e30800000000000000
+      internalID: 4509895420045424441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_37
+      rect:
+        serializedVersion: 2
+        x: 1849
+        y: 1311
+        width: 50
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af9865f9df4c773c0800000000000000
+      internalID: -4361801120506017286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_38
+      rect:
+        serializedVersion: 2
+        x: 1899
+        y: 1328
+        width: 50
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c04ca75df636c2e0800000000000000
+      internalID: -2105935314023595839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_39
+      rect:
+        serializedVersion: 2
+        x: 1949
+        y: 1305
+        width: 50
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dbd9c2c9b9f640e0800000000000000
+      internalID: -2285865184611673130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_40
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 1138
+        width: 36
+        height: 141
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea7a01f0fcbdde4e0800000000000000
+      internalID: -1950661381224093778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_41
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 1126
+        width: 36
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee1c34f35875ef100800000000000000
+      internalID: 143648467926106606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_42
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 1094
+        width: 40
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf9bf91a7505881e0800000000000000
+      internalID: -2195416481039140357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_43
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 1120
+        width: 36
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1d1670b2581535d0800000000000000
+      internalID: -3083531626438320869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_44
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 1132
+        width: 36
+        height: 147
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da1cab45e426ff970800000000000000
+      internalID: 8790853086218994093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_45
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 1141
+        width: 36
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19738a6fb2ff16df0800000000000000
+      internalID: -188589145085954159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_46
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 1114
+        width: 40
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16580f216c6560220800000000000000
+      internalID: 2451742455871079777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_47
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 1101
+        width: 40
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfe054fd84dfd75a0800000000000000
+      internalID: -6521778195937292547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_48
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 1085
+        width: 40
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4620456a175ff7e80800000000000000
+      internalID: -8178548529810898332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_49
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 1094
+        width: 40
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4de2efa8504f8710800000000000000
+      internalID: 1697646334194150732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_50
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 1108
+        width: 40
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b6c1abf28bf7d800800000000000000
+      internalID: 637254412282218165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_51
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 1118
+        width: 40
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6cddaf300a9f3080800000000000000
+      internalID: -9205469787462968214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_52
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 1112
+        width: 32
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5848c4a87c414bce0800000000000000
+      internalID: -1390463537699322747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_53
+      rect:
+        serializedVersion: 2
+        x: 658
+        y: 1103
+        width: 32
+        height: 176
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c537b2d05e14047d0800000000000000
+      internalID: -2936274505021295780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_54
+      rect:
+        serializedVersion: 2
+        x: 706
+        y: 1085
+        width: 36
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05336903742dcc0a0800000000000000
+      internalID: -6859876929192447152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_55
+      rect:
+        serializedVersion: 2
+        x: 758
+        y: 1100
+        width: 32
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7437bbe4d664c310800000000000000
+      internalID: 1424376446829671546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_56
+      rect:
+        serializedVersion: 2
+        x: 807
+        y: 1109
+        width: 34
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d6600f4330179aa0800000000000000
+      internalID: -6154432553223690541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_57
+      rect:
+        serializedVersion: 2
+        x: 858
+        y: 1118
+        width: 32
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0eec91362dc6f86e0800000000000000
+      internalID: -1833126872454934816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_58
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 1086
+        width: 38
+        height: 193
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 515a384500eab6e50800000000000000
+      internalID: 6803722978514412821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_59
+      rect:
+        serializedVersion: 2
+        x: 956
+        y: 1085
+        width: 36
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20ca21766a2e45190800000000000000
+      internalID: -7974499835844580350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_60
+      rect:
+        serializedVersion: 2
+        x: 1006
+        y: 1085
+        width: 36
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15507aba631e49270800000000000000
+      internalID: 8256471641801295185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_61
+      rect:
+        serializedVersion: 2
+        x: 1055
+        y: 1085
+        width: 38
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db06960ce56fd8b00800000000000000
+      internalID: 832592392948900029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_62
+      rect:
+        serializedVersion: 2
+        x: 1105
+        y: 1085
+        width: 38
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cff43d78fb1377a0800000000000000
+      internalID: -6380725492987396154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_63
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1093
+        width: 38
+        height: 186
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9b5855d4f63d88b0800000000000000
+      internalID: -5148398373835351141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_64
+      rect:
+        serializedVersion: 2
+        x: 1204
+        y: 1143
+        width: 41
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78bf5dad1cc30b210800000000000000
+      internalID: 1346643091881589639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_65
+      rect:
+        serializedVersion: 2
+        x: 1253
+        y: 1130
+        width: 43
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 393f59ec3bfde8980800000000000000
+      internalID: -8534638280462437485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_66
+      rect:
+        serializedVersion: 2
+        x: 1301
+        y: 1100
+        width: 46
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68c65000822df1000800000000000000
+      internalID: 8956793518910598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_67
+      rect:
+        serializedVersion: 2
+        x: 1353
+        y: 1118
+        width: 42
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45c09dc715c765280800000000000000
+      internalID: -9054913311353009068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_68
+      rect:
+        serializedVersion: 2
+        x: 1401
+        y: 1136
+        width: 45
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e041c89db1cb1a050800000000000000
+      internalID: 5810131822084625422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_69
+      rect:
+        serializedVersion: 2
+        x: 1453
+        y: 1149
+        width: 41
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e223dd04bc302f610800000000000000
+      internalID: 1653388184699875886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_70
+      rect:
+        serializedVersion: 2
+        x: 1504
+        y: 1133
+        width: 40
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f73a9118cf2805f50800000000000000
+      internalID: 6868133452749316991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_71
+      rect:
+        serializedVersion: 2
+        x: 1553
+        y: 1124
+        width: 42
+        height: 155
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8c0d71a2dc2f1360800000000000000
+      internalID: 7142476817196977291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_72
+      rect:
+        serializedVersion: 2
+        x: 1601
+        y: 1119
+        width: 47
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f968c7a5f3bcef50800000000000000
+      internalID: 6912097395770157554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_73
+      rect:
+        serializedVersion: 2
+        x: 1650
+        y: 1106
+        width: 48
+        height: 173
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33770ff46d09c0300800000000000000
+      internalID: 219709731972871987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_74
+      rect:
+        serializedVersion: 2
+        x: 1701
+        y: 1085
+        width: 46
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8222ee7fec92dbce0800000000000000
+      internalID: -1387907141260664280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_75
+      rect:
+        serializedVersion: 2
+        x: 1751
+        y: 1093
+        width: 46
+        height: 186
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f46803cec691cd0b0800000000000000
+      internalID: -5702655072548125105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_76
+      rect:
+        serializedVersion: 2
+        x: 1799
+        y: 1112
+        width: 50
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98f1fe0b70d61a840800000000000000
+      internalID: 5233584121781886857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_77
+      rect:
+        serializedVersion: 2
+        x: 1850
+        y: 1126
+        width: 47
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9714e55f1609f2400800000000000000
+      internalID: 301618450459935097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_78
+      rect:
+        serializedVersion: 2
+        x: 1901
+        y: 1109
+        width: 46
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ceb8047bfdf1c630800000000000000
+      internalID: 3945714004978613952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_79
+      rect:
+        serializedVersion: 2
+        x: 1951
+        y: 1099
+        width: 47
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 733c762f3dff09a70800000000000000
+      internalID: 8831840155043611447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_80
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 974
+        width: 49
+        height: 111
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28950b30548daac20800000000000000
+      internalID: 3218622674635872642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_81
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 961
+        width: 50
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f3a5d1aa8ad80b60800000000000000
+      internalID: 7712654650827449330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_82
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 928
+        width: 48
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f05e2cc2b6fc6d70800000000000000
+      internalID: 9037869800015941877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_83
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 955
+        width: 50
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0c028a12ed5556e0800000000000000
+      internalID: -1849468846276998132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_84
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 968
+        width: 50
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53afbdc673f639780800000000000000
+      internalID: -8677469773172573643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_85
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 965
+        width: 50
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df34a1c595ca344f0800000000000000
+      internalID: -845642805218229251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_86
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 955
+        width: 50
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aba0aca084d218fe0800000000000000
+      internalID: -1188619039207191878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_87
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 942
+        width: 50
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4feb1e7fb32f76720800000000000000
+      internalID: 2839504429456146164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_88
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 905
+        width: 48
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85ec25c5bb7c53b50800000000000000
+      internalID: 6572378838738849368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_89
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 935
+        width: 50
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d977cb6934144f40800000000000000
+      internalID: 5711712464266557912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_90
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 948
+        width: 50
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cdeeaa9480a0bc50800000000000000
+      internalID: 6679014738781728197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_91
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 945
+        width: 50
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 212eb0a7c5f0cd040800000000000000
+      internalID: 4673627403162739218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_92
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 941
+        width: 41
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0e3748d28a2f2f70800000000000000
+      internalID: 9164590508184911374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_93
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 920
+        width: 40
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 842817368e703dfd0800000000000000
+      internalID: -2318500688483483064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_94
+      rect:
+        serializedVersion: 2
+        x: 701
+        y: 893
+        width: 46
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 040411358d1173900800000000000000
+      internalID: 664019090864685120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_95
+      rect:
+        serializedVersion: 2
+        x: 754
+        y: 932
+        width: 40
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fde826546d82aa630800000000000000
+      internalID: 3939005724841119455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_96
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 911
+        width: 43
+        height: 174
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d19a4a7b64e7c52c0800000000000000
+      internalID: -4441536290300319459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_97
+      rect:
+        serializedVersion: 2
+        x: 854
+        y: 950
+        width: 40
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41cd30fcafdc19b50800000000000000
+      internalID: 6598281406173142036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_98
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 926
+        width: 40
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 245f18c919015cc90800000000000000
+      internalID: -7150290615798729406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_99
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 918
+        width: 44
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f44a70782ed1bfa00800000000000000
+      internalID: 791259018298893391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_100
+      rect:
+        serializedVersion: 2
+        x: 1002
+        y: 894
+        width: 44
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 816f5371e131e7670800000000000000
+      internalID: 8538282963500398104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_101
+      rect:
+        serializedVersion: 2
+        x: 1051
+        y: 891
+        width: 46
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd38544a433830590800000000000000
+      internalID: -7709173875010599973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_102
+      rect:
+        serializedVersion: 2
+        x: 1102
+        y: 908
+        width: 44
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f6ff8991236234b0800000000000000
+      internalID: -5462194402085570830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_103
+      rect:
+        serializedVersion: 2
+        x: 1149
+        y: 891
+        width: 47
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd743a0ab946ed980800000000000000
+      internalID: -8512255626105894948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_104
+      rect:
+        serializedVersion: 2
+        x: 1202
+        y: 928
+        width: 44
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ed01d493378113e0800000000000000
+      internalID: -2084736496886018587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_105
+      rect:
+        serializedVersion: 2
+        x: 1252
+        y: 901
+        width: 44
+        height: 184
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80120baea27d7e5e0800000000000000
+      internalID: -1880297740077883128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_106
+      rect:
+        serializedVersion: 2
+        x: 1306
+        y: 937
+        width: 36
+        height: 148
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdbc68db4b63c4b90800000000000000
+      internalID: -7256364749698970660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_107
+      rect:
+        serializedVersion: 2
+        x: 1356
+        y: 931
+        width: 36
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eef34799867ca5280800000000000000
+      internalID: -9053704848809902098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_108
+      rect:
+        serializedVersion: 2
+        x: 1404
+        y: 903
+        width: 40
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3b2f78b649a45820800000000000000
+      internalID: 2906133780768959294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_109
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 928
+        width: 36
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1c757b212f5d7ee0800000000000000
+      internalID: -1261747724526191585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_110
+      rect:
+        serializedVersion: 2
+        x: 1506
+        y: 934
+        width: 36
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6abdb06835fb52a70800000000000000
+      internalID: 8801651412217617318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_111
+      rect:
+        serializedVersion: 2
+        x: 1556
+        y: 940
+        width: 36
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa5bf02293520e230800000000000000
+      internalID: 3665971023994402218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_112
+      rect:
+        serializedVersion: 2
+        x: 1604
+        y: 913
+        width: 40
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0058bef743325ae40800000000000000
+      internalID: 5666974414507050240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_113
+      rect:
+        serializedVersion: 2
+        x: 1655
+        y: 906
+        width: 38
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b80d581c68a0ce40800000000000000
+      internalID: 5674720712705509561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_114
+      rect:
+        serializedVersion: 2
+        x: 1704
+        y: 891
+        width: 40
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66abd1baeb678bb40800000000000000
+      internalID: 5456241509846071910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_115
+      rect:
+        serializedVersion: 2
+        x: 1754
+        y: 903
+        width: 40
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51b9c9dc24b3f0d30800000000000000
+      internalID: 4399800519067736853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_116
+      rect:
+        serializedVersion: 2
+        x: 1804
+        y: 909
+        width: 40
+        height: 176
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a024a8145af9ddb80800000000000000
+      internalID: -8368357000466513398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_117
+      rect:
+        serializedVersion: 2
+        x: 1854
+        y: 916
+        width: 40
+        height: 169
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f0a60d9f6f3920a0800000000000000
+      internalID: -6905918804987567887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_118
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 776
+        width: 44
+        height: 115
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa2ce13d7b80fb480800000000000000
+      internalID: -8881370354537282897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_119
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 761
+        width: 44
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4044fe8b31adad250800000000000000
+      internalID: 5970324034274935812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_120
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 729
+        width: 48
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0cbf1dc963bb8070800000000000000
+      internalID: 8109772821005057036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_121
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 753
+        width: 44
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcb9b0ecee49f08b0800000000000000
+      internalID: -5183760892700156979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_122
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 767
+        width: 44
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81096adc4ffe53ee0800000000000000
+      internalID: -1281854684215734248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_123
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 773
+        width: 44
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1547e98d465b77660800000000000000
+      internalID: 7383569558832837713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_124
+      rect:
+        serializedVersion: 2
+        x: 301
+        y: 756
+        width: 46
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 189cd5a1009c59f40800000000000000
+      internalID: 5734710702805731713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_125
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 739
+        width: 46
+        height: 152
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3bed8089bc6f69d0800000000000000
+      internalID: -2778882901082772676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_126
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 703
+        width: 48
+        height: 188
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5866a28851041d40800000000000000
+      internalID: 5554065720115357786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_127
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 729
+        width: 48
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b80d8f9ee25f3570800000000000000
+      internalID: 8448562610802854069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_128
+      rect:
+        serializedVersion: 2
+        x: 501
+        y: 746
+        width: 46
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d252c84bc6f40f2e0800000000000000
+      internalID: -2094086498423134931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_129
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 752
+        width: 48
+        height: 139
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c199527bbbbb3d300800000000000000
+      internalID: 275770417105705244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_130
+      rect:
+        serializedVersion: 2
+        x: 606
+        y: 808
+        width: 36
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1be84b192a384f740800000000000000
+      internalID: 5184913805262753457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_131
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 797
+        width: 37
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cad93716bde1b6630800000000000000
+      internalID: 3921261828137786796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_132
+      rect:
+        serializedVersion: 2
+        x: 701
+        y: 733
+        width: 46
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cdaa6d640e972b20800000000000000
+      internalID: 3109627809575382466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_133
+      rect:
+        serializedVersion: 2
+        x: 755
+        y: 855
+        width: 37
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c5fd3cda1880f520800000000000000
+      internalID: 2733834622759466440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_134
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 805
+        width: 36
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26681e97b5a7519a0800000000000000
+      internalID: -6262965173483370910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_135
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 809
+        width: 37
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bcfb289c0287dfe0800000000000000
+      internalID: -1164318988047745864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_136
+      rect:
+        serializedVersion: 2
+        x: 906
+        y: 794
+        width: 36
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f48fd8673ffd3c40800000000000000
+      internalID: 5493827733909636339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_137
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 855
+        width: 37
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3819e027b6cda6090800000000000000
+      internalID: -8040371830683430525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_138
+      rect:
+        serializedVersion: 2
+        x: 1004
+        y: 786
+        width: 40
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6605fce2c703bb60800000000000000
+      internalID: 7760555116670027371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_139
+      rect:
+        serializedVersion: 2
+        x: 1054
+        y: 796
+        width: 40
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 831c86df147864a80800000000000000
+      internalID: -8482944130611625672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_140
+      rect:
+        serializedVersion: 2
+        x: 1101
+        y: 724
+        width: 46
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c06de9799e39cae0800000000000000
+      internalID: -1528621769619054400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_141
+      rect:
+        serializedVersion: 2
+        x: 1154
+        y: 853
+        width: 40
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65cfe03c5f90ce9d0800000000000000
+      internalID: -2743807121831297962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_142
+      rect:
+        serializedVersion: 2
+        x: 1204
+        y: 782
+        width: 40
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe2f0158eb967d190800000000000000
+      internalID: -7937759551220026641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_143
+      rect:
+        serializedVersion: 2
+        x: 1254
+        y: 791
+        width: 40
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fcd0daf60330fb70800000000000000
+      internalID: 8930694166146505976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_144
+      rect:
+        serializedVersion: 2
+        x: 1304
+        y: 792
+        width: 40
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc979b907c0d57a20800000000000000
+      internalID: 3059581075148339661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_145
+      rect:
+        serializedVersion: 2
+        x: 1354
+        y: 853
+        width: 40
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eae41650904b62450800000000000000
+      internalID: 6063731899138920110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_146
+      rect:
+        serializedVersion: 2
+        x: 1399
+        y: 754
+        width: 50
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce3bc0e563bd66a60800000000000000
+      internalID: 7667056442197455852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_147
+      rect:
+        serializedVersion: 2
+        x: 1449
+        y: 739
+        width: 50
+        height: 152
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37e44b297c8a8d6d0800000000000000
+      internalID: -2965434779510223245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_148
+      rect:
+        serializedVersion: 2
+        x: 1499
+        y: 710
+        width: 50
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc0b3aaa01dec4c10800000000000000
+      internalID: 2039265387130106063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_149
+      rect:
+        serializedVersion: 2
+        x: 1549
+        y: 730
+        width: 50
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84cf3ec725f0e48b0800000000000000
+      internalID: -5166174875590329272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_150
+      rect:
+        serializedVersion: 2
+        x: 1599
+        y: 747
+        width: 50
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9be0ea26673a0140800000000000000
+      internalID: 4686619274177997723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_151
+      rect:
+        serializedVersion: 2
+        x: 1649
+        y: 757
+        width: 50
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a93467d5ad67f5f0800000000000000
+      internalID: -722988656118974040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_152
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 742
+        width: 50
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1c9669af31fd1880800000000000000
+      internalID: -8638483254499435494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_153
+      rect:
+        serializedVersion: 2
+        x: 756
+        y: 804
+        width: 33
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c3f06ebe9c6c8b70800000000000000
+      internalID: 8902609992459285447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_154
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 791
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a594b52cf8c09ace0800000000000000
+      internalID: -1393568798113838758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_155
+      rect:
+        serializedVersion: 2
+        x: 956
+        y: 805
+        width: 33
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 179487fb31a1391e0800000000000000
+      internalID: -2192379921480267407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_156
+      rect:
+        serializedVersion: 2
+        x: 1156
+        y: 783
+        width: 36
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e92c33951ffa350800000000000000
+      internalID: 6030303791495159339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_157
+      rect:
+        serializedVersion: 2
+        x: 1356
+        y: 784
+        width: 37
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4abbbc53a2333c060800000000000000
+      internalID: 6972472904483847076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_158
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 787
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d603014e763321950800000000000000
+      internalID: 6418248940257292397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_159
+      rect:
+        serializedVersion: 2
+        x: 669
+        y: 776
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d2fa8dcd469ff8a0800000000000000
+      internalID: -6269126895371357488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_160
+      rect:
+        serializedVersion: 2
+        x: 763
+        y: 785
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd4bec84f46525df0800000000000000
+      internalID: -192996935499598625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_161
+      rect:
+        serializedVersion: 2
+        x: 819
+        y: 783
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2ed4530f78116060800000000000000
+      internalID: 6944859034177822255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_162
+      rect:
+        serializedVersion: 2
+        x: 919
+        y: 776
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d2917619526ca6d0800000000000000
+      internalID: -2977897118830587182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_163
+      rect:
+        serializedVersion: 2
+        x: 963
+        y: 787
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b44e3c353b020290800000000000000
+      internalID: -7925760070946765645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_164
+      rect:
+        serializedVersion: 2
+        x: 1067
+        y: 775
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23cfccc7ec0c96fc0800000000000000
+      internalID: -3501055242214245326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_165
+      rect:
+        serializedVersion: 2
+        x: 1317
+        y: 773
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8cf78c0aeed51a70800000000000000
+      internalID: 8797182543952084111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_166
+      rect:
+        serializedVersion: 2
+        x: 769
+        y: 767
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a53a7063b01a377f0800000000000000
+      internalID: -615971654496443558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_167
+      rect:
+        serializedVersion: 2
+        x: 869
+        y: 767
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e32ce2f2eecb83a70800000000000000
+      internalID: 8806996802502836798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_168
+      rect:
+        serializedVersion: 2
+        x: 969
+        y: 769
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 604d34aec548b0020800000000000000
+      internalID: 2309084768559682566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_169
+      rect:
+        serializedVersion: 2
+        x: 1012
+        y: 766
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ea31fcc726a42c20800000000000000
+      internalID: 3180849926702709475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_170
+      rect:
+        serializedVersion: 2
+        x: 1062
+        y: 754
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 722900b61ce2a7c10800000000000000
+      internalID: 2052003988479447591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_171
+      rect:
+        serializedVersion: 2
+        x: 1117
+        y: 752
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4a0161d2fc6ed0b0800000000000000
+      internalID: -5702000288053786036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_172
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 764
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b3bfbe471ebb2180800000000000000
+      internalID: -9139002011503578185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_173
+      rect:
+        serializedVersion: 2
+        x: 1212
+        y: 761
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c268934cc610fe600800000000000000
+      internalID: 499619650321614380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_174
+      rect:
+        serializedVersion: 2
+        x: 1267
+        y: 767
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abff85b520f2b8970800000000000000
+      internalID: 8758145587521060794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_175
+      rect:
+        serializedVersion: 2
+        x: 1312
+        y: 755
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edc7feb5c7d825ed0800000000000000
+      internalID: -2426721683941393186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_176
+      rect:
+        serializedVersion: 2
+        x: 1367
+        y: 766
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfa7518b12cc8c110800000000000000
+      internalID: 1281498539181308669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_177
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 749
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 006716ba55d0f6780800000000000000
+      internalID: -8687710494575725056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_178
+      rect:
+        serializedVersion: 2
+        x: 1162
+        y: 745
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3a3fc4ce0661ece0800000000000000
+      internalID: -1377707797381170629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_179
+      rect:
+        serializedVersion: 2
+        x: 1262
+        y: 743
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf823a782d7b85030800000000000000
+      internalID: 3483736426617710843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_180
+      rect:
+        serializedVersion: 2
+        x: 1362
+        y: 748
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce4c845a063051c30800000000000000
+      internalID: 4329370330411353324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_181
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 726
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 403e209960f8d87b0800000000000000
+      internalID: -5220359134552857852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_182
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 537
+        width: 49
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e424c52022b0d1ae0800000000000000
+      internalID: -1577092053813411250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_183
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 520
+        width: 50
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff4b2d0e9ae7ef530800000000000000
+      internalID: 3890686396181165311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_184
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 503
+        width: 50
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e292729f5586df0c0800000000000000
+      internalID: -4540358130857989842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_185
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 510
+        width: 50
+        height: 187
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eec2eb2bf3406e410800000000000000
+      internalID: 1505895797030268142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_186
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 530
+        width: 50
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f43be2c6cabd0420800000000000000
+      internalID: 2597937922899129590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_187
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 540
+        width: 50
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30cdb2c9e30f39e70800000000000000
+      internalID: 9120897822054145027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_188
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 523
+        width: 50
+        height: 174
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 220eda81a1cef9780800000000000000
+      internalID: -8673954760464932830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_189
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 579
+        width: 40
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42967babbe0808250800000000000000
+      internalID: 5944893258067306788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_190
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 561
+        width: 40
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12217f6410cc99910800000000000000
+      internalID: 1844729828242559521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_191
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 540
+        width: 46
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25918fb016db67c20800000000000000
+      internalID: 3203956409430972754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_192
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 525
+        width: 27
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b28217536435d8a0800000000000000
+      internalID: -6281056504031051084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_193
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 553
+        width: 28
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7af2d423ce6730ac0800000000000000
+      internalID: -3890134896289697881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_194
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 561
+        width: 42
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c5963d86a8d02910800000000000000
+      internalID: 1810685260048274883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_195
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 567
+        width: 40
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aae634207be5f7490800000000000000
+      internalID: -7746368693943963990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_196
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 568
+        width: 40
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a5defc37fffe3090800000000000000
+      internalID: -8052717646346529375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_197
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 566
+        width: 40
+        height: 131
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 900bb1d33928767b0800000000000000
+      internalID: -5231068873270513655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_198
+      rect:
+        serializedVersion: 2
+        x: 702
+        y: 556
+        width: 44
+        height: 141
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35c1d58933f8dc2a0800000000000000
+      internalID: -6715554017577198509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_199
+      rect:
+        serializedVersion: 2
+        x: 752
+        y: 538
+        width: 44
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 063519b047619c3e0800000000000000
+      internalID: -2033069069114977440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_200
+      rect:
+        serializedVersion: 2
+        x: 801
+        y: 503
+        width: 46
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99619fe30c68cf760800000000000000
+      internalID: 7493012040286017177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_201
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 536
+        width: 46
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e011590df1b282a0800000000000000
+      internalID: -6736626392251690781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_202
+      rect:
+        serializedVersion: 2
+        x: 902
+        y: 544
+        width: 44
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b5873d5e7915b550800000000000000
+      internalID: 6175870494528996792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_203
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 547
+        width: 44
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e88ec4b22617ea90800000000000000
+      internalID: -7284829533930354463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_204
+      rect:
+        serializedVersion: 2
+        x: 1002
+        y: 542
+        width: 44
+        height: 155
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c810e025171f3250800000000000000
+      internalID: 5926481014156171464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_205
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 429
+        width: 44
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8916c2c431adbde0800000000000000
+      internalID: -1315718268144182897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_206
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 458
+        width: 60
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b60a9668202d5c920800000000000000
+      internalID: 3010042834253881451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_207
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 429
+        width: 48
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fe0470d97342b850800000000000000
+      internalID: 6391245011659525878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_208
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 455
+        width: 63
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14567133ab9ca44f0800000000000000
+      internalID: -843640178620275391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_209
+      rect:
+        serializedVersion: 2
+        x: 243
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59a709002f291ddf0800000000000000
+      internalID: -157182943892047211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_210
+      rect:
+        serializedVersion: 2
+        x: 365
+        y: 429
+        width: 47
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fa42bee64d2470f0800000000000000
+      internalID: -1120220624632788231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_211
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 456
+        width: 62
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27766cdf84f33c8f0800000000000000
+      internalID: -521503549117012110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_212
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 429
+        width: 43
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b39175021ca9393d0800000000000000
+      internalID: -3201044755868346053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_213
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 460
+        width: 59
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3d86200a9d3890f0800000000000000
+      internalID: -1110069576510042818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_214
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 429
+        width: 45
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8365ca631fca254c0800000000000000
+      internalID: -4300184542181042632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_215
+      rect:
+        serializedVersion: 2
+        x: 657
+        y: 458
+        width: 60
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b44e49dddf62a5c70800000000000000
+      internalID: 8960517280393126987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_216
+      rect:
+        serializedVersion: 2
+        x: 731
+        y: 429
+        width: 47
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90911b84eba85e1d0800000000000000
+      internalID: -3322096600247887607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_217
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 456
+        width: 62
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c17633ab76ff8bf20800000000000000
+      internalID: 3438779136468018972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_218
+      rect:
+        serializedVersion: 2
+        x: 853
+        y: 429
+        width: 44
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8376a8cc3b78b4a80800000000000000
+      internalID: -8481536266921679048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_219
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 459
+        width: 60
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f9058ce0979c9340800000000000000
+      internalID: 4871935545607260657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_220
+      rect:
+        serializedVersion: 2
+        x: 975
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 150a8c82023ce3130800000000000000
+      internalID: 3548488099305136209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_221
+      rect:
+        serializedVersion: 2
+        x: 1097
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bfb7b0d5ebbaf950800000000000000
+      internalID: 6483701209276858293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_222
+      rect:
+        serializedVersion: 2
+        x: 1219
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b20abc64a65bac590800000000000000
+      internalID: -7653105148703825877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_223
+      rect:
+        serializedVersion: 2
+        x: 1341
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 742d81266b065b990800000000000000
+      internalID: -7370878878675840441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_224
+      rect:
+        serializedVersion: 2
+        x: 1463
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef488e6afc33ac610800000000000000
+      internalID: 1642181981081470206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_225
+      rect:
+        serializedVersion: 2
+        x: 1585
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 445c44f1c7da2ea00800000000000000
+      internalID: 784380033728038212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_226
+      rect:
+        serializedVersion: 2
+        x: 1707
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c52d66a5d2c48110800000000000000
+      internalID: 1262348018446575047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_227
+      rect:
+        serializedVersion: 2
+        x: 1829
+        y: 381
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b98177123f5a0ee50800000000000000
+      internalID: 6836646698005502107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_228
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 381
+        width: 60
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76cc86cd922c94320800000000000000
+      internalID: 2542776949674658919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_229
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 395
+        width: 45
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea333a67cdd882070800000000000000
+      internalID: 8081865509339083694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_230
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 381
+        width: 63
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88386b90842efb0a0800000000000000
+      internalID: -6863518508060867704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_231
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 392
+        width: 48
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc8ab73d42c705d00800000000000000
+      internalID: 959403218238679247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_232
+      rect:
+        serializedVersion: 2
+        x: 377
+        y: 381
+        width: 62
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c56ac98608ebbe6f0800000000000000
+      internalID: -654219862132087204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_233
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 393
+        width: 47
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a70a706f53a996e90800000000000000
+      internalID: -7031919786610679686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_234
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 381
+        width: 59
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7429fe512316d0220800000000000000
+      internalID: 2453724239731069511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_235
+      rect:
+        serializedVersion: 2
+        x: 566
+        y: 396
+        width: 43
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 754a3757543ee5d90800000000000000
+      internalID: -7106993274481302441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_236
+      rect:
+        serializedVersion: 2
+        x: 623
+        y: 381
+        width: 60
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c53f1a1f2a3ce810800000000000000
+      internalID: 1795874325390112201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_237
+      rect:
+        serializedVersion: 2
+        x: 686
+        y: 395
+        width: 45
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 954a1df4b4ee57e60800000000000000
+      internalID: 7959529923676316761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_238
+      rect:
+        serializedVersion: 2
+        x: 743
+        y: 381
+        width: 62
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cb9d8a0e87c32920800000000000000
+      internalID: 2964432392616254405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_239
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 393
+        width: 47
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1339a9a7060f5550800000000000000
+      internalID: 6151642245992362783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_240
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 381
+        width: 60
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 823ac9fb4dce66790800000000000000
+      internalID: -7537076527866010840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_241
+      rect:
+        serializedVersion: 2
+        x: 931
+        y: 395
+        width: 44
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7af4a1651d1245150800000000000000
+      internalID: 5860346198092304295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_242
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 296
+        width: 106
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41b59f34f2aa8adf0800000000000000
+      internalID: -168697866045793516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_243
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 293
+        width: 106
+        height: 88
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a33bcd5c10193b890800000000000000
+      internalID: -7443446322312727750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_244
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 286
+        width: 110
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7acb8914ec7750e30800000000000000
+      internalID: 4469109932982582439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_245
+      rect:
+        serializedVersion: 2
+        x: 374
+        y: 297
+        width: 108
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f896a8b0a4a24340800000000000000
+      internalID: 4846617159203723511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_246
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 302
+        width: 110
+        height: 79
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17da0b1bdf9eeb6e0800000000000000
+      internalID: -1819759923593958031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_247
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 300
+        width: 111
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e948f193818918d0800000000000000
+      internalID: -2875124485009683998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_248
+      rect:
+        serializedVersion: 2
+        x: 734
+        y: 297
+        width: 111
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a58adb17877b94e0800000000000000
+      internalID: -1973852589500234336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_249
+      rect:
+        serializedVersion: 2
+        x: 861
+        y: 300
+        width: 112
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cecf6e4ed44197190800000000000000
+      internalID: -7964312141242630932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_250
+      rect:
+        serializedVersion: 2
+        x: 976
+        y: 282
+        width: 115
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b9469b8cdd49cc30800000000000000
+      internalID: 4380117722224544181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_251
+      rect:
+        serializedVersion: 2
+        x: 1102
+        y: 278
+        width: 116
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac6c701129da30440800000000000000
+      internalID: 4900951662371784394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_252
+      rect:
+        serializedVersion: 2
+        x: 1219
+        y: 269
+        width: 118
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 340c35875d9fa0da0800000000000000
+      internalID: -5977690860138807229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_253
+      rect:
+        serializedVersion: 2
+        x: 1345
+        y: 282
+        width: 118
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4901f8f4bd270a700800000000000000
+      internalID: 549565440797380756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_254
+      rect:
+        serializedVersion: 2
+        x: 1463
+        y: 289
+        width: 118
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abe75976c31aaa5a0800000000000000
+      internalID: -6509213030602670406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_255
+      rect:
+        serializedVersion: 2
+        x: 1588
+        y: 286
+        width: 119
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60fdf96f4445e6800800000000000000
+      internalID: 607515654913777414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_256
+      rect:
+        serializedVersion: 2
+        x: 1707
+        y: 283
+        width: 119
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02314cd25603293f0800000000000000
+      internalID: -895600164775652576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_257
+      rect:
+        serializedVersion: 2
+        x: 1833
+        y: 286
+        width: 118
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceb2cdda828195f80800000000000000
+      internalID: -8117430290363962388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_258
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 137
+        width: 121
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e51ad787434ec08f0800000000000000
+      internalID: -572832138571964066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_259
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 41
+        width: 92
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a92bc422a754c780800000000000000
+      internalID: -8663703429240378975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_260
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83d487b0bbd852380800000000000000
+      internalID: -8996628846111863496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_261
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 19
+        width: 83
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab5f3faba63ae1820800000000000000
+      internalID: 2890927689616848314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_262
+      rect:
+        serializedVersion: 2
+        x: 243
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc54327c496762870800000000000000
+      internalID: 8657737715034572237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_263
+      rect:
+        serializedVersion: 2
+        x: 259
+        y: 16
+        width: 86
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db9150f4729fde350800000000000000
+      internalID: 6047763821853219261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_264
+      rect:
+        serializedVersion: 2
+        x: 365
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28e159a97c68daf20800000000000000
+      internalID: 3435550282603634306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_265
+      rect:
+        serializedVersion: 2
+        x: 381
+        y: 33
+        width: 88
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b1f63fa592ec0f00800000000000000
+      internalID: 1084490742807065008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_266
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65882335eed7eb8c0800000000000000
+      internalID: -3981606557997430698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_267
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 24
+        width: 92
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95b93317275040bd0800000000000000
+      internalID: -2664999090412872871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_268
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88ae9e0bdca5c3210800000000000000
+      internalID: 1314025030768257672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_269
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 29
+        width: 82
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 977c550c334737250800000000000000
+      internalID: 5941220099050817401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_270
+      rect:
+        serializedVersion: 2
+        x: 731
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28bece7f03ef92f10800000000000000
+      internalID: 2245605375492287362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_271
+      rect:
+        serializedVersion: 2
+        x: 755
+        y: 24
+        width: 82
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 107111c7eb1bf8190800000000000000
+      internalID: -7957946584856979711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_272
+      rect:
+        serializedVersion: 2
+        x: 853
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0f36095fa10f35d0800000000000000
+      internalID: -3080741767473643765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_273
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 27
+        width: 89
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39674b1bf9046b6b0800000000000000
+      internalID: -5280962458419956077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_274
+      rect:
+        serializedVersion: 2
+        x: 975
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a81f461a590a09e0800000000000000
+      internalID: -1654499630579246940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_275
+      rect:
+        serializedVersion: 2
+        x: 986
+        y: 16
+        width: 100
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff54256f1867ac330800000000000000
+      internalID: 3731925541785323007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_276
+      rect:
+        serializedVersion: 2
+        x: 1097
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8090257c34ec47070800000000000000
+      internalID: 8103328420048537864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_277
+      rect:
+        serializedVersion: 2
+        x: 1111
+        y: 15
+        width: 89
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cd4b4978e4c6ab40800000000000000
+      internalID: 5451260901724999106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_278
+      rect:
+        serializedVersion: 2
+        x: 1219
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a863e644b556837a0800000000000000
+      internalID: -6397251828015286646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_279
+      rect:
+        serializedVersion: 2
+        x: 1231
+        y: 17
+        width: 95
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ef15125ed072a1d0800000000000000
+      internalID: -3340983873393319959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_280
+      rect:
+        serializedVersion: 2
+        x: 1341
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc35976821a8d0290800000000000000
+      internalID: -7922524357304691761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_281
+      rect:
+        serializedVersion: 2
+        x: 1353
+        y: 16
+        width: 96
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4451919bca0c9cb0800000000000000
+      internalID: -4855994428775377844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_282
+      rect:
+        serializedVersion: 2
+        x: 1463
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfadb50a0849b8330800000000000000
+      internalID: 3714225597864205053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_283
+      rect:
+        serializedVersion: 2
+        x: 1472
+        y: 16
+        width: 100
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 759f3f3396e57bcc0800000000000000
+      internalID: -3695381163297998505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_284
+      rect:
+        serializedVersion: 2
+        x: 1585
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ff3d8a49b411c6d0800000000000000
+      internalID: -2972071493035540494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_285
+      rect:
+        serializedVersion: 2
+        x: 1604
+        y: 21
+        width: 89
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc773f1ef86b99c20800000000000000
+      internalID: 3213800538192967628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_286
+      rect:
+        serializedVersion: 2
+        x: 1707
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67838c6fb5dc9d190800000000000000
+      internalID: -7937087073397753738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_287
+      rect:
+        serializedVersion: 2
+        x: 1726
+        y: 19
+        width: 91
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b2c852003ae19ec0800000000000000
+      internalID: -3561808338354650446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_288
+      rect:
+        serializedVersion: 2
+        x: 1829
+        y: 137
+        width: 122
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e578236c999f1280800000000000000
+      internalID: -9070362227543345693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_289
+      rect:
+        serializedVersion: 2
+        x: 1845
+        y: 17
+        width: 97
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30ebbc9b94478e6f0800000000000000
+      internalID: -655145885783835133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_290
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 25
+        width: 41
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a493d29546ce80150800000000000000
+      internalID: 5839176832622868810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exhaust_atlas_291
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 20
+        width: 42
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4157672c7d561c660800000000000000
+      internalID: 7404311239728723220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
