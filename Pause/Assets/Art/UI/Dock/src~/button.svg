@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popup action button. Drawn in light greys so the game can tint it cyan
+     (LAUNCH) or gold (BUY). 9-sliced (border 8). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="24" viewBox="0 0 32 24">
+  <path d="M6 0 H26 L32 6 V18 L26 24 H6 L0 18 V6 Z" fill="#C9D2DD"/>
+  <path d="M6 0 H26 L32 6 V15 H0 V6 Z" fill="#FFFFFF"/>
+  <path d="M6.6 1.4 H25.4" stroke="#FFFFFF" stroke-width="1"/>
+</svg>

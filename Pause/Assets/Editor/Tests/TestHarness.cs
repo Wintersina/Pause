@@ -122,6 +122,7 @@ public static class TestHarness
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed",
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
+            DeveloperUnlocks.ChoiceBuildKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 
@@ -129,12 +130,22 @@ public static class TestHarness
         foreach (AchievementCategory category in System.Enum.GetValues(typeof(AchievementCategory)))
         {
             keys.Add(AchievementTiers.CounterKey(category));
+            keys.Add(AchievementSync.SyncedKey(category));
             foreach (var tier in AchievementTiers.For(category))
                 keys.Add(AchievementTiers.LegacyProgressKey(tier.id));
         }
 
+        // Account cloud-save bookkeeping.
+        keys.Add(CloudSync.LastAccountKey);
+        keys.Add(CloudSync.LocalSavedAtKey);
+        keys.Add(CloudSync.LocalHashKey);
+        keys.Add(CloudSync.BackupsKey);
+
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
-        var backed = new List<string> { "HasDoneTut", WorldManager.PrefsHighestWorld };
+        var backed = new List<string>
+        {
+            "HasDoneTut", WorldManager.PrefsHighestWorld, WorldManager.PrefsCurrentWorld,
+        };
         for (int i = 0; i <= shopingShips.shipTotal; i++) backed.Add("boughtship" + i);
         foreach (string k in backed)
         {

@@ -212,8 +212,8 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void BuildButtons(Button play, Button menu)
     {
-        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play"), "PLAY", Cyan, PlayRect);
-        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>("QuickActions/QuickAction_home"), "MENU", Coral, MenuRect);
+        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", Cyan, PlayRect);
+        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", Coral, MenuRect);
     }
 
     RectTransform BuildButton(int index, Button button, Sprite glyph, string label, Color accent, Rect rect)

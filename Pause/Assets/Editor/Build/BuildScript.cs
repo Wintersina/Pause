@@ -67,13 +67,31 @@ public static class BuildScript
                   "signing Android with the debug key (not for distribution)");
     }
 
+    // Developer builds: the same game compiled with PAUSE_DEV, which starts
+    // with developer mode on (see DeveloperUnlocks.ShouldDefaultOn) and shows
+    // a DEV badge. The define is passed to this build only, through
+    // BuildPlayerOptions.extraScriptingDefines, so PlayerSettings and the
+    // committed ProjectSettings never change and release builds are unaffected.
+    public const string DevDefine = "PAUSE_DEV";
+
+    public static void BuildAndroidDev()
+    {
+        ConfigureAndroidSigning();
+        Run(BuildTarget.Android, Path.Combine(OutputRoot, "Android/Pause-dev.apk"), DevDefine);
+    }
+
+    public static void BuildMacDev()
+    {
+        Run(BuildTarget.StandaloneOSX, Path.Combine(OutputRoot, "Mac/Pause-dev.app"), DevDefine);
+    }
+
     public static void BuildIOS()
     {
         // Produces an Xcode project, not a finished .ipa.
         Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS"));
     }
 
-    static void Run(BuildTarget target, string outputPath)
+    static void Run(BuildTarget target, string outputPath, params string[] extraDefines)
     {
         var scenes = Scenes;
         if (scenes.Length == 0)
@@ -87,9 +105,11 @@ public static class BuildScript
             locationPathName = outputPath,
             target = target,
             options = BuildOptions.None,
+            extraScriptingDefines = extraDefines,
         };
 
-        Debug.Log("[BUILD] " + target + " -> " + outputPath + " (" + scenes.Length + " scenes)");
+        Debug.Log("[BUILD] " + target + " -> " + outputPath + " (" + scenes.Length + " scenes)"
+            + (extraDefines.Length > 0 ? " defines=" + string.Join(",", extraDefines) : ""));
         BuildReport report = BuildPipeline.BuildPlayer(options);
         BuildSummary summary = report.summary;
 

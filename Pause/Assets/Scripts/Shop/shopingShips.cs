@@ -4,6 +4,12 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 
+// Ship roster data (names, prices, art) and the shop's purchase rules.
+//
+// The dock itself -- berths, selection, the floating popup and the launch --
+// is SpaceDock. The old full-screen yes/no dialog is gone; yes_no() and
+// shipselected() stay as thin entry points because shopS6 once wired them to
+// UnityEvents.
 public class shopingShips : MonoBehaviour {
 
     static readonly Dictionary<string, Sprite> runtimeSprites = new Dictionary<string, Sprite>();
@@ -12,125 +18,43 @@ public class shopingShips : MonoBehaviour {
     // including for players carrying old PlayerPrefs from before the change.
     public const int StarterShip = 1;
 
-    //if button is clicked move ship;
-    public static bool buttonIsClicked;
-
     // Retro hulls retain their saved indices; original ships follow them.
     public static int shipTotal = 16;
     public static GameObject[] ships = new GameObject[shipTotal];
-    public Button[] shipButtons = new Button[shipTotal];
-    private static string[] shipNamesShared;
-    private string[] shipNames = new string[shipTotal];
-    private float[] shipCost = new float[shipTotal];
-    
+
     public static int shipNumber;
-    private static int spawnShipNumber;
     public static int LastShipSelected;
 
-    // pop up canvis section
-    public static GameObject popUpCanvis;
+    // The HUD canvas (BACK / LIFT-OFF). Authored inactive in shopS6.
     public static GameObject buttonCanvis;
-    public Image shipImg;
-    public Button yesButton;
-    public Button noButton;
-    public Text question;
-    // star dust controll
-    //public Text notEnoughStarDust;
-    private float notEnoughStarDustTimer;
 
     public Text starDust;
 
-    // Use this for initialization
     void Start() {
 
         PlayerPrefs.SetString("boughtship" + StarterShip, "True");
 
-        // `shipButtons` is serialized, so the scene may still hold an array
-        // sized for the old roster; grow it before indexing.
-        if (shipButtons == null || shipButtons.Length < shipTotal)
-        {
-            var grown = new Button[shipTotal];
-            if (shipButtons != null) shipButtons.CopyTo(grown, 0);
-            shipButtons = grown;
-        }
         if (ships == null || ships.Length < shipTotal)
             ships = new GameObject[shipTotal];
-        if (shipNames == null || shipNames.Length < shipTotal)
-            shipNames = new string[shipTotal];
-        if (shipCost == null || shipCost.Length < shipTotal)
-            shipCost = new float[shipTotal];
-
-        // initilizing the names of ships
-        shipNamesShared = shipNames;
-        for (int i = 0; i < shipNames.Length && i < Roster.Length; i++)
-            shipNames[i] = Roster[i];
-
-        updateStarDustLabel();
+        ships[0] = null;
 
         var dustCanvas = SceneUtil.FindAny("StarDustCanvas");
         if (dustCanvas != null) dustCanvas.SetActive(true);
-
         buttonCanvis = SceneUtil.FindAny("Canvas");
         if (buttonCanvis != null) buttonCanvis.SetActive(true);
-        popUpCanvis = SceneUtil.FindAny("PopUpCanvas");
-        if (popUpCanvis != null) popUpCanvis.SetActive(false);
-        notEnoughStarDustTimer = 0.0f;
+        RefreshStarDust();
 
-        // initilizing the cost of ships. Each ship has a differnt cost
-        // Star dust is much harder to earn now, so the ships have real prices.
-        for (int i = 0; i < shipCost.Length && i < Prices.Length; i++)
-            shipCost[i] = Prices[i];
-  
-
-        
-  
-        // setting index zeros to null for having an empty object
-        ships[0] = null;
-        shipButtons[0] = null;
-        
         shipNumber = 0;
         LastShipSelected = 0;
         if (PlayerPrefs.GetInt("spawnShip") == 0)
-        {
-            spawnShipNumber = 0;
-            PlayerPrefs.SetInt("spawnShip", spawnShipNumber);
-        }
-        // will find every button in this secene and give player option to buy a ship. if player has already bought it will not show
-        // buy as an option
-        // Buttons for the newer ships may not be authored in the scene yet.
-        // Missing entries are skipped rather than throwing -- the old code
-        // called GetComponent<Button>() straight off a possibly-null Find().
-        for (int i = 1; i <= ships.Length - 1; i++)
-        {
-            ships[i] = SceneUtil.FindAny("ship" + i.ToString());
+            PlayerPrefs.SetInt("spawnShip", 0);
 
-            GameObject buttonGo = SceneUtil.FindAny("Button" + i.ToString());
-            shipButtons[i] = buttonGo != null ? buttonGo.GetComponent<Button>() : null;
-        }
-        //Debug.Log(PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2"));
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        notEnoughStarDustTimer -= Time.deltaTime;
-
-        // setShipImage() only ever set shipImg.sprite once, when the
-        // confirm/already-owned dialog opened, so it sat on a single static
-        // frame -- unlike every other ship display in the shop (the dock
-        // bay, the launch sequence), which all idle-cycle. Keep it animating
-        // for as long as the dialog is actually up.
-        if (shipImg != null && popUpCanvis != null && popUpCanvis.activeSelf && shipNumber > 0)
-        {
-            int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
-            Sprite animated = IdleSpriteFor(shipNumber, 0, idleFrame);
-            if (animated != null) shipImg.sprite = animated;
-        }
+        // SpaceDock registers its ships as it builds; pick up any it missed.
+        for (int i = 1; i < shipTotal; i++)
+            if (ships[i] == null) ships[i] = SceneUtil.FindAny("ship" + i);
     }
-    // redo this function later for efficincy
-    // what this function does :
-    //   seaches for the index in prefab by checking what button was pushed. if that button was pushed then
-    //   keep track of the ship number selected. once player pushes start
+
+    // Legacy UnityEvent entry: resolves the tapped button's "Button<N>" name.
     public void shipselected()
     {
         var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
@@ -142,80 +66,21 @@ public class shopingShips : MonoBehaviour {
         if (int.TryParse(name, out index)) SelectShip(index);
     }
 
-    // The dock previously inferred the ship from EventSystem's selected
-    // object. That object can be a nested text/image from another card after
-    // a ScrollRect drag, which let one card open while an old selection was
-    // committed. Every dock button now calls this explicit index path.
+    // Selects a berth: powers the ship up and floats its popup above it.
     public void SelectShip(int index)
     {
         if (index < 1 || index >= shipTotal) return;
-        LastShipSelected = shipNumber;
-        shipNumber = index;
-        buttonCanvis.SetActive(false);
-        popUpCanvis.SetActive(true);
-        setShipImage(index);
-        bool owned = PlayerPrefs.GetString("boughtship" + index) == "True";
-        Text yes = yesButton.gameObject.GetComponentInChildren<Text>();
-        Text no = noButton.gameObject.GetComponentInChildren<Text>();
-        if (owned)
-        {
-            question.text = "You have already bought " + shipNames[index] + ".";
-            no.text = "CANCEL";
-            yes.text = "SELECT";
-        }
-        else
-        {
-            question.text = "COST: " + shipCost[index] + " STAR DUST\n\nBUY " + shipNames[index].ToUpperInvariant() + "?";
-            yes.text = "YES";
-            no.text = "NO";
-        }
+        if (SpaceDock.Instance != null) SpaceDock.Instance.Select(index);
     }
 
-    // will not need this function
-   
+    // Legacy UnityEvent entry for the removed yes/no dialog's buttons: presses
+    // the floating popup's action (BUY or LAUNCH) for the selected ship.
     public void yes_no()
     {
-        // if you push yes.
-        if (EventSystem.current.currentSelectedGameObject.name == "Yes Button")
-        {   // if the player has pushed yet and has bought the ship
-            if (PlayerPrefs.GetString("boughtship" + shipNumber.ToString()) == "True")
-            {
-                
-                spawnShipNumber = shipNumber;
-                startMenu.spawnTracker = spawnShipNumber;               // used incase player goses back to main menu
-                PlayerPrefs.SetInt("spawnShip", spawnShipNumber);
-                PrefsSaver.SaveNow();
-                rotateRight.shipSelected = shipNumber;
-                buttonCanvis.SetActive(true);
-                popUpCanvis.SetActive(false);
-            }   //if the player has not bought the ship
-            else if (TryPurchase(shipNumber, shipCost[shipNumber]))
-            {
-                spawnShipNumber = shipNumber;
-                startMenu.spawnTracker = spawnShipNumber;               // used incase player goes back to main menu
-                rotateRight.shipSelected = shipNumber;
-                // switch canvases and show new cost
-                updateStarDustLabel();
-                buttonCanvis.SetActive(true);
-                popUpCanvis.SetActive(false);
-            } // else they dont have enough star dust
-            else
-            {
-                if (notEnoughStarDustTimer <= 0)
-                {
-                    //notEnoughStarDust.text = "Not Enough StarDust to buy this....";
-                    notEnoughStarDustTimer = 2.0f;
-                }
-
-            }// if you push no
-        }
-        else if (EventSystem.current.currentSelectedGameObject.name == "No Button")
-        { 
-            buttonCanvis.SetActive(true);
-            popUpCanvis.SetActive(false);
-        }
+        var dock = SpaceDock.Instance;
+        if (dock != null && dock.popup != null && dock.popup.Visible) dock.popup.Press();
     }
-       
+
     // Spends the dust, marks the ship owned and selects it, then saves at
     // once: a purchase used to sit in memory until something else happened
     // to save, so killing the app from the shop could undo it.
@@ -310,7 +175,7 @@ public class shopingShips : MonoBehaviour {
     static Sprite LoadRuntimeSprite(string path)
     {
         Sprite cached;
-        if (runtimeSprites.TryGetValue(path, out cached)) return cached;
+        if (runtimeSprites.TryGetValue(path, out cached) && cached != null) return cached;
         Texture2D texture = Resources.Load<Texture2D>(path);
         if (texture == null) return null;
         Rect rect = new Rect(0, 0, texture.width, texture.height);
@@ -331,69 +196,14 @@ public class shopingShips : MonoBehaviour {
         return new[] { SpriteFor(index, 0), SpriteFor(index, 1), SpriteFor(index, 2) };
     }
 
-    void updateStarDustLabel()
+    public void RefreshStarDust()
     {
         if (starDust == null) return;
-        starDust.text = "✦  STAR DUST   " + PlayerPrefs.GetFloat("PlayerCurrecny").ToString("F2");
-    }
-
-    // Fills the confirm panel's preview.
-    //
-    // Authored ships carry a child UI Image holding their shop art, but ships
-    // built at runtime only have a SpriteRenderer -- so this used to come back
-    // null for them and the panel kept showing whichever ship was opened last.
-    // Falls through Image -> SpriteRenderer -> the ship's sheet in Resources,
-    // so every ship resolves to something.
-    void setShipImage(int i)
-    {
-        if (shipImg == null) return;
-
-        Sprite found = null;
-
-        // The scene's original ship children use large, unrelated menu art.
-        // Always prefer the canonical roster sheet, which is also what the
-        // dock displays. This keeps Darkwing and every later ship consistent.
-        found = SpriteFor(i, 0);
-
-        if (found == null && ships[i] != null)
-        {
-            SpriteRenderer sr = ships[i].GetComponentInChildren<SpriteRenderer>(true);
-            if (sr != null && sr.sprite != null) found = sr.sprite;
-        }
-
-        if (found == null)
-        {
-            Image img = ships[i] != null ? ships[i].GetComponentInChildren<Image>(true) : null;
-            if (img != null && img.sprite != null)
-            {
-                found = img.sprite;
-            }
-        }
-
-        if (found != null)
-        {
-            shipImg.sprite = found;
-            // The original panel was sized from a short ship. Wide sheets such
-            // as Darkwing could cover the question/cost text. Every hull now
-            // gets the same bounded preview card; preserveAspect handles the
-            // individual silhouette without scaling the UI around its pixels.
-            shipImg.preserveAspect = true;
-            var rect = shipImg.rectTransform;
-            rect.localScale = Vector3.one;
-            // The preview had an old perpetual-rotation script attached. It
-            // made a selected hull look like a random spinning icon.
-            var oldSpinner = shipImg.GetComponent<roate>();
-            if (oldSpinner != null) oldSpinner.enabled = false;
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -24f);
-            rect.sizeDelta = new Vector2(240f, 180f);
-        }
+        starDust.text = "\u2726  STAR DUST   " + PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey).ToString("N0");
     }
 
     public static void turnOffCanves()
     {
         if (buttonCanvis != null) buttonCanvis.SetActive(false);
-        if (popUpCanvis != null) popUpCanvis.SetActive(false);
     }
 }
