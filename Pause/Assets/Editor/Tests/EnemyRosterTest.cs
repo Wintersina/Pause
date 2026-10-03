@@ -553,10 +553,13 @@ public static class EnemyRosterTest
         var spawner = UnityEngine.Object.FindFirstObjectByType<enmiesOnBoard>();
         Check("gameS1 has the spawner", spawner != null);
         if (spawner == null) return;
-        int missing = 0;
-        foreach (var array in new[] { spawner.astroid1, spawner.astroid2, spawner.astroid3, spawner.astroid4, spawner.astroid5 })
-            foreach (var prefab in array) if (prefab == null) missing++;
-        Check("no gameS1 asteroid slot is a missing prefab (" + missing + " null)", missing == 0);
+        // The astroid1-5 prefab arrays were retired with the aestroid_* art;
+        // every rock and heavy comes from the roster.
+        string scene = File.ReadAllText("Assets/Scenes/gameS1.unity");
+        Check("gameS1 no longer serializes the retired astroid1-5 arrays",
+              !Regex.IsMatch(scene, @"^  astroid[1-5]:", RegexOptions.Multiline));
+        Check("enmiesOnBoard no longer has the astroid1-5 fields",
+              typeof(enmiesOnBoard).GetField("astroid1") == null && typeof(enmiesOnBoard).GetField("rails") == null);
         Check("gameS1's alien fallback is set", spawner.alien1 != null);
         Check("the deleted prefab guid is gone from gameS1",
               !File.ReadAllText("Assets/Scenes/gameS1.unity").Contains("1390ffc126996fb4388474c4cdff00ac"));
@@ -607,8 +610,10 @@ public static class EnemyRosterTest
                 if (hit) { dangling++; Debug.Log("[ER] dangling reference to a deleted meteor in " + path); }
             }
         Check("nothing references a deleted meteor (" + dangling + " files)", dangling == 0);
-        Check("the big meteors are kept (ambiguous, out of the spawn pool)",
-              AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Enemies/kn_meteorBrown_big1.prefab") != null);
+        // The big meteors and the Kenney fighters followed them out (the
+        // whole Prefabs/Enemies folders); UnusedAssetGuardTest guards that.
+        Check("the Kenney prefab folder is gone", !AssetDatabase.IsValidFolder("Assets/Resources/prefabs/Enemies"));
+        Check("the Kenney art folder is gone", !AssetDatabase.IsValidFolder("Assets/Art/Resources/Prefabs/Enemies"));
     }
 
     // ---- 6: palette --------------------------------------------------------------

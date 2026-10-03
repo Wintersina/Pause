@@ -28,8 +28,8 @@ public class enmiesOnBoard : MonoBehaviour {
         [Tooltip("Enters from below the board and closes in on the player for a few " +
                  "seconds before settling into a passive drift. See ChaserEnemy.")]
         public bool chasers;
-        [Tooltip("Extra enemy ships and meteors drawn from Resources/Prefabs/" +
-                 "Enemies. Lets later phases field hardware the early ones never see.")]
+        [Tooltip("Extra enemy ships (and some rocks) drawn from the current world's " +
+                 "EnemyRoster. Lets later phases field hardware the early ones never see.")]
         public bool extraEnemies;
         public bool bigEnemy;
         public bool smallEnemy;
@@ -51,17 +51,10 @@ public class enmiesOnBoard : MonoBehaviour {
     // Which enemies spawn comes from EnemyRoster: each world (Space, Frost,
     // Verdant, Ember) has its own cast filling the same roles, picked from
     // the *current* world at every spawn, so a portal switches the set and the
-    // tutorial (no WorldManager) gets Space. The scene-wired arrays below are
-    // only the fallback if a roster entry's art is missing.
-    public GameObject[] astroid1 = new GameObject[5];
-    public GameObject[] astroid2 = new GameObject[5];
-    public GameObject[] astroid3 = new GameObject[5];
-    public GameObject[] astroid4 = new GameObject[5];
-    public GameObject[] astroid5 = new GameObject[5];
+    // tutorial (no WorldManager) gets Space. The old per-phase asteroid
+    // prefab arrays (astroid1-5) were retired with their aestroid_* art;
+    // alien1 is only the fallback if the roster alien's art is missing.
     public GameObject alien1;
-    // Legacy rail3 obstacle prefab removed. Side rails are authored by each
-    // world's wall textures; this field remains only for scene compatibility.
-    public GameObject rails;
 
     [Tooltip("Left empty (the default), the current world's rail mine is built from EnemyRoster.")]
     public GameObject mine;
@@ -235,9 +228,9 @@ public class enmiesOnBoard : MonoBehaviour {
             if (i == 0 || effectiveTime >= phases[i].activeAfterSeconds)
             {
                 phase = phases[i];
-                // prefab arrays are sized 5; keep the index in range regardless
-                // of how many phases are configured
-                astroidSelector = Mathf.Clamp(i, 0, astroid1.Length - 1);
+                // the phase index, capped at the fifth phase as the old
+                // five-slot prefab arrays capped it (ChooseExtraDef reads it)
+                astroidSelector = Mathf.Clamp(i, 0, 4);
                 return;
             }
         }
@@ -496,27 +489,23 @@ public class enmiesOnBoard : MonoBehaviour {
         }
     }
 
-    // The current world's enemy for a role, at x on the spawn line; the
-    // scene array for this phase is the fallback if its art is missing.
-    GameObject SpawnRole(EnemyRole role, GameObject[] legacy, float x)
+    // The current world's enemy for a role, at x on the spawn line (nothing
+    // spawns if its roster art is missing; EnemyRosterTest guards the art).
+    GameObject SpawnRole(EnemyRole role, float x)
     {
         var def = EnemyRoster.Pick(EnemyRoster.CurrentWorld, role);
-        if (def != null && EnemyArt.Frames(def) != null)
-        {
-            // Lane guard: keep a ship-width gap in this spawn row (see
-            // SpawnLane). No safe x this time -> skip; the timer rolls again.
-            float safeX;
-            if (!SpawnLane.PickX(def, x, transform.position.y, out safeX)) return null;
-            return EnemyFactory.Create(def, new Vector3(safeX, transform.position.y, 0f), transform.rotation);
-        }
-        if (legacy == null || legacy.Length == 0) return null;
-        return SpawnEnemy(legacy[Mathf.Clamp(astroidSelector, 0, legacy.Length - 1)], x);
+        if (def == null || EnemyArt.Frames(def) == null) return null;
+        // Lane guard: keep a ship-width gap in this spawn row (see
+        // SpawnLane). No safe x this time -> skip; the timer rolls again.
+        float safeX;
+        if (!SpawnLane.PickX(def, x, transform.position.y, out safeX)) return null;
+        return EnemyFactory.Create(def, new Vector3(safeX, transform.position.y, 0f), transform.rotation);
     }
 
     // "small enemy" slot: one of the world's rocks
     void spawnAstroid2()
     {
-        SpawnRole(EnemyRole.Rock, astroid2, Random.Range(-2.2f, 2.4f));
+        SpawnRole(EnemyRole.Rock, Random.Range(-2.2f, 2.4f));
     }
 
     // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps to
@@ -524,7 +513,7 @@ public class enmiesOnBoard : MonoBehaviour {
     // the rail mines, and SpawnLane leaves a ship-width gap beside it.
     void spawnAstroid1()
     {
-        SpawnRole(EnemyRole.Big, astroid1, Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
+        SpawnRole(EnemyRole.Big, Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
     }
 
     // will create a line of animated enimies that the player is able to doge through
@@ -550,17 +539,17 @@ public class enmiesOnBoard : MonoBehaviour {
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
     {
-        SpawnRole(EnemyRole.Rock, astroid3, Random.Range(-2.3f, 2.3f));
+        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2.3f));
     }
 
     void spawnMidAstroid()
     {
-        SpawnRole(EnemyRole.Rock, astroid4, Random.Range(-2.3f, 2f));
+        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2f));
     }
 
     void spawnLargeAstroid()
     {
-        SpawnRole(EnemyRole.Rock, astroid5, Random.Range(-2.3f, 2.3f));
+        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2.3f));
     }
 
     // The current world's fighters, tiered so later phases meet the nastier
@@ -605,7 +594,7 @@ public class enmiesOnBoard : MonoBehaviour {
     void spawnMine()
     {
         // The legacy blue mine prefab has been retired. Rail mines are now
-        // constructed from the current world's dedicated atlas, so their
+        // built from the current world's EnemyRoster mine, so their
         // visual always matches the rail and planet they are mounted on.
         if (mine != null) { SpawnEnemy(mine, 0f); return; }
 
@@ -630,25 +619,9 @@ public class enmiesOnBoard : MonoBehaviour {
             builtMount.rail = rail;
             builtMount.lockedX = rail.position.x;
             liveMines.Add(built.transform);
-            return;
         }
-
-        // Fallback without roster art: the legacy atlas-built mine.
-        var go = new GameObject("mine", typeof(SpriteRenderer), typeof(BoxCollider2D),
-            typeof(moveItemEnmInStrightLine), typeof(RailMineMount), typeof(RailBombAnimator));
-        go.tag = "Enimey";
-        go.transform.position = new Vector3(rail.position.x, ReserveMineY(rail, transform.position.y), 0f);
-        go.transform.localScale = Vector3.one * .46f;
-        var renderer = go.GetComponent<SpriteRenderer>();
-        renderer.sprite = RailBombSprites.FrameForWorld(
-            WorldManager.Instance != null ? WorldManager.CurrentIndex : 0, 0);
-        renderer.sortingOrder = 12;
-        var collider = go.GetComponent<BoxCollider2D>();
-        collider.size = new Vector2(1.35f, 1.35f);
-        var mount = go.GetComponent<RailMineMount>();
-        mount.rail = rail;
-        mount.lockedX = rail.position.x;
-        liveMines.Add(go.transform);
+        // Without roster art no mine spawns (the old rail_bomb_themes_atlas
+        // fallback was retired; EnemyRosterTest guards the mine art).
     }
 
     // Enters from below the visible board (everything else scrolls in from

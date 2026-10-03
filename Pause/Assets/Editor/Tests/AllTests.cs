@@ -57,6 +57,7 @@ public static class AllTests
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("TutorialRobotTest", TutorialRobotTest.Execute),
+        ("UnusedAssetGuardTest", UnusedAssetGuardTest.Execute),
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
