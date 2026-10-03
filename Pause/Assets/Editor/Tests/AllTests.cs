@@ -34,6 +34,7 @@ public static class AllTests
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
+        ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
     };

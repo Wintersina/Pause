@@ -32,8 +32,12 @@ public class score : MonoBehaviour {
     private const int PAUSECOUNTER = 5;
     private const int TUTPAUSECOUNTER = 50;
 
+    public const string TutorialScene = "tutorialS5";
+
     // Whether this run's dust is real (credited to the saved total). Decided
-    // once when the run's scene loads so nothing mid-run can flip it.
+    // once when the run's scene loads so nothing mid-run can flip it --
+    // Hints marks the tutorial done before it ends, and used to start
+    // paying real dust from that moment.
     public static bool paysRealDust;
     // This run's StarDustLedger token, and whether death already committed it.
     private int ledgerRun;
@@ -46,7 +50,8 @@ public class score : MonoBehaviour {
         
         // currencyText.text = "Currency Gathered : " + PlayerPrefs.GetInt("brickScore").ToString();
         tutorialCurrency = 0;
-        paysRealDust = PlayerPrefs.GetString("HasDoneTut") == "true" && !startMenu.youAreInTutorial;
+        paysRealDust = PaysRealDust(gameObject.scene.name,
+            PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
         committedOnDeath = false;
         if (paysRealDust)
@@ -67,7 +72,7 @@ public class score : MonoBehaviour {
         hasStartedRun = false;
 
 
-        if (PlayerPrefs.GetString("HasDoneTut") == "true")
+        if (paysRealDust)
         {
             pauseCounter = PAUSECOUNTER;
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
@@ -80,6 +85,7 @@ public class score : MonoBehaviour {
             pauseCounter = TUTPAUSECOUNTER;
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
             speedValue.text = "Currnet Speed : 0";
+            totalCurrency = 0f;
             runStartCurrency = 0f;
         }
     }
@@ -159,6 +165,14 @@ public class score : MonoBehaviour {
     {
         pauseCounter = pauseCounter - 1;
         pauseCounterBool = true;
+    }
+
+    // The one rule for tutorial runs: anything in the tutorial scene, or any
+    // run before the tutorial is done, pays practice dust only and never
+    // touches the saved total.
+    public static bool PaysRealDust(string sceneName, bool hasDoneTut, bool inTutorial)
+    {
+        return hasDoneTut && !inTutorial && sceneName != TutorialScene;
     }
 
     public static bool ShouldSpendPause(bool runHasStarted, bool alreadySpentThisPress)
