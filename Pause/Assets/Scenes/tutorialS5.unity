@@ -1950,7 +1950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSpeed: 0
-  speedRampPerSecond: 0.00115
+  speedRampPerSecond: 0.0023
   maxSpeed: 0.58
 --- !u!114 &963658035
 MonoBehaviour:
@@ -4216,7 +4216,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSpeed: 0
-  speedRampPerSecond: 0.00115
+  speedRampPerSecond: 0.0023
   maxSpeed: 0.58
 --- !u!114 &2065779959
 MonoBehaviour:

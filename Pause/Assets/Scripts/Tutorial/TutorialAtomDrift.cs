@@ -9,7 +9,7 @@ using UnityEngine;
 //
 // Why it exists: tutorial atoms used to ride the shared world scroller
 // (moveItemEnmInStrightLine: y -= moveBackGround.speed * 30 * dt). tutorialS5
-// starts moveBackGround at speed 0 and only ramps it 0.00115/s while a
+// starts moveBackGround at speed 0 and only ramps it 0.0023/s while a
 // finger is down, so in the first half minute an atom crept down at a few
 // hundredths of a unit per second -- and it spawned at y 6.57, above the
 // camera's top edge (5). It sat there, invisible and out of the ship's reach
