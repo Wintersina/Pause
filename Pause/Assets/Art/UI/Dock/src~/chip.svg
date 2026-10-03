@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Price tag on a locked berth. 9-sliced in game (border 6). -->
+<!-- Price tag on a locked berth. 9-sliced in game (border 6). INK body,
+     AMBER keyline (star dust is amber). -->
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="14" viewBox="0 0 20 14">
-  <path d="M4 0.7 H16 L19.3 4 V10 L16 13.3 H4 L0.7 10 V4 Z" fill="#140F05" fill-opacity="0.92" stroke="#FFC943" stroke-opacity="0.75" stroke-width="1"/>
+  <path d="M4 0.7 H16 L19.3 4 V10 L16 13.3 H4 L0.7 10 V4 Z" fill="#140C14" fill-opacity="0.94" stroke="#FFB43C" stroke-width="1"/>
 </svg>
