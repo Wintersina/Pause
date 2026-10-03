@@ -35,19 +35,19 @@ public class moveBackGround : MonoBehaviour {
         // pauses when there is no touch on the touchscreen
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
-            Time.timeScale = 1;
+            Time.timeScale = ResumeSlowMo.Apply(1f);
             moveBackground();
             speedUp();
         }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
-            Time.timeScale = 1;
+            Time.timeScale = ResumeSlowMo.Apply(1f);
             moveBackground();
             speedUp();
         }
         else
         {
-            Time.timeScale = 0;
+            Time.timeScale = ResumeSlowMo.Freeze();
         }
     }
 

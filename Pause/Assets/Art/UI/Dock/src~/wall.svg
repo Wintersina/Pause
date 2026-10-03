@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Station outer wall (left side; mirrored for the right). Tiles every 60
+     units on y. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="60" viewBox="0 0 22 60">
+  <rect x="0" y="0" width="22" height="60" fill="#0C182B"/>
+  <rect x="0" y="0" width="14" height="60" fill="#13223A"/>
+  <line x1="0" y1="0.5" x2="14" y2="0.5" stroke="#07101E" stroke-width="1"/>
+  <line x1="0" y1="30.5" x2="14" y2="30.5" stroke="#07101E" stroke-width="1"/>
+  <g fill="#1D3352">
+    <rect x="3" y="8" width="7" height="2"/>
+    <rect x="3" y="12" width="7" height="2"/>
+    <rect x="3" y="16" width="7" height="2"/>
+    <rect x="3" y="40" width="7" height="2"/>
+    <rect x="3" y="44" width="7" height="2"/>
+  </g>
+  <rect x="14" y="0" width="2" height="60" fill="#2A4468"/>
+  <rect x="17.5" y="0" width="1.6" height="60" fill="#2EE6FF" opacity="0.5"/>
+  <rect x="16.5" y="24" width="3.6" height="6" rx="1" fill="#2EE6FF" opacity="0.85"/>
+</svg>

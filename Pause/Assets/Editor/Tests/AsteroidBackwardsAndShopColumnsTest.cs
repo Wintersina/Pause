@@ -9,10 +9,9 @@ using UnityEngine.UI;
 //      harmless before anything rotated the transform, but AsteroidSpin now
 //      does, and a rotating local "down" swings the actual travel direction
 //      away from straight down -- reported as asteroids "going backwards".
-//   2. DockScrollView.RefreshLayout()'s flat 540px viewport-width threshold
-//      for two columns was tuned against Editor/Mac aspect ratios and fell
-//      short on real (tall, narrow) Android phones, silently dropping to one
-//      column exactly where two was wanted.
+//   2. The shop's columns were tuned against Editor/Mac aspect ratios and
+//      fell short on real (tall, narrow) Android phones. The space dock's
+//      DockLayout is now checked against real phone aspects directly.
 public static class AsteroidBackwardsAndShopColumnsTest
 {
     static int fails;
@@ -33,7 +32,7 @@ public static class AsteroidBackwardsAndShopColumnsTest
         using var sandbox = new TestHarness.Sandbox();
 
         AsteroidsTravelDownRegardlessOfSpin();
-        ShopGetsTwoColumnsOnARealPhoneViewport();
+        ShopRackFitsPhoneViewports();
 
         Debug.Log("[AS] failures: " + fails);
         return fails;
@@ -64,67 +63,43 @@ public static class AsteroidBackwardsAndShopColumnsTest
               System.Text.RegularExpressions.Regex.IsMatch(source, @"Translate\([^;]*Space\.World\)"));
     }
 
-    static void ShopGetsTwoColumnsOnARealPhoneViewport()
+    // The dock rack must fit every phone aspect CameraFit can produce: at
+    // least three columns, never wider than the screen, and on portrait
+    // phones the whole roster fits without scrolling.
+    static void ShopRackFitsPhoneViewports()
     {
-        EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
+        int count = shopingShips.shipTotal - 1;
+        var screens = new[]
+        {
+            new Vector2Int(1080, 1920), new Vector2Int(1080, 2400), new Vector2Int(1080, 2520),
+            new Vector2Int(720, 1280), new Vector2Int(1536, 2048), new Vector2Int(1100, 800),
+        };
+        foreach (var s in screens)
+        {
+            float size = CameraFit.ComputeSize(5f, 2.85f, s.x, s.y);
+            float halfW = size * s.x / s.y;
+            var layout = DockLayout.For(count, halfW);
+            string tag = s.x + "x" + s.y;
+            Check(tag + ": at least three berth columns", layout.columns >= 3);
+            Check(tag + ": every ship has a berth", layout.columns * layout.rows >= count);
+            Check(tag + ": the rack is no wider than the screen",
+                  layout.Width * layout.scale <= halfW * 2f + .001f);
+            Check(tag + ": berths are not shrunk much", layout.scale > .9f);
+            Vector2 a = layout.BayCenter(0), b = layout.BayCenter(1);
+            Check(tag + ": neighbouring berths do not overlap", b.x - a.x >= DockLayout.BaySize.x - .001f);
+            if (s.y > s.x)
+            {
+                // ~1.9 world units of header + footer HUD on a portrait phone.
+                Check(tag + ": the whole roster fits between header and footer",
+                      layout.Height * layout.scale <= size * 2f - 1.9f);
+            }
+        }
 
-        var canvasGo = new GameObject("~DockLayoutTestCanvas", typeof(RectTransform));
-        var rt = canvasGo.GetComponent<RectTransform>();
-
-        var scrollGo = new GameObject("~ScrollRect", typeof(RectTransform), typeof(ScrollRect));
-        scrollGo.transform.SetParent(canvasGo.transform, false);
-        var scroll = scrollGo.GetComponent<ScrollRect>();
-
-        var viewportGo = new GameObject("~Viewport", typeof(RectTransform));
-        viewportGo.transform.SetParent(scrollGo.transform, false);
-        var viewportRt = viewportGo.GetComponent<RectTransform>();
-        scroll.viewport = viewportRt;
-
-        var contentGo = new GameObject("~Content", typeof(RectTransform), typeof(GridLayoutGroup));
-        contentGo.transform.SetParent(viewportGo.transform, false);
-        scroll.content = contentGo.GetComponent<RectTransform>();
-        var grid = contentGo.GetComponent<GridLayoutGroup>();
-
-        var controllerGo = new GameObject("~DockScrollViewTest");
-        var controller = controllerGo.AddComponent<DockScrollView>();
-        controller.scroll = scroll;
-        SetPrivate(controller, "content", scroll.content);
-        SetPrivate(controller, "grid", grid);
-
-        // A real, common tall Android phone (e.g. 1080x2400) works out to a
-        // viewport width around here once CanvasScaler's width/height blend
-        // and this dock's own chrome margins are applied -- comfortably
-        // above the fixed minimum two-column width, but was below the old
-        // flat 540px threshold.
-        SetViewportWidth(viewportRt, 480f);
-        controller.RefreshLayout();
-        Check("a realistic tall-phone viewport (480px) now gets two columns (was one)",
-              grid.constraintCount == 2);
-        Check("cell width at that viewport doesn't overflow past the available width",
-              grid.cellSize.x * 2f + 16f + 16f <= 480f + 0.5f);
-
-        // Genuinely too narrow for even a tight two columns should still
-        // fall back to one rather than forcing overflowing cells.
-        SetPrivate(controller, "lastWidth", -1f);
-        SetViewportWidth(viewportRt, 300f);
-        controller.RefreshLayout();
-        Check("a genuinely too-narrow viewport (300px) still falls back to one column",
-              grid.constraintCount == 1);
-
-        Object.DestroyImmediate(controllerGo);
-        Object.DestroyImmediate(canvasGo);
-    }
-
-    static void SetViewportWidth(RectTransform rt, float width)
-    {
-        rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-    }
-
-    static void SetPrivate(object target, string field, object value)
-    {
-        var f = target.GetType().GetField(field,
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        f.SetValue(target, value);
+        var narrow = DockLayout.For(count, 2.85f);
+        float top, bottom;
+        narrow.ScrollRange(1f, -1f, out top, out bottom);
+        Check("a rack taller than its space scrolls (range > 0)", bottom - top > 0f);
+        narrow.ScrollRange(10f, -10f, out top, out bottom);
+        Check("a rack that fits is centred and does not scroll", Mathf.Approximately(top, bottom));
     }
 }
