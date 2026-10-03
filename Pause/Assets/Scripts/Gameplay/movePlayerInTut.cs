@@ -43,7 +43,8 @@ public class movePlayerInTut : MonoBehaviour
         //checks position of finger is in bound box
         if (fingerPos.x <= 2.4 && fingerPos.x > -2.4)
         {
-            this.transform.position = new Vector3(fingerPos.x, fingerPos.y + 1.5f);
+            this.transform.position = new Vector3(fingerPos.x,
+                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
 
             // Allow text to follow player----------------------------
 
@@ -58,11 +59,13 @@ public class movePlayerInTut : MonoBehaviour
         }
         else if (fingerPos.x > 2.4)
         {
-            this.transform.position = new Vector3(2.4f, fingerPos.y + 1.5f);
+            this.transform.position = new Vector3(2.4f,
+                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
         }
         else if (fingerPos.x < -2.4)
         {
-            this.transform.position = new Vector3(-2.4f, fingerPos.y + 1.5f);
+            this.transform.position = new Vector3(-2.4f,
+                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
 
         }
 

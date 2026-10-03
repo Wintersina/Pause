@@ -82,7 +82,19 @@ public static class PowerFx
                                         float seconds, System.Action onHit)
     {
         var go = Piece("vfx_spark_05", from, tint, .58f);
-        Runner.StartCoroutine(HomeTo(go, target, seconds, onHit));
+        Runner.StartCoroutine(HomeTo(go, target, seconds, onHit, 0));
+    }
+
+    public static void HomingProjectile(Vector3 from, Transform target, Color tint,
+                                        int shipIndex, float seconds, System.Action onHit)
+    {
+        var go = Piece("vfx_spark_05", from, tint, .72f);
+        var sr = go.GetComponent<SpriteRenderer>();
+        var custom = UltimateProjectileArt.ForShip(shipIndex);
+        if (custom != null) sr.sprite = custom;
+        var animation = go.AddComponent<UltimateProjectileAnimator>();
+        animation.shipIndex = shipIndex;
+        Runner.StartCoroutine(HomeTo(go, target, seconds, onHit, shipIndex));
     }
 
     public static void Burst(Vector3 at, Color tint, int count = 10)
@@ -158,20 +170,26 @@ public static class PowerFx
             turnDegreesPerSecond * Mathf.Deg2Rad * deltaSeconds, 0f).normalized;
     }
 
-    static IEnumerator HomeTo(GameObject go, Transform target, float maxSeconds, System.Action onHit)
+    static IEnumerator HomeTo(GameObject go, Transform target, float maxSeconds, System.Action onHit, int style)
     {
         // Start forward, then bend into the target. The slow world movement
         // makes the arc pronounced even for enemies initially near centre.
         Vector3 heading = Vector3.up;
-        const float speed = 6.4f;
+        float speed = 5.8f + (style % 4) * .45f;
         for (float t = 0; t < maxSeconds; t += Time.unscaledDeltaTime)
         {
             if (target == null) { Object.Destroy(go); yield break; }
             Vector3 toTarget = target.position - go.transform.position;
             if (toTarget.sqrMagnitude <= .018f) break;
             heading = SteerHeading(heading, toTarget, 235f, Time.unscaledDeltaTime);
-            go.transform.position += heading * speed * Time.unscaledDeltaTime;
+            Vector3 side = new Vector3(-heading.y, heading.x, 0f);
+            float wobble = style % 5 == 0 ? Mathf.Sin(t * 14f) * .42f
+                : style % 5 == 1 ? Mathf.Sin(t * 22f) * .22f
+                : style % 5 == 2 ? Mathf.Sin(t * 9f) * .12f : 0f;
+            go.transform.position += (heading * speed + side * wobble) * Time.unscaledDeltaTime;
             go.transform.up = heading;
+            float pulse = 1f + Mathf.Sin(t * (10f + style)) * .14f;
+            go.transform.localScale = Vector3.one * .72f * pulse;
             yield return null;
         }
         if (target != null) onHit?.Invoke();

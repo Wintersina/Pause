@@ -29,7 +29,9 @@ public class ShopSceneExtender : MonoBehaviour
     // is 15401px wide and sits at scale 0.03, Proteus is 400px at scale 0.60.
     // Generated ships are normalised to the same visual size instead of being
     // left at scale 1, which is why they towered over the rest.
-    const float TargetHullHeight = 1.05f;
+    // Dock previews intentionally sit at half their former size so the full
+    // roster reads as a hangar, with breathing room around every berth.
+    const float TargetHullHeight = 0.525f;
 
     public static Vector3 ShipSlot(int i)
     {
@@ -259,6 +261,13 @@ public class ShopSceneExtender : MonoBehaviour
         }
 
         EnsureLabel(go);
+
+        // Do not infer the selected ship from EventSystem.currentSelectedGameObject:
+        // a scroll gesture may leave a nested graphic selected. Bind this
+        // card's roster index directly to its action instead.
+        var selector = go.GetComponent<ShopShipSelectButton>();
+        if (selector == null) selector = go.AddComponent<ShopShipSelectButton>();
+        selector.Configure(index);
 
         // Keep each button pinned beneath its ship at runtime, where the real
         // screen size is known -- the world grid and the canvas do not share a

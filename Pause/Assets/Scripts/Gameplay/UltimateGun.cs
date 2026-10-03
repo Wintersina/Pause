@@ -23,6 +23,7 @@ public class UltimateGun : MonoBehaviour
     float firePop;
     int shipIndex;
     Vector3 restingOffset, firingOffset;
+    Vector3 muzzleBaseScale;
 
     public static UltimateGun Attach(GameObject ship)
     {
@@ -68,10 +69,12 @@ public class UltimateGun : MonoBehaviour
         muzzleGo.transform.SetParent(transform, false);
         muzzleRenderer = muzzleGo.GetComponent<SpriteRenderer>();
         muzzleRenderer.sprite = LoadVfx("vfx_light_02");
-        muzzleRenderer.color = new Color(1f, 0.85f, 0.4f, 0f);
+        var muzzleTint = ShipExhaust.TintFor(shipIndex);
+        muzzleRenderer.color = new Color(muzzleTint.r, muzzleTint.g, muzzleTint.b, 0f);
         muzzleRenderer.sortingOrder = barrelRenderer.sortingOrder + 1;
         muzzleGo.transform.localScale = Vector3.one * extents.y * 0.6f;
         muzzle = muzzleGo.transform;
+        muzzleBaseScale = muzzleGo.transform.localScale;
 
         Reposition(0f);
     }
@@ -103,6 +106,14 @@ public class UltimateGun : MonoBehaviour
             var c = muzzleRenderer.color;
             c.a = flash;
             muzzleRenderer.color = c;
+            float burstScale = 1f + firePop * (.38f + (shipIndex % 4) * .12f);
+            muzzle.localScale = muzzleBaseScale * burstScale;
+            muzzle.localRotation = Quaternion.Euler(0f, 0f, shipIndex * 17f + flash * 90f);
+        }
+        else if (muzzle != null)
+        {
+            muzzle.localScale = muzzleBaseScale;
+            muzzle.localRotation = Quaternion.identity;
         }
     }
 

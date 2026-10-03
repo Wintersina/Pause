@@ -16,6 +16,9 @@ public class score : MonoBehaviour {
 
     public static float totalCurrency;
     public static float tutorialCurrency;
+    // Snapshot used by the death card to show what this run earned before it
+    // was added to the player's lifetime total.
+    public static float runStartCurrency;
     public Text currencyText;
     public Text speedValue;
 
@@ -23,6 +26,9 @@ public class score : MonoBehaviour {
     public static int pauseCounter;
     public Text pauseCounterText;
     private bool pauseCounterBool;
+    // The launch touch starts a run. It is not a pause-resume action and must
+    // never consume one of the player's earned teleports.
+    private bool hasStartedRun;
     private const int PAUSECOUNTER = 5;
     private const int TUTPAUSECOUNTER = 50;
 
@@ -49,6 +55,7 @@ public class score : MonoBehaviour {
 	void Start () {
 
         pauseCounterBool = false;
+        hasStartedRun = false;
 
 
         if (PlayerPrefs.GetString("HasDoneTut") == "true")
@@ -57,12 +64,14 @@ public class score : MonoBehaviour {
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
             speedValue.text = "Currnet Speed : 0";
             totalCurrency = currencyHolder;
+            runStartCurrency = totalCurrency;
         }
         else
         {
             pauseCounter = TUTPAUSECOUNTER;
             pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
             speedValue.text = "Currnet Speed : 0";
+            runStartCurrency = 0f;
         }
     }
 	
@@ -70,8 +79,15 @@ public class score : MonoBehaviour {
 	void Update () {
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
-            
-            if (!pauseCounterBool)
+            // Holding the first touch must behave exactly like a normal held
+            // run without subtracting a pause. Once it is released, the next
+            // press is a genuine resume/teleport and spends as usual.
+            if (!hasStartedRun)
+            {
+                hasStartedRun = true;
+                pauseCounterBool = true;
+            }
+            else if (ShouldSpendPause(hasStartedRun, pauseCounterBool))
                 pauseCounterFunction();
             if (PlayerPrefs.GetString("HasDoneTut") == "true" && !startMenu.youAreInTutorial)
             {
@@ -123,6 +139,24 @@ public class score : MonoBehaviour {
     {
         pauseCounter = pauseCounter - 1;
         pauseCounterBool = true;
+    }
+
+    public static bool ShouldSpendPause(bool runHasStarted, bool alreadySpentThisPress)
+    {
+        return runHasStarted && !alreadySpentThisPress;
+    }
+
+    public static void AwardStarDust(float amount)
+    {
+        if (PlayerPrefs.GetString("HasDoneTut") == "true") totalCurrency += amount;
+        else tutorialCurrency += amount;
+
+        var hud = Object.FindFirstObjectByType<score>();
+        if (hud != null && hud.currencyText != null)
+        {
+            float value = PlayerPrefs.GetString("HasDoneTut") == "true" ? totalCurrency : tutorialCurrency;
+            hud.currencyText.text = "Star Dust : " + value.ToString("F2");
+        }
     }
     public static void incromentPause()
     {

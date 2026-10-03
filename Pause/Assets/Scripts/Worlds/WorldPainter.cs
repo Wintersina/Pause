@@ -68,7 +68,12 @@ public static class WorldPainter
         var mat = MaterialOf(objectName);
         if (mat == null) return;
 
-        mat.mainTexture = tex != null ? tex : fallback;
+        Texture selected = tex != null ? tex : fallback;
+        // The scrolling material advances its UV offset indefinitely. Clamp
+        // made the final edge of Ember's backdrop stretch into a long line
+        // once the offset reached it; repeating lets the authored tile loop.
+        if (selected != null) selected.wrapMode = TextureWrapMode.Repeat;
+        mat.mainTexture = selected;
         if (mat.HasProperty("_Color")) mat.color = tint;
     }
 }

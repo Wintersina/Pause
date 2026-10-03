@@ -5,5 +5,5 @@
 set -e
 cd "$(dirname "$0")"
 for name in replay home; do
-  resvg -w 256 -h 256 "icon_$name.svg" "../../../../Resources/QuickActions/QuickAction_$name.png"
+  resvg -w 256 -h 256 "icon_$name.svg" "../../../Resources/QuickActions/QuickAction_$name.png"
 done
