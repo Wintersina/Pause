@@ -1,6 +1,8 @@
 # Pause art style: 80s anime / Akira
 
-Status: **v1 draft, waiting for approval.** Nothing in `Pause/Assets` has been converted yet.
+Status: **v1.1.** Converted so far: the UI (HUD, quick-action icons, death panel, space dock UI,
+PAUSED overlay and pause glow, world banner, menu buttons via `MenuStyler`, tutorial palette) and the
+pickups (the pixel-art atom family, §5.1). Everything else in [`art-audit.md`](art-audit.md) is still to do.
 The sample sheet is [`art-samples/sample-sheet.png`](art-samples/sample-sheet.png), the before/after comparison is
 [`art-samples/before_after.png`](art-samples/before_after.png), and the per-asset conversion list is
 [`art-audit.md`](art-audit.md).
@@ -63,9 +65,11 @@ The player and enemies must read as opposites at a glance, even in peripheral vi
   * Enemy lights are `MAGENTA` (machines) or `BILE_LIGHT` (organics), **never amber or red**.
 * **Hazards (asteroids, debris):** `ROCK #605878`, `ROCK_SH #2C2638`, `ROCK_HI #958AA4`, with an `AMBER`
   rim kick on the lit edge (reflected city glow) so they separate from the sky.
-* **Pickups:** star dust uses `AMBER`/`SODIUM` (it's money, and warm reads as "good"). Heal uses
-  `HEAL #2EE6A6` with `TEAL_SH` and `HEAL_SH #0E5A50`. The blue power atom should become a `CYAN`/`TEAL`
-  cell, and the red pause atom a `RED`/`BONE` cell, keeping the existing colour coding players already know.
+* **Pickups:** a pixel-art family (see §5.1), keeping the colour coding players already know: the
+  green heal atom keeps its own greens (`#29A805`, `#7EE702`, `#B4F246`, white kick, ink `#00021B`), the
+  blue shield atom is `TEAL_SH`/`TEAL`/`CYAN`, the red pause atom `RED_SH`/`RED`/`RED_HI`, and star dust
+  (money; warm reads as "good") `SODIUM_SH`/`SODIUM`/`AMBER`. Each ramp ends in a `BONE` kick and sits on
+  `INK`. (The earlier `HEAL #2EE6A6` hex-cell heal sample is superseded.)
 
 ### 1.3 Per-world variations (all inside the Akira family)
 
@@ -192,7 +196,7 @@ Keep the silhouette's mass filling the collider box (Kenney colliders are about 
 | Rail mine | 4×4 atlas of 313 px cells, PPU 180, scale 0.46 | about 0.8 u | 128 u | 4×4 atlas, 313 px cells | 180 | keep the atlas layout: row = world, column = frame |
 | Asteroids (Aestroids) | 18-32 px, PPU 100, prefab scale 1.8 | 0.32-0.58 u | 128 u | 2× old px (64×64 / 36×36) | 200 | |
 | Kenney meteors | 16-120 px, PPU 100 | as now | 128 u | 2× old px | 200 | |
-| Atoms / pickups | 28×28 px, PPU 100 (heal: 1254 px crop at PPU 180) | 0.28 u (`HealAtom.TargetDiameter`) | 64 u | 112×112 | 400 | |
+| Atoms / pickups | pixel art, see §5.1 | 0.28 u (`HealAtom.TargetDiameter`); star dust 0.256 u / 0.064 u | 49-cell grid | 196×196 (x4 nearest) | 700 | heal atom: the original 1254 px art, untouched |
 | Explosions / FX | 256 px frames, PPU 100 | about 1-2.5 u | 128 u | 256 per frame | 100-200 | sheet in a single row |
 | World backdrop | 1024×4096, seamless vertical tile | full screen | 512×2048 u | 1024×4096 | 100 | seamless top/bottom. Layers L0-L4 in one texture |
 | World walls | 64×448, seamless | 0.64 u wide | 32×224 u | 64×448 | 100 | |
@@ -200,6 +204,35 @@ Keep the silhouette's mass filling the collider box (Kenney colliders are about 
 | Death panel | `dp_*` at 2× zoom, PPU 200 | UI | canvas units | 2× | 200 | keep the 9-slice borders listed in each SVG header |
 | Dock | SVG at 100 u = 1 world unit, 3× zoom | world | as now | 3× | 300 | `DockArt.PixelsPerUnit` |
 | Tutorial robot | `contra2.png` 110×107 | UI portrait | 128×124 u | 256×248 | match the old on-screen size | 3 mouth frames |
+
+### 5.1 Pickups: the pixel-art atom family (overrides the 64 u SVG spec)
+
+The user picked the **green heal atom** (`Art/Resources/Pickups/heal_atom_green.png`) and the pixel-art
+rail mine as the look for pickups, and the green atom as the quality bar. Where that conflicts with the
+flat-SVG rules above, the pickups follow the green atom:
+
+* **Pixel art, not vector.** Draw on a coarse cell grid with crisp cells only (no anti-aliasing), then
+  upscale with nearest-neighbour and import with **Point** filtering, **no mipmaps, uncompressed**.
+  Density matches the green atom: about 47 cells across 0.28 world units, so the siblings use a
+  **49-cell grid ×4 = 196 px at PPU 700** (exactly 0.28 u). Star dust: 45 cells (180 px, PPU 70.3125,
+  prefab scale 0.1 → 0.256 u) and 11 cells (44 px, PPU 34.375, scale 0.05 → 0.064 u).
+* **The green atom's shading is the model:** a dark ink outline that thickens to the lower right,
+  balls shaded with a shadow, a base and a light tone plus a hard square white kick (more tones than §2's
+  "one shadow, one highlight" — the user's preference wins for pickups).
+* **Distinct shape and colour per pickup:** heal = three elliptical orbits around a "+" nucleus (green);
+  shield = a hexagonal orbit cage around a split heater-shield nucleus with three cube electrons
+  (teal/cyan); pause = two orbits crossed in an X around an octagon-cut red ball with `BONE` pause bars;
+  star dust = a cel-faceted four-point star (sodium/amber).
+* **The green atom itself is never redrawn.** Its frame 0 is the original pixels. Its idle animation is
+  a flipbook of light overlays on a child renderer above it: electron glints in sequence with 1-tick
+  smears between them, then a nucleus pop and a shock ring (ticks 8,2,1,2,1,2,1,2,2,2,3).
+* **Animation:** every pickup has an idle loop (atoms: rest 6, ten travelling drawings on 2s, then
+  anticipation, pop, settle; star dust: rest, squash, stretch, spin through an edge-on smear, rest on the
+  flip side) and a 6-frame pickup burst (1-tick white impact, burst star, a ring breaking into shards and
+  per-kind confetti: `+`, pause bars, hex chips, sparks). Idle loops run on game time, so they freeze when
+  the world freezes.
+* Sources: `Art/Atoms/src~/pixel_atoms.py` (writes every frame, the metas and the previews in
+  [`art-samples/atoms/`](art-samples/atoms/)); playback: `PickupArt`, `PickupFlipbook`, `PickupBurst`.
 
 ---
 
@@ -293,15 +326,19 @@ The verdicts:
 The PAUSE title/logo is **exempt from the restyle**. Don't redraw, recolour, filter, re-export,
 re-compress or re-crop it, and don't move it in its scenes. New UI that sits around it must
 **complement it, not compete with it**: keep headings near the logo smaller, use `RED` slabs and `BONE`
-type that echo its red, and put nothing glowing within its bounding box.
+type that echo its red, and put nothing glowing within its bounding box. `ArtRestyleTest` checks these
+files are byte-identical to master.
 
 | Asset | Path | Used by |
 |---|---|---|
 | PAUSE title logo (in-game texture) | `Pause/Assets/Art/pause_title_2.png` (+ `.meta`, guid `a2e075ab7763def46a6d6d3587b47678`) | `Pause/Assets/Scenes/startS4.unity` (start screen title) |
 | PAUSE title logo (repo/README) | `docs/pause-title.png` | `README.md` header |
 | Studio splash mark (treated as protected, since it is also a logo) | `Pause/Assets/Art/HapticGate.png` (guid `4f7e65d7e0d48dd48a9a0f0b5c456d93`) | `Pause/Assets/Scenes/spashS7.unity` (splash) |
-| "PAUSED" wordmark (provisionally protected; see open questions) | `Pause/Assets/Art/paused_1.png` (guid `f2f9d96d8d5982c42b7178b9baf033a3`) | `gameS1.unity`, `tutorialS5.unity` (pause overlay) |
-| Pause-glow bars (provisionally protected) | `Pause/Assets/Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` (`Resources.LoadAll("PauseGlow")`) |
+
+**Not protected (decided by the user):** the "PAUSED" wordmark (`Art/paused_1.png`) and the pause-glow
+bars (`Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png`). Both have been restyled (sources in
+`Art/UI/Pause/src~/build_pause.py`), and the overlay now pops in and glints (`PausedOverlayAnim`, frames in
+`Art/Resources/PauseGlowFx/`).
 
 Notes:
 
@@ -324,7 +361,7 @@ Notes:
 | Player hull / exhaust flipbook | `player_ship.png`, `player_exhaust_strip.png`, `player_exhaust.gif` |
 | Enemy fighter / alien / rail mine | `enemy_fighter*.png/.gif`, `enemy_alien*`, `enemy_mine*` |
 | Asteroid, explosion | `asteroid.png`, `explosion_strip.png`, `explosion.gif` |
-| Pickups | `pickup_stardust*`, `pickup_heal*` |
+| Pickups | the pixel-art family in `art-samples/atoms/` (`atom_family.png`, `*_idle_strip.png`/`.gif`, `*_burst_strip.png`/`.gif`); the older SVG `pickup_stardust*` / `pickup_heal*` samples are superseded |
 | Worlds | `world_space.png`, `world_frost.png` |
 | UI | `ui_hud.png`, `ui_icon_replay.png`, `ui_icon_home.png`, `ui_death_panel.png` |
 | Robot | `robot.png`, `robot_talk_strip.png`, `robot_talk.gif` |

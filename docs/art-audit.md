@@ -26,8 +26,8 @@ Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/
 | PAUSE title logo | `Art/pause_title_2.png` | `Scenes/startS4.unity` | **PROTECTED** |
 | PAUSE title logo (README) | `docs/pause-title.png` | `README.md` | **PROTECTED** |
 | HapticGate studio splash mark | `Art/HapticGate.png` | `Scenes/spashS7.unity` | **PROTECTED** |
-| "PAUSED" wordmark (provisional; confirm) | `Art/paused_1.png` | `Scenes/gameS1.unity`, `Scenes/tutorialS5.unity` | **PROTECTED** |
-| Pause-glow bars (provisional; confirm) | `Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` | **PROTECTED** |
+| "PAUSED" wordmark | `Art/paused_1.png` | `Scenes/gameS1.unity`, `Scenes/tutorialS5.unity` | **Not protected** (user decision). **RESTYLED**: red title slab, BONE Orbitron, ink (`Art/UI/Pause/src~`) |
+| Pause-glow bars | `Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png` | `Scripts/UI/moveStarsBackground.cs` | **Not protected** (user decision). **RESTYLED**: inked red slab bars + pop-in/glint flipbook (`PausedOverlayAnim`) |
 
 ## Player ships
 
@@ -70,10 +70,10 @@ Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Blue power atom | `Art/Atoms/atom3a.png` (`prefabs/atom3a.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `CYAN`/`TEAL` energy cell |
-| Red pause atom | `Art/Atoms/pauseAtom.png` (`prefabs/pauseAtom.prefab`) | glossy bubble balls (1, 3) | **REDRAW** as a `RED`/`BONE` energy cell |
-| Green heal atom | `Art/Resources/Pickups/heal_atom_green.png` | atom/orbit glyph with glossy balls (3) | **REDRAW**. Sample: `pickup_heal` |
-| Star dust | `Art/Retro80s/Pickups/StarDustLarge.png`, `StarDustSmall.png` | confetti squares, off-palette (5) | **REDRAW**. Sample: `pickup_stardust` |
+| Blue shield atom | `Art/Atoms/atom3a.png` (`prefabs/atom3a.prefab`) | glossy bubble balls (1, 3) | **DONE (redrawn)**: pixel-art sibling of the green atom, teal/cyan hex cage + shield nucleus, idle + burst (art-style §5.1) |
+| Red pause atom | `Art/Atoms/pauseAtom.png` (`prefabs/pauseAtom.prefab`) | glossy bubble balls (1, 3) | **DONE (redrawn)**: pixel-art sibling, crossed orbits + pause-bar nucleus, idle + burst |
+| Green heal atom | `Art/Resources/Pickups/heal_atom_green.png` | the user's benchmark (pixel art) | **KEEP** (user decision): original pixels untouched; **animated** with overlay frames (glints, nucleus pulse) + burst |
+| Star dust | `Art/Retro80s/Pickups/StarDustLarge.png`, `StarDustSmall.png` | confetti squares, off-palette (5) | **DONE (redrawn)**: pixel-art four-point star, twinkle/spin idle + burst |
 | Gold stars (credits, menus, star pickups) | `Art/Stars/0.png`, `00.png`, `1.png`-`5.png` (`Art/Stars/starRotateAnime.anim`, `prefabs/LargeStar*`, `smStar*`, `superStar`, `CreditStar*`) | bevelled gold, 3D faceting with glow (1, 3) | **REDRAW** to match the star dust cell |
 | Life heart | `Art/Resources/Vfx/lifeHeart.png` | flat pixel, round (3, 4) | **RESTYLE**: angular heart, `RED` + `BONE` kick + ink |
 
@@ -108,11 +108,14 @@ Rule codes cited below: 1 = 3D shading, 2 = photo/painterly texture, 3 = glossy/
 
 | Asset | Path | Why | Verdict |
 |---|---|---|---|
-| Quick-action icons (Replay, Home) | sources `Art/UI/Icons/src~/icon_replay.svg`, `icon_home.svg`; outputs `Art/Resources/QuickActions/QuickAction_{replay,home}[_glyph].png` | rounded plate, neon-tube bloom glyph, synthwave grid (3) | **RESTYLE** (chamfered plate, inked off-white glyph, red cel shadow). Sample: `ui_icon_*` |
-| Death panel sprites | sources `Art/UI/DeathPanel/src~/dp_panel.svg`, `dp_card.svg`, `dp_button.svg`, `dp_glow.svg`, `dp_divider.svg`, `dp_sparkle.svg`, `dp_pill.svg`; outputs `Art/Resources/DeathPanel/*.png` | rounded corners, soft glow, wash gradient (1, 3) | **RESTYLE** (keep the 9-slice borders). Sample: `ui_death_panel`. `DeathPanelView` colour constants change in a code phase |
-| Space dock | sources `Art/UI/Dock/src~/*.svg` (backplate, bay, button, chip, clamp, gantry, gate, icon_active, icon_dust, icon_owned, light, popup, popup_tail, ring, shadow, spine, wall); outputs `Art/UI/Dock/Resources/Dock/*.png` | mostly flat and panelled already; rounded button, soft glows, cyan neon popup (3, 5) | **RESTYLE**: the closest to compliant. Add ink weight, chamfer the button, swap neon cyan for palette `TEAL`/`RED` |
+| Quick-action icons (Replay, Home, Play glyph) | sources `Art/UI/Icons/src~/build_icons.py` → `icon_*.svg`; outputs `Art/Resources/QuickActions/QuickAction_{replay,home}[_glyph].png`, `QuickAction_play_glyph.png`, `Shine/*` | rounded plate, neon-tube bloom glyph, synthwave grid (3) | **DONE (restyled)**: chamfered plate, inked BONE glyph, red cel shadow; press squash (`CelPress`) and glint shimmer (`UiShimmer`) |
+| Death panel sprites | sources `Art/UI/DeathPanel/src~/*.svg` (+ new `dp_bar`, `dp_slab`); outputs `Art/Resources/DeathPanel/*.png` | rounded corners, soft glow, wash gradient (1, 3) | **DONE (restyled)**, 9-slice borders kept; `DeathPanelView` on the palette, title slab, motion held on 2s, beat flashes |
+| Space dock | sources `Art/UI/Dock/src~/*.svg`; outputs `Art/UI/Dock/Resources/Dock/*.png` | mostly flat and panelled already; rounded button, soft glows, cyan neon popup (3, 5) | **DONE (restyled)**: flat palette fills, ink contours, chamfers, hex badges, hard ring/shadow; dock code colours on `AkiraPalette`; popup button press |
 | Dock shader | `Art/UI/Dock/Resources/Dock/DockSprite.shader` | not art | **KEEP** |
-| HUD | `Scripts/UI/HudStyler.cs` (colours in code, no sprites) | synthwave violet/magenta panel (5) | **RESTYLE** in a code phase. Sample: `ui_hud` |
+| HUD | `Scripts/UI/HudStyler.cs` + `Art/UI/Hud/src~` (`hud_panel`, `hud_meter`) | synthwave violet/magenta panel (5) | **DONE (restyled)**: chamfered night panel with red tab, CYAN/AMBER/RED read-outs, segmented pause meter, stepped punches and a low-pause blink |
+| World banner | `Scripts/Worlds/WorldBanner.cs` | plain white text with a fade | **DONE (restyled)**: BONE type on the red title slab, flipbook in/out |
+| Menu buttons (start, Options) | `Scripts/UI/MenuStyler.cs` (runtime; scenes untouched) | default text buttons | **DONE (restyled)**: BONE + ink + red cel drop, press squash, PLAY beat flash |
+| Tutorial UI palette | `Art/UI/Tutorial/src~/palette.env`, `Scripts/Tutorial/TutorialPalette.cs` | near-guide colours | **DONE**: aligned to the guide hexes and re-rendered (art not redesigned) |
 | In-game replay / menu buttons | `Art/redo-512.png`, `Art/taxes-menu-icon.png` (`gameS1`, `tutorialS5`) | flat white glyphs, no ink, round (3, 4) | **RESTYLE** (or replace with the new quick-action glyphs) |
 | Login icon | `Art/loginIcon.png` | not referenced | **UNUSED** |
 | Font | `Art/Orbitron/Orbitron-Bold.ttf` | fits the look | **KEEP** |
