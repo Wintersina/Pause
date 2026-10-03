@@ -283,10 +283,10 @@ public class collisionDetection : MonoBehaviour {
                 // turn off inv text after  timer runs out.
                 atomCheck = true;
                 boost.SetActive(true);
-                moveBackGround.speed += .05f;
+                // A boss holds speed at 20: no +0.05 boost (BossEncounter).
+                if (!BossEncounter.SpeedLocked) { moveBackGround.speed += .05f; atomCounter++; }
                 invTimer = 5.8f;
                 boostTimer = 1f;
-                atomCounter++;
             }
             #endregion
         }
@@ -313,7 +313,7 @@ public class collisionDetection : MonoBehaviour {
             // let player know shild is off
             atomTimerText.text = "";
             atomCheck = false;
-            moveBackGround.speed -= .05f * atomCounter;
+            moveBackGround.speed -= BossEncounter.FilterSpeedChange(.05f * atomCounter);
             atomCounter = 0;
 
             // ---------------------------

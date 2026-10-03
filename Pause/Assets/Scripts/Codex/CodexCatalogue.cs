@@ -31,12 +31,15 @@ public sealed class CodexEntry
     // Draw the art inside a circular mask (the worlds' backdrops are
     // rectangular textures; round reads as a planet).
     public readonly bool round;
+    // Not even listed (no "???" card, not in the totals) until discovered:
+    // the end-of-level bosses.
+    public readonly bool secret;
 
     readonly Func<Sprite> resolve;
     Sprite cached;
 
     public CodexEntry(string id, string name, CodexCategory category, Func<Sprite> sprite, string lore,
-                      string[] matches = null, bool round = false)
+                      string[] matches = null, bool round = false, bool secret = false)
     {
         this.id = id;
         this.name = name;
@@ -45,6 +48,7 @@ public sealed class CodexEntry
         this.lore = lore;
         this.matches = matches ?? new string[0];
         this.round = round;
+        this.secret = secret;
     }
 
     // Resolved on first use and cached. A Sprite.Create()d sprite can be
@@ -178,6 +182,20 @@ public static class CodexCatalogue
                 "Lava, ash and the fastest skies yet. If home is past this, he'll fly through fire to reach it.",
                 null, round: true),
         };
+
+        // ------------------------------------------------------------- Bosses
+        // Secret: hidden from the codex until the pilot first meets one at
+        // the end of its world (BossEncounter discovers it by id).
+        int enemyEnd = 0;
+        for (int i = 0; i < list.Count; i++) if (list[i].category == CodexCategory.Enemies) enemyEnd = i + 1;
+        var bosses = new List<CodexEntry>();
+        foreach (var boss in BossCatalog.All)
+        {
+            var def = boss;
+            bosses.Add(new CodexEntry(def.id, BossDisplayName(def.name), CodexCategory.Enemies,
+                () => BossArt.Body(def, BossArt.Portrait), def.lore, null, false, secret: true));
+        }
+        list.InsertRange(enemyEnd, bosses);
 
         // -------------------------------------------------------------- Ships
         // Every roster ship (ShipId.All), keyed by its stable art key.
@@ -325,6 +343,15 @@ public static class CodexCatalogue
     }
 
     public static string FallbackName(string prefabName) { return Fallback.NameFor(prefabName); }
+
+    // "HOARFROST LEVIATHAN" -> "Hoarfrost Leviathan"; "THE BLOOM QUEEN" -> "The Bloom Queen".
+    public static string BossDisplayName(string upper)
+    {
+        var words = upper.ToLowerInvariant().Split(' ');
+        for (int i = 0; i < words.Length; i++)
+            if (words[i].Length > 0) words[i] = char.ToUpperInvariant(words[i][0]) + words[i].Substring(1);
+        return string.Join(" ", words);
+    }
 
     // Entries for spawn-table families nobody has written lore for yet.
     static class Fallback

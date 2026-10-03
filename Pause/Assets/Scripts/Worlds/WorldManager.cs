@@ -118,7 +118,10 @@ public class WorldManager : MonoBehaviour
 
     void Update()
     {
-        if (portalOpen || !HasNext) return;
+        // The level clock stops for the boss; Ember (no portal) still has a
+        // boss at the end of its level, then the clock stops for good.
+        if (portalOpen || BossEncounter.Running) return;
+        if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex)) return;
 
         // Only count time the player is actually flying, matching how the rest
         // of the game measures progress.
@@ -128,7 +131,24 @@ public class WorldManager : MonoBehaviour
 
         timer -= Time.deltaTime;
         WorldMusic.TryEscalate(this);
-        if (timer <= 0f) OpenPortal();
+        if (timer <= 0f) EndLevel();
+    }
+
+    // The level clock ran out (or developer mode skipped it): the world's
+    // boss first, and the portal once the encounter is over. A boss already
+    // dealt with on this visit (a missed portal coming round again) goes
+    // straight to the portal.
+    public void EndLevel()
+    {
+        timer = 0f;
+        if (portalOpen) return;
+        if (BossEncounter.Begin(CurrentIndex, OnBossOver)) return;
+        if (HasNext && !BossEncounter.Running) OpenPortal();
+    }
+
+    void OnBossOver()
+    {
+        if (HasNext && !portalOpen) OpenPortal();
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

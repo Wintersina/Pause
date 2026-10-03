@@ -90,6 +90,79 @@ public class WorldMusic : MonoBehaviour
         EnsureRunner().StartCoroutine(Swap(source, upbeat));
     }
 
+    // ---- boss music ---------------------------------------------------------
+    //
+    // TODO(boss-music): the user will supply a custom track per world boss.
+    // Drop each one at Pause/Assets/Audio/Resources/WorldMusic/Boss_<World>
+    // (.wav or .ogg): Boss_Space, Boss_Frost, Boss_Verdant, Boss_Ember.
+    // BeginBoss picks it up automatically (Resources.Load by BossResource),
+    // crossfades into it for the encounter and EndBoss swaps the world's own
+    // track back. Until a clip exists the world's current track simply keeps
+    // playing, nudged up in pitch (BossFallbackPitch) so the fight still
+    // sounds different. See docs/TODO.md.
+    public const string BossResourcePrefix = "WorldMusic/Boss_";
+    public const float BossFallbackPitch = 1.06f;
+
+    static AudioClip preBossClip;
+    static bool bossTrackPlaying, bossPitched;
+
+    public static string BossResource(WorldTheme theme)
+    {
+        return theme == null ? null : BossResourcePrefix + theme.displayName;
+    }
+
+    public static AudioClip BossClip(WorldTheme theme)
+    {
+        string path = BossResource(theme);
+        return path == null ? null : Resources.Load<AudioClip>(path);
+    }
+
+    // What plays during the fight: the boss's own track if it exists,
+    // otherwise whatever the world is already playing.
+    public static AudioClip ResolveBossTrack(AudioClip worldTrack, AudioClip bossTrack)
+    {
+        return bossTrack != null ? bossTrack : worldTrack;
+    }
+
+    public static bool BossTrackPlaying => bossTrackPlaying;
+    public static bool BossFallbackActive => bossPitched;
+
+    public static void BeginBoss(WorldTheme theme)
+    {
+        var source = FindBackgroundSource();
+        if (source == null) return;
+        var next = ResolveBossTrack(source.clip, BossClip(theme));
+        if (next != null && next != source.clip)
+        {
+            preBossClip = source.clip;
+            bossTrackPlaying = true;
+            EnsureRunner().StartCoroutine(Swap(source, next));
+        }
+        else
+        {
+            // No boss clip yet: keep the world track, intensified.
+            bossPitched = true;
+            source.pitch = BossFallbackPitch;
+        }
+    }
+
+    public static void EndBoss()
+    {
+        var source = FindBackgroundSource();
+        if (bossPitched)
+        {
+            bossPitched = false;
+            if (source != null) source.pitch = 1f;
+        }
+        if (bossTrackPlaying)
+        {
+            bossTrackPlaying = false;
+            if (source != null && preBossClip != null && Application.isPlaying)
+                EnsureRunner().StartCoroutine(Swap(source, preBossClip));
+            preBossClip = null;
+        }
+    }
+
     static IEnumerator Swap(AudioSource main, AudioClip next)
     {
         float fade = runner != null ? runner.crossfadeSeconds : 1.5f;

@@ -217,7 +217,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
         SelectPhase();
 
-        if (flying) spawn();
+        // A boss encounter clears the board and suspends normal spawning.
+        if (flying && !BossEncounter.SuspendsSpawning) spawn();
     }
 
     void SelectPhase()

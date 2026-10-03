@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // The developer section of the Options screen (leaderboardS3): a developer
-// mode switch and, while it is on, a start-world picker.
+// mode switch and, while it is on, a start-world picker and the BOSS RUSH
+// switch (every run's end-of-level boss arrives a few seconds in).
 //
 // Built at runtime from the screen's own "Tutorial" button, so it shares the
 // screen's font, size and transparent-button look; the labels are tinted
@@ -12,8 +13,8 @@ public class DeveloperOptions : MonoBehaviour
 {
     static readonly Color DevTint = new Color(1f, 0.79f, 0.26f);
 
-    Text toggleLabel, worldLabel;
-    GameObject worldRow;
+    Text toggleLabel, worldLabel, bossLabel;
+    GameObject worldRow, bossRow;
 
     void Start()
     {
@@ -41,6 +42,18 @@ public class DeveloperOptions : MonoBehaviour
         worldLabel = Label(Clone(template, worldRow.transform, "WorldName",
                                  Vector2.zero, new Vector2(350f, 99f), () => Step(1)));
 
+        // Boss rush: every run's end-of-level boss arrives a few seconds in
+        // (BossDev), for testing the encounters without flying a level.
+        bossRow = Clone(template, parent, "DeveloperBossRush",
+                        new Vector2(0f, -223f), new Vector2(420f, 99f), ToggleBossRush);
+        bossLabel = Label(bossRow);
+
+        Refresh();
+    }
+
+    void ToggleBossRush()
+    {
+        BossDev.SetRush(PlayerPrefs.GetInt(BossDev.RushKey, 0) != 1);
         Refresh();
     }
 
@@ -93,6 +106,9 @@ public class DeveloperOptions : MonoBehaviour
         bool on = DeveloperUnlocks.Enabled;
         if (toggleLabel != null) toggleLabel.text = "DEVELOPER  " + (on ? "ON" : "OFF");
         if (worldRow != null) worldRow.SetActive(on);
+        if (bossRow != null) bossRow.SetActive(on);
+        if (bossLabel != null)
+            bossLabel.text = "BOSS RUSH  " + (PlayerPrefs.GetInt(BossDev.RushKey, 0) == 1 ? "ON" : "OFF");
         if (worldLabel != null)
             worldLabel.text = "START  " +
                 WorldManager.Worlds[DeveloperUnlocks.SelectedWorld].displayName.ToUpperInvariant();
