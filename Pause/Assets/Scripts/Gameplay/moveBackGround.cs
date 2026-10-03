@@ -27,6 +27,13 @@ public class moveBackGround : MonoBehaviour {
     }
 
     void Update () {
+        // The boss intro freezes the world even with a finger down; it is
+        // scripted, so it never counts as a pause (BossEncounter).
+        if (BossEncounter.ScriptedFreeze)
+        {
+            Time.timeScale = ResumeSlowMo.Freeze();
+            return;
+        }
         if (ShipPowerController.CinematicClearActive)
         {
             Time.timeScale = ShipPowerController.CinematicTimeScale;
@@ -37,13 +44,13 @@ public class moveBackGround : MonoBehaviour {
         {
             Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
             moveBackground();
-            speedUp();
+            if (!BossEncounter.SpeedLocked) speedUp(); // a boss holds speed at 20
         }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
             Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
             moveBackground();
-            speedUp();
+            if (!BossEncounter.SpeedLocked) speedUp(); // a boss holds speed at 20
         }
         else
         {

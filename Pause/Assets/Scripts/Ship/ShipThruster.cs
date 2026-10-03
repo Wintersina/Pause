@@ -6,10 +6,16 @@ using UnityEngine.SceneManagement;
 // The ships already carry a big animated boost flame, but it only appears while
 // a blue atom is active -- the rest of the time they hang in space looking
 // inert. This adds a permanent, much smaller version of that same flame so a
-// ship reads as under power.
+// ship reads as under power. Each ship's flame is its own themed flipbook
+// (ShipExhaustStyle); past full size (the dock launch flare) it switches to
+// that ship's boost drawings.
 //
 // It is also a second channel for the game's core idea: lift your finger and
 // the flame dies back to a pilot light, put it down and it flares again.
+//
+// Ships whose hull changes under it (the title-screen traffic reuses one
+// object for many hulls) are rebuilt for the new hull. A spinner hull (Ninja,
+// UFO) gets its spin drift (ShipSpinDrift) instead of nozzle plumes.
 public class ShipThruster : MonoBehaviour
 {
     [Tooltip("Idle flame size as a fraction of the ship's own boost flame.")]
@@ -28,8 +34,12 @@ public class ShipThruster : MonoBehaviour
              "so the flame ignores pause state and just burns.")]
     public bool respondToPause = true;
 
+    // At or past this size the plume shows the ship's boost drawings.
+    public const float BoostDrawingsAt = 1f;
+
     readonly System.Collections.Generic.List<Transform> flames = new System.Collections.Generic.List<Transform>();
     readonly System.Collections.Generic.List<SpriteRenderer> flameRenderers = new System.Collections.Generic.List<SpriteRenderer>();
+    readonly System.Collections.Generic.List<ShipFlameFlipbook> flameBooks = new System.Collections.Generic.List<ShipFlameFlipbook>();
     readonly System.Collections.Generic.List<float> flameScales = new System.Collections.Generic.List<float>();
 
     [Tooltip("False keeps the engine cold: no flame at all. The space dock " +
@@ -42,9 +52,18 @@ public class ShipThruster : MonoBehaviour
     {
         get { return flameRenderers.Count > 0 && flameRenderers[0].enabled; }
     }
+    // The ship this engine was built for, and its spin drift (spinners only).
+    public int ShipIndex { get; private set; }
+    public ShipSpinDrift Drift { get { return drift; } }
+
     GameObject boostObject;      // the big flame, so we never draw both
     Vector3 baseScale = Vector3.one;
     float seed;
+    float clock;                 // scaled seconds, for the flicker
+    SpriteRenderer hullRenderer;
+    Texture builtFor;            // the hull sheet the plumes were built for
+    bool built;
+    ShipSpinDrift drift;
 
     void Start()
     {
@@ -54,15 +73,41 @@ public class ShipThruster : MonoBehaviour
 
     void Build()
     {
-        var hull = GetComponent<SpriteRenderer>();
+        built = true;
+        hullRenderer = GetComponent<SpriteRenderer>();
+        var hull = hullRenderer;
+        builtFor = hull != null && hull.sprite != null ? hull.sprite.texture : null;
 
         int index = ShipExhaust.IndexFor(gameObject);
-        if (ShipExhaust.UsesWind(index)) return;
+        ShipIndex = index;
+        if (ShipExhaust.UsesSpinDrift(index))
+        {
+            ClearFlames(0);
+            boostObject = null;
+            if (drift == null) drift = GetComponent<ShipSpinDrift>();
+            if (drift == null)
+            {
+                drift = gameObject.AddComponent<ShipSpinDrift>();
+                // The thruster's owner moves and turns this ship (traffic
+                // holds a fixed heading); the drift only draws, turning its
+                // own ring and trailing the wake behind the ship's nose.
+                drift.spinHull = false;
+                drift.spinRing = true;
+                drift.wakeFollowsHeading = true;
+            }
+            drift.respondToPause = respondToPause;
+            drift.powered = powered;
+            drift.Rebuild();
+            return;
+        }
+        if (drift != null) drift.powered = false;
+
         boostObject = ShipExhaust.ConfigureBoost(gameObject, index);
         Sprite sprite = ShipExhaust.SpriteFor(index);
         if (sprite == null) return;
         var mounts = ShipExhaust.MountsFor(hull != null ? hull.sprite : null, index);
         baseScale = ShipExhaust.ScaleFor(hull != null ? hull.sprite : null, index);
+        ClearFlames(mounts.Length);
         for (int i = 0; i < mounts.Length; i++)
         {
             string name = i == 0 ? "~Thruster" : "~Thruster" + i;
@@ -76,15 +121,45 @@ public class ShipThruster : MonoBehaviour
             renderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
             go.transform.localPosition = mounts[i];
             go.transform.localRotation = Quaternion.identity;
-            ShipFlameFlipbook.Attach(renderer, i);
             flames.Add(go.transform);
             flameRenderers.Add(renderer);
+            flameBooks.Add(ShipFlameFlipbook.Attach(renderer, i, index));
             flameScales.Add(ShipExhaust.NozzleScale(index, i));
+        }
+    }
+
+    // Forgets the plume lists and removes plumes past `keep` (a hull with
+    // fewer nozzles than the last one).
+    void ClearFlames(int keep)
+    {
+        flames.Clear();
+        flameRenderers.Clear();
+        flameBooks.Clear();
+        flameScales.Clear();
+        for (int i = keep; ; i++)
+        {
+            var stale = transform.Find(i == 0 ? "~Thruster" : "~Thruster" + i);
+            if (stale == null) break;
+            ShipExhaust.Discard(stale.gameObject);
         }
     }
 
     void LateUpdate()
     {
+        // A different hull sheet means a different ship: rebuild for it.
+        // (Reference compare only, no allocation: every frame of a ship,
+        // damage states included, is on one sheet.)
+        if (built && hullRenderer != null)
+        {
+            var sprite = hullRenderer.sprite;
+            if ((sprite != null ? sprite.texture : null) != builtFor) Build();
+        }
+        if (drift != null && ShipExhaust.UsesSpinDrift(ShipIndex))
+        {
+            drift.powered = powered;
+            drift.boost = idleScale >= BoostDrawingsAt;
+            return;
+        }
         if (flames.Count == 0) return;
 
         // Never draw the idle flame under the real boost flame.
@@ -121,11 +196,19 @@ public class ShipThruster : MonoBehaviour
             }
         }
 
-        // Unscaled so the flame keeps guttering while the world is frozen.
-        float wobble = 1f + Mathf.Sin((Time.unscaledTime + seed) * 22f) * flicker;
+        // Past full size (the dock's launch flare) the boost drawings take over.
+        bool boostDrawings = target >= BoostDrawingsAt;
+        for (int i = 0; i < flameBooks.Count; i++)
+            if (flameBooks[i] != null) flameBooks[i].Boost = boostDrawings;
+
+        // Scaled, like the flipbook: a frozen world holds the flame still.
+        clock += Time.deltaTime;
+        float wobble = 1f + Mathf.Sin((clock + seed) * 22f) * flicker;
         Vector3 want = new Vector3(baseScale.x * Mathf.Sqrt(target) * wobble,
                                    baseScale.y * target * wobble, 1f);
 
+        // The size itself eases on real time, so lifting your finger (which
+        // freezes the world) still visibly dies the flame back to a pilot light.
         float blend = 1f - Mathf.Exp(-14f * Time.unscaledDeltaTime);
         for (int i = 0; i < flames.Count; i++)
         {
@@ -152,10 +235,10 @@ public class ShipThrusterAttach : MonoBehaviour
         if (player != null)
         {
             int index = ShipExhaust.IndexFor(player);
-            if (ShipExhaust.UsesWind(index))
+            if (ShipExhaust.UsesSpinDrift(index))
             {
-                if (player.GetComponent<ShipSpinWind>() == null)
-                    player.AddComponent<ShipSpinWind>();
+                if (player.GetComponent<ShipSpinDrift>() == null)
+                    player.AddComponent<ShipSpinDrift>();
                 var oldThruster = player.GetComponent<ShipThruster>();
                 if (oldThruster != null) Destroy(oldThruster);
             }

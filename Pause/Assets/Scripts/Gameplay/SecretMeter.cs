@@ -89,6 +89,21 @@ public class SecretMeter : MonoBehaviour
         }
     }
 
+    // World rect the badge occupies this frame -- for the ship's UI-slot
+    // registry (hearts / charge indicator) once it lands.
+    public Rect WorldBounds
+    {
+        get
+        {
+            if (view == null) return new Rect();
+            Vector3 p = view.transform.position;
+            return new Rect(p.x - WorldSize * .5f, p.y - WorldSize * .5f, WorldSize, WorldSize);
+        }
+    }
+
+    // The one placement function: beside the hull on the side away from the
+    // gun, a little below centre -- clear of the charge indicator and the
+    // life hearts, which both sit above the nose. Hook a slot registry here.
     void Place()
     {
         float x = .3f, y = -.12f;

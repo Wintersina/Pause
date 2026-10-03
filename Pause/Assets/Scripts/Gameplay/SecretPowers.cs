@@ -383,7 +383,8 @@ public class SecretPowerController : MonoBehaviour
             Vector2 d = t.transform.position - at;
             float r = radius + t.Radius * .5f;
             if (d.sqrMagnitude > r * r) continue;
-            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
+            // a power that catches the boss is worth half an ultimate hit
+            if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref budget)) kills++;
         }
         return kills;
     }
@@ -428,7 +429,7 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < scratch.Count && pushedCount < pushed.Length; i++)
         {
             var t = scratch[i];
-            if (t == null) continue;
+            if (t == null || t.GetComponent<IShipAttackTarget>() != null) continue; // never shove the boss
             Vector2 d = t.transform.position - at;
             float r = clapRadius + t.Radius;
             if (d.sqrMagnitude > r * r) continue;

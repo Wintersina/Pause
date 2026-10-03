@@ -534,6 +534,36 @@ public static class ShipAttacksTest
               boss.hits >= 2 && boss.weight <= 1f + 1e-4f && boss != null);
         Teardown(ufo);
 
+        // The real boss body: a registered hazard that BossTarget answers for.
+        FreshScene();
+        halo = Ship(4);
+        var body = Hazard(0f, 2f);
+        body.AddComponent<BossTarget>();
+        int kills = ShipAttackHits.Kills;
+        int bossHits = ShipAttackHits.AttackTargetHits;
+        halo.Runner.Fire();
+        Check("the boss body (BossTarget) takes the rail as a hit and survives",
+              body != null && ShipAttackHits.Kills == kills && ShipAttackHits.AttackTargetHits == bossHits + 1);
+        Teardown(halo);
+        Object.DestroyImmediate(body);
+
+        // No secret power touches the world speed (a boss holds it at 0.20).
+        bool speedHeld = true;
+        foreach (int id in ShipId.All)
+        {
+            FreshScene();
+            moveBackGround.speed = .2f;
+            collisionDetection.lifeCounter = 1;
+            var c = Ship(id);
+            c.Secret.SetMeter(SecretPowerController.Full);
+            c.Secret.Fire();
+            c.Secret.Step(.5f);
+            speedHeld &= Mathf.Approximately(moveBackGround.speed, .2f);
+            Teardown(c);
+            WorldTimeFx.Reset();
+        }
+        Check("no secret power changes the world speed", speedHeld);
+
         FreshScene();
         var warden = Ship(7);
         boss = Boss(0f, 1f);

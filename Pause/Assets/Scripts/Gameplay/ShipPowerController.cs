@@ -293,8 +293,8 @@ public class ShipPowerController : MonoBehaviour
     }
 
     // One homing shot landed. Through ShipAttackHits, like every attack: a
-    // hazard is destroyed, an IShipAttackTarget (the boss) takes one full
-    // hit instead.
+    // hazard is destroyed; the boss (BossTarget, an IShipAttackTarget) is
+    // hit, not destroyed, and one homing shot is one full ultimate hit.
     void HitTarget(GameObject target, Color tint)
     {
         if (target == null) return;
