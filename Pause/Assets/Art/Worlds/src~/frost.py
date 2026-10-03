@@ -1,18 +1,22 @@
-"""Frost: polar night, an undulating aurora curtain, flat cel ice ranges at
-two depths, a glacier river with travelling meltwater dashes, towering ice
-peaks, erupting ice geysers, snow gusts and drifting flakes."""
+"""Frost, seen from atmosphere level: a polar ice plain far below with
+distant hazed massifs and ice towers, a glacier-fed river valley, small
+far-off landmarks (valley glaciers, ice massifs, geysers), an aurora at the
+ship's altitude, and cloud cels / haze bands / snow passing close by."""
 import math
 import random
 
 from bgkit import (TAU, World, doc, blur, lin, wrap_y, PNoise, edge_range, peak, pts, ink_attr, grain_defs,
                    grain, jitter_ridge)
 from palette import FROST as P, BONE
+from altitude import hazed, cloud_cel, haze_band, scatter_peaks
 import space
 
 W, H = 512, 1024
 
 
 def sky():
+    """Deepest layer: the polar ice plain far below. Tiny crevasse lines,
+    pale pressure patches and a few snow glints; heavy aerial haze."""
     rnd = random.Random(21)
     s = P["sky"]
     defs = (lin("bg", [(0, s[0], 1), (0.25, s[1], 1), (0.5, s[2], 1), (0.75, s[3], 1), (1, s[4], 1)])
@@ -28,144 +32,114 @@ def sky():
                      f'<ellipse cx="{x:.0f}" cy="{y + dy:.0f}" rx="{rx:.0f}" ry="{ry:.0f}" fill="{c}" '
                      f'opacity="0.5" filter="url(#b50)"/>'))
     body.append(wrap_y(glow, H))
-    stars = []
-    for i in range(360):
+    patches = []
+    for i in range(70):
         x, y = rnd.uniform(0, W), rnd.uniform(0, H)
-        r = rnd.choice([0.5, 0.7, 0.9])
-        a = rnd.uniform(0.2, 0.6)
-        c = rnd.choice(P["stars"])
-        stars.append((y, lambda dy, x=x, y=y, r=r, a=a, c=c:
-                      f'<rect x="{x - r:.1f}" y="{y + dy - r:.1f}" width="{2 * r:.1f}" height="{2 * r:.1f}" '
-                      f'fill="{c}" opacity="{a:.2f}"/>'))
-    body.append(wrap_y(stars, H))
+        r = rnd.uniform(4, 12)
+        nv = rnd.randint(4, 6)
+        a0 = rnd.uniform(0, TAU)
+        k = [(x + r * math.cos(a0 + j * TAU / nv) * rnd.uniform(0.6, 1.2),
+              y + r * 0.7 * math.sin(a0 + j * TAU / nv) * rnd.uniform(0.6, 1.2)) for j in range(nv)]
+        patches.append((y, lambda dy, k=k: f'<polygon points="{pts([(px, py + dy) for px, py in k])}" '
+                        f'fill="{P["snowfield_hi"]}" opacity="0.7"/>'))
+    for i in range(60):
+        x, y = rnd.uniform(0, W), rnd.uniform(0, H)
+        seg = jitter_ridge(rnd, x, y, x + rnd.uniform(-30, 30), y + rnd.uniform(10, 30), 3, 3)
+        patches.append((y, lambda dy, seg=seg: f'<polyline transform="translate(0 {dy})" points="{pts(seg)}" '
+                        f'stroke="{P["vignette"]}" stroke-width="1" fill="none" opacity="0.7"/>'))
+    for i in range(120):
+        x, y = rnd.uniform(0, W), rnd.uniform(0, H)
+        patches.append((y, lambda dy, x=x, y=y, a=rnd.uniform(0.2, 0.5): f'<rect x="{x:.1f}" y="{y + dy:.1f}" '
+                        f'width="1.2" height="1.2" fill="{P["stars"][1]}" opacity="{a:.2f}"/>'))
+    body.append(wrap_y(patches, H))
     body.append(f'<rect width="{W}" height="{H}" fill="url(#vig)"/>')
     body.append(grain(W, H))
     return doc(W, H, "".join(body), defs)
 
 
-def tower(rnd, x, base, w, h, dy, side):
-    """Ice megastructure seen at a slant: flat face, one shadow side, a
-    pale kick on the slanted roof and a few sparse amber windows."""
-    slant = h * 0.06 * (1 if side == 0 else -1)
-    top_l, top_r = base - h - (slant if slant > 0 else 0), base - h + (slant if slant < 0 else 0)
-    face = [(x, base + dy), (x, top_l + dy), (x + w, top_r + dy), (x + w, base + dy)]
-    sw = w * 0.32
-    shade = [(x + w - sw, base + dy), (x + w - sw, top_r + dy + (top_l - top_r) * sw / w), (x + w, top_r + dy),
-             (x + w, base + dy)]
-    s = [f'<polygon points="{pts(face)}" fill="{P["tower"]}"/>',
-         f'<polygon points="{pts(shade)}" fill="{P["tower_dark"]}"/>',
-         f'<polyline points="{x + 1:.1f},{top_l + dy + 2:.1f} {x + w - 1:.1f},{top_r + dy + 2:.1f}" '
-         f'stroke="{P["tower_kick"]}" stroke-width="3" fill="none"/>',
-         f'<polygon points="{pts(face)}" fill="none" {ink_attr(2)}/>']
-    for i in range(int(h / 26)):
-        if rnd.random() < 0.35:
-            wx = x + rnd.uniform(4, w - sw - 8)
-            wy = base + dy - rnd.uniform(10, h - 16)
-            s.append(f'<rect x="{wx:.1f}" y="{wy:.1f}" width="4" height="5" fill="{P["window"]}"/>')
-    return "".join(s)
-
-
 def far():
-    """Ice towers along both edges (a Neo-Tokyo of ice), stacked so lower
-    (nearer) ones overlap the bases of higher ones."""
+    """Distant massifs and a few tiny ice towers, small and heavily hazed."""
     rnd = random.Random(31)
-    items = []
-    for side in (0, 1):
-        for i in range(9):
-            y = (i + rnd.uniform(-0.2, 0.2)) * H / 9
-            w = rnd.uniform(34, 60)
-            h = rnd.uniform(120, 220)
-            reach = rnd.uniform(70, 165)
-            x = (reach - w) if side == 0 else (W - reach)
-            items.append((y + h * 0.4, lambda dy, x=x, y=y, w=w, h=h, side=side, seed=rnd.random():
-                          tower(random.Random(seed), x, y + h * 0.4, w, h, dy, side)))
-    # A dark ice shelf ties the bases together along each edge.
-    shelves = []
-    for side in (0, 1):
-        ys = [H * k / 24 for k in range(25)]
-        xs = [52 + 16 * ((k * 7919) % 5) / 4 for k in range(25)]
-        xs[-1] = xs[0]
-        if side == 0:
-            shape = [(-10, -10)] + list(zip(xs, ys)) + [(-10, H + 10)]
-        else:
-            shape = [(W + 10, -10)] + [(W - x, y) for x, y in zip(xs, ys)] + [(W + 10, H + 10)]
-        shelves.append(f'<polygon points="{pts(shape)}" fill="{P["far"]["dark"]}" {ink_attr(2)}/>')
-    return doc(W, H, wrap_y(items, H) + "".join(shelves), "")
+    d, b = scatter_peaks(rnd, W, H, P["far"], 26, 26, 54, cap=0.38, ink=1.2)
+    towers = []
+    for i in range(10):
+        x, y = rnd.uniform(20, W - 20), rnd.uniform(0, H)
+        n = rnd.randint(2, 4)
+        for j in range(n):
+            tw = rnd.uniform(5, 9)
+            th = rnd.uniform(14, 34)
+            tx = x + j * (tw + 2)
+            towers.append((y, lambda dy, tx=tx, y=y, tw=tw, th=th, lit=rnd.random() < 0.6:
+                           f'<polygon points="{tx:.1f},{y + dy:.1f} {tx:.1f},{y + dy - th:.1f} {tx + tw:.1f},{y + dy - th - 2:.1f} '
+                           f'{tx + tw:.1f},{y + dy:.1f}" fill="{P["tower"]}" {ink_attr(1)}/>'
+                           + (f'<rect x="{tx + 2:.1f}" y="{y + dy - th * 0.6:.1f}" width="1.6" height="2" fill="{P["window"]}"/>'
+                              if lit else "")))
+    hd, hb = hazed(b + wrap_y(towers, H), P["air"], 0.45)
+    return doc(W, H, hb, d + hd)
 
 
 def river_geom():
     rnd = random.Random(41)
     n1, n2 = PNoise(rnd), PNoise(rnd)
-    return (lambda y: W / 2 + 12 * n1(y / H)), (lambda y: 64 + 12 * n2(y / H))
+    return (lambda y: W / 2 + 9 * n1(y / H)), (lambda y: 22 + 4 * n2(y / H))
 
 
 def mid():
+    """The valley far below: a glacier-fed river between snowfields, small
+    peaks along both edges. Moderate haze."""
     rnd = random.Random(51)
     cxf, hwf = river_geom()
     ys = [H * i / 48 for i in range(49)]
     body = []
-    # Snowfields either side of the glacier, ink-edged.
-    bl = [(cxf(y) - hwf(y) - 70 - 20 * math.sin(y / H * TAU * 3), y) for y in ys]
-    br = [(cxf(y) + hwf(y) + 70 + 20 * math.sin(y / H * TAU * 2 + 1), y) for y in ys]
+    bl = [(cxf(y) - hwf(y) - 34 - 10 * math.sin(y / H * TAU * 3), y) for y in ys]
+    br = [(cxf(y) + hwf(y) + 34 + 10 * math.sin(y / H * TAU * 2 + 1), y) for y in ys]
     body.append(f'<polygon points="{pts(bl + list(reversed(br)))}" fill="{P["snowfield"]}"/>')
     for side in (bl, br):
-        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(2.5)}/>')
-    drifts = []
-    for i in range(30):
-        y = rnd.uniform(0, H)
-        sd = rnd.choice((-1, 1))
-        x = cxf(y) + sd * (hwf(y) + rnd.uniform(16, 60))
-        L = rnd.uniform(20, 50)
-        drifts.append((y, lambda dy, x=x, y=y, L=L: f'<polygon points="{x - 6:.1f},{y + dy:.1f} {x:.1f},{y + dy - L / 2:.1f} '
-                       f'{x + 6:.1f},{y + dy:.1f} {x:.1f},{y + dy + L / 2:.1f}" fill="{P["snowfield_hi"]}"/>'))
-    body.append(wrap_y(drifts, H))
+        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(1.6)}/>')
     left = [(cxf(y) - hwf(y), y) for y in ys]
     right = [(cxf(y) + hwf(y), y) for y in ys]
     body.append(f'<polygon points="{pts(left + list(reversed(right)))}" fill="{P["ice"]}"/>')
-    # One shadow plane: the shaded right bank of the channel.
-    sh = [(cxf(y) + hwf(y) * 0.45, y) for y in ys]
+    sh = [(cxf(y) + hwf(y) * 0.4, y) for y in ys]
     body.append(f'<polygon points="{pts(sh + list(reversed(right)))}" fill="{P["ice_shadow"]}"/>')
     plates = []
-    for i in range(34):
+    for i in range(40):
         y = rnd.uniform(0, H)
-        x = cxf(y) + rnd.uniform(-0.75, 0.75) * hwf(y)
-        r = rnd.uniform(6, 14)
-        nv = rnd.randint(4, 6)
-        a0 = rnd.uniform(0, TAU)
-        k = [(x + r * math.cos(a) * rnd.uniform(0.6, 1.2), y + r * 1.4 * math.sin(a) * rnd.uniform(0.6, 1.2))
-             for a in [a0 + j * TAU / nv for j in range(nv)]]
+        x = cxf(y) + rnd.uniform(-0.6, 0.6) * hwf(y)
+        r = rnd.uniform(2.5, 5)
+        k = [(x - r, y), (x, y - r * 1.3), (x + r, y), (x, y + r * 1.3)]
         plates.append((y, lambda dy, k=k: f'<polygon points="{pts([(px, py + dy) for px, py in k])}" '
-                       f'fill="{P["ice_plate"]}" {ink_attr(1.5)}/>'))
+                       f'fill="{P["ice_plate"]}" {ink_attr(0.8)}/>'))
     body.append(wrap_y(plates, H))
     for side in (left, right):
-        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(3)}/>')
+        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(1.8)}/>')
     pines = []
-    for i in range(80):
+    for i in range(140):
         y = rnd.uniform(0, H)
         sd = rnd.choice((-1, 1))
-        x = cxf(y) + sd * (hwf(y) + rnd.uniform(20, 66))
-        s = rnd.uniform(5, 9)
+        x = cxf(y) + sd * (hwf(y) + rnd.uniform(8, 36))
+        s = rnd.uniform(2, 3.5)
         pines.append((y, lambda dy, x=x, y=y, s=s: f'<polygon points="{x:.1f},{y + dy - s * 2:.1f} '
                       f'{x - s * 0.6:.1f},{y + dy:.1f} {x + s * 0.6:.1f},{y + dy:.1f}" fill="{P["pine"]}"/>'))
     body.append(wrap_y(pines, H))
-    d, b = edge_range(rnd, W, H, P["near"], 6, 130, 200, 130, 210, 118, cap=0.36, rim=P["rim"], ink=3,
+    d, b = edge_range(rnd, W, H, P["near"], 12, 50, 84, 40, 70, 100, cap=0.4, rim=P["rim"], ink=1.4,
                       foot=P["near"]["dark"])
-    return doc(W, H, "".join(body) + b, d)
+    hd, hb = hazed("".join(body) + b, P["air"], 0.25)
+    return doc(W, H, hb, d + hd)
 
 
 def flow():
-    """Meltwater highlight dashes over the river core (128 px strip). It
-    scrolls faster than the river so the dashes read as flowing."""
+    """Meltwater dashes on the river core (128 px strip; river half-width
+    ~22 px, meander +-9, so dashes stay within +-9 of the centre)."""
     w = 128
     rnd = random.Random(61)
     items = []
-    for i in range(30):
-        x = rnd.uniform(40, 88)
+    for i in range(36):
+        x = rnd.uniform(56, 72)
         y = rnd.uniform(0, H)
-        L = rnd.uniform(14, 44)
+        L = rnd.uniform(6, 16)
         items.append((y, lambda dy, x=x, y=y, L=L:
-                      f'<rect x="{x - 1.6:.1f}" y="{y + dy - L / 2:.1f}" width="3.2" height="{L:.1f}" '
-                      f'fill="{P["water_dash"]}" opacity="0.8"/>'))
+                      f'<rect x="{x - 1:.1f}" y="{y + dy - L / 2:.1f}" width="2" height="{L:.1f}" '
+                      f'fill="{P["water_dash"]}" opacity="0.7"/>'))
     return doc(w, H, wrap_y(items, H), "")
 
 
@@ -198,16 +172,6 @@ def aurora(phase, w=508, h=200, seed=71):
                     f'opacity="{0.25 + 0.6 * k:.2f}"/>')
     body.append(f'<polyline points="{pts(curve)}" stroke="{P["aurora_core"]}" stroke-width="2.5" fill="none" opacity="0.7"/>')
     return doc(w, h, f'<g mask="url(#ends)">{"".join(body)}</g>', defs)
-
-
-def ice_peak(seed):
-    rnd = random.Random(seed)
-    w, h = 300, 300
-    # Skirt slopes off the sprite's left edge; the director places the
-    # sprite against a screen edge (mirrored on the right).
-    d, b = peak(rnd, w * 0.55, h * 0.62, w * 0.8, h * 0.58, P["big"], cap=0.42, rim=P["rim"], ink=4,
-                side=0, skirt=0.62)
-    return doc(w, h, b, d)
 
 
 def geyser(phase):
@@ -243,18 +207,71 @@ def geyser(phase):
     return doc(w, h, "".join(body))
 
 
-def snow_gust(seed):
-    """A gust of wind-blown snow: tapered hard streaks, no soft blobs."""
-    rnd = random.Random(seed)
-    w, h = 256, 128
+def glacier(phase):
+    """A valley glacier seen from altitude: an ice tongue flowing down
+    between two inked rock ridges, chevron crevasses, a dark medial
+    moraine, an ice-cliff snout and a meltwater lake whose dashes flow
+    (4 frames). One shadow + one highlight tone per form; hazed."""
+    w, h = 256, 256
+    lr = [(0, 14), (58, 0), (90, 40), (80, 110), (96, 176), (74, 214), (40, 256), (0, 256)]
+    rr = [(256, 24), (196, 0), (166, 50), (178, 120), (156, 182), (184, 220), (214, 256), (256, 256)]
+    tl = [(76, 0), (96, 46), (86, 112), (100, 176), (112, 200)]
+    tr = [(184, 0), (164, 52), (176, 120), (154, 180), (144, 200)]
+    tongue = tl + list(reversed(tr))
     g = []
-    for i in range(16):
-        y = rnd.uniform(20, 108)
-        x0 = rnd.uniform(0, 120)
-        L = rnd.uniform(60, 130)
-        g.append(f'<polygon points="{x0:.0f},{y:.0f} {x0 + L:.0f},{y - 1.5:.0f} {x0 + L + 6:.0f},{y:.0f} {x0 + L:.0f},{y + 1.5:.0f}" '
-                 f'fill="{BONE}" opacity="{rnd.uniform(0.4, 0.9):.2f}"/>')
-    return doc(w, h, "".join(g))
+    # rock ridges: base, one shadow plane, snow kick on the crest
+    g.append(f'<polygon points="{pts(lr)}" fill="{P["big"]["lit"]}"/>')
+    g.append(f'<polygon points="{pts([(58, 0), (90, 40), (80, 110), (96, 176), (74, 214), (60, 214), (66, 120), (70, 40)])}" '
+             f'fill="{P["big"]["dark"]}"/>')
+    g.append(f'<polygon points="{pts([(10, 14), (58, 2), (70, 22), (40, 26)])}" fill="{P["big"]["cap"]}"/>')
+    g.append(f'<polygon points="{pts(rr)}" fill="{P["big"]["dark"]}"/>')
+    g.append(f'<polygon points="{pts([(196, 0), (166, 50), (178, 120), (196, 118), (186, 52), (214, 6)])}" fill="{P["big"]["lit"]}"/>')
+    g.append(f'<polygon points="{pts([(196, 2), (240, 22), (220, 30), (188, 22)])}" fill="{P["big"]["cap_dark"]}"/>')
+    # ice tongue
+    g.append(f'<polygon points="{pts(tongue)}" fill="{P["big"]["cap"]}"/>')
+    g.append(f'<polygon points="{pts([(150, 0), (184, 0), (164, 52), (176, 120), (154, 180), (144, 200), (132, 200), (150, 120), (140, 50)])}" '
+             f'fill="{P["big"]["cap_dark"]}"/>')
+    g.append(f'<polygon points="{pts([(80, 0), (96, 0), (106, 46), (96, 112), (106, 170), (100, 176), (86, 112), (96, 46)])}" '
+             f'fill="{P["ice_hi"]}"/>')
+    # crevasses: chevrons pointing downstream
+    for y in (26, 54, 82, 112, 140, 164):
+        cx = 130 + 4 * math.sin(y * 0.07)
+        half = 30 - y * 0.08
+        g.append(f'<polyline points="{cx - half:.0f},{y - 6} {cx:.0f},{y + 4} {cx + half:.0f},{y - 6}" fill="none" '
+                 f'{ink_attr(1.8)}/>')
+    g.append(f'<polyline points="130,0 126,60 134,120 128,190" fill="none" stroke="{P["big"]["dark"]}" stroke-width="3" '
+             f'stroke-dasharray="10 6"/>')
+    # snout: ice cliff
+    snout = [(100, 176), (112, 200), (120, 194), (128, 204), (136, 194), (144, 200), (154, 180)]
+    g.append(f'<polygon points="{pts(snout + [(154, 210), (100, 210)])}" fill="{P["geyser_shadow"]}"/>')
+    # meltwater lake
+    lake = [(96, 208), (160, 206), (176, 230), (150, 248), (106, 246), (88, 228)]
+    g.append(f'<polygon points="{pts(lake)}" fill="{P["lake"]}"/>')
+    ink = (f'<polygon points="{pts(lr)}" fill="none" {ink_attr(3)}/>'
+           f'<polygon points="{pts(rr)}" fill="none" {ink_attr(3)}/>'
+           f'<polygon points="{pts(tongue)}" fill="none" {ink_attr(3)}/>'
+           f'<polyline points="{pts(snout)}" fill="none" {ink_attr(2.5)}/>'
+           f'<polygon points="{pts(lake)}" fill="none" {ink_attr(2.5)}/>')
+    d, body = hazed("".join(g) + ink, P["air"], 0.3)
+    k = int(phase * 4)
+    lights = []
+    for i, (x, y) in enumerate([(108, 222), (126, 230), (144, 220), (118, 238), (140, 236)]):
+        if (i + k) % 2 == 0:
+            lights.append(f'<rect x="{x}" y="{y - 1}" width="8" height="2" fill="{P["water_dash"]}" opacity="0.8"/>')
+    return doc(w, h, body + "".join(lights), d)
+
+
+def massif(seed):
+    """A cluster of three ice peaks with one snow cap each, seen far off."""
+    rnd = random.Random(seed)
+    w, h = 256, 200
+    ds, bs = [], []
+    for cx, base, pw, ph in [(150, 190, 170, 150), (78, 196, 130, 110), (206, 198, 110, 90)]:
+        d, b = peak(rnd, cx, base, pw, ph, P["big"], cap=0.42, rim=P["rim"], ink=3)
+        ds.append(d)
+        bs.append(b)
+    hd, hb = hazed("".join(bs), P["air"], 0.3)
+    return doc(w, h, hb, "".join(ds) + hd)
 
 
 def build():
@@ -264,11 +281,13 @@ def build():
     w.tile("mid", mid())
     w.tile("flow", flow())
     w.flipbook("anim", "aurora", 8, aurora)
-    w.sprite("fx", "peak0", ice_peak(3))
-    w.sprite("fx", "peak1", ice_peak(8))
-    w.sprite("fx", "peak2", ice_peak(17))
-    w.flipbook("fx", "geyser", 8, geyser)
-    w.sprite("fx", "cloud", snow_gust(4))
+    w.flipbook("fx", "glacier", 4, glacier)
+    w.sprite("fx", "massif0", massif(3))
+    w.sprite("fx", "massif1", massif(17))
+    w.flipbook("fx", "geyser", 8, geyser, size=(48, 96))
+    w.sprite("fx", "cloud0", cloud_cel(4, P["cloud"], P["cloud_shadow"]))
+    w.sprite("fx", "cloud1", cloud_cel(9, P["cloud"], P["cloud_shadow"]))
+    w.sprite("fx", "haze", haze_band(P["band"]), size=(256, 48))
     w.sprite("fx", "star", space.star_sprite())
     w.sprite("fx", "dot", space.soft_dot())
     w.sprite("fx", "streak", space.streak())
@@ -276,22 +295,22 @@ def build():
 
 
 def preview(t):
-    v = 30 * (0.15 + 0.25)
+    v = 30 * (0.2 + 0.25)
     fr = lambda n, fps: int(t * fps) % n
-    c = [("tile", "sky", t * v * 0.010, 1, (1, 1, 1, 1)),
-         ("tile", "far", t * v * 0.04, 1, (1, 1, 1, 1)),
-         ("tile", "mid", t * v * 0.10, 1, (1, 1, 1, 1)),
-         ("strip", "flow", t * v * 0.10 + t * 1.6, 0.25, 1)]
-    c.append(("sprite", "fx", f"geyser_{fr(8, 9):02d}", -1.3, 7 - (t * v * 0.10) % 14, 0.85, 0, (0.7, 0.88, 1, 0.8), False))
-    c.append(("sprite", "fx", "peak0", -1.6, 7 - (t * v * 0.16 + 3) % 16, 2.9, 0, (1, 1, 1, 1), False))
-    c.append(("sprite", "fx", "peak2", 1.6, 7 - (t * v * 0.16 + 10) % 16, 2.6, 0, (1, 1, 1, 1), True))
-    c.append(("sprite", "anim", f"aurora_{fr(8, 8):02d}", 0.0, 7 - (t * v * 0.22 + 4) % 18, 6.2, -8, (0.75, 0.9, 0.9, 0.6), False))
+    c = [("tile", "sky", t * v * 0.006, 1, (1, 1, 1, 1)),
+         ("tile", "far", t * v * 0.014, 1, (1, 1, 1, 1)),
+         ("tile", "mid", t * v * 0.024, 1, (1, 1, 1, 1)),
+         ("strip", "flow", t * v * 0.024 + t * 0.35, 0.25, 1)]
+    c.append(("sprite", "fx", f"geyser_{fr(8, 9):02d}", -1.0, 4 - (t * v * 0.026) % 10, 0.35, 0, (0.7, 0.88, 1, 0.8), False))
+    c.append(("sprite", "fx", f"glacier_{fr(4, 4):02d}", 1.3, 2.5 - (t * v * 0.034) % 12, 1.5, 0, (1, 1, 1, 1), False))
+    c.append(("sprite", "fx", "massif0", -1.4, -1.5 - (t * v * 0.034) % 12 + 6, 1.4, 0, (1, 1, 1, 1), False))
+    c.append(("sprite", "anim", f"aurora_{fr(8, 8):02d}", 0.0, 6 - (t * v * 0.06 + 2) % 16, 6.2, -8, (0.75, 0.9, 0.9, 0.5), False))
+    c.append(("sprite", "fx", "haze", 0.0, 6 - (t * v * 0.12) % 14, 7.0, 0, (1, 1, 1, 0.35), False))
+    c.append(("sprite", "fx", "cloud0", 0.8, 7 - (t * v * 0.3 + 5) % 20, 2.4, 0, (1, 1, 1, 0.35), False))
     for i in range(26):
         x = ((i * 0.618 + 0.3 * math.sin(t * 0.8 + i)) % 1) * 5 - 2.5
         y = (((i * 0.377) % 1) * 13 - t * (0.6 + v * 0.5)) % 13 - 6.5
         c.append(("sprite", "fx", "dot", x, y, 0.07 + 0.04 * (i % 3), 0, (0.8, 0.9, 1, 0.5), False))
     return c
-
-
 if __name__ == "__main__":
     build()
