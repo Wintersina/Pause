@@ -85,16 +85,12 @@ public static class PowerFx
         Runner.StartCoroutine(HomeTo(go, target, seconds, onHit, 0));
     }
 
+    // The ultimate's per-ship homing shot: pooled, drawn from that ship's
+    // weapon atlas, with its light-streak trail and impact (WeaponFx).
     public static void HomingProjectile(Vector3 from, Transform target, Color tint,
                                         int shipIndex, float seconds, System.Action onHit)
     {
-        var go = Piece("vfx_spark_05", from, tint, .72f);
-        var sr = go.GetComponent<SpriteRenderer>();
-        var custom = UltimateProjectileArt.ForShip(shipIndex);
-        if (custom != null) sr.sprite = custom;
-        var animation = go.AddComponent<UltimateProjectileAnimator>();
-        animation.shipIndex = shipIndex;
-        Runner.StartCoroutine(HomeTo(go, target, seconds, onHit, shipIndex));
+        WeaponFx.Launch(shipIndex, from, target, seconds, onHit);
     }
 
     public static void Burst(Vector3 at, Color tint, int count = 10)
