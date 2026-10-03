@@ -37,12 +37,10 @@ public static class NextFeatures0907Test
         Check("player cannot move below the gameplay floor", movePlayer.ClampPlayerY(-99f) >= -4.15f);
         Check("the first launch touch does not spend a pause", !score.ShouldSpendPause(false, false));
         Check("a later pause-resume touch spends exactly one pause", score.ShouldSpendPause(true, false));
-        Check("custom ultimate projectile atlas is present",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/ultimate_projectiles_atlas.png") != null);
-        Check("ultimate projectile animator has per-ship style slots",
-              typeof(UltimateProjectileAnimator).GetField("shipIndex") != null);
-        Check("ultimate projectile art exposes four flowing sprite frames",
-              typeof(UltimateProjectileArt).GetMethod("FrameForShip") != null);
+        Check("per-ship weapon atlases are present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Weapons/NeonComet.png") != null);
+        Check("ultimate shots have a four-frame flight loop plus smear frames",
+              WeaponArt.Shot(1, 0) != null && WeaponArt.Shot(1, WeaponArt.ShotLoopFrames) != null);
         Check("matching green heal-atom sprite is present",
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Pickups/heal_atom_green.png") != null);
         Check("green heal atom targets the authored 28px pickup size",
@@ -295,7 +293,7 @@ public static class NextFeatures0907Test
         Check("roster has several companion hover patterns",
               UltimateGun.HoverModeFor(1) != UltimateGun.HoverModeFor(2) &&
               UltimateGun.HoverModeFor(2) != UltimateGun.HoverModeFor(3));
-        Check("power charge indicator is attached", shipGo.GetComponent<PowerReadyIndicator>() != null);
+        Check("power charge indicator is attached", shipGo.GetComponent<ChargeIndicator>() != null);
         Vector3 bentHeading = PowerFx.SteerHeading(Vector3.up, Vector3.right, 180f, .25f);
         Check("homing projectile bends toward a moving side target",
               bentHeading.x > .1f && bentHeading.y > .1f);
