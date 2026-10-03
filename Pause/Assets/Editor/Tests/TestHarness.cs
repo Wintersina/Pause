@@ -150,6 +150,10 @@ public static class TestHarness
         keys.Add(CloudSync.LocalHashKey);
         keys.Add(CloudSync.BackupsKey);
 
+        // Leaderboard queue (device-local).
+        keys.Add(LeaderboardService.PendingKey);
+        keys.Add(LeaderboardService.SubmittedKey);
+
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string>
         {
