@@ -152,6 +152,28 @@ public static class NextFeatures0907Test
 
         Check("replay clone is anchored top-right", replay.GetComponent<RectTransform>().anchorMin == new Vector2(1f, 1f));
 
+        // Icons: matched square SVG-sourced sprites, never stretched.
+        foreach (var (action, path) in new[] { (replay, PauseQuickActions.ReplayIconPath), (leave, PauseQuickActions.HomeIconPath) })
+        {
+            var img = action.GetComponent<UnityEngine.UI.Image>();
+            var expected = Resources.Load<Sprite>(path);
+            Check(action.name + " icon sprite loads from Resources", expected != null);
+            Check(action.name + " uses the SVG-sourced icon", img != null && expected != null && img.sprite == expected);
+            Check(action.name + " preserves aspect", img != null && img.preserveAspect);
+            var size = action.GetComponent<RectTransform>().sizeDelta;
+            Check(action.name + " is a square tap target of ButtonSize", size == new Vector2(PauseQuickActions.ButtonSize, PauseQuickActions.ButtonSize));
+            if (expected != null)
+            {
+                Check(action.name + " sprite is square", Mathf.Approximately(expected.rect.width, expected.rect.height));
+                Check(action.name + " texture has no mipmaps", expected.texture.mipmapCount == 1);
+            }
+        }
+        var rRect = replay.GetComponent<RectTransform>();
+        var lRect = leave.GetComponent<RectTransform>();
+        Check("home icon sits left of replay without overlap",
+              lRect.anchoredPosition.x + 0.01f < rRect.anchoredPosition.x - PauseQuickActions.ButtonSize);
+        Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
+
         var replayButton = replay.GetComponent<UnityEngine.UI.Button>();
         bool wiredToReplay = false;
         for (int i = 0; i < replayButton.onClick.GetPersistentEventCount(); i++)
