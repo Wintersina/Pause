@@ -224,7 +224,7 @@ public static class ShipSelectionTest
                   prefab.name == "ship" + (id <= 7 ? id : 1));
         }
         Check("Turtle's art is not shadowed by the Turtle prefab in Resources",
-              Resources.Load<Texture2D>("ShipArt/Originals/Turtle") != null &&
+              Resources.Load<Texture2D>(ShipHullArt.Folder + "Turtle") != null &&
               IsArtOf(shopingShips.SpriteFor(ShipId.FromKey("Turtle")), 15));
         Check("an object's id comes from its name",
               ShipId.Of(new GameObject("ship12(Clone)")) == 12 && ShipId.Of(new GameObject("ship3")) == 3 &&

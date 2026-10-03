@@ -57,8 +57,9 @@ public static class DockArt
         return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
-    public static readonly Color Cyan = new Color(.18f, .9f, 1f);
-    public static readonly Color Gold = new Color(1f, .79f, .26f);
-    public static readonly Color Ink = new Color(.024f, .133f, .227f);
-    public static readonly Color Warn = new Color(1f, .38f, .52f);
+    // Akira palette (docs/art-style.md): CYAN neon, AMBER star dust, INK, RED_HI warnings.
+    public static readonly Color Cyan = AkiraPalette.Cyan;
+    public static readonly Color Gold = AkiraPalette.Amber;
+    public static readonly Color Ink = AkiraPalette.Ink;
+    public static readonly Color Warn = AkiraPalette.RedHi;
 }

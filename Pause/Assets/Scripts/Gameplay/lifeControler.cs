@@ -17,6 +17,9 @@ public class lifeControler : MonoBehaviour {
     // tell a dock ship apart from a live one. Scene name can.
     private bool isLiveGameplay;
 
+    // Idle loop, bank pose and hit flash (ShipHullArt flipbook).
+    private ShipHullAnimator hullAnimator;
+
     // Use this for initialization
     void Start() {
 
@@ -52,6 +55,8 @@ public class lifeControler : MonoBehaviour {
         // fire/spark ShipDamageFx in the first place.
         string sceneName = SceneManager.GetActiveScene().name;
         isLiveGameplay = sceneName == "gameS1" || sceneName == "tutorialS5";
+        hullAnimator = new ShipHullAnimator(shipIndex, transform,
+                                            isLiveGameplay ? collisionDetection.lifeCounter : 0);
 
         if (isLiveGameplay && GetComponent<ShipDamageFx>() == null)
             gameObject.AddComponent<ShipDamageFx>();
@@ -87,8 +92,13 @@ public class lifeControler : MonoBehaviour {
         if (img == null || img.Length == 0) return;
         int life = isLiveGameplay ? collisionDetection.lifeCounter : 0;
         int frame = Mathf.Clamp(life, 0, img.Length - 1);
-        int idleFrame = Mathf.FloorToInt(Time.unscaledTime * 8f) % 3;
-        Sprite animated = shopingShips.IdleSpriteFor(currentShipIndex, frame, idleFrame);
+        Sprite animated = null;
+        if (hullAnimator != null)
+        {
+            // Scaled time: the hull freezes with the world at timeScale 0.
+            hullAnimator.Step(Time.deltaTime, Time.unscaledDeltaTime, life);
+            animated = hullAnimator.Current(frame);
+        }
         spriteControl.sprite = animated != null ? animated : img[frame];
 
         // Damage is communicated by the animated fire, smoke and impact layer.

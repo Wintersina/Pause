@@ -13,22 +13,30 @@ using UnityEngine.UI;
 // Purely presentational: it never changes what the numbers say.
 public class HudStyler : MonoBehaviour
 {
-    static readonly Color Speed = new Color(0.53f, 0.85f, 1f);
-    static readonly Color Dust = new Color(1f, 0.79f, 0.26f);
-    static readonly Color Pause = new Color(0.62f, 1f, 0.70f);
-    static readonly Color PauseLow = new Color(1f, 0.42f, 0.38f);
+    // Akira palette (docs/art-style.md, art-samples/ui_hud.png): CYAN speed,
+    // AMBER star dust, Kaneda red pauses that blink BONE when nearly out.
+    static readonly Color Speed = AkiraPalette.Cyan;
+    static readonly Color Dust = AkiraPalette.Amber;
+    static readonly Color Pause = AkiraPalette.RedHi;
+    static readonly Color PauseLow = AkiraPalette.Bone;
+    static readonly Color MeterOn = AkiraPalette.Red;
+    static readonly Color MeterOff = AkiraPalette.WithAlpha(AkiraPalette.Indigo1, .9f);
 
-    // Synthwave panel behind the read-out, matching the quick-action icons'
-    // plate (deep violet) and neon rim (magenta). Kept translucent so the
-    // starfield still reads through.
-    static readonly Color PanelFill = new Color(0.06f, 0.02f, 0.15f, 0.62f);
-    static readonly Color PanelRim = new Color(1f, 0.31f, 0.69f, 0.9f);
-    // Ink outline behind the text: a very dark violet rather than pure black,
-    // so it reads as part of the neon palette while keeping the contrast.
-    static readonly Color TextInk = new Color(0.04f, 0f, 0.1f, 0.92f);
+    // The panel is a chamfered NIGHT plate with an INK contour and the red
+    // title-card tab (Art/UI/Hud/src~/hud_panel.svg), drawn final.
+    const string PanelSprite = "Hud/hud_panel";
+    const string MeterSprite = "Hud/hud_meter";
+    static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
     Text speedText, dustText, pauseText;
     Image pauseBar;
+    Image pauseBarBack;
+
+    // Reactive motion (unscaled: the HUD lives on through the freeze).
+    // A stat that changes snaps to a punch pose for a couple of ticks.
+    int lastPauses = int.MinValue;
+    float lastDust = float.NaN;
+    float pausePunchAt = -1f, dustPunchAt = -1f;
 
     // The read-out's root: the child of the HUD's root canvas that holds the
     // stats (gameS1 "Model Panel", tutorialS5 "Panel").
@@ -54,7 +62,13 @@ public class HudStyler : MonoBehaviour
         Style(dustText, Dust, 26);
         Style(pauseText, Pause, 30);
 
-        if (pauseText != null) pauseBar = BuildPauseBar(pauseText);
+        if (pauseText != null)
+        {
+            pauseBarBack = BuildPauseBar(pauseText, "PauseBarBack");
+            pauseBarBack.fillAmount = 1f;
+            pauseBarBack.color = MeterOff;
+            pauseBar = BuildPauseBar(pauseText, "PauseBar");
+        }
 
         hudRoot = FindHudRoot(speedText ?? dustText ?? pauseText, out hudCanvas);
         if (hudRoot != null)
@@ -188,40 +202,17 @@ public class HudStyler : MonoBehaviour
     {
         var image = panel.GetComponent<Image>();
         if (image == null) return;
-        image.color = PanelFill;
-        if (panel.Find(RimName) != null) return;
-
-        // A thin magenta neon rim, like the quick-action plates: four edge
-        // strips (not an Outline effect, whose offset copies would tint the
-        // translucent fill), ignored by any layout group on the panel.
-        var rim = new GameObject(RimName, typeof(RectTransform), typeof(LayoutElement));
-        rim.GetComponent<LayoutElement>().ignoreLayout = true;
-        var rimRt = (RectTransform)rim.transform;
-        rimRt.SetParent(panel, false);
-        rimRt.anchorMin = Vector2.zero;
-        rimRt.anchorMax = Vector2.one;
-        rimRt.offsetMin = rimRt.offsetMax = Vector2.zero;
-        Edge(rimRt, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -RimWidth), Vector2.zero);
-        Edge(rimRt, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, RimWidth));
-        Edge(rimRt, new Vector2(0f, 0f), new Vector2(0f, 1f), Vector2.zero, new Vector2(RimWidth, 0f));
-        Edge(rimRt, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-RimWidth, 0f), Vector2.zero);
-    }
-
-    const string RimName = "NeonRim";
-    const float RimWidth = 2.5f;
-
-    static void Edge(RectTransform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
-    {
-        var go = new GameObject("Edge", typeof(RectTransform), typeof(Image));
-        var rt = (RectTransform)go.transform;
-        rt.SetParent(parent, false);
-        rt.anchorMin = anchorMin;
-        rt.anchorMax = anchorMax;
-        rt.offsetMin = offsetMin;
-        rt.offsetMax = offsetMax;
-        var img = go.GetComponent<Image>();
-        img.color = PanelRim;
-        img.raycastTarget = false;
+        var sprite = Resources.Load<Sprite>(PanelSprite);
+        if (sprite != null)
+        {
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
+        }
+        else
+        {
+            image.color = AkiraPalette.WithAlpha(AkiraPalette.Night1, .88f);
+        }
     }
 
     static Text Find(string name)
@@ -244,6 +235,15 @@ public class HudStyler : MonoBehaviour
         outline.effectDistance = new Vector2(2f, -2f);
     }
 
+    // Stepped punch: 1 tick big, 2 ticks small, then rest (24 fps ticks).
+    static void Punch(RectTransform rt, float since)
+    {
+        if (rt == null) return;
+        float k = since < 0f ? 99f : since * 24f;
+        float s = k < 1f ? 1.18f : k < 3f ? .94f : 1f;
+        if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
+    }
+
     // A thin depleting bar under the pause counter, so the most important
     // number is readable at a glance instead of being parsed as text.
     //
@@ -255,9 +255,9 @@ public class HudStyler : MonoBehaviour
     // and the two overlapped. Contained within the bottom of PauseCounter's
     // own allocated rect instead, it cannot spill into whatever the layout
     // group stacks next, on any screen size.
-    static Image BuildPauseBar(Text anchor)
+    static Image BuildPauseBar(Text anchor, string name)
     {
-        var holder = new GameObject("PauseBar", typeof(Image));
+        var holder = new GameObject(name, typeof(Image));
         holder.transform.SetParent(anchor.transform, false);
 
         var rt = holder.GetComponent<RectTransform>();
@@ -267,7 +267,8 @@ public class HudStyler : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         var img = holder.GetComponent<Image>();
-        img.color = Pause;
+        img.sprite = Resources.Load<Sprite>(MeterSprite);
+        img.color = MeterOn;
         img.raycastTarget = false;
         img.type = Image.Type.Filled;
         img.fillMethod = Image.FillMethod.Horizontal;
@@ -286,15 +287,21 @@ public class HudStyler : MonoBehaviour
         {
             int left = Mathf.Max(0, score.pauseCounter);
             bool low = left <= 1;
+            float now = Time.unscaledTime;
+            if (lastPauses != int.MinValue && left != lastPauses) pausePunchAt = now;
+            lastPauses = left;
 
-            pauseText.color = low ? PauseLow : Pause;
+            // Nearly out: a hard red/bone blink on 4s (no fading).
+            bool blinkOn = low && Mathf.FloorToInt(now * 6f) % 2 == 0;
+            pauseText.color = blinkOn ? PauseLow : Pause;
             pauseText.text = "PAUSES  " + left;
+            Punch(pauseText.rectTransform, now - pausePunchAt);
 
             if (pauseBar != null)
             {
                 // five is a full run's allotment; anything above that just fills it
                 pauseBar.fillAmount = Mathf.Clamp01(left / 5f);
-                pauseBar.color = low ? PauseLow : Pause;
+                pauseBar.color = blinkOn ? PauseLow : MeterOn;
             }
         }
 
@@ -302,7 +309,17 @@ public class HudStyler : MonoBehaviour
             speedText.text = "SPEED  " + Mathf.RoundToInt(moveBackGround.speed * 100f);
 
         if (dustText != null)
-            dustText.text = "★ " + score.totalCurrency.ToString("F1");
+        {
+            float dust = score.totalCurrency;
+            float now = Time.unscaledTime;
+            if (!float.IsNaN(lastDust) && dust > lastDust + .0001f) dustPunchAt = now;
+            lastDust = dust;
+            dustText.text = "★ " + dust.ToString("F1");
+            float since = now - dustPunchAt;
+            // A pickup flashes the figure BONE for two ticks as it punches.
+            dustText.color = since >= 0f && since < 2f / 24f ? AkiraPalette.Bone : Dust;
+            Punch(dustText.rectTransform, since);
+        }
     }
 }
 

@@ -1,0 +1,818 @@
+fileFormatVersion: 2
+guid: 408c93cb3e921443db6e8e6259d79908
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2920420299602141693
+    second: VoltViper_0
+  - first:
+      213: -7970393605600204080
+    second: VoltViper_1
+  - first:
+      213: -8665051760561337233
+    second: VoltViper_2
+  - first:
+      213: 2916814833802651020
+    second: VoltViper_3
+  - first:
+      213: -3364490762007980325
+    second: VoltViper_4
+  - first:
+      213: 3876585392128384907
+    second: VoltViper_5
+  - first:
+      213: -3040248436221767904
+    second: VoltViper_6
+  - first:
+      213: 5400301778168888402
+    second: VoltViper_7
+  - first:
+      213: 3509366860374009534
+    second: VoltViper_8
+  - first:
+      213: 8702906009055867902
+    second: VoltViper_9
+  - first:
+      213: -5244519391303168634
+    second: VoltViper_10
+  - first:
+      213: 337980193798331084
+    second: VoltViper_11
+  - first:
+      213: 2739987099772075280
+    second: VoltViper_12
+  - first:
+      213: -9033471402911893107
+    second: VoltViper_13
+  - first:
+      213: -7948283460985863057
+    second: VoltViper_14
+  - first:
+      213: -4831196047670955862
+    second: VoltViper_15
+  - first:
+      213: 840763881825856351
+    second: VoltViper_16
+  - first:
+      213: -4643434915886418938
+    second: VoltViper_17
+  - first:
+      213: -8415654511466364100
+    second: VoltViper_18
+  - first:
+      213: 311625349320581607
+    second: VoltViper_19
+  - first:
+      213: -3207641368303638468
+    second: VoltViper_20
+  - first:
+      213: 8225788019670955436
+    second: VoltViper_21
+  - first:
+      213: 1107017880412333246
+    second: VoltViper_22
+  - first:
+      213: 7958197052333790807
+    second: VoltViper_23
+  - first:
+      213: 2994491087833692093
+    second: VoltViper_24
+  - first:
+      213: -1994591074351995079
+    second: VoltViper_25
+  - first:
+      213: -611850306199967170
+    second: VoltViper_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: VoltViper_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 544
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30edf57e5359877d0800000000000000
+      internalID: -2920420299602141693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_1
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 548
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0daa722ae39736190800000000000000
+      internalID: -7970393605600204080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_2
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 548
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6c4e5b455d8fb780800000000000000
+      internalID: -8665051760561337233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_3
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 544
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c85a56c23ab9a7820800000000000000
+      internalID: 2916814833802651020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_4
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 544
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd65e605a7dee41d0800000000000000
+      internalID: -3364490762007980325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_5
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 540
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8fd74700e56cc530800000000000000
+      internalID: 3876585392128384907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_6
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 544
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02f801ab72edec5d0800000000000000
+      internalID: -3040248436221767904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_7
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 544
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25cbaafead9b1fa40800000000000000
+      internalID: 5400301778168888402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_8
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 544
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb6ee1be096c3b030800000000000000
+      internalID: 3509366860374009534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_9
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 288
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3336fb7eee6c870800000000000000
+      internalID: 8702906009055867902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_10
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 292
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68d0ab77669b737b0800000000000000
+      internalID: -5244519391303168634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_11
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 292
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cca9770123fb0b400800000000000000
+      internalID: 337980193798331084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_12
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 288
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01d311b00c3660620800000000000000
+      internalID: 2739987099772075280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_13
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 288
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8979c4de99a2a280800000000000000
+      internalID: -9033471402911893107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_14
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 284
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6443d5dd4602b190800000000000000
+      internalID: -7948283460985863057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_15
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 288
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa03d4a9ac424fcb0800000000000000
+      internalID: -4831196047670955862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_16
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 288
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5b6534cb4efaab00800000000000000
+      internalID: 840763881825856351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_17
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 288
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 604b1f4cb843f8fb0800000000000000
+      internalID: -4643434915886418938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_18
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 32
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3342a35fc6953b80800000000000000
+      internalID: -8415654511466364100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_19
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 36
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e1a249aa9d135400800000000000000
+      internalID: 311625349320581607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_20
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 36
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c38e96b9b2b2c73d0800000000000000
+      internalID: -3207641368303638468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_21
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 32
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca5b62e2f9ed72270800000000000000
+      internalID: 8225788019670955436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_22
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 32
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb4abf1a5eaec5f00800000000000000
+      internalID: 1107017880412333246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_23
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 28
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7569ae40e02317e60800000000000000
+      internalID: 7958197052333790807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_24
+      rect:
+        serializedVersion: 2
+        x: 1566
+        y: 32
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db7766567c19e8920800000000000000
+      internalID: 2994491087833692093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_25
+      rect:
+        serializedVersion: 2
+        x: 1812
+        y: 32
+        width: 206
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 937a5155cf9c154e0800000000000000
+      internalID: -1994591074351995079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoltViper_26
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 32
+        width: 234
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3aac3363654287f0800000000000000
+      internalID: -611850306199967170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

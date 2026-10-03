@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Bay lamp: a hot core with a soft halo. White, tinted in game. -->
+<!-- Bay lamp: lights are the one thing allowed to glow (art guide §2.7):
+     a hard white core, a flat half-strength ring, and a blurred copy behind.
+     White, tinted in game. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
   <defs>
-    <radialGradient id="halo" cx="12" cy="12" r="12" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="1"/>
-      <stop offset="0.22" stop-color="#FFFFFF" stop-opacity="0.95"/>
-      <stop offset="0.4" stop-color="#FFFFFF" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6"/></filter>
   </defs>
-  <circle cx="12" cy="12" r="12" fill="url(#halo)"/>
+  <path d="M8.5 4 H15.5 L20 8.5 V15.5 L15.5 20 H8.5 L4 15.5 V8.5 Z" fill="#FFFFFF" fill-opacity="0.45" filter="url(#glow)"/>
+  <path d="M9.5 6.5 H14.5 L17.5 9.5 V14.5 L14.5 17.5 H9.5 L6.5 14.5 V9.5 Z" fill="#FFFFFF" fill-opacity="0.45"/>
+  <path d="M10.5 8.5 H13.5 L15.5 10.5 V13.5 L13.5 15.5 H10.5 L8.5 13.5 V10.5 Z" fill="#FFFFFF"/>
 </svg>

@@ -24,10 +24,10 @@ public class DockBay : MonoBehaviour
         new Vector3(-.69f, -.36f), new Vector3(.69f, -.36f),
     };
     static readonly Color OffTint = new Color(.62f, .68f, .80f, 1f);
-    static readonly Color LightOff = new Color(1f, .55f, .22f, .38f);
-    static readonly Color LightOn = new Color(.35f, .95f, 1f, 1f);
-    static readonly Color NameOwned = new Color(.86f, .93f, 1f, .95f);
-    static readonly Color NameLocked = new Color(.58f, .65f, .78f, .9f);
+    static readonly Color LightOff = AkiraPalette.WithAlpha(AkiraPalette.Sodium, .38f);
+    static readonly Color LightOn = AkiraPalette.Cyan;
+    static readonly Color NameOwned = AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f);
+    static readonly Color NameLocked = AkiraPalette.WithAlpha(AkiraPalette.Muted, .9f);
     static int saturationId;
 
     public int index;
@@ -47,7 +47,7 @@ public class DockBay : MonoBehaviour
     readonly SpriteRenderer[] lights = new SpriteRenderer[4];
     readonly Transform[] clamps = new Transform[2];
     TextMesh nameText, chipText;
-    readonly Sprite[] idle = new Sprite[3];
+    readonly Sprite[] idle = new Sprite[ShipHullArt.IdleDrawings];
     Sprite rest;
     MaterialPropertyBlock block;
     float power;
@@ -230,7 +230,10 @@ public class DockBay : MonoBehaviour
             float t = Time.unscaledTime;
             float bob = Mathf.Sin(t * 2.4f + phase) * .022f * p;
             ship.localPosition = new Vector3(ShipRest.x, ShipRest.y + bob, 0f);
-            hull.sprite = p > .05f ? idle[Mathf.FloorToInt(t * 8f) % 3] : rest;
+            // The hull's own idle flipbook (lights blink, canopy glint), on
+            // the same tick table it flies with; a parked hull holds still.
+            int drawing = ShipHullArt.IdleDrawingAt(t * ShipHullArt.TicksPerSecond + phase * 10f);
+            hull.sprite = p > .05f ? idle[Mathf.Clamp(drawing, 0, idle.Length - 1)] : rest;
             if (wind)
             {
                 spin += 80f * p * dt;

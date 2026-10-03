@@ -7,7 +7,7 @@ using UnityEngine;
 // spare input to bind a manual trigger to.
 //
 // Effects deliberately reuse the systems already in the game (tags "Enimey" /
-// "Astr", collisionDetection.invTimer, score.incromentPause) rather than adding
+// "Astr", collisionDetection.BeginCloak, score.incromentPause) rather than adding
 // parallel machinery.
 public enum ShipPower
 {

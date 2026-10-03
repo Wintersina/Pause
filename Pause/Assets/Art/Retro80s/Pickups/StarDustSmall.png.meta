@@ -18,9 +18,14 @@ TextureImporter:
     wrapV: 1
     wrapW: 1
   spriteMode: 1
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 34.375
   alphaIsTransparency: 1
   textureType: 8
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    textureCompression: 0
   spriteSheet:
     serializedVersion: 2
     sprites: []

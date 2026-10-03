@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 21234676}
   - component: {fileID: 6154230}
   - component: {fileID: 11426530}
+  - component: {fileID: 1026951977616994811}
   m_Layer: 0
   m_Name: pauseAtom
   m_TagString: pickUp
@@ -151,3 +152,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5f3717acb6fce540bba37f51fdbf436, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1026951977616994811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41bf0bd351a6d4d3eae4e62cc4dffa85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupFlipbook
+  kind: 1

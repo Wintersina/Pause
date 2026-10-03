@@ -87,8 +87,10 @@ public static class ShopHealthCarryoverTest
     // IdleSpriteFor could have picked for that damage state instead.
     static bool MatchesDamageFrame(Sprite shown, int shipIndex, int damageFrame)
     {
-        for (int idle = 0; idle < 3; idle++)
-            if (shown == shopingShips.IdleSpriteFor(shipIndex, damageFrame, idle))
+        // Any drawing of that damage state's flipbook row (idle loop, bank
+        // poses, hit flash -- ShipHullArt) shows that state.
+        for (int column = 0; column < ShipHullArt.Columns; column++)
+            if (shown == ShipHullArt.Get(shipIndex, damageFrame, column))
                 return true;
         return false;
     }
