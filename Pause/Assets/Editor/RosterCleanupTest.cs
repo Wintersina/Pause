@@ -12,6 +12,14 @@ public static class RosterCleanupTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // The three duplicates are gone, and shipTotal must track Roster
         // exactly -- shipTotal used to be a separate hardcoded constant, and
         // the two drifting out of sync is exactly the kind of bug that made
@@ -39,6 +47,6 @@ public static class RosterCleanupTest
         }
 
         Debug.Log("[RC] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

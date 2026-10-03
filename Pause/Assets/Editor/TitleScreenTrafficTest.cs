@@ -23,6 +23,14 @@ public static class TitleScreenTrafficTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // Opened once for the whole run, not per test: TitleScreenTraffic
         // builds everything it needs procedurally and has no actual
         // dependency on scene contents, and re-opening OpenSceneMode.Single
@@ -41,7 +49,7 @@ public static class TitleScreenTrafficTest
         CollisionsStillDestroyBothShips();
 
         Debug.Log("[TT] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     static void NoDuplicateHullsAmongActiveFlyers()

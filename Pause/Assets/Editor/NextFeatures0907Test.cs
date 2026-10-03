@@ -24,6 +24,14 @@ public static class NextFeatures0907Test
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         AsteroidsSpinSomeAtTieredSpeeds();
         AtomsStayInsideSideRails();
         Check("player cannot move below the gameplay floor", movePlayer.ClampPlayerY(-99f) >= -4.15f);
@@ -49,7 +57,7 @@ public static class NextFeatures0907Test
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();
 
         Debug.Log("[NF] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     // ---- 1: asteroid spin -------------------------------------------------

@@ -1,0 +1,58 @@
+using System;
+using UnityEditor;
+using UnityEngine;
+
+// Runs every *Test suite in a single editor launch:
+//
+//   Unity -batchmode -quit -projectPath Pause -executeMethod AllTests.RunAll
+//
+// Logs one "[ALL] <suite>: ..." line per suite and a final
+// "[ALL] N suites, M failures" line; exits 1 if anything failed. Each suite
+// cleans up after itself through TestHarness.Sandbox, so order shouldn't
+// matter -- add new suites to the list below.
+public static class AllTests
+{
+    static readonly (string name, Func<int> execute)[] Suites =
+    {
+        ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
+        ("AsteroidColliderTest", AsteroidColliderTest.Execute),
+        ("BugBatch0907Test", BugBatch0907Test.Execute),
+        ("CameraFitTest", CameraFitTest.Execute),
+        ("DeathPanelTest", DeathPanelTest.Execute),
+        ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
+        ("HomePauseTest", HomePauseTest.Execute),
+        ("NextFeatures0907Test", NextFeatures0907Test.Execute),
+        ("PauseGlowTest", PauseGlowTest.Execute),
+        ("RosterCleanupTest", RosterCleanupTest.Execute),
+        ("ShieldFitTest", ShieldFitTest.Execute),
+        ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
+        ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
+        ("ShopTest", ShopTest.Execute),
+        ("SpinWindTest", SpinWindTest.Execute),
+        ("ThrusterTest", ThrusterTest.Execute),
+        ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
+        ("TutorialParityTest", TutorialParityTest.Execute),
+        ("WorldLogicTest", WorldLogicTest.Execute),
+    };
+
+    public static void RunAll()
+    {
+        int total = 0;
+        foreach (var suite in Suites)
+        {
+            int failures;
+            try { failures = suite.execute(); }
+            catch (Exception e)
+            {
+                // A throwing suite counts as one failure; keep going.
+                Debug.LogError("[ALL] " + suite.name + " threw: " + e);
+                failures = 1;
+            }
+            total += failures;
+            Debug.Log("[ALL] " + suite.name + ": " + (failures == 0 ? "PASS" : "FAIL (" + failures + ")"));
+        }
+
+        Debug.Log("[ALL] " + Suites.Length + " suites, " + total + " failures");
+        EditorApplication.Exit(total == 0 ? 0 : 1);
+    }
+}

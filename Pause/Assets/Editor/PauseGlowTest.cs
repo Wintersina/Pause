@@ -13,6 +13,14 @@ public static class PauseGlowTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         var a = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Resources/PauseGlow/pausedGlow_a.png");
         var b = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Resources/PauseGlow/pausedGlow_b.png");
         Check("pausedGlow_a imported as a Sprite", a != null);
@@ -29,6 +37,6 @@ public static class PauseGlowTest
         }
 
         Debug.Log("[PG] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

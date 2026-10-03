@@ -13,7 +13,7 @@ using System.Reflection;
 //   4. the tutorial ship never got the idle/boost engine flame gameS1 ships
 //      have, because the attach script only looked for movePlayer.
 //   5. star-dust clusters spawned in a single vertical line (one shared x).
-//   6. each planet ran 8 minutes; now 5.
+//   6. each planet ran 8 minutes; now 3 (was 5 for a while).
 public static class BugBatch0907Test
 {
     static int fails;
@@ -25,16 +25,24 @@ public static class BugBatch0907Test
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         ReplayMenuButtonsAreDeathOnly();
         TutorialContinueButtonIsUsable();
         TutorialAtomLessonsAreBalanced();
         SpawnPointTracksCamera();
         ThrusterAttachFindsTutorialShip();
         StarClustersSpreadHorizontally();
-        WorldLengthIsFiveMinutes();
+        WorldLengthIsThreeMinutes();
 
         Debug.Log("[BB] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     // ---- 1: replay/menu buttons ----------------------------------------
@@ -219,11 +227,11 @@ public static class BugBatch0907Test
 
     // ---- 6: level length ---------------------------------------------------
 
-    static void WorldLengthIsFiveMinutes()
+    static void WorldLengthIsThreeMinutes()
     {
         var go = new GameObject("~WorldManagerTest");
         var wm = go.AddComponent<WorldManager>();
-        Check("a planet now runs 5 minutes (300s), not 8 (480s)",
+        Check("a planet now runs 3 minutes (180s), not 8 (480s)",
               Mathf.Approximately(wm.secondsPerWorld, 180f));
         Object.DestroyImmediate(go);
     }

@@ -13,6 +13,14 @@ public static class ShipLivesIndicatorTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // lifeControler now only attaches ShipDamageFx (and only reads
         // collisionDetection.lifeCounter for the scorch tint) in an actual
         // gameplay scene -- the shop's own ship1-ship3 carry the same
@@ -88,7 +96,7 @@ public static class ShipLivesIndicatorTest
         PlayerPrefs.DeleteKey("spawnShip");
 
         Debug.Log("[SL] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     static void DamageEffectsAttachToEveryHull()
@@ -102,7 +110,10 @@ public static class ShipLivesIndicatorTest
         life.SendMessage("Start");
         var damageFx = ship.GetComponent<ShipDamageFx>();
         Check("a hurt ship gets persistent damage effects", damageFx != null);
-        if (damageFx != null) damageFx.SendMessage("Start");
+        // No separate Start() for damageFx: SendMessage reaches every
+        // component on the GameObject, so life.SendMessage("Start") above
+        // already started the ShipDamageFx it added. A second call built a
+        // second set of flames.
 
         collisionDetection.lifeCounter = 2;
         life.SendMessage("Update");
@@ -113,7 +124,7 @@ public static class ShipLivesIndicatorTest
         int flames = 0;
         foreach (Transform child in ship.transform)
             if (child.name.StartsWith("~DamageFlame")) flames++;
-        Check("damage effects create two small hull flames", flames == 2);
+        Check("damage effects create two small hull flames (" + flames + ")", flames == 2);
         Check("damage effects add a smoke trail",
               ship.transform.Find("~DamageSmoke") != null);
         Check("damage effects add impact bursts",

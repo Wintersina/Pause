@@ -14,6 +14,14 @@ public static class ThrusterTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // Dock ships get a flame from the extender.
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
         ShopSceneExtender.Build();
@@ -82,6 +90,6 @@ public static class ThrusterTest
         }
 
         Debug.Log("[TH] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

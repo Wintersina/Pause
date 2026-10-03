@@ -14,6 +14,14 @@ public static class WorldLogicTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        failures = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // start clean
         PlayerPrefs.DeleteKey(WorldManager.PrefsCurrentWorld);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
@@ -94,6 +102,6 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
 
         Debug.Log("[WT] failures: " + failures);
-        EditorApplication.Exit(0);
+        return failures;
     }
 }

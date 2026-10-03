@@ -25,6 +25,14 @@ public static class DifficultyRebalanceTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         MinesAlwaysMountToMatchingSideRail();
         MineFieldLoadsAndSpawnsOntoARail();
         PhaseProgressionIsTimeDrivenNotSpeedDriven();
@@ -34,7 +42,7 @@ public static class DifficultyRebalanceTest
         EnemyDensityRampsEveryTenSeconds();
 
         Debug.Log("[DR] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     static enmiesOnBoard NewBoard(string name)
@@ -238,7 +246,7 @@ public static class DifficultyRebalanceTest
     // Reported 2026-09-07: on Space specifically, enemy spawns felt way too
     // sparse as the run sped up -- Space has the lowest enemyRampScale (the
     // baseline every other world ramps faster than) and never actually
-    // reaches its own speed cap within a 300s level, so speed climbed the
+    // reaches its own speed cap within a level, so speed climbed the
     // whole time while density barely moved. Follow-up spec: density should
     // step up every 10s of active flight -- reaching 2x by the one-minute
     // mark, continuing to climb toward the end, and hitting a flat 3x for
@@ -269,24 +277,25 @@ public static class DifficultyRebalanceTest
         Check("density reaches 2x right at the one-minute mark",
               Mathf.Approximately(DensityAt(60f), 2f));
 
-        float midLevel = DensityAt(150f); // comfortably inside a 300s level, before the final stretch
+        float midLevel = DensityAt(110f); // comfortably inside a 180s level, before the final stretch
         Check("density keeps climbing past the one-minute mark, toward the mid ceiling",
               midLevel > 2f && midLevel <= 2.5f);
 
         // No live WorldManager.Instance in this test, so DensityMultiplier()
-        // falls back to the same 300s default gameS1's own WorldManager
-        // ships with -- the last 30s of that window is t >= 270.
-        Check("final 30 seconds of the level (no WorldManager -> 300s default) hits a flat 3x",
-              Mathf.Approximately(DensityAt(280f), 3f));
+        // falls back to the same 180s default gameS1's own WorldManager
+        // ships with (WorldManager.secondsPerWorld, cut from 300s) -- the
+        // last 30s of that window is t >= 150.
+        Check("final 30 seconds of the level (no WorldManager -> 180s default) hits a flat 3x",
+              Mathf.Approximately(DensityAt(160f), 3f));
         Check("one moment before the final stretch is still below 3x",
-              DensityAt(269f) < 3f);
+              DensityAt(149f) < 3f);
 
         // Roll() divides by the multiplier -- higher density means shorter
         // delays, i.e. more spawns per minute.
         var range = new Vector2(10f, 10f); // fixed, so any spread is purely from the multiplier
         elapsedField.SetValue(comp, 0f);
         float delayAtStart = (float)rollMethod.Invoke(comp, new object[] { range });
-        elapsedField.SetValue(comp, 280f);
+        elapsedField.SetValue(comp, 160f);
         float delayAtEnd = (float)rollMethod.Invoke(comp, new object[] { range });
         Check("Roll() actually shortens delays as density climbs (3x density -> 1/3 the delay)",
               Mathf.Approximately(delayAtEnd, delayAtStart / 3f));

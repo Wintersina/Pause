@@ -19,13 +19,21 @@ public static class TutorialParityTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         HudStylerBothScenes();
         PauseBarStaysContained();
         ShipScaleMatchesGameplay();
         SkipButtonClearsRail();
 
         Debug.Log("[TP] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     static void HudStylerBothScenes()

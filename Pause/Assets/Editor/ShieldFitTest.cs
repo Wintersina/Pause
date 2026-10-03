@@ -12,6 +12,14 @@ public static class ShieldFitTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         // Pure math: doubling the hull's world footprint should double the
         // resulting local scale, and padding should behave linearly.
         float baseScale = collisionDetection.ComputeShieldLocalScale(
@@ -78,6 +86,6 @@ public static class ShieldFitTest
         }
 
         Debug.Log("[SF] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

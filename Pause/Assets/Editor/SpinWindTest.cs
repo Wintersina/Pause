@@ -14,6 +14,14 @@ public static class SpinWindTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         foreach (int index in new[] { 11, 13 })
         {
             Check(shopingShips.NameFor(index) + " is marked as a wind ship", ShipExhaust.UsesWind(index));
@@ -26,6 +34,6 @@ public static class SpinWindTest
         }
         Check("a standard ship remains nozzle-driven", !ShipExhaust.UsesWind(2));
         Debug.Log("[SW] failures: " + fails);
-        EditorApplication.Exit(fails == 0 ? 0 : 1);
+        return fails;
     }
 }

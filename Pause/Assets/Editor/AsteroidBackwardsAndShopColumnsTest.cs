@@ -24,11 +24,19 @@ public static class AsteroidBackwardsAndShopColumnsTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         AsteroidsTravelDownRegardlessOfSpin();
         ShopGetsTwoColumnsOnARealPhoneViewport();
 
         Debug.Log("[AS] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     // Time.deltaTime is always exactly 0 outside Play mode (confirmed: a

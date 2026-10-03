@@ -15,7 +15,14 @@ public static class ShopTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
         fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
 
         // the bug that hid every button: Find() cannot see inactive objects
@@ -100,6 +107,12 @@ public static class ShopTest
             float d = Vector3.Distance(ret.transform.position, face.transform.position);
             Check("ship" + i + " flies " + d.ToString("F2") + "u out of its parking spot", d > 0.4f);
         }
+
+        // The dock canvas is authored inactive (see the first checks above)
+        // and shopingShips.Start() switches it on at runtime. Do the same
+        // here: inactive objects get no layout pass, and the active-only
+        // GetComponentInChildren/InParent lookups below can't see into them.
+        SceneUtil.FindAny("Canvas").SetActive(true);
 
         // Buttons are pinned under their ship at runtime by ShopButtonAligner,
         // so their authored anchors mean nothing -- what matters is that the
@@ -188,6 +201,6 @@ public static class ShopTest
                     boost.GetComponentInChildren<SpriteRenderer>(true) != null);
         }
         Debug.Log("[ST] failures: " + fails);
-        EditorApplication.Exit(fails == 0 ? 0 : 1);
+        return fails;
     }
 }

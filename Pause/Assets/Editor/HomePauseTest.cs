@@ -16,7 +16,14 @@ public static class HomePauseTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
         failures = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         EditorSceneManager.OpenScene("Assets/Scenes/startS4.unity");
         var menu = Object.FindFirstObjectByType<startMenu>();
         Check("home menu exists", menu != null);
@@ -54,7 +61,7 @@ public static class HomePauseTest
         Check("running game hides icon", !PauseOverlay.ShouldShow(1f, false));
         Check("death screen hides pause icon", !PauseOverlay.ShouldShow(0f, true));
         Debug.Log("[HP] failures: " + failures);
-        EditorApplication.Exit(failures == 0 ? 0 : 1);
+        return failures;
     }
 
     static void RenderHome(startMenu menu, int width, int height)

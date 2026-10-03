@@ -18,6 +18,14 @@ public static class DeathPanelTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
 
         var modelPanel = SceneUtil.FindAny("Model Panel").GetComponent<RectTransform>();
@@ -75,6 +83,6 @@ public static class DeathPanelTest
         }
 
         Debug.Log("[DPT] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

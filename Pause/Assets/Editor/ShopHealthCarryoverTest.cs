@@ -23,13 +23,21 @@ public static class ShopHealthCarryoverTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         GameStateResetZeroesCombatState();
         DockShipsIgnoreStaleDamageOutsideGameplay();
         GameplayShipsStillShowRealDamage();
         ConfirmDialogPreviewAnimates();
 
         Debug.Log("[SH] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 
     static void GameStateResetZeroesCombatState()

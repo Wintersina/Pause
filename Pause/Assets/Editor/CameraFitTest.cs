@@ -14,6 +14,14 @@ public static class CameraFitTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         const float baseSize = 5f;
         const float minHalfWidth = 2.85f;
 
@@ -61,6 +69,6 @@ public static class CameraFitTest
         Check("zero screen size falls back to the authored size", degenerate == baseSize);
 
         Debug.Log("[CF] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }

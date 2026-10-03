@@ -28,6 +28,14 @@ public static class AsteroidColliderTest
 
     public static void Run()
     {
+        TestHarness.Exit(Execute());
+    }
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+
         foreach (var name in Targets)
         {
             string path = "Assets/Resources/Prefabs/" + name + ".prefab";
@@ -52,6 +60,6 @@ public static class AsteroidColliderTest
         }
 
         Debug.Log("[ACT] failures: " + fails);
-        EditorApplication.Exit(0);
+        return fails;
     }
 }
