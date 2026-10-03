@@ -286,6 +286,9 @@ public class collisionDetection : MonoBehaviour {
         //-------------------- PICK UP ITEMS, Such as STARS, and ATOMS ------------------------------------------
         else if (hit.gameObject.tag == "pickUp")
         {
+            // Every pickup pops in its own pixel-art burst where it was caught.
+            PickupBurst.Play(hit.gameObject);
+
 
             if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
             {

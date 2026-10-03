@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 11412618}
   - component: {fileID: 5027346}
   - component: {fileID: 11488920}
+  - component: {fileID: 6282984271799428761}
   m_Layer: 0
   m_Name: smStar 1
   m_TagString: pickUp
@@ -156,7 +157,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5, y: 5}
+    oldSize: {x: 1.28, y: 1.28}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -215,3 +216,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5f3717acb6fce540bba37f51fdbf436, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6282984271799428761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 185842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41bf0bd351a6d4d3eae4e62cc4dffa85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupFlipbook
+  kind: 3
