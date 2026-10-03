@@ -138,8 +138,7 @@ public static class Codex
         if (entry.category == CodexCategory.Ships)
         {
             int index = CodexCatalogue.ShipIndex(entry.id);
-            return index == shopingShips.StarterShip ||
-                   (index > 0 && PlayerPrefs.GetString("boughtship" + index) == "True");
+            return index > 0 && ShipId.IsOwned(index);
         }
         if (entry.category == CodexCategory.Worlds)
         {

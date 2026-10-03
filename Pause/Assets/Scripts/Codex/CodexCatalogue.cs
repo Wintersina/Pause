@@ -107,26 +107,13 @@ public static class CodexCatalogue
                 "ultimate fires, time slows to a crawl."),
 
             // ------------------------------------------------------------ Enemies
-            new CodexEntry("enemy_black", "Shadow Wing", CodexCategory.Enemies, () => Prefab("Prefabs/Enemies/kn_enemyBlack1"),
-                "Matte-black scouts that patrol the outer lanes. They're the first to spot a lost pilot and " +
-                "the first to try ramming him. Dodge them, or plough through with a blue atom's shield.",
-                new[] { "knenemyblack" }),
-            new CodexEntry("enemy_blue", "Cobalt Patrol", CodexCategory.Enemies, () => Prefab("Prefabs/Enemies/kn_enemyBlue1"),
-                "Border guards of a sector that never asked for visitors. They fly in tidy lines and expect " +
-                "you to move. Shielded, you're the one who doesn't have to.",
-                new[] { "knenemyblue" }),
-            new CodexEntry("enemy_green", "Venom Raider", CodexCategory.Enemies, () => Prefab("Prefabs/Enemies/kn_enemyGreen1"),
-                "Scrappy raiders who strip anything that drifts too close - hulls included. They show up once " +
-                "the sky gets crowded, and every one you smash pays a pinch of star dust.",
-                new[] { "knenemygreen" }),
-            new CodexEntry("enemy_red", "Crimson Ace", CodexCategory.Enemies, () => Prefab("Prefabs/Enemies/kn_enemyRed1"),
-                "The universe's top guns, saved for the deepest stretch of a flight. Fast, mean and very proud " +
-                "of their paint job. Meet them shielded or not at all.",
-                new[] { "knenemyred" }),
-            new CodexEntry("enemy_chaser", "Hunter", CodexCategory.Enemies, () => Prefab("Prefabs/Enemies/kn_enemyRed5"),
+            // The spawner's Resources/Prefabs/Enemies families are added from
+            // the live folder below (SpawnTableEntries); these two are scene-
+            // wired or behaviour-defined.
+            new CodexEntry("enemy_chaser", "Hunter", CodexCategory.Enemies, () => ChaserSprite(),
                 "A Crimson hull that learned a nasty trick: it climbs up from below and tails you for a few " +
                 "seconds before losing interest. Keep sliding sideways and it overshoots."),
-            new CodexEntry("enemy_alien", "Invader", CodexCategory.Enemies, () => Prefab("Prefabs/alien1"),
+            new CodexEntry("enemy_alien", "Invader", CodexCategory.Enemies, () => FirstSprite("Prefabs/alien1", "alien"),
                 "Pixel-perfect pests that travel in lines of up to four, wiggling like they own the place. " +
                 "There's always a gap - find it. Smash them while shielded for alien-hunter medals.",
                 new[] { "alien" }),
@@ -136,21 +123,6 @@ public static class CodexCatalogue
                 "Bombs clamped to the side rails of every world, painted to match the local scenery. They " +
                 "never leave their rail, so hug the middle lanes when one blinks into view.",
                 new[] { "mine" }),
-            new CodexEntry("hazard_meteor_tiny", "Pebble Meteor", CodexCategory.Hazards, () => Prefab("Prefabs/Enemies/kn_meteorBrown_tiny1"),
-                "Barely bigger than the ship's cup holder, yet still enough to dent a hull. Brown or grey, " +
-                "they rattle through the busier sectors.",
-                new[] { "knmeteorbrowntiny", "knmeteorgreytiny" }),
-            new CodexEntry("hazard_meteor_small", "Small Meteor", CodexCategory.Hazards, () => Prefab("Prefabs/Enemies/kn_meteorGrey_small1"),
-                "Fist-sized chunks of a planet that didn't make it. Easy to dodge alone, nasty in a crowd.",
-                new[] { "knmeteorbrownsmall", "knmeteorgreysmall" }),
-            new CodexEntry("hazard_meteor_med", "Medium Meteor", CodexCategory.Hazards, () => Prefab("Prefabs/Enemies/kn_meteorBrown_med1"),
-                "Tumbling boulders that spin as they fall. Their lumpy edges reach further than they look, " +
-                "so give them room.",
-                new[] { "knmeteorbrownmed", "knmeteorgreymed" }),
-            new CodexEntry("hazard_meteor_big", "Big Meteor", CodexCategory.Hazards, () => Prefab("Prefabs/Enemies/kn_meteorGrey_big1"),
-                "Mountains with no planet to sit on. They fill a whole lane - go around, or go through with a " +
-                "shield up and a grin on.",
-                new[] { "knmeteorbrownbig", "knmeteorgreybig" }),
             // The eight classic aestroid_* prefabs share just three images
             // (their names predate a re-skin), so the entries follow the art
             // the player actually sees, matched by exact prefab name.
@@ -208,41 +180,222 @@ public static class CodexCatalogue
         };
 
         // -------------------------------------------------------------- Ships
-        // Index-aligned with shopingShips.Roster (0 is the unused "non" slot).
-        string[] shipLore =
+        // Every roster ship (ShipId.All), keyed by its stable art key.
+        foreach (int ship in ShipId.All)
         {
-            null,
-            "The very ship that fell into the black hole - scorched, stubborn and still flying. Not fancy, but it got him this far.",
-            "A wiry interceptor humming with stored lightning. Bought with star dust and nerves.",
-            "Built around a captured sunspot, it runs hot and bites hard.",
-            "A heavy cruiser with a ring of red light around its nose. Slow to love, impossible to forget.",
-            "Long, sleek and pointed - a flying spear for pilots who prefer straight lines.",
-            "A ghostly green hull that seems to blur at the edges, as if it's half in another place.",
-            "Gold plating, heavy armour and a very smug captain. The pride of any hangar.",
-            "A classic arcade fighter from an older age of space, as fast as its name.",
-            "A light-frame courier that slips between rocks like it's late for something.",
-            "Wide wings, a hundred sensors and a pilot who trusts none of them.",
-            "A dark, quiet hull that strikes before anyone sees it coming.",
-            "Built for mischief. Its owner insists the dents are 'battle intelligence'.",
-            "Nobody knows who built this saucer, and it isn't telling.",
-            "A peaceful-looking ship with a not-so-peaceful ultimate.",
-            "Never slow, always tough: a shell built to shrug off space itself.",
-        };
-        for (int i = 1; i < shipLore.Length && i < shopingShips.Roster.Length; i++)
-        {
-            int index = i;
-            list.Add(new CodexEntry(ShipPrefix + index, shopingShips.Roster[index], CodexCategory.Ships,
-                () => shopingShips.SpriteFor(index), shipLore[index]));
+            int index = ship;
+            string key = ShipId.KeyOf(index) ?? index.ToString();
+            string lore;
+            if (!ShipLore.TryGetValue(key, out lore))
+                lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
+            list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
+                () => shopingShips.SpriteFor(index), lore));
         }
 
+        list.InsertRange(EnemyInsertIndex(list), SpawnTableEntries());
         return list.ToArray();
     }
+
+    // Stable art key (ShipId.KeyOf) -> lore.
+    static readonly Dictionary<string, string> ShipLore = new Dictionary<string, string>
+    {
+        { "NeonComet", "The very ship that fell into the black hole - scorched, stubborn and still flying. Not fancy, but it got him this far." },
+        { "VoltViper", "A wiry interceptor humming with stored lightning. Bought with star dust and nerves." },
+        { "SolarFang", "Built around a captured sunspot, it runs hot and bites hard." },
+        { "CrimsonHalo", "A heavy cruiser with a ring of red light around its nose. Slow to love, impossible to forget." },
+        { "IonLancer", "Long, sleek and pointed - a flying spear for pilots who prefer straight lines." },
+        { "JadePhantom", "A ghostly green hull that seems to blur at the edges, as if it's half in another place." },
+        { "GoldWarden", "Gold plating, heavy armour and a very smug captain. The pride of any hangar." },
+        { "Lightning", "A classic arcade fighter from an older age of space, as fast as its name." },
+        { "Ligher", "A light-frame courier that slips between rocks like it's late for something." },
+        { "Paranoid", "Wide wings, a hundred sensors and a pilot who trusts none of them." },
+        { "Ninja", "A dark, quiet hull that strikes before anyone sees it coming." },
+        { "Saboteur", "Built for mischief. Its owner insists the dents are 'battle intelligence'." },
+        { "UFO", "Nobody knows who built this saucer, and it isn't telling." },
+        { "Dove", "A peaceful-looking ship with a not-so-peaceful ultimate." },
+        { "Turtle", "Never slow, always tough: a shell built to shrug off space itself." },
+    };
+
+    // ---------------------------------------------------------------------
+    // Live spawn table: Resources/Prefabs/Enemies
+    // ---------------------------------------------------------------------
+
+    // The folder enmiesOnBoard loads its extra enemies and meteors from.
+    public const string SpawnFolder = "Prefabs/Enemies";
+
+    // Known families: how a group of spawn-table prefabs is named and told
+    // about. A family is a prefab name with its trailing variant number
+    // dropped ("kn_enemyBlack3" -> "knenemyblack"); several families can share
+    // one entry (brown and grey meteors of a size). An entry only exists while
+    // at least one of its families is actually in the folder, and a family
+    // nobody wrote lore for still gets an entry of its own (see Fallback), so
+    // redrawn, renamed or brand-new enemies are always in the codex.
+    struct Family
+    {
+        public string id, name, lore;
+        public CodexCategory category;
+        public string[] keys;
+        public Family(string id, string name, CodexCategory category, string lore, params string[] keys)
+        {
+            this.id = id; this.name = name; this.category = category; this.lore = lore; this.keys = keys;
+        }
+    }
+
+    static readonly Family[] KnownFamilies =
+    {
+        new Family("enemy_black", "Shadow Wing", CodexCategory.Enemies,
+            "Matte-black scouts that patrol the outer lanes. They're the first to spot a lost pilot and " +
+            "the first to try ramming him. Dodge them, or plough through with a blue atom's shield.", "knenemyblack"),
+        new Family("enemy_blue", "Cobalt Patrol", CodexCategory.Enemies,
+            "Border guards of a sector that never asked for visitors. They fly in tidy lines and expect " +
+            "you to move. Shielded, you're the one who doesn't have to.", "knenemyblue"),
+        new Family("enemy_green", "Venom Raider", CodexCategory.Enemies,
+            "Scrappy raiders who strip anything that drifts too close - hulls included. They show up once " +
+            "the sky gets crowded, and every one you smash pays a pinch of star dust.", "knenemygreen"),
+        new Family("enemy_red", "Crimson Ace", CodexCategory.Enemies,
+            "The universe's top guns, saved for the deepest stretch of a flight. Fast, mean and very proud " +
+            "of their paint job. Meet them shielded or not at all.", "knenemyred"),
+        new Family("hazard_meteor_tiny", "Pebble Meteor", CodexCategory.Hazards,
+            "Barely bigger than the ship's cup holder, yet still enough to dent a hull. They rattle through " +
+            "the busier sectors.", "knmeteorbrowntiny", "knmeteorgreytiny"),
+        new Family("hazard_meteor_small", "Small Meteor", CodexCategory.Hazards,
+            "Fist-sized chunks of a planet that didn't make it. Easy to dodge alone, nasty in a crowd.",
+            "knmeteorbrownsmall", "knmeteorgreysmall"),
+        new Family("hazard_meteor_med", "Medium Meteor", CodexCategory.Hazards,
+            "Tumbling boulders that spin as they fall. Their lumpy edges reach further than they look, " +
+            "so give them room.", "knmeteorbrownmed", "knmeteorgreymed"),
+        new Family("hazard_meteor_big", "Big Meteor", CodexCategory.Hazards,
+            "Mountains with no planet to sit on. They fill a whole lane - go around, or go through with a " +
+            "shield up and a grin on.", "knmeteorbrownbig", "knmeteorgreybig"),
+    };
+
+    // "kn_enemyBlack3" -> "knenemyblack"; "kn_meteorGrey_big2" -> "knmeteorgreybig".
+    public static string FamilyOf(string prefabName)
+    {
+        string key = Codex.Normalise(prefabName);
+        int end = key.Length;
+        while (end > 0 && char.IsDigit(key[end - 1])) end--;
+        return end > 0 ? key.Substring(0, end) : key;
+    }
+
+    static List<CodexEntry> SpawnTableEntries()
+    {
+        var prefabs = new List<GameObject>(Resources.LoadAll<GameObject>(SpawnFolder));
+        prefabs.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+
+        // family -> its prefabs, in name order
+        var families = new Dictionary<string, List<GameObject>>();
+        var order = new List<string>();
+        foreach (var go in prefabs)
+        {
+            if (go == null) continue;
+            string family = FamilyOf(go.name);
+            List<GameObject> members;
+            if (!families.TryGetValue(family, out members))
+            {
+                families[family] = members = new List<GameObject>();
+                order.Add(family);
+            }
+            members.Add(go);
+        }
+
+        var result = new List<CodexEntry>();
+        var claimed = new HashSet<string>();
+        foreach (var known in KnownFamilies)
+        {
+            var present = new List<string>();
+            foreach (string k in known.keys)
+                if (families.ContainsKey(k)) { present.Add(k); claimed.Add(k); }
+            if (present.Count == 0) continue;
+            var art = families[present[0]][0];
+            result.Add(new CodexEntry(known.id, known.name, known.category, () => SpriteOf(art), known.lore,
+                                      present.ToArray()));
+        }
+        foreach (string family in order)
+        {
+            if (claimed.Contains(family)) continue;
+            var art = families[family][0];
+            bool meteor = family.Contains("meteor") || art.CompareTag("Astr");
+            result.Add(new CodexEntry((meteor ? "hazard_" : "enemy_") + family, Fallback.NameFor(art.name),
+                                      meteor ? CodexCategory.Hazards : CodexCategory.Enemies,
+                                      () => SpriteOf(art), meteor ? Fallback.HazardLore : Fallback.EnemyLore,
+                                      new[] { family }));
+        }
+        return result;
+    }
+
+    public static string FallbackName(string prefabName) { return Fallback.NameFor(prefabName); }
+
+    // Entries for spawn-table families nobody has written lore for yet.
+    static class Fallback
+    {
+        public const string EnemyLore =
+            "A hostile hull the pilot hadn't logged before. It flies the same lanes you do and won't move " +
+            "for you - dodge it, or smash through with a shield up.";
+        public const string HazardLore =
+            "More rubble from a universe that keeps falling apart. Don't let it touch the hull.";
+
+        // "kn_enemyPurple2" -> "Enemy Purple"
+        public static string NameFor(string prefabName)
+        {
+            string raw = prefabName;
+            if (raw.StartsWith("kn_", StringComparison.Ordinal)) raw = raw.Substring(3);
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < raw.Length; i++)
+            {
+                char ch = raw[i];
+                if (char.IsDigit(ch)) continue;
+                if (ch == '_' || ch == '-') { sb.Append(' '); continue; }
+                if (i > 0 && char.IsUpper(ch) && sb.Length > 0 && sb[sb.Length - 1] != ' ') sb.Append(' ');
+                sb.Append(sb.Length == 0 || sb[sb.Length - 1] == ' ' ? char.ToUpperInvariant(ch) : ch);
+            }
+            return sb.ToString().Trim();
+        }
+    }
+
+    // Spawn-table families go right after the scene-wired enemies.
+    static int EnemyInsertIndex(List<CodexEntry> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+            if (list[i].category == CodexCategory.Enemies) return i;
+        return list.Count;
+    }
+
+    static Sprite SpriteOf(GameObject go)
+    {
+        var sr = go != null ? go.GetComponentInChildren<SpriteRenderer>(true) : null;
+        return sr != null ? sr.sprite : null;
+    }
+
+    // The hunter borrows a hull from the spawn table (enmiesOnBoard.chaser);
+    // prefer the one it uses today, else any hull of its family, else any.
+    static Sprite ChaserSprite()
+    {
+        return FirstSprite(SpawnFolder + "/kn_enemyRed5", "knenemyred");
+    }
+
+    static Sprite FirstSprite(string path, string familyPrefix)
+    {
+        var sprite = Prefab(path);
+        if (sprite != null) return sprite;
+        GameObject any = null;
+        foreach (var go in Resources.LoadAll<GameObject>(path.Substring(0, path.LastIndexOf('/'))))
+        {
+            if (go == null || SpriteOf(go) == null) continue;
+            if (Codex.Normalise(go.name).StartsWith(familyPrefix, StringComparison.Ordinal)) return SpriteOf(go);
+            if (any == null) any = go;
+        }
+        return SpriteOf(any);
+    }
+
 
     public static int ShipIndex(string id)
     {
         if (id == null || !id.StartsWith(ShipPrefix, StringComparison.Ordinal)) return -1;
-        int index;
-        return int.TryParse(id.Substring(ShipPrefix.Length), out index) ? index : -1;
+        string key = id.Substring(ShipPrefix.Length);
+        int index = ShipId.FromKey(key);
+        if (index == ShipId.None && int.TryParse(key, out index) && !ShipId.IsValid(index)) index = ShipId.None;
+        return index == ShipId.None ? -1 : index;
     }
 
     public static int WorldIndex(string id)

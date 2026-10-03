@@ -71,7 +71,8 @@ public static class CodexTest
         foreach (var e in entries)
         {
             var sprite = e.Sprite;
-            if (sprite == null || e.category == CodexCategory.Ships || e.category == CodexCategory.Log) continue;
+            // The Hunter is defined by behaviour and may share a hull with its family.
+            if (sprite == null || e.category == CodexCategory.Ships || e.category == CodexCategory.Log || e.id == "enemy_chaser") continue;
             string path = AssetDatabase.GetAssetPath(sprite.texture);
             string content = string.IsNullOrEmpty(path) ? sprite.texture.GetInstanceID().ToString() : Hash(path);
             string key = content + "|" + sprite.rect;
@@ -88,7 +89,13 @@ public static class CodexTest
             Check(c + " category is populated (" + total + ")", total > 0);
         }
         Check("Pilot's Log entry exists", Codex.Find("log_pilot") != null);
-        Check("every shop ship has an entry", CountIn(CodexCategory.Ships) == shopingShips.Roster.Length - 1);
+        Check("every shop ship has an entry", CountIn(CodexCategory.Ships) == ShipId.Count);
+        foreach (int ship in ShipId.All)
+        {
+            var e = Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship));
+            Check("ship " + ShipId.KeyOf(ship) + " entry uses its roster name and id",
+                  e != null && e.name == ShipId.NameOf(ship) && CodexCatalogue.ShipIndex(e.id) == ship);
+        }
         Check("every world has an entry", CountIn(CodexCategory.Worlds) == WorldManager.Worlds.Length + 1);
         Check("the portal is an entry", Codex.Find(CodexCatalogue.PortalId) != null);
         Check("Pilot's Log lore tells the premise",
@@ -119,11 +126,30 @@ public static class CodexTest
         }
 
         var extras = Resources.LoadAll<GameObject>("Prefabs/Enemies");
-        Check("Resources/Prefabs/Enemies loads (" + extras.Length + ")", extras.Length >= 20);
-        foreach (var prefab in extras) CheckMaps("extra enemy " + prefab.name, prefab, null);
-        CheckMaps("kn_enemyBlack3", Find(extras, "kn_enemyBlack3"), "enemy_black");
-        CheckMaps("kn_meteorGrey_tiny2", Find(extras, "kn_meteorGrey_tiny2"), "hazard_meteor_tiny");
-        CheckMaps("kn_meteorBrown_big4", Find(extras, "kn_meteorBrown_big4"), "hazard_meteor_big");
+        Check("Resources/Prefabs/Enemies loads (" + extras.Length + ")", extras.Length > 0);
+        foreach (var prefab in extras)
+        {
+            CheckMaps("spawn-table prefab " + prefab.name, prefab, null);
+            var e = Codex.Find(Codex.IdFor(prefab));
+            Check("spawn-table prefab " + prefab.name + " is in a family entry",
+                  e != null && Array.IndexOf(e.matches, CodexCatalogue.FamilyOf(prefab.name)) >= 0);
+        }
+        // Families are read from the live folder, so these only apply while
+        // the art they name is still there (another pass may redraw enemies).
+        if (Find(extras, "kn_enemyBlack3") != null) CheckMaps("kn_enemyBlack3", Find(extras, "kn_enemyBlack3"), "enemy_black");
+        if (Find(extras, "kn_meteorGrey_tiny2") != null) CheckMaps("kn_meteorGrey_tiny2", Find(extras, "kn_meteorGrey_tiny2"), "hazard_meteor_tiny");
+        if (Find(extras, "kn_meteorBrown_big4") != null) CheckMaps("kn_meteorBrown_big4", Find(extras, "kn_meteorBrown_big4"), "hazard_meteor_big");
+        Check("family key drops the variant number", CodexCatalogue.FamilyOf("kn_enemyBlack3(Clone)") == "knenemyblack" &&
+              CodexCatalogue.FamilyOf("kn_meteorGrey_big2") == "knmeteorgreybig");
+        Check("an unknown family still gets a readable name", CodexCatalogue.FallbackName("kn_enemyPurple2") == "Enemy Purple");
+        // No entry from the spawn table without live art behind it.
+        foreach (var e in Codex.Entries)
+        {
+            if (e.matches.Length == 0 || !(e.id.StartsWith("enemy_") || e.id.StartsWith("hazard_meteor"))) continue;
+            bool live = false;
+            foreach (var prefab in extras) live |= Array.IndexOf(e.matches, CodexCatalogue.FamilyOf(prefab.name)) >= 0;
+            if (e.id != "enemy_alien") Check(e.id + " is backed by live spawn-table art", live);
+        }
 
         var goods = UnityEngine.Object.FindFirstObjectByType<spawnGoodStuff>();
         Check("gameS1 has the pickup spawner", goods != null);
@@ -143,8 +169,11 @@ public static class CodexTest
         CheckMaps("rail mine (enmiesOnBoard.spawnMine)", temp[temp.Count - 1], "hazard_mine");
         temp.Add(new GameObject("~Portal"));
         CheckMaps("portal (Portal.Spawn)", temp[temp.Count - 1], CodexCatalogue.PortalId);
-        var chaser = (GameObject)PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>("Prefabs/Enemies/kn_enemyRed5"));
-        chaser.name = "kn_enemyRed5(Clone)";
+        // The chaser borrows a spawn-table hull (enmiesOnBoard.chaser); its
+        // behaviour, not its art, is what makes it the Hunter.
+        var hull = Resources.Load<GameObject>("Prefabs/Enemies/kn_enemyRed5") ?? extras[0];
+        var chaser = (GameObject)PrefabUtility.InstantiatePrefab(hull);
+        chaser.name = hull.name + "(Clone)";
         chaser.AddComponent<ChaserEnemy>();
         temp.Add(chaser);
         CheckMaps("chaser (kn_enemyRed5 + ChaserEnemy)", chaser, "enemy_chaser");
@@ -210,10 +239,10 @@ public static class CodexTest
             Check("a null object is ignored", !Codex.Discover((GameObject)null));
 
             Check("Pilot's Log is unlocked from the start", Codex.IsDiscovered("log_pilot") && Codex.IsDiscovered("log_wormhole"));
-            Check("the starter ship is owned, so discovered", Codex.IsDiscovered(CodexCatalogue.ShipPrefix + shopingShips.StarterShip));
-            Check("an unbought ship is not", !Codex.IsDiscovered(CodexCatalogue.ShipPrefix + 5));
+            Check("the starter ship is owned, so discovered", Codex.IsDiscovered(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ShipId.Starter)));
+            Check("an unbought ship is not", !Codex.IsDiscovered(CodexCatalogue.ShipPrefix + ShipId.KeyOf(5)));
             PlayerPrefs.SetString("boughtship5", "True");
-            Check("owning a ship discovers it", Codex.IsDiscovered(CodexCatalogue.ShipPrefix + 5));
+            Check("owning a ship discovers it", Codex.IsDiscovered(CodexCatalogue.ShipPrefix + ShipId.KeyOf(5)));
 
             Check("Frost undiscovered before reaching it", !Codex.IsDiscovered("world_frost") && !Codex.IsDiscovered(CodexCatalogue.PortalId));
             PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 2);
