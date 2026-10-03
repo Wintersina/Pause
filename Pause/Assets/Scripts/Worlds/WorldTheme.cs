@@ -2,15 +2,17 @@ using UnityEngine;
 
 // One planet's look and feel.
 //
-// A world is a re-theme of gameS1 rather than a separate scene: the backdrop
-// and the two side walls swap their textures, everything else keeps running.
-// That keeps all the existing wiring intact and means adding a planet is an
-// art drop, not scene surgery.
+// A world is a re-theme of gameS1 rather than a separate scene: the two side
+// walls swap their textures and WorldBackdrop swaps in the world's animated
+// parallax background; everything else keeps running. That keeps all the
+// existing wiring intact and means adding a planet is an art drop, not scene
+// surgery.
 //
-// Textures live at Resources/Worlds/<resourceFolder>/ and are loaded by name:
-//   backdrop    1024 x 4096, seamless vertical tile, opaque
+// Wall textures live at Resources/Worlds/<resourceFolder>/:
 //   wallLeft      64 x 448,  seamless vertical tile
 //   wallRight     64 x 448,  seamless vertical tile
+// Backgrounds live at Resources/Worlds/<displayName>/Backdrop/ (see
+// BackdropCatalog), generated from Assets/Art/Worlds/<displayName>/src~/.
 [System.Serializable]
 public class WorldTheme
 {
@@ -21,7 +23,7 @@ public class WorldTheme
              "world stays exactly as it was.")]
     public string resourceFolder = "";
 
-    [Tooltip("Multiplied into the backdrop and walls. Lets one texture set be " +
+    [Tooltip("Multiplied into the walls. Lets one texture set be " +
              "reused at different times of day.")]
     public Color tint = Color.white;
 

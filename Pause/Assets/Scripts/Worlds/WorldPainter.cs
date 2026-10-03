@@ -1,19 +1,19 @@
 using UnityEngine;
 
-// Swaps the scene's backdrop and side-wall textures to match a world.
+// Swaps the scene's side-wall textures to match a world.
 //
 // Finds the objects by the names the scene already uses rather than requiring
 // new references, and caches the originals so the space world can always be
-// restored exactly as authored.
+// restored exactly as authored. The backdrop behind the walls is no longer a
+// texture swap: WorldBackdrop builds an animated parallax set per world.
 public static class WorldPainter
 {
-    const string BackdropName = "starsBackground0";
     const string LeftWallName = "leftPipe";
     const string RightWallName = "rightPipe";
 
     static bool cached;
-    static Texture cachedBackdrop, cachedLeft, cachedRight;
-    static Color cachedBackdropTint = Color.white, cachedLeftTint = Color.white, cachedRightTint = Color.white;
+    static Texture cachedLeft, cachedRight;
+    static Color cachedLeftTint = Color.white, cachedRightTint = Color.white;
 
     public static void Apply(WorldTheme theme)
     {
@@ -28,7 +28,6 @@ public static class WorldPainter
         }
 
         string root = "Worlds/" + theme.resourceFolder + "/";
-        Paint(BackdropName, Resources.Load<Texture2D>(root + "backdrop"), theme.tint, cachedBackdrop);
         Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft);
         Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight);
     }
@@ -37,18 +36,15 @@ public static class WorldPainter
     {
         if (cached) return;
         cached = true;
-        cachedBackdrop = MaterialOf(BackdropName) != null ? MaterialOf(BackdropName).mainTexture : null;
         cachedLeft = MaterialOf(LeftWallName) != null ? MaterialOf(LeftWallName).mainTexture : null;
         cachedRight = MaterialOf(RightWallName) != null ? MaterialOf(RightWallName).mainTexture : null;
 
-        var m = MaterialOf(BackdropName); if (m != null && m.HasProperty("_Color")) cachedBackdropTint = m.color;
-        m = MaterialOf(LeftWallName);     if (m != null && m.HasProperty("_Color")) cachedLeftTint = m.color;
+        var m = MaterialOf(LeftWallName); if (m != null && m.HasProperty("_Color")) cachedLeftTint = m.color;
         m = MaterialOf(RightWallName);    if (m != null && m.HasProperty("_Color")) cachedRightTint = m.color;
     }
 
     static void Restore()
     {
-        Paint(BackdropName, null, cachedBackdropTint, cachedBackdrop);
         Paint(LeftWallName, null, cachedLeftTint, cachedLeft);
         Paint(RightWallName, null, cachedRightTint, cachedRight);
     }
@@ -69,9 +65,8 @@ public static class WorldPainter
         if (mat == null) return;
 
         Texture selected = tex != null ? tex : fallback;
-        // The scrolling material advances its UV offset indefinitely. Clamp
-        // made the final edge of Ember's backdrop stretch into a long line
-        // once the offset reached it; repeating lets the authored tile loop.
+        // The scrolling material advances its UV offset indefinitely; Clamp
+        // would stretch the final edge into a long line, so repeat the tile.
         if (selected != null) selected.wrapMode = TextureWrapMode.Repeat;
         mat.mainTexture = selected;
         if (mat.HasProperty("_Color")) mat.color = tint;

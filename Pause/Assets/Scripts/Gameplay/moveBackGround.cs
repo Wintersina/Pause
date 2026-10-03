@@ -15,12 +15,14 @@ public class moveBackGround : MonoBehaviour {
     public float maxSpeed = 0.58f;
 
     public static float speed;
-    private float offsetTimer;
-    Vector2 offset;
+    float offsetY;
+    Material wallMaterial;
 
     void Start () {
-        offsetTimer = 0;
+        offsetY = 0f;
         speed = startSpeed;
+        var r = GetComponent<Renderer>();
+        wallMaterial = r != null ? r.material : null;
         Screen.orientation = ScreenOrientation.Portrait;
     }
 
@@ -34,15 +36,13 @@ public class moveBackGround : MonoBehaviour {
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             Time.timeScale = 1;
-            offsetTimer = Time.timeSinceLevelLoad;
-            moveBackground(offsetTimer);
+            moveBackground();
             speedUp();
         }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
             Time.timeScale = 1;
-            offsetTimer = Time.timeSinceLevelLoad;
-            moveBackground(offsetTimer);
+            moveBackground();
             speedUp();
         }
         else
@@ -51,11 +51,14 @@ public class moveBackGround : MonoBehaviour {
         }
     }
 
-    // this function moves background in the 'y' direction for illustion of player moving.
-    void moveBackground(float ost)
+    // Scrolls the wall texture in 'y' for the illusion of the player moving.
+    // The offset is integrated (speed x dt); it used to be time x speed, which
+    // made the walls jump whenever speed changed and scroll faster than
+    // `speed` the longer a run went on.
+    void moveBackground()
     {
-       offset = new Vector2(0, ost * speed);
-       GetComponent<Renderer>().material.mainTextureOffset = offset;
+        offsetY = Mathf.Repeat(offsetY + speed * Time.deltaTime, 1f);
+        if (wallMaterial != null) wallMaterial.mainTextureOffset = new Vector2(0f, offsetY);
     }
 
     // game speeds up as the time progresses.
