@@ -20,8 +20,8 @@ public class SpaceDock : MonoBehaviour
 {
     public static SpaceDock Instance { get; private set; }
 
-    public const float LaunchDuration = 2.1f;
-    const float UndockTime = .8f;
+    public const float LaunchDuration = DockLaunch.Duration;
+    const float UndockTime = DockLaunch.UndockTime;
     const float DragThresholdInches = .08f;
 
     public DockBay[] bays;            // by ship index; [0] unused
@@ -389,14 +389,14 @@ public class SpaceDock : MonoBehaviour
         while (t < UndockTime && !skipLaunch)
         {
             t += Time.unscaledDeltaTime;
-            bay.SetClampOpen(DockTween.OutCubic(DockTween.Clamp01Range(t, 0f, .32f)));
-            float lift = DockTween.InOutCubic(DockTween.Clamp01Range(t, .12f, .75f));
-            float back = DockTween.InOutCubic(DockTween.Clamp01Range(t, .22f, .8f));
-            ship.localPosition = rest + new Vector3(0f, -.09f * back, 0f);
-            ship.localScale = restScale * (1f + .16f * lift);
+            bay.SetClampOpen(DockLaunch.Clamps(t));
+            float lift = DockLaunch.Lift(t);
+            float back = DockLaunch.BackOff(t);
+            ship.localPosition = rest + new Vector3(0f, -DockLaunch.BackOffDistance * back, 0f);
+            ship.localScale = restScale * (1f + DockLaunch.LiftGrow * lift);
             ship.localRotation = restRotation;
             bay.SetShadow(.1f * lift, .55f - .2f * lift);
-            if (thruster != null) thruster.idleScale = Mathf.Lerp(.55f, .7f, lift);
+            if (thruster != null) thruster.idleScale = DockLaunch.UndockFlame(lift);
             yield return null;
         }
 
@@ -408,7 +408,7 @@ public class SpaceDock : MonoBehaviour
         float halfH = cam != null ? cam.orthographicSize : 5f;
         float camX = cam != null ? cam.transform.position.x : 0f;
         float camTop = (cam != null ? cam.transform.position.y : 0f) + halfH;
-        Vector3 p1 = p0 + new Vector3(0f, 1.25f, 0f);
+        Vector3 p1 = p0 + new Vector3(0f, DockLaunch.ApproachDistance, 0f);
         Vector3 p2 = new Vector3(camX + (p0.x - camX) * .2f, camTop + 1.2f, p0.z);
         float flight = LaunchDuration - UndockTime;
         float f = 0f;
@@ -416,7 +416,7 @@ public class SpaceDock : MonoBehaviour
         while (f < 1f && !skipLaunch)
         {
             f = Mathf.Min(1f, f + Time.unscaledDeltaTime / flight);
-            float u = Mathf.Pow(f, 1.9f);
+            float u = DockLaunch.Flight(f);
             Vector3 pos = DockTween.Bezier(p0, p1, p2, u);
             ship.position = pos;
             if (bay.wind)
@@ -428,12 +428,12 @@ public class SpaceDock : MonoBehaviour
             {
                 Vector3 tangent = DockTween.BezierTangent(p0, p1, p2, u);
                 float heading = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg - 90f;
-                ship.rotation = Quaternion.Euler(0f, 0f, heading * Mathf.Clamp01(f * 3f));
+                ship.rotation = Quaternion.Euler(0f, 0f, heading * DockLaunch.TurnIn(f));
             }
-            float grow = 1f + .14f * DockTween.InOutCubic(f);
+            float grow = DockLaunch.FlightGrow(f);
             ship.localScale = new Vector3(worldScale.x * grow, worldScale.y * grow, 1f);
             bay.SetShadow(.1f + f * .4f, Mathf.Max(0f, .35f - f * .8f));
-            if (thruster != null) thruster.idleScale = Mathf.Lerp(.7f, 1.6f, DockTween.OutCubic(f * 1.4f));
+            if (thruster != null) thruster.idleScale = DockLaunch.Flare(f);
             yield return null;
         }
 
