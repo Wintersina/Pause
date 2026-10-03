@@ -28,6 +28,7 @@ public static class ShipLivesIndicatorTest
         collisionDetection.MAXLIFE = 3;
 
         DamageEffectsAttachToEveryHull();
+        ShieldBubbleAttachesToAnyHull();
 
         // A Retro80s ship (has its own damage art) should get no hearts at all.
         // Destroy() is deferred (and Play-mode oriented) so the component may
@@ -50,7 +51,7 @@ public static class ShipLivesIndicatorTest
         var legacy = new GameObject("Legacy", typeof(SpriteRenderer));
         var sr = legacy.GetComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(
-            "Assets/Resources/ShipArt/Originals/Lightning.png"); // may be null; Build() must tolerate that
+            "Assets/Art/Resources/ShipArt/Originals/Lightning.png"); // may be null; Build() must tolerate that
         var indicatorB = legacy.AddComponent<ShipLivesIndicator>();
         indicatorB.SendMessage("Start");
 
@@ -105,14 +106,19 @@ public static class ShipLivesIndicatorTest
 
         collisionDetection.lifeCounter = 2;
         life.SendMessage("Update");
-        Check("legacy hull visibly scorches at critical damage",
-              ship.GetComponent<SpriteRenderer>().color.g < .6f);
+        Check("damage keeps the authored hull colour",
+              ship.GetComponent<SpriteRenderer>().color == Color.white);
         collisionDetection.lifeCounter = 0;
 
         int flames = 0;
         foreach (Transform child in ship.transform)
             if (child.name.StartsWith("~DamageFlame")) flames++;
         Check("damage effects create two small hull flames", flames == 2);
+        Check("damage effects add a smoke trail",
+              ship.transform.Find("~DamageSmoke") != null);
+        Check("damage effects add impact bursts",
+              ship.transform.Find("~DamageExplosion0") != null &&
+              ship.transform.Find("~DamageExplosion1") != null);
 
         for (int i = 1; i < shopingShips.shipTotal; i++)
         {
@@ -121,6 +127,19 @@ public static class ShipLivesIndicatorTest
                   frames != null && frames.Length == 3 &&
                   frames[0] != null && frames[1] != null && frames[2] != null);
         }
+        Object.DestroyImmediate(ship);
+    }
+
+    static void ShieldBubbleAttachesToAnyHull()
+    {
+        var ship = new GameObject("AnyRosterHull", typeof(SpriteRenderer));
+        var bubble = ShipShieldBubble.For(ship);
+        Check("every hull receives a shield visual", bubble.Visual != null);
+        bubble.Show(.35f);
+        Check("blue atom shield can be shown on every hull",
+              bubble.Visual != null && bubble.Visual.activeSelf);
+        bubble.Hide();
+        Check("blue atom shield can be hidden after its timer", !bubble.Visual.activeSelf);
         Object.DestroyImmediate(ship);
     }
 }

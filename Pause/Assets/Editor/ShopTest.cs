@@ -43,6 +43,9 @@ public static class ShopTest
             Check("return" + i + " exists", ret != null);
             Check("Button" + i + " exists with a Button component",
                   btn != null && btn.GetComponent<Button>() != null);
+            var selector = btn != null ? btn.GetComponent<ShopShipSelectButton>() : null;
+            Check("Button" + i + " carries its own roster selection index",
+                  selector != null && selector.shipIndex == i);
 
             if (ship != null)
             {
@@ -74,8 +77,8 @@ public static class ShopTest
             var sr = ship != null ? ship.GetComponent<SpriteRenderer>() : null;
             if (sr == null || sr.sprite == null) continue;
             float h = sr.bounds.size.y;
-            Check("ship" + i + " hull height " + h.ToString("F2") + " is in range",
-                  h > 0.3f && h < 1.8f);
+                Check("ship" + i + " uses the compact dock preview scale",
+                  h > 0.16f && h < 0.80f);
         }
 
         // lift-off flare must be named so rotateRight can find it

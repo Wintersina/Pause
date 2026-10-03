@@ -400,7 +400,7 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float DensityMultiplier()
     {
-        float levelLength = WorldManager.Instance != null ? WorldManager.Instance.WorldLength : 300f;
+        float levelLength = WorldManager.Instance != null ? WorldManager.Instance.WorldLength : 180f;
         float finalStart = Mathf.Max(DensityFirstMinute, levelLength - DensityFinalStretch);
 
         if (elapsedFlightSeconds >= finalStart) return DensityFinalMultiplier;

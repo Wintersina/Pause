@@ -23,12 +23,31 @@ public static class WorldLogicTest
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
         Check("space keeps authored music", WorldManager.Worlds[0].musicResource == "");
         Check("teleport portal atlas is present",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Vfx/teleport_portal_atlas.png") != null);
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/teleport_portal_atlas.png") != null);
         Check("teleport portal has sixteen animation frames", TeleportPortalSprites.FrameCount == 16);
         Check("teleport warp sound is present",
-              AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Audio/teleport_warp.wav") != null);
+              AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/Audio/teleport_warp.wav") != null);
+        Check("progressive music exposes six Ember arrangements",
+              AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/WorldMusic/EmberStage06.wav") != null);
+        Check("world music exposes level-clock escalation", typeof(WorldMusic).GetMethod("TryEscalate") != null);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);
+        PlayerPrefs.DeleteKey("boughtship15");
+        DeveloperUnlocks.SetEnabled(true);
+        Check("developer flag unlocks every ship", PlayerPrefs.GetString("boughtship15") == "True");
+        Check("developer flag unlocks every world", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 3);
+        DeveloperUnlocks.SetEnabled(false);
+        Check("turning developer flag off restores locked ship state", !PlayerPrefs.HasKey("boughtship15"));
+        Check("turning developer flag off restores saved world progress",
+              PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 1);
+        foreach (string world in new[] { "Space", "Frost", "Verdant", "Ember" })
+        {
+            for (int stage = 1; stage <= 6; stage++)
+                Check(world + " has progressive stage " + stage,
+                    AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/WorldMusic/" +
+                        world + "Stage" + stage.ToString("00") + ".wav") != null);
+        }
         Check("the themed rail-bomb animation atlas is present",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Vfx/rail_bomb_themes_atlas.png") != null);
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png") != null);
 
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
         Check("has a next world", WorldManager.HasNext);
@@ -63,10 +82,10 @@ public static class WorldLogicTest
         for (int i = 1; i < WorldManager.Worlds.Length; i++)
         {
             var t = WorldManager.Worlds[i];
-            string p = "Assets/Resources/Worlds/" + t.resourceFolder + "/backdrop.png";
+            string p = "Assets/Art/Resources/Worlds/" + t.resourceFolder + "/backdrop.png";
             Check("art present for " + t.displayName + " (" + p + ")",
                   AssetDatabase.LoadAssetAtPath<Texture2D>(p) != null);
-            string m = "Assets/Resources/WorldMusic/" + t.displayName + ".wav";
+            string m = "Assets/Audio/Resources/WorldMusic/" + t.displayName + ".wav";
             Check("music present for " + t.displayName,
                   AssetDatabase.LoadAssetAtPath<AudioClip>(m) != null);
         }

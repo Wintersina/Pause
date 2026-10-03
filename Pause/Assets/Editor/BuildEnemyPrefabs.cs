@@ -11,7 +11,7 @@ using UnityEngine;
 // scrolling. So a prefab only needs the right art, collider, tag and mover.
 public static class BuildEnemyPrefabs
 {
-    const string SrcDir = "Assets/Resources/Prefabs/Enemies/Kenney";
+    const string SrcDir = "Assets/Art/Resources/Prefabs/Enemies/Kenney";
     const string OutDir = "Assets/Resources/Prefabs/Enemies";
 
     // Enemy ships escalate by colour as the run gets harder.

@@ -39,6 +39,9 @@ public class collisionDetection : MonoBehaviour {
     public float largeStarValue = 1f;
     public float blueAtomValue = 2f;
 
+    [Tooltip("Small star-dust payout for an enemy or asteroid destroyed.")]
+    public float enemyDustValue = 0.12f;
+
     // Explosions used to hang in space while the world scrolled past them, so a
     // blast appeared to race forward alongside the ship. Giving them the same
     // scroller everything else uses keeps them pinned to the point of impact.
@@ -74,10 +77,14 @@ public class collisionDetection : MonoBehaviour {
     // farmed for real currency.
     void awardDust(float amount)
     {
-        if (PlayerPrefs.GetString("HasDoneTut") == "true")
-            score.totalCurrency += amount;
-        else
-            score.tutorialCurrency += amount;
+        score.AwardStarDust(amount);
+    }
+
+    public static void AwardDestroyedTarget(GameObject target)
+    {
+        if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        var player = Object.FindFirstObjectByType<collisionDetection>();
+        if (player != null) player.awardDust(player.enemyDustValue);
     }
 
     // Shaves time off the ultimate's countdown on pickup -- a little for
@@ -163,6 +170,7 @@ public class collisionDetection : MonoBehaviour {
         astroidExpSound = GameObject.Find("AstroidExplotionSound").GetComponent<AudioSource>();
 
         StartCoroutine(FitShieldToHullWhenReady());
+        shield = ShipShieldBubble.For(gameObject).Visual;
 
 
         //destructionComboText.gameObject.SetActive(false);
@@ -219,13 +227,7 @@ public class collisionDetection : MonoBehaviour {
         {
 
             // creating different explotions for different enims
-            if (PrefabName.Is(hit.gameObject, "rail3"))
-            {
-                PlayExplosion();
-                GameObject BlueExp = ScrollWithWorld(Instantiate(blueExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
-                Destroy(BlueExp, 2);
-            }
-            else if (PrefabName.Is(hit.gameObject, "mine"))
+            if (PrefabName.Is(hit.gameObject, "mine"))
             {
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
@@ -278,6 +280,7 @@ public class collisionDetection : MonoBehaviour {
                 PlayExplosion();
 
                 Destroy(exp, 2);
+                AwardDestroyedTarget(hit.gameObject);
                 Destroy(hit.gameObject);
                 
                 
@@ -376,7 +379,7 @@ public class collisionDetection : MonoBehaviour {
                 musicControl.boostMusicChanger = true;
                 // ----------------------------
 
-                shield.SetActive(true);
+                ShipShieldBubble.For(gameObject).Show(shieldPadding);
                 awardDust(blueAtomValue);
                 atomTimerText.text = "0.00";
                 boostText.text = "Boost!";
@@ -410,7 +413,7 @@ public class collisionDetection : MonoBehaviour {
         if (atomCheck && invTimer <= 0)
         {
             // turn shields off
-            shield.SetActive(false);
+            ShipShieldBubble.For(gameObject).Hide();
             boost.SetActive(false);
             // let player know shild is off
             atomTimerText.text = "";

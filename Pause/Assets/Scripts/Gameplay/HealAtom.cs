@@ -23,9 +23,16 @@ public class HealAtom : MonoBehaviour
         sr.sprite = Art();
         sr.sortingOrder = 8;
 
+        // The generated art is high resolution, while the authored red/blue
+        // atoms are 28 px sprites at 100 PPU. Match their world-space size.
+        float targetDiameter = 28f / 100f;
+        float sourceDiameter = sr.sprite != null ? sr.sprite.bounds.size.x : targetDiameter;
+        float visualScale = targetDiameter / Mathf.Max(0.001f, sourceDiameter);
+        go.transform.localScale = Vector3.one * visualScale;
+
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.26f;
+        col.radius = 0.14f / Mathf.Max(0.001f, visualScale);
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
@@ -52,6 +59,16 @@ public class HealAtom : MonoBehaviour
     static Sprite Art()
     {
         if (cached != null) return cached;
+
+        // Authored to match the red and blue pickup family: compact nucleus,
+        // three orbiting lobes and the same hard pixel outline.
+        var authored = Resources.Load<Texture2D>("Pickups/heal_atom_green");
+        if (authored != null)
+        {
+            cached = Sprite.Create(authored, new Rect(0, 0, authored.width, authored.height),
+                new Vector2(.5f, .5f), 180f);
+            return cached;
+        }
 
         const int S = 96;
         var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);

@@ -49,6 +49,10 @@ public class movePlayer : MonoBehaviour
     {
         if (TouchInput.IsPressed)
         {
+            // A press on Replay or Menu belongs to the UI. Without this
+            // guard, that same press was consumed as a teleport target before
+            // the UI click completed, making the pause actions appear broken.
+            if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
 
             // show start timer, give player 2 seconds to prep
             startTimerCounter -= Time.timeSinceLevelLoad;
@@ -139,12 +143,9 @@ public class movePlayer : MonoBehaviour
     // will move the player left and right baised on touch positions.
     void moveLeft_Right(Vector3 fingerPos)
     {
-        //gets a position of the finger on the screen
-        //checks position of finger is in bound box
-        if (fingerPos.x <= 2.4 && fingerPos.x > -2.4 && fingerPos.y <= 3f)
-        {
-
-            this.transform.position = new Vector3(fingerPos.x, fingerPos.y + 1f);
+        float x = Mathf.Clamp(fingerPos.x, -2.4f, 2.4f);
+        float y = ClampPlayerY(fingerPos.y + 1f);
+        this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
 
             //atomTimerText.gameObject.SetActive(true);
@@ -153,26 +154,12 @@ public class movePlayer : MonoBehaviour
             //atomTimerText.transform.position = textPos + new Vector3(0, 70, 0);
             hypeText.transform.position = textPos + new Vector3(0, 75, 0);
             boostText.transform.position = textPos + new Vector3(0, -60, 0);
+    }
 
-            //--------------------------------------------------------
-        }
-        else if (fingerPos.x > 2.4)  
-        {
-            if (fingerPos.y > 3f)
-                this.transform.position = new Vector3(2.4f, 4.5f);
-             else
-                this.transform.position = new Vector3(2.4f, fingerPos.y + 1f);
-        }
-        else if (fingerPos.x < -2.4)
-        { 
-            if (fingerPos.y > 3f)
-                this.transform.position = new Vector3(-2.4f, 4.5f);
-            else
-                this.transform.position = new Vector3(-2.4f, fingerPos.y + 1f);
-        }
-        else if(fingerPos.y > 3f)
-        {
-            this.transform.position = new Vector3(fingerPos.x, 4.5f);
-        }
+    // The old movement only capped the top edge. A low touch could therefore
+    // place the ship below the visible board. Keep the full hull in play.
+    public static float ClampPlayerY(float y)
+    {
+        return Mathf.Clamp(y, -4.15f, 4.5f);
     }
 }

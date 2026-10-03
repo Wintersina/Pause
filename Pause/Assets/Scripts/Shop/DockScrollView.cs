@@ -150,7 +150,11 @@ public class DockScrollView : MonoBehaviour
         ship.transform.position = start;
         SceneUtil.FindAny("face" + index).transform.position = start;
         string pad = index % 2 == 0 ? "LiftOffRight" : "LiftOffLeft";
-        SceneUtil.FindAny(pad).transform.position = new Vector3(start.x, cam.transform.position.y + cam.orthographicSize + 2, 0);
+        // Leave through the door on the ship's own side of the hangar. The
+        // diagonal makes the selected hull visibly fly out left/right before
+        // it clears the top of the screen instead of simply vanishing upward.
+        float outwardX = index % 2 == 0 ? 4.1f : -4.1f;
+        SceneUtil.FindAny(pad).transform.position = new Vector3(outwardX, cam.transform.position.y + cam.orthographicSize + 2, 0);
         foreach (var sr in ship.GetComponentsInChildren<SpriteRenderer>(true)) sr.forceRenderingOff = false;
         scroll.gameObject.SetActive(false);
     }
@@ -277,7 +281,8 @@ public class DockCardArt : MonoBehaviour
         if (hull == null) hull = ship.GetComponent<SpriteRenderer>();
         if (hull == null || hull.sprite == null) return;
         var rotation = Quaternion.Euler(0, 0, ShopSceneExtender.DockAngle(shipIndex));
-        float pixelsPerUnit = 138 / Mathf.Max(hull.sprite.bounds.size.x, hull.sprite.bounds.size.y);
+        // Keep the UI mirror in step with the 50%-scale world preview.
+        float pixelsPerUnit = 69 / Mathf.Max(hull.sprite.bounds.size.x, hull.sprite.bounds.size.y);
         foreach (var sr in ship.GetComponentsInChildren<SpriteRenderer>(true))
         {
             sr.forceRenderingOff = !(rotateRight.flyOffChecker && rotateRight.shipSelected == shipIndex);

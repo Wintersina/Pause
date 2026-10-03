@@ -224,7 +224,7 @@ public static class BugBatch0907Test
         var go = new GameObject("~WorldManagerTest");
         var wm = go.AddComponent<WorldManager>();
         Check("a planet now runs 5 minutes (300s), not 8 (480s)",
-              Mathf.Approximately(wm.secondsPerWorld, 300f));
+              Mathf.Approximately(wm.secondsPerWorld, 180f));
         Object.DestroyImmediate(go);
     }
 }

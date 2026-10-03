@@ -1,54 +1,117 @@
+using System;
 using UnityEngine;
 
-// Damage is readable on every roster entry, including the legacy hulls whose
-// source sheets do not include authored damaged frames: scorched pin flames
-// cling to the ship and tiny bursts peel away while it is hurt.
+// Animated damage dressing shared by every playable hull. The hull sprite
+// stays in its authored colours; this layer supplies fire, smoke, embers and
+// small impact bursts while the ship is hurt.
 public class ShipDamageFx : MonoBehaviour
 {
     SpriteRenderer[] flames;
-    float nextBurst;
+    SpriteRenderer smoke;
+    SpriteRenderer[] explosions;
+    Sprite[] frames;
+    int shipOffset;
+    float halfWidth;
+    float halfHeight;
+
+    const int AtlasColumns = 4;
+    const int AtlasRows = 4;
+    const float FramesPerSecond = 14f;
 
     void Start()
     {
         var hull = GetComponent<SpriteRenderer>();
-        var texture = Resources.Load<Texture2D>("Prefabs/Vfx/vfx_flare_01");
-        if (texture == null) return;
-        var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                                   new Vector2(.5f, .5f), 100f);
-        float x = hull != null && hull.sprite != null ? hull.sprite.bounds.extents.x * .45f : .2f;
-        float y = hull != null && hull.sprite != null ? hull.sprite.bounds.extents.y * .1f : 0f;
-        flames = new SpriteRenderer[2];
-        for (int i = 0; i < flames.Length; i++)
+        if (hull != null && hull.sprite != null)
         {
-            var go = new GameObject("~DamageFlame" + i, typeof(SpriteRenderer));
-            go.transform.SetParent(transform, false);
-            go.transform.localPosition = new Vector3(i == 0 ? -x : x, y, -.03f);
-            go.transform.localScale = Vector3.one * .12f;
-            flames[i] = go.GetComponent<SpriteRenderer>();
-            flames[i].sprite = sprite;
-            flames[i].sortingOrder = (hull != null ? hull.sortingOrder : 0) + 2;
-            flames[i].color = new Color(1f, .38f, .08f, 0f);
+            halfWidth = hull.sprite.bounds.extents.x;
+            halfHeight = hull.sprite.bounds.extents.y;
         }
+        else
+        {
+            halfWidth = .2f;
+            halfHeight = .2f;
+        }
+
+        shipOffset = ResolveShipIndex() * 3;
+        var atlas = Resources.Load<Texture2D>("Vfx/ship_damage_fx_atlas");
+        if (atlas == null) return;
+        frames = Slice(atlas);
+
+        int order = hull != null ? hull.sortingOrder + 2 : 2;
+        flames = new SpriteRenderer[2];
+        flames[0] = Create("~DamageFlame0", new Vector3(-halfWidth * .38f, -halfHeight * .30f, -.03f), order, .30f);
+        flames[1] = Create("~DamageFlame1", new Vector3(halfWidth * .38f, -halfHeight * .30f, -.03f), order, .26f);
+        smoke = Create("~DamageSmoke", new Vector3(0f, -halfHeight * .64f, -.02f), order - 1, .42f);
+        explosions = new SpriteRenderer[2];
+        explosions[0] = Create("~DamageExplosion0", new Vector3(-halfWidth * .60f, -halfHeight * .02f, -.04f), order + 1, .22f);
+        explosions[1] = Create("~DamageExplosion1", new Vector3(halfWidth * .58f, halfHeight * .08f, -.04f), order + 1, .20f);
     }
 
     void Update()
     {
-        int damage = collisionDetection.lifeCounter;
+        if (frames == null || frames.Length == 0) return;
+        int damage = Mathf.Clamp(collisionDetection.lifeCounter, 0, 2);
         bool hurt = damage > 0 && !buttonClicks.playerDied;
-        if (flames != null)
+        float t = Time.unscaledTime * FramesPerSecond + shipOffset;
+        int frame = Mathf.FloorToInt(t);
+        float pulse = .82f + Mathf.Sin(Time.unscaledTime * 9f + shipOffset) * .12f;
+
+        SetAnimated(flames[0], frames[(frame + 0) % 8], hurt ? pulse : 0f);
+        SetAnimated(flames[1], frames[(frame + 2) % 8], hurt ? pulse * .82f : 0f);
+        SetAnimated(smoke, frames[8 + ((frame / 2) % 8)], hurt ? .48f + damage * .12f : 0f);
+
+        for (int i = 0; i < explosions.Length; i++)
         {
-            for (int i = 0; i < flames.Length; i++)
+            float cadence = Mathf.Repeat(Time.unscaledTime * (2.0f + damage * .55f) + i * .47f, 1f);
+            float alpha = hurt && damage >= 2 && cadence < .34f
+                ? Mathf.Sin(cadence / .34f * Mathf.PI) * .92f
+                : 0f;
+            SetAnimated(explosions[i], frames[4 + ((frame + i * 3) % 8)], alpha);
+        }
+    }
+
+    SpriteRenderer Create(string name, Vector3 position, int order, float scale)
+    {
+        var go = new GameObject(name, typeof(SpriteRenderer));
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = position;
+        go.transform.localScale = Vector3.one * scale;
+        var renderer = go.GetComponent<SpriteRenderer>();
+        renderer.sortingOrder = order;
+        renderer.color = new Color(1f, 1f, 1f, 0f);
+        return renderer;
+    }
+
+    void SetAnimated(SpriteRenderer renderer, Sprite sprite, float alpha)
+    {
+        if (renderer == null) return;
+        renderer.sprite = sprite;
+        var c = renderer.color;
+        c.a = Mathf.Clamp01(alpha);
+        renderer.color = c;
+    }
+
+    static Sprite[] Slice(Texture2D atlas)
+    {
+        var result = new Sprite[AtlasColumns * AtlasRows];
+        float width = atlas.width / (float)AtlasColumns;
+        float height = atlas.height / (float)AtlasRows;
+        int i = 0;
+        for (int row = AtlasRows - 1; row >= 0; row--)
+            for (int col = 0; col < AtlasColumns; col++)
             {
-                if (flames[i] == null) continue;
-                float flicker = .6f + .4f * Mathf.Sin(Time.unscaledTime * (12f + i * 3f));
-                flames[i].color = new Color(1f, .35f + .2f * flicker, .06f, hurt ? .82f * flicker : 0f);
-                flames[i].transform.localScale = Vector3.one * (.09f + damage * .035f + flicker * .035f);
+                var rect = new Rect(col * width, row * height, width, height);
+                result[i] = Sprite.Create(atlas, rect, new Vector2(.5f, .5f), 700f);
+                result[i].name = "shipDamageFrame" + i;
+                i++;
             }
-        }
-        if (hurt && Time.unscaledTime >= nextBurst)
-        {
-            nextBurst = Time.unscaledTime + Mathf.Max(.3f, .75f - damage * .12f);
-            PowerFx.Burst(transform.position + Random.insideUnitSphere * .18f, new Color(1f, .3f, .08f), 3);
-        }
+        return result;
+    }
+
+    int ResolveShipIndex()
+    {
+        string name = gameObject.name.Replace("(Clone)", "").Replace("ship", "");
+        int index;
+        return Int32.TryParse(name, out index) ? Mathf.Max(0, index) : 0;
     }
 }

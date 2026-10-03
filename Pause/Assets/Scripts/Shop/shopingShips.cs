@@ -133,43 +133,41 @@ public class shopingShips : MonoBehaviour {
     //   keep track of the ship number selected. once player pushes start
     public void shipselected()
     {
-        for (int i = 1; i < ships.Length; i++)
+        var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        if (selected == null) return;
+        var button = selected.GetComponentInParent<Button>();
+        if (button == null) return;
+        string name = button.gameObject.name.Replace("Button", "");
+        int index;
+        if (int.TryParse(name, out index)) SelectShip(index);
+    }
+
+    // The dock previously inferred the ship from EventSystem's selected
+    // object. That object can be a nested text/image from another card after
+    // a ScrollRect drag, which let one card open while an old selection was
+    // committed. Every dock button now calls this explicit index path.
+    public void SelectShip(int index)
+    {
+        if (index < 1 || index >= shipTotal) return;
+        LastShipSelected = shipNumber;
+        shipNumber = index;
+        buttonCanvis.SetActive(false);
+        popUpCanvis.SetActive(true);
+        setShipImage(index);
+        bool owned = PlayerPrefs.GetString("boughtship" + index) == "True";
+        Text yes = yesButton.gameObject.GetComponentInChildren<Text>();
+        Text no = noButton.gameObject.GetComponentInChildren<Text>();
+        if (owned)
         {
-            if(EventSystem.current.currentSelectedGameObject.name == "Button" + i.ToString()) {
-
-                // if you have bought the current ship
-                if (PlayerPrefs.GetString("boughtship"+i.ToString()) == "True")
-                {
-                    buttonCanvis.SetActive(false);
-                    popUpCanvis.SetActive(true);
-                    
-                    setShipImage(i);
-                    question.text = "You Have Already Bought " + shipNames[i] + " star ship.";
-                    Text changeyestoOk = yesButton.gameObject.GetComponentInChildren<Text>();
-                    Text changenotoCancel = noButton.gameObject.GetComponentInChildren<Text>();
-                    changenotoCancel.text = "Cancel";
-                    changeyestoOk.text = "Select";
-                    //used for selecting the previously selected ships
-                    LastShipSelected = shipNumber;
-                    shipNumber = i;
-                }
-                // if ship was not bought yet
-                else {
-                    
-                    buttonCanvis.SetActive(false);
-                    popUpCanvis.SetActive(true);
-                    setShipImage(i);
-                    question.text = "Cost: "+shipCost[i]+ " StarDust. \n\n" + "Would you like to buy the " + shipNames[i] + " ship?";
-                    Text changeyestoOk = yesButton.gameObject.GetComponentInChildren<Text>();
-                    changeyestoOk.text = "Yes";
-                    Text changenotoCancel = noButton.gameObject.GetComponentInChildren<Text>();
-                    changenotoCancel.text = "No";
-                    LastShipSelected = shipNumber;
-                    shipNumber = i;
-
-                    
-                }
-            }
+            question.text = "You have already bought " + shipNames[index] + ".";
+            no.text = "CANCEL";
+            yes.text = "SELECT";
+        }
+        else
+        {
+            question.text = "COST: " + shipCost[index] + " STAR DUST\n\nBUY " + shipNames[index].ToUpperInvariant() + "?";
+            yes.text = "YES";
+            no.text = "NO";
         }
     }
 

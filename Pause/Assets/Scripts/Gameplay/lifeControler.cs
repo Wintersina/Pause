@@ -91,13 +91,9 @@ public class lifeControler : MonoBehaviour {
         Sprite animated = shopingShips.IdleSpriteFor(currentShipIndex, frame, idleFrame);
         spriteControl.sprite = animated != null ? animated : img[frame];
 
-        // The newer hulls swap authored damaged frames. Legacy sheets have a
-        // single intact frame, so add a warm scorch tint at the same health
-        // thresholds; ShipDamageFx supplies the visible fire and sparks.
-        if (currentShipIndex >= ShipLivesIndicator.FirstShipWithoutDamageArt)
-        {
-            float damage = Mathf.Clamp01(life / 2f);
-            spriteControl.color = Color.Lerp(Color.white, new Color(1f, .48f, .34f), damage);
-        }
+        // Damage is communicated by the animated fire, smoke and impact layer.
+        // Keep the authored hull colours intact instead of applying a flat red
+        // tint over the entire ship.
+        spriteControl.color = Color.white;
     }
 }

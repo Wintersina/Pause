@@ -17,10 +17,13 @@ public class WorldMusic : MonoBehaviour
     static WorldMusic runner;
     static AudioClip sceneDefault;
     static bool captured;
+    // Six progressive 30-second arrangements, with stage 0 playing at launch.
+    static int musicStage;
 
     public static void Apply(WorldTheme theme)
     {
         if (theme == null) return;
+        musicStage = 0;
 
         var source = FindBackgroundSource();
         if (source == null) return;
@@ -31,14 +34,23 @@ public class WorldMusic : MonoBehaviour
             sceneDefault = source.clip;
         }
 
-        AudioClip next = string.IsNullOrEmpty(theme.musicResource)
-            ? sceneDefault
-            : Resources.Load<AudioClip>(theme.musicResource);
+        AudioClip next = Resources.Load<AudioClip>("WorldMusic/" + theme.displayName + "Stage01");
+        if (next == null)
+            next = string.IsNullOrEmpty(theme.musicResource)
+                ? sceneDefault
+                : Resources.Load<AudioClip>(theme.musicResource);
+
+        var boostGo = GameObject.Find("RocketsSound");
+        var boost = boostGo != null ? boostGo.GetComponent<AudioSource>() : null;
+        // Every world gets its own short pickup sting.  The clips are sampled
+        // from the original boosting track but shaped for a quick blue-atom
+        // payoff, so Ember does not fall back to its long upbeat loop.
+        var boostClip = Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost");
+        if (boost != null && boostClip != null) boost.clip = boostClip;
 
         // A missing clip leaves the current track playing rather than dropping
         // into silence -- a half-shipped planet should still have music.
         if (next == null || next == source.clip) return;
-
         EnsureRunner().StartCoroutine(Swap(source, next));
     }
 
@@ -53,6 +65,29 @@ public class WorldMusic : MonoBehaviour
         if (runner == null)
             runner = new GameObject("~WorldMusic").AddComponent<WorldMusic>();
         return runner;
+    }
+
+    // Called by WorldManager's guaranteed level clock rather than depending
+    // on a temporary crossfade object existing in the scene.
+    public static void TryEscalate(WorldManager world)
+    {
+        // Count only active flight, using WorldManager's level clock. Each
+        // stage is a new arrangement of the same original song, with one more
+        // instrument joining every 30 seconds. Stage 06 owns the final 30s.
+        if (WorldManager.Instance == null)
+        {
+            return;
+        }
+        float elapsed = world.WorldLength - world.SecondsLeftInWorld;
+        int nextStage = Mathf.Clamp(Mathf.FloorToInt(elapsed / 30f), 0, 5);
+        if (nextStage <= musicStage) return;
+
+        var upbeat = Resources.Load<AudioClip>("WorldMusic/" + WorldManager.Current.displayName +
+                                               "Stage" + (nextStage + 1).ToString("00"));
+        var source = FindBackgroundSource();
+        if (upbeat == null || source == null || source.clip == upbeat) return;
+        musicStage = nextStage;
+        EnsureRunner().StartCoroutine(Swap(source, upbeat));
     }
 
     static IEnumerator Swap(AudioSource main, AudioClip next)

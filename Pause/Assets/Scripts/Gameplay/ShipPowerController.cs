@@ -55,6 +55,7 @@ public class ShipPowerController : MonoBehaviour
     public static float CinematicTimeScale => CinematicClearActive ? 0.06f : 1f;
 
     ShipPower power;
+    int shipIndex;
     float timer;
     float cooldown;
     UltimateGun gun;
@@ -74,6 +75,7 @@ public class ShipPowerController : MonoBehaviour
     void Start()
     {
         power = ShipPowerTable.For(PlayerPrefs.GetInt("spawnShip", 0));
+        shipIndex = ShipExhaust.IndexFor(gameObject);
         cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);
@@ -110,6 +112,7 @@ public class ShipPowerController : MonoBehaviour
     void Fire()
     {
         if (gun != null) gun.Fire();
+        UltimateShotSound.Play(shipIndex);
         StartCoroutine(CinematicClear());
     }
 
@@ -125,17 +128,18 @@ public class ShipPowerController : MonoBehaviour
         foreach (var target in Targets()) targets.Add(target);
         targets.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
 
-        Color tint = ShipExhaust.TintFor(ShipExhaust.IndexFor(gameObject));
+        Color tint = ShipExhaust.TintFor(shipIndex);
         for (int i = 0; i < targets.Count; i++)
         {
             var target = targets[i];
             if (target == null) continue;
             Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
-            PowerFx.HomingProjectile(from, target.transform, tint, 2.4f, () =>
+            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () =>
             {
                 if (target == null) return;
                 PowerFx.Burst(target.transform.position, tint, 6);
                 collisionDetection.PlayExplosion();
+                collisionDetection.AwardDestroyedTarget(target);
                 Destroy(target);
             });
             yield return new WaitForSecondsRealtime(.11f);

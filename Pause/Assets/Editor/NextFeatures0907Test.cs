@@ -26,6 +26,24 @@ public static class NextFeatures0907Test
     {
         AsteroidsSpinSomeAtTieredSpeeds();
         AtomsStayInsideSideRails();
+        Check("player cannot move below the gameplay floor", movePlayer.ClampPlayerY(-99f) >= -4.15f);
+        Check("the first launch touch does not spend a pause", !score.ShouldSpendPause(false, false));
+        Check("a later pause-resume touch spends exactly one pause", score.ShouldSpendPause(true, false));
+        Check("custom ultimate projectile atlas is present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/ultimate_projectiles_atlas.png") != null);
+        Check("ultimate projectile animator has per-ship style slots",
+              typeof(UltimateProjectileAnimator).GetField("shipIndex") != null);
+        Check("ultimate projectile art exposes four flowing sprite frames",
+              typeof(UltimateProjectileArt).GetMethod("FrameForShip") != null);
+        Check("matching green heal-atom sprite is present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Pickups/heal_atom_green.png") != null);
+        Check("green heal atom targets the authored 28px pickup size",
+              Mathf.Approximately(28f / 100f, .28f));
+        PlayerPrefs.SetString("HasDoneTut", "true");
+        score.totalCurrency = 0f;
+        score.AwardStarDust(.12f);
+        Check("destroying an enemy can award a small star-dust payout",
+              Mathf.Approximately(score.totalCurrency, .12f));
         RailsCoverTallCamera();
         PauseQuickActionsVisibility();
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();

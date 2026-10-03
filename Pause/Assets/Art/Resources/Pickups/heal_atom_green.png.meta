@@ -1,0 +1,689 @@
+fileFormatVersion: 2
+guid: 85ce93e921e24408ca6010b1b9c8bd4b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5092158721411963791
+    second: heal_atom_green_0
+  - first:
+      213: 8357997093314613177
+    second: heal_atom_green_1
+  - first:
+      213: 8450589331495187337
+    second: heal_atom_green_2
+  - first:
+      213: 3722267083340792063
+    second: heal_atom_green_3
+  - first:
+      213: -9210789825188898909
+    second: heal_atom_green_4
+  - first:
+      213: 3764592312438340502
+    second: heal_atom_green_5
+  - first:
+      213: 8798627201549081810
+    second: heal_atom_green_6
+  - first:
+      213: -6739556367471395534
+    second: heal_atom_green_7
+  - first:
+      213: -4187650491381149567
+    second: heal_atom_green_8
+  - first:
+      213: 7369252180600966032
+    second: heal_atom_green_9
+  - first:
+      213: 7768469700101957654
+    second: heal_atom_green_10
+  - first:
+      213: 8488860491571390765
+    second: heal_atom_green_11
+  - first:
+      213: 5395756092666001525
+    second: heal_atom_green_12
+  - first:
+      213: 8723456238371436648
+    second: heal_atom_green_13
+  - first:
+      213: 4823657324685592105
+    second: heal_atom_green_14
+  - first:
+      213: -1083222310285576359
+    second: heal_atom_green_15
+  - first:
+      213: -8080532839557370411
+    second: heal_atom_green_16
+  - first:
+      213: -7661279861389967431
+    second: heal_atom_green_17
+  - first:
+      213: -7650503027317155121
+    second: heal_atom_green_18
+  - first:
+      213: 2921226712579398512
+    second: heal_atom_green_19
+  - first:
+      213: 2743691094244518549
+    second: heal_atom_green_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: heal_atom_green_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1195
+        height: 1217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 174255e4f940559b0800000000000000
+      internalID: -5092158721411963791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_1
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 757
+        width: 86
+        height: 87
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bfc3c4e2129df370800000000000000
+      internalID: 8357997093314613177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_2
+      rect:
+        serializedVersion: 2
+        x: 1133
+        y: 803
+        width: 31
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 983f97e4936864570800000000000000
+      internalID: 8450589331495187337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_3
+      rect:
+        serializedVersion: 2
+        x: 1160
+        y: 803
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff048add03628a330800000000000000
+      internalID: 3722267083340792063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_4
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 759
+        width: 24
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a755d07473bc2080800000000000000
+      internalID: -9210789825188898909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_5
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 793
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69bbd0333c48e3430800000000000000
+      internalID: 3764592312438340502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_6
+      rect:
+        serializedVersion: 2
+        x: 1123
+        y: 785
+        width: 20
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dc1c6b92d00b1a70800000000000000
+      internalID: 8798627201549081810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_7
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 761
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23d352501394872a0800000000000000
+      internalID: -6739556367471395534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_8
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 755
+        width: 23
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1809cb1b01a72e5c0800000000000000
+      internalID: -4187650491381149567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_9
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 661
+        width: 90
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09b4ef470d7d44660800000000000000
+      internalID: 7369252180600966032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_10
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 738
+        width: 20
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61866fa78062fcb60800000000000000
+      internalID: 7768469700101957654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_11
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 742
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d29e5f324ad7ec570800000000000000
+      internalID: 8488860491571390765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_12
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 712
+        width: 16
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 578b10e049391ea40800000000000000
+      internalID: 5395756092666001525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_13
+      rect:
+        serializedVersion: 2
+        x: 1069
+        y: 556
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8687bcdda31ff0970800000000000000
+      internalID: 8723456238371436648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_14
+      rect:
+        serializedVersion: 2
+        x: 1149
+        y: 473
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 926881ca7c211f240800000000000000
+      internalID: 4823657324685592105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_15
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 403
+        width: 26
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95776a64c0f97f0f0800000000000000
+      internalID: -1083222310285576359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_16
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 417
+        width: 31
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dded46e13e2cdf80800000000000000
+      internalID: -8080532839557370411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_17
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 373
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bf3ff8ae8aada590800000000000000
+      internalID: -7661279861389967431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_18
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 150
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcad5bfd704f3d590800000000000000
+      internalID: -7650503027317155121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_19
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 63
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07b5dafb7384a8820800000000000000
+      internalID: 2921226712579398512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: heal_atom_green_20
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 63
+        width: 43
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59ae8d5738c831620800000000000000
+      internalID: 2743691094244518549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      heal_atom_green_0: -5092158721411963791
+      heal_atom_green_1: 8357997093314613177
+      heal_atom_green_10: 7768469700101957654
+      heal_atom_green_11: 8488860491571390765
+      heal_atom_green_12: 5395756092666001525
+      heal_atom_green_13: 8723456238371436648
+      heal_atom_green_14: 4823657324685592105
+      heal_atom_green_15: -1083222310285576359
+      heal_atom_green_16: -8080532839557370411
+      heal_atom_green_17: -7661279861389967431
+      heal_atom_green_18: -7650503027317155121
+      heal_atom_green_19: 2921226712579398512
+      heal_atom_green_2: 8450589331495187337
+      heal_atom_green_20: 2743691094244518549
+      heal_atom_green_3: 3722267083340792063
+      heal_atom_green_4: -9210789825188898909
+      heal_atom_green_5: 3764592312438340502
+      heal_atom_green_6: 8798627201549081810
+      heal_atom_green_7: -6739556367471395534
+      heal_atom_green_8: -4187650491381149567
+      heal_atom_green_9: 7369252180600966032
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

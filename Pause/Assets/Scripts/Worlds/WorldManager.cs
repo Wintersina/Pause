@@ -14,7 +14,7 @@ public class WorldManager : MonoBehaviour
     public const string PrefsHighestWorld = "highestWorld";
 
     [Tooltip("Seconds of active flight before the portal opens.")]
-    public float secondsPerWorld = 300f;   // 5 minutes
+    public float secondsPerWorld = 180f;   // 3 minutes
 
     [Tooltip("How long the portal stays on screen before drifting off. Missing " +
              "it is not fatal -- another opens after the same interval.")]
@@ -104,7 +104,7 @@ public class WorldManager : MonoBehaviour
     {
         // Unlocks are permanent: once a planet has been reached, later runs
         // start there rather than replaying the earlier worlds.
-        CurrentIndex = startAtHighestUnlocked
+        CurrentIndex = DeveloperUnlocks.Enabled ? DeveloperUnlocks.SelectedWorld : startAtHighestUnlocked
             ? PlayerPrefs.GetInt(PrefsHighestWorld, 0)
             : 0;
 
@@ -127,6 +127,7 @@ public class WorldManager : MonoBehaviour
         if (!running) return;
 
         timer -= Time.deltaTime;
+        WorldMusic.TryEscalate(this);
         if (timer <= 0f) OpenPortal();
     }
 
