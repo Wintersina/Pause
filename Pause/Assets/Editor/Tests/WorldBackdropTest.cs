@@ -63,6 +63,8 @@ public static class WorldBackdropTest
             CheckReadability();
             CheckWalls();
             CheckRuntime();
+            CheckSpaceDiscs();
+            CheckSpaceMotion();
         }
         finally
         {
@@ -192,9 +194,12 @@ public static class WorldBackdropTest
                 if (tile)
                 {
                     Check(asset + " wraps vertically (Repeat)", tex.wrapModeV == TextureWrapMode.Repeat);
-                    float seam = SeamDifference(px);
+                    var layer = spec.Find(name);
+                    float seam = layer.wrapBlend > 0f ? WrapBlendSeam(px, layer.wrapBlend) : SeamDifference(px);
                     Check(spec.world + "/" + name + " is vertically seamless (top vs bottom row " +
-                          seam.ToString("F4") + " <= " + SeamTolerance + ")", seam <= SeamTolerance);
+                          seam.ToString("F4") + " <= " + SeamTolerance +
+                          (layer.wrapBlend > 0f ? ", as rendered with a " + layer.wrapBlend + " wrap cross-fade; raw art " +
+                                                  SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamTolerance);
                 }
 
                 float lum, chroma;
@@ -760,6 +765,36 @@ public static class WorldBackdropTest
         return (float)(sum / (w * 4));
     }
 
+    // The join between two copies of a wrap-blended tile as BackdropSkyWrap
+    // draws them: a copy's top row is display v' just under P = 1 - blend
+    // (pure art), the next copy's bottom row is v' = 0, which the shader
+    // fills with the art at P. Rows are evaluated with the shader's formula.
+    static float WrapBlendSeam(Color[] px, float blend)
+    {
+        int w = ReadW, h = ReadH;
+        float p = 1f - blend;
+        int shown = Mathf.RoundToInt(h * p);
+        Color[] top = WrapRow(px, w, h, (shown - 0.5f) / h, p, blend);
+        Color[] bottom = WrapRow(px, w, h, 0.5f / h * p, p, blend);
+        double sum = 0;
+        for (int x = 0; x < w; x++)
+        {
+            Color a = bottom[x], b = top[x];
+            sum += Mathf.Abs(a.r - b.r) + Mathf.Abs(a.g - b.g) + Mathf.Abs(a.b - b.b) + Mathf.Abs(a.a - b.a);
+        }
+        return (float)(sum / (w * 4));
+    }
+
+    static Color[] WrapRow(Color[] px, int w, int h, float v, float p, float blend)
+    {
+        var row = new Color[w];
+        int ra = Mathf.Clamp((int)(v * h), 0, h - 1);
+        int rb = Mathf.Clamp((int)((v + p) * h), 0, h - 1);
+        float k = Mathf.Clamp01(v / blend);
+        for (int x = 0; x < w; x++) row[x] = Color.Lerp(px[rb * w + x], px[ra * w + x], k);
+        return row;
+    }
+
     static float ValuePercentile(Color[] px, float q)
     {
         var hist = new int[256];
@@ -884,6 +919,174 @@ public static class WorldBackdropTest
         }
         finally
         {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    // ------------------------------------------------- Space: turning bodies --
+
+    // SpaceDirector.DiscOf assumes each sphere's disc fills its centred cut
+    // less a small border; a re-cut that broke that would turn the surface
+    // about the wrong centre, or slide it over the rim halo.
+    static void CheckSpaceDiscs()
+    {
+        string dir = "Assets/Art/Resources/Worlds/Space/Backdrop/";
+        float worst = 0f;
+        string worstName = "-";
+        int spheres = 0;
+        foreach (string atlas in new[] { "anim", "fx" })
+        {
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(dir + atlas + ".png"));
+            var px = tex.GetPixels();
+            int w = tex.width;
+            var m = JsonUtility.FromJson<AtlasManifest>(File.ReadAllText(dir + atlas + ".json"));
+            foreach (var r in m.sprites)
+            {
+                var s = Sprite.Create(tex, new Rect(r.x, r.y, r.w, r.h), new Vector2(0.5f, 0.5f), 100f);
+                s.name = r.n;
+                if (SpaceDirector.IsSphere(s))
+                {
+                    spheres++;
+                    Vector4 d = SpaceDirector.DiscOf(s);
+                    int x0 = int.MaxValue, x1 = -1, y0 = int.MaxValue, y1 = -1;
+                    for (int y = 0; y < r.h; y++)
+                        for (int x = 0; x < r.w; x++)
+                            if (px[(r.y + y) * w + r.x + x].a >= 0.5f)
+                            {
+                                x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x);
+                                y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y);
+                            }
+                    // measured disc, atlas pixels
+                    var got = new Vector4(r.x + (x0 + x1 + 1) / 2f, r.y + (y0 + y1 + 1) / 2f,
+                                          (x1 - x0 + 1) / 2f, (y1 - y0 + 1) / 2f);
+                    var want = new Vector4(d.x * w, d.y * tex.height, d.z * w, d.w * tex.height);
+                    float err = Mathf.Max(Mathf.Max(Mathf.Abs(got.x - want.x), Mathf.Abs(got.y - want.y)),
+                                          Mathf.Max(Mathf.Abs(got.z - want.z), Mathf.Abs(got.w - want.w)));
+                    if (x1 < 0) err = 999f;
+                    if (err > worst) { worst = err; worstName = r.n; }
+                }
+                Object.DestroyImmediate(s);
+            }
+            Object.DestroyImmediate(tex);
+        }
+        Check("Space spheres' discs fill their centred cuts (" + spheres + " spheres, worst " + worstName + " off by " +
+              worst.ToString("F1") + " px <= 2)", spheres >= 12 && worst <= 2f);
+    }
+
+    static BackdropPiece FirstSphere(SpaceDirector d, int kind)
+    {
+        foreach (var pool in d.Bodies)
+            foreach (var p in pool.items)
+                if (p.active && p.planet && p.kind == kind && p.parent == null) return p;
+        return null;
+    }
+
+    // Planets turn properly (surface spin from one static variant, never a
+    // playing flipbook), their halo is part of the same rigid sprite, comets
+    // stay small and dim, the sky draws seamlessly, and none of it allocates.
+    static void CheckSpaceMotion()
+    {
+        var go = new GameObject("~SpaceMotionTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        try
+        {
+            Time.timeScale = 1f;
+            moveBackGround.speed = 0.2f;
+            wb.Show("Space", false);
+            var sd = wb.Current != null ? wb.Current.Director as SpaceDirector : null;
+            Check("Space backdrop runs the SpaceDirector", sd != null);
+            if (sd == null) return;
+
+            var sky = wb.Current.Tiles[0];
+            Check("Space sky draws through the wrap cross-fade shader",
+                  sky.WrapMaterial != null && sky.WrapMaterial.shader.name == "Pause/BackdropSkyWrap");
+
+            var planet = FirstSphere(sd, SpaceDirector.Planet);
+            Check("Space opens on a planet drawn with the turning-planet shader",
+                  planet != null && planet.sr.sharedMaterial != null &&
+                  planet.sr.sharedMaterial.shader.name == "Pause/BackdropPlanet");
+            if (planet == null) return;
+
+            const float dt = 1f / 60f;
+            bool smooth = planet.turnRate != 0f, noSwap = true;
+            float turn0 = planet.turn, haloDev = 0f, tiltDev = 0f;
+            Sprite s0 = planet.sr.sprite;
+            Vector3 off0 = planet.sr.bounds.center - planet.root.position;
+            Quaternion rot0 = planet.root.rotation;
+            var mpb = new MaterialPropertyBlock();
+            bool shaderFed = true;
+            for (int i = 0; i < 180 && planet.active; i++)
+            {
+                float before = planet.turn;
+                wb.Step(dt);
+                if (!planet.active) break;
+                if (Mathf.Abs(planet.turn - before - planet.turnRate * dt) > 1e-5f) smooth = false;
+                if (planet.sr.sprite != s0 || planet.frames != null) noSwap = false;
+                haloDev = Mathf.Max(haloDev, ((planet.sr.bounds.center - planet.root.position) - off0).magnitude);
+                tiltDev = Mathf.Max(tiltDev, Quaternion.Angle(planet.root.rotation, rot0));
+                planet.sr.GetPropertyBlock(mpb);
+                if (Mathf.Abs(mpb.GetFloat("_Spin") - planet.turn) > 1e-5f) shaderFed = false;
+            }
+            float turned = Mathf.Abs(planet.turn - turn0);
+            Check("Space planet surface turns smoothly (" + turned.ToString("F3") + " rad of longitude in 3 s, " +
+                  "constant rate, fed to the shader), one static variant, no flipbook swaps",
+                  smooth && noSwap && shaderFed && turned > 0.1f && turned < 0.5f);
+            Check("Space planet halo is rigid on the body (centre drift " + haloDev.ToString("F4") + " < 0.01 u, tilt drift " +
+                  tiltDev.ToString("F3") + " deg; cut centred: offset " + off0.magnitude.ToString("F4") + " u)",
+                  haloDev < 0.01f && tiltDev < 0.01f && off0.magnitude < 0.03f);
+
+            Time.timeScale = 0f;
+            float frozen = planet.turn;
+            for (int i = 0; i < 60; i++) wb.Step(dt);
+            Check("Space planet spin holds still while timeScale = 0", planet.turn == frozen);
+            Time.timeScale = 1f;
+
+            // A long run: every sphere turns, comets stay small and dim.
+            const float step = 1f / 30f;
+            int spheres = 0, still = 0, comets = 0;
+            bool cometsDim = true;
+            float brightest = 0f, biggest = 0f;
+            for (int i = 0; i < 300 * 30; i++)
+            {
+                moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
+                wb.Step(step);
+                if (i % 30 != 0) continue;
+                foreach (var pool in sd.Bodies)
+                    foreach (var p in pool.items)
+                    {
+                        if (!p.active || !SpaceDirector.IsSphere(p.sr.sprite)) continue;
+                        spheres++;
+                        if (!p.planet || p.turnRate == 0f) still++;
+                    }
+                foreach (var pool in sd.Pools)
+                    foreach (var p in pool.items)
+                    {
+                        if (!p.active || p.sr.sprite == null || !p.sr.sprite.name.StartsWith("comet")) continue;
+                        comets++;
+                        brightest = Mathf.Max(brightest, p.sr.color.a);
+                        biggest = Mathf.Max(biggest, p.size);
+                        Color c = p.sr.color;
+                        if (c.a > SpaceDirector.CometMaxAlpha + 1e-4f || p.size > SpaceDirector.CometMaxWidth + 1e-4f ||
+                            Mathf.Max(c.r, Mathf.Max(c.g, c.b)) > 0.96f)
+                            cometsDim = false;
+                    }
+            }
+            Check("Space spheres all turn over a 5-minute run (" + spheres + " samples, " + still + " still)",
+                  spheres > 50 && still == 0);
+            Check("Space comets stay small and dim (" + comets + " samples, alpha <= " + brightest.ToString("F2") + " <= " +
+                  SpaceDirector.CometMaxAlpha + ", width <= " + biggest.ToString("F2") + " <= " + SpaceDirector.CometMaxWidth + " u)",
+                  cometsDim && comets > 0);
+
+            for (int i = 0; i < 60; i++) wb.Step(step);
+            long before0 = System.GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 120 * 30; i++) wb.Step(step);
+            long used = System.GC.GetAllocatedBytesForCurrentThread() - before0;
+            Check("Space backdrop allocates nothing over 2 minutes of frames and spawns (" + used + " bytes)", used == 0);
+        }
+        finally
+        {
+            Time.timeScale = 1f;
             Object.DestroyImmediate(go);
         }
     }

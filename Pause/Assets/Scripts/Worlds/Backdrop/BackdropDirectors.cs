@@ -60,6 +60,30 @@ public class SpaceDirector : BackdropDirector
     static readonly Color StationTint = new Color(0.82f, 0.82f, 0.90f);
     static readonly Color RockTint = new Color(0.85f, 0.85f, 0.95f);
 
+    // Spheres (giants, planetoids, rock moons) turn: the BackdropPlanet
+    // shader slides the surface of the one static variant across the disc
+    // under a fixed terminator and rim, at a pace that reads as a world,
+    // not a decal. Stations hold or wheel as rigid sprites.
+    public const string PlanetShader = "BackdropShaders/BackdropPlanet";
+    public const float PlanetTurnSecondsMin = 40f, PlanetTurnSecondsMax = 60f;   // per half turn
+    public const float RockTurnSecondsMin = 24f, RockTurnSecondsMax = 34f;
+    const float DiscMarginPx = 2.5f;    // cuts are centred with this much clear border round the disc
+    static readonly int IdMainTex = Shader.PropertyToID("_MainTex");
+    static readonly int IdDisc = Shader.PropertyToID("_Disc");
+    static readonly int IdSpin = Shader.PropertyToID("_Spin");
+    Material planetMat, spriteMat;
+    readonly MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+
+    // Comets cross far behind everything: small, dim and pulled toward the sky.
+    public const float CometMinWidth = 0.6f, CometMaxWidth = 0.95f, CometMaxAlpha = 0.42f;
+    static readonly Color CometTint = new Color(0.62f, 0.74f, 0.95f);
+
+    static readonly Color[] WispTints =
+    {
+        new Color(0.55f, 0.35f, 0.75f, 0.24f), new Color(0.3f, 0.6f, 0.75f, 0.22f), new Color(0.45f, 0.45f, 0.85f, 0.24f),
+    };
+    static readonly Color[] ShooterTints = { new Color(0.85f, 0.75f, 1f, 0.55f), new Color(0.7f, 0.95f, 1f, 0.55f) };
+
     BackdropPool wisps, galaxies, stars, comets, shooters, planets, stations, planetoids, moons, dust;
     Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation, comet;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
@@ -109,6 +133,9 @@ public class SpaceDirector : BackdropDirector
         planetoids = Pool(deep, 2);
         moons = Pool(deep, 3);
         dust = Pool("dust", 12);
+        var sphere = Resources.Load<Shader>(PlanetShader);
+        if (sphere != null) planetMat = new Material(sphere) { name = "SpacePlanet" };
+        spriteMat = planets.items[0].sr.sharedMaterial;
         bodies.AddRange(new[] { planets, stations, planetoids, moons });
         setPieces.AddRange(bodies);
         setPieces.AddRange(new[] { wisps, galaxies, comets });
@@ -164,8 +191,7 @@ public class SpaceDirector : BackdropDirector
         w.rate = set.Spec.Rate("wisps");
         w.spin = Rand(-1f, 1f);
         w.phase = Rand(0f, 360f);
-        w.color = Pick(new[] { new Color(0.55f, 0.35f, 0.75f, 0.24f), new Color(0.3f, 0.6f, 0.75f, 0.22f),
-                               new Color(0.45f, 0.45f, 0.85f, 0.24f) });
+        w.color = Pick(WispTints);
     }
 
     protected override void Step(float dt, float v)
@@ -226,7 +252,9 @@ public class SpaceDirector : BackdropDirector
                 if (!Drift(p, dt, v)) continue;
                 // phase: tilt at spawn. Only ring stations turn (spin != 0).
                 p.root.localRotation = Quaternion.Euler(0f, 0f, p.phase + p.age * p.spin);
+                p.turn += p.turnRate * dt;
                 Paint(p, 1f);
+                PaintSphere(p);
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
         foreach (var c in comets.items)
@@ -377,7 +405,8 @@ public class SpaceDirector : BackdropDirector
         c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
         c.root.localRotation = Quaternion.Euler(0f, 0f, n.companion == Moon ? p.phase : Rand(-10f, 10f));
         c.color = Lit(n.companion == Moon ? RockTint : StationTint, tier);
-        p.children = new[] { c };
+        p.slot[0] = c;
+        p.children = p.slot;                    // no allocation per spawn
         Orbit(p, c, 0f);
         return true;
     }
@@ -389,6 +418,54 @@ public class SpaceDirector : BackdropDirector
         p.tier = tier;
         p.rate = set.Spec.Rate(Tiers[tier].layer);
         p.sr.sortingOrder = set.Spec.Order(Tiers[tier].layer) + orderOffset;
+
+        bool sphere = planetMat != null && kind != Station && IsSphere(s);
+        p.planet = sphere;
+        p.sr.sharedMaterial = sphere ? planetMat : spriteMat;
+        if (!sphere) { p.sr.SetPropertyBlock(null); return; }
+        p.disc = DiscOf(s);
+        p.turn = Rand(0f, 6.283f);
+        float seconds = kind == Planet ? Rand(PlanetTurnSecondsMin, PlanetTurnSecondsMax)
+                                       : Rand(RockTurnSecondsMin, RockTurnSecondsMax);
+        p.turnRate = (Chance(0.5) ? 1f : -1f) * Mathf.PI / seconds;
+    }
+
+    // Round bodies whose surface can turn: the giants and the cratered rocks
+    // (full size and pre-shrunk). The lone `moon` cell is not a disc.
+    public static bool IsSphere(Sprite s)
+    {
+        if (s == null) return false;
+        string n = s.name;
+        return n.StartsWith("giant_", System.StringComparison.Ordinal) ||
+               n.StartsWith("rocky_", System.StringComparison.Ordinal) ||
+               n.StartsWith("mini_rocky_", System.StringComparison.Ordinal);
+    }
+
+    // The drawn disc in atlas uv: Space's cuts are centred on their art
+    // (build_atlas.py) with a small clear border, so the disc is the rect's
+    // centre and half-size less that border (WorldBackdropTest re-measures).
+    public static Vector4 DiscOf(Sprite s)
+    {
+        Rect r = s.textureRect;
+        float tw = s.texture.width, th = s.texture.height;
+        return new Vector4(r.center.x / tw, r.center.y / th,
+                           (r.width * 0.5f - DiscMarginPx) / tw, (r.height * 0.5f - DiscMarginPx) / th);
+    }
+
+    void PaintSphere(BackdropPiece p)
+    {
+        if (!p.planet) return;
+        mpb.Clear();
+        mpb.SetTexture(IdMainTex, p.sr.sprite.texture);
+        mpb.SetVector(IdDisc, p.disc);
+        mpb.SetFloat(IdSpin, p.turn);
+        p.sr.SetPropertyBlock(mpb);
+    }
+
+    public override void Teardown()
+    {
+        BackdropAtlas.Kill(planetMat);
+        planetMat = null;
     }
 
     // Small on screen, the full-size cells would shimmer (no mipmaps): the
@@ -423,7 +500,9 @@ public class SpaceDirector : BackdropDirector
         c.y = p.y + ox * st + oy * ct;
         Place(c);
         c.sr.sortingOrder = p.sr.sortingOrder + (Mathf.Sin(a) > 0f ? -2 : 2);
+        c.turn += c.turnRate * dt;
         Paint(c, 1f);
+        PaintSphere(c);
     }
 
     // ---------------------------------------------------------------- sky --
@@ -450,7 +529,7 @@ public class SpaceDirector : BackdropDirector
         if (comet.Length == 0) return;
         var c = comets.Spawn();
         if (c == null) return;
-        SetSprite(c, Pick(comet), Rand(0.9f, 1.4f));
+        SetSprite(c, Pick(comet), Rand(CometMinWidth, CometMaxWidth));
         float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
         c.x = -dir * (HalfW + 1f);
         c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);
@@ -461,7 +540,10 @@ public class SpaceDirector : BackdropDirector
         // the comet is drawn flying toward 213 degrees.
         float ang = Mathf.Atan2(c.vy, c.vx) * Mathf.Rad2Deg - 213f;
         c.root.localRotation = Quaternion.Euler(0, 0, ang);
-        c.color = new Color(0.8f, 0.9f, 1f, 0.6f);
+        // Hazed toward the sky's indigo and mostly see-through: the art's
+        // white-hot head would otherwise outshine the gameplay in front.
+        c.color = CometTint;
+        c.color.a = Rand(0.32f, CometMaxAlpha);
     }
 
     void SpawnShooter()
@@ -477,7 +559,7 @@ public class SpaceDirector : BackdropDirector
         s.vy = Mathf.Sin(ang) * spd;
         s.life = Rand(0.4f, 0.6f);
         s.root.localRotation = Quaternion.Euler(0, 0, ang * Mathf.Rad2Deg);
-        s.color = Pick(new[] { new Color(0.85f, 0.75f, 1f, 0.55f), new Color(0.7f, 0.95f, 1f, 0.55f) });
+        s.color = Pick(ShooterTints);
     }
 }
 
