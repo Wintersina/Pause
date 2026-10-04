@@ -47,7 +47,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 30. **Queued — `verdant_rock_vine`**
 31. **Queued — `verdant_rock_pod`**
 32. **Queued — `verdant_rock_knot`**
-33. **Queued — `ember_rock_magma`**
+33. **Installed and validated — `ember_rock_magma`** — rugged basalt pressure boulder with copper braces and pulsing molten seams; seven-cell boundary and flipbook continuity checked.
 34. **Queued — `ember_rock_islet`**
 35. **Queued — `ember_rock_cinder`**
 36. **Queued — `ember_rock_obsidian`**
