@@ -39,18 +39,18 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 22. **Queued — `ember_big`**
 23. **Installed, validated — `space_rock_crater`**
 24. **Installed, validated — `space_rock_cluster`**
-25. **Queued — `space_rock_dark`**
+25. **Installed, validated — `space_rock_dark`**
 26. **Queued — `frost_rock_chunk`**
 27. **Queued — `frost_rock_rime`**
 28. **Installed, validated — `frost_rock_shard`** — rugged Frost ice-shard industrial hazard; 7-frame strip vetted for safe cell margins and roster validation.
 29. **Installed, validated — `verdant_rock_spore`** — rugged grass-capped bio-industrial Spore Rock; floating 7-frame strip preserves its mandated key silhouette and safe cell margins.
-30. **Queued — `verdant_rock_vine`**
+30. **Installed, validated — `verdant_rock_vine`** — rugged floating Verdant terrain wedge with root-cable vines; 7-frame strip vetted for safe cell margins and roster validation.
 31. **Queued — `verdant_rock_pod`**
 32. **Queued — `verdant_rock_knot`**
 33. **Installed and validated — `ember_rock_magma`** — rugged basalt pressure boulder with copper braces and pulsing molten seams; seven-cell boundary and flipbook continuity checked.
 34. **Installed and validated — `ember_rock_islet`** — rugged floating basalt shelf with slag, copper clamps, and molten seams; seven-cell boundary and flipbook continuity checked.
-35. **Queued — `ember_rock_cinder`**
-36. **Queued — `ember_rock_obsidian`**
+35. **Installed and validated — `ember_rock_cinder`** — rugged stacked cinder furnace blocks with copper plumbing and a molten core; seven-cell boundary and flipbook continuity checked.
+36. **Installed and validated — `ember_rock_obsidian`** — rugged copper-braced violet obsidian blade with a molten internal vein; seven-cell boundary and flipbook continuity checked.
 37. **Queued — rail-mine audit:** all four rows, art and rail-clamped scrolling behavior.
 38. **Queued — impact/destruction VFX family:** enemy impacts, explosions, debris.
 39. **Queued — projectile-hazard VFX family:** projectiles and telegraphs.
@@ -60,7 +60,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 43. **Queued — Ember boss support:** `Ember_shots`, `Ember_card`, animation-support audit.
 44. **Queued — Frost world integration:** staged layers, parallax, spinning landmark, validation.
 45. **Queued — Verdant world rebuild:** complete backdrop, walls, parallax, spinning landmark.
-46. **Queued — Ember world rebuild:** complete backdrop, walls, parallax, spinning landmark.
+46. **Installed and validated — Ember world rebuild:** live parallax stack, ember/ash effects, freshly rebuilt mirrored forge-tower gameplay walls, and a refreshed eight-frame rugged refinery-volcano landmark atlas are wired through the existing Ember backdrop director; Ember-specific backdrop checks pass.
 47. **Queued — Space world audit:** live backdrop and industrial rails.
 48. **Queued — legacy cleanup audit:** delete a legacy source family only after its live replacement is verified.
 

@@ -99,12 +99,77 @@ public class ShipAttackRunner : MonoBehaviour
         return true;
     }
 
+    // ---------------------------------------------------------- free fire
+    //
+    // The red atom's free shot (ShipPowerController.FreeShot): the same
+    // weapon at the same level, through the same hits and the same boss
+    // budget, but it never touches the charge timer and never takes a run
+    // slot from an attack in progress -- with every slot busy it refuses,
+    // and the controller keeps it queued. The top tier fires QuickVolley
+    // instead of the cinematic: a homing shot at each hazard in view, at
+    // normal speed, no slow motion.
+
+    public int FreeFireCount { get; private set; }
+
+    public bool HasFreeRunSlot
+    {
+        get
+        {
+            if (runs[0] == null) Setup(ship);
+            for (int i = 0; i < runs.Length; i++) if (!runs[i].active) return true;
+            return false;
+        }
+    }
+
+    public bool FireFree()
+    {
+        if (runs[0] == null) Setup(ship);
+        AttackRun run = null;
+        for (int i = 0; i < runs.Length; i++) if (!runs[i].active) { run = runs[i]; break; }
+        if (run == null) return false;
+        loadout = ShipWeaponUpgrades.LoadoutFor(ship);
+        FreeFireCount++;
+        run.Begin(loadout, ship, Time.unscaledTime);
+        StartRun(run);
+        return true;
+    }
+
+    // The top tier's free shot: at most this many homing shots, one per
+    // hazard in view (nearest the nose first is not needed -- each one homes).
+    public const int QuickVolleyMaxShots = 12;
+    public const float QuickVolleySpeed = 16f;
+
+    // How many shots QuickVolley launches with `inView` hazards on screen:
+    // one each up to the cap, or a single seeker when the screen is empty.
+    public static int QuickVolleyShots(int inView) { return Mathf.Clamp(inView, 1, QuickVolleyMaxShots); }
+
+    void QuickVolley(AttackRun run, Vector3 nose)
+    {
+        ShipTargets.Collect(targets);
+        int n = QuickVolleyShots(targets.Count);
+        for (int i = 0; i < n; i++)
+        {
+            var t = i < targets.Count ? targets[i] : null;
+            float a = n <= 1 ? 0f : (i - (n - 1) * .5f) * (60f / (n - 1));
+            Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
+            // weight 1 each, one shared budget: the boss still takes at most
+            // one full hit from the whole volley
+            Launch(run, AttackProjectile.Kind.Homing, nose, dir, QuickVolleySpeed, .22f, .5f,
+                   t != null ? t.transform : null, 1f);
+        }
+    }
+
     void StartRun(AttackRun run)
     {
         var l = run.loadout;
         Vector3 nose = Nose;
         switch (l.attack)
         {
+            case ShipAttack.ScreenClear:
+                // only reached through FireFree (Fire() leaves the top tier
+                // to the cinematic)
+                QuickVolley(run, nose);
+                break;
             case ShipAttack.RailSlug:
                 // upgraded: side rails either side of the main line
                 for (int i = 0; i < Mathf.Max(1, l.shots); i++)

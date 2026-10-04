@@ -454,6 +454,11 @@ public static class EnemyRosterTest
                 PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);   // what a portal does (WorldManager.Advance)
                 Check("current world is " + W(w), EnemyRoster.CurrentWorld == w);
                 phaseField.SetValue(board, 4);
+                // a portal clears the board: the last world's enemies (the
+                // chasers never move here) don't crowd this world's spawns
+                // (SpawnSpace keeps every spawn clear of them)
+                foreach (var old in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                    UnityEngine.Object.DestroyImmediate(old.gameObject);
                 var before = new HashSet<EnemyIdentity>(UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None));
                 foreach (string slot in slots)
                     for (int k = 0; k < 6; k++)
@@ -472,7 +477,7 @@ public static class EnemyRosterTest
                     if (id.Def != null) roles.Add(id.Def.role);
                 }
                 Check(W(w) + ": every spawn slot draws from " + W(w) + "'s roster (" + n + " spawned)", allHere && n > 20);
-                Check(W(w) + ": the slots field every role (" + roles.Count + ")", roles.Count == Roles.Length);
+                Check(W(w) + ": the slots field every role (" + string.Join(", ", roles) + ")", roles.Count == Roles.Length);
             }
             foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
                 UnityEngine.Object.DestroyImmediate(id.gameObject);
@@ -559,10 +564,7 @@ public static class EnemyRosterTest
                     elapsed.SetValue(board, t);
                     select.Invoke(board, null);
                     spawn.Invoke(board, new object[] { dt });
-                    // the board as it stands this step (nothing spawns or
-                    // moves until Scroll): looked up once for every check
-                    var live = UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None);
-                    foreach (var id in live)
+                    foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
                     {
                         if (!seen.Add(id) || id.Def == null) continue;
                         total++;
@@ -574,7 +576,7 @@ public static class EnemyRosterTest
                     // every window of the board near the spawn line, one ship gap tall
                     for (float y = -3f; y <= 1.5f; y += .25f)
                     {
-                        float widest = SpawnLane.WidestGap(SpawnLane.RowSpans(y, y + gap, live));
+                        float widest = SpawnLane.WidestGap(SpawnLane.RowSpans(y, y + gap));
                         tightest = Mathf.Min(tightest, widest);
                         if (widest < gap - 1e-3f) closedRows++;
                     }

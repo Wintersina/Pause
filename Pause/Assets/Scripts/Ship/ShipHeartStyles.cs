@@ -1,21 +1,41 @@
 using UnityEngine;
 
-// How each ship wears its life hearts (ShipLivesIndicator): the one table,
+// How each ship's life hearts orbit it (ShipLivesIndicator): the one table,
 // keyed by ShipId.
 //
-// The player's thumb sits a hull-length under the ship (movePlayer: the ship
-// flies 1 unit above the finger), so everything beside or below the hull's
-// middle is hidden under it. The hearts gather at the tail instead -- just
-// behind the hull, either side of the engine flame -- where a thumb leaves
-// them in view. The spinners (Ninja, UFO) wear theirs as a shield ring round
-// the spinning hull that only whips quickly past the thumb side.
+// Every ship's hearts circle the hull, slowly and continuously, on tilted
+// orbits that read as 3D: a heart swinging round the back draws behind the
+// hull, smaller and dimmer, and comes round the front over it. Each ship has
+// its own flavour of orbit -- an atom's crossing electrons, a crown-like
+// halo, a comet's train, a gyroscope's counter-rotating rings, a playful
+// swarm -- and the spinners (Ninja, UFO) a near-round shield ring carried
+// the way the hull turns.
 public enum HeartStyle
 {
-    TailArc,       // a shallow arc hugging the tail, either side of the flame
-    CometTrail,    // a tapering, wagging trail off one side of the tail
-    ShieldRing,    // a ring orbiting the spinning hull (spinners only)
-    WingTips,      // a pair of diagonals hanging off the wing tips
-    PulseCluster,  // a tight honeycomb beside the flame, beating together
+    Atom,        // crossing tilted orbits, evenly fanned, all one way round
+    Halo,        // one tilted ring, hearts evenly spaced round it, swaying
+    Comet,       // one orbit, the hearts following each other in a train
+    Gyro,        // crossing rounder orbits, neighbours going opposite ways
+    Swarm,       // jittery crossing orbits that wobble, loop and turn back
+    ShieldRing,  // a near-round ring turning with a spinning hull (spinners only)
+}
+
+// The numbers behind a style.
+public struct OrbitStyle
+{
+    public float radius;        // x the hull's half-size (plus room for the heart)
+    public float speed;         // radians a second round the orbit, before the warp
+    public float tilt;          // degrees out of the screen plane (0 flat ring, 90 edge-on)
+    public float tiltJitter;    // per-heart spread of the tilt (degrees)
+    public float tiltWobble;    // the tilt nods by this much (degrees)
+    public float spread;        // degrees the hearts' orbit planes fan over (0: one plane)
+    public float rollJitter;    // per-heart spread of the plane's heading (degrees)
+    public float precession;    // degrees a second the planes turn round the ship
+    public float sway;          // degrees the planes rock to and fro
+    public float gap;           // a train's spacing (radians; 0: evenly round)
+    public bool alternate;      // every other heart goes the other way round
+    public float flourishEvery; // seconds between a heart's flourishes (0 never)
+    public float turnBackChance;// a flourish is a turn-back this often, else a loop-de-loop
 }
 
 public static class ShipHeartStyles
@@ -23,105 +43,86 @@ public static class ShipHeartStyles
     // By ship id (0 is "none").
     static readonly HeartStyle[] table =
     {
-        HeartStyle.TailArc,       //  0 none
-        HeartStyle.CometTrail,    //  1 Neon Comet: a comet, so a comet's tail
-        HeartStyle.TailArc,       //  2 Volt Viper: arc round its twin exhaust legs
-        HeartStyle.PulseCluster,  //  3 Solar Fang: a small beating sun beside its single engine
-        HeartStyle.TailArc,       //  4 Crimson Halo: a halo-like arc under the tail
-        HeartStyle.WingTips,      //  5 Ion Lancer: long swept wings, lights on the tips
-        HeartStyle.PulseCluster,  //  6 Jade Phantom: a ghostly huddle
-        HeartStyle.TailArc,       //  7 Gold Warden: five hearts as a crown under the tail
-        HeartStyle.WingTips,      //  8 Lightning: wide wings, a pair off each tip
-        HeartStyle.CometTrail,    //  9 Ligher: a flickering trail like a flame's
-        HeartStyle.WingTips,      // 10 Paranoid: outboard engine pods, hearts off each
-        HeartStyle.ShieldRing,    // 11 Ninja: spins, so its hearts orbit
-        HeartStyle.PulseCluster,  // 12 Saboteur: a tight, twitchy cluster
-        HeartStyle.ShieldRing,    // 13 UFO: spins, so its hearts orbit
-        HeartStyle.CometTrail,    // 14 Dove: trailing like tail feathers
-        HeartStyle.PulseCluster,  // 15 Turtle: a clutch tucked by the shell
+        HeartStyle.Atom,        //  0 none
+        HeartStyle.Comet,       //  1 Neon Comet: a comet, so a comet's train
+        HeartStyle.Gyro,        //  2 Volt Viper: counter-rotating coils
+        HeartStyle.Swarm,       //  3 Solar Fang: sparks buzzing round a small sun
+        HeartStyle.Halo,        //  4 Crimson Halo: a halo
+        HeartStyle.Gyro,        //  5 Ion Lancer: gyroscope rings round the lance
+        HeartStyle.Swarm,       //  6 Jade Phantom: will-o'-the-wisps
+        HeartStyle.Halo,        //  7 Gold Warden: five hearts as a turning crown
+        HeartStyle.Atom,        //  8 Lightning: charged, electrons round it
+        HeartStyle.Comet,       //  9 Ligher: embers trailing round
+        HeartStyle.Gyro,        // 10 Paranoid: guards circling both ways
+        HeartStyle.ShieldRing,  // 11 Ninja: spins, so a spinning ring
+        HeartStyle.Swarm,       // 12 Saboteur: twitchy
+        HeartStyle.ShieldRing,  // 13 UFO: spins, so a spinning ring
+        HeartStyle.Comet,       // 14 Dove: a flock following its lead
+        HeartStyle.Atom,        // 15 Turtle: steady electrons
     };
 
     public static HeartStyle For(int id)
     {
-        // Only a spinning hull carries an orbit round; a spinner always orbits.
+        // A spinning hull always wears the ring; only a spinner does.
         if (ShipUiSlots.Spins(id)) return HeartStyle.ShieldRing;
-        var style = id >= 0 && id < table.Length ? table[id] : HeartStyle.TailArc;
-        return style == HeartStyle.ShieldRing ? HeartStyle.TailArc : style;
+        var style = id >= 0 && id < table.Length ? table[id] : HeartStyle.Atom;
+        return style == HeartStyle.ShieldRing ? HeartStyle.Atom : style;
     }
 
-    // Two-sided styles spread either side of the flame; one-sided ones sit
-    // on one side and mirror at a screen edge.
-    public static bool TwoSided(HeartStyle style)
+    public static OrbitStyle Orbit(HeartStyle style)
     {
-        return style == HeartStyle.TailArc || style == HeartStyle.WingTips;
-    }
-
-    // Unit honeycomb cells for PulseCluster (x outward from the flame, y
-    // down), 2..5 hearts.
-    static readonly Vector2[][] cluster =
-    {
-        new[] { new Vector2(0f, 0f) },
-        new[] { new Vector2(0f, 0f), new Vector2(1f, 0f) },
-        // (the second row leans outward, away from the thumb under the flame)
-        new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1.5f, .87f) },
-        new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(2f, 0f), new Vector2(1.5f, .87f) },
-        new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(2f, 0f), new Vector2(1.5f, .87f), new Vector2(2.5f, .87f) },
-    };
-
-    public struct Frame
-    {
-        public float tailY;           // hull bottom, relative to the ship
-        public float flameL, flameR;  // the exhaust's sides, relative to the ship
-        public float hullL, hullR;    // the hull's sides
-        public float size, gap;       // a heart, and the gap kept round it
-    }
-
-    // The resting offset (from the ship's position) of heart k of n in
-    // `style`, its first heart on side `side` (+1 right, -1 left).
-    // `oneSided`: a two-sided style with one side blocked (a gun hovering
-    // low there) runs all its hearts out on `side` instead.
-    public static Vector2 Offset(HeartStyle style, int k, int n, float side, Frame f, bool oneSided = false)
-    {
-        float h = f.size, g = f.gap, top = f.tailY - g - h * .5f;
         switch (style)
         {
-            case HeartStyle.TailArc:
-            {
-                // alternate sides outward from the flame, the outer ones drooping
-                float s = oneSided || k % 2 == 0 ? side : -side;
-                int rank = oneSided ? k : k / 2;
-                float x = s > 0f ? f.flameR + g + h * .5f + rank * (h + g * .5f)
-                                 : f.flameL - g - h * .5f - rank * (h + g * .5f);
-                return new Vector2(x, top - rank * h * (oneSided ? .12f : .3f));
-            }
-            case HeartStyle.WingTips:
-            {
-                float s = oneSided || k % 2 == 0 ? side : -side;
-                int rank = oneSided ? k : k / 2;
-                // hanging off the wing tip (never into the flame), each
-                // further one out and down
-                float x = Mathf.Max((s > 0f ? f.hullR : -f.hullL) - h * .1f, (s > 0f ? f.flameR : -f.flameL) + g + h * .5f);
-                return new Vector2(s * (x + rank * h * .7f), top - rank * h * (oneSided ? .15f : .6f));
-            }
-            case HeartStyle.CometTrail:
-            {
-                float inner = side > 0f ? f.flameR : f.flameL;
-                return new Vector2(inner + side * (g + h * .5f + k * h * .8f), top - k * h * .28f);
-            }
-            case HeartStyle.PulseCluster:
+            case HeartStyle.Halo:
+                return new OrbitStyle
+                {
+                    radius = 1.05f, speed = 1.1f, tilt = 60f, tiltWobble = 8f,
+                    spread = 0f, sway = 28f, flourishEvery = 9f, turnBackChance = 0f,
+                };
+            case HeartStyle.Comet:
+                return new OrbitStyle
+                {
+                    radius = 1.05f, speed = 1.35f, tilt = 55f, tiltWobble = 10f,
+                    spread = 0f, sway = 40f, precession = 6f, gap = .85f,
+                    flourishEvery = 8f, turnBackChance = 0f,
+                };
+            case HeartStyle.Gyro:
+                return new OrbitStyle
+                {
+                    radius = 1.05f, speed = 1.2f, tilt = 45f, tiltWobble = 10f,
+                    spread = 180f, precession = -7f, alternate = true,
+                    flourishEvery = 10f, turnBackChance = .5f,
+                };
+            case HeartStyle.Swarm:
+                return new OrbitStyle
+                {
+                    radius = 1.08f, speed = 1.3f, tilt = 52f, tiltJitter = 14f, tiltWobble = 16f,
+                    spread = 180f, rollJitter = 22f, precession = 11f, sway = 15f,
+                    flourishEvery = 6f, turnBackChance = .45f,
+                };
+            case HeartStyle.ShieldRing:
+                return new OrbitStyle
+                {
+                    radius = .82f, speed = 1.5f, tilt = 35f, tiltWobble = 8f,
+                    spread = 0f, sway = 20f, precession = 0f,
+                    flourishEvery = 9f, turnBackChance = 0f,
+                };
+            case HeartStyle.Atom:
             default:
-            {
-                float inner = side > 0f ? f.flameR : f.flameL;
-                var cells = cluster[Mathf.Clamp(n, 1, cluster.Length) - 1];
-                Vector2 c = cells[Mathf.Clamp(k, 0, cells.Length - 1)];
-                float d = h * 1.02f;
-                return new Vector2(inner + side * (g + h * .5f + c.x * d), top - c.y * d);
-            }
+                return new OrbitStyle
+                {
+                    radius = 1.05f, speed = 1.25f, tilt = 55f, tiltWobble = 9f,
+                    spread = 180f, precession = 9f,
+                    flourishEvery = 8f, turnBackChance = .35f,
+                };
         }
     }
 
-    // A one-sided style's own side for this ship: away from its gun
-    // (UltimateGun rests left on even ids, right on odd, and hovers), under
-    // the secret meter, which holds still.
-    public static float HomeSide(int id) { return id % 2 == 0 ? 1f : -1f; }
+    // Styles whose hearts share one orbit (kept evenly apart / in a train)
+    // rather than fanning over crossing planes.
+    public static bool OnePlane(HeartStyle style)
+    {
+        var o = Orbit(style);
+        return o.spread == 0f;
+    }
 }

@@ -208,8 +208,11 @@ public class ScoreHud : MonoBehaviour
         outline.effectDistance = new Vector2(2f, -2f);
     }
 
-    void OnEnable() { RunScore.Scored += OnScored; }
-    void OnDisable() { RunScore.Scored -= OnScored; }
+    // The live run HUD (gameS1 only), for one-word callouts from gameplay.
+    public static ScoreHud Current { get; private set; }
+
+    void OnEnable() { RunScore.Scored += OnScored; Current = this; }
+    void OnDisable() { RunScore.Scored -= OnScored; if (Current == this) Current = null; }
 
     void Update()
     {
@@ -339,6 +342,30 @@ public class ScoreHud : MonoBehaviour
         at.y -= 110f;
         at.x = Mathf.Clamp(at.x - 40f, -size.x * .5f + 120f, size.x * .5f - 120f);
         p.from = at;
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.rectTransform.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
+    }
+
+    // A one-word popup over a world position ("FREE SHOT" on the ship), in
+    // the "+N" popups' pool, motion and clock.
+    public Text ShowWord(string text, Vector3 world, Color colour, int size = 26)
+    {
+        if (canvasRect == null || string.IsNullOrEmpty(text)) return null;
+        if (popups == null) BuildPopups();
+        int index = nextPopup;
+        nextPopup = (nextPopup + 1) % popups.Length;
+        var p = popups[index];
+        p.text.text = text;
+        p.text.fontSize = size;
+        p.text.color = colour;
+        p.seconds = .8f;
+        p.rise = 50f;
+        p.from = ToCanvas(world);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();

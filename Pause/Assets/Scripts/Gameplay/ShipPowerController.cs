@@ -141,6 +141,66 @@ public class ShipPowerController : MonoBehaviour
             cooldown = RollCooldown();
             timer = cooldown;
         }
+
+        // after the ultimate, so a free shot waiting on it goes right after
+        ServiceFreeShots(running && Time.timeScale > 0f);
+    }
+
+    // ---- red atom free shot ---------------------------------------------
+    //
+    // Picking up a red atom fires the ship's main weapon once, for free: the
+    // same attack at the same weapon level (skins), scoring through
+    // ShipAttackHits like any firing. It never touches timer or cooldown, so
+    // the charge meter keeps its progress and the ultimate still goes off
+    // exactly when it would have; the gun drone and the charge indicator's
+    // release are left alone too -- only a red flash on the indicator and a
+    // "FREE SHOT" word say why it fired.
+    //
+    // It waits (queued, up to MaxPendingFreeShots) rather than break or crowd
+    // anything: while the world is frozen, while the ultimate is sliding out
+    // or about to fire, through the top tier's cinematic, and while an attack
+    // of this ship is still mid-fire (a beam, blowtorch, orbit, burst) -- it
+    // then goes the moment that one ends. Projectiles already in flight don't
+    // hold it up. The top tier fires its quick, non-cinematic volley
+    // (ShipAttackRunner.QuickVolley) -- no slow motion.
+
+    public const int MaxPendingFreeShots = 3;
+    public const string FreeShotLabel = "FREE SHOT";
+
+    int pendingFree;
+    public int PendingFreeShots => pendingFree;
+    public int FreeShotsFired { get; private set; }
+
+    // Why a free shot has to wait right now (world freezing aside).
+    public bool FreeShotBlocked =>
+        CinematicClearActive ||
+        timer <= extendLeadSeconds ||
+        (runner != null && runner.ActiveRuns > 0);
+
+    // collisionDetection: a red atom was collected. A pickup only happens
+    // while the world moves, so it fires straight away unless blocked.
+    public void FreeShot()
+    {
+        if (buttonClicks.playerDied) return;
+        pendingFree = Mathf.Min(pendingFree + 1, MaxPendingFreeShots);
+        ServiceFreeShots(Time.timeScale > 0f);
+    }
+
+    // Fires one queued free shot if nothing is in the way. Called every
+    // frame from Update; never touches timer / cooldown.
+    public void ServiceFreeShots(bool worldRunning)
+    {
+        if (pendingFree <= 0) return;
+        if (buttonClicks.playerDied) { pendingFree = 0; return; }
+        if (!worldRunning || FreeShotBlocked) return;
+        if (runner == null) runner = ShipAttackRunner.Attach(gameObject, shipIndex);
+        if (!runner.FireFree()) return;
+        pendingFree--;
+        FreeShotsFired++;
+        UltimateShotSound.Play(shipIndex);
+        if (indicator != null) indicator.FlashFree();
+        var hud = ScoreHud.Current;
+        if (hud != null) hud.ShowWord(FreeShotLabel, transform.position + Vector3.up * 1.1f, AkiraPalette.RedHi);
     }
 
     // A fresh countdown: a random point in cooldownRange, shortened by the

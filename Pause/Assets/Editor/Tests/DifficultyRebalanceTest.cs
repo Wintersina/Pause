@@ -243,9 +243,10 @@ public static class DifficultyRebalanceTest
         // session), so the chase-vs-wander transition can't be driven
         // through repeated Update() calls -- force the timer past zero
         // directly and confirm Update() reacts to that, exactly as it would
-        // after enough real frames elapsed.
+        // after enough real frames elapsed. (It steers in LateUpdate, after
+        // the board-locked movers, so SpawnSpace can resolve its move.)
         chaseTimerField.SetValue(chaser, 0f);
-        chaserGo.SendMessage("Update");
+        chaserGo.SendMessage("LateUpdate");
         Check("switches to wandering once the chase timer runs out",
               (bool)wanderingField.GetValue(chaser));
 
