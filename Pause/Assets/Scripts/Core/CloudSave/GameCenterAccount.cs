@@ -19,11 +19,15 @@ using UnityEngine.SocialPlatforms.GameCenter;
 // IOSCapabilitiesPostProcess adds both to the generated Xcode project. Chosen
 // over the iCloud key-value store because it is scoped to the Game Center
 // player the rest of the account logic keys on.
-public sealed class GameCenterAccount : IPlayerAccount
+public sealed class GameCenterAccount : IPlayerAccount, IAccountProfile
 {
     public const string SaveName = "pause_progress";
 
     public string PlatformName { get { return "Game Center"; } }
+
+    public SignInReport LastSignIn { get; private set; }
+
+    // Game Center has no sign-out for apps: Settings > Game Center (see AccountLink).
 
 #if UNITY_IOS && !UNITY_EDITOR
     delegate void LoadCallback(int ok, string json);
@@ -67,13 +71,32 @@ public sealed class GameCenterAccount : IPlayerAccount
         }
     }
 
+    public string DisplayName
+    {
+        get { return IsSignedIn ? Social.localUser.userName : null; }
+    }
+
+    // Silent and interactive are the same call: iOS shows its sign-in sheet
+    // by itself when it is allowed to (not after the player dismissed it a
+    // few times -- then only Settings > Game Center signs them in).
     public void SignIn(bool interactive, Action<bool> done)
     {
-        if (IsSignedIn) { OnSignedIn(); if (done != null) done(true); return; }
+        if (IsSignedIn)
+        {
+            OnSignedIn();
+            LastSignIn = SignInDiagnosis.FromGameCenter(true, null, interactive, 0f);
+            if (done != null) done(true);
+            return;
+        }
+        float startedAt = Time.realtimeSinceStartup;
         Social.localUser.Authenticate((success, error) =>
         {
+            LastSignIn = SignInDiagnosis.FromGameCenter(success, error, interactive,
+                Time.realtimeSinceStartup - startedAt);
             if (success) OnSignedIn();
-            else Debug.Log("[Account] Game Center sign-in: " + (string.IsNullOrEmpty(error) ? "failed" : error));
+            else Debug.Log("[Account] Game Center sign-in (" + (interactive ? "interactive" : "silent") + "): "
+                           + (string.IsNullOrEmpty(error) ? "failed" : error)
+                           + " -> " + LastSignIn.outcome + " code=" + LastSignIn.code);
             if (done != null) done(success);
         });
     }
@@ -100,6 +123,7 @@ public sealed class GameCenterAccount : IPlayerAccount
 #else
     public bool IsSignedIn { get { return false; } }
     public string PlayerId { get { return null; } }
+    public string DisplayName { get { return null; } }
     public void SignIn(bool interactive, Action<bool> done) { if (done != null) done(false); }
     public void LoadCloudSave(Action<bool, string> done) { done(false, null); }
     public void WriteCloudSave(string json, Action<bool> done) { done(false); }

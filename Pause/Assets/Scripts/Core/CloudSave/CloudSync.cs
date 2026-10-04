@@ -5,7 +5,14 @@ using UnityEngine;
 // Keeps the player's progress in their platform account's cloud save.
 //
 // Launch: silent sign-in. Failure or cancel -> one log line, nothing else;
-// the game keeps playing on local PlayerPrefs exactly as before.
+// the game keeps playing on local PlayerPrefs exactly as before. The player
+// signs in from the Options Account row (AccountLink.SignIn ->
+// SignInInteractive), which runs the same flow.
+//
+// SIGN OUT in Pause (AccountLink.Disconnect): the account is not used until
+// the player signs in again -- no silent sign-in at launch (State.Disconnected),
+// no cloud reads or uploads. Local progress and the account bookkeeping below
+// stay as they are.
 //
 // Signed in: the account's cloud save is read and reconciled with local
 // progress (Reconcile below), the result is written to PlayerPrefs and
@@ -41,9 +48,11 @@ public sealed class CloudSync
     public const long UrgentUploadIntervalMs = 5000;
     public const int MaxBackups = 4;
 
-    public enum State { Idle, SigningIn, Offline, Loading, Ready, ReadOnly }
+    public enum State { Idle, SigningIn, Offline, Loading, Ready, ReadOnly, Disconnected }
 
     public static CloudSync Instance { get; private set; }
+
+    public IPlayerAccount Account { get { return account; } }
 
     readonly IPlayerAccount account;
     readonly Func<long> clock;
@@ -77,29 +86,70 @@ public sealed class CloudSync
         return Instance;
     }
 
+    // Tests can swap this out to make Start() behave as a fresh launch.
+    public static void SetInstance(CloudSync sync) { Instance = sync; }
+
     public void Start()
     {
         RecordLocalChanges();
+        if (AccountLink.Disconnected)
+        {
+            // The player signed out in Pause: no silent sign-in until they
+            // tap SIGN IN again.
+            Current = State.Disconnected;
+            Debug.Log("[CloudSave] signed out of " + account.PlatformName + " in Pause; not signing in.");
+            return;
+        }
         Current = State.SigningIn;
-        account.SignIn(false, OnSignedIn);
+        account.SignIn(false, ok =>
+        {
+            AccountLink.OnSignInResult(false, ok, account);
+            OnSignedIn(ok);
+        });
     }
 
-    // Interactive sign-in (leaderboard button); runs the same flow on success.
+    // Interactive sign-in (AccountLink.SignIn); runs the same flow on success.
+    // Already signed in to the platform (reconnecting after SIGN OUT in Pause):
+    // the account is simply used again.
     public void SignInInteractive(Action<bool> done)
     {
-        if (account.IsSignedIn) { if (done != null) done(true); return; }
+        if (account.IsSignedIn)
+        {
+            AccountLink.OnSignInResult(true, true, account);
+            OnSignedIn(true);
+            if (done != null) done(true);
+            return;
+        }
         account.SignIn(true, ok =>
         {
+            AccountLink.OnSignInResult(true, ok, account);
             OnSignedIn(ok);
             if (done != null) done(ok);
         });
     }
 
+    // SIGN OUT in Pause: one last upload of what this session changed, then
+    // nothing more until the next sign-in.
+    public void Disconnect()
+    {
+        if (Current == State.Ready) Poll(urgent: true, force: true);
+        hasPending = false;
+        pendingCloud = null;
+        Current = State.Disconnected;
+    }
+
     void OnSignedIn(bool ok)
     {
+        if (AccountLink.Disconnected)
+        {
+            // A late answer after the player signed out in Pause.
+            Current = State.Disconnected;
+            return;
+        }
         if (!ok)
         {
-            Current = State.Offline;
+            if (Current != State.Loading && Current != State.Ready && Current != State.ReadOnly)
+                Current = State.Offline;
             Debug.Log("[CloudSave] not signed in to " + account.PlatformName + "; playing with local saves only.");
             return;
         }

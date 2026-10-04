@@ -7,9 +7,12 @@ using UnityEngine.SocialPlatforms;
 // Social platform). iOS: Game Center, built into Unity. Elsewhere the calls
 // are safe no-ops.
 //
-// Sign-in is automatic at launch (CloudSyncRunner -> CloudSync); nothing here
-// needs a button. Achievement and leaderboard ids are the GPGS ids from
-// StringHolder; AchievementIds maps them to the Game Center ids on iOS.
+// Sign-in is attempted silently at launch (CloudSyncRunner -> CloudSync); the
+// interactive one is AccountLink.SignIn (Options Account row, leaderboard
+// panel, the store screens below). While the player is signed out in Pause
+// (AccountLink.Disconnected) nothing is reported. Achievement and leaderboard
+// ids are the GPGS ids from StringHolder; AchievementIds maps them to the
+// Game Center ids on iOS.
 public static class SocialBridge
 {
     public delegate void SocialCallback(bool success);
@@ -24,13 +27,17 @@ public static class SocialBridge
         if (handler != null) handler();
     }
 
+    // Signed in to the store AND not signed out in Pause.
     public static bool IsAuthenticated
     {
-        get { return Social.localUser != null && Social.localUser.authenticated; }
+        get
+        {
+            return !AccountLink.Disconnected && Social.localUser != null && Social.localUser.authenticated;
+        }
     }
 
-    // Interactive sign-in. Only used when the player asks for a platform UI
-    // while signed out; the launch sign-in is silent.
+    // Interactive sign-in. Only used when the player asks for it (or for a
+    // platform UI) while signed out; the launch sign-in is silent.
     public static void Authenticate(SocialCallback callback = null)
     {
         if (IsAuthenticated)
@@ -38,17 +45,10 @@ public static class SocialBridge
             if (callback != null) callback(true);
             return;
         }
-
-        System.Action<bool> done = success =>
+        AccountLink.SignIn(success =>
         {
             if (!success) Debug.Log("[SocialBridge] Sign-in failed or unavailable on this platform.");
             if (callback != null) callback(success);
-        };
-        if (CloudSync.Instance != null) CloudSync.Instance.SignInInteractive(done);
-        else PlayerAccounts.Current.SignIn(true, success =>
-        {
-            if (success) NotifySignedIn();   // CloudSync raises it itself
-            done(success);
         });
     }
 

@@ -280,7 +280,7 @@ public class LeaderboardPanel : MonoBehaviour
         if (SelectedBoard == null) { Show(State.NoBoards); return; }
         var platform = service.Platform;
         if (!platform.IsAvailable) { Show(State.Unavailable); return; }
-        if (!platform.IsSignedIn) { Show(State.SignedOut); return; }
+        if (!service.SignedIn) { Show(State.SignedOut); return; }
 
         int token = ++request;
         string boardId = SelectedBoard;
