@@ -36,6 +36,9 @@ public class moveStarsBackground : MonoBehaviour {
         pauseGlowSprites = Resources.LoadAll<Sprite>("PauseGlow");
         // Pop-in and idle glint flipbook for whichever variant is picked.
         if (pauseRenderer != null) PausedOverlayAnim.AddTo(pauseText);
+        // Tiny logo-style "PAUSED" caption above it; a child, so it shows,
+        // hides and pops with the icon.
+        if (pauseRenderer != null) PausedLabel.AttachTo(pauseText);
 
         if (replyB != null) replyB.gameObject.SetActive(false);
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);

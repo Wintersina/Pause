@@ -92,7 +92,7 @@ public class WorldBanner : MonoBehaviour
 
     // The scenes use Orbitron Bold (the guide's UI face); borrow it from any
     // Text already loaded, else fall back to the built-in font.
-    static Font OrbitronOrBuiltin()
+    public static Font OrbitronOrBuiltin()
     {
         foreach (var f in Resources.FindObjectsOfTypeAll<Font>())
             if (f != null && f.name.StartsWith("Orbitron")) return f;

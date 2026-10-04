@@ -45,6 +45,7 @@ public static class AllTests
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
+        ("PausedLabelTest", PausedLabelTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),

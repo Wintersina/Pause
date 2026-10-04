@@ -10,7 +10,8 @@ public class PausedOverlayAnim : MonoBehaviour
 {
     public const string FxRoot = "PauseGlowFx/";
     const int Squash = 0, Stretch = 1, ShineFirst = 2, ShineCount = 4;
-    const float Tick = 1f / 24f;
+    // Pop-in tick (squash, stretch, rest). PausedLabel pops on the same one.
+    public const float Tick = 1f / 24f;
     const float ShineEvery = 1.6f;
 
     SpriteRenderer sr;
