@@ -47,6 +47,13 @@ public class ProgressSnapshot
     public int highestWorld;
     public bool hasDoneTut;
     public Counter[] counters = new Counter[0];
+    // Hull skins (ShipSkins). Owned: id * SkinCode + skin, for each bought
+    // non-stock skin. Equipped: one entry per ship that has a non-stock skin
+    // on, same encoding. Older saves simply lack both (= all stock).
+    public int[] ownedSkins = new int[0];
+    public int[] equippedSkins = new int[0];
+
+    public const int SkinCode = 100;
 
     // Highest ship index whose ownership is synced (inclusive).
     public static int MaxShipIndex { get { return shopingShips.shipTotal; } }
@@ -96,6 +103,19 @@ public class ProgressSnapshot
                 s.spawnShip = shopingShips.StarterShip;
         }
 
+        // Skins: the real keys only (developer mode never writes them).
+        var ownedSkins = new List<int>();
+        var equippedSkins = new List<int>();
+        for (int id = 1; id < MaxShipIndex; id++)
+        {
+            for (int n = 1; n < ShipSkins.CountFor(id); n++)
+                if (ShipSkins.IsOwnedReal(id, n)) ownedSkins.Add(id * SkinCode + n);
+            int on = ShipSkins.EquippedReal(id);
+            if (on != ShipSkins.Stock) equippedSkins.Add(id * SkinCode + on);
+        }
+        s.ownedSkins = ownedSkins.ToArray();
+        s.equippedSkins = equippedSkins.ToArray();
+
         var counters = new List<Counter>();
         foreach (AchievementCategory category in Enum.GetValues(typeof(AchievementCategory)))
         {
@@ -128,6 +148,21 @@ public class ProgressSnapshot
         var owned = new HashSet<int>(boughtShips ?? new int[0]);
         for (int i = 0; i <= MaxShipIndex; i++)
             WriteRealString(BoughtShipPrefix + i, "True", owned.Contains(i));
+
+        var skinsOwned = new HashSet<int>(ownedSkins ?? new int[0]);
+        var skinsOn = new Dictionary<int, int>();
+        foreach (int code in equippedSkins ?? new int[0]) skinsOn[code / SkinCode] = code % SkinCode;
+        for (int id = 1; id < MaxShipIndex; id++)
+        {
+            for (int n = 1; n < ShipSkins.CountFor(id); n++)
+            {
+                if (skinsOwned.Contains(id * SkinCode + n)) PlayerPrefs.SetInt(ShipSkins.OwnedKey(id, n), 1);
+                else PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
+            }
+            int on;
+            if (skinsOn.TryGetValue(id, out on) && on != ShipSkins.Stock) PlayerPrefs.SetInt(ShipSkins.EquippedKey(id), on);
+            else PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(id));
+        }
 
         var values = new Dictionary<string, int>();
         foreach (var c in counters ?? new Counter[0])
@@ -220,6 +255,8 @@ public class ProgressSnapshot
         if (snapshot.schemaVersion > CurrentSchemaVersion) { snapshot = null; return ParseResult.NewerSchema; }
         if (snapshot.boughtShips == null) snapshot.boughtShips = new int[0];
         if (snapshot.counters == null) snapshot.counters = new Counter[0];
+        if (snapshot.ownedSkins == null) snapshot.ownedSkins = new int[0];
+        if (snapshot.equippedSkins == null) snapshot.equippedSkins = new int[0];
         return ParseResult.Ok;
     }
 

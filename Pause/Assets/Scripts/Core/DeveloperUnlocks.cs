@@ -67,6 +67,9 @@ public static class DeveloperUnlocks
         // Only an on -> off transition restores. Restoring while already off
         // would replay a stale snapshot over newer real progress.
         else if (was) RestoreProgress();
+        // Hull skins are never written while the mode is on (ShipSkins answers
+        // "owned" at read time); just forget the skins equipped during it.
+        if (!enabled) ShipSkins.ClearDeveloperChoices();
         PlayerPrefs.Save();
         Debug.Log("[DeveloperUnlocks] " + (enabled ? "all ships and worlds unlocked" : "override disabled"));
         if (Changed != null) Changed();

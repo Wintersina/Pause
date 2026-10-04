@@ -11,7 +11,10 @@ using UnityEngine.UI;
 // spines, gantries between rows and a launch gate at the top. Parked ships
 // are powered down. Tapping one powers it up and floats a small popup above
 // it (LAUNCH if owned, price + BUY if not); tapping anywhere else dismisses
-// it. Launching undocks the ship -- clamps release, it lifts and backs out of
+// it. An owned ship's popup also carries its hull-skin swatches: an owned
+// skin equips on tap (saved at once); a locked one previews on the hull with
+// its price and BUY, and Back (or leaving the ship) puts the equipped skin
+// back. Launching undocks the ship -- clamps release, it lifts and backs out of
 // its berth, then accelerates out through the gate with its engine flaring
 // -- and the game continues to the same scene the PLAY button always led to.
 //
@@ -97,13 +100,69 @@ public class SpaceDock : MonoBehaviour
 
     // BackNavigator layer. While launching, Back is swallowed (the choice is
     // already saved and the scene is about to change; skipping would be a
-    // second, irreversible action). With a ship selected it undoes the
+    // second, irreversible action). With a skin being previewed it puts the
+    // equipped skin back; then, with a ship selected, it undoes the
     // selection. Otherwise it passes, and the scene root goes home.
     bool OnBackPressed()
     {
         if (Launching) return true;
+        if (Selected > 0 && ShipSkins.IsPreviewing(Selected)) { RevertSkinPreview(); return true; }
         if (HasSelection) { UndoSelection(); return true; }
         return false;
+    }
+
+    // ------------------------------------------------------------- skins
+
+    public bool PreviewingSkin { get { return Selected > 0 && ShipSkins.IsPreviewing(Selected); } }
+
+    // A swatch was tapped in the popup of owned ship `index`.
+    public void TapSkin(int index, int skin)
+    {
+        if (Launching || index != Selected || !IsOwned(index) || !ShipSkins.Has(index, skin)) return;
+        if (ShipSkins.IsOwned(index, skin))
+        {
+            ShipSkins.Equip(index, skin);   // saved at once; ends any preview
+            if (shop != null) shop.RefreshStarDust();
+        }
+        else ShipSkins.SetPreview(index, skin);
+        ShowBaySkin(index);
+        ShowPopup(index);
+    }
+
+    // BUY on a previewed skin: deduct once, own, equip, save at once.
+    public void BuySkin(int index, int skin)
+    {
+        if (Launching || index < 1 || index >= bays.Length) return;
+        var result = ShipSkins.TryPurchase(index, skin);
+        if (result == ShipSkins.PurchaseResult.Bought)
+        {
+            if (shop != null) shop.RefreshStarDust();
+            ShowBaySkin(index);
+            ShowPopup(index);
+            popup.ShowMessage("ACQUIRED", DockArt.Cyan, 1.2f);
+        }
+        else if (result == ShipSkins.PurchaseResult.CantAfford)
+        {
+            popup.ShowCantAfford(ShipSkins.ShortBy(index, skin));
+        }
+        else ShowPopup(index);
+    }
+
+    // Leaves a preview without buying: the hull goes back to its equipped skin.
+    public void RevertSkinPreview()
+    {
+        int ship = ShipSkins.PreviewShip;
+        ShipSkins.ClearPreview();
+        if (ship > 0) ShowBaySkin(ship);
+        if (popup != null && popup.Visible && !Launching) ShowPopup(popup.ShipIndex);
+    }
+
+    void ShowBaySkin(int index)
+    {
+        if (bays != null && index > 0 && index < bays.Length && bays[index] != null)
+            bays[index].ShowSkin(ShipSkins.Shown(index));
+        // Only the equipped skins and the one being previewed stay decoded.
+        ShipHullArt.ReleaseUnusedSkins();
     }
 
     public bool HasSelection
@@ -163,6 +222,8 @@ public class SpaceDock : MonoBehaviour
         popup = DockPopup.Create(transform, font, cam);
         popup.onLaunch = Launch;
         popup.onBuy = Buy;
+        popup.onSkin = TapSkin;
+        popup.onBuySkin = BuySkin;
 
         FindChrome();
         RefreshStatuses();
@@ -306,7 +367,11 @@ public class SpaceDock : MonoBehaviour
         int equipped = EquippedIndex();
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null)
+            {
                 bays[i].RefreshStatus(IsOwned(i), i == equipped, shopingShips.CostFor(i));
+                if (!Launching) bays[i].ShowSkin(ShipSkins.Shown(i));
+            }
+        if (!Launching) ShipHullArt.ReleaseUnusedSkins();
         if (popup != null && popup.Visible && !Launching) ShowPopup(popup.ShipIndex);
     }
 
@@ -319,6 +384,7 @@ public class SpaceDock : MonoBehaviour
             return;
         }
         if (Selected > 0 && bays[Selected] != null) bays[Selected].SetPowered(false);
+        if (ShipSkins.PreviewShip > 0) RevertSkinPreview();
         if (Selected == 0)
         {
             preSelectShipNumber = shopingShips.shipNumber;
@@ -335,6 +401,7 @@ public class SpaceDock : MonoBehaviour
     public void Deselect()
     {
         if (Launching) return;
+        if (ShipSkins.PreviewShip > 0) RevertSkinPreview();
         if (Selected > 0 && bays[Selected] != null) bays[Selected].SetPowered(false);
         Selected = 0;
         rotateRight.shipSelected = 0;
@@ -346,6 +413,8 @@ public class SpaceDock : MonoBehaviour
         var bay = bays[index];
         popup.Show(index, bay.ship, bay.hullHalfSize.y * layout.scale, IsOwned(index),
                    index == EquippedIndex(), shopingShips.CostFor(index), StarDustLedger.Saved);
+        // Skins appear once the ship itself is owned.
+        if (IsOwned(index)) popup.ShowSkins(index, ShipSkins.Shown(index), StarDustLedger.Saved);
     }
 
     // BUY: the existing purchase rules -- deduct once, mark bought, equip,
@@ -375,6 +444,8 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length || bays[index] == null) return;
         if (!IsOwned(index)) { Buy(index); return; }
+        // An unbought preview never flies: the equipped skin launches.
+        if (ShipSkins.PreviewShip > 0) RevertSkinPreview();
         ShipId.Equip(index);
         PrefsSaver.SaveNow();
         startMenu.spawnTracker = index;

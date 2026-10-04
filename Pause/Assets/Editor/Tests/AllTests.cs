@@ -46,6 +46,7 @@ public static class AllTests
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShipSelectionTest", ShipSelectionTest.Execute),
+        ("ShipSkinsTest", ShipSkinsTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),

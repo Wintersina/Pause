@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Skin swatch selection: a CYAN keyline around the chip shown on the hull.
+     4 units larger than the chip, centred on it. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="18" viewBox="0 0 26 18">
+  <path d="M5.3 0.9 H25.1 L21.2 17.1 H0.9 Z" fill="none" stroke="#6EF2EE" stroke-width="1.5" stroke-linejoin="miter"/>
+</svg>
