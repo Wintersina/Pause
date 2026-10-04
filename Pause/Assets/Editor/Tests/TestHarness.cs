@@ -87,6 +87,12 @@ public static class TestHarness
                 PlayerPrefs.DeleteKey(ShipSkins.DeveloperEquippedKey(id));
             }
             ShipSkins.ClearPreview();
+
+            // And with no colours bought, so every ship's weapon starts at
+            // level 0 (ShipWeaponUpgrades) whatever the Mac player bought.
+            for (int id = 0; id <= shopingShips.shipTotal; id++)
+                for (int n = 1; n < ShipSkins.PerShip; n++)
+                    PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
         }
 
         public void Dispose()

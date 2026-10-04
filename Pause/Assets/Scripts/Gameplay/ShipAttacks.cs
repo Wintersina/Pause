@@ -53,7 +53,7 @@ public class ShipAttackRunner : MonoBehaviour
     public void Setup(int shipId)
     {
         ship = shipId;
-        loadout = ShipLoadoutTable.For(shipId);
+        loadout = ShipWeaponUpgrades.LoadoutFor(shipId);
         hull = GetComponent<SpriteRenderer>();
         noseOffset = -1f;
         for (int i = 0; i < runs.Length; i++) if (runs[i] == null) runs[i] = new AttackRun();
@@ -80,6 +80,9 @@ public class ShipAttackRunner : MonoBehaviour
     {
         if (runs[0] == null) Setup(ship);
         if (loadout.attack == ShipAttack.ScreenClear) return false;
+        // The weapon level can change between firings (a colour bought, dev
+        // mode switched): read it as the attack goes out.
+        loadout = ShipWeaponUpgrades.LoadoutFor(ship);
         AttackRun run = null;
         for (int i = 0; i < runs.Length; i++) if (!runs[i].active) { run = runs[i]; break; }
         if (run == null)
@@ -103,7 +106,9 @@ public class ShipAttackRunner : MonoBehaviour
         switch (l.attack)
         {
             case ShipAttack.RailSlug:
-                Rail(run, nose);
+                // upgraded: side rails either side of the main line
+                for (int i = 0; i < Mathf.Max(1, l.shots); i++)
+                    Rail(run, nose + Vector3.right * RailOffset(i));
                 run.active = false;
                 break;
             case ShipAttack.ChainLightning:
@@ -111,7 +116,13 @@ public class ShipAttackRunner : MonoBehaviour
                 run.next = 0f;
                 break;
             case ShipAttack.SolarFireball:
-                Launch(run, AttackProjectile.Kind.Fireball, nose, Vector3.up, l.speed, .34f, .72f, null, 1f);
+                // upgraded: more fireballs fan out a little
+                for (int i = 0; i < Mathf.Max(1, l.shots); i++)
+                {
+                    float a = (i - (Mathf.Max(1, l.shots) - 1) * .5f) * 14f;
+                    Launch(run, AttackProjectile.Kind.Fireball, nose, Quaternion.Euler(0f, 0f, -a) * Vector3.up,
+                           l.speed, .34f, .72f, null, 1f);
+                }
                 break;
             case ShipAttack.SeekerEyes:
                 LaunchSeekers(run, nose);
@@ -152,6 +163,14 @@ public class ShipAttackRunner : MonoBehaviour
     }
 
     static readonly int[] ShotLoop = { 2, 2, 2, 2 };
+
+    // Rail i of an upgraded rail gun: 0 the main line, then alternating sides.
+    public const float SideRailSpacing = 1.1f;
+    public static float RailOffset(int i) { return i == 0 ? 0f : (i % 2 == 1 ? -1f : 1f) * ((i + 1) / 2) * SideRailSpacing; }
+
+    // Streak i of the comet: the first two straight ahead, upgraded extras
+    // splay a few degrees to alternate sides.
+    public static float StreakAngle(int i) { return i < 2 ? 0f : (i % 2 == 0 ? -1f : 1f) * 6f * ((i / 2)); }
 
     static Vector3 ConeScale(ShipLoadout l)
     {
@@ -251,7 +270,8 @@ public class ShipAttackRunner : MonoBehaviour
             case ShipAttack.CometStreak:
                 while (run.fired < l.shots && run.t >= run.fired * .16f)
                 {
-                    Launch(run, AttackProjectile.Kind.Straight, Nose, Vector3.up, l.speed, l.width, .55f, null,
+                    Launch(run, AttackProjectile.Kind.Straight, Nose,
+                           Quaternion.Euler(0f, 0f, -StreakAngle(run.fired)) * Vector3.up, l.speed, l.width, .55f, null,
                            1f / Mathf.Max(1, l.shots));
                     run.fired++;
                 }

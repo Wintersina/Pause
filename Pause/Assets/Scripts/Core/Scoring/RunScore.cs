@@ -183,8 +183,10 @@ public static class RunScore
     // ---- events ----
 
     // Something the pilot destroyed (collisionDetection.AwardDestroyedTarget:
-    // weapons, secret powers, the ultimate, ramming while shielded).
-    public static int OnKill(GameObject target)
+    // weapons, secret powers, the ultimate, ramming while shielded, blinking
+    // onto it with the pause-teleport). `bonusPoints` is added to the base
+    // before the multipliers (ScoreRules.TeleportKillBonus); boss parts ignore it.
+    public static int OnKill(GameObject target, int bonusPoints = 0)
     {
         if (!Live || target == null) return 0;
         string name = target.name;
@@ -197,7 +199,7 @@ public static class RunScore
             return ScoreRules.BossShot;
         }
 
-        int basePoints = BasePoints(target);
+        int basePoints = BasePoints(target) + Mathf.Max(0, bonusPoints);
         chain = chainLeft > 0f ? chain + 1 : 1;
         chainLeft = ScoreRules.ComboWindowSeconds;
         parts.bestChain = Mathf.Max(parts.bestChain, chain);

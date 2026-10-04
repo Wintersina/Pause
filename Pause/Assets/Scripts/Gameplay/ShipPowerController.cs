@@ -113,7 +113,7 @@ public class ShipPowerController : MonoBehaviour
         // (which flies the starter) can't hand the starter another's power.
         shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
         loadout = ShipLoadoutTable.For(shipIndex);
-        cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
+        cooldown = RollCooldown();
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);
         indicator = ChargeIndicator.Attach(this);
@@ -138,10 +138,19 @@ public class ShipPowerController : MonoBehaviour
         if (running && timer <= 0f)
         {
             Fire();
-            cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
+            cooldown = RollCooldown();
             timer = cooldown;
         }
     }
+
+    // A fresh countdown: a random point in cooldownRange, shortened by the
+    // ship's weapon level (ShipWeaponUpgrades: bought hull colours).
+    float RollCooldown()
+    {
+        return Random.Range(cooldownRange.x, cooldownRange.y) * ShipWeaponUpgrades.CooldownScale(shipIndex);
+    }
+
+    public int WeaponLevel => ShipWeaponUpgrades.Level(shipIndex);
 
     // Called from collisionDetection when the player collects star dust or
     // an atom -- speeds up the current countdown rather than waiting it out.

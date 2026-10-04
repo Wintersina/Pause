@@ -20,7 +20,7 @@ public class DockPopup : MonoBehaviour
     // Extra height when the skin swatch row is shown (owned ships).
     public const float SkinRowHeight = .27f;
     // START SPEED line: under the skin row, with it.
-    public const float StartSpeedLineHeight = .09f;
+    public const float StartSpeedLineHeight = .07f;
     public const float TailLength = .085f;
     public const float Gap = .04f;
     const float CanvasScale = .01f;
@@ -43,7 +43,7 @@ public class DockPopup : MonoBehaviour
     // (the skin on the hull right now).
     public bool SkinRowVisible { get; private set; }
     public int SkinShown { get; private set; }
-    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight + StartSpeedLineHeight : Height; } }
+    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight : Height; } }
 
     public class Swatch
     {
@@ -146,17 +146,20 @@ public class DockPopup : MonoBehaviour
         buttonLabel.fontStyle = FontStyle.Bold;
 
         BuildSkinRow();
+        BuildWeaponRow();   // weapon level row (ShipWeaponUpgrades)
         BuildStartSpeedLine();
     }
 
     // ---- START SPEED line: the colour shown's start speed, one tiny line
-    // between the skin row and the action button.
+    // under the weapon row, above the action button.
     void BuildStartSpeedLine()
     {
         startSpeed = Label("StartSpeed", panel, font, 6, TextAnchor.MiddleCenter,
                            AkiraPalette.WithAlpha(AkiraPalette.Cyan, .85f));
-        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -54f),
-              new Vector2(Width / CanvasScale - 22f, 9f), new Vector2(.5f, 1f));
+        // Skin row from -29 (24 tall), weapon row 26 below its top (10 tall):
+        // this line starts just under -65.
+        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -65.5f),
+              new Vector2(Width / CanvasScale - 22f, 7f), new Vector2(.5f, 1f));
         startSpeed.gameObject.SetActive(false);
     }
 
@@ -266,6 +269,7 @@ public class DockPopup : MonoBehaviour
                 w.price.color = balance >= price ? DockArt.Gold : DockArt.Warn;
             }
         }
+        ShowWeaponRow(index, shown);   // weapon level row (ShipWeaponUpgrades)
         // The skin's name sits on its own line under the ship's.
         string skinName = shown == ShipSkins.Stock ? "" : "\n" + ShipSkins.Get(index, shown).DisplayName;
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant() + skinName;
@@ -295,6 +299,62 @@ public class DockPopup : MonoBehaviour
         Resize();
         Follow();
     }
+
+    // ---- BEGIN weapon row (ShipWeaponUpgrades) -------------------------
+    //
+    // Under the skin chips: WEAPON, one pip per level (lit = colours owned),
+    // and what one more colour adds. A previewed (unbought) skin lights the
+    // pip it would add in gold and names the upgrade; at the top level the
+    // row reads MAX. Lives inside the skin row, so it shows and hides with it.
+    public const float WeaponRowHeight = .12f;
+    RectTransform weaponRow;
+    Text weaponTitle, weaponLabel;
+    readonly Image[] weaponPips = new Image[ShipWeaponUpgrades.MaxLevel];
+    public int WeaponLevelShown { get; private set; }
+    public string WeaponLine { get { return weaponLabel != null ? weaponLabel.text : ""; } }
+    public Image WeaponPip(int i) { return weaponPips[i]; }
+    const float PipSize = 5f, PipGap = 2f, PipX = 35f;
+
+    void BuildWeaponRow()
+    {
+        float rowW = ShipSkins.PerShip * ChipW + (ShipSkins.PerShip - 1) * ChipGap;
+        weaponRow = Rect("Weapon", skinRow);
+        Place(weaponRow, new Vector2(.5f, 1f), new Vector2(0f, -26f), new Vector2(rowW, 10f), new Vector2(.5f, 1f));
+        weaponTitle = Label("Title", weaponRow, font, 6, TextAnchor.MiddleLeft, AkiraPalette.Muted);
+        weaponTitle.text = "WEAPON";
+        Place(weaponTitle.rectTransform, new Vector2(0f, .5f), Vector2.zero, new Vector2(30f, 10f), new Vector2(0f, .5f));
+        for (int i = 0; i < weaponPips.Length; i++)
+        {
+            var rt = Rect("Pip" + i, weaponRow);
+            Place(rt, new Vector2(0f, .5f), new Vector2(PipX + i * (PipSize + PipGap), 0f),
+                  new Vector2(PipSize, PipSize), new Vector2(0f, .5f));
+            weaponPips[i] = rt.gameObject.AddComponent<Image>();
+            weaponPips[i].raycastTarget = false;
+        }
+        float labelX = PipX + weaponPips.Length * (PipSize + PipGap) + 2f;
+        weaponLabel = Label("Next", weaponRow, font, 6, TextAnchor.MiddleRight, DockArt.Gold);
+        weaponLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+        weaponLabel.resizeTextForBestFit = true;
+        weaponLabel.resizeTextMinSize = 4;
+        weaponLabel.resizeTextMaxSize = 6;
+        Place(weaponLabel.rectTransform, new Vector2(1f, .5f), Vector2.zero, new Vector2(rowW - labelX, 10f), new Vector2(1f, .5f));
+    }
+
+    void ShowWeaponRow(int index, int shown)
+    {
+        int level = ShipWeaponUpgrades.Level(index);
+        bool buying = !ShipSkins.IsOwned(index, shown) && level < ShipWeaponUpgrades.MaxLevel;
+        WeaponLevelShown = level;
+        for (int i = 0; i < weaponPips.Length; i++)
+            weaponPips[i].color = i < level ? AkiraPalette.Cyan
+                                : buying && i == level ? DockArt.Gold
+                                : AkiraPalette.Hairline;
+        string next = ShipWeaponUpgrades.NextLabel(index);
+        if (next == null) { weaponLabel.text = "MAX"; weaponLabel.color = AkiraPalette.Cyan; }
+        else if (buying) { weaponLabel.text = next; weaponLabel.color = DockArt.Gold; }
+        else { weaponLabel.text = "NEXT " + next; weaponLabel.color = AkiraPalette.Muted; }
+    }
+    // ---- END weapon row ----------------------------------------------
 
     public void HideSkins()
     {
