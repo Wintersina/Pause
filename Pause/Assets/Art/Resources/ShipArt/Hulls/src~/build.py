@@ -25,6 +25,7 @@ import sys
 from PIL import Image
 
 from hullkit import *  # noqa: F401,F403
+import damage
 from ships import BUILDERS, HUES, OLD_RECTS, ORDER, SPINNERS
 
 OUT_DIR = os.path.abspath(os.path.join(HERE, ".."))
@@ -93,12 +94,14 @@ def fit(ship, aspect):
     ship.lights = [(*m([(x, y)])[0], r, role) for x, y, r, role in ship.lights]
     ship.nozzles = [(*m([(x, y)])[0], w * sx, k) for x, y, w, k in ship.nozzles]
     ship.stripes = [(m(p), r) for p, r in ship.stripes]
+    ship.fit = m
     return ship
 
 
 def load(key):
     w, h = OLD_RECTS[key]
-    return fit(BUILDERS[key](), w / h)
+    ship = fit(BUILDERS[key](), w / h)
+    return damage.attach(ship, ship.fit)
 
 
 # ------------------------------------------------------------- rendering --
@@ -159,6 +162,8 @@ def compose(key, ship, cells):
         y0 -= pad // 2
         y1 = y0 + want
     assert x0 >= 0 and y0 >= 0 and x1 <= CELL and y1 <= CELL, (key, x0, y0, x1, y1)
+    check_alpha(key, sheet)
+    check_emitters(ship, sheet)
     sheet.save(os.path.join(OUT_DIR, key + ".png"), optimize=True)
     rest = sheet.crop((0, 0, CELL, CELL))
     return (x0, y0, x1, y1), rest
@@ -183,6 +188,50 @@ def measure_nozzles(ship, rect, rest):
         ry = y1 - (py + 0.5)
         out.append((rx, ry, k))
     return out
+
+
+def posed(u, v, col, spinner):
+    """A canvas point as drawn in column `col` (ShipDamageTable.Posed)."""
+    pose = poses(spinner)[col]
+    (x, y), = warp([(u, v)], pose)
+    return x, y
+
+
+def check_emitters(ship, sheet):
+    """Every damage emitter sits on painted pixels in the rest frame and in
+    every pose it can be drawn in, at every state it is live."""
+    alpha = sheet.getchannel("A")
+    for state in (1, 2):
+        for kind, u, v in ship.emitters[state]:
+            for col in range(COLUMNS):
+                x, y = posed(u, v, col, ship.key in SPINNERS)
+                for s in range(state, STATES):
+                    a = alpha.getpixel((int(col * CELL + x * ZOOM), int(s * CELL + y * ZOOM)))
+                    assert a > 200, (ship.key, kind, u, v, col, s, a)
+
+
+def check_alpha(key, sheet):
+    """Damage is drawn inside the outline: rows 1-2 have row 0's exact alpha."""
+    from PIL import ImageChops
+    a = sheet.getchannel("A")
+    rest = a.crop((0, 0, CELL * COLUMNS, CELL))
+    for s in range(1, STATES):
+        bad = ImageChops.difference(rest, a.crop((0, s * CELL, CELL * COLUMNS, (s + 1) * CELL))).getbbox()
+        assert bad is None, f"{key}: damage state {s} alpha differs from intact at {bad}"
+
+
+KIND_CS = {"sparks": "Sparks", "arc": "Arc", "smoke": "Smoke", "flame": "Flame", "leak": "Leak"}
+
+
+def emitter_rows():
+    rows = []
+    for i, key in enumerate(ORDER, start=1):
+        ship = load(key)
+        parts = [f"E({st}, {KIND_CS[k]}, {u:.1f}f, {v:.1f}f)" for st in (1, 2) for k, u, v in ship.emitters[st]]
+        c1, c2 = damage.CONCEPTS[key]
+        rows.append(f"        // {i:2d} {key}: 1) {c1}; 2) {c2}\n"
+                    f"        new[] {{ {', '.join(parts)} }},\n")
+    return "".join(rows)
 
 
 # ------------------------------------------------------------ C# patching --
@@ -234,7 +283,9 @@ def main():
           "".join(rows))
     patch(os.path.join(SCRIPTS, "ShipNozzles.cs"), "// BEGIN GENERATED NOZZLES", "// END GENERATED NOZZLES",
           "".join(nrows))
-    print("patched ShipHullArt.cs and ShipNozzles.cs")
+    patch(os.path.join(SCRIPTS, "ShipDamageTable.cs"), "// BEGIN GENERATED EMITTERS", "// END GENERATED EMITTERS",
+          emitter_rows())
+    print("patched ShipHullArt.cs, ShipNozzles.cs and ShipDamageTable.cs")
 
 
 TWIN_K = 0.72
