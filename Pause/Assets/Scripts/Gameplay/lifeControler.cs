@@ -110,6 +110,7 @@ public class lifeControler : MonoBehaviour {
         // Damage is communicated by the animated fire, smoke and impact layer.
         // Keep the authored hull colours intact instead of applying a flat red
         // tint over the entire ship.
-        spriteControl.color = Color.white;
+        // Post-hit invulnerability blinks the hull (PlayerInvuln.HullAlpha).
+        spriteControl.color = isLiveGameplay ? new Color(1f, 1f, 1f, PlayerInvuln.HullAlpha) : Color.white;
     }
 }

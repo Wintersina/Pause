@@ -457,6 +457,7 @@ public static class ShieldFitTest
         Check("without the shield a hazard damages the hull", collisionDetection.lifeCounter == 1);
 
         collisionDetection.lifeCounter = 0;
+        PlayerInvuln.Reset();
         foreach (var go in new[] { atom, rock, rock2, cd.explosionAnimation, cd.boost,
                                    cd.boostText.gameObject, cd.hypeText.gameObject })
             if (go != null) Object.DestroyImmediate(go);
