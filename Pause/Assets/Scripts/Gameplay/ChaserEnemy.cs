@@ -10,7 +10,15 @@ using UnityEngine;
 // it, and it carries the same "Enimey" tag every other hazard does, so
 // ShipPowerController's ultimate (laser/missiles/shockwave/railgun) can
 // target it exactly like an asteroid.
-public class ChaserEnemy : MonoBehaviour
+//
+// It is SpawnSpace's self-steering pattern: it holds its place in the world
+// while the board pours past it, so it is the one that gives way. Each frame
+// it looks a little way up the board and sidesteps anything coming at it,
+// and its move goes through SpawnSpace.ResolveSteer, which never lets it
+// step into another enemy (worst case the scroll carries it along until it
+// can slip past). It runs in LateUpdate, after the board-locked movers.
+[DefaultExecutionOrder(50)]
+public class ChaserEnemy : MonoBehaviour, IMovementFootprint
 {
     [Tooltip("How long, in seconds, this actively closes in on the player before giving up and wandering.")]
     public float chaseSeconds = 3.5f;
@@ -27,61 +35,50 @@ public class ChaserEnemy : MonoBehaviour
     [Tooltip("Radius of the idle drift loop around the point the chase left off.")]
     public float wanderRadius = 0.7f;
 
+    [Tooltip("Sideways speed (u/s) of a sidestep around an enemy coming down the board at it.")]
+    public float dodgeSpeed = 4f;
+
+    [Tooltip("How far ahead (seconds of scroll) it watches the board for something to sidestep.")]
+    public float lookAheadSeconds = .45f;
+
     Transform player;
     float chaseTimer;
     float wanderAngle;
     Vector3 wanderCenter;
     bool wandering;
+    bool initialised;
+    SpawnFootprint footprint;
 
     // True while it is still closing in (EnemyFlipbook loops its lunge then).
     public bool IsChasing => !wandering;
 
+    // What it hunts (the ship; a headless simulation can set a stand-in).
+    public Transform Target { get { return player; } set { player = value; } }
+
     void Start()
     {
-        chaseTimer = chaseSeconds;
-        wanderAngle = Random.value * Mathf.PI * 2f;
-        var mover = Object.FindFirstObjectByType<movePlayer>();
-        if (mover != null) player = mover.transform;
+        Init();
     }
 
-    void Update()
+    void Init()
+    {
+        if (initialised) return;
+        initialised = true;
+        chaseTimer = chaseSeconds;
+        wanderAngle = Random.value * Mathf.PI * 2f;
+        if (player == null)
+        {
+            var mover = Object.FindFirstObjectByType<movePlayer>();
+            if (mover != null) player = mover.transform;
+        }
+    }
+
+    void LateUpdate()
     {
         bool flying = !buttonClicks.playerDied &&
                       (TouchInput.IsPressed || score.pauseCounter <= 0);
         if (!flying) return;
-
-        if (!wandering)
-        {
-            chaseTimer -= Time.deltaTime;
-            if (player != null)
-            {
-                float k = 1f - Mathf.Clamp01(chaseTimer / Mathf.Max(0.01f, chaseSeconds));
-                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k);
-                // a Flare Decoy (secret power) draws the chase off the ship
-                Vector3 goal = ShipDecoy.Active ? ShipDecoy.Position : player.position;
-                Vector3 toPlayer = goal - transform.position;
-                if (toPlayer.sqrMagnitude > 0.0001f)
-                    transform.position += toPlayer.normalized * speed * Time.deltaTime;
-            }
-            else
-            {
-                // No player to chase (e.g. it just died) -- keep drifting up
-                // rather than stalling in place.
-                transform.position += Vector3.up * startChaseSpeed * Time.deltaTime;
-            }
-
-            if (chaseTimer <= 0f)
-            {
-                wandering = true;
-                wanderCenter = transform.position;
-            }
-        }
-        else
-        {
-            wanderAngle += Time.deltaTime * 1.4f;
-            Vector3 target = wanderCenter + new Vector3(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle) * 0.6f, 0f) * wanderRadius;
-            transform.position = Vector3.MoveTowards(transform.position, target, wanderSpeed * Time.deltaTime);
-        }
+        Step(Time.deltaTime);
 
         // A safety net, not the normal exit: colliding with the player or
         // the ultimate destroying it are the expected ways this goes away.
@@ -90,4 +87,83 @@ public class ChaserEnemy : MonoBehaviour
             transform.position.y > cam.transform.position.y + cam.orthographicSize + 6f)
             Destroy(gameObject);
     }
+
+    // One frame (dt explicit for headless simulations).
+    public void Step(float dt)
+    {
+        Init();
+        Vector3 from = transform.position;
+        Vector3 wish = from;
+
+        if (!wandering)
+        {
+            chaseTimer -= dt;
+            if (player != null)
+            {
+                float k = 1f - Mathf.Clamp01(chaseTimer / Mathf.Max(0.01f, chaseSeconds));
+                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k);
+                // a Flare Decoy (secret power) draws the chase off the ship
+                Vector3 goal = ShipDecoy.Active ? ShipDecoy.Position : player.position;
+                Vector3 toPlayer = goal - from;
+                toPlayer.z = 0f;
+                if (toPlayer.sqrMagnitude > 0.0001f)
+                    wish += toPlayer.normalized * speed * dt;
+            }
+            else
+            {
+                // No player to chase (e.g. it just died) -- keep drifting up
+                // rather than stalling in place.
+                wish += Vector3.up * startChaseSpeed * dt;
+            }
+
+            if (chaseTimer <= 0f)
+            {
+                wandering = true;
+                wanderCenter = from;
+            }
+        }
+        else
+        {
+            wanderAngle += dt * 1.4f;
+            Vector3 target = wanderCenter + new Vector3(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle) * 0.6f, 0f) * wanderRadius;
+            wish = Vector3.MoveTowards(from, target, wanderSpeed * dt);
+        }
+
+        if (footprint == null) TryGetComponent(out footprint);
+        if (footprint == null || !footprint.isActiveAndEnabled)
+        {
+            transform.position = wish;
+            return;
+        }
+
+        // Something coming down the board at it: start the sidestep early,
+        // away from the threat (and off the wall).
+        float scroll = SpawnSpace.ScrollSpeed;
+        Rect threat;
+        if (SpawnSpace.ThreatAhead(footprint, wish, footprint.half, scroll * lookAheadSeconds, out threat))
+        {
+            float dir = wish.x >= threat.center.x ? 1f : -1f;
+            if (Mathf.Abs(wish.x + dir * (footprint.half.x + .3f)) > SpawnLane.LaneHalf) dir = -dir;
+            wish.x += dir * dodgeSpeed * dt;
+        }
+
+        Vector2 p = SpawnSpace.ResolveSteer(footprint, from, wish, scroll * dt, dodgeSpeed * dt);
+        // a wandering loop follows wherever it had to give way to
+        if (wandering) wanderCenter += new Vector3(p.x - wish.x, p.y - wish.y, 0f);
+        transform.position = new Vector3(p.x, p.y, from.z);
+    }
+
+    // IMovementFootprint: where it may be over the next moments -- it rises
+    // through the board at the scroll speed (it holds its place in the
+    // world) plus its own speed, and may sidestep. SpawnSpace only reserves
+    // this up to SteerHorizon; past that it gets out of the way itself.
+    public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
+    {
+        float own = Mathf.Max(chaseSpeed, wanderSpeed) * to;
+        float side = Mathf.Min(1f, (Mathf.Max(chaseSpeed, wanderSpeed) + dodgeSpeed) * to);
+        return Rect.MinMaxRect(center.x - half.x - side, center.y - half.y - own,
+                               center.x + half.x + side, center.y + half.y + own + SpawnSpace.ScrollSpeed * to);
+    }
+
+    public bool SelfSteering => true;
 }

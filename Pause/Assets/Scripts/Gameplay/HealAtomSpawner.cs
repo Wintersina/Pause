@@ -60,7 +60,10 @@ public class HealAtomSpawner : MonoBehaviour
         if (collisionDetection.lifeCounter <= 0) return;
         if (Random.value > chance) return;
 
-        HealAtom.Spawn(new Vector3(Random.Range(-2.2f, 2.2f), 7f, 0f));
+        // placed clear of the enemies' footprints when there's room (SpawnSpace)
+        Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
+        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-2.2f, 2.2f), 7f, 0f), half, -2.2f, 2.2f);
+        SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
     }
 }
