@@ -195,7 +195,7 @@ public static class PickupRulesTest
 
     static void ShieldAtomsDoubleOthersUnchanged()
     {
-        const float window = 180f; // a level (WorldManager.secondsPerWorld)
+        const float window = 180f; // a long level (baseline is WorldManager.BaselineWorldSeconds = 120s)
         const int runs = 60;
         long blue = 0, red = 0, oldBlue = 0;
         for (int seed = 1; seed <= runs; seed++)
