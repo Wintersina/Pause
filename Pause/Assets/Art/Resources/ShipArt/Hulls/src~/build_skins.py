@@ -3,6 +3,7 @@
     python3 build_skins.py               # all ships, all skins
     python3 build_skins.py NeonComet     # one ship (no C# patch)
     python3 build_skins.py --verify-stock
+    python3 build_skins.py --preview <dir>   # roster_skins.png review sheet
 
 Per ship and non-stock skin it renders the same 27 frames build.py does
 (3 damage states x idle 0-5, bank L/R, hit) with the skin's colours and
@@ -125,7 +126,36 @@ def cs_table():
     return "".join(rows)
 
 
+def preview(out):
+    """roster_skins.png: every ship (rows) in every skin (columns), rest
+    frame on the Space lane colour, with names and prices."""
+    from PIL import ImageDraw, ImageFont
+    prices = {"Stock": "free", "Palette": "300", "Special": "750"}
+    pad, top, left = 10, 34, 150
+    img = Image.new("RGBA", (left + 5 * (CELL + pad), top + len(ORDER) * (CELL + 30)), (14, 20, 36, 255))
+    d = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 18)
+    except OSError:
+        font = ImageFont.load_default()
+    for c, head in enumerate(["0 stock", "1 cool swap", "2 warm swap", "3 bone", "4 special"]):
+        d.text((left + c * (CELL + pad) + 8, 8), head, font=font, fill=(110, 242, 238))
+    for r, key in enumerate(ORDER):
+        y = top + r * (CELL + 30)
+        d.text((8, y + CELL // 2 - 10), key, font=font, fill=(244, 234, 212))
+        for c, skin in enumerate(SKINS[key]):
+            sheet = stock(key) if c == 0 else Image.open(os.path.join(SKIN_DIR, f"{key}_{skin.name}.bytes")).convert("RGBA")
+            x = left + c * (CELL + pad)
+            img.alpha_composite(sheet.crop((0, 0, CELL, CELL)), (x, y))
+            d.text((x + 8, y + CELL + 4), f"{skin.name}  {prices[skin.kind]}", font=font, fill=(255, 180, 60))
+    os.makedirs(out, exist_ok=True)
+    img.save(os.path.join(out, "roster_skins.png"))
+
+
 def main():
+    if "--preview" in sys.argv:
+        preview(sys.argv[sys.argv.index("--preview") + 1])
+        return
     if "--verify-stock" in sys.argv:
         sys.exit(1 if verify_stock() else 0)
     only = [a for a in sys.argv[1:] if not a.startswith("--")]

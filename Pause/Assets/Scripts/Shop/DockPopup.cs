@@ -158,9 +158,14 @@ public class DockPopup : MonoBehaviour
             w.root = Rect("Swatch" + n, skinRow);
             Place(w.root, new Vector2(0f, 1f), new Vector2(n * (ChipW + ChipGap) + ChipW * .5f, -ChipH * .5f - 1f),
                   new Vector2(ChipW, ChipH), new Vector2(.5f, .5f));
+            // The touch target is the whole slot (chip, price and the gap),
+            // bigger than the chip itself.
+            var hit = Chip(w.root, "Hit", null, new Vector2(ChipW + ChipGap, 26f));
+            hit.rectTransform.anchoredPosition = new Vector2(0f, -4f);
+            hit.color = new Color(0f, 0f, 0f, 0f);
+            hit.raycastTarget = true;
             w.ring = Chip(w.root, "Ring", "swatch_ring", new Vector2(ChipW + 4f, ChipH + 4f));
             w.body = Chip(w.root, "Body", "swatch", new Vector2(ChipW, ChipH));
-            w.body.raycastTarget = true;
             w.band = Chip(w.root, "Band", "swatch_band", new Vector2(ChipW, ChipH));
             w.stripe = Chip(w.root, "Stripe", "swatch_stripe", new Vector2(ChipW, ChipH));
             w.ink = Chip(w.root, "Ink", "swatch_ink", new Vector2(ChipW, ChipH));
@@ -172,7 +177,7 @@ public class DockPopup : MonoBehaviour
                   new Vector2(20f, 8f), new Vector2(0f, .5f));
             w.dust.rectTransform.anchoredPosition = new Vector2(-7f, -ChipH * .5f - 5f);
             w.button = w.root.gameObject.AddComponent<Button>();
-            w.button.targetGraphic = w.body;
+            w.button.targetGraphic = hit;
             w.button.transition = Selectable.Transition.None;
             int skin = n;
             w.button.onClick.AddListener(() => SwatchClicked(skin));
@@ -187,7 +192,7 @@ public class DockPopup : MonoBehaviour
         var rt = Rect(name, parent);
         Place(rt, new Vector2(.5f, .5f), Vector2.zero, size, new Vector2(.5f, .5f));
         var image = rt.gameObject.AddComponent<Image>();
-        image.sprite = DockArt.Get(sprite);
+        if (sprite != null) image.sprite = DockArt.Get(sprite);
         image.raycastTarget = false;
         return image;
     }
@@ -237,7 +242,8 @@ public class DockPopup : MonoBehaviour
                 w.price.color = balance >= price ? DockArt.Gold : DockArt.Warn;
             }
         }
-        string skinName = shown == ShipSkins.Stock ? "" : "  ·  " + ShipSkins.Get(index, shown).DisplayName;
+        // The skin's name sits on its own line under the ship's.
+        string skinName = shown == ShipSkins.Stock ? "" : "\n" + ShipSkins.Get(index, shown).DisplayName;
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant() + skinName;
         if (!ShipSkins.IsOwned(index, shown))
         {
