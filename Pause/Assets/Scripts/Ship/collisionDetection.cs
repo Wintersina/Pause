@@ -42,7 +42,7 @@ public class collisionDetection : MonoBehaviour {
     public static int lifeCounter;
     // Atoms picked up this session, by kind. The tutorial watches these to
     // know the player caught the atom it just introduced.
-    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups;
+    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups, cooldownAtomPickups;
     public static int MAXLIFE;
 
     public GameObject shield;
@@ -327,6 +327,14 @@ public class collisionDetection : MonoBehaviour {
                 // ...and a free shot of the main weapon (the charge timer
                 // keeps its progress; ShipPowerController.FreeShot).
                 if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();
+                Destroy(hit.gameObject);
+            }
+            else if (PrefabName.Is(hit.gameObject, "cooldownAtom"))
+            {
+                cooldownAtomPickups++;
+                RunScore.OnAtom(RunScore.Atom.Cooldown, hit.transform.position);
+                if (ShipPowerController.Instance != null) ShipPowerController.Instance.ReduceWeaponCooldown();
+                if (hypeText != null) hypeText.text = "WEAPON CHARGED";
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))

@@ -7,6 +7,7 @@ public class spawnGoodStuff : MonoBehaviour {
     public GameObject midStar;
     public GameObject Atom;
     public GameObject redAtom;
+    public GameObject cooldownAtom;
     public static bool AtomOnScreen;
 
     private float atomDelayTimer;
@@ -14,6 +15,7 @@ public class spawnGoodStuff : MonoBehaviour {
     private float smStarTimer;
     private float midStarTimer;
     private float atomTimer;
+    private float cooldownAtomDelayTimer;
 
     [Header("Blue atoms")]
     [Tooltip("How many blue atoms a planet may hand out, chosen at random " +
@@ -28,10 +30,15 @@ public class spawnGoodStuff : MonoBehaviour {
              "across the level.")]
     public int redAtomsPerWorld = 5;
 
+    [Tooltip("Violet capacitor atoms per world. They shorten the active weapon charge.")]
+    public int cooldownAtomsPerWorld = 2;
+
     private int redBudget;
     private int redSpawned;
     private int blueBudget;
     private int blueSpawned;
+    private int cooldownBudget;
+    private int cooldownSpawned;
     private bool blueGuaranteeUsed;
     private int lastWorld = -1;
 
@@ -46,6 +53,7 @@ public class spawnGoodStuff : MonoBehaviour {
         midStarTimer = 14f;
         atomTimer = Random.Range(20f, 45f);
         redAtomDelayTimer = 10f;
+        if (cooldownAtom == null) cooldownAtom = Resources.Load<GameObject>("prefabs/cooldownAtom");
         resetBlueBudget();
 	
 	}
@@ -75,6 +83,9 @@ public class spawnGoodStuff : MonoBehaviour {
         redBudget = redAtomsPerWorld;
         redSpawned = 0;
         redAtomDelayTimer = Random.Range(15f, 40f);
+        cooldownBudget = Mathf.Max(0, cooldownAtomsPerWorld);
+        cooldownSpawned = 0;
+        cooldownAtomDelayTimer = Random.Range(35f, 65f);
         blueGuaranteeUsed = false;
         atomTimer = Random.Range(20f, 45f);
     }
@@ -100,6 +111,7 @@ public class spawnGoodStuff : MonoBehaviour {
         midStarTimer -= dustDt;
         atomTimer -= dt * PickupRules.ShieldAtomRate;
         redAtomDelayTimer -= dt;
+        cooldownAtomDelayTimer -= dt;
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
@@ -155,6 +167,13 @@ public class spawnGoodStuff : MonoBehaviour {
             redSpawned++;
         }
 
+        if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget)
+        {
+            cooldownAtomDelayTimer = Random.Range(75f, 115f);
+            spawnCooldownAtom();
+            cooldownSpawned++;
+        }
+
 
     }
     // Each star in a cluster used to share vPos.x, so a whole burst landed
@@ -185,6 +204,11 @@ public class spawnGoodStuff : MonoBehaviour {
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(redAtom, randomStarPos));
+    }
+    void spawnCooldownAtom()
+    {
+        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        AtomSpin.AddTo(Place(cooldownAtom, randomStarPos));
     }
 
     // Placement only (SpawnSpace): a pickup lands clear of the enemies'

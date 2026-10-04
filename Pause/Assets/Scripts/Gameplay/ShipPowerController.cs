@@ -38,6 +38,9 @@ public class ShipPowerController : MonoBehaviour
              "blue, red or the green heal atom all count the same.")]
     public float secondsPerAtom = 7f;
 
+    [Tooltip("Seconds shaved off the active weapon charge by a violet capacitor atom.")]
+    public float secondsPerCooldownAtom = 12f;
+
     [Header("Cinematic clear")]
     [Tooltip("Real seconds the world is held slowed after the last homing shot " +
              "launches -- the normal end of the ultimate's slow motion.")]
@@ -217,6 +220,12 @@ public class ShipPowerController : MonoBehaviour
     public void ReduceTimer(float seconds)
     {
         timer = Mathf.Max(0f, timer - seconds);
+    }
+
+    // Violet capacitor atom: a stronger, dedicated cut to the weapon charge.
+    public void ReduceWeaponCooldown()
+    {
+        ReduceTimer(secondsPerCooldownAtom);
     }
 
     // Capacitor Dump (a secret power): the attack comes back at once -- the

@@ -15,7 +15,7 @@ public class PickupBurst : MonoBehaviour
     static int lastPickup;
     static readonly Stack<PickupBurst> free = new Stack<PickupBurst>();
     static readonly PickupKind[] Kinds =
-        { PickupKind.Shield, PickupKind.Pause, PickupKind.Dust, PickupKind.DustSmall, PickupKind.Heal };
+        { PickupKind.Shield, PickupKind.Pause, PickupKind.Cooldown, PickupKind.Dust, PickupKind.DustSmall, PickupKind.Heal };
 
     Sprite[] frames;
     SpriteRenderer sr;

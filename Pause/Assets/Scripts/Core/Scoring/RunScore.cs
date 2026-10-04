@@ -234,7 +234,7 @@ public static class RunScore
         return points;
     }
 
-    public enum Atom { Heal, Shield, Pause }
+    public enum Atom { Heal, Shield, Pause, Cooldown }
 
     public static int OnAtom(Atom kind, Vector3? at = null)
     {
