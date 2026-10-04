@@ -101,6 +101,7 @@ public static class CloakShieldTest
             collisionDetection.invTimer = 0f;
             collisionDetection.cloakTimer = 0f;
             collisionDetection.lifeCounter = 0;
+            PlayerInvuln.Reset();
         }
     }
 

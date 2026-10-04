@@ -142,6 +142,7 @@ public static class ShipLivesTest
 
         public void Hit()
         {
+            PlayerInvuln.Reset();   // each hit lands after the last one's post-hit window
             var go = new GameObject("rock", typeof(CircleCollider2D));
             go.tag = "Astr";
             Trigger.Invoke(cd, new object[] { go.GetComponent<Collider2D>() });
@@ -165,6 +166,7 @@ public static class ShipLivesTest
                     Object.DestroyImmediate(go);
             if (ship != null) Object.DestroyImmediate(ship);
             collisionDetection.lifeCounter = 0;
+            PlayerInvuln.Reset();
             buttonClicks.playerDied = false;
         }
     }

@@ -164,6 +164,7 @@ public class collisionDetection : MonoBehaviour {
         // making sure atom is not active until player picks it up
         atomCheck = false;
         cloakTimer = 0f;
+        PlayerInvuln.Reset();
 
         // empty out any counters
         atomCounter = 0;
@@ -195,6 +196,10 @@ public class collisionDetection : MonoBehaviour {
         //------------------------- Colliding with Enimies ---------------------------------------------
         if (hit.gameObject.CompareTag("Enimey") || hit.gameObject.CompareTag("Astr"))
         {
+            // Post-hit invulnerability (PlayerInvuln): unless a shield or
+            // Cloak is also up, the ship passes through harmlessly -- no
+            // heart, no ram kill, no secret power spent.
+            if (PlayerInvuln.Active && !Invulnerable) return;
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.
@@ -268,6 +273,7 @@ public class collisionDetection : MonoBehaviour {
                     PrefsSaver.SaveNow();
                     Destroy(gameObject);
                 }
+                else PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 Destroy(hit.gameObject);
                 Destroy(exp, 2);
 
@@ -380,6 +386,7 @@ public class collisionDetection : MonoBehaviour {
         savedTimer -= Time.deltaTime;
         boostTimer -= Time.deltaTime;
         TickCloak(Time.deltaTime);
+        PlayerInvuln.Tick(Time.deltaTime);
 
         // check if atom is captrured and its time to reduce it.
         if (atomCheck && invTimer <= 0)

@@ -291,6 +291,7 @@ public static class ShipHitboxTest
             collisionDetection.invTimer = 0f;
             collisionDetection.cloakTimer = 0f;
             collisionDetection.lifeCounter = 0;
+            PlayerInvuln.Reset();
         }
     }
 
