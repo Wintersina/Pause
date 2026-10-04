@@ -80,6 +80,12 @@ public sealed class LeaderboardService
 
     public void OnSignedIn() { Flush(); }
 
+    // Signed in to the store and not signed out in Pause (AccountLink).
+    public bool SignedIn
+    {
+        get { return Platform.IsAvailable && Platform.IsSignedIn && !AccountLink.Disconnected; }
+    }
+
     // ---- rules ----
 
     // Developer mode, or a practice run (tutorial scene, tutorial replay, or
@@ -171,11 +177,12 @@ public sealed class LeaderboardService
         Flush();
     }
 
-    // Sends everything queued, if the player is signed in. Safe to call any
-    // time; boards already being sent are skipped.
+    // Sends everything queued, if the player is signed in (and not signed out
+    // in Pause: then scores keep waiting). Safe to call any time; boards
+    // already being sent are skipped.
     public void Flush()
     {
-        if (!Platform.IsAvailable || !Platform.IsSignedIn) return;
+        if (!SignedIn) return;
         var pending = ScoreTable.Load(PendingKey);
         foreach (var entry in pending.entries.ToArray())
         {
@@ -233,7 +240,7 @@ public sealed class LeaderboardService
         var board = Usable(boardId);
         if (board == null) { done(LeaderboardPage.Failed(LeaderboardStatus.Error), null); return; }
         if (!Platform.IsAvailable) { done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable), null); return; }
-        if (!Platform.IsSignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn), null); return; }
+        if (!SignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn), null); return; }
 
         string id = board.PlatformId(Ios);
         LeaderboardPage top = null, me = null;
@@ -243,6 +250,8 @@ public sealed class LeaderboardService
         Platform.LoadPlayerScore(id, page => { me = page; finish(); });
     }
 
+    // The panel's SIGN IN. The store platforms route this to
+    // AccountLink.SignIn, the one interactive sign-in.
     public void SignIn(Action<bool> done)
     {
         if (!Platform.IsAvailable) { if (done != null) done(false); return; }
@@ -259,7 +268,7 @@ public sealed class LeaderboardService
     {
         var board = boardId == null ? null : Usable(boardId);
         string id = board != null ? board.PlatformId(Ios) : null;
-        if (Platform.IsSignedIn) { Platform.ShowNativeUI(id); return; }
+        if (SignedIn) { Platform.ShowNativeUI(id); return; }
         SignIn(ok => { if (ok) Platform.ShowNativeUI(id); });
     }
 

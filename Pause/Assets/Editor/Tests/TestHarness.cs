@@ -169,6 +169,8 @@ public static class TestHarness
         keys.Add(CloudSync.LocalSavedAtKey);
         keys.Add(CloudSync.LocalHashKey);
         keys.Add(CloudSync.BackupsKey);
+        keys.Add(AccountLink.DisconnectedKey);
+        keys.Add(AccountLink.HintShownKey);
 
         // Leaderboard queue (device-local).
         keys.Add(LeaderboardService.PendingKey);
