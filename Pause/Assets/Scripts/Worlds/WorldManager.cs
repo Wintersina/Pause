@@ -14,6 +14,9 @@ using UnityEngine.SceneManagement;
 //   KEEP FLYING  stay in Ember: no portal, endless escalation to game over;
 //   LOOP BACK    a portal back to the world the run started in -- the score
 //                carries on and RunLoop.Index goes up; every loop is harder.
+//   no pick      the countdown ran out (FinalRoute.Encore): Ember once more as
+//                a loop pass -- full level, the next loop's difficulty, its
+//                boss again -- then straight into LOOP BACK, no second prompt.
 public class WorldManager : MonoBehaviour
 {
     public const string PrefsCurrentWorld = "currentWorld";
@@ -104,7 +107,9 @@ public class WorldManager : MonoBehaviour
     bool portalOpen;
 
     // What happens after the final world's boss.
-    public enum FinalRoute { None, Choosing, KeepFlying, LoopBack }
+    // Encore: the choice timed out -- one more pass of the final world, then
+    // LOOP BACK by itself when its boss is over.
+    public enum FinalRoute { None, Choosing, KeepFlying, LoopBack, Encore }
     FinalRoute route = FinalRoute.None;
     float endlessSeconds, endlessStep;
     FinalChoicePanel choice;
@@ -163,7 +168,8 @@ public class WorldManager : MonoBehaviour
             TickEndless(dt);
             return;
         }
-        if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex) && route != FinalRoute.LoopBack) return;
+        if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex) && route != FinalRoute.LoopBack &&
+            route != FinalRoute.Encore) return;
 
         timer -= dt;
         WorldMusic.TryEscalate(this);
@@ -189,6 +195,16 @@ public class WorldManager : MonoBehaviour
             if (!portalOpen) OpenPortal();
             return;
         }
+        // The encore's boss: no second prompt, straight into LOOP BACK.
+        if (route == FinalRoute.Encore)
+        {
+            if (buttonClicks.playerDied) return;
+            route = FinalRoute.LoopBack;
+            timer = 0f;
+            WorldBanner.Show("LOOP BACK");
+            if (!portalOpen) OpenPortal();
+            return;
+        }
         OfferFinalChoice();
     }
 
@@ -203,24 +219,51 @@ public class WorldManager : MonoBehaviour
         choice = FinalChoicePanel.Show(CurrentIndex, RunLoop.StartWorld, RunLoop.Index, Choose);
     }
 
-    // The panel's answer (a button, or KEEP FLYING when its countdown ends).
+    // A button's answer: LOOP BACK (true) or KEEP FLYING (false).
     public void Choose(bool loopBack)
+    {
+        Choose(loopBack ? FinalPick.LoopBack : FinalPick.KeepFlying);
+    }
+
+    // The panel's answer (a button, or FinalPick.Encore when its countdown ends).
+    public void Choose(FinalPick pick)
     {
         if (route != FinalRoute.Choosing) return;
         if (choice != null) choice.Close();
         choice = null;
-        if (loopBack)
+        switch (pick)
         {
-            route = FinalRoute.LoopBack;
-            OpenPortal();
+            case FinalPick.LoopBack:
+                route = FinalRoute.LoopBack;
+                OpenPortal();
+                break;
+            case FinalPick.Encore:
+                BeginEncore();
+                break;
+            default:
+                route = FinalRoute.KeepFlying;
+                endlessSeconds = 0f;
+                endlessStep = 0f;
+                WorldBanner.Show("KEEP FLYING");
+                break;
         }
-        else
-        {
-            route = FinalRoute.KeepFlying;
-            endlessSeconds = 0f;
-            endlessStep = 0f;
-            WorldBanner.Show("KEEP FLYING");
-        }
+    }
+
+    // No pick in time: fly the final world once more as a loop pass. The
+    // full level clock, the next loop's ramp / caps / phases / density, and
+    // the boss again at the end (OnBossOver then loops back by itself). The
+    // flight carries straight on -- no portal, so no arrival speed reset and
+    // no world bonus yet; RunLoop.Index and the score bonuses move on only
+    // with the LOOP BACK portal, as before.
+    void BeginEncore()
+    {
+        route = FinalRoute.Encore;
+        RunLoop.EncorePass = true;
+        BossEncounter.ForgetDone();
+        portalOpen = false;
+        timer = secondsPerWorld;
+        ApplyDifficulty(Current);
+        WorldBanner.Show(Current.displayName.ToUpperInvariant() + "  ONE MORE");
     }
 
     // KEEP FLYING: no portal, no boss. The speed cap creeps up past the
@@ -302,9 +345,10 @@ public class WorldManager : MonoBehaviour
         Codex.Discover(Codex.WorldId(CurrentIndex));
     }
 
+    // RunLoop.DifficultyIndex: the encore plays at the next loop's.
     static void ApplyDifficulty(WorldTheme theme)
     {
-        ApplyScaledDifficulty(theme, RunLoop.Index, 0f);
+        ApplyScaledDifficulty(theme, RunLoop.DifficultyIndex, 0f);
     }
 
     // The world's ramp and caps, scaled for the loop and (KEEP FLYING) the
@@ -323,7 +367,7 @@ public class WorldManager : MonoBehaviour
 
         var enemies = Object.FindFirstObjectByType<enmiesOnBoard>();
         if (enemies != null) enemies.phaseRampScale = theme.enemyRampScale * LoopRules.PhaseRampScale(loop);
-        // Read by the spawner (see LoopDifficulty for the one-line hook).
+        // Read by the spawner (enmiesOnBoard.Roll).
         LoopDifficulty.DensityScale = LoopRules.Density(loop, endlessSeconds);
     }
 
@@ -337,6 +381,7 @@ public class WorldManager : MonoBehaviour
         int last = Worlds.Length - 1;
         portalOpen = false;
         route = FinalRoute.None;
+        RunLoop.EncorePass = false;
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) BossUtil.Kill(p.gameObject);
         if (CurrentIndex == last) return;
         CurrentIndex = last;

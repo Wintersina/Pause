@@ -7,17 +7,21 @@ using UnityEngine.UI;
 //   KEEP FLYING   stay in the final world -- endless, ever faster
 //   LOOP BACK     a portal to the world the run started in; the score carries
 //                 on and the next loop is a little harder
+//   (countdown)   no pick in time: one more pass of the final world, its boss
+//                 again, then LOOP BACK automatically (FinalPick.Encore)
 //
 // While it is up the world is frozen (BossEncounter.ScriptedFreeze asks
 // IsUp), and the freeze is scripted, so neither a press on it nor the first
 // press after it spends a pause (FreePress). Back / Escape picks nothing and
 // never quits (a BackNavigator layer that swallows the press). After
-// LoopRules.AutoPickSeconds of real time it picks KEEP FLYING by itself, with
-// the countdown on screen.
+// LoopRules.AutoPickSeconds of real time it picks the encore by itself, with
+// the countdown -- and what it will do -- on screen.
 //
 // Self-building, in the app's cel UI: the death panel's frame, cards and
 // title slab (Resources/DeathPanel), BONE type with INK outlines, CelPress on
 // both buttons, stepped poses on 24 fps ticks. Unscaled time throughout.
+public enum FinalPick { KeepFlying, LoopBack, Encore }
+
 public class FinalChoicePanel : MonoBehaviour
 {
     public const float Width = 640f, Height = 600f;
@@ -25,10 +29,12 @@ public class FinalChoicePanel : MonoBehaviour
     public const float LineWidth = 500f, LineHeight = 48f;
     // Panel-local centres.
     public const float TitleY = 245f, SubY = 186f, KeepY = 72f, LoopY = -96f, CountdownY = -232f;
+    public const float CountdownWidth = 590f;
 
     static FinalChoicePanel instance;
 
-    Action<bool> onChoose;
+    Action<FinalPick> onChoose;
+    string worldName = "EMBER";
     bool open, freeAfterClose, releasedSinceClose;
     float clock, closeClock = -1f;
     float autoPick;
@@ -67,14 +73,17 @@ public class FinalChoicePanel : MonoBehaviour
         return "Portal to " + startWorld + " as LOOP " + nextLoopNumber + ". Score kept.";
     }
 
-    public static string CountdownLabel(float secondsLeft)
+    // What the countdown will do when it runs out: "AUTO IN 10: ONE MORE
+    // EMBER, THEN LOOP".
+    public static string CountdownLabel(string world, float secondsLeft)
     {
-        return "KEEP FLYING IN " + Mathf.CeilToInt(Mathf.Max(0f, secondsLeft));
+        return "AUTO IN " + Mathf.CeilToInt(Mathf.Max(0f, secondsLeft)) + ": ONE MORE " +
+               world.ToUpperInvariant() + ", THEN LOOP";
     }
 
     // `world` is the final world just cleared, `startWorld` where LOOP BACK
-    // goes, `loop` the run's RunLoop.Index. `onChoose(true)` = LOOP BACK.
-    public static FinalChoicePanel Show(int world, int startWorld, int loop, Action<bool> onChoose)
+    // goes, `loop` the run's RunLoop.Index.
+    public static FinalChoicePanel Show(int world, int startWorld, int loop, Action<FinalPick> onChoose)
     {
         if (instance != null) BossUtil.Kill(instance.gameObject);
         var worlds = WorldManager.Worlds;
@@ -93,6 +102,7 @@ public class FinalChoicePanel : MonoBehaviour
         var p = root.AddComponent<FinalChoicePanel>();
         instance = p;
         p.onChoose = onChoose;
+        p.worldName = here.ToUpperInvariant();
         p.open = true;
         p.autoPick = LoopRules.AutoPickSeconds;
         p.font = OrbitronOrBuiltin();
@@ -139,9 +149,12 @@ public class FinalChoicePanel : MonoBehaviour
                                out loopButton, out loopLabel, out loopLine);
         loopButton.onClick.AddListener(() => Pick(true));
 
-        countdown = NewText("Countdown", panel, LoopRules.AutoPickSeconds > 0f ? CountdownLabel(autoPick) : "",
+        countdown = NewText("Countdown", panel, LoopRules.AutoPickSeconds > 0f ? CountdownLabel(here, autoPick) : "",
                             22, AkiraPalette.Muted, TextAnchor.MiddleCenter);
-        Place(countdown.rectTransform, 0f, CountdownY, 560f, 36f);
+        Place(countdown.rectTransform, 0f, CountdownY, CountdownWidth, 36f);
+        // The widest count ("AUTO IN 10: ...") sets one size for the whole
+        // countdown, so the line never jumps as the seconds tick.
+        while (countdown.fontSize > 14 && countdown.preferredWidth > CountdownWidth) countdown.fontSize--;
         Ink(countdown.gameObject, 1.5f);
     }
 
@@ -190,14 +203,20 @@ public class FinalChoicePanel : MonoBehaviour
 
     // ---- the choice -------------------------------------------------------------
 
-    // A button, or the countdown running out (KEEP FLYING).
+    // A button: KEEP FLYING (false) or LOOP BACK (true).
     public void Pick(bool loopBack)
+    {
+        Pick(loopBack ? FinalPick.LoopBack : FinalPick.KeepFlying);
+    }
+
+    // A button, or the countdown running out (FinalPick.Encore).
+    public void Pick(FinalPick pick)
     {
         if (!open) return;
         var cb = onChoose;
         onChoose = null;
         Close();
-        if (cb != null) cb(loopBack);
+        if (cb != null) cb(pick);
     }
 
     // Back / Escape: picks nothing, and never quits the run.
@@ -248,16 +267,13 @@ public class FinalChoicePanel : MonoBehaviour
                 if (second != lastShownSecond)
                 {
                     lastShownSecond = second;
-                    countdown.text = CountdownLabel(autoPick);
+                    countdown.text = CountdownLabel(worldName, autoPick);
                     if (second <= 3) countPunchAt = clock;
                 }
                 countdown.color = autoPick <= 3f ? AkiraPalette.Amber : AkiraPalette.Muted;
                 PunchScale(countdown.rectTransform, clock - countPunchAt, 1.25f);
-                if (autoPick <= 0f) { Pick(false); return; }
+                if (autoPick <= 0f) { Pick(FinalPick.Encore); return; }
             }
-            // KEEP FLYING (the default) flashes AMBER for two ticks on a beat.
-            float k = Mathf.Repeat(clock, 1.3f) * 24f;
-            keepLabel.color = k < 2f ? AkiraPalette.Amber : AkiraPalette.Bone;
             return;
         }
 

@@ -11,6 +11,15 @@ using UnityEngine;
 //                every world and boss again -- each loop a little harder (the
 //                per-loop numbers), and its boss / world bonuses worth a
 //                little more.
+//   (no pick)    when the countdown runs out: ONE MORE EMBER, THEN LOOP.
+//                The pilot stays in Ember and flies it once more as a loop
+//                pass -- a full level (same length, enemies, ramp and
+//                escalation, scaled as loop Index + 1), then the Ember boss
+//                again. When that boss ends the run goes straight into LOOP
+//                BACK (portal to the start world, score kept, loop + 1),
+//                without asking a second time. Score bonuses on the encore
+//                stay at the current loop's (it is the same loop until the
+//                portal); only its difficulty is the next loop's.
 //
 // Per-loop scaling uses min(loop, MaxScaledLoops), so a fifth loop is no
 // harder than the third. Defaults (loop 0 is the first pass, always x1):
@@ -20,7 +29,7 @@ using UnityEngine;
 //   speed ramp              x1.10    x1.20    x1.30
 //   max speed (HUD)          +2       +4       +4      capped by MaxSpeedBonusCap
 //   enemy phase ramp        x1.15    x1.30    x1.45    enmiesOnBoard.phaseRampScale
-//   spawn density           x1.10    x1.20    x1.30    LoopDifficulty.DensityScale (hook pending)
+//   spawn density           x1.10    x1.20    x1.30    LoopDifficulty.DensityScale (enmiesOnBoard.Roll)
 //   boss cooldowns          x0.90    x0.80    x0.70
 //   boss patterns           one more pattern from the start (head start 1/3)
 //   boss / world bonus      x1.5     x2.0     x2.5     (x3.0 at loop 4+, BonusLoopCap)
@@ -33,7 +42,8 @@ using UnityEngine;
 public static class LoopRules
 {
     // ---- the choice ----
-    // Seconds (real time) before the panel picks KEEP FLYING by itself; 0 = never.
+    // Seconds (real time) before the panel picks ONE MORE EMBER, THEN LOOP
+    // by itself; 0 = never.
     public static float AutoPickSeconds = 10f;
     // A missed loop portal comes back after this much flight.
     public static float LoopPortalRetrySeconds = 6f;
@@ -101,17 +111,11 @@ public static class LoopRules
     }
 }
 
-// The live per-loop / KEEP FLYING spawn-density factor, for the enemy
-// spawner to read. WorldManager sets it (LoopRules.Density) on every world
-// arrival and each endless step; it is 1 on a first pass.
-//
-// PENDING HOOK: enmiesOnBoard does not read it yet (that file is being edited
-// elsewhere). The one-line hook, in enmiesOnBoard.Roll():
-//
-//   return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale);
-//
-// Until then loops still escalate through phaseRampScale, speed, ramp and
-// the bosses; only the extra density factor is inert.
+// The live per-loop / KEEP FLYING spawn-density factor, read by the enemy
+// spawner (enmiesOnBoard.Roll divides every rolled delay by
+// DensityMultiplier() * DensityScale). WorldManager sets it (LoopRules.Density)
+// on every world arrival and each endless step; it is 1 on a first pass.
+// SpawnLane still guards every row, so denser never means a closed lane.
 public static class LoopDifficulty
 {
     public static float DensityScale = 1f;
@@ -128,6 +132,13 @@ public static class RunLoop
     public static int Index { get; private set; }
     // The world this run started in (the LOOP BACK destination).
     public static int StartWorld { get; set; }
+    // The final-choice countdown ran out: the final world is being flown
+    // once more as a loop pass before the automatic LOOP BACK.
+    public static bool EncorePass { get; set; }
+    // The loop the world's difficulty is scaled for: the encore plays at the
+    // next loop's, though Index (and the score bonuses) only move on with
+    // LOOP BACK's portal.
+    public static int DifficultyIndex { get { return Index + (EncorePass ? 1 : 0); } }
 
     // "LOOP 2" for Index 1: the pass the pilot is on, counted from one.
     public static int DisplayNumber { get { return Index + 1; } }
@@ -136,11 +147,13 @@ public static class RunLoop
     {
         Index = 0;
         StartWorld = 0;
+        EncorePass = false;
         LoopDifficulty.Reset();
     }
 
     public static int Advance()
     {
+        EncorePass = false;
         Index++;
         return Index;
     }

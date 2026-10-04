@@ -10,8 +10,9 @@ using UnityEngine;
 //   * "BOSS RUSH  FINAL" (the switch's third setting): a few seconds into a
 //     run it jumps straight to the final world with a 1.5s boss fight, so the
 //     KEEP FLYING / LOOP BACK choice comes up almost at once; after a LOOP
-//     BACK it rushes every boss like ON. F in the editor / a dev build: the
-//     same jump, right now.
+//     BACK it rushes every boss like ON. Letting the choice time out rushes
+//     the encore's Ember boss too, so the automatic LOOP BACK is quick to
+//     reach. F in the editor / a dev build: the same jump, right now.
 public static class BossDev
 {
     public const string RushKey = "developerBossRush";
