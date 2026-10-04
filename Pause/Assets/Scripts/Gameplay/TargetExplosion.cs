@@ -68,6 +68,7 @@ public static class TargetExplosion
     public static void Spawn(GameObject target, int ship)
     {
         if (target == null) return;
+        RailBombAnimator.Burst(target);   // a rail mine flashes its burst frame first (no-op otherwise)
         Spawn(target.transform.position, KindFor(target), SizeFor(target), ship);
     }
 

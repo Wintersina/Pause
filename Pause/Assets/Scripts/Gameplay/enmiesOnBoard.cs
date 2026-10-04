@@ -620,8 +620,8 @@ public class enmiesOnBoard : MonoBehaviour {
             builtMount.lockedX = rail.position.x;
             liveMines.Add(built.transform);
         }
-        // Without roster art no mine spawns (the old rail_bomb_themes_atlas
-        // fallback was retired; EnemyRosterTest guards the mine art).
+        // Without the mine art (the neon atlas, RailMineArt) no mine spawns;
+        // RailMineArtTest guards it.
     }
 
     // Enters from below the visible board (everything else scrolls in from

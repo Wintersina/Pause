@@ -19,6 +19,7 @@ import chaser
 import alien
 
 WORLDS = ("space", "frost", "verdant", "ember")
+MINES = False
 
 
 def roster():
@@ -27,7 +28,11 @@ def roster():
     for w in WORLDS:
         for variant, fn in rocks.DRAW[w].items():
             out[f"{w}_rock_{variant}"] = (fn, rocks.IDLE_TICKS, rocks.TELL_TICKS)
-        out[f"{w}_mine"] = (lambda i, w=w: mine.draw(w, i), mine.IDLE_TICKS, mine.TELL_TICKS)
+        # The rail mines are no longer drawn here: they play the original
+        # neon pixel-art atlas (Art/Resources/Enemies/Mines/rail_mines_neon.png,
+        # RailMineArt). mine.py stays for reference; add MINES to draw them.
+        if MINES:
+            out[f"{w}_mine"] = (lambda i, w=w: mine.draw(w, i), mine.IDLE_TICKS, mine.TELL_TICKS)
         out[f"{w}_big"] = (lambda i, w=w: big.draw(w, i), big.IDLE_TICKS, big.TELL_TICKS)
         for tier in (1, 2, 3, 4):
             out[f"{w}_fighter_{tier}"] = (lambda i, w=w, t=tier: fighter.draw(w, t, i), fighter.IDLE_TICKS, fighter.TELL_TICKS)

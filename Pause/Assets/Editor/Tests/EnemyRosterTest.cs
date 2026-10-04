@@ -12,7 +12,9 @@ using UnityEngine;
 // within 15% of what each role measured before the redraw, every enemy is a
 // ClearTarget with the tags and name keys gameplay matches on, the spawner
 // picks from the current world, the retired Kenney meteors are gone, and the
-// art keeps to the enemy palette (no player red).
+// art keeps to the enemy palette (no player red). The rail mines are the
+// exception to the flat-ink art checks: they are neon pixel art, a row each
+// of the original atlas (RailMineArtTest holds them to it).
 public static class EnemyRosterTest
 {
     static int fails;
@@ -84,7 +86,9 @@ public static class EnemyRosterTest
         {
             var tex = Resources.Load<Texture2D>(d.StripPath);
             Check(d.key + " strip resolves (Resources/" + d.StripPath + ")", tex != null);
-            if (tex != null)
+            if (d.role == EnemyRole.Mine)
+                Check(d.key + " reads the neon rail-mine atlas", d.StripPath == RailMineArt.AtlasPath);
+            else if (tex != null)
                 Check(d.key + " strip holds " + EnemyRoster.FrameCount + " square frames",
                       tex.width == tex.height * EnemyRoster.FrameCount);
         }
@@ -102,7 +106,12 @@ public static class EnemyRosterTest
                     var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
                     var sr = go.GetComponent<SpriteRenderer>();
                     string path = sr.sprite != null ? AssetDatabase.GetAssetPath(sr.sprite.texture) : "";
-                    Check(W(w) + " " + d.key + " draws from its own strip", path.EndsWith("/Enemies/" + d.key + ".png"));
+                    if (d.role == EnemyRole.Mine)
+                        Check(W(w) + " " + d.key + " draws from its own row of the neon mine atlas",
+                              path.EndsWith("/" + RailMineArt.AtlasPath + ".png") &&
+                              Array.IndexOf(EnemyArt.Frames(d), sr.sprite) >= 0 && EnemyArt.Frames(d)[0] == RailMineArt.Frame(w, RailMineArt.Dormant));
+                    else
+                        Check(W(w) + " " + d.key + " draws from its own strip", path.EndsWith("/Enemies/" + d.key + ".png"));
                     UnityEngine.Object.DestroyImmediate(go);
                 }
         foreach (var d in EnemyRoster.For(0, EnemyRole.Rock))
@@ -118,6 +127,8 @@ public static class EnemyRosterTest
         var owner = new Dictionary<string, int>();
         foreach (var d in EnemyRoster.All)
         {
+            // the mines share the one neon atlas, a row each (checked below)
+            if (d.role == EnemyRole.Mine) continue;
             var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
             var sr = go.GetComponent<SpriteRenderer>();
             string guid = sr.sprite != null ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite.texture)) : "";
@@ -131,6 +142,7 @@ public static class EnemyRosterTest
         var guidWorlds = new Dictionary<string, HashSet<int>>();
         foreach (var d in EnemyRoster.All)
         {
+            if (d.role == EnemyRole.Mine) continue;
             string guid = AssetDatabase.AssetPathToGUID("Assets/Art/Resources/" + d.StripPath + ".png");
             if (!guidWorlds.ContainsKey(guid)) guidWorlds[guid] = new HashSet<int>();
             guidWorlds[guid].Add(d.world);
@@ -139,9 +151,17 @@ public static class EnemyRosterTest
         foreach (var pair in guidWorlds) if (pair.Value.Count > 1) shared++;
         Check("no texture GUID appears in more than one world's roster (" + shared + " shared)", shared == 0);
 
+        var mineRects = new HashSet<Rect>();
+        for (int w = 0; w < Worlds; w++)
+        {
+            var dormant = EnemyArt.Frame(EnemyRoster.One(w, EnemyRole.Mine), 0);
+            Check(W(w) + " mine has its own atlas row", dormant != null && mineRects.Add(dormant.rect));
+        }
+
         var masks = new Dictionary<string, bool[]>();
-        foreach (var d in EnemyRoster.All) masks[d.key] = Mask(d);
+        foreach (var d in EnemyRoster.All) if (d.role != EnemyRole.Mine) masks[d.key] = Mask(d);
         foreach (var role in Roles)
+            if (role != EnemyRole.Mine)
             for (int a = 0; a < Worlds; a++)
                 for (int b = a + 1; b < Worlds; b++)
                     foreach (var da in EnemyRoster.For(a, role))
@@ -204,8 +224,8 @@ public static class EnemyRosterTest
                   Within(now.x, before.x) && Within(now.y, before.y));
 
             // The drawn silhouette, measured from frame 0's opaque pixels.
-            float edge = SilhouetteEdge(d);
-            float world = edge * d.FrameWorldSize;
+            float edge = d.role == EnemyRole.Mine ? 1f : SilhouetteEdge(d);
+            float world = d.role == EnemyRole.Mine ? MineSilhouette(d) : edge * d.FrameWorldSize;
             Check(string.Format("{0} silhouette {1:F2} u within 15% of {2}'s {3:F2} u", d.key, world, d.role,
                                 EnemyRoster.TargetWidth(d.role)),
                   edge > 0f && Within(world, EnemyRoster.TargetWidth(d.role)));
@@ -227,6 +247,29 @@ public static class EnemyRosterTest
         foreach (var d in EnemyRoster.All)
             if (d.role == EnemyRole.Big)
                 Check(d.key + " is a large explosion", d.explosionSize == TargetExplosion.Size.Large);
+    }
+
+    // The mine's dormant drawing in the neon atlas: longest edge of its
+    // alpha > 50% bounds, in world units at RailMineArt.PixelsPerUnit.
+    static float MineSilhouette(EnemyDef d)
+    {
+        string path = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
+        if (!File.Exists(path)) return 0f;
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(path));
+        var px = tex.GetPixels32();
+        var r = RailMineArt.PixelRect(d.world, RailMineArt.Dormant);
+        int minX = int.MaxValue, maxX = -1, minY = int.MaxValue, maxY = -1;
+        for (int y = r.y; y < r.yMax; y++)
+            for (int x = r.x; x < r.xMax; x++)
+                if (px[(tex.height - 1 - y) * tex.width + x].a > 128)
+                {
+                    minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x);
+                    minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y);
+                }
+        UnityEngine.Object.DestroyImmediate(tex);
+        if (maxX < 0) return 0f;
+        return Mathf.Max(maxX - minX + 1, maxY - minY + 1) / RailMineArt.PixelsPerUnit;
     }
 
     // Longest edge of frame 0's alpha > 50% bounds, as a fraction of the frame.
@@ -285,7 +328,11 @@ public static class EnemyRosterTest
             if (all) foreach (var f in frames) all &= f != null;
             Check(d.key + " flipbook loads all " + EnemyRoster.FrameCount + " frames", all);
             if (!all) continue;
-            Check(d.key + " frames are " + d.FrameWorldSize + " u", Mathf.Abs(frames[0].bounds.size.x - d.FrameWorldSize) < .01f);
+            if (d.role == EnemyRole.Mine)
+                Check(d.key + " frames are neon atlas cells at " + RailMineArt.PixelsPerUnit + " PPU",
+                      frames[0].texture == RailMineArt.Atlas && Mathf.Approximately(frames[0].pixelsPerUnit, RailMineArt.PixelsPerUnit));
+            else
+                Check(d.key + " frames are " + d.FrameWorldSize + " u", Mathf.Abs(frames[0].bounds.size.x - d.FrameWorldSize) < .01f);
             Check(d.key + " idle/tell timing is on 2s-6s",
                   Array.TrueForAll(EnemyRoster.IdleTicks(d.role), t => t >= 2 && t <= 6) &&
                   Array.TrueForAll(EnemyRoster.TellTicks(d.role), t => t >= 2 && t <= 6));
@@ -313,8 +360,10 @@ public static class EnemyRosterTest
             Check(role + " idle cycles all four drawings", seen.Contains(0) && seen.Contains(1) && seen.Contains(2) && seen.Contains(3));
             fb.Tell();
             int a = fb.CurrentFrame;
-            for (int i = 0; i < 3; i++) fb.Advance(EnemyFlipbook.TickSeconds);
-            fb.Advance(EnemyFlipbook.TickSeconds * .5f);   // 3.5 ticks: inside the release for every role
+            // half a tick into the release (the anticipation holds TellTicks[0])
+            int anticipation = EnemyRoster.TellTicks(role)[0];
+            for (int i = 0; i < Mathf.Max(3, anticipation); i++) fb.Advance(EnemyFlipbook.TickSeconds);
+            fb.Advance(EnemyFlipbook.TickSeconds * .5f);
             Check(role + " tell plays anticipation then release", a == 4 && fb.CurrentFrame == 5);
             fb.Flash();
             Check(role + " hit flash shows frame 6", fb.CurrentFrame == EnemyRoster.HitFrame);
@@ -651,7 +700,9 @@ public static class EnemyRosterTest
         }
 
         var svgs = Directory.GetFiles(ArtSrc + "svg", "*.svg");
-        Check("enemy SVG sources exist (" + svgs.Length + ")", svgs.Length == EnemyRoster.All.Length * EnemyRoster.FrameCount);
+        int drawn = 0;
+        foreach (var d in EnemyRoster.All) if (d.role != EnemyRole.Mine) drawn++;   // the mines are the neon atlas
+        Check("enemy SVG sources exist (" + svgs.Length + ")", svgs.Length == drawn * EnemyRoster.FrameCount);
         int raw = 0, unknown = 0, rasters = 0, blurOutsideGlow = 0;
         foreach (var path in svgs)
         {
@@ -672,6 +723,7 @@ public static class EnemyRosterTest
         Check("no gradients or raster images in the sources", rasters == 0);
         Check("glow blur only on lights, never on cels (" + blurOutsideGlow + ")", blurOutsideGlow == 0);
         foreach (var d in EnemyRoster.All)
+            if (d.role != EnemyRole.Mine)
             Check(d.key + " sources exist", File.Exists(ArtSrc + "svg/" + d.key + "_0.svg") &&
                                             File.Exists(ArtSrc + "svg/" + d.key + "_" + EnemyRoster.HitFrame + ".svg"));
     }
@@ -691,6 +743,7 @@ public static class EnemyRosterTest
     {
         foreach (var d in EnemyRoster.All)
         {
+            if (d.role == EnemyRole.Mine) continue;   // neon pixel art, not a flat-ink drawing
             string path = ArtSrc + "svg/" + d.key + "_0.svg";
             if (!File.Exists(path)) { Check(d.key + " key pose source exists", false); continue; }
             string src = File.ReadAllText(path);
