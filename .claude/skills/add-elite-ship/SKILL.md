@@ -63,6 +63,17 @@ im.resize((im.size[0]*2,h*2),Image.NEAREST).save("/tmp/zoom.png")
 EOF
 ```
 
+**Check the cell layout against the strip's README / manifest.** The
+framework reads idle0..3, tell, action, hit. Some deliveries use another
+layout -- e.g. `Frost/rimebreaker.png` and `Verdant/resin_warden.png`
+(landed, grounded idle, lift-off, hover, bank left, bank right, damaged) and
+are not named `<world>_elite_<name>.png` either. For those, first add a cell
+map to `EliteDef` (idle / tell / action / hit / parked / lift-off cell
+indices, defaulting to the 7-cell layout) and use it in `EliteArt` /
+`EliteShip.Animate`, and copy them under the convention name (or teach
+`EliteArtSync.IsFinalStrip` the new naming); ask Codex for tell/action cells
+if the attack has none.
+
 Then Read the zoomed PNG. Decide: which way the **nose** points in the art
 (degrees, 0 right, 90 up), whether it is a hover/upright design (gunships,
 haulers: `turnsToFace: false`) or a pointy craft that should rotate to face
