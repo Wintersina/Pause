@@ -18,6 +18,12 @@ using UnityEngine;
 //
 //   ShipUiSlots.Register(shipTransform, this, () => myWorldKeepOutBounds);
 //
+// An element can also say where it draws right now (its current pose, not
+// the union): the spinners' orbiting hearts pass right by the hull, so they
+// duck only round what's actually there this frame (Drawn below).
+//
+//   ShipUiSlots.Register(ship, this, () => footprint, () => ShipUiSlots.DrawnBounds(myView));
+//
 // The owner is a UnityEngine.Object: once it is destroyed its entry drops
 // out on its own (Unregister is there for elements that hide for good).
 // Footprints are cheap to compute and are re-read whenever a client
@@ -37,6 +43,7 @@ public static class ShipUiSlots
         public Transform ship;
         public UnityEngine.Object owner;
         public Func<Bounds> footprint;
+        public Func<Bounds> drawn;
     }
 
     static readonly List<Entry> entries = new List<Entry>();
@@ -46,12 +53,13 @@ public static class ShipUiSlots
     // Tests set this to stand in for the camera's safe area.
     public static Func<Rect> ScreenOverride;
 
-    public static void Register(Transform ship, UnityEngine.Object owner, Func<Bounds> footprint)
+    public static void Register(Transform ship, UnityEngine.Object owner, Func<Bounds> footprint,
+                                Func<Bounds> drawn = null)
     {
         if (ship == null || owner == null || footprint == null) return;
         for (int i = entries.Count - 1; i >= 0; i--)
             if (entries[i].owner == owner) entries.RemoveAt(i);
-        entries.Add(new Entry { ship = ship, owner = owner, footprint = footprint });
+        entries.Add(new Entry { ship = ship, owner = owner, footprint = footprint, drawn = drawn });
         Version++;
     }
 
@@ -87,6 +95,42 @@ public static class ShipUiSlots
             catch (Exception) { continue; }
             if (b.size.sqrMagnitude > 0f) into.Add(b);
         }
+    }
+
+    // Where every registered element on `ship` draws this frame (world
+    // space), except `except`'s: its `drawn` bounds, or its footprint if it
+    // gave none. Elements hidden right now add nothing.
+    public static void Drawn(Transform ship, List<Bounds> into, UnityEngine.Object except = null)
+    {
+        for (int i = entries.Count - 1; i >= 0; i--)
+        {
+            var e = entries[i];
+            if (e.owner == null || e.ship == null) { entries.RemoveAt(i); continue; }
+            if (e.ship != ship || e.owner == except) continue;
+            Bounds b;
+            try { b = e.drawn != null ? e.drawn() : e.footprint(); }
+            catch (Exception) { continue; }
+            if (b.size.sqrMagnitude > 0f) into.Add(b);
+        }
+    }
+
+    static readonly List<SpriteRenderer> renderers = new List<SpriteRenderer>();
+
+    // The union of the visible sprites under `root` (empty if none).
+    public static Bounds DrawnBounds(Transform root)
+    {
+        var b = default(Bounds);
+        if (root == null || !root.gameObject.activeInHierarchy) return b;
+        bool any = false;
+        root.GetComponentsInChildren(false, renderers);
+        foreach (var r in renderers)
+        {
+            if (!r.enabled || r.sprite == null) continue;
+            if (!any) { b = r.bounds; any = true; }
+            else b.Encapsulate(r.bounds);
+        }
+        renderers.Clear();
+        return b;
     }
 
     // ---- the ship's own body ---------------------------------------------

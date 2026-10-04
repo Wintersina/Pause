@@ -9,6 +9,11 @@ using UnityEngine;
 // slot -- clear of the hull, its exhaust and every registered ship element in
 // every pose -- and stay inside the safe area.
 //
+// The spinners (Ninja, UFO) instead have their hearts orbit the spinning
+// hull, upright, ducking round whatever is drawn on the ring this frame
+// (gun, charge indicator, secret meter), on screen at the edges and frozen
+// with the world.
+//
 //   Unity -batchmode -quit -projectPath Pause -executeMethod HeartsPlacementTest.Run
 public static class HeartsPlacementTest
 {
@@ -44,6 +49,9 @@ public static class HeartsPlacementTest
             StayOnScreenAtTheEdges();
             TallScreens();
             AnExtraIndicatorTakesTheNextSlot();
+            SpinnersOrbit();
+            NonSpinnersStayInTheirSlot();
+            OrbitFreezesWithTheWorld();
         }
         finally
         {
@@ -64,6 +72,7 @@ public static class HeartsPlacementTest
         public ChargeIndicator indicator;
         public UltimateGun gun;
         public ShipLivesIndicator hearts;
+        public SecretMeter meter;
     }
 
     static void FreshScene()
@@ -99,6 +108,7 @@ public static class HeartsPlacementTest
             rig.gun = go.GetComponentInChildren<UltimateGun>();
             if (rig.gun != null) rig.gun.SendMessage("Awake");
             rig.indicator = rig.power.Indicator;
+            rig.meter = go.GetComponentInChildren<SecretMeter>();
         }
         rig.hearts = go.AddComponent<ShipLivesIndicator>();
         rig.hearts.BuildHearts();
@@ -108,6 +118,7 @@ public static class HeartsPlacementTest
     public static void Teardown(Rig rig)
     {
         if (rig.power != null) rig.power.SendMessage("OnDestroy");
+        if (rig.meter != null) rig.meter.SendMessage("OnDestroy");
         Object.DestroyImmediate(rig.ship);
     }
 
@@ -145,6 +156,7 @@ public static class HeartsPlacementTest
             rig.gun.transform.localScale = Vector3.one * grow;
         }
         rig.indicator.Step(.02f, .02f);
+        if (rig.meter != null) rig.meter.Step(0f);
         rig.hearts.Place(0f);
     }
 
@@ -154,7 +166,8 @@ public static class HeartsPlacementTest
     {
         var list = new List<Bounds>();
         foreach (var h in rig.hearts.Hearts)
-            if (h != null && h.gameObject.activeSelf) list.Add(h.GetComponent<SpriteRenderer>().bounds);
+            if (h != null && h.gameObject.activeSelf && h.GetComponent<SpriteRenderer>().enabled)
+                list.Add(h.GetComponent<SpriteRenderer>().bounds);
         return list;
     }
 
@@ -170,7 +183,10 @@ public static class HeartsPlacementTest
     public static IEnumerable<string> Poses(Rig rig)
     {
         float cooldown = rig.power != null ? Field<float>(rig.power, "cooldown") : 30f;
-        float[] spins = ShipUiSlots.Spins(rig.id) ? new[] { 0f, 30f, 60f, 90f, 135f, 180f, 225f, 270f, 315f } : new[] { 0f };
+        // a spinner's hearts go round once per 1/orbitRate turns of the hull
+        var spins = new List<float> { 0f };
+        if (ShipUiSlots.Spins(rig.id))
+            for (float a = 20f; a < 360f / rig.hearts.orbitRate; a += 20f) spins.Add(a);
         foreach (float spin in spins)
             for (float t = 0f; t < 6.3f; t += .45f)
             {
@@ -215,17 +231,28 @@ public static class HeartsPlacementTest
             var barrel = rig.gun.transform.Find("Barrel").GetComponent<SpriteRenderer>();
             var hull = rig.ship.GetComponent<SpriteRenderer>();
             var view = rig.indicator.View.GetComponent<SpriteRenderer>();
-            string hitIndicator = null, hitHull = null, hitGun = null;
-            int poses = 0;
+            string hitIndicator = null, hitHull = null, hitGun = null, hitMeter = null;
+            int poses = 0, shown = 0, slots = 0;
+            bool orbit = rig.hearts.Orbiting;
             foreach (string pose in Poses(rig))
             {
                 poses++;
                 var hearts = HeartBounds(rig);
+                shown += hearts.Count;
+                slots += rig.hearts.Hearts.Length;
                 if (hitIndicator == null && Hits(hearts, view.bounds)) hitIndicator = pose;
-                if (hitHull == null && Hits(hearts, hull.bounds)) hitHull = pose;
-                if (hitGun == null && Hits(hearts, barrel.bounds)) hitGun = pose;
+                // a spinning hull: the circle its sprite sweeps (its renderer
+                // box only grows on the diagonals)
+                if (hitHull == null && (orbit ? HitsCircle(hearts, rig.ship.transform.position, HullRadius(rig))
+                                              : Hits(hearts, hull.bounds))) hitHull = pose;
+                if (hitGun == null && Hits(hearts, orbit ? ShipUiSlots.DrawnBounds(rig.gun.transform) : barrel.bounds)) hitGun = pose;
+                if (hitMeter == null && rig.meter != null && Hits(hearts, rig.meter.GetComponent<SpriteRenderer>().bounds))
+                    hitMeter = pose + " at spin " + rig.ship.transform.eulerAngles.z.ToString("F0");
             }
-            string name = ShipId.KeyOf(id) + " (" + id + ", hearts " + rig.hearts.Side + ")";
+            if (orbit)
+                Debug.Log("[HP] " + ShipId.KeyOf(id) + " orbit r=" + rig.hearts.OrbitRadius.ToString("F2") +
+                          ", hearts shown " + (100f * shown / Mathf.Max(1, slots)).ToString("F0") + "% of the time");
+            string name = ShipId.KeyOf(id) + " (" + id + ", hearts " + (rig.hearts.Orbiting ? "orbiting" : rig.hearts.Side.ToString()) + ")";
             var report = ShipUiSlots.Candidates(rig.ship.transform, id, rig.hearts.Request(), rig.hearts);
             string reaches = "";
             foreach (var s in report) reaches += " " + s.side + "=" + s.reach.ToString("F2") + (s.clear ? "" : "x");
@@ -234,6 +261,10 @@ public static class HeartsPlacementTest
                   (hitIndicator != null ? " -- hit while " + hitIndicator : ""), hitIndicator == null);
             Check(name + ": hearts clear of the hull" + (hitHull != null ? " -- hit while " + hitHull : ""), hitHull == null);
             Check(name + ": hearts clear of the gun" + (hitGun != null ? " -- hit while " + hitGun : ""), hitGun == null);
+            Check(name + ": hearts clear of the secret meter" + (hitMeter != null ? " -- hit while " + hitMeter : ""), hitMeter == null);
+            if (orbit)
+                Check(name + ": orbiting hearts still show most of the time, not just duck (" + shown + "/" + slots + ")",
+                      shown >= slots * .5f);
             Check(name + ": the indicator's footprint covers every pose it took",
                   FootprintCovers(rig, view));
             if (id == 15) turtleSide = rig.hearts.Side;
@@ -268,17 +299,26 @@ public static class HeartsPlacementTest
             FreshScene();
             var rig = Build(id, Vector3.zero);
             string offAt = null, hitAt = null;
+            bool orbit = rig.hearts.Orbiting;
+            int turns = orbit ? Mathf.CeilToInt(360f / rig.hearts.orbitRate / 15f) : 1;
             foreach (var spot in spots)
-            {
-                rig.ship.transform.position = spot;
-                rig.hearts.Place(0f);
-                var hearts = HeartBounds(rig);
-                foreach (var h in hearts)
-                    if (!ShipUiSlots.Inside(Gameplay, h)) { offAt = offAt ?? spot + " " + rig.hearts.Side; break; }
-                var footprint = ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id);
-                if (Hits(hearts, footprint) || Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds))
-                    hitAt = hitAt ?? spot + " " + rig.hearts.Side;
-            }
+                for (int turn = 0; turn < turns; turn++)
+                {
+                    rig.ship.transform.position = spot;
+                    if (orbit) Pose(rig, Field<float>(rig.power, "cooldown") * .5f, 0f, turn * .3f, 1f, turn * 15f);
+                    else rig.hearts.Place(0f);
+                    var hearts = HeartBounds(rig);
+                    string where = spot + (orbit ? " spin " + turn * 15 : " " + rig.hearts.Side);
+                    foreach (var h in hearts)
+                        if (!ShipUiSlots.Inside(Gameplay, h)) { offAt = offAt ?? where; break; }
+                    bool hit = orbit
+                        ? HitsCircle(hearts, spot, HullRadius(rig)) || Hits(hearts, rig.indicator.View.GetComponent<SpriteRenderer>().bounds) ||
+                          Hits(hearts, ShipUiSlots.DrawnBounds(rig.gun.transform)) ||
+                          (rig.meter != null && Hits(hearts, rig.meter.GetComponent<SpriteRenderer>().bounds))
+                        : Hits(hearts, ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id)) ||
+                          Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds);
+                    if (hit) hitAt = hitAt ?? where;
+                }
             string name = ShipId.KeyOf(id) + " (" + id + ")";
             Check(name + ": hearts stay on screen at the left, right and bottom edges" +
                   (offAt != null ? " -- off at " + offAt : ""), offAt == null);
@@ -409,6 +449,148 @@ public static class HeartsPlacementTest
         Check("a destroyed meter drops out of the registry by itself", rig.hearts.Side == first);
         Teardown(rig);
     }
+
+    // ---- spinners -------------------------------------------------------
+
+    static float HullRadius(Rig rig) => ShipUiSlots.HullBounds(rig.ship.transform, rig.id).extents.x;
+
+    // Does any heart box reach into the circle?
+    static bool HitsCircle(List<Bounds> hearts, Vector3 c, float r)
+    {
+        foreach (var h in hearts)
+        {
+            float dx = Mathf.Max(h.min.x - c.x, 0f, c.x - h.max.x);
+            float dy = Mathf.Max(h.min.y - c.y, 0f, c.y - h.max.y);
+            if (dx * dx + dy * dy < r * r) return true;
+        }
+        return false;
+    }
+
+    static float Polar(Rig rig, int i)
+    {
+        Vector3 d = rig.hearts.Hearts[i].position - rig.ship.transform.position;
+        return Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+    }
+
+    // Turns the hull `degrees` over `steps` frames of `dt` gameplay seconds.
+    static void Spin(Rig rig, float degrees, int steps, float dt)
+    {
+        for (int i = 0; i < steps; i++)
+        {
+            rig.ship.transform.Rotate(0f, 0f, degrees / steps);
+            rig.hearts.Place(dt, dt);
+        }
+    }
+
+    static void SpinnersOrbit()
+    {
+        ShipUiSlots.ScreenOverride = () => Everywhere;
+        foreach (int id in ShipId.All)
+        {
+            if (!ShipUiSlots.Spins(id)) continue;
+            FreshScene();
+            var rig = Build(id, Vector3.zero, withPower: false);
+            string name = ShipId.KeyOf(id) + " (" + id + ")";
+            Check(name + " orbits its hearts", rig.hearts.Orbiting);
+            rig.hearts.Place(0f, 0f);
+            float ring0 = rig.hearts.OrbitAngle, polar0 = Polar(rig, 0);
+            Spin(rig, 90f, 9, 1f / 60f);
+            float turned = Mathf.DeltaAngle(ring0, rig.hearts.OrbitAngle);
+            float moved = Mathf.DeltaAngle(polar0, Polar(rig, 0));
+            float expect = 90f * rig.hearts.orbitRate;
+            Check(name + ": a quarter turn of the hull carries the ring round " + turned.ToString("F1") +
+                  " deg (expected " + expect.ToString("F1") + ")", Mathf.Abs(turned - expect) < .5f);
+            Check(name + ": and the hearts with it (" + moved.ToString("F1") + " deg)", Mathf.Abs(moved - expect) < 4f);
+
+            bool upright = true, even = true, ring = true;
+            float r = rig.hearts.OrbitRadius;
+            for (int step = 0; step < 24; step++)
+            {
+                Spin(rig, 45f, 3, 1f / 60f);
+                var hs = rig.hearts.Hearts;
+                for (int i = 0; i < hs.Length; i++)
+                {
+                    if (Quaternion.Angle(hs[i].rotation, Quaternion.identity) > .01f) upright = false;
+                    float d = ((Vector2)(hs[i].position - rig.ship.transform.position)).magnitude;
+                    if (Mathf.Abs(d - r) > ShipLivesIndicator.BobAmplitude + ShipLivesIndicator.PulseAmplitude + .005f) ring = false;
+                    float gap = Mathf.DeltaAngle(Polar(rig, i), Polar(rig, (i + 1) % hs.Length));
+                    if (Mathf.Abs(Mathf.Abs(gap) - 360f / hs.Length) > 5f) even = false;
+                }
+            }
+            Check(name + ": every heart stays upright as the hull spins", upright);
+            Check(name + ": on one ring (r " + r.ToString("F2") + ", hull circle " + HullRadius(rig).ToString("F2") + ")", ring);
+            Check(name + ": evenly spaced", even);
+            Check(name + ": tight to the ship (ring within a heart and a half of the hull's spin circle)",
+                  r - HullRadius(rig) <= rig.hearts.heartSize * 1.6f);
+
+            // One hit hides one heart; the two left share the ring.
+            collisionDetection.lifeCounter = 1;
+            rig.hearts.SendMessage("Update");
+            int active = 0;
+            foreach (var h in rig.hearts.Hearts) if (h.gameObject.activeSelf) active++;
+            Check(name + ": a hit hides exactly one heart (" + active + " left)", active == collisionDetection.MAXLIFE - 1);
+            Spin(rig, 120f, 60, 1f / 60f);
+            float split = Mathf.Abs(Mathf.DeltaAngle(Polar(rig, 0), Polar(rig, 1)));
+            Check(name + ": the hearts left close up evenly (" + split.ToString("F0") + " deg apart)", Mathf.Abs(split - 180f) < 5f);
+            collisionDetection.lifeCounter = 0;
+            rig.hearts.SendMessage("Update");
+            Teardown(rig);
+        }
+    }
+
+    static void NonSpinnersStayInTheirSlot()
+    {
+        ShipUiSlots.ScreenOverride = () => Everywhere;
+        foreach (int id in ShipId.All)
+        {
+            if (ShipUiSlots.Spins(id) || id < ShipLivesIndicator.FirstShipWithoutDamageArt) continue;
+            FreshScene();
+            var rig = Build(id, Vector3.zero);
+            rig.hearts.Place(0f, 1f / 60f);
+            var before = new Vector3[rig.hearts.Hearts.Length];
+            for (int i = 0; i < before.Length; i++) before[i] = rig.hearts.Hearts[i].position;
+            rig.hearts.Place(1f / 60f, 1f / 60f);
+            bool line = true, still = true, full = true;
+            var hs = rig.hearts.Hearts;
+            bool across = rig.hearts.Side == ShipUiSlots.Side.Above || rig.hearts.Side == ShipUiSlots.Side.Below;
+            for (int i = 0; i < hs.Length; i++)
+            {
+                if (across ? Mathf.Abs(hs[i].position.y - hs[0].position.y) > 1e-4f
+                           : Mathf.Abs(hs[i].position.x - hs[0].position.x) > 1e-4f) line = false;
+                // the slot itself doesn't move (only the bob, vertically)
+                if (Mathf.Abs(hs[i].position.x - before[i].x) > 1e-4f) still = false;
+                if (!hs[i].GetComponent<SpriteRenderer>().enabled) full = false;
+            }
+            Check(ShipId.KeyOf(id) + " (" + id + ") keeps its slot: no orbit, a straight " + (across ? "row" : "stack") +
+                  ", all hearts drawn", !rig.hearts.Orbiting && line && still && full);
+            Teardown(rig);
+        }
+    }
+
+    static void OrbitFreezesWithTheWorld()
+    {
+        ShipUiSlots.ScreenOverride = () => Everywhere;
+        foreach (int id in ShipId.All)
+        {
+            if (!ShipUiSlots.Spins(id)) continue;
+            FreshScene();
+            var rig = Build(id, Vector3.zero);
+            Spin(rig, 30f, 3, 1f / 60f);
+            Time.timeScale = 0f;
+            var before = new Vector3[rig.hearts.Hearts.Length];
+            for (int i = 0; i < before.Length; i++) before[i] = rig.hearts.Hearts[i].position;
+            // frozen: ShipSpinDrift's spin is on scaled time, so the hull
+            // holds still too; only real (unscaled) time passes
+            for (int f = 0; f < 30; f++) rig.hearts.Place(.05f, .05f * Time.timeScale);
+            float drift = 0f;
+            for (int i = 0; i < before.Length; i++) drift = Mathf.Max(drift, (rig.hearts.Hearts[i].position - before[i]).magnitude);
+            Check(ShipId.KeyOf(id) + " (" + id + "): at timeScale 0 the orbiting hearts hold still (moved " +
+                  drift.ToString("F4") + ")", drift < 1e-5f);
+            Time.timeScale = 1f;
+            Teardown(rig);
+        }
+    }
+
 
     static Bounds HeartsArea(Rig rig)
     {

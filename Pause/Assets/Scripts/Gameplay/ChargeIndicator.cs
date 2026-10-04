@@ -82,7 +82,8 @@ public class ChargeIndicator : MonoBehaviour
         view.sortingOrder = (hull != null ? hull.sortingOrder : 0) + 4;
         view.sprite = WeaponArt.Charge(ship, 0);
         Place();
-        ShipUiSlots.Register(transform, this, () => ShipUiSlots.ChargeIndicatorFootprint(transform, ship));
+        ShipUiSlots.Register(transform, this, () => ShipUiSlots.ChargeIndicatorFootprint(transform, ship),
+                             () => ShipUiSlots.DrawnBounds(View));
     }
 
     void LateUpdate()
