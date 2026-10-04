@@ -35,6 +35,7 @@ public static class AllTests
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
+        ("EliteTest", EliteTest.Execute),
         ("EnemyRosterTest", EnemyRosterTest.Execute),
         ("ExhaustSkinTest", ExhaustSkinTest.Execute),
         ("ExhaustStyleTest", ExhaustStyleTest.Execute),
