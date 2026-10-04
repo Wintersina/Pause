@@ -27,6 +27,7 @@ public static class AllTests
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
         ("CloakShieldTest", CloakShieldTest.Execute),
         ("CodexTest", CodexTest.Execute),
+        ("CreditsTest", CreditsTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),

@@ -891,26 +891,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Master Mind and Developed By:
+  m_Text: 'Developed By:
 
     Sina Serati
-
-
-    iOS Developer:
-
-    Sina
-    Serati
-
-
-    Android Developer:
-
-    Sina Serati
-
-
-    Creative Director:
-
-    Cody
-    Everett
 
 
     Audio Engineer:
@@ -918,25 +901,14 @@ MonoBehaviour:
     Josh Morris
 
 
-    Beta/Alpha testers:
+    Particles and sprites by
 
-    Saeed, Pouya
-
-
-    Other:
-
-    Thanks to Phaser.io and http://opengameart.org/
-    for providing some of the ingame arts.
-
-
-    Thank you to everyone who beta tested
-    the game and helped it reach where it is today with their great ideas and suggestions.
+    Kenney (kenney.nl), CC0
 
 
 
 
-    Thank
-    you for playting.'
+    Thank you for playing.'
 --- !u!222 &1840321124
 CanvasRenderer:
   m_ObjectHideFlags: 0
