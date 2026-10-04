@@ -25,7 +25,7 @@ Status is deliberately kept factual: **Queued**, **In progress**, **Staged for r
 
 ## Already approved / installed
 
-- Space Fighter 1 and Space Fighter 2 are live. The remaining fourteen approved fighter strips remain staged pending the one-at-a-time installation pass.
+- Space Fighters 1–3 are live. The remaining thirteen approved fighter strips remain staged pending the one-at-a-time installation pass.
 - Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
