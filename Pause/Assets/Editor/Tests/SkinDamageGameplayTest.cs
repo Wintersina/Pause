@@ -111,6 +111,7 @@ public static class SkinDamageGameplayTest
         collisionDetection.atomCheck = false;
         collisionDetection.cloakTimer = 0f;
         collisionDetection.invTimer = 0f;
+        PlayerInvuln.Reset();   // each hit lands after the last one's post-hit window
         var rock = new GameObject("~rock", typeof(CircleCollider2D));
         rock.tag = "Astr";
         rock.transform.position = go.transform.position + Vector3.up * .2f;

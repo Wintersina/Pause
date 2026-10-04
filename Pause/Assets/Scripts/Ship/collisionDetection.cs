@@ -281,8 +281,8 @@ public class collisionDetection : MonoBehaviour {
                     GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
                     PlayExplosion();
                     Destroy(exp, 2);
+                    PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 }
-                else PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 Destroy(hit.gameObject);
 
             }
