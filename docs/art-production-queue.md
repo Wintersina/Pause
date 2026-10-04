@@ -42,7 +42,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 25. **Queued — `space_rock_dark`**
 26. **Queued — `frost_rock_chunk`**
 27. **Queued — `frost_rock_rime`**
-28. **Queued — `frost_rock_shard`**
+28. **Installed, validated — `frost_rock_shard`** — rugged Frost ice-shard industrial hazard; 7-frame strip vetted for safe cell margins and roster validation.
 29. **Queued — `verdant_rock_spore`**
 30. **Queued — `verdant_rock_vine`**
 31. **Queued — `verdant_rock_pod`**
