@@ -12,7 +12,8 @@ using UnityEngine;
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
 // Art lives at Resources/Worlds/<World>/Backdrop/ and is generated from the
-// SVG templates under Assets/Art/Worlds/<World>/src~/.
+// SVG templates under Assets/Art/Worlds/<World>/src~/ (Space's atlases are
+// cut from pixel-art sheets instead: Space/src~/build_atlas.py).
 public static class BackdropCatalog
 {
     public enum Kind { Tile, Strip, Pieces }
@@ -86,16 +87,19 @@ public static class BackdropCatalog
 
     static readonly Spec[] specs =
     {
-        // Space has no ground: everything is sky at its own depth.
+        // Space has no ground: everything is sky at its own depth. deep..near
+        // are the depth tiers its bodies (planets, stations, moons) are dealt
+        // into -- see SpaceDirector.Tiers; comets pass behind all of them.
         new Spec { world = "Space", layers = new[] {
             Layer.Tile("sky", 0.010f, W, Role.Sky),
-            Layer.Pieces("wisps", 0.018f, Role.Sky),
-            Layer.Pieces("galaxies", 0.026f, Role.Sky),
-            Layer.Pieces("stars", 0.040f, Role.Sky),
-            Layer.Pieces("stations", 0.055f, Role.Sky),
-            Layer.Pieces("planets", 0.070f, Role.Sky),
-            Layer.Pieces("moons", 0.095f, Role.Sky),
-            Layer.Pieces("comets", 0.130f, Role.Sky),
+            Layer.Pieces("wisps", 0.016f, Role.Sky),
+            Layer.Pieces("galaxies", 0.022f, Role.Sky),
+            Layer.Pieces("stars", 0.030f, Role.Sky),
+            Layer.Pieces("comets", 0.040f, Role.Sky),
+            Layer.Pieces("deep", 0.050f, Role.Sky),
+            Layer.Pieces("far", 0.064f, Role.Sky),
+            Layer.Pieces("mid", 0.082f, Role.Sky),
+            Layer.Pieces("near", 0.105f, Role.Sky),
             Layer.Pieces("dust", 0.600f, Role.Atmosphere),
         }},
         // Planet worlds, seen from atmosphere level: ground and landmarks
