@@ -1,0 +1,585 @@
+fileFormatVersion: 2
+guid: 1c5895b8d01254e2d9bce537a9db8b1f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2735913224388198418
+    second: ember_rock_cinder_rugged_v2_concept_0
+  - first:
+      213: 1123800356621553130
+    second: ember_rock_cinder_rugged_v2_concept_1
+  - first:
+      213: 260881326337756856
+    second: ember_rock_cinder_rugged_v2_concept_2
+  - first:
+      213: -6729608592869091581
+    second: ember_rock_cinder_rugged_v2_concept_3
+  - first:
+      213: 5923951461787302370
+    second: ember_rock_cinder_rugged_v2_concept_4
+  - first:
+      213: 9180440472823996057
+    second: ember_rock_cinder_rugged_v2_concept_5
+  - first:
+      213: -6417511726657276021
+    second: ember_rock_cinder_rugged_v2_concept_6
+  - first:
+      213: -6522022752373344070
+    second: ember_rock_cinder_rugged_v2_concept_7
+  - first:
+      213: -5325345561414176947
+    second: ember_rock_cinder_rugged_v2_concept_8
+  - first:
+      213: -4085263585017041179
+    second: ember_rock_cinder_rugged_v2_concept_9
+  - first:
+      213: 4836328905984714265
+    second: ember_rock_cinder_rugged_v2_concept_10
+  - first:
+      213: -3321105522083798353
+    second: ember_rock_cinder_rugged_v2_concept_11
+  - first:
+      213: -396681182130770855
+    second: ember_rock_cinder_rugged_v2_concept_12
+  - first:
+      213: 7362141207198007221
+    second: ember_rock_cinder_rugged_v2_concept_13
+  - first:
+      213: -2624259092138080890
+    second: ember_rock_cinder_rugged_v2_concept_14
+  - first:
+      213: -6612184681440075261
+    second: ember_rock_cinder_rugged_v2_concept_15
+  - first:
+      213: -1619923350253332172
+    second: ember_rock_cinder_rugged_v2_concept_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 306
+        height: 629
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 210c3f3059ae7f520800000000000000
+      internalID: 2735913224388198418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 679
+        width: 25
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aed82ee587a889f00800000000000000
+      internalID: 1123800356621553130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 64
+        width: 357
+        height: 625
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8be05e02f26de9300800000000000000
+      internalID: 260881326337756856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 1870
+        y: 179
+        width: 281
+        height: 504
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3071f98c3a0ab92a0800000000000000
+      internalID: -6729608592869091581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 600
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e9fc72d77a163250800000000000000
+      internalID: 5923951461787302370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 599
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99e1b4058f9776f70800000000000000
+      internalID: 9180440472823996057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1513
+        y: 169
+        width: 335
+        height: 500
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8770b6061b60f6a0800000000000000
+      internalID: -6417511726657276021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 298
+        y: 39
+        width: 314
+        height: 526
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab875c3acde1d75a0800000000000000
+      internalID: -6522022752373344070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 53
+        width: 306
+        height: 529
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4f64b14d629816b0800000000000000
+      internalID: -5325345561414176947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 53
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ee68310a6a3e47c0800000000000000
+      internalID: -4085263585017041179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1208
+        y: 86
+        width: 25
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9162c2a14871e1340800000000000000
+      internalID: 4836328905984714265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 174
+        width: 293
+        height: 381
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa26b96af1019e1d0800000000000000
+      internalID: -3321105522083798353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 72
+        width: 39
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95c630a0194be7af0800000000000000
+      internalID: -396681182130770855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1400
+        y: 64
+        width: 28
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bf7d41fb649b2660800000000000000
+      internalID: 7362141207198007221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1481
+        y: 62
+        width: 171
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68545867242c49bd0800000000000000
+      internalID: -2624259092138080890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 0
+        width: 202
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3022c79a01dcc34a0800000000000000
+      internalID: -6612184681440075261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_cinder_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1923
+        y: 31
+        width: 160
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4391ac0bb40e489e0800000000000000
+      internalID: -1619923350253332172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_rock_cinder_rugged_v2_concept_0: 2735913224388198418
+      ember_rock_cinder_rugged_v2_concept_1: 1123800356621553130
+      ember_rock_cinder_rugged_v2_concept_10: 4836328905984714265
+      ember_rock_cinder_rugged_v2_concept_11: -3321105522083798353
+      ember_rock_cinder_rugged_v2_concept_12: -396681182130770855
+      ember_rock_cinder_rugged_v2_concept_13: 7362141207198007221
+      ember_rock_cinder_rugged_v2_concept_14: -2624259092138080890
+      ember_rock_cinder_rugged_v2_concept_15: -6612184681440075261
+      ember_rock_cinder_rugged_v2_concept_16: -1619923350253332172
+      ember_rock_cinder_rugged_v2_concept_2: 260881326337756856
+      ember_rock_cinder_rugged_v2_concept_3: -6729608592869091581
+      ember_rock_cinder_rugged_v2_concept_4: 5923951461787302370
+      ember_rock_cinder_rugged_v2_concept_5: 9180440472823996057
+      ember_rock_cinder_rugged_v2_concept_6: -6417511726657276021
+      ember_rock_cinder_rugged_v2_concept_7: -6522022752373344070
+      ember_rock_cinder_rugged_v2_concept_8: -5325345561414176947
+      ember_rock_cinder_rugged_v2_concept_9: -4085263585017041179
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,637 @@
+fileFormatVersion: 2
+guid: 924e1f0119a2849459f274d7e9cc0be4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3502573472323699149
+    second: ember_rock_magma_rugged_v2_concept_0
+  - first:
+      213: -5479844877051671567
+    second: ember_rock_magma_rugged_v2_concept_1
+  - first:
+      213: -856550727864490975
+    second: ember_rock_magma_rugged_v2_concept_2
+  - first:
+      213: 5535089941907673813
+    second: ember_rock_magma_rugged_v2_concept_3
+  - first:
+      213: 3547091986679693873
+    second: ember_rock_magma_rugged_v2_concept_4
+  - first:
+      213: 2288077707945515825
+    second: ember_rock_magma_rugged_v2_concept_5
+  - first:
+      213: 6056328686458674862
+    second: ember_rock_magma_rugged_v2_concept_6
+  - first:
+      213: -1113943728625429180
+    second: ember_rock_magma_rugged_v2_concept_7
+  - first:
+      213: 5560929286139452517
+    second: ember_rock_magma_rugged_v2_concept_8
+  - first:
+      213: -4922491272344452759
+    second: ember_rock_magma_rugged_v2_concept_9
+  - first:
+      213: 631001665435000795
+    second: ember_rock_magma_rugged_v2_concept_10
+  - first:
+      213: -1563567073785359265
+    second: ember_rock_magma_rugged_v2_concept_11
+  - first:
+      213: 337468099524130038
+    second: ember_rock_magma_rugged_v2_concept_12
+  - first:
+      213: 8220722833821433738
+    second: ember_rock_magma_rugged_v2_concept_13
+  - first:
+      213: 4401162300584083668
+    second: ember_rock_magma_rugged_v2_concept_14
+  - first:
+      213: -5868945905198283809
+    second: ember_rock_magma_rugged_v2_concept_15
+  - first:
+      213: -5238969064702478646
+    second: ember_rock_magma_rugged_v2_concept_16
+  - first:
+      213: 8787561676071054026
+    second: ember_rock_magma_rugged_v2_concept_17
+  - first:
+      213: 5082456859081718647
+    second: ember_rock_magma_rugged_v2_concept_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 120
+        width: 322
+        height: 548
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33e707efbfb546fc0800000000000000
+      internalID: -3502573472323699149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 602
+        width: 468
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fb47172e1ea3f3b0800000000000000
+      internalID: -5479844877051671567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 618
+        width: 79
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 124e885b6abec14f0800000000000000
+      internalID: -856550727864490975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 569
+        width: 14
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d29e3bd9f690dc40800000000000000
+      internalID: 5535089941907673813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1221
+        y: 184
+        width: 288
+        height: 518
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1328dab5e5dc93130800000000000000
+      internalID: 3547091986679693873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1494
+        y: 9
+        width: 676
+        height: 687
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13b15987d82e0cf10800000000000000
+      internalID: 2288077707945515825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 39
+        width: 272
+        height: 502
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eae906f3ad66c0450800000000000000
+      internalID: 6056328686458674862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 53
+        width: 386
+        height: 496
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 445d18ba41a7a80f0800000000000000
+      internalID: -1113943728625429180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 794
+        y: 101
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56c986109b36c2d40800000000000000
+      internalID: 5560929286139452517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 98
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 961c2fda44ccfabb0800000000000000
+      internalID: -4922491272344452759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 116
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdfdee8eba4c1c800800000000000000
+      internalID: 631001665435000795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 95
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f54d680d7081d4ae0800000000000000
+      internalID: -1563567073785359265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 919
+        y: 182
+        width: 273
+        height: 360
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f47923d27deea400800000000000000
+      internalID: 337468099524130038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1005
+        y: 69
+        width: 70
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8f7ed2bcdfd51270800000000000000
+      internalID: 8220722833821433738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1070
+        y: 103
+        width: 81
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d0c7254bc1141d30800000000000000
+      internalID: 4401162300584083668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1173
+        y: 0
+        width: 131
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd34ca25bc05d8ea0800000000000000
+      internalID: -5868945905198283809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1329
+        y: 17
+        width: 56
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac6f52594617b47b0800000000000000
+      internalID: -5238969064702478646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1400
+        y: 49
+        width: 61
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aca2d0039c0b3f970800000000000000
+      internalID: 8787561676071054026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1862
+        y: 189
+        width: 295
+        height: 358
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77b30d7d593888640800000000000000
+      internalID: 5082456859081718647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_rock_magma_rugged_v2_concept_0: -3502573472323699149
+      ember_rock_magma_rugged_v2_concept_1: -5479844877051671567
+      ember_rock_magma_rugged_v2_concept_10: 631001665435000795
+      ember_rock_magma_rugged_v2_concept_11: -1563567073785359265
+      ember_rock_magma_rugged_v2_concept_12: 337468099524130038
+      ember_rock_magma_rugged_v2_concept_13: 8220722833821433738
+      ember_rock_magma_rugged_v2_concept_14: 4401162300584083668
+      ember_rock_magma_rugged_v2_concept_15: -5868945905198283809
+      ember_rock_magma_rugged_v2_concept_16: -5238969064702478646
+      ember_rock_magma_rugged_v2_concept_17: 8787561676071054026
+      ember_rock_magma_rugged_v2_concept_18: 5082456859081718647
+      ember_rock_magma_rugged_v2_concept_2: -856550727864490975
+      ember_rock_magma_rugged_v2_concept_3: 5535089941907673813
+      ember_rock_magma_rugged_v2_concept_4: 3547091986679693873
+      ember_rock_magma_rugged_v2_concept_5: 2288077707945515825
+      ember_rock_magma_rugged_v2_concept_6: 6056328686458674862
+      ember_rock_magma_rugged_v2_concept_7: -1113943728625429180
+      ember_rock_magma_rugged_v2_concept_8: 5560929286139452517
+      ember_rock_magma_rugged_v2_concept_9: -4922491272344452759
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
