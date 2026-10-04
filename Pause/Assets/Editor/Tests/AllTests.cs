@@ -22,6 +22,7 @@ public static class AllTests
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
+        ("BossIntroTest", BossIntroTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
