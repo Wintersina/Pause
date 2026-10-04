@@ -6,8 +6,8 @@ using UnityEngine;
 // paused game (timeScale 0) hands them dt = 0 and nothing moves, blinks or
 // advances a flipbook. That is what makes the freeze a true still frame.
 
-// Sprites cut from one world's atlas (a PNG plus the JSON rect manifest the
-// SVG pipeline writes next to it).
+// Sprites cut from one world's atlas (a PNG plus the JSON rect manifest its
+// art pipeline writes next to it). A sprite pivots on the middle of its rect.
 public class BackdropAtlas
 {
     [System.Serializable] class Rect { public string n; public int x, y, w, h; }
@@ -41,7 +41,8 @@ public class BackdropAtlas
         return sprites.TryGetValue(name, out s) ? s : null;
     }
 
-    // name_00, name_01, ... in order; empty if the flipbook is missing.
+    // name_00, name_01, ... in order: a flipbook's frames, or a set of
+    // variants to pick one from. Empty if missing.
     public Sprite[] Frames(string name)
     {
         var list = new List<Sprite>();
@@ -162,8 +163,9 @@ public class BackdropPiece
     public Sprite[] frames;
     public float fps;
     public bool loop = true;
-    public int kind;
-    public BackdropPiece[] children;     // e.g. a planet's rings and moon
+    public int kind, tier;               // tier: depth tier, where a director has them
+    public BackdropPiece[] children;     // e.g. a planet's moon
+    public BackdropPiece parent;         // set on a child that is placed by its parent
 
     public void Show(bool on)
     {
@@ -250,6 +252,7 @@ public class BackdropPool
             p.frames = null;
             p.loop = true;
             p.children = null;
+            p.parent = null;
             p.body.localRotation = Quaternion.identity;
             p.body.localScale = Vector3.one;
             p.root.localRotation = Quaternion.identity;
