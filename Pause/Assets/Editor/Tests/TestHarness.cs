@@ -20,6 +20,18 @@ using UnityEngine;
 // into the next. Sandbox puts all of that back the way it found it.
 public static class TestHarness
 {
+    // Set by AllTests.RunFast for its run only; always false otherwise.
+    public static bool Fast;
+
+    // Wrap a long simulation / big render check: `if (TestHarness.Slow("...")) LongCheck();`
+    // Runs it everywhere except AllTests.RunFast, which logs the skip.
+    public static bool Slow(string what)
+    {
+        if (!Fast) return true;
+        Debug.Log("[FAST] skipped slow check: " + what);
+        return false;
+    }
+
     // Batch entry: non-zero exit code on any failure so CI/scripts notice.
     public static void Exit(int failures)
     {
@@ -67,6 +79,7 @@ public static class TestHarness
                 statics.Add(new KeyValuePair<FieldInfo, object>(field, value));
             }
             timeScale = Time.timeScale;
+            KeepRuntimeArt(true);
 
             // Start every suite with developer mode off. The editor shares
             // PlayerPrefs with the Mac player, where a developer build turns
@@ -99,6 +112,7 @@ public static class TestHarness
         {
             // Drop whatever scene the suite opened or dirtied (never saved).
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            KeepRuntimeArt(false);
 
             foreach (var pair in statics)
             {
@@ -136,6 +150,59 @@ public static class TestHarness
                 else PlayerPrefs.SetFloat(pair.Key, (float)pair.Value);
             }
             PlayerPrefs.Save();
+        }
+    }
+
+    // Every editor scene swap (NewScene / OpenScene) unloads "unused" assets,
+    // and that includes the sprites and textures the game builds at runtime
+    // (Sprite.Create / new Texture2D) and caches in statics: the caches then
+    // hold dead entries and rebuild them. In a player those caches live for
+    // the whole session. Rebuilding is expensive in the editor -- the build
+    // target's textures are ETC2, and Sprite.Create's tight outline decodes
+    // the whole atlas on the CPU (~0.5-1s for the gun roster) -- and suites
+    // that make a fresh scene per case paid it hundreds of times (minutes).
+    // So, inside a Sandbox, runtime-made sprites/textures survive scene swaps
+    // like they do in the game; when the Sandbox ends they become unloadable
+    // again, so suites still don't share them.
+    static int keepDepth;
+    static readonly List<UnityEngine.Object> kept = new List<UnityEngine.Object>();
+
+    static void KeepRuntimeArt(bool begin)
+    {
+        if (begin)
+        {
+            if (keepDepth++ == 0)
+            {
+                EditorSceneManager.sceneClosing += OnSceneClosing;
+                EditorSceneManager.sceneOpening += OnSceneOpening;
+            }
+            return;
+        }
+        if (keepDepth == 0 || --keepDepth > 0) return;
+        EditorSceneManager.sceneClosing -= OnSceneClosing;
+        EditorSceneManager.sceneOpening -= OnSceneOpening;
+        foreach (var o in kept)
+            if (o != null) o.hideFlags &= ~HideFlags.DontSave;
+        kept.Clear();
+    }
+
+    static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing) { KeepNow(); }
+    static void OnSceneOpening(string path, OpenSceneMode mode) { KeepNow(); }
+
+    static void KeepNow()
+    {
+        Keep(Resources.FindObjectsOfTypeAll<Sprite>());
+        Keep(Resources.FindObjectsOfTypeAll<Texture2D>());
+    }
+
+    static void Keep(UnityEngine.Object[] objects)
+    {
+        foreach (var o in objects)
+        {
+            if ((o.hideFlags & HideFlags.DontSave) != 0) continue;
+            if (EditorUtility.IsPersistent(o)) continue;   // an asset: reloads from disk anyway
+            o.hideFlags |= HideFlags.DontSave;
+            kept.Add(o);
         }
     }
 
