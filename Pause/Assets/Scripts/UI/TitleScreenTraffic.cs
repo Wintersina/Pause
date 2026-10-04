@@ -132,6 +132,7 @@ public class TitleScreenTraffic : MonoBehaviour
         public Vector2 waypoint;
         public int waypointsLeft;
         public float stateT, spin, spinVel, alpha, phase, wobF, wobA, born;
+        public float hullSpin;                // spinners: the hull's own turn, degrees
         public float nextBoost, nextTrick;
         public Trick trick;
         public float trickT, trickDir;
@@ -343,15 +344,17 @@ public class TitleScreenTraffic : MonoBehaviour
             else f.nozzles = new SpriteRenderer[0];
             if (f.wind)
             {
-                // Spinners get gameplay's spin drift, set up the way
-                // ShipThruster sets it up for a ship something else steers:
-                // the ring turns on its own, the wake hangs behind the nose
-                // (traffic flies every direction). Disabled so it doesn't
-                // tick on scaled time; Step drives it on unscaled time.
+                // Spinners get gameplay's spin drift. The hull spins as it
+                // does in play (Draw turns it at the drift's own rate), so
+                // the ring, parented to the hull, rides that spin; the wake
+                // hangs behind the travel heading Draw hands it (traffic
+                // flies every direction). Disabled so it doesn't tick on
+                // scaled time; Step drives it on unscaled time.
                 var drift = go.AddComponent<ShipSpinDrift>();
                 drift.spinHull = false;
-                drift.spinRing = true;
+                drift.spinRing = false;
                 drift.wakeFollowsHeading = true;
+                drift.headingFromOwner = true;
                 drift.respondToPause = false;
                 drift.Rebuild();
                 drift.enabled = false;
@@ -569,6 +572,7 @@ public class TitleScreenTraffic : MonoBehaviour
         f.nextZip = float.MaxValue;
         f.alpha = 1f;
         f.spin = 0f; f.spinVel = 0f;
+        f.hullSpin = Random.Range(0f, 360f);
         f.phase = Random.Range(0f, 6.283f);
         f.wobF = Random.Range(2.2f, 3.6f);
         f.wobA = ReferenceHull * f.scale * Random.Range(.04f, .08f);
@@ -1054,6 +1058,7 @@ public class TitleScreenTraffic : MonoBehaviour
             Retire(f);
             return;
         }
+        f.hullSpin = Mathf.Repeat(f.hullSpin + f.spin, 360f);   // no snap back
         f.spin = 0f;
         f.spinVel = 0f;
         f.heading = Mathf.Atan2(safe.center.y - f.pos.y, safe.center.x - f.pos.x) + Random.Range(-.6f, .6f);
@@ -1250,10 +1255,24 @@ public class TitleScreenTraffic : MonoBehaviour
             if (Mathf.Abs(bank) < .18f) bank = .18f * (bank < 0f ? -1f : 1f);
         }
         float angle = f.heading * Mathf.Rad2Deg - 90f + lean + f.spin;
-        f.tr.rotation = Quaternion.Euler(0f, 0f, angle);
         float k = f.normScale * f.scale;
         k *= f.grow;
-        f.tr.localScale = new Vector3(k * bank * f.stretchX, k * f.stretchY, 1f);
+        if (f.wind)
+        {
+            // Spinners turn continuously, as ShipSpinDrift turns the player's
+            // hull in play (same rate; gameplay doesn't change it on a boost).
+            // No lean, bank, roll or squash-and-stretch on a spinning hull; a
+            // dizzy tumble adds on top of the spin.
+            f.hullSpin = Mathf.Repeat(f.hullSpin + SpinRate(f) * dt, 360f);
+            angle = f.hullSpin + f.spin;
+            f.tr.rotation = Quaternion.Euler(0f, 0f, angle);
+            f.tr.localScale = new Vector3(k, k, 1f);
+        }
+        else
+        {
+            f.tr.rotation = Quaternion.Euler(0f, 0f, angle);
+            f.tr.localScale = new Vector3(k * bank * f.stretchX, k * f.stretchY, 1f);
+        }
 
         // front ships fade through the logo fast, and thin out over the menu
         float target = 1f;
@@ -1281,6 +1300,7 @@ public class TitleScreenTraffic : MonoBehaviour
             var d = f.drift;
             d.boost = f.state == State.Boost || f.state == State.ZipIn || f.state == State.ZipOut;
             d.powered = f.alpha > .35f;
+            d.headingDegrees = f.heading * Mathf.Rad2Deg - 90f;
             d.Step(dt);
             if (f.state == State.Dizzy && d.Wake != null) d.Wake.enabled = false;
         }
@@ -1291,6 +1311,13 @@ public class TitleScreenTraffic : MonoBehaviour
             f.trail.hist[0] = new Vector3(tail.x, tail.y, 0f);
             f.trail.alpha = f.alpha;
         }
+    }
+
+    // A spinner hull's turn rate, degrees per second: gameplay's
+    // (ShipSpinDrift.degreesPerSecond), the same cruising or boosting.
+    public static float SpinRate(Flyer f)
+    {
+        return f.drift != null ? f.drift.degreesPerSecond : 0f;
     }
 
     // ---------------------------------------------------------------- trails
