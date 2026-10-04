@@ -290,8 +290,7 @@ public static class AccountLink
             case SignInOutcome.Canceled: return "Sign-in was cancelled.";
             case SignInOutcome.NetworkError: return "No connection. Try again when you're online.";
             case SignInOutcome.ConfigError:
-                return IsGameCenter ? "Game Center isn't available for this build."
-                                    : "Play Games couldn't sign in to this build.";
+                return IsGameCenter ? "Game Center refused the sign-in." : "Play Games refused the sign-in.";
             case SignInOutcome.Disabled:
                 return "Game Center sign-in is turned off for this app.";
             case SignInOutcome.SignInRequired: return "Play Games didn't sign you in.";

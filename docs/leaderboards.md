@@ -20,8 +20,11 @@ All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `S
 | `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run's peak speed, star dust and furthest world, and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
 | `LeaderboardPanel` | The in-game panel, opened by Options → LeaderBoard (`leaderboard.pull_up_leaderboard`). It's built at runtime on its own overlay canvas, so `leaderboardS3.unity` is unchanged. |
 
-Sign-in still belongs to `CloudSync`/`IPlayerAccount`. `SocialBridge.SignedIn` is raised on every
-successful sign-in, and the service flushes its queue when it fires.
+Sign-in still belongs to `CloudSync`/`IPlayerAccount`. The interactive sign-in is `AccountLink.SignIn`
+(the Options Account row, and this panel's SIGN IN through `SocialBridge.Authenticate`).
+`SocialBridge.SignedIn` is raised on every successful sign-in, and the service flushes its queue when it
+fires. While the player is signed out in Pause (`AccountLink.Disconnected`, the Account row's SIGN OUT),
+`LeaderboardService.SignedIn` is false: nothing is sent, and the panel shows its signed-out state.
 
 ### Boards
 
