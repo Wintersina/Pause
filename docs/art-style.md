@@ -28,6 +28,29 @@ Defining traits (keep all of them, on every converted asset):
 6. **One elemental palette per world** on a dark base.
 7. **Key-pose animation.** Clear frame sequences; the dormant → charge → burst pattern is the model.
 
+### Rugged industrial rail pattern
+
+The current gameplay direction is **rugged cyberpunk with a restrained steampunk layer**. This
+applies to enemies, bosses, rail mines, rails and world landmarks; it does **not** change the
+protected flat-cartoon UI or player ships.
+
+- Start with weathered gunmetal or each world's local material, then add sparse brass/copper
+  brackets, rivets, recoil collars, vent seams and exposed cable runs. Brass is a structural
+  accent, never the dominant surface colour.
+- Wear must be directional and readable: clipped paint scuffs on leading armour faces, small
+  edge chips, soot around vents and heat stains near reactors. Do not scatter noise uniformly.
+- Steam, smoke, frost vapour and spores are small secondary motion cues. They must never cover
+  a core, telegraph or collision silhouette.
+- Rails are heavy industrial infrastructure: layered dark metal, bolts, cable bundles, magenta
+  status lamps and occasional cyan power conduits. Rail mines physically clamp to and ride the
+  rails, so their clamps, pivots and emissive cores must visually align with the side structure.
+- Bosses use the same vocabulary at a larger scale, but remain compact inside their atlas cells.
+  The concept-art scale is not gameplay scale: body silhouettes stay within the documented
+  boss-cell budget and tells/fire/death poses communicate through shape and light before detail.
+
+This pattern keeps the four worlds distinct: Space is gunmetal/cyan-magenta, Frost is
+icebreaker steel/cyan, Verdant is corroded plant-metal/lime, and Ember is basalt/brass/amber.
+
 ---
 
 ## 1. Palette
