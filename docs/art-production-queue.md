@@ -12,8 +12,8 @@ Status is deliberately kept factual: **Queued**, **In progress**, **Staged for r
 
 ## Queue
 
-1. **Staged for review — Bile Mite (Space alien):** fresh seven-frame raster candidate at `Pause/Assets/Art/Enemies/Staging/space_alien_pixel_candidate.png`; not live yet.
-2. **Queued — Remaining alien family:** Frost, Verdant, and Ember alien variants; seven-frame sprite strips; staged for approval.
+1. **Installed and validated — Bile Mite (Space alien):** fresh seven-frame raster strip is live at `Resources/Enemies/space_alien.png`.
+2. **Queued — Remaining alien family:** Verdant and Ember alien variants; seven-frame sprite strips; staged for approval.
 3. **Queued — Chaser family:** Steel Hound plus Frost, Verdant, Ember chaser variants; staged for approval.
 4. **Queued — Heavy family:** Bastion and the three other world heavies; staged for approval.
 5. **Queued — Hazard rocks:** complete the three missing Ember strips, then review all 14 rock hazard strips together.
@@ -25,6 +25,7 @@ Status is deliberately kept factual: **Queued**, **In progress**, **Staged for r
 
 ## Already approved / installed
 
-- The sixteen enemy fighter strips are approved; only Space Fighter 1 is currently live. The remaining approved strips remain staged pending the installation pass.
+- Space Fighter 1 and Space Fighter 2 are live. The remaining fourteen approved fighter strips remain staged pending the one-at-a-time installation pass.
+- Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
