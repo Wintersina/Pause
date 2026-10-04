@@ -30,9 +30,6 @@ public class spawnGoodStuff : MonoBehaviour {
              "across the level.")]
     public int redAtomsPerWorld = 5;
 
-    [Tooltip("Violet capacitor atoms per world. They shorten the active weapon charge.")]
-    public int cooldownAtomsPerWorld = 2;
-
     private int redBudget;
     private int redSpawned;
     private int blueBudget;
@@ -83,9 +80,10 @@ public class spawnGoodStuff : MonoBehaviour {
         redBudget = redAtomsPerWorld;
         redSpawned = 0;
         redAtomDelayTimer = Random.Range(15f, 40f);
-        cooldownBudget = Mathf.Max(0, cooldownAtomsPerWorld);
+        // violet capacitors: budget and delays in PickupRules
+        cooldownBudget = Mathf.Max(0, PickupRules.CooldownAtomsPerWorld);
         cooldownSpawned = 0;
-        cooldownAtomDelayTimer = Random.Range(35f, 65f);
+        cooldownAtomDelayTimer = PickupRules.CooldownAtomFirstDelay();
         blueGuaranteeUsed = false;
         atomTimer = Random.Range(20f, 45f);
     }
@@ -105,13 +103,13 @@ public class spawnGoodStuff : MonoBehaviour {
         }
 
         // Star dust runs x3 during a boss encounter, blue atoms x2 always
-        // (PickupRules); red atoms keep the plain clock.
+        // (PickupRules); red and violet atoms keep the plain clock.
         float dustDt = dt * PickupRules.StarDustRate();
         smStarTimer -= dustDt;
         midStarTimer -= dustDt;
         atomTimer -= dt * PickupRules.ShieldAtomRate;
         redAtomDelayTimer -= dt;
-        cooldownAtomDelayTimer -= dt;
+        cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
@@ -169,7 +167,7 @@ public class spawnGoodStuff : MonoBehaviour {
 
         if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget)
         {
-            cooldownAtomDelayTimer = Random.Range(75f, 115f);
+            cooldownAtomDelayTimer = PickupRules.CooldownAtomRepeatDelay();
             spawnCooldownAtom();
             cooldownSpawned++;
         }

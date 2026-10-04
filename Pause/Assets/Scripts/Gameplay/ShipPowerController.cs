@@ -223,9 +223,38 @@ public class ShipPowerController : MonoBehaviour
     }
 
     // Violet capacitor atom: a stronger, dedicated cut to the weapon charge.
-    public void ReduceWeaponCooldown()
+    // Never fires the weapon itself -- a cut to zero leaves Update to fire it
+    // on its next running frame, with the usual slide-out. Returns the
+    // seconds actually cut: min(secondsPerCooldownAtom, what was left).
+    public float ReduceWeaponCooldown()
     {
+        float cut = Mathf.Min(Mathf.Max(0f, secondsPerCooldownAtom), Mathf.Max(0f, timer));
         ReduceTimer(secondsPerCooldownAtom);
+        if (indicator != null) indicator.FlashCharge();
+        return cut;
+    }
+
+    // The ship's word for a capacitor pickup: "WEAPON CHARGED" when the cut
+    // emptied the countdown, otherwise "-Ns CHARGE" with the seconds cut.
+    // Labels are cached, so a pickup allocates nothing.
+    public const string WeaponChargedLabel = "WEAPON CHARGED";
+    static string[] chargeCutLabels;
+
+    public static string CooldownAtomLabel(float secondsCut, bool fullyCharged)
+    {
+        if (fullyCharged) return WeaponChargedLabel;
+        int s = Mathf.Max(0, Mathf.RoundToInt(secondsCut));
+        if (chargeCutLabels == null) chargeCutLabels = new string[61];
+        if (s >= chargeCutLabels.Length) return "-" + s + "s CHARGE";
+        return chargeCutLabels[s] ?? (chargeCutLabels[s] = "-" + s + "s CHARGE");
+    }
+
+    // collisionDetection: a violet capacitor atom was collected. Cuts the
+    // charge and returns the word to show.
+    public string CollectCooldownAtom()
+    {
+        float cut = ReduceWeaponCooldown();
+        return CooldownAtomLabel(cut, timer <= 0f);
     }
 
     // Capacitor Dump (a secret power): the attack comes back at once -- the

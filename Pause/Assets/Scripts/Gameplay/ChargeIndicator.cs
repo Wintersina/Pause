@@ -180,17 +180,37 @@ public class ChargeIndicator : MonoBehaviour
 
     // The red atom's free shot (ShipPowerController.FreeShot) went off: a
     // short stepped red flash over whatever drawing is showing. The charge
-    // progress is untouched.
+    // progress is untouched. A violet capacitor atom (ShipPowerController.
+    // ReduceWeaponCooldown) gives the same pulse in violet. One flash at a
+    // time: a newer one takes over the colour and restarts the clock.
     public const float FreeFlashSeconds = .3f;
+    public const float ChargeFlashSeconds = FreeFlashSeconds;
     float freeFlashT = -1f;
-    public bool FreeFlashing => freeFlashT >= 0f;
+    Color flashColour = AkiraPalette.RedHi;
+    bool chargeFlash;
+    public bool FreeFlashing => freeFlashT >= 0f && !chargeFlash;
+    public bool ChargeFlashing => freeFlashT >= 0f && chargeFlash;
     public int FreeFlashCount { get; private set; }
+    public int ChargeFlashCount { get; private set; }
 
     public void FlashFree()
     {
-        freeFlashT = 0f;
         FreeFlashCount++;
-        if (view != null) view.color = AkiraPalette.RedHi;
+        StartFlash(AkiraPalette.RedHi, false);
+    }
+
+    public void FlashCharge()
+    {
+        ChargeFlashCount++;
+        StartFlash(AkiraPalette.VioletHi, true);
+    }
+
+    void StartFlash(Color colour, bool charge)
+    {
+        freeFlashT = 0f;
+        flashColour = colour;
+        chargeFlash = charge;
+        if (view != null) view.color = colour;
     }
 
     void StepFreeFlash(float unscaledDt)
@@ -198,9 +218,9 @@ public class ChargeIndicator : MonoBehaviour
         if (freeFlashT < 0f || view == null) return;
         freeFlashT += unscaledDt;
         if (freeFlashT >= FreeFlashSeconds) { freeFlashT = -1f; view.color = Color.white; return; }
-        // on and off in 24 fps ticks: red, red, white, red, red, white...
+        // on and off in 24 fps ticks: colour, colour, white, colour, colour, white...
         int tick = Mathf.FloorToInt(freeFlashT * 24f);
-        view.color = tick % 3 == 2 ? Color.white : AkiraPalette.RedHi;
+        view.color = tick % 3 == 2 ? Color.white : flashColour;
     }
 
     // The ultimate just went off.

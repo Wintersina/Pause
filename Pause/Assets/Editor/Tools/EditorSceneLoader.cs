@@ -10,17 +10,32 @@ public static class EditorSceneLoader
 {
     public static void Open(string sceneName, OpenSceneMode mode = OpenSceneMode.Single)
     {
-        AssetDatabase.Refresh();
+        // The editor refreshes the AssetDatabase at launch (and on focus), so
+        // a scene is normally found straight away; only a miss -- a scene
+        // written since -- pays for a Refresh (0.1-0.3s each; the suites
+        // open ~100 scenes per run).
+        string path = Find(sceneName);
+        if (path == null)
+        {
+            AssetDatabase.Refresh();
+            path = Find(sceneName);
+        }
+        if (path != null)
+        {
+            EditorSceneManager.OpenScene(path, mode);
+            return;
+        }
+        Debug.LogError("[SceneLoader] Could not import or find Assets/Scenes/" + sceneName + ".unity");
+    }
+
+    static string Find(string sceneName)
+    {
         string expected = sceneName + ".unity";
         foreach (string guid in AssetDatabase.FindAssets(sceneName + " t:Scene"))
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            if (path.EndsWith(expected))
-            {
-                EditorSceneManager.OpenScene(path, mode);
-                return;
-            }
+            if (path.EndsWith(expected)) return path;
         }
-        Debug.LogError("[SceneLoader] Could not import or find Assets/Scenes/" + expected);
+        return null;
     }
 }

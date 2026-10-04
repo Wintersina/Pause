@@ -20,6 +20,20 @@ using UnityEngine;
 // into the next. Sandbox puts all of that back the way it found it.
 public static class TestHarness
 {
+    // Set by AllTests.RunFast for its run only; always false otherwise.
+    public static bool Fast;
+    public static int SkippedSlow;
+
+    // Wrap a long simulation / big render check: `if (TestHarness.Slow("...")) LongCheck();`
+    // Runs it everywhere except AllTests.RunFast, which logs the skip.
+    public static bool Slow(string what)
+    {
+        if (!Fast) return true;
+        SkippedSlow++;
+        Debug.Log("[FAST] skipped slow check: " + what);
+        return false;
+    }
+
     // Batch entry: non-zero exit code on any failure so CI/scripts notice.
     public static void Exit(int failures)
     {
@@ -67,6 +81,7 @@ public static class TestHarness
                 statics.Add(new KeyValuePair<FieldInfo, object>(field, value));
             }
             timeScale = Time.timeScale;
+            KeepRuntimeArt(true);
 
             // Start every suite with developer mode off. The editor shares
             // PlayerPrefs with the Mac player, where a developer build turns
@@ -99,6 +114,7 @@ public static class TestHarness
         {
             // Drop whatever scene the suite opened or dirtied (never saved).
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            KeepRuntimeArt(false);
 
             foreach (var pair in statics)
             {
@@ -136,6 +152,148 @@ public static class TestHarness
                 else PlayerPrefs.SetFloat(pair.Key, (float)pair.Value);
             }
             PlayerPrefs.Save();
+        }
+    }
+
+    // `target.SendMessage(method)` for per-frame loops. In edit mode every
+    // SendMessage logs a "ShouldRunBehaviour()" assertion before it calls the
+    // method; at 100k+ frames those log lines (each with a stack trace
+    // unless AllTests turned traces off) were most of a suite's time. This calls the very
+    // same methods directly. It only takes the fast path when the outcome is
+    // unambiguous -- an active object whose receivers are all enabled, with
+    // one parameterless, non-coroutine `method` each -- and otherwise is
+    // SendMessage itself. As with SendMessage, an exception in a receiver is
+    // logged, not thrown.
+    public static void Send(Component target, string method)
+    {
+        if (target == null || !target.gameObject.activeInHierarchy) { target.SendMessage(method); return; }
+        var receivers = target.GetComponents<MonoBehaviour>();
+        var calls = new List<KeyValuePair<MonoBehaviour, MethodInfo>>(receivers.Length);
+        foreach (var mb in receivers)
+        {
+            if (mb == null) continue;
+            if (!Receiver(mb.GetType(), method, out MethodInfo m) || (m != null && !mb.enabled))
+            {
+                target.SendMessage(method);
+                return;
+            }
+            if (m != null) calls.Add(new KeyValuePair<MonoBehaviour, MethodInfo>(mb, m));
+        }
+        if (calls.Count == 0) { target.SendMessage(method); return; }
+        foreach (var call in calls)
+        {
+            try { call.Value.Invoke(call.Key, null); }
+            catch (TargetInvocationException e) { Debug.LogException(e.InnerException ?? e, call.Key); }
+        }
+    }
+
+    static readonly Dictionary<(Type, string), MethodInfo> receiverCache = new Dictionary<(Type, string), MethodInfo>();
+    static readonly HashSet<(Type, string)> ambiguous = new HashSet<(Type, string)>();
+
+    // The method SendMessage would call on a `type` (null if none); false if
+    // only SendMessage itself can say (overloads, parameters, coroutines).
+    static bool Receiver(Type type, string method, out MethodInfo found)
+    {
+        var key = (type, method);
+        if (ambiguous.Contains(key)) { found = null; return false; }
+        if (receiverCache.TryGetValue(key, out found)) return true;
+        found = null;
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        for (var t = type; t != null && t != typeof(MonoBehaviour); t = t.BaseType)
+        {
+            var named = Array.FindAll(t.GetMethods(flags), m => m.Name == method);
+            if (named.Length == 0) continue;
+            var m0 = named[0];
+            if (named.Length > 1 || m0.GetParameters().Length != 0 || m0.ReturnType != typeof(void) ||
+                m0.IsGenericMethodDefinition)
+            {
+                ambiguous.Add(key);
+                return false;
+            }
+            found = m0;
+            break;
+        }
+        receiverCache[key] = found;
+        return true;
+    }
+
+    // Every editor scene swap (NewScene / OpenScene) unloads "unused" assets,
+    // and that includes the sprites and textures the game builds at runtime
+    // (Sprite.Create / new Texture2D) and caches in statics: the caches then
+    // hold dead entries and rebuild them. In a player those caches live for
+    // the whole session. Rebuilding is expensive in the editor -- the build
+    // target's textures are ETC2, and Sprite.Create's tight outline decodes
+    // the whole atlas on the CPU (~0.5-1s for the gun roster) -- and suites
+    // that make a fresh scene per case paid it hundreds of times (minutes).
+    // So, inside a Sandbox, runtime-made sprites/textures survive scene swaps
+    // like they do in the game; when the Sandbox ends they become unloadable
+    // again, so suites still don't share them.
+    static int keepDepth;
+    static readonly List<UnityEngine.Object> kept = new List<UnityEngine.Object>();
+
+    static void KeepRuntimeArt(bool begin)
+    {
+        if (begin)
+        {
+            if (keepDepth++ == 0)
+            {
+                EditorSceneManager.sceneClosing += OnSceneClosing;
+                EditorSceneManager.sceneOpening += OnSceneOpening;
+            }
+            return;
+        }
+        if (keepDepth == 0 || --keepDepth > 0) return;
+        EditorSceneManager.sceneClosing -= OnSceneClosing;
+        EditorSceneManager.sceneOpening -= OnSceneOpening;
+        foreach (var o in kept)
+            if (o != null) o.hideFlags &= ~HideFlags.DontSave;
+        kept.Clear();
+    }
+
+    // AllTests: slice the shared FX atlases once for the whole run instead
+    // of once per suite. ShipFxArt's sheets are 480 Sprite.Create()s over
+    // two ETC2 atlases (~4.4s); a dozen suites that build a ship each paid
+    // it. They depend on nothing but the imported textures, so every suite
+    // gets the same sprites it would have sliced itself -- each Sandbox
+    // snapshots the warm cache and puts it back. Released by EndRun.
+    static readonly List<UnityEngine.Object> runKept = new List<UnityEngine.Object>();
+
+    public static void BeginRun()
+    {
+        ShipFxArt.AttackLoop(ShipId.Starter, 0);
+        ShipFxArt.MeterFill(ShipId.Starter, 0);
+        foreach (var o in Resources.FindObjectsOfTypeAll<Sprite>())
+        {
+            if ((o.hideFlags & HideFlags.DontSave) != 0 || EditorUtility.IsPersistent(o)) continue;
+            o.hideFlags |= HideFlags.DontSave;
+            runKept.Add(o);
+        }
+    }
+
+    public static void EndRun()
+    {
+        foreach (var o in runKept)
+            if (o != null) o.hideFlags &= ~HideFlags.DontSave;
+        runKept.Clear();
+    }
+
+    static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing) { KeepNow(); }
+    static void OnSceneOpening(string path, OpenSceneMode mode) { KeepNow(); }
+
+    static void KeepNow()
+    {
+        Keep(Resources.FindObjectsOfTypeAll<Sprite>());
+        Keep(Resources.FindObjectsOfTypeAll<Texture2D>());
+    }
+
+    static void Keep(UnityEngine.Object[] objects)
+    {
+        foreach (var o in objects)
+        {
+            if ((o.hideFlags & HideFlags.DontSave) != 0) continue;
+            if (EditorUtility.IsPersistent(o)) continue;   // an asset: reloads from disk anyway
+            o.hideFlags |= HideFlags.DontSave;
+            kept.Add(o);
         }
     }
 

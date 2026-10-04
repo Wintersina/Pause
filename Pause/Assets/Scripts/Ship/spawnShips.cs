@@ -51,6 +51,15 @@ public class spawnShips : MonoBehaviour
         var animator = instance.GetComponent<Animator>();
         if (animator != null) animator.enabled = false;
 
+        // The same four prefabs (ship4-7: Crimson Halo, Ion Lancer, Jade
+        // Phantom, Gold Warden) never had a lifeControler -- their 2016
+        // animator was their only "art" -- so those ships flew with the rest
+        // sprite set below for the whole run: no damaged / critical drawing
+        // (in any skin), no idle loop, bank or hit flash, no damage FX. Every
+        // gameplay ship (it has a collisionDetection) gets the hull driver.
+        if (instance.GetComponent<collisionDetection>() != null && instance.GetComponent<lifeControler>() == null)
+            instance.AddComponent<lifeControler>();
+
         var hull = instance.GetComponent<SpriteRenderer>();
         Sprite sprite = shopingShips.SpriteFor(id);
         if (hull != null && sprite != null)

@@ -271,6 +271,42 @@ CONCEPTS = {
 }
 
 
+# ------------------------------------------------------- per-skin damage --
+# A skin can carry its own damage design instead of its ship's D entry:
+#
+#   SKIN_D[("NeonComet", "Night")] = {
+#       1: ([...features, same kinds and form refs as D...], None),
+#       2: ([...], None),
+#       "seed": "NeonComet/Night",     # optional: reseeds the last-life wreck
+#   }
+#
+# Keys are (ship key, skin name as in skins.py); the stock skin always uses D.
+# A state left out falls back to the ship's D entry for that state. The
+# emitters slot must stay None (inherit the ship's): the game's emitter table
+# (ShipDamageTable.cs) is per ship, not per skin, so build_skins.py refuses a
+# skin whose emitters differ. Every feature is clipped to its form, so a
+# skin's damage keeps the stock sheet's exact alpha (asserted by
+# build_skins.py and by ShipDamageTest in Unity).
+SKIN_D = {}
+
+
+def table_for(key, skin=None):
+    """The damage table ship `key` is drawn with in `skin` (a skin name, or
+    None / "Stock" for the ship's own): {1: (features, emitters), 2: ...}."""
+    base = D[key]
+    over = SKIN_D.get((key, skin)) if skin and skin != "Stock" else None
+    if not over:
+        return base
+    out = {}
+    for state in (1, 2):
+        feats, emits = over.get(state, base[state])
+        assert emits is None or emits == base[state][1], (
+            f"{key} {skin}: per-skin emitters need a per-skin ShipDamageTable; leave them None")
+        out[state] = (feats, base[state][1])
+    out["seed"] = over.get("seed")
+    return out
+
+
 # ------------------------------------------------------------- attaching --
 def form_ref(fm):
     xs = [p[0] for p in fm.outline]
@@ -279,11 +315,12 @@ def form_ref(fm):
     return fm.name + side
 
 
-def attach(ship, m):
-    """Maps the ship's damage table through its fit `m` (design -> canvas) and
-    stores ship.damage = {state: [features]} (cumulative) and
-    ship.emitters = {state: [emitters new at that state]}."""
-    table = D[ship.key]
+def attach(ship, m, skin=None):
+    """Maps the ship's damage table (or `skin`'s own, SKIN_D) through its fit
+    `m` (design -> canvas) and stores ship.damage = {state: [features]}
+    (cumulative) and ship.emitters = {state: [emitters new at that state]}."""
+    table = table_for(ship.key, skin)
+    ship.damage_seed = table.get("seed") or ship.key
     refs = {}
     for i, fm in enumerate(ship.forms):
         refs.setdefault(form_ref(fm), i)
@@ -569,7 +606,8 @@ def _area(pts):
 
 def wreck(ship, acc):
     """The last life's extra features: (chars, extras, smolder points)."""
-    rng = random.Random(sum(ord(c) * (i + 1) for i, c in enumerate(ship.key)))
+    seed = getattr(ship, "damage_seed", None) or ship.key
+    rng = random.Random(sum(ord(c) * (i + 1) for i, c in enumerate(seed)))
     keep = _keepout(ship)
     row1 = ship.damage.get(1, [])
     taken = [(_centre(ft), 7) for ft in acc]

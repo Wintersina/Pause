@@ -98,10 +98,13 @@ def fit(ship, aspect):
     return ship
 
 
-def load(key):
+def load(key, skin=None):
+    """Ship `key`, fitted, with its damage attached -- the skin's own damage
+    design when damage.SKIN_D has one for `skin` (a skin name), else the
+    ship's."""
     w, h = OLD_RECTS[key]
     ship = fit(BUILDERS[key](), w / h)
-    return damage.attach(ship, ship.fit)
+    return damage.attach(ship, ship.fit, skin)
 
 
 # ------------------------------------------------------------- rendering --

@@ -89,6 +89,8 @@ public static class TargetExplosion
     // leave blasts hanging for seconds.
     public static float Delta()
     {
+        // The death crash plays its blasts over the frozen world.
+        if (DeathCrash.Animating) return DeathCrash.FrameDt;
         if (Time.timeScale <= 0f) return 0f;
         float dt = Time.deltaTime;
         if (ShipPowerController.CinematicClearActive) dt = Mathf.Max(dt, Time.unscaledDeltaTime * .5f);

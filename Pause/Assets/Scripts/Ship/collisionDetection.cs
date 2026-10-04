@@ -211,7 +211,11 @@ public class collisionDetection : MonoBehaviour {
             // creating different explotions for different enims
             // Under the boost shield (or Cloak) the player destroys the
             // mine, and the weapon explosion below covers it.
-            if (PrefabName.Is(hit.gameObject, "mine") && !safe)
+            // The last life: the ship breaks up and crashes into the rails
+            // (DeathCrash), and the killer with it -- a mine tumbles into a
+            // rail rather than bursting here.
+            bool fatal = !safe && lifeCounter + 1 >= MAXLIFE;
+            if (PrefabName.Is(hit.gameObject, "mine") && !safe && !fatal)
             {
                 RailBombAnimator.Burst(hit.gameObject);   // the mine's own burst frame under the blast
                 EnemyDeathAudio.Play(hit.gameObject);
@@ -256,12 +260,6 @@ public class collisionDetection : MonoBehaviour {
                 Vector3 shipPos = this.gameObject.transform.position;
                 Quaternion shipRot = this.gameObject.transform.rotation;
 
-                // kill the player
-                GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
-                PlayExplosion();
-
-
-                //exp.transform.position = hit.gameObject.transform.position;
                 if (lifeCounter >= MAXLIFE)
                 {
                     buttonClicks.playerDied = true;
@@ -271,11 +269,21 @@ public class collisionDetection : MonoBehaviour {
                     achievementAPICalls.leaderboard_highest_speed_reached(Mathf.Round(moveBackGround.speed * 100));
                     // End of the run: flush the batched achievement counters.
                     PrefsSaver.SaveNow();
-                    Destroy(gameObject);
+                    PlayExplosion();
+                    // The crash sequence takes over: the hull breaks up, its
+                    // pieces (and a solid killer) slam into the rails, and
+                    // only then is the ship destroyed and the Flight Complete
+                    // panel shown (DeathCrash.PanelReady).
+                    DeathCrash.Begin(gameObject, hit.gameObject);
+                }
+                else
+                {
+                    GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
+                    PlayExplosion();
+                    Destroy(exp, 2);
                 }
                 else PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 Destroy(hit.gameObject);
-                Destroy(exp, 2);
 
             }
         }
@@ -339,8 +347,13 @@ public class collisionDetection : MonoBehaviour {
             {
                 cooldownAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Cooldown, hit.transform.position);
-                if (ShipPowerController.Instance != null) ShipPowerController.Instance.ReduceWeaponCooldown();
-                if (hypeText != null) hypeText.text = "WEAPON CHARGED";
+                // cuts min(12 s, what's left) off the charge; the word says
+                // which: "WEAPON CHARGED" or "-12s CHARGE"
+                if (ShipPowerController.Instance != null)
+                {
+                    string word = ShipPowerController.Instance.CollectCooldownAtom();
+                    if (hypeText != null) hypeText.text = word;
+                }
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
