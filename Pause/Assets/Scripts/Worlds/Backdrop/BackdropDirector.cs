@@ -31,6 +31,9 @@ public abstract class BackdropDirector
     protected abstract void Build();
     protected abstract void Step(float dt, float v);
 
+    // Releases anything the director created itself (materials, textures).
+    public virtual void Teardown() { }
+
     public void Tick(float dt, float velocity)
     {
         clock += dt;

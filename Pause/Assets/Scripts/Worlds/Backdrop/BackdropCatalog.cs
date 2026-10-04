@@ -38,6 +38,9 @@ public static class BackdropCatalog
         public float flow;          // Strip: extra units/s on top of the parallax
         public float wobble;        // Strip: heat-shimmer sway, units
         public Color tint;
+        public float wrapBlend;     // Tile: fraction of the art cross-faded into its start (seamless whatever the art's wrap)
+
+        public Layer WrapBlended(float fraction) { var l = this; l.wrapBlend = fraction; return l; }
 
         public static Layer Tile(string name, float rate, Color tint, Role role = Role.Ground)
         {
@@ -79,6 +82,7 @@ public static class BackdropCatalog
     }
 
     public const int BaseOrder = -500;
+    public const float SkyWrapBlend = 0.1f;
 
     public const string AtlasFx = "fx";
     public const string AtlasAnim = "anim";
@@ -91,7 +95,9 @@ public static class BackdropCatalog
         // are the depth tiers its bodies (planets, stations, moons) are dealt
         // into -- see SpaceDirector.Tiers; comets pass behind all of them.
         new Spec { world = "Space", layers = new[] {
-            Layer.Tile("sky", 0.010f, W, Role.Sky),
+            // Codex's sky.png doesn't wrap cleanly on its own: its last 10% is
+            // cross-faded into its first rows at render time (BackdropSkyWrap).
+            Layer.Tile("sky", 0.010f, W, Role.Sky).WrapBlended(SkyWrapBlend),
             Layer.Pieces("wisps", 0.016f, Role.Sky),
             Layer.Pieces("galaxies", 0.022f, Role.Sky),
             Layer.Pieces("stars", 0.030f, Role.Sky),
