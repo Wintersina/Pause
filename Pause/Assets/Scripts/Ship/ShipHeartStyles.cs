@@ -101,7 +101,7 @@ public static class ShipHeartStyles
                 // hanging off the wing tip (never into the flame), each
                 // further one out and down
                 float x = Mathf.Max((s > 0f ? f.hullR : -f.hullL) - h * .1f, (s > 0f ? f.flameR : -f.flameL) + g + h * .5f);
-                return new Vector2(s * (x + rank * h * .7f), top - rank * h * (oneSided ? .3f : .6f));
+                return new Vector2(s * (x + rank * h * .7f), top - rank * h * (oneSided ? .15f : .6f));
             }
             case HeartStyle.CometTrail:
             {

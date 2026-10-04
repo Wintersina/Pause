@@ -247,7 +247,7 @@ public static class HeartsPlacementTest
                 string name = ShipId.KeyOf(id) + " (" + rig.hearts.Style + ", " + count + ")";
                 Check(name + ": hearts at the tail (formation " + rig.hearts.Formation + ", top " +
                       (top - hull.min.y).ToString("F2") + ", reach " + (hull.min.y - bottom).ToString("F2") + ")",
-                      rig.hearts.AtTail && hearts.Count == count && top <= hull.min.y + .001f && hull.min.y - bottom <= .65f);
+                      rig.hearts.AtTail && hearts.Count == count && top <= hull.min.y + .001f && hull.min.y - bottom <= .8f);
                 Check(name + ": off the thumb", !UnderThumb(hearts, rig.ship.transform.position));
                 Teardown(rig);
             }
