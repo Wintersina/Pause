@@ -22,12 +22,14 @@ public static class TestHarness
 {
     // Set by AllTests.RunFast for its run only; always false otherwise.
     public static bool Fast;
+    public static int SkippedSlow;
 
     // Wrap a long simulation / big render check: `if (TestHarness.Slow("...")) LongCheck();`
     // Runs it everywhere except AllTests.RunFast, which logs the skip.
     public static bool Slow(string what)
     {
         if (!Fast) return true;
+        SkippedSlow++;
         Debug.Log("[FAST] skipped slow check: " + what);
         return false;
     }
@@ -247,6 +249,33 @@ public static class TestHarness
         foreach (var o in kept)
             if (o != null) o.hideFlags &= ~HideFlags.DontSave;
         kept.Clear();
+    }
+
+    // AllTests: slice the shared FX atlases once for the whole run instead
+    // of once per suite. ShipFxArt's sheets are 480 Sprite.Create()s over
+    // two ETC2 atlases (~4.4s); a dozen suites that build a ship each paid
+    // it. They depend on nothing but the imported textures, so every suite
+    // gets the same sprites it would have sliced itself -- each Sandbox
+    // snapshots the warm cache and puts it back. Released by EndRun.
+    static readonly List<UnityEngine.Object> runKept = new List<UnityEngine.Object>();
+
+    public static void BeginRun()
+    {
+        ShipFxArt.AttackLoop(ShipId.Starter, 0);
+        ShipFxArt.MeterFill(ShipId.Starter, 0);
+        foreach (var o in Resources.FindObjectsOfTypeAll<Sprite>())
+        {
+            if ((o.hideFlags & HideFlags.DontSave) != 0 || EditorUtility.IsPersistent(o)) continue;
+            o.hideFlags |= HideFlags.DontSave;
+            runKept.Add(o);
+        }
+    }
+
+    public static void EndRun()
+    {
+        foreach (var o in runKept)
+            if (o != null) o.hideFlags &= ~HideFlags.DontSave;
+        runKept.Clear();
     }
 
     static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing) { KeepNow(); }

@@ -186,6 +186,7 @@ public static class AllTests
             Application.SetStackTraceLogType(t, StackTraceLogType.None);
         }
         TestHarness.Fast = fast;
+        TestHarness.SkippedSlow = 0;
         Application.logMessageReceived += OnLog;
         Debug.Log("[ALL] " + (fast ? "RunFast" : only != null ? "RunSuites" : "RunAll") + ": " + selected.Count +
                   " suites; editor startup took " + startup.TotalSeconds.ToString("F1") + "s");
@@ -194,6 +195,12 @@ public static class AllTests
         var times = new List<(string name, double seconds)>();
         try
         {
+            if (selected.Count > 3)   // pays off once several suites build ships
+            {
+                var warm = Stopwatch.StartNew();
+                TestHarness.BeginRun();
+                Debug.Log("[ALL] shared art warmed in " + warm.Elapsed.TotalSeconds.ToString("F1") + "s");
+            }
             foreach (var suite in selected)
             {
                 loggedFails = 0;
@@ -227,6 +234,7 @@ public static class AllTests
         {
             Application.logMessageReceived -= OnLog;
             TestHarness.Fast = false;
+            TestHarness.EndRun();
             foreach (var pair in traces) Application.SetStackTraceLogType(pair.Key, pair.Value);
         }
 
@@ -234,6 +242,7 @@ public static class AllTests
                                                        .Select(t => t.name + " " + t.seconds.ToString("F1") + "s")));
         Debug.Log("[ALL] " + selected.Count + " suites, " + failed + " failures, tests " +
                   all.Elapsed.TotalSeconds.ToString("F1") + "s (startup " + startup.TotalSeconds.ToString("F1") + "s)");
+        if (fast) Debug.Log("[ALL] RunFast skipped " + TestHarness.SkippedSlow + " slow checks (RunAll runs them)");
         Debug.Log("[ALL] RESULT: " + (failed == 0 ? "PASS" : "FAIL") + " failures=" + failed +
                   " failed=" + string.Join(",", failedNames));
         EditorApplication.Exit(failed == 0 ? 0 : 1);

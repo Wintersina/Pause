@@ -43,7 +43,7 @@ public static class EnemyRosterTest
         NameKeysStillMatch();
         ExplosionVariantsMatchTheCast();
         SpawnerPicksFromTheCurrentWorld();
-        HeaviesKeepEveryRowPassable();
+        if (TestHarness.Slow("EnemyRoster: 240s spawner run per world")) HeaviesKeepEveryRowPassable();
         SceneSlotsAreNeverNull();
         RetiredMeteorsAreGone();
         PaletteCompliance();
