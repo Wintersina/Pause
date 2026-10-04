@@ -25,7 +25,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 8. **Installed and validated — `verdant_fighter_4`:** Hornet Queen rebuilt as a heavy, weathered bio-industrial matriarch with damaged leaf-metal wings, chipped pruning scythes, a toxic resin abdomen, and a queen stinger; live strip is Preview-opened and roster-validated.
 9. **Installed and validated — `ember_fighter_1`:** Cinder rebuilt as a compact scorched forge-dart with jagged heat-shield plates, orange furnace vents, and a magenta furnace jaw; live strip is Preview-opened and roster-validated.
 10. **Installed and validated — `ember_fighter_2`:** Scorch rebuilt as a scorched fork-claw with uneven molten vents and a sodium-white furnace core; live strip is Preview-opened and roster-validated.
-11. **Queued — `ember_fighter_3`**
+11. **Installed and validated — `ember_fighter_3`:** Brand rebuilt as a lean scorched furnace flier with hooked ember-edged exhaust fins, a magenta heat slit, and a compact lower boiler; live strip is Preview-opened and roster-validated.
 12. **Queued — `ember_fighter_4`**
 13. **Queued — `verdant_alien`**
 14. **Queued — `ember_alien`**
