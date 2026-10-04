@@ -401,10 +401,16 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float DensityMultiplier()
     {
-        float levelLength = WorldManager.Instance != null ? WorldManager.Instance.WorldLength : 180f;
+        float levelLength = WorldManager.BaselineWorldSeconds;
         float finalStart = Mathf.Max(DensityFirstMinute, levelLength - DensityFinalStretch);
 
         if (elapsedFlightSeconds >= finalStart) return DensityFinalMultiplier;
+        // A fast start (ShipStartSpeed) ends the world sooner: the final
+        // stretch is then the last 30s of flight before the boss, however
+        // early. (Only while the level is still being flown.)
+        var world = WorldManager.Instance;
+        if (world != null && world.DistanceLeft > 0f && world.SecondsLeftInWorld <= DensityFinalStretch)
+            return DensityFinalMultiplier;
 
         int tick = Mathf.FloorToInt(elapsedFlightSeconds / DensityTickSeconds);
 

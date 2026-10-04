@@ -20,7 +20,9 @@ public class moveBackGround : MonoBehaviour {
 
     void Start () {
         offsetY = 0f;
-        speed = startSpeed;
+        // gameS1 (a WorldManager is up): the equipped ship and colour's
+        // start speed (ShipStartSpeed). The tutorial keeps its own.
+        speed = WorldManager.Instance != null ? WorldManager.RunStartSpeed(startSpeed) : startSpeed;
         var r = GetComponent<Renderer>();
         wallMaterial = r != null ? r.material : null;
         Screen.orientation = ScreenOrientation.Portrait;
