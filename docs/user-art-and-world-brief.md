@@ -17,7 +17,7 @@ This is the authoritative working brief consolidated from the art-direction conv
 1. Rebuild one asset or one coherent family at a time.
 2. Stage the fresh raster candidate first.
 3. Open every completed section in Preview for review.
-4. Install it into the live game only after approval; preserve the existing Unity `.meta` importer/GUID.
+4. Install it into the live game only after approval, or after the user has explicitly delegated art-direction approval; preserve the existing Unity `.meta` importer/GUID.
 5. Validate the exact dimensions, alpha, frame contract, and relevant Unity tests.
 6. Delete superseded old vector/source art only after every matching live replacement is installed and verified. Do not delete it early.
 
