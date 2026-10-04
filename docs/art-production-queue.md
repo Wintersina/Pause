@@ -24,7 +24,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 7. **Installed and validated — `verdant_fighter_3`:** Mantis rebuilt as a rugged pruning mech with an iron boiler head, chartreuse reactor eye, and oversized chipped bone-and-steel scythes; live strip is Preview-opened and roster-validated.
 8. **Installed and validated — `verdant_fighter_4`:** Hornet Queen rebuilt as a heavy, weathered bio-industrial matriarch with damaged leaf-metal wings, chipped pruning scythes, a toxic resin abdomen, and a queen stinger; live strip is Preview-opened and roster-validated.
 9. **Installed and validated — `ember_fighter_1`:** Cinder rebuilt as a compact scorched forge-dart with jagged heat-shield plates, orange furnace vents, and a magenta furnace jaw; live strip is Preview-opened and roster-validated.
-10. **Queued — `ember_fighter_2`**
+10. **Installed and validated — `ember_fighter_2`:** Scorch rebuilt as a scorched fork-claw with uneven molten vents and a sodium-white furnace core; live strip is Preview-opened and roster-validated.
 11. **Queued — `ember_fighter_3`**
 12. **Queued — `ember_fighter_4`**
 13. **Queued — `verdant_alien`**
