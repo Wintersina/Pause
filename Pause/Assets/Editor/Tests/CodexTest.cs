@@ -34,6 +34,7 @@ public static class CodexTest
         Codex.Reload();
 
         CheckCatalogue();
+        CheckAnimationCatalogue();
         CheckSpawnerCoverage();
         CheckDiscovery();
         CheckDeveloperMode();
@@ -327,7 +328,8 @@ public static class CodexTest
               Regex.Matches(worlds, @"Codex\.Discover\(Codex\.WorldId\(CurrentIndex\)\);").Count == 2);
 
         var scaled = new Regex(@"Time\.(time|deltaTime|fixedDeltaTime|smoothDeltaTime)\b|WaitForSeconds\(");
-        foreach (var file in new[] { "CodexPanel.cs", "CodexToast.cs", "CodexHomeButton.cs", "CodexUi.cs" })
+        foreach (var file in new[] { "CodexPanel.cs", "CodexToast.cs", "CodexHomeButton.cs", "CodexUi.cs",
+                                     "CodexAnimator.cs", "CodexAnimations.cs" })
         {
             string src = File.ReadAllText("Assets/Scripts/Codex/" + file);
             Check(file + " never reads scaled time", !scaled.IsMatch(src));
@@ -593,10 +595,14 @@ public static class CodexTest
         }
 
         CheckSections(panel, entry);
+        CheckPanelAnimation(panel);
 
         panel.Close();
         panel.SkipAnimations();
         Check("closing hides the panel", !panel.IsOpen && !panel.gameObject.activeSelf);
+        bool anyTicking = panel.DetailAnimator.Ticking;
+        for (int i = 0; i < panel.VisibleCards; i++) anyTicking |= panel.CardAnimator(i).Ticking;
+        Check("closing pauses every animation (panel inactive, nothing ticking)", !anyTicking && !panel.isActiveAndEnabled);
         Check("closing hands Back back to the home screen", !BackNavigator.IsRegistered(panel));
 
         // Reopening reuses the same panel.
@@ -816,6 +822,437 @@ public static class CodexTest
         int n = 0;
         for (int i = 0; i < CodexPanel.MaxSections; i++) if (panel.ChipRect(i).gameObject.activeSelf) n++;
         return panel.ChipsRoot.gameObject.activeSelf ? n : 0;
+    }
+
+    // ---- Animated art: resolvers, loaders, single frames ----
+
+    // Distinct idle drawings the entry's own game loader has, read directly
+    // from that loader (not through the codex), so a loader that gains
+    // frames must show up animating below.
+    static int LoaderIdleFrames(CodexEntry e)
+    {
+        var drawings = new HashSet<Sprite>();
+        switch (CodexAnimations.KindOf(e))
+        {
+            case CodexAnimKind.Enemy:
+            case CodexAnimKind.Mine:
+            {
+                var frames = EnemyArt.Frames(EnemyRoster.FindByCodexId(e.id));
+                if (frames != null) for (int i = 0; i < Mathf.Min(EnemyRoster.TellFrame, frames.Length); i++) drawings.Add(frames[i]);
+                break;
+            }
+            case CodexAnimKind.Boss:
+                for (int i = 0; i < BossArt.IdleFrames; i++) drawings.Add(BossArt.Body(BossCatalog.Find(e.id), BossArt.Idle0 + i));
+                break;
+            case CodexAnimKind.Atom:
+            {
+                PickupKind kind;
+                if (CodexAnimations.TryPickupKind(e.id, out kind))
+                    foreach (var s in PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length)) drawings.Add(s);
+                break;
+            }
+            case CodexAnimKind.Ship:
+                for (int d = 0; d < ShipHullArt.IdleDrawings; d++)
+                    drawings.Add(ShipHullArt.Get(CodexCatalogue.ShipIndex(e.id), ShipSkins.Stock, 0, d));
+                break;
+            case CodexAnimKind.Portal:
+                for (int i = 0; i < TeleportPortalSprites.FrameCount; i++) drawings.Add(TeleportPortalSprites.FrameAt(i));
+                break;
+            default:
+                if (e.Sprite != null) drawings.Add(e.Sprite);
+                break;
+        }
+        drawings.Remove(null);
+        return drawings.Count;
+    }
+
+    static CodexAnimKind ExpectedKind(CodexEntry e)
+    {
+        switch (e.category)
+        {
+            case CodexCategory.Log: return CodexAnimKind.Log;
+            case CodexCategory.Atoms: return CodexAnimKind.Atom;
+            case CodexCategory.Ships: return CodexAnimKind.Ship;
+            case CodexCategory.Worlds: return e.id == CodexCatalogue.PortalId ? CodexAnimKind.Portal : CodexAnimKind.World;
+        }
+        if (BossCatalog.Find(e.id) != null) return CodexAnimKind.Boss;
+        return EnemyRoster.FindByCodexId(e.id).role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy;
+    }
+
+    // A loose animator on a 200x200 box, outside any panel.
+    static CodexAnimator TestAnimator(out GameObject root)
+    {
+        root = new GameObject("CodexAnimTest", typeof(RectTransform), typeof(Canvas));
+        var box = CodexUi.NewRect("Box", root.transform);
+        box.sizeDelta = new Vector2(200f, 200f);
+        var img = CodexUi.NewImage("Art", box, null, Color.white);
+        return CodexAnimator.On(img);
+    }
+
+    // Steps the animator for `seconds`; returns the distinct drawings it showed.
+    static int Run(CodexAnimator a, float seconds, float dt = 1f / 30f)
+    {
+        var seen = new HashSet<Sprite>();
+        if (a.Shown != null) seen.Add(a.Shown);
+        for (float t = 0f; t < seconds; t += dt)
+        {
+            a.Advance(dt);
+            if (a.Shown != null) seen.Add(a.Shown);
+        }
+        return seen.Count;
+    }
+
+    static void CheckAnimationCatalogue()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        GameObject root;
+        var animator = TestAnimator(out root);
+        try
+        {
+            foreach (var e in Codex.Entries)
+            {
+                var a = CodexAnimations.For(e);
+                Check(e.id + " resolves an animation (" + (a != null ? a.kind.ToString() : "none") + ")", a != null && a.HasArt);
+                if (a == null) continue;
+                Check(e.id + " uses its kind's resolver (" + ExpectedKind(e) + ")", a.kind == ExpectedKind(e));
+                Check(e.id + " animation is cached, frames and all", CodexAnimations.For(e) == a);
+
+                // Future-proof: whatever the loader holds plays here.
+                int loader = LoaderIdleFrames(e);
+                animator.Bind(a, false, false);
+                int shown = Run(animator, a.IdleLoopSeconds * 1.5f + .5f);
+                if (loader > 1)
+                    Check(e.id + ": all " + loader + " idle drawings of its loader play in the codex (" + shown + ")",
+                          a.Animates && shown == loader && animator.FrameChanges > 0);
+                else
+                    Check(e.id + ": single-drawing art stays on its one drawing (" + shown + ")", shown == 1);
+            }
+
+            // Who animates, and how.
+            Check("log entries are static", !CodexAnimations.For(Codex.Find("log_pilot")).Animates);
+            var frost = CodexAnimations.For(Codex.Find("world_frost"));
+            Check("worlds pan slowly in their round window", frost.Animates && frost.fit == CodexAnimation.FitMode.Cover &&
+                                                              frost.driftPeriod >= 10f);
+            var portal = CodexAnimations.For(Codex.Find(CodexCatalogue.PortalId));
+            Check("the portal plays its frames and turns", portal.distinctIdle > 1 && portal.spinDegreesPerSecond != 0f);
+            int spinners = 0;
+            foreach (int id in ShipId.All)
+            {
+                var sa = CodexAnimations.For(Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(id)));
+                bool spins = sa.spinDegreesPerSecond != 0f;
+                if (spins) spinners++;
+                Check("ship " + ShipId.KeyOf(id) + (ShipExhaust.UsesWind(id) ? " spins" : " doesn't spin"), spins == ShipExhaust.UsesWind(id));
+            }
+            Check("the spinners (Ninja, UFO) turn in the codex", spinners == 2);
+            var green = CodexAnimations.For(Codex.Find("atom_green"));
+            Check("the green atom keeps its original drawing under its overlay loop",
+                  green.under != null && green.under.texture.name == "heal_atom_green" && green.distinctIdle > 1);
+            var mine = CodexAnimations.For(Codex.Find("hazard_mine"));
+            Check("the rail mine idles dormant with its waking blink (RailMineArt)",
+                  mine.kind == CodexAnimKind.Mine && mine.idle[0] == RailMineArt.Frame(0, RailMineArt.Dormant) &&
+                  Array.IndexOf(mine.idle, RailMineArt.Frame(0, RailMineArt.Waking)) >= 0 && mine.HasTell);
+            var needle = CodexAnimations.For(Codex.Find("enemy_space_fighter_1"));
+            var def = EnemyRoster.FindByCodexId("enemy_space_fighter_1");
+            Check("an enemy's loop is EnemyArt's frames on EnemyRoster's idle ticks",
+                  needle.idle[0] == EnemyArt.Frame(def, 0) && needle.idle[3] == EnemyArt.Frame(def, 3) &&
+                  Mathf.Abs(needle.idleHold[0] - EnemyRoster.IdleTicks(def.role)[0] * EnemyFlipbook.TickSeconds) < 1e-5f &&
+                  needle.HasTell && needle.tells[0][0] == EnemyArt.Frame(def, EnemyRoster.TellFrame));
+            var boss = CodexAnimations.For(Codex.Find(BossCatalog.All[0].id));
+            Check("a boss's loop is BossArt's idle on BossArt.IdleTicks, with its three tell poses",
+                  boss.idle.Length == BossArt.IdleFrames && boss.idle[1] == BossArt.Body(BossCatalog.All[0], BossArt.Idle0 + 1) &&
+                  Mathf.Abs(boss.IdleLoopSeconds - BossArt.Seconds(BossArt.IdleTicks)) < 1e-4f && boss.tells.Length == 3);
+            var hull = CodexAnimations.For(Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ShipId.Starter)));
+            Check("a ship loops ShipHullArt's idle table (stock skin)",
+                  Mathf.Abs(hull.IdleLoopSeconds - ShipHullArt.IdleLoopTicks / ShipHullArt.TicksPerSecond) < 1e-4f &&
+                  hull.idle[0] == ShipHullArt.StockRest(ShipId.Starter));
+
+            // Single-frame and missing art: static, no errors.
+            var one = Codex.Find("enemy_space_fighter_1").Sprite;
+            var single = CodexAnimation.Loop(CodexAnimKind.Enemy, new[] { one, one, one }, new[] { .1f, .1f, .1f }).Finish();
+            Check("art with one drawing doesn't count as animating", !single.Animates && single.distinctIdle == 1);
+            animator.Bind(single, false, true);
+            Check("a single drawing stays put (no changes, no error)",
+                  Run(animator, 5f) == 1 && animator.FrameChanges == 0 && animator.Shown == one);
+            Check("a loader with no frames resolves nothing to play",
+                  CodexAnimation.Loop(CodexAnimKind.Enemy, new Sprite[] { null, null }, new[] { .1f, .1f }) == null);
+            var missing = new CodexEntry("test_missing_art", "Missing", CodexCategory.Log, () => null, "Nothing to draw here at all.");
+            var none = CodexAnimations.For(missing);
+            animator.Bind(none, false, true);
+            Run(animator, 1f);
+            Check("an entry with no art at all binds and ticks without error", none != null && !none.Animates);
+            animator.Bind(null, true, true);
+            animator.Advance(.5f);
+            Check("binding nothing is harmless", animator.FrameChanges == 0);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(root);
+        }
+    }
+
+    // ---- Animated art in the real panel ----
+
+    static int IndexOf(CodexPanel panel, string id)
+    {
+        for (int i = 0; i < panel.VisibleCards; i++) if (panel.CardEntry(i).id == id) return i;
+        return -1;
+    }
+
+    static void ScrollTo(CodexPanel panel, int card)
+    {
+        float centre = -panel.CardRect(card).anchoredPosition.y;
+        panel.SetScrollY(Mathf.Clamp(centre - panel.Viewport.rect.height * .5f, 0f, panel.MaxScroll));
+    }
+
+    static void Tick(CodexPanel panel, float seconds, float dt = 1f / 30f)
+    {
+        for (float t = 0f; t < seconds; t += dt) panel.TickAnimations(dt);
+    }
+
+    static bool Ink(Graphic g) { return g == null || !g.enabled || (g.color.r < .1f && g.color.g < .1f && g.color.b < .2f); }
+
+    static void CheckPanelAnimation(CodexPanel panel)
+    {
+        panel.ApplyLayout(Screens[1].safe);
+        DeveloperUnlocks.SetEnabled(true);   // bosses listed, everything revealed
+        panel.SkipAnimations();
+
+        // Every kind advances in both the card and the detail view.
+        var probes = new List<(CodexCategory tab, string id)>
+        {
+            (CodexCategory.Enemies, "enemy_space_fighter_1"), (CodexCategory.Enemies, "enemy_frost_alien"),
+            (CodexCategory.Hazards, "hazard_mine"), (CodexCategory.Hazards, "hazard_ember_mine"),
+            (CodexCategory.Hazards, "hazard_rock_dark"),
+        };
+        foreach (var b in BossCatalog.All) probes.Add((CodexCategory.Enemies, b.id));
+        foreach (var e in Codex.Entries)
+            if (e.category == CodexCategory.Atoms || e.category == CodexCategory.Ships || e.category == CodexCategory.Worlds)
+                probes.Add((e.category, e.id));
+        foreach (var (tab, id) in probes)
+        {
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            int i = IndexOf(panel, id);
+            Check(id + " has a card on " + tab, i >= 0);
+            if (i < 0) continue;
+            ScrollTo(panel, i);
+            var a = panel.CardAnimator(i);
+            int before = a.FrameChanges;
+            float clockBefore = a.Clock;
+            Tick(panel, 3f);
+            // A world pans rather than flipping drawings: its clock runs.
+            bool moved = a.FrameChanges > before || (a.Animation != null && a.Animation.distinctIdle <= 1 && a.Clock > clockBefore + 2.9f);
+            Check(id + " card animates on screen (" + (a.FrameChanges - before) + " changes)", panel.CardOnScreen(i) && a.Ticking && moved);
+
+            panel.ShowDetail(panel.CardEntry(i));
+            panel.SkipAnimations();
+            var d = panel.DetailAnimator;
+            Check(id + " detail is bound to the same animation", d.Animation == a.Animation);
+            Tick(panel, 3f);
+            bool dmoved = d.FrameChanges > 0 || (d.Animation != null && d.Animation.distinctIdle <= 1 && d.Clock > 2.9f);
+            Check(id + " detail animates (" + d.FrameChanges + " changes)", d.Ticking && dmoved);
+            bool gridStill = true;
+            for (int k = 0; k < panel.VisibleCards; k++) gridStill &= !panel.CardAnimator(k).Ticking;
+            Check(id + ": the grid behind the detail view doesn't tick", gridStill);
+            panel.ShowGrid();
+            panel.SkipAnimations();
+        }
+
+        // The detail view plays the attack tell now and then; cards never do.
+        panel.ShowCategory(CodexCategory.Enemies);
+        panel.SkipAnimations();
+        panel.SetScrollY(0f);
+        int needle = IndexOf(panel, "enemy_space_fighter_1");
+        bool cardTold = false;
+        for (int k = 0; k < 360; k++) { panel.TickAnimations(1f / 30f); cardTold |= panel.CardAnimator(needle).Telling; }
+        Check("cards play the idle only, never the tell", !cardTold);
+        panel.ShowDetail(Codex.Find("enemy_space_fighter_1"));
+        panel.SkipAnimations();
+        bool told = false, back = false;
+        for (int k = 0; k < 450; k++)
+        {
+            panel.TickAnimations(1f / 30f);
+            if (panel.DetailAnimator.Telling) told = true;
+            else if (told) back = true;
+        }
+        Check("the detail view plays the attack tell every few seconds and returns to idle", told && back);
+        panel.ShowDetail(Codex.Find(BossCatalog.All[1].id));
+        panel.SkipAnimations();
+        bool bossTold = false;
+        for (int k = 0; k < 300; k++) { panel.TickAnimations(1f / 30f); bossTold |= panel.DetailAnimator.Telling; }
+        Check("a boss's detail plays its tell too (dev mode)", bossTold);
+        panel.ShowGrid();
+        panel.SkipAnimations();
+
+        // timeScale 0 (the game's pause) doesn't stop the codex.
+        float oldScale = Time.timeScale;
+        Time.timeScale = 0f;
+        int beforeFrozen = panel.CardAnimator(needle).FrameChanges;
+        Tick(panel, 2f);
+        Check("animation runs at timeScale 0 (" + (panel.CardAnimator(needle).FrameChanges - beforeFrozen) + " changes)",
+              panel.CardAnimator(needle).FrameChanges > beforeFrozen);
+        Time.timeScale = oldScale;
+        string panelSrc = File.ReadAllText("Assets/Scripts/Codex/CodexPanel.cs");
+        Check("the panel ticks its art on unscaled delta time", panelSrc.Contains("TickAnimations(Time.unscaledDeltaTime)"));
+        foreach (var file in new[] { "CodexAnimator.cs", "CodexAnimations.cs" })
+            Check(file + " never reads timeScale", !File.ReadAllText("Assets/Scripts/Codex/" + file).Contains("timeScale"));
+
+        // Off-screen cards hold still.
+        panel.SetScrollY(0f);
+        int off = -1, on = -1;
+        for (int i = 0; i < panel.VisibleCards; i++)
+        {
+            if (!panel.CardOnScreen(i) && panel.CardAnimator(i).Animates && off < 0) off = i;
+            if (panel.CardOnScreen(i) && panel.CardAnimator(i).Animates && on < 0) on = i;
+        }
+        Check("the list has cards both on and off screen", off >= 0 && on >= 0);
+        if (off >= 0 && on >= 0)
+        {
+            int was = panel.CardAnimator(off).FrameChanges;
+            float clock = panel.CardAnimator(off).Clock;
+            Tick(panel, 3f);
+            Check("off-screen cards don't tick", !panel.CardAnimator(off).Ticking &&
+                  panel.CardAnimator(off).FrameChanges == was && panel.CardAnimator(off).Clock == clock);
+            Check("on-screen cards do", panel.CardAnimator(on).Ticking);
+            ScrollTo(panel, off);
+            panel.TickAnimations(1f / 30f);
+            Check("a card scrolled into view starts ticking", panel.CardAnimator(off).Ticking);
+        }
+
+        // Zero allocations: scrolling and animating together.
+        for (int k = 0; k < 120; k++) { panel.SetScrollY((k % 40) * (panel.MaxScroll / 40f)); panel.TickAnimations(1f / 60f); }
+        long before0 = GC.GetAllocatedBytesForCurrentThread();
+        for (int k = 0; k < 600; k++) { panel.SetScrollY((k % 100) * (panel.MaxScroll / 100f)); panel.TickAnimations(1f / 60f); }
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before0;
+        Check("animating while scrolling allocates nothing (" + allocated + " bytes)", allocated == 0);
+        panel.ShowDetail(Codex.Find(BossCatalog.All[0].id));
+        panel.SkipAnimations();
+        for (int k = 0; k < 120; k++) panel.TickAnimations(1f / 60f);
+        before0 = GC.GetAllocatedBytesForCurrentThread();
+        for (int k = 0; k < 600; k++) panel.TickAnimations(1f / 60f);
+        allocated = GC.GetAllocatedBytesForCurrentThread() - before0;
+        Check("animating the detail view (tells included) allocates nothing (" + allocated + " bytes)", allocated == 0);
+        panel.ShowGrid();
+        panel.SkipAnimations();
+
+        // Locked silhouettes animate and never show colour.
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1");
+        Codex.Reload();
+        panel.Refresh();
+        foreach (var tab in new[] { CodexCategory.Enemies, CodexCategory.Hazards, CodexCategory.Atoms, CodexCategory.Ships })
+        {
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            int lockedCards = 0, moving = 0;
+            bool inkOnly = true;
+            for (int i = 0; i < panel.VisibleCards; i++)
+            {
+                if (Codex.IsDiscovered(panel.CardEntry(i))) continue;
+                lockedCards++;
+                ScrollTo(panel, i);
+                var a = panel.CardAnimator(i);
+                int was = a.FrameChanges;
+                for (int k = 0; k < 60; k++)
+                {
+                    panel.TickAnimations(1f / 30f);
+                    inkOnly &= Ink(a.Image) && Ink(a.Overlay) && panel.CardName(i).text == Codex.LockedName;
+                }
+                if (a.FrameChanges > was || !a.Animates) moving++;
+            }
+            Check(tab + ": locked silhouettes animate (" + moving + "/" + lockedCards + ")", lockedCards > 0 && moving == lockedCards);
+            Check(tab + ": locked silhouettes stay flat ink on every frame (art never revealed)", inkOnly);
+        }
+        panel.ShowCategory(CodexCategory.Atoms);
+        panel.SkipAnimations();
+        panel.ShowDetail(Codex.Find("atom_green"));
+        panel.SkipAnimations();
+        bool detailInk = true;
+        int dWas = panel.DetailAnimator.FrameChanges;
+        for (int k = 0; k < 120; k++)
+        {
+            panel.TickAnimations(1f / 30f);
+            detailInk &= Ink(panel.DetailArt) && Ink(panel.DetailAnimator.Overlay) && panel.DetailName.text == Codex.LockedName;
+        }
+        Check("a locked detail animates as a silhouette (green atom, overlay too)",
+              detailInk && panel.DetailAnimator.FrameChanges > dWas);
+        panel.ShowGrid();
+        panel.SkipAnimations();
+        panel.ShowCategory(CodexCategory.Enemies);
+        panel.SkipAnimations();
+        bool noBoss = true;
+        for (int i = 0; i < panel.VisibleCards; i++) noBoss &= BossCatalog.Find(panel.CardEntry(i).id) == null;
+        Check("bosses stay hidden until met (no silhouette card either)", noBoss);
+
+        // The animated art stays inside its box on every screen.
+        DeveloperUnlocks.SetEnabled(true);
+        foreach (var (name, safe) in Screens)
+        {
+            panel.ApplyLayout(safe);
+            foreach (var c in CodexPanel.Tabs)
+            {
+                panel.ShowCategory(c);
+                panel.SkipAnimations();
+                bool fits = true;
+                for (int i = 0; i < panel.VisibleCards; i++)
+                {
+                    var a = panel.CardAnimator(i);
+                    a.Advance(.4f);
+                    fits &= ArtFits(a, panel.CardArtBox(i));
+                }
+                Check(name + " / " + c + ": animated card art fits its box", fits);
+            }
+            bool detailFits = true;
+            foreach (var id in new[] { CodexCatalogue.ShipPrefix + "Ninja", "hazard_ember_mine", "atom_green", BossCatalog.All[2].id, "world_ember" })
+            {
+                panel.ShowDetail(Codex.Find(id));
+                panel.SkipAnimations();
+                panel.DetailAnimator.Advance(.3f);
+                detailFits &= ArtFits(panel.DetailAnimator, (RectTransform)panel.DetailArt.transform.parent);
+            }
+            Check(name + ": animated detail art fits its frame", detailFits);
+            panel.ShowGrid();
+            panel.SkipAnimations();
+        }
+        DeveloperUnlocks.SetEnabled(false);
+        panel.ApplyLayout(Screens[1].safe);
+    }
+
+    // The drawing (and overlay) inside the art box at any angle it turns
+    // to; a world's cover art fills the box instead (the round mask clips it).
+    static bool ArtFits(CodexAnimator a, RectTransform box)
+    {
+        var anim = a.Animation;
+        if (anim == null || anim.fit == CodexAnimation.FitMode.Stretch) return true;
+        float side = Mathf.Min(box.rect.width, box.rect.height);
+        bool ok = true;
+        foreach (var g in new Graphic[] { a.Image, a.Overlay })
+        {
+            if (g == null || !g.enabled) continue;
+            var rt = g.rectTransform;
+            if (anim.fit == CodexAnimation.FitMode.Cover)
+            {
+                ok &= rt.sizeDelta.x >= side - .5f && rt.sizeDelta.y >= side - .5f &&
+                      Mathf.Abs(rt.anchoredPosition.y) <= (rt.sizeDelta.y - side) * .5f + .5f;
+                continue;
+            }
+            Vector2 c = rt.anchoredPosition, h = rt.sizeDelta * .5f;
+            if (anim.spinDegreesPerSecond != 0f)
+                ok &= c.magnitude + h.magnitude <= side * .5f * Mathf.Sqrt(2f) + .5f && UnionDiagonalFits(anim, rt, side);
+            else ok &= Mathf.Abs(c.x) + h.x <= side * .5f + .5f && Mathf.Abs(c.y) + h.y <= side * .5f + .5f;
+        }
+        if (!ok) Debug.Log("[CDX] art outside its box: " + anim.kind + " " + a.Image.rectTransform.sizeDelta + " in " + side);
+        return ok;
+    }
+
+    // A turning drawing is scaled by its diagonal, so its circle fits the box.
+    static bool UnionDiagonalFits(CodexAnimation anim, RectTransform rt, float side)
+    {
+        var s = rt.GetComponent<Image>().sprite;
+        if (s == null) return true;
+        float scale = rt.sizeDelta.x / Mathf.Max(.0001f, s.bounds.size.x);
+        float diag = new Vector2(anim.union.size.x, anim.union.size.y).magnitude * scale;
+        return diag <= side + .5f;
     }
 
     // ---- helpers ----
