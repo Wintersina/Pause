@@ -108,6 +108,12 @@ public static class CooldownAtomTest
         Check("it is a pickUp of kind Cooldown with a collider set up like the red atom's",
               prefab.CompareTag("pickUp") && col != null && redCol != null && col.isTrigger == redCol.isTrigger &&
               PickupArt.TryKindOf(prefab, out kind) && kind == PickupKind.Cooldown);
+        var book = prefab.GetComponent<PickupFlipbook>();
+        Check("its flipbook is the Cooldown idle, and PickupKind's serialized numbers didn't shift " +
+              "(the dust prefabs keep Dust/DustSmall)",
+              book != null && book.kind == PickupKind.Cooldown &&
+              (int)PickupKind.Shield == 0 && (int)PickupKind.Pause == 1 && (int)PickupKind.Dust == 2 &&
+              (int)PickupKind.DustSmall == 3 && (int)PickupKind.Heal == 4);
     }
 
     // ---- spawning ---------------------------------------------------------

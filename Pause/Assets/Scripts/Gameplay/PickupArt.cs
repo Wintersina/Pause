@@ -5,7 +5,9 @@ using UnityEngine;
 // draws every frame; the tick tables below must match its ATOM_IDLE_TICKS,
 // DUST_IDLE, HEAL_IDLE_TICKS and BURST_TICKS). Ticks are 1/24 s, the art
 // guide's flipbook clock.
-public enum PickupKind { Shield, Pause, Cooldown, Dust, DustSmall, Heal }
+// Serialized by number on the pickup prefabs (PickupFlipbook.kind): new
+// kinds go on the end, never in the middle.
+public enum PickupKind { Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5 }
 
 public static class PickupArt
 {

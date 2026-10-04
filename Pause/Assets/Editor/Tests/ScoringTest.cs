@@ -231,7 +231,7 @@ public static class ScoringTest
         var parts = RunScore.Parts;
         Check("the breakdown sums to the total", parts.Total == RunScore.Total);
         Check("source hooks: pickups and kills feed RunScore",
-              Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"), @"RunScore\.On(Dust|Atom|Kill)\(").Count == 6);
+              Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"), @"RunScore\.On(Dust|Atom|Kill)\(").Count == 7);   // + the violet capacitor atom
         Check("source hooks: teleport, world, boss",
               System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("RunScore.OnTeleport(before, transform.position)") &&
               System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("RunScore.OnWorldCleared(CurrentIndex)") &&
@@ -620,7 +620,7 @@ public static class ScoringTest
         Check("the run ending clears them", hud.LivePopups == 0);
         Check("pickups report where they were caught (dust / atom popups)",
               Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"),
-                            @"RunScore\.On(Dust|Atom)\([^;]*hit\.transform\.position\)").Count == 5);
+                            @"RunScore\.On(Dust|Atom)\([^;]*hit\.transform\.position\)").Count == 6);   // + the violet capacitor atom
 
         // Every row still fits; the score row is as wide as it can get.
         hud.ScoreText.text = ScoreHud.Label(9999999);
