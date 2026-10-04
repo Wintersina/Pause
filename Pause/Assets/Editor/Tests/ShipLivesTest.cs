@@ -256,7 +256,7 @@ public static class ShipLivesTest
         Check("dock popup: the heart badge exists", badge != null && title != null);
         if (badge != null && title != null)
         {
-            float panelW = DockPopup.Width / .01f;
+            float panelW = DockPopup.Width / DockPopup.CanvasScale;
             float titleRight = title.anchoredPosition.x + title.sizeDelta.x;            // anchored top-left
             float badgeLeft = panelW + badge.anchoredPosition.x - badge.sizeDelta.x;    // anchored top-right, pivot right
             Check("dock popup: the title stops before the heart badge (" + titleRight.ToString("F0") + " <= " +

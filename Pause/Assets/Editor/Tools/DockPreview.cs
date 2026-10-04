@@ -73,6 +73,35 @@ public static class DockPreview
         EditorApplication.Exit(0);
     }
 
+    // The popup itself (DockPopup.PopupScale): an owned ship with colours and
+    // the weapon row, and an unbought ship with BUY, into
+    // $PAUSE_DOCK_PREVIEW_DIR as <$PAUSE_DOCK_PREVIEW_PREFIX>-<case>-<w>x<h>.png.
+    public static void RunPopup()
+    {
+        string dir = System.Environment.GetEnvironmentVariable("PAUSE_DOCK_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        string prefix = System.Environment.GetEnvironmentVariable("PAUSE_DOCK_PREVIEW_PREFIX");
+        if (string.IsNullOrEmpty(prefix)) prefix = "popup";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            DeveloperUnlocks.SetEnabled(false);
+            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            foreach (int id in new[] { 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
+            PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
+            PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);
+            for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(8, n));
+            PlayerPrefs.SetInt(ShipSkins.OwnedKey(8, 1), 1);
+            foreach (var size in new[] { new Vector2Int(1080, 2520), new Vector2Int(1080, 1920) })
+            {
+                string tag = "-" + size.x + "x" + size.y + ".png";
+                Render(size, 8, Path.Combine(dir, prefix + "-owned" + tag));
+                Render(size, 4, Path.Combine(dir, prefix + "-unbought" + tag));
+            }
+        }
+        EditorApplication.Exit(0);
+    }
+
     static void Render(Vector2Int size, int selected, string path, System.Action<SpaceDock> after = null)
     {
         EditorSceneLoader.Open("shopS6");
