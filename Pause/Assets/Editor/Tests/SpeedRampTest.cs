@@ -73,6 +73,7 @@ public static class SpeedRampTest
         startMenu.youAreInTutorial = false;
         score.pauseCounter = 0; // running without touch in batch mode
         moveBackGround.speed = 0f;
+        ShipStartSpeed.EquippedHudOverride = () => ShipStartSpeed.StockHud;
     }
 
     static List<moveBackGround> MakeWalls(int n, WorldTheme theme)
@@ -173,7 +174,9 @@ public static class SpeedRampTest
     // Seconds to HUD speed 15 before the fix, when both walls ramped
     // (world rate + the scene's 0.002/s). The retuned rates keep this pace.
     static readonly float[] FeltSecondsTo15 = { 46.0f, 43.9f, 42.0f, 39.7f };
-    const float LevelSeconds = 180f; // WorldManager.secondsPerWorld
+    // The ramp's own benchmark (it predates the 120s distance-based level:
+    // WorldManager.BaselineWorldSeconds); KEEP FLYING and loops get there.
+    const float LevelSeconds = 180f;
 
     static void NeverExceedsWorldMax()
     {
@@ -196,7 +199,7 @@ public static class SpeedRampTest
                       "s, speed at 180s " + Mathf.Min(theme.speedRampPerSecond * 180f, theme.maxSpeed).ToString("F3"));
             Check(theme.displayName + ": HUD 15 within 2s of the pre-fix " + FeltSecondsTo15[w] + "s (" + at15.ToString("F1") + "s)",
                   at15 >= 0f && Mathf.Abs(at15 - FeltSecondsTo15[w]) <= 2f);
-            Check(theme.displayName + ": reaches maxSpeed inside the " + LevelSeconds + "s level (" + reachedAt.ToString("F1") + "s)",
+            Check(theme.displayName + ": reaches maxSpeed inside " + LevelSeconds + "s of flight (" + reachedAt.ToString("F1") + "s)",
                   reachedAt >= 0f && reachedAt <= LevelSeconds);
             Check(theme.displayName + ": speed never exceeds maxSpeed " + theme.maxSpeed + " (peak " + peak.ToString("F4") + ")",
                   peak <= theme.maxSpeed + 1e-6f);

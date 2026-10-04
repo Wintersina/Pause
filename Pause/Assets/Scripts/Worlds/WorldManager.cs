@@ -3,8 +3,15 @@ using UnityEngine.SceneManagement;
 
 // Drives planet progression.
 //
-// You start on the space world. After enough active flight time a portal opens;
+// You start on the space world. After flying far enough a portal opens;
 // flying through it moves you to the next planet.
+//
+// A world is a fixed DISTANCE (speed x seconds of running flight), sized so
+// the baseline flight -- a regular ship in its stock colour, starting at
+// gameS1's speed 0 on the world's normal ramp -- reaches the boss after
+// BaselineWorldSeconds (120s). Faster flight gets there sooner: a high-end
+// ship or a pricier colour starts faster (ShipStartSpeed), and so do later
+// loops. Paused / frozen time flies no distance, so it never counts.
 //
 // On transition: speed resets to zero, pauses and star dust carry over.
 // Progress is remembered, so a later run starts on the furthest planet reached.
@@ -22,8 +29,12 @@ public class WorldManager : MonoBehaviour
     public const string PrefsCurrentWorld = "currentWorld";
     public const string PrefsHighestWorld = "highestWorld";
 
-    [Tooltip("Seconds of active flight before the portal opens.")]
-    public float secondsPerWorld = 180f;   // 3 minutes
+    // Seconds of unpaused flight a world takes at the baseline pace (see
+    // above); each world's distance is what that flight covers.
+    public const float BaselineWorldSeconds = 120f;
+
+    // A missed portal's retry is timed at no less than this speed.
+    const float RetryMinSpeed = .05f;
 
     [Tooltip("How long the portal stays on screen before drifting off. Missing " +
              "it is not fatal -- another opens after the same interval.")]
@@ -51,8 +62,9 @@ public class WorldManager : MonoBehaviour
     // moveBackGround), and the second wall added the scene's 0.002/s on top,
     // so the pace players knew was rate + 0.002. These values bake that pace
     // in (0.00115/0.00130/0.00145/0.00165 + 0.002): HUD speed 15 at about
-    // 46/44/42/40s, and each world reaches its maxSpeed in 146-170s, inside
-    // the 180s level.
+    // 46/44/42/40s, and each world reaches its maxSpeed in 146-170s -- past
+    // the 120s baseline level, so a stock start meets the boss still
+    // ramping; faster starts (ShipStartSpeed) and loops get nearer the cap.
     public static readonly WorldTheme[] Worlds =
     {
         new WorldTheme {
@@ -103,8 +115,14 @@ public class WorldManager : MonoBehaviour
         get { return CurrentIndex < Worlds.Length - 1; }
     }
 
-    float timer;
+    // Distance still to fly before the level ends (moveBackGround.speed x
+    // seconds). <= 0: the level is over (boss, then portal).
+    float distanceLeft;
     bool portalOpen;
+
+    // The ramp and cap last given to the walls (ApplyScaledDifficulty), for
+    // turning the distance left into an estimate in seconds.
+    static float appliedRate = Worlds[0].speedRampPerSecond, appliedMax = Worlds[0].maxSpeed;
 
     // What happens after the final world's boss.
     // Encore: the choice timed out -- one more pass of the final world, then
@@ -118,11 +136,50 @@ public class WorldManager : MonoBehaviour
     // Seconds flown in KEEP FLYING (the endless escalation clock).
     public float EndlessSeconds { get { return endlessSeconds; } }
 
-    // How long until this planet's portal opens. Other systems pace themselves
-    // against the level clock -- the blue-atom budget saves one for the end.
-    public float SecondsLeftInWorld { get { return Mathf.Max(0f, timer); } }
-    public float WorldLength { get { return secondsPerWorld; } }
+    // Roughly how long until this planet's boss, at the current speed and
+    // ramp. Other systems pace themselves against it -- the blue-atom budget
+    // saves one for the end, the spawner's final stretch.
+    public float SecondsLeftInWorld
+    {
+        get
+        {
+            if (distanceLeft <= 0f) return 0f;
+            return SpeedRamp.SecondsToCover(moveBackGround.speed, appliedRate, appliedMax, distanceLeft);
+        }
+    }
+    // The baseline length of a world in seconds (see BaselineWorldSeconds).
+    public float WorldLength { get { return BaselineWorldSeconds; } }
+    public float DistanceLeft { get { return Mathf.Max(0f, distanceLeft); } }
+    public float WorldDistance { get { return WorldDistanceFor(CurrentIndex); } }
+    // 0 on arrival, 1 when the level is flown.
+    public float Progress01
+    {
+        get
+        {
+            float d = WorldDistance;
+            return d <= 0f ? 1f : Mathf.Clamp01(1f - distanceLeft / d);
+        }
+    }
     public bool PortalIsOpen { get { return portalOpen; } }
+
+    // A world's distance: what the baseline flight (ShipStartSpeed.StockHud
+    // start, the world's own first-pass ramp and cap) covers in
+    // BaselineWorldSeconds.
+    public static float WorldDistanceFor(int world)
+    {
+        var theme = Worlds[Mathf.Clamp(world, 0, Worlds.Length - 1)];
+        return SpeedRamp.DistanceOver(ShipStartSpeed.StockHud / 100f, theme.speedRampPerSecond, theme.maxSpeed,
+                                      BaselineWorldSeconds);
+    }
+
+    // The speed a run starts at: the equipped ship and colour's
+    // (ShipStartSpeed), never below the scene's own start, never past the
+    // world's cap. moveBackGround.Start uses it in gameS1.
+    public static float RunStartSpeed(float sceneStart)
+    {
+        float s = Mathf.Max(sceneStart, ShipStartSpeed.EquippedSpeed());
+        return Mathf.Min(s, LoopRules.MaxSpeed(Current.maxSpeed, RunLoop.DifficultyIndex, 0f));
+    }
 
     void Awake()
     {
@@ -138,11 +195,13 @@ public class WorldManager : MonoBehaviour
         // LOOP BACK returns here (usually Space, or the developer's pick).
         RunLoop.StartWorld = CurrentIndex;
 
-        timer = secondsPerWorld;
+        distanceLeft = WorldDistance;
         WorldPainter.Apply(Current);
         WorldMusic.Apply(Current);
         WorldBackdrop.Apply(Current, false);
         ApplyDifficulty(Current);
+        // The walls' Start may run before or after this one; both set it.
+        moveBackGround.speed = RunStartSpeed(moveBackGround.speed);
         WorldBanner.Show(Current.displayName);
         Codex.Discover(Codex.WorldId(CurrentIndex));
     }
@@ -151,13 +210,19 @@ public class WorldManager : MonoBehaviour
     {
         // Only count time the player is actually flying, matching how the rest
         // of the game measures progress.
-        bool running = !buttonClicks.playerDied &&
-                       (TouchInput.IsPressed || score.pauseCounter <= 0);
-        if (running) Tick(Time.deltaTime);
+        if (Flying) Tick(Time.deltaTime);
     }
 
-    // One running frame of the level clock (`dt` of flight). Public so
-    // edit-mode tests can step it (Time.deltaTime is 0 there).
+    // The world is running (not paused / frozen, pilot alive). Frozen time
+    // flies no distance, so it never brings the boss nearer.
+    public static bool Flying
+    {
+        get { return !buttonClicks.playerDied && (TouchInput.IsPressed || score.pauseCounter <= 0); }
+    }
+
+    // One running frame of the level clock (`dt` of flight at the current
+    // moveBackGround.speed). Public so edit-mode tests can step it
+    // (Time.deltaTime is 0 there).
     public void Tick(float dt)
     {
         // The level clock stops for the boss and the final choice; Ember (no
@@ -171,9 +236,9 @@ public class WorldManager : MonoBehaviour
         if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex) && route != FinalRoute.LoopBack &&
             route != FinalRoute.Encore) return;
 
-        timer -= dt;
+        distanceLeft -= dt * Mathf.Max(0f, moveBackGround.speed);
         WorldMusic.TryEscalate(this);
-        if (timer <= 0f) EndLevel();
+        if (distanceLeft <= 0f) EndLevel();
     }
 
     // The level clock ran out (or developer mode skipped it): the world's
@@ -182,7 +247,7 @@ public class WorldManager : MonoBehaviour
     // straight to the portal.
     public void EndLevel()
     {
-        timer = 0f;
+        distanceLeft = 0f;
         if (portalOpen) return;
         if (BossEncounter.Begin(CurrentIndex, OnBossOver)) return;
         if ((HasNext || route == FinalRoute.LoopBack) && !BossEncounter.Running) OpenPortal();
@@ -200,7 +265,7 @@ public class WorldManager : MonoBehaviour
         {
             if (buttonClicks.playerDied) return;
             route = FinalRoute.LoopBack;
-            timer = 0f;
+            distanceLeft = 0f;
             WorldBanner.Show("LOOP BACK");
             if (!portalOpen) OpenPortal();
             return;
@@ -215,7 +280,7 @@ public class WorldManager : MonoBehaviour
     {
         if (route == FinalRoute.Choosing || buttonClicks.playerDied) return;
         route = FinalRoute.Choosing;
-        timer = 0f;
+        distanceLeft = 0f;
         choice = FinalChoicePanel.Show(CurrentIndex, RunLoop.StartWorld, RunLoop.Index, Choose);
     }
 
@@ -261,7 +326,7 @@ public class WorldManager : MonoBehaviour
         RunLoop.EncorePass = true;
         BossEncounter.ForgetDone();
         portalOpen = false;
-        timer = secondsPerWorld;
+        distanceLeft = WorldDistance;
         ApplyDifficulty(Current);
         WorldBanner.Show(Current.displayName.ToUpperInvariant() + "  ONE MORE");
     }
@@ -285,7 +350,7 @@ public class WorldManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P) && !portalOpen && HasNext)
         {
-            timer = 0f;
+            distanceLeft = 0f;
             OpenPortal();
         }
     }
@@ -303,7 +368,9 @@ public class WorldManager : MonoBehaviour
     {
         // Give the player another shot rather than stranding them.
         portalOpen = false;
-        timer = route == FinalRoute.LoopBack ? LoopRules.LoopPortalRetrySeconds : secondsPerWorld * 0.25f;
+        distanceLeft = route == FinalRoute.LoopBack
+            ? Mathf.Max(moveBackGround.speed, RetryMinSpeed) * LoopRules.LoopPortalRetrySeconds
+            : WorldDistance * 0.25f;
     }
 
     // Called by Portal when the player flies through.
@@ -330,11 +397,12 @@ public class WorldManager : MonoBehaviour
             banner = Current.displayName;
         }
 
-        // Speed resets on arrival (a little higher on each loop); pauses and
-        // star dust deliberately carry over.
-        moveBackGround.speed = LoopRules.ArrivalSpeed(RunLoop.Index);
+        // Speed resets on arrival (a little higher on each loop, never below
+        // the ship and colour's start speed); pauses and star dust
+        // deliberately carry over.
+        moveBackGround.speed = Mathf.Max(LoopRules.ArrivalSpeed(RunLoop.Index), ShipStartSpeed.EquippedSpeed());
         portalOpen = false;
-        timer = secondsPerWorld;
+        distanceLeft = WorldDistance;
 
         var theme = Current;
         ApplyDifficulty(theme);
@@ -359,6 +427,8 @@ public class WorldManager : MonoBehaviour
         // from whichever instance ticks first in a frame.
         float rate = theme.speedRampPerSecond * LoopRules.RampScale(loop);
         float max = LoopRules.MaxSpeed(theme.maxSpeed, loop, endlessSeconds);
+        appliedRate = rate;
+        appliedMax = max;
         foreach (var bg in Object.FindObjectsByType<moveBackGround>(FindObjectsSortMode.None))
         {
             bg.speedRampPerSecond = rate;

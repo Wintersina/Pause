@@ -39,7 +39,7 @@ public static class BugBatch0907Test
         SpawnPointTracksCamera();
         ThrusterAttachFindsTutorialShip();
         StarClustersSpreadHorizontally();
-        WorldLengthIsThreeMinutes();
+        WorldLengthIsTwoMinutes();
 
         Debug.Log("[BB] failures: " + fails);
         return fails;
@@ -229,12 +229,12 @@ public static class BugBatch0907Test
 
     // ---- 6: level length ---------------------------------------------------
 
-    static void WorldLengthIsThreeMinutes()
+    static void WorldLengthIsTwoMinutes()
     {
         var go = new GameObject("~WorldManagerTest");
         var wm = go.AddComponent<WorldManager>();
-        Check("a planet now runs 3 minutes (180s), not 8 (480s)",
-              Mathf.Approximately(wm.secondsPerWorld, 180f));
+        Check("a planet runs about 2 minutes (120s) at the baseline pace, not 8 (480s)",
+              Mathf.Approximately(WorldManager.BaselineWorldSeconds, 120f) && Mathf.Approximately(wm.WorldLength, 120f));
         Object.DestroyImmediate(go);
     }
 }

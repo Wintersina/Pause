@@ -95,6 +95,7 @@ public static class LoopTest
         startMenu.youAreInTutorial = false;
         score.pauseCounter = 0;   // the world runs without a touch in batch mode
         moveBackGround.speed = .37f;
+        ShipStartSpeed.EquippedHudOverride = () => ShipStartSpeed.StockHud;   // a stock start, whatever is equipped
         Time.timeScale = 1f;
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
@@ -105,11 +106,12 @@ public static class LoopTest
         RunLoop.StartWorld = startWorld;   // WorldManager.Start would set this
     }
 
-    static WorldManager World(float timer)
+    // `distance`: what is left to fly (-1 = the level is over).
+    static WorldManager World(float distance)
     {
         var wm = new GameObject("~WorldManager").AddComponent<WorldManager>();
         wm.SendMessage("Awake");
-        typeof(WorldManager).GetField("timer", Inst).SetValue(wm, timer);
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(wm, distance);
         return wm;
     }
 
@@ -128,7 +130,8 @@ public static class LoopTest
     // Level clock out -> the boss, all the way to Done.
     static void PlayBoss(WorldManager wm)
     {
-        wm.Tick(wm.WorldLength + 1f);
+        // Fly the rest of the level in one step, at whatever speed it is.
+        wm.Tick((wm.DistanceLeft + 1f) / Mathf.Max(moveBackGround.speed, .01f));
         var e = BossEncounter.Instance;
         if (e == null || !BossEncounter.Running) return;
         e.Step(.1f, 1f);
@@ -287,8 +290,10 @@ public static class LoopTest
         // A missed loop portal comes back.
         typeof(WorldManager).GetMethod("OnPortalMissed", Inst).Invoke(wm, null);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("missed: the clock waits " + LoopRules.LoopPortalRetrySeconds + "s", !wm.PortalIsOpen &&
-              Mathf.Approximately(wm.SecondsLeftInWorld, LoopRules.LoopPortalRetrySeconds));
+        Check("missed: the clock waits about " + LoopRules.LoopPortalRetrySeconds + "s (" + wm.SecondsLeftInWorld.ToString("F2") + "s)",
+              !wm.PortalIsOpen && wm.SecondsLeftInWorld > LoopRules.LoopPortalRetrySeconds - 1f &&
+              wm.SecondsLeftInWorld <= LoopRules.LoopPortalRetrySeconds + 1e-3f &&
+              Mathf.Approximately(wm.DistanceLeft, moveBackGround.speed * LoopRules.LoopPortalRetrySeconds));
         wm.Tick(LoopRules.LoopPortalRetrySeconds + .1f);
         Check("... and the loop portal opens again", wm.PortalIsOpen && !BossEncounter.Running);
 
@@ -302,7 +307,7 @@ public static class LoopTest
               RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
         Check("arrival speed is the loop's (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + ")",
               Mathf.Approximately(moveBackGround.speed, LoopRules.ArrivalSpeed(1)) && moveBackGround.speed > 0f);
-        Check("the level clock restarted", Mathf.Approximately(wm.SecondsLeftInWorld, wm.WorldLength) && !wm.PortalIsOpen);
+        Check("the level distance restarted", Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !wm.PortalIsOpen);
 
         // Space's boss again, then its portal, then Frost.
         PlayBoss(wm);
@@ -720,7 +725,7 @@ public static class LoopTest
     // ---- 10. simulated run ----------------------------------------------------------------
     //
     // A modelled run, to judge the balance (logged, plus a few sanity checks):
-    // each world flown for its 180s level from its arrival speed at its
+    // each world flown for its distance (120s at the baseline pace) from its arrival speed at its
     // (loop-scaled) ramp to its cap; a kill every 4s worth 8 base (a mix of
     // rocks 5, fighters 5-20, aliens 15), chained in threes (x1, x1, x2);
     // 25 small + 5 large star dust, 4 atoms, 8 full blinks; the 36s boss fight
@@ -740,9 +745,11 @@ public static class LoopTest
         const float dt = .05f;
         float nextKill = 4f;
         int killNo = 0;
-        for (float t = 0f; t < 180f; t += dt)
+        float flown = 0f, length = WorldManager.WorldDistanceFor(world);
+        for (float t = 0f; flown < length; t += dt)
         {
             speed = Mathf.Min(max, speed + rate * dt);
+            flown += speed * dt;
             float sm = speedMultiplier ? ScoreRules.SpeedMultiplierFor(speed) : 1f;
             s.distance += ScoreRules.DistancePoints(speed, dt) * sm;
             if (t >= nextKill)
@@ -849,8 +856,8 @@ public static class LoopTest
         Check("timeout: the panel goes, the world runs, no portal",
               !FinalChoicePanel.IsUp && !BossEncounter.ScriptedFreeze && !wm.PortalIsOpen &&
               Object.FindFirstObjectByType<Portal>() == null && wm.Route == WorldManager.FinalRoute.Encore);
-        Check("timeout: still in Ember, a full level on the clock (" + wm.SecondsLeftInWorld + "s)",
-              WorldManager.CurrentIndex == Ember && Mathf.Approximately(wm.SecondsLeftInWorld, wm.WorldLength));
+        Check("timeout: still in Ember, a full level to fly (" + wm.DistanceLeft + ")",
+              WorldManager.CurrentIndex == Ember && Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance));
         Check("timeout: the loop index has not moved yet (it moves with the portal)", RunLoop.Index == 0 && RunLoop.EncorePass);
         Check("timeout: scaled as a loop pass (ramp x" + LoopRules.RampScale(1) + ", cap +" + LoopRules.MaxSpeedBonus(1) * 100f +
               ", phases x" + LoopRules.PhaseRampScale(1) + ", density x" + LoopRules.DensityScale(1) + ")",
@@ -860,9 +867,9 @@ public static class LoopTest
               Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
         Check("timeout: the choice itself changed no score", RunScore.Total == before);
 
-        for (int i = 0; i < 100; i++) wm.Tick(1f);
-        Check("100s in: still Ember, no boss, no portal", WorldManager.CurrentIndex == Ember && !BossEncounter.Running &&
-              !wm.PortalIsOpen && Mathf.Approximately(wm.SecondsLeftInWorld, wm.WorldLength - 100f));
+        for (int i = 0; i < 30; i++) wm.Tick(1f);
+        Check("30s in: still Ember, no boss, no portal", WorldManager.CurrentIndex == Ember && !BossEncounter.Running &&
+              !wm.PortalIsOpen && Mathf.Abs(wm.DistanceLeft - (wm.WorldDistance - 30f * moveBackGround.speed)) < 1e-3f);
         Check("... and no endless escalation (that is KEEP FLYING's)", Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
 
         // The level ends: the Ember boss again, at the next loop's difficulty.

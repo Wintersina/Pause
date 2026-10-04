@@ -19,6 +19,8 @@ public class DockPopup : MonoBehaviour
     public const float Height = .62f;
     // Extra height when the skin swatch row is shown (owned ships).
     public const float SkinRowHeight = .27f;
+    // START SPEED line: under the skin row, with it.
+    public const float StartSpeedLineHeight = .09f;
     public const float TailLength = .085f;
     public const float Gap = .04f;
     const float CanvasScale = .01f;
@@ -41,7 +43,7 @@ public class DockPopup : MonoBehaviour
     // (the skin on the hull right now).
     public bool SkinRowVisible { get; private set; }
     public int SkinShown { get; private set; }
-    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight : Height; } }
+    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight + StartSpeedLineHeight : Height; } }
 
     public class Swatch
     {
@@ -53,6 +55,9 @@ public class DockPopup : MonoBehaviour
     }
     public readonly Swatch[] swatches = new Swatch[ShipSkins.PerShip];
     RectTransform skinRow;
+    // ---- START SPEED line (ShipStartSpeed) ----
+    Text startSpeed;
+    public string StartSpeedText { get { return startSpeed != null && startSpeed.gameObject.activeSelf ? startSpeed.text : ""; } }
 
     Canvas canvas;
     Font font;
@@ -141,6 +146,24 @@ public class DockPopup : MonoBehaviour
         buttonLabel.fontStyle = FontStyle.Bold;
 
         BuildSkinRow();
+        BuildStartSpeedLine();
+    }
+
+    // ---- START SPEED line: the colour shown's start speed, one tiny line
+    // between the skin row and the action button.
+    void BuildStartSpeedLine()
+    {
+        startSpeed = Label("StartSpeed", panel, font, 6, TextAnchor.MiddleCenter,
+                           AkiraPalette.WithAlpha(AkiraPalette.Cyan, .85f));
+        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -54f),
+              new Vector2(Width / CanvasScale - 22f, 9f), new Vector2(.5f, 1f));
+        startSpeed.gameObject.SetActive(false);
+    }
+
+    void ShowStartSpeed(int index, int skin)
+    {
+        startSpeed.text = ShipStartSpeed.Label(ShipStartSpeed.HudFor(index, skin));
+        startSpeed.gameObject.SetActive(true);
     }
 
     // Five compact angular chips in each skin's own colours (base, shadow
@@ -214,6 +237,7 @@ public class DockPopup : MonoBehaviour
         SkinRowVisible = true;
         SkinShown = shown;
         skinRow.gameObject.SetActive(true);
+        ShowStartSpeed(index, shown);
         int equipped = ShipSkins.Equipped(index);
         for (int n = 0; n < swatches.Length; n++)
         {
@@ -276,6 +300,7 @@ public class DockPopup : MonoBehaviour
     {
         SkinRowVisible = false;
         if (skinRow != null) skinRow.gameObject.SetActive(false);
+        if (startSpeed != null) startSpeed.gameObject.SetActive(false);
         Resize();
     }
 
