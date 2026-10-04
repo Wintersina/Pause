@@ -44,16 +44,24 @@ public static class ShipDamageTest
         buttonClicks.playerDied = false;
         HitsAndHealing(ShipId.Starter);
         HitsAndHealing(11);   // Ninja, a spinner
+        collisionDetection.MAXLIFE = 5;
+        HitsAndHealing(7);    // a 5-life ship: damaged for 3 hits, critical on the last life
+        collisionDetection.MAXLIFE = 3;
         Posing(ShipId.Starter);
         Spinning(11);
         Frozen(ShipId.Starter);
         Pool(13);
         Ducking(ShipId.Starter);
+        Smoke(3);
+        for (int max = 2; max <= 5; max++) Retardant(9, max);   // a hull with hearts
+        RetardantFromGun(ShipId.Starter);                     // no hearts: the companion gun
+        collisionDetection.MAXLIFE = 3;
         collisionDetection.lifeCounter = 0;
 
         Check("the old shared damage atlas is retired",
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/ship_damage_fx_atlas.png") == null);
-        Check("the damage FX atlas loads", ShipDamageFx.Frame(ShipDamageFx.RowSmoke, 0) != null);
+        Check("the damage FX atlas loads, retardant rows too", ShipDamageFx.Frame(ShipDamageFx.RowSmoke, 0) != null &&
+              ShipDamageFx.Frame(ShipDamageFx.RowFoam, 3) != null && ShipDamageFx.Frame(ShipDamageFx.RowSpray, 3) != null);
 
         Debug.Log("[SD] failures: " + fails);
         return fails;
@@ -61,13 +69,36 @@ public static class ShipDamageTest
 
     static string Label(int id) { return id + " " + ShipId.NameOf(id); }
 
+    const int Intact = 0, Damaged = 1;
+    static int Critical { get { return ShipDamageTable.States - 1; } }
+
     static void Mapping()
     {
-        Check("every ship has MAXLIFE 3: 3 sheet states", ShipHullArt.States == 3 && ShipDamageTable.States == 3);
-        Check("no hits -> intact, 1 hit -> damaged, 2 hits (last life) -> critical",
-              ShipDamageTable.StateFor(0) == 0 && ShipDamageTable.StateFor(1) == 1 && ShipDamageTable.StateFor(2) == 2);
-        Check("a fatal hit clamps to critical", ShipDamageTable.StateFor(3) == 2 && ShipDamageTable.StateFor(-1) == 0);
+        Check("three sheet states: intact, damaged, critical", ShipHullArt.States == ShipDamageTable.States && Critical == 2);
+        bool byLivesLeft = true;
+        for (int max = 2; max <= 5; max++)
+        {
+            byLivesLeft &= ShipDamageTable.StateFor(0, max) == Intact && ShipDamageTable.StateFor(-1, max) == Intact;
+            byLivesLeft &= ShipDamageTable.StateFor(max - 1, max) == Critical;   // the last life
+            byLivesLeft &= ShipDamageTable.StateFor(max, max) == Critical;       // a fatal hit clamps
+            for (int hits = 1; hits < max - 1; hits++) byLivesLeft &= ShipDamageTable.StateFor(hits, max) == Damaged;
+        }
+        Check("state by lives left for 2-5 lives: full -> intact, last life -> critical, between -> damaged",
+              byLivesLeft);
+        int saved = collisionDetection.MAXLIFE;
+        collisionDetection.MAXLIFE = 5;
+        Check("the one-arg StateFor reads the ship's max lives (5 lives: 3 hits still damaged)",
+              ShipDamageTable.MaxLives() == 5 && ShipDamageTable.StateFor(3) == Damaged && ShipDamageTable.StateFor(4) == Critical);
+        collisionDetection.MAXLIFE = saved;
     }
+
+    // lifeCounter for a state on a ship with `max` lives.
+    static int HitsFor(int state, int max)
+    {
+        return state == Intact ? 0 : state == Damaged ? 1 : max - 1;
+    }
+
+    static void SetState(int state) { collisionDetection.lifeCounter = HitsFor(state, ShipDamageTable.MaxLives()); }
 
     // ------------------------------------------------------------- sheets
 
@@ -107,6 +138,7 @@ public static class ShipDamageTest
         int Row(int state) { return ShipHullArt.States - 1 - state; }   // bottom-up row
         bool alphaSame = true, stockAlpha = true;
         var changed = new int[3];   // 0: 1 vs 0, 1: 2 vs 0, 2: 2 vs 1 (non-flash columns)
+        int opaque = 0;
         for (int y = 0; y < cell; y++)
             for (int x = 0; x < w; x++)
             {
@@ -119,6 +151,7 @@ public static class ShipDamageTest
                     for (int s = 0; s < 3; s++)
                         stockAlpha &= px[(Row(s) * cell + y) * w + x].a == stockPx[(Row(s) * cell + y) * w + x].a;
                 if (flash || c0.a < 250) continue;
+                opaque++;
                 if (!Same(c0, c1)) changed[0]++;
                 if (!Same(c0, c2)) changed[1]++;
                 if (!Same(c1, c2)) changed[2]++;
@@ -130,6 +163,11 @@ public static class ShipDamageTest
         Check(who + ": damaged differs from intact (" + changed[0] + " px)", changed[0] > min);
         Check(who + ": critical differs from damaged (" + changed[2] + " px) and is worse than it",
               changed[2] > min && changed[1] > changed[0]);
+        // the last life is a wreck: well over twice the damaged hull's
+        // repainted area and at least a fifth of the whole hull
+        float d1 = changed[0] / (float)Mathf.Max(1, opaque), d2 = changed[1] / (float)Mathf.Max(1, opaque);
+        Check(who + ": critical is far more damaged (" + (d1 * 100f).ToString("0") + "% -> " + (d2 * 100f).ToString("0") +
+              "% of the hull repainted)", d2 >= .2f && changed[1] >= changed[0] * 2.5f);
     }
 
     static bool Same(Color32 a, Color32 b)
@@ -148,7 +186,17 @@ public static class ShipDamageTest
               c0 == 0 && c1 >= 2 && c2 > c1 && c2 == ShipDamageTable.Total(id));
         var kinds = new HashSet<DamageEmitterKind>();
         for (int i = 0; i < c2; i++) kinds.Add(ShipDamageTable.Get(id, i).kind);
-        Check(who + " critical mixes sparks, arc, smoke, flame and leak (" + kinds.Count + " kinds)", kinds.Count == 5);
+        Check(who + " critical mixes sparks, arc, smoke, flame, leak and smolder (" + kinds.Count + " kinds)", kinds.Count == 6);
+        int smoke1 = 0, smoke2 = 0;
+        for (int i = 0; i < c2; i++)
+        {
+            var k = ShipDamageTable.Get(id, i).kind;
+            if (k != DamageEmitterKind.Smoke && k != DamageEmitterKind.Smolder) continue;
+            smoke2++;
+            if (i < c1) smoke1++;
+        }
+        Check(who + " smoke from the damaged spots, not just the engine (" + smoke1 + " damaged, " + smoke2 + " critical)",
+              smoke1 >= 2 && smoke2 >= smoke1 + 3);
         DamageEmitter burst;
         Check(who + " each worse state has a burst point",
               ShipDamageTable.BurstAt(id, 1, out burst) && burst.state == 1 &&
@@ -236,14 +284,14 @@ public static class ShipDamageTest
         Run(fx, life, .5f);
         Check(who + " intact: no damage FX", fx.State == 0 && fx.ActiveParticles == 0 && EnabledEmitters(fx) == 0);
 
-        collisionDetection.lifeCounter = 1;
+        SetState(Damaged);
         Run(fx, life, 1f / 60f);
         Check(who + " a hit: damaged state and art", fx.State == 1 && hull.sprite.name.Contains("_1_"));
         Check(who + " the hit sprays a debris burst", fx.Bursts == 1 && fx.ActiveParticles >= 8);
         Run(fx, life, 1.5f);
         int live1 = fx.LiveEmitters;
 
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         Run(fx, life, 1f / 60f);
         Check(who + " a second hit: critical state and art, another burst",
               fx.State == 2 && hull.sprite.name.Contains("_2_") && fx.Bursts == 2);
@@ -256,7 +304,7 @@ public static class ShipDamageTest
         }
         Check(who + " the critical emitters draw", flameSeen);
 
-        collisionDetection.lifeCounter = 1;   // green atom / Mending
+        SetState(Damaged);   // green atom / Mending
         Run(fx, life, 1f / 60f);
         bool stopped = true;
         for (int i = live1; i < fx.EmitterCount; i++) stopped &= !fx.EmitterRenderer(i).enabled;
@@ -299,7 +347,7 @@ public static class ShipDamageTest
         Check("emitters bob with the idle drawings", bob.y > 0f && Mathf.Abs(bob.x) < 1e-5f);
 
         // the hull's own bank pose drives it
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         life.SendMessage("Update");
         fx.Tick(1f / 60f);
         int column = life.HullAnimator.Column;
@@ -312,7 +360,7 @@ public static class ShipDamageTest
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         Run(fx, life, .2f);
         int i = ShipDamageTable.Count(id, 1);   // a critical emitter
         Vector3 a = fx.EmitterWorld(i, 0) - go.transform.position;
@@ -337,7 +385,7 @@ public static class ShipDamageTest
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         Run(fx, life, .4f);
         var pos = new Vector3[fx.PoolSize];
         var spr = new Sprite[fx.PoolSize + fx.EmitterCount];
@@ -358,8 +406,9 @@ public static class ShipDamageTest
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
+        AddHearts(go);   // so the retardant runs in the pool too
         int children = go.GetComponentsInChildren<Transform>(true).Length;
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         int peak = 0;
         bool near = true;
         float reach = ShipDamageFx.MaxReach * fx.HullSize + 1e-4f;
@@ -373,19 +422,22 @@ public static class ShipDamageTest
                 if (fx.ParticleAlive(i))
                 {
                     var d = fx.ParticlePosition(i) - fx.ParticleOrigin(i);
-                    near &= new Vector2(d.x, d.y).magnitude <= reach;
+                    bool retardant = fx.ParticleRow(i) == ShipDamageFx.RowSpray || fx.ParticleRow(i) == ShipDamageFx.RowFoam;
+                    float r = retardant ? ShipDamageFx.SprayReach * fx.HullSize + 1e-4f : reach;
+                    near &= fx.ParticleReach(i) <= r && new Vector2(d.x, d.y).magnitude <= r;
                 }
         }
         long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
         // and a burst at the pool's peak: heal and hit again
-        collisionDetection.lifeCounter = 1; fx.Tick(1f / 60f);
-        collisionDetection.lifeCounter = 2; fx.Tick(1f / 60f);
+        SetState(Damaged); fx.Tick(1f / 60f);
+        SetState(Critical); fx.Tick(1f / 60f);
         peak = Mathf.Max(peak, fx.ActiveParticles);
         Check("the particle pool is bounded (peak " + peak + " of " + ShipDamageFx.MaxParticles + ")",
               peak <= ShipDamageFx.MaxParticles && fx.PoolSize == ShipDamageFx.MaxParticles);
         Check("nothing is created while it runs",
               go.GetComponentsInChildren<Transform>(true).Length == children);
-        Check("particles stay within " + ShipDamageFx.MaxReach + " hull lengths of their emitter", near);
+        Check("particles stay within " + ShipDamageFx.MaxReach + " hull lengths of their emitter (the retardant " +
+              ShipDamageFx.SprayReach + ")", near);
         Check("a running frame allocates nothing (" + allocated + " B over 600 ticks)", allocated == 0);
         collisionDetection.lifeCounter = 0;
         Object.DestroyImmediate(go);
@@ -395,7 +447,7 @@ public static class ShipDamageTest
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
-        collisionDetection.lifeCounter = 2;
+        SetState(Critical);
         Run(fx, life, .4f);
         var owner = new GameObject("FakeMeter");
         // an element drawn over the whole ship and around it
@@ -417,6 +469,229 @@ public static class ShipDamageTest
             for (int i = 0; i < fx.PoolSize; i++) back |= fx.ParticleRenderer(i).enabled;
         }
         Check("they draw again once it's gone", back);
+        collisionDetection.lifeCounter = 0;
+        Object.DestroyImmediate(go);
+    }
+
+    // ------------------------------------------------------------- smoke
+
+    // Average live smoke puffs (engine + smolder) over a few seconds.
+    static float SmokeLevel(ShipDamageFx fx, lifeControler life, int state)
+    {
+        SetState(state);
+        Run(fx, life, 1f);
+        int sum = 0, n = 0;
+        for (float t = 0f; t < 3f; t += 1f / 60f)
+        {
+            life.SendMessage("Update");
+            fx.Tick(1f / 60f);
+            sum += fx.ActiveOfRow(ShipDamageFx.RowSmoke);
+            n++;
+        }
+        return sum / (float)n;
+    }
+
+    static void Smoke(int id)
+    {
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        float damaged = SmokeLevel(fx, life, Damaged);
+        float critical = SmokeLevel(fx, life, Critical);
+        Check(Label(id) + " smoke rises with the damage (" + damaged.ToString("0.0") + " -> " + critical.ToString("0.0") +
+              " puffs)", damaged >= 4f && critical >= damaged * 2f);
+        // and comes out of the wounds: every smolder emitter puts out puffs at its own spot
+        int live = fx.LiveEmitters, spots = 0, served = 0;
+        var near = new bool[fx.EmitterCount];
+        for (float t = 0f; t < 2f; t += 1f / 60f)
+        {
+            life.SendMessage("Update");
+            fx.Tick(1f / 60f);
+            int column = life.HullAnimator.Column;
+            for (int p = 0; p < fx.PoolSize; p++)
+            {
+                if (!fx.ParticleAlive(p) || fx.ParticleRow(p) != ShipDamageFx.RowSmoke) continue;
+                for (int i = 0; i < live; i++)
+                {
+                    if (ShipDamageTable.Get(id, i).kind != DamageEmitterKind.Smolder) continue;
+                    var d = fx.ParticleOrigin(p) - fx.EmitterWorld(i, column);
+                    if (new Vector2(d.x, d.y).magnitude < fx.HullSize * .05f) near[i] = true;
+                }
+            }
+        }
+        for (int i = 0; i < live; i++)
+            if (ShipDamageTable.Get(id, i).kind == DamageEmitterKind.Smolder) { spots++; if (near[i]) served++; }
+        Check(Label(id) + " every wound smolders (" + served + " of " + spots + ")", spots >= 3 && served == spots);
+        // readable: it never fills the pool
+        Check(Label(id) + " the smoke leaves room in the pool (" + fx.ActiveParticles + ")",
+              fx.ActiveParticles < ShipDamageFx.MaxParticles * 3 / 4);
+        collisionDetection.lifeCounter = 0;
+        Object.DestroyImmediate(go);
+    }
+
+    // ------------------------------------------------------------- retardant
+
+    static ShipLivesIndicator AddHearts(GameObject go)
+    {
+        var hearts = go.AddComponent<ShipLivesIndicator>();
+        hearts.BuildHearts();
+        return hearts;
+    }
+
+    // One frame of the ship, its hearts and its FX, in execution order.
+    static void Frame(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts)
+    {
+        life.SendMessage("Update");
+        if (hearts != null)
+        {
+            hearts.SendMessage("Update");
+            hearts.Place(1f / 60f, 1f / 60f);
+        }
+        fx.Tick(1f / 60f);
+    }
+
+    static bool Hot(DamageEmitterKind k) { return k != DamageEmitterKind.Leak; }
+
+    // Sprays started over `seconds`, checking every spray frame aims right.
+    static int Watch(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts, float seconds,
+                     ref bool aimed, ref bool fromHeart, ref bool landed, ref bool calmed, ref bool foam)
+    {
+        int start = fx.Sprays;
+        for (float t = 0f; t < seconds; t += 1f / 60f)
+        {
+            Frame(fx, life, hearts);
+            for (int p = 0; p < fx.PoolSize; p++)
+                if (fx.ParticleAlive(p) && fx.ParticleRow(p) == ShipDamageFx.RowFoam) foam = true;
+            int target = fx.SprayTarget;
+            if (target < 0) continue;
+            int column = life.HullAnimator.Column;
+            Vector3 to = fx.EmitterWorld(target, column);
+            aimed &= target < fx.LiveEmitters && Hot(ShipDamageTable.Get(fx.ShipIdShown, target).kind);
+            if (hearts != null)
+            {
+                int h = fx.SprayHeart;
+                fromHeart &= h >= 0 && hearts.Hearts[h].gameObject.activeSelf &&
+                             (fx.SprayFrom - hearts.Hearts[h].position).sqrMagnitude < 1e-6f;
+            }
+            Vector3 dir = to - fx.SprayFrom;
+            dir.z = 0f;
+            for (int p = 0; p < fx.PoolSize; p++)
+            {
+                if (!fx.ParticleAlive(p)) continue;
+                int row = fx.ParticleRow(p);
+                if (row == ShipDamageFx.RowSpray && fx.ParticleVelocity(p).sqrMagnitude > 1e-8f &&
+                    (fx.ParticleOrigin(p) - fx.SprayFrom).sqrMagnitude < (fx.HullSize * .06f) * (fx.HullSize * .06f))
+                {
+                    var v = fx.ParticleVelocity(p);
+                    v.z = 0f;
+                    aimed &= Vector3.Dot(v.normalized, dir.normalized) > .95f;
+                }
+                if (row == ShipDamageFx.RowFoam)
+                {
+                    var o = fx.ParticleOrigin(p) - to;
+                    landed |= new Vector2(o.x, o.y).magnitude < fx.HullSize * .08f;
+                }
+            }
+            if (fx.Doused(target) > 0f) calmed = true;
+        }
+        return fx.Sprays - start;
+    }
+
+    static void Retardant(int id, int maxLives)
+    {
+        collisionDetection.MAXLIFE = maxLives;
+        string who = Label(id) + " (" + maxLives + " hearts)";
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        var hearts = AddHearts(go);
+        Check(who + " has its hearts", hearts.Hearts != null && hearts.Hearts.Length == maxLives);
+
+        bool aimed = true, fromHeart = true, landed = false, calmed = false, foam = false;
+        int intact = Watch(fx, life, hearts, 3f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
+        Check(who + " intact: no retardant", intact == 0 && !fx.Spraying && !foam);
+
+        int damaged = 0;
+        if (maxLives > 2)
+        {
+            SetState(Damaged);
+            damaged = Watch(fx, life, hearts, 10f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
+            Check(who + " damaged: the hearts spray retardant (" + damaged + " sprays in 10 s)", damaged >= 2);
+        }
+        SetState(Critical);
+        int critical = Watch(fx, life, hearts, 10f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
+        Check(who + " critical: sprays more often (" + damaged + " -> " + critical + " in 10 s)",
+              critical >= 4 && critical > damaged);
+        Check(who + " every spray aims at a live hot spot, droplets flying straight at it", aimed);
+        Check(who + " the spray comes from a shown heart", fromHeart);
+        Check(who + " foam lands on the spot and calms it", foam && landed && calmed);
+
+        // fresh from intact, the first target is the worst spot: the flame
+        int flame = -1;
+        for (int i = 0; i < ShipDamageTable.Count(id, Critical); i++)
+            if (ShipDamageTable.Get(id, i).kind == DamageEmitterKind.Flame) flame = i;
+        collisionDetection.lifeCounter = 0;
+        for (int k = 0; k < 240; k++) Frame(fx, life, hearts);
+        SetState(Critical);
+        for (float t = 0f; t < 4f && fx.SprayTarget < 0; t += 1f / 60f) Frame(fx, life, hearts);
+        Check(who + " the worst spot (the flame) is foamed first", flame >= 0 && fx.SprayTarget == flame);
+        // and a foamed flame dies down
+        float wild = 0f, doused = float.MaxValue;
+        for (float t = 0f; t < 6f; t += 1f / 60f)
+        {
+            Frame(fx, life, hearts);
+            var sr = fx.EmitterRenderer(flame);
+            if (!sr.enabled) continue;
+            float s = sr.transform.localScale.x;
+            if (fx.Doused(flame) > .5f) doused = Mathf.Min(doused, s); else if (fx.Doused(flame) <= 0f) wild = Mathf.Max(wild, s);
+        }
+        Check(who + " a foamed flame dies down (" + doused.ToString("0.00") + " vs " + wild.ToString("0.00") + ")",
+              wild > 0f && doused < wild * .6f);
+
+        // no garbage while spraying
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int k = 0; k < 300; k++) fx.Tick(1f / 60f);
+        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check(who + " spraying allocates nothing (" + allocated + " B)", allocated == 0);
+
+        // frozen: the spray holds
+        for (float t = 0f; t < 4f && !fx.Spraying; t += 1f / 60f) Frame(fx, life, hearts);
+        int sprays = fx.Sprays, target0 = fx.SprayTarget;
+        int bits = fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray);
+        for (int k = 0; k < 120; k++) fx.Tick(0f);
+        Check(who + " at timeScale 0 the spray holds still",
+              fx.Spraying && fx.Sprays == sprays && fx.SprayTarget == target0 &&
+              fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray) == bits);
+
+        // healed to intact: it stops
+        collisionDetection.lifeCounter = 0;
+        Frame(fx, life, hearts);
+        bool stopped = !fx.Spraying;
+        int after = fx.Sprays;
+        for (float t = 0f; t < 5f; t += 1f / 60f) { Frame(fx, life, hearts); stopped &= !fx.Spraying; }
+        Check(who + " healed to intact: the spraying stops and the foam clears",
+              stopped && fx.Sprays == after && fx.ActiveOfRow(ShipDamageFx.RowFoam) == 0 &&
+              fx.ActiveOfRow(ShipDamageFx.RowSpray) == 0);
+        Object.DestroyImmediate(go);
+        collisionDetection.MAXLIFE = 3;
+    }
+
+    static void RetardantFromGun(int id)
+    {
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        var gun = UltimateGun.Attach(go);
+        if (gun.transform.childCount == 0) gun.SendMessage("Awake");
+        SetState(Critical);
+        bool aimed = true, fromHeart = true, landed = false, calmed = false, foam = false;
+        int n = Watch(fx, life, null, 8f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
+        Check(Label(id) + " no hearts: the companion gun sprays instead (" + n + " sprays)",
+              n >= 3 && aimed && foam && landed && calmed);
+        bool fromGun = true;
+        for (float t = 0f; t < 4f; t += 1f / 60f)
+        {
+            Frame(fx, life, null);
+            if (fx.Spraying) fromGun &= fx.SprayHeart < 0 && (fx.SprayFrom - gun.transform.position).sqrMagnitude < 1e-6f;
+        }
+        Check(Label(id) + " the gun's spray leaves from the gun", fromGun);
         collisionDetection.lifeCounter = 0;
         Object.DestroyImmediate(go);
     }

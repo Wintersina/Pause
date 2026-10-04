@@ -95,7 +95,8 @@ public class lifeControler : MonoBehaviour {
     {
         if (img == null || img.Length == 0) return;
         int life = isLiveGameplay ? collisionDetection.lifeCounter : 0;
-        int frame = Mathf.Clamp(life, 0, img.Length - 1);
+        // damage row by lives left (intact / damaged / last life), not hits
+        int frame = Mathf.Clamp(ShipDamageTable.StateFor(life), 0, img.Length - 1);
         Sprite animated = null;
         if (hullAnimator != null)
         {

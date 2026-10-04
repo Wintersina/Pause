@@ -16,6 +16,10 @@ style's palette (docs/art-style.md), each row a 4-drawing flipbook:
     6  chunk     hull debris, WHITE fill (tinted to the hull's colour),
                  four shapes
     7  scrap     dark metal debris (GUN tones), four shapes
+    8  foam      fire-retardant foam landing on a hot spot: a bubbly white /
+                 pale-blue splat that pops, swells, breaks up and thins out
+    9  spray     retardant spray in flight, a streak of droplets pointing up
+                 (+y): a fat jet, a thinner jet, a droplet trio, a fine mist
 
 ShipDamageFx slices the same layout (ShipDamageFx.Row*).
 """
@@ -32,7 +36,7 @@ from hullkit import *  # noqa: F401,F403
 
 OUT = os.path.abspath(os.path.join(HERE, "..", "..", "DamageFx.png"))
 CELL = 64
-COLS, ROWS = 4, 8
+COLS, ROWS = 4, 10
 WHITE = "#FFFFFF"
 WHITE_SH = "#B4B4BC"   # the tintable shadow (multiplied by the hull colour)
 
@@ -161,9 +165,82 @@ def chunk(k, base, sh, hi):
     return s
 
 
+FOAM = "#F4FBFF"       # retardant: cold white
+FOAM_SH = "#A9D8F2"    # its pale-blue shade
+FOAM_DEEP = "#5FA8D8"
+
+
+def bubbles(cx, cy, r, n, seed):
+    rng = random.Random(seed)
+    s = ""
+    for _ in range(n):
+        a = rng.uniform(0, math.tau)
+        d = rng.uniform(0, r)
+        x, y, rr = cx + math.cos(a) * d, cy + math.sin(a) * d, rng.uniform(r * .16, r * .3)
+        s += poly(ngon(x, y, rr, 8), FOAM) + inkpoly(ngon(x, y, rr, 8), 1.6, FOAM_DEEP)
+    return s
+
+
+def foam_blob(cx, cy, r, seed):
+    """A bubbly foam splat: lobed white body, pale-blue shade, bubble rims."""
+    rng = random.Random(seed)
+    lobes = [ngon(cx, cy, r * .72, 10)]
+    for i in range(6):
+        a = math.tau * i / 6 + rng.uniform(-.3, .3)
+        d = r * rng.uniform(.45, .6)
+        lobes.append(ngon(cx + math.cos(a) * d, cy + math.sin(a) * d, r * rng.uniform(.34, .46), 8))
+    s = "".join(inkpoly(o, 4.5) for o in lobes)
+    s += "".join(poly(o, FOAM) for o in lobes)
+    s += poly(ngon(cx + r * .28, cy + r * .3, r * .5, 9), FOAM_SH)
+    s += bubbles(cx - r * .1, cy - r * .1, r * .55, 4, seed + 1)
+    return s
+
+
+def foam(k):
+    if k == 0:
+        return foam_blob(32, 32, 11, 3)
+    if k == 1:
+        return foam_blob(32, 32, 19, 5)
+    if k == 2:
+        s = foam_blob(30, 30, 16, 7)
+        for x, y, r in ((50, 16, 4), (12, 46, 3.5), (52, 48, 3)):
+            s += poly(ngon(x, y, r, 8), FOAM) + inkpoly(ngon(x, y, r, 8), 2)
+        return s
+    s = ""
+    for x, y, r in ((20, 24, 7), (42, 28, 8), (30, 44, 6), (50, 48, 3.5)):
+        s += poly(ngon(x, y, r, 8), FOAM_SH) + inkpoly(ngon(x, y, r, 8), 2.2)
+        s += poly(ngon(x - r * .3, y - r * .3, r * .35, 6), FOAM)
+    return s
+
+
+def spray(k):
+    # a streak of retardant flying up the cell (+y in Unity)
+    if k < 2:
+        L, w = (26, 8) if k == 0 else (24, 5.5)
+        body = [(32, 32 - L), (32 + w, 32 - L * .2), (32 + w * .8, 32 + L * .5), (32, 32 + L * .7),
+                (32 - w * .8, 32 + L * .5), (32 - w, 32 - L * .2)]
+        s = inkpoly(body, 3) + poly(body, FOAM_SH)
+        core = [(32, 32 - L * .85), (32 + w * .45, 32 - L * .2), (32, 32 + L * .4), (32 - w * .45, 32 - L * .2)]
+        s += poly(core, FOAM)
+        for y in (32 + L * .85, 32 + L * 1.0):
+            s += poly(ngon(32 + (3 if k else -3), y, 2.6, 6), FOAM) + inkpoly(ngon(32 + (3 if k else -3), y, 2.6, 6), 1.6)
+        return s
+    if k == 2:
+        s = ""
+        for x, y, r in ((32, 16, 6), (24, 34, 4.5), (39, 44, 4)):
+            s += poly(ngon(x, y, r, 8), FOAM) + inkpoly(ngon(x, y, r, 8), 2.2)
+            s += poly(ngon(x + r * .3, y + r * .3, r * .45, 6), FOAM_SH)
+        return s
+    s = ""
+    for x, y, r in ((30, 18, 3.5), (38, 28, 3), (26, 34, 3), (34, 44, 2.5), (28, 52, 2)):
+        s += poly(ngon(x, y, r, 6), FOAM_SH) + inkpoly(ngon(x, y, r, 6), 1.6)
+    return s
+
+
 ROW_FNS = [crackle, spark, arc, smoke, flame, drop,
            lambda k: chunk(k, WHITE, WHITE_SH, WHITE),
-           lambda k: chunk(k, GUN, GUN_SH, GUN_HI)]
+           lambda k: chunk(k, GUN, GUN_SH, GUN_HI),
+           foam, spray]
 
 
 def build():

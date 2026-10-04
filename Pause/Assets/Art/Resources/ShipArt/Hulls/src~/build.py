@@ -220,7 +220,7 @@ def check_alpha(key, sheet):
         assert bad is None, f"{key}: damage state {s} alpha differs from intact at {bad}"
 
 
-KIND_CS = {"sparks": "Sparks", "arc": "Arc", "smoke": "Smoke", "flame": "Flame", "leak": "Leak"}
+KIND_CS = {"sparks": "Sparks", "arc": "Arc", "smoke": "Smoke", "flame": "Flame", "leak": "Leak", "smolder": "Smolder"}
 
 
 def emitter_rows():

@@ -37,6 +37,7 @@ Emitters (the in-game FX, ShipDamageFx), one point each:
     leak    fuel / coolant droplets in the hull's colour
 """
 import math
+import random
 
 from hullkit import *  # noqa: F401,F403
 
@@ -44,7 +45,7 @@ from hullkit import *  # noqa: F401,F403
 # than the table's polygons, about its own centre
 GROW = 1.3
 
-EMITTER_KINDS = ["sparks", "arc", "smoke", "flame", "leak"]
+EMITTER_KINDS = ["sparks", "arc", "smoke", "flame", "leak", "smolder"]
 
 
 def mx(pts):
@@ -311,6 +312,9 @@ def attach(ship, m):
             o = ship.forms[fi].outline
             cx, cy = _centre(acc[-1])
             assert inside(o, cx, cy), (ship.key, state, ft)
+        if state == 2:
+            chars, extra, smolder = wreck(ship, acc)
+            acc = chars + acc + extra
         ship.damage[state] = list(acc)
         out = []
         for kind, x, y in emits:
@@ -318,6 +322,10 @@ def attach(ship, m):
             (u, v), = m([(x, y)])
             assert any(inside(fm.outline, u, v) for fm in ship.forms), (ship.key, state, kind, x, y)
             out.append((kind, u, v))
+        # smoke curls out of every blown / torn spot this state opened
+        if state == 1:
+            smolder = [_inner_point(ship, ft) for ft in acc if ft[0] in ("panel", "tear")]
+        out += [("smolder", u, v) for u, v in smolder if u is not None]
         ship.emitters[state] = out
     return ship
 
@@ -434,6 +442,8 @@ def draw(ft, hue, W, seed):
         s += poly(W(star(x, y, r * .45, r * .25, 4, rot=seed * 40)), INK)
         s += line(W([(x - r * 1.5, y - r * .5), (x - r * .4, y + r * .1)]), 1.2, INK)
         s += line(W([(x + r * .3, y - r * .4), (x + r * 1.4, y + r * .3)]), 1.2, INK)
+    else:
+        s += draw_wreck(ft, hue, W, seed)
     return s
 
 
@@ -457,4 +467,279 @@ def canopy_crack(canopy, W):
 
 def holes(ship, state):
     """The panel / tear areas of a state: stripes are masked out of them."""
-    return [ft[2] for ft in ship.damage.get(state, []) if ft[0] in ("panel", "tear")]
+    return [ft[2] for ft in ship.damage.get(state, []) if ft[0] in ("panel", "tear", "hole", "rip", "char")]
+
+
+# ------------------------------------------------------------ the wreck --
+# The last life is a wreck, not the damaged hull plus one more dent. On top
+# of the hand-placed row-2 features, every ship gets (seeded by its key, laid
+# out on its own forms, so no two ships are alike):
+#
+#   char    the burn spreading round every panel / tear / hole: a charred
+#           halo of hull shadow, burnt tone and black flecks
+#   hole    a chunk blown clean through: space behind a skeleton of exposed
+#           frame ribs and a stringer, a dangling wire, hot torn rim, curled
+#           petals of skin
+#   rip     a bite torn out of the hull's edge: the same void and frame,
+#           opening onto the outline
+#   crack   long branching cracks running off the wounds
+#   scorch  more soot stars
+#
+# Everything is still clipped to its form (the alpha never changes). Each
+# panel / tear / hole / rip opened on the last life gets a smolder emitter
+# (at most MAX_SMOLDER).
+
+VOID = "#0E1424"       # space seen through a hole (the guide palette's space dark)
+MAX_SMOLDER = 6
+WRECK_N = {"hole": 2, "rip": 2, "crack": 4, "scorch": 4}   # + 1 hole on a big hull
+
+
+def _seg_dist(px, py, a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L = dx * dx + dy * dy
+    t = 0 if L == 0 else max(0, min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / L))
+    return math.hypot(px - a[0] - dx * t, py - a[1] - dy * t)
+
+
+def edge_dist(pts, x, y):
+    return min(_seg_dist(x, y, pts[i], pts[(i + 1) % len(pts)]) for i in range(len(pts)))
+
+
+def _covered(ship, fi, x, y):
+    """Is (x, y) under a form drawn after form fi (a feature there is hidden)?"""
+    return any(inside(ship.forms[j].outline, x, y) for j in range(fi + 1, len(ship.forms)))
+
+
+def _bbox(pts, pad=0):
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    return min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad
+
+
+def _in_box(b, x, y):
+    return b[0] <= x <= b[2] and b[1] <= y <= b[3]
+
+
+def _keepout(ship):
+    """Canopy, lights and nozzles stay readable: no wreck feature on them."""
+    boxes = []
+    if ship.canopy:
+        boxes.append(_bbox(ship.canopy, 3))
+    for x, y, w, _ in ship.nozzles:
+        boxes.append((x - max(w, 4) - 4, y - 9, x + max(w, 4) + 4, y + 4))
+    for x, y, r, _ in ship.lights:
+        boxes.append((x - r * 2.2, y - r * 2.2, x + r * 2.2, y + r * 2.2))
+    return boxes
+
+
+def _point_ok(ship, fi, x, y, margin, keep):
+    o = ship.forms[fi].outline
+    if not inside(o, x, y) or edge_dist(o, x, y) < margin or _covered(ship, fi, x, y):
+        return False
+    return not any(_in_box(b, x, y) for b in keep)
+
+
+def _inner_point(ship, ft, margin=3.2):
+    """A point of feature ft well inside its form (an emitter spot), or (None, None)."""
+    fi = ft[1]
+    cx, cy = _centre(ft)
+    o = ship.forms[fi].outline
+    fx, fy = _centroid(o)
+    for k in (0, .25, .5, .75):
+        x, y = cx + (fx - cx) * k, cy + (fy - cy) * k
+        if inside(o, x, y) and edge_dist(o, x, y) >= margin and not _covered(ship, fi, x, y):
+            return x, y
+    return None, None
+
+
+def _blob(rng, cx, cy, r, n=9, rough=.28, sx=1.0, sy=1.0):
+    out = []
+    a0 = rng.uniform(0, math.tau)
+    for i in range(n):
+        a = a0 + math.tau * i / n
+        rr = r * (1 + rng.uniform(-rough, rough))
+        out.append((cx + math.cos(a) * rr * sx, cy + math.sin(a) * rr * sy))
+    return out
+
+
+def _area(pts):
+    n = len(pts)
+    return abs(sum(pts[i][0] * pts[(i + 1) % n][1] - pts[(i + 1) % n][0] * pts[i][1] for i in range(n))) / 2
+
+
+def wreck(ship, acc):
+    """The last life's extra features: (chars, extras, smolder points)."""
+    rng = random.Random(sum(ord(c) * (i + 1) for i, c in enumerate(ship.key)))
+    keep = _keepout(ship)
+    row1 = ship.damage.get(1, [])
+    taken = [(_centre(ft), 7) for ft in acc]
+    # forms worth wrecking, weighted by area
+    cand = [(i, _area(fm.outline)) for i, fm in enumerate(ship.forms)
+            if fm.tone in ("hull", "gun") and _area(fm.outline) > 120]
+    total = sum(a for _, a in cand)
+
+    def pick_form():
+        t = rng.uniform(0, total)
+        for i, a in cand:
+            t -= a
+            if t <= 0:
+                return i
+        return cand[-1][0]
+
+    def free(x, y, r):
+        return all(math.hypot(x - c[0], y - c[1]) > r + rr for c, rr in taken)
+
+    def sample(r, margin, tries=500):
+        for _ in range(tries):
+            fi = pick_form()
+            x0, y0, x1, y1 = _bbox(ship.forms[fi].outline)
+            x, y = rng.uniform(x0, x1), rng.uniform(y0, y1)
+            if _point_ok(ship, fi, x, y, margin, keep) and free(x, y, r):
+                return fi, x, y
+        return None
+
+    extra, smolder = [], []
+    # holes: blown clean through
+    for k in range(WRECK_N["hole"] + (total > 6000)):
+        r = rng.uniform(7.5, 10.5)
+        s = sample(r, 3.5) or sample(r * .7, 3.2)
+        if not s:
+            continue
+        fi, x, y = s
+        pts = _blob(rng, x, y, r, 8, .32, rng.uniform(.8, 1.15), rng.uniform(.8, 1.15))
+        extra.append(("hole", fi, pts, k))
+        taken.append(((x, y), r + 2))
+        smolder.append((x, y))
+    # rips: bites torn out of the silhouette's edge
+    for k in range(WRECK_N["rip"]):
+        got = None
+        for _ in range(800):
+            fi = pick_form()
+            o = ship.forms[fi].outline
+            i = rng.randrange(len(o))
+            a, b = o[i], o[(i + 1) % len(o)]
+            ln = math.hypot(b[0] - a[0], b[1] - a[1])
+            if ln < 8:
+                continue
+            t = rng.uniform(.3, .7)
+            px, py = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t
+            tx, ty = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+            nx, ny = -ty, tx
+            if not inside(o, px + nx * 2, py + ny * 2):
+                nx, ny = -nx, -ny
+            # a real outer edge: nothing else drawn just outside it
+            if any(inside(fm.outline, px - nx * 3, py - ny * 3) for fm in ship.forms):
+                continue
+            d = rng.uniform(7.5, 10.5)
+            w = min(ln * .45, rng.uniform(6, 9))
+            ex, ey = px + nx * d * .5, py + ny * d * .5
+            if any(_in_box(bb, px, py) or _in_box(bb, ex, ey) for bb in keep):
+                continue
+            if not free(ex, ey, w) or _covered(ship, fi, ex, ey):
+                continue
+            if not (inside(o, ex, ey) and edge_dist(o, ex, ey) >= 3.2):
+                continue
+            got = (fi, px, py, tx, ty, nx, ny, d, w, ex, ey)
+            break
+        if not got:
+            continue
+        fi, px, py, tx, ty, nx, ny, d, w, ex, ey = got
+        pts = [(px - tx * w - nx * 3, py - ty * w - ny * 3)]
+        steps = 5
+        for j in range(steps + 1):
+            u = -1 + 2 * j / steps
+            dep = d * (1 - abs(u) ** 1.6) * rng.uniform(.75, 1.1)
+            pts.append((px + tx * w * u + nx * dep, py + ty * w * u + ny * dep))
+        pts.append((px + tx * w - nx * 3, py + ty * w - ny * 3))
+        extra.append(("rip", fi, pts, k))
+        taken.append(((ex, ey), w + 2))
+        smolder.append((ex, ey))
+    # cracks running off the wounds
+    wounds = [ft for ft in acc + extra if ft[0] in ("panel", "tear", "hole", "rip")]
+    for k in range(WRECK_N["crack"]):
+        if not wounds:
+            break
+        ft = wounds[k % len(wounds)]
+        fi = ft[1]
+        o = ship.forms[fi].outline
+        cx, cy = _centre(ft) if ft[0] != "rip" else _centroid(ft[2])
+        a = rng.uniform(0, math.tau)
+        pts = [(cx, cy)]
+        x, y = cx, cy
+        for _ in range(6):
+            a += rng.uniform(-.7, .7)
+            nx_, ny_ = x + math.cos(a) * 5, y + math.sin(a) * 5
+            if not inside(o, nx_, ny_):
+                break
+            x, y = nx_, ny_
+            pts.append((x, y))
+        if len(pts) >= 3 and inside(o, *_centroid(pts)):
+            extra.append(("crack", fi, pts))
+    # soot
+    for k in range(WRECK_N["scorch"]):
+        r = rng.uniform(4.0, 6.0)
+        s = sample(r, 2.0)
+        if not s:
+            continue
+        fi, x, y = s
+        extra.append(("scorch", fi, x, y, r))
+        taken.append(((x, y), r))
+    # the burn spreads round every wound (drawn first, under everything)
+    chars = []
+    for ft in acc + extra:
+        if ft[0] in ("panel", "tear", "hole", "rip"):
+            cx, cy = _centroid(ft[2])
+            x0, y0, x1, y1 = _bbox(ft[2])
+            r = max(x1 - x0, y1 - y0) * .5
+            if inside(ship.forms[ft[1]].outline, cx, cy):
+                chars.append(("char", ft[1], _blob(rng, cx, cy, r * 1.3 + 2.5, 11, .3), len(chars)))
+    # smoke from what this state opened: its hand-placed panels / tears first
+    pts = [_inner_point(ship, ft) for ft in acc if ft[0] in ("panel", "tear") and ft not in row1]
+    pts += smolder
+    pts = [p for p in pts if p[0] is not None][:MAX_SMOLDER]
+    return chars, extra, pts
+
+
+def draw_wreck(ft, hue, W, seed):
+    kind = ft[0]
+    s = ""
+    if kind == "char":
+        pts = ft[2]
+        s += poly(W(pts), hue[1])
+        s += poly(W(_scale(pts, .74)), ROCK_SH)   # burnt black-violet
+        rng = random.Random(ft[3] * 31 + 7)
+        x0, y0, x1, y1 = _bbox(pts)
+        for _ in range(6):
+            fx, fy = rng.uniform(x0, x1), rng.uniform(y0, y1)
+            s += poly(W(ngon(fx, fy, rng.uniform(.8, 1.6), 4, rng.uniform(0, 90))), INK)
+    elif kind in ("hole", "rip"):
+        pts = ft[2]
+        j = _jag(pts, ft[3] * 5 + 3, 1.4)
+        cx, cy = _centroid(pts)
+        x0, y0, x1, y1 = _bbox(pts)
+        w, h = x1 - x0, y1 - y0
+        s += poly(W(_scale(j, 1.3)), GUN_SH)   # buckled, burnt skin
+        s += poly(W(j), VOID)
+        # exposed frame: two ribs and a stringer, inked
+        rng = random.Random(ft[3] * 17 + len(pts))
+        tilt = rng.uniform(-.35, .35)
+        for t in (.3, .7):
+            a = (x0 + w * t + h * tilt * .5, y0 - 1)
+            b = (x0 + w * t - h * tilt * .5, y1 + 1)
+            s += line(W([a, b]), 2.8, INK) + line(W([a, b]), 1.4, GUN_HI)
+        yy = y0 + h * rng.uniform(.4, .6)
+        s += line(W([(x0 - 1, yy), (x1 + 1, yy)]), 2.4, INK) + line(W([(x0 - 1, yy), (x1 + 1, yy)]), 1.1, GUN_HI)
+        # a dangling wire with a hot tip
+        wa = [(cx - w * .2, y0 + h * .2), (cx, cy + h * .1), (cx + w * .12, cy + h * .3)]
+        s += line(W(wa), 2.2, INK) + line(W(wa), 1.0, RED)
+        (tx, ty), = W([wa[-1]])
+        s += poly(star(tx, ty, 1.9, .8, 4, rot=ft[3] * 13), AMBER)
+        # hot torn rim and curled petals of skin
+        s += inkpoly(W(j), 2.0)
+        s += inkpoly(W(_scale(j, .86)), 1.0, SODIUM)
+        for k in range(0, len(j), 3):
+            p, n = j[k], j[(k + 1) % len(j)]
+            q = (cx + (p[0] - cx) * 1.28, cy + (p[1] - cy) * 1.28)
+            r = (p[0] + (n[0] - p[0]) * .8, p[1] + (n[1] - p[1]) * .8)
+            s += poly(W([p, q, r]), hue[2]) + inkpoly(W([p, q, r]), .9)
+    return s
