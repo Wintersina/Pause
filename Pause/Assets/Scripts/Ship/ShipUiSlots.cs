@@ -113,6 +113,16 @@ public static class ShipUiSlots
         return b;
     }
 
+    // The companion gun (UltimateGun) stays upright beside a spinning hull,
+    // so its hull-local box maps to the world without the hull's rotation.
+    public static Bounds GunToWorld(Transform ship, int shipId, Bounds local)
+    {
+        if (!Spins(shipId)) return ToWorld(ship, local, false);
+        Vector3 s = ship.lossyScale;
+        var abs = new Vector3(Mathf.Abs(s.x), Mathf.Abs(s.y), 1f);
+        return new Bounds(ship.position + Vector3.Scale(local.center, s), Vector3.Scale(local.size, abs));
+    }
+
     // The hull itself: its sprite rect (every drawing of a ship shares it).
     public static Bounds HullBounds(Transform ship, int shipId)
     {
@@ -192,7 +202,7 @@ public static class ShipUiSlots
         var gun = ship.GetComponentInChildren<UltimateGun>(true);
         if (gun != null)
         {
-            Bounds muzzle = ToWorld(ship, gun.LocalMuzzleEnvelope(), Spins(shipId));
+            Bounds muzzle = GunToWorld(ship, shipId, gun.LocalMuzzleEnvelope());
             muzzle.center += Vector3.up * (w * .3f);
             muzzle.Expand(new Vector3(half * 2f, half * 2f, 0f));
             box.Encapsulate(muzzle);

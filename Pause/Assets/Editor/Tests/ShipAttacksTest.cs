@@ -42,6 +42,7 @@ public static class ShipAttacksTest
         NothingAdvancesWhilePaused();
         PoolsStayBounded();
         BossTakesWeightedHits();
+        MeterKeepsClearOfShipUi();
 
         AttackPool.StopAll();
         WorldTimeFx.Reset();
@@ -571,5 +572,49 @@ public static class ShipAttacksTest
         Check("a screen-clear homing shot lands on the boss as one full hit",
               boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f));
         Teardown(warden);
+    }
+
+    static void MeterKeepsClearOfShipUi()
+    {
+        bool registered = true, clear = true, upright = true;
+        var occupied = new List<Bounds>();
+        foreach (int id in ShipId.All)
+        {
+            FreshScene();
+            PlayerPrefs.SetInt("spawnShip", id);
+            var go = new GameObject("ship" + id, typeof(SpriteRenderer));
+            var sprite = shopingShips.SpriteFor(id);
+            go.GetComponent<SpriteRenderer>().sprite = sprite;
+            float k = shopingShips.NormalizedHullScale(sprite);
+            go.transform.localScale = new Vector3(k, k, 1f);
+            go.transform.position = new Vector3(0f, -2.5f, 0f);
+            if (ShipUiSlots.Spins(id)) go.transform.rotation = Quaternion.Euler(0f, 0f, 70f);
+            var c = go.AddComponent<ShipPowerController>();
+            c.SendMessage("Awake");
+            c.SendMessage("Start");
+            var gun = go.GetComponentInChildren<UltimateGun>();
+            if (gun != null) gun.SendMessage("Awake");
+            var meter = c.Secret.Badge;
+            meter.Step(.02f);
+            registered &= ShipUiSlots.IsRegistered(meter);
+            occupied.Clear();
+            ShipUiSlots.Occupied(go.transform, occupied, meter);
+            occupied.Add(ShipUiSlots.HullBounds(go.transform, id));
+            foreach (var b in occupied)
+                if (ShipUiSlots.Overlaps(b, meter.Footprint))
+                {
+                    clear = false;
+                    Debug.Log("[SA] meter of ship " + id + " overlaps " + b + " (meter " + meter.Footprint + ")");
+                }
+            if (ShipUiSlots.Spins(id) && gun != null)
+            {
+                for (int i = 0; i < 5; i++) gun.Tick(0f);
+                upright &= Quaternion.Angle(gun.transform.rotation, Quaternion.identity) < .5f;
+            }
+            Teardown(c);
+        }
+        Check("the secret meter registers its footprint with ShipUiSlots", registered);
+        Check("the secret meter keeps clear of the hull, gun, charge indicator and exhaust", clear);
+        Check("Ninja and UFO keep their gun upright instead of orbiting with the spin", upright);
     }
 }

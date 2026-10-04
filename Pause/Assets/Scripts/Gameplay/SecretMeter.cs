@@ -89,37 +89,100 @@ public class SecretMeter : MonoBehaviour
         }
     }
 
-    // World rect the badge occupies this frame -- for the ship's UI-slot
-    // registry (hearts / charge indicator) once it lands.
-    public Rect WorldBounds
+    // ---- placement (ShipUiSlots) ----------------------------------------
+
+    const float Gap = .04f, NearReach = .2f, MaxReach = .9f;
+    // The ready pose swells the drawing a little (SecretMeter.png, 1.06x).
+    const float Envelope = WorldSize * 1.1f;
+
+    ShipUiSlots.Slot[] slots;
+    int slotIndex = -1, layoutVersion = -1;
+    float relayoutIn;
+    Vector2 offset = new Vector2(.45f, -.1f);
+    bool registered;
+
+    // Everywhere the badge can draw (every pose) with the ship where it is
+    // now: what the hearts and other ship UI keep clear of.
+    public Bounds Footprint
     {
         get
         {
-            if (view == null) return new Rect();
-            Vector3 p = view.transform.position;
-            return new Rect(p.x - WorldSize * .5f, p.y - WorldSize * .5f, WorldSize, WorldSize);
+            Vector3 p = transform.parent != null ? transform.parent.position : transform.position;
+            return new Bounds(new Vector3(p.x + offset.x, p.y + offset.y, p.z), new Vector3(Envelope, Envelope, 0f));
         }
     }
 
-    // The one placement function: beside the hull on the side away from the
-    // gun, a little below centre -- clear of the charge indicator and the
-    // life hearts, which both sit above the nose. Hook a slot registry here.
+    public Rect WorldBounds
+    {
+        get { var b = Footprint; return new Rect(b.min.x, b.min.y, b.size.x, b.size.y); }
+    }
+
+    public ShipUiSlots.Side Side => slots != null && slotIndex >= 0 ? slots[slotIndex].side
+                                  : (side > 0f ? ShipUiSlots.Side.Right : ShipUiSlots.Side.Left);
+
+    // The one placement function. A slot beside the hull, on the side away
+    // from the gun first (the gun's own footprint pushes it clear anyway),
+    // then the other side, then whatever ShipUiSlots.Choose finds. The
+    // charge indicator, the gun and the exhaust are avoided through the
+    // registry; the hearts avoid this badge's registered footprint.
     void Place()
     {
-        float x = .3f, y = -.12f;
-        if (hull != null && hull.sprite != null)
+        var host = transform.parent;
+        if (host == null || view == null) return;
+        if (!registered)
         {
-            Bounds b = hull.sprite.bounds;
-            Vector3 s = transform.parent != null ? transform.parent.lossyScale : Vector3.one;
-            x = b.extents.x * Mathf.Abs(s.x) + WorldSize * .45f;
-            y = -b.extents.y * Mathf.Abs(s.y) * .35f;
+            ShipUiSlots.Register(host, this, () => Footprint);
+            registered = true;
         }
+        relayoutIn -= Time.unscaledDeltaTime;
+        if (slots == null || layoutVersion != ShipUiSlots.Version || relayoutIn <= 0f)
+        {
+            var size = new Vector2(Envelope, Envelope);
+            slots = ShipUiSlots.Candidates(host, ship,
+                new ShipUiSlots.Request { rowSize = size, columnSize = size, gap = Gap, nearReach = NearReach, maxReach = MaxReach },
+                this);
+            layoutVersion = ShipUiSlots.Version;
+            relayoutIn = 1f;
+        }
+        Vector3 p = host.position;
+        Rect screen = ShipUiSlots.ScreenRect(null);
+        var first = side > 0f ? ShipUiSlots.Side.Right : ShipUiSlots.Side.Left;
+        var second = side > 0f ? ShipUiSlots.Side.Left : ShipUiSlots.Side.Right;
+        int pick = Usable(first, p, screen);
+        if (pick < 0) pick = Usable(second, p, screen);
+        if (pick < 0) pick = ShipUiSlots.Choose(slots, p, screen, NearReach, slotIndex);
+        if (pick >= 0)
+        {
+            slotIndex = pick;
+            offset = slots[pick].offset;
+            // sit a touch below the hull's centre line when beside it
+            if (slots[pick].side == ShipUiSlots.Side.Left || slots[pick].side == ShipUiSlots.Side.Right)
+                offset.y -= WorldSize * .25f;
+        }
+
         var t = view.transform;
-        Vector3 parent = transform.parent != null ? transform.parent.position : transform.position;
-        t.position = new Vector3(parent.x + side * x, parent.y + y, parent.z - .05f);
+        t.position = new Vector3(p.x + offset.x, p.y + offset.y, p.z - .05f);
         t.rotation = Quaternion.identity;
-        Vector3 lossy = transform.parent != null ? transform.parent.lossyScale : Vector3.one;
+        Vector3 lossy = host.lossyScale;
         t.localScale = new Vector3(WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
                                    WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
+    }
+
+    int Usable(ShipUiSlots.Side want, Vector3 p, Rect screen)
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            var sl = slots[i];
+            if (sl.side != want || !sl.clear) continue;
+            var keep = i == slotIndex ? 0f : .12f;
+            var r = Rect.MinMaxRect(screen.xMin + keep, screen.yMin + keep, screen.xMax - keep, screen.yMax - keep);
+            if (ShipUiSlots.Inside(r, sl.At(p))) return i;
+        }
+        return -1;
+    }
+
+    void OnDestroy()
+    {
+        ShipUiSlots.Unregister(this);
     }
 }
