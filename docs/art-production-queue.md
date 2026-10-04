@@ -26,7 +26,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 9. **Installed and validated — `ember_fighter_1`:** Cinder rebuilt as a compact scorched forge-dart with jagged heat-shield plates, orange furnace vents, and a magenta furnace jaw; live strip is Preview-opened and roster-validated.
 10. **Installed and validated — `ember_fighter_2`:** Scorch rebuilt as a scorched fork-claw with uneven molten vents and a sodium-white furnace core; live strip is Preview-opened and roster-validated.
 11. **Installed and validated — `ember_fighter_3`:** Brand rebuilt as a lean scorched furnace flier with hooked ember-edged exhaust fins, a magenta heat slit, and a compact lower boiler; live strip is Preview-opened and roster-validated.
-12. **Queued — `ember_fighter_4`**
+12. **Installed and validated — `ember_fighter_4`:** Pyre rebuilt as a scorched furnace-heavy with shield slabs, an uneven boiler stack, and a grille-contained sodium core; live strip is Preview-opened and roster-validated.
 13. **Queued — `verdant_alien`**
 14. **Queued — `ember_alien`**
 15. **Queued — `space_chaser`**
