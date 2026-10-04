@@ -12,6 +12,13 @@ using UnityEngine;
 //   Blue shield atoms (atom3a): ShieldAtomRateMultiplier times as often and
 //   ShieldAtomRateMultiplier times the per-planet allowance, all level long
 //   (boss fights included). Red (pause) and green (heal) atoms are untouched.
+//
+//   Violet capacitor atoms (cooldownAtom): a fixed CooldownAtomsPerWorld per
+//   planet, the first after CooldownAtomFirstDelay seconds, then one every
+//   CooldownAtomRepeatDelay. Like the red atom it keeps the plain clock --
+//   no boss or shield multiplier: it already shortcuts the weapon charge, so
+//   bunching both of a planet's capacitors into a boss fight would hand out
+//   back-to-back ultimates.
 public static class PickupRules
 {
     public const float BossStarDustMultiplier = 3f;
@@ -36,5 +43,22 @@ public static class PickupRules
     public static int ShieldAtomBudget(int baseRoll)
     {
         return Mathf.Max(0, baseRoll) * ShieldAtomRateMultiplier;
+    }
+
+    // ---- violet capacitor atom ----
+    public const int CooldownAtomsPerWorld = 2;
+    public const float CooldownAtomFirstDelayMin = 35f, CooldownAtomFirstDelayMax = 65f;
+    public const float CooldownAtomRepeatDelayMin = 75f, CooldownAtomRepeatDelayMax = 115f;
+    // Its timer's rate: the plain clock, boss fight or not.
+    public const float CooldownAtomRate = 1f;
+
+    public static float CooldownAtomFirstDelay()
+    {
+        return Random.Range(CooldownAtomFirstDelayMin, CooldownAtomFirstDelayMax);
+    }
+
+    public static float CooldownAtomRepeatDelay()
+    {
+        return Random.Range(CooldownAtomRepeatDelayMin, CooldownAtomRepeatDelayMax);
     }
 }

@@ -25,6 +25,9 @@ public static class AkiraPalette
     public static readonly Color TealShadow = Hex(0x0F5E6A);
     // Accent (sparingly)
     public static readonly Color Magenta = Hex(0xFF2E88);
+    // Violet capacitor atom (sampled from its cooldown_idle art)
+    public static readonly Color Violet = Hex(0x7051B7);
+    public static readonly Color VioletHi = Hex(0xB99AFF);
     // Ink + highlight
     public static readonly Color Ink = Hex(0x140C14);
     public static readonly Color Bone = Hex(0xF4EAD4);

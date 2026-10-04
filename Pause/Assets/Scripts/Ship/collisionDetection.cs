@@ -333,8 +333,13 @@ public class collisionDetection : MonoBehaviour {
             {
                 cooldownAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Cooldown, hit.transform.position);
-                if (ShipPowerController.Instance != null) ShipPowerController.Instance.ReduceWeaponCooldown();
-                if (hypeText != null) hypeText.text = "WEAPON CHARGED";
+                // cuts min(12 s, what's left) off the charge; the word says
+                // which: "WEAPON CHARGED" or "-12s CHARGE"
+                if (ShipPowerController.Instance != null)
+                {
+                    string word = ShipPowerController.Instance.CollectCooldownAtom();
+                    if (hypeText != null) hypeText.text = word;
+                }
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
