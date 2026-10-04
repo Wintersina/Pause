@@ -1,369 +1,372 @@
-# Pause art style: 80s anime / Akira
+# Pause art style v2: neon pixel art
 
-Status: **v1.1.** Converted so far: the UI (HUD, quick-action icons, death panel, space dock UI,
-PAUSED overlay and pause glow, world banner, menu buttons via `MenuStyler`, tutorial palette) and the
-pickups (the pixel-art atom family, §5.1). Everything else in [`art-audit.md`](art-audit.md) is still to do.
-The sample sheet is [`art-samples/sample-sheet.png`](art-samples/sample-sheet.png), the before/after comparison is
-[`art-samples/before_after.png`](art-samples/before_after.png), and the per-asset conversion list is
-[`art-audit.md`](art-audit.md).
+**Neon pixel art** is detailed, hand-placed-looking pixel art lit by neon. Solid materials are
+painted with short ramps and texture, and saturated neon cores and lights glow past their 1 px
+dark outlines. The colour sense is cyberpunk / *Akira*: dark bases, one electric hue per world,
+and white-hot centres.
 
-This guide is for the agents and artists converting the game's art. If a rule here conflicts with
-something you like better, follow the rule and raise the idea separately.
+The benchmark is the **original rail-mine atlas**, which the user picked as "the theme I actually
+want". It is no longer in the tree; view it with
+`git show 18b5e5f^:Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png`. It has 4 worlds,
+and each world has 4 key poses: dormant → waking → charging → burst. The second benchmark is the
+green heal atom (`Pause/Assets/Art/Resources/Pickups/heal_atom_green.png`).
 
----
+> **Superseded (v1).** The flat-cartoon cel "Akira" guide (bold flat fills, thick ink, no
+> gradients) still governs **only the UI** (HUD, death panel, dock, quick actions, codex, menus)
+> **and the player ships**. The ships stay unchanged for now. Everything else in gameplay
+> converts to v2. The v1 text is in git history (`git log -- docs/art-style.md`), and its
+> samples remain in `docs/art-samples/` (top level). The v2 samples are in
+> `docs/art-samples/neon/`.
 
-## 0. The look in one paragraph
+Defining traits (keep all of them, on every converted asset):
 
-Flat, cartoony 2D cels in the manner of 80s TV anime, using the colours of *Akira* (1988): blue-black
-night, Kaneda red, sodium-orange city glow, teal neon. Every solid object is a **bold flat colour shape
-with a thick ink outline, one hard shadow tone and one highlight tone**. Shapes are **angular,
-mechanical and punchy**, never round, cute or bubbly. Light is the only thing allowed to glow. Motion is
-snappy and frame-by-frame, with anticipation, squash and stretch, smear frames, held key poses and the
-long red tail-light streak. **Nothing should look 3D-rendered.**
+1. **1 px dark selective outline.** Ink on the shadow side and darkened local colour on the lit side.
+2. **4–6 tone painterly material ramps** with texture: scratches, grain, facets, rivets, cracks.
+3. **Rim light.** One pixel on the side away from the key light, usually in the world's neon colour.
+4. **Saturated neon cores and lights.** Their glow and bloom spill past the outline.
+5. **Elemental particle FX.** Sparks, snowflakes, leaves, energy arcs, embers.
+6. **One elemental palette per world** on a dark base.
+7. **Key-pose animation.** Clear frame sequences; the dormant → charge → burst pattern is the model.
 
 ---
 
 ## 1. Palette
 
-All hex values live in code in [`art-samples/src/akira.py`](art-samples/src/akira.py). Use those names.
-Swatches: [`art-samples/palette.png`](art-samples/palette.png).
+All hexes below are sampled from the reference atlas. Each cell was median-cut with Pillow, then
+cleaned into even ramps. The values in `pixelkit.PAL` are the source of truth, and this table
+mirrors them. Swatch: `docs/art-samples/neon/palette.png`.
 
-### 1.1 Core roles
+**Shared**
 
-| Role | Name | Hex | Use |
-|---|---|---|---|
-| Night / sky | `NIGHT_0` | `#070A16` | deepest sky, top of backdrops |
-| | `NIGHT_1` | `#0E1424` | default backdrop, UI panel fill |
-| | `INDIGO_0` | `#1A1F45` | indigo, far structures, smoke core |
-| | `INDIGO_1` | `#2A2E6B` | lit indigo (planets, far hulls) |
-| | `DUSK` | `#3A2A5C` | horizon band, smoke cels |
-| Hero | `RED` (Kaneda red) | `#D8232C` | player hull, hero UI, title slabs |
-| | `RED_SH` | `#86121F` | its one shadow tone |
-| | `RED_HI` | `#FF5B45` | warm kick on red, used sparingly; prefer `BONE` |
-| City glow | `SODIUM` | `#F2862B` | sodium-orange lamps, exhaust mid, city windows |
-| | `AMBER` | `#FFB43C` | hot amber, star dust, nav lights, rim kicks |
-| | `SODIUM_SH` | `#A9481A` | shadow of amber/sodium forms |
-| Neon | `TEAL` | `#1FB5B9` | canopy glass, neon signage, HUD speed |
-| | `CYAN` | `#6EF2EE` | neon highlight, speed lines |
-| | `TEAL_SH` | `#0F5E6A` | teal shadow |
-| Accent (sparing) | `MAGENTA` | `#FF2E88` | enemy lights only, plus one accent per screen at most |
-| | `MAGENTA_SH` | `#8E1450` | dimmed enemy light |
-| Ink | `INK` | `#140C14` | every outline; warm near-black, **never `#000`** |
-| Highlight | `BONE` | `#F4EAD4` | off-white kicks, type, racing stripes; **never `#FFF`** except 1-frame impact flashes |
-
-### 1.2 Who gets which colours
-
-The player and enemies must read as opposites at a glance, even in peripheral vision.
-
-* **Player = red / warm.** `RED` hull, `BONE` stripes, `GUN` metal (`#2C2D40` / `#1A1A28` / `#5A5C78`),
-  `TEAL` canopy, `AMBER`/`SODIUM` lights and exhaust. Allies (tutorial robot, friendly UI) share the warm side.
-* **Enemies = cold, sickly or hostile.** No enemy may use `RED` as its body colour. The current Kenney
-  "Red" tier is retired to the bruise family.
-  * Steel: `STEEL #5A6A88`, `STEEL_SH #262D44`, `STEEL_HI #A3B4CC` (fighters, mechanical hulls)
-  * Bruise: `BRUISE #74409A`, `BRUISE_SH #3A1E52`, `BRUISE_HI #A86CD0` (armour panels, mines)
-  * Bile: `BILE #8FA84E`, `BILE_SH #3E5229`, `BILE_HI #D4E68E`, `BILE_LIGHT #C8FF3A` (aliens, organic)
-  * Enemy lights are `MAGENTA` (machines) or `BILE_LIGHT` (organics), **never amber or red**.
-* **Hazards (asteroids, debris):** `ROCK #605878`, `ROCK_SH #2C2638`, `ROCK_HI #958AA4`, with an `AMBER`
-  rim kick on the lit edge (reflected city glow) so they separate from the sky.
-* **Pickups:** a pixel-art family (see §5.1), keeping the colour coding players already know: the
-  green heal atom keeps its own greens (`#29A805`, `#7EE702`, `#B4F246`, white kick, ink `#00021B`), the
-  blue shield atom is `TEAL_SH`/`TEAL`/`CYAN`, the red pause atom `RED_SH`/`RED`/`RED_HI`, and star dust
-  (money; warm reads as "good") `SODIUM_SH`/`SODIUM`/`AMBER`. Each ramp ends in a `BONE` kick and sits on
-  `INK`. (The earlier `HEAL #2EE6A6` hex-cell heal sample is superseded.)
-
-### 1.3 Per-world variations (all inside the Akira family)
-
-Worlds are `WorldManager.Worlds`: **Space (0), Frost (1), Verdant (2), Ember (3)**. Only the backdrop,
-walls, atmosphere particles and the portal tint change. Gameplay sprites keep the core palette in every
-world, which is what keeps them readable.
-
-| World | Sky top to bottom | Structure tones | Rim / lamp | Particles | Portal |
-|---|---|---|---|---|---|
-| Space | `#070A16` > `#0E1424` > `#1A1F45` > `#2A1E48` | `#1A1C3A`, planet `#2A2E6B` / `#141838` | `SODIUM` city lights, `CYAN` planet rim | `CYAN` dust, 35% | `CYAN` |
-| Frost | `#04080F` > `#0A1A2A` > `#123248` | towers `#0F2134`, crags `#16324A` | ice rim `#9FE8F0`, `AMBER` windows (sparse) | `CYAN` ice flecks | `#9FE8F0` |
-| Verdant | `#05070F` > `#0A0F20` > `#10183A` (indigo night) | pines far `#0F3A32`, near `#185038`, kick `#2E7A52` on indigo shadow `#0A1A2E` | `TEAL`/`CYAN` river and glyphs, `SODIUM` lanterns, 2 px `RED` lantern dots only | `AMBER` fireflies, `CYAN` spores (flipbooks) | `#7FAF6A` |
-| Ember | `#120608` > `#24090E` > `#3E1016` | basalt `#2A1416`, `#5A1A1A` | lava `SODIUM` / `AMBER`, hard-edged | embers `SODIUM` | `AMBER` |
-
-Ember is the only world where a warm colour dominates the backdrop. To keep the red player readable
-there, Ember backdrops stay **at or below 30% value** and their lava is sodium-orange, never `RED`, and
-the player keeps its `BONE` stripes and `INK` outline.
-
----
-
-## 2. Rendering rules: flat cartoon, not 3D
-
-1. **Flat colour shapes.** Each form gets at most **three tones: base, one hard shadow, one highlight.**
-   No gradients on objects. Gradients are allowed only on sky backdrops (`L0`) and inside glow layers.
-2. **Hard-edged shadow shapes.** Shadows are polygons with sharp edges, placed as a cel painter would:
-   light comes from the upper left, so the shadow falls on the lower right side, undersides and trailing
-   edges. No ambient occlusion, no soft falloff, no rim gradients.
-3. **Highlights are "kicks":** thin hard slivers of `BONE` (or the family's `_HI`) on leading edges and
-   glass. Use one or two per form. No glossy specular balls and no round "shine dots".
-4. **Thick, confident ink.** `INK` outline on every solid object. Stroke weights, in authoring units
-   (one sprite canvas = 128 u):
-
-   | Asset size (longest edge in game) | Outer contour | Interior panel lines | Small detail |
-   |---|---|---|---|
-   | Pickups (about 0.3 world units, 64 u canvas) | 3.2 u | 2 u | 1.2 u |
-   | Ships, enemies, hazards (0.5 to 0.9 world units, 128 u canvas) | 4 u | 2 u | 1.5 u |
-   | Bosses or large set pieces (over 1.2 world units) | 5 u | 2.5 u | 1.6 u |
-   | UI plates and panels (canvas units) | 4 to 5 u | 2 u | 1.5 u |
-   | Background structures | 1.5 to 3 u, colour `#0A0C1C` (bg ink) | 1.2 u | none |
-
-   The rule of thumb is outer contour ≈ 3% of the sprite's longest edge, which must still be ≥ 2 px
-   at in-game texture resolution. Use `stroke-linejoin="round"` on contours, and `miter` on UI glyphs.
-5. **Angular, mechanical, panel-lined.** Build silhouettes from straight segments and chamfers. Curves
-   are allowed only as large arcs (planets, rings). Add panel lines, vents, stripes and bolts as ink
-   lines. No blobs, no pill shapes, no rounded-rectangle UI, no bubbles.
-6. **Simplify and exaggerate.** Push proportions so they read at a glance (bigger nose cones, longer
-   prongs, chunkier engines). Think 80s TV cels, not film-grade painted detail.
-7. **Glow belongs to lights only:** engine mouths, nav lights, eyes, visors, cores, exhaust, portals
-   and city windows. Glow is a `feGaussianBlur` copy of the light's shape in the `glow`/`glow-back`
-   layer, at 35 to 70% opacity. Solid hulls never glow, and glows never carry an ink outline.
-8. **Grain:** skip it on sprites and UI. Backdrops may carry a fractal-noise grain at **≤ 6% opacity**
-   (see `scenes.py`, layer `L6-grain`). The grain should be felt rather than seen.
-9. **No 3D tells:** no bevel/emboss, no inner shadow, no Fresnel rim, no metallic gradient, no photo
-   texture, no normal-map lighting, no soft drop shadows. A cel drop shadow (hard offset copy, e.g. the
-   red offset under UI glyphs) is fine.
-
----
-
-## 3. Motion language
-
-All timing is in **ticks at 24 fps** (1 tick ≈ 42 ms). Character-like motion runs **on 2s or 3s**
-(each drawing held 2 to 3 ticks). Parallax scrolling and camera moves stay smooth, at engine framerate.
-
-| Device | Rule | Sample |
+| Role | Hex | Use |
 |---|---|---|
-| **Key pose holds** | Every loop starts and rests on a held key pose (4 to 6 ticks). Stillness gives the action its punch. | fighter f0 (6 ticks), mine f0 (6) |
-| **Anticipation** | 1 to 2 ticks of the opposite motion before an action: squash down, pull in, dim the light. | fighter f1, alien f1, mine f1, heal f1 |
-| **Squash and stretch** | Squash on anticipation and impact, stretch on release. Keep the area roughly constant (sx·sy ≈ 1). Rigid hulls flex by at most 6%; organics and FX can go to 15% or more. | alien f1/f2, heal f1/f2 |
-| **Smear frames** | 1 tick only. Stretch the shape along the motion, add ghosted copies or speed lines, and drop detail. | exhaust f2, star dust f2 (edge-on cut) |
-| **Light trails** | The Akira tail-light: a long red streak with an amber middle, a `BONE` core and a hard shock diamond riding on it. Its length pulses frame to frame, and at speed it smears and adds `CYAN` speed lines. | `player_exhaust` |
-| **Speed lines** | Thin, straight vertical `CYAN`/`BONE` lines at 10 to 20% opacity in backdrops, and up to 80% on smear frames. | worlds L4, exhaust f2 |
-| **Impact frames** | 1 tick of flat `BONE` (or pure white) shape with a `RED` ink outline, ideally with a 1-tick full-screen red or white flash in code, then a hard-shaped burst. | explosion f0 |
-| **Explosions** | Built from hard-edged cel shapes with ink outlines: burst star, lobed fireball (3 flat tones), torn shards plus a 1-line shockwave ring, then angular `DUSK`/`INDIGO` smoke cels and `SODIUM` embers. **No soft particle sprites.** | `explosion` (ticks 1,2,2,2,3,3) |
-| **Talking** | 3 mouth drawings (closed, mid, open) on 2s/3s, never lerped. A blink can be added as a separate overlay. | `robot_talk` |
+| `INK` | `#05060c` | outline, deepest shadow, sockets |
+| `PLAYER_RED` | `#d8232c` | **player only**; never on an enemy, rock, mine or boss |
+| White-hot | `#f5fdfd` / `#fffbe0` | the single brightest pixel of a neon core (cool or warm worlds) |
 
-Unity playback: author flipbooks as separate frames and import as a sprite sheet. Drive them from an
-AnimationClip with constant sprite keys (no interpolation), or from a script stepping frames with the
-tick table. Don't tween scale or rotation in code to fake squash; draw it.
+**Space**: steel sphere, cyan core and lights.
 
----
-
-## 4. Readability
-
-1. **Backgrounds are darker and less saturated than anything you can touch.** Backdrop layers stay at
-   **HSV value ≤ 35%** and **saturation ≤ 60%**. The only exceptions are point lights (city windows,
-   lamps), which are tiny. Gameplay sprites must contain at least one tone at **value ≥ 70%**
-   (a `BONE` kick, a light, or an `AMBER` rim).
-2. **Contrast minimum** (WCAG relative-luminance ratio, measured against the world's *lane colour*,
-   the backdrop tone behind the play lane: Space `#0E1424`, Frost `#0A1A2A`, Verdant `#0B1F1C`,
-   Ember `#24090E`):
-   * the sprite's largest-area tone (its body base) must be **≥ 2.5:1**,
-   * and its brightest tone (kick, light or rim) must be **≥ 7:1**.
-
-   The ink outline is not counted, because it separates shapes but doesn't make them read on a dark sky.
-   Reference values on Space: `RED` 3.7, `STEEL` 3.4, `BRUISE` 2.6, `ROCK` 2.8, `BILE` 6.9, `AMBER` 10.4,
-   `BONE` 15.4. Larger far-backdrop elements (the Space planet, lit towers) may sit behind sprites at
-   up to `INDIGO_1`, where bodies drop to about 2:1. That's acceptable only because every sprite carries
-   a ≥ 7:1 kick. If a body fails, add a rim kick (`AMBER` for hazards, `_HI` for enemies) rather than
-   brightening the whole thing.
-3. **Silhouette test:** fill the sprite solid black at **true phone size** (ship ≈ 110 px tall on a
-   1080 px wide screen; a pickup ≈ 55 px). It must still read as its class: dart (player), claw
-   (fighter), crowned bug (alien), spiked hub (mine), lump (rock), four-point star (dust), hex (heal).
-4. **Hue separation:** player red/warm against enemy cold, everywhere. If a world's backdrop drifts
-   warm (Ember), drop its value further instead of shifting the player.
-5. **One accent per screen:** `MAGENTA` appears only on enemy lights plus at most one UI accent.
-
----
-
-## 5. Sizes, PPU and fitting the existing gameplay
-
-The camera is orthographic size 5 (10 world units tall, about 5.7 wide on a 9:19.5 phone, widened by
-`CameraFit` to a half-width of at least 2.85). One world unit is about 190 px on a 1080 px wide screen.
-**Keep each replacement's world-space size and pivot (centre) identical** to what it replaces. Prefab
-colliders are `BoxCollider2D` in local units, so matching the world size keeps every collider valid.
-Keep the silhouette's mass filling the collider box (Kenney colliders are about 82% of sprite bounds).
-
-| Asset class | Currently | World size | Author canvas | Export | PPU | Notes |
-|---|---|---|---|---|---|---|
-| Player hulls (Retro80s 1-7) | 64×64 png, cropped by hard-coded rects in `shopingShips.LoadRuntimeSprite`, PPU 100 | normalised to 0.58 u longest edge (`ReferenceHullSize`) | 128 u | 256×256 | any (normalised) | The art must fill the canvas. The hard-coded crop rects must be removed in the conversion PR (a code change), or the new hulls must be authored into those exact rects. **Decision needed.** |
-| Player hulls (Originals 8-15) | 128×32 strips / 32×32 idles, PPU 100 | 0.58 u (normalised) | 128 u | 256×256 per frame | any | 3 idle frames + intact/damaged/critical, as now |
-| Exhaust / trails | psd sprite frames | about 0.3 × 0.6 u | 128×256 u (ship space) | 256×512 | 440 | trail only. Hide the hull layers on export |
-| Kenney enemies | 82-104 × 84 px, PPU 100, prefab scale about 0.89 | about 0.83 u | match aspect (e.g. 128×104 u) | **2× the old px** (e.g. 186×168) | **200** | 2× pixels at 2× PPU gives the same world size, so colliders stay valid |
-| Alien (invader) | 32×32 ×4, PPU 100, prefab scale 2 | 0.64 u | 128 u | 128×128 | 400 | or 64×64 at PPU 200 |
-| Rail mine | 4×4 atlas of 313 px cells, PPU 180, scale 0.46 | about 0.8 u | 128 u | 4×4 atlas, 313 px cells | 180 | keep the atlas layout: row = world, column = frame |
-| Asteroids (Aestroids) | 18-32 px, PPU 100, prefab scale 1.8 | 0.32-0.58 u | 128 u | 2× old px (64×64 / 36×36) | 200 | |
-| Kenney meteors | 16-120 px, PPU 100 | as now | 128 u | 2× old px | 200 | |
-| Atoms / pickups | pixel art, see §5.1 | 0.28 u (`HealAtom.TargetDiameter`); star dust 0.256 u / 0.064 u | 49-cell grid | 196×196 (x4 nearest) | 700 | heal atom: the original 1254 px art, untouched |
-| Explosions / FX | 256 px frames, PPU 100 | about 1-2.5 u | 128 u | 256 per frame | 100-200 | sheet in a single row |
-| World backdrop | 1024×4096, seamless vertical tile | full screen | 512×2048 u | 1024×4096 | 100 | seamless top/bottom. Layers L0-L4 in one texture |
-| World walls | 64×448, seamless | quad 1.43 u wide, inner ~0.36 u on screen | 64×448 px, crisp | 64×448 | 100 | flat cel walls from `Art/Worlds/src~/walls.py` (Space writes `Art/left.png`/`right.png`); face, lights and spikes in the inner 20 px; right = mirror of left |
-| Quick-action icons | 256×256, PPU 256 | UI | 128 u | 256×256 (`render.sh --glyph` variant too) | 256 | |
-| Death panel | `dp_*` at 2× zoom, PPU 200 | UI | canvas units | 2× | 200 | keep the 9-slice borders listed in each SVG header |
-| Dock | SVG at 100 u = 1 world unit, 3× zoom | world | as now | 3× | 300 | `DockArt.PixelsPerUnit` |
-| Tutorial robot | `contra2.png` 110×107 | UI portrait | 128×124 u | 256×248 | match the old on-screen size | 3 mouth frames |
-
-### 5.1 Pickups: the pixel-art atom family (overrides the 64 u SVG spec)
-
-The user picked the **green heal atom** (`Art/Resources/Pickups/heal_atom_green.png`) and the pixel-art
-rail mine as the look for pickups, and the green atom as the quality bar. Where that conflicts with the
-flat-SVG rules above, the pickups follow the green atom:
-
-* **Pixel art, not vector.** Draw on a coarse cell grid with crisp cells only (no anti-aliasing), then
-  upscale with nearest-neighbour and import with **Point** filtering, **no mipmaps, uncompressed**.
-  Density matches the green atom: about 47 cells across 0.28 world units, so the siblings use a
-  **49-cell grid ×4 = 196 px at PPU 700** (exactly 0.28 u). Star dust: 45 cells (180 px, PPU 70.3125,
-  prefab scale 0.1 → 0.256 u) and 11 cells (44 px, PPU 34.375, scale 0.05 → 0.064 u).
-* **The green atom's shading is the model:** a dark ink outline that thickens to the lower right,
-  balls shaded with a shadow, a base and a light tone plus a hard square white kick (more tones than §2's
-  "one shadow, one highlight" — the user's preference wins for pickups).
-* **Distinct shape and colour per pickup:** heal = three elliptical orbits around a "+" nucleus (green);
-  shield = a hexagonal orbit cage around a split heater-shield nucleus with three cube electrons
-  (teal/cyan); pause = two orbits crossed in an X around an octagon-cut red ball with `BONE` pause bars;
-  star dust = a cel-faceted four-point star (sodium/amber).
-* **The green atom itself is never redrawn.** Its frame 0 is the original pixels. Its idle animation is
-  a flipbook of light overlays on a child renderer above it: electron glints in sequence with 1-tick
-  smears between them, then a nucleus pop and a shock ring (ticks 8,2,1,2,1,2,1,2,2,2,3).
-* **Animation:** every pickup has an idle loop (atoms: rest 6, ten travelling drawings on 2s, then
-  anticipation, pop, settle; star dust: rest, squash, stretch, spin through an edge-on smear, rest on the
-  flip side) and a 6-frame pickup burst (1-tick white impact, burst star, a ring breaking into shards and
-  per-kind confetti: `+`, pause bars, hex chips, sparks). Idle loops run on game time, so they freeze when
-  the world freezes.
-* Sources: `Art/Atoms/src~/pixel_atoms.py` (writes every frame, the metas and the previews in
-  [`art-samples/atoms/`](art-samples/atoms/)); playback: `PickupArt`, `PickupFlipbook`, `PickupBurst`.
-
----
-
-## 6. SVG authoring conventions
-
-* **Sources live in a `src~/` folder** next to the asset's output, e.g. `Art/<Area>/src~/`. The `~` makes
-  Unity ignore the folder. Each folder has a `render.sh` that rasterises with **resvg**
-  (`brew install resvg`), following `Art/UI/Icons/src~/render.sh`, `Art/UI/Dock/src~/render.sh` and
-  `Art/UI/DeathPanel/src~/rasterize.sh`. The script writes PNGs straight into the `Resources/` path the
-  game loads from. PNGs are committed, and SVGs are the source of truth.
-* **Fonts:** Orbitron Bold (`Art/Orbitron/Orbitron-Bold.ttf`). Pass it to resvg with
-  `--use-font-file`. Type is italic (`skewX(-8)`) with an `INK` stroke under the fill
-  (`paint-order="stroke"`).
-* **Layer stack.** Every sprite has these top-level groups, in this order:
-
-  ```xml
-  <g id="glow-back">  <!-- optional: blurred light that sits behind the object (exhaust, aura) -->
-  <g id="base">       <!-- flat base colours, no strokes -->
-  <g id="shadow">     <!-- ONE hard shadow tone per form -->
-  <g id="highlight">  <!-- ONE highlight tone per form: kicks, stripes -->
-  <g id="ink">        <!-- outer contour + panel lines, INK only -->
-  <g id="glow">       <!-- lights: flat light colour + optional blurred copy; no ink -->
-  ```
-
-  This order lets a pipeline recolour a family (swap `base`/`shadow`/`highlight`), strip glows for a
-  silhouette check, or export the trail without its hull.
-* **Parametric flipbooks.** Write a frame table (one row per drawing: pose parameters and hold ticks)
-  and generate one SVG per frame: `<asset>_<frame>.svg`. See `FIGHTER_FRAMES`/`FIGHTER_TIMING` in
-  [`sprites.py`](art-samples/src/sprites.py). Store the hold ticks in each SVG's header comment. Export
-  a horizontal strip (frames butted, no gap) for Unity's sprite editor, plus a GIF preview.
-* **Coordinates:** a 128-unit canvas for sprites, origin top-left, pivot at the centre. Player art
-  faces **up**, enemy art faces **down**. Light always comes from the upper left.
-* **Hand-authored SVGs are welcome.** The generator is a convenience, not a requirement. Keep to the
-  layer stack and palette names (`<!-- RED -->`-style comments help) either way.
-* **No raster in SVGs** (`<image>` is banned) and no external references.
-* The pipeline for these samples is `python3 build.py && ./render.sh && python3 compose.py` in
-  `docs/art-samples/src/` (needs resvg and Pillow).
-
----
-
-## 7. Do / Don't
-
-| Do | Don't |
+| Ramp | Dark → light |
 |---|---|
-| Flat fills, one hard shadow, one highlight | Gradients, airbrush or soft shading on objects |
-| Thick warm-black `INK` contour on every solid | Pure `#000` outlines, or no outline at all |
-| Chamfers, wedges, prongs, panel lines | Round blobs, pills, rounded-rect buttons, bubbles |
-| `BONE` kicks on leading edges | Glossy round specular dots, "wet" shine |
-| Glow only on lights, eyes, engines, cores | Glowing hulls, neon-tube outlines around everything |
-| Player red/warm, enemies cold/sickly/magenta | Red enemies, amber enemy lights |
-| Backdrops dark, low-saturation, thin bg ink | Bright, busy, high-contrast backdrops |
-| Draw squash, smear and holds frame by frame | Tweening scale in code to fake squash |
-| Explosions as inked cel shapes | Soft particle puffs, photo smoke |
-| Smoke as angular `DUSK`/`INDIGO` cels | Grey photographic smoke |
-| Pixel-snapped thick lines that survive at ≤ 64 px | Hairline detail that vanishes on a phone |
-| Complement the PAUSE logo's red | Restyle, redraw or recolour the PAUSE logo |
+| metal | `#0b0f15` `#1a2129` `#2f343b` `#4b5059` `#7a7c82` `#b0b4b6` |
+| trim (blue-steel) | `#0a1118` `#162e3c` `#2f4550` `#476d7b` |
+| neon cyan | `#0b4f7a` `#0b91cc` `#0bd0f6` `#7af6fc` `#f5fdfd`, glow `#15d8fc` |
+| background | `#03050a` `#070c16` `#0c1424` `#132036` `#1c2e48`, bg accent `#22668a` |
+
+**Frost**: ice-crystal shell, snowflake core.
+
+| Ramp | Dark → light |
+|---|---|
+| ice | `#0a1734` `#1c3c68` `#2a62ae` `#4a96e6` `#9fd2f2` `#e2fbff` |
+| metal (blue-grey) | `#0c1020` `#1e2638` `#33405c` `#4f6188` `#7d93bd` |
+| neon ice-blue | `#1569c8` `#1898f7` `#46ddfd` `#aaf2fb` `#f8fefc`, glow `#46c8fd` |
+| background | `#03060e` `#07101f` `#0d1a31` `#142645` `#1d3558`, bg accent `#2e6c98` |
+
+**Verdant**: vine-wrapped bark sphere, lime core, magenta thorns.
+
+| Ramp | Dark → light |
+|---|---|
+| bark | `#0c0703` `#281b0a` `#3e2610` `#5a3a17` `#7d5426` `#a07a3c` |
+| vine | `#0e1c03` `#1f3f04` `#306203` `#4dae03` `#a6d32a` |
+| neon lime | `#3d8f02` `#70d804` `#b8f018` `#e6fc5e` `#fbffd8`, glow `#8ef014` |
+| thorn magenta | `#3a0a2a` `#8c1462` `#e0309e` `#ff9ad6` |
+| background | `#030603` `#060f07` `#0b1a0d` `#122615` `#1b351c`, bg accent `#3f7a22` |
+
+**Ember**: basalt with magma cracks and an orange burst.
+
+| Ramp | Dark → light |
+|---|---|
+| basalt | `#0e0808` `#1d1212` `#2e1d1a` `#47302b` `#6a4a40` `#957060` |
+| magma | `#6a2404` `#c24a06` `#f77a0a` `#fcb809` `#fcee09` `#fdfa92` |
+| neon amber | `#c24a06` `#fc7a08` `#fcb809` `#fdf06a` `#fffbe0`, glow `#fc8a10` |
+| background | `#060303` `#100707` `#1a0c0a` `#26130f` `#341c16`, bg accent `#8f4a1c` |
+
+**The enemy-never-red rule stays: red means friendly / the player.** The reference had two
+breaches, and v2 fixes both.
+
+- **Ember magma.** The reference cracks used `#cf0d03` and its burst used `#f91302`. Both are
+  pure red. Ember's warm colours must keep a **hue of at least 18°** (orange to yellow). The
+  darkest magma tone, `#6a2404`, is the reddest allowed.
+- **Verdant thorns.** The reference thorns were crimson (`#6b1c26`, `#a11e18`). They are now
+  **magenta**, at a hue of about 320°.
+
+A converted asset may not use any other hue in the 345°–15° range at a saturation above 0.5.
+
+Rules:
+
+- Each asset uses **its own world's ramps, plus `INK`**. Mixing worlds is allowed only in
+  set-piece moments, such as portals.
+- A ramp is used whole or in part, but **never extended with in-between tones**. A new tone
+  needs a palette change in `pixelkit.PAL` and in this table.
+- Neon ramps are for **emissive pixels only**: cores, lights, energy and FX. Rim lights may
+  borrow neon step 1. Materials never use neon tones for diffuse light.
 
 ---
 
-## 8. Audit rule: when an existing asset must change
+## 2. Pixel technique
 
-The conversion agents use this rule to classify every asset in [`art-audit.md`](art-audit.md). An asset is
-**non-compliant** if **any** of these is true:
+### 2.1 The game pixel
 
-1. **3D shading:** gradient-shaded volume, airbrushed or soft shadows, ambient occlusion, bevel/emboss,
-   metallic gradients, sphere-like shading (e.g. the glossy atoms, the shaded pixel asteroids, the
-   painted gun and projectile atlases).
-2. **Photo or painterly texture:** noise-painted backdrops, photographic rock or smoke, realistic
-   particle sprites.
-3. **Glossy or bubbly:** specular "shine" dots, glass bubbles, rounded-pill or rounded-rectangle forms,
-   neon-tube outlines with soft bloom used as the whole look (the current synthwave UI).
-4. **No ink:** a solid gameplay object without a dark outline.
-5. **Off-palette, or role confusion:** colours outside §1, a red or warm enemy, cold player art.
-6. **Readability fail:** breaks §4 (bright backdrop, low-contrast sprite, unreadable silhouette).
+**1 game pixel = 1/64 world unit (PPU 64).** Every enemy, rock, mine, boss, projectile, FX and
+background shares this pixel, so pixel size matches across the whole playfield.
 
-The verdicts:
+Measured against the current game:
 
-* **KEEP:** already compliant, or not art (fonts, materials). No work needed.
-* **RESTYLE:** the shapes and layout are right but the rendering is not. Adjust the existing source
-  (usually an SVG in a `src~/`) by recolouring to the palette, adding ink, replacing rounded corners
-  with chamfers and removing gradients and bloom. The geometry and the 9-slice layout stay.
-* **REDRAW:** the asset fails rules 1 to 3, or has no vector source. Author a new SVG from scratch
-  under this guide, at the same world size, pivot and frame count.
-* **PROTECTED:** never touch it (see §9).
-* **UNUSED:** not referenced by any scene, prefab, animation or `Resources.Load`. Don't spend time on it.
+- **Screen.** It is 10 u tall, which is 640 game px. Its width is about 5.7 u, which is about
+  365 game px.
+- **Phone.** One world unit is about 190 px on a 1080-wide phone, so **1 game pixel is about
+  3 screen px**. That is chunky enough to read as pixel art and fine enough for "HD" detail.
+- **Export.** Every sprite is drawn at native game-pixel size, then **upscaled ×4 with
+  nearest-neighbour**, so the texture PPU is 256. The ×4 copy keeps edges clean when sprites
+  rotate, sway or scale (enemy sway, boss tilts), which raw 64-PPU texels would not.
+- **Loader rule.** `EnemyArt` sets `ppu = tex.height / FrameWorldSize`. Converted enemy art must
+  therefore use `FrameWorldSize = frame_px / 64`, where `frame_px` is the native frame height.
+  Any other value changes the pixel size. Bosses (`BossConfig.BossWorldSize`) and backgrounds
+  follow the same rule.
+
+| Asset class | Gameplay size today | Native frame (game px) | Silhouette inside the frame |
+|---|---|---|---|
+| Rocks | frame 0.66 u | **42–44** | 30–36 |
+| Aliens | frame 0.67 u | **44** | 30–36 |
+| Mines | frame 0.85 u | **54–64** | 44–52 (the recreation uses 64 = 1.0 u to leave room for the burst) |
+| Fighters, chasers | frame 0.9–0.95 u | **58–61** | 46–52 |
+| Heavies ("Big") | frame 1.3 u, about 1.1 u drawn | **84** | 64–72 |
+| Enemy and boss projectiles | 0.42–0.46 u | **28–30** | 12–20 core |
+| Bosses | cell 3.3 u | **208–212** | 128–192 body |
+| Walls | as now (e.g. 64×448 tex) | 1 game px = 1/64 u | – |
+| Backgrounds | full screen and up | **365 × 640** per screen (tiles 128–256) | – |
+| Player ships, atoms, UI | **unchanged** | – | – |
+
+The heal atom family is denser, at about 168 px per unit. It is a protected exception.
+
+### 2.2 Import settings (Unity)
+
+- **Filter mode: Point.** No mipmaps. Wrap mode: Clamp.
+- **Compression: None** (RGBA32). No lossy compression on sprites; ASTC or ETC smears pixel
+  edges and neon gradients. Backgrounds may use RGBA32 or, if memory forces it, RGB24.
+- **Sprite pivot:** centre, as now. **Pixels Per Unit:** 256 for ×4 exports, or set by the
+  loader as above.
+- Never resample in Unity. Never draw a sprite at a non-integer multiple of another sprite's
+  pixel. Scale a gameplay object only through `FrameWorldSize`.
+
+### 2.3 Outline
+
+- **Exactly 1 game pixel** of outer outline, on every solid object, using 4-connectivity.
+- **Selective outline (sel-out).** On the shadow side (bottom-right) the outline is `INK`. On
+  the lit side (top-left) it is the neighbouring local colour, darkened to about 25% of its
+  value and mixed with ink.
+- **Every overlapping part gets its own outline.** Pods over a sphere, a clamp over a body, a
+  wing over a hull: the ink line is what separates parts.
+- **Interior lines:** panel seams and grooves are 1 px, drawn **two ramp steps darker** than
+  the surface, not black. Use black only for sockets and deep cuts.
+- Glow, particles and energy arcs are **never outlined**.
+
+### 2.4 Shading
+
+- **Key light from the top-left**, toward the viewer: `(-0.55, -0.65, 0.52)`.
+- **Ramps:** 4–6 tones per material, lit with hard bands. Most of an object sits in the middle
+  three tones. The top tone is a hot spot of a few pixels; the bottom tone sits on the
+  bottom-right edge.
+- **Texture:** quantise it to the ramp. Add value noise and grain at 0.10–0.16 of the ramp
+  range. Add 1 px scratches one tone up, rivets as single top-tone pixels, and facets or cracks
+  as one-tone-down lines. Texture lives in the mid-tones and never breaks the silhouette.
+- **Rim light:** 1 px on the bottom-right edge, the edge facing away from the key light. Use
+  neon step 1 for the "lit by its own core" look, or ramp step 3 for plain parts. The rim stops
+  where another part covers the edge.
+
+### 2.5 Dithering
+
+- **The default is no dithering.** Bands are hard.
+- **Ordered (Bayer 4×4) dithering** is allowed only on band borders of large, slow surfaces:
+  rocks, boss armour, background gradients. Keep it at strength 0.3–0.6
+  (`shade(dither=...)`), and only between adjacent ramp tones.
+- **Never dither** on sprites smaller than 32 px, on neon, or on animated pixels. Dither
+  flickers when it moves.
+
+### 2.6 Anti-aliasing
+
+- **No soft anti-aliasing.** No bilinear, no supersample-and-shrink, no semi-transparent edge
+  pixels on solid objects. Solid pixels have alpha 255.
+- **Hand AA only.** One intermediate ramp tone at the steps of a curve's stair (the kit's
+  ramp quantisation does this naturally).
+- **Glow layers are the only partial alpha**, and they are stepped (see §3).
 
 ---
 
-## 9. Protected assets: the PAUSE logo
+## 3. Glow and bloom
 
-The PAUSE title/logo is **exempt from the restyle**. Don't redraw, recolour, filter, re-export,
-re-compress or re-crop it, and don't move it in its scenes. New UI that sits around it must
-**complement it, not compete with it**: keep headings near the logo smaller, use `RED` slabs and `BONE`
-type that echo its red, and put nothing glowing within its bounding box. `ArtRestyleTest` checks these
-files are byte-identical to master.
+- **Separate layer.** Glow is a separate layer built from the emissive pixels: cores, lights,
+  energy and magma. It is composited **additively**, behind the sprite for halos and over it for
+  flashes and spikes. In the art it is baked into the flipbook frame, because the kit's `glow()`
+  output sits in the same frame. A runtime emissive or additive sprite on top is allowed if a
+  later code phase wants it. No camera post-process bloom is required.
+- **Hard core, pixel halo.** The emissive pixels themselves are opaque neon ramp tones; the
+  brightest pixel is white-hot. The halo is a blur quantised into **3–5 hard alpha steps**, so
+  it reads as pixel rings. It is capped at **62% alpha**, and the halo colour is the world's
+  glow hex.
+
+**Spill limits** (measured from the outline):
+
+| State | Max spill |
+|---|---|
+| Idle / dormant | 2 game px |
+| Waking, tells | 3 px |
+| Charging | 4 px, plus energy arcs out to 8 px |
+| Burst / explosion | up to 25% of the sprite's size, and the halo must fit inside the frame |
+| Boss idle | 6 px |
+| Boss attack | 12 px |
+
+- **Glow density.** No more than about 15% of an enemy's silhouette may be emissive. The
+  material must read first and the neon second, except on burst frames.
+- **Pause.** The game's mechanic is the pause, and **glow freezes with time**. Because glow is
+  part of the frame, a paused enemy holds its current frame and halo exactly. Any shader or
+  code-driven pulse must run on scaled game time (`Time.time` / `deltaTime`), never on
+  unscaled time. Don't dim, desaturate or "breathe" glow during pause unless a pause-FX design
+  says so.
+
+---
+
+## 4. Animation
+
+Timing is authored in **ticks of 1/24 s**, as `IdleTicks` in `EnemyRoster` already does.
+
+| Action | Frames | Holds (ticks) | Notes |
+|---|---|---|---|
+| Idle (fighter, chaser, alien) | 4 | 4 4 4 4 | 1 px bob, engine flicker, light pulse, eye blink on the last frame |
+| Rock idle | 4 | 5 3 2 3 | a facet glint travels; silhouette fixed |
+| Mine: dormant → waking → charging → burst | 4 keys | **12 / 4 / 4 / 8** | loop the dormant frame while idle (with a 2-frame light pulse); play waking and charging as the tell; burst then hand off to the explosion |
+| Tell / wind-up (any attacker) | 2–3 | 3 2 2 | the neon ramp climbs one step per frame; spill grows per §3 |
+| Hit flash | 1 | **2** | every non-ink pixel becomes neon step 4 (white-hot), outline stays `INK`; then back |
+| Enemy explosion | 6–8 | 1 2 2 3 3 4… | the core flashes white, the shell cracks into ramp-coloured shards, world particles, a stepped halo that shrinks |
+| Boss idle | 4–6 | 4–6 each | slow; plates shift a pixel, lights breathe in 2 steps |
+| Boss attack | key poses: anticipation → charge → release → recover | 6 / 4 / 2 / 8 | |
+
+Key-pose rules:
+
+- **Readable holds.** The pose that carries meaning (dormant, full charge) gets the longest hold.
+- **Silhouette first.** Between frames, change light and FX before you change silhouette. A
+  silhouette moves at most 1–2 px on idle loops.
+- **Pattern.** Every threat escalates through **dormant → charge → burst**, with neon brightness
+  stepping up the ramp each pose. Players learn to read the neon level as danger.
+
+---
+
+## 5. Readability versus backgrounds
+
+Backgrounds are neon pixel art too, but **darker, lower in contrast, and lower in neon density**
+than anything you can collide with. These limits are checked by `pixelkit.bg_check()`:
+
+| Metric (HSV) | Background limit | Gameplay objects |
+|---|---|---|
+| 95th-percentile value | **≤ 0.35** | material mid-tones at 0.25–0.70 |
+| Brightest pixel | **≤ 0.60** | neon cores at **≥ 0.90** |
+| Saturation of bright pixels (value > 0.3) | **≤ 0.80** | neon at 0.6–1.0 |
+| Accent coverage (value > 0.40) | **≤ 3%** of pixels | emissive up to 15% of a silhouette |
+| Outline | none; background shapes are edged with a lighter `bg` tone | 1 px `INK` / sel-out, always |
+| Glow | none, or ≤ 1 step at 25% alpha | per §3 |
+
+- Backgrounds use only the world's `bg` ramp plus its `bg accent`. They never use the gameplay
+  neon ramps or white.
+- **Parallax layers** step up the `bg` ramp toward the viewer (far = `bg[1–2]`,
+  near = `bg[3–4]`). Ordered dither is allowed on large gradients.
+- **Background particles** (snow, embers, dust, twinkles) use `bg[4]` or the bg accent, at
+  1–3 px.
+- **Walls** sit between the background and gameplay. They may use the material ramps, but
+  only the lower 4 tones and no neon brighter than step 1.
+- **Check:** the frost vignette scores p95 value 0.27, max 0.60, saturation 0.70 and 0.25%
+  accents (`samples.py` asserts this). Then composite an enemy and the player ship on it at
+  true scale, as in `vignette_frost.png`.
+
+---
+
+## 6. Protected assets (unchanged)
 
 | Asset | Path | Used by |
 |---|---|---|
-| PAUSE title logo (in-game texture) | `Pause/Assets/Art/pause_title_2.png` (+ `.meta`, guid `a2e075ab7763def46a6d6d3587b47678`) | `Pause/Assets/Scenes/startS4.unity` (start screen title) |
-| PAUSE title logo (repo/README) | `docs/pause-title.png` | `README.md` header |
-| Studio splash mark (treated as protected, since it is also a logo) | `Pause/Assets/Art/HapticGate.png` (guid `4f7e65d7e0d48dd48a9a0f0b5c456d93`) | `Pause/Assets/Scenes/spashS7.unity` (splash) |
+| PAUSE title logo | `Pause/Assets/Art/pause_title_2.png` (guid `a2e075ab7763def46a6d6d3587b47678`) | `Scenes/startS4.unity` |
+| PAUSE logo (README) | `docs/pause-title.png` | `README.md` |
+| HapticGate splash mark | `Pause/Assets/Art/HapticGate.png` (guid `4f7e65d7e0d48dd48a9a0f0b5c456d93`) | `Scenes/spashS7.unity` |
 
-**Not protected (decided by the user):** the "PAUSED" wordmark (`Art/paused_1.png`) and the pause-glow
-bars (`Art/Resources/PauseGlow/pausedGlow_a.png`, `pausedGlow_b.png`). Both have been restyled (sources in
-`Art/UI/Pause/src~/build_pause.py`), and the overlay now pops in and glints (`PausedOverlayAnim`, frames in
-`Art/Resources/PauseGlowFx/`).
-
-Notes:
-
-* The splash scene `spashS7` contains no PAUSE logo sprite (it shows the HapticGate mark and the text
-  "A … Game"). The start screen `startS4` is where the logo appears.
-* **App icon:** `ProjectSettings/ProjectSettings.asset` sets the default icon to
-  `Pause/Assets/Art/Retro80s/Ships/SourceStrips/xenon2_ship.png`, a ship strip, not the logo. So it
-  isn't protected under the logo rule. Changing the store icon is a product decision; the audit lists it
-  as *hold*.
+- Don't redraw, recolour, filter or re-export these.
+- Nothing glowing may sit inside the logo's bounding box.
+- `ArtRestyleTest` still guards them.
 
 ---
 
-## 10. Reference samples
+## 7. Production pipeline: PixelKit
 
-| What | File |
+Agents can't hand-place pixels, so the look comes from a **reproducible procedural pipeline**:
+`Pause/Assets/Art/PixelKit/src~/pixelkit.py`, which needs only numpy and Pillow. Unity ignores
+`src~`. Recipes and samples are in `samples.py` in the same folder. Run `python3 samples.py` to
+rebuild `docs/art-samples/neon/`.
+
+Order of work (each step is a kit call):
+
+1. **Shapes:** `disc`, `ellipse`, `ring`, `rect`, `round_rect`, `poly`, `line`, `capsule`,
+   `star`. These are boolean masks with no AA. Mask ops: `dilate`, `erode`, `edge`, `shift`,
+   `distance`.
+2. **Heights:** `height_sphere`, `height_dome` (pillow, any silhouette) and `height_bevel`
+   (plates). Facet tilt from `facets()` can be added for crystal or rock.
+3. **Shading:** `shade(mask, hf, ramp, strength≈radius, tex=..., tex_amt=.1–.16, spec=.03,
+   dither=0|.3–.6, bias=...)`. It does Lambert lighting, then texture, then quantises to the
+   ramp.
+   - Use `part(...)` for shade + rim + outline of one part, and build sprites back to front
+     with `over()`.
+4. **Detail:**
+   - `tone(img, mask, ramp, ±n)` steps pixels along the ramp. Use it for seams (−2),
+     scratches (+1) and crater lips.
+   - `scratches`, `cracks`, `facets` / `facet_lines`, `value_noise`, `grain`.
+   - `highlight` for rivets.
+   - `fill` for flat colours.
+5. **Rim and outline:** `rim(img, mask, color, dx=1, dy=1)`, then `outline(img)` (sel-out).
+6. **Neon:** paint emissive pixels with `fill()` from the neon ramp on a separate layer.
+7. **Glow:** `glow(emissive, glow_hex, radius, strength, steps)` or `halo(...)` for bursts.
+   Composite with `add()` behind the sprite, then `over()` the sprite, then `over()` the
+   emissive layer.
+8. **Particles:** `twinkle`, `spark`, `snowflake`, `leaf`, `ember`, `arc` (jagged energy),
+   `orbit_arc`, and `scatter(kind=...)`.
+9. **Export:** `strip`, `sheet`, `upscale(img, 4)`, `save`, and `save_gif(frames, path, ticks)`.
+   `hit_flash(img)` makes the 2-tick hit frame. `palette_swatch`, `on_bg` and `bg_check` help
+   with previews and limits.
+
+Converter conventions:
+
+- Put each asset family's generator in its own `src~` (for example `Art/Enemies/src~`), and
+  `import pixelkit` from `Art/PixelKit/src~`, for example via `sys.path`.
+- Generators are deterministic: fixed seeds, no randomness without a seed.
+- Write the ×4 strip into `Art/Resources/...` with the same name and frame count as the asset
+  it replaces. Update `FrameWorldSize` so it equals `frame_px / 64`.
+- Preview every asset at true scale on its world background before committing.
+
+---
+
+## 8. Do / don't
+
+| Do | Don't |
 |---|---|
-| Full sheet | `art-samples/sample-sheet.png` |
-| Before → after | `art-samples/before_after.png` |
-| Palette | `art-samples/palette.png` |
-| Player hull / exhaust flipbook | `player_ship.png`, `player_exhaust_strip.png`, `player_exhaust.gif` |
-| Enemy fighter / alien / rail mine | `enemy_fighter*.png/.gif`, `enemy_alien*`, `enemy_mine*` |
-| Asteroid, explosion | `asteroid.png`, `explosion_strip.png`, `explosion.gif` |
-| Pickups | the pixel-art family in `art-samples/atoms/` (`atom_family.png`, `*_idle_strip.png`/`.gif`, `*_burst_strip.png`/`.gif`); the older SVG `pickup_stardust*` / `pickup_heal*` samples are superseded |
-| Worlds | `world_space.png`, `world_frost.png` |
-| UI | `ui_hud.png`, `ui_icon_replay.png`, `ui_icon_home.png`, `ui_death_panel.png` |
-| Robot | `robot.png`, `robot_talk_strip.png`, `robot_talk.gif` |
-| Every rendered frame | `art-samples/frames/` |
-| Sources | `art-samples/src/` (`akira.py` palette + helpers, `sprites.py`, `scenes.py`, `ui.py`, `build.py`, `render.sh`, `compose.py`, one `.svg` per frame) |
+| Draw at native 1/64 u pixels, upscale ×4 nearest | Draw big and downscale, or resample in Unity |
+| 1 px sel-out outline per part | Thick ink (v1), no outline, or outlined glow |
+| 4–6 tone ramps with texture in the mid-tones | Smooth gradients, airbrush, photo texture |
+| Rim light on the bottom-right | Rim on every edge (that reads as a sticker outline) |
+| Neon cores with a white-hot centre and a stepped halo | Soft full-opacity bloom blobs, or glow wider than §3 allows |
+| One world palette per asset plus `INK` | Mixed world hues, or invented in-between tones |
+| Cold, sickly, electric or orange enemies; magenta thorns | **Red enemies**, red magma, crimson thorns |
+| Dark, quiet, low-neon backgrounds that pass `bg_check` | Bright neon cityscapes behind the playfield |
+| Key poses with clear holds: dormant → charge → burst | Smooth tweened motion, or silhouette jitter on idle |
+| Glow that freezes with the pause | Pulses on unscaled time |
+| Leave the ships, UI, atoms, PAUSE logo and HapticGate alone | Restyle protected or kept assets in this conversion |
+
+---
+
+## 9. Reference samples (`docs/art-samples/neon/`)
+
+| Sample | File |
+|---|---|
+| **Space rail mine, PixelKit recreation vs the original row** | `mine_space_vs_original.png` |
+| Mine strip (4 key poses, ×4) / GIF | `mine_space_strip.png`, `mine_space_burst.gif` |
+| Fighter, alien and rock for Frost and Ember | `enemies_frost_ember.png`, `{frost,ember}_{fighter,alien,rock}.png` |
+| Enemy idle (Ember fighter, 4 frames on 4s) | `ember_fighter_idle_strip.png`, `ember_fighter_idle.gif` |
+| Boss concept bust (Space, 176×144 game px) | `boss_space_bust.png` |
+| Background vignette, Frost, with a fighter, a rock and the unchanged player ship at true scale | `vignette_frost.png` |
+| Palettes | `palette.png` |
+| Everything on one sheet | `sample-sheet.png` |
