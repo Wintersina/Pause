@@ -257,7 +257,7 @@ public class enmiesOnBoard : MonoBehaviour {
     const int LiftSteps = 4;
     const float LiftStep = .5f;
     const int MineLiftSteps = 8;
-    const int ChaserDropSteps = 8;
+    const int ChaserDropSteps = 3;   // stays above the Destroyer (BelowCameraDestroyer)
 
     readonly Deferred[] deferred = new Deferred[MaxDeferred];
     int deferredCount;

@@ -18,6 +18,9 @@ public class HealAtomSpawner : MonoBehaviour
              "predictable even once the timer is up.")]
     [Range(0f, 1f)] public float chance = 0.6f;
 
+    // Same clearance as the shared spawn point (SpawnAboveCamera).
+    const float SpawnAboveTop = .5f;
+
     int spawnedThisWorld;
     int lastWorld = -1;
     float timer;
@@ -60,9 +63,11 @@ public class HealAtomSpawner : MonoBehaviour
         if (collisionDetection.lifeCounter <= 0) return;
         if (Random.value > chance) return;
 
-        // placed clear of the enemies' footprints when there's room (SpawnSpace)
+        // just above the visible top on any screen (a fixed y 7 popped in
+        // already visible on 9:22+ phones), clear of the enemies' footprints
+        // when there's room (SpawnSpace)
         Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
-        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-2.2f, 2.2f), 7f, 0f), half, -2.2f, 2.2f);
+        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-2.2f, 2.2f), CameraFit.ViewTop + SpawnAboveTop, 0f), half, -2.2f, 2.2f);
         SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
     }

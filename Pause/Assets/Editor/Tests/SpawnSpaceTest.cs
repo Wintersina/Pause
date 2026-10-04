@@ -54,6 +54,7 @@ public static class SpawnSpaceTest
             PickupsKeepOffEnemies();
             ChaserGivesWay();
             PlannerAllocatesNothing();
+            OffScreenEdgesFollowTheCamera();
             LongRunsNeverOverlap();
         }
         finally
@@ -360,7 +361,48 @@ public static class SpawnSpaceTest
         ClearBoard();
     }
 
-    // ---- 7: long runs ------------------------------------------------------------
+    // ---- 7: the board's off-screen edges --------------------------------------
+
+    // The heal atom spawns just above the visible top, and the bottom
+    // Destroyer sits below the visible bottom, on every screen height; a
+    // chaser spawned under the view starts clear of the Destroyer.
+    static void OffScreenEdgesFollowTheCamera()
+    {
+        var cam = Camera.main;
+        var destroyer = SceneUtil.FindAny("Destroyer");
+        Check("gameS1 has the main camera and the Destroyer", cam != null && destroyer != null);
+        if (cam == null || destroyer == null) return;
+        float size0 = cam.orthographicSize;
+        Vector3 pos0 = destroyer.transform.position;
+        var keeper = destroyer.AddComponent<BelowCameraDestroyer>();
+        var box = destroyer.GetComponent<BoxCollider2D>();
+        bool below = true, chaserClear = true;
+        ClearBoard();
+        var board = NewBoard();
+        foreach (float size in new[] { 5f, 6.65f, 7.6f })
+        {
+            cam.orthographicSize = size;
+            keeper.Reposition();
+            float top = destroyer.transform.position.y + box.offset.y + box.size.y * .5f;
+            below &= top < CameraFit.ViewBottom - 1f;
+            Random.InitState(31);
+            for (int i = 0; i < 12; i++) typeof(enmiesOnBoard).GetMethod("spawnChaser", Inst).Invoke(board, null);
+            foreach (var f in SpawnSpace.Live(SpawnLayer.Enemy))
+                chaserClear &= f.Body.yMin > top && f.Body.yMax < CameraFit.ViewBottom;
+            ClearBoard();
+            board = NewBoard();
+        }
+        Check("the Destroyer stays below the visible bottom on 5 / 6.65 / 7.6 half-height views", below);
+        Check("chasers spawn under the view but clear of the Destroyer", chaserClear);
+        Check("the heal atom spawns just above the visible top (CameraFit.ViewTop), not a fixed y 7",
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/HealAtomSpawner.cs").Contains("CameraFit.ViewTop + SpawnAboveTop"));
+        Object.DestroyImmediate(keeper);
+        destroyer.transform.position = pos0;
+        cam.orthographicSize = size0;
+        ClearBoard();
+    }
+
+    // ---- 8: long runs ------------------------------------------------------------
 
     // Spawn counts of the pre-SpawnSpace spawner (3526b769) over the same
     // runs -- 120s, dt 1/60, worlds 0-3 x scroll 6/12/18 u/s, seeded the
