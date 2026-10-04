@@ -20,6 +20,10 @@ public class lifeControler : MonoBehaviour {
     // Idle loop, bank pose and hit flash (ShipHullArt flipbook).
     private ShipHullAnimator hullAnimator;
 
+    // The flipbook state (column = idle drawing / bank pose / hit flash):
+    // ShipDamageFx poses its emitters with it. Null until Start.
+    public ShipHullAnimator HullAnimator { get { return hullAnimator; } }
+
     // Use this for initialization
     void Start() {
 
