@@ -1,0 +1,1781 @@
+fileFormatVersion: 2
+guid: 1391694109e8c4d2ab52802b919768c1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5083203033925940234
+    second: verdant_rock_vine_rugged_v2_concept_0
+  - first:
+      213: -7866896903446010324
+    second: verdant_rock_vine_rugged_v2_concept_1
+  - first:
+      213: -4630963743998216478
+    second: verdant_rock_vine_rugged_v2_concept_2
+  - first:
+      213: -6160356868818212198
+    second: verdant_rock_vine_rugged_v2_concept_3
+  - first:
+      213: -7239817176829215995
+    second: verdant_rock_vine_rugged_v2_concept_4
+  - first:
+      213: 253830523953943948
+    second: verdant_rock_vine_rugged_v2_concept_5
+  - first:
+      213: 5009920676144766406
+    second: verdant_rock_vine_rugged_v2_concept_6
+  - first:
+      213: 6019091371806547865
+    second: verdant_rock_vine_rugged_v2_concept_7
+  - first:
+      213: 5789710387496595147
+    second: verdant_rock_vine_rugged_v2_concept_8
+  - first:
+      213: 568839618290904818
+    second: verdant_rock_vine_rugged_v2_concept_9
+  - first:
+      213: 3038077349150281199
+    second: verdant_rock_vine_rugged_v2_concept_10
+  - first:
+      213: 1605521903691619327
+    second: verdant_rock_vine_rugged_v2_concept_11
+  - first:
+      213: -6242185168010009890
+    second: verdant_rock_vine_rugged_v2_concept_12
+  - first:
+      213: -8469153336850009125
+    second: verdant_rock_vine_rugged_v2_concept_13
+  - first:
+      213: 4639293736911901725
+    second: verdant_rock_vine_rugged_v2_concept_14
+  - first:
+      213: 8019172969481056280
+    second: verdant_rock_vine_rugged_v2_concept_15
+  - first:
+      213: -9050365093427380874
+    second: verdant_rock_vine_rugged_v2_concept_16
+  - first:
+      213: -8165229001047601198
+    second: verdant_rock_vine_rugged_v2_concept_17
+  - first:
+      213: 6838638924855825816
+    second: verdant_rock_vine_rugged_v2_concept_18
+  - first:
+      213: 5056799505240813147
+    second: verdant_rock_vine_rugged_v2_concept_19
+  - first:
+      213: 6228372056826046693
+    second: verdant_rock_vine_rugged_v2_concept_20
+  - first:
+      213: 988857698962727095
+    second: verdant_rock_vine_rugged_v2_concept_21
+  - first:
+      213: -4640428062056803940
+    second: verdant_rock_vine_rugged_v2_concept_22
+  - first:
+      213: 8814638222540705537
+    second: verdant_rock_vine_rugged_v2_concept_23
+  - first:
+      213: 236856783280463453
+    second: verdant_rock_vine_rugged_v2_concept_24
+  - first:
+      213: 837734034539128326
+    second: verdant_rock_vine_rugged_v2_concept_25
+  - first:
+      213: 9171026390922770094
+    second: verdant_rock_vine_rugged_v2_concept_26
+  - first:
+      213: -6698693838567088486
+    second: verdant_rock_vine_rugged_v2_concept_27
+  - first:
+      213: 388261714580516176
+    second: verdant_rock_vine_rugged_v2_concept_28
+  - first:
+      213: 305484070511173082
+    second: verdant_rock_vine_rugged_v2_concept_29
+  - first:
+      213: 179881388706915222
+    second: verdant_rock_vine_rugged_v2_concept_30
+  - first:
+      213: -3458595713399992346
+    second: verdant_rock_vine_rugged_v2_concept_31
+  - first:
+      213: 6417989237707696299
+    second: verdant_rock_vine_rugged_v2_concept_32
+  - first:
+      213: 2759384801136279699
+    second: verdant_rock_vine_rugged_v2_concept_33
+  - first:
+      213: -7205686822935298701
+    second: verdant_rock_vine_rugged_v2_concept_34
+  - first:
+      213: -7034857957400956966
+    second: verdant_rock_vine_rugged_v2_concept_35
+  - first:
+      213: -4025544815661009503
+    second: verdant_rock_vine_rugged_v2_concept_36
+  - first:
+      213: -9046300623980595090
+    second: verdant_rock_vine_rugged_v2_concept_37
+  - first:
+      213: -7860924508204735644
+    second: verdant_rock_vine_rugged_v2_concept_38
+  - first:
+      213: 1714279249469160870
+    second: verdant_rock_vine_rugged_v2_concept_39
+  - first:
+      213: -1490877956114946195
+    second: verdant_rock_vine_rugged_v2_concept_40
+  - first:
+      213: 3345669920514773867
+    second: verdant_rock_vine_rugged_v2_concept_41
+  - first:
+      213: 1271992347609518697
+    second: verdant_rock_vine_rugged_v2_concept_42
+  - first:
+      213: -2877531445480309757
+    second: verdant_rock_vine_rugged_v2_concept_43
+  - first:
+      213: -8620827346794887474
+    second: verdant_rock_vine_rugged_v2_concept_44
+  - first:
+      213: 89966704621384080
+    second: verdant_rock_vine_rugged_v2_concept_45
+  - first:
+      213: -5612699350547579808
+    second: verdant_rock_vine_rugged_v2_concept_46
+  - first:
+      213: -3901284065056059570
+    second: verdant_rock_vine_rugged_v2_concept_47
+  - first:
+      213: 5159985740280772770
+    second: verdant_rock_vine_rugged_v2_concept_48
+  - first:
+      213: 570490338633513909
+    second: verdant_rock_vine_rugged_v2_concept_49
+  - first:
+      213: -3460446489797645464
+    second: verdant_rock_vine_rugged_v2_concept_50
+  - first:
+      213: 4007520835208338067
+    second: verdant_rock_vine_rugged_v2_concept_51
+  - first:
+      213: 3481909553680038418
+    second: verdant_rock_vine_rugged_v2_concept_52
+  - first:
+      213: 3193813702490303354
+    second: verdant_rock_vine_rugged_v2_concept_53
+  - first:
+      213: 5732588384803841330
+    second: verdant_rock_vine_rugged_v2_concept_54
+  - first:
+      213: 6689510104298060308
+    second: verdant_rock_vine_rugged_v2_concept_55
+  - first:
+      213: -4986930404436986219
+    second: verdant_rock_vine_rugged_v2_concept_56
+  - first:
+      213: -6696977445907014381
+    second: verdant_rock_vine_rugged_v2_concept_57
+  - first:
+      213: -3967915078367193840
+    second: verdant_rock_vine_rugged_v2_concept_58
+  - first:
+      213: -8148947500131927262
+    second: verdant_rock_vine_rugged_v2_concept_59
+  - first:
+      213: -8991793480053835187
+    second: verdant_rock_vine_rugged_v2_concept_60
+  - first:
+      213: 1226870821326500650
+    second: verdant_rock_vine_rugged_v2_concept_61
+  - first:
+      213: 8030012417195491516
+    second: verdant_rock_vine_rugged_v2_concept_62
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 659
+        width: 58
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a04f7563a3a2b8640800000000000000
+      internalID: 5083203033925940234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 636
+        width: 224
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c26ea7962fa23d290800000000000000
+      internalID: -7866896903446010324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 596
+        width: 148
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e6f54fb2038bbfb0800000000000000
+      internalID: -4630963743998216478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 600
+        width: 383
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9ae3781114028aa0800000000000000
+      internalID: -6160356868818212198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1227
+        y: 39
+        width: 315
+        height: 667
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50bb258c2a0078b90800000000000000
+      internalID: -7239817176829215995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1581
+        y: 675
+        width: 190
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c851d654489c58300800000000000000
+      internalID: 253830523953943948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1762
+        y: 582
+        width: 309
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cd5e7eaf40d68540800000000000000
+      internalID: 5009920676144766406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 2065
+        y: 667
+        width: 84
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99fd52f46bb188350800000000000000
+      internalID: 6019091371806547865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1520
+        y: 611
+        width: 10
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bceaf171cee295050800000000000000
+      internalID: 5789710387496595147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 35
+        width: 310
+        height: 564
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fee5667e9ce4e700800000000000000
+      internalID: 568839618290904818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 144
+        width: 297
+        height: 453
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fed434ca04b692a20800000000000000
+      internalID: 3038077349150281199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 594
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffbd5ac3aa5f74610800000000000000
+      internalID: 1605521903691619327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 584
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed22d8689ad4f59a0800000000000000
+      internalID: -6242185168010009890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1479
+        y: 596
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd3bdb069e5877a80800000000000000
+      internalID: -8469153336850009125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 925
+        y: 572
+        width: 23
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d14145dd215126040800000000000000
+      internalID: 4639293736911901725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1174
+        y: 580
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 810355e0453d94f60800000000000000
+      internalID: 8019172969481056280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1188
+        y: 578
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67d7aaef5e4a66280800000000000000
+      internalID: -9050365093427380874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1540
+        y: 0
+        width: 315
+        height: 581
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2df07da1c774fae80800000000000000
+      internalID: -8165229001047601198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 0
+        width: 297
+        height: 573
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 895d0379ed9b7ee50800000000000000
+      internalID: 6838638924855825816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 0
+        width: 367
+        height: 573
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5eef32ab5c5d2640800000000000000
+      internalID: 5056799505240813147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 307
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e8e518e26f9f6650800000000000000
+      internalID: 6228372056826046693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1856
+        y: 27
+        width: 296
+        height: 543
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b0651886d029bd00800000000000000
+      internalID: 988857698962727095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 162
+        width: 22
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c91995b7343e99fb0800000000000000
+      internalID: -4640428062056803940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 1188
+        y: 112
+        width: 36
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10f8e1ee2c2e35a70800000000000000
+      internalID: 8814638222540705537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 97
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5ed21e4dfb794300800000000000000
+      internalID: 236856783280463453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 85
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 606a5f87aaa30ab00800000000000000
+      internalID: 837734034539128326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 91
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea63fa099e7064f70800000000000000
+      internalID: 9171026390922770094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 47
+        width: 23
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9e5c1de1757903a0800000000000000
+      internalID: -6698693838567088486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 999
+        y: 65
+        width: 16
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05da479e8f1636500800000000000000
+      internalID: 388261714580516176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1287
+        y: 78
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adddb53c42c4d3400800000000000000
+      internalID: 305484070511173082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 1337
+        y: 71
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69364938b211f7200800000000000000
+      internalID: 179881388706915222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 87
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6efca19e5899000d0800000000000000
+      internalID: -3458595713399992346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 1392
+        y: 77
+        width: 23
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba8e8dd2537411950800000000000000
+      internalID: 6417989237707696299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 49
+        width: 37
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39007565bdd4b4620800000000000000
+      internalID: 2759384801136279699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 71
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37d7a3c0302400c90800000000000000
+      internalID: -7205686822935298701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 53
+        width: 31
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adf29c3c5f92f5e90800000000000000
+      internalID: -7034857957400956966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 63
+        width: 30
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a53c1381546228c0800000000000000
+      internalID: -4025544815661009503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_37
+      rect:
+        serializedVersion: 2
+        x: 1301
+        y: 63
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e68fd380385157280800000000000000
+      internalID: -9046300623980595090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_38
+      rect:
+        serializedVersion: 2
+        x: 1309
+        y: 77
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4636b4a0fc268e290800000000000000
+      internalID: -7860924508204735644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_39
+      rect:
+        serializedVersion: 2
+        x: 1325
+        y: 61
+        width: 13
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6adbe6e05e75ac710800000000000000
+      internalID: 1714279249469160870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_40
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 45
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d67ee4ed5665f4be0800000000000000
+      internalID: -1490877956114946195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_41
+      rect:
+        serializedVersion: 2
+        x: 1092
+        y: 51
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b631efb01153e6e20800000000000000
+      internalID: 3345669920514773867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_42
+      rect:
+        serializedVersion: 2
+        x: 1110
+        y: 65
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 962d7440d4607a110800000000000000
+      internalID: 1271992347609518697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_43
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 65
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30c312a6564f018d0800000000000000
+      internalID: -2877531445480309757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_44
+      rect:
+        serializedVersion: 2
+        x: 1394
+        y: 51
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec64154043bac5880800000000000000
+      internalID: -8620827346794887474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_45
+      rect:
+        serializedVersion: 2
+        x: 1462
+        y: 49
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 091f19ebd30af3100800000000000000
+      internalID: 89966704621384080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_46
+      rect:
+        serializedVersion: 2
+        x: 2031
+        y: 63
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06cbb839dafab12b0800000000000000
+      internalID: -5612699350547579808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_47
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 47
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4f017e00dadbd9c0800000000000000
+      internalID: -3901284065056059570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_48
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 25
+        width: 74
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a8348721b3fb9740800000000000000
+      internalID: 5159985740280772770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_49
+      rect:
+        serializedVersion: 2
+        x: 986
+        y: 53
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bbfa0eb0f9cae700800000000000000
+      internalID: 570490338633513909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_50
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 31
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86b2d5370460affc0800000000000000
+      internalID: -3460446489797645464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_51
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 33
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39ad19487f29d9730800000000000000
+      internalID: 4007520835208338067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_52
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 33
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21a33278a4a325030800000000000000
+      internalID: 3481909553680038418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_53
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 35
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7ba5bf04a4b25c20800000000000000
+      internalID: 3193813702490303354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_54
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 31
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23563cf63ce3e8f40800000000000000
+      internalID: 5732588384803841330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_55
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 23
+        width: 25
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41a72105ff9e5dc50800000000000000
+      internalID: 6689510104298060308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_56
+      rect:
+        serializedVersion: 2
+        x: 1530
+        y: 31
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59630f3183ddacab0800000000000000
+      internalID: -4986930404436986219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_57
+      rect:
+        serializedVersion: 2
+        x: 1842
+        y: 15
+        width: 9
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31dd8ebbe7e8f03a0800000000000000
+      internalID: -6696977445907014381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_58
+      rect:
+        serializedVersion: 2
+        x: 1848
+        y: 23
+        width: 13
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 015d10752422fe8c0800000000000000
+      internalID: -3967915078367193840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_59
+      rect:
+        serializedVersion: 2
+        x: 1882
+        y: 14
+        width: 38
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22b34517c6f19ee80800000000000000
+      internalID: -8148947500131927262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_60
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 19
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4ab7bf687bb63380800000000000000
+      internalID: -8991793480053835187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_61
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 23
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2335720388b60110800000000000000
+      internalID: 1226870821326500650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_rugged_v2_concept_62
+      rect:
+        serializedVersion: 2
+        x: 1100
+        y: 15
+        width: 21
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb0c9e4afb5507f60800000000000000
+      internalID: 8030012417195491516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_rock_vine_rugged_v2_concept_0: 5083203033925940234
+      verdant_rock_vine_rugged_v2_concept_1: -7866896903446010324
+      verdant_rock_vine_rugged_v2_concept_10: 3038077349150281199
+      verdant_rock_vine_rugged_v2_concept_11: 1605521903691619327
+      verdant_rock_vine_rugged_v2_concept_12: -6242185168010009890
+      verdant_rock_vine_rugged_v2_concept_13: -8469153336850009125
+      verdant_rock_vine_rugged_v2_concept_14: 4639293736911901725
+      verdant_rock_vine_rugged_v2_concept_15: 8019172969481056280
+      verdant_rock_vine_rugged_v2_concept_16: -9050365093427380874
+      verdant_rock_vine_rugged_v2_concept_17: -8165229001047601198
+      verdant_rock_vine_rugged_v2_concept_18: 6838638924855825816
+      verdant_rock_vine_rugged_v2_concept_19: 5056799505240813147
+      verdant_rock_vine_rugged_v2_concept_2: -4630963743998216478
+      verdant_rock_vine_rugged_v2_concept_20: 6228372056826046693
+      verdant_rock_vine_rugged_v2_concept_21: 988857698962727095
+      verdant_rock_vine_rugged_v2_concept_22: -4640428062056803940
+      verdant_rock_vine_rugged_v2_concept_23: 8814638222540705537
+      verdant_rock_vine_rugged_v2_concept_24: 236856783280463453
+      verdant_rock_vine_rugged_v2_concept_25: 837734034539128326
+      verdant_rock_vine_rugged_v2_concept_26: 9171026390922770094
+      verdant_rock_vine_rugged_v2_concept_27: -6698693838567088486
+      verdant_rock_vine_rugged_v2_concept_28: 388261714580516176
+      verdant_rock_vine_rugged_v2_concept_29: 305484070511173082
+      verdant_rock_vine_rugged_v2_concept_3: -6160356868818212198
+      verdant_rock_vine_rugged_v2_concept_30: 179881388706915222
+      verdant_rock_vine_rugged_v2_concept_31: -3458595713399992346
+      verdant_rock_vine_rugged_v2_concept_32: 6417989237707696299
+      verdant_rock_vine_rugged_v2_concept_33: 2759384801136279699
+      verdant_rock_vine_rugged_v2_concept_34: -7205686822935298701
+      verdant_rock_vine_rugged_v2_concept_35: -7034857957400956966
+      verdant_rock_vine_rugged_v2_concept_36: -4025544815661009503
+      verdant_rock_vine_rugged_v2_concept_37: -9046300623980595090
+      verdant_rock_vine_rugged_v2_concept_38: -7860924508204735644
+      verdant_rock_vine_rugged_v2_concept_39: 1714279249469160870
+      verdant_rock_vine_rugged_v2_concept_4: -7239817176829215995
+      verdant_rock_vine_rugged_v2_concept_40: -1490877956114946195
+      verdant_rock_vine_rugged_v2_concept_41: 3345669920514773867
+      verdant_rock_vine_rugged_v2_concept_42: 1271992347609518697
+      verdant_rock_vine_rugged_v2_concept_43: -2877531445480309757
+      verdant_rock_vine_rugged_v2_concept_44: -8620827346794887474
+      verdant_rock_vine_rugged_v2_concept_45: 89966704621384080
+      verdant_rock_vine_rugged_v2_concept_46: -5612699350547579808
+      verdant_rock_vine_rugged_v2_concept_47: -3901284065056059570
+      verdant_rock_vine_rugged_v2_concept_48: 5159985740280772770
+      verdant_rock_vine_rugged_v2_concept_49: 570490338633513909
+      verdant_rock_vine_rugged_v2_concept_5: 253830523953943948
+      verdant_rock_vine_rugged_v2_concept_50: -3460446489797645464
+      verdant_rock_vine_rugged_v2_concept_51: 4007520835208338067
+      verdant_rock_vine_rugged_v2_concept_52: 3481909553680038418
+      verdant_rock_vine_rugged_v2_concept_53: 3193813702490303354
+      verdant_rock_vine_rugged_v2_concept_54: 5732588384803841330
+      verdant_rock_vine_rugged_v2_concept_55: 6689510104298060308
+      verdant_rock_vine_rugged_v2_concept_56: -4986930404436986219
+      verdant_rock_vine_rugged_v2_concept_57: -6696977445907014381
+      verdant_rock_vine_rugged_v2_concept_58: -3967915078367193840
+      verdant_rock_vine_rugged_v2_concept_59: -8148947500131927262
+      verdant_rock_vine_rugged_v2_concept_6: 5009920676144766406
+      verdant_rock_vine_rugged_v2_concept_60: -8991793480053835187
+      verdant_rock_vine_rugged_v2_concept_61: 1226870821326500650
+      verdant_rock_vine_rugged_v2_concept_62: 8030012417195491516
+      verdant_rock_vine_rugged_v2_concept_7: 6019091371806547865
+      verdant_rock_vine_rugged_v2_concept_8: 5789710387496595147
+      verdant_rock_vine_rugged_v2_concept_9: 568839618290904818
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

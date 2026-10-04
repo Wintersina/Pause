@@ -44,7 +44,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 27. **Queued — `frost_rock_rime`**
 28. **Installed, validated — `frost_rock_shard`** — rugged Frost ice-shard industrial hazard; 7-frame strip vetted for safe cell margins and roster validation.
 29. **Installed, validated — `verdant_rock_spore`** — rugged grass-capped bio-industrial Spore Rock; floating 7-frame strip preserves its mandated key silhouette and safe cell margins.
-30. **Queued — `verdant_rock_vine`**
+30. **Installed, validated — `verdant_rock_vine`** — rugged floating Verdant terrain wedge with root-cable vines; 7-frame strip vetted for safe cell margins and roster validation.
 31. **Queued — `verdant_rock_pod`**
 32. **Queued — `verdant_rock_knot`**
 33. **Installed and validated — `ember_rock_magma`** — rugged basalt pressure boulder with copper braces and pulsing molten seams; seven-cell boundary and flipbook continuity checked.
