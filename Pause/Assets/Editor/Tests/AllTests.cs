@@ -32,6 +32,7 @@ public static class AllTests
         ("CloakShieldTest", CloakShieldTest.Execute),
         ("CodexTest", CodexTest.Execute),
         ("CreditsTest", CreditsTest.Execute),
+        ("DeathCrashTest", DeathCrashTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),

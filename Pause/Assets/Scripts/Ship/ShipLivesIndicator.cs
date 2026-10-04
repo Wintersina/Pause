@@ -29,7 +29,8 @@ using UnityEngine.SceneManagement;
 // crumbles into pixel shards. The hearts left re-space their orbits
 // smoothly; a heal pops a heart back into orbit. All of it is pooled (built
 // once with the hearts) and runs on scaled time, so it holds still while the
-// world is frozen.
+// world is frozen -- except through the death crash, whose clock
+// (DeathCrash.FrameDt) plays the last heart's shield over the frozen world.
 //
 // For effects round the hull that keep clear of the hearts wherever they
 // are on their orbits (ShipDamageFx's spray hides droplets over them):
@@ -680,8 +681,11 @@ public class ShipLivesIndicator : MonoBehaviour
 
     void LateUpdate()
     {
-        Place(Time.unscaledDeltaTime, Time.deltaTime);
-        StepBreaks(Time.deltaTime);
+        // The death crash: the last heart's shield and crumble play over
+        // the frozen world on the crash's clock.
+        float dt = DeathCrash.Animating ? DeathCrash.FrameDt : Time.deltaTime;
+        Place(Time.unscaledDeltaTime, dt);
+        StepBreaks(dt);
     }
 
     // A healed heart pops in: grows from nothing past full size and settles.
