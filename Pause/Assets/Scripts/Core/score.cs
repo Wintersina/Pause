@@ -51,7 +51,9 @@ public class score : MonoBehaviour {
     // at awake, load up all the correct numbers for scores.
     void Awake()
     {
-        
+        // A run still open (Replay: this Awake beat the old scene's
+        // OnDestroy) gets its score bonus before the ledger banks it.
+        Settle(RunScore.RunId, StarDustLedger.RunId);
         // currencyText.text = "Currency Gathered : " + PlayerPrefs.GetInt("brickScore").ToString();
         tutorialCurrency = 0;
         paysRealDust = PaysRealDust(gameObject.scene.name,
@@ -105,8 +107,8 @@ public class score : MonoBehaviour {
         if (buttonClicks.playerDied && !committedOnDeath)
         {
             committedOnDeath = true;
+            Settle(scoreRun, ledgerRun);
             StarDustLedger.Commit(ledgerRun);
-            RunScore.EndRun(scoreRun);
         }
 
         // The boss intro's freeze is scripted: a press during it, or the
@@ -146,8 +148,30 @@ public class score : MonoBehaviour {
     // ledger, not that field, is what gets saved.
     void OnDestroy()
     {
+        Settle(scoreRun, ledgerRun);
         StarDustLedger.EndRun(ledgerRun);
-        RunScore.EndRun(scoreRun);
+    }
+
+    // Ends the score run and pays its star-dust score bonus into the same
+    // run's ledger, before the ledger banks it. Idempotent: the score run
+    // banks once (RunScore.EndRun) and the bonus is paid once per ledger run
+    // (StarDustLedger.PayScoreBonus); a stale token does nothing. Only a run
+    // that may set a best (not the tutorial, not developer mode) earns it.
+    public static float Settle(int scoreToken, int ledgerToken)
+    {
+        if (scoreToken <= 0 || scoreToken != RunScore.RunId) return 0f;
+        RunScore.EndRun(scoreToken);
+        float amount = RunScore.SavesBest ? ScoreRules.ScoreDustBonus(RunScore.Total) : 0f;
+        float paid = StarDustLedger.PayScoreBonus(ledgerToken, amount);
+        if (paid > 0f && paysRealDust) totalCurrency += paid;
+        return paid;
+    }
+
+    // The live run (the death panel, in the run's own scene).
+    public static float SettleCurrentRun()
+    {
+        Settle(RunScore.RunId, StarDustLedger.RunId);
+        return StarDustLedger.Bonus;
     }
 
     void payDust()

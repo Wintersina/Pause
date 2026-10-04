@@ -26,6 +26,9 @@ public class playerIsDead : MonoBehaviour
 
     void BeginResults()
     {
+        // Bank the run and its star-dust score bonus first, so the totals
+        // below (and the dust written) include it.
+        float scoreBonus = score.SettleCurrentRun();
         int previousBest = Mathf.RoundToInt(PlayerPrefs.GetFloat("HighestSpeed"));
         int runSpeed = Mathf.RoundToInt(moveBackGround.speed * 100f);
         int bestSpeed = Mathf.Max(previousBest, runSpeed);
@@ -45,6 +48,7 @@ public class playerIsDead : MonoBehaviour
             runSpeed = runSpeed,
             dustAtStart = score.runStartCurrency,
             dustWon = Mathf.Max(0f, score.totalCurrency - score.runStartCurrency),
+            dustBonus = scoreBonus,
         };
 
         var canvas = SceneUtil.FindAny("PopUpCanvas");

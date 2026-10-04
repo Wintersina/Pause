@@ -22,11 +22,18 @@ public static class StarDustLedger
     static bool active;
     static float baseline;
     static float earned;
+    // The end-of-run score bonus (ScoreRules.ScoreDustBonus): paid at most
+    // once per run, into `earned`, so every later commit already includes it.
+    static bool bonusPaid;
+    static float bonus;
 
     public static bool IsActive { get { return active; } }
     public static float Earned { get { return earned; } }
     public static float Balance { get { return baseline + earned; } }
     public static float Saved { get { return PlayerPrefs.GetFloat(CurrencyKey); } }
+    public static int RunId { get { return runId; } }
+    public static bool BonusPaid { get { return bonusPaid; } }
+    public static float Bonus { get { return bonus; } }
 
     // Starts a run and returns its token. A run that doesn't pay real dust
     // (the tutorial) never touches the saved balance. Any run still open is
@@ -39,6 +46,8 @@ public static class StarDustLedger
         active = paysRealDust;
         baseline = Saved;
         earned = 0f;
+        bonusPaid = false;
+        bonus = 0f;
         return runId;
     }
 
@@ -46,6 +55,19 @@ public static class StarDustLedger
     {
         if (!active || amount <= 0f) return;
         earned += amount;
+    }
+
+    // Adds the run's score bonus to what it earned -- once per run, and only
+    // for a run that pays real dust. Returns what was added (0 on a repeat,
+    // a stale token, or a practice run). Call before the commit that banks it.
+    public static float PayScoreBonus(int token, float amount)
+    {
+        if (token != runId || !active || bonusPaid) return 0f;
+        bonusPaid = true;
+        if (amount <= 0f) return 0f;
+        bonus = amount;
+        earned += amount;
+        return amount;
     }
 
     // Writes and saves the run's balance. Safe to call any number of times.
