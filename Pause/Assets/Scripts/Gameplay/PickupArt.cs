@@ -5,7 +5,7 @@ using UnityEngine;
 // draws every frame; the tick tables below must match its ATOM_IDLE_TICKS,
 // DUST_IDLE, HEAL_IDLE_TICKS and BURST_TICKS). Ticks are 1/24 s, the art
 // guide's flipbook clock.
-public enum PickupKind { Shield, Pause, Dust, DustSmall, Heal }
+public enum PickupKind { Shield, Pause, Cooldown, Dust, DustSmall, Heal }
 
 public static class PickupArt
 {
@@ -28,6 +28,7 @@ public static class PickupArt
         {
             case PickupKind.Shield: return "shield_idle";
             case PickupKind.Pause: return "pause_idle";
+            case PickupKind.Cooldown: return "cooldown_idle";
             case PickupKind.Dust: return "dust_idle";
             case PickupKind.DustSmall: return "dustsm_idle";
             default: return "heal_glint";
@@ -40,6 +41,7 @@ public static class PickupArt
         {
             case PickupKind.Shield: return "shield_burst";
             case PickupKind.Pause: return "pause_burst";
+            case PickupKind.Cooldown: return "cooldown_burst";
             case PickupKind.Heal: return "heal_burst";
             default: return "dust_burst";
         }
@@ -80,6 +82,7 @@ public static class PickupArt
         if (PrefabName.Is(go, HealAtom.ObjectName)) { kind = PickupKind.Heal; return true; }
         if (PrefabName.Is(go, "atom3a")) { kind = PickupKind.Shield; return true; }
         if (PrefabName.Is(go, "pauseAtom")) { kind = PickupKind.Pause; return true; }
+        if (PrefabName.Is(go, "cooldownAtom")) { kind = PickupKind.Cooldown; return true; }
         if (PrefabName.Is(go, "LargeStar1")) { kind = PickupKind.Dust; return true; }
         if (PrefabName.Is(go, "smStar1")) { kind = PickupKind.DustSmall; return true; }
         return false;
