@@ -192,9 +192,14 @@ public static class ExhaustSkinTest
         bool toward = after < before - .015f || (!grey && hueAfter < hueBefore - 5f);
         Check(who + " moves toward the skin (" + before.ToString("F3") + " -> " + after.ToString("F3") + ")",
               toward && moved > .015f);
-        // part of the way: never all the way, never past it
-        Check(who + " moves only part of the way (moved " + moved.ToString("F3") + " of " + before.ToString("F3") + ")",
-              after > .005f && moved < before * Mathf.Min(1f, t * ExhaustColors.HueLead) + .03f);
+        // Part of the way: against the target as a flame band can reach it
+        // (never darker than drawn), between a twelfth (hue leads) and four fifths
+        // of the distance is left.
+        Vector3 a = ExhaustColors.ToOklab(stock), b = ExhaustColors.ToOklab(target), c = ExhaustColors.ToOklab(shown);
+        if (b.x < a.x) b.x = a.x;
+        float total = (b - a).magnitude, left = (b - c).magnitude;
+        Check(who + " moves only part of the way (" + left.ToString("F3") + " of " + total.ToString("F3") + " left)",
+              total < .04f || (left > total * .08f && left < total * .85f));
     }
 
     // The real atlas texels: a texel drawn in a band colour shows that band's

@@ -189,11 +189,23 @@ public static class SplashLayoutTest
     {
         Check("Android renders outside the safe area (into the cutout)",
               PlayerSettings.Android.renderOutsideSafeArea);
-        Check("Android max aspect covers 21:9 phones like the Z Flip (" + PlayerSettings.Android.maxAspectRatio + ")",
-              PlayerSettings.Android.maxAspectRatio >= 2.4f - 0.001f);
         string asset = File.ReadAllText(Path.Combine(Application.dataPath, "../ProjectSettings/ProjectSettings.asset"));
+        // Aspect Ratio Mode: 0 Legacy Wide Screen (1.86 cap), 1 Native Aspect
+        // Ratio (no cap: no android:maxAspectRatio in the manifest, any screen
+        // shape full screen -- 9:24 phones, the Z Fold cover at ~2.45-2.56),
+        // 2 Custom (capped at androidMaxAspectRatio, the old 2.4 letterboxed
+        // the Fold cover).
+        Check("Android aspect ratio is uncapped (Native Aspect Ratio, not Legacy or a Custom cap)",
+              asset.Contains("androidSupportedAspectRatio: 1"));
+        Check("Android activity is resizeable (the system sizes it to any screen, no compat letterbox)",
+              PlayerSettings.Android.resizeableActivity);
         Check("Android starts fullscreen", asset.Contains("androidStartInFullscreen: 1"));
-        Check("Android aspect mode is not the 1.86 legacy cap", !asset.Contains("androidSupportedAspectRatio: 0"));
+        Check("Android fullscreen mode is FullScreenWindow",
+              PlayerSettings.Android.fullscreenMode == FullScreenMode.FullScreenWindow);
+        // iOS: a launch screen (Unity's default storyboard) is what makes iOS
+        // run at the device's native size instead of a letterboxed legacy one.
+        Check("iOS requires full screen", PlayerSettings.iOS.requiresFullScreen);
+        Check("iOS has a launch screen (type not None)", !asset.Contains("iOSLaunchScreenType: 3"));
         Check("spashS7 is the first scene in the build",
               EditorBuildSettings.scenes.Length > 0 && EditorBuildSettings.scenes[0].path.EndsWith("spashS7.unity"));
     }

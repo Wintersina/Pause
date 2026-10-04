@@ -58,6 +58,7 @@ public static class AllTests
         ("SplashLayoutTest", SplashLayoutTest.Execute),
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
+        ("TallScreenTest", TallScreenTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
         ("TutorialAtomFlowTest", TutorialAtomFlowTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),

@@ -42,6 +42,7 @@ public static class HeartsPlacementTest
             NoIndicatorKeepsTheHeartsAboveTheNose();
             NeverOverlapInAnyPose();
             StayOnScreenAtTheEdges();
+            TallScreens();
             AnExtraIndicatorTakesTheNextSlot();
         }
         finally
@@ -298,6 +299,73 @@ public static class HeartsPlacementTest
             }
             Teardown(rig);
         }
+    }
+
+    // Very tall screens (9:22, 9:24, the Z Fold cover): CameraFit keeps the
+    // 2.85 half-width and grows the height, with a cutout / gesture-bar safe
+    // area. The hearts and the secret meter stay inside it, off the hull and
+    // the charge indicator, wherever the ship can fly.
+    static void TallScreens()
+    {
+        var screens = new[]
+        {
+            ("9:16 1080x1920", 1080, 1920, 0, 0),
+            ("9:22 1080x2640", 1080, 2640, 96, 48),
+            ("9:24 1080x2880", 1080, 2880, 96, 48),
+            ("Z Fold cover 968x2376", 968, 2376, 90, 40),
+        };
+        var spots = new[]
+        {
+            new Vector3(-2.4f, 0f, 0f), new Vector3(2.4f, 0f, 0f), new Vector3(0f, -4.15f, 0f),
+            new Vector3(-2.4f, -4.15f, 0f), new Vector3(2.4f, -4.15f, 0f), new Vector3(0f, 4.5f, 0f),
+            new Vector3(-2.4f, 4.5f, 0f), new Vector3(2.4f, 4.5f, 0f),
+        };
+        foreach (var (name, w, h, top, bottom) in screens)
+        {
+            float size = CameraFit.ComputeSize(5f, 2.85f, w, h);
+            float halfW = size * w / h, unit = 2f * size / h;
+            Rect safe = Rect.MinMaxRect(-halfW, -size + bottom * unit, halfW, size - top * unit);
+            ShipUiSlots.ScreenOverride = () => safe;
+            string offAt = null, meterOff = null, hitAt = null;
+            int meters = 0;
+            foreach (int id in ShipId.All)
+            {
+                FreshScene();
+                var rig = Build(id, Vector3.zero);
+                var meter = rig.ship.GetComponentInChildren<SecretMeter>(true);
+                foreach (var spot in spots)
+                {
+                    rig.ship.transform.position = spot;
+                    // a few frames: each re-places against the other's footprint
+                    for (int f = 0; f < 3; f++)
+                    {
+                        rig.hearts.Place(0f);
+                        if (meter != null) meter.Step(0f);
+                    }
+                    var hearts = HeartBounds(rig);
+                    foreach (var b in hearts)
+                        if (!ShipUiSlots.Inside(safe, b)) { offAt = offAt ?? ShipId.KeyOf(id) + " at " + spot; break; }
+                    if (meter != null)
+                    {
+                        meters++;
+                        var mb = meter.View.GetComponent<SpriteRenderer>().bounds;
+                        if (!ShipUiSlots.Inside(safe, mb)) meterOff = meterOff ?? ShipId.KeyOf(id) + " at " + spot;
+                        if (Hits(hearts, meter.Footprint)) hitAt = hitAt ?? ShipId.KeyOf(id) + " hearts/meter at " + spot;
+                    }
+                    if (Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds) ||
+                        Hits(hearts, ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id)))
+                        hitAt = hitAt ?? ShipId.KeyOf(id) + " at " + spot;
+                }
+                Teardown(rig);
+            }
+            Check(name + ": hearts stay inside the safe area at every edge" + (offAt != null ? " -- off: " + offAt : ""),
+                  offAt == null);
+            Check(name + ": the secret meter stays inside the safe area (" + meters + " placements)" +
+                  (meterOff != null ? " -- off: " + meterOff : ""), meterOff == null && meters > 0);
+            Check(name + ": hearts clear of the hull, indicator and meter" + (hitAt != null ? " -- hit: " + hitAt : ""),
+                  hitAt == null);
+        }
+        ShipUiSlots.ScreenOverride = null;
     }
 
     // The upcoming secret-power meter (or anything else) only has to register
