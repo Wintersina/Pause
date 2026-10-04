@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,6 +7,15 @@ using UnityEngine.UI;
 // grid of cards (sprite + name) and a detail view (large sprite, name,
 // category and lore). Undiscovered entries show as a dark silhouette named
 // "???" with no lore.
+//
+// ENEMIES and HAZARDS are one vertically scrolling list in world sections
+// (SPACE, FROST, VERDANT, EMBER, then BOSSES for enemies), each under a flat
+// cel header bar in that world's enemy light with a found/total counter.
+// The current section's header stays pinned to the top of the list while
+// you scroll through it (pushed up by the next one), and a row of jump chips
+// above the list smooth-scrolls to any section. The BOSSES section keeps the
+// bosses secret: it only appears once one has been met, lists only the met
+// ones and counts only those (developer mode shows all four).
 //
 // Built entirely at runtime on its own overlay canvas as flat 80s-anime cels
 // in the Akira palette (CodexPalette): thick ink outlines, flat fills, hard
@@ -29,6 +39,13 @@ public class CodexPanel : MonoBehaviour
     public const float MinCard = 176f;
     public const float CardNameHeight = 54f;
     public const float GridInset = 8f;
+    public const float ChipsHeight = 52f;
+    public const float ChipGap = 8f;
+    public const float ChipsGap = 12f;         // chip row -> list
+    public const float SectionHeaderHeight = 56f;
+    public const float SectionHeaderGap = 12f; // header -> its first card row
+    public const float SectionGap = 28f;       // last card row -> next header
+    public const int MaxSections = 5;          // four worlds + bosses
 
     // ---- Timing (seconds, unscaled) ----
 
@@ -36,6 +53,7 @@ public class CodexPanel : MonoBehaviour
     public const float CloseDuration = .2f;
     public const float SwapDuration = .22f;
     public const float TabFadeDuration = .18f;
+    public const float JumpDuration = .35f;
 
     public static readonly CodexCategory[] Tabs =
     {
@@ -63,6 +81,9 @@ public class CodexPanel : MonoBehaviour
         public Rect panel;      // canvas units, centre-origin
         // The rest are panel-local (origin at the panel centre).
         public Rect header, divider, tabs, body, detail, back;
+        // Sectioned tabs (ENEMIES, HAZARDS): the jump-chip row, and the
+        // scrolling list under it (the body less the chips).
+        public Rect chips, list;
         public int columns;
         public float cardWidth, cardHeight, tabWidth;
     }
@@ -86,6 +107,8 @@ public class CodexPanel : MonoBehaviour
         l.tabs = new Rect(left, l.divider.yMin - 10f - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
         l.body = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.tabs.yMin - Gap);
+        l.chips = new Rect(left, l.body.yMax - ChipsHeight, iw, ChipsHeight);
+        l.list = Rect.MinMaxRect(left, l.body.yMin, left + iw, l.chips.yMin - ChipsGap);
         l.detail = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.divider.yMin - 10f);
 
         float gridW = iw - 2f * GridInset;
@@ -94,6 +117,118 @@ public class CodexPanel : MonoBehaviour
         l.cardHeight = l.cardWidth + CardNameHeight - 14f;
         l.tabWidth = (iw - TabGap * (Tabs.Length - 1)) / Tabs.Length;
         return l;
+    }
+
+    // ---------------------------------------------------------------------
+    // Sections
+    // ---------------------------------------------------------------------
+
+    // Tabs shown as world sections rather than one plain grid.
+    public static bool IsSectioned(CodexCategory c)
+    {
+        return c == CodexCategory.Enemies || c == CodexCategory.Hazards;
+    }
+
+    public const int BossWorld = -1;
+
+    public sealed class Section
+    {
+        public string label;
+        public Color color;
+        public int world;            // WorldManager.Worlds index, or BossWorld
+        public readonly List<CodexEntry> entries = new List<CodexEntry>();
+        public int discovered;
+        // "5/8" for a world; the bosses show only how many were met, so the
+        // hidden total never leaks.
+        public string counter;
+    }
+
+    public static string WorldLabel(int world)
+    {
+        return world == BossWorld ? "BOSSES" : EnemyRoster.WorldKeys[world].ToUpperInvariant();
+    }
+
+    // Header accent: each world's signature enemy light; the bosses get
+    // the hostile bruise.
+    public static Color SectionColor(int world)
+    {
+        return world == BossWorld ? EnemyPalette.BruiseHi : EnemyPalette.WorldLight(world);
+    }
+
+    // Order inside a world: fighters by tier, chaser, alien, big; rocks by
+    // tier, then the mine.
+    static int RoleRank(EnemyRole role)
+    {
+        switch (role)
+        {
+            case EnemyRole.Fighter: case EnemyRole.Rock: return 0;
+            case EnemyRole.Chaser: case EnemyRole.Mine: return 1;
+            case EnemyRole.Alien: return 2;
+            default: return 3;
+        }
+    }
+
+    // The listed entries of a tab, in display sections. A plain tab is one
+    // unlabelled section. Built on Populate only, never per frame.
+    public static List<Section> SectionsFor(CodexCategory c)
+    {
+        var sections = new List<Section>();
+        var entries = Codex.Entries;
+        if (!IsSectioned(c))
+        {
+            var all = new Section { label = CategoryLabel(c), color = CodexUi.Accent, world = 0 };
+            foreach (var e in entries)
+            {
+                if (e.category != c || !Codex.IsListed(e)) continue;
+                all.entries.Add(e);
+            }
+            Finish(all);
+            sections.Add(all);
+            return sections;
+        }
+
+        int worlds = EnemyRoster.WorldKeys.Length;
+        var keys = new List<int>[worlds];
+        for (int w = 0; w < worlds; w++)
+        {
+            sections.Add(new Section { label = WorldLabel(w), color = SectionColor(w), world = w });
+            keys[w] = new List<int>();
+        }
+        var bosses = new Section { label = WorldLabel(BossWorld), color = SectionColor(BossWorld), world = BossWorld };
+        for (int i = 0; i < entries.Length; i++)
+        {
+            var e = entries[i];
+            if (e.category != c || !Codex.IsListed(e)) continue;
+            if (BossCatalog.Find(e.id) != null) { bosses.entries.Add(e); continue; }
+            var def = EnemyRoster.FindByCodexId(e.id);
+            int w = def != null ? Mathf.Clamp(def.world, 0, worlds - 1) : 0;
+            int key = def != null ? RoleRank(def.role) * 100 + def.tier : 999;
+            // Ties keep catalogue order.
+            InsertSorted(sections[w].entries, keys[w], e, key * 1000 + i);
+        }
+        for (int w = 0; w < worlds; w++) Finish(sections[w]);
+        if (bosses.entries.Count > 0)
+        {
+            Finish(bosses);
+            bosses.counter = bosses.discovered.ToString();
+            sections.Add(bosses);
+        }
+        return sections;
+    }
+
+    static void InsertSorted(List<CodexEntry> list, List<int> keys, CodexEntry e, int key)
+    {
+        int at = keys.Count;
+        while (at > 0 && keys[at - 1] > key) at--;
+        keys.Insert(at, key);
+        list.Insert(at, e);
+    }
+
+    static void Finish(Section s)
+    {
+        s.discovered = 0;
+        foreach (var e in s.entries) if (Codex.IsDiscovered(e)) s.discovered++;
+        s.counter = s.discovered + "/" + s.entries.Count;
     }
 
     // ---------------------------------------------------------------------
@@ -139,12 +274,26 @@ public class CodexPanel : MonoBehaviour
     RectTransform detailArtBox;
     RectTransform backSlot;
     Button backBtn;
+    RectTransform chipsRoot;
+    CanvasGroup chipsGroup;
+    Chip[] chips;
+    SectionBar[] headers;
+    SectionBar sticky;
 
     Layout layout;
     CodexCategory category = CodexCategory.Log;
     CodexEntry[] shown = new CodexEntry[0];
     int shownCount;
     CodexEntry detailEntry;
+    List<Section> sections = new List<Section>();
+    readonly float[] sectionTop = new float[MaxSections];   // content-space y of each header's top edge
+    readonly int[] sectionStart = new int[MaxSections];     // first card index of each section
+    bool sectioned;
+    Rect gridRect;
+    int stickySection = -2, activeChip = -2;
+    int jumpTarget = -1;      // chip highlighted after a jump, until the player scrolls
+    bool jumping;
+    float jumpAt, jumpFrom, jumpTo, lastSetY;
 
     enum Phase { Hidden, Opening, Open, Closing }
     Phase phase = Phase.Hidden;
@@ -153,6 +302,21 @@ public class CodexPanel : MonoBehaviour
     float swapAt = -10f, tabAt = -10f;
     int lastW, lastH;
     Rect lastSafe;
+
+    class SectionBar
+    {
+        public RectTransform rt;
+        public Image frame;
+        public Text label, counter;
+    }
+
+    class Chip
+    {
+        public RectTransform rt;
+        public Image frame;
+        public Text label;
+        public Button button;
+    }
 
     class Card
     {
@@ -184,6 +348,30 @@ public class CodexPanel : MonoBehaviour
     public CodexEntry CardEntry(int i) { return cards[i].entry; }
     public RectTransform CardRect(int i) { return cards[i].rt; }
     public Text TabLabel(int i) { return tabLabels[i]; }
+
+    // Sections of the current tab (one unlabelled section on a plain tab).
+    public bool Sectioned { get { return sectioned; } }
+    public int SectionCount { get { return sections.Count; } }
+    public Section SectionAt(int i) { return sections[i]; }
+    public int SectionStart(int i) { return sectionStart[i]; }
+    public float SectionTop(int i) { return sectionTop[i]; }
+    public Text SectionLabel(int i) { return headers[i].label; }
+    public Text SectionCounter(int i) { return headers[i].counter; }
+    public RectTransform SectionHeaderRect(int i) { return headers[i].rt; }
+    public Button ChipButton(int i) { return chips[i].button; }
+    public Text ChipLabel(int i) { return chips[i].label; }
+    public RectTransform ChipRect(int i) { return chips[i].rt; }
+    public int ActiveChip { get { return activeChip; } }
+    public RectTransform ChipsRoot { get { return chipsRoot; } }
+    // The pinned header: which section it shows (-1 = none pinned) and its label.
+    public int StickySection { get { return stickySection; } }
+    public Text StickyLabel { get { return sticky.label; } }
+    public Text StickyCounter { get { return sticky.counter; } }
+    public RectTransform StickyRect { get { return sticky.rt; } }
+    public RectTransform Viewport { get { return viewport; } }
+    public RectTransform Content { get { return content; } }
+    public float ScrollY { get { return content.anchoredPosition.y; } }
+    public float MaxScroll { get { return Mathf.Max(0f, content.sizeDelta.y - viewport.rect.height); } }
 
     // ---------------------------------------------------------------------
     // Building
@@ -235,6 +423,7 @@ public class CodexPanel : MonoBehaviour
         divider.preserveAspect = true;
 
         BuildTabs();
+        BuildChips();
         BuildGrid();
         BuildDetail();
         BuildBack();
@@ -273,6 +462,72 @@ public class CodexPanel : MonoBehaviour
         }
     }
 
+    void BuildChips()
+    {
+        chipsRoot = CodexUi.NewRect("Chips", panel);
+        chipsGroup = chipsRoot.gameObject.AddComponent<CanvasGroup>();
+        chips = new Chip[MaxSections];
+        for (int i = 0; i < MaxSections; i++)
+        {
+            int index = i;
+            var chip = new Chip();
+            chip.frame = CodexUi.NewImage("Chip" + i, chipsRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
+            chip.frame.raycastTarget = true;
+            chip.rt = chip.frame.rectTransform;
+            chip.button = chip.frame.gameObject.AddComponent<Button>();
+            chip.button.transition = Selectable.Transition.None;
+            chip.button.targetGraphic = chip.frame;
+            chip.button.onClick.AddListener(() => JumpToSection(index));
+            chip.label = CodexUi.NewText("Label", chip.rt, font, "", 18, Color.white, TextAnchor.MiddleCenter);
+            chip.label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            chip.label.verticalOverflow = VerticalWrapMode.Truncate;
+            chip.label.resizeTextForBestFit = true;
+            chip.label.resizeTextMinSize = 11;
+            chip.label.resizeTextMaxSize = 18;
+            var lrt = chip.label.rectTransform;
+            CodexUi.Stretch(lrt);
+            lrt.offsetMin = new Vector2(8f, 0f);
+            lrt.offsetMax = new Vector2(-8f, 0f);
+            chips[i] = chip;
+        }
+    }
+
+    // A flat cel header bar: the chamfered tab plate filled with the
+    // section's accent, ink type leaning forward, counter on the right.
+    SectionBar BuildSectionBar(string name, Transform parent, bool blocksTouches)
+    {
+        var bar = new SectionBar();
+        bar.frame = CodexUi.NewImage(name, parent, CodexUi.CodexSprite("cx_tab"), Color.white, true);
+        bar.frame.raycastTarget = blocksTouches;
+        bar.rt = bar.frame.rectTransform;
+        bar.label = CodexUi.NewText("Label", bar.rt, font, "", 26, CodexUi.Ink, TextAnchor.MiddleLeft);
+        bar.label.fontStyle = FontStyle.BoldAndItalic;
+        bar.label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        bar.label.verticalOverflow = VerticalWrapMode.Truncate;
+        bar.label.resizeTextForBestFit = true;
+        bar.label.resizeTextMinSize = 14;
+        bar.label.resizeTextMaxSize = 26;
+        var lrt = bar.label.rectTransform;
+        CodexUi.Stretch(lrt);
+        lrt.offsetMin = new Vector2(28f, 0f);
+        lrt.offsetMax = new Vector2(-124f, 0f);
+        bar.counter = CodexUi.NewText("Counter", bar.rt, font, "", 22, CodexUi.Ink, TextAnchor.MiddleRight);
+        var crt = bar.counter.rectTransform;
+        crt.anchorMin = new Vector2(1f, 0f);
+        crt.anchorMax = new Vector2(1f, 1f);
+        crt.pivot = new Vector2(1f, .5f);
+        crt.anchoredPosition = new Vector2(-28f, 0f);
+        crt.sizeDelta = new Vector2(96f, 0f);
+        return bar;
+    }
+
+    static void PaintBar(SectionBar bar, Section s)
+    {
+        bar.frame.color = s.color;
+        bar.label.text = s.label;
+        bar.counter.text = s.counter;
+    }
+
     void BuildGrid()
     {
         var go = new GameObject("Grid", typeof(RectTransform), typeof(CanvasGroup), typeof(ScrollRect));
@@ -302,6 +557,7 @@ public class CodexPanel : MonoBehaviour
         scroll.movementType = ScrollRect.MovementType.Elastic;
         scroll.inertia = true;
         scroll.scrollSensitivity = 30f;
+        scroll.onValueChanged.AddListener(OnScrolled);
 
         int most = 0;
         foreach (var c in Tabs)
@@ -311,6 +567,20 @@ public class CodexPanel : MonoBehaviour
         }
         cards = new Card[most];
         for (int i = 0; i < most; i++) cards[i] = BuildCard(i);
+
+        headers = new SectionBar[MaxSections];
+        for (int i = 0; i < MaxSections; i++) headers[i] = BuildSectionBar("Section" + i, content, false);
+        // Pinned copy of the current section's header, drawn over the list
+        // (inside the viewport's clip). It takes touches so a tap on it never
+        // opens the card hidden underneath; drags still reach the ScrollRect.
+        sticky = BuildSectionBar("StickyHeader", viewport, true);
+        var srt = sticky.rt;
+        srt.anchorMin = new Vector2(0f, 1f);
+        srt.anchorMax = new Vector2(1f, 1f);
+        srt.pivot = new Vector2(.5f, 1f);
+        srt.offsetMin = new Vector2(GridInset, -SectionHeaderHeight);
+        srt.offsetMax = new Vector2(-GridInset, 0f);
+        sticky.rt.gameObject.SetActive(false);
     }
 
     Card BuildCard(int index)
@@ -468,7 +738,9 @@ public class CodexPanel : MonoBehaviour
             CodexUi.Place(tabFrames[i].rectTransform, CodexUi.Centered(x, 0f, layout.tabWidth, layout.tabs.height));
         }
 
-        CodexUi.Place(grid, layout.body);
+        gridRect = sectioned ? layout.list : layout.body;
+        CodexUi.Place(grid, gridRect);
+        CodexUi.Place(chipsRoot, layout.chips);
         CodexUi.Place(detail, layout.detail);
         CodexUi.Place(backSlot, layout.back);
 
@@ -481,23 +753,63 @@ public class CodexPanel : MonoBehaviour
         float w = layout.cardWidth, h = layout.cardHeight;
         float gridW = layout.body.width - 2f * GridInset;
         float art = Mathf.Min(w - 36f, h - CardNameHeight - 14f);
+        int cols = layout.columns;
+
+        // Sections stack down the content: header bar, its card rows, a gap.
+        float y = GridInset;
+        int sectionCount = Mathf.Min(sections.Count, MaxSections);
+        for (int s = 0; s < sectionCount; s++)
+        {
+            if (s > 0) y += SectionGap;
+            sectionTop[s] = y;
+            if (sectioned)
+            {
+                var hr = headers[s].rt;
+                hr.anchorMin = hr.anchorMax = new Vector2(.5f, 1f);
+                hr.pivot = new Vector2(.5f, 1f);
+                hr.anchoredPosition = new Vector2(0f, -y);
+                hr.sizeDelta = new Vector2(gridW, SectionHeaderHeight);
+                y += SectionHeaderHeight + SectionHeaderGap;
+            }
+            int n = sections[s].entries.Count;
+            for (int k = 0; k < n; k++)
+            {
+                int i = sectionStart[s] + k;
+                if (i >= cards.Length) break;
+                int col = k % cols, row = k / cols;
+                var c = cards[i];
+                c.rt.anchorMin = c.rt.anchorMax = new Vector2(.5f, 1f);
+                c.rt.pivot = new Vector2(.5f, .5f);
+                c.rt.anchoredPosition = new Vector2(-gridW * .5f + w * .5f + col * (w + Gap), -(y + h * .5f + row * (h + Gap)));
+                c.rt.sizeDelta = new Vector2(w, h);
+            }
+            int rows = (n + cols - 1) / cols;
+            if (rows > 0) y += rows * h + (rows - 1) * Gap;
+        }
         for (int i = 0; i < cards.Length; i++)
         {
-            int col = i % layout.columns, row = i / layout.columns;
-            float x = -gridW * .5f + w * .5f + col * (w + Gap);
-            float y = -(GridInset + h * .5f + row * (h + Gap));
             var c = cards[i];
-            c.rt.anchorMin = c.rt.anchorMax = new Vector2(.5f, 1f);
-            c.rt.pivot = new Vector2(.5f, .5f);
-            c.rt.anchoredPosition = new Vector2(x, y);
-            c.rt.sizeDelta = new Vector2(w, h);
             CodexUi.Place(c.artBox, CodexUi.Centered(0f, h * .5f - 14f - art * .5f, art, art));
             CodexUi.Place(c.name.rectTransform, CodexUi.Centered(0f, -h * .5f + 8f + CardNameHeight * .5f, w - 20f, CardNameHeight));
             CodexUi.Place(c.lockIcon.rectTransform, CodexUi.Centered(w * .5f - 24f, h * .5f - 24f, 24f, 24f));
         }
-        int rows = (shownCount + layout.columns - 1) / layout.columns;
-        float height = rows <= 0 ? 0f : GridInset * 2f + rows * h + (rows - 1) * Gap;
+        float height = shownCount <= 0 && !sectioned ? 0f : y + GridInset;
         content.sizeDelta = new Vector2(0f, height);
+
+        // Jump chips share the row evenly.
+        int chipCount = sectioned ? sectionCount : 0;
+        if (chipCount > 0)
+        {
+            float cw = (layout.chips.width - ChipGap * (chipCount - 1)) / chipCount;
+            for (int i = 0; i < chipCount; i++)
+            {
+                float x = -layout.chips.width * .5f + cw * .5f + i * (cw + ChipGap);
+                CodexUi.Place(chips[i].rt, CodexUi.Centered(x, 0f, cw, layout.chips.height));
+            }
+        }
+        // A resize can move the headers under the pinned one.
+        stickySection = -2;
+        UpdateSticky();
     }
 
     void LayoutDetail()
@@ -629,24 +941,42 @@ public class CodexPanel : MonoBehaviour
         ShowDetail(cards[index].entry);
     }
 
-    void Populate(CodexCategory c)
+    void Populate(CodexCategory c, bool keepScroll = false)
     {
+        float keepY = content.anchoredPosition.y;
         category = c;
+        sectioned = IsSectioned(c);
+        sections = SectionsFor(c);
         shownCount = 0;
-        foreach (var e in Codex.Entries)
+        for (int s = 0; s < sections.Count && s < MaxSections; s++)
         {
-            if (e.category != c || shownCount >= cards.Length || !Codex.IsListed(e)) continue;
-            var card = cards[shownCount++];
-            card.entry = e;
-            bool found = Codex.IsDiscovered(e);
-            card.name.text = Codex.DisplayName(e);
-            card.name.color = found ? CodexUi.Body : CodexUi.Muted;
-            card.edge.color = found ? CodexUi.Accent : CodexUi.Locked;
-            card.lockIcon.gameObject.SetActive(!found);
-            ApplyArt(card.art, card.mask, card.maskComp, e, found);
+            sectionStart[s] = shownCount;
+            foreach (var e in sections[s].entries)
+            {
+                if (shownCount >= cards.Length) break;
+                var card = cards[shownCount++];
+                card.entry = e;
+                bool found = Codex.IsDiscovered(e);
+                card.name.text = Codex.DisplayName(e);
+                card.name.color = found ? CodexUi.Body : CodexUi.Muted;
+                card.edge.color = found ? CodexUi.Accent : CodexUi.Locked;
+                card.lockIcon.gameObject.SetActive(!found);
+                ApplyArt(card.art, card.mask, card.maskComp, e, found);
+            }
         }
         for (int i = 0; i < cards.Length; i++)
             cards[i].rt.gameObject.SetActive(i < shownCount);
+
+        for (int i = 0; i < MaxSections; i++)
+        {
+            bool on = sectioned && i < sections.Count;
+            headers[i].rt.gameObject.SetActive(on);
+            chips[i].rt.gameObject.SetActive(on);
+            if (!on) continue;
+            PaintBar(headers[i], sections[i]);
+            chips[i].label.text = sections[i].label;
+        }
+        chipsRoot.gameObject.SetActive(sectioned);
 
         for (int i = 0; i < Tabs.Length; i++)
         {
@@ -656,9 +986,116 @@ public class CodexPanel : MonoBehaviour
             tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
         }
 
+        gridRect = sectioned ? layout.list : layout.body;
+        CodexUi.Place(grid, gridRect);
+        jumping = false;
+        jumpTarget = -1;
+        activeChip = -2;   // repaint the chips
         LayoutCards();
-        content.anchoredPosition = Vector2.zero;
         scroll.velocity = Vector2.zero;
+        SetScrollY(keepScroll ? Mathf.Clamp(keepY, 0f, MaxScroll) : 0f);
+    }
+
+    // ---------------------------------------------------------------------
+    // Scrolling: pinned header and jump chips
+    // ---------------------------------------------------------------------
+
+    // Smooth-scrolls (unscaled time) so the section's header sits at the top
+    // of the list, or as close as the end of the list allows.
+    public void JumpToSection(int s)
+    {
+        if (!sectioned || s < 0 || s >= sections.Count || s >= MaxSections || inDetail) return;
+        scroll.StopMovement();
+        jumpFrom = content.anchoredPosition.y;
+        jumpTo = JumpTargetY(s);
+        jumpAt = Time.unscaledTime;
+        lastSetY = jumpFrom;
+        jumping = true;
+        jumpTarget = s;
+        UpdateSticky();
+    }
+
+    // Where a jump to the section lands: its header at the top of the list.
+    public float JumpTargetY(int s)
+    {
+        return Mathf.Clamp(s == 0 ? 0f : sectionTop[s], 0f, MaxScroll);
+    }
+
+    public void SetScrollY(float y)
+    {
+        var p = content.anchoredPosition;
+        p.y = y;
+        content.anchoredPosition = p;
+        lastSetY = y;
+        UpdateSticky();
+    }
+
+    void UpdateJump(float now)
+    {
+        if (!jumping) return;
+        // The player grabbed the list mid-jump: let go of it.
+        if (Mathf.Abs(content.anchoredPosition.y - lastSetY) > .5f) { jumping = false; return; }
+        float t = (now - jumpAt) / JumpDuration;
+        SetScrollY(Mathf.LerpUnclamped(jumpFrom, jumpTo, CodexUi.EaseOutCubic(t)));
+        if (t >= 1f) jumping = false;
+    }
+
+    void OnScrolled(Vector2 normalized)
+    {
+        // Moved by a drag or inertia rather than a jump: the chip follows
+        // the list again.
+        if (!jumping && Mathf.Abs(content.anchoredPosition.y - lastSetY) > .5f)
+        {
+            jumpTarget = -1;
+            lastSetY = content.anchoredPosition.y;
+        }
+        UpdateSticky();
+    }
+
+    // The section whose header has reached the top of the list, or -1.
+    public int SectionAtScroll(float y)
+    {
+        int s = -1;
+        if (!sectioned) return s;
+        for (int i = 0; i < sections.Count && i < MaxSections; i++)
+            if (sectionTop[i] <= y + .01f) s = i;
+        return s;
+    }
+
+    // Arithmetic and, only when the section changes, a repaint: nothing
+    // allocates while scrolling.
+    void UpdateSticky()
+    {
+        if (sticky == null) return;
+        float y = content.anchoredPosition.y;
+        int s = SectionAtScroll(y);
+        if (s != stickySection)
+        {
+            stickySection = s;
+            sticky.rt.gameObject.SetActive(s >= 0);
+            if (s >= 0) PaintBar(sticky, sections[s]);
+        }
+        if (s >= 0)
+        {
+            // The next header pushes the pinned one up and out.
+            float push = 0f;
+            if (s + 1 < sections.Count && s + 1 < MaxSections)
+                push = Mathf.Max(0f, SectionHeaderHeight - (sectionTop[s + 1] - y));
+            if (!Mathf.Approximately(sticky.rt.anchoredPosition.y, push))
+                sticky.rt.anchoredPosition = new Vector2(0f, push);
+        }
+
+        int chip = !sectioned ? -1 : jumpTarget >= 0 ? jumpTarget : Mathf.Max(s, 0);
+        if (chip != activeChip)
+        {
+            activeChip = chip;
+            for (int i = 0; i < sections.Count && i < MaxSections; i++)
+            {
+                bool on = i == chip;
+                chips[i].frame.color = on ? sections[i].color : CodexUi.Idle;
+                chips[i].label.color = on ? CodexUi.Ink : sections[i].color;
+            }
+        }
     }
 
     static void ApplyArt(Image art, Image mask, Mask maskComp, CodexEntry e, bool found)
@@ -683,7 +1120,7 @@ public class CodexPanel : MonoBehaviour
         if (phase == Phase.Hidden) return;
         RefreshCounter();
         var open = inDetail ? detailEntry : null;
-        Populate(category);
+        Populate(category, true);
         if (open != null)
         {
             ShowDetail(open);
@@ -704,6 +1141,7 @@ public class CodexPanel : MonoBehaviour
     void Update()
     {
         if (Screen.width != lastW || Screen.height != lastH || Screen.safeArea != lastSafe) Fit();
+        UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
     }
 
@@ -713,6 +1151,7 @@ public class CodexPanel : MonoBehaviour
     {
         phaseAt = -100f;
         swapAt = tabAt = -100f;
+        if (jumping) { jumpAt = -100f; UpdateJump(Time.unscaledTime); }
         ApplyFrame(Time.unscaledTime);
     }
 
@@ -762,7 +1201,10 @@ public class CodexPanel : MonoBehaviour
         gridGroup.alpha = (1f - d) * tab;
         gridGroup.interactable = !inDetail;
         gridGroup.blocksRaycasts = !inDetail;
-        grid.anchoredPosition = layout.body.center + new Vector2(-d * 48f, (1f - tab) * -18f);
+        grid.anchoredPosition = gridRect.center + new Vector2(-d * 48f, (1f - tab) * -18f);
+        chipsGroup.alpha = (1f - d) * tab;
+        chipsGroup.interactable = !inDetail;
+        chipsGroup.blocksRaycasts = !inDetail;
         // The detail view takes over the tab row's space too.
         tabsGroup.alpha = 1f - d;
         tabsGroup.interactable = !inDetail;

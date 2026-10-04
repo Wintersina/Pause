@@ -347,6 +347,8 @@ public static class CodexTest
         ("iPad 1536x2048", new Rect(-480f, -640f, 960f, 1280f)),
         ("landscape Mac 1600x900", new Rect(-1138f, -640f, 2276f, 1280f)),
         ("off-centre safe area", new Rect(-380f, -700f, 760f, 1500f)),
+        ("extra-tall 9:22 1080x2640", new Rect(-400f, -978f, 800f, 1956f)),
+        ("extra-tall 9:24 1080x2880", new Rect(-400f, -1067f, 800f, 2133f)),
     };
 
     static void CheckLayoutMath()
@@ -376,6 +378,15 @@ public static class CodexTest
             Check(name + ": at least two rows of cards visible", l.body.height >= 2f * l.cardHeight);
             Check(name + ": back button meets the 96-unit tap target", l.back.height >= 96f && l.back.width >= 96f);
             Check(name + ": tabs are >= 90 wide", l.tabWidth >= 90f);
+
+            // Sectioned tabs: jump chips over the scrolling list, both in the body.
+            Check(name + ": chip row and list sit in the body", Contains(l.body, l.chips) && Contains(l.body, l.list));
+            Check(name + ": chip row clear of the list and the tabs", !l.chips.Overlaps(l.list) && !l.chips.Overlaps(l.tabs));
+            Check(name + ": chips are >= 90 wide (5 sections)",
+                  (l.chips.width - CodexPanel.ChipGap * (CodexPanel.MaxSections - 1)) / CodexPanel.MaxSections >= 90f);
+            Check(name + ": chips meet a 48-unit tap height", l.chips.height >= 48f);
+            Check(name + ": a section header and two card rows fit the list",
+                  l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);
         }
     }
 
@@ -532,6 +543,31 @@ public static class CodexTest
                 }
                 Check(name + " / " + c + ": cards sit inside the grid", inside);
                 Check(name + " / " + c + ": card names fit", names);
+                if (!CodexPanel.IsSectioned(c)) continue;
+
+                bool headers = true, headerText = true, chipsOk = true;
+                var list = l.list;
+                for (int s = 0; s < panel.SectionCount; s++)
+                {
+                    var r = PanelSpace(panel.Panel, panel.SectionHeaderRect(s));
+                    headers &= r.xMin >= list.xMin - .5f && r.xMax <= list.xMax + .5f;
+                    headerText &= FitsAt(panel.SectionLabel(s), 18) && FitsAt(panel.SectionCounter(s), 22);
+                    var chip = PanelSpace(panel.Panel, panel.ChipRect(s));
+                    chipsOk &= Contains(Inset(l.chips, -.5f), chip) && FitsAt(panel.ChipLabel(s), 13);
+                }
+                Check(name + " / " + c + ": section headers sit inside the list", headers);
+                Check(name + " / " + c + ": section header label and counter fit", headerText);
+                Check(name + " / " + c + ": jump chips fit their row and labels fit at >= 13px", chipsOk);
+                var cards = PanelSpace(panel.Panel, panel.CardRect(0));
+                Check(name + " / " + c + ": list clear of the chips", !Inset(cards, .5f).Overlaps(l.chips) &&
+                      PanelSpace(panel.Panel, panel.Viewport).yMax <= l.chips.yMin + .5f);
+                panel.SetScrollY(panel.SectionTop(1) + 1f);
+                var pinned = PanelSpace(panel.Panel, panel.StickyRect);
+                var view = PanelSpace(panel.Panel, panel.Viewport);
+                Check(name + " / " + c + ": pinned header sits at the top of the list",
+                      panel.StickySection == 1 && Mathf.Abs(pinned.yMax - view.yMax) < .5f &&
+                      pinned.xMin >= view.xMin - .5f && pinned.xMax <= view.xMax + .5f);
+                panel.SetScrollY(0f);
             }
             for (int i = 0; i < CodexPanel.Tabs.Length; i++)
                 Check(name + ": tab " + panel.TabLabel(i).text + " fits at >= 13px", FitsAt(panel.TabLabel(i), 13));
@@ -553,6 +589,8 @@ public static class CodexTest
             panel.SkipAnimations();
         }
 
+        CheckSections(panel, entry);
+
         panel.Close();
         panel.SkipAnimations();
         Check("closing hides the panel", !panel.IsOpen && !panel.gameObject.activeSelf);
@@ -572,6 +610,209 @@ public static class CodexTest
         foreach (var g in toast.GetComponentsInChildren<Graphic>(true)) blocks |= g.raycastTarget;
         Check("toast can never block a touch", !blocks);
         UnityEngine.Object.DestroyImmediate(toast.gameObject);
+    }
+
+    // ---- ENEMIES / HAZARDS: world sections, secret bosses, chips, pinned header ----
+
+    static readonly string[] WorldLabels = { "SPACE", "FROST", "VERDANT", "EMBER" };
+
+    static void CheckSections(CodexPanel panel, CodexHomeButton home)
+    {
+        panel.ApplyLayout(Screens[1].safe);
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1,enemy_frost_alien,hazard_mine,hazard_ember_mine");
+        Codex.Reload();
+        panel.Refresh();
+        panel.ShowCategory(CodexCategory.Log);
+        panel.ShowCategory(CodexCategory.Enemies);
+        panel.SkipAnimations();
+
+        // Order and contents: one section per world, nothing secret.
+        Check("ENEMIES is sectioned", panel.Sectioned);
+        Check("no boss met: ENEMIES shows SPACE, FROST, VERDANT, EMBER and no BOSSES (" + Labels(panel) + ")",
+              Labels(panel) == "SPACE,FROST,VERDANT,EMBER");
+        CheckWorldSections(panel, false);
+        bool noBoss = true;
+        for (int i = 0; i < panel.VisibleCards; i++) noBoss &= BossCatalog.Find(panel.CardEntry(i).id) == null;
+        Check("no boss met: no boss card anywhere", noBoss);
+        Check("SPACE counter is found/total ('" + panel.SectionCounter(0).text + "')",
+              panel.SectionCounter(0).text == "1/" + panel.SectionAt(0).entries.Count);
+        Check("FROST counter counts its own discoveries", panel.SectionCounter(1).text == "1/" + panel.SectionAt(1).entries.Count);
+        Check("headers use each world's enemy light",
+              panel.SectionAt(0).color == EnemyPalette.WorldLight(0) && panel.SectionAt(3).color == EnemyPalette.WorldLight(3));
+        bool locked = true;
+        for (int i = panel.SectionStart(2); i < panel.SectionStart(2) + panel.SectionAt(2).entries.Count; i++)
+            locked &= panel.CardName(i).text == Codex.LockedName && panel.CardArt(i).color.r < .1f;
+        Check("locked entries in a world section stay ??? silhouettes", locked);
+        int fighters = 0;
+        var space = panel.SectionAt(0).entries;
+        for (int i = 0; i < space.Count; i++)
+        {
+            var def = EnemyRoster.FindByCodexId(space[i].id);
+            if (def.role == EnemyRole.Fighter) { fighters++; if (def.tier != i + 1) fighters = -100; }
+        }
+        Check("a world section lists fighters by tier first, then chaser, alien and big",
+              fighters == 4 && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
+              EnemyRoster.FindByCodexId(space[5].id).role == EnemyRole.Alien &&
+              EnemyRoster.FindByCodexId(space[space.Count - 1].id).role == EnemyRole.Big);
+        Check("one jump chip per section", ActiveChips(panel) == 4 && panel.ChipLabel(3).text == "EMBER");
+
+        // One boss met: the BOSSES section appears last with just that boss.
+        var boss = BossCatalog.ForWorld(1);
+        int totalBefore = Codex.Total;
+        PlayerPrefs.SetString(Codex.PrefsKey, PlayerPrefs.GetString(Codex.PrefsKey) + "," + boss.id);
+        Codex.Reload();
+        panel.Refresh();
+        panel.SkipAnimations();
+        Check("one boss met: BOSSES is the last section (" + Labels(panel) + ")", Labels(panel) == "SPACE,FROST,VERDANT,EMBER,BOSSES");
+        var bosses = panel.SectionCount == 5 ? panel.SectionAt(4) : null;
+        Check("one boss met: only that boss is listed",
+              bosses != null && bosses.entries.Count == 1 && bosses.entries[0].id == boss.id &&
+              panel.CardEntry(panel.SectionStart(4)).id == boss.id && panel.VisibleCards == panel.SectionStart(4) + 1);
+        Check("one boss met: BOSSES counts met bosses only, no hidden total ('" + panel.SectionCounter(4).text + "')",
+              panel.SectionCounter(4).text == "1");
+        CheckWorldSections(panel, true);
+        Check("one boss met: the codex total grows by one", Codex.Total == totalBefore + 1);
+        home.Refresh();
+        Check("one boss met: home counter includes it", home.Counter.text == Codex.DiscoveredCount + "/" + Codex.Total + " DISCOVERED");
+        Check("one boss met: a BOSSES jump chip", ActiveChips(panel) == 5 && panel.ChipLabel(4).text == "BOSSES");
+
+        // Developer mode: all four bosses and the header, nothing written.
+        string seen = PlayerPrefs.GetString(Codex.PrefsKey);
+        DeveloperUnlocks.SetEnabled(true);
+        panel.SkipAnimations();
+        bool allBosses = panel.SectionCount == 5 && panel.SectionAt(4).entries.Count == BossCatalog.All.Length;
+        for (int b = 0; allBosses && b < BossCatalog.All.Length; b++)
+            allBosses &= panel.SectionAt(4).entries[b].id == BossCatalog.All[b].id &&
+                         panel.CardName(panel.SectionStart(4) + b).text == Codex.Find(BossCatalog.All[b].id).name;
+        Check("dev mode: BOSSES shows all four bosses, named", allBosses);
+        Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(4).text == BossCatalog.All.Length.ToString());
+        CheckWorldSections(panel, true);
+        DeveloperUnlocks.SetEnabled(false);
+        panel.SkipAnimations();
+        Check("dev mode off: back to the one met boss, codexSeen untouched",
+              panel.SectionCount == 5 && panel.SectionAt(4).entries.Count == 1 && PlayerPrefs.GetString(Codex.PrefsKey) == seen);
+
+        // Pinned header: follows the section at the top, pushed by the next.
+        panel.SetScrollY(0f);
+        Check("at the top nothing is pinned (the first header is in place)", panel.StickySection == -1);
+        panel.SetScrollY(panel.SectionTop(2) + 40f);
+        Check("inside VERDANT its header is pinned", panel.StickySection == 2 && panel.StickyLabel.text == "VERDANT" &&
+              panel.StickyCounter.text == panel.SectionCounter(2).text);
+        panel.SetScrollY(panel.SectionTop(2) - 20f);
+        Check("the next header pushes the pinned one up",
+              panel.StickySection == 1 && Mathf.Abs(panel.StickyRect.anchoredPosition.y - (CodexPanel.SectionHeaderHeight - 20f)) < .5f);
+        panel.SetScrollY(panel.SectionTop(1) + 100f);
+        Check("well inside a section the pinned header sits flush", Mathf.Abs(panel.StickyRect.anchoredPosition.y) < .01f);
+
+        // Scrolling allocates nothing.
+        for (int k = 0; k < 50; k++) panel.SetScrollY(k * 40f);
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (int k = 0; k < 400; k++) panel.SetScrollY((k % 100) * (panel.MaxScroll / 100f));
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("scrolling through every section allocates nothing (" + allocated + " bytes)", allocated == 0);
+
+        // Jump chips.
+        for (int s = 0; s < panel.SectionCount; s++)
+        {
+            panel.SetScrollY(s == 0 ? panel.MaxScroll : 0f);
+            panel.ChipButton(s).onClick.Invoke();
+            Check(panel.ChipLabel(s).text + " chip highlights at once", panel.ActiveChip == s);
+            panel.SkipAnimations();
+            float target = panel.JumpTargetY(s);
+            var header = PanelSpace(panel.Panel, panel.SectionHeaderRect(s));
+            var view = PanelSpace(panel.Panel, panel.Viewport);
+            bool atTop = Mathf.Abs(header.yMax - view.yMax) < 1f || (s == 0 && Mathf.Abs(header.yMax - (view.yMax - CodexPanel.GridInset)) < 1f);
+            bool clamped = Mathf.Abs(target - panel.MaxScroll) < .5f;
+            Check(panel.ChipLabel(s).text + " chip scrolls to its section (y " + panel.ScrollY + ", target " + target + ")",
+                  Mathf.Abs(panel.ScrollY - target) < .5f && header.yMax <= view.yMax + 1f && header.yMin >= view.yMin - 1f &&
+                  (atTop || clamped) && (clamped || s == 0 || panel.StickySection == s) && panel.ActiveChip == s);
+        }
+        Check("jumps animate over unscaled time", CodexPanel.JumpDuration > .1f && CodexPanel.JumpDuration < .6f &&
+              File.ReadAllText("Assets/Scripts/Codex/CodexPanel.cs").Contains("jumpAt = Time.unscaledTime"));
+
+        // Back from a detail returns to the list where it was.
+        float y = Mathf.Min(panel.SectionTop(2) + 30f, panel.MaxScroll);
+        panel.SetScrollY(y);
+        int card = panel.SectionStart(2) + 1;
+        panel.CardButton(card).onClick.Invoke();
+        panel.SkipAnimations();
+        Check("a card in a section opens its detail", panel.InDetail && panel.DetailEntry == panel.CardEntry(card));
+        panel.Back();
+        panel.SkipAnimations();
+        Check("Back from detail keeps the list's scroll position (" + panel.ScrollY + " vs " + y + ")",
+              !panel.InDetail && panel.IsOpen && Mathf.Abs(panel.ScrollY - y) < .01f && panel.StickySection == 2);
+        panel.CardButton(card).onClick.Invoke();
+        panel.SkipAnimations();
+        BackNavigator.Back();
+        panel.SkipAnimations();
+        Check("system Back from detail keeps it too", !panel.InDetail && panel.IsOpen && Mathf.Abs(panel.ScrollY - y) < .01f);
+        DeveloperUnlocks.SetEnabled(true);
+        DeveloperUnlocks.SetEnabled(false);
+        Check("a dev-mode redraw keeps the scroll position", Mathf.Abs(panel.ScrollY - Mathf.Min(y, panel.MaxScroll)) < .01f);
+
+        // HAZARDS: the same world sections, rocks then the mine.
+        panel.ShowCategory(CodexCategory.Hazards);
+        panel.SkipAnimations();
+        Check("HAZARDS is grouped by world (" + Labels(panel) + ")", panel.Sectioned && Labels(panel) == "SPACE,FROST,VERDANT,EMBER");
+        bool grouped = true, mineLast = true;
+        for (int w = 0; w < 4 && panel.SectionCount == 4; w++)
+        {
+            var want = new HashSet<string>();
+            foreach (var d in EnemyRoster.All) if (d.world == w && d.IsHazard) want.Add(d.codexId);
+            var got = new HashSet<string>();
+            for (int i = 0; i < panel.SectionAt(w).entries.Count; i++) got.Add(panel.CardEntry(panel.SectionStart(w) + i).id);
+            grouped &= want.SetEquals(got) && got.Count == panel.SectionAt(w).entries.Count;
+            var es = panel.SectionAt(w).entries;
+            mineLast &= EnemyRoster.FindByCodexId(es[es.Count - 1].id).role == EnemyRole.Mine;
+        }
+        Check("each HAZARDS world section holds exactly that world's rocks and mine", grouped);
+        Check("rocks come before the mine", mineLast);
+        Check("HAZARDS counters ('" + panel.SectionCounter(0).text + "', '" + panel.SectionCounter(3).text + "')",
+              panel.SectionCounter(0).text == "1/" + panel.SectionAt(0).entries.Count &&
+              panel.SectionCounter(3).text == "1/" + panel.SectionAt(3).entries.Count);
+
+        // Plain tabs keep the plain grid.
+        panel.ShowCategory(CodexCategory.Ships);
+        panel.SkipAnimations();
+        Check("other tabs stay a plain grid without chips", !panel.Sectioned && !panel.ChipsRoot.gameObject.activeSelf &&
+              panel.StickySection == -1);
+    }
+
+    // Each world section holds exactly that world's roster enemies.
+    static void CheckWorldSections(CodexPanel panel, bool bossesShown)
+    {
+        bool ok = panel.SectionCount >= 4;
+        for (int w = 0; ok && w < 4; w++)
+        {
+            var want = new HashSet<string>();
+            foreach (var d in EnemyRoster.All) if (d.world == w && !d.IsHazard) want.Add(d.codexId);
+            var got = new HashSet<string>();
+            var section = panel.SectionAt(w);
+            for (int i = 0; i < section.entries.Count; i++)
+            {
+                var e = panel.CardEntry(panel.SectionStart(w) + i);
+                ok &= e == section.entries[i];
+                got.Add(e.id);
+            }
+            ok &= want.SetEquals(got) && got.Count == section.entries.Count && section.world == w;
+        }
+        Check("each world section holds exactly that world's roster enemies" + (bossesShown ? " (bosses shown)" : ""), ok);
+    }
+
+    static string Labels(CodexPanel panel)
+    {
+        var parts = new List<string>();
+        for (int i = 0; i < panel.SectionCount; i++)
+            parts.Add(panel.SectionLabel(i).gameObject.activeInHierarchy ? panel.SectionLabel(i).text : "(hidden)");
+        return string.Join(",", parts);
+    }
+
+    static int ActiveChips(CodexPanel panel)
+    {
+        int n = 0;
+        for (int i = 0; i < CodexPanel.MaxSections; i++) if (panel.ChipRect(i).gameObject.activeSelf) n++;
+        return panel.ChipsRoot.gameObject.activeSelf ? n : 0;
     }
 
     // ---- helpers ----
