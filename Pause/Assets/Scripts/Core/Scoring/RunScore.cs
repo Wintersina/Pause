@@ -187,7 +187,7 @@ public static class RunScore
         int points = basePoints * ScoreRules.MultiplierFor(chain);
         parts.kills += points;
         parts.killCount++;
-        if (points >= ScoreRules.PopupMinPoints) Raise(points, target.transform.position, Source.Kill);
+        Raise(points, target.transform.position, Source.Kill);
         return points;
     }
 
@@ -201,24 +201,27 @@ public static class RunScore
         return ScoreRules.UnknownEnemy;
     }
 
-    public static int OnDust(bool large)
+    // `at`: where it was caught (for the HUD popup); none -> no popup.
+    public static int OnDust(bool large, Vector3? at = null)
     {
         if (!Live) return 0;
         int points = large ? ScoreRules.LargeDust : ScoreRules.SmallDust;
         parts.dust += points;
         parts.dustCount++;
+        if (at.HasValue) Raise(points, at.Value, Source.Dust);
         return points;
     }
 
     public enum Atom { Heal, Shield, Pause }
 
-    public static int OnAtom(Atom kind)
+    public static int OnAtom(Atom kind, Vector3? at = null)
     {
         if (!Live) return 0;
         int points = kind == Atom.Heal ? ScoreRules.HealAtom
                    : kind == Atom.Shield ? ScoreRules.ShieldAtom : ScoreRules.PauseAtom;
         parts.atoms += points;
         parts.atomCount++;
+        if (at.HasValue) Raise(points, at.Value, Source.Atom);
         return points;
     }
 

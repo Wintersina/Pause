@@ -19,35 +19,39 @@ using UnityEngine;
 //
 // The tutorial scores nothing (the same rule as score.PaysRealDust).
 // Developer runs score as usual but never save a best or reach a leaderboard.
+//
+// Numbers are kept small on purpose (tens, not thousands): a typical
+// 3-minute Space level plus its boss lands around 1,000-1,200.
 public static class ScoreRules
 {
     // ---- distance ----
-    // Points per second per point of HUD speed (round(speed * 100)). At the
-    // Space cap (46) that is 92 points a second; an average 3-minute Space
-    // level (mean speed ~27) earns ~10k.
-    public static float DistancePerSpeedSecond = 2f;
+    // Points per second per point of HUD speed (round(speed * 100)), i.e.
+    // HUD speed / 20 a second, accumulated as a fraction and shown as an
+    // integer. At the Space cap (46) that is ~2.3 a second; a whole 3-minute
+    // Space level (mean speed ~27) earns ~250.
+    public static float DistancePerSpeedSecond = .05f;
 
     // ---- kills (before the chain multiplier) ----
-    public static int Rock = 50;            // EnemyRole.Rock (asteroids, ground chunks)
-    public static int FighterPerTier = 100; // EnemyRole.Fighter: 100 x tier (1-4)
-    public static int Chaser = 250;         // EnemyRole.Chaser
-    public static int Alien = 200;          // EnemyRole.Alien
-    public static int Heavy = 500;          // EnemyRole.Big
-    public static int Mine = 150;           // EnemyRole.Mine
+    public static int Rock = 5;             // EnemyRole.Rock (asteroids, ground chunks)
+    public static int FighterPerTier = 5;   // EnemyRole.Fighter: 5 x tier (1-4)
+    public static int Chaser = 20;          // EnemyRole.Chaser
+    public static int Alien = 15;           // EnemyRole.Alien
+    public static int Heavy = 40;           // EnemyRole.Big
+    public static int Mine = 10;            // EnemyRole.Mine
     // An enemy with no roster identity (legacy prefabs): tag Astr scores as
     // a rock, "alien1"/"mine" by name, anything else as a tier-1 fighter.
-    public static int UnknownEnemy = 100;
+    public static int UnknownEnemy = 5;
     // A boss projectile shot down or absorbed. Never chained, and the boss's
     // own body hitbox (which respawns) and lane beams score nothing, so a
     // shielded ship can't farm the boss.
-    public static int BossShot = 10;
+    public static int BossShot = 1;
 
     // ---- pickups ----
-    public static int SmallDust = 25;
-    public static int LargeDust = 75;
-    public static int HealAtom = 100;
-    public static int ShieldAtom = 100;
-    public static int PauseAtom = 100;
+    public static int SmallDust = 2;
+    public static int LargeDust = 5;
+    public static int HealAtom = 10;
+    public static int ShieldAtom = 10;
+    public static int PauseAtom = 10;
 
     // ---- teleport ----
     // A blink earns Teleport x (distance / TeleportFullDistance), capped at
@@ -55,19 +59,19 @@ public static class ScoreRules
     // place is not a reposition), and only the first TeleportsScoredPerWorld
     // blinks in each world count -- out of pauses, blinks are free once a
     // second, and must not out-earn actually flying.
-    public static int Teleport = 50;
+    public static int Teleport = 3;
     public static float TeleportMinDistance = .75f;
     public static float TeleportFullDistance = 2f;
     public static int TeleportsScoredPerWorld = 12;
 
     // ---- bosses ----
-    public static int BossDestroyed = 5000;
-    public static int BossSurvived = 2500;   // it retreated: still a fight won
+    public static int BossDestroyed = 300;
+    public static int BossSurvived = 150;    // it retreated: still a fight won
     // HitPoints rule only: seconds left on the fight clock when it blew up.
-    public static int BossTimeBonusPerSecond = 100;
+    public static int BossTimeBonusPerSecond = 5;
 
     // ---- worlds ----
-    public static int WorldClearedPerWorld = 1000;
+    public static int WorldClearedPerWorld = 50;
 
     // ---- kill chain ----
     // Kills inside ComboWindowSeconds of each other build a chain; the chain
@@ -88,9 +92,9 @@ public static class ScoreRules
     }
 
     // ---- HUD ----
-    // "+N" pops up where it happened for kills worth at least this much (after
-    // the multiplier), and always for bosses and worlds.
-    public static int PopupMinPoints = 100;
+    // A gain of at least this much at once punches the HUD's SCORE figure.
+    // ("+N" popups show for every kill, pickup, boss and world clear.)
+    public static int PopupMinPoints = 10;
 
     // ---- per-event points ----
 

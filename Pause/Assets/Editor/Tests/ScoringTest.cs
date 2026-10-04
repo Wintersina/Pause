@@ -133,11 +133,11 @@ public static class ScoringTest
             BreakChain();
             var def = EnemyRoster.Fighter(0, tier);
             long paid = def != null ? Kill(Enemy(def)) : -1;
-            Check("tier-" + tier + " fighter pays 100 x tier (" + paid + ")", paid == ScoreRules.FighterPerTier * tier);
+            Check("tier-" + tier + " fighter pays 5 x tier (" + paid + ")", paid == ScoreRules.FighterPerTier * tier);
         }
-        Check("defaults: rock 50, chaser 250, alien 200, heavy 500, mine 150",
-              ScoreRules.Rock == 50 && ScoreRules.Chaser == 250 && ScoreRules.Alien == 200 &&
-              ScoreRules.Heavy == 500 && ScoreRules.Mine == 150);
+        Check("defaults are small: rock 5, fighter 5 x tier, alien 15, chaser 20, heavy 40, mine 10",
+              ScoreRules.Rock == 5 && ScoreRules.FighterPerTier == 5 && ScoreRules.Alien == 15 &&
+              ScoreRules.Chaser == 20 && ScoreRules.Heavy == 40 && ScoreRules.Mine == 10);
 
         // Legacy prefabs with no roster identity.
         BreakChain();
@@ -157,15 +157,15 @@ public static class ScoringTest
 
         long t = RunScore.Total;
         RunScore.OnDust(false);
-        Check("small star dust pays 25", RunScore.Total - t == 25);
+        Check("small star dust pays 2", RunScore.Total - t == 2);
         t = RunScore.Total;
         RunScore.OnDust(true);
-        Check("large star dust pays 75", RunScore.Total - t == 75);
+        Check("large star dust pays 5", RunScore.Total - t == 5);
         foreach (RunScore.Atom a in System.Enum.GetValues(typeof(RunScore.Atom)))
         {
             t = RunScore.Total;
             RunScore.OnAtom(a);
-            Check(a + " atom pays 100", RunScore.Total - t == 100);
+            Check(a + " atom pays 10", RunScore.Total - t == 10);
         }
 
         // Teleports pay for actual repositioning, capped per world.
@@ -173,40 +173,40 @@ public static class ScoringTest
         RunScore.OnTeleport(Vector3.zero, new Vector3(.5f, 0f));
         Check("a blink in place (< min distance) pays nothing", RunScore.Total == t);
         RunScore.OnTeleport(Vector3.zero, new Vector3(1f, 0f));
-        Check("a 1-unit blink pays half (25)", RunScore.Total - t == 25);
+        Check("a 1-unit blink pays about half (2 of 3)", RunScore.Total - t == 2);
         t = RunScore.Total;
         RunScore.OnTeleport(Vector3.zero, new Vector3(-2.4f, 2f));
-        Check("a full-width blink pays the full 50", RunScore.Total - t == 50);
+        Check("a full-width blink pays the full 3", RunScore.Total - t == 3);
         for (int i = 0; i < 40; i++) RunScore.OnTeleport(Vector3.zero, new Vector3(2.4f, 0f));
         Check("teleports stop paying after " + ScoreRules.TeleportsScoredPerWorld + " in a world",
               RunScore.Parts.teleportCount == ScoreRules.TeleportsScoredPerWorld);
         t = RunScore.Total;
         RunScore.OnWorldCleared(0);
-        Check("clearing Space pays 1,000", RunScore.Total - t == 1000);
+        Check("clearing Space pays 50", RunScore.Total - t == 50);
         t = RunScore.Total;
         RunScore.OnTeleport(Vector3.zero, new Vector3(2.4f, 0f));
-        Check("... and a new world pays teleports again", RunScore.Total - t == 50);
+        Check("... and a new world pays teleports again", RunScore.Total - t == 3);
         t = RunScore.Total;
         RunScore.OnWorldCleared(2);
-        Check("clearing Verdant (world 3) pays 3,000", RunScore.Total - t == 3000);
+        Check("clearing Verdant (world 3) pays 150", RunScore.Total - t == 150);
 
         t = RunScore.Total;
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
-        Check("a destroyed boss pays 5,000", RunScore.Total - t == 5000);
+        Check("a destroyed boss pays 300", RunScore.Total - t == 300);
         t = RunScore.Total;
         RunScore.OnBoss(false, 0f, false, Vector3.zero);
-        Check("a survived (retreating) boss pays 2,500", RunScore.Total - t == 2500);
+        Check("a survived (retreating) boss pays 150", RunScore.Total - t == 150);
         t = RunScore.Total;
         RunScore.OnBoss(true, 10f, true, Vector3.zero);
-        Check("HitPoints rule: 10s left adds 1,000", RunScore.Total - t == 6000);
+        Check("HitPoints rule: 10s left adds 50", RunScore.Total - t == 350);
 
         t = RunScore.Total;
-        RunScore.Tick(1f, .46f);
-        Check("a second at HUD speed 46 pays 92 distance points", RunScore.Total - t == 92);
+        RunScore.Tick(10f, .46f);
+        Check("ten seconds at HUD speed 46 pay 23 distance points (speed / 20 a second)", RunScore.Total - t == 23);
         t = RunScore.Total;
-        for (int i = 0; i < 60; i++) RunScore.Tick(1f / 60f, .2f);
-        Check("distance is framerate independent (60 x 1/60s at speed 20 = 40)", RunScore.Total - t == 40 ||
-              RunScore.Total - t == 39);
+        for (int i = 0; i < 600; i++) RunScore.Tick(1f / 60f, .2f);
+        long d = RunScore.Total - t;
+        Check("distance is framerate independent (600 x 1/60s at speed 20 = 10, got " + d + ")", d == 10 || d == 9);
 
         var parts = RunScore.Parts;
         Check("the breakdown sums to the total", parts.Total == RunScore.Total);
@@ -238,10 +238,10 @@ public static class ScoringTest
         RunScore.Tick(.5f, 0f);
         long c = Kill(Enemy(rock));
         Check("chain: kills 1-2 at x1, the 3rd at x2 (" + a + ", " + b + ", " + c + ")",
-              a == 50 && b == 50 && c == 100 && RunScore.Multiplier == 2);
+              a == 5 && b == 5 && c == 10 && RunScore.Multiplier == 2);
         for (int i = 0; i < 7; i++) Kill(Enemy(rock));
         Check("ten chained kills reach x4", RunScore.Multiplier == 4 && RunScore.Chain == 10);
-        Check("x4 is the cap", Kill(Enemy(rock)) == 200);
+        Check("x4 is the cap", Kill(Enemy(rock)) == 20);
 
         RunScore.Tick(0f, 0f);
         Check("a frozen frame never runs the chain down", RunScore.Multiplier == 4);
@@ -249,7 +249,7 @@ public static class ScoringTest
         Check("still alive inside the window", RunScore.Multiplier == 4 && RunScore.ChainLeft01 > 0f);
         RunScore.Tick(ScoreRules.ComboWindowSeconds * .6f, 0f);
         Check("decays to x1 after ~2s without a kill", RunScore.Multiplier == 1 && RunScore.Chain == 0);
-        Check("the next kill starts over at x1", Kill(Enemy(rock)) == 50);
+        Check("the next kill starts over at x1", Kill(Enemy(rock)) == 5);
         Check("the best chain is recorded", RunScore.Parts.bestChain == 11);
         Check("dust and atoms are never multiplied", RunScore.OnDust(true) == ScoreRules.LargeDust);
 
@@ -260,7 +260,7 @@ public static class ScoringTest
             BreakChain();
             long sum = 0;
             for (int i = 0; i < 12; i++) sum += Kill(Enemy(rock));
-            Check("with the chain switched off every kill is x1", sum == 12 * 50 && RunScore.Multiplier == 1);
+            Check("with the chain switched off every kill is x1", sum == 12 * 5 && RunScore.Multiplier == 1);
         }
         finally { ScoreRules.ComboEnabled = was; }
     }
@@ -315,7 +315,7 @@ public static class ScoringTest
         long duringIntro = RunScore.Total;
         e2.OnUltimateHit();
         for (int i = 0; i < 2000 && e2.State == BossEncounter.Phase.Fight; i++) e2.Step(.1f, 1f);
-        Check("a destroyed boss adds 5,000 on top (" + beforeBoss + " -> " + RunScore.Total + ")",
+        Check("a destroyed boss adds 300 on top (" + beforeBoss + " -> " + RunScore.Total + ")",
               duringIntro == beforeBoss && RunScore.Total == beforeBoss + ScoreRules.BossDestroyed);
         RunScore.Tick(1f, .2f);
         Check("and the score keeps climbing in the next world", RunScore.Total > beforeBoss + ScoreRules.BossDestroyed);
@@ -367,7 +367,7 @@ public static class ScoringTest
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         RealContext();
-        PlayerPrefs.SetInt(RunScore.BestScoreKey, 300);
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 100);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         var s = MakeScore();
         Call(s, "Awake");
@@ -380,7 +380,7 @@ public static class ScoringTest
         buttonClicks.playerDied = true;
         Call(s, "Update");
         Call(s, "OnDestroy");
-        Check("developer run: BestScore untouched (300)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
+        Check("developer run: BestScore untouched (100, though it scored 300)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 100);
 
         var fake = new FakeLeaderboards();
         var service = new LeaderboardService(fake, () => 0f) { Ios = false };
@@ -407,22 +407,22 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("a better run is a new best", RunScore.IsNewBest);
         RunScore.EndRun(run);
-        Check("BestScore saved at run end (5000)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 5000);
+        Check("BestScore saved at run end (300)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
         run = RunScore.BeginRun(true, true);
-        Check("the next run knows the best to beat", RunScore.BestAtStart == 5000);
+        Check("the next run knows the best to beat", RunScore.BestAtStart == 300);
         RunScore.OnDust(false);
         RunScore.EndRun(run);
-        Check("a worse run never lowers it", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 5000);
+        Check("a worse run never lowers it", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
         Check("HighestSpeed is still its own key (speed achievements)", ProgressSnapshot.HighestSpeedKey == "HighestSpeed" &&
               RunScore.BestScoreKey == "BestScore");
 
         var snap = ProgressSnapshot.Capture(1);
-        Check("cloud snapshot captures BestScore", snap.bestScore == 5000);
+        Check("cloud snapshot captures BestScore", snap.bestScore == 300);
         PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
         ProgressSnapshot parsed;
         Check("snapshot JSON round-trips", ProgressSnapshot.TryParse(snap.ToJson(), out parsed) == ProgressSnapshot.ParseResult.Ok);
         parsed.Apply();
-        Check("applying the snapshot restores BestScore", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 5000);
+        Check("applying the snapshot restores BestScore", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
         ProgressSnapshot old;
         ProgressSnapshot.TryParse("{\"schemaVersion\":1,\"savedAtUtc\":5,\"currency\":2}", out old);
         Check("an older save without BestScore reads as 0", old != null && old.bestScore == 0);
@@ -451,9 +451,9 @@ public static class ScoringTest
         RunScore.OnBoss(false, 0f, false, Vector3.zero);
         buttonClicks.playerDied = true;
         Call(s, "Update");
-        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 2500);
+        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 150);
         RunScore.OnDust(true);
-        Check("nothing scores after death", RunScore.Total == 2500);
+        Check("nothing scores after death", RunScore.Total == 150);
         Call(s, "Update");
         Call(s, "OnDestroy");
         Check("death + teardown bank it once", RunScore.BankCount == banks + 1);
@@ -468,7 +468,7 @@ public static class ScoringTest
         RunScore.OnDust(true);
         Call(s, "OnDestroy");
         Call(s, "OnDestroy");
-        Check("leaving mid-run (Menu/Back) banks once", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 75);
+        Check("leaving mid-run (Menu/Back) banks once", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 5);
         Object.DestroyImmediate(s.gameObject);
 
         // Replay: the next scene's Awake can beat the old OnDestroy.
@@ -480,7 +480,7 @@ public static class ScoringTest
         var next = MakeScore();
         Call(next, "Awake");
         Check("Replay: the new run banks the old one first", RunScore.BankCount == banks + 1 &&
-              PlayerPrefs.GetInt(RunScore.BestScoreKey) == 100 && RunScore.Total == 0 && RunScore.Scoring);
+              PlayerPrefs.GetInt(RunScore.BestScoreKey) == 10 && RunScore.Total == 0 && RunScore.Scoring);
         Call(old, "OnDestroy");
         Check("Replay: the old scene's late teardown neither banks again nor ends the new run",
               RunScore.BankCount == banks + 1 && !RunScore.Ended);
@@ -495,13 +495,13 @@ public static class ScoringTest
         banks = RunScore.BankCount;
         RunScore.OnDust(true);
         RunScore.Stage();
-        Check("backgrounding writes the best so far", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 75 && !RunScore.Ended);
+        Check("backgrounding writes the best so far", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 5 && !RunScore.Ended);
         RunScore.OnDust(false);
         RunScore.Stage();
         RunScore.EndRun(run);
         RunScore.EndRun(run);
-        Check("resume + end: banked once, best is the final total (100)",
-              RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 100);
+        Check("resume + end: banked once, best is the final total (7)",
+              RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 7);
         Check("PrefsSaverRunner stages the score with the dust",
               Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Core/PrefsSaverRunner.cs"), @"RunScore\.Stage\(\)").Count == 2);
     }
@@ -538,7 +538,7 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         RunScore.OnDust(true);
         for (int i = 0; i < 400; i++) Step(hud, .05f);
-        Check("it ticks up to the exact total ('" + hud.ScoreText.text + "')", hud.ScoreText.text == "SCORE  5,075");
+        Check("it ticks up to the exact total ('" + hud.ScoreText.text + "')", hud.ScoreText.text == "SCORE  305");
 
         var rock = EnemyRoster.One(0, EnemyRole.Rock);
         for (int i = 0; i < 3; i++) Kill(Enemy(rock));
@@ -548,10 +548,46 @@ public static class ScoringTest
         hud.SendMessage("Update");
         Check("... and clears when the chain lapses", hud.ChainText.text == "");
 
-        var pop = hud.ShowPopup(250, new Vector3(1f, 2f, 0f), RunScore.Source.Kill);
-        Check("a +N popup appears at the source", pop != null && pop.gameObject.activeSelf && pop.text == "+250");
-        var bossPop = hud.ShowPopup(5000, new Vector3(float.NaN, float.NaN, 0f), RunScore.Source.Boss);
-        Check("boss / world popups are bigger", bossPop != null && bossPop.fontSize > pop.fontSize && bossPop.text == "+5,000");
+        var pop = hud.ShowPopup(20, new Vector3(1f, 2f, 0f), RunScore.Source.Kill);
+        Check("a +N popup appears at the source", pop != null && pop.gameObject.activeSelf && pop.text == "+20");
+        var bossPop = hud.ShowPopup(300, new Vector3(float.NaN, float.NaN, 0f), RunScore.Source.Boss);
+        Check("boss popups are bigger and say BOSS", bossPop != null && bossPop.fontSize > pop.fontSize && bossPop.text == "+300  BOSS");
+        var colours = new System.Collections.Generic.HashSet<Color>();
+        bool longer = true;
+        foreach (RunScore.Source src in new[] { RunScore.Source.Kill, RunScore.Source.Dust, RunScore.Source.Atom,
+                                                RunScore.Source.Boss, RunScore.Source.World })
+        {
+            colours.Add(ScoreHud.StyleFor(src, false).colour);
+            if (src == RunScore.Source.Boss || src == RunScore.Source.World)
+                longer &= ScoreHud.StyleFor(src, false).seconds > ScoreHud.StyleFor(RunScore.Source.Kill, false).seconds &&
+                          ScoreHud.StyleFor(src, false).size > ScoreHud.StyleFor(RunScore.Source.Kill, true).size;
+        }
+        Check("each event kind (kill, dust, atom, boss, world) has its own popup colour", colours.Count == 5);
+        Check("boss and world popups are bigger and stay up longer", longer);
+        Check("a chained kill pops in Kaneda red", ScoreHud.StyleFor(RunScore.Source.Kill, true).colour == AkiraPalette.RedHi);
+
+        // Frozen world: popups hold still; running, they pop, rise and go.
+        int live = hud.LivePopups;
+        Vector2 at0 = pop.rectTransform.anchoredPosition;
+        hud.StepPopups(.2f);
+        Vector2 at1 = pop.rectTransform.anchoredPosition;
+        for (int i = 0; i < 30; i++) hud.StepPopups(0f);
+        Check("popups freeze at timeScale 0", pop.rectTransform.anchoredPosition == at1 && hud.LivePopups == live);
+        Check("... and rise while the world runs", at1.y > at0.y);
+        hud.StepPopups(1f);
+        Check("a kill popup is gone after its short life, the boss popup still up",
+              !pop.gameObject.activeSelf && bossPop.gameObject.activeSelf);
+        hud.StepPopups(1f);
+        Check("the boss popup goes too", !bossPop.gameObject.activeSelf && hud.LivePopups == 0);
+        int pooled = 0;
+        for (int i = 0; i < 40; i++) hud.ShowPopup(5, Vector3.zero, RunScore.Source.Dust);
+        foreach (Transform t in hud.ScoreText.canvas.rootCanvas.transform) if (t.name == "ScorePopup") pooled++;
+        Check("popups are pooled (" + pooled + " objects for 40 popups)", pooled == ScoreHud.PopupPool);
+        hud.StepPopups(-1f);
+        Check("the run ending clears them", hud.LivePopups == 0);
+        Check("pickups report where they were caught (dust / atom popups)",
+              Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"),
+                            @"RunScore\.On(Dust|Atom)\([^;]*hit\.transform\.position\)").Count == 5);
 
         // Every row still fits; the score row is as wide as it can get.
         hud.ScoreText.text = ScoreHud.Label(9999999);
@@ -619,10 +655,10 @@ public static class ScoringTest
         var best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
         var run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
         var dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
-        var parts = new RunScore.Breakdown { distance = 9876, kills = 4350, killCount = 31, dust = 1225, dustCount = 33, worlds = 1000, worldCount = 1 };
+        var parts = new RunScore.Breakdown { distance = 1274, kills = 1375, killCount = 131, dust = 100, dustCount = 38, worlds = 1050, worldCount = 3 };
         var r = new DeathPanelView.Results
         {
-            score = parts.Total, bestScore = 16451, newBest = false, ranked = true, parts = parts,
+            score = parts.Total, bestScore = 3799, newBest = false, ranked = true, parts = parts,
             bestSpeed = 52, runSpeed = 46, dustAtStart = 10f, dustWon = 2f,
         };
         var view = DeathPanelView.Build(canvas.transform, best, run, dust,
@@ -636,14 +672,14 @@ public static class ScoringTest
         Check("rows count up staggered (first row ahead of the last)",
               long.Parse(firstRow.text.TrimStart('+').Replace(",", "")) > 0 && lastRow.text == "+0");
         view.Skip();
-        Check("settled: SCORE 16,451", best.text == "16,451");
+        Check("settled: SCORE 3,799", best.text == "3,799");
         Check("not a record: the sub-label shows the best to beat",
-              view.Panel.Find("Card0/Sub") != null && view.Panel.Find("Card0/Sub").GetComponent<Text>().text == "BEST  16,451" &&
+              view.Panel.Find("Card0/Sub") != null && view.Panel.Find("Card0/Sub").GetComponent<Text>().text == "BEST  3,799" &&
               view.Panel.Find("Card0/NewBest") == null);
-        Check("the last row settles on its points", lastRow.text == "+1,000");
+        Check("the last row settles on its points", lastRow.text == "+1,050");
         Check("a source with no points shows 0", view.Panel.Find("Card1/Row5/Points").GetComponent<Text>().text == "0");
-        Check("kills row: count and points", view.Panel.Find("Card1/Row1/Count").GetComponent<Text>().text == "31" &&
-              view.Panel.Find("Card1/Row1/Points").GetComponent<Text>().text == "+4,350");
+        Check("kills row: count and points", view.Panel.Find("Card1/Row1/Count").GetComponent<Text>().text == "131" &&
+              view.Panel.Find("Card1/Row1/Points").GetComponent<Text>().text == "+1,375");
         Check("star dust card keeps earned / total", dust.text == "+2.00" &&
               dust.transform.parent.Find("Total").GetComponent<Text>().text == "TOTAL  12.00");
 

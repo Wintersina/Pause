@@ -96,8 +96,8 @@ Play Console id: its iOS id is already in.
    * **Score format:** Numeric, **0 decimal places**
    * **Ordering:** Larger is better
    * **Icon:** optional (the game's icon is fine)
-   * **Limits:** lower limit 0; upper limit 10000000 (a strong run is in the tens of thousands, so this
-     only throws away nonsense)
+   * **Limits:** lower limit 0; upper limit 1000000 (a good run is around a thousand and a long one a few
+     thousand, so this only throws away nonsense)
    * **Tamper protection:** **On**
    * Save, then **Get resources** and copy the generated id (it looks like `CgkI3eXNjrQcEAIQ..`).
      Paste it into the empty Android id of the `TopScore` row in
@@ -134,7 +134,7 @@ Play Console id: its iOS id is already in.
    * **Score format type:** Integer
    * **Score submission type:** Best score
    * **Sort order:** High to low
-   * **Score range** (optional, works as tamper protection): 0 to 10000000
+   * **Score range** (optional, works as tamper protection): 0 to 1000000
    * Add an **English localization**: display name "Top Score", format "Integer", suffix " pts" (or none).
    The game already sends to this id; nothing needs changing in code for iOS. (The board stays off in
    the game until the Play Console id is in too, because a board is enabled only with both ids.)
