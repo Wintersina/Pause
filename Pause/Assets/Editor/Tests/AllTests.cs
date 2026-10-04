@@ -48,6 +48,7 @@ public static class AllTests
         ("PausedLabelTest", PausedLabelTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
+        ("ResumeFxTest", ResumeFxTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
