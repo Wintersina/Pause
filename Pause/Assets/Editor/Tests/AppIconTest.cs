@@ -27,6 +27,7 @@ public static class AppIconTest
     public static int Execute()
     {
         fails = 0;
+        Check("the recommended icon is Gold Warden (Regent skin)", AppIconSetter.Recommended == "GoldWarden");
         foreach (var ship in AppIconSetter.Candidates) Files(ship);
         SafeZone(AppIconSetter.Recommended);
         PlayerSettingsUse(AppIconSetter.Recommended);
@@ -37,6 +38,9 @@ public static class AppIconTest
             AppIconSetter.Apply("Lightning");
             Check("switching: Apply(\"Lightning\") makes it current", AppIconSetter.Current() == "Lightning");
             PlayerSettingsUse("Lightning");
+            AppIconSetter.Apply("NeonComet");
+            Check("switching: Apply(\"NeonComet\") makes it current", AppIconSetter.Current() == "NeonComet");
+            PlayerSettingsUse("NeonComet");
         }
         finally
         {
