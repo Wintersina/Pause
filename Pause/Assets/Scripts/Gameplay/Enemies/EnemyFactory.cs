@@ -12,7 +12,8 @@ using UnityEngine;
 //   Chaser   tag Enimey, ChaserEnemy (no scroller -- it steers itself)
 //   others   tag Enimey, moveItemEnmInStrightLine, kinematic body
 //
-// Every enemy is a ClearTarget (the movers register themselves in Awake;
+// Every enemy carries a SpawnFootprint (its reserved space, see SpawnSpace)
+// bound to its mover. Every enemy is a ClearTarget (the movers register themselves in Awake;
 // Create also registers explicitly so edit-mode builds count too).
 public static class EnemyFactory
 {
@@ -64,6 +65,11 @@ public static class EnemyFactory
         var flipbook = def.role == EnemyRole.Mine ? go.AddComponent<RailBombAnimator>() : go.AddComponent<EnemyFlipbook>();
         flipbook.Init(def);
         ClearTarget.Ensure(go);
+
+        // Its reserved space on the board (SpawnSpace): the body, and the
+        // mover as its movement pattern (a mine rebinds to its rail mount).
+        SpawnFootprint.Attach(go, SpawnSpace.BodyHalf(def));
+        SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
         return go;
     }
 

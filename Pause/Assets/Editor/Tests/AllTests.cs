@@ -72,6 +72,7 @@ public static class AllTests
         ("ShipWeaponUpgradesTest", ShipWeaponUpgradesTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
+        ("SpawnSpaceTest", SpawnSpaceTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
         ("SplashLayoutTest", SplashLayoutTest.Execute),

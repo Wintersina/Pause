@@ -70,7 +70,7 @@ public static class ShipAttackHits
     {
         Kills++;
         TargetExplosion.Spawn(target, ship);
-        collisionDetection.PlayExplosion();
+        EnemyDeathAudio.Play(target);
         collisionDetection.AwardDestroyedTarget(target);
         ClearTarget.Release(target);
         if (Application.isPlaying) Object.Destroy(target);

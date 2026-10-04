@@ -11,8 +11,12 @@ using System.Collections;
 // the bottom of the view. The plain Translate is in local space and AtomSpin
 // turns atoms, which used to fly them in circles back off the top of the
 // screen (see AtomWander).
+//
+// As a SpawnSpace pattern it is the plain scroller: its sweep is its body.
+// (Atoms are pickups, which SpawnSpace keeps apart only softly at spawn; it
+// never binds a pattern to them.)
 
-public class moveItemEnmInStrightLine : MonoBehaviour {
+public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
 
     AtomWander wander;
     bool atomChecked;
@@ -54,10 +58,23 @@ public class moveItemEnmInStrightLine : MonoBehaviour {
         return false;
     }
 
+    // One frame at the current board speed (headless simulations).
+    public bool Step(float dt)
+    {
+        return Step(dt, moveBackGround.speed, CameraFit.ViewTop, CameraFit.ViewBottom);
+    }
+
     // Tests: give an atom a seeded wander before its first step.
     public void SetWander(AtomWander w)
     {
         wander = w;
         atomChecked = true;
     }
+
+    public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
+    {
+        return SpawnSpace.BodyRect(center, half);
+    }
+
+    public bool SelfSteering => false;
 }

@@ -6,8 +6,8 @@ using UnityEngine;
 // paused game (timeScale 0) hands them dt = 0 and nothing moves, blinks or
 // advances a flipbook. That is what makes the freeze a true still frame.
 
-// Sprites cut from one world's atlas (a PNG plus the JSON rect manifest the
-// SVG pipeline writes next to it).
+// Sprites cut from one world's atlas (a PNG plus the JSON rect manifest its
+// art pipeline writes next to it). A sprite pivots on the middle of its rect.
 public class BackdropAtlas
 {
     [System.Serializable] class Rect { public string n; public int x, y, w, h; }
@@ -41,7 +41,8 @@ public class BackdropAtlas
         return sprites.TryGetValue(name, out s) ? s : null;
     }
 
-    // name_00, name_01, ... in order; empty if the flipbook is missing.
+    // name_00, name_01, ... in order: a flipbook's frames, or a set of
+    // variants to pick one from. Empty if missing.
     public Sprite[] Frames(string name)
     {
         var list = new List<Sprite>();
@@ -89,14 +90,27 @@ public class BackdropTile
         root = new GameObject("Tile_" + layer.name).transform;
         root.SetParent(parent, false);
         root.localPosition = new Vector3(0f, 0f, z);
+        if (layer.wrapBlend > 0f)
+        {
+            var shader = Resources.Load<Shader>(WrapShader);
+            if (shader != null)
+            {
+                wrapMat = new Material(shader) { name = "SkyWrap_" + layer.name };
+                wrapMat.SetFloat("_Blend", layer.wrapBlend);
+            }
+        }
         for (int i = 0; i < 3; i++) AddCopy(order);
     }
+
+    public const string WrapShader = "BackdropShaders/BackdropSkyWrap";
+    Material wrapMat;
 
     void AddCopy(int order)
     {
         var go = new GameObject("copy" + copies.Count);
         go.transform.SetParent(root, false);
         var sr = go.AddComponent<SpriteRenderer>();
+        if (wrapMat != null) sr.sharedMaterial = wrapMat;
         sr.sprite = sprite;
         sr.sortingOrder = order;
         sr.color = layer.tint;
@@ -113,18 +127,25 @@ public class BackdropTile
             ? mainTileWidth / 6f
             : viewWidth / size.x;
         tileWidth = size.x * scale;
-        tileHeight = size.y * scale;
+        // A wrap-blended tile shows only the first (1 - wrapBlend) of its art
+        // per copy (BackdropSkyWrap.shader cross-fades the rest into its
+        // start), so each copy is squashed to that height.
+        float shown = wrapMat != null ? 1f - layer.wrapBlend : 1f;
+        tileHeight = size.y * scale * shown;
         int need = Mathf.CeilToInt(viewHeight / tileHeight) + 1;
         while (copies.Count < need) AddCopy(copies[0].sortingOrder);
         for (int i = 0; i < copies.Count; i++)
         {
-            copies[i].transform.localScale = new Vector3(scale, scale, 1f);
+            copies[i].transform.localScale = new Vector3(scale, scale * shown, 1f);
             copies[i].enabled = i < need;
         }
     }
 
     public float TileHeight { get { return tileHeight; } }
     public float TileWidth { get { return tileWidth; } }
+    public Material WrapMaterial { get { return wrapMat; } }
+
+    public void Destroy() { BackdropAtlas.Kill(wrapMat); wrapMat = null; }
 
     public void Tick(float dt, float velocity, float viewHeight, float alpha)
     {
@@ -162,8 +183,16 @@ public class BackdropPiece
     public Sprite[] frames;
     public float fps;
     public bool loop = true;
-    public int kind;
-    public BackdropPiece[] children;     // e.g. a planet's rings and moon
+    public int kind, tier;               // tier: depth tier, where a director has them
+    public BackdropPiece[] children;     // e.g. a planet's moon
+    public BackdropPiece parent;         // set on a child that is placed by its parent
+    public readonly BackdropPiece[] slot = new BackdropPiece[1];   // reusable one-child `children` array
+    // A turning sphere (Space's BackdropPlanet shader): `turn` is the
+    // surface spin in radians of longitude, integrated from scaled dt only;
+    // `disc` the drawn disc's centre and radii in atlas uv.
+    public bool planet;
+    public float turn, turnRate;
+    public Vector4 disc;
 
     public void Show(bool on)
     {
@@ -250,6 +279,9 @@ public class BackdropPool
             p.frames = null;
             p.loop = true;
             p.children = null;
+            p.parent = null;
+            p.planet = false;
+            p.turn = p.turnRate = 0f;
             p.body.localRotation = Quaternion.identity;
             p.body.localScale = Vector3.one;
             p.root.localRotation = Quaternion.identity;

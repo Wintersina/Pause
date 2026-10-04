@@ -110,6 +110,8 @@ public class BackdropSet
     // call WorldBackdrop makes once a cross-fade has finished.
     public void Destroy()
     {
+        if (Director != null) Director.Teardown();
+        foreach (var t in Tiles) t.Destroy();
         Fx.Destroy();
         Anim.Destroy();
         if (Root != null) BackdropAtlas.Kill(Root.gameObject);

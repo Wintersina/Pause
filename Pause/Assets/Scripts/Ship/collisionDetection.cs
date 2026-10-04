@@ -213,7 +213,7 @@ public class collisionDetection : MonoBehaviour {
             if (PrefabName.Is(hit.gameObject, "mine") && !safe && !fatal)
             {
                 RailBombAnimator.Burst(hit.gameObject);   // the mine's own burst frame under the blast
-                PlayExplosion();
+                EnemyDeathAudio.Play(hit.gameObject);
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);
             }
@@ -231,7 +231,7 @@ public class collisionDetection : MonoBehaviour {
                 // explosion (metal / rock / mine), flashed in this ship's
                 // weapon colour.
                 TargetExplosion.Spawn(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
-                PlayExplosion();
+                EnemyDeathAudio.Play(hit.gameObject);
 
                 AwardDestroyedTarget(hit.gameObject);
                 Destroy(hit.gameObject);
@@ -242,6 +242,9 @@ public class collisionDetection : MonoBehaviour {
                 // open memory and remove leftovers
             }
             else {
+                // The target still breaks on an unshielded collision, even
+                // though the player's own explosion is the visual focus.
+                if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
                 // the heart this costs darts out to shield against it
                 ShipLivesIndicator.Impact(hit.transform.position);

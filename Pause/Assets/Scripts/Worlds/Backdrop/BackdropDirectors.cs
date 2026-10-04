@@ -1,63 +1,178 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Per-world set pieces. Colours here are multiplied into already-dim art and
 // kept well below gameplay brightness; see WorldBackdropTest's contrast guard.
 
+// Space has no ground to give it depth, so the set pieces carry it: every
+// body (planet, station, planetoid, moon) lives in one of four depth tiers,
+// and the tier alone decides how big it is, how fast it parallaxes, how lit
+// it is and what it sorts behind. Most bodies are far away; a near planet is
+// a rare event. Bodies are composed, not sprinkled: one spawn queue for all
+// of them, alternating sides, with clear sky between arrivals and no body
+// ever overtaking another in its lane.
+//
+// Atlas cells are variants (twelve different giants, eight stations...), not
+// flipbook frames: a body picks one when it spawns and keeps it.
 public class SpaceDirector : BackdropDirector
 {
-    BackdropPool wisps, galaxies, stars, stations, planets, rings, moons, rocky, comets, shooters, dust;
-    Sprite[] giant, rockyFrames, ringBack, ringFront, comet, station;
-    Timer planetTimer = new Timer(16f, 28f, 14f);
-    Timer rockyTimer = new Timer(11f, 20f, 9f);
-    Timer galaxyTimer = new Timer(20f, 34f, 1f);
-    Timer stationTimer = new Timer(26f, 40f, 7f);
-    Timer cometTimer = new Timer(14f, 26f, 3.5f);
-    Timer shooterTimer = new Timer(2.5f, 6f, 1.5f);
-
-    static readonly Color[] PlanetTints =
+    public struct Tier
     {
-        // Multiplied into neutral-grey art: lands on the guide's planet tones
-        // (INDIGO_1 #2A2E6B and its family), never red.
-        new Color(0.62f, 0.66f, 1.00f), // INDIGO_1
-        new Color(0.48f, 0.74f, 0.86f), // teal
-        new Color(0.78f, 0.62f, 1.00f), // DUSK violet
-        new Color(0.62f, 0.66f, 1.00f), // INDIGO_1 (weighted: most planets are indigo)
-        new Color(0.86f, 0.66f, 0.50f), // sodium (rare)
+        public string layer;        // BackdropCatalog layer: parallax rate and sorting order
+        public float scale;         // size multiplier on KindSize
+        public float light;         // brightness
+        public float clarity;       // 1 = the art's own colour, lower = hazed toward the sky
+        public int weight;          // how often a planet lands here
+    }
+
+    // Far -> near. Scales are spaced wider than SizeJitter, so within a kind
+    // a farther body is always smaller than a nearer one.
+    public static readonly Tier[] Tiers =
+    {
+        new Tier { layer = "deep", scale = 0.60f, light = 0.62f, clarity = 0.60f, weight = 46 },
+        new Tier { layer = "far",  scale = 1.00f, light = 0.74f, clarity = 0.75f, weight = 34 },
+        new Tier { layer = "mid",  scale = 1.60f, light = 0.86f, clarity = 0.90f, weight = 16 },
+        new Tier { layer = "near", scale = 2.60f, light = 0.96f, clarity = 1.00f, weight = 4 },
     };
 
+    // BackdropPiece.kind of a body.
+    public const int Planet = 0, Station = 1, Planetoid = 2, Moon = 3;
+    static readonly float[] KindSize = { 1.0f, 0.4f, 0.5f, 0.16f };    // width in units at scale 1
+    const float SizeJitterLo = 0.9f, SizeJitterHi = 1.25f;
+    // Lone stations and planetoids never come nearer than this tier.
+    const int StationMaxTier = 1, PlanetoidMaxTier = 2;
+
+    const float MinSpacing = 3.5f;      // clear sky between a new body and the one before it
+    const float Clearance = 0.5f;       // gap kept between two bodies passing each other
+    const float MiniBelow = 0.42f;      // narrower than this on screen: use the pre-shrunk sprite
+
+    // The sky's indigo as a multiply tint: what distance fades a body toward.
+    static readonly Color Haze = new Color(0.55f, 0.62f, 0.95f);
+    static readonly Color[] PlanetTints =
+    {
+        // Light shifts on the art's own indigo. Blue stays at 1 so brightness
+        // depends on the tier alone.
+        new Color(1.00f, 1.00f, 1.00f),
+        new Color(0.80f, 0.84f, 1.00f), // deeper indigo
+        new Color(0.66f, 0.90f, 1.00f), // teal
+        new Color(0.92f, 0.76f, 1.00f), // violet
+    };
+    static readonly Color StationTint = new Color(0.82f, 0.82f, 0.90f);
+    static readonly Color RockTint = new Color(0.85f, 0.85f, 0.95f);
+
+    // Spheres (giants, planetoids, rock moons) turn: the BackdropPlanet
+    // shader slides the surface of the one static variant across the disc
+    // under a fixed terminator and rim, at a pace that reads as a world,
+    // not a decal. Stations hold or wheel as rigid sprites.
+    public const string PlanetShader = "BackdropShaders/BackdropPlanet";
+    public const float PlanetTurnSecondsMin = 40f, PlanetTurnSecondsMax = 60f;   // per half turn
+    public const float RockTurnSecondsMin = 24f, RockTurnSecondsMax = 34f;
+    const float DiscMarginPx = 2.5f;    // cuts are centred with this much clear border round the disc
+    static readonly int IdMainTex = Shader.PropertyToID("_MainTex");
+    static readonly int IdDisc = Shader.PropertyToID("_Disc");
+    static readonly int IdSpin = Shader.PropertyToID("_Spin");
+    Material planetMat, spriteMat;
+    readonly MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+
+    // Comets cross far behind everything: small, dim and pulled toward the sky.
+    public const float CometMinWidth = 0.6f, CometMaxWidth = 0.95f, CometMaxAlpha = 0.42f;
+    static readonly Color CometTint = new Color(0.62f, 0.74f, 0.95f);
+
+    static readonly Color[] WispTints =
+    {
+        new Color(0.55f, 0.35f, 0.75f, 0.24f), new Color(0.3f, 0.6f, 0.75f, 0.22f), new Color(0.45f, 0.45f, 0.85f, 0.24f),
+    };
+    static readonly Color[] ShooterTints = { new Color(0.85f, 0.75f, 1f, 0.55f), new Color(0.7f, 0.95f, 1f, 0.55f) };
+
+    BackdropPool wisps, galaxies, stars, comets, shooters, planets, stations, planetoids, moons, dust;
+    Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation, comet;
+    readonly List<BackdropPool> bodies = new List<BackdropPool>();
+    readonly List<BackdropPool> setPieces = new List<BackdropPool>();
+    Timer galaxyTimer = new Timer(30f, 50f, 30f);
+    Timer cometTimer = new Timer(22f, 38f, 9f);
+    Timer shooterTimer = new Timer(5f, 11f, 2.5f);
+
+    // The next body waits here until the sky has room for it.
+    struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring; }
+    Plan next;
+    float nextBody;
+    int side = 1, lastKind = -1;
+
     public SpaceDirector() : base(1988) { }
+
+    // Planets, stations, planetoids and moons: what the depth model governs.
+    public IList<BackdropPool> Bodies { get { return bodies; } }
+    // Everything that picks an atlas variant at spawn.
+    public IList<BackdropPool> SetPieces { get { return setPieces; } }
+    // A companion (moon, orbiting station) belongs to its planet's group.
+    public static BackdropPiece Group(BackdropPiece p) { return p.parent ?? p; }
 
     protected override void Build()
     {
         giant = anim.Frames("giant");
-        rockyFrames = fx.Frames("rocky");
-        ringBack = fx.Frames("ringback");
-        ringFront = fx.Frames("ringfront");
-        comet = fx.Frames("comet");
+        rocky = anim.Frames("rocky");
         station = fx.Frames("station");
+        ringStation = fx.Frames("ringstation");
+        miniRocky = fx.Frames("mini_rocky");
+        miniStation = fx.Frames("mini_station");
+        miniRingStation = fx.Frames("mini_ringstation");
+        comet = fx.Frames("comet");
+        var m = new List<Sprite>(rocky);
+        if (fx.Has("moon")) m.Add(fx.Get("moon"));
+        moonArt = m.ToArray();
 
         wisps = Pool("wisps", 2);
         galaxies = Pool("galaxies", 1);
         stars = Pool("stars", 26);
-        stations = Pool("stations", 1);
-        rings = Pool("planets", 2, false, -1);   // back half, behind the planet
-        planets = Pool("planets", 1);
-        moons = Pool("moons", 2);
-        rocky = Pool("moons", 1);
+        shooters = Pool("stars", 2, false, 1);
         comets = Pool("comets", 1);
-        shooters = Pool("comets", 3, false, 2);
+        // Bodies take their tier's sorting order when they spawn.
+        string deep = Tiers[0].layer;
+        planets = Pool(deep, 3);
+        stations = Pool(deep, 4);
+        planetoids = Pool(deep, 2);
+        moons = Pool(deep, 3);
         dust = Pool("dust", 12);
+        var sphere = Resources.Load<Shader>(PlanetShader);
+        if (sphere != null) planetMat = new Material(sphere) { name = "SpacePlanet" };
+        spriteMat = planets.items[0].sr.sharedMaterial;
+        bodies.AddRange(new[] { planets, stations, planetoids, moons });
+        setPieces.AddRange(bodies);
+        setPieces.AddRange(new[] { wisps, galaxies, comets });
 
-        Scatter(stars, fx.Get("star"), 0.10f, 0.24f, new[] {
-            new Color(0.85f, 0.92f, 1f, 0.75f), new Color(1f, 0.82f, 0.62f, 0.7f),
-            new Color(0.62f, 0.95f, 1f, 0.75f) }, set.Spec.Rate("stars"));
-        Scatter(dust, fx.Get("streak"), 0.35f, 0.6f, new[] { new Color(0.6f, 0.85f, 1f, 0.16f) },
+        // Stars sit at their own small spread of depths: the farther, the
+        // smaller, dimmer and slower. Most are pinpoints, a few glint.
+        var starColors = new[] { new Color(0.85f, 0.92f, 1f, 0.8f), new Color(0.55f, 0.95f, 1f, 0.8f),
+                                 new Color(0.85f, 0.70f, 1f, 0.8f) };
+        float starRate = set.Spec.Rate("stars");
+        for (int i = 0; i < stars.items.Count; i++)
+        {
+            var s = stars.items[i];
+            bool glint = i % 5 == 0;
+            float k = Rand(0f, 1f);
+            s.Show(true);
+            SetSprite(s, fx.Get(glint ? "star" : "dot"),
+                      glint ? Mathf.Lerp(0.09f, 0.15f, k) : Mathf.Lerp(0.03f, 0.055f, k));
+            s.x = Rand(-HalfW, HalfW);
+            s.y = Rand(-HalfH, HalfH);
+            s.phase = Rand(0f, 6.283f);
+            s.color = Pick(starColors);
+            s.color.a *= Mathf.Lerp(0.55f, 1f, k);
+            s.rate = starRate * Mathf.Lerp(0.6f, 1f, k);
+            Place(s);
+        }
+        Scatter(dust, fx.Get("streak"), 0.3f, 0.5f, new[] { new Color(0.6f, 0.85f, 1f, 0.16f) },
                 set.Spec.Rate("dust"));
-        foreach (var d in dust.items) d.body.localRotation = Quaternion.Euler(0, 0, 90f);
+        // The streak's head is at +x; dust falls, so point it down.
+        foreach (var d in dust.items) d.body.localRotation = Quaternion.Euler(0, 0, -90f);
 
-        // Open on a planet already sweeping past, so a run never starts empty.
-        SpawnPlanet(HalfH * 0.3f);
-        SpawnGalaxy();
+        // Open on a planet already in view, so a run never starts on an empty
+        // sky -- a distant one, like most.
+        next = PlanPlanet(Chance(0.7) ? 1 : 2);
+        Enter(HalfH * 0.3f);
+        next = PlanBody();
+        nextBody = Rand(3f, 5f);
+        SpawnGalaxy(-HalfH * 0.45f);
 
         // Two nebula wisps are always present and simply recycle.
         for (int i = 0; i < 2; i++)
@@ -70,12 +185,13 @@ public class SpaceDirector : BackdropDirector
     void SetupWisp(BackdropPiece w, float y)
     {
         SetSprite(w, fx.Get(Chance(0.5) ? "wisp0" : "wisp1"), Rand(4.5f, 6f));
+        w.age = 0f;                     // a new variant is a new life
         w.x = Rand(-1.4f, 1.4f);
         w.y = y;
         w.rate = set.Spec.Rate("wisps");
-        w.spin = Rand(-4f, 4f);
-        w.color = Pick(new[] { new Color(0.45f, 0.22f, 0.5f, 0.28f), new Color(0.2f, 0.42f, 0.55f, 0.26f),
-                               new Color(0.55f, 0.3f, 0.2f, 0.22f) });
+        w.spin = Rand(-1f, 1f);
+        w.phase = Rand(0f, 360f);
+        w.color = Pick(WispTints);
     }
 
     protected override void Step(float dt, float v)
@@ -87,8 +203,8 @@ public class SpaceDirector : BackdropDirector
             w.y -= w.rate * v * dt;
             if (w.y < -HalfH - w.size * 0.6f) SetupWisp(w, SpawnY(w.size));
             Place(w);
-            w.body.localRotation = Quaternion.Euler(0, 0, w.age * w.spin);
-            float breathe = 1f + 0.06f * Mathf.Sin(w.age * 0.5f + w.phase);
+            w.body.localRotation = Quaternion.Euler(0, 0, w.phase + w.age * w.spin);
+            float breathe = 1f + 0.06f * Mathf.Sin(w.age * 0.5f);
             w.body.localScale = new Vector3(breathe, 1f / breathe, 1f);
             Paint(w, 1f);
         }
@@ -110,12 +226,18 @@ public class SpaceDirector : BackdropDirector
             Paint(d, 0.4f + speedK);
         }
 
-        if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy();
-        if (stationTimer.Tick(dt, rng)) SpawnStation();
-        if (planetTimer.Tick(dt, rng) && planets.ActiveCount == 0) SpawnPlanet(float.NaN);
-        if (rockyTimer.Tick(dt, rng)) SpawnRocky();
+        if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy(float.NaN);
         if (cometTimer.Tick(dt, rng)) SpawnComet();
         if (shooterTimer.Tick(dt, rng)) SpawnShooter();
+
+        // One queue for every body. A plan that doesn't fit yet is held, not
+        // re-rolled, so waiting for room never skews the mix toward small.
+        nextBody -= dt;
+        if (nextBody <= 0f)
+        {
+            if (Enter(float.NaN)) { next = PlanBody(); nextBody = Rand(5f, 9f); }
+            else nextBody = 0.5f;
+        }
 
         foreach (var g in galaxies.items)
         {
@@ -123,68 +245,20 @@ public class SpaceDirector : BackdropDirector
             g.body.localRotation = Quaternion.Euler(0, 0, g.age * g.spin);
             Paint(g, 1f);
         }
-        foreach (var s in stations.items)
-        {
-            if (!s.active || !Drift(s, dt, v)) continue;
-            s.Animate();
-            Paint(s, 1f);
-        }
-        foreach (var p in planets.items)
-        {
-            if (!p.active) continue;
-            if (!Drift(p, dt, v)) continue;
-            // The atlas provides the planet's surface animation; a very slow
-            // physical turn keeps a giant world feeling alive even during a
-            // quiet stretch between frame changes. Rings stay on `root`, so
-            // they retain their orbital tilt instead of spinning like a decal.
-            p.body.localRotation = Quaternion.Euler(0f, 0f, p.age * p.spin);
-            p.Animate();
-            Paint(p, 1f);
-            if (p.children == null) continue;
-            // children[0] back ring, [1] front ring (a child of the planet), [2] moon
-            var back = p.children[0];
-            if (back != null && back.active)
+        foreach (var pool in bodies)
+            foreach (var p in pool.items)
             {
-                back.age = p.age;
-                back.root.localPosition = p.root.localPosition;
-                back.root.localRotation = p.root.localRotation;
-                back.Animate();
-                Paint(back, 1f);
+                if (!p.active || p.parent != null) continue;
+                if (!Drift(p, dt, v)) continue;
+                // phase: tilt at spawn. Only ring stations turn (spin != 0).
+                p.root.localRotation = Quaternion.Euler(0f, 0f, p.phase + p.age * p.spin);
+                p.turn += p.turnRate * dt;
+                Paint(p, 1f);
+                PaintSphere(p);
+                if (p.children != null) Orbit(p, p.children[0], dt);
             }
-            var front = p.children[1];
-            if (front != null && front.active)
-            {
-                front.age = p.age;
-                front.root.localPosition = p.root.localPosition + new Vector3(0, 0, -0.01f);
-                front.root.localRotation = p.root.localRotation;
-                front.Animate();
-                Paint(front, 1f);
-            }
-            var moon = p.children[2];
-            if (moon != null && moon.active)
-            {
-                float a = p.age * moon.spin + moon.phase;
-                float r = p.size * 0.8f;
-                moon.x = p.x + Mathf.Cos(a) * r;
-                moon.y = p.y + Mathf.Sin(a) * r * 0.3f;
-                Place(moon);
-                // Behind the planet on the far half of its orbit.
-                moon.sr.sortingOrder = set.Spec.Order("moons") + (Mathf.Sin(a) > 0f ? -25 : 0);
-                Paint(moon, 1f);
-            }
-        }
-        foreach (var r in rocky.items)
-        {
-            if (!r.active || !Drift(r, dt, v)) continue;
-            r.Animate();
-            Paint(r, 1f);
-        }
         foreach (var c in comets.items)
-        {
-            if (!c.active || !Drift(c, dt, v)) continue;
-            c.Animate();
-            Paint(c, 1f);
-        }
+            if (c.active && Drift(c, dt, v)) Paint(c, 1f);
         foreach (var s in shooters.items)
         {
             if (!s.active) continue;
@@ -199,148 +273,293 @@ public class SpaceDirector : BackdropDirector
         }
     }
 
-    void SpawnGalaxy()
+    // ------------------------------------------------------------- bodies --
+
+    int PickTier(int max)
+    {
+        int total = 0;
+        for (int i = 0; i <= max; i++) total += Tiers[i].weight;
+        int roll = rng.Next(total);
+        for (int i = 0; i < max; i++)
+        {
+            if (roll < Tiers[i].weight) return i;
+            roll -= Tiers[i].weight;
+        }
+        return max;
+    }
+
+    float SizeOf(int kind, int tier)
+    {
+        return KindSize[kind] * Tiers[tier].scale * Rand(SizeJitterLo, SizeJitterHi);
+    }
+
+    Plan PlanBody()
+    {
+        int roll = rng.Next(100);
+        int kind = roll < 50 ? Planet : roll < 75 ? Station : Planetoid;
+        if (kind == lastKind && kind != Planet) kind = Planet;      // no two stations (or rocks) in a row
+        if (kind == Planet) return PlanPlanet(PickTier(Tiers.Length - 1));
+        var p = new Plan { kind = kind, tier = PickTier(kind == Station ? StationMaxTier : PlanetoidMaxTier),
+                           companion = -1, ring = Chance(0.4) };
+        p.size = SizeOf(kind, p.tier);
+        // A station's rotated silhouette reaches further than half its width.
+        p.reach = p.size * (kind == Station ? 0.75f : 0.55f);
+        return p;
+    }
+
+    // A planet may bring one companion, at its own depth: a moon, or (not for
+    // the tiny deep ones) a station in orbit.
+    Plan PlanPlanet(int tier)
+    {
+        var p = new Plan { kind = Planet, tier = tier, companion = -1, ring = Chance(0.4) };
+        p.size = SizeOf(Planet, tier);
+        p.reach = p.size * 0.55f;
+        double roll = rng.NextDouble();
+        if (roll < 0.45 || (roll < 0.70 && tier == 0)) p.companion = Moon;
+        else if (roll < 0.70) p.companion = Station;
+        if (p.companion >= 0)
+        {
+            p.companionSize = SizeOf(p.companion, tier);
+            p.reach = OrbitRadius(p.size, p.companionSize) + p.companionSize * 0.75f;
+        }
+        return p;
+    }
+
+    static float OrbitRadius(float planetSize, float companionSize)
+    {
+        return planetSize * 0.72f + companionSize * 0.5f;
+    }
+
+    // How far a body's group extends from its centre.
+    float Reach(BackdropPiece p)
+    {
+        var c = p.children != null ? p.children[0] : null;
+        if (c != null) return OrbitRadius(p.size, c.size) + c.size * 0.75f;
+        return p.size * (p.kind == Station ? 0.75f : 0.55f);
+    }
+
+    // Would a body entering at (x, y) keep clear of everything already in
+    // the sky, for as long as both are in view? Every body moves at rate x
+    // the same scroll, so gaps change in proportion to distance scrolled and
+    // the answer doesn't depend on how the speed changes later.
+    bool Fits(float x, float y, float reach, float rate)
+    {
+        foreach (var pool in bodies)
+            foreach (var e in pool.items)
+            {
+                if (!e.active || e.parent != null) continue;
+                float er = Reach(e), gap = y - e.y;
+                if (gap < MinSpacing + reach + er) return false;
+                if (rate <= e.rate) continue;                                   // falls behind
+                if (Mathf.Abs(x - e.x) >= reach + er + Clearance) continue;     // passes alongside
+                float scroll = (e.y + HalfH + e.size * 0.9f + 1f) / e.rate;     // until e is recycled (see Drift)
+                if (gap - (rate - e.rate) * scroll < reach + er + Clearance) return false;
+            }
+        return true;
+    }
+
+    // Bring the planned body in at the top (or at `y`, for the opening one).
+    // False if the sky has no room for it yet.
+    bool Enter(float y)
+    {
+        Plan n = next;
+        Tier tier = Tiers[n.tier];
+        float rate = set.Spec.Rate(tier.layer);
+        bool opening = !float.IsNaN(y);
+        if (!opening) y = HalfH + n.reach + 0.3f;
+        // Bigger bodies sit further out, half behind the walls.
+        float lane = Rand(Mathf.Min(0.7f + 0.35f * n.reach, 1.6f), 1.9f);
+        // Alternate sides; take the other one if this lane would overtake.
+        float x = -side * lane;
+        if (!opening && !Fits(x, y, n.reach, rate))
+        {
+            x = side * lane;
+            if (!Fits(x, y, n.reach, rate)) return false;
+        }
+
+        var pool = n.kind == Planet ? planets : n.kind == Station ? stations : planetoids;
+        var p = pool.Spawn();
+        if (p == null) return false;
+        Sprite[] art = n.kind == Planet ? giant : n.kind == Station ? StationArt(n.ring, n.size) : RockArt(n.size);
+        if (art.Length == 0) { p.Show(false); return true; }
+        Dress(p, Pick(art), n.kind, n.tier, n.size, 0);
+        p.x = x;
+        p.y = y;
+        // A lit sphere with a fixed terminator can't turn in the picture
+        // plane without looking like a spinning decal, so planets and rocks
+        // hold a tilt. Ring stations wheel slowly; the others hold theirs.
+        p.phase = n.kind == Station ? Rand(-10f, 10f) : Rand(-14f, 14f);
+        if (n.kind == Station && n.ring) p.spin = Rand(1.2f, 2.2f) * (Chance(0.5) ? 1f : -1f);
+        p.color = Lit(n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint, tier);
+        side = x < 0f ? -1 : 1;
+        lastKind = n.kind;
+
+        if (n.companion < 0) return true;
+        var c = (n.companion == Moon ? moons : stations).Spawn();
+        if (c == null) return true;
+        art = n.companion == Moon ? MoonArt(n.companionSize) : StationArt(n.ring, n.companionSize);
+        if (art.Length == 0) { c.Show(false); return true; }
+        Dress(c, Pick(art), n.companion, n.tier, n.companionSize, 2);
+        c.parent = p;
+        c.phase = Rand(0f, 6.283f);
+        c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
+        c.root.localRotation = Quaternion.Euler(0f, 0f, n.companion == Moon ? p.phase : Rand(-10f, 10f));
+        c.color = Lit(n.companion == Moon ? RockTint : StationTint, tier);
+        p.slot[0] = c;
+        p.children = p.slot;                    // no allocation per spawn
+        Orbit(p, c, 0f);
+        return true;
+    }
+
+    void Dress(BackdropPiece p, Sprite s, int kind, int tier, float size, int orderOffset)
+    {
+        SetSprite(p, s, size);
+        p.kind = kind;
+        p.tier = tier;
+        p.rate = set.Spec.Rate(Tiers[tier].layer);
+        p.sr.sortingOrder = set.Spec.Order(Tiers[tier].layer) + orderOffset;
+
+        bool sphere = planetMat != null && kind != Station && IsSphere(s);
+        p.planet = sphere;
+        p.sr.sharedMaterial = sphere ? planetMat : spriteMat;
+        if (!sphere) { p.sr.SetPropertyBlock(null); return; }
+        p.disc = DiscOf(s);
+        p.turn = Rand(0f, 6.283f);
+        float seconds = kind == Planet ? Rand(PlanetTurnSecondsMin, PlanetTurnSecondsMax)
+                                       : Rand(RockTurnSecondsMin, RockTurnSecondsMax);
+        p.turnRate = (Chance(0.5) ? 1f : -1f) * Mathf.PI / seconds;
+    }
+
+    // Round bodies whose surface can turn: the giants and the cratered rocks
+    // (full size and pre-shrunk). The lone `moon` cell is not a disc.
+    public static bool IsSphere(Sprite s)
+    {
+        if (s == null) return false;
+        string n = s.name;
+        return n.StartsWith("giant_", System.StringComparison.Ordinal) ||
+               n.StartsWith("rocky_", System.StringComparison.Ordinal) ||
+               n.StartsWith("mini_rocky_", System.StringComparison.Ordinal);
+    }
+
+    // The drawn disc in atlas uv: Space's cuts are centred on their art
+    // (build_atlas.py) with a small clear border, so the disc is the rect's
+    // centre and half-size less that border (WorldBackdropTest re-measures).
+    public static Vector4 DiscOf(Sprite s)
+    {
+        Rect r = s.textureRect;
+        float tw = s.texture.width, th = s.texture.height;
+        return new Vector4(r.center.x / tw, r.center.y / th,
+                           (r.width * 0.5f - DiscMarginPx) / tw, (r.height * 0.5f - DiscMarginPx) / th);
+    }
+
+    void PaintSphere(BackdropPiece p)
+    {
+        if (!p.planet) return;
+        mpb.Clear();
+        mpb.SetTexture(IdMainTex, p.sr.sprite.texture);
+        mpb.SetVector(IdDisc, p.disc);
+        mpb.SetFloat(IdSpin, p.turn);
+        p.sr.SetPropertyBlock(mpb);
+    }
+
+    public override void Teardown()
+    {
+        BackdropAtlas.Kill(planetMat);
+        planetMat = null;
+    }
+
+    // Small on screen, the full-size cells would shimmer (no mipmaps): the
+    // atlas carries pre-shrunk copies for that.
+    Sprite[] StationArt(bool ring, float size)
+    {
+        if (size < MiniBelow) return ring ? miniRingStation : miniStation;
+        return ring ? ringStation : station;
+    }
+
+    Sprite[] RockArt(float size) { return size < MiniBelow ? miniRocky : rocky; }
+    Sprite[] MoonArt(float size) { return size < MiniBelow ? miniRocky : moonArt; }
+
+    Color Lit(Color c, Tier t)
+    {
+        Color o = Color.Lerp(Haze, c, t.clarity) * t.light;
+        o.a = 1f;       // solid bodies stay opaque: stars must not show through
+        return o;
+    }
+
+    // A companion circles its planet on an ellipse tilted with the planet,
+    // passing behind it on the far half.
+    void Orbit(BackdropPiece p, BackdropPiece c, float dt)
+    {
+        if (c == null || !c.active) return;
+        c.age += dt;
+        float a = c.phase + c.age * c.spin;
+        float r = OrbitRadius(p.size, c.size);
+        float ox = Mathf.Cos(a) * r, oy = Mathf.Sin(a) * r * 0.3f;
+        float t = p.phase * Mathf.Deg2Rad, ct = Mathf.Cos(t), st = Mathf.Sin(t);
+        c.x = p.x + ox * ct - oy * st;
+        c.y = p.y + ox * st + oy * ct;
+        Place(c);
+        c.sr.sortingOrder = p.sr.sortingOrder + (Mathf.Sin(a) > 0f ? -2 : 2);
+        c.turn += c.turnRate * dt;
+        Paint(c, 1f);
+        PaintSphere(c);
+    }
+
+    // ---------------------------------------------------------------- sky --
+
+    void SpawnGalaxy(float y)
     {
         var g = galaxies.Spawn();
         if (g == null) return;
-        SetSprite(g, fx.Get(Chance(0.5) ? "galaxy0" : "galaxy1"), Rand(1.2f, 1.9f));
+        SetSprite(g, fx.Get(Chance(0.5) ? "galaxy0" : "galaxy1"), Rand(0.9f, 1.5f));
         g.x = Rand(-EdgeX + 0.6f, EdgeX - 0.6f);
-        g.y = SpawnY(g.size);
+        g.y = float.IsNaN(y) ? SpawnY(g.size) : y;
         g.rate = set.Spec.Rate("galaxies");
-        g.spin = Rand(-9f, 9f);
+        // Seen at an angle: the disc is squashed, and turns within its plane.
+        g.spin = Rand(1.5f, 3f) * (Chance(0.5) ? 1f : -1f);
         g.root.localScale = new Vector3(g.root.localScale.x, g.root.localScale.y * Rand(0.45f, 0.75f), 1f);
         g.root.localRotation = Quaternion.Euler(0, 0, Rand(-35f, 35f));
-        g.color = new Color(0.65f, 0.6f, 0.8f, 0.55f);
+        g.color = new Color(0.7f, 0.65f, 0.9f, 0.5f);
     }
 
-    void SpawnStation()
-    {
-        if (station.Length == 0) return;
-        var s = stations.Spawn();
-        if (s == null) return;
-        s.frames = station;
-        s.fps = 3f;
-        SetSprite(s, station[0], Rand(2.2f, 3.0f));
-        s.x = (Chance(0.5) ? -1f : 1f) * Rand(0.9f, 1.6f);
-        s.y = SpawnY(s.size);
-        s.rate = set.Spec.Rate("stations");
-        s.vx = Rand(-0.08f, 0.08f);
-        s.root.localRotation = Quaternion.Euler(0, 0, Rand(-12f, 12f));
-        s.color = new Color(0.78f, 0.78f, 0.86f, 0.9f);
-    }
-
-    void SpawnPlanet(float y)
-    {
-        if (giant.Length == 0) return;
-        var p = planets.Spawn();
-        if (p == null) return;
-        p.frames = giant;
-        p.fps = Rand(3.5f, 5f);
-        float size = Rand(2.6f, 4.2f);
-        SetSprite(p, giant[0], size);
-        if (Chance(0.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);   // spin the other way
-        p.x = (Chance(0.5) ? -1f : 1f) * Rand(0.6f, 1.5f);
-        p.y = float.IsNaN(y) ? SpawnY(size * 1.5f) : y;
-        p.rate = set.Spec.Rate("planets") * (size / 3.4f);
-        p.vx = -Mathf.Sign(p.x) * Rand(0.02f, 0.07f);
-        p.spin = Rand(-2.4f, 2.4f);
-        if (Mathf.Abs(p.spin) < 0.7f) p.spin = Mathf.Sign(p.spin == 0f ? 1f : p.spin) * 0.7f;
-        p.color = Pick(PlanetTints);
-        p.color.a = 1f;
-        float tilt = Rand(-28f, 28f);
-        p.root.localRotation = Quaternion.Euler(0, 0, tilt);
-        p.children = new BackdropPiece[3];
-
-        if (Chance(0.7) && ringBack.Length > 0)
-        {
-            var back = rings.Spawn();
-            var front = rings.Spawn();
-            if (back != null && front != null)
-            {
-                Color rc = Color.Lerp(p.color, new Color(0.8f, 0.78f, 0.9f), 0.5f);
-                rc.a = 0.9f;
-                SetupRing(back, ringBack, size, rc, true);
-                SetupRing(front, ringFront, size, rc, false);
-                p.children[0] = back;
-                p.children[1] = front;
-            }
-            else { if (back != null) back.Show(false); if (front != null) front.Show(false); }
-        }
-        if (Chance(0.6))
-        {
-            var moon = moons.Spawn();
-            if (moon != null)
-            {
-                SetSprite(moon, fx.Get("moon"), size * Rand(0.11f, 0.16f));
-                moon.spin = Rand(0.35f, 0.7f) * (Chance(0.5) ? 1f : -1f);
-                moon.phase = Rand(0f, 6.283f);
-                moon.color = new Color(0.72f, 0.72f, 0.82f, 1f);
-                moon.rate = p.rate;
-                p.children[2] = moon;
-            }
-        }
-    }
-
-    void SetupRing(BackdropPiece r, Sprite[] frames, float planetSize, Color c, bool back)
-    {
-        r.frames = frames;
-        r.fps = 6f;
-        // Ring art is 448 px wide for a 252 px planet sprite.
-        SetSprite(r, frames[0], planetSize * 448f / 252f);
-        float halfH = frames[0].bounds.size.y * r.root.localScale.y * 0.5f;
-        r.body.localPosition = new Vector3(0f, back ? halfH / r.root.localScale.y : -halfH / r.root.localScale.y, 0f);
-        r.color = c;
-        r.sr.sortingOrder = set.Spec.Order("planets") + (back ? -1 : 2);
-    }
-
-    void SpawnRocky()
-    {
-        if (rockyFrames.Length == 0) return;
-        var r = rocky.Spawn();
-        if (r == null) return;
-        r.frames = rockyFrames;
-        r.fps = Rand(4f, 6f);
-        SetSprite(r, rockyFrames[0], Rand(0.7f, 1.3f));
-        r.x = Rand(-EdgeX + 0.5f, EdgeX - 0.5f);
-        r.y = SpawnY(r.size);
-        r.rate = set.Spec.Rate("moons");
-        r.color = Pick(PlanetTints);
-    }
-
+    // Comets cross far behind every body (their layer sorts below the deep
+    // tier), small and dim.
     void SpawnComet()
     {
         if (comet.Length == 0) return;
         var c = comets.Spawn();
         if (c == null) return;
-        c.frames = comet;
-        c.fps = 10f;
-        SetSprite(c, comet[0], Rand(2.0f, 2.8f));
+        SetSprite(c, Pick(comet), Rand(CometMinWidth, CometMaxWidth));
         float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
-        c.x = -dir * (HalfW + 1.2f);
+        c.x = -dir * (HalfW + 1f);
         c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);
-        c.vx = dir * Rand(0.9f, 1.5f);
-        c.vy = -Rand(0.3f, 0.7f);
+        c.vx = dir * Rand(0.5f, 0.9f);
+        c.vy = -Rand(0.15f, 0.4f);
         c.rate = set.Spec.Rate("comets");
-        // Head leads: the art's head is on the left, the tail trails right.
-        float ang = Mathf.Atan2(c.vy, c.vx) * Mathf.Rad2Deg + 180f;
+        // Head leads. In the art the tail trails up-right of the head, i.e.
+        // the comet is drawn flying toward 213 degrees.
+        float ang = Mathf.Atan2(c.vy, c.vx) * Mathf.Rad2Deg - 213f;
         c.root.localRotation = Quaternion.Euler(0, 0, ang);
-        c.color = new Color(0.75f, 0.9f, 1f, 0.8f);
+        // Hazed toward the sky's indigo and mostly see-through: the art's
+        // white-hot head would otherwise outshine the gameplay in front.
+        c.color = CometTint;
+        c.color.a = Rand(0.32f, CometMaxAlpha);
     }
 
     void SpawnShooter()
     {
         var s = shooters.Spawn();
         if (s == null) return;
-        SetSprite(s, fx.Get("streak"), Rand(0.9f, 1.5f));
+        SetSprite(s, fx.Get("streak"), Rand(0.5f, 0.9f));
         s.x = Rand(-HalfW, HalfW);
         s.y = Rand(0f, HalfH);
         float ang = Rand(200f, 250f) * Mathf.Deg2Rad;
-        float spd = Rand(9f, 14f);
+        float spd = Rand(7f, 11f);
         s.vx = Mathf.Cos(ang) * spd;
         s.vy = Mathf.Sin(ang) * spd;
-        s.life = Rand(0.45f, 0.7f);
+        s.life = Rand(0.4f, 0.6f);
         s.root.localRotation = Quaternion.Euler(0, 0, ang * Mathf.Rad2Deg);
-        s.color = Pick(new[] { new Color(1f, 0.85f, 0.6f, 0.8f), new Color(0.7f, 0.95f, 1f, 0.8f) });
+        s.color = Pick(ShooterTints);
     }
 }
 
@@ -354,12 +573,11 @@ public abstract class PlanetDirector : BackdropDirector
     protected BackdropPool haze, clouds;
     readonly Timer hazeTimer = new Timer(6f, 11f, 2.5f);
     readonly Timer cloudTimer = new Timer(7f, 14f, 4f);
-    protected readonly System.Collections.Generic.List<BackdropPool> landmarks =
-        new System.Collections.Generic.List<BackdropPool>();
+    protected readonly List<BackdropPool> landmarks = new List<BackdropPool>();
 
     protected PlanetDirector(int seed) : base(seed) { }
 
-    public System.Collections.Generic.IList<BackdropPool> Landmarks { get { return landmarks; } }
+    public IList<BackdropPool> Landmarks { get { return landmarks; } }
 
     protected void BuildAir()
     {
