@@ -51,6 +51,15 @@ protected flat-cartoon UI or player ships.
 This pattern keeps the four worlds distinct: Space is gunmetal/cyan-magenta, Frost is
 icebreaker steel/cyan, Verdant is corroded plant-metal/lime, and Ember is basalt/brass/amber.
 
+### Replacement policy: full raster rebuilds
+
+When an existing gameplay asset is migrated to this direction, it is a **fresh raster redraw**.
+Do not "upgrade" a legacy SVG or flat sprite by adding a few scratches, overlays or colour
+shifts. Recreate every material plane, outline, light, glow and effect in the neon pixel-art
+language above. The old asset may be used only to preserve the gameplay contract: its key,
+transparent canvas, frame count, cell dimensions, pose order, silhouette budget and collision
+read. Stage and review each completed sheet before replacing its live resource.
+
 ---
 
 ## 1. Palette
