@@ -20,7 +20,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 3. **Installed and validated — `verdant_fighter_1`:** rugged Gnat scout.
 4. **Installed and validated — `space_alien`:** Bile Mite rebuilt taller; live strip is Preview-opened and roster-validated.
 5. **Installed and validated — `frost_alien`:** Cryo Jelly rebuilt taller; live strip is Preview-opened and roster-validated.
-6. **Queued — `verdant_fighter_2`**
+6. **Installed and validated — `verdant_fighter_2`:** Wasp rebuilt as a compact, rugged bio-industrial stinger with an offset turbine, thorn-leaf wing, resin sac, and toxic reactor eye; live strip is Preview-opened and roster-validated.
 7. **Queued — `verdant_fighter_3`**
 8. **Queued — `verdant_fighter_4`**
 9. **Queued — `ember_fighter_1`**
