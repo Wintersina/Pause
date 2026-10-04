@@ -133,6 +133,11 @@ public class SpaceDirector : BackdropDirector
         {
             if (!p.active) continue;
             if (!Drift(p, dt, v)) continue;
+            // The atlas provides the planet's surface animation; a very slow
+            // physical turn keeps a giant world feeling alive even during a
+            // quiet stretch between frame changes. Rings stay on `root`, so
+            // they retain their orbital tilt instead of spinning like a decal.
+            p.body.localRotation = Quaternion.Euler(0f, 0f, p.age * p.spin);
             p.Animate();
             Paint(p, 1f);
             if (p.children == null) continue;
@@ -238,6 +243,8 @@ public class SpaceDirector : BackdropDirector
         p.y = float.IsNaN(y) ? SpawnY(size * 1.5f) : y;
         p.rate = set.Spec.Rate("planets") * (size / 3.4f);
         p.vx = -Mathf.Sign(p.x) * Rand(0.02f, 0.07f);
+        p.spin = Rand(-2.4f, 2.4f);
+        if (Mathf.Abs(p.spin) < 0.7f) p.spin = Mathf.Sign(p.spin == 0f ? 1f : p.spin) * 0.7f;
         p.color = Pick(PlanetTints);
         p.color.a = 1f;
         float tilt = Rand(-28f, 28f);

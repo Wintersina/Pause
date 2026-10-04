@@ -244,13 +244,30 @@ def cel(p, outline, base, sh, hi=None, sh_off=(8, 8), hi_off=(3.5, 3.5), ink_w=4
     if hi:
         inner = shift(outline, hi_off[0], hi_off[1])
         h = f'<path d="{_d(outline)} {_d(inner)}" fill="{hi}" fill-rule="evenodd" clip-path="url(#{cid})"/>'
+    # Large armour plates get two clipped, hard-edged paint scuffs.  They are
+    # deliberately subtle and live inside the cels: at phone scale they read
+    # as battered pressed metal / worn chitin rather than as loose texture or
+    # noise.  Small bolts, blades and lights stay clean so the silhouette
+    # remains the first read.  This shared pass gives every world the same
+    # rugged manufactured finish while retaining its own materials and hues.
+    min_x, max_x = min(x for x, _ in outline), max(x for x, _ in outline)
+    min_y, max_y = min(y for _, y in outline), max(y for _, y in outline)
+    span_w, span_h = max_x - min_x, max_y - min_y
+    wear = ""
+    if min(span_w, span_h) >= 16 and max(span_w, span_h) >= 32:
+        x = min_x + span_w * .20
+        y = min_y + span_h * .25
+        wear = (f'<g clip-path="url(#{cid})" opacity="0.56">'
+                + line([(x, y + span_h * .09), (x + span_w * .16, y)], 1.35, BONE)
+                + line([(x + span_w * .05, y + span_h * .15), (x + span_w * .20, y + span_h * .06)], 1.0, BONE)
+                + '</g>')
     k = inkpoly(outline, ink_w) if ink_w else ""
     if detail:
-        p.detail += b + s + h + k
+        p.detail += b + s + h + wear + k
     else:
         p.base += b
         p.shadow += s
-        p.highlight += h
+        p.highlight += h + wear
         p.ink += k
     return cid
 

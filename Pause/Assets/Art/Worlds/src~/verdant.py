@@ -183,14 +183,28 @@ def river_geom():
 
 
 def far():
-    """Far pine rows: small, dark teal-green on indigo, thin ink. A very
-    light air tint only; depth comes from the value step to `mid`."""
+    """Far pine rows and tiny overgrown relay pylons: the industrial spine
+    of an old forest world, kept below the canopy value step so gameplay
+    sprites remain dominant."""
     rnd = random.Random(111)
     cxf, hwf = river_geom()
     foot = edge_foot(rnd, P["far"]["foot"], 150, 1.2)
     d, b = pine_rows(rnd, P["far"], 150, 34, 54, 20, 1.2, kick=True, inner_scatter=26,
                      avoid=lambda x, y: abs(x - cxf(y)) < hwf(y) + 60)
-    hd, hb = hazed(foot + b, P["air"], 0.12)
+    relays = []
+    for i in range(9):
+        y = rnd.uniform(0, H)
+        sd = -1 if i % 2 else 1
+        x = cxf(y) + sd * (hwf(y) + rnd.uniform(72, 108))
+        h = rnd.uniform(18, 30)
+        relays.append((y, lambda dy, x=x, y=y, h=h:
+                      f'<g transform="translate(0 {dy:.1f})">'
+                      f'<polygon points="{x-8:.1f},{y:.1f} {x-5:.1f},{y-h:.1f} {x+5:.1f},{y-h:.1f} '
+                      f'{x+8:.1f},{y:.1f}" fill="{P["stone_lit"]}" {ink_attr(1)}/>'
+                      f'<polygon points="{x:.1f},{y-h-7:.1f} {x+5:.1f},{y-h:.1f} {x-5:.1f},{y-h:.1f}" fill="{P["stone_hi"]}"/>'
+                      f'<rect x="{x-1:.1f}" y="{y-h-4:.1f}" width="2" height="3" fill="{P["glyph_a"]}"/>'
+                      f'</g>'))
+    hd, hb = hazed(foot + b + wrap_y(relays, H), P["air"], 0.12)
     return doc(W, H, hb, d + hd)
 
 

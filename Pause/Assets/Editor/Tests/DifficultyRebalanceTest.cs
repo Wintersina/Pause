@@ -125,16 +125,22 @@ public static class DifficultyRebalanceTest
                   mineTransform.GetComponent<RailBombAnimator>() != null);
             Check("the mine reports itself on its assigned rail", mount.IsOnRail());
 
-            // This is the important live-play case: rails scroll and other
-            // movement code may alter a bomb during the frame. LateUpdate
-            // must snap it back to the assigned rail, never leave it in the
-            // middle of the play field.
+            // This is the important live-play case: the mine rides its own
+            // moving rail.  It keeps its intentional along-rail spacing,
+            // while its X and Y both follow that rail; it is not a loose
+            // straight-line enemy that merely gets snapped sideways.
+            float alongRail = mineTransform.position.y - mount.rail.position.y;
             mount.rail.position += new Vector3(0.18f, -0.4f, 0f);
             mineTransform.position += new Vector3(-1.5f, 0f, 0f);
             mount.SendMessage("LateUpdate");
             Check("a moving rail carries its mine to the new rail x", mount.IsOnRail());
             Check("the mine's x equals the moved rail x",
                   Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+            Check("the mine rides down with its rail while keeping its rail spacing",
+                  Mathf.Approximately(mineTransform.position.y, mount.rail.position.y + alongRail));
+            var looseScroller = mineTransform.GetComponent<moveItemEnmInStrightLine>();
+            Check("a mounted mine disables loose straight-line scrolling",
+                  looseScroller != null && !looseScroller.enabled);
         }
 
         Object.DestroyImmediate(comp.gameObject);

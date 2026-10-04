@@ -170,6 +170,17 @@ def form(p, outline, base, sh, plane_pts=None, hi_pts=None, hi=None, crescent=(4
         s += poly(plane_pts, sh, f'clip-path="url(#{cid})"')
     if hi_pts and hi:
         s += line(hi_pts, 8, hi, f'clip-path="url(#{cid})"')
+    # The large rock faces use the same restrained painted-metal wear as the
+    # machines.  Keep it clipped to each face so tumbling hazards gain
+    # material character without a noisy halo or any silhouette change.
+    xs, ys = [q[0] for q in outline], [q[1] for q in outline]
+    span_w, span_h = max(xs) - min(xs), max(ys) - min(ys)
+    if min(span_w, span_h) >= 16 and max(span_w, span_h) >= 32:
+        x, y = min(xs) + span_w * .20, min(ys) + span_h * .25
+        s += (f'<g clip-path="url(#{cid})" opacity="0.56">'
+              + line([(x, y + span_h * .09), (x + span_w * .16, y)], 1.35, BONE)
+              + line([(x + span_w * .05, y + span_h * .15), (x + span_w * .20, y + span_h * .06)], 1.0, BONE)
+              + '</g>')
     p.detail += s
     return cid
 
@@ -639,6 +650,9 @@ def ember_magma(i):
     edge_hi(p, cid, [(12, 112), (27, 82), (45, 56), (72, 30), (108, 9)], CHAR_HI)
     p.ink += line([(26, 84), (40, 92)], 2) + line([(72, 32), (84, 44)], 2)
     p.ink += line([(44, 58), (54, 64)], 1.6) + line([(92, 26), (98, 32)], 1.6) + line([(30, 100), (36, 104)], 1.6)
+    # A surviving pale scrape on the cooled face gives this clean spindle a
+    # directional, handled-rock read before the lava pulse takes over.
+    p.detail += line([(30, 94), (42, 87)], 1.25, BONE)
     texture(p, cid, O, 101, CHAR_HI, CHAR_SH, SODIUM_SH, cracks=3, chips=5, pits=6, flecks=6,
             avoid=((52, 80, 9), (66, 60, 6)), margin=4)
     lava_cracks(p, [[(24, 100), (40, 82), (52, 80), (66, 60), (80, 52), (96, 26)],

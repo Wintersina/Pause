@@ -54,15 +54,27 @@ def sky():
 
 
 def far():
-    """Distant basalt cones far below, small and heavily hazed, a few with
-    a pin-prick of crater glow."""
+    """Distant basalt cones, crater glints and tiny heat-extractor frames.
+    The frames echo Space's built silhouette language while staying far,
+    dark and subordinate to the lava lane."""
     rnd = random.Random(211)
     d, b = scatter_peaks(rnd, W, H, P["far"], 26, 26, 52, cap=0.14, ink=1.2)
     glints = []
     for i in range(10):
         x, y = rnd.uniform(20, W - 20), rnd.uniform(0, H)
         glints.append((y, lambda dy, x=x, y=y: f'<rect x="{x:.0f}" y="{y + dy:.0f}" width="3" height="2" fill="{P["crack_hot"]}" opacity="0.6"/>'))
-    hd, hb = hazed(b, P["air"], 0.25)
+    rigs = []
+    for i in range(7):
+        x, y = rnd.uniform(48, W - 48), rnd.uniform(0, H)
+        rw, rh = rnd.uniform(10, 16), rnd.uniform(16, 26)
+        rigs.append((y, lambda dy, x=x, y=y, rw=rw, rh=rh:
+                     f'<g transform="translate(0 {dy:.1f})">'
+                     f'<polygon points="{x-rw:.1f},{y:.1f} {x-rw*.55:.1f},{y-rh:.1f} '
+                     f'{x+rw*.55:.1f},{y-rh:.1f} {x+rw:.1f},{y:.1f}" fill="{P["far"]["lit"]}" {ink_attr(1)}/>'
+                     f'<rect x="{x-rw*.7:.1f}" y="{y-rh*.52:.1f}" width="{rw*1.4:.1f}" height="2" fill="{P["far"]["dark"]}"/>'
+                     f'<rect x="{x-1:.1f}" y="{y-rh-4:.1f}" width="2" height="3" fill="{P["crack_hot"]}" opacity="0.7"/>'
+                     f'</g>'))
+    hd, hb = hazed(b + wrap_y(rigs, H), P["air"], 0.25)
     return doc(W, H, hb + wrap_y(glints, H), d + hd)
 
 

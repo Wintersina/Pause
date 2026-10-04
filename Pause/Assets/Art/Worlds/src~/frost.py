@@ -58,7 +58,9 @@ def sky():
 
 
 def far():
-    """Distant massifs and a few tiny ice towers, small and heavily hazed."""
+    """Distant massifs, ice towers and small relay frames.  The frames give
+    the valley the same inhabited, industrial silhouette language as Space,
+    but remain tiny and heavily hazed at this depth."""
     rnd = random.Random(31)
     d, b = scatter_peaks(rnd, W, H, P["far"], 26, 26, 54, cap=0.38, ink=1.2)
     towers = []
@@ -74,7 +76,22 @@ def far():
                            f'{tx + tw:.1f},{y + dy:.1f}" fill="{P["tower"]}" {ink_attr(1)}/>'
                            + (f'<rect x="{tx + 2:.1f}" y="{y + dy - th * 0.6:.1f}" width="1.6" height="2" fill="{P["window"]}"/>'
                               if lit else "")))
-    hd, hb = hazed(b + wrap_y(towers, H), P["air"], 0.45)
+    # Polar survey relays: two ice-anchored legs, a narrow crossbar and one
+    # cyan status lamp.  They read as infrastructure, not foreground props.
+    relays = []
+    for i in range(7):
+        x, y = rnd.uniform(52, W - 52), rnd.uniform(0, H)
+        rw, rh = rnd.uniform(14, 21), rnd.uniform(18, 30)
+        relays.append((y, lambda dy, x=x, y=y, rw=rw, rh=rh:
+                      f'<g transform="translate(0 {dy:.1f})">'
+                      f'<polygon points="{x-rw:.1f},{y:.1f} {x-rw*.62:.1f},{y-rh:.1f} '
+                      f'{x+rw*.62:.1f},{y-rh:.1f} {x+rw:.1f},{y:.1f}" fill="{P["tower"]}" {ink_attr(1)}/>'
+                      f'<polygon points="{x-rw*.62:.1f},{y-rh:.1f} {x:.1f},{y-rh-7:.1f} '
+                      f'{x+rw*.62:.1f},{y-rh:.1f}" fill="{P["tower_kick"]}"/>'
+                      f'<rect x="{x-rw*.82:.1f}" y="{y-rh*.48:.1f}" width="{rw*1.64:.1f}" height="2" fill="{P["tower_dark"]}"/>'
+                      f'<rect x="{x-1:.1f}" y="{y-rh-5:.1f}" width="2" height="3" fill="{P["rim"]}"/>'
+                      f'</g>'))
+    hd, hb = hazed(b + wrap_y(towers, H) + wrap_y(relays, H), P["air"], 0.45)
     return doc(W, H, hb, d + hd)
 
 

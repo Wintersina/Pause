@@ -67,6 +67,11 @@ MAGENTA, MAGENTA_SH = "#FF2E88", "#8E1450"
 INK, BONE, PURE = "#140C14", "#F4EAD4", "#FFFFFF"
 STEEL, STEEL_SH, STEEL_HI = "#5A6A88", "#262D44", "#A3B4CC"
 BRUISE, BRUISE_SH, BRUISE_HI = "#74409A", "#3A1E52", "#A86CD0"
+# Warm, weathered fittings keep the boss machines distinct from the clean
+# player hardware.  They are deliberately used as small readable accents --
+# rivets, collars and vents -- rather than broad fills that would muddy a
+# mobile-sized silhouette.
+BRASS, BRASS_SH, BRASS_HI = "#A66A32", "#4E281D", "#E7B65B"
 BILE, BILE_SH, BILE_HI, BILE_LIGHT = "#8FA84E", "#3E5229", "#D4E68E", "#C8FF3A"
 ROCK, ROCK_SH, ROCK_HI = "#605878", "#2C2638", "#958AA4"
 GUN, GUN_SH, GUN_HI = "#2C2D40", "#1A1A28", "#5A5C78"
@@ -230,6 +235,17 @@ def lit(level, on, off):
     return on if level >= 0.5 else off
 
 
+def rivet(part, x, y, r=3.4):
+    """A chunky brass rivet that remains legible after the atlas is sliced."""
+    ring = ngon(x, y, r, 8, 22.5)
+    part.base(ring, BRASS)
+    part.shade([(x, y), (x + r, y), (x + r * .62, y + r * .72),
+                (x - r * .18, y + r)], BRASS_SH)
+    part.hi([(x - r * .58, y - r * .2), (x - r * .16, y - r * .62),
+             (x + r * .18, y - r * .25), (x - r * .3, y + r * .05)], BRASS_HI)
+    part.outline(ring, DETAIL_W * .78)
+
+
 # ------------------------------------------------------------- Space ------
 # VOID ARCHON: a capital carrier seen from above, prow down. Wedge hull,
 # bruise armour wings, a bridge tower, a hangar bay that opens for the fan,
@@ -282,6 +298,10 @@ def space(p):
     hull.line(mx([(60, 132), (104, 124)]))
     hull.line([(44, 104), (90, 108)], DETAIL_W)
     hull.line(mx([(44, 104), (90, 108)]), DETAIL_W)
+    # Bolt-on platework: this is the compact industrial read of the carrier,
+    # visible even when it is only a few game units tall.
+    for x, y in ((58, 92), (74, 116), (88, 150), (168, 150), (182, 116), (198, 92)):
+        rivet(hull, x, y, 3.1)
     for i in range(3):
         y = 140 + i * 12
         hull.hole([(70 + i * 7, y), (82 + i * 7, y - 2), (84 + i * 7, y + 3), (72 + i * 7, y + 5)])
@@ -309,6 +329,8 @@ def space(p):
     br.solid(tower, STEEL, STEEL_SH, [(128, 58), (146, 58), (154, 74), (152, 104), (128, 116)],
              STEEL_HI, [(110, 61), (104, 74), (108, 74), (113, 62)])
     br.line([(110, 94), (146, 94)], DETAIL_W)
+    rivet(br, 108, 88, 2.8)
+    rivet(br, 148, 88, 2.8)
     br.hole([(112, 76), (144, 76), (141, 86), (115, 86)])
     br.light([(115, 78), (141, 78), (139, 84), (117, 84)], L)
     parts.append(br)
@@ -338,6 +360,10 @@ def space(p):
     cn.solid(barrel, GUN_HI, GUN, [(128, 176), (137, 176), (139, 206 + e), (132, 218 + e), (128, 218 + e)],
              STEEL_HI, [(120, 180), (123, 180), (121, 204 + e), (119, 204 + e)], OUT_W * .85)
     cn.line([(118, 196 + e * .5), (138, 196 + e * .5)], DETAIL_W)
+    # Brass recoil collar makes the firing motion read as a mechanical action.
+    cn.base([(118, 201 + e), (138, 201 + e), (137, 207 + e), (119, 207 + e)], BRASS)
+    cn.shade([(128, 201 + e), (138, 201 + e), (137, 207 + e), (128, 207 + e)], BRASS_SH)
+    cn.line([(119, 204 + e), (137, 204 + e)], DETAIL_W)
     cn.light([(128, 214 + e), (133, 220 + e), (128, 226 + e), (123, 220 + e)], L)
     if p.charge[0] > 0:
         cn.light(star(128, 222 + e, 12 + 18 * p.charge[0], 5, 7, 11, .12), MAGENTA)
@@ -367,6 +393,10 @@ def frost(p):
         fin.solid(shape, BRUISE, BRUISE_SH, sh, ICE, kick)
         fin.line(rot(f([(54, 142), (16, 168)]), ang, *f([(58, 140)])[0]), DETAIL_W)
         fin.line(rot(f([(58, 150), (30, 182)]), ang, *f([(58, 140)])[0]), DETAIL_W)
+        # The fins are strapped onto the ice armour with oxidized hardware.
+        for px, py in ((48, 148), (34, 166)):
+            qx, qy = rot(f([(px, py)]), ang, *f([(58, 140)])[0])[0]
+            rivet(fin, qx, qy, 2.8)
         parts.append(fin)
 
     lift = p.open[2] * 8
@@ -440,6 +470,8 @@ def frost(p):
     skull.line([(128, 132), (128, 168)], DETAIL_W)
     skull.line([(54, 140), (100, 146)], DETAIL_W)
     skull.line(mx([(54, 140), (100, 146)]), DETAIL_W)
+    for x, y in ((70, 108), (88, 150), (168, 150), (186, 108)):
+        rivet(skull, x, y, 3.0)
     for x, y in ((70, 84), (186, 84), (60, 130), (196, 130)):
         skull.hole(ngon(x, y, 3, 4, 45))
     parts.append(skull)
@@ -476,6 +508,10 @@ def verdant(p):
         pt = Part("petal%d" % i, place([(0, R * .6)])[0])
         pt.solid(place(local), BRUISE, BRUISE_SH, place(shadow), BRUISE_HI, place(kick), OUT_W * .85)
         pt.line(place(vein), DETAIL_W)
+        # Grafted brass seed-caps give the organic boss a hostile
+        # bio-mechanical/steampunk construction without changing its outline.
+        rx, ry = place([(0, R * .42)])[0]
+        rivet(pt, rx, ry, 2.7)
         sac = place([(0, R * .66), (5, R * .74), (0, R * .82), (-5, R * .74)])
         pt.light(sac, BILE_LIGHT if (p.open[1] > .2 or p.lights >= .5) else BILE_SH)
         if p.charge[1] > 0:
@@ -547,6 +583,8 @@ def verdant(p):
     hd.line([(128, 70), (128, 84)], DETAIL_W)
     hd.line([(96, 120), (112, 132)], DETAIL_W)
     hd.line(mx([(96, 120), (112, 132)]), DETAIL_W)
+    for x, y in ((104, 82), (152, 82), (98, 120), (158, 120)):
+        rivet(hd, x, y, 2.7)
     for k, x in enumerate((102, 118, 138, 154)):
         y = 98 + (4 if k in (0, 3) else 0)
         eye = [(x - 7, y), (x, y - 5), (x + 7, y), (x, y + 6)]
@@ -593,6 +631,11 @@ def ember(p):
             cl = wing([(tip[0] - 4, tip[1] + 2), tip, (tip[0] + 2, tip[1] + 6)])
             wg.base(wing([(tip[0] - 5, tip[1] + 3), (tip[0] - 3, tip[1] - 6), (tip[0] + 4, tip[1] + 4)]), BONE)
             wg.outline(wing([(tip[0] - 5, tip[1] + 3), (tip[0] - 3, tip[1] - 6), (tip[0] + 4, tip[1] + 4)]), DETAIL_W)
+        # Riveted wing spars sell the drake as a forged war-machine rather
+        # than a pure fantasy creature.
+        for px, py in ((76, 98), (58, 112), (62, 132)):
+            qx, qy = wing([(px, py)])[0]
+            rivet(wg, qx, qy, 2.8)
         parts.append(wg)
 
     rear = -10 * p.open[1]
@@ -605,6 +648,8 @@ def ember(p):
         bd.base(sp, BONE)
         bd.shade([(128, y - 6), (134, y + 8), (128, y + 8)], ROCK_HI)
         bd.outline(sp, DETAIL_W)
+    for x, y in ((116, 56), (140, 56), (116, 82), (140, 82)):
+        rivet(bd, x, y, 2.9)
     vent = p.charge[2]
     for crack in ([(110, 46), (116, 56), (112, 70)], [(146, 50), (140, 62), (146, 76)], [(112, 84), (120, 96)], [(144, 82), (136, 98)]):
         bd.light([(x, y) for x, y in crack] + [(x + 3, y + 1) for x, y in reversed(crack)], MAGENTA if (vent > 0 or p.lights >= .5) else MAGENTA_SH)
@@ -641,6 +686,8 @@ def ember(p):
     hd.line(shift([(128, 106), (128, 150)], 0, rear))
     hd.line(shift([(100, 152), (118, 158)], 0, rear), DETAIL_W)
     hd.line(shift(mx([(100, 152), (118, 158)]), 0, rear), DETAIL_W)
+    for x, y in ((108, 148), (148, 148), (118, 174), (138, 174)):
+        rivet(hd, x, y + rear, 2.7)
     if p.charge[0] > 0:
         hd.light(star(128, 206 + rear + 8 * o, 12 + 18 * p.charge[0], 5, 7, 99, .14), MAGENTA)
         hd.light(ngon(128, 206 + rear + 8 * o, 5 + 5 * p.charge[0], 6), BONE, glow=False)

@@ -305,8 +305,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 spawned.AddComponent<RailBombAnimator>();
             var mount = spawned.GetComponent<RailMineMount>();
             if (mount == null) mount = spawned.AddComponent<RailMineMount>();
-            mount.rail = pendingMineRail;
-            mount.lockedX = spawned.transform.position.x;
+            mount.MountTo(pendingMineRail);
         }
         return spawned;
     }
@@ -616,8 +615,7 @@ public class enmiesOnBoard : MonoBehaviour {
             // right-hand rail mirrors it so it always grips its own wall.
             built.GetComponent<SpriteRenderer>().flipX = rail.position.x > 0f;
             var builtMount = built.AddComponent<RailMineMount>();
-            builtMount.rail = rail;
-            builtMount.lockedX = rail.position.x;
+            builtMount.MountTo(rail);
             liveMines.Add(built.transform);
         }
         // Without the mine art (the neon atlas, RailMineArt) no mine spawns;
@@ -649,12 +647,19 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 }
 
-// Keeps a rail mine locked to the centerline it was mounted on even while the
-// rail scrolls. This only controls X; the existing enemy movement owns Y.
+// A rail mine is hardware clamped to a moving side rail, rather than an
+// ordinary hazard that happens to share its X coordinate.  The mount records
+// the mine's along-rail offset at spawn and reapplies the full rail-relative
+// position after all ordinary Update movers have run.  That gives the mine a
+// single source of travel (its own side rail), keeps its clamp seated through
+// a frame of animation, and prevents a rail/mine pair from shearing apart
+// when the board speed changes.
 public class RailMineMount : MonoBehaviour
 {
     public Transform rail;
     public float lockedX;
+    float railOffsetY;
+    bool mounted;
 
     // Kept public for the headless regression test and for quick inspection
     // while playing in the editor.
@@ -668,10 +673,47 @@ public class RailMineMount : MonoBehaviour
         return AlignmentError <= tolerance;
     }
 
+    // Use this rather than assigning rail directly for runtime spawns: it
+    // captures the mine's intentional spacing from the rail's spawn point.
+    // The public fields remain available for old prefabs and editor probes;
+    // LateUpdate captures their offset lazily on the first frame.
+    public void MountTo(Transform targetRail)
+    {
+        rail = targetRail;
+        lockedX = targetRail != null ? targetRail.position.x : transform.position.x;
+        mounted = targetRail != null;
+        if (mounted) railOffsetY = transform.position.y - targetRail.position.y;
+
+        // EnemyFactory retains the legacy straight-line mover so prefab and
+        // targeting contracts stay intact.  Once mounted, it must not be the
+        // mine's movement authority: this mount follows the rail instead.
+        var looseScroller = GetComponent<moveItemEnmInStrightLine>();
+        if (looseScroller != null) looseScroller.enabled = !mounted;
+    }
+
     void LateUpdate()
     {
-        float x = rail != null ? rail.position.x : lockedX;
-        transform.position = new Vector3(x, transform.position.y, transform.position.z);
+        if (!mounted && rail != null)
+        {
+            mounted = true;
+            lockedX = rail.position.x;
+            railOffsetY = transform.position.y - rail.position.y;
+            var looseScroller = GetComponent<moveItemEnmInStrightLine>();
+            if (looseScroller != null) looseScroller.enabled = false;
+        }
+
+        // A lane has left the board (or was otherwise removed).  Do not let
+        // its mine become a detached, invisible-wall hazard in mid-field.
+        if (mounted && rail == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (rail != null)
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY, transform.position.z);
+        else
+            transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }
 
     void OnDrawGizmosSelected()
