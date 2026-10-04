@@ -97,7 +97,7 @@ public static class ShipLivesIndicatorTest
 
         StarterHeartsFollowItsColour();
         EveryShipHasItsOwnStyle();
-        LostHeartsCrumbleHealedOnesPop();
+        LostHeartsShieldThenCrumble();
 
         Debug.Log("[SL] failures: " + fails);
         return fails;
@@ -139,43 +139,84 @@ public static class ShipLivesIndicatorTest
         {
             var style = ShipHeartStyles.For(id);
             used.Add(style);
-            Check(ShipId.KeyOf(id) + " wears its hearts as " + style + (ShipUiSlots.Spins(id) ? " (spinner)" : ""),
+            Check(ShipId.KeyOf(id) + " orbits its hearts as " + style + (ShipUiSlots.Spins(id) ? " (spinner)" : ""),
                   (style == HeartStyle.ShieldRing) == ShipUiSlots.Spins(id));
         }
-        Check("all five heart styles are in use (" + used.Count + ")", used.Count == 5);
+        Check("all six orbit styles are in use (" + used.Count + ")", used.Count == 6);
     }
 
-    // A hit breaks the lost heart away into falling shards (pooled, frozen
-    // with the world, gone after BreakSeconds); a heal pops one back in.
-    // The spray API gives the shown hearts' positions without allocating.
-    static void LostHeartsCrumbleHealedOnesPop()
+    // A hit costs a heart as a shield: the best-placed heart darts to the
+    // impact point between the hull and the hit, bursts as a shield there,
+    // then cracks into falling shards (pooled, frozen with the world, gone
+    // after BreakSeconds); a heal pops one back into orbit. The spray API
+    // gives the shown hearts' positions without allocating.
+    static void LostHeartsShieldThenCrumble()
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-        foreach (int count in new[] { 2, 5 })
+        ShipUiSlots.ScreenOverride = () => Rect.MinMaxRect(-100f, -100f, 100f, 100f);
+        var cases = new[]
+        {
+            (7, 5, new Vector3(.2f, 1.1f, 0f)),     // Gold Warden, from ahead
+            (7, 2, new Vector3(-1.2f, -.1f, 0f)),   // from the left
+            (1, 3, new Vector3(.9f, -.8f, 0f)),     // Neon Comet, from below right
+            (11, 4, new Vector3(1.1f, .6f, 0f)),    // Ninja (spins)
+            (13, 3, new Vector3(-.3f, -1.2f, 0f)),  // UFO, from below
+        };
+        foreach (var (id, count, from) in cases)
         {
             collisionDetection.lifeCounter = 0;
-            var rig = HeartsPlacementTest.Build(7, Vector3.zero, withPower: false, hearts: count);
+            var rig = HeartsPlacementTest.Build(id, new Vector3(.5f, -1f, 0f), withPower: false, hearts: count);
             var hearts = rig.hearts;
             hearts.SendMessage("Update");
-            hearts.Place(0f);
-            string who = count + " hearts: ";
+            for (int f = 0; f < 50; f++) hearts.Place(1f / 60f, 1f / 60f);
+            string who = ShipId.KeyOf(id) + ", " + count + " hearts: ";
             var positions = new System.Collections.Generic.List<Vector3>(8);
             Check(who + "HeartPositions gives every shown heart",
                   hearts.HeartPositions(positions) == count && positions.Count == count && hearts.ShownCount == count);
-            Vector3 lostAt = hearts.HeartPosition(count - 1);
 
+            Vector3 ship = rig.ship.transform.position;
+            Vector3 impact = ship + from;
+            Vector3 shield = ship + (Vector3)hearts.ShieldOffset(impact);
+            // which heart is best placed to block it
+            int nearest = -1;
+            float best = float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                float d = ((Vector2)(hearts.Hearts[i].position - shield)).magnitude + (hearts.Depth(i) < 0f ? .25f * -hearts.Depth(i) : 0f);
+                if (d < best) { best = d; nearest = i; }
+            }
+            var nearestHeart = hearts.Hearts[nearest];
+            Vector3 startAt = nearestHeart.position;
+
+            ShipLivesIndicator.Impact(impact);
             collisionDetection.lifeCounter = 1;
             hearts.SendMessage("Update");
-            Check(who + "a hit starts one break-up", hearts.ActiveBreaks == 1 && hearts.ShownCount == count - 1);
+            Check(who + "a hit starts one shield and hides one heart", hearts.ActiveBreaks == 1 && hearts.ShownCount == count - 1);
+            Check(who + "the best-placed heart is the one that goes", !nearestHeart.gameObject.activeSelf);
+            Vector2 toHit = (Vector2)(impact - ship), toShield = (Vector2)(hearts.ShieldPoint(0) - ship);
+            Check(who + "it shields between the hull and the hit (" + toShield.magnitude.ToString("F2") + " of " +
+                  toHit.magnitude.ToString("F2") + " out, " + Vector2.Angle(toHit, toShield).ToString("F0") + " deg off)",
+                  Vector2.Angle(toHit, toShield) < 25f && toShield.magnitude <= toHit.magnitude + .01f);
+
             var pieces = rig.ship.transform.Find("~HeartBreaks");
-            hearts.StepBreaks(ShipLivesIndicator.BreakShake * .5f);
             var ghost = pieces.Find("Ghost0").GetComponent<SpriteRenderer>();
-            Check(who + "it shakes loose where the heart was",
-                  ghost.enabled && ((Vector2)(ghost.transform.position - lostAt)).magnitude < .1f);
-            hearts.StepBreaks(ShipLivesIndicator.BreakShake + ShipLivesIndicator.BreakCrack);
+            var burst = pieces.Find("Burst0").GetComponent<SpriteRenderer>();
+            hearts.StepBreaks(.001f);
+            Check(who + "it leaves from where it was flying",
+                  ghost.enabled && ((Vector2)(ghost.transform.position - startAt)).magnitude < .05f);
+            float before = ((Vector2)(ghost.transform.position - hearts.ShieldPoint(0))).magnitude;
+            hearts.StepBreaks(ShipLivesIndicator.DartSeconds * .5f);
+            float mid = ((Vector2)(ghost.transform.position - hearts.ShieldPoint(0))).magnitude;
+            hearts.StepBreaks(ShipLivesIndicator.DartSeconds * .5f + ShipLivesIndicator.ShieldSeconds * .4f);
+            float there = ((Vector2)(ghost.transform.position - hearts.ShieldPoint(0))).magnitude;
+            Check(who + "darts to the impact point (" + before.ToString("F2") + " -> " + mid.ToString("F2") + " -> " + there.ToString("F3") + ")",
+                  mid < before || before < .02f);
+            Check(who + "and blocks it there in a shield burst", there < .03f && ghost.enabled && burst.enabled);
+
+            hearts.StepBreaks(ShipLivesIndicator.ShieldSeconds * .6f + ShipLivesIndicator.BreakCrack);
             int shardsOn = 0;
             foreach (Transform c in pieces) if (c.name.StartsWith("Shard0_") && c.GetComponent<SpriteRenderer>().enabled) shardsOn++;
-            Check(who + "then cracks into shards (" + shardsOn + ")", shardsOn >= 4 && !ghost.enabled);
+            Check(who + "then crumbles into shards (" + shardsOn + ")", shardsOn >= 4 && !ghost.enabled && !burst.enabled);
             var shard = pieces.Find("Shard0_0");
             Vector3 held = shard.position;
             for (int f = 0; f < 10; f++) hearts.StepBreaks(0f);
@@ -188,23 +229,28 @@ public static class ShipLivesIndicatorTest
             foreach (Transform c in pieces) if (c.GetComponent<SpriteRenderer>().enabled) anyOn = true;
             Check(who + "and are gone after the break-up", hearts.ActiveBreaks == 0 && !anyOn);
 
+            // A heal pops a heart back into orbit.
             collisionDetection.lifeCounter = 0;
             hearts.SendMessage("Update");
             hearts.Place(0f, 0f);
             var back = hearts.Hearts[count - 1];
-            float start = back.localScale.x;
+            float start = back.localScale.x / (1f + ShipLivesIndicator.DepthScale * hearts.Depth(count - 1));
             hearts.Place(0f, ShipLivesIndicator.PopSeconds * .55f);
-            float mid = back.localScale.x;
+            float midScale = back.localScale.x / (1f + ShipLivesIndicator.DepthScale * hearts.Depth(count - 1));
             hearts.Place(0f, ShipLivesIndicator.PopSeconds);
-            float end = back.localScale.x;
-            Check(who + "a heal pops the heart back in (" + start.ToString("F3") + " -> " + mid.ToString("F3") + " -> " +
-                  end.ToString("F3") + ")", back.gameObject.activeSelf && start < end * .2f && mid > end * .95f && hearts.ActiveBreaks == 0);
+            float end = back.localScale.x / (1f + ShipLivesIndicator.DepthScale * hearts.Depth(count - 1));
+            Check(who + "a heal pops the heart back in (" + start.ToString("F3") + " -> " + midScale.ToString("F3") + " -> " +
+                  end.ToString("F3") + ")", back.gameObject.activeSelf && start < end * .2f && midScale > end * .95f && hearts.ActiveBreaks == 0);
+            Vector3 p0 = back.position;
+            for (int f = 0; f < 30; f++) hearts.Place(1f / 60f, 1f / 60f);
+            Check(who + "and it flies on round its orbit", (back.position - p0).magnitude > .05f);
 
-            // No garbage per frame: placement, sway, the break-up and the spray API.
+            // No garbage per frame: the orbit, the shield and the spray API.
+            ShipLivesIndicator.Impact(impact);
             collisionDetection.lifeCounter = 1;
             hearts.SendMessage("Update");
-            hearts.Place(0f, 1f / 60f);
-            long before = System.GC.GetAllocatedBytesForCurrentThread();
+            for (int f = 0; f < 5; f++) { hearts.Place(1f / 60f, 1f / 60f); hearts.StepBreaks(1f / 60f); }
+            long allocBefore = System.GC.GetAllocatedBytesForCurrentThread();
             for (int f = 0; f < 60; f++)
             {
                 hearts.Place(1f / 240f, 1f / 60f);
@@ -212,11 +258,12 @@ public static class ShipLivesIndicatorTest
                 positions.Clear();
                 hearts.HeartPositions(positions);
             }
-            long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+            long allocated = System.GC.GetAllocatedBytesForCurrentThread() - allocBefore;
             Check(who + "no allocation per frame (" + allocated + " bytes over 60 frames)", allocated == 0);
             collisionDetection.lifeCounter = 0;
             HeartsPlacementTest.Teardown(rig);
         }
+        ShipUiSlots.ScreenOverride = null;
         collisionDetection.MAXLIFE = 3;
     }
 
