@@ -153,6 +153,69 @@ public static class TestHarness
         }
     }
 
+    // `target.SendMessage(method)` for per-frame loops. In edit mode every
+    // SendMessage logs a "ShouldRunBehaviour()" assertion before it calls the
+    // method; at 100k+ frames those log lines were most of a suite's time
+    // (and once a suite has saved project settings, every log line costs
+    // ~10x more for the rest of the editor session). This calls the very
+    // same methods directly. It only takes the fast path when the outcome is
+    // unambiguous -- an active object whose receivers are all enabled, with
+    // one parameterless, non-coroutine `method` each -- and otherwise is
+    // SendMessage itself. As with SendMessage, an exception in a receiver is
+    // logged, not thrown.
+    public static void Send(Component target, string method)
+    {
+        if (target == null || !target.gameObject.activeInHierarchy) { target.SendMessage(method); return; }
+        var receivers = target.GetComponents<MonoBehaviour>();
+        var calls = new List<KeyValuePair<MonoBehaviour, MethodInfo>>(receivers.Length);
+        foreach (var mb in receivers)
+        {
+            if (mb == null) continue;
+            if (!Receiver(mb.GetType(), method, out MethodInfo m) || (m != null && !mb.enabled))
+            {
+                target.SendMessage(method);
+                return;
+            }
+            if (m != null) calls.Add(new KeyValuePair<MonoBehaviour, MethodInfo>(mb, m));
+        }
+        if (calls.Count == 0) { target.SendMessage(method); return; }
+        foreach (var call in calls)
+        {
+            try { call.Value.Invoke(call.Key, null); }
+            catch (TargetInvocationException e) { Debug.LogException(e.InnerException ?? e, call.Key); }
+        }
+    }
+
+    static readonly Dictionary<(Type, string), MethodInfo> receiverCache = new Dictionary<(Type, string), MethodInfo>();
+    static readonly HashSet<(Type, string)> ambiguous = new HashSet<(Type, string)>();
+
+    // The method SendMessage would call on a `type` (null if none); false if
+    // only SendMessage itself can say (overloads, parameters, coroutines).
+    static bool Receiver(Type type, string method, out MethodInfo found)
+    {
+        var key = (type, method);
+        if (ambiguous.Contains(key)) { found = null; return false; }
+        if (receiverCache.TryGetValue(key, out found)) return true;
+        found = null;
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        for (var t = type; t != null && t != typeof(MonoBehaviour); t = t.BaseType)
+        {
+            var named = Array.FindAll(t.GetMethods(flags), m => m.Name == method);
+            if (named.Length == 0) continue;
+            var m0 = named[0];
+            if (named.Length > 1 || m0.GetParameters().Length != 0 || m0.ReturnType != typeof(void) ||
+                m0.IsGenericMethodDefinition)
+            {
+                ambiguous.Add(key);
+                return false;
+            }
+            found = m0;
+            break;
+        }
+        receiverCache[key] = found;
+        return true;
+    }
+
     // Every editor scene swap (NewScene / OpenScene) unloads "unused" assets,
     // and that includes the sprites and textures the game builds at runtime
     // (Sprite.Create / new Texture2D) and caches in statics: the caches then

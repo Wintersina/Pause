@@ -1031,12 +1031,15 @@ public static class LoopTest
                         elapsed.SetValue(board, t);
                         select.Invoke(board, null);
                         spawn.Invoke(board, new object[] { dt });
-                        foreach (var id in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                        // the board as it stands this step (nothing spawns or
+                        // moves until ScrollHazards): looked up once
+                        var live = Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None);
+                        foreach (var id in live)
                             if (seen.Add(id) && id.Def != null) counts[pass]++;
                         if (pass == 1)
                             for (float y = -3f; y <= 1.5f; y += .25f)
                             {
-                                float widest = SpawnLane.WidestGap(SpawnLane.RowSpans(y, y + gap));
+                                float widest = SpawnLane.WidestGap(SpawnLane.RowSpans(y, y + gap, live));
                                 tightest = Mathf.Min(tightest, widest);
                                 if (widest < gap - 1e-3f) closed++;
                             }

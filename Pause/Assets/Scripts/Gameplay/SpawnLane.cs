@@ -73,8 +73,15 @@ public static class SpawnLane
     // The x spans of every live hazard (chasers aside) overlapping [y0, y1].
     public static List<Vector2> RowSpans(float y0, float y1)
     {
+        return RowSpans(y0, y1, Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None));
+    }
+
+    // The same over a given set of live hazards -- lets the editor tests that
+    // sweep many rows of one unchanged board look the hazards up once.
+    public static List<Vector2> RowSpans(float y0, float y1, EnemyIdentity[] live)
+    {
         var spans = new List<Vector2>();
-        foreach (var id in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+        foreach (var id in live)
         {
             if (id == null || (id.Def != null && id.Def.role == EnemyRole.Chaser)) continue;
             Vector2 half = HalfExtents(id);
