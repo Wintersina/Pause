@@ -30,6 +30,13 @@ public class ShipSpinDrift : MonoBehaviour
              "straight down the screen (traffic flies any direction).")]
     public bool wakeFollowsHeading;
 
+    [Tooltip("With wakeFollowsHeading: the owner sets the travel heading " +
+             "(headingDegrees, world z, 0 = nose up) because the hull itself " +
+             "spins while it travels (title-screen traffic), so the wake " +
+             "trails the flight path rather than the turning hull.")]
+    public bool headingFromOwner;
+    public float headingDegrees;
+
     [Tooltip("Pilot rules: the drift spins up only while flying.")]
     public bool respondToPause = true;
 
@@ -185,8 +192,15 @@ public class ShipSpinDrift : MonoBehaviour
         ringT.localRotation = spinRing ? Quaternion.Euler(0f, 0f, ringAngle) : Quaternion.identity;
 
         // The wake trails behind: straight down the screen for the player and
-        // the dock, or behind the ship's own nose for free-flying traffic.
-        if (wakeFollowsHeading)
+        // the dock, behind the ship's own nose for a hull that doesn't spin, or
+        // behind the owner's travel heading for spinning free-flying traffic.
+        if (wakeFollowsHeading && headingFromOwner)
+        {
+            var rot = Quaternion.Euler(0f, 0f, headingDegrees);
+            wakeT.rotation = rot;
+            wakeT.position = transform.position + rot * Vector3.down * (wakeDrop * Mathf.Abs(transform.lossyScale.y));
+        }
+        else if (wakeFollowsHeading)
         {
             wakeT.localRotation = Quaternion.identity;
             wakeT.localPosition = new Vector3(0f, -wakeDrop, 0f);

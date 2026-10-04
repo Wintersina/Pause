@@ -48,6 +48,7 @@ public static class TitleScreenTrafficTest
         BoostsUseTheShipsOwnBoostFlame();
         ZipsFlyTheDockLaunchCurve();
         SpinnersFlyTheirSpinDrift();
+        SpinnerHullsSpinLikeGameplay();
         CrashesOnlyWithinALayerAndRateLimited();
         LongRunStaysBoundedAndLively();
         SafeAreaAndAspectRatios();
@@ -380,7 +381,7 @@ public static class TitleScreenTrafficTest
             if (f.drift == null) continue;
             var d = f.drift;
             Check(ShipId.KeyOf(f.id) + ": drift is driven by the traffic (unscaled), not its own scaled-time Update",
-                  !d.enabled && !d.spinHull && d.spinRing && d.wakeFollowsHeading && !d.respondToPause);
+                  !d.enabled && !d.spinHull && !d.spinRing && d.wakeFollowsHeading && d.headingFromOwner && !d.respondToPause);
 
             var at = new Vector2(t.Safe.center.x + .7f, t.Safe.yMin + 2f);
             var g = Place(t, TitleScreenTraffic.Depth.Mid, at, 0f);
@@ -446,6 +447,141 @@ public static class TitleScreenTrafficTest
                      g.drift.Wake.sharedMaterial != null && g.drift.Wake.sharedMaterial.shader == hazeShader;
         }
         Check("a back-layer spinner's ring and wake wear the depth haze", seen > 0 && hazed);
+        Done(t);
+    }
+
+    // Ninja and UFO spin their hulls in traffic the way ShipSpinDrift spins
+    // the player's in play: the same rate, cruising, boosting or zipping
+    // (gameplay doesn't speed the spin up on a boost). The ring rides the
+    // hull's spin, the wake trails the travel heading, a dizzy tumble adds
+    // on top, and nothing else spins.
+    static void SpinnerHullsSpinLikeGameplay()
+    {
+        var t = Make("~TT_spin", 21, x => { x.layerTargets = new[] { 0, 0, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextCrashAt = 1e9f;
+        var refGo = new GameObject("~TT_spinref");
+        float gameplay = refGo.AddComponent<ShipSpinDrift>().degreesPerSecond;
+        Object.DestroyImmediate(refGo);
+        Check("gameplay spins a spinner hull at 300 deg/s (" + gameplay + ")", Mathf.Approximately(gameplay, 300f));
+
+        var at = new Vector2(t.Safe.center.x + .7f, t.Safe.yMin + 2f);
+        const float step = TitleScreenTraffic.Tick;
+        int spinners = 0;
+        foreach (var f in t.Pool)
+        {
+            if (f.drift == null) continue;
+            spinners++;
+            string who = ShipId.KeyOf(f.id) + ": ";
+            var d = f.drift;
+            var g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
+            int guard = 0;
+            while (g != f && guard++ < 40)
+            {
+                if (g != null) { g.active = false; g.go.SetActive(false); }
+                g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
+            }
+            if (g != f) { Check(who + "could be launched", false); continue; }
+            t.Step(step);
+
+            Check(who + "spin rate is gameplay's", Mathf.Approximately(TitleScreenTraffic.SpinRate(f), gameplay));
+
+            // cruising: the hull turns gameplay's rate every frame, the ring
+            // turns with it, the wake hangs behind the travel heading
+            float worst = 0f, ringOff = 0f, total = 0f;
+            bool trails = true;
+            for (int i = 0; i < 24; i++)
+            {
+                float z0 = f.tr.eulerAngles.z;
+                t.Step(step);
+                float adv = Mathf.DeltaAngle(z0, f.tr.eulerAngles.z);
+                total += adv;
+                worst = Mathf.Max(worst, Mathf.Abs(adv - gameplay * step));
+                ringOff = Mathf.Max(ringOff, Quaternion.Angle(d.Ring.transform.rotation, f.tr.rotation));
+                Vector2 dir = new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading));
+                Vector2 off = (Vector2)(d.Wake.transform.position - f.tr.position);
+                trails &= d.Wake.enabled && Vector2.Dot(off, dir) < -.5f * off.magnitude &&
+                          Mathf.Abs(Mathf.DeltaAngle(d.Wake.transform.eulerAngles.z, f.heading * Mathf.Rad2Deg - 90f)) < .5f;
+            }
+            Check(who + "the hull spins at gameplay's rate while cruising (" + total + " deg in 1 s, off by " + worst + ")",
+                  worst < .1f && Mathf.Abs(total - gameplay * 24f * step) < 1f);
+            Check(who + "the ring stays in sync with the spinning hull (" + ringOff + " deg)", ringOff < .05f);
+            Check(who + "the wake trails the travel heading while the hull spins", trails);
+
+            // boosting: same rate (gameplay's spin doesn't change on a boost)
+            t.StartBoost(f);
+            worst = 0f; ringOff = 0f;
+            int steps = 0;
+            while (f.state == TitleScreenTraffic.State.Boost && steps++ < 200)
+            {
+                float z0 = f.tr.eulerAngles.z;
+                t.Step(step);
+                worst = Mathf.Max(worst, Mathf.Abs(Mathf.DeltaAngle(z0, f.tr.eulerAngles.z) - gameplay * step));
+                ringOff = Mathf.Max(ringOff, Quaternion.Angle(d.Ring.transform.rotation, f.tr.rotation));
+            }
+            Check(who + "keeps spinning at gameplay's rate through a boost (off by " + worst + ")", steps > 10 && worst < .1f);
+            Check(who + "the ring stays in sync through the boost", ringOff < .05f);
+
+            // a dock-style zip: same rate, ring in sync, wake behind the flight line
+            f.pos = at; f.heading = Mathf.PI * .5f;
+            t.StartZip(f);
+            worst = 0f; ringOff = 0f; trails = true;
+            steps = 0;
+            while (f.active && f.state == TitleScreenTraffic.State.ZipOut && steps++ < 400)
+            {
+                float z0 = f.tr.eulerAngles.z;
+                t.Step(step);
+                if (!f.active) break;
+                worst = Mathf.Max(worst, Mathf.Abs(Mathf.DeltaAngle(z0, f.tr.eulerAngles.z) - gameplay * step));
+                ringOff = Mathf.Max(ringOff, Quaternion.Angle(d.Ring.transform.rotation, f.tr.rotation));
+                Vector2 dir = new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading));
+                trails &= Vector2.Dot((Vector2)(d.Wake.transform.position - f.tr.position), dir) < 0f;
+            }
+            Check(who + "spins at gameplay's rate through a dock-style zip (off by " + worst + ")", steps > 10 && worst < .1f);
+            Check(who + "ring in sync and wake trailing through the zip", ringOff < .05f && trails);
+            if (f.active) { f.active = false; f.go.SetActive(false); }
+
+            // a dizzy tumble adds to the spin, and shaking it off doesn't snap back
+            g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
+            guard = 0;
+            while (g != f && guard++ < 40)
+            {
+                if (g != null) { g.active = false; g.go.SetActive(false); }
+                g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
+            }
+            if (g != f) continue;
+            t.Step(step);
+            f.state = TitleScreenTraffic.State.Dizzy; f.stateT = 0f; f.spinVel = 600f; f.tumble = Vector2.zero; f.pendingPop = false;
+            float zd = f.tr.eulerAngles.z;
+            t.Step(step * .25f);
+            float dizzyAdv = Mathf.DeltaAngle(zd, f.tr.eulerAngles.z);
+            Check(who + "a dizzy tumble adds to the spin (" + dizzyAdv + " deg)", dizzyAdv > gameplay * step * .25f + 1f);
+            steps = 0;
+            while (f.state == TitleScreenTraffic.State.Dizzy && steps++ < 200) t.Step(step);
+            float zj = f.tr.eulerAngles.z;
+            t.Step(.001f);
+            Check(who + "shaking it off doesn't snap the spin back", Mathf.Abs(Mathf.DeltaAngle(zj, f.tr.eulerAngles.z)) < 2f);
+            f.active = false; f.go.SetActive(false);
+        }
+        Check("both spinners were spun", spinners == 2);
+
+        // everyone else faces their heading (give or take a lean) and doesn't spin
+        bool still = true; int seen = 0;
+        foreach (var f in t.Pool)
+        {
+            if (f.drift != null || seen >= 3) continue;
+            var g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
+            if (g == null) break;
+            if (g.drift != null) { g.active = false; g.go.SetActive(false); continue; }
+            seen++;
+            for (int i = 0; i < 24; i++)
+            {
+                t.Step(step);
+                if (!g.active) break;
+                still &= Mathf.Abs(Mathf.DeltaAngle(g.tr.eulerAngles.z, g.heading * Mathf.Rad2Deg - 90f)) < 13f;
+            }
+            g.active = false; g.go.SetActive(false);
+        }
+        Check("non-spinners don't spin: they face their heading (" + seen + " checked)", seen > 0 && still);
         Done(t);
     }
 
