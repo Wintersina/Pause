@@ -236,17 +236,17 @@ public static class BossEncounterTest
         FreshScene();
         var e = StartFight();
         var shot = e.Pool.Fire(e.Boss, BossShotStyle.Bolt, new Vector3(0f, 2f, 0f), new Vector2(0f, -4f));
-        var lane = e.Pool.Lane(e.Boss, 0f, 1f, 2f, .5f, .5f);
+        var lane = e.Pool.Beam(e.Boss, null, -1, new Vector3(0f, 2f, 0f), -90f, 0f, .5f, .5f, .3f);
         Vector3 at = shot.transform.position;
         float bossX = e.Actor.transform.position.x;
         for (int i = 0; i < 10; i++) e.Step(.1f, 0f);
         Check("a shot doesn't move while time is frozen", shot.transform.position == at && shot.Active);
-        Check("a lane stays telegraphing while frozen", lane.Telegraphing);
+        Check("a laser stays on its sight line while frozen", lane.Telegraphing);
         Check("the boss doesn't drift while frozen", e.Actor.transform.position.x == bossX);
         e.Step(.1f, 1f);
         Check("it moves again with time", shot.transform.position.y < at.y);
         e.Step(.6f, 1f);
-        Check("the lane goes live after its telegraph", lane.Live && lane.Hitbox != null);
+        Check("the laser goes live after its tell", lane.Live && lane.Hitbox != null);
         var hit = shot.Hitbox;
         Check("shots hit through the normal enemy rules (tag + trigger)",
               hit != null && hit.CompareTag("Enimey") && hit.GetComponent<Collider2D>().isTrigger);
@@ -402,8 +402,8 @@ public static class BossEncounterTest
         for (int i = 0; i < 10; i++)
             if (pool.Fire(boss, BossShotStyle.Shard, Vector3.zero, Vector2.down) != null) fired++;
         Check("shots stop at the pool size", fired == 4 && pool.Created == 4 && pool.ActiveShots == 4);
-        for (int i = 0; i < 5; i++) pool.Lane(boss, 0f, 1f, 2f, .5f, .5f);
-        Check("lanes stop at their pool size", pool.BeamsCreated == 2);
+        for (int i = 0; i < 5; i++) pool.Beam(boss, null, -1, new Vector3(0f, 2f, 0f), -90f, 0f, .5f, .5f, .3f);
+        Check("lasers stop at their pool size", pool.BeamsCreated == 2);
         pool.RecycleAll();
         Check("recycled shots are reused, not re-created",
               pool.Fire(boss, BossShotStyle.Bolt, Vector3.zero, Vector2.down) != null && pool.Created == 4);

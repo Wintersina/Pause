@@ -166,7 +166,7 @@ public static class ScoringTest
         // Boss parts: no farming the respawning body hitbox.
         BreakChain();
         Check("the boss body hitbox pays nothing", Kill(Named("BossBody", "Enimey")) == 0);
-        Check("a boss lane beam pays nothing", Kill(Named("BossLaneHit", "Enimey")) == 0);
+        Check("a boss laser pays nothing", Kill(Named("BossBeamHit", "Enimey")) == 0);
         Check("a shot-down boss projectile pays a little", Kill(Named("BossShotHit", "Enimey")) == ScoreRules.BossShot);
         Check("... and never starts a chain", RunScore.Chain == 0);
         Check("non-hazards are not kills", Kill(Named("smStar1", "pickUp")) == 0);
