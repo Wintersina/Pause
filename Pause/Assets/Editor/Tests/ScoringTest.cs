@@ -63,6 +63,8 @@ public static class ScoringTest
         PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
         startMenu.youAreInTutorial = false;
         buttonClicks.playerDied = false;
+        // Below HUD 20: kills pay their base points (no speed multiplier).
+        moveBackGround.speed = 0f;
     }
 
     static GameObject Enemy(EnemyDef def)
@@ -202,11 +204,15 @@ public static class ScoringTest
 
         t = RunScore.Total;
         RunScore.Tick(10f, .46f);
-        Check("ten seconds at HUD speed 46 pay 23 distance points (speed / 20 a second)", RunScore.Total - t == 23);
+        Check("ten seconds at HUD speed 46 pay 23 distance points (speed / 20 a second) x1.5 speed tier = 34",
+              RunScore.Total - t == 34);
+        t = RunScore.Total;
+        RunScore.Tick(10f, .19f);
+        Check("below HUD 20 distance is unmultiplied (10s at 19 = 9)", RunScore.Total - t == 9 || RunScore.Total - t == 10);
         t = RunScore.Total;
         for (int i = 0; i < 600; i++) RunScore.Tick(1f / 60f, .2f);
         long d = RunScore.Total - t;
-        Check("distance is framerate independent (600 x 1/60s at speed 20 = 10, got " + d + ")", d == 10 || d == 9);
+        Check("distance is framerate independent (600 x 1/60s at speed 20 = 10 x1.25 = 12.5, got " + d + ")", d == 12 || d == 13);
 
         var parts = RunScore.Parts;
         Check("the breakdown sums to the total", parts.Total == RunScore.Total);
