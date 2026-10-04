@@ -199,9 +199,9 @@ public static class ShopTest
                   popup.Flipped ? r.yMax < ship.y && ship.y - r.yMax < .7f
                                 : r.yMin > ship.y && r.yMin - ship.y < .6f);
             // An owned ship's popup carries the skin, weapon and START SPD
-            // rows (~1.08 world units): still a small card, not a dialog.
+            // rows (~1.24 world units): still a small card, not a dialog.
             Check("popup is small (not a full-screen dialog) (" + r.height.ToString("F2") + " of " + screen.height.ToString("F2") + ")",
-                  r.width < screen.width * .6f && r.height < screen.height * .12f);
+                  r.width < screen.width * .6f && r.height < screen.height * .14f);
         }
 
         // The anchor follows the ship: move the rack and the popup moves too.
@@ -395,6 +395,7 @@ public static class ShopTest
         {
             new Vector2Int(1080, 1920), new Vector2Int(1080, 2340), new Vector2Int(1080, 2400), new Vector2Int(1440, 3200),
             new Vector2Int(720, 1280), new Vector2Int(1536, 2048), new Vector2Int(1100, 800), new Vector2Int(1920, 1080),
+            new Vector2Int(1080, 2520),
         };
         float aspect = cam.aspect, ortho = cam.orthographicSize;
         foreach (var size in sizes)
@@ -423,10 +424,52 @@ public static class ShopTest
             string tag = size.x + "x" + size.y;
             Check(tag + ": three columns, every berth fits the width", dock.layout.columns == 3 && fits);
             Check(tag + ": berths read cheapest first, left to right, top to bottom, without overlapping", ordered);
+            PopupFits(dock, cam, tag);
         }
         cam.aspect = aspect;
         cam.orthographicSize = ortho;
         dock.Relayout();
+    }
+
+    // The popup (scaled by DockPopup.PopupScale) at its tallest - every ship
+    // owned, so each carries the skin, weapon and START SPD rows - stays
+    // inside the safe view and over its ship at this screen size.
+    static void PopupFits(SpaceDock dock, Camera cam, string tag)
+    {
+        var saved = new string[dock.bays.Length];
+        for (int i = 1; i < dock.bays.Length; i++)
+        {
+            saved[i] = PlayerPrefs.HasKey(ShipId.OwnedKey(i)) ? PlayerPrefs.GetString(ShipId.OwnedKey(i)) : null;
+            PlayerPrefs.SetString(ShipId.OwnedKey(i), "True");
+        }
+        float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
+        Vector3 c = cam.transform.position;
+        var screen = new Rect(c.x - halfW, c.y - halfH, halfW * 2f, halfH * 2f);
+        bool inside = true, over = true, tall = true;
+        string worst = "";
+        for (int i = 1; i < dock.bays.Length; i++)
+        {
+            if (dock.bays[i] == null) continue;
+            dock.Deselect();
+            dock.Select(i);
+            var popup = dock.popup;
+            popup.SendMessage("LateUpdate");
+            Rect r = popup.WorldRect, v = popup.safeView;
+            Vector3 ship = dock.bays[i].ship.position;
+            bool ok = r.xMin >= v.xMin - .001f && r.xMax <= v.xMax + .001f && r.yMin >= v.yMin - .001f && r.yMax <= v.yMax + .001f &&
+                      r.xMin >= screen.xMin && r.xMax <= screen.xMax && r.yMin >= screen.yMin && r.yMax <= screen.yMax;
+            if (!ok && worst == "") worst = " (ship" + i + " " + r + " vs " + v + ")";
+            inside &= ok;
+            over &= ship.x >= r.xMin && ship.x <= r.xMax;
+            tall &= popup.SkinRowVisible && Mathf.Approximately(r.height, popup.CurrentHeight);
+        }
+        dock.Deselect();
+        for (int i = 1; i < dock.bays.Length; i++)
+            if (saved[i] == null) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            else PlayerPrefs.SetString(ShipId.OwnedKey(i), saved[i]);
+        Check(tag + ": every ship's full-height popup stays inside the safe view and on screen" + worst, inside);
+        Check(tag + ": every popup sits over its own ship", over);
+        Check(tag + ": the popups measured carried the skin rows", tall);
     }
 
     // ---- Silhouettes ----

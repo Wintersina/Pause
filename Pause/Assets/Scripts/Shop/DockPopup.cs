@@ -14,16 +14,22 @@ using UnityEngine.UI;
 //   locked ship -> its price and BUY; can't afford -> shake + "NEED n MORE"
 public class DockPopup : MonoBehaviour
 {
-    // World units. The canvas is scaled so 1 canvas unit = 0.01 world units.
-    public const float Width = 1.50f;
-    public const float Height = .62f;
+    // How big the whole popup is drawn: frame, text, chips, pips, badge,
+    // button and their touch targets all scale with it. The layout below is
+    // authored in canvas units at 1x; this only changes how many world units
+    // one canvas unit covers.
+    public const float PopupScale = 1.15f;
+    // World units. The canvas is scaled so 1 canvas unit = 0.01 * PopupScale
+    // world units.
+    public const float Width = 1.50f * PopupScale;
+    public const float Height = .62f * PopupScale;
     // Extra height when the skin swatch row is shown (owned ships).
-    public const float SkinRowHeight = .27f;
+    public const float SkinRowHeight = .27f * PopupScale;
     // START SPEED line: under the skin row, with it.
-    public const float StartSpeedLineHeight = .07f;
-    public const float TailLength = .085f;
+    public const float StartSpeedLineHeight = .07f * PopupScale;
+    public const float TailLength = .085f * PopupScale;
     public const float Gap = .04f;
-    const float CanvasScale = .01f;
+    public const float CanvasScale = .01f * PopupScale;
     const float AppearTime = .2f;
 
     public enum Mode { Launch, Buy, BuySkin }
@@ -320,7 +326,7 @@ public class DockPopup : MonoBehaviour
     // and what one more colour adds. A previewed (unbought) skin lights the
     // pip it would add in gold and names the upgrade; at the top level the
     // row reads MAX. Lives inside the skin row, so it shows and hides with it.
-    public const float WeaponRowHeight = .12f;
+    public const float WeaponRowHeight = .12f * PopupScale;
     RectTransform weaponRow;
     Text weaponTitle, weaponLabel;
     readonly Image[] weaponPips = new Image[ShipWeaponUpgrades.MaxLevel];
