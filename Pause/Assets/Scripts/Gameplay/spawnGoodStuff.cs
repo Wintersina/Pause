@@ -69,7 +69,8 @@ public class spawnGoodStuff : MonoBehaviour {
     // Each planet gets its own allowance.
     void resetBlueBudget()
     {
-        blueBudget = Random.Range(blueAtomsPerWorld.x, blueAtomsPerWorld.y + 1);
+        // x2 the inspector range (PickupRules.ShieldAtomRateMultiplier).
+        blueBudget = PickupRules.ShieldAtomBudget(Random.Range(blueAtomsPerWorld.x, blueAtomsPerWorld.y + 1));
         blueSpawned = 0;
         redBudget = redAtomsPerWorld;
         redSpawned = 0;
@@ -78,7 +79,11 @@ public class spawnGoodStuff : MonoBehaviour {
         atomTimer = Random.Range(20f, 45f);
     }
 
-    void spawn()
+    void spawn() { spawn(Time.deltaTime); }
+
+    // dt is explicit so a headless test can step a run (Time.deltaTime is 0
+    // outside Play mode); PickupRulesTest drives it.
+    void spawn(float dt)
     {
         // a new planet restores the allowance
         int world = WorldManager.Instance != null ? WorldManager.CurrentIndex : 0;
@@ -88,10 +93,13 @@ public class spawnGoodStuff : MonoBehaviour {
             resetBlueBudget();
         }
 
-        smStarTimer -= Time.deltaTime;
-        midStarTimer -= Time.deltaTime;
-        atomTimer -= Time.deltaTime;
-        redAtomDelayTimer -= Time.deltaTime;
+        // Star dust runs x3 during a boss encounter, blue atoms x2 always
+        // (PickupRules); red atoms keep the plain clock.
+        float dustDt = dt * PickupRules.StarDustRate();
+        smStarTimer -= dustDt;
+        midStarTimer -= dustDt;
+        atomTimer -= dt * PickupRules.ShieldAtomRate;
+        redAtomDelayTimer -= dt;
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
