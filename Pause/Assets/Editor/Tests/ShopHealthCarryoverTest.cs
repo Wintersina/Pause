@@ -99,6 +99,31 @@ public static class ShopHealthCarryoverTest
     {
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
 
+        // Pin the ship, its skin and its lives instead of reading whatever
+        // the machine's prefs hold (a stock Neon Comet has 2 lives, so one
+        // hit is already its last life -- critical, not damaged). The
+        // sandbox puts the prefs back afterwards.
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, n));
+        PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(ShipId.Starter));
+        ShipId.Equip(ShipId.Starter);
+
+        // stock starter, 2 lives: the first hit is the last life
+        collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Starter);
+        Check("the stock starter flies with 2 lives", collisionDetection.MAXLIFE == 2);
+        ShowsAfterOneHit(ShipDamageTable.StateFor(1, collisionDetection.MAXLIFE), "critical (frame 2, 2-life ship)");
+
+        // any colour of its own: 3 lives, so one hit is damaged
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 1), 1);
+        collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Starter);
+        Check("the coloured starter flies with 3 lives", collisionDetection.MAXLIFE == 3);
+        ShowsAfterOneHit(1, "damaged (frame 1, 3-life ship)");
+
+        collisionDetection.MAXLIFE = 0;
+    }
+
+    static void ShowsAfterOneHit(int frame, string what)
+    {
         collisionDetection.lifeCounter = 1;
 
         var go = new GameObject("ship1(Clone)", typeof(SpriteRenderer));
@@ -110,8 +135,8 @@ public static class ShopHealthCarryoverTest
 
         var spriteField = typeof(lifeControler).GetField("spriteControl", BindingFlags.NonPublic | BindingFlags.Instance);
         var sprite = spriteField.GetValue(comp) as SpriteRenderer;
-        Check("the real player ship still shows the damaged (frame 1) sprite in actual gameplay",
-              MatchesDamageFrame(sprite.sprite, 1, 1));
+        Check("the real player ship shows the " + what + " sprite after one hit in actual gameplay",
+              MatchesDamageFrame(sprite.sprite, 1, frame));
 
         collisionDetection.lifeCounter = 0;
         Object.DestroyImmediate(go);

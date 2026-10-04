@@ -89,6 +89,7 @@ public static class AllTests
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShipSelectionTest", ShipSelectionTest.Execute),
         ("ShipSkinsTest", ShipSkinsTest.Execute),
+        ("SkinDamageGameplayTest", SkinDamageGameplayTest.Execute),
         ("ShipWeaponUpgradesTest", ShipWeaponUpgradesTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),

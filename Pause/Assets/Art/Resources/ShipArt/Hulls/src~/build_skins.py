@@ -47,8 +47,9 @@ def svg_for(ship, skin, pose, uid):
 
 
 def render_cells(key, index):
-    ship = load(key)
     skin = SKINS[key][index]
+    # the skin's own damage design (damage.SKIN_D), else the ship's
+    ship = load(key, None if index == 0 else skin.name)
     cols = poses(key in SPINNERS)
     os.makedirs(SKIN_BUILD, exist_ok=True)
     jobs = []
