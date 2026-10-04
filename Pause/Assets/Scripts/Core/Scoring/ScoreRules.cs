@@ -8,20 +8,25 @@ using UnityEngine;
 //
 //   distance    DistancePerSpeedSecond x HUD speed, per second of flight on
 //               the world's (scaled) clock, so a frozen world earns nothing
-//               and flying faster earns more
-//   kills       by role (below), times the kill-chain multiplier
+//               and flying faster earns more; times the speed multiplier
+//   kills       by role (below), times the kill-chain multiplier and the
+//               speed multiplier (together capped at MaxTotalMultiplier)
 //   star dust   per pickup
 //   atoms       per pickup (heal / shield / pause-refill)
 //   teleports   per blink, scaled by how far it moved, capped per world
 //   bosses      destroyed or survived, plus a time bonus under HitPoints
 //   worlds      flying through a portal: WorldClearedPerWorld x the number
 //               of the world just left (Space = 1)
+//   loops       boss and world bonuses x LoopRules.BonusScale(loop) once the
+//               run has looped back past the final world
 //
 // The tutorial scores nothing (the same rule as score.PaysRealDust).
 // Developer runs score as usual but never save a best or reach a leaderboard.
 //
 // Numbers are kept small on purpose (tens, not thousands): a typical
-// 3-minute Space level plus its boss lands around 1,000-1,200.
+// 3-minute Space level plus its boss lands around 1,200-1,500 (about 1,250
+// before the speed multiplier), a whole first pass Space -> Ember ~6,600 and
+// a second loop ~8,100 (LoopTest.SimulatedRun logs the modelled breakdown).
 public static class ScoreRules
 {
     // ---- distance ----
@@ -91,6 +96,72 @@ public static class ScoreRules
         return m;
     }
 
+    // ---- speed multiplier ----
+    // "The faster they go, the higher the multiplier." Tiered by HUD speed
+    // (round(speed * 100)) at the moment points are earned:
+    //
+    //   below 20  x1.0    20+ x1.25    35+ x1.5    50+ x2.0    65+ x2.5
+    //
+    // It multiplies flight (distance) and kills -- the points that come from
+    // how the pilot flies. Boss and world bonuses are fixed rewards for
+    // getting there (they scale with the loop instead, LoopRules.BonusScale),
+    // and pickups stay flat. On kills it stacks with the chain multiplier
+    // (x4 chain at x2.5 speed = x10), capped at MaxTotalMultiplier. Ember's
+    // cap is HUD 62, so x2.5 is only reached on a loop or while KEEP FLYING.
+    public static bool SpeedMultiplierEnabled = true;
+    public static readonly int[] SpeedTierHud = { 20, 35, 50, 65 };
+    public static readonly float[] SpeedTierMultiplier = { 1.25f, 1.5f, 2f, 2.5f };
+    public static float MaxTotalMultiplier = 8f;
+
+    public static int HudSpeed(float speed) { return Mathf.RoundToInt(speed * 100f); }
+
+    public static float SpeedMultiplierFor(float speed)
+    {
+        if (!SpeedMultiplierEnabled) return 1f;
+        int hud = HudSpeed(speed);
+        float m = 1f;
+        for (int i = 0; i < SpeedTierHud.Length; i++)
+            if (hud >= SpeedTierHud[i]) m = SpeedTierMultiplier[i];
+        return m;
+    }
+
+    // Chain x speed, within the overall cap.
+    public static float Combined(int chainMultiplier, float speedMultiplier)
+    {
+        return Mathf.Min(MaxTotalMultiplier, Mathf.Max(1, chainMultiplier) * Mathf.Max(1f, speedMultiplier));
+    }
+
+    // "x1.25", "x1.5", "x2": the HUD badge and the death panel.
+    public static string MultiplierLabel(float m)
+    {
+        return "x" + m.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // ---- star dust for the score ----
+    // At the end of a run the score tops up the star dust it earned:
+    //
+    //   bonus = min(ScoreDustCap, ScoreDustPerSqrtPoint x sqrt(score)), to 0.01
+    //
+    // sqrt so it keeps rising but ever more slowly, and a hard cap so even a
+    // huge loop run is a small top-up, never an income. A run typically earns
+    // ~1.5-3 dust (0.05/s at top speed, stars 0.5/1, kills 0.12) against
+    // ships at 600-5,800 and skins at 300/750:
+    //
+    //   score     200    400    600   1,500  3,000  5,625+
+    //   bonus    0.28   0.40   0.49   0.77   1.10   1.50 (cap)
+    //
+    // Paid once, through the run's own ledger commit (score.Settle); none in
+    // the tutorial or in developer mode.
+    public static float ScoreDustPerSqrtPoint = .02f;
+    public static float ScoreDustCap = 1.5f;
+
+    public static float ScoreDustBonus(long score)
+    {
+        if (score <= 0) return 0f;
+        float raw = Mathf.Min(ScoreDustCap, ScoreDustPerSqrtPoint * Mathf.Sqrt(score));
+        return Mathf.Round(raw * 100f) / 100f;
+    }
+
     // ---- HUD ----
     // A gain of at least this much at once punches the HUD's SCORE figure.
     // ("+N" popups show for every kill, pickup, boss and world clear.)
@@ -119,17 +190,23 @@ public static class ScoreRules
         return Mathf.RoundToInt(Teleport * k);
     }
 
-    // `worldIndex` is the world just cleared (0 = Space).
-    public static int WorldClearedPoints(int worldIndex)
+    // `worldIndex` is the world just cleared (0 = Space); `loop` the run's
+    // RunLoop.Index (LoopRules.BonusScale: x1, x1.5, x2 ...).
+    public static int WorldClearedPoints(int worldIndex, int loop = 0)
     {
-        return WorldClearedPerWorld * (worldIndex + 1);
+        return Mathf.RoundToInt(WorldClearedPerWorld * (worldIndex + 1) * LoopRules.BonusScale(loop));
     }
 
-    public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule)
+    public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule, int loop = 0)
     {
-        if (!destroyed) return BossSurvived;
-        int bonus = hitPointsRule ? Mathf.RoundToInt(Mathf.Max(0f, secondsLeft) * BossTimeBonusPerSecond) : 0;
-        return BossDestroyed + bonus;
+        int points;
+        if (!destroyed) points = BossSurvived;
+        else
+        {
+            int bonus = hitPointsRule ? Mathf.RoundToInt(Mathf.Max(0f, secondsLeft) * BossTimeBonusPerSecond) : 0;
+            points = BossDestroyed + bonus;
+        }
+        return Mathf.RoundToInt(points * LoopRules.BonusScale(loop));
     }
 
     public static float DistancePoints(float speed, float dt)

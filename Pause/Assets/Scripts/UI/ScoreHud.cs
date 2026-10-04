@@ -11,6 +11,12 @@ using UnityEngine.UI;
 //                         punches on a big gain. The chain badge shows the
 //                         current kill multiplier while a chain is alive and
 //                         fades as its window runs out.
+//   SPEED  46   SPD x1.5  the speed multiplier (ScoreRules tiers) as a badge on
+//                         the SPEED row, coloured by tier; it punches, flashes
+//                         and calls out "SPD x2" under the read-out as it
+//                         steps up, and hides at x1
+//   ★ 12.3       LOOP 2   the run's loop (RunLoop) on the star dust row, only
+//                         once the run has looped back past the final world
 //   +5                    pops up and rises from where a kill, a star dust or
 //                         atom pickup, a boss or a world clear happened
 //                         (RunScore.Scored), coloured by what it was; bosses
@@ -35,6 +41,13 @@ public class ScoreHud : MonoBehaviour
     static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
     Text scoreText, chainText;
+    // Right-hand badges on the rows under SCORE: the speed multiplier on the
+    // SPEED row, the loop on the star dust row (once looping has started).
+    Text speedBadge, loopBadge;
+    float lastSpeedMultiplier = 1f;
+    float speedPunchAt = -1f;
+    int lastLoop;
+    float loopPunchAt = -1f;
     RectTransform canvasRect;
     Canvas canvas;
     Font font;
@@ -52,6 +65,14 @@ public class ScoreHud : MonoBehaviour
 
     public Text ScoreText { get { return scoreText; } }
     public Text ChainText { get { return chainText; } }
+    public Text SpeedBadge { get { return speedBadge; } }
+    public Text LoopBadge { get { return loopBadge; } }
+
+    public const string SpeedBadgeName = "SpeedMultiplier";
+    public const string LoopBadgeName = "Loop";
+    public const string DustRowName = "CurrecnyGatheredText";
+    public const float BadgeWidth = 132f;
+    public const int BadgeFontSize = 22;
 
     // The read-out scores only outside the tutorial.
     public static bool ShouldShow(Text speedText)
@@ -99,12 +120,58 @@ public class ScoreHud : MonoBehaviour
             Grow(rows.parent as RectTransform, RowStep);
         }
 
+        // The badges sit right-aligned on the SPEED and star dust rows, a
+        // column under the chain badge, so neither the panel nor any row grows.
+        hud.speedBadge = Badge(speedText.transform, SpeedBadgeName, hud.font);
+        var dustRow = rows.Find(DustRowName);
+        hud.loopBadge = Badge(dustRow != null ? dustRow : speedText.transform, LoopBadgeName, hud.font);
+        hud.lastSpeedMultiplier = 1f;
+        hud.lastLoop = 0;
+
         var c = rows.GetComponentInParent<Canvas>();
         hud.canvas = c != null ? c.rootCanvas : null;
         hud.canvasRect = hud.canvas != null ? (RectTransform)hud.canvas.transform : null;
         hud.shown = RunScore.Total;
         hud.lastTarget = RunScore.Total;
         return hud;
+    }
+
+    // A right-anchored badge Text on `row` (idempotent).
+    static Text Badge(Transform row, string name, Font font)
+    {
+        var existing = row.Find(name);
+        if (existing != null) return existing.GetComponent<Text>();
+        var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+        go.transform.SetParent(row, false);
+        var rt = (RectTransform)go.transform;
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(1f, .5f);
+        rt.sizeDelta = new Vector2(BadgeWidth, 0f);
+        rt.anchoredPosition = Vector2.zero;
+        var t = go.GetComponent<Text>();
+        Style(t, font, BadgeFontSize, AkiraPalette.Cyan, TextAnchor.MiddleRight);
+        t.text = "";
+        return t;
+    }
+
+    public static string SpeedBadgeLabel(float multiplier)
+    {
+        return multiplier > 1f ? "SPD " + ScoreRules.MultiplierLabel(multiplier) : "";
+    }
+
+    public static string LoopBadgeLabel(int loopIndex)
+    {
+        return loopIndex > 0 ? "LOOP " + (loopIndex + 1) : "";
+    }
+
+    // Tier colours, slow to fast: TEAL, CYAN, AMBER, Kaneda red.
+    public static Color SpeedBadgeColour(float multiplier)
+    {
+        if (multiplier >= 2.5f) return AkiraPalette.RedHi;
+        if (multiplier >= 2f) return AkiraPalette.Amber;
+        if (multiplier >= 1.5f) return AkiraPalette.Cyan;
+        return AkiraPalette.Teal;
     }
 
     static void Grow(RectTransform rt, float by)
@@ -194,8 +261,82 @@ public class ScoreHud : MonoBehaviour
             }
         }
 
+        TickBadges(now);
+
         // Popups live on the world's clock: they freeze with it.
         StepPopups(buttonClicks.playerDied ? -1f : Time.deltaTime);
+    }
+
+    // SPD xN: shown above x1, punches and flashes BONE-white as it steps up
+    // (with a callout under the read-out); LOOP N once looping has begun.
+    void TickBadges(float now)
+    {
+        if (speedBadge != null)
+        {
+            float m = RunScore.SpeedMultiplier;
+            if (!Mathf.Approximately(m, lastSpeedMultiplier))
+            {
+                if (m > lastSpeedMultiplier && m > 1f)
+                {
+                    speedPunchAt = now;
+                    ShowCallout(SpeedBadgeLabel(m), SpeedBadgeColour(m), speedBadge.rectTransform);
+                }
+                speedBadge.text = SpeedBadgeLabel(m);
+                lastSpeedMultiplier = m;
+            }
+            if (m > 1f)
+            {
+                float since = now - speedPunchAt;
+                speedBadge.color = since >= 0f && since < 2f / 24f ? Color.white : SpeedBadgeColour(m);
+                Punch(speedBadge.rectTransform, since, 1.4f);
+            }
+        }
+
+        if (loopBadge != null)
+        {
+            int loop = RunLoop.Index;
+            if (loop != lastLoop)
+            {
+                if (loop > lastLoop) loopPunchAt = now;
+                loopBadge.text = LoopBadgeLabel(loop);
+                lastLoop = loop;
+            }
+            if (loop > 0)
+            {
+                float since = now - loopPunchAt;
+                loopBadge.color = since >= 0f && since < 2f / 24f ? Color.white : AkiraPalette.Magenta;
+                Punch(loopBadge.rectTransform, since, 1.5f);
+            }
+        }
+    }
+
+    // A word popup ("SPD x2") that pops just under the read-out, beside the
+    // badge that changed. Same pool and motion as the "+N" popups.
+    public Text ShowCallout(string text, Color colour, RectTransform near)
+    {
+        if (canvasRect == null || string.IsNullOrEmpty(text)) return null;
+        if (popups == null) BuildPopups();
+        int index = nextPopup;
+        nextPopup = (nextPopup + 1) % popups.Length;
+        var p = popups[index];
+        p.text.text = text;
+        p.text.fontSize = 30;
+        p.text.color = colour;
+        p.seconds = 1.1f;
+        p.rise = 30f;
+        Vector2 at = near != null ? (Vector2)canvasRect.InverseTransformPoint(near.position) : Vector2.zero;
+        Vector2 size = canvasRect.rect.size;
+        // Below the read-out (its rows are ~150 units tall), kept on screen.
+        at.y -= 150f;
+        at.x = Mathf.Clamp(at.x - 40f, -size.x * .5f + 120f, size.x * .5f - 120f);
+        p.from = at;
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.rectTransform.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
     }
 
     static readonly string[] ChainLabels = { "", "", "x2", "x3", "x4" };

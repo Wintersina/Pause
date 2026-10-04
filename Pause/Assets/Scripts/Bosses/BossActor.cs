@@ -135,8 +135,15 @@ public class BossActor : MonoBehaviour
         phase = AttackPhase.Cooldown;
         phaseTimer = BossConfig.FirstAttackDelay;
         attackIndex = -1;
+        // Later loops: shorter cooldowns and one more pattern in rotation
+        // from the start (LoopRules).
+        loop = RunLoop.Index;
         EnsureBodyHitbox();
     }
+
+    int loop;
+    public float CooldownScale => LoopRules.BossCooldownScale(loop);
+    public float PatternHeadStart => LoopRules.BossHeadStart(loop);
 
     void EnsureBodyHitbox()
     {
@@ -179,7 +186,7 @@ public class BossActor : MonoBehaviour
         {
             case AttackPhase.Cooldown:
                 if (phaseTimer > 0f) return;
-                int unlocked = Mathf.Max(1, BossCatalog.UnlockedAttacks(boss, progress01));
+                int unlocked = Mathf.Max(1, BossCatalog.UnlockedAttacks(boss, progress01 + PatternHeadStart));
                 attackIndex = (attackIndex + 1) % unlocked;
                 current = boss.attacks[attackIndex];
                 phase = AttackPhase.Tell;
@@ -224,7 +231,7 @@ public class BossActor : MonoBehaviour
     {
         phase = AttackPhase.Cooldown;
         float scale = BossCatalog.FinalPhase(progress01) ? BossConfig.FinalPhaseCooldownScale : 1f;
-        phaseTimer = current.cooldown * scale;
+        phaseTimer = current.cooldown * scale * CooldownScale;
     }
 
     void Fire()

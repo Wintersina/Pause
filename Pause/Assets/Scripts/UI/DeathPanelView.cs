@@ -36,7 +36,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         public int bestSpeed;
         public int runSpeed;
         public float dustAtStart;
-        public float dustWon;
+        public float dustWon;       // includes dustBonus
+        public float dustBonus;     // the end-of-run score bonus (ScoreRules.ScoreDustBonus)
     }
 
     // Breakdown rows, in display order.
@@ -79,7 +80,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // Breakdown card (card-local): title row, then one row per source.
     public const float BreakdownTitleY = 92f;
-    public const float BreakdownFirstRowY = 60f, BreakdownRowStep = 26f, BreakdownRowHeight = 26f;
+    // Seven source rows, then the LOOPS line (loops flown, and the highest
+    // score multiplier reached) -- eight rows in the same card.
+    public const float BreakdownFirstRowY = 64f, BreakdownRowStep = 23f, BreakdownRowHeight = 23f;
+    public const string LoopsRowName = "Loops";
     const float CountRight = 96f;
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }
 
@@ -94,6 +98,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     const float NewBestAt = .78f;
     const float DustBurstAt = .82f, BurstDuration = .38f;
     const float ButtonsStart = .66f, ButtonStagger = .07f, ButtonDuration = .3f;
+    // The score bonus lands after the run's own dust has counted up: its line
+    // counts, then pops with a sparkle and a rising "+x", and EARNED / TOTAL
+    // tick up to include it.
+    const float BonusCountFrom = .9f, BonusCountTo = 1.02f, BonusBurstAt = 1.02f;
+    public const string ScoreBonusName = "ScoreBonus", BonusPopupName = "BonusPopup";
 
     // Akira palette (docs/art-style.md): CYAN score, Kaneda RED for the
     // breakdown and MENU, AMBER star dust, BONE type over INK.
@@ -126,7 +135,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     CanvasGroup[] buttonGroups = new CanvasGroup[2];
     Image[] buttonGlows = new Image[2];
     DeathPanelPress[] presses = new DeathPanelPress[2];
-    Image[] dustBurst, bestBurst;
+    Image[] dustBurst, bestBurst, bonusBurst;
+    Text bonusLine, bonusPopup;
+    Vector2 bonusCentre;
+    int shownBonusCents = -1;
     Vector2 dustValueCentre, bestValueCentre;
 
     float startedAt = -1f;
@@ -177,6 +189,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.BuildButtons(replay, replayGlyph, menu, menuGlyph);
         view.dustBurst = view.BuildBurst("DustBurst", Gold);
         view.bestBurst = view.BuildBurst("BestBurst", Cyan);
+        view.BuildScoreBonus();
 
         if (legacyDialog != null && legacyDialog != root.transform && legacyDialog.parent == canvasRoot)
             legacyDialog.gameObject.SetActive(false);
@@ -345,7 +358,33 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             rowValues[i] = value;
             shownRows[i] = -1;
         }
+        BuildLoopsRow(card, BreakdownFirstRowY - rowPoints.Length * BreakdownRowStep);
         return card;
+    }
+
+    public static string LoopsCount(RunScore.Breakdown b) { return b.loops.ToString(); }
+
+    // The highest multiplier any points were earned at (speed x chain).
+    public static string BestMultiplierLabel(RunScore.Breakdown b)
+    {
+        return "MAX " + ScoreRules.MultiplierLabel(Mathf.Max(1f, b.bestMultiplier));
+    }
+
+    // LOOPS  <n>  MAX x2.5 -- not points, so it shows straight away.
+    void BuildLoopsRow(RectTransform card, float y)
+    {
+        var row = new GameObject(LoopsRowName, typeof(RectTransform));
+        row.transform.SetParent(card, false);
+        var rt = (RectTransform)row.transform;
+        Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+
+        var label = NewText("Label", rt, "LOOPS", 19, Gold, TextAnchor.MiddleLeft);
+        Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
+        var count = NewText("Count", rt, LoopsCount(results.parts), 19, results.parts.loops > 0 ? Gold : Muted, TextAnchor.MiddleRight);
+        Place(count.rectTransform, new Rect(CountRight - 90f, -BreakdownRowHeight * .5f, 90f, BreakdownRowHeight));
+        var value = NewText("Points", rt, BestMultiplierLabel(results.parts), 21, Gold, TextAnchor.MiddleRight);
+        Place(value.rectTransform, new Rect(ValueRight - 160f, -BreakdownRowHeight * .5f, 160f, BreakdownRowHeight));
+        AddOutline(value.gameObject, Ink, 1.5f);
     }
 
     // A scene Text moved into the panel, its old layout switched off.
@@ -471,6 +510,30 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         return slot;
     }
 
+    public static string ScoreBonusLabel(float bonus)
+    {
+        return "SCORE BONUS  +" + bonus.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // The star dust card's sub-label becomes the score bonus line when the
+    // run earned one.
+    void BuildScoreBonus()
+    {
+        if (results.dustBonus <= 0f) return;
+        var sub = cards[2].Find("Sub");
+        if (sub != null) sub.gameObject.SetActive(false);
+        bonusLine = NewText(ScoreBonusName, cards[2], ScoreBonusLabel(results.dustBonus), 18, Gold, TextAnchor.MiddleLeft);
+        Place(bonusLine.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
+        AddOutline(bonusLine.gameObject, Ink, 1.5f);
+        bonusCentre = CardRects[2].center + new Vector2(LabelLeft + 90f, -20f);
+        bonusBurst = BuildBurst("BonusBurst", Gold);
+        bonusPopup = NewText(BonusPopupName, panel, "+" + results.dustBonus.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " ★",
+                             26, Gold, TextAnchor.MiddleCenter);
+        Place(bonusPopup.rectTransform, Centered(bonusCentre.x, bonusCentre.y, 160f, 34f));
+        AddOutline(bonusPopup.gameObject, Ink, 2f);
+        bonusPopup.gameObject.SetActive(false);
+    }
+
     Image[] BuildBurst(string name, Color tint)
     {
         var sprite = Load("dp_sparkle");
@@ -564,7 +627,26 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             shownRows[i] = v;
             rowValues[i].text = rowPoints[i] > 0 ? "+" + RunScore.Format(v) : "0";
         }
-        float won = results.dustWon * EaseOutCubic(Progress(t, DustCountFrom, DustCountTo));
+        float bonus = Mathf.Max(0f, results.dustBonus);
+        float bonusIn = bonus * EaseOutCubic(Progress(t, BonusCountFrom, BonusCountTo));
+        float won = Mathf.Max(0f, results.dustWon - bonus) * EaseOutCubic(Progress(t, DustCountFrom, DustCountTo))
+                    + (results.dustWon >= bonus ? bonusIn : 0f);
+        if (bonusLine != null)
+        {
+            int bc = Mathf.RoundToInt(bonusIn * 100f);
+            if (bc != shownBonusCents) { shownBonusCents = bc; bonusLine.text = ScoreBonusLabel(bc / 100f); }
+            AnimateBurst(bonusBurst, Progress(t, BonusBurstAt, IntroDuration), bonusCentre, .8f);
+            float pp = Progress(t, BonusBurstAt, IntroDuration);
+            bool live = pp > 0f && pp < 1f;
+            if (bonusPopup.gameObject.activeSelf != live) bonusPopup.gameObject.SetActive(live);
+            if (live)
+            {
+                bonusPopup.rectTransform.anchoredPosition = bonusCentre + new Vector2(0f, 20f + 46f * EaseOutCubic(pp));
+                float pop = pp < .2f ? 1.4f : pp < .35f ? .92f : 1f;
+                bonusPopup.rectTransform.localScale = Vector3.one * pop;
+                var pc = bonusPopup.color; pc.a = pp < .7f ? 1f : .5f; bonusPopup.color = pc;
+            }
+        }
         int cents = Mathf.RoundToInt(won * 100f);
         if (cents != shownDustCents)
         {
@@ -612,6 +694,14 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         int step2 = (step + 6) % 12;
         float twinkle2 = step2 == 9 ? 1.25f : step2 == 10 ? .8f : 1f;
         if (headerSparkles[1] != null) headerSparkles[1].localScale = Vector3.one * twinkle2;
+
+        if (bonusLine != null)
+        {
+            // The bonus line punches as it lands (stepped: big, small, rest).
+            float k = (t - BonusBurstAt) * 24f;
+            float s = k < 0f ? 1f : k < 1f ? 1.25f : k < 3f ? .95f : 1f;
+            bonusLine.rectTransform.localScale = new Vector3(s, s, 1f);
+        }
 
         if (bestGlow != null)
         {
