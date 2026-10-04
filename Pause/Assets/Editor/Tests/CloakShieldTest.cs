@@ -85,6 +85,10 @@ public static class CloakShieldTest
 
         public void Frame() { Tick.Invoke(cd, null); }
 
+        // Jade Phantom's secret power (SecretPowerController.BeginPhaseCloak).
+        public const float CloakSeconds = 4f;
+        public void Cloak() { SecretPowerController.BeginPhaseCloak(ship.transform, 6, CloakSeconds); }
+
         public void Dispose()
         {
             foreach (var go in new[] { cd.explosionAnimation, cd.boost, cd.boostText.gameObject, cd.hypeText.gameObject })
@@ -119,7 +123,6 @@ public static class CloakShieldTest
         r.cd.boost = new GameObject("~boost");
         r.cd.boost.SetActive(false);   // as collisionDetection.Start leaves it
         r.power = r.ship.AddComponent<ShipPowerController>();
-        r.power.cloakSeconds = 4f;
         collisionDetection.MAXLIFE = 3;
         collisionDetection.lifeCounter = 0;
         collisionDetection.atomCheck = false;
@@ -137,9 +140,9 @@ public static class CloakShieldTest
         var r = MakeRig();
         Check("before Cloak a fresh ship is vulnerable", !collisionDetection.Invulnerable);
 
-        r.power.DoCloak();
+        r.Cloak();
         Check("Cloak runs for its intended duration (" + collisionDetection.cloakTimer + "s)",
-              Mathf.Approximately(collisionDetection.cloakTimer, r.power.cloakSeconds));
+              Mathf.Approximately(collisionDetection.cloakTimer, Rig.CloakSeconds));
         Check("Cloak makes the ship invulnerable", collisionDetection.Cloaked && collisionDetection.Invulnerable);
         Check("Cloak keeps its own look: no blue-atom shield, no boost",
               !collisionDetection.atomCheck && (r.Shield == null || !r.Shield.IsUp) && !r.cd.boost.activeSelf);
@@ -161,7 +164,7 @@ public static class CloakShieldTest
     static void CloakExpiryRestoresVulnerability()
     {
         var r = MakeRig();
-        r.power.DoCloak();
+        r.Cloak();
         collisionDetection.TickCloak(3.9f);
         Check("still cloaked just before the end", collisionDetection.Invulnerable);
         collisionDetection.TickCloak(.2f);
@@ -181,13 +184,13 @@ public static class CloakShieldTest
     static void BlueAtomDuringCloak()
     {
         var r = MakeRig();
-        r.power.DoCloak();
+        r.Cloak();
         r.BlueAtom();
         Check("a blue atom during Cloak still raises the 5.8 s shield",
               collisionDetection.atomCheck && Mathf.Approximately(collisionDetection.invTimer, 5.8f) &&
               r.Shield != null && r.Shield.IsUp);
         Check("and does not cancel or reset Cloak",
-              Mathf.Approximately(collisionDetection.cloakTimer, r.power.cloakSeconds));
+              Mathf.Approximately(collisionDetection.cloakTimer, Rig.CloakSeconds));
 
         r.Hit("rock");
         Check("both up: no damage, and the shield shows the hit",
@@ -215,7 +218,7 @@ public static class CloakShieldTest
         var r = MakeRig();
         r.BlueAtom();
         collisionDetection.invTimer = 2f;   // part-way through the shield
-        r.power.DoCloak();
+        r.Cloak();
         Check("Cloak during a shield neither stretches nor cuts the shield's timer",
               Mathf.Approximately(collisionDetection.invTimer, 2f) && collisionDetection.atomCheck && r.Shield.IsUp);
         Check("and the shield's expiry blink still follows its own timer",

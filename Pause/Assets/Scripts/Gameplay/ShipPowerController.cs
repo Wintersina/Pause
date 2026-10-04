@@ -38,18 +38,6 @@ public class ShipPowerController : MonoBehaviour
              "blue, red or the green heal atom all count the same.")]
     public float secondsPerAtom = 7f;
 
-    [Header("Tuning")]
-    public float laserWidth = 0.85f;
-    public float shockwaveRadius = 3.2f;
-    public int missileCount = 4;
-    public float missileRadius = 6f;
-    public float cloakSeconds = 4f;
-    public float magnetRadius = 5f;
-    public float magnetSeconds = 5f;
-    public float dilationScale = 0.45f;
-    public float dilationSeconds = 4f;
-    public int overchargePauses = 2;
-
     [Header("Cinematic clear")]
     [Tooltip("Real seconds the world is held slowed after the last homing shot " +
              "launches -- the normal end of the ultimate's slow motion.")]
@@ -87,8 +75,10 @@ public class ShipPowerController : MonoBehaviour
     static float exitStartedAt; // unscaled
     static float exitSeconds;
 
-    ShipPower power;
+    ShipLoadout loadout;
     int shipIndex;
+    ShipAttackRunner runner;
+    SecretPowerController secret;
     float timer;
     float cooldown;
     UltimateGun gun;
@@ -102,6 +92,9 @@ public class ShipPowerController : MonoBehaviour
     public float SecondsLeft => timer;
     public int ShipIndex => shipIndex;
     public ChargeIndicator Indicator => indicator;
+    public ShipLoadout Loadout => loadout;
+    public ShipAttackRunner Runner => runner;
+    public SecretPowerController Secret => secret;
 
     void Awake()
     {
@@ -119,11 +112,13 @@ public class ShipPowerController : MonoBehaviour
         // Both from the ship actually flying, so an unowned saved selection
         // (which flies the starter) can't hand the starter another's power.
         shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
-        power = ShipPowerTable.For(shipIndex);
+        loadout = ShipLoadoutTable.For(shipIndex);
         cooldown = Random.Range(cooldownRange.x, cooldownRange.y);
         timer = cooldown;
         gun = UltimateGun.Attach(gameObject);
         indicator = ChargeIndicator.Attach(this);
+        runner = ShipAttackRunner.Attach(gameObject, shipIndex);
+        secret = SecretPowerController.Attach(gameObject, shipIndex);
     }
 
     void Update()
@@ -155,11 +150,28 @@ public class ShipPowerController : MonoBehaviour
         timer = Mathf.Max(0f, timer - seconds);
     }
 
+    // Capacitor Dump (a secret power): the attack comes back at once -- the
+    // ready tell still plays, so it never goes off unannounced.
+    public void RechargeNow()
+    {
+        timer = Mathf.Min(timer, ChargeIndicator.ReadySeconds * .9f);
+    }
+
+    // The ship's main attack. Only the top price tier (ShipLoadoutTable)
+    // gets the cinematic volley at everything on screen, with its slow
+    // motion and early clear; every other ship fires its own directional or
+    // limited weapon at normal speed (ShipAttackRunner).
     void Fire()
     {
         if (gun != null) gun.Fire();
         if (indicator != null) indicator.Release();
         UltimateShotSound.Play(shipIndex);
+        if (!loadout.IsTopTier)
+        {
+            if (runner == null) runner = ShipAttackRunner.Attach(gameObject, shipIndex);
+            runner.Fire();
+            return;
+        }
         if (!BeginCinematic()) return;
         StartCoroutine(CinematicClear(SnapshotTargets()));
     }
@@ -280,38 +292,14 @@ public class ShipPowerController : MonoBehaviour
         holdUntil = Time.unscaledTime + cinematicHoldSeconds;
     }
 
+    // One homing shot landed. Through ShipAttackHits, like every attack: a
+    // hazard is destroyed; the boss (BossTarget, an IShipAttackTarget) is
+    // hit, not destroyed, and one homing shot is one full ultimate hit.
     void HitTarget(GameObject target, Color tint)
     {
         if (target == null) return;
-        // The boss is hit, not destroyed: it shortens the fight (BossTarget).
-        if (BossTarget.Intercept(target, shipIndex)) { CheckCleared(); return; }
-        TargetExplosion.Spawn(target, shipIndex);
-        collisionDetection.PlayExplosion();
-        collisionDetection.AwardDestroyedTarget(target);
-        ClearTarget.Release(target);
-        Destroy(target);
+        ShipAttackHits.Hit(target, shipIndex);
         CheckCleared();
-    }
-
-    // Clears the lanes either side of the ship, leaving the centre alone.
-    void DoRailgun()
-    {
-        float x = transform.position.x;
-        var tint = new Color(1f, 0.55f, 0.4f, 0.9f);
-
-        PowerFx.Laser(transform.position + Vector3.left * 1.1f, 0.9f, 12f, tint);
-        PowerFx.Laser(transform.position + Vector3.right * 1.1f, 0.9f, 12f, tint);
-
-        foreach (var go in Targets())
-        {
-            float dx = Mathf.Abs(go.transform.position.x - x);
-            if (dx > 0.55f && dx < 1.75f && go.transform.position.y >= transform.position.y - 1f)
-            {
-                PowerFx.Burst(go.transform.position, tint, 5);
-                collisionDetection.PlayExplosion();
-                Destroy(go);
-            }
-        }
     }
 
     // ---- helpers -------------------------------------------------------
@@ -328,121 +316,6 @@ public class ShipPowerController : MonoBehaviour
                 yield return t.gameObject;
     }
 
-    // ---- effects -------------------------------------------------------
-
-    void DoLaser()
-    {
-        float x = transform.position.x;
-        PowerFx.Laser(transform.position, laserWidth * 2f, 12f, new Color(0.6f, 0.95f, 1f, 0.9f));
-
-        foreach (var go in Targets())
-            if (Mathf.Abs(go.transform.position.x - x) <= laserWidth &&
-                go.transform.position.y >= transform.position.y)
-            {
-                PowerFx.Burst(go.transform.position, new Color(0.7f, 0.95f, 1f), 5);
-                collisionDetection.PlayExplosion();
-                Destroy(go);
-            }
-    }
-
-    void DoMissiles()
-    {
-        var pool = new List<GameObject>();
-        foreach (var go in Targets())
-            if (Vector2.Distance(go.transform.position, transform.position) <= missileRadius)
-                pool.Add(go);
-
-        pool.Sort((a, b) =>
-            Vector2.Distance(a.transform.position, transform.position)
-            .CompareTo(Vector2.Distance(b.transform.position, transform.position)));
-
-        int fired = Mathf.Min(missileCount, pool.Count);
-        var hits = new Vector3[fired];
-        for (int i = 0; i < fired; i++) hits[i] = pool[i].transform.position;
-
-        PowerFx.Missiles(transform.position, hits, new Color(1f, 0.72f, 0.35f));
-
-        for (int i = 0; i < fired; i++)
-        {
-            PowerFx.Burst(hits[i], new Color(1f, 0.7f, 0.3f), 6);
-            collisionDetection.PlayExplosion();
-            Destroy(pool[i]);
-        }
-    }
-
-    void DoShockwave()
-    {
-        PowerFx.Ring(transform.position, shockwaveRadius, new Color(1f, 0.85f, 0.4f, 0.95f), 0.5f);
-
-        foreach (var go in Targets())
-            if (Vector2.Distance(go.transform.position, transform.position) <= shockwaveRadius)
-            {
-                PowerFx.Burst(go.transform.position, new Color(1f, 0.8f, 0.4f), 5);
-                collisionDetection.PlayExplosion();
-                Destroy(go);
-            }
-    }
-
-    // Phase Cloak: cloakSeconds of real invulnerability with its own lavender
-    // phase look (ring + pulsing aura), not the blue-atom shield.
-    //
-    // It used to only bump collisionDetection.invTimer, but hazards are gated
-    // on atomCheck, which only a blue atom sets -- so Cloak never protected
-    // the ship (and, during a shield, it silently stretched the shield's own
-    // timer instead). It now runs collisionDetection's separate cloak clock;
-    // hazards check Invulnerable (shield or Cloak), so the two overlap
-    // cleanly and each ends on its own schedule.
-    public static readonly Color CloakTint = new Color(0.75f, 0.6f, 1f, 0.9f);
-
-    public void DoCloak()
-    {
-        collisionDetection.BeginCloak(cloakSeconds);
-        PowerFx.Ring(transform.position, 2.2f, CloakTint);
-        PowerFx.CloakAura(new Color(0.75f, 0.6f, 1f, 0.7f), cloakSeconds);
-    }
-
-    IEnumerator DoMagnet()
-    {
-        PowerFx.Ring(transform.position, magnetRadius, new Color(0.5f, 1f, 0.85f, 0.85f), 0.6f);
-        PowerFx.Aura(transform.position, new Color(0.5f, 1f, 0.85f, 0.55f), magnetSeconds);
-
-        float t = magnetSeconds;
-        while (t > 0f)
-        {
-            t -= Time.deltaTime;
-            foreach (var g in GameObject.FindGameObjectsWithTag("pickUp"))
-            {
-                if (Vector2.Distance(g.transform.position, transform.position) > magnetRadius) continue;
-                g.transform.position = Vector3.MoveTowards(
-                    g.transform.position, transform.position, 6f * Time.deltaTime);
-            }
-            yield return null;
-        }
-    }
-
-    IEnumerator DoDilation()
-    {
-        // moveBackGround drives timeScale every frame, so slow the world by
-        // scaling speed rather than fighting it over Time.timeScale.
-        PowerFx.Ring(transform.position, 3.2f, new Color(0.7f, 0.8f, 1f, 0.9f), 0.7f);
-        PowerFx.Aura(transform.position, new Color(0.6f, 0.75f, 1f, 0.5f), dilationSeconds);
-
-        float original = moveBackGround.speed;
-        moveBackGround.speed = original * dilationScale;
-        yield return new WaitForSeconds(dilationSeconds);
-        // only restore if nothing else reset it in the meantime
-        if (Mathf.Approximately(moveBackGround.speed, original * dilationScale))
-            moveBackGround.speed = original;
-    }
-
-    void DoOvercharge()
-    {
-        PowerFx.Burst(transform.position, new Color(0.6f, 1f, 0.7f), 14);
-        PowerFx.Ring(transform.position, 1.8f, new Color(0.6f, 1f, 0.7f, 0.9f));
-
-        for (int i = 0; i < overchargePauses; i++)
-            score.incromentPause();
-    }
 }
 
 // Attaches the power controller to the player ship when the game scene loads.
@@ -460,6 +333,7 @@ public static class ShipPowerBootstrap
     static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
                               UnityEngine.SceneManagement.LoadSceneMode mode)
     {
+        WorldTimeFx.Reset();
         if (scene.name != "gameS1") return;
         var host = new GameObject("~ShipPowerAttach");
         host.AddComponent<ShipPowerAttach>();

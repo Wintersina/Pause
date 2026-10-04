@@ -214,9 +214,7 @@ public static class ShipSelectionTest
                   IsArtOf(shopingShips.SpriteFor(id), id));
             Check(who + " idle art is its own", IsArtOf(shopingShips.IdleSpriteFor(id, 0, 1), id));
             Check(who + " has nozzles", ShipNozzles.Has(id));
-            var table = typeof(ShipPowerTable).GetField("byShip", BindingFlags.NonPublic | BindingFlags.Static)
-                                              .GetValue(null) as System.Array;
-            Check(who + " has a power entry", table != null && id < table.Length);
+            Check(who + " has a loadout entry", ShipLoadoutTable.Has(id) && ShipLoadoutTable.For(id).shipId == id);
 
             var prefab = Resources.Load<GameObject>(spawnShips.PrefabPathFor(id));
             Check(who + " spawns from a gameplay prefab (" + spawnShips.PrefabPathFor(id) + ")",
@@ -278,10 +276,9 @@ public static class ShipSelectionTest
         var power = ship.AddComponent<ShipPowerController>();
         try { Call(power, "Start"); } catch (System.Exception) { }
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-        object p = typeof(ShipPowerController).GetField("power", flags).GetValue(power);
         object i = typeof(ShipPowerController).GetField("shipIndex", flags).GetValue(power);
-        Check(who + " gets its own power and weapon id",
-              (ShipPower)p == ShipPowerTable.For(id) && (int)i == id);
+        Check(who + " gets its own attack, secret power and weapon id",
+              power.Loadout.shipId == id && (int)i == id);
 
         if (!ShipExhaust.UsesWind(id))
         {

@@ -7,7 +7,8 @@ public class collisionDetection : MonoBehaviour {
 
     public static bool atomCheck;
 
-    // Phase Cloak (ShipPowerController.DoCloak). Its own clock, separate from
+    // Phase Cloak (SecretPowerController.BeginPhaseCloak; Shield Pulse and
+    // Blink Dash borrow it for their brief invulnerability). Its own clock, separate from
     // the blue atom's invTimer: Cloak makes the ship invulnerable without
     // raising the shield, the boost or the boost music, and neither state can
     // shorten or stretch the other. Ticks on the same running-world clock as
@@ -105,6 +106,7 @@ public class collisionDetection : MonoBehaviour {
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
         Codex.Discover(target);   // ultimate kills count as meeting it too
+        SecretPowerController.OnKill();   // kills fill the secret power's meter
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
     }
@@ -171,18 +173,25 @@ public class collisionDetection : MonoBehaviour {
         //------------------------- Colliding with Enimies ---------------------------------------------
         if (hit.gameObject.tag == "Enimey" || hit.gameObject.tag == "Astr" )
         {
+            // A full secret meter whose power answers a hit (Shield Pulse,
+            // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
+            // eats the hit: either way it lands as a shielded hit.
+            bool safe = Invulnerable || SecretPowerController.InterceptHit(hit.gameObject);
+            // The power may already have destroyed it (Shield Pulse): don't
+            // blow it up, or pay for it, twice.
+            if (safe && ShipAttackHits.AlreadyHit(hit.gameObject)) return;
 
             // creating different explotions for different enims
             // Under the boost shield (or Cloak) the player destroys the
             // mine, and the weapon explosion below covers it.
-            if (PrefabName.Is(hit.gameObject, "mine") && !Invulnerable)
+            if (PrefabName.Is(hit.gameObject, "mine") && !safe)
             {
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);
             }
 
-            if (Invulnerable)
+            if (safe)
             {
                 // acchivment reporting
                 if (PrefabName.Is(hit.gameObject, "alien1"))
@@ -266,12 +275,14 @@ public class collisionDetection : MonoBehaviour {
             {
                 awardDust(smallStarValue);
                 BoostUltimate(dust: true);
+                SecretPowerController.OnDust(large: false);
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 awardDust(largeStarValue);
                 BoostUltimate(dust: true);
+                SecretPowerController.OnDust(large: true);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))

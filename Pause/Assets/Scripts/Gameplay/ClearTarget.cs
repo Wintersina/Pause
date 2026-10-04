@@ -23,6 +23,43 @@ public class ClearTarget : MonoBehaviour
     // Registered entries, hazard-tagged or not (movers sit on pickups too).
     public static int Count => live.Count;
 
+    // The registry itself, for the ship attacks and secret powers to query
+    // without a scene scan. Read it, don't hold on to it: a hit that
+    // Release()s a target removes it from this list, so callers copy what
+    // they need into their own buffer before acting (ShipTargets.Collect).
+    public static List<ClearTarget> Live => live;
+
+    float radius = -1f;
+
+    // Rough hit radius in world units, from the collider (or renderer) the
+    // first time it's asked, so per-frame hit tests never call GetComponent.
+    public float Radius
+    {
+        get
+        {
+            if (radius < 0f) radius = MeasureRadius(gameObject);
+            return radius;
+        }
+    }
+
+    // Set it outright (the boss hitbox, test fixtures).
+    public void SetRadius(float r) { radius = Mathf.Max(.05f, r); }
+
+    public static float MeasureRadius(GameObject go)
+    {
+        Bounds b;
+        var col = go.GetComponent<Collider2D>();
+        if (col != null && col.enabled) b = col.bounds;
+        else
+        {
+            var r = go.GetComponentInChildren<Renderer>();
+            if (r == null) return .3f;
+            b = r.bounds;
+        }
+        float e = Mathf.Max(b.extents.x, b.extents.y);
+        return Mathf.Clamp(e <= 0f ? .3f : e, .15f, 1.3f);
+    }
+
     public static ClearTarget Ensure(GameObject go)
     {
         if (go == null) return null;

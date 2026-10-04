@@ -132,7 +132,15 @@ public static class HeartsPlacementTest
             Vector3 rest = Field<Vector3>(rig.gun, "restingOffset");
             Vector3 fire = Field<Vector3>(rig.gun, "firingOffset");
             Vector3 h = Hover(rig.id, hoverT);
-            rig.gun.transform.localPosition = Vector3.Lerp(rest + h, fire + h * .2f, extend);
+            Vector3 at = Vector3.Lerp(rest + h, fire + h * .2f, extend);
+            if (ShipUiSlots.Spins(rig.id))
+            {
+                // a spinner's gun stays upright beside the hull (UltimateGun.Reposition)
+                var hull = rig.ship.transform;
+                rig.gun.transform.position = hull.position + Vector3.Scale(at, hull.lossyScale);
+                rig.gun.transform.rotation = Quaternion.identity;
+            }
+            else rig.gun.transform.localPosition = at;
             rig.gun.transform.localScale = Vector3.one * grow;
         }
         rig.indicator.Step(.02f, .02f);

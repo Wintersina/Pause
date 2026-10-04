@@ -67,10 +67,14 @@ public static class CinematicEarlyClearTest
         return go;
     }
 
+    const int TopTierShip = 7;
+
     static ShipPowerController Ship()
     {
-        PlayerPrefs.SetInt("spawnShip", 1);
-        var shipGo = new GameObject("ship", typeof(SpriteRenderer));
+        // Only the top price tier fires the cinematic volley (ShipLoadoutTable);
+        // Gold Warden is the priciest hull.
+        PlayerPrefs.SetInt("spawnShip", TopTierShip);
+        var shipGo = new GameObject("ship" + TopTierShip, typeof(SpriteRenderer));
         shipGo.transform.position = new Vector3(0f, -4f, 0f);
         var controller = shipGo.AddComponent<ShipPowerController>();
         // Edit mode doesn't auto-invoke Awake/Start on AddComponent.

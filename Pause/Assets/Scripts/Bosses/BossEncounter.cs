@@ -124,6 +124,7 @@ public class BossEncounter : MonoBehaviour
         warned = arrived = carded = false;
         hits = 0;
         hp = BossConfig.HitPoints;
+        hitBank = 0f;
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
         freePress = false;
@@ -260,12 +261,23 @@ public class BossEncounter : MonoBehaviour
     }
 
     // A homing shot from the ultimate landed on the boss (BossTarget).
-    public void OnUltimateHit()
+    public void OnUltimateHit() => OnShipAttackHit(1f);
+
+    // Any ship attack landed (BossTarget.TakeShipAttack). `weight` is the
+    // share of one full ultimate hit (one firing never totals more than 1):
+    // Survival takes UltimateHitSeconds * weight off the clock; HitPoints
+    // banks weights and loses a point per whole hit.
+    float hitBank;
+    public void OnShipAttackHit(float weight)
     {
-        if (state != Phase.Fight) return;
+        if (state != Phase.Fight || weight <= 0f) return;
         hits++;
-        if (BossConfig.EndRule == BossEndRule.Survival) remaining -= BossConfig.UltimateHitSeconds;
-        else hp--;
+        if (BossConfig.EndRule == BossEndRule.Survival) remaining -= BossConfig.UltimateHitSeconds * weight;
+        else
+        {
+            hitBank += weight;
+            while (hitBank >= 1f - 1e-4f) { hitBank -= 1f; hp--; }
+        }
         if (actor != null) actor.Flash();
         if (ui != null) ui.HitFlash(boss.flash);
     }

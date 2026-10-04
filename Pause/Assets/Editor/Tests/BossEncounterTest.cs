@@ -284,13 +284,21 @@ public static class BossEncounterTest
         float before = e.Remaining;
         var body = e.Actor.BodyHitbox;
         Check("the boss is an ultimate target (Enimey tag)", body != null && body.CompareTag("Enimey"));
-        Check("ShipPowerController asks BossTarget first",
-              File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs").Contains("if (BossTarget.Intercept(target, shipIndex))"));
+        // Every ship attack (the volley included) hits through ShipAttackHits,
+        // which hands a BossTarget the hit instead of destroying it.
+        Check("the boss body is a registered attack target (IShipAttackTarget)",
+              body.GetComponent<IShipAttackTarget>() is BossTarget && body.GetComponent<ClearTarget>() != null &&
+              File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
         Check("... and takes UltimateHitSeconds off the fight",
               Mathf.Abs(before - e.Remaining - BossConfig.UltimateHitSeconds) < .001f && e.Hits == 1);
         Check("... with a hit flash", e.Actor.Flashing && e.Actor.BodyFrame == BossArt.Hit);
         Check("the boss itself is not destroyed", body != null && e.Actor != null);
+        float afterFull = e.Remaining;
+        float budget = 1f;
+        ShipAttackHits.Hit(body, 1, .25f, ref budget);
+        Check("a weaker attack contact shaves proportionally less (0.25 hit)",
+              body != null && Mathf.Approximately(afterFull - e.Remaining, BossConfig.UltimateHitSeconds * .25f));
         var other = new GameObject("rock");
         Check("ordinary targets are not intercepted", !BossTarget.Intercept(other, 1));
         RunWhile(e, BossEncounter.Phase.Fight);

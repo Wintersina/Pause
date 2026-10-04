@@ -57,7 +57,9 @@ public class ChaserEnemy : MonoBehaviour
             {
                 float k = 1f - Mathf.Clamp01(chaseTimer / Mathf.Max(0.01f, chaseSeconds));
                 float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k);
-                Vector3 toPlayer = player.position - transform.position;
+                // a Flare Decoy (secret power) draws the chase off the ship
+                Vector3 goal = ShipDecoy.Active ? ShipDecoy.Position : player.position;
+                Vector3 toPlayer = goal - transform.position;
                 if (toPlayer.sqrMagnitude > 0.0001f)
                     transform.position += toPlayer.normalized * speed * Time.deltaTime;
             }

@@ -79,15 +79,25 @@ public class UltimateGun : MonoBehaviour
         muzzleBaseScale = Vector3.one;
 
         Reposition(0f);
-        ShipUiSlots.Register(transform.parent, this, () => ShipUiSlots.ToWorld(transform.parent, LocalEnvelope(), ShipUiSlots.Spins(shipIndex)));
+        ShipUiSlots.Register(transform.parent, this, () => ShipUiSlots.GunToWorld(transform.parent, shipIndex, LocalEnvelope()));
     }
 
     void Reposition(float extend01)
     {
         Vector3 hover = HoverOffset(shipIndex, Time.unscaledTime);
         Vector3 target = Vector3.Lerp(restingOffset + hover, firingOffset + hover * .2f, extend01);
-        transform.localPosition = Vector3.Lerp(transform.localPosition, target,
-            1f - Mathf.Exp(-10f * Time.unscaledDeltaTime));
+        var hull = transform.parent;
+        if (hull != null && ShipUiSlots.Spins(shipIndex))
+        {
+            // Ninja and UFO spin their whole hull: keep the gun upright
+            // beside it (the same offsets, unrotated) instead of orbiting.
+            Vector3 world = hull.position + Vector3.Scale(target, hull.lossyScale);
+            transform.position = Vector3.Lerp(transform.position, world, 1f - Mathf.Exp(-10f * Time.unscaledDeltaTime));
+            transform.rotation = Quaternion.identity;
+        }
+        else
+            transform.localPosition = Vector3.Lerp(transform.localPosition, target,
+                1f - Mathf.Exp(-10f * Time.unscaledDeltaTime));
         barrel.localPosition = new Vector3(0f, mountY, 0.02f);
         muzzle.localPosition = new Vector3(0f, mountY + barrelLength * .58f, 0.01f);
     }

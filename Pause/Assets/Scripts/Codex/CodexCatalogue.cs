@@ -68,7 +68,7 @@ public sealed class CodexEntry
         }
     }
 
-    // Subtitle line for the detail view (a ship's ultimate), or null.
+    // Subtitle line for the detail view (a ship's attack + secret power), or null.
     public string Subtitle
     {
         get
@@ -76,7 +76,7 @@ public sealed class CodexEntry
             if (category != CodexCategory.Ships) return null;
             int index = CodexCatalogue.ShipIndex(id);
             if (index < 0) return null;
-            return "ULTIMATE  " + ShipPowerTable.DisplayName(ShipPowerTable.For(index));
+            return ShipLoadoutTable.Summary(index);
         }
     }
 }
@@ -178,12 +178,26 @@ public static class CodexCatalogue
             string lore;
             if (!ShipLore.TryGetValue(key, out lore))
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
+            lore += "\n\n" + LoadoutLore(index);
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
                 () => ShipHullArt.StockRest(index), lore));
         }
 
         list.InsertRange(RosterInsertIndex(list), RosterEntries());
         return list.ToArray();
+    }
+
+    // What the ship fights with, from ShipLoadoutTable: its attack (fires when
+    // the charge meter fills) and its secret power (its own meter, fills from
+    // star dust and kills, fires itself at the right moment).
+    public static string LoadoutLore(int ship)
+    {
+        var l = ShipLoadoutTable.For(ship);
+        // Spec lines, not prose: no sentence stops, so the lore's own
+        // three-sentence limit still holds.
+        return "ATTACK  " + l.attackName + " - " + l.attackLine.TrimEnd('.') + "\n" +
+               "SECRET POWER  " + l.powerName + " - " + l.powerLine.TrimEnd('.') +
+               " (fires on " + ShipLoadoutTable.TriggerLine(l) + ")";
     }
 
     // Stable art key (ShipId.KeyOf) -> lore.

@@ -143,6 +143,9 @@ public class BossActor : MonoBehaviour
         if (bodyHit != null) return;
         bodyHit = BossHitbox.Box(transform, "BossBody", BossConfig.BodyHitbox);
         bodyHit.AddComponent<BossTarget>();
+        // Registered as a hazard target so every ship attack (rail, beam,
+        // cone, orbit disc, ...) sees it, not just the screen-clear volley.
+        ClearTarget.Ensure(bodyHit).SetRadius(Mathf.Max(BossConfig.BodyHitbox.x, BossConfig.BodyHitbox.y) * .5f);
     }
 
     public void StepFight(float dt, float realDt, Vector3 player, float progress01, BossProjectilePool pool)
@@ -412,21 +415,34 @@ public class BossActor : MonoBehaviour
     TargetExplosion.Kind ExplosionKind => boss.artKey == "Ember" ? TargetExplosion.Kind.Rock : TargetExplosion.Kind.Metal;
 }
 
-// Marks the boss's body hitbox as the ultimate's boss target. CinematicClear
-// finds it by its "Enimey" tag like any hazard; ShipPowerController.HitTarget
-// asks Intercept first, so a homing shot that lands on the boss shortens the
-// fight and flashes it instead of destroying it.
-public class BossTarget : MonoBehaviour
+// Marks the boss's body hitbox as the target of the ship's attacks. It is a
+// registered hazard (ClearTarget), so the screen-clear volley and every
+// directional attack find it; all of them hit it through ShipAttackHits,
+// which hands the hit here instead of destroying it.
+//
+// Weighting (IShipAttackTarget): one firing of any attack is worth at most
+// one full ultimate hit, split over its contacts -- a rail slug, a fireball
+// blast or one homing shot of the volley is 1; a gatling shell 1/14, a beam
+// or cone tick 0.2, an orbit-disc pass 0.25, a seeker eye 1/3. So weak,
+// spread-out hits shave proportionally less of the fight than big ones.
+public class BossTarget : MonoBehaviour, IShipAttackTarget
 {
+    // The screen-clear volley's own entry point: one full hit.
     public static bool Intercept(GameObject target, int ship)
     {
-        if (target == null || target.GetComponent<BossTarget>() == null) return false;
-        var encounter = BossEncounter.Instance;
-        TargetExplosion.Spawn(target.transform.position + Vector3.down * .35f, TargetExplosion.Kind.Metal,
-                              TargetExplosion.Size.Medium, ship);
-        collisionDetection.PlayExplosion();
-        if (encounter != null) encounter.OnUltimateHit();
+        var boss = target != null ? target.GetComponent<BossTarget>() : null;
+        if (boss == null) return false;
+        boss.TakeShipAttack(ship, 1f, target.transform.position);
         return true;
+    }
+
+    public void TakeShipAttack(int ship, float weight, Vector3 at)
+    {
+        var encounter = BossEncounter.Instance;
+        TargetExplosion.Spawn(transform.position + Vector3.down * .35f, TargetExplosion.Kind.Metal,
+                              weight >= .5f ? TargetExplosion.Size.Medium : TargetExplosion.Size.Small, ship);
+        collisionDetection.PlayExplosion();
+        if (encounter != null) encounter.OnShipAttackHit(weight);
     }
 }
 
