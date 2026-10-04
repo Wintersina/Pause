@@ -25,6 +25,7 @@ public class ProgressSnapshot
     public const string BoughtShipPrefix = "boughtship";
     public const string SpawnShipKey = "spawnShip";
     public const string HighestSpeedKey = "HighestSpeed";
+    public const string BestScoreKey = RunScore.BestScoreKey;
     public const string CurrentWorldKey = "currentWorld";
     public const string HighestWorldKey = "highestWorld";
     public const string TutorialKey = "HasDoneTut";
@@ -43,6 +44,8 @@ public class ProgressSnapshot
     public int[] boughtShips = new int[0];
     public int spawnShip;
     public float highestSpeed;
+    // Best run score (RunScore). Older saves lack it (= 0); merged as max.
+    public int bestScore;
     public int currentWorld;
     public int highestWorld;
     public bool hasDoneTut;
@@ -84,6 +87,8 @@ public class ProgressSnapshot
         var s = new ProgressSnapshot { savedAtUtc = savedAtUtc };
         s.currency = PlayerPrefs.GetFloat(CurrencyKey, 0f);
         s.highestSpeed = PlayerPrefs.GetFloat(HighestSpeedKey, 0f);
+        // Never written by a developer run, so it is always the real best.
+        s.bestScore = PlayerPrefs.GetInt(BestScoreKey, 0);
         s.spawnShip = PlayerPrefs.GetInt(SpawnShipKey, 0);
         s.currentWorld = RealInt(CurrentWorldKey);
         s.highestWorld = RealInt(HighestWorldKey);
@@ -140,6 +145,7 @@ public class ProgressSnapshot
     {
         PlayerPrefs.SetFloat(CurrencyKey, currency);
         PlayerPrefs.SetFloat(HighestSpeedKey, highestSpeed);
+        SetOrDelete(BestScoreKey, bestScore);
         SetOrDelete(SpawnShipKey, spawnShip);
         WriteRealInt(CurrentWorldKey, currentWorld, currentWorld != 0);
         WriteRealInt(HighestWorldKey, highestWorld, highestWorld != 0);

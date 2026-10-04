@@ -293,6 +293,8 @@ public class BossEncounter : MonoBehaviour
         // It explodes if the pilot actually landed blows; otherwise it gives
         // up and warps away.
         bool explode = BossConfig.EndRule == BossEndRule.Survival ? hits > 0 : hp <= 0;
+        RunScore.OnBoss(explode, remaining, BossConfig.EndRule == BossEndRule.HitPoints,
+                        actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f));
         actor.BeginOutro(explode);
     }
 

@@ -107,6 +107,7 @@ public class collisionDetection : MonoBehaviour {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
         Codex.Discover(target);   // ultimate kills count as meeting it too
         SecretPowerController.OnKill();   // kills fill the secret power's meter
+        RunScore.OnKill(target);          // run score (ScoreRules), with the kill chain
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
     }
@@ -274,6 +275,7 @@ public class collisionDetection : MonoBehaviour {
                 if (PrefabName.Is(hit.gameObject, "smStar1"))
             {
                 awardDust(smallStarValue);
+                RunScore.OnDust(large: false);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: false);
                 Destroy(hit.gameObject);
@@ -281,6 +283,7 @@ public class collisionDetection : MonoBehaviour {
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 awardDust(largeStarValue);
+                RunScore.OnDust(large: true);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: true);
                 Destroy(hit.gameObject);
@@ -288,6 +291,7 @@ public class collisionDetection : MonoBehaviour {
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
             {
                 healAtomPickups++;
+                RunScore.OnAtom(RunScore.Atom.Heal);
                 // repairs one point of hull damage; lifeControler picks the
                 // sprite back up from lifeCounter on the next frame
                 if (lifeCounter > 0) lifeCounter--;
@@ -298,6 +302,7 @@ public class collisionDetection : MonoBehaviour {
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
                 pauseAtomPickups++;
+                RunScore.OnAtom(RunScore.Atom.Pause);
                 score.incromentPause();
                 BoostUltimate(dust: false);
                 Destroy(hit.gameObject);
@@ -305,6 +310,7 @@ public class collisionDetection : MonoBehaviour {
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
                 shieldAtomPickups++;
+                RunScore.OnAtom(RunScore.Atom.Shield);
                 BoostUltimate(dust: false);
                 boostSound.Play();
                 // ---------------------------

@@ -126,6 +126,7 @@ public class movePlayer : MonoBehaviour
                     moveLeft_Right(fingerPos);
                     MarkTeleport();
                     TeleportFx.Play(before, transform.position);
+                    RunScore.OnTeleport(before, transform.position);
                 }
                 else if (!teleportLockedUntilRelease)
                 {

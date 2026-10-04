@@ -190,6 +190,8 @@ public class WorldManager : MonoBehaviour
     {
         if (!HasNext) return;
 
+        // Points for the world just cleared; the run score carries on.
+        RunScore.OnWorldCleared(CurrentIndex);
         CurrentIndex = CurrentIndex + 1;
 
         // Speed resets on arrival; pauses and star dust deliberately carry over.

@@ -5,7 +5,8 @@ using System.Collections.Generic;
 // one place to change the rule.
 //
 //   bought ships                     union
-//   HighestSpeed, highestWorld,      max
+//   HighestSpeed, BestScore,         max
+//   highestWorld,
 //   achievement/kill counters
 //   HasDoneTut                       true if either side has it
 //   owned hull skins                 union
@@ -50,6 +51,7 @@ public static class ProgressMerge
             currentWorld = Math.Min(newer.currentWorld, highestWorld),
             boughtShips = new List<int>(ships).ToArray(),
             highestSpeed = Math.Max(local.highestSpeed, cloud.highestSpeed),
+            bestScore = Math.Max(local.bestScore, cloud.bestScore),
             highestWorld = highestWorld,
             hasDoneTut = local.hasDoneTut || cloud.hasDoneTut,
             counters = mergedCounters.ToArray(),
