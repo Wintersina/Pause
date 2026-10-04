@@ -40,7 +40,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 23. **Installed, validated — `space_rock_crater`**
 24. **Installed, validated — `space_rock_cluster`**
 25. **Installed, validated — `space_rock_dark`**
-26. **Queued — `frost_rock_chunk`**
+26. **Installed and validated — `frost_rock_chunk`** — rugged copper-braced frozen industrial chunk with a cyan pressure core; seven-cell strip vetted for safe cell margins and flipbook continuity.
 27. **Queued — `frost_rock_rime`**
 28. **Installed, validated — `frost_rock_shard`** — rugged Frost ice-shard industrial hazard; 7-frame strip vetted for safe cell margins and roster validation.
 29. **Installed, validated — `verdant_rock_spore`** — rugged grass-capped bio-industrial Spore Rock; floating 7-frame strip preserves its mandated key silhouette and safe cell margins.
