@@ -6,6 +6,7 @@ This is the authoritative working brief consolidated from the art-direction conv
 
 - Recreate assets from scratch rather than applying superficial touch-ups to the old vector/SVG art.
 - Use dense, readable pixel-art sprites in a rugged cyberpunk + steampunk industrial direction: dark inked outlines, gunmetal/charcoal armor, brass/copper mechanical details, rivets, pipes, cables, scorched/weathered surfaces, and bright world-specific energy cores.
+- Use the approved rugged fighter/turret reference as the material and silhouette benchmark for all future redraws: thick visibly riveted steel shells, exposed copper brackets and conduits, layered weathered plates, overdriven magenta energy chambers, world-material growths where appropriate, and asymmetrical damage or debris in action states. Avoid clean, generic, perfectly mirrored sci-fi bodies.
 - Keep the confident, polished detail level of the approved rail mine, boss, Bile Mite, Frost alien, and Space fighter examples.
 - Keep enemy silhouettes visibly varied. Each role and world needs a distinct silhouette and material story, not recolors of the same body.
 - Preserve only the gameplay contracts during a redraw: filename/key, transparency, canvas dimensions, frame count/grid, animation state order, pivots, and hit/collision behavior.
