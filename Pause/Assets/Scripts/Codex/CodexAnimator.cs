@@ -228,8 +228,8 @@ public class CodexAnimator : MonoBehaviour
         clock = 0f;
         Ticking = false;
 
-        var tint = locked ? CodexUi.Silhouette : Color.white;
-        image.color = tint;
+        // Locked: the flat silhouette material (shape only, no detail).
+        CodexUi.PaintArt(image, locked);
         image.rectTransform.localRotation = Quaternion.identity;
         if (anim == null)
         {
@@ -245,7 +245,7 @@ public class CodexAnimator : MonoBehaviour
         {
             EnsureOverlay();
             overlay.enabled = true;
-            overlay.color = tint;
+            CodexUi.PaintArt(overlay, locked);
             overlay.rectTransform.localRotation = Quaternion.identity;
             image.sprite = anim.under;
             Place(image, anim.under);

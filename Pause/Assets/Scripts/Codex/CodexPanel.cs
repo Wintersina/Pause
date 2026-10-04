@@ -1126,8 +1126,9 @@ public class CodexPanel : MonoBehaviour
     {
         art.sprite = e.Sprite;
         art.enabled = art.sprite != null;
-        // Locked: an ink blackout of the sprite's own shape.
-        art.color = found ? Color.white : CodexUi.Silhouette;
+        // Locked: "who's that Pokemon?" -- the sprite's own shape as one
+        // flat ink colour (CodexUi.SilhouetteMaterial), no interior detail.
+        CodexUi.PaintArt(art, !found);
         maskComp.enabled = e.round;
         mask.enabled = e.round;
     }

@@ -21,6 +21,42 @@ public static class CodexUi
     // Undiscovered art: the sprite's own shape, blacked out in flat ink.
     public static Color Silhouette { get { return CodexPalette.Ink; } }
 
+    // "Who's that Pokemon?": undiscovered art draws through this material,
+    // which paints the Graphic's colour times the sprite's alpha and nothing
+    // of the drawing itself (Art/Resources/CodexSilhouette). A plain colour
+    // tint would multiply the art, letting its interior detail show through.
+    public const string SilhouetteShaderPath = "CodexSilhouette/CodexSilhouette";
+    static Material silhouetteMaterial;
+
+    public static Material SilhouetteMaterial
+    {
+        get
+        {
+            if (silhouetteMaterial == null)
+            {
+                var shader = Resources.Load<Shader>(SilhouetteShaderPath);
+                if (shader == null) return null;
+                silhouetteMaterial = new Material(shader) { name = "CodexSilhouette", hideFlags = HideFlags.DontSave };
+            }
+            return silhouetteMaterial;
+        }
+    }
+
+    // Shows `g` as a flat silhouette (locked) or in its own colours.
+    public static void PaintArt(Graphic g, bool locked)
+    {
+        if (g == null) return;
+        g.color = locked ? Silhouette : Color.white;
+        var m = locked ? SilhouetteMaterial : null;
+        // (Graphic.material reads back the default material when unset.)
+        if (g.material != (m != null ? m : g.defaultMaterial)) g.material = m;
+    }
+
+    public static bool IsSilhouette(Graphic g)
+    {
+        return g != null && g.material != null && g.material == silhouetteMaterial && silhouetteMaterial != null;
+    }
+
     public static Sprite CodexSprite(string name)
     {
         return Resources.Load<Sprite>("Codex/" + name);
