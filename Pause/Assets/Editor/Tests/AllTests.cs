@@ -16,6 +16,7 @@ public static class AllTests
     {
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
+        ("AppIconTest", AppIconTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
