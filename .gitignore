@@ -59,3 +59,6 @@ __pycache__/
 
 # Atom art generator (local only)
 Pause/Assets/Art/Atoms/src~/
+
+# Personal question list (local only)
+QUESTIONS.md
