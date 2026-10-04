@@ -28,12 +28,20 @@ public static class RunScore
 
     public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World }
 
+    // Totals stay small on purpose: see ScoreRules (speed multiplier on
+    // flight + kills, loop scaling on boss + world bonuses).
+
     // Points and counts per source, for the death panel's breakdown.
     public struct Breakdown
     {
         public long distance, kills, dust, atoms, teleports, bosses, worlds;
         public int killCount, dustCount, atomCount, teleportCount, bossCount, worldCount;
         public int bestChain;
+        // Times LOOP BACK's portal was flown (RunLoop.Index at the end).
+        public int loops;
+        // The highest multiplier any points were earned at: speed on flight,
+        // chain x speed on kills (within ScoreRules.MaxTotalMultiplier).
+        public float bestMultiplier;
 
         public long Total { get { return distance + kills + dust + atoms + teleports + bosses + worlds; } }
     }
@@ -86,6 +94,11 @@ public static class RunScore
     // The live chain; none once the run has ended (the HUD badge clears on death).
     public static int Chain { get { return !ended && chainLeft > 0f ? chain : 0; } }
     public static int Multiplier { get { return ScoreRules.MultiplierFor(Chain); } }
+    // The speed tier right now (HUD badge); x1 once the run has ended.
+    public static float SpeedMultiplier
+    {
+        get { return Live ? ScoreRules.SpeedMultiplierFor(moveBackGround.speed) : 1f; }
+    }
     // 1 -> 0 as the chain window runs out (HUD fade).
     public static float ChainLeft01
     {
@@ -112,6 +125,8 @@ public static class RunScore
         chain = 0;
         chainLeft = 0f;
         teleportsThisWorld = 0;
+        // The loop is part of the run: a new run is always on its first pass.
+        RunLoop.Reset();
         return runId;
     }
 
@@ -155,7 +170,9 @@ public static class RunScore
     public static void Tick(float dt, float speed)
     {
         if (!Live || dt <= 0f) return;
-        distance += ScoreRules.DistancePoints(speed, dt);
+        float m = ScoreRules.SpeedMultiplierFor(speed);
+        distance += ScoreRules.DistancePoints(speed, dt) * m;
+        if (speed > 0f) NoteMultiplier(m);
         if (chainLeft > 0f)
         {
             chainLeft -= dt;
@@ -184,7 +201,10 @@ public static class RunScore
         chain = chainLeft > 0f ? chain + 1 : 1;
         chainLeft = ScoreRules.ComboWindowSeconds;
         parts.bestChain = Mathf.Max(parts.bestChain, chain);
-        int points = basePoints * ScoreRules.MultiplierFor(chain);
+        float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
+                                      ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
+        NoteMultiplier(m);
+        int points = Mathf.RoundToInt(basePoints * m);
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -241,7 +261,7 @@ public static class RunScore
     public static int OnBoss(bool destroyed, float secondsLeft, bool hitPointsRule, Vector3 at)
     {
         if (!Live) return 0;
-        int points = ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule);
+        int points = ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule, RunLoop.Index);
         parts.bosses += points;
         parts.bossCount++;
         Raise(points, at, Source.Boss);
@@ -252,12 +272,26 @@ public static class RunScore
     public static int OnWorldCleared(int clearedWorld)
     {
         if (!Live) return 0;
-        int points = ScoreRules.WorldClearedPoints(clearedWorld);
+        int points = ScoreRules.WorldClearedPoints(clearedWorld, RunLoop.Index);
         parts.worlds += points;
         parts.worldCount++;
         teleportsThisWorld = 0;
         Raise(points, new Vector3(float.NaN, float.NaN, 0f), Source.World);
         return points;
+    }
+
+    // LOOP BACK's portal was flown: the run is now on pass `loopIndex`
+    // (the death panel's LOOPS line). Like every event, only while live.
+    public static void OnLoop(int loopIndex)
+    {
+        if (!Live) return;
+        parts.loops = Mathf.Max(parts.loops, loopIndex);
+        teleportsThisWorld = 0;
+    }
+
+    static void NoteMultiplier(float m)
+    {
+        if (m > parts.bestMultiplier) parts.bestMultiplier = m;
     }
 
     static void Raise(int points, Vector3 at, Source source)

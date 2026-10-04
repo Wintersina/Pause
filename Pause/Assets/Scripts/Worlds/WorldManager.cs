@@ -8,6 +8,12 @@ using UnityEngine.SceneManagement;
 //
 // On transition: speed resets to zero, pauses and star dust carry over.
 // Progress is remembered, so a later run starts on the furthest planet reached.
+//
+// After the final world (Ember) there is no next planet. Its boss ends in a
+// choice (FinalChoicePanel; every number in LoopRules):
+//   KEEP FLYING  stay in Ember: no portal, endless escalation to game over;
+//   LOOP BACK    a portal back to the world the run started in -- the score
+//                carries on and RunLoop.Index goes up; every loop is harder.
 public class WorldManager : MonoBehaviour
 {
     public const string PrefsCurrentWorld = "currentWorld";
@@ -97,6 +103,16 @@ public class WorldManager : MonoBehaviour
     float timer;
     bool portalOpen;
 
+    // What happens after the final world's boss.
+    public enum FinalRoute { None, Choosing, KeepFlying, LoopBack }
+    FinalRoute route = FinalRoute.None;
+    float endlessSeconds, endlessStep;
+    FinalChoicePanel choice;
+
+    public FinalRoute Route { get { return route; } }
+    // Seconds flown in KEEP FLYING (the endless escalation clock).
+    public float EndlessSeconds { get { return endlessSeconds; } }
+
     // How long until this planet's portal opens. Other systems pace themselves
     // against the level clock -- the blue-atom budget saves one for the end.
     public float SecondsLeftInWorld { get { return Mathf.Max(0f, timer); } }
@@ -114,6 +130,8 @@ public class WorldManager : MonoBehaviour
         // start there rather than replaying the earlier worlds. Developer mode
         // can pin a start world from Options instead.
         CurrentIndex = DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
+        // LOOP BACK returns here (usually Space, or the developer's pick).
+        RunLoop.StartWorld = CurrentIndex;
 
         timer = secondsPerWorld;
         WorldPainter.Apply(Current);
@@ -126,18 +144,28 @@ public class WorldManager : MonoBehaviour
 
     void Update()
     {
-        // The level clock stops for the boss; Ember (no portal) still has a
-        // boss at the end of its level, then the clock stops for good.
-        if (portalOpen || BossEncounter.Running) return;
-        if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex)) return;
-
         // Only count time the player is actually flying, matching how the rest
         // of the game measures progress.
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
-        if (!running) return;
+        if (running) Tick(Time.deltaTime);
+    }
 
-        timer -= Time.deltaTime;
+    // One running frame of the level clock (`dt` of flight). Public so
+    // edit-mode tests can step it (Time.deltaTime is 0 there).
+    public void Tick(float dt)
+    {
+        // The level clock stops for the boss and the final choice; Ember (no
+        // portal) still has a boss at the end of its level, then the choice.
+        if (portalOpen || BossEncounter.Running || route == FinalRoute.Choosing) return;
+        if (route == FinalRoute.KeepFlying)
+        {
+            TickEndless(dt);
+            return;
+        }
+        if (!HasNext && BossEncounter.DoneInWorld(CurrentIndex) && route != FinalRoute.LoopBack) return;
+
+        timer -= dt;
         WorldMusic.TryEscalate(this);
         if (timer <= 0f) EndLevel();
     }
@@ -151,12 +179,60 @@ public class WorldManager : MonoBehaviour
         timer = 0f;
         if (portalOpen) return;
         if (BossEncounter.Begin(CurrentIndex, OnBossOver)) return;
-        if (HasNext && !BossEncounter.Running) OpenPortal();
+        if ((HasNext || route == FinalRoute.LoopBack) && !BossEncounter.Running) OpenPortal();
     }
 
     void OnBossOver()
     {
-        if (HasNext && !portalOpen) OpenPortal();
+        if (HasNext)
+        {
+            if (!portalOpen) OpenPortal();
+            return;
+        }
+        OfferFinalChoice();
+    }
+
+    // ---- after the final world ----------------------------------------------
+
+    // The final world's boss is over (destroyed or survived): freeze and ask.
+    public void OfferFinalChoice()
+    {
+        if (route == FinalRoute.Choosing || buttonClicks.playerDied) return;
+        route = FinalRoute.Choosing;
+        timer = 0f;
+        choice = FinalChoicePanel.Show(CurrentIndex, RunLoop.StartWorld, RunLoop.Index, Choose);
+    }
+
+    // The panel's answer (a button, or KEEP FLYING when its countdown ends).
+    public void Choose(bool loopBack)
+    {
+        if (route != FinalRoute.Choosing) return;
+        if (choice != null) choice.Close();
+        choice = null;
+        if (loopBack)
+        {
+            route = FinalRoute.LoopBack;
+            OpenPortal();
+        }
+        else
+        {
+            route = FinalRoute.KeepFlying;
+            endlessSeconds = 0f;
+            endlessStep = 0f;
+            WorldBanner.Show("KEEP FLYING");
+        }
+    }
+
+    // KEEP FLYING: no portal, no boss. The speed cap creeps up past the
+    // world's own and spawns get denser, until game over (LoopRules).
+    void TickEndless(float dt)
+    {
+        if (dt <= 0f) return;
+        endlessSeconds += dt;
+        endlessStep -= dt;
+        if (endlessStep > 0f) return;
+        endlessStep = LoopRules.EndlessStepSeconds;
+        ApplyScaledDifficulty(Current, RunLoop.Index, endlessSeconds);
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -175,52 +251,101 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
-        Portal.Spawn(Current.portalColor, portalLifetime, OnPortalMissed);
+        // The loop portal wears the colour of the world it leads back to.
+        Color color = route == FinalRoute.LoopBack ? Worlds[RunLoop.StartWorld].portalColor : Current.portalColor;
+        Portal.Spawn(color, portalLifetime, OnPortalMissed);
     }
 
     void OnPortalMissed()
     {
         // Give the player another shot rather than stranding them.
         portalOpen = false;
-        timer = secondsPerWorld * 0.25f;
+        timer = route == FinalRoute.LoopBack ? LoopRules.LoopPortalRetrySeconds : secondsPerWorld * 0.25f;
     }
 
     // Called by Portal when the player flies through.
     public void Advance()
     {
-        if (!HasNext) return;
+        bool loop = !HasNext;
+        if (loop && route != FinalRoute.LoopBack) return;
 
         // Points for the world just cleared; the run score carries on.
         RunScore.OnWorldCleared(CurrentIndex);
-        CurrentIndex = CurrentIndex + 1;
+        string banner;
+        if (loop)
+        {
+            // Back to where the run began, one loop on: every boss again.
+            RunScore.OnLoop(RunLoop.Advance());
+            BossEncounter.ForgetDone();
+            route = FinalRoute.None;
+            CurrentIndex = RunLoop.StartWorld;
+            banner = Current.displayName + "  LOOP " + RunLoop.DisplayNumber;
+        }
+        else
+        {
+            CurrentIndex = CurrentIndex + 1;
+            banner = Current.displayName;
+        }
 
-        // Speed resets on arrival; pauses and star dust deliberately carry over.
-        moveBackGround.speed = 0f;
+        // Speed resets on arrival (a little higher on each loop); pauses and
+        // star dust deliberately carry over.
+        moveBackGround.speed = LoopRules.ArrivalSpeed(RunLoop.Index);
+        portalOpen = false;
+        timer = secondsPerWorld;
 
+        var theme = Current;
+        ApplyDifficulty(theme);
+        WorldPainter.Apply(theme);
+        WorldMusic.Apply(theme);
+        WorldBackdrop.Apply(theme, true);
+        WorldBanner.Show(banner);
+        Codex.Discover(Codex.WorldId(CurrentIndex));
+    }
+
+    static void ApplyDifficulty(WorldTheme theme)
+    {
+        ApplyScaledDifficulty(theme, RunLoop.Index, 0f);
+    }
+
+    // The world's ramp and caps, scaled for the loop and (KEEP FLYING) the
+    // endless clock. LoopRules has every number; loop 0 is the world as-is.
+    static void ApplyScaledDifficulty(WorldTheme theme, int loop, float endlessSeconds)
+    {
+        // Every wall, not just the first: SpeedRamp takes its rate and cap
+        // from whichever instance ticks first in a frame.
+        float rate = theme.speedRampPerSecond * LoopRules.RampScale(loop);
+        float max = LoopRules.MaxSpeed(theme.maxSpeed, loop, endlessSeconds);
+        foreach (var bg in Object.FindObjectsByType<moveBackGround>(FindObjectsSortMode.None))
+        {
+            bg.speedRampPerSecond = rate;
+            bg.maxSpeed = max;
+        }
+
+        var enemies = Object.FindFirstObjectByType<enmiesOnBoard>();
+        if (enemies != null) enemies.phaseRampScale = theme.enemyRampScale * LoopRules.PhaseRampScale(loop);
+        // Read by the spawner (see LoopDifficulty for the one-line hook).
+        LoopDifficulty.DensityScale = LoopRules.Density(loop, endlessSeconds);
+    }
+
+    // ---- developer ----------------------------------------------------------
+
+    // BOSS RUSH FINAL (BossDev.TriggerFinal): straight to the final world,
+    // no points for the worlds skipped. The run's start world is unchanged,
+    // so LOOP BACK still goes where the run began.
+    public void DevJumpToFinal()
+    {
+        int last = Worlds.Length - 1;
+        portalOpen = false;
+        route = FinalRoute.None;
+        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) BossUtil.Kill(p.gameObject);
+        if (CurrentIndex == last) return;
+        CurrentIndex = last;
         var theme = Current;
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
         WorldBackdrop.Apply(theme, true);
         ApplyDifficulty(theme);
         WorldBanner.Show(theme.displayName);
-        Codex.Discover(Codex.WorldId(CurrentIndex));
-
-        portalOpen = false;
-        timer = secondsPerWorld;
-    }
-
-    static void ApplyDifficulty(WorldTheme theme)
-    {
-        // Every wall, not just the first: SpeedRamp takes its rate and cap
-        // from whichever instance ticks first in a frame.
-        foreach (var bg in Object.FindObjectsByType<moveBackGround>(FindObjectsSortMode.None))
-        {
-            bg.speedRampPerSecond = theme.speedRampPerSecond;
-            bg.maxSpeed = theme.maxSpeed;
-        }
-
-        var enemies = Object.FindFirstObjectByType<enmiesOnBoard>();
-        if (enemies != null) enemies.phaseRampScale = theme.enemyRampScale;
     }
 
     // Reset to the first planet -- used when starting a brand new game.

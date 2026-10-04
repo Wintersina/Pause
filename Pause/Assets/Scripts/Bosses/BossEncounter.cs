@@ -55,8 +55,10 @@ public class BossEncounter : MonoBehaviour
     // ---- hooks for shared code --------------------------------------------
 
     public static bool Running => Instance != null && Instance.IsRunning;
-    // moveBackGround: hold timeScale at 0 regardless of the finger.
-    public static bool ScriptedFreeze => Instance != null && Instance.state == Phase.Intro;
+    // moveBackGround: hold timeScale at 0 regardless of the finger -- the
+    // intro, and the final world's KEEP FLYING / LOOP BACK choice after it.
+    public static bool ScriptedFreeze =>
+        (Instance != null && Instance.state == Phase.Intro) || FinalChoicePanel.IsUp;
     // moveBackGround (ramp) and collisionDetection (atom boost): hands off speed.
     public static bool SpeedLocked => Instance != null &&
         (Instance.state == Phase.Intro || Instance.state == Phase.Fight || Instance.state == Phase.Outro);
@@ -64,10 +66,18 @@ public class BossEncounter : MonoBehaviour
     public static bool SuspendsSpawning => Running;
     // score: a press during the intro, or the first one after it, is not a
     // spent pause -- the freeze was the boss's, not the player's.
-    public static bool FreePress => Instance != null && Instance.freePress;
+    // The final choice's freeze is scripted too (FinalChoicePanel.FreePress).
+    public static bool FreePress => (Instance != null && Instance.freePress) || FinalChoicePanel.FreePress;
 
     public static float FilterSpeedChange(float delta) => SpeedLocked ? 0f : delta;
     public static bool DoneInWorld(int worldIndex) => doneWorld == worldIndex;
+
+    // LOOP BACK: every boss comes round again on the next loop.
+    public static void ForgetDone() { doneWorld = -1; }
+
+    // Developer (BossDev.TriggerFinal): the next fight lasts DevShortFightSeconds.
+    public static bool DevShortFight;
+    public const float DevShortFightSeconds = 1.5f;
 
     // ---- state ------------------------------------------------------------
 
@@ -232,6 +242,11 @@ public class BossEncounter : MonoBehaviour
         state = Phase.Fight;
         moveBackGround.speed = BossConfig.FightSpeed;
         remaining = BossConfig.FightSeconds;
+        if (DevShortFight)
+        {
+            DevShortFight = false;
+            remaining = Mathf.Min(remaining, DevShortFightSeconds);
+        }
         fightClock = 0f;
         actor.BeginFight();
         if (TouchInput.IsPressed) freePress = false;
@@ -338,15 +353,22 @@ public class BossEncounter : MonoBehaviour
 
     // Boss rush (Options > developer): the boss arrives a few seconds into a
     // run instead of at the end of the level.
+    // BOSS RUSH FINAL: on the first pass, a few seconds in jumps straight to
+    // the end of the final world's boss (its choice); once looping, it rushes
+    // each boss like BOSS RUSH ON.
     void TickDevRush(float dt)
     {
         if (!BossDev.RushEnabled || WorldManager.Instance == null) return;
-        if (DoneInWorld(WorldManager.CurrentIndex)) return;
+        if (WorldManager.Instance.Route != WorldManager.FinalRoute.None) return;
+        bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0;
+        if (!final && DoneInWorld(WorldManager.CurrentIndex)) return;
+        if (final && DoneInWorld(WorldManager.Worlds.Length - 1)) return;
         rushClock += dt;
         if (rushClock >= BossConfig.DevRushAfterSeconds)
         {
             rushClock = 0f;
-            BossDev.TriggerNow();
+            if (final) BossDev.TriggerFinal();
+            else BossDev.TriggerNow();
         }
     }
 
@@ -362,6 +384,7 @@ public class BossEncounter : MonoBehaviour
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         doneWorld = -1;
+        DevShortFight = false;
         if (scene.name != "gameS1") return;
         Ensure();
     }
@@ -370,6 +393,7 @@ public class BossEncounter : MonoBehaviour
     public static void ResetRun()
     {
         doneWorld = -1;
+        DevShortFight = false;
         if (Instance != null) BossUtil.Kill(Instance.gameObject);
         Instance = null;
     }
