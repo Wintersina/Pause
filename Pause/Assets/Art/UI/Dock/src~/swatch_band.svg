@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Skin swatch: the lower band, tinted the skin's one shadow tone (a hard
+     cel shadow along the bottom edge, like the hulls). Same frame as swatch.svg. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="14" viewBox="0 0 22 14">
+  <path d="M2.09 8.2 H19.29 L18 13.2 H0.8 Z" fill="#FFFFFF"/>
+</svg>

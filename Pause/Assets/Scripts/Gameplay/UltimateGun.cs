@@ -79,6 +79,7 @@ public class UltimateGun : MonoBehaviour
         muzzleBaseScale = Vector3.one;
 
         Reposition(0f);
+        ShipUiSlots.Register(transform.parent, this, () => ShipUiSlots.ToWorld(transform.parent, LocalEnvelope(), ShipUiSlots.Spins(shipIndex)));
     }
 
     void Reposition(float extend01)
@@ -99,7 +100,7 @@ public class UltimateGun : MonoBehaviour
         Reposition(extend);
 
         firePop = Mathf.Max(0f, firePop - Time.unscaledDeltaTime * 3.8f);
-        float scale = 1f + extend * .14f + firePop * .24f;
+        float scale = 1f + extend * ExtendGrow + firePop * FirePopGrow;
         transform.localScale = Vector3.one * scale;
 
         if (flashT >= 0f && muzzleRenderer != null)
@@ -143,13 +144,82 @@ public class UltimateGun : MonoBehaviour
     static Vector3 HoverOffset(int index, float time)
     {
         float phase = time * 2.4f + index * .71f;
+        Vector2 a = HoverAmplitude(index);
         switch (HoverModeFor(index))
         {
-            case 0: return new Vector3(Mathf.Cos(phase) * .18f, Mathf.Sin(phase) * .18f, 0f);
-            case 1: return new Vector3(Mathf.Sin(phase) * .28f, Mathf.Sin(phase * 2f) * .06f, 0f);
-            case 2: return new Vector3(Mathf.Sin(phase * .7f) * .08f, Mathf.Sin(phase) * .25f, 0f);
-            default: return new Vector3(Mathf.Sin(phase) * .22f, Mathf.Sin(phase * 2f) * .13f, 0f);
+            case 0: return new Vector3(Mathf.Cos(phase) * a.x, Mathf.Sin(phase) * a.y, 0f);
+            case 1: return new Vector3(Mathf.Sin(phase) * a.x, Mathf.Sin(phase * 2f) * a.y, 0f);
+            case 2: return new Vector3(Mathf.Sin(phase * .7f) * a.x, Mathf.Sin(phase) * a.y, 0f);
+            default: return new Vector3(Mathf.Sin(phase) * a.x, Mathf.Sin(phase * 2f) * a.y, 0f);
         }
+    }
+
+    // Peak hover drift per behaviour, in the hull's local units.
+    public static Vector2 HoverAmplitude(int index)
+    {
+        switch (HoverModeFor(index))
+        {
+            case 0: return new Vector2(.18f, .18f);
+            case 1: return new Vector2(.28f, .06f);
+            case 2: return new Vector2(.08f, .25f);
+            default: return new Vector2(.22f, .13f);
+        }
+    }
+
+    // ---- ShipUiSlots footprint ------------------------------------------
+
+    const float ExtendGrow = .14f, FirePopGrow = .24f;
+    const float MaxGrow = 1f + ExtendGrow + FirePopGrow;
+
+    // Every place the gun's mount can be, in the hull's local space: tucked
+    // beside it with the full hover drift, and out in the firing slot.
+    Bounds MountRange()
+    {
+        Vector2 a = HoverAmplitude(shipIndex);
+        var range = new Bounds(restingOffset, new Vector3(a.x * 2f, a.y * 2f, 0f));
+        range.Encapsulate(new Bounds(firingOffset, new Vector3(a.x * .4f, a.y * .4f, 0f)));
+        return range;
+    }
+
+    static Bounds Grown(Bounds part)
+    {
+        var b = part;
+        b.Encapsulate(new Bounds(part.center * MaxGrow, part.size * MaxGrow));
+        return b;
+    }
+
+    // Everywhere the gun can draw (barrel at full fire-pop size, the muzzle
+    // flash in the firing slot), in the hull's local space.
+    public Bounds LocalEnvelope()
+    {
+        Bounds part = new Bounds(Vector3.zero, Vector3.zero);
+        var br = barrel != null ? barrel.GetComponent<SpriteRenderer>() : null;
+        if (br != null && br.sprite != null)
+            part = new Bounds(barrel.localPosition + Vector3.Scale(br.sprite.bounds.center, barrel.localScale),
+                              Vector3.Scale(br.sprite.bounds.size, barrel.localScale));
+        part = Grown(part);
+        Bounds mounts = MountRange();
+        var env = new Bounds(mounts.center + part.center, mounts.size + part.size);
+        var hull = transform.parent;
+        float shipScale = hull != null ? Mathf.Max(.0001f, Mathf.Abs(hull.lossyScale.x)) : 1f;
+        float flash = MuzzleWorldSize / shipScale;
+        Vector3 tip = firingOffset + new Vector3(0f, (mountY + barrelLength * .58f) * MaxGrow, 0f);
+        Vector2 drift = HoverAmplitude(shipIndex) * .4f;
+        env.Encapsulate(new Bounds(tip, new Vector3(flash + drift.x, flash + drift.y, 0f)));
+        env.center = new Vector3(env.center.x, env.center.y, 0f);
+        return env;
+    }
+
+    // Everywhere the muzzle point can be, in the hull's local space (the
+    // charge indicator rides onto it when the ultimate is ready).
+    public Bounds LocalMuzzleEnvelope()
+    {
+        var tip = new Bounds(new Vector3(0f, mountY + barrelLength * .58f, 0f), Vector3.zero);
+        tip = Grown(tip);
+        Bounds mounts = MountRange();
+        var env = new Bounds(mounts.center + tip.center, mounts.size + tip.size);
+        env.center = new Vector3(env.center.x, env.center.y, 0f);
+        return env;
     }
 
     static readonly Sprite[] gunSprites = new Sprite[16];

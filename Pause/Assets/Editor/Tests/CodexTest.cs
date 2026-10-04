@@ -112,18 +112,7 @@ public static class CodexTest
         var spawner = UnityEngine.Object.FindFirstObjectByType<enmiesOnBoard>();
         Check("gameS1 has the enemy spawner", spawner != null);
         if (spawner != null)
-        {
-            int missing = 0;
-            foreach (var array in new[] { spawner.astroid1, spawner.astroid2, spawner.astroid3, spawner.astroid4, spawner.astroid5 })
-                foreach (var prefab in array)
-                {
-                    if (prefab == null) { missing++; continue; }
-                    CheckMaps("enmiesOnBoard prefab " + prefab.name, prefab, null);
-                }
-            if (missing > 0)
-                Debug.LogWarning("[CDX] note: " + missing + " astroid slots in gameS1 point at a deleted prefab (nothing spawns there)");
             CheckMaps("enmiesOnBoard alien", spawner.alien1, "enemy_alien");
-        }
 
         // Every world's roster (EnemyRoster) -- what enmiesOnBoard actually
         // spawns -- maps to its own entry, built exactly as the spawner builds

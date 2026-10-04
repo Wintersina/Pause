@@ -103,32 +103,74 @@ class Composer:
 
 def _paste_clipped(out, im, px, py):
     cx, cy = max(0, -px), max(0, -py)
-    if cx >= im.width or cy >= im.height:
+    ex, ey = min(im.width, out.width - px), min(im.height, out.height - py)
+    if cx >= ex or cy >= ey:
         return
-    out.alpha_composite(im.crop((cx, cy, im.width, im.height)), (max(0, px), max(0, py)))
+    out.alpha_composite(im.crop((cx, cy, ex, ey)), (max(0, px), max(0, py)))
 
 
-def gameplay_overlay(img):
-    """Pipes, the ship and a few hazards, for judging contrast."""
+WORLDS = ["Space", "Frost", "Verdant", "Ember"]
+WALL_X, WALL_W = 3.21, 1.43            # gameS1 leftPipe / rightPipe quads (centre, width)
+RAIL_X = 2.35                          # RailMineMount.WorldRailX on a 2.85 half-width view
+
+
+def wall_textures(world):
     assets = os.path.dirname(ART_WORLDS)
-    def load(p, w):
-        im = Image.open(os.path.join(assets, p)).convert("RGBA")
-        return im.resize((int(w * PPU), int(im.height * w * PPU / im.width)), Image.BILINEAR)
+    if world == "Space":
+        return [os.path.join(assets, n) for n in ("left.png", "right.png")]
+    return [os.path.join(RESOURCES, world, n) for n in ("wallLeft.png", "wallRight.png")]
+
+
+def draw_walls(img, world, scroll=0.0):
+    """The side walls as the game maps them: one texture repeat per quad
+    height (10.8 u), UV-scrolled, only the inner strip on screen."""
     W, H = img.size
-    for p, w, x, y in [("Atoms/atom3a.png", 0.7, -1.2, 2.5), ("Atoms/atom3a.png", 0.7, 1.4, -0.5),
-                       ("Aestroids/aestroid_brown_1.png", 0.9, 0.9, 3.8),
-                       ("Aestroids/aestroid_dark_1.png", 0.8, -1.5, -2.8),
-                       ("invader32x32x4.png", 0.6, 0.2, 1.0)]:
-        try:
-            im = load(p, w)
-        except FileNotFoundError:
-            continue
-        if p.startswith("invader"):
-            im = im.crop((0, 0, im.width // 4 if im.width > im.height else im.width, im.height))
-        img.alpha_composite(im, (int(W / 2 + x * PPU - im.width / 2), int(H / 2 - y * PPU - im.height / 2)))
-    pipe = Image.new("RGBA", (int((SW / 2 - 2.5) * PPU), H), (40, 40, 60, 255))
-    img.alpha_composite(pipe, (0, 0))
-    img.alpha_composite(pipe, (W - pipe.width, 0))
+    for side, path in zip((-1, 1), wall_textures(world)):
+        tex = Image.open(path).convert("RGBA")
+        qw = int(WALL_W * PPU)
+        qh = int(10.8 * PPU)
+        t = tex.resize((qw, qh), Image.NEAREST)
+        x0 = int(W / 2 + (side * WALL_X - WALL_W / 2) * PPU)
+        off = int((scroll * PPU) % qh)
+        y = -qh + off
+        while y < H:
+            _paste_clipped(img, t, x0, y)
+            y += qh
+    return img
+
+
+def gameplay_overlay(img, world="Space", scroll=0.0, enemies=True):
+    """Walls, the player, the world's enemies and its rail mines, for
+    judging contrast the way the game stacks them."""
+    assets = os.path.dirname(ART_WORLDS)
+    res = os.path.join(assets, "Resources")
+    W, H = img.size
+    draw_walls(img, world, scroll)
+
+    def put(im, wu, x, y):
+        im = im.resize((int(wu * PPU), int(im.height * wu * PPU / im.width)), Image.BILINEAR)
+        _paste_clipped(img, im, int(W / 2 + x * PPU - im.width / 2), int(H / 2 - y * PPU - im.height / 2))
+
+    if enemies:
+        key = world.lower()
+        cast = [("fighter_1", 0.85, -1.3, 3.6), ("fighter_2", 0.85, 0.2, 4.4), ("fighter_3", 0.85, 1.4, 2.6),
+                ("alien", 0.8, -0.4, 1.6), ("chaser", 0.8, 1.2, 0.4), ("big", 1.25, -1.0, -0.6),
+                ("rock_" + {"space": "", "frost": "shard", "verdant": "pod", "ember": "cinder"}[key], 0.6, 0.9, -2.2),
+                ("fighter_4", 0.85, -1.5, -3.2)]
+        for name, wu, x, y in cast:
+            p = os.path.join(res, "Enemies", f"{key}_{name}.png")
+            if not os.path.exists(p):
+                continue
+            strip = Image.open(p).convert("RGBA")
+            put(strip.crop((0, 0, strip.height, strip.height)), wu, x, y)
+        mines = Image.open(os.path.join(res, "Vfx", "rail_bomb_themes_atlas.png")).convert("RGBA")
+        cell = mines.width // 4
+        row = WORLDS.index(world)
+        m = mines.crop((0, row * cell, cell, (row + 1) * cell))
+        put(m, 0.8, -RAIL_X, 4.8)
+        put(m, 0.8, RAIL_X, -1.6)
+    hull = Image.open(os.path.join(res, "ShipArt", "Hulls", "CrimsonHalo.png")).convert("RGBA")
+    put(hull.crop((0, 0, 256, 256)), 0.62, 0.0, -4.4)
     return img
 
 
@@ -140,7 +182,7 @@ def main():
     comp = Composer(world)
     still = comp.frame(mod.preview(6.0))
     still.convert("RGB").save(os.path.join(outdir, f"{world}_still.png"))
-    gameplay_overlay(still.copy()).convert("RGB").save(os.path.join(outdir, f"{world}_with_gameplay.png"))
+    gameplay_overlay(still.copy(), world).convert("RGB").save(os.path.join(outdir, f"{world}_with_gameplay.png"))
     frames = [comp.frame(mod.preview(2.0 + i * 0.25)).convert("RGB").resize((285, 615)) for i in range(48)]
     frames[0].save(os.path.join(outdir, f"{world}_motion.gif"), save_all=True, append_images=frames[1:],
                    duration=125, loop=0)

@@ -76,6 +76,17 @@ public static class TestHarness
             // Written raw, not via SetEnabled, so nothing is restored here;
             // the key itself is put back on Dispose like every other pref.
             PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+
+            // Likewise every ship starts in its stock skin: suites that check
+            // the hull art read the stock sheet's source pixels, and a skin
+            // equipped in the Mac player would otherwise show up here. (Put
+            // back on Dispose with the other prefs.)
+            for (int id = 0; id <= shopingShips.shipTotal; id++)
+            {
+                PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(id));
+                PlayerPrefs.DeleteKey(ShipSkins.DeveloperEquippedKey(id));
+            }
+            ShipSkins.ClearPreview();
         }
 
         public void Dispose()
@@ -135,6 +146,14 @@ public static class TestHarness
             Codex.PrefsKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
+
+        // Hull skins: equipped index, ownership, and developer-mode equips.
+        for (int i = 0; i <= shopingShips.shipTotal; i++)
+        {
+            keys.Add(ShipSkins.EquippedKey(i));
+            keys.Add(ShipSkins.DeveloperEquippedKey(i));
+            for (int n = 0; n < ShipSkins.PerShip; n++) keys.Add(ShipSkins.OwnedKey(i, n));
+        }
 
         // Tiered achievement counts, plus the old per-tier keys they migrate from.
         foreach (AchievementCategory category in System.Enum.GetValues(typeof(AchievementCategory)))

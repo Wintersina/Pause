@@ -62,7 +62,7 @@ def far():
     for i in range(10):
         x, y = rnd.uniform(20, W - 20), rnd.uniform(0, H)
         glints.append((y, lambda dy, x=x, y=y: f'<rect x="{x:.0f}" y="{y + dy:.0f}" width="3" height="2" fill="{P["crack_hot"]}" opacity="0.6"/>'))
-    hd, hb = hazed(b, P["air"], 0.45)
+    hd, hb = hazed(b, P["air"], 0.25)
     return doc(W, H, hb + wrap_y(glints, H), d + hd)
 
 
@@ -109,7 +109,7 @@ def mid():
     body.append(wrap_y(rocks, H))
     d, b = edge_range(rnd, W, H, P["near"], 12, 50, 84, 40, 70, 100, cap=0.12, rim=P["rim"], ink=1.4,
                       cracks=P["crack"], foot=P["near"]["dark"])
-    hd, hb = hazed("".join(body) + b, P["air"], 0.25)
+    hd, hb = hazed("".join(body) + b, P["air"], 0.10)
     return doc(W, H, hb, d + hd)
 
 
@@ -155,7 +155,7 @@ def volcano(phase):
              f'<polygon points="{pts(kick)}" fill="{P["cone_hi"]}"/>'
              f'<polygon points="{pts(rim)}" fill="{P["cone_dark"]}"/>'
              f'<polygon points="{pts(cone)}" fill="none" {ink_attr(4)}/>')
-    d, body = hazed(solid, P["air"], 0.3)
+    d, body = hazed(solid, P["air"], 0.15)
     hot = 1.0 if f in (2, 3, 4) else 0.75
     lava = (f'<g opacity="{0.85 * hot:.2f}">'
             f'<polygon points="{pts(ch1)}" fill="{P["eruption_hot"]}" {ink_attr(1.6)}/>'

@@ -180,7 +180,7 @@ public static class CodexCatalogue
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
             lore += "\n\n" + LoadoutLore(index);
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
-                () => shopingShips.SpriteFor(index), lore));
+                () => ShipHullArt.StockRest(index), lore));
         }
 
         list.InsertRange(RosterInsertIndex(list), RosterEntries());

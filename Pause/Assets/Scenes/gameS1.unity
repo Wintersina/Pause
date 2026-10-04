@@ -691,38 +691,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d15bef161797ec147910e904f562b8ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  astroid1:
-  - {fileID: 105950, guid: 96acc15cd0038f64baddebb664a20f6f, type: 3}
-  - {fileID: 116752, guid: bf21d9f03fe1bcb4496e7f780aef475b, type: 3}
-  - {fileID: 149908, guid: 4be5a907c1bc7124c8a51f23bc7f45de, type: 3}
-  - {fileID: 149908, guid: 4be5a907c1bc7124c8a51f23bc7f45de, type: 3}
-  - {fileID: 164464, guid: 329d7970fb77ecd46b740012209328db, type: 3}
-  astroid2:
-  - {fileID: 149908, guid: 4be5a907c1bc7124c8a51f23bc7f45de, type: 3}
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  - {fileID: 197520, guid: b77bb6c2182153b40b19a70a325df2ab, type: 3}
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  - {fileID: 114236, guid: b84c7f2b88434b445a825cd259a465b5, type: 3}
-  astroid3:
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  - {fileID: 114236, guid: b84c7f2b88434b445a825cd259a465b5, type: 3}
-  - {fileID: 116752, guid: bf21d9f03fe1bcb4496e7f780aef475b, type: 3}
-  - {fileID: 163152, guid: 2289f349f78780a498eb0a1159382d4a, type: 3}
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  astroid4:
-  - {fileID: 116752, guid: bf21d9f03fe1bcb4496e7f780aef475b, type: 3}
-  - {fileID: 164464, guid: 329d7970fb77ecd46b740012209328db, type: 3}
-  - {fileID: 197520, guid: b77bb6c2182153b40b19a70a325df2ab, type: 3}
-  - {fileID: 105950, guid: 96acc15cd0038f64baddebb664a20f6f, type: 3}
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  astroid5:
-  - {fileID: 164464, guid: 329d7970fb77ecd46b740012209328db, type: 3}
-  - {fileID: 163152, guid: 2289f349f78780a498eb0a1159382d4a, type: 3}
-  - {fileID: 112746, guid: 13042310b25bf2a408a3115367a2521b, type: 3}
-  - {fileID: 105950, guid: 96acc15cd0038f64baddebb664a20f6f, type: 3}
-  - {fileID: 114236, guid: b84c7f2b88434b445a825cd259a465b5, type: 3}
   alien1: {fileID: 128726, guid: 1716f248879a3d9409936e4fc65c75a4, type: 3}
-  rails: {fileID: 197016, guid: 08a494c717485c14393c67b01b49ed19, type: 3}
   extraEnemyPrefabs: []
   phases: []
 --- !u!4 &184872559

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Skin swatch chip body: an angular parallelogram, white so the game tints
+     it the skin's base colour (tint x white = the exact palette colour). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="14" viewBox="0 0 22 14">
+  <path d="M4 0.8 H21.2 L18 13.2 H0.8 Z" fill="#FFFFFF"/>
+</svg>

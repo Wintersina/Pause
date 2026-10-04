@@ -95,9 +95,7 @@ public class DockBay : MonoBehaviour
         ship.SetParent(transform, false);
         ship.localPosition = ShipRest;
         hull = shipGo.AddComponent<SpriteRenderer>();
-        rest = shopingShips.SpriteFor(i, 0);
-        for (int f = 0; f < idle.Length; f++)
-            idle[f] = shopingShips.IdleSpriteFor(i, 0, f) ?? rest;
+        LoadSkin(ShipSkins.Shown(i));
         hull.sprite = rest;
         hull.sortingOrder = OrderShip;
         var material = DockArt.ShipMaterial;
@@ -177,6 +175,32 @@ public class DockBay : MonoBehaviour
         if (font != null) renderer.sharedMaterial = font.material;
         renderer.sortingOrder = OrderLabel + 1;
         return text;
+    }
+
+    // The hull skin this berth shows (equipped, or the one being previewed).
+    public int Skin { get; private set; }
+
+    void LoadSkin(int skin)
+    {
+        Skin = skin;
+        rest = ShipHullArt.Get(index, skin, 0, 0);
+        for (int f = 0; f < idle.Length; f++)
+            idle[f] = ShipHullArt.Get(index, skin, 0, f) ?? rest;
+    }
+
+    // Repaints the parked hull in `skin` (same shape, so nothing else moves).
+    // A powered berth keeps its idle animation running in the new colours.
+    public void ShowSkin(int skin)
+    {
+        if (skin == Skin && rest != null) return;
+        LoadSkin(skin);
+        if (hull == null || Launching) return;
+        if (Power > .05f && !Launching)
+        {
+            int drawing = ShipHullArt.IdleDrawingAt(Time.unscaledTime * ShipHullArt.TicksPerSecond + phase * 10f);
+            hull.sprite = idle[Mathf.Clamp(drawing, 0, idle.Length - 1)];
+        }
+        else hull.sprite = rest;
     }
 
     // Owned / equipped / price, from the same PlayerPrefs keys as always.

@@ -359,7 +359,19 @@ public static class WeaponChargeTest
             bool expected = go.CompareTag("Astr") ? kind == TargetExplosion.Kind.Rock : kind != TargetExplosion.Kind.Rock;
             prefabs &= expected && WeaponArt.Explosion(kind, 0) != null;
         }
-        Check("every hazard prefab maps to a matching explosion variant (" + seen + " prefabs)", prefabs && seen > 10);
+        // ...and so does every roster enemy, built as the spawner builds it
+        // (the old kn_*/aestroid_* hazard prefabs were deleted with their art).
+        foreach (var def in EnemyRoster.All)
+        {
+            var go = EnemyFactory.Create(def, Vector3.zero, Quaternion.identity);
+            if (go == null) { prefabs = false; continue; }
+            seen++;
+            // roster enemies pick their own (per-world) variant
+            var kind = TargetExplosion.KindFor(go);
+            prefabs &= kind == def.explosion && WeaponArt.Explosion(kind, 0) != null;
+            Object.DestroyImmediate(go);
+        }
+        Check("every hazard prefab and roster enemy maps to a matching explosion variant (" + seen + ")", prefabs && seen > 10);
 
         bool frames = true;
         foreach (TargetExplosion.Kind kind in System.Enum.GetValues(typeof(TargetExplosion.Kind)))
