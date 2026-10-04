@@ -131,7 +131,7 @@ public class SecretMeter : MonoBehaviour
         if (host == null || view == null) return;
         if (!registered)
         {
-            ShipUiSlots.Register(host, this, () => Footprint);
+            ShipUiSlots.Register(host, this, () => Footprint, () => ShipUiSlots.DrawnBounds(View));
             registered = true;
         }
         relayoutIn -= Time.unscaledDeltaTime;

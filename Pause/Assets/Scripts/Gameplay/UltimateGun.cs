@@ -79,7 +79,8 @@ public class UltimateGun : MonoBehaviour
         muzzleBaseScale = Vector3.one;
 
         Reposition(0f);
-        ShipUiSlots.Register(transform.parent, this, () => ShipUiSlots.GunToWorld(transform.parent, shipIndex, LocalEnvelope()));
+        ShipUiSlots.Register(transform.parent, this, () => ShipUiSlots.GunToWorld(transform.parent, shipIndex, LocalEnvelope()),
+                             () => ShipUiSlots.DrawnBounds(transform));
     }
 
     void Reposition(float extend01)
