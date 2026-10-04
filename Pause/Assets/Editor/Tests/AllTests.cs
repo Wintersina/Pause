@@ -50,6 +50,7 @@ public static class AllTests
         ("ShopTest", ShopTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
+        ("SplashLayoutTest", SplashLayoutTest.Execute),
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
