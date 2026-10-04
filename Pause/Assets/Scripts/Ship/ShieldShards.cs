@@ -32,6 +32,29 @@ public sealed class ShieldShards : MonoBehaviour
     }
 
     public static bool Exists { get { return instance != null; } }
+
+    // Creates the pool and every shard up front (inactive), so the first
+    // shatter never instantiates anything mid-run.
+    public static void Prewarm()
+    {
+        var pool = Instance;
+        var frames = ShieldArt.Shards;
+        for (int i = 0; i < Capacity; i++)
+        {
+            if (pool.items[i] != null) continue;
+            pool.items[i] = pool.NewShard(i);
+            pool.items[i].sprite = frames[i % frames.Length];
+            pool.items[i].gameObject.SetActive(false);
+        }
+    }
+
+    SpriteRenderer NewShard(int slot)
+    {
+        var go = new GameObject("Shard" + slot, typeof(SpriteRenderer));
+        go.transform.SetParent(transform, false);
+        created++;
+        return go.GetComponent<SpriteRenderer>();
+    }
     public int Created { get { return created; } }
 
     public int ActiveCount
@@ -55,13 +78,7 @@ public sealed class ShieldShards : MonoBehaviour
             for (int i = 0; i < Capacity; i++) if (age[i] > oldest) { oldest = age[i]; slot = i; }
         }
         var sr = items[slot];
-        if (sr == null)
-        {
-            var go = new GameObject("Shard" + slot, typeof(SpriteRenderer));
-            go.transform.SetParent(transform, false);
-            sr = items[slot] = go.GetComponent<SpriteRenderer>();
-            created++;
-        }
+        if (sr == null) sr = items[slot] = NewShard(slot);
         var frames = ShieldArt.Shards;
         sr.sprite = frames[Mathf.Abs(variant) % frames.Length];
         sr.sortingLayerID = sortingLayerId;

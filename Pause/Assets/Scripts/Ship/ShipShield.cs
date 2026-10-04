@@ -57,6 +57,7 @@ public class ShipShield : MonoBehaviour
     SpriteRenderer spark;      // activation anticipation flipbook
     PolygonCollider2D shieldCollider;
     BoxCollider2D hullCollider;
+    Vector2[] appliedPath;
     ShieldContour contour;
 
     Phase phase = Phase.Off;
@@ -137,6 +138,7 @@ public class ShipShield : MonoBehaviour
         flash = NewFlipbook("~ShieldImpact", layer, order + 4);
         spark = NewFlipbook("~ShieldSpark", layer, order + 4);
         root.SetActive(false);
+        Prewarm();
     }
 
     SpriteRenderer NewFlipbook(string name, int layer, int order)
@@ -150,27 +152,47 @@ public class ShipShield : MonoBehaviour
         return sr;
     }
 
-    // The hull the contour is cut from: the ship type's intact art (stable
-    // across idle bob frames and damage states), else whatever is showing.
-    Sprite ContourSprite()
+    // The shape the shield wraps: a roster ship's one contour (its intact rest
+    // silhouette, baked at edit time, shared by every skin, damage state and
+    // idle drawing); any other hull is cut from whatever sprite it shows.
+    ShieldContour FindContour()
     {
-        // Looked up once per shield (the contour is then held), keyed by the
-        // canonical ShipId. The cache itself is keyed by the hull sprite, so
-        // redrawn hull art gets a fresh contour with nothing to re-tune.
         int id = ShipId.Of(gameObject);
-        if (id != ShipId.None)
+        if (id != ShipId.None && ShipHullArt.Has(id))
         {
-            var s = shopingShips.SpriteFor(id, 0);
-            if (s != null) return s;
+            var c = ShieldContour.ForShip(id);
+            if (c != null) return c;
         }
         var hull = GetComponent<SpriteRenderer>();
-        return hull != null ? hull.sprite : null;
+        return hull != null ? ShieldContour.For(hull.sprite) : null;
+    }
+
+    // Everything a blue-atom pickup would otherwise do for the first time --
+    // the contour and its mesh, the shielded hitbox, the flipbook art, the
+    // shard pool -- done once when the shield is created (collisionDetection
+    // creates it as the ship spawns), so the pickup frame only flips state.
+    void Prewarm()
+    {
+        UnityEngine.Profiling.Profiler.BeginSample("ShipShield.Prewarm");
+        if (EnsureContour())
+        {
+            if (hullCollider == null) hullCollider = GetComponent<BoxCollider2D>();
+            if (hullCollider != null) PrepareShieldCollider();
+        }
+        ShieldArt.Prewarm();
+        if (Application.isPlaying) ShieldShards.Prewarm();
+        UnityEngine.Profiling.Profiler.EndSample();
+    }
+
+    Rect HullBox()
+    {
+        return new Rect(hullCollider.offset - hullCollider.size * .5f, hullCollider.size);
     }
 
     bool EnsureContour()
     {
         if (contour != null && mesh != null) return true;
-        contour = ShieldContour.For(ContourSprite());
+        contour = FindContour();
         if (contour == null) return false;
         if (mesh == null)
         {
@@ -263,14 +285,7 @@ public class ShipShield : MonoBehaviour
         if (hullCollider == null) return;
         if (shielded)
         {
-            if (shieldCollider == null)
-            {
-                shieldCollider = gameObject.AddComponent<PolygonCollider2D>();
-                shieldCollider.isTrigger = hullCollider.isTrigger;
-            }
-            var box = new Rect(hullCollider.offset - hullCollider.size * .5f, hullCollider.size);
-            shieldCollider.pathCount = 1;
-            shieldCollider.SetPath(0, contour.ColliderPath(box));
+            PrepareShieldCollider();
             shieldCollider.enabled = true;
             hullCollider.enabled = false;
         }
@@ -278,6 +293,26 @@ public class ShipShield : MonoBehaviour
         {
             hullCollider.enabled = true;
             if (shieldCollider != null) shieldCollider.enabled = false;
+        }
+    }
+
+    // The shielded trigger, created (disabled) and given its path ahead of
+    // time; the path is only re-sent when the outline or hitbox changed.
+    void PrepareShieldCollider()
+    {
+        if (shieldCollider == null)
+        {
+            shieldCollider = gameObject.AddComponent<PolygonCollider2D>();
+            shieldCollider.enabled = false;
+            shieldCollider.isTrigger = hullCollider.isTrigger;
+            appliedPath = null;
+        }
+        var path = contour.ColliderPath(HullBox());
+        if (!ReferenceEquals(path, appliedPath))
+        {
+            shieldCollider.pathCount = 1;
+            shieldCollider.SetPath(0, path);
+            appliedPath = path;
         }
     }
 

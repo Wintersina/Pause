@@ -171,7 +171,7 @@ public class collisionDetection : MonoBehaviour {
 
         #region
         //------------------------- Colliding with Enimies ---------------------------------------------
-        if (hit.gameObject.tag == "Enimey" || hit.gameObject.tag == "Astr" )
+        if (hit.gameObject.CompareTag("Enimey") || hit.gameObject.CompareTag("Astr"))
         {
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
@@ -200,7 +200,7 @@ public class collisionDetection : MonoBehaviour {
                     //------------------------- Kill 5/25/50/150/1000/3500 Aliens ---##08-13---
                     achievementAPICalls.alien_killed();
                 }
-                if (hit.gameObject.tag == "Astr")
+                if (hit.gameObject.CompareTag("Astr"))
                 {
                     //------------------------- Destroy 5/25/50/100/1500 Asteroids ---##14-18---
                     achievementAPICalls.asteroid_destroyed();
@@ -259,7 +259,7 @@ public class collisionDetection : MonoBehaviour {
         #endregion
         #region
         //-------------------- PICK UP ITEMS, Such as STARS, and ATOMS ------------------------------------------
-        else if (hit.gameObject.tag == "pickUp")
+        else if (hit.gameObject.CompareTag("pickUp"))   // CompareTag: no string per contact
         {
             // Every pickup pops in its own pixel-art burst where it was caught.
             PickupBurst.Play(hit.gameObject);

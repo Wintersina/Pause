@@ -10,12 +10,17 @@ using UnityEngine.Rendering;
 //   alpha -> silhouette -> dilate (disk) -> fill holes -> trace outer edge
 //         -> Douglas-Peucker (angular facets) -> resample + offset strips
 //
-// Built at most once per hull sprite (texture + rect) and cached for the rest
-// of the session, so it works for every roster ship and for any future ship
-// without anything authored per hull -- and is never rebuilt per frame or per
-// activation. Ship textures are imported non-readable, so pixels are read
-// back once through a RenderTexture (or straight from the PNG in the editor
-// when no GPU is available).
+// Roster ships: built at most once per ship (ForShip, keyed by ShipId) from
+// the silhouette baked at edit time (ShieldSilhouettes), so no hull pixels are
+// ever read back from the GPU in the game. Every skin, damage state and idle
+// drawing of a ship shares that one contour (skins keep the stock alpha), and
+// ShipShield builds it when the ship spawns, never on a blue-atom pickup.
+//
+// Any other sprite (For): built at most once per sprite (texture + rect) and
+// cached, so a hull nobody baked still gets a fitted shield. Ship textures are
+// imported non-readable, so its pixels are read back once through a
+// RenderTexture (or straight from the PNG in the editor when no GPU is
+// available).
 //
 // All sizes are in "hull units" U = the sprite's longest edge / 30 px. Every
 // hull is normalised to the same world size (shopingShips.ReferenceHullSize),
@@ -74,6 +79,8 @@ public sealed class ShieldContour
     Vector2[] cachedColliderPath;
 
     public static int BuildCount { get; private set; }
+    // GPU -> CPU readbacks made (ReadPixels through a RenderTexture).
+    public static int ReadbackCount { get; private set; }
 
     struct Key : IEquatable<Key>
     {
@@ -87,7 +94,44 @@ public sealed class ShieldContour
 
     public static int CachedCount { get { return cache.Count; } }
 
-    // Cached per hull sprite (texture + rect), i.e. per ship type.
+    static readonly Dictionary<int, ShieldContour> byShip = new Dictionary<int, ShieldContour>();
+
+    public static bool IsBuiltForShip(int id)
+    {
+        ShieldContour c;
+        return byShip.TryGetValue(id, out c) && c != null;
+    }
+
+    // The contour of roster ship `id`, shared by all of its skins, damage
+    // states and idle drawings. Cut from its baked silhouette; a ship with no
+    // (or a stale) bake falls back to reading its stock rest drawing back once.
+    public static ShieldContour ForShip(int id)
+    {
+        ShieldContour contour;
+        if (byShip.TryGetValue(id, out contour) && contour != null) return contour;
+        if (!ShipHullArt.Has(id)) return null;
+        UnityEngine.Profiling.Profiler.BeginSample("ShieldContour.ForShip");
+        var r = ShipHullArt.RectFor(id);
+        bool[] mask;
+        if (ShieldSilhouettes.TryGet(id, r.w, r.h, out mask))
+            contour = BuildMask(mask, r.w, r.h, new Vector2(r.w * .5f, r.h * .5f), r.pixelsPerUnit);
+        else
+            contour = For(ShipHullArt.StockRest(id));
+        if (contour != null) byShip[id] = contour;
+        UnityEngine.Profiling.Profiler.EndSample();
+        return contour;
+    }
+
+    // The alpha mask a sprite's contour is cut from.
+    public static bool[] MaskOf(Color32[] px, int w, int h)
+    {
+        if (px == null) return null;
+        var mask = new bool[w * h];
+        for (int i = 0; i < mask.Length && i < px.Length; i++) mask[i] = px[i].a >= AlphaCutoff;
+        return mask;
+    }
+
+    // Cached per hull sprite (texture + rect).
     public static ShieldContour For(Sprite sprite)
     {
         if (sprite == null || sprite.texture == null) return null;
@@ -132,6 +176,7 @@ public sealed class ShieldContour
 #endif
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return null;
 
+        ReadbackCount++;
         var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0,
             RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
         var previous = RenderTexture.active;
@@ -180,6 +225,12 @@ public sealed class ShieldContour
 
     public static ShieldContour Build(Color32[] px, int w, int h, Vector2 pivotPx, float ppu)
     {
+        return BuildMask(MaskOf(px, w, h), w, h, pivotPx, ppu);
+    }
+
+    // `on` = opaque hull pixels (w * h, bottom row first); null = all solid.
+    public static ShieldContour BuildMask(bool[] on, int w, int h, Vector2 pivotPx, float ppu)
+    {
         BuildCount++;
         if (w <= 0 || h <= 0) return null;
         if (ppu <= 0f) ppu = 100f;
@@ -197,8 +248,7 @@ public sealed class ShieldContour
             for (int x = 0; x < w; x++)
             {
                 // No pixels at all (readback impossible): treat the rect as solid.
-                bool on = px == null || px[y * w + x].a >= AlphaCutoff;
-                if (!on) continue;
+                if (on != null && !on[y * w + x]) continue;
                 hull[(y + pad) * W + x + pad] = true;
                 if (x < minX) minX = x; if (x > maxX) maxX = x;
                 if (y < minY) minY = y; if (y > maxY) maxY = y;
@@ -209,10 +259,12 @@ public sealed class ShieldContour
             minX = 0; minY = 0; maxX = w - 1; maxY = h - 1;
         }
 
+        // One distance transform serves every dilation radius tried below.
+        var dist = SquaredDistance(hull, W, H);
         bool[] grown = null;
         for (int attempt = 0; attempt <= Attempts; attempt++, R += step)
         {
-            grown = Dilate(hull, W, H, R);
+            grown = Dilate(dist, W, H, R);
             FillHoles(grown, W, H);
             if (CountComponents(grown, W, H) <= 1) break;
             if (attempt == Attempts) FillConvexHull(grown, W, H);
@@ -271,17 +323,21 @@ public sealed class ShieldContour
         int H = Mathf.Max(gridH - pad + oy, by1 + oy + 2);
         var mask = new bool[W * H];
         // Rasterise the faceted outline itself (any corner of a cell inside
-        // counts), so the trigger follows exactly what is drawn.
+        // counts), so the trigger follows exactly what is drawn. Only cells
+        // near the grown mask are candidates (the faceted outline can stray
+        // slightly outside it); cell corners are classified a scanline at a
+        // time with the same crossing rule as PointInPolygon.
+        var near = NearMask();
+        var corner = CornersInside();
+        int LW = gridW + 1;
         for (int y = 0; y < gridH; y++)
             for (int x = 0; x < gridW; x++)
             {
-                if (!solid[y * gridW + x] && !NearSolid(x, y)) continue;
+                if (!near[y * gridW + x]) continue;
+                int l = y * LW + x;
+                if (!(corner[l] || corner[l + 1] || corner[l + LW] || corner[l + LW + 1])) continue;
                 int sx = x - pad, sy = y - pad;
-                bool inside = false;
-                for (int k = 0; k < 4 && !inside; k++)
-                    inside = PointInPolygon(Polygon, new Vector2(
-                        (sx + (k & 1) - pivotPx.x) / ppu, (sy + (k >> 1) - pivotPx.y) / ppu));
-                if (inside) mask[(sy + oy) * W + sx + ox] = true;
+                mask[(sy + oy) * W + sx + ox] = true;
             }
         for (int y = by0; y < by1; y++)
             for (int x = bx0; x < bx1; x++)
@@ -291,42 +347,131 @@ public sealed class ShieldContour
         return cachedColliderPath;
     }
 
-    // Within a few cells of the grown mask (the faceted outline can stray
-    // slightly outside it).
-    bool NearSolid(int x, int y)
+    // Cells within a few cells (a square of radius r) of the grown mask.
+    // Separable: a row pass then a column pass over running counts.
+    bool[] NearMask()
     {
         int r = Mathf.CeilToInt(SimplifyU * Unit * ppu) + 1;
-        for (int dy = -r; dy <= r; dy++)
-            for (int dx = -r; dx <= r; dx++)
-            {
-                int nx = x + dx, ny = y + dy;
-                if (nx >= 0 && ny >= 0 && nx < gridW && ny < gridH && solid[ny * gridW + nx]) return true;
-            }
-        return false;
+        int W = gridW, H = gridH;
+        var rows = new bool[W * H];
+        var prefix = new int[Mathf.Max(W, H) + 1];
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++) prefix[x + 1] = prefix[x] + (solid[y * W + x] ? 1 : 0);
+            for (int x = 0; x < W; x++)
+                rows[y * W + x] = prefix[Mathf.Min(W, x + r + 1)] - prefix[Mathf.Max(0, x - r)] > 0;
+        }
+        var near = new bool[W * H];
+        for (int x = 0; x < W; x++)
+        {
+            for (int y = 0; y < H; y++) prefix[y + 1] = prefix[y] + (rows[y * W + x] ? 1 : 0);
+            for (int y = 0; y < H; y++)
+                near[y * W + x] = prefix[Mathf.Min(H, y + r + 1)] - prefix[Mathf.Max(0, y - r)] > 0;
+        }
+        return near;
     }
 
-    static bool[] Dilate(bool[] src, int W, int H, float R)
+    // Whether each cell corner of the grid ((gridW + 1) x (gridH + 1)
+    // lattice) lies inside Polygon -- PointInPolygon's even-odd crossing
+    // rule, evaluated a scanline at a time instead of once per point.
+    bool[] CornersInside()
+    {
+        int LW = gridW + 1, LH = gridH + 1;
+        var inside = new bool[LW * LH];
+        var poly = Polygon;
+        var xs = new float[poly.Length];
+        for (int ly = 0; ly < LH; ly++)
+        {
+            float qy = (ly - pad - pivotPx.y) / ppu;
+            int count = 0;
+            for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+                if ((poly[i].y > qy) != (poly[j].y > qy))
+                    xs[count++] = (poly[j].x - poly[i].x) * (qy - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x;
+            if (count == 0) continue;
+            Array.Sort(xs, 0, count);
+            int passed = 0;   // crossings at or left of qx
+            for (int lx = 0; lx < LW; lx++)
+            {
+                float qx = (lx - pad - pivotPx.x) / ppu;
+                while (passed < count && xs[passed] <= qx) passed++;
+                inside[ly * LW + lx] = ((count - passed) & 1) == 1;
+            }
+        }
+        return inside;
+    }
+
+    // Disk dilation by R: every interior cell within R of a solid cell (the
+    // outer ring of the grid stays clear for the trace). `dist` holds each
+    // cell's squared distance to the nearest solid cell.
+    static bool[] Dilate(int[] dist, int W, int H, float R)
     {
         var dst = new bool[W * H];
-        int r = Mathf.CeilToInt(R);
         float r2 = R * R;
-        var dxs = new List<int>();
-        var dys = new List<int>();
-        for (int dy = -r; dy <= r; dy++)
-            for (int dx = -r; dx <= r; dx++)
-                if (dx * dx + dy * dy <= r2) { dxs.Add(dx); dys.Add(dy); }
-        for (int y = 0; y < H; y++)
-            for (int x = 0; x < W; x++)
-            {
-                if (!src[y * W + x]) continue;
-                for (int k = 0; k < dxs.Count; k++)
-                {
-                    int nx = x + dxs[k], ny = y + dys[k];
-                    if (nx < 1 || ny < 1 || nx >= W - 1 || ny >= H - 1) continue;
-                    dst[ny * W + nx] = true;
-                }
-            }
+        for (int y = 1; y < H - 1; y++)
+            for (int x = 1; x < W - 1; x++)
+                if (dist[y * W + x] <= r2) dst[y * W + x] = true;
         return dst;
+    }
+
+    // Exact squared Euclidean distance transform (Felzenszwalb-Huttenlocher):
+    // two separable 1-D lower-envelope passes, O(W * H). It replaced a brute
+    // disk stamp costing ~R^2 per solid pixel (R ~ 34 px on a 243 px hull:
+    // a quarter of a second on the main thread).
+    public static int[] SquaredDistance(bool[] src, int W, int H)
+    {
+        const int Inf = 1 << 28;
+        int n = Mathf.Max(W, H);
+        var f = new int[n];
+        var d = new int[n];
+        var v = new int[n];
+        var z = new double[n + 1];
+        var dist = new int[W * H];
+        for (int x = 0; x < W; x++)
+        {
+            for (int y = 0; y < H; y++) f[y] = src[y * W + x] ? 0 : Inf;
+            Envelope(f, H, d, v, z);
+            for (int y = 0; y < H; y++) dist[y * W + x] = d[y];
+        }
+        for (int y = 0; y < H; y++)
+        {
+            int row = y * W;
+            for (int x = 0; x < W; x++) f[x] = dist[row + x];
+            Envelope(f, W, d, v, z);
+            for (int x = 0; x < W; x++) dist[row + x] = d[x];
+        }
+        return dist;
+    }
+
+    // Lower envelope of the parabolas (q - p)^2 + f[p], sampled at 0..n-1.
+    static void Envelope(int[] f, int n, int[] d, int[] v, double[] z)
+    {
+        int k = 0;
+        v[0] = 0;
+        z[0] = double.NegativeInfinity;
+        z[1] = double.PositiveInfinity;
+        for (int q = 1; q < n; q++)
+        {
+            double s;
+            while (true)
+            {
+                int p = v[k];
+                s = ((f[q] + (double)q * q) - (f[p] + (double)p * p)) / (2.0 * (q - p));
+                if (s > z[k]) break;
+                k--;
+            }
+            k++;
+            v[k] = q;
+            z[k] = s;
+            z[k + 1] = double.PositiveInfinity;
+        }
+        k = 0;
+        for (int q = 0; q < n; q++)
+        {
+            while (z[k + 1] < q) k++;
+            long dq = q - v[k];
+            long val = dq * dq + f[v[k]];
+            d[q] = val > int.MaxValue ? int.MaxValue : (int)val;
+        }
     }
 
     static void FillHoles(bool[] m, int W, int H)
