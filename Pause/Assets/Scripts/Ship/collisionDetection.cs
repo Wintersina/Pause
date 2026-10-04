@@ -239,6 +239,8 @@ public class collisionDetection : MonoBehaviour {
             }
             else {
                 lifeCounter += 1;
+                // the heart this costs darts out to shield against it
+                ShipLivesIndicator.Impact(hit.transform.position);
                 //change sprite
 
 
