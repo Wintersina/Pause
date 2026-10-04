@@ -58,11 +58,19 @@ public class spawnShips : MonoBehaviour
             hull.sprite = sprite;
             float scale = shopingShips.NormalizedHullScale(sprite);
             instance.transform.localScale = new Vector3(scale, scale, 1f);
+            // The tight hull polygon and the shield zone, baked per ship
+            // (ShipHitbox); they replace the prefab's box. Only a hull with no
+            // bake keeps the old box at 78% of the sprite. A hull with no
+            // collider at all (title-screen traffic) stays without one.
             var collider = instance.GetComponent<BoxCollider2D>();
-            if (collider != null)
+            bool gameplay = collider != null || ShipHitbox.Of(instance) != null;
+            if (gameplay && ShipHitbox.Install(instance, id) == null)
             {
-                collider.offset = sprite.bounds.center;
-                collider.size = (Vector2)sprite.bounds.size * .78f;
+                if (collider != null)
+                {
+                    collider.offset = sprite.bounds.center;
+                    collider.size = (Vector2)sprite.bounds.size * .78f;
+                }
             }
         }
         ShipExhaust.ConfigureBoost(instance, id);

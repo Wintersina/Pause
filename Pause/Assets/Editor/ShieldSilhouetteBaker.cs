@@ -10,8 +10,12 @@ using UnityEngine;
 // straight from the source PNGs. The game cuts the blue-atom shield's contour
 // from these instead of reading non-readable hull textures back from the GPU.
 //
+// Alongside it, ShipHitboxBaker writes each ship's tight hull hitbox and
+// shield zone (Resources/Shield/hull_hitboxes.bytes, see ShipHitbox).
+//
 // Re-baked automatically when a hull sheet is (re)imported and before every
-// player build; ShieldFitTest fails if the file ever drifts from the art.
+// player build; ShieldFitTest / ShipHitboxTest fail if either file ever
+// drifts from the art (or from ShipHitbox.ShieldMargin).
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ShieldSilhouetteBaker.Bake
 public static class ShieldSilhouetteBaker
@@ -59,14 +63,22 @@ public static class ShieldSilhouetteBaker
         return true;
     }
 
-    [MenuItem("Pause/Bake Shield Silhouettes")]
+    [MenuItem("Pause/Bake Shield Silhouettes + Hitboxes")]
     public static void Bake()
     {
         BakeIfStale();
     }
 
-    // Writes the file only when it differs. Returns true if it wrote.
+    // Writes the silhouettes and ShipHitbox's hit zones (ShipHitboxBaker,
+    // a sibling file) where they differ. Returns true if it wrote either.
     public static bool BakeIfStale()
+    {
+        bool wrote = BakeSilhouettesIfStale();
+        wrote |= ShipHitboxBaker.BakeIfStale();
+        return wrote;
+    }
+
+    static bool BakeSilhouettesIfStale()
     {
         var bytes = Compute();
         if (File.Exists(AssetPath))

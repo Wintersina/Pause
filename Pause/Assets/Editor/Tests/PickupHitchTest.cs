@@ -289,8 +289,12 @@ public static class PickupHitchTest
                     var again = Atom(Atoms[0]);
                     Pickup(r, again);
                     r.Expire();
-                    Pickup(r, again);
+                    // A collected pickup is spent (its collider goes off); the
+                    // one after expiry is a fresh atom, as in play.
+                    var after = Atom(Atoms[0]);
+                    Pickup(r, after);
                     UnityEngine.Object.DestroyImmediate(again);
+                    UnityEngine.Object.DestroyImmediate(after);
 
                     pickupBuilds += ShieldContour.BuildCount - builds;
                     pickupReadbacks += ShieldContour.ReadbackCount - rb;

@@ -555,7 +555,7 @@ public sealed class ShieldContour
 
     // Crack-following trace of the outer boundary along pixel edges, solid on
     // the left, so the loop comes out counter-clockwise.
-    static List<Vector2Int> Trace(bool[] m, int W, int H)
+    public static List<Vector2Int> Trace(bool[] m, int W, int H)
     {
         int VW = W + 1;
         var nextA = new int[VW * (H + 1)];

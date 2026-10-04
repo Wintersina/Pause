@@ -224,6 +224,7 @@ public class SecretPowerController : MonoBehaviour
         if (c.ShellUp)
         {
             c.shellLeft = 0f;
+            ShipHitbox.SetShield(c.gameObject, ShipHitbox.Source.Shell, false);
             if (c.shellFx != null && c.shellFx.Active) c.shellFx.Stop();
             c.shellFx = null;
             c.Burst(c.transform.position, 2.2f, null);
@@ -334,6 +335,8 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.HardShell:
                 shellLeft = shellSeconds;
+                // The shell is a shield: the ship's hit zone grows to the shield zone.
+                ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, true);
                 shellFx = Loop(at, 1.25f, shellSeconds, transform, 45);
                 break;
         }
@@ -527,7 +530,11 @@ public class SecretPowerController : MonoBehaviour
             if (holeLeft <= 0f) { holeLeft = 0f; ReleaseLocked(); }
         }
 
-        if (shellLeft > 0f && (shellLeft -= dt) <= 0f) shellLeft = 0f;
+        if (shellLeft > 0f && (shellLeft -= dt) <= 0f)
+        {
+            shellLeft = 0f;
+            ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
+        }
     }
 
     void StepHole(float dt)
@@ -565,6 +572,7 @@ public class SecretPowerController : MonoBehaviour
         ReleaseLocked();
         if (bubbleLeft > 0f) WorldTimeFx.BubbleScale = 1f;
         stunLeft = magnetLeft = clapLeft = decoyLeft = bubbleLeft = dashLeft = holeLeft = shellLeft = 0f;
+        ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
         DashOffsetX = 0f;
         ShipDecoy.Clear();
     }

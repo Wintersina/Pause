@@ -168,6 +168,9 @@ public class collisionDetection : MonoBehaviour {
     
     void OnTriggerEnter2D(Collider2D hit)
     {
+        // A pickup already collected this step (ShipHitbox's pickup radius got
+        // there first, or a second contact before Destroy lands) is spent.
+        if (!hit.enabled) return;
         Codex.Discover(hit.gameObject);   // first touch unlocks its codex entry (enemy, rock, atom, portal)
 
         #region
@@ -258,10 +261,12 @@ public class collisionDetection : MonoBehaviour {
             }
         }
         #endregion
-        #region
         //-------------------- PICK UP ITEMS, Such as STARS, and ATOMS ------------------------------------------
         else if (hit.gameObject.CompareTag("pickUp"))   // CompareTag: no string per contact
         {
+            // Spent as it is collected: its collider goes off, so neither
+            // route can pay for it twice.
+            hit.enabled = false;
             // Every pickup pops in its own pixel-art burst where it was caught.
             PickupBurst.Play(hit.gameObject);
 
@@ -332,9 +337,17 @@ public class collisionDetection : MonoBehaviour {
                 invTimer = 5.8f;
                 boostTimer = 1f;
             }
-            #endregion
         }
         //------------------------------------------------------------------------------------------------------------------
+    }
+
+    // ShipHitbox's pickup radius reached a pickup: collected exactly as if it
+    // had touched the hull. False if it was already spent.
+    public bool CollectPickup(Collider2D hit)
+    {
+        if (hit == null || !hit.enabled || !hit.gameObject.CompareTag("pickUp")) return false;
+        OnTriggerEnter2D(hit);
+        return true;
     }
     // simply turns of the texts
     void turnTextsOff()

@@ -24,8 +24,10 @@ using UnityEngine;
 //
 // Gameplay is unchanged: collisionDetection still owns the 5.8 s timer and
 // the "destroy whatever touches you while atomCheck" rule. While the shield
-// is up the ship's hitbox becomes the shield outline (unioned with its normal
-// box) so hazards are absorbed where the shield visibly is; see ColliderPath.
+// is up the ship's hit zone grows: a roster ship swaps its tight hull polygon
+// for ShipHitbox's baked shield zone (the shield line + ShipHitbox.ShieldMargin);
+// any other hull swaps its box for the shield outline unioned with that box
+// (ColliderPath). Either way hazards are absorbed where the shield visibly is.
 //
 // Everything advances on scaled time, so it all freezes with the game.
 public class ShipShield : MonoBehaviour
@@ -93,7 +95,13 @@ public class ShipShield : MonoBehaviour
     public bool SparkShowing { get { return spark != null && spark.enabled; } }
     public float Clock { get { return clock; } }
     public Color32[] Colors { get { return colors; } }
-    public PolygonCollider2D ShieldCollider { get { return shieldCollider; } }
+    // The collider that is the hit zone while the shield is up: the ship's
+    // baked ShipHitbox shield zone, or (a hull with no bake) the outline
+    // trigger cut here.
+    public PolygonCollider2D ShieldCollider
+    {
+        get { var hb = GetComponent<ShipHitbox>(); return hb != null ? hb.ShieldZone : shieldCollider; }
+    }
 
     // Scaled time, like gameplay; 0 while the game is frozen (timeScale 0).
     public static float ScaledDelta()
@@ -174,7 +182,7 @@ public class ShipShield : MonoBehaviour
     void Prewarm()
     {
         UnityEngine.Profiling.Profiler.BeginSample("ShipShield.Prewarm");
-        if (EnsureContour())
+        if (EnsureContour() && GetComponent<ShipHitbox>() == null)
         {
             if (hullCollider == null) hullCollider = GetComponent<BoxCollider2D>();
             if (hullCollider != null) PrepareShieldCollider();
@@ -281,6 +289,9 @@ public class ShipShield : MonoBehaviour
     // so a single contact never reports twice.
     void SwapCollider(bool shielded)
     {
+        // Roster ships: the baked hit zones (ShipHitbox) swap themselves.
+        var hb = GetComponent<ShipHitbox>();
+        if (hb != null) { hb.SetShield(ShipHitbox.Source.Atom, shielded); return; }
         if (hullCollider == null) hullCollider = GetComponent<BoxCollider2D>();
         if (hullCollider == null) return;
         if (shielded)

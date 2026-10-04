@@ -14,7 +14,9 @@ using UnityEngine;
 public static class SpawnLane
 {
     // A ship is ReferenceHullSize (0.58 u) across; a gap must clear it with
-    // room to spare.
+    // room to spare. The damage hitbox is tighter than the art now
+    // (ShipHitbox: the widest, UFO's disc, is ~0.56 u), so this still clears
+    // every hull with >= 30% to spare (ShipHitboxTest).
     public static float ShipGap => shopingShips.ReferenceHullSize * 1.3f;
 
     // Half the lane: the rail hardware sits at +/-2.35 (enmiesOnBoard.WorldRailX),
