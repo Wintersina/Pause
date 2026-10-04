@@ -166,6 +166,15 @@ public class ShipLivesIndicator : MonoBehaviour
         };
     }
 
+    // Where the hearts shown right now draw (world space): anything that
+    // flies off the hull keeps clear of them (ShipDamageFx).
+    public void HeartBounds(System.Collections.Generic.List<Bounds> into)
+    {
+        if (renderers == null) return;
+        foreach (var r in renderers)
+            if (r != null && r.enabled && r.gameObject.activeInHierarchy && r.sprite != null) into.Add(r.bounds);
+    }
+
     // Re-reads the free slots (the hull, its elements or the registry changed).
     public void Relayout()
     {

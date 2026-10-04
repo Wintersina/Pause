@@ -152,46 +152,21 @@ def _shift(points, d):
     return [(x + d, y + d) for x, y in points]
 
 
-def scorch_spots(ship, n, seed):
-    """Deterministic points inside the main form for damage scorches."""
-    main = ship.forms[0].outline if len(ship.forms) == 1 else max(ship.forms, key=lambda fm: _area(fm.outline)).outline
-    xs = [p[0] for p in main]
-    ys = [p[1] for p in main]
-    out = []
-    k = seed
-    tries = 0
-    while len(out) < n and tries < 500:
-        tries += 1
-        k = (k * 1103515245 + 12345) % (2 ** 31)
-        u = (k % 1000) / 1000.0
-        k = (k * 1103515245 + 12345) % (2 ** 31)
-        v = (k % 1000) / 1000.0
-        x = min(xs) + (max(xs) - min(xs)) * (0.15 + 0.7 * u)
-        y = min(ys) + (max(ys) - min(ys)) * (0.3 + 0.6 * v)
-        if _inside(main, x, y) and all(math.hypot(x - a, y - b) > 14 for a, b in out):
-            out.append((x, y))
-    return out
+def damage_draw(ft, hue, W, seed):
+    import damage
+    return damage.draw(ft, hue, W, seed)
 
 
-def _area(pts):
-    a = 0
-    for i in range(len(pts)):
-        x0, y0 = pts[i]
-        x1, y1 = pts[(i + 1) % len(pts)]
-        a += x0 * y1 - x1 * y0
-    return abs(a) / 2
+def damage_holes(ship, state):
+    if not getattr(ship, "damage", None):
+        return []
+    import damage
+    return damage.holes(ship, state)
 
 
-def _inside(pts, x, y):
-    c = False
-    j = len(pts) - 1
-    for i in range(len(pts)):
-        xi, yi = pts[i]
-        xj, yj = pts[j]
-        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi + 1e-9) + xi:
-            c = not c
-        j = i
-    return c
+def canopy_crack(canopy, W):
+    import damage
+    return damage.canopy_crack(canopy, W)
 
 
 def render(ship, hue, pose, uid="s", livery=None, trim=None):
@@ -262,7 +237,16 @@ def render(ship, hue, pose, uid="s", livery=None, trim=None):
         ink = f'<path d="{_path(o)}" fill="none" stroke="{ink_col}" stroke-width="{f(fm.ink)}" stroke-linejoin="round"/>'
         for pts, w in fm.lines:
             ink += line(W(pts), w, ink_col)
-        g.append(f'<g id="ink">{ink}</g></g>')
+        g.append(f'<g id="ink">{ink}</g>')
+        # this form's damage (damage.py), clipped to the form and re-inked:
+        # drawn inside the outline, so the alpha never changes
+        feats = [ft for ft in getattr(ship, "damage", {}).get(pose.damage, []) if ft[1] == i] if not fl else []
+        if feats:
+            dmg = "".join(damage_draw(ft, hue, W, k + 7 * i) for k, ft in enumerate(feats))
+            g.append(f'<g id="damage" clip-path="url(#{cid})">{dmg}</g>')
+            g.append(f'<g id="damage-ink"><path d="{_path(o)}" fill="none" stroke="{ink_col}" '
+                     f'stroke-width="{f(fm.ink)}" stroke-linejoin="round"/></g>')
+        g.append("</g>")
         out.append("".join(g))
 
     # stripes / trim on top of everything (identity livery + red friendly trim)
@@ -270,19 +254,14 @@ def render(ship, hue, pose, uid="s", livery=None, trim=None):
     for pts, role in ship.stripes:
         p = W(pts)
         st += f'<path d="{_path(p)}" fill="{colour(hue, trim.get(role, role), fl)}" stroke="{ink_col}" stroke-width="1.6" stroke-linejoin="round"/>'
+    holes = damage_holes(ship, pose.damage) if pose.damage and not fl else []
+    if holes:
+        # stripes never paint over a blown panel or a tear
+        m = '<rect x="-64" y="-64" width="256" height="256" fill="white"/>'
+        m += "".join(poly(W(h), "black") for h in holes)
+        defs.append(f'<mask id="{uid}holes" maskUnits="userSpaceOnUse" x="-64" y="-64" width="256" height="256">{m}</mask>')
+        st = f'<g mask="url(#{uid}holes)">{st}</g>'
     out.append(f'<g id="highlight-trim" clip-path="url(#{uid}sil)">{st}</g>')
-
-    # damage: scorches + cracks (flat GUN_SH cels with ink cracks)
-    if pose.damage and not fl:
-        dmg = ""
-        spots = scorch_spots(ship, 2 if pose.damage == 1 else 4, seed=len(ship.key) * 7 + 3)
-        for k, (x, y) in enumerate(spots):
-            r = 7 if pose.damage == 1 else 8.5
-            blob = star(x, y, r, r * 0.55, 5, rot=k * 23)
-            dmg += poly(W(blob), GUN_SH) + poly(W(star(x, y, r * 0.45, r * 0.25, 4, rot=k * 40)), INK)
-            crack = [(x - r * 1.4, y - r * 0.4), (x - r * 0.4, y + r * 0.1), (x + r * 0.3, y - r * 0.5), (x + r * 1.3, y + r * 0.2)]
-            dmg += line(W(crack), 1.5, INK)
-        out.append(f'<g id="damage" clip-path="url(#{uid}sil)">{dmg}</g>')
 
     # nozzles: gunmetal mouth, ink lip, hot amber slot (the plume starts here)
     nz = ""
@@ -312,6 +291,8 @@ def render(ship, hue, pose, uid="s", livery=None, trim=None):
             gy = y0 + (y1 - y0) * pose.glint
             can += poly(W([(cx - 12, gy + 2), (cx + 12, gy - 6), (cx + 12, gy - 2), (cx - 12, gy + 6)]), BONE)
             can += poly(W([(cx - 12, gy + 8), (cx + 12, gy), (cx + 12, gy + 1.5), (cx - 12, gy + 9.5)]), CYAN)
+        if pose.damage >= 2 and not fl and getattr(ship, "damage", None):
+            can += canopy_crack(ship.canopy, W)   # the last life cracks the glass
         can += "</g>" + inkpoly(c, 2.5, ink_col)
         out.append(f'<g id="canopy">{can}</g>')
 

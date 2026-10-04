@@ -122,15 +122,13 @@ public static class ShipLivesIndicatorTest
               ship.GetComponent<SpriteRenderer>().color == Color.white);
         collisionDetection.lifeCounter = 0;
 
-        int flames = 0;
-        foreach (Transform child in ship.transform)
-            if (child.name.StartsWith("~DamageFlame")) flames++;
-        Check("damage effects create two small hull flames (" + flames + ")", flames == 2);
-        Check("damage effects add a smoke trail",
-              ship.transform.Find("~DamageSmoke") != null);
-        Check("damage effects add impact bursts",
-              ship.transform.Find("~DamageExplosion0") != null &&
-              ship.transform.Find("~DamageExplosion1") != null);
+        // The per-ship emitters and the particle pool (ShipDamageTest covers
+        // what they do), built once under one "~DamageFx" child.
+        var fxRoot = ship.transform.Find("~DamageFx");
+        Check("damage effects build their emitters and pool under ~DamageFx",
+              fxRoot != null && damageFx.EmitterCount == ShipDamageTable.Total(8) &&
+              damageFx.PoolSize == ShipDamageFx.MaxParticles &&
+              fxRoot.childCount == ShipDamageTable.Total(8) + ShipDamageFx.MaxParticles);
 
         for (int i = 1; i < shopingShips.shipTotal; i++)
         {
