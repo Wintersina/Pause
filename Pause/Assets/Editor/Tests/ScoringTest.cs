@@ -318,7 +318,8 @@ public static class ScoringTest
         e2.Step(.1f, 1f);
         for (int i = 0; i < 400 && e2.State == BossEncounter.Phase.Intro; i++) e2.Step(.1f, 1f);
         long duringIntro = RunScore.Total;
-        e2.OnUltimateHit();
+        // Destroyed: its hit points run out before the clock (BossEndRule).
+        for (int i = 0; i < BossConfig.HitPoints; i++) e2.OnUltimateHit();
         for (int i = 0; i < 2000 && e2.State == BossEncounter.Phase.Fight; i++) e2.Step(.1f, 1f);
         Check("a destroyed boss adds 300 on top (" + beforeBoss + " -> " + RunScore.Total + ")",
               duringIntro == beforeBoss && RunScore.Total == beforeBoss + ScoreRules.BossDestroyed);

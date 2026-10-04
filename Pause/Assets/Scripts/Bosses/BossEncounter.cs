@@ -18,7 +18,8 @@ using UnityEngine.SceneManagement;
 //            blue atom's +0.05 is filtered (SpeedLocked). Normal enemy
 //            spawning is off (SuspendsSpawning). Pausing, teleporting and
 //            damage all work as usual.
-//   Outro    the boss explodes (hit by the ultimate) or retreats.
+//   Outro    the boss explodes (its hit points ran out) or retreats (the
+//            fight clock ran out first) -- whichever came first (BossEndRule).
 //   Done     everything above is released and the portal opens.
 //   Aborted  the player died; the normal death panel takes over.
 //
@@ -88,6 +89,9 @@ public class BossEncounter : MonoBehaviour
     public float Remaining => remaining;
     public int Hits => hits;
     public int HitPointsLeft => hp;
+    // The boss's hit points ran out (DESTROYED), as opposed to the fight
+    // clock (SURVIVED). Meaningful from the outro on.
+    public bool Destroyed => hp <= 0;
     public bool IsRunning => state == Phase.Pending || state == Phase.Intro ||
                              state == Phase.Fight || state == Phase.Outro;
     public float Progress01 => BossConfig.FightSeconds <= 0f ? 1f
@@ -162,7 +166,8 @@ public class BossEncounter : MonoBehaviour
 
         switch (state)
         {
-            case Phase.Idle: TickDevRush(dt); break;
+            // Done too: after a boss, the next world's (or the encore's) rushes.
+            case Phase.Idle: case Phase.Done: TickDevRush(dt); break;
             case Phase.Pending:
                 if (!ShipPowerController.CinematicClearActive) StartIntro();
                 break;
@@ -259,10 +264,10 @@ public class BossEncounter : MonoBehaviour
         fightClock += dt;
         actor.StepFight(dt, realDt, PlayerPosition(), Progress01, pool);
 
-        bool over = BossConfig.EndRule == BossEndRule.Survival
-            ? remaining <= 0f
-            : hp <= 0 || remaining <= 0f;
-        if (over) BeginOutro();
+        // Whichever comes first: hit points (DESTROYED) or the clock
+        // (SURVIVED). Both on the same frame: BeginOutro sees hp <= 0 and
+        // the boss is destroyed.
+        if (hp <= 0 || remaining <= 0f) BeginOutro();
     }
 
     Vector3 PlayerPosition()
@@ -279,20 +284,16 @@ public class BossEncounter : MonoBehaviour
     public void OnUltimateHit() => OnShipAttackHit(1f);
 
     // Any ship attack landed (BossTarget.TakeShipAttack). `weight` is the
-    // share of one full ultimate hit (one firing never totals more than 1):
-    // Survival takes UltimateHitSeconds * weight off the clock; HitPoints
-    // banks weights and loses a point per whole hit.
+    // share of one full ultimate hit (one firing never totals more than 1).
+    // Weights bank up and the boss loses a hit point per whole hit; the
+    // fight clock is left alone (BossEndRule).
     float hitBank;
     public void OnShipAttackHit(float weight)
     {
         if (state != Phase.Fight || weight <= 0f) return;
         hits++;
-        if (BossConfig.EndRule == BossEndRule.Survival) remaining -= BossConfig.UltimateHitSeconds * weight;
-        else
-        {
-            hitBank += weight;
-            while (hitBank >= 1f - 1e-4f) { hitBank -= 1f; hp--; }
-        }
+        hitBank += weight;
+        while (hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
         if (actor != null) actor.Flash();
         if (ui != null) ui.HitFlash(boss.flash);
     }
@@ -305,10 +306,11 @@ public class BossEncounter : MonoBehaviour
         outroClock = 0f;
         moveBackGround.speed = BossConfig.FightSpeed;
         if (pool != null) pool.RecycleAll();
-        // It explodes if the pilot actually landed blows; otherwise it gives
-        // up and warps away.
-        bool explode = BossConfig.EndRule == BossEndRule.Survival ? hits > 0 : hp <= 0;
-        RunScore.OnBoss(explode, remaining, BossConfig.EndRule == BossEndRule.HitPoints,
+        // Hit points gone: it explodes (DESTROYED). The clock ran out first:
+        // it gives up and warps away (SURVIVED). Scoring is the flat
+        // destroyed / survived pair, no time bonus.
+        bool explode = Destroyed;
+        RunScore.OnBoss(explode, remaining, false,
                         actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f));
         actor.BeginOutro(explode);
     }
@@ -359,8 +361,10 @@ public class BossEncounter : MonoBehaviour
     void TickDevRush(float dt)
     {
         if (!BossDev.RushEnabled || WorldManager.Instance == null) return;
-        if (WorldManager.Instance.Route != WorldManager.FinalRoute.None) return;
-        bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0;
+        // The encore (choice timed out) rushes its Ember boss like ON.
+        bool encore = WorldManager.Instance.Route == WorldManager.FinalRoute.Encore;
+        if (WorldManager.Instance.Route != WorldManager.FinalRoute.None && !encore) return;
+        bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0 && !encore;
         if (!final && DoneInWorld(WorldManager.CurrentIndex)) return;
         if (final && DoneInWorld(WorldManager.Worlds.Length - 1)) return;
         rushClock += dt;

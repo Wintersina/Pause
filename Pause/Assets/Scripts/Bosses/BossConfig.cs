@@ -1,14 +1,19 @@
 using UnityEngine;
 
-// How an encounter ends.
+// How an encounter ends: whichever comes first.
 //
-//   Survival  (default) the player outlasts the boss's full pattern sequence
-//             (FightSeconds of flying time). Each hit from the ultimate's
-//             homing shots takes UltimateHitSeconds off what is left.
-//   HitPoints the boss has HitPoints; each ultimate hit takes one. The fight
-//             still ends when FightSeconds run out (the boss retreats), so a
-//             player whose ultimate never charges is never stuck forever.
-public enum BossEndRule { Survival, HitPoints }
+//   DESTROYED  the boss's HitPoints run out. Every ship attack that lands
+//              adds its weight (one full ultimate hit = 1; a weaker contact
+//              a share of it), and each whole hit takes one point.
+//   SURVIVED   the fight clock (FightSeconds of flying time) runs out first:
+//              the boss retreats.
+//
+// The clock is fixed: hits never shave it. The two endings stay clearly
+// apart -- hurting the boss is how you destroy it, outlasting it is how you
+// survive it -- and a fight never ends early in a retreat because the pilot
+// landed blows. If the last hit point goes in the same frame the clock runs
+// out, DESTROYED wins (the hit counts).
+public enum BossEndRule { HitPointsOrSurvival }
 
 // Every tunable number for the end-of-level boss encounters, in one table.
 // Per-boss attack patterns live in BossCatalog; everything shared is here.
@@ -20,12 +25,12 @@ public enum BossEndRule { Survival, HitPoints }
 //              name card; speed drains to 0 over SpeedDrainSeconds
 //   -> Fight   speed held at FightSpeed (HUD "20"); patterns escalate in
 //              thirds of FightSeconds; normal pausing and teleport work
-//   -> Outro   OutroSeconds: explodes (if the ultimate hit it) or retreats
+//   -> Outro   OutroSeconds: explodes (hit points gone) or retreats (timer)
 //   -> Done    speed lock released, the portal opens as before.
 public static class BossConfig
 {
-    // ---- the one switch: how a fight ends ----
-    public static BossEndRule EndRule = BossEndRule.Survival;
+    // ---- how a fight ends (see BossEndRule): hit points or the timer ----
+    public static BossEndRule EndRule = BossEndRule.HitPointsOrSurvival;
 
     // ---- intro (real time; the world is frozen throughout) ----
     public static float IntroSeconds = 2.2f;
@@ -54,9 +59,8 @@ public static class BossConfig
     // Phase 3 (the last third) shortens every pattern's cooldown by this.
     public static float FinalPhaseCooldownScale = 0.75f;
 
-    // Survival: seconds each ultimate hit takes off the fight.
-    public static float UltimateHitSeconds = 8f;
-    // HitPoints: ultimate hits needed to destroy the boss.
+    // Full-weight ship-attack hits needed to destroy the boss before the
+    // fight clock runs out (weighted hits add up).
     public static int HitPoints = 3;
 
     // ---- outro ----

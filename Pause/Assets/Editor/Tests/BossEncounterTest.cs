@@ -38,8 +38,8 @@ public static class BossEncounterTest
             SpeedIsHeldAt20ThenReleased();
             ProjectilesFreezeAtTimeScaleZero();
             SpawningIsSuspended();
-            UltimateHitsShortenTheFight();
-            HitPointsRuleIsOneSwitch();
+            UltimateHitsSpendHitPoints();
+            HitPointsOrTimerWhicheverFirst();
             ProjectilePoolIsBounded();
             CodexEntryIsSecretUntilMet();
             MusicFallsBackWithoutABossClip();
@@ -276,7 +276,7 @@ public static class BossEncounterTest
         Check("spawning resumes after", !BossEncounter.SuspendsSpawning);
     }
 
-    static void UltimateHitsShortenTheFight()
+    static void UltimateHitsSpendHitPoints()
     {
         FreshScene();
         var e = StartFight();
@@ -289,36 +289,108 @@ public static class BossEncounterTest
         Check("the boss body is a registered attack target (IShipAttackTarget)",
               body.GetComponent<IShipAttackTarget>() is BossTarget && body.GetComponent<ClearTarget>() != null &&
               File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
+        Check("the boss starts with BossConfig.HitPoints (" + BossConfig.HitPoints + ")", e.HitPointsLeft == BossConfig.HitPoints);
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
-        Check("... and takes UltimateHitSeconds off the fight",
-              Mathf.Abs(before - e.Remaining - BossConfig.UltimateHitSeconds) < .001f && e.Hits == 1);
+        Check("... and takes one hit point (" + e.HitPointsLeft + " left)", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1);
+        Check("... but never shaves the fight clock (it stays fixed)", Mathf.Abs(before - e.Remaining) < .001f);
         Check("... with a hit flash", e.Actor.Flashing && e.Actor.BodyFrame == BossArt.Hit);
         Check("the boss itself is not destroyed", body != null && e.Actor != null);
-        float afterFull = e.Remaining;
         float budget = 1f;
         ShipAttackHits.Hit(body, 1, .25f, ref budget);
-        Check("a weaker attack contact shaves proportionally less (0.25 hit)",
-              body != null && Mathf.Approximately(afterFull - e.Remaining, BossConfig.UltimateHitSeconds * .25f));
+        Check("a weaker attack contact (0.25 hit) banks, no whole point yet", body != null &&
+              e.HitPointsLeft == BossConfig.HitPoints - 1 && Mathf.Abs(before - e.Remaining) < .001f);
+        e.OnShipAttackHit(.5f);
+        e.OnShipAttackHit(.25f);
+        Check("weighted hits add up: 0.25 + 0.5 + 0.25 = one more point", e.HitPointsLeft == BossConfig.HitPoints - 2);
         var other = new GameObject("rock");
         Check("ordinary targets are not intercepted", !BossTarget.Intercept(other, 1));
         RunWhile(e, BossEncounter.Phase.Fight);
-        Check("a hit boss explodes rather than retreats", e.Actor.State == BossActor.Mode.Dying);
+        Check("a boss with hit points left when the clock runs out retreats (SURVIVED)",
+              e.Actor.State == BossActor.Mode.Retreating && !e.Destroyed);
     }
 
-    static void HitPointsRuleIsOneSwitch()
+    // Whichever comes first: hit points (DESTROYED, 300) or the fight clock
+    // (SURVIVED, 150). Scoring unchanged, loop scaling as before.
+    static void HitPointsOrTimerWhicheverFirst()
     {
+        Check("the end rule is hit points or survival, whichever first",
+              BossConfig.EndRule == BossEndRule.HitPointsOrSurvival && BossConfig.HitPoints == 3);
+        var remainingField = typeof(BossEncounter).GetField("remaining", Inst);
+
+        // HP first: three full hits early in the fight end it at once.
         FreshScene();
-        var rule = BossConfig.EndRule;
-        BossConfig.EndRule = BossEndRule.HitPoints;
-        try
-        {
-            var e = StartFight();
-            for (int i = 0; i < BossConfig.HitPoints; i++) e.OnUltimateHit();
-            e.Step(.05f, 1f);
-            Check("HitPoints rule: enough hits end the fight", e.State == BossEncounter.Phase.Outro);
-        }
-        finally { BossConfig.EndRule = rule; }
-        Check("the default end rule is Survival", BossConfig.EndRule == BossEndRule.Survival);
+        RunScore.EndRun(RunScore.RunId);
+        RunScore.BeginRun(true, true);
+        var e = StartFight();
+        e.Step(1f, 1f);
+        long score = RunScore.Total;
+        for (int i = 0; i < BossConfig.HitPoints; i++) e.OnUltimateHit();
+        float left = e.Remaining;
+        e.Step(.05f, 1f);
+        Check("HP first: the last hit point ends the fight with " + left.ToString("F1") + "s still on the clock",
+              e.State == BossEncounter.Phase.Outro && left > BossConfig.FightSeconds * .5f);
+        Check("HP first: DESTROYED -- it explodes and pays " + ScoreRules.BossDestroyed + " (" + (RunScore.Total - score) + ")",
+              e.Destroyed && e.Actor.State == BossActor.Mode.Dying && RunScore.Total - score == ScoreRules.BossDestroyed);
+        RunWhile(e, BossEncounter.Phase.Outro);
+        Check("HP first: then Done", e.State == BossEncounter.Phase.Done);
+
+        // HP first with weighted hits: 0.5 x 6 = 3.
+        FreshScene();
+        e = StartFight();
+        for (int i = 0; i < BossConfig.HitPoints * 2; i++) e.OnShipAttackHit(.5f);
+        e.Step(.05f, 1f);
+        Check("HP first: half-weight hits add up (6 x 0.5 = 3 points)", e.State == BossEncounter.Phase.Outro && e.Destroyed);
+
+        // Timer first: two hits, then the clock runs out.
+        FreshScene();
+        RunScore.EndRun(RunScore.RunId);
+        RunScore.BeginRun(true, true);
+        e = StartFight();
+        e.OnUltimateHit();
+        e.OnUltimateHit();
+        score = RunScore.Total;
+        float fought = 0f;
+        for (int i = 0; i < 2000 && e.State == BossEncounter.Phase.Fight; i++) { e.Step(.1f, 1f); fought += .1f; }
+        Check("timer first: the fight lasts the full clock (" + fought.ToString("F1") + "s of " + BossConfig.FightSeconds + ")",
+              Mathf.Abs(fought - BossConfig.FightSeconds) < .25f);
+        Check("timer first: SURVIVED -- one hit point left, it retreats and pays " + ScoreRules.BossSurvived +
+              " (" + (RunScore.Total - score) + ")",
+              e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.HitPointsLeft == 1 &&
+              e.Actor.State == BossActor.Mode.Retreating && RunScore.Total - score == ScoreRules.BossSurvived);
+
+        // Simultaneous: the last point goes in on the frame the clock runs out.
+        FreshScene();
+        RunScore.EndRun(RunScore.RunId);
+        RunScore.BeginRun(true, true);
+        e = StartFight();
+        remainingField.SetValue(e, .05f);
+        for (int i = 0; i < BossConfig.HitPoints; i++) e.OnUltimateHit();
+        score = RunScore.Total;
+        e.Step(.1f, 1f);
+        Check("simultaneous: hit points and clock out on one frame -> DESTROYED (the hit counts)",
+              e.State == BossEncounter.Phase.Outro && e.Destroyed && e.Remaining <= 0f &&
+              RunScore.Total - score == ScoreRules.BossDestroyed);
+
+        // ... and one point short on that frame: SURVIVED.
+        FreshScene();
+        e = StartFight();
+        remainingField.SetValue(e, .05f);
+        for (int i = 0; i < BossConfig.HitPoints - 1; i++) e.OnUltimateHit();
+        e.OnShipAttackHit(.99f);
+        e.Step(.1f, 1f);
+        Check("simultaneous edge: a hair short of the last point when the clock runs out -> SURVIVED",
+              e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.HitPointsLeft == 1);
+
+        // Hits after the fight (outro) change nothing.
+        e.OnUltimateHit();
+        Check("hits during the outro are ignored", e.HitPointsLeft == 1 && !e.Destroyed);
+
+        // Loop scaling unchanged: loop 2 pays x1.5 either way.
+        Check("loop scaling as before: 450 / 225 on loop 2",
+              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 225);
+        Check("BossEncounter scores the flat pair (no time bonus)",
+              File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(explode, remaining, false,"));
+        RunScore.EndRun(RunScore.RunId);
     }
 
     static void ProjectilePoolIsBounded()
