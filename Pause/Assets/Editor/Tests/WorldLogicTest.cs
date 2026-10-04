@@ -57,9 +57,10 @@ public static class WorldLogicTest
                     AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/WorldMusic/" +
                         world + "Stage" + stage.ToString("00") + ".wav") != null);
         }
-        foreach (string key in EnemyRoster.WorldKeys)
-            Check("the " + key + " rail mine flipbook is present",
-                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Enemies/" + key + "_mine.png") != null);
+        for (int w = 0; w < EnemyRoster.WorldKeys.Length; w++)
+            Check("the " + EnemyRoster.WorldKeys[w] + " rail mine flipbook is present (neon atlas row)",
+                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png") != null &&
+                  RailMineArt.Frame(w, RailMineArt.Dormant) != null);
 
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
         Check("has a next world", WorldManager.HasNext);

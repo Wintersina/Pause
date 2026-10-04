@@ -11,6 +11,13 @@ using UnityEngine;
 // Resources.Load / LoadAll, so none of it may reappear there. Scenes and
 // prefabs must not point at the deleted prefabs either, and the project's
 // default cursor must not name a texture that no longer exists.
+//
+// The rail mine's art went the other way: its original neon atlas (the old
+// Vfx/rail_bomb_themes_atlas.png) is back, on purpose, under
+// Enemies/Mines/rail_mines_neon.png, and is the one rail-mine texture allowed
+// under Resources. Its old copies (and the two Ember beat frames), the old
+// RailBombSprites slicer and the flat-cartoon <world>_mine strips that
+// replaced it stay deleted.
 public static class UnusedAssetGuardTest
 {
     static int fails;
@@ -64,6 +71,7 @@ public static class UnusedAssetGuardTest
 
         NoRetiredArtUnderResources();
         RetiredFoldersAreGone();
+        RailMineArtIsTheRestoredAtlasOnly();
         NothingReferencesARetiredPrefab();
         DefaultCursorResolves();
 
@@ -97,6 +105,44 @@ public static class UnusedAssetGuardTest
     {
         foreach (string folder in GoneFolders)
             Check(folder + " is gone", !AssetDatabase.IsValidFolder(folder) && !Directory.Exists(folder));
+    }
+
+    // Allowed: the restored atlas at its new home. Retired: everything else
+    // that ever drew the rail mine.
+    public const string RestoredMineAtlas = "Assets/Art/Resources/Enemies/Mines/rail_mines_neon.png";
+
+    static readonly string[] RetiredMineArt =
+    {
+        "Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png",
+        "Assets/Art/Resources/Vfx/rail_mine_ember_1.png",
+        "Assets/Art/Resources/Vfx/rail_mine_ember_2.png",
+        "Assets/Scripts/Worlds/RailBombSprites.cs",
+        "Assets/Art/Resources/Enemies/space_mine.png",
+        "Assets/Art/Resources/Enemies/frost_mine.png",
+        "Assets/Art/Resources/Enemies/verdant_mine.png",
+        "Assets/Art/Resources/Enemies/ember_mine.png",
+    };
+
+    static readonly Regex MineArtName = new Regex(@"(rail_?bomb|rail_?mine|^(space|frost|verdant|ember)_mine$)", RegexOptions.IgnoreCase);
+
+    static void RailMineArtIsTheRestoredAtlasOnly()
+    {
+        Check("the restored neon rail-mine atlas is allowed and present (" + RestoredMineAtlas + ")",
+              File.Exists(RestoredMineAtlas) && AssetDatabase.LoadAssetAtPath<Texture2D>(RestoredMineAtlas) != null);
+        Check("RailMineArt loads it from Resources", RailMineArt.Atlas != null &&
+              AssetDatabase.GetAssetPath(RailMineArt.Atlas) == RestoredMineAtlas);
+        foreach (string path in RetiredMineArt)
+            Check(path + " stays deleted", !File.Exists(path) && !File.Exists(path + ".meta"));
+
+        var found = new List<string>();
+        foreach (string file in Directory.GetFiles("Assets", "*.png", SearchOption.AllDirectories))
+        {
+            string path = file.Replace('\\', '/');
+            if (!path.Contains("/Resources/") || path == RestoredMineAtlas) continue;
+            if (MineArtName.IsMatch(Path.GetFileNameWithoutExtension(path))) found.Add(path);
+        }
+        foreach (string path in found) Debug.Log("[UAG] stray rail-mine art under Resources: " + path);
+        Check("the neon atlas is the only rail-mine texture under Resources (" + found.Count + " others)", found.Count == 0);
     }
 
     static void NothingReferencesARetiredPrefab()

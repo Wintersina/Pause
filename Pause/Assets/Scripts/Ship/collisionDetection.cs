@@ -186,6 +186,7 @@ public class collisionDetection : MonoBehaviour {
             // mine, and the weapon explosion below covers it.
             if (PrefabName.Is(hit.gameObject, "mine") && !safe)
             {
+                RailBombAnimator.Burst(hit.gameObject);   // the mine's own burst frame under the blast
                 PlayExplosion();
                 GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
                 Destroy(RedExp, 2);

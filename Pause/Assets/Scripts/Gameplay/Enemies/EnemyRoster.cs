@@ -23,7 +23,8 @@ using UnityEngine;
 // art key (the strip Resources/Enemies/<key>.png, built by
 // Art/Enemies/src~) and the spawned GameObject's name, except for the alien
 // and the mine, which keep the legacy names "alien1" and "mine" that
-// collisionDetection matches on.
+// collisionDetection matches on. The rail mines are neon pixel art instead:
+// one row each of the original four-world atlas (RailMineArt).
 public enum EnemyRole { Rock, Big, Fighter, Chaser, Alien, Mine }
 
 public sealed class EnemyDef
@@ -47,7 +48,8 @@ public sealed class EnemyDef
         role == EnemyRole.Alien ? EnemyRoster.AlienObjectName :
         role == EnemyRole.Mine ? EnemyRoster.MineObjectName : key;
 
-    public string StripPath => EnemyRoster.ArtFolder + "/" + key;
+    // The mines all read the one neon atlas (RailMineArt), a row per world.
+    public string StripPath => role == EnemyRole.Mine ? RailMineArt.AtlasPath : EnemyRoster.ArtFolder + "/" + key;
 
     // World size of one 128 u flipbook frame (the drawing sits inside it) and
     // the BoxCollider2D in world units, both per role.
@@ -75,17 +77,23 @@ public static class EnemyRoster
     //   Fighter kn_enemy* hulls: ~0.83 wide, collider ~0.68 x 0.61
     //   Chaser  kn_enemyRed5 + ChaserEnemy: 0.866 x 0.75, collider 0.71 x 0.615
     //   Alien   alien1: 0.64, collider 0.4 x 0.2
-    //   Mine    runtime rail mine: ~0.8, collider 0.62 square
+    //   Mine    runtime rail mine: ~0.8 cell, collider 0.62 square
     // Every role keeps to those, except the Big heavies: the user wanted them
     // to read as properly big (they were smaller than the fighters), so they
-    // target BigWidth instead (TargetWidth / TargetCollider below).
+    // target BigWidth instead (TargetWidth / TargetCollider below), and the
+    // mines, back on their original neon atlas: held to the drawing the
+    // original showed (MineWidth), not its 0.8 u cell.
     public const float BigWidth = 1.1f;
 
+    // The original atlas mine's drawn width: ~255 px at 180 PPU, prefab
+    // scale 0.46. RailMineArt.PixelsPerUnit draws it at ~0.66 u.
+    public const float MineWidth = .65f;
+
     // The size a role is held to (+/-15%, EnemyRosterTest): the legacy size,
-    // or the heavies' new one.
+    // or the heavies' and mines' own.
     public static float TargetWidth(EnemyRole role)
     {
-        return role == EnemyRole.Big ? BigWidth : LegacyWidth(role);
+        return role == EnemyRole.Big ? BigWidth : role == EnemyRole.Mine ? MineWidth : LegacyWidth(role);
     }
 
     public static Vector2 TargetCollider(EnemyRole role)
@@ -151,13 +159,16 @@ public static class EnemyRoster
 
     // ---- animation timing ------------------------------------------------------
     // Hold ticks at 24 fps per frame (art-style.md section 3), mirrored from
-    // the IDLE_TICKS / TELL_TICKS tables in Art/Enemies/src~.
+    // the IDLE_TICKS / TELL_TICKS tables in Art/Enemies/src~. The mines
+    // (RailMineArt.FlipbookColumns) keep the old RailBombAnimator's 6 fps
+    // snap: idle holds dormant with one 4-tick waking blink of the core, and
+    // arming loops waking -> charging at 4 ticks a frame.
     public static int[] IdleTicks(EnemyRole role)
     {
         switch (role)
         {
             case EnemyRole.Rock: return new[] { 5, 3, 2, 3 };
-            case EnemyRole.Mine: return new[] { 6, 2, 2, 4 };
+            case EnemyRole.Mine: return new[] { 6, 4, 6, 6 };
             case EnemyRole.Big: return new[] { 6, 2, 3, 3 };
             case EnemyRole.Alien: return new[] { 4, 2, 3, 3 };
             default: return new[] { 6, 3, 2, 3 };   // fighter, chaser
@@ -169,7 +180,7 @@ public static class EnemyRoster
         switch (role)
         {
             case EnemyRole.Big: return new[] { 3, 4 };
-            case EnemyRole.Mine: return new[] { 2, 2 };
+            case EnemyRole.Mine: return new[] { 4, 4 };
             default: return new[] { 2, 3 };
         }
     }
@@ -282,7 +293,7 @@ public static class EnemyRoster
                 "they blot out.",
                 "aestroiddark", "aestroidgay3"),
             Def("space_mine", "Rail Mine", M, 0, 0, "hazard_mine", Mine,
-                "The approved rail bomb: gunmetal clamp, steel hub, four lugs, cyan core that arms to a burst.",
+                "Neon pixel rail bomb: gunmetal clamp and sphere, four lugs, a cyan core that wakes, charges and bursts.",
                 "Bombs clamped to the side rails of deep space. They never leave their rail, and the core " +
                 "arms as you pass - hug the middle lanes.",
                 "mine"),
@@ -329,7 +340,7 @@ public static class EnemyRoster
                 "Six-point ice star with a hex cyan core.",
                 "A snowflake the size of a car, spinning slowly: pretty, deadly, mostly deadly."),
             Def("frost_mine", "Geode Mine", M, 1, 0, "hazard_frost_mine", Mine,
-                "A tall crystal geode held off the rail by two ice hooks; arming grows crystals that shoot out in a frost star.",
+                "Neon pixel ice mine: clamp and steel lugs round a blue crystal sphere, a snowflake core that bursts into a frost star.",
                 "A geode the Frost rails grew around a cold star. Get close and the crystals start to grow - " +
                 "then they all come out at once."),
             Def("frost_big", "Glacier Golem", B, 1, 0, "enemy_frost_big", Ice,
@@ -375,7 +386,7 @@ public static class EnemyRoster
                 "A clump of jungle floor that floated off with its garden still attached. The buds on the " +
                 "vines light up before they whip - and they always whip.")),
             Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
-                "A thorny seed burr hanging from a coiled vine tendril; its husk splits along glowing seams to arm.",
+                "Neon pixel seed mine: a wooden clamp and vine-wrapped burr with magenta thorns, a lime core that bursts in leaves.",
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
                 "to scatter thorns everywhere."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
@@ -417,7 +428,7 @@ public static class EnemyRoster
                 "A slab of the shore that drifted off before the lava finished with it. It drips as it floats - " +
                 "mind the drops, mind the rock.")),
             Def("ember_mine", "Crucible Mine", M, 3, 0, "hazard_ember_mine", Mine,
-                "A basalt crucible slung from the rail on chains; its magma boils over and erupts when armed.",
+                "Neon pixel magma mine: a basalt clamp and sphere cracked with lava, an orange core that erupts in a sun burst.",
                 "A pot of magma on a chain. It simmers as you pass and boils over if you linger - don't."),
             Def("ember_big", "Magma Skull", B, 3, 0, "enemy_ember_big", Magma,
                 "A horned basalt skull whose furnace jaw glows behind a grille and drops open.",

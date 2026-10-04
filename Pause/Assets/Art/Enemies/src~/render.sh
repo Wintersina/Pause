@@ -40,26 +40,6 @@ done
 wait
 python3 strip.py "$tmp" "$out" "$1"
 
-# The rail mine also keeps its legacy atlas (Art/Resources/Vfx/
-# rail_bomb_themes_atlas.png: row = world, columns = dormant, lit, arming,
-# burst; 313 px cells, read by RailBombSprites) and the two Ember beat frames
-# (rail_mine_ember_1/2, 256 px), so everything that still shows the old art
-# shows the restyled mine.
-if [ -z "$1" ] || [ "${1#*mine}" != "$1" ] || [ "$1" = "space_" ] || [ "$1" = "ember_" ]; then
-  vfx="../../Resources/Vfx"
-  for w in space frost verdant ember; do
-    for k in 0 1 4 5; do
-      [ -f "$tmp/${w}_mine_$k.svg" ] && resvg -w 313 -h 313 "$tmp/${w}_mine_$k.svg" "$tmp/atlas_${w}_$k.png"
-    done
-  done
-  # the atlas holds all four worlds: rebuild it only when every world's mine
-  # was rendered this run (a single-world prefix leaves it as it is)
-  if [ -f "$tmp/atlas_space_0.png" ] && [ -f "$tmp/atlas_frost_0.png" ] &&
-     [ -f "$tmp/atlas_verdant_0.png" ] && [ -f "$tmp/atlas_ember_0.png" ]; then
-    python3 atlas.py "$tmp" "$vfx/rail_bomb_themes_atlas.png"
-  fi
-  if [ -f "$tmp/ember_mine_0.svg" ]; then
-    resvg -w 256 -h 256 "$tmp/ember_mine_0.svg" "$vfx/rail_mine_ember_1.png"
-    resvg -w 256 -h 256 "$tmp/ember_mine_5.svg" "$vfx/rail_mine_ember_2.png"
-  fi
-fi
+# The rail mines are not rendered here any more: they play the original neon
+# pixel-art atlas (Art/Resources/Enemies/Mines/rail_mines_neon.png, sliced by
+# RailMineArt), which is kept byte-for-byte as the user approved it.

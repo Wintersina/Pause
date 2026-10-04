@@ -4,7 +4,8 @@ using UnityEngine;
 // Loads an enemy's flipbook strip (Resources/Enemies/<key>.png, seven 128 u
 // frames butted left to right: 0-3 idle, 4-5 tell, 6 hit flash) and slices it
 // into sprites sized so one frame covers the role's FrameWorldSize in the
-// world. Same runtime-slicing approach as RailBombSprites.
+// world. The rail mines are the exception: their seven frames come from the
+// neon pixel-art atlas (RailMineArt), one row per world.
 public static class EnemyArt
 {
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
@@ -16,6 +17,14 @@ public static class EnemyArt
         // Sprite.Create()d sprites die with an editor scene swap; Unity's null
         // check catches that and the strip is sliced again.
         if (cache.TryGetValue(def.key, out frames) && frames != null && frames[0] != null) return frames;
+
+        if (def.role == EnemyRole.Mine)
+        {
+            frames = RailMineArt.Flipbook(def.world);
+            if (frames == null) return null;
+            cache[def.key] = frames;
+            return frames;
+        }
 
         var tex = Resources.Load<Texture2D>(def.StripPath);
         if (tex == null) return null;
