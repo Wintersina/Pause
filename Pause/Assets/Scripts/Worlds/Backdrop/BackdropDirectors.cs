@@ -899,7 +899,7 @@ public class EmberDirector : PlanetDirector
     // be seen before it lifts off. Far below the play area, so a parked
     // ship is drawn small (ParkedScale) just above the volcano.
     public static readonly Vector2[] VolcanoPads = { new Vector2(-.27f, -.2f), new Vector2(.27f, -.24f) };
-    public const float ParkedScale = .3f;
+    public const float ParkedScale = .36f;
 
     public override void LandingSites(List<LandingSite> into)
     {

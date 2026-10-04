@@ -800,6 +800,7 @@ public static class CodexTest
         {
             var want = new HashSet<string>();
             foreach (var d in EnemyRoster.All) if (d.world == w && !d.IsHazard) want.Add(d.codexId);
+            foreach (var d in EliteCatalog.All) if (d.WorldIndex == w) want.Add(d.codexId);   // its elite ships
             var got = new HashSet<string>();
             var section = panel.SectionAt(w);
             for (int i = 0; i < section.entries.Count; i++)
@@ -810,7 +811,7 @@ public static class CodexTest
             }
             ok &= want.SetEquals(got) && got.Count == section.entries.Count && section.world == w;
         }
-        Check("each world section holds exactly that world's roster enemies" + (bossesShown ? " (bosses shown)" : ""), ok);
+        Check("each world section holds exactly that world's roster enemies and elites" + (bossesShown ? " (bosses shown)" : ""), ok);
     }
 
     static string Labels(CodexPanel panel)

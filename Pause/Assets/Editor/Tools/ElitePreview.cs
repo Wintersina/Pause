@@ -7,7 +7,7 @@ using UnityEngine;
 // Renders each elite's whole life cycle over its world's real backdrop, for
 // review: parked on a landing site the backdrop reports -> engine-light
 // tell -> lift-off -> join -> follow -> attack (tell, action) -> a hit ->
-// a crash that kills it (into a rock dropped in its path) -> the debris.
+// a crash that kills it (into an enemy craft dropped in its path) -> the debris.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod ElitePreview.Run
 //   (frames to $ELITE_PREVIEW_DIR/elite-<key>/NNN.png, else Builds/ElitePreview;
@@ -169,9 +169,9 @@ public static class ElitePreview
         tick(.9f);                                    // the heart darts and crumbles
         if (e != null)
         {
-            // the crash: a rock in its path
+            // the crash: an enemy craft in its path (armoured haulers shrug off rocks)
             Vector2 at = e.Position + (e.Velocity.sqrMagnitude > .01f ? e.Velocity.normalized * .25f : Vector2.zero);
-            var rock = EnemyFactory.Create(EnemyRoster.One(3, EnemyRole.Rock), at, Quaternion.identity);
+            var rock = EnemyFactory.Create(EnemyRoster.Fighter(3, 2), at, Quaternion.identity);
             ClearTarget.Ensure(rock);
         }
         tick(1.8f);                                   // the debris

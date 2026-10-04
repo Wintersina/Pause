@@ -111,7 +111,10 @@ and change it. Every field is documented in `EliteDef.cs`. Required:
 `role` (one line), `codexId` (`elite_<world>_<name>`), `lore` (max 3 sentences,
 the codex voice: second person, playful, gives a hint), `brain`, `attack`,
 `cellWorldSize` (1.45-1.7: a cell's world size), `hullRadius`, `noseDeg`,
-`turnsToFace`, colours, `muzzles`, `nozzles`. Keep `hearts: 2`.
+`turnsToFace`, colours, `muzzles`, `nozzles`. Keep `hearts: 2`, `heartSize`
+~0.18 (the player's are 0.22) and pick `heartOrbit` so `hullRadius x heartOrbit
++ heartSize x 1.05` stays under ~0.52 u -- a tighter orbit than the player's
+(EliteTest compares them).
 
 Personality numbers (shared base): `speed`, `accel`, `turnRate`,
 `followDistance`, `aggression` (0-1), `tellSeconds`, `attackGap`,

@@ -87,8 +87,8 @@ public class EliteDef
 
     // ---- hearts ----
     public int hearts = 2;
-    public float heartSize = .15f;
-    public float heartOrbit = .72f;     // orbit radius, x the hull's half-size
+    public float heartSize = .18f;
+    public float heartOrbit = .85f;     // orbit radius, x the hull's half-size
     public string heartStyle = "Halo";  // HeartStyle name
 
     // ---- exhaust ----

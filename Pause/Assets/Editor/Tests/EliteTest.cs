@@ -551,7 +551,17 @@ public static class EliteTest
         Vector3 p0 = h.Hearts[0].position;
         for (int i = 0; i < 20; i++) h.Place(Dt, Dt);
         Check("the hearts orbit", Vector3.Distance(p0, h.Hearts[0].position) > .01f);
-        Check("a smaller orbit than a player ship's (" + h.OrbitRadius.ToString("0.00") + ")", h.OrbitRadius < .85f);
+        var player = HeartsPlacementTest.Build(ShipId.Starter, new Vector3(0f, -3f, 0f), false, 3);
+        player.hearts.Place(0f, 0f);
+        float playerOrbit = player.hearts.OrbitRadius;
+        Check("a smaller orbit than the player ship's (" + h.OrbitRadius.ToString("0.00") + " vs " + playerOrbit.ToString("0.00") + ")",
+              h.OrbitRadius < playerOrbit && h.OrbitRadius > e.Def.hullRadius);
+        Check("smaller hearts than the player's", h.heartSize < player.hearts.heartSize);
+        foreach (var d in EliteCatalog.All)
+        {
+            float orbitR = d.hullRadius * d.heartOrbit + d.heartSize * HeartOrbit.OrbitReach;
+            Check(d.key + ": its heart orbit (" + orbitR.ToString("0.00") + ") is tighter than the player's", orbitR < playerOrbit && d.heartSize < player.hearts.heartSize);
+        }
         e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position + Vector3.left);
         Check("a hit: one heart darts out and crumbles (shield)", h.ShownCount == 1 && h.ActiveBreaks == 1);
     }

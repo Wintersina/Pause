@@ -54,7 +54,7 @@ public class EliteHearts : HeartOrbit
             if (System.Enum.TryParse(ship.Def.heartStyle, out parsed)) s = parsed;
         }
         o = ShipHeartStyles.Orbit(s);
-        o.radius = ship != null ? ship.Def.heartOrbit : .72f;
+        o.radius = ship != null ? ship.Def.heartOrbit : .85f;
         o.flourishEvery = 0f;
         styleKey = ship != null ? ship.Def.key.Length * 7 : 0;
     }
