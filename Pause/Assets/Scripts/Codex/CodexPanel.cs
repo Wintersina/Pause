@@ -211,7 +211,10 @@ public class CodexPanel : MonoBehaviour
             if (e.category != c || !Codex.IsListed(e)) continue;
             if (BossCatalog.Find(e.id) != null) { bosses.entries.Add(e); continue; }
             var def = EnemyRoster.FindByCodexId(e.id);
-            int w = def != null ? Mathf.Clamp(def.world, 0, worlds - 1) : 0;
+            var elite = def == null ? EliteCatalog.FindByCodexId(e.id) : null;
+            // elite ships close their own world's section
+            int w = def != null ? Mathf.Clamp(def.world, 0, worlds - 1) :
+                    elite != null ? Mathf.Clamp(elite.WorldIndex, 0, worlds - 1) : 0;
             int key = def != null ? RoleRank(def.role) * 100 + def.tier : 999;
             // Ties keep catalogue order.
             InsertSorted(sections[w].entries, keys[w], e, key * 1000 + i);

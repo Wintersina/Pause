@@ -55,6 +55,14 @@ public static class ScoreRules
     // added to the enemy's own points before the chain and speed multipliers,
     // a small reward for using a pause offensively. Not on boss parts.
     public static int TeleportKillBonus = 5;
+    // An elite ship brought down (EliteShip), by any means: the pilot's
+    // weapons, the ultimate, a blink, a shielded ram -- or baiting it into
+    // a rock, a mine, a rail or another elite (luring is the skill). Flat:
+    // no chain or speed multiplier, an "ELITE DOWN" popup, plus
+    // EliteDownDust star dust through the normal currency path. Kills the
+    // elites' own shots make of other hazards (friendly fire) pay nothing.
+    public static int EliteDown = 50;
+    public static float EliteDownDust = 15f;
 
     // ---- pickups ----
     public static int SmallDust = 2;

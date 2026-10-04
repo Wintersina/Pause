@@ -96,6 +96,7 @@ public class TeleportFx : MonoBehaviour
             if (col == null) continue;
             var go = col.gameObject;
             if (!ClearTarget.IsHazard(go)) continue;
+            if (EliteShip.TeleportStrike(go, at)) continue;   // an elite loses a heart; its shot is erased
             if (go.GetComponent<IShipAttackTarget>() != null) continue;   // the boss body
             if (ShipAttackHits.AlreadyHit(go) || SeenBefore(go, i)) continue;
             Erase(go);

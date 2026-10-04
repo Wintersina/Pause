@@ -893,6 +893,36 @@ public class EmberDirector : PlanetDirector
         }
     }
 
+    // Elite landing pads: the two rock shoulders either side of each
+    // forge-volcano's cone (fractions of the drawing's bounds), on volcanoes
+    // still in the upper part of the view -- a ship parked there has time to
+    // be seen before it lifts off. Far below the play area, so a parked
+    // ship is drawn small (ParkedScale) just above the volcano.
+    public static readonly Vector2[] VolcanoPads = { new Vector2(-.27f, -.2f), new Vector2(.27f, -.24f) };
+    public const float ParkedScale = .3f;
+
+    public override void LandingSites(List<LandingSite> into)
+    {
+        for (int v = 0; v < volcanoes.items.Count; v++)
+        {
+            var p = volcanoes.items[v];
+            if (!p.active || p.sr.sprite == null) continue;
+            if (p.y < -HalfH * .15f || p.y > HalfH - p.size * .3f) continue;
+            Bounds b = p.sr.sprite.bounds;
+            for (int k = 0; k < VolcanoPads.Length; k++)
+            {
+                into.Add(new LandingSite
+                {
+                    anchor = p.root,
+                    local = new Vector3(b.center.x + VolcanoPads[k].x * b.size.x, b.center.y + VolcanoPads[k].y * b.size.y, 0f),
+                    scale = ParkedScale,
+                    order = p.sr.sortingOrder + 1,
+                    id = v * 8 + k,
+                });
+            }
+        }
+    }
+
     void SpawnVolcano(float y)
     {
         if (volcano.Length == 0) return;

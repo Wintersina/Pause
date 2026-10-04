@@ -1,0 +1,62 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.15,
+  "heartOrbit": 0.72,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_cauterizer",
+  "displayName": "Cauterizer",
+  "role": "siege craft",
+  "brain": "siege",
+  "attack": "siege_cannon",
+  "lore": "A six-vent siege catamaran that hangs at the top of the sky. It tracks your lane, paints it with a sight line and fires one pressure shell straight down it. The shell punches through anything in the way.",
+  "cellWorldSize": 1.7,
+  "hullRadius": 0.48,
+  "noseDeg": 48,
+  "turnsToFace": true,
+  "speed": 1.8,
+  "accel": 4,
+  "turnRate": 120,
+  "topMargin": 1.6,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 4.0,
+  "avoidance": 0.6,
+  "lookAhead": 0.4,
+  "actionSeconds": 0.45,
+  "shotCount": 1,
+  "shotSpeed": 9,
+  "shotSpread": 0,
+  "shotSize": 0.4,
+  "shotKind": "shell",
+  "exhaustScale": 0.45,
+  "muzzles": [
+    {
+      "name": "cannon",
+      "x": 168,
+      "y": 25,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 32,
+      "y": 127,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 90,
+      "y": 152,
+      "dir": -1.0
+    }
+  ],
+  "codexId": "elite_ember_cauterizer"
+}

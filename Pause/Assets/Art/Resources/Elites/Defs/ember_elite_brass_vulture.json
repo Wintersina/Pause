@@ -1,0 +1,57 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.15,
+  "heartOrbit": 0.72,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_brass_vulture",
+  "displayName": "Brass Vulture",
+  "role": "salvage striker",
+  "brain": "striker",
+  "attack": "claw_dive",
+  "lore": "A salvage craft with hooked wings and a recovery claw. It circles you like you are already scrap, then dives claw first and flings what it tore loose. Make sure something else is under that claw.",
+  "cellWorldSize": 1.55,
+  "hullRadius": 0.33,
+  "noseDeg": 330,
+  "turnsToFace": true,
+  "speed": 3.2,
+  "accel": 7,
+  "turnRate": 280,
+  "circleRadius": 2.0,
+  "aggression": 0.55,
+  "tellSeconds": 0.5,
+  "attackGap": 3.5,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "actionSeconds": 0.7,
+  "dashSpeed": 7.5,
+  "shotCount": 3,
+  "shotSpeed": 5,
+  "shotSpread": 18,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0.45,
+  "muzzles": [
+    {
+      "name": "claw",
+      "x": 119,
+      "y": 148,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "tail",
+      "x": 52,
+      "y": 81,
+      "dir": -1.0
+    }
+  ],
+  "codexId": "elite_ember_brass_vulture"
+}
