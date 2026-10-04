@@ -34,6 +34,17 @@ public static class BossConfig
     public static float BossArriveAt = 0.35f;   // boss starts its warp in
     public static float BossArriveSeconds = 0.7f;
     public static float NameCardAt = 0.85f;
+    // The name card shows the boss's name only. It slams in (settled after
+    // 3 ticks), holds readable, then cracks (NameCrackTicks) and crumbles:
+    // the letters drop one after another over NameStaggerSeconds, each
+    // falling past the ship and off the bottom within NameFallSeconds. The
+    // fall runs on into the first moments of the fight (purely visual).
+    public static float NameBreakAt = 1.6f;
+    public static int NameCrackTicks = 2;
+    public static float NameStaggerSeconds = 0.2f;
+    public static float NameFallSeconds = 0.7f;
+    public static float NameFallAt => NameBreakAt + NameCrackTicks * BossArt.Tick;
+    public static float NameGoneAt => NameFallAt + NameStaggerSeconds + NameFallSeconds;
 
     // ---- fight ----
     // moveBackGround.speed for the whole fight: the HUD shows round(x*100) = 20.
