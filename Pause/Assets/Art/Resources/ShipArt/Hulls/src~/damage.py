@@ -288,6 +288,13 @@ CONCEPTS = {
 # skin's damage keeps the stock sheet's exact alpha (asserted by
 # build_skins.py and by ShipDamageTest in Unity).
 SKIN_D = {}
+# ---- per-skin damage modules (identical block in every batch; do not edit) --
+import glob as _glob, importlib.util as _ilu, os as _os
+for _p in sorted(_glob.glob(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "skin_damage_*.py"))):
+    _spec = _ilu.spec_from_file_location(_os.path.splitext(_os.path.basename(_p))[0], _p)
+    _mod = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_mod)
+    SKIN_D.update(_mod.SKIN_D)
+# ---- end per-skin damage modules --
 
 
 def table_for(key, skin=None):
