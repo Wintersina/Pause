@@ -62,6 +62,7 @@ public static class ScoreRules
     public static int HealAtom = 10;
     public static int ShieldAtom = 10;
     public static int PauseAtom = 10;
+    public static int CooldownAtom = 10;    // violet capacitor: an atom like the rest
 
     // ---- teleport ----
     // A blink earns Teleport x (distance / TeleportFullDistance), capped at

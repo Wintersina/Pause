@@ -97,6 +97,7 @@ public static class ArtRestyleTest
         "0F5E6A", "1FB5B9", "6EF2EE",   // shield: TEAL_SH TEAL CYAN
         "86121F", "D8232C", "FF5B45",   // pause: RED_SH RED RED_HI
         "A9481A", "F2862B", "FFB43C",   // dust: SODIUM_SH SODIUM AMBER
+        "322056", "7051B7", "B99AFF",   // cooldown (violet capacitor): VIOLET_SH VIOLET VIOLET_HI
         "29A805", "7EE702", "B4F246", "FDFDFD", "00021B",   // heal (sampled from the original)
     };
 
