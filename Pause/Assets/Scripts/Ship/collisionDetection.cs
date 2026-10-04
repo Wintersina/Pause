@@ -275,7 +275,7 @@ public class collisionDetection : MonoBehaviour {
                 if (PrefabName.Is(hit.gameObject, "smStar1"))
             {
                 awardDust(smallStarValue);
-                RunScore.OnDust(large: false);
+                RunScore.OnDust(false, hit.transform.position);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: false);
                 Destroy(hit.gameObject);
@@ -283,7 +283,7 @@ public class collisionDetection : MonoBehaviour {
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
                 awardDust(largeStarValue);
-                RunScore.OnDust(large: true);
+                RunScore.OnDust(true, hit.transform.position);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: true);
                 Destroy(hit.gameObject);
@@ -291,7 +291,7 @@ public class collisionDetection : MonoBehaviour {
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
             {
                 healAtomPickups++;
-                RunScore.OnAtom(RunScore.Atom.Heal);
+                RunScore.OnAtom(RunScore.Atom.Heal, hit.transform.position);
                 // repairs one point of hull damage; lifeControler picks the
                 // sprite back up from lifeCounter on the next frame
                 if (lifeCounter > 0) lifeCounter--;
@@ -302,7 +302,7 @@ public class collisionDetection : MonoBehaviour {
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
                 pauseAtomPickups++;
-                RunScore.OnAtom(RunScore.Atom.Pause);
+                RunScore.OnAtom(RunScore.Atom.Pause, hit.transform.position);
                 score.incromentPause();
                 BoostUltimate(dust: false);
                 Destroy(hit.gameObject);
@@ -310,7 +310,7 @@ public class collisionDetection : MonoBehaviour {
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
                 shieldAtomPickups++;
-                RunScore.OnAtom(RunScore.Atom.Shield);
+                RunScore.OnAtom(RunScore.Atom.Shield, hit.transform.position);
                 BoostUltimate(dust: false);
                 boostSound.Play();
                 // ---------------------------

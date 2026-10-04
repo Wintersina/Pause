@@ -11,13 +11,16 @@ using UnityEngine.UI;
 //                         punches on a big gain. The chain badge shows the
 //                         current kill multiplier while a chain is alive and
 //                         fades as its window runs out.
-//   +250                  rises from where a kill, a boss or a world clear
-//                         happened (RunScore.Scored), on the HUD canvas.
+//   +5                    pops up and rises from where a kill, a star dust or
+//                         atom pickup, a boss or a world clear happened
+//                         (RunScore.Scored), coloured by what it was; bosses
+//                         and worlds are bigger and stay up longer. Pooled,
+//                         and on the world's clock, so they freeze with it.
 //
 // The row is one more slot in the read-out's VerticalLayoutGroup (PanelTexts):
 // the stack and the panel both grow by one row + gap, so every row keeps its
-// height and the panel keeps its padding. All motion is on unscaled time --
-// the HUD lives on through the freeze.
+// height and the panel keeps its padding. The read-out itself animates on
+// unscaled time -- the HUD lives on through the freeze.
 public class ScoreHud : MonoBehaviour
 {
     public const string RowName = "ScoreText";
@@ -25,8 +28,7 @@ public class ScoreHud : MonoBehaviour
     // One row (33) and the layout group's gap (7) in gameS1's read-out.
     public const float RowStep = 40f;
     public const int FontSize = 26;
-    public const int PopupPool = 8;
-    public const float PopupSeconds = .8f;
+    public const int PopupPool = 12;
 
     static readonly Color ScoreColour = AkiraPalette.Bone;
     static readonly Color ChainColour = AkiraPalette.RedHi;
@@ -38,11 +40,13 @@ public class ScoreHud : MonoBehaviour
     Font font;
     double shown;
     long lastTarget;
+    long shownWhole = -1;
+    float landedAt = -1f;
     float punchAt = -1f;
     int lastMultiplier = 1;
     float chainPunchAt = -1f;
 
-    struct Popup { public Text text; public float bornAt; public Vector2 from; }
+    struct Popup { public Text text; public float age, seconds, rise; public Vector2 from; }
     Popup[] popups;
     int nextPopup;
 
@@ -146,49 +150,97 @@ public class ScoreHud : MonoBehaviour
         float now = Time.unscaledTime;
         long target = RunScore.Total;
 
-        // Tick up: close most of the gap quickly, never overshoot, and
-        // always land on the exact number.
+        // Tick up: a quick roll that eases into the exact number (never
+        // overshoots). While it rolls the figure glows AMBER; a real gain
+        // punches it, and it flashes BONE-bright as it lands.
         if (target < shown) shown = target;   // a new run
         if (target - lastTarget >= ScoreRules.PopupMinPoints) punchAt = now;
         lastTarget = target;
         double gap = target - shown;
         if (gap > 0d)
         {
-            double step = gap * (1d - System.Math.Exp(-10d * dt)) + 30d * dt;
+            double step = gap * (1d - System.Math.Exp(-9d * dt)) + 12d * dt;
             shown = System.Math.Min(target, shown + step);
+            if (shown >= target) landedAt = now;
         }
-        scoreText.text = Label((long)System.Math.Floor(shown));
+        long whole = (long)System.Math.Floor(shown);
+        if (whole != shownWhole)   // only rebuild the string when the figure changes
+        {
+            shownWhole = whole;
+            scoreText.text = Label(whole);
+        }
+        bool rolling = shown < target;
+        float sinceLand = now - landedAt;
+        scoreText.color = rolling ? AkiraPalette.Amber
+                        : sinceLand >= 0f && sinceLand < 2f / 24f ? Color.white : ScoreColour;
         Punch(scoreText.rectTransform, now - punchAt);
 
         if (chainText != null)
         {
             int m = RunScore.Multiplier;
+            if (m != lastMultiplier)
+            {
+                if (m > 1) chainPunchAt = now;
+                chainText.text = m > 1 ? ChainLabels[Mathf.Min(m, ChainLabels.Length - 1)] : "";
+                lastMultiplier = m;
+            }
             if (m > 1)
             {
-                if (m != lastMultiplier) chainPunchAt = now;
-                chainText.text = "x" + m;
                 // Fades out over the last of the chain window, stepped like the
                 // rest of the HUD (no smooth fade).
                 float left = RunScore.ChainLeft01;
                 chainText.color = AkiraPalette.WithAlpha(ChainColour, left > .35f ? 1f : left > .15f ? .6f : .3f);
-                Punch(chainText.rectTransform, now - chainPunchAt);
+                Punch(chainText.rectTransform, now - chainPunchAt, 1.4f);
             }
-            else if (chainText.text.Length > 0) chainText.text = "";
-            lastMultiplier = m;
         }
 
-        StepPopups(now);
+        // Popups live on the world's clock: they freeze with it.
+        StepPopups(buttonClicks.playerDied ? -1f : Time.deltaTime);
     }
 
+    static readonly string[] ChainLabels = { "", "", "x2", "x3", "x4" };
+
     // Stepped punch: 1 tick big, 2 ticks small, then rest (24 fps ticks).
-    static void Punch(RectTransform rt, float since)
+    static void Punch(RectTransform rt, float since, float big = 1.16f)
     {
         float k = since < 0f ? 99f : since * 24f;
-        float s = k < 1f ? 1.12f : k < 3f ? .96f : 1f;
+        float s = k < 1f ? big : k < 3f ? .95f : 1f;
         if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
     }
 
     // ---- "+N" popups -------------------------------------------------------
+    //
+    // A fixed pool (PopupPool Texts, built once); the oldest is recycled when
+    // all are busy. Each pops in big (stepped 0 -> 1.6 -> 0.9 -> 1), rises,
+    // holds and fades in steps. Colour says what it was; bosses and world
+    // clears are bigger, carry a word and stay up longer. Everything runs on
+    // the world's scaled clock, so a pause freezes them mid-flight.
+
+    public struct PopupStyle
+    {
+        public Color colour;
+        public int size;
+        public float seconds, rise;
+        public string suffix;
+    }
+
+    public static PopupStyle StyleFor(RunScore.Source source, bool chained)
+    {
+        switch (source)
+        {
+            case RunScore.Source.Boss:
+                return new PopupStyle { colour = AkiraPalette.RedHi, size = 46, seconds = 1.6f, rise = 70f, suffix = "  BOSS" };
+            case RunScore.Source.World:
+                return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
+            case RunScore.Source.Dust:
+                return new PopupStyle { colour = AkiraPalette.Amber, size = 22, seconds = .6f, rise = 44f, suffix = "" };
+            case RunScore.Source.Atom:
+                return new PopupStyle { colour = AkiraPalette.Teal, size = 26, seconds = .75f, rise = 52f, suffix = "" };
+            default:   // kills: BONE, Kaneda red once a chain is multiplying them
+                return new PopupStyle { colour = chained ? AkiraPalette.RedHi : AkiraPalette.Bone,
+                                        size = chained ? 30 : 26, seconds = .75f, rise = 56f, suffix = "" };
+        }
+    }
 
     void OnScored(int points, Vector3 at, RunScore.Source source)
     {
@@ -203,15 +255,19 @@ public class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
-        bool big = source == RunScore.Source.Boss || source == RunScore.Source.World;
-        p.text.text = "+" + RunScore.Format(points);
-        p.text.fontSize = big ? 40 : 24;
-        p.text.color = source == RunScore.Source.Boss ? AkiraPalette.Amber
-                     : source == RunScore.Source.World ? AkiraPalette.Cyan : AkiraPalette.Bone;
+        var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
+        p.text.text = "+" + RunScore.Format(points) + style.suffix;
+        p.text.fontSize = style.size;
+        p.text.color = style.colour;
+        p.seconds = style.seconds;
+        p.rise = style.rise;
         p.from = ToCanvas(at);
-        p.bornAt = Time.unscaledTime;
+        p.age = 0f;
         p.text.gameObject.SetActive(true);
-        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.transform.SetAsLastSibling();
+        var rt = p.text.rectTransform;
+        rt.anchoredPosition = p.from;
+        rt.localScale = Vector3.zero;
         popups[index] = p;
         return p.text;
     }
@@ -225,11 +281,11 @@ public class ScoreHud : MonoBehaviour
             go.transform.SetParent(canvasRect, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
-            rt.sizeDelta = new Vector2(240f, 50f);
+            rt.sizeDelta = new Vector2(360f, 60f);
             var t = go.GetComponent<Text>();
             Style(t, font, 24, ScoreColour, TextAnchor.MiddleCenter);
             go.SetActive(false);
-            popups[i] = new Popup { text = t, bornAt = -1f };
+            popups[i] = new Popup { text = t, age = -1f };
         }
     }
 
@@ -249,30 +305,47 @@ public class ScoreHud : MonoBehaviour
         return local;
     }
 
-    void StepPopups(float now)
+    // Advances every live popup by `dt` of world time (0 while frozen: they
+    // hold still). A negative dt (the run is over) clears them all.
+    public void StepPopups(float dt)
     {
         if (popups == null) return;
         for (int i = 0; i < popups.Length; i++)
         {
             var p = popups[i];
-            if (p.bornAt < 0f) continue;
-            float age = now - p.bornAt;
-            if (age >= PopupSeconds)
+            if (p.age < 0f) continue;
+            if (dt < 0f) p.age = p.seconds;
+            else p.age += dt;
+            if (p.age >= p.seconds)
             {
                 p.text.gameObject.SetActive(false);
-                p.bornAt = -1f;
+                p.age = -1f;
                 popups[i] = p;
                 continue;
             }
-            // Rises on twos (12 drawings a second), pops in, fades out late.
-            float q = Mathf.Floor(age * 12f) / 12f / PopupSeconds;
+            popups[i] = p;
+            // Held on twos (12 drawings a second) like the art guide's flipbooks.
+            float t = Mathf.Floor(p.age * 12f) / 12f;
+            float q = t / p.seconds;
             var rt = p.text.rectTransform;
-            rt.anchoredPosition = p.from + new Vector2(0f, 56f * (1f - (1f - q) * (1f - q)));
-            float s = q < .08f ? 1.25f : 1f;
-            rt.localScale = new Vector3(s, s, 1f);
+            float ease = 1f - (1f - Mathf.Min(1f, q * 1.6f)) * (1f - Mathf.Min(1f, q * 1.6f));
+            rt.anchoredPosition = p.from + new Vector2(0f, p.rise * ease);
+            // Pop: big on the first drawing, a squash, then settled.
+            float s = t < 1f / 12f ? 1.6f : t < 2f / 12f ? .9f : 1f;
+            if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
             var c = p.text.color;
-            c.a = q < .6f ? 1f : q < .8f ? .6f : .3f;
-            p.text.color = c;
+            float a = q < .65f ? 1f : q < .82f ? .6f : .3f;
+            if (!Mathf.Approximately(c.a, a)) { c.a = a; p.text.color = c; }
+        }
+    }
+
+    public int LivePopups
+    {
+        get
+        {
+            int n = 0;
+            if (popups != null) foreach (var p in popups) if (p.age >= 0f) n++;
+            return n;
         }
     }
 }
