@@ -54,6 +54,7 @@ public static class AllTests
         ("CodexTest", CodexTest.Execute),
         ("CooldownAtomTest", CooldownAtomTest.Execute),
         ("CreditsTest", CreditsTest.Execute),
+        ("DeathCrashTest", DeathCrashTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),

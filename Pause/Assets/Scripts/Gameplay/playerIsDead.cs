@@ -21,7 +21,9 @@ public class playerIsDead : MonoBehaviour
 
     void Update()
     {
-        if (buttonClicks.playerDied && waitingForDeath) { BeginResults(); waitingForDeath = false; }
+        // The run is banked at the fatal hit (score.cs); the panel itself
+        // waits for the crash sequence to play out (DeathCrash).
+        if (buttonClicks.playerDied && waitingForDeath && DeathCrash.PanelReady) { BeginResults(); waitingForDeath = false; }
     }
 
     void BeginResults()

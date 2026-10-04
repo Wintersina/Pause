@@ -20,7 +20,8 @@ public class buttonClicks : MonoBehaviour {
     // Update is called once per frame
     void Update() {
 
-        if (playerDied)
+        // The panel waits for the crash sequence (DeathCrash) to finish.
+        if (playerDied && DeathCrash.PanelReady)
         {
             //show the ads if the player dies
             showButton();
