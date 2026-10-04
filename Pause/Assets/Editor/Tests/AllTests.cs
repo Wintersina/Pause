@@ -182,12 +182,11 @@ public static class AllTests
         // every edit-mode SendMessage("Update") logs a ShouldRunBehaviour
         // assertion with one: hundreds of thousands of traces were a large
         // share of a run and its 400 MB log. Errors and exceptions keep theirs.
+        // (Re-applied per suite: the setting lives in ProjectSettings, which a
+        // suite that saves assets -- AppIconTest -- reloads from disk.)
         var traces = new Dictionary<LogType, StackTraceLogType>();
-        foreach (var t in new[] { LogType.Log, LogType.Warning, LogType.Assert })
-        {
-            traces[t] = Application.GetStackTraceLogType(t);
-            Application.SetStackTraceLogType(t, StackTraceLogType.None);
-        }
+        foreach (var t in QuietTypes) traces[t] = Application.GetStackTraceLogType(t);
+        QuietTraces();
         TestHarness.Fast = fast;
         TestHarness.SkippedSlow = 0;
         Application.logMessageReceived += OnLog;
@@ -206,6 +205,7 @@ public static class AllTests
             }
             foreach (var suite in selected)
             {
+                QuietTraces();
                 loggedFails = 0;
                 gaps.Clear();
                 lastLogAt = 0;
@@ -249,6 +249,13 @@ public static class AllTests
         Debug.Log("[ALL] RESULT: " + (failed == 0 ? "PASS" : "FAIL") + " failures=" + failed +
                   " failed=" + string.Join(",", failedNames));
         EditorApplication.Exit(failed == 0 ? 0 : 1);
+    }
+
+    static readonly LogType[] QuietTypes = { LogType.Log, LogType.Warning, LogType.Assert };
+
+    static void QuietTraces()
+    {
+        foreach (var t in QuietTypes) Application.SetStackTraceLogType(t, StackTraceLogType.None);
     }
 
     static bool Matches(string suite, string name) =>

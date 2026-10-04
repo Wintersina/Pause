@@ -157,9 +157,8 @@ public static class TestHarness
 
     // `target.SendMessage(method)` for per-frame loops. In edit mode every
     // SendMessage logs a "ShouldRunBehaviour()" assertion before it calls the
-    // method; at 100k+ frames those log lines were most of a suite's time
-    // (and once a suite has saved project settings, every log line costs
-    // ~10x more for the rest of the editor session). This calls the very
+    // method; at 100k+ frames those log lines (each with a stack trace
+    // unless AllTests turned traces off) were most of a suite's time. This calls the very
     // same methods directly. It only takes the fast path when the outcome is
     // unambiguous -- an active object whose receivers are all enabled, with
     // one parameterless, non-coroutine `method` each -- and otherwise is
