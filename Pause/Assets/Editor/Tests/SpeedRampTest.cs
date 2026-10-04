@@ -102,7 +102,7 @@ public static class SpeedRampTest
     {
         frame++;
         clock += dt;
-        foreach (var w in walls) w.SendMessage("Update");
+        foreach (var w in walls) TestHarness.Send(w, "Update");
     }
 
     static void Simulate(IList<moveBackGround> walls, float seconds, System.Action<float> eachFrame = null)

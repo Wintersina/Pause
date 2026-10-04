@@ -406,8 +406,8 @@ def frost_chunk(i):
 
 
 def frost_rime(i):
-    """A six-point star of rime ice cut in hard facets (each point half lit,
-    half in shadow) around a hex socket with a cyan heart."""
+    """A six-point rime cutter: ice blades held in a riveted steel clamp
+    cage, with a cyan cryo-reactor in the central hex socket."""
     lv, gl = FRAMES[i]
     p = Parts()
     O = star(64, 64, 56, 24, 6, 8, [1, 1, 0.8, 1, 0.92, 1, 1.05, 1, 0.86, 1, 0.95, 1])
@@ -426,6 +426,16 @@ def frost_rime(i):
                    [lerp_pts([O[0]], [(64, 64)], 0.08)[0], lerp_pts([O[11]], [(64, 64)], 0.12)[0]]], 1.4)
     texture(p, cid, O, 61, ICE_HI, ICE_SH, BONE, cracks=3, chips=4, pits=0, flecks=10,
             avoid=((64, 64, 22),), margin=3)
+    # The star is a piece of refinery hardware, not a clean snowflake: six
+    # dark clamp rails bite into the ice near the hub, each with a copper pin.
+    for k in range(6):
+        a = math.radians(k * 60 - 90)
+        x0, y0 = 64 + math.cos(a) * 15, 64 + math.sin(a) * 15
+        x1, y1 = 64 + math.cos(a) * 35, 64 + math.sin(a) * 35
+        p.base += line([(x0, y0), (x1, y1)], 7.2, GUN_SH) + line([(x0, y0), (x1, y1)], 4.4, GUN)
+        p.detail += line([(x0, y0), (x1, y1)], 1.1, GUN_HI)
+        pin = ngon(x1, y1, 3.1, 6, k * 60)
+        p.detail += poly(pin, AMBER) + inkpoly(pin, 1.3)
     ring = ngon(64, 64, 17, 6, 0)
     p.detail += poly(ring, STEEL_SH) + poly([ring[0], ring[1], ring[2], ring[3]], STEEL) + inkpoly(ring, 2.6)
     rivets(p, ngon(64, 64, 14, 6, 30), r=1.3, color=ICE_HI)
@@ -540,8 +550,8 @@ def verdant_spore(i):
 
 
 def verdant_knot(i):
-    """Three thorny branches knotted round a bile bud: grained bark with
-    knots, collared thorns, a riveted hub and a pulsing hex heart."""
+    """Three thorny root-branches pinned into a corroded pruning cage around
+    a bile bud: grained bark, steel clamp collars, and a pulsing hex heart."""
     lv, gl = FRAMES[i]
     p = Parts()
     for a in (0, 60, 120):
@@ -556,6 +566,15 @@ def verdant_knot(i):
             k = xf([(64, 10 + 108 * t)], 64, 64, rot=a)[0]
             c = ngon(k[0], k[1], 2.6, 5, a, 1, 0.7)
             p.detail += poly(c, BARK_SH) + inkpoly(c, 1)
+        # Two riveted steel collars keep the otherwise wild root arms in a
+        # failing industrial pruning cage.  They make the silhouette read as
+        # a Verdant machine-hazard rather than a clean botanical snowflake.
+        for yy in (30, 96):
+            clamp = xf([(57, yy - 3), (71, yy - 3), (71, yy + 3), (57, yy + 3)], 64, 64, rot=a)
+            p.detail += poly(clamp, GUN) + poly([clamp[1], clamp[2], clamp[3]], GUN_SH) + inkpoly(clamp, 1.3)
+            for xx in (60, 68):
+                q = xf([(xx, yy)], 64, 64, rot=a)[0]
+                p.detail += poly(ngon(q[0], q[1], 1.5, 6, 0), AMBER) + inkpoly(ngon(q[0], q[1], 1.5, 6, 0), .7)
         p.detail += inkpoly(br, 4.4)
         for t, side in ((0.2, 1), (0.42, -1), (0.62, 1), (0.82, -1)):
             x, y = 64 + (t - 0.5) * 100 * math.sin(math.radians(a)), 64 - (t - 0.5) * 100 * math.cos(math.radians(a))

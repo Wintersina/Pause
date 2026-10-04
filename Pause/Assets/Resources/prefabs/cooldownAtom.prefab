@@ -164,4 +164,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bf0bd351a6d4d3eae4e62cc4dffa85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupFlipbook
-  kind: 2
+  kind: 5

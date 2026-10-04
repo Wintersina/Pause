@@ -22,7 +22,8 @@ public class tutButtonClicks : MonoBehaviour {
     {
         // Back/Escape is BackNavigator's: in tutorialS5 it goes home, like
         // mainMenuButton / the Home quick action.
-        if (buttonClicks.playerDied)
+        // The panel waits for the crash sequence (DeathCrash) to finish.
+        if (buttonClicks.playerDied && DeathCrash.PanelReady)
         {
          
             showButton();

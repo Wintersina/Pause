@@ -85,6 +85,7 @@ public static class EliteTest
         collisionDetection.lifeCounter = 0;
         collisionDetection.atomCheck = false;
         collisionDetection.cloakTimer = 0f;
+        PlayerInvuln.Reset();
         RunScore.BeginRun(true, true);
         pilot = new GameObject("~Pilot").transform;
         pilot.position = new Vector3(0f, -2.5f, 0f);
@@ -561,7 +562,9 @@ public static class EliteTest
     {
         public GameObject ship;
         public collisionDetection cd;
-        public void Touch(GameObject other) { Trigger.Invoke(cd, new object[] { other.GetComponent<Collider2D>() }); }
+        // each touch is a fresh hit: the 2 s post-hit window is cleared first
+        public void Touch(GameObject other) { PlayerInvuln.Reset(); TouchRaw(other); }
+        public void TouchRaw(GameObject other) { Trigger.Invoke(cd, new object[] { other.GetComponent<Collider2D>() }); }
         public void Dispose()
         {
             foreach (var go in new[] { cd.explosionAnimation, cd.boost, cd.boostText.gameObject, cd.hypeText.gameObject })
@@ -613,6 +616,32 @@ public static class EliteTest
         rig.Touch(e.gameObject);
         Check("contact costs the pilot a heart like any enemy", collisionDetection.lifeCounter == 1);
         Check("... and the elite one heart, without destroying it", e != null && e.Hearts == 1 && e.LastHitCause == EliteDamage.PlayerContact);
+        // inside the pilot's 2 s post-hit window: no heart either way
+        Step(EliteShip.GraceSeconds + .1f);
+        Check("the post-hit window is running", PlayerInvuln.Active);
+        rig.TouchRaw(e.gameObject);
+        Check("during the pilot's post-hit invulnerability an elite neither hurts nor is rammed",
+              collisionDetection.lifeCounter == 1 && e != null && e.Hearts == 1);
+        var shot0 = EliteSystem.Shots.Fire(e, e.Def, EliteShots.Kind.Bolt, new Vector2(0f, .6f), Vector2.down);
+        rig.TouchRaw(shot0.Hitbox);
+        Check("... nor does its shot", collisionDetection.lifeCounter == 1);
+        rig.Dispose();
+        PlayerInvuln.Reset();
+
+        // the fatal contact: the elite is the killer DeathCrash tumbles into a rail
+        Fresh(.05f);
+        e = InPlay("gunship", new Vector2(0f, 1f));
+        rig = PlayerRig(new Vector2(0f, .6f));
+        collisionDetection.lifeCounter = collisionDetection.MAXLIFE - 1;
+        int paid = EliteRewards.Paid;
+        rig.Touch(e.gameObject);
+        var crash = DeathCrash.Instance;
+        Check("a fatal elite contact starts the death crash with the elite as its killer",
+              crash != null && DeathCrash.Running && crash.Killer == DeathCrash.KillerKind.Physical);
+        Check("... the killer elite pays nothing (the run is over)", EliteRewards.Paid == paid);
+        if (crash != null) Object.DestroyImmediate(crash.gameObject);
+        if (e != null) Object.DestroyImmediate(e.gameObject);
+        buttonClicks.playerDied = false;
         rig.Dispose();
 
         Fresh(.05f);

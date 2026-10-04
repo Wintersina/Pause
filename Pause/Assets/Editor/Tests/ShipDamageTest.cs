@@ -272,7 +272,7 @@ public static class ShipDamageTest
     {
         for (float t = 0f; t < seconds; t += 1f / 60f)
         {
-            life.SendMessage("Update");
+            TestHarness.Send(life, "Update");
             fx.Tick(1f / 60f);
         }
     }
@@ -355,7 +355,7 @@ public static class ShipDamageTest
 
         // the hull's own bank pose drives it
         SetState(Critical);
-        life.SendMessage("Update");
+        TestHarness.Send(life, "Update");
         fx.Tick(1f / 60f);
         int column = life.HullAnimator.Column;
         Check("the FX read the hull animator's pose", column >= 0 && column < ShipHullArt.Columns);
@@ -491,7 +491,7 @@ public static class ShipDamageTest
         int sum = 0, n = 0;
         for (float t = 0f; t < 3f; t += 1f / 60f)
         {
-            life.SendMessage("Update");
+            TestHarness.Send(life, "Update");
             fx.Tick(1f / 60f);
             sum += fx.ActiveOfRow(ShipDamageFx.RowSmoke);
             n++;
@@ -512,7 +512,7 @@ public static class ShipDamageTest
         var near = new bool[fx.EmitterCount];
         for (float t = 0f; t < 2f; t += 1f / 60f)
         {
-            life.SendMessage("Update");
+            TestHarness.Send(life, "Update");
             fx.Tick(1f / 60f);
             int column = life.HullAnimator.Column;
             for (int p = 0; p < fx.PoolSize; p++)
@@ -560,12 +560,12 @@ public static class ShipDamageTest
     static void Frame(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts, UltimateGun gun,
                       float extend = 0f, float spin = 0f)
     {
-        life.SendMessage("Update");
+        TestHarness.Send(life, "Update");
         if (spin != 0f) life.transform.rotation *= Quaternion.Euler(0f, 0f, spin * Dt);
         if (gun != null) gun.Step(extend, Dt, Dt);
         if (hearts != null)
         {
-            hearts.SendMessage("Update");
+            TestHarness.Send(hearts, "Update");
             hearts.Place(Dt, Dt);
             hearts.StepBreaks(Dt);
         }

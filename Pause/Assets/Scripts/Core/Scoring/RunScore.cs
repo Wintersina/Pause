@@ -248,11 +248,21 @@ public static class RunScore
 
     public enum Atom { Heal, Shield, Pause, Cooldown }
 
+    public static int AtomPoints(Atom kind)
+    {
+        switch (kind)
+        {
+            case Atom.Heal: return ScoreRules.HealAtom;
+            case Atom.Shield: return ScoreRules.ShieldAtom;
+            case Atom.Cooldown: return ScoreRules.CooldownAtom;
+            default: return ScoreRules.PauseAtom;
+        }
+    }
+
     public static int OnAtom(Atom kind, Vector3? at = null)
     {
         if (!Live) return 0;
-        int points = kind == Atom.Heal ? ScoreRules.HealAtom
-                   : kind == Atom.Shield ? ScoreRules.ShieldAtom : ScoreRules.PauseAtom;
+        int points = AtomPoints(kind);
         parts.atoms += points;
         parts.atomCount++;
         if (at.HasValue) Raise(points, at.Value, Source.Atom);

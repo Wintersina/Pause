@@ -18,7 +18,10 @@ using UnityEngine.SceneManagement;
 // When the ship is hit (collisionDetection calls Impact with where the hit
 // came from), the best-placed heart darts to the impact point between the
 // hull and the hit, flashes as a shield burst and crumbles into pixel
-// shards. A heal pops a heart back into orbit.
+// shards. A heal pops a heart back into orbit. All of it runs on scaled
+// time, so it holds still while the world is frozen -- except through the
+// death crash, whose clock (DeathCrash.FrameDt) plays the last heart's
+// shield over the frozen world.
 //
 // For effects round the hull that keep clear of the hearts wherever they
 // are on their orbits (ShipDamageFx's spray hides droplets over them):
@@ -81,6 +84,15 @@ public class ShipLivesIndicator : HeartOrbit
     protected override bool AvoidThumb { get { return true; } }
     protected override UltimateGun FindGun() { return GetComponentInChildren<UltimateGun>(true); }
     protected override Bounds GunRestBounds(UltimateGun g) { return ShipUiSlots.GunToWorld(transform, shipId, g.LocalRestEnvelope()); }
+
+    protected override void LateUpdate()
+    {
+        // The death crash: the last heart's shield and crumble play over
+        // the frozen world on the crash's clock.
+        float dt = DeathCrash.Animating ? DeathCrash.FrameDt : Time.deltaTime;
+        Place(Time.unscaledDeltaTime, dt);
+        StepBreaks(dt);
+    }
 }
 
 // Attaches the indicator to the player ship once it exists, matching the

@@ -48,5 +48,6 @@ public static class GameStateReset
         collisionDetection.atomCheck = false;
         collisionDetection.invTimer = 0f;
         collisionDetection.cloakTimer = 0f;
+        PlayerInvuln.Reset();
     }
 }

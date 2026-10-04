@@ -193,7 +193,7 @@ public static class WorldPaceTest
         {
             frame++;
             clock += Dt;
-            foreach (var w in walls) w.SendMessage("Update");
+            foreach (var w in walls) TestHarness.Send(w, "Update");
             if (WorldManager.Flying) wm.Tick(Dt);
             t += Dt;
         }
@@ -239,7 +239,7 @@ public static class WorldPaceTest
         for (int i = 0; i < 600; i++)
         {
             frame++;
-            foreach (var w in walls) w.SendMessage("Update");
+            foreach (var w in walls) TestHarness.Send(w, "Update");
             if (WorldManager.Flying) wm.Tick(Dt);
         }
         Check("paused 10s: no distance flown, speed held", wm.DistanceLeft == before && Mathf.Approximately(moveBackGround.speed, .2f));

@@ -27,8 +27,8 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 10. **Installed and validated — `ember_fighter_2`:** Scorch rebuilt as a scorched fork-claw with uneven molten vents and a sodium-white furnace core; live strip is Preview-opened and roster-validated.
 11. **Installed and validated — `ember_fighter_3`:** Brand rebuilt as a lean scorched furnace flier with hooked ember-edged exhaust fins, a magenta heat slit, and a compact lower boiler; live strip is Preview-opened and roster-validated.
 12. **Installed and validated — `ember_fighter_4`:** Pyre rebuilt as a scorched furnace-heavy with shield slabs, an uneven boiler stack, and a grille-contained sodium core; live strip is Preview-opened and roster-validated.
-13. **Queued — `verdant_alien`**
-14. **Queued — `ember_alien`**
+13. **Installed and validated — `verdant_alien`:** Snap Sprout rebuilt as a rugged bio-industrial seed crawler with thorn-leaf armor, a pruning jaw, resin sacs, copper root conduits, and a toxic magenta-green core; native seven-cell QA complete.
+14. **Installed and validated — `ember_alien`:** Ember Imp rebuilt as a rugged soot-forge drone with basalt heat shields, copper bracing, orange vents, and a contained magenta furnace core; native seven-cell QA complete.
 15. **Queued — `space_chaser`**
 16. **Queued — `frost_chaser`**
 17. **Queued — `verdant_chaser`**
@@ -40,13 +40,13 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 23. **Installed, validated — `space_rock_crater`**
 24. **Installed, validated — `space_rock_cluster`**
 25. **Installed, validated — `space_rock_dark`**
-26. **Queued — `frost_rock_chunk`**
-27. **Queued — `frost_rock_rime`**
+26. **Installed and validated — `frost_rock_chunk`** — rugged copper-braced frozen industrial chunk with a cyan pressure core; seven-cell strip vetted for safe cell margins and flipbook continuity.
+27. **Installed and validated — `frost_rock_rime`** — six-point rime cutter with riveted clamp rails, copper pins, and a pulsing cyan cryo-reactor; seven-cell strip vetted for continuity.
 28. **Installed, validated — `frost_rock_shard`** — rugged Frost ice-shard industrial hazard; 7-frame strip vetted for safe cell margins and roster validation.
 29. **Installed, validated — `verdant_rock_spore`** — rugged grass-capped bio-industrial Spore Rock; floating 7-frame strip preserves its mandated key silhouette and safe cell margins.
 30. **Installed, validated — `verdant_rock_vine`** — rugged floating Verdant terrain wedge with root-cable vines; 7-frame strip vetted for safe cell margins and roster validation.
-31. **Queued — `verdant_rock_pod`**
-32. **Queued — `verdant_rock_knot`**
+31. **Installed and validated — `verdant_rock_pod`** — rugged copper-braced thorn pod with a breathing resin seam; seven-cell strip vetted for safe cell margins and flipbook continuity.
+32. **Installed and validated — `verdant_rock_knot`** — thorn-root hazard secured by corroded steel clamp collars and copper rivets around a pulsing bile heart; seven-cell strip vetted for continuity.
 33. **Installed and validated — `ember_rock_magma`** — rugged basalt pressure boulder with copper braces and pulsing molten seams; seven-cell boundary and flipbook continuity checked.
 34. **Installed and validated — `ember_rock_islet`** — rugged floating basalt shelf with slag, copper clamps, and molten seams; seven-cell boundary and flipbook continuity checked.
 35. **Installed and validated — `ember_rock_cinder`** — rugged stacked cinder furnace blocks with copper plumbing and a molten core; seven-cell boundary and flipbook continuity checked.

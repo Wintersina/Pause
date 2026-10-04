@@ -63,7 +63,7 @@ public static class LoopTest
             TimeoutPlaysEmberOnceMoreThenLoops();
             TimeoutFromAnEmberStart();
             LoopDensityRaisesSpawnRate();
-            GapGuardHoldsAtMaxDensity();
+            if (TestHarness.Slow("Loop: 240s max-density spawner runs")) GapGuardHoldsAtMaxDensity();
         }
         finally
         {
