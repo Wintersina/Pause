@@ -53,7 +53,7 @@ public class WorldManager : MonoBehaviour
         },
         new WorldTheme {
             displayName = "Frost", resourceFolder = "Frost",
-            musicResource = "WorldMusic/Frost",
+            musicResource = "WorldMusic/Frost_Main", progressiveMusic = false,
             portalColor = new Color(0.62f, 0.92f, 1f),
             speedRampPerSecond = 0.00330f, maxSpeed = 0.51f, enemyRampScale = 1.10f,
         },
@@ -65,7 +65,7 @@ public class WorldManager : MonoBehaviour
         },
         new WorldTheme {
             displayName = "Ember", resourceFolder = "Ember",
-            musicResource = "WorldMusic/Ember",
+            musicResource = "WorldMusic/Ember_Main", progressiveMusic = false,
             portalColor = new Color(1f, 0.62f, 0.35f),
             speedRampPerSecond = 0.00365f, maxSpeed = 0.62f, enemyRampScale = 1.35f,
         },

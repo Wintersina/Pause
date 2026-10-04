@@ -32,6 +32,11 @@ public class WorldTheme
              "original track.")]
     public string musicResource = "";
 
+    [Tooltip("True plays the six 30-second WorldMusic/<displayName>StageNN " +
+             "arrangements, escalating on the level clock. False plays " +
+             "musicResource as one song for the whole level, looped.")]
+    public bool progressiveMusic = true;
+
     [Tooltip("Colour of this world's portal.")]
     public Color portalColor = new Color(0.55f, 0.85f, 1f);
 
