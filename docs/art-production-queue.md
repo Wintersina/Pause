@@ -25,7 +25,7 @@ Status is deliberately kept factual: **Queued**, **In progress**, **Staged for r
 
 ## Already approved / installed
 
-- Space Fighters 2–4 and Frost Fighter 1 have been rebuilt against the rugged industrial reference and are live as the current quality benchmarks. Space Fighter 1 remains live but is queued for a future ruggedness review; eleven other fighter strips remain to be rebuilt one at a time.
+- Space Fighters 2–4 and Frost Fighters 1–3 have been rebuilt against the rugged industrial reference and are live as the current quality benchmarks. Space Fighter 1 remains live but is queued for a future ruggedness review; nine other fighter strips remain to be rebuilt one at a time.
 - Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
