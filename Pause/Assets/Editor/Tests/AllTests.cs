@@ -43,6 +43,7 @@ public static class AllTests
         ("PauseGlowTest", PauseGlowTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
+        ("ScoringTest", ScoringTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
