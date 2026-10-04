@@ -134,6 +134,8 @@ public static class DeveloperUnlocks
     static string BackupKey(string key) { return "developerBackup_" + key; }
     static string ExistsKey(string key) { return BackupKey(key) + "_exists"; }
 
+    // BestScore (RunScore) needs no snapshot: a developer run scores on the
+    // HUD but never writes it, and never reaches a leaderboard.
     static void SnapshotProgress()
     {
         SnapshotString("HasDoneTut");

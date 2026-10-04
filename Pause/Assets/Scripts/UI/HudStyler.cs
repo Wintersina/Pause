@@ -58,6 +58,9 @@ public class HudStyler : MonoBehaviour
         // of the three stats styled in the tutorial, not just the pause one.
         pauseText = Find("PauseCounter") ?? Find("PausesRemainingText");
 
+        // SCORE row on top (gameS1 only). Before placement: it grows the panel.
+        if (ScoreHud.ShouldShow(speedText)) ScoreHud.Attach(gameObject, speedText);
+
         Style(speedText, Speed, 26);
         Style(dustText, Dust, 26);
         Style(pauseText, Pause, 30);

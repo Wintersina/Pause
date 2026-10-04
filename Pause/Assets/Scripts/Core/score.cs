@@ -44,6 +44,8 @@ public class score : MonoBehaviour {
     // This run's StarDustLedger token, and whether death already committed it.
     private int ledgerRun;
     private bool committedOnDeath;
+    // This run's RunScore token (the points score; see RunScore).
+    private int scoreRun;
 
 
     // at awake, load up all the correct numbers for scores.
@@ -55,6 +57,9 @@ public class score : MonoBehaviour {
         paysRealDust = PaysRealDust(gameObject.scene.name,
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
+        // Practice runs score nothing; developer runs score but never save a
+        // best (or reach a leaderboard).
+        scoreRun = RunScore.BeginRun(paysRealDust, !DeveloperUnlocks.Enabled);
         committedOnDeath = false;
         if (paysRealDust)
         {
@@ -101,6 +106,7 @@ public class score : MonoBehaviour {
         {
             committedOnDeath = true;
             StarDustLedger.Commit(ledgerRun);
+            RunScore.EndRun(scoreRun);
         }
 
         // The boss intro's freeze is scripted: a press during it, or the
@@ -122,6 +128,7 @@ public class score : MonoBehaviour {
             payDust();
             // calculate speed
             showSpeed();
+            RunScore.Tick(Time.deltaTime, moveBackGround.speed);
 
         }
         else if (pauseCounter <= 0 && !buttonClicks.playerDied)
@@ -129,6 +136,7 @@ public class score : MonoBehaviour {
             payDust();
             // calculate speed
             showSpeed();
+            RunScore.Tick(Time.deltaTime, moveBackGround.speed);
         }
         else
             pauseCounterBool = false;
@@ -139,6 +147,7 @@ public class score : MonoBehaviour {
     void OnDestroy()
     {
         StarDustLedger.EndRun(ledgerRun);
+        RunScore.EndRun(scoreRun);
     }
 
     void payDust()

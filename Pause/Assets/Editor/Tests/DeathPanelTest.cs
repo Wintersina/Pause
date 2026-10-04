@@ -147,9 +147,16 @@ public static class DeathPanelTest
         var menu = SceneUtil.FindAny("MainMenu").GetComponent<Button>();
 
         // Wide numbers on purpose: the layout has to hold up at its worst.
+        var parts = new RunScore.Breakdown
+        {
+            distance = 999999, kills = 999999, dust = 99999, atoms = 9999, teleports = 9999,
+            bosses = 99999, worlds = 99999,
+            killCount = 999, dustCount = 999, atomCount = 99, teleportCount = 99, bossCount = 9, worldCount = 9,
+        };
         var view = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
         {
-            bestSpeed = 999, runSpeed = 999, newBest = true, dustAtStart = 99987.65f, dustWon = 12.34f,
+            score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
+            bestSpeed = 999, runSpeed = 999, dustAtStart = 99987.65f, dustWon = 12.34f,
         });
         view.Skip();
         Canvas.ForceUpdateCanvases();
@@ -161,8 +168,21 @@ public static class DeathPanelTest
               Mathf.Abs(panel.localScale.x - panel.localScale.y) < .001f && panel.localScale.x > .5f);
 
         // Values: final numbers, formatted on separate lines for star dust.
-        Check("best speed shows its final value", best.text == "999");
-        Check("this run shows its final value", run.text == "999");
+        Check("the score headline shows its final value (got '" + best.text + "')", best.text == "9,999,999");
+        Check("the speed line shows this run's and the best speed (got '" + run.text + "')",
+              run.text == "SPEED 999  /  BEST 999");
+        var labels = DeathPanelView.BreakdownLabels;
+        var points = DeathPanelView.BreakdownPoints(parts);
+        Check("the breakdown lists distance, kills, star dust, atoms, teleports, bosses, worlds",
+              string.Join(",", labels) == "DISTANCE,KILLS,STAR DUST,ATOMS,TELEPORTS,BOSSES,WORLDS");
+        for (int i = 0; i < labels.Length; i++)
+        {
+            var row = panel.Find("Card1/Row" + i);
+            var pts = row != null ? row.Find("Points").GetComponent<Text>() : null;
+            Check("breakdown row " + labels[i] + " shows its points",
+                  pts != null && pts.text == "+" + RunScore.Format(points[i]) &&
+                  row.Find("Label").GetComponent<Text>().text == labels[i]);
+        }
         Check("star dust earned shows +12.34 (got '" + dust.text + "')", dust.text == "+12.34");
         var total = dust.transform.parent.Find("Total").GetComponent<Text>();
         Check("total sits on its own line (got '" + total.text + "')", total.text == "TOTAL  99999.99" && !dust.text.Contains("\n"));
@@ -203,6 +223,23 @@ public static class DeathPanelTest
             float labelRight = PanelSpace(panel, label.rectTransform).xMin + label.preferredWidth;
             float valueLeft = PanelSpace(panel, value.rectTransform).xMax - value.preferredWidth;
             Check("Card" + i + " label and value keep apart", labelRight + 16f <= valueLeft);
+        }
+        // Breakdown rows: label, count and points never run into each other.
+        for (int i = 0; i < DeathPanelView.BreakdownLabels.Length; i++)
+        {
+            var row = panel.Find("Card1/Row" + i);
+            if (row == null) { Check("breakdown row " + i + " exists", false); continue; }
+            var l = row.Find("Label").GetComponent<Text>();
+            var c = row.Find("Count").GetComponent<Text>();
+            var p = row.Find("Points").GetComponent<Text>();
+            float lRight = PanelSpace(panel, l.rectTransform).xMin + l.preferredWidth;
+            float cLeft = PanelSpace(panel, c.rectTransform).xMax - c.preferredWidth;
+            float cRight = PanelSpace(panel, c.rectTransform).xMax;
+            float pLeft = PanelSpace(panel, p.rectTransform).xMax - p.preferredWidth;
+            Check("breakdown row " + i + " label / count / points keep apart",
+                  lRight + 12f <= cLeft && cRight + 12f <= pLeft);
+            Check("breakdown row " + i + " sits inside its card",
+                  Contains(cardRects[1], PanelSpace(panel, (RectTransform)row)));
         }
         for (int i = 0; i < 3; i++)
             for (int j = i + 1; j < 3; j++)
@@ -249,7 +286,7 @@ public static class DeathPanelTest
         view.ApplyAt(.3f);
         Check("mid-intro state is not final", !view.IntroFinished);
         view.Skip();
-        Check("a second skip settles again", view.IntroFinished && dust.text == "+12.34");
+        Check("a second skip settles again", view.IntroFinished && dust.text == "+12.34" && best.text == "9,999,999");
 
         // The quick-action hit test must still be callable.
         bool threw = false;

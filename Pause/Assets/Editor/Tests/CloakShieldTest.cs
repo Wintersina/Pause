@@ -309,14 +309,17 @@ public static class CloakShieldTest
         styler.SendMessage("Start");
         styler.SendMessage("Update");
 
-        Check("gameS1: the read-out stacks exactly SPEED, star dust, PAUSES (" + rows.childCount + " rows)",
-              rows.childCount == 3 && rows.GetChild(0).name == "SpeedText" &&
-              rows.GetChild(1).name == "CurrecnyGatheredText" && rows.GetChild(2).name == "PauseCounter");
+        // The run score (ScoreHud) takes the top row the timer used to fill
+        // lower down: SCORE, SPEED, star dust, PAUSES.
+        Check("gameS1: the read-out stacks exactly SCORE, SPEED, star dust, PAUSES (" + rows.childCount + " rows)",
+              rows.childCount == 4 && rows.GetChild(0).name == ScoreHud.RowName &&
+              rows.GetChild(1).name == "SpeedText" &&
+              rows.GetChild(2).name == "CurrecnyGatheredText" && rows.GetChild(3).name == "PauseCounter");
 
-        // One row (33) and one gap (7) shorter than the old 4-row stack, with
-        // the panel's own padding round it unchanged.
-        Check("gameS1: the panel is one row shorter (" + panel.rect.height + ", was 171)",
-              Mathf.Approximately(panel.rect.height, 131f) && Mathf.Approximately(rows.rect.height, 113f));
+        // The scene's 3-row stack (131 / 113) plus one row (33) and one gap
+        // (7) for SCORE, with the panel's own padding round it unchanged.
+        Check("gameS1: the panel is one row taller for SCORE (" + panel.rect.height + ", scene 131)",
+              Mathf.Approximately(panel.rect.height, 171f) && Mathf.Approximately(rows.rect.height, 153f));
         float topPad = (panel.rect.height - rows.rect.height) * .5f - rows.anchoredPosition.y;
         float bottomPad = (panel.rect.height - rows.rect.height) * .5f + rows.anchoredPosition.y;
         Check("gameS1: padding round the rows unchanged (top " + topPad.ToString("F1") + ", bottom " +

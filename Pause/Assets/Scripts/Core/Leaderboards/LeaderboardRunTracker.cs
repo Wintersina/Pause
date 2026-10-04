@@ -6,7 +6,8 @@ using UnityEngine.SceneManagement;
 // has to know about leaderboards.
 //
 //   death          -> SubmitRun (the service keeps only improvements)
-//   left mid-run   -> SubmitRun only if the run beat the local best speed
+//   left mid-run   -> SubmitRun only if the run beat the local best score
+//                     or best speed
 //   app backgrounded mid-run with a new best -> queued too (the app may be
 //                     killed in the background); death later re-offers and
 //                     the improvement rule drops the duplicate.
@@ -16,6 +17,8 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     long peakSpeed;
     long bestAtStart;
+    long runScore;
+    long bestScoreAtStart;
     int furthestWorld;
     bool ended;
 
@@ -23,6 +26,8 @@ public class LeaderboardRunTracker : MonoBehaviour
     {
         bestAtStart = Mathf.RoundToInt(PlayerPrefs.GetFloat("HighestSpeed"));
         peakSpeed = 0;
+        bestScoreAtStart = RunScore.SavedBest;
+        runScore = 0;
         furthestWorld = WorldManager.CurrentIndex;
         ended = false;
     }
@@ -42,12 +47,18 @@ public class LeaderboardRunTracker : MonoBehaviour
     {
         peakSpeed = System.Math.Max(peakSpeed, (long)Mathf.Round(moveBackGround.speed * 100f));
         furthestWorld = Mathf.Max(furthestWorld, WorldManager.CurrentIndex);
+        // Cached rather than read at teardown: the next scene's run may
+        // already have begun by then.
+        if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
+
+    bool BeatLocalBest { get { return peakSpeed > bestAtStart || runScore > bestScoreAtStart; } }
 
     public LeaderboardRunStats Stats()
     {
         return new LeaderboardRunStats
         {
+            score = runScore,
             topSpeed = peakSpeed,
             starDust = StarDustLedger.Earned,
             worldIndex = furthestWorld,
@@ -68,12 +79,14 @@ public class LeaderboardRunTracker : MonoBehaviour
     {
         if (ended) return;
         ended = true;
-        if (peakSpeed > bestAtStart) LeaderboardService.Instance.SubmitRun(Stats());
+        if (BeatLocalBest) LeaderboardService.Instance.SubmitRun(Stats());
     }
 
     void OnApplicationPause(bool paused)
     {
-        if (paused && !ended && peakSpeed > bestAtStart) LeaderboardService.Instance.SubmitRun(Stats());
+        if (!paused || ended) return;
+        Sample();
+        if (BeatLocalBest) LeaderboardService.Instance.SubmitRun(Stats());
     }
 
     // ---- bootstrap ----

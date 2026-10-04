@@ -1,0 +1,351 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+// The run score on the in-game read-out, plus the kill-chain badge and the
+// "+N" popups. Added by HudStyler in gameS1 only -- the tutorial scores
+// nothing, so its read-out stays SPEED / star dust / PAUSES.
+//
+//   SCORE  12,345  x3     top row of the read-out (BONE, like the other rows'
+//                         flat cel type with an INK outline). The number ticks
+//                         up towards RunScore.Total instead of jumping, and
+//                         punches on a big gain. The chain badge shows the
+//                         current kill multiplier while a chain is alive and
+//                         fades as its window runs out.
+//   +5                    pops up and rises from where a kill, a star dust or
+//                         atom pickup, a boss or a world clear happened
+//                         (RunScore.Scored), coloured by what it was; bosses
+//                         and worlds are bigger and stay up longer. Pooled,
+//                         and on the world's clock, so they freeze with it.
+//
+// The row is one more slot in the read-out's VerticalLayoutGroup (PanelTexts):
+// the stack and the panel both grow by one row + gap, so every row keeps its
+// height and the panel keeps its padding. The read-out itself animates on
+// unscaled time -- the HUD lives on through the freeze.
+public class ScoreHud : MonoBehaviour
+{
+    public const string RowName = "ScoreText";
+    public const string ChainName = "Chain";
+    // One row (33) and the layout group's gap (7) in gameS1's read-out.
+    public const float RowStep = 40f;
+    public const int FontSize = 26;
+    public const int PopupPool = 12;
+
+    static readonly Color ScoreColour = AkiraPalette.Bone;
+    static readonly Color ChainColour = AkiraPalette.RedHi;
+    static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
+
+    Text scoreText, chainText;
+    RectTransform canvasRect;
+    Canvas canvas;
+    Font font;
+    double shown;
+    long lastTarget;
+    long shownWhole = -1;
+    float landedAt = -1f;
+    float punchAt = -1f;
+    int lastMultiplier = 1;
+    float chainPunchAt = -1f;
+
+    struct Popup { public Text text; public float age, seconds, rise; public Vector2 from; }
+    Popup[] popups;
+    int nextPopup;
+
+    public Text ScoreText { get { return scoreText; } }
+    public Text ChainText { get { return chainText; } }
+
+    // The read-out scores only outside the tutorial.
+    public static bool ShouldShow(Text speedText)
+    {
+        return speedText != null && speedText.gameObject.scene.name != score.TutorialScene;
+    }
+
+    // Adds the SCORE row to the top of the read-out that holds `speedText`
+    // and grows the stack and its panel by one row. Idempotent.
+    public static ScoreHud Attach(GameObject host, Text speedText)
+    {
+        var rows = speedText.transform.parent as RectTransform;
+        if (rows == null) return null;
+        var hud = host.GetComponent<ScoreHud>() ?? host.AddComponent<ScoreHud>();
+        hud.font = speedText.font;
+
+        var existing = rows.Find(RowName);
+        if (existing != null)
+        {
+            hud.scoreText = existing.GetComponent<Text>();
+            hud.chainText = existing.Find(ChainName)?.GetComponent<Text>();
+        }
+        else
+        {
+            var go = new GameObject(RowName, typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(rows, false);
+            go.transform.SetSiblingIndex(0);
+            hud.scoreText = go.GetComponent<Text>();
+            Style(hud.scoreText, hud.font, FontSize, ScoreColour, TextAnchor.MiddleLeft);
+            hud.scoreText.text = Label(0);
+
+            var chain = new GameObject(ChainName, typeof(RectTransform), typeof(Text));
+            chain.transform.SetParent(go.transform, false);
+            var crt = (RectTransform)chain.transform;
+            crt.anchorMin = new Vector2(1f, 0f);
+            crt.anchorMax = new Vector2(1f, 1f);
+            crt.pivot = new Vector2(1f, .5f);
+            crt.sizeDelta = new Vector2(64f, 0f);
+            crt.anchoredPosition = Vector2.zero;
+            hud.chainText = chain.GetComponent<Text>();
+            Style(hud.chainText, hud.font, 22, ChainColour, TextAnchor.MiddleRight);
+            hud.chainText.text = "";
+
+            Grow(rows, RowStep);
+            Grow(rows.parent as RectTransform, RowStep);
+        }
+
+        var c = rows.GetComponentInParent<Canvas>();
+        hud.canvas = c != null ? c.rootCanvas : null;
+        hud.canvasRect = hud.canvas != null ? (RectTransform)hud.canvas.transform : null;
+        hud.shown = RunScore.Total;
+        hud.lastTarget = RunScore.Total;
+        return hud;
+    }
+
+    static void Grow(RectTransform rt, float by)
+    {
+        if (rt == null) return;
+        var size = rt.sizeDelta;
+        size.y += by;
+        rt.sizeDelta = size;
+    }
+
+    public static string Label(long points)
+    {
+        return "SCORE  " + RunScore.Format(points);
+    }
+
+    static void Style(Text t, Font font, int size, Color colour, TextAnchor align)
+    {
+        if (font != null) t.font = font;
+        t.fontSize = size;
+        t.fontStyle = FontStyle.Bold;
+        t.color = colour;
+        t.alignment = align;
+        t.resizeTextForBestFit = false;
+        t.horizontalOverflow = HorizontalWrapMode.Overflow;
+        t.verticalOverflow = VerticalWrapMode.Overflow;
+        t.raycastTarget = false;
+        var outline = t.GetComponent<Outline>() ?? t.gameObject.AddComponent<Outline>();
+        outline.effectColor = TextInk;
+        outline.effectDistance = new Vector2(2f, -2f);
+    }
+
+    void OnEnable() { RunScore.Scored += OnScored; }
+    void OnDisable() { RunScore.Scored -= OnScored; }
+
+    void Update()
+    {
+        TickDisplay(Mathf.Min(Time.unscaledDeltaTime, .1f));
+    }
+
+    void TickDisplay(float dt)
+    {
+        if (scoreText == null) return;
+        float now = Time.unscaledTime;
+        long target = RunScore.Total;
+
+        // Tick up: a quick roll that eases into the exact number (never
+        // overshoots). While it rolls the figure glows AMBER; a real gain
+        // punches it, and it flashes BONE-bright as it lands.
+        if (target < shown) shown = target;   // a new run
+        if (target - lastTarget >= ScoreRules.PopupMinPoints) punchAt = now;
+        lastTarget = target;
+        double gap = target - shown;
+        if (gap > 0d)
+        {
+            double step = gap * (1d - System.Math.Exp(-9d * dt)) + 12d * dt;
+            shown = System.Math.Min(target, shown + step);
+            if (shown >= target) landedAt = now;
+        }
+        long whole = (long)System.Math.Floor(shown);
+        if (whole != shownWhole)   // only rebuild the string when the figure changes
+        {
+            shownWhole = whole;
+            scoreText.text = Label(whole);
+        }
+        bool rolling = shown < target;
+        float sinceLand = now - landedAt;
+        scoreText.color = rolling ? AkiraPalette.Amber
+                        : sinceLand >= 0f && sinceLand < 2f / 24f ? Color.white : ScoreColour;
+        Punch(scoreText.rectTransform, now - punchAt);
+
+        if (chainText != null)
+        {
+            int m = RunScore.Multiplier;
+            if (m != lastMultiplier)
+            {
+                if (m > 1) chainPunchAt = now;
+                chainText.text = m > 1 ? ChainLabels[Mathf.Min(m, ChainLabels.Length - 1)] : "";
+                lastMultiplier = m;
+            }
+            if (m > 1)
+            {
+                // Fades out over the last of the chain window, stepped like the
+                // rest of the HUD (no smooth fade).
+                float left = RunScore.ChainLeft01;
+                chainText.color = AkiraPalette.WithAlpha(ChainColour, left > .35f ? 1f : left > .15f ? .6f : .3f);
+                Punch(chainText.rectTransform, now - chainPunchAt, 1.4f);
+            }
+        }
+
+        // Popups live on the world's clock: they freeze with it.
+        StepPopups(buttonClicks.playerDied ? -1f : Time.deltaTime);
+    }
+
+    static readonly string[] ChainLabels = { "", "", "x2", "x3", "x4" };
+
+    // Stepped punch: 1 tick big, 2 ticks small, then rest (24 fps ticks).
+    static void Punch(RectTransform rt, float since, float big = 1.16f)
+    {
+        float k = since < 0f ? 99f : since * 24f;
+        float s = k < 1f ? big : k < 3f ? .95f : 1f;
+        if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
+    }
+
+    // ---- "+N" popups -------------------------------------------------------
+    //
+    // A fixed pool (PopupPool Texts, built once); the oldest is recycled when
+    // all are busy. Each pops in big (stepped 0 -> 1.6 -> 0.9 -> 1), rises,
+    // holds and fades in steps. Colour says what it was; bosses and world
+    // clears are bigger, carry a word and stay up longer. Everything runs on
+    // the world's scaled clock, so a pause freezes them mid-flight.
+
+    public struct PopupStyle
+    {
+        public Color colour;
+        public int size;
+        public float seconds, rise;
+        public string suffix;
+    }
+
+    public static PopupStyle StyleFor(RunScore.Source source, bool chained)
+    {
+        switch (source)
+        {
+            case RunScore.Source.Boss:
+                return new PopupStyle { colour = AkiraPalette.RedHi, size = 46, seconds = 1.6f, rise = 70f, suffix = "  BOSS" };
+            case RunScore.Source.World:
+                return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
+            case RunScore.Source.Dust:
+                return new PopupStyle { colour = AkiraPalette.Amber, size = 22, seconds = .6f, rise = 44f, suffix = "" };
+            case RunScore.Source.Atom:
+                return new PopupStyle { colour = AkiraPalette.Teal, size = 26, seconds = .75f, rise = 52f, suffix = "" };
+            default:   // kills: BONE, Kaneda red once a chain is multiplying them
+                return new PopupStyle { colour = chained ? AkiraPalette.RedHi : AkiraPalette.Bone,
+                                        size = chained ? 30 : 26, seconds = .75f, rise = 56f, suffix = "" };
+        }
+    }
+
+    void OnScored(int points, Vector3 at, RunScore.Source source)
+    {
+        ShowPopup(points, at, source);
+    }
+
+    public Text ShowPopup(int points, Vector3 at, RunScore.Source source)
+    {
+        if (canvasRect == null || points <= 0) return null;
+        if (popups == null) BuildPopups();
+
+        int index = nextPopup;
+        nextPopup = (nextPopup + 1) % popups.Length;
+        var p = popups[index];
+        var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
+        p.text.text = "+" + RunScore.Format(points) + style.suffix;
+        p.text.fontSize = style.size;
+        p.text.color = style.colour;
+        p.seconds = style.seconds;
+        p.rise = style.rise;
+        p.from = ToCanvas(at);
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        var rt = p.text.rectTransform;
+        rt.anchoredPosition = p.from;
+        rt.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
+    }
+
+    void BuildPopups()
+    {
+        popups = new Popup[PopupPool];
+        for (int i = 0; i < popups.Length; i++)
+        {
+            var go = new GameObject("ScorePopup", typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(canvasRect, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
+            rt.sizeDelta = new Vector2(360f, 60f);
+            var t = go.GetComponent<Text>();
+            Style(t, font, 24, ScoreColour, TextAnchor.MiddleCenter);
+            go.SetActive(false);
+            popups[i] = new Popup { text = t, age = -1f };
+        }
+    }
+
+    // A world position on the HUD canvas (centre origin); NaN = the middle of
+    // the screen, a little above centre. Kept clear of the screen edges.
+    Vector2 ToCanvas(Vector3 world)
+    {
+        Vector2 size = canvasRect.rect.size;
+        if (float.IsNaN(world.x) || Camera.main == null) return new Vector2(0f, size.y * .12f);
+        Vector2 screen = Camera.main.WorldToScreenPoint(world);
+        Camera uiCam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+        Vector2 local;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screen, uiCam, out local))
+            return Vector2.zero;
+        local.x = Mathf.Clamp(local.x, -size.x * .5f + 120f, size.x * .5f - 120f);
+        local.y = Mathf.Clamp(local.y + 40f, -size.y * .5f + 60f, size.y * .5f - 200f);
+        return local;
+    }
+
+    // Advances every live popup by `dt` of world time (0 while frozen: they
+    // hold still). A negative dt (the run is over) clears them all.
+    public void StepPopups(float dt)
+    {
+        if (popups == null) return;
+        for (int i = 0; i < popups.Length; i++)
+        {
+            var p = popups[i];
+            if (p.age < 0f) continue;
+            if (dt < 0f) p.age = p.seconds;
+            else p.age += dt;
+            if (p.age >= p.seconds)
+            {
+                p.text.gameObject.SetActive(false);
+                p.age = -1f;
+                popups[i] = p;
+                continue;
+            }
+            popups[i] = p;
+            // Held on twos (12 drawings a second) like the art guide's flipbooks.
+            float t = Mathf.Floor(p.age * 12f) / 12f;
+            float q = t / p.seconds;
+            var rt = p.text.rectTransform;
+            float ease = 1f - (1f - Mathf.Min(1f, q * 1.6f)) * (1f - Mathf.Min(1f, q * 1.6f));
+            rt.anchoredPosition = p.from + new Vector2(0f, p.rise * ease);
+            // Pop: big on the first drawing, a squash, then settled.
+            float s = t < 1f / 12f ? 1.6f : t < 2f / 12f ? .9f : 1f;
+            if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
+            var c = p.text.color;
+            float a = q < .65f ? 1f : q < .82f ? .6f : .3f;
+            if (!Mathf.Approximately(c.a, a)) { c.a = a; p.text.color = c; }
+        }
+    }
+
+    public int LivePopups
+    {
+        get
+        {
+            int n = 0;
+            if (popups != null) foreach (var p in popups) if (p.age >= 0f) n++;
+            return n;
+        }
+    }
+}

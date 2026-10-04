@@ -46,6 +46,7 @@ public static class AllTests
         ("RailMineArtTest", RailMineArtTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
+        ("ScoringTest", ScoringTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),

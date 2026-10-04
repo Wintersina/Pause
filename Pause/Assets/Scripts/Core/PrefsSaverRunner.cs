@@ -14,6 +14,7 @@ public class PrefsSaverRunner : MonoBehaviour
         if (StarDustLedger.IsActive && Time.unscaledTime >= nextStageAt)
         {
             StarDustLedger.Stage();
+            RunScore.Stage();
             nextStageAt = Time.unscaledTime + PrefsSaver.SaveInterval;
         }
         if (!PrefsSaver.Dirty) return;
@@ -33,6 +34,7 @@ public class PrefsSaverRunner : MonoBehaviour
     static void Flush()
     {
         StarDustLedger.Stage();
+        RunScore.Stage();   // best score so far; the run stays open
         PrefsSaver.SaveNow();
     }
 }

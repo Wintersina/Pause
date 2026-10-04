@@ -139,7 +139,7 @@ public static class TestHarness
     {
         var keys = new List<string>
         {
-            "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed",
+            "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed", RunScore.BestScoreKey,
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
             DeveloperUnlocks.ChoiceBuildKey,
