@@ -3,7 +3,7 @@
     python3 damage_fx.py [--preview <dir>]
 
 Writes ../../DamageFx.png (Resources/ShipArt/DamageFx), a grid of 64 px
-cells, 4 columns x 8 rows, flat cartoon cels with INK outlines in the hull
+cells, 4 columns x 11 rows, flat cartoon cels with INK outlines in the hull
 style's palette (docs/art-style.md), each row a 4-drawing flipbook:
 
     0  crackle   the spark flash on a broken panel (pinch, star, break up)
@@ -20,6 +20,8 @@ style's palette (docs/art-style.md), each row a 4-drawing flipbook:
                  pale-blue splat that pops, swells, breaks up and thins out
     9  spray     retardant spray in flight, a streak of droplets pointing up
                  (+y): a fat jet, a thinner jet, a droplet trio, a fine mist
+   10  nozzle    the companion drone's retardant nozzle, pointing up (+y):
+                 shut, cracking open with a spurt, full spurt, spurt + drips
 
 ShipDamageFx slices the same layout (ShipDamageFx.Row*).
 """
@@ -36,7 +38,7 @@ from hullkit import *  # noqa: F401,F403
 
 OUT = os.path.abspath(os.path.join(HERE, "..", "..", "DamageFx.png"))
 CELL = 64
-COLS, ROWS = 4, 10
+COLS, ROWS = 4, 11
 WHITE = "#FFFFFF"
 WHITE_SH = "#B4B4BC"   # the tintable shadow (multiplied by the hull colour)
 
@@ -237,10 +239,33 @@ def spray(k):
     return s
 
 
+def nozzle(k):
+    # a stubby gun-metal hose head with a pale-blue band, tip at the top of
+    # the body (Unity +y); the spurt grows out of the tip
+    body = [(25, 58), (39, 58), (37, 40), (35, 30), (29, 30), (27, 40)]
+    s = inkpoly(body, 3.5) + poly(body, GUN) + poly([(32, 58), (39, 58), (37, 40), (35, 30), (32, 30)], GUN_SH)
+    band = [(26.5, 46), (37.5, 46), (37, 41), (27, 41)]
+    s += poly(band, FOAM_SH) + inkpoly(band, 2, FOAM_DEEP)
+    s += poly([(28, 52), (30, 52), (30, 56), (28, 56)], GUN_HI)
+    tip = [(29, 31), (35, 31), (34, 26), (30, 26)]
+    s += inkpoly(tip, 3) + poly(tip, GUN_HI)
+    if k == 0:
+        return s
+    L, w = [(0, 0), (10, 5), (20, 9), (16, 8)][k]
+    jet = [(32 - w * .5, 26), (32 + w * .5, 26), (32 + w, 26 - L * .7), (32, 26 - L), (32 - w, 26 - L * .7)]
+    s += inkpoly(jet, 3) + poly(jet, FOAM_SH)
+    core = [(32 - w * .25, 26), (32 + w * .25, 26), (32 + w * .5, 26 - L * .65), (32, 26 - L * .85), (32 - w * .5, 26 - L * .65)]
+    s += poly(core, FOAM)
+    if k == 3:
+        for x, y, r in ((22, 10, 3), (43, 8, 2.6), (40, 18, 2.2)):
+            s += poly(ngon(x, y, r, 8), FOAM) + inkpoly(ngon(x, y, r, 8), 1.6, FOAM_DEEP)
+    return s
+
+
 ROW_FNS = [crackle, spark, arc, smoke, flame, drop,
            lambda k: chunk(k, WHITE, WHITE_SH, WHITE),
            lambda k: chunk(k, GUN, GUN_SH, GUN_HI),
-           foam, spray]
+           foam, spray, nozzle]
 
 
 def build():

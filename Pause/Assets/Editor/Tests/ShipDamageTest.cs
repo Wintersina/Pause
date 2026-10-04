@@ -14,6 +14,10 @@ using UnityEngine;
 //   - emitters follow the bank / bob pose and turn with a spinning hull
 //   - nothing animates at timeScale 0; the particle pool is bounded, stays
 //     near the hull, ducks the hearts / ship elements and allocates nothing
+//   - the companion drone (UltimateGun) is the firefighter on every ship: a
+//     hit startles it, it flies in (inside its rest envelope) and sprays the
+//     live hot spots from its nozzle, more often on the last life, gives way
+//     to the ultimate, stops once healed; the hearts never spray
 //   - the dock, title traffic and codex keep showing the intact hull
 public static class ShipDamageTest
 {
@@ -53,8 +57,11 @@ public static class ShipDamageTest
         Pool(13);
         Ducking(ShipId.Starter);
         Smoke(3);
-        for (int max = 2; max <= 5; max++) Retardant(9, max);   // a hull with hearts
-        RetardantFromGun(ShipId.Starter);                     // no hearts: the companion gun
+        // the companion drone is the firefighter, on every ship
+        foreach (int id in ShipId.All) Floatie(id);
+        FlameFirst(9);
+        HeartsDontSpray(9);
+        YieldsToUltimate(3);
         collisionDetection.MAXLIFE = 3;
         collisionDetection.lifeCounter = 0;
 
@@ -406,7 +413,7 @@ public static class ShipDamageTest
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
-        AddHearts(go);   // so the retardant runs in the pool too
+        var gun = AddGun(go);   // so the retardant runs in the pool too
         int children = go.GetComponentsInChildren<Transform>(true).Length;
         SetState(Critical);
         int peak = 0;
@@ -416,6 +423,7 @@ public static class ShipDamageTest
         long before = System.GC.GetAllocatedBytesForCurrentThread();
         for (int k = 0; k < 600; k++)
         {
+            gun.Step(0f, Dt, Dt);
             fx.Tick(1f / 60f);
             peak = Mathf.Max(peak, fx.ActiveParticles);
             for (int i = 0; i < fx.PoolSize; i++)
@@ -537,41 +545,87 @@ public static class ShipDamageTest
         return hearts;
     }
 
-    // One frame of the ship, its hearts and its FX, in execution order.
-    static void Frame(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts)
+    // The companion drone (UltimateGun), as ShipPowerController attaches it.
+    static UltimateGun AddGun(GameObject go)
+    {
+        var gun = UltimateGun.Attach(go);
+        if (gun.transform.childCount == 0) gun.SendMessage("Awake");
+        return gun;
+    }
+
+    const float Dt = 1f / 60f;
+
+    // One frame of the ship, its drone, its hearts and its FX, in execution
+    // order. `extend`: the ultimate's slide-out target (0 at rest).
+    static void Frame(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts, UltimateGun gun,
+                      float extend = 0f, float spin = 0f)
     {
         life.SendMessage("Update");
+        if (spin != 0f) life.transform.rotation *= Quaternion.Euler(0f, 0f, spin * Dt);
+        if (gun != null) gun.Step(extend, Dt, Dt);
         if (hearts != null)
         {
             hearts.SendMessage("Update");
-            hearts.Place(1f / 60f, 1f / 60f);
+            hearts.Place(Dt, Dt);
+            hearts.StepBreaks(Dt);
         }
-        fx.Tick(1f / 60f);
+        fx.Tick(Dt);
     }
 
     static bool Hot(DamageEmitterKind k) { return k != DamageEmitterKind.Leak; }
 
-    // Sprays started over `seconds`, checking every spray frame aims right.
-    static int Watch(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts, float seconds,
-                     ref bool aimed, ref bool fromHeart, ref bool landed, ref bool calmed, ref bool foam)
+    static float Spin(int id) { return ShipUiSlots.Spins(id) ? 240f : 0f; }
+
+    // The drone draws inside its rest envelope.
+    static bool InEnvelope(GameObject go, int id, UltimateGun gun, out string detail)
     {
+        Bounds env = ShipUiSlots.GunToWorld(go.transform, id, gun.LocalRestEnvelope());
+        Bounds drawn = ShipUiSlots.DrawnBounds(gun.transform);
+        const float tol = 2e-3f;
+        bool ok = drawn.min.x >= env.min.x - tol && drawn.max.x <= env.max.x + tol &&
+                  drawn.min.y >= env.min.y - tol && drawn.max.y <= env.max.y + tol;
+        detail = ok ? "" : "drawn " + drawn.min.ToString("F3") + ".." + drawn.max.ToString("F3") +
+                           " env " + env.min.ToString("F3") + ".." + env.max.ToString("F3");
+        return ok;
+    }
+
+    class Watched
+    {
+        public int sprays;
+        public bool aimed = true, fromNozzle = true, notHeart = true, landed, calmed, foam, nozzle, spurt, lean,
+                    inside = true, upright = true;
+        public string outside = "";
+    }
+
+    // Sprays started over `seconds`, checking every spray frame.
+    static Watched Watch(ShipDamageFx fx, lifeControler life, ShipLivesIndicator hearts, UltimateGun gun,
+                         float seconds, Watched w = null)
+    {
+        w = w ?? new Watched();
+        int id = fx.ShipIdShown;
         int start = fx.Sprays;
-        for (float t = 0f; t < seconds; t += 1f / 60f)
+        var heartsAt = new List<Vector3>();
+        for (float t = 0f; t < seconds; t += Dt)
         {
-            Frame(fx, life, hearts);
+            Frame(fx, life, hearts, gun, 0f, Spin(id));
+            string why;
+            if (!InEnvelope(life.gameObject, id, gun, out why)) { w.inside = false; if (w.outside == "") w.outside = why; }
+            if (ShipUiSlots.Spins(id)) w.upright &= Quaternion.Angle(gun.transform.rotation, Quaternion.identity) < .5f;
             for (int p = 0; p < fx.PoolSize; p++)
-                if (fx.ParticleAlive(p) && fx.ParticleRow(p) == ShipDamageFx.RowFoam) foam = true;
+                if (fx.ParticleAlive(p) && fx.ParticleRow(p) == ShipDamageFx.RowFoam) w.foam = true;
             int target = fx.SprayTarget;
             if (target < 0) continue;
             int column = life.HullAnimator.Column;
             Vector3 to = fx.EmitterWorld(target, column);
-            aimed &= target < fx.LiveEmitters && Hot(ShipDamageTable.Get(fx.ShipIdShown, target).kind);
-            if (hearts != null)
-            {
-                int h = fx.SprayHeart;
-                fromHeart &= h >= 0 && hearts.Hearts[h].gameObject.activeSelf &&
-                             (fx.SprayFrom - hearts.Hearts[h].position).sqrMagnitude < 1e-6f;
-            }
+            w.aimed &= target < fx.LiveEmitters && Hot(ShipDamageTable.Get(id, target).kind);
+            w.fromNozzle &= (fx.SprayFrom - gun.NozzlePosition).sqrMagnitude < 1e-6f;
+            heartsAt.Clear();
+            if (hearts != null) hearts.HeartPositions(heartsAt);
+            foreach (var h in heartsAt) w.notHeart &= (fx.SprayFrom - h).sqrMagnitude > 1e-6f;
+            w.nozzle |= gun.NozzleShown;
+            var ns = gun.NozzleRenderer.sprite;
+            w.spurt |= gun.NozzleShown && (ns == ShipDamageFx.Frame(ShipDamageFx.RowNozzle, 2) || ns == ShipDamageFx.Frame(ShipDamageFx.RowNozzle, 3));
+            w.lean |= Mathf.Abs(gun.Lean) > 2f;
             Vector3 dir = to - fx.SprayFrom;
             dir.z = 0f;
             for (int p = 0; p < fx.PoolSize; p++)
@@ -579,65 +633,183 @@ public static class ShipDamageTest
                 if (!fx.ParticleAlive(p)) continue;
                 int row = fx.ParticleRow(p);
                 if (row == ShipDamageFx.RowSpray && fx.ParticleVelocity(p).sqrMagnitude > 1e-8f &&
-                    (fx.ParticleOrigin(p) - fx.SprayFrom).sqrMagnitude < (fx.HullSize * .06f) * (fx.HullSize * .06f))
+                    (fx.ParticleOrigin(p) - fx.SprayFrom).sqrMagnitude < 1e-10f)   // launched this frame
                 {
                     var v = fx.ParticleVelocity(p);
                     v.z = 0f;
-                    aimed &= Vector3.Dot(v.normalized, dir.normalized) > .95f;
+                    w.aimed &= Vector3.Dot(v.normalized, dir.normalized) > .95f;
                 }
                 if (row == ShipDamageFx.RowFoam)
                 {
                     var o = fx.ParticleOrigin(p) - to;
-                    landed |= new Vector2(o.x, o.y).magnitude < fx.HullSize * .08f;
+                    w.landed |= new Vector2(o.x, o.y).magnitude < fx.HullSize * .08f;
                 }
             }
-            if (fx.Doused(target) > 0f) calmed = true;
+            if (fx.Doused(target) > 0f) w.calmed = true;
         }
-        return fx.Sprays - start;
+        w.sprays += fx.Sprays - start;
+        return w;
     }
 
-    static void Retardant(int id, int maxLives)
+    // Every ship: a hit startles the drone, which flies in and sprays the hot
+    // spots from its own nozzle (more often on the last life), stays in its
+    // rest envelope, gives way to the ultimate, stops once healed and starts
+    // again on the next hit; frozen at timeScale 0; no garbage.
+    static void Floatie(int id)
     {
-        collisionDetection.MAXLIFE = maxLives;
-        string who = Label(id) + " (" + maxLives + " hearts)";
+        int max = ShipLives.Max(id);
+        collisionDetection.MAXLIFE = max;
+        string who = Label(id) + " (" + max + " lives)";
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
+        var gun = AddGun(go);
         var hearts = AddHearts(go);
-        Check(who + " has its hearts", hearts.Hearts != null && hearts.Hearts.Length == maxLives);
 
-        bool aimed = true, fromHeart = true, landed = false, calmed = false, foam = false;
-        int intact = Watch(fx, life, hearts, 3f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
-        Check(who + " intact: no retardant", intact == 0 && !fx.Spraying && !foam);
+        var w0 = Watch(fx, life, hearts, gun, 2f);
+        Check(who + " intact: the drone just hovers (no spray, no nozzle, no foam)",
+              w0.sprays == 0 && !fx.Spraying && !w0.foam && gun.Duty == 0f && !gun.NozzleShown && gun.Startles == 0);
 
-        int damaged = 0;
-        if (maxLives > 2)
+        // the hit
+        Vector3 before = gun.transform.position;
+        SetState(max > 2 ? Damaged : Critical);
+        Frame(fx, life, hearts, gun, 0f, Spin(id));
+        bool startled = fx.HitsSeen == 1 && gun.Startles == 1 && gun.Startling;
+        bool blink = false, jolt = false;
+        for (float t = 0f; t < UltimateGun.StartleSeconds; t += Dt)
         {
-            SetState(Damaged);
-            damaged = Watch(fx, life, hearts, 10f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
-            Check(who + " damaged: the hearts spray retardant (" + damaged + " sprays in 10 s)", damaged >= 2);
+            Frame(fx, life, hearts, gun, 0f, Spin(id));
+            blink |= gun.BarrelRenderer.color != Color.white;
+            jolt |= Mathf.Abs(gun.Shake) > 3f;
+        }
+        Check(who + " a hit startles the drone: it jolts and blinks", startled && blink && jolt);
+        float firstSpray = -1f, arrived = -1f;
+        for (float t = 0f; t < 2.5f && firstSpray < 0f; t += Dt)
+        {
+            Frame(fx, life, hearts, gun, 0f, Spin(id));
+            if (arrived < 0f && gun.OnStation) arrived = t;
+            if (fx.Spraying) firstSpray = t;
+        }
+        Check(who + " then it hurries in and sprays (on station " + arrived.ToString("0.00") + " s, spraying " +
+              firstSpray.ToString("0.00") + " s after the jolt)",
+              arrived >= 0f && arrived < 1f && firstSpray >= 0f && firstSpray < 1.2f &&
+              (gun.transform.position - before).sqrMagnitude > 1e-6f);
+
+        var w = new Watched();
+        int damaged = 0;
+        if (max > 2)
+        {
+            Watch(fx, life, hearts, gun, 10f, w);
+            damaged = w.sprays;
+            Check(who + " damaged: the drone sprays now and then (" + damaged + " sprays in 10 s)", damaged >= 2);
         }
         SetState(Critical);
-        int critical = Watch(fx, life, hearts, 10f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
-        Check(who + " critical: sprays more often (" + damaged + " -> " + critical + " in 10 s)",
-              critical >= 4 && critical > damaged);
-        Check(who + " every spray aims at a live hot spot, droplets flying straight at it", aimed);
-        Check(who + " the spray comes from a shown heart", fromHeart);
-        Check(who + " foam lands on the spot and calms it", foam && landed && calmed);
+        int hitsBefore = gun.Startles;
+        w.sprays = 0;
+        Watch(fx, life, hearts, gun, 10f, w);
+        int critical = w.sprays;
+        Check(who + " critical: startled again and sprays more often (" + damaged + " -> " + critical + " in 10 s)",
+              critical >= 4 && critical > damaged && (max > 2 ? gun.Startles == hitsBefore + 1 : true));
+        Check(who + " every spray aims at a live hot spot, droplets flying straight at it", w.aimed);
+        Check(who + " the spray leaves the drone's nozzle, never a heart", w.fromNozzle && w.notHeart);
+        Check(who + " the drone leans in, its nozzle out and spurting", w.lean && w.nozzle && w.spurt);
+        Check(who + " foam lands on the spot and calms it", w.foam && w.landed && w.calmed);
+        Check(who + " the drone stays inside its rest envelope " + w.outside, w.inside);
+        if (ShipUiSlots.Spins(id)) Check(who + " the drone stays upright beside the spinning hull", w.upright);
 
-        // fresh from intact, the first target is the worst spot: the flame
+        // the ultimate: the drone gives way at once and never sprays
+        for (float t = 0f; t < 3f && !fx.Spraying; t += Dt) Frame(fx, life, hearts, gun, 0f, Spin(id));
+        bool wasSpraying = fx.Spraying;
+        int s0 = fx.Sprays;
+        bool never = true, upright = true;
+        for (float t = 0f; t < 2f; t += Dt)
+        {
+            Frame(fx, life, hearts, gun, Mathf.Clamp(t / 1.2f, .01f, 1f), Spin(id));
+            never &= !fx.Spraying && !gun.NozzleShown;
+            if (t > .3f) upright &= gun.Duty == 0f && gun.Lean == 0f;
+        }
+        Vector3 local = gun.GunSpaceOf(gun.transform.position);
+        Vector3 fire = typeof(UltimateGun).GetField("firingOffset", System.Reflection.BindingFlags.NonPublic |
+                                                     System.Reflection.BindingFlags.Instance).GetValue(gun) is Vector3 f ? f : Vector3.zero;
+        Vector2 amp = UltimateGun.HoverAmplitude(id);
+        bool inSlot = Mathf.Abs(local.x - fire.x) <= amp.x * .2f + .01f && Mathf.Abs(local.y - fire.y) <= amp.y * .2f + .01f;
+        int duringUltimate = fx.Sprays - s0;
+        // settle back after the shot
+        for (float t = 0f; t < 1.5f; t += Dt)
+        {
+            Frame(fx, life, hearts, gun, 0f, Spin(id));
+            never &= gun.Extend01 > 0f ? !fx.Spraying : true;
+        }
+        Check(who + " the ultimate: the drone stops spraying, slides out to its firing slot as before (" + wasSpraying +
+              " " + never + " " + upright + " " + duringUltimate + " " + inSlot + " " + local.ToString("F3") + " vs " + fire.ToString("F3") + ")",
+              wasSpraying && never && upright && duringUltimate == 0 && inSlot);
+        var after = Watch(fx, life, hearts, gun, 4f);
+        Check(who + " after the ultimate it gets back to work (" + after.sprays + " sprays)", after.sprays >= 1);
+
+        // frozen: the firefight holds still
+        for (float t = 0f; t < 4f && !(fx.Spraying && gun.Duty >= 1f); t += Dt) Frame(fx, life, hearts, gun, 0f, Spin(id));
+        int sprays = fx.Sprays, target0 = fx.SprayTarget;
+        int bits = fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray);
+        Vector3 at = gun.transform.position, station = gun.Station;
+        float duty = gun.Duty, lean = gun.Lean;
+        var nozzleSprite = gun.NozzleRenderer.sprite;
+        for (int k = 0; k < 120; k++) { gun.Step(0f, Dt, 0f); fx.Tick(0f); }
+        Check(who + " at timeScale 0 the drone and its spray hold still",
+              fx.Spraying && fx.Sprays == sprays && fx.SprayTarget == target0 &&
+              fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray) == bits &&
+              (gun.transform.position - at).sqrMagnitude < 1e-10f && gun.Station == station && gun.Duty == duty &&
+              gun.Lean == lean && gun.NozzleRenderer.sprite == nozzleSprite);
+
+        // no garbage while it works
+        long allocBefore = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int k = 0; k < 300; k++) { gun.Step(0f, Dt, Dt); fx.Tick(Dt); }
+        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - allocBefore;
+        Check(who + " firefighting allocates nothing (" + allocated + " B)", allocated == 0);
+
+        // healed: it stops and floats back to its hover
+        collisionDetection.lifeCounter = 0;
+        Frame(fx, life, hearts, gun, 0f, Spin(id));
+        bool stopped = !fx.Spraying;
+        int afterHeal = fx.Sprays;
+        for (float t = 0f; t < 5f; t += Dt) { Frame(fx, life, hearts, gun, 0f, Spin(id)); stopped &= !fx.Spraying; }
+        Vector3 rest = typeof(UltimateGun).GetField("restingOffset", System.Reflection.BindingFlags.NonPublic |
+                                                     System.Reflection.BindingFlags.Instance).GetValue(gun) is Vector3 r ? r : Vector3.zero;
+        local = gun.GunSpaceOf(gun.transform.position);
+        bool home = Mathf.Abs(local.x - rest.x) <= amp.x + .01f && Mathf.Abs(local.y - rest.y) <= amp.y + .01f;
+        Check(who + " healed to intact: no more spray, the foam clears, back to its hover",
+              stopped && fx.Sprays == afterHeal && fx.ActiveOfRow(ShipDamageFx.RowFoam) == 0 &&
+              fx.ActiveOfRow(ShipDamageFx.RowSpray) == 0 && gun.Duty == 0f && !gun.NozzleShown && gun.Lean == 0f && home);
+
+        // the next hit starts it all again
+        int startles = gun.Startles;
+        SetState(max > 2 ? Damaged : Critical);
+        var again = Watch(fx, life, hearts, gun, 3f);
+        Check(who + " the next hit: startled and spraying again", gun.Startles == startles + 1 && again.sprays >= 1);
+
+        collisionDetection.lifeCounter = 0;
+        Object.DestroyImmediate(go);
+        collisionDetection.MAXLIFE = 3;
+    }
+
+    // Fresh from intact, the first spot foamed is the worst (the flame), and
+    // a foamed flame dies down.
+    static void FlameFirst(int id)
+    {
+        string who = Label(id);
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        var gun = AddGun(go);
+        var hearts = AddHearts(go);
         int flame = -1;
         for (int i = 0; i < ShipDamageTable.Count(id, Critical); i++)
             if (ShipDamageTable.Get(id, i).kind == DamageEmitterKind.Flame) flame = i;
-        collisionDetection.lifeCounter = 0;
-        for (int k = 0; k < 240; k++) Frame(fx, life, hearts);
+        for (int k = 0; k < 60; k++) Frame(fx, life, hearts, gun);
         SetState(Critical);
-        for (float t = 0f; t < 4f && fx.SprayTarget < 0; t += 1f / 60f) Frame(fx, life, hearts);
+        for (float t = 0f; t < 4f && fx.SprayTarget < 0; t += Dt) Frame(fx, life, hearts, gun);
         Check(who + " the worst spot (the flame) is foamed first", flame >= 0 && fx.SprayTarget == flame);
-        // and a foamed flame dies down
         float wild = 0f, doused = float.MaxValue;
-        for (float t = 0f; t < 6f; t += 1f / 60f)
+        for (float t = 0f; t < 6f; t += Dt)
         {
-            Frame(fx, life, hearts);
+            Frame(fx, life, hearts, gun);
             var sr = fx.EmitterRenderer(flame);
             if (!sr.enabled) continue;
             float s = sr.transform.localScale.x;
@@ -645,53 +817,55 @@ public static class ShipDamageTest
         }
         Check(who + " a foamed flame dies down (" + doused.ToString("0.00") + " vs " + wild.ToString("0.00") + ")",
               wild > 0f && doused < wild * .6f);
-
-        // no garbage while spraying
-        long before = System.GC.GetAllocatedBytesForCurrentThread();
-        for (int k = 0; k < 300; k++) fx.Tick(1f / 60f);
-        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
-        Check(who + " spraying allocates nothing (" + allocated + " B)", allocated == 0);
-
-        // frozen: the spray holds
-        for (float t = 0f; t < 4f && !fx.Spraying; t += 1f / 60f) Frame(fx, life, hearts);
-        int sprays = fx.Sprays, target0 = fx.SprayTarget;
-        int bits = fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray);
-        for (int k = 0; k < 120; k++) fx.Tick(0f);
-        Check(who + " at timeScale 0 the spray holds still",
-              fx.Spraying && fx.Sprays == sprays && fx.SprayTarget == target0 &&
-              fx.ActiveOfRow(ShipDamageFx.RowFoam) + fx.ActiveOfRow(ShipDamageFx.RowSpray) == bits);
-
-        // healed to intact: it stops
         collisionDetection.lifeCounter = 0;
-        Frame(fx, life, hearts);
-        bool stopped = !fx.Spraying;
-        int after = fx.Sprays;
-        for (float t = 0f; t < 5f; t += 1f / 60f) { Frame(fx, life, hearts); stopped &= !fx.Spraying; }
-        Check(who + " healed to intact: the spraying stops and the foam clears",
-              stopped && fx.Sprays == after && fx.ActiveOfRow(ShipDamageFx.RowFoam) == 0 &&
-              fx.ActiveOfRow(ShipDamageFx.RowSpray) == 0);
         Object.DestroyImmediate(go);
-        collisionDetection.MAXLIFE = 3;
     }
 
-    static void RetardantFromGun(int id)
+    // The hearts never spray: a ship with hearts and no drone stays dry.
+    static void HeartsDontSpray(int id)
     {
         ShipDamageFx fx; lifeControler life;
         var go = Fly(id, out fx, out life);
-        var gun = UltimateGun.Attach(go);
-        if (gun.transform.childCount == 0) gun.SendMessage("Awake");
+        var hearts = AddHearts(go);
         SetState(Critical);
-        bool aimed = true, fromHeart = true, landed = false, calmed = false, foam = false;
-        int n = Watch(fx, life, null, 8f, ref aimed, ref fromHeart, ref landed, ref calmed, ref foam);
-        Check(Label(id) + " no hearts: the companion gun sprays instead (" + n + " sprays)",
-              n >= 3 && aimed && foam && landed && calmed);
-        bool fromGun = true;
-        for (float t = 0f; t < 4f; t += 1f / 60f)
+        for (float t = 0f; t < 6f; t += Dt) Frame(fx, life, hearts, null);
+        Check(Label(id) + " the hearts don't spray (no drone, no retardant)",
+              fx.Sprays == 0 && fx.ActiveOfRow(ShipDamageFx.RowSpray) == 0 && fx.ActiveOfRow(ShipDamageFx.RowFoam) == 0);
+        collisionDetection.lifeCounter = 0;
+        Object.DestroyImmediate(go);
+    }
+
+    // With the real ShipPowerController: the drone stands down before the
+    // ultimate starts sliding out, and the countdown is untouched.
+    static void YieldsToUltimate(int id)
+    {
+        string who = Label(id);
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        var power = go.AddComponent<ShipPowerController>();
+        power.SendMessage("Awake");
+        power.SendMessage("Start");
+        var gun = go.GetComponentInChildren<UltimateGun>();
+        if (gun.transform.childCount == 0) gun.SendMessage("Awake");
+        var timer = typeof(ShipPowerController).GetField("timer", System.Reflection.BindingFlags.NonPublic |
+                                                         System.Reflection.BindingFlags.Instance);
+        timer.SetValue(power, 30f);
+        SetState(Critical);
+        for (float t = 0f; t < 3f; t += Dt) Frame(fx, life, null, gun);
+        bool working = fx.Sprays > 0;
+        timer.SetValue(power, power.extendLeadSeconds + ShipDamageFx.UltimateYield - .05f);
+        int s0 = fx.Sprays;
+        bool still = true;
+        for (float t = 0f; t < .5f; t += Dt)
         {
-            Frame(fx, life, null);
-            if (fx.Spraying) fromGun &= fx.SprayHeart < 0 && (fx.SprayFrom - gun.transform.position).sqrMagnitude < 1e-6f;
+            Frame(fx, life, null, gun);
+            still &= !fx.Spraying;
+            if (t > .45f) still &= gun.Duty < .05f;
         }
-        Check(Label(id) + " the gun's spray leaves from the gun", fromGun);
+        Check(who + " the drone stands down before the ultimate slides out",
+              working && still && fx.Sprays == s0 && Mathf.Abs((float)timer.GetValue(power) -
+              (power.extendLeadSeconds + ShipDamageFx.UltimateYield - .05f)) < 1e-5f);
+        power.SendMessage("OnDestroy");
         collisionDetection.lifeCounter = 0;
         Object.DestroyImmediate(go);
     }
