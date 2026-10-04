@@ -65,38 +65,32 @@ public static class NextFeatures0907Test
 
     static void AsteroidsSpinSomeAtTieredSpeeds()
     {
-        // A spinning representative and a deliberately-not-spinning one. The
-        // pebble/small/medium Kenney meteors this used were deleted with the
-        // per-world enemy redraw; a roster fighter is the non-spinner now and
-        // the roster rocks are the "lighter" rocks the big meteors compare to.
-        var spinning = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/aestroid_brown.prefab");
-        var bigMeteor = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Enemies/kn_meteorBrown_big1.prefab");
+        // A spinning representative and deliberately-not-spinning ones. The
+        // Kenney meteors and the aestroid_* prefabs this used were deleted
+        // with the per-world enemy redraw: the roster rock spins, the roster
+        // fighter and the armoured heavy do not.
+        var spinning = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), Vector3.zero, Quaternion.identity);
         var notSpinning = EnemyFactory.Create(EnemyRoster.Fighter(0, 1), Vector3.zero, Quaternion.identity);
-        var rosterRock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), Vector3.zero, Quaternion.identity);
+        var heavy = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Big), Vector3.zero, Quaternion.identity);
 
-        Check("aestroid_brown loaded", spinning != null);
+        Check("a roster rock builds", spinning != null);
         Check("a roster fighter builds", notSpinning != null);
-        Check("a roster rock builds", rosterRock != null);
-        if (spinning == null || notSpinning == null || bigMeteor == null || rosterRock == null) return;
+        Check("a roster heavy builds", heavy != null);
+        if (spinning == null || notSpinning == null || heavy == null) return;
 
         var spin = spinning.GetComponent<AsteroidSpin>();
-        Check("aestroid_brown has AsteroidSpin", spin != null);
+        Check("roster rocks have AsteroidSpin", spin != null);
         Check("fighters are deliberately left without spin",
               notSpinning.GetComponent<AsteroidSpin>() == null);
-
-        var big = bigMeteor.GetComponent<AsteroidSpin>();
-        var rock = rosterRock.GetComponent<AsteroidSpin>();
-        Check("big meteors have AsteroidSpin", big != null);
-        Check("roster rocks have AsteroidSpin", rock != null);
-        if (big != null && rock != null)
-            Check("big meteors are tuned to spin slower than the rocks (heavier reads slower)",
-                  big.speedRange.y <= rock.speedRange.y);
+        Check("the armoured heavy is deliberately left without spin",
+              heavy.GetComponent<AsteroidSpin>() == null);
         Object.DestroyImmediate(notSpinning);
-        Object.DestroyImmediate(rosterRock);
+        Object.DestroyImmediate(heavy);
 
         // zigzag (moveEnimes) must still be present -- spin is additive.
-        Check("aestroid_brown kept its zigzag movement (moveEnimes)",
+        Check("roster rocks kept their zigzag movement (moveEnimes)",
               spinning.GetComponent<moveEnimes>() != null);
+        if (spin == null) { Object.DestroyImmediate(spinning); return; }
 
         // Start() rolls a nonzero speed within the configured range (and can
         // land on either side of zero -- direction is random too), and
@@ -104,15 +98,13 @@ public static class NextFeatures0907Test
         // every other flight-only script in this codebase already uses
         // (moveEnimes, ShipThruster, enmiesOnBoard), so a live rotation-delta
         // check here would only be re-testing Time.deltaTime, not this script.
-        var go = Object.Instantiate(spinning);
-        var comp = go.GetComponent<AsteroidSpin>();
-        comp.SendMessage("Start");
+        spin.SendMessage("Start");
         var speedField = typeof(AsteroidSpin).GetField("speed", BindingFlags.NonPublic | BindingFlags.Instance);
-        float rolledSpeed = (float)speedField.GetValue(comp);
+        float rolledSpeed = (float)speedField.GetValue(spin);
         Check("rolled a nonzero spin speed within its configured range",
-              Mathf.Abs(rolledSpeed) >= comp.speedRange.x && Mathf.Abs(rolledSpeed) <= comp.speedRange.y);
+              Mathf.Abs(rolledSpeed) >= spin.speedRange.x && Mathf.Abs(rolledSpeed) <= spin.speedRange.y);
 
-        Object.DestroyImmediate(go);
+        Object.DestroyImmediate(spinning);
     }
 
     static void AtomsStayInsideSideRails()

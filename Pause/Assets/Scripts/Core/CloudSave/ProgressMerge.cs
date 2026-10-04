@@ -8,8 +8,9 @@ using System.Collections.Generic;
 //   HighestSpeed, highestWorld,      max
 //   achievement/kill counters
 //   HasDoneTut                       true if either side has it
+//   owned hull skins                 union
 //   currency, spawnShip,             from whichever side has the newer
-//   currentWorld                     savedAtUtc (local wins a tie)
+//   currentWorld, equipped skins     savedAtUtc (local wins a tie)
 //
 // The result is stamped with the newer of the two timestamps.
 public static class ProgressMerge
@@ -24,6 +25,9 @@ public static class ProgressMerge
 
         var ships = new SortedSet<int>(local.boughtShips ?? new int[0]);
         ships.UnionWith(cloud.boughtShips ?? new int[0]);
+
+        var skins = new SortedSet<int>(local.ownedSkins ?? new int[0]);
+        skins.UnionWith(cloud.ownedSkins ?? new int[0]);
 
         var counters = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var side in new[] { local, cloud })
@@ -49,6 +53,8 @@ public static class ProgressMerge
             highestWorld = highestWorld,
             hasDoneTut = local.hasDoneTut || cloud.hasDoneTut,
             counters = mergedCounters.ToArray(),
+            ownedSkins = new List<int>(skins).ToArray(),
+            equippedSkins = (int[])(newer.equippedSkins ?? new int[0]).Clone(),
         };
         return result;
     }

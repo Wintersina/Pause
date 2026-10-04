@@ -8,7 +8,10 @@ using UnityEngine;
 // planet the player is on -- only the cast changes:
 //
 //   Rock     the obstacle hazards (tag Astr): the spawner's small/mid/large
-//            asteroid slots and its "small enemy" slot
+//            asteroid slots and its "small enemy" slot. Three or four per
+//            world; the FLOATING ones are chunks of that world's ground
+//            (grass, regolith, snow, crust cap) that drift upright and sway
+//            instead of tumbling
 //   Big      the "big enemy" slot: one slow, armoured heavy
 //   Fighter  the escalating extras, tiers 1-4 by phase
 //   Chaser   climbs up from below and hunts the player (ChaserEnemy)
@@ -29,7 +32,8 @@ public sealed class EnemyDef
     public string displayName;    // "Icicle"
     public EnemyRole role;
     public int world;             // WorldManager.Worlds index
-    public int tier;              // fighters 1-4; rocks 1-3 (variant); others 0
+    public int tier;              // fighters 1-4; rocks 1-4 (variant); others 0
+    public bool floating;         // rocks only: a floating chunk of the world's ground (sways, never tumbles)
     public string codexId;        // CodexCatalogue entry id
     public string concept;        // one-line art brief
     public string lore;           // codex text
@@ -72,6 +76,23 @@ public static class EnemyRoster
     //   Chaser  kn_enemyRed5 + ChaserEnemy: 0.866 x 0.75, collider 0.71 x 0.615
     //   Alien   alien1: 0.64, collider 0.4 x 0.2
     //   Mine    runtime rail mine: ~0.8, collider 0.62 square
+    // Every role keeps to those, except the Big heavies: the user wanted them
+    // to read as properly big (they were smaller than the fighters), so they
+    // target BigWidth instead (TargetWidth / TargetCollider below).
+    public const float BigWidth = 1.1f;
+
+    // The size a role is held to (+/-15%, EnemyRosterTest): the legacy size,
+    // or the heavies' new one.
+    public static float TargetWidth(EnemyRole role)
+    {
+        return role == EnemyRole.Big ? BigWidth : LegacyWidth(role);
+    }
+
+    public static Vector2 TargetCollider(EnemyRole role)
+    {
+        return role == EnemyRole.Big ? ColliderSize(EnemyRole.Big) : LegacyCollider(role);
+    }
+
     public static Vector2 LegacyCollider(EnemyRole role)
     {
         switch (role)
@@ -102,7 +123,9 @@ public static class EnemyRoster
         switch (role)
         {
             case EnemyRole.Rock: return new Vector2(.472f, .472f);
-            case EnemyRole.Big: return new Vector2(.52f, .52f);      // +10%: it's the heavy
+            // ~78% of the 1.1 u drawing: scaled with the art, inset a little
+            // further than the rocks' 82% so a graze past the plating is fair
+            case EnemyRole.Big: return new Vector2(.86f, .86f);
             case EnemyRole.Fighter: return new Vector2(.68f, .61f);
             case EnemyRole.Chaser: return new Vector2(.66f, .62f);
             case EnemyRole.Alien: return new Vector2(.4f, .2f);
@@ -112,13 +135,13 @@ public static class EnemyRoster
 
     // The drawings fill ~75-100% of their 128 u frame, so a frame is a bit
     // larger in the world than the silhouette it holds (EnemyRosterTest
-    // measures the drawn silhouette against LegacyWidth).
+    // measures the drawn silhouette against TargetWidth).
     public static float FrameWorldSize(EnemyRole role)
     {
         switch (role)
         {
             case EnemyRole.Rock: return .66f;
-            case EnemyRole.Big: return .70f;
+            case EnemyRole.Big: return 1.3f;   // the drawing fills ~85%: ~1.1 u
             case EnemyRole.Fighter: return .9f;
             case EnemyRole.Chaser: return .95f;
             case EnemyRole.Alien: return .67f;
@@ -152,6 +175,9 @@ public static class EnemyRoster
     }
 
     public const int HitTicks = 2;
+
+    // Floating rocks rock gently either side of upright (AsteroidSpin sway).
+    public const float FloatSwayDegrees = 9f, FloatSwayPeriod = 3.2f;
 
     // ---- the table -------------------------------------------------------------
     static EnemyDef[] all;
@@ -207,6 +233,13 @@ public static class EnemyRoster
         return null;
     }
 
+    // Marks a rock as one of the floating world rocks (rocks.py FLOATING).
+    static EnemyDef Floating(EnemyDef d)
+    {
+        d.floating = true;
+        return d;
+    }
+
     static EnemyDef Def(string key, string name, EnemyRole role, int world, int tier, string codexId,
                         TargetExplosion.Kind explosion, string concept, string lore, params string[] legacy)
     {
@@ -232,18 +265,19 @@ public static class EnemyRoster
             // ================================================================ SPACE
             // The crater rocks and rail mine stay; the Kenney fighters, the red
             // "Hunter" hull and the pixel invader are redrawn in the house style.
-            Def("space_rock_crater", "Crater Rock", R, 0, 1, "hazard_rock_crater", Rock,
-                "Faceted crater rock, amber city-glow rim, a glint that catches as it tumbles.",
-                "Pockmarked by a million tiny collisions, these rocks have survived everything space threw at " +
-                "them. Don't be the next dent.",
-                "aestroidbrown1", "aestroidgay1", "aestroidgraycrooked2"),
+            // Floating: a chunk of asteroid under a cratered regolith cap.
+            Floating(Def("space_rock_crater", "Beacon Rock", R, 0, 1, "hazard_rock_crater", Rock,
+                "Floating asteroid chunk: pale cratered regolith cap over a dark keel, a survey beacon blinking magenta, two loose shards bobbing below.",
+                "Somebody planted a survey beacon on this drifting crater and never came back for it. It still " +
+                "blinks for them. Don't be the next dent.",
+                "aestroidbrown1", "aestroidgay1", "aestroidgraycrooked2")),
             Def("space_rock_cluster", "Cluster Rock", R, 0, 2, "hazard_rock_cluster", Rock,
                 "Three boulders welded by a glowing magenta mineral seam.",
                 "Three boulders welded together by some ancient crash, tumbling as one. Wider than it looks - " +
                 "give it room, or smash it shielded for asteroid medals.",
                 "aestroidbrown", "aestroiddark1", "aestroidgraycrooked1"),
             Def("space_rock_dark", "Coal Rock", R, 0, 3, "hazard_rock_dark", Rock,
-                "Big-planed coal wedge with a buried magenta eye that blinks.",
+                "Slanted coal wedge cut in big hard planes, a buried magenta eye that blinks.",
                 "Dull, dark asteroids that hide against the void until the last second. Watch for the stars " +
                 "they blot out.",
                 "aestroiddark", "aestroidgay3"),
@@ -286,9 +320,11 @@ public static class EnemyRoster
                 "Cluster of hexagonal ice prisms around a cyan heart.",
                 "Splinters of a frozen moon, sharp enough to shave paint. Their hearts still glow from " +
                 "whatever froze them."),
-            Def("frost_rock_chunk", "Frozen Chunk", R, 1, 2, "hazard_frost_rock_chunk", Ice,
-                "Crater chunk buried under a frost crust, icicles, a crater full of glowing ice.",
-                "Old crater rock wearing a thick coat of ice. Out here even the rubble dresses for the cold."),
+            // Floating: frozen bedrock under a snow cap.
+            Floating(Def("frost_rock_chunk", "Frozen Chunk", R, 1, 2, "hazard_frost_rock_chunk", Ice,
+                "Floating block of frozen bedrock under an overhanging snow cap, a fringe of icicles underneath, a frost crystal glowing cyan in its face.",
+                "A lump of frozen ground that broke off the glacier and kept going, snow cap and all. The icicles " +
+                "underneath are the sharp end. Out here even the rubble dresses for the cold.")),
             Def("frost_rock_rime", "Rime Star", R, 1, 3, "hazard_frost_rock_rime", Ice,
                 "Six-point ice star with a hex cyan core.",
                 "A snowflake the size of a car, spinning slowly: pretty, deadly, mostly deadly."),
@@ -326,13 +362,18 @@ public static class EnemyRoster
                 "Armoured seed pod ringed with magenta thorns; its glowing seam breathes open.",
                 "A seed the jungle flung into the sky. The seam glows when it's ready to burst - better it " +
                 "bursts behind you."),
-            Def("verdant_rock_spore", "Spore Rock", R, 2, 2, "hazard_verdant_rock_spore", Spore,
-                "Moss-capped rock with glowing spore vents that puff.",
+            // Floating: the first-pass grass-capped rock, restored and inked harder.
+            Floating(Def("verdant_rock_spore", "Spore Rock", R, 2, 2, "hazard_verdant_rock_spore", Spore,
+                "Chunky octagonal rock under a bright grass cap, one hard shadow plane, lime spore vents as hard hex lights that pulse and puff.",
                 "Rock gone mouldy with life. Its vents puff spores every few seconds; the smell is the least " +
-                "of your problems."),
+                "of your problems.")),
             Def("verdant_rock_knot", "Bramble Knot", R, 2, 3, "hazard_verdant_rock_knot", Spore,
                 "Three thorny branches knotted round a glowing bile bud.",
                 "Branches tangled into a spinning thorn ball. It catches anything - including lost pilots."),
+            Floating(Def("verdant_rock_vine", "Vine Rock", R, 2, 4, "hazard_verdant_rock_vine", Spore,
+                "Floating wedge of earth under an angular bush, three vines dangling with lime buds that glow and whip.",
+                "A clump of jungle floor that floated off with its garden still attached. The buds on the " +
+                "vines light up before they whip - and they always whip.")),
             Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
                 "A thorny seed burr hanging from a coiled vine tendril; its husk splits along glowing seams to arm.",
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
@@ -371,6 +412,10 @@ public static class EnemyRoster
             Def("ember_rock_obsidian", "Obsidian Shard", R, 3, 3, "hazard_ember_rock_obsidian", Magma,
                 "Tall violet obsidian blade with a sodium rim and one lava vein.",
                 "Volcanic glass sharpened by the heat. It reflects the lava so well you might miss it."),
+            Floating(Def("ember_rock_islet", "Lava Islet", R, 3, 4, "hazard_ember_rock_islet", Magma,
+                "Floating basalt slab under a cracked black crust cap, glowing magma seams, lava dripping off its underside.",
+                "A slab of the shore that drifted off before the lava finished with it. It drips as it floats - " +
+                "mind the drops, mind the rock.")),
             Def("ember_mine", "Crucible Mine", M, 3, 0, "hazard_ember_mine", Mine,
                 "A basalt crucible slung from the rail on chains; its magma boils over and erupts when armed.",
                 "A pot of magma on a chain. It simmers as you pass and boils over if you linger - don't."),

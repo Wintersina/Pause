@@ -5,7 +5,8 @@
 #
 # The sources in svg/ are templates: every colour is written @NAME@ and
 # filled in from palette.env here, so a restyle is a palette edit and a
-# re-render. 128 u frames render at 1.5x (192 px); EnemyArt sets the sprite
+# re-render. 128 u frames render at 1.5x (192 px; the heavies at 2x, 256 px);
+# EnemyArt sets the sprite
 # pixels-per-unit from each roster entry's world size.
 # Requires resvg (brew install resvg) and python3 with Pillow.
 #
@@ -28,7 +29,11 @@ for src in svg/${1}*.svg; do
     echo "render.sh: $src uses a colour missing from palette.env" >&2
     exit 1
   fi
-  resvg --zoom 1.5 "$tmp/$name.svg" "$tmp/$name.png" &
+  # The heavies show at ~1.1 world units (EnemyRoster.BigWidth), about twice
+  # the rest, so they rasterise at 2x (256 px frames) to keep their detail.
+  zoom=1.5
+  case "$name" in *_big_*) zoom=2 ;; esac
+  resvg --zoom "$zoom" "$tmp/$name.svg" "$tmp/$name.png" &
   # keep a handful of resvg processes in flight
   while [ "$(jobs -r | wc -l)" -ge 8 ]; do sleep 0.05; done
 done
@@ -47,7 +52,12 @@ if [ -z "$1" ] || [ "${1#*mine}" != "$1" ] || [ "$1" = "space_" ] || [ "$1" = "e
       [ -f "$tmp/${w}_mine_$k.svg" ] && resvg -w 313 -h 313 "$tmp/${w}_mine_$k.svg" "$tmp/atlas_${w}_$k.png"
     done
   done
-  [ -f "$tmp/atlas_space_0.png" ] && python3 atlas.py "$tmp" "$vfx/rail_bomb_themes_atlas.png"
+  # the atlas holds all four worlds: rebuild it only when every world's mine
+  # was rendered this run (a single-world prefix leaves it as it is)
+  if [ -f "$tmp/atlas_space_0.png" ] && [ -f "$tmp/atlas_frost_0.png" ] &&
+     [ -f "$tmp/atlas_verdant_0.png" ] && [ -f "$tmp/atlas_ember_0.png" ]; then
+    python3 atlas.py "$tmp" "$vfx/rail_bomb_themes_atlas.png"
+  fi
   if [ -f "$tmp/ember_mine_0.svg" ]; then
     resvg -w 256 -h 256 "$tmp/ember_mine_0.svg" "$vfx/rail_mine_ember_1.png"
     resvg -w 256 -h 256 "$tmp/ember_mine_5.svg" "$vfx/rail_mine_ember_2.png"

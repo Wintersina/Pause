@@ -32,6 +32,7 @@ FORM_INK = 2.5   # each form's own (centred) outline
 PANEL = 2.0
 DETAIL = 1.5
 LIGHT_SCALE = 1.45  # running lights must read at ~110 px on a phone
+LIVERY_INK = 1.4    # seam between a skin's livery pattern and the hull colour
 
 
 def P(points):
@@ -193,9 +194,19 @@ def _inside(pts, x, y):
     return c
 
 
-def render(ship, hue, pose, uid="s"):
-    """SVG body for one frame. hue = (base, shadow, highlight) of the identity colour."""
+def render(ship, hue, pose, uid="s", livery=None, trim=None):
+    """SVG body for one frame. hue = (base, shadow, highlight) of the identity colour.
+
+    Skins (skins.py) pass a different hue, plus optionally
+      livery = (polygons, (base, shadow, highlight)): a flat pattern painted on
+               every hull-tone form, cel-shaded like the form under it (its own
+               base / shadow / kick tones, the form's own shadow shapes) with a
+               thin ink seam where it meets the hull colour;
+      trim   = {role: role} recolouring the stripes (e.g. bone -> red on a
+               bone hull, so the trim still reads).
+    With neither, the output is exactly the default hull's."""
     W = lambda pts: warp(pts, pose)
+    trim = trim or {}
     fl = pose.flash
     ink_col = RED if fl else INK
     defs = []
@@ -219,12 +230,28 @@ def render(ship, hue, pose, uid="s"):
         defs.append(f'<clipPath id="{cid}"><path d="{_path(o)}"/></clipPath>')
         g = [f'<g class="form" id="{fm.name or "form" + str(i)}">']
         # highlight tone first, base shifted down-right leaves the kick sliver
+        pat = [W(p) for p in livery[0]] if livery and fm.tone == "hull" and not fl else None
         g.append(f'<g id="highlight" clip-path="url(#{cid})"><path d="{_path(o)}" fill="{hi}"/></g>')
+        if pat:
+            g.append(f'<g id="livery-highlight" clip-path="url(#{cid})">'
+                     + "".join(poly(p, livery[1][2]) for p in pat) + "</g>")
         g.append(f'<g id="base" clip-path="url(#{cid})"><path d="{_path(_shift(o, fm.kick))}" fill="{base}"/></g>')
+        if pat:
+            defs.append(f'<clipPath id="{cid}b"><path d="{_path(_shift(o, fm.kick))}"/></clipPath>')
+            g.append(f'<g id="livery-base" clip-path="url(#{cid})"><g clip-path="url(#{cid}b)">'
+                     + "".join(poly(p, livery[1][0]) for p in pat) + "</g></g>")
         shp = f'<path d="{_path(o)} {_path(_shift(o, -fm.rim))}" fill="{sh}" fill-rule="evenodd"/>'
         for s in fm.shade:
             shp += f'<path d="{_path(W(s))}" fill="{sh}"/>'
         g.append(f'<g id="shadow" clip-path="url(#{cid})">{shp}</g>')
+        if pat:
+            clip = f'<path d="{_path(o)} {_path(_shift(o, -fm.rim))}" clip-rule="evenodd"/>'
+            clip += "".join(f'<path d="{_path(W(s))}"/>' for s in fm.shade)
+            defs.append(f'<clipPath id="{cid}s">{clip}</clipPath>')
+            g.append(f'<g id="livery-shadow" clip-path="url(#{cid})"><g clip-path="url(#{cid}s)">'
+                     + "".join(poly(p, livery[1][1]) for p in pat) + "</g></g>")
+            g.append(f'<g id="livery-ink" clip-path="url(#{cid})">'
+                     + "".join(inkpoly(p, LIVERY_INK, ink_col) for p in pat) + "</g>")
         det = ""
         for pts, role, w in fm.details:
             p = W(pts)
@@ -242,7 +269,7 @@ def render(ship, hue, pose, uid="s"):
     st = ""
     for pts, role in ship.stripes:
         p = W(pts)
-        st += f'<path d="{_path(p)}" fill="{colour(hue, role, fl)}" stroke="{ink_col}" stroke-width="1.6" stroke-linejoin="round"/>'
+        st += f'<path d="{_path(p)}" fill="{colour(hue, trim.get(role, role), fl)}" stroke="{ink_col}" stroke-width="1.6" stroke-linejoin="round"/>'
     out.append(f'<g id="highlight-trim" clip-path="url(#{uid}sil)">{st}</g>')
 
     # damage: scorches + cracks (flat GUN_SH cels with ink cracks)

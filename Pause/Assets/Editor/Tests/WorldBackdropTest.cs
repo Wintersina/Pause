@@ -41,7 +41,8 @@ public static class WorldBackdropTest
                            "galaxy0", "galaxy1", "wisp0", "wisp1", "moon", "star", "dot", "streak" } },
         { "Frost", new[] { "aurora_00", "glacier_00", "massif0", "massif1", "geyser_00",
                            "cloud0", "cloud1", "haze", "dot" } },
-        { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "cloud0", "cloud1", "haze", "dot" } },
+        { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "cloud0", "cloud1", "haze", "dot",
+                             "firefly_00", "spore_00" } },
         { "Ember", new[] { "volcano_00", "burst_00", "cloud0", "cloud1", "haze", "dot" } },
     };
 
@@ -54,6 +55,9 @@ public static class WorldBackdropTest
         {
             CheckCatalog();
             CheckArt();
+            CheckVerdantPalette();
+            CheckReadability();
+            CheckWalls();
             CheckRuntime();
         }
         finally
@@ -211,6 +215,294 @@ public static class WorldBackdropTest
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (TextureBudgetBytes / 1024) + " KB",
                   bytes <= TextureBudgetBytes);
         }
+    }
+
+    // ---------------------------------------------------- composited look --
+
+    // The ground layers stacked the way the game draws them at rest: the
+    // opaque sky, then far and mid (alpha over), then the river strip centred.
+    static Color[] Composite(string world, out int w, out int h)
+    {
+        string dir = "Assets/Art/Resources/Worlds/" + world + "/Backdrop/";
+        var outPx = (Color[])ReadPixels(dir + "sky.png").Clone();
+        w = ReadW; h = ReadH;
+        foreach (string layer in new[] { "far", "mid", "flow" })
+        {
+            string path = dir + layer + ".png";
+            if (!File.Exists(path)) continue;
+            var px = ReadPixels(path);
+            int lw = ReadW, lh = ReadH;
+            if (lh != h || lw > w) continue;
+            int x0 = (w - lw) / 2;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < lw; x++)
+                {
+                    Color s = px[y * lw + x];
+                    if (s.a <= 0f) continue;
+                    int i = y * w + x0 + x;
+                    outPx[i] = Color.Lerp(outPx[i], new Color(s.r, s.g, s.b, 1f), s.a);
+                }
+        }
+        return outPx;
+    }
+
+    static float Chroma(Color c) { return Mathf.Max(c.r, Mathf.Max(c.g, c.b)) - Mathf.Min(c.r, Mathf.Min(c.g, c.b)); }
+    static float Value(Color c) { return Mathf.Max(c.r, Mathf.Max(c.g, c.b)); }
+
+    // docs/art-style.md 4.2 (WCAG relative luminance of sRGB colours).
+    static float Linear(float v) { return v <= 0.03928f ? v / 12.92f : Mathf.Pow((v + 0.055f) / 1.055f, 2.4f); }
+    static float RelLum(Color c) { return 0.2126f * Linear(c.r) + 0.7152f * Linear(c.g) + 0.0722f * Linear(c.b); }
+    static float Contrast(float a, float b) { return (Mathf.Max(a, b) + 0.05f) / (Mathf.Min(a, b) + 0.05f); }
+
+    // Hue families used by the diversity check.
+    const int FamGreen = 0, FamTeal = 1, FamIndigo = 2, FamWarm = 3, FamOther = 4, FamGrey = 5;
+
+    static int Family(float hue, Color c)
+    {
+        if (Chroma(c) <= 0.03f) return FamGrey;
+        if (hue >= 90f && hue < 175f) return FamGreen;
+        if (hue >= 175f && hue < 200f) return FamTeal;
+        if (hue >= 200f && hue < 265f) return FamIndigo;
+        if (hue < 60f || hue >= 330f) return FamWarm;
+        return FamOther;
+    }
+
+    static bool IsTeal(float hue, float s, float v) { return hue >= 165f && hue < 200f && s >= 0.5f && v >= 0.55f; }
+    static bool IsSodium(float hue, float s, float v) { return hue >= 15f && hue < 45f && s >= 0.6f && v >= 0.75f; }
+
+    // Verdant must read as an 80s anime night forest, not monochrome mud:
+    // several hue families (indigo night + greens), several distinct
+    // hue/value clusters, a real value range, and the teal neon / sodium
+    // lantern accents. Before the redo master had 85% of the screen in one
+    // green family, 5 clusters, a 0.17 value range, ~0.06% teal, no sodium.
+    public const int VerdantMinClusters = 7;            // 30-degree hue x 0.1 value bins with >= 0.5% coverage
+    public const float VerdantMinValueRange = 0.20f;    // p95 - p5 of HSV value
+    public const float VerdantMaxFamilyShare = 0.80f;   // no single hue family may own the picture
+    public const float VerdantMinFamilyShare = 0.10f;   // at least two families this big
+    public const float VerdantMinTeal = 0.0015f;        // teal / cyan neon pixels (fraction of the screen)
+    public const float VerdantMinSodium = 0.0003f;      // sodium / amber lantern pixels
+
+    static void CheckVerdantPalette()
+    {
+        int w, h;
+        var px = Composite("Verdant", out w, out h);
+        var bins = new Dictionary<int, int>();
+        var fam = new int[6];
+        var values = new List<float>();
+        int n = 0, teal = 0, sodium = 0;
+        for (int i = 0; i < px.Length; i += 2)
+        {
+            Color c = px[i];
+            float hh, ss, vv;
+            Color.RGBToHSV(c, out hh, out ss, out vv);
+            float hue = hh * 360f;
+            int band = Mathf.Min((int)(vv / 0.1f), 5);
+            int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
+            int k;
+            bins.TryGetValue(key, out k);
+            bins[key] = k + 1;
+            fam[Family(hue, c)]++;
+            values.Add(vv);
+            if (IsTeal(hue, ss, vv)) teal++;
+            if (IsSodium(hue, ss, vv)) sodium++;
+            n++;
+        }
+        int clusters = 0;
+        foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
+        values.Sort();
+        float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
+        float maxShare = 0f;
+        int big = 0;
+        for (int f = 0; f < FamGrey; f++)
+        {
+            float share = fam[f] / (float)n;
+            maxShare = Mathf.Max(maxShare, share);
+            if (share >= VerdantMinFamilyShare) big++;
+        }
+        Check("Verdant has >= " + VerdantMinClusters + " distinct hue/value clusters (" + clusters + ")",
+              clusters >= VerdantMinClusters);
+        Check("Verdant value range p5..p95 >= " + VerdantMinValueRange + " (" + range.ToString("F3") + ")",
+              range >= VerdantMinValueRange);
+        Check("Verdant is not one hue family (largest " + maxShare.ToString("F2") + " <= " + VerdantMaxFamilyShare +
+              ", " + big + " families >= " + VerdantMinFamilyShare + ")", maxShare <= VerdantMaxFamilyShare && big >= 2);
+        Check("Verdant greens and indigo night both present (green " + (fam[FamGreen] / (float)n).ToString("F2") +
+              ", indigo " + (fam[FamIndigo] / (float)n).ToString("F2") + ")",
+              fam[FamGreen] >= 0.08f * n && fam[FamIndigo] >= 0.2f * n);
+        Check("Verdant teal neon present (" + (teal / (float)n).ToString("F4") + " >= " + VerdantMinTeal + ")",
+              teal >= VerdantMinTeal * n);
+        Check("Verdant sodium accents present (" + (sodium / (float)n).ToString("F4") + " >= " + VerdantMinSodium + ")",
+              sodium >= VerdantMinSodium * n);
+
+        // The landmarks and particles carry the neon and lantern lights too.
+        foreach (string atlas in new[] { "anim", "fx" })
+        {
+            int t = 0, so = 0;
+            foreach (var c in ReadPixels("Assets/Art/Resources/Worlds/Verdant/Backdrop/" + atlas + ".png"))
+            {
+                if (c.a < 0.9f) continue;
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                if (IsTeal(hh * 360f, ss, vv)) t++;
+                if (IsSodium(hh * 360f, ss, vv)) so++;
+            }
+            Check("Verdant " + atlas + " atlas carries teal (" + t + " px) and sodium (" + so + " px) lights",
+                  t >= 200 && so >= 50);
+        }
+    }
+
+    // docs/art-style.md 4, with each world's enemies on top: the composited
+    // lane stays darker and greyer than the enemy bodies, bodies reach 2.5:1
+    // and the brightest tone 7:1 against the lane (its median luminance).
+    static void CheckReadability()
+    {
+        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        {
+            string world = BackdropCatalog.For(WorldManager.Worlds[wi].displayName).world;
+            var theme = EnemyPalette.ThemeFor(wi);
+            int w, h;
+            var px = Composite(world, out w, out h);
+            var lum = new List<float>();
+            var val = new List<float>();
+            double chroma = 0;
+            int x0 = (int)(w * 0.2f), x1 = (int)(w * 0.8f);
+            for (int y = 0; y < h; y += 2)
+                for (int x = x0; x < x1; x += 2)
+                {
+                    Color c = px[y * w + x];
+                    lum.Add(RelLum(c));
+                    val.Add(Value(c));
+                    chroma += Chroma(c);
+                }
+            lum.Sort();
+            val.Sort();
+            float laneLum = lum[lum.Count / 2];
+            float laneV90 = val[(int)(val.Count * 0.9f)];
+            float laneChroma = (float)(chroma / lum.Count);
+            float body = Contrast(RelLum(theme.hull), laneLum);
+            float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
+            float kick = Contrast(bright, laneLum);
+            Check(world + " lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " +
+                  kick.ToString("F2") + ":1 >= 7", body >= 2.5f && kick >= 7f);
+            Check(world + " lane stays darker than enemy bodies (lane value p90 " + laneV90.ToString("F2") +
+                  " <= " + TileMaxValueP90 + " and < hull " + Value(theme.hull).ToString("F2") + ")",
+                  laneV90 <= TileMaxValueP90 && laneV90 < Value(theme.hull));
+            // Ember's enemies are deliberately grey char on a warm sky, so
+            // there only the guide's chroma ceiling applies; the green worlds
+            // must also stay greyer than their (green) enemies.
+            bool greyer = laneChroma <= TileMaxChroma && (world != "Verdant" || laneChroma < Chroma(theme.hull));
+            Check(world + " lane chroma " + laneChroma.ToString("F2") + " <= " + TileMaxChroma +
+                  (world == "Verdant" ? " and < enemy hull " + Chroma(theme.hull).ToString("F2") : ""), greyer);
+        }
+    }
+
+    // ------------------------------------------------------------- walls --
+
+    public const int WallWidth = 64, WallHeight = 448;
+    const int WallMaxColours = 32;              // flat cels: a handful of tones plus stepped light halos
+    const float WallMinMajorCover = 0.95f;      // colours with >= 0.5% coverage must cover the wall
+    const float WallMaxSoftPairs = 0.01f;       // neighbours 1..6 levels apart = gradient banding
+
+    // Space keeps the scene's own wall textures (left_1 / right_6 / right_7
+    // materials); the planets' come from Resources via WorldPainter.
+    public static string[] WallPaths(int world)
+    {
+        if (string.IsNullOrEmpty(WorldManager.Worlds[world].resourceFolder))
+            return new[] { "Assets/Art/left.png", "Assets/Art/right.png" };
+        string f = "Assets/Art/Resources/Worlds/" + WorldManager.Worlds[world].resourceFolder + "/";
+        return new[] { f + "wallLeft.png", f + "wallRight.png" };
+    }
+
+    static void CheckWalls()
+    {
+        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        {
+            string world = WorldManager.Worlds[wi].displayName;
+            var paths = WallPaths(wi);
+            Color32[] left = null;
+            for (int side = 0; side < 2; side++)
+            {
+                string path = paths[side];
+                if (!File.Exists(path)) { Check(path + " exists", false); continue; }
+                var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                t.LoadImage(File.ReadAllBytes(path));
+                int w = t.width, h = t.height;
+                var px = t.GetPixels32();
+                Object.DestroyImmediate(t);
+                string tag = world + " " + (side == 0 ? "left" : "right") + " wall";
+                Check(tag + " is " + WallWidth + "x" + WallHeight + " (" + w + "x" + h + ")",
+                      w == WallWidth && h == WallHeight);
+                if (w != WallWidth || h != WallHeight) continue;
+
+                var counts = new Dictionary<int, int>();
+                bool opaque = true;
+                foreach (var c in px)
+                {
+                    if (c.a < 255) opaque = false;
+                    int key = (c.r << 24) | (c.g << 16) | (c.b << 8) | c.a;
+                    int k;
+                    counts.TryGetValue(key, out k);
+                    counts[key] = k + 1;
+                }
+                int major = 0;
+                foreach (var kv in counts) if (kv.Value >= 0.005f * px.Length) major += kv.Value;
+
+                int soft = 0, pairs = 0;
+                float seam = 0f;
+                for (int y = 0; y < h; y++)
+                {
+                    int yn = (y + 1) % h;                  // the last row wraps to the first: the seam
+                    float rowDiff = 0f;
+                    for (int x = 0; x < w; x++)
+                    {
+                        Color32 a = px[y * w + x];
+                        Color32 down = px[yn * w + x];
+                        Color32 right = x + 1 < w ? px[y * w + x + 1] : a;
+                        int d1 = MaxDiff(a, down), d2 = MaxDiff(a, right);
+                        pairs += 2;
+                        if (d1 > 0 && d1 <= 6) soft++;
+                        if (d2 > 0 && d2 <= 6) soft++;
+                        rowDiff += (Mathf.Abs(a.r - down.r) + Mathf.Abs(a.g - down.g) + Mathf.Abs(a.b - down.b)) / (3f * 255f);
+                    }
+                    rowDiff /= w;
+                    if (yn == 0) seam = rowDiff;
+                }
+                Check(tag + " is opaque", opaque);
+                Check(tag + " uses flat palette colours (" + counts.Count + " unique <= " + WallMaxColours +
+                      ", major tones cover " + (major / (float)px.Length).ToString("F3") + " >= " + WallMinMajorCover + ")",
+                      counts.Count <= WallMaxColours && major >= WallMinMajorCover * px.Length);
+                Check(tag + " has no soft gradients (" + (soft / (float)pairs).ToString("F4") + " banding pairs <= " +
+                      WallMaxSoftPairs + ")", soft <= WallMaxSoftPairs * pairs);
+                // Seamless: crisp art has hard panel lines, so 'top row == bottom
+                // row' is the wrong test. Instead the wrap (last row -> first row)
+                // must be a transition the tile already contains -- the motifs
+                // repeat with a period that divides the height -- or be smooth.
+                bool repeats = false;
+                for (int y = 0; y + 1 < h && !repeats; y++)
+                {
+                    bool same = true;
+                    for (int x = 0; x < w && same; x++)
+                        same = MaxDiff(px[y * w + x], px[(h - 1) * w + x]) == 0 &&
+                               MaxDiff(px[(y + 1) * w + x], px[x]) == 0;
+                    repeats = same;
+                }
+                Check(tag + " is vertically seamless (wrap " + seam.ToString("F3") + ", repeats an inner row pair: " +
+                      repeats + ")", repeats || seam <= SeamTolerance);
+                if (side == 0) left = px;
+                else if (left != null)
+                {
+                    bool mirror = true;
+                    for (int y = 0; y < h && mirror; y++)
+                        for (int x = 0; x < w; x++)
+                            if (MaxDiff(left[y * w + x], px[y * w + (w - 1 - x)]) != 0) { mirror = false; break; }
+                    Check(world + " right wall mirrors the left (both inner edges face the playfield)", mirror);
+                }
+            }
+        }
+    }
+
+    static int MaxDiff(Color32 a, Color32 b)
+    {
+        return Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Max(Mathf.Abs(a.b - b.b), Mathf.Abs(a.a - b.a))));
     }
 
     static Color[] ReadPixelsCache;

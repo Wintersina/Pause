@@ -8,19 +8,23 @@ using UnityEngine.UI;
 // is clamped to the visible dock: if there is no room above the ship it
 // flips below it, pointer and all.
 //
-//   owned ship  -> one action, LAUNCH
+//   owned ship  -> one action, LAUNCH, plus a row of hull-skin swatches:
+//                  tap an owned one to equip it (saved at once), a locked one
+//                  to preview it on the hull -> its price and BUY
 //   locked ship -> its price and BUY; can't afford -> shake + "NEED n MORE"
 public class DockPopup : MonoBehaviour
 {
     // World units. The canvas is scaled so 1 canvas unit = 0.01 world units.
     public const float Width = 1.50f;
     public const float Height = .62f;
+    // Extra height when the skin swatch row is shown (owned ships).
+    public const float SkinRowHeight = .27f;
     public const float TailLength = .085f;
     public const float Gap = .04f;
     const float CanvasScale = .01f;
     const float AppearTime = .2f;
 
-    public enum Mode { Launch, Buy }
+    public enum Mode { Launch, Buy, BuySkin }
 
     public int ShipIndex { get; private set; }
     public Mode CurrentMode { get; private set; }
@@ -30,8 +34,28 @@ public class DockPopup : MonoBehaviour
 
     public System.Action<int> onLaunch;
     public System.Action<int> onBuy;
+    public System.Action<int, int> onSkin;      // (ship, skin) swatch tapped
+    public System.Action<int, int> onBuySkin;   // (ship, skin) BUY on a previewed skin
+
+    // The skin row: shown for owned ships. SkinShown is the swatch outlined
+    // (the skin on the hull right now).
+    public bool SkinRowVisible { get; private set; }
+    public int SkinShown { get; private set; }
+    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight : Height; } }
+
+    public class Swatch
+    {
+        public RectTransform root;
+        public Image body, band, stripe, ink, ring, check, dust;
+        public Text price;
+        public Button button;
+        public bool owned, equipped;
+    }
+    public readonly Swatch[] swatches = new Swatch[ShipSkins.PerShip];
+    RectTransform skinRow;
 
     Canvas canvas;
+    Font font;
     CanvasGroup group;
     RectTransform panel, tail, dustIcon;
     Text title, status, message, buttonLabel;
@@ -53,6 +77,7 @@ public class DockPopup : MonoBehaviour
 
     void Build(Font font, Camera eventCamera)
     {
+        this.font = font;
         var root = (RectTransform)transform;
         root.sizeDelta = new Vector2(Width, Height) / CanvasScale;
         root.localScale = Vector3.one * CanvasScale;
@@ -114,6 +139,157 @@ public class DockPopup : MonoBehaviour
         buttonLabel = Label("Label", buttonRect, font, 12, TextAnchor.MiddleCenter, DockArt.Ink);
         Stretch(buttonLabel.rectTransform);
         buttonLabel.fontStyle = FontStyle.Bold;
+
+        BuildSkinRow();
+    }
+
+    // Five compact angular chips in each skin's own colours (base, shadow
+    // band, and a special's livery stripe), between the name and the action.
+    const float ChipW = 22f, ChipH = 14f, ChipGap = 4f;
+
+    void BuildSkinRow()
+    {
+        skinRow = Rect("Skins", panel);
+        float rowW = ShipSkins.PerShip * ChipW + (ShipSkins.PerShip - 1) * ChipGap;
+        Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -29f), new Vector2(rowW, 24f), new Vector2(.5f, 1f));
+        for (int n = 0; n < swatches.Length; n++)
+        {
+            var w = new Swatch();
+            w.root = Rect("Swatch" + n, skinRow);
+            Place(w.root, new Vector2(0f, 1f), new Vector2(n * (ChipW + ChipGap) + ChipW * .5f, -ChipH * .5f - 1f),
+                  new Vector2(ChipW, ChipH), new Vector2(.5f, .5f));
+            // The touch target is the whole slot (chip, price and the gap),
+            // bigger than the chip itself.
+            var hit = Chip(w.root, "Hit", null, new Vector2(ChipW + ChipGap, 26f));
+            hit.rectTransform.anchoredPosition = new Vector2(0f, -4f);
+            hit.color = new Color(0f, 0f, 0f, 0f);
+            hit.raycastTarget = true;
+            w.ring = Chip(w.root, "Ring", "swatch_ring", new Vector2(ChipW + 4f, ChipH + 4f));
+            w.body = Chip(w.root, "Body", "swatch", new Vector2(ChipW, ChipH));
+            w.band = Chip(w.root, "Band", "swatch_band", new Vector2(ChipW, ChipH));
+            w.stripe = Chip(w.root, "Stripe", "swatch_stripe", new Vector2(ChipW, ChipH));
+            w.ink = Chip(w.root, "Ink", "swatch_ink", new Vector2(ChipW, ChipH));
+            w.check = Chip(w.root, "Check", "swatch_check", new Vector2(7.5f, 6.7f));
+            w.check.rectTransform.anchoredPosition = new Vector2(ChipW * .5f - 3f, ChipH * .5f - 1.5f);
+            w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(5.5f, 5.5f));
+            w.price = Label("Price", w.root, font, 6, TextAnchor.MiddleLeft, DockArt.Gold);
+            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-4f, -ChipH * .5f - 5f),
+                  new Vector2(20f, 8f), new Vector2(0f, .5f));
+            w.dust.rectTransform.anchoredPosition = new Vector2(-7f, -ChipH * .5f - 5f);
+            w.button = w.root.gameObject.AddComponent<Button>();
+            w.button.targetGraphic = hit;
+            w.button.transition = Selectable.Transition.None;
+            int skin = n;
+            w.button.onClick.AddListener(() => SwatchClicked(skin));
+            CelPress.AddTo(w.root.gameObject);
+            swatches[n] = w;
+        }
+        skinRow.gameObject.SetActive(false);
+    }
+
+    Image Chip(RectTransform parent, string name, string sprite, Vector2 size)
+    {
+        var rt = Rect(name, parent);
+        Place(rt, new Vector2(.5f, .5f), Vector2.zero, size, new Vector2(.5f, .5f));
+        var image = rt.gameObject.AddComponent<Image>();
+        if (sprite != null) image.sprite = DockArt.Get(sprite);
+        image.raycastTarget = false;
+        return image;
+    }
+
+    void SwatchClicked(int skin)
+    {
+        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy) return;
+        if (onSkin != null) onSkin(ShipIndex, skin);
+    }
+
+    // Taps a swatch as a player would (tests, previews).
+    public void TapSwatch(int skin) { SwatchClicked(skin); }
+
+    // Fills the skin row for owned ship `index`: `shown` is the skin on the
+    // hull. A shown skin that isn't owned turns the action into BUY.
+    public void ShowSkins(int index, int shown, float balance)
+    {
+        if (index != ShipIndex || CurrentMode == Mode.Buy) return;
+        SkinRowVisible = true;
+        SkinShown = shown;
+        skinRow.gameObject.SetActive(true);
+        int equipped = ShipSkins.Equipped(index);
+        for (int n = 0; n < swatches.Length; n++)
+        {
+            var w = swatches[n];
+            bool exists = ShipSkins.Has(index, n);
+            w.root.gameObject.SetActive(exists);
+            if (!exists) continue;
+            var skin = ShipSkins.Get(index, n);
+            w.owned = ShipSkins.IsOwned(index, n);
+            w.equipped = n == equipped;
+            // Locked chips sit a touch back (dimmer), owned ones at full colour.
+            float k = w.owned ? 1f : .72f;
+            w.body.color = Dim(skin.primary, k);
+            w.band.color = Dim(skin.shadow, k);
+            w.stripe.enabled = skin.pattern != null;
+            w.stripe.color = Dim(skin.accentColor, k);
+            w.ring.enabled = n == shown;
+            w.check.enabled = w.owned;
+            w.check.color = new Color(1f, 1f, 1f, w.equipped ? 1f : .55f);
+            w.price.enabled = !w.owned;
+            w.dust.enabled = !w.owned;
+            if (!w.owned)
+            {
+                float price = ShipSkins.PriceOf(index, n);
+                w.price.text = Mathf.RoundToInt(price).ToString("N0");
+                w.price.color = balance >= price ? DockArt.Gold : DockArt.Warn;
+            }
+        }
+        // The skin's name sits on its own line under the ship's.
+        string skinName = shown == ShipSkins.Stock ? "" : "\n" + ShipSkins.Get(index, shown).DisplayName;
+        title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant() + skinName;
+        if (!ShipSkins.IsOwned(index, shown))
+        {
+            CurrentMode = Mode.BuySkin;
+            float price = ShipSkins.PriceOf(index, shown);
+            bool affordable = balance >= price;
+            status.text = Mathf.RoundToInt(price).ToString("N0");
+            status.color = affordable ? DockArt.Gold : DockArt.Warn;
+            status.fontSize = 11;
+            buttonLabel.text = "BUY";
+            buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
+            dustIcon.anchoredPosition = new Vector2(-11f - status.preferredWidth - 8f, -17f);
+        }
+        else
+        {
+            CurrentMode = Mode.Launch;
+            status.text = shown == equipped && ShipIndex == SpaceDock.EquippedIndex() ? "EQUIPPED" : "";
+            status.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
+            status.fontSize = 8;
+            buttonLabel.text = "LAUNCH";
+            buttonImage.color = DockArt.Cyan;
+        }
+        FitTitle();
+        SetRowVisible(messageUntil <= 0f);
+        Resize();
+        Follow();
+    }
+
+    public void HideSkins()
+    {
+        SkinRowVisible = false;
+        if (skinRow != null) skinRow.gameObject.SetActive(false);
+        Resize();
+    }
+
+    static Color Dim(Color c, float k) { return new Color(c.r * k, c.g * k, c.b * k, 1f); }
+
+    void Resize()
+    {
+        ((RectTransform)transform).sizeDelta = new Vector2(Width, CurrentHeight) / CanvasScale;
+    }
+
+    void FitTitle()
+    {
+        float statusWidth = status.text.Length > 0 ? status.preferredWidth + (CurrentMode != Mode.Launch ? 16f : 0f) + 6f : 0f;
+        title.rectTransform.sizeDelta = new Vector2(Width / CanvasScale - 22f - statusWidth, 16f);
     }
 
     public void Show(int index, Transform ship, float halfHeight, bool owned, bool equipped,
@@ -152,8 +328,8 @@ public class DockPopup : MonoBehaviour
         }
         // The name gets whatever width the status leaves, shrinking to fit
         // long names rather than running into the price.
-        float statusWidth = status.text.Length > 0 ? status.preferredWidth + (CurrentMode == Mode.Buy ? 16f : 0f) + 6f : 0f;
-        title.rectTransform.sizeDelta = new Vector2(Width / CanvasScale - 22f - statusWidth, 16f);
+        FitTitle();
+        HideSkins();
         SetRowVisible(true);
         if (!wasVisible) shownAt = Time.unscaledTime;
         Follow();
@@ -187,6 +363,7 @@ public class DockPopup : MonoBehaviour
     {
         if (!Visible) return;
         if (CurrentMode == Mode.Launch) { if (onLaunch != null) onLaunch(ShipIndex); }
+        else if (CurrentMode == Mode.BuySkin) { if (onBuySkin != null) onBuySkin(ShipIndex, SkinShown); }
         else if (onBuy != null) onBuy(ShipIndex);
     }
 
@@ -200,7 +377,7 @@ public class DockPopup : MonoBehaviour
     {
         title.enabled = row;
         status.enabled = row;
-        dustIcon.gameObject.SetActive(row && CurrentMode == Mode.Buy);
+        dustIcon.gameObject.SetActive(row && CurrentMode != Mode.Launch);
         message.enabled = !row;
     }
 
@@ -227,11 +404,11 @@ public class DockPopup : MonoBehaviour
         if (target == null) return;
         Vector2 ship = target.position;
         bool flipped;
-        Vector2 center = Place(ship, above, below, new Vector2(Width, Height), safeView, out flipped);
+        Vector2 center = Place(ship, above, below, new Vector2(Width, CurrentHeight), safeView, out flipped);
         Flipped = flipped;
         transform.position = new Vector3(center.x, center.y, -1f);
         float tailX = Mathf.Clamp(ship.x - center.x, -Width * .5f + .14f, Width * .5f - .14f) / CanvasScale;
-        float edge = Height * .5f / CanvasScale;
+        float edge = CurrentHeight * .5f / CanvasScale;
         tail.anchoredPosition = new Vector2(tailX, flipped ? edge + 3.5f : -edge - 3.5f);
         tail.localRotation = flipped ? Quaternion.Euler(0f, 0f, 180f) : Quaternion.identity;
     }
@@ -266,7 +443,7 @@ public class DockPopup : MonoBehaviour
         get
         {
             Vector3 c = transform.position;
-            return new Rect(c.x - Width * .5f, c.y - Height * .5f, Width, Height);
+            return new Rect(c.x - Width * .5f, c.y - CurrentHeight * .5f, Width, CurrentHeight);
         }
     }
 

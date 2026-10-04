@@ -87,12 +87,16 @@ public static class DifficultyRebalanceTest
     static void ObsoleteRailAndAsteroidArtIsRemoved()
     {
         Check("obsolete rail3 prefab is removed", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/rail3.prefab") == null);
-        Check("Ember mine keeps approved beat frame one",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_mine_ember_1.png") != null);
-        Check("Ember mine keeps approved beat frame two",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_mine_ember_2.png") != null);
-        foreach (string name in new[] { "aestroid_brown_2", "aestroid_dark_3", "aestroid_gay_2", "aestroid_gay_4", "aestroid_gray_crooked", "aestroid_gray_crooked_3" })
-            Check(name + " art removed from rotation", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Aestroids/" + name + ".png") == null);
+        // The Ember mine plays the full ember_mine flipbook from EnemyRoster;
+        // its two old single-frame exports and the four-world rail-bomb atlas
+        // (only the no-roster-art fallback read it) were retired.
+        foreach (string file in new[] { "rail_mine_ember_1", "rail_mine_ember_2", "rail_bomb_themes_atlas" })
+            Check(file + " is retired",
+                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/" + file + ".png") == null);
+        Check("the Ember mine's roster flipbook is present",
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Enemies/ember_mine.png") != null);
+        // The whole old asteroid folder went with the per-world rocks.
+        Check("the old Art/Aestroids folder is gone", !AssetDatabase.IsValidFolder("Assets/Art/Aestroids"));
     }
 
     static void MineFieldLoadsAndSpawnsOntoARail()

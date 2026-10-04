@@ -52,6 +52,8 @@ def world_sheet(world, keys, out):
     for r, key in enumerate(keys):
         y = 90 + r * (cell + label)
         strip = Image.open(os.path.join(STRIPS, key + ".png")).convert("RGBA")
+        if strip.size[1] != cell:   # the heavies render at 2x
+            strip = strip.resize((cell * FRAME_COUNT, cell), Image.LANCZOS)
         img.alpha_composite(strip, (300, y))
         d.text((16, y + 70), NAMES.get(key, key), font=font(20), fill=(244, 234, 212, 255))
         d.text((16, y + 100), key, font=font(12), fill=(163, 180, 204, 255))

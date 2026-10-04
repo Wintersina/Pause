@@ -57,8 +57,9 @@ public static class WorldLogicTest
                     AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/WorldMusic/" +
                         world + "Stage" + stage.ToString("00") + ".wav") != null);
         }
-        Check("the themed rail-bomb animation atlas is present",
-              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png") != null);
+        foreach (string key in EnemyRoster.WorldKeys)
+            Check("the " + key + " rail mine flipbook is present",
+                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Enemies/" + key + "_mine.png") != null);
 
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
         Check("has a next world", WorldManager.HasNext);

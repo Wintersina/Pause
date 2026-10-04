@@ -1,18 +1,34 @@
-"""Verdant, seen from atmosphere level: the night canopy far below with
-distant hazed hills, a narrow jungle river valley, small far-off landmarks
-(plateau waterfalls, overgrown ruins with blinking glyphs, signal
-obelisks), and cloud cels / haze bands / spores passing close by."""
+"""Verdant, seen from atmosphere level, as an 80s anime night-forest cel.
+
+Depth is told with flat value steps rather than a haze wash:
+  sky   blue-black / indigo night with the canopy far below as dark crowns,
+        a scatter of sodium shrine lanterns and teal blooms
+  far   rows of small angular pines (teal-green on an indigo shadow plane)
+  mid   the river valley: a teal river with an inked bank, bigger pines one
+        value step brighter, sodium lanterns along the banks
+  flow  teal / cyan highlight dashes running down the river
+Landmarks (small, far below): a plateau waterfall with a bright falling
+sheet, an overgrown ruin tower and obelisks with blinking neon glyphs.
+Close to the ship only air passes: indigo cloud cels, a thin haze band,
+firefly and spore flipbooks.
+
+Every form: flat base, one hard shadow plane (light from the upper left),
+one highlight kick, background ink. Greens stay cool (blue-green) and dark
+so the olive/lime Verdant enemies read on top.
+"""
 import math
 import random
 
-from bgkit import (TAU, World, doc, blur, lin, wrap_y, PNoise, edge_range, pts, ink_attr, hard_glow,
-                   jitter_ridge, grain_defs, grain)
-from palette import VERDANT as P
-from altitude import hazed, haze_doc, cloud_cel, haze_band, scatter_peaks
+from bgkit import (TAU, World, doc, lin, wrap_y, PNoise, pts, ink_attr, hard_glow, uid,
+                   grain_defs, grain)
+from palette import VERDANT as P, BONE, AMBER, SODIUM, CYAN, TEAL, TEAL_SH
+from altitude import hazed, haze_doc, cloud_cel, haze_band
 import space
 
 W, H = 512, 1024
 
+
+# ------------------------------------------------------------------ shapes --
 
 def crown(rnd, x, y, r, base, hi, dy=0, ink=None):
     """Top-down tree crown: a spiky flat star with one highlight wedge."""
@@ -24,169 +40,305 @@ def crown(rnd, x, y, r, base, hi, dy=0, ink=None):
         rr = r if i % 2 == 0 else r * rnd.uniform(0.5, 0.65)
         outer.append((x + rr * math.cos(a), y + dy + rr * math.sin(a)))
     s = [f'<polygon points="{pts(outer)}" fill="{base}" {ink_attr(ink) if ink else ""}/>']
-    hi_pts = [(x, y + dy)] + [p for i, p in enumerate(outer) if 3 <= (i - int(n * 1.25)) % (2 * n) <= 6]
+    # highlight wedge on the upper-left (light direction)
+    hi_pts = [(x, y + dy)] + [p for p in outer if p[0] < x - r * 0.15 and p[1] < y + dy - r * 0.1]
     if len(hi_pts) > 2:
+        hi_pts = [hi_pts[0]] + sorted(hi_pts[1:], key=lambda p: math.atan2(p[1] - y - dy, p[0] - x))
         s.append(f'<polygon points="{pts(hi_pts)}" fill="{hi}"/>')
     return "".join(s)
 
 
+def pine(rnd, x, base, h, w, pal, ink, dy=0, kick=True):
+    """An angular pine silhouette pointing up the screen: three chevron
+    tiers, the right half one hard shadow plane, a kick sliver on the lit
+    left edges, background ink around the whole tree."""
+    y0 = base + dy
+    tiers = 3
+    left = []
+    for k in range(tiers):
+        yk = y0 - h * 0.30 * k
+        hwk = w / 2 * (1 - 0.27 * k) * rnd.uniform(0.92, 1.05)
+        left.append((x - hwk, yk))
+        left.append((x - hwk * 0.42, yk - h * 0.16))
+    apex = (x + rnd.uniform(-0.04, 0.04) * w, y0 - h)
+    right = [(2 * x - px + rnd.uniform(-1, 1), py) for px, py in reversed(left)]
+    stem = [(x + w * 0.07, y0 + h * 0.06), (x - w * 0.07, y0 + h * 0.06)]
+    outline = left + [apex] + right + stem
+    clip = uid("pc")
+    shade = [apex, (x + w * 0.04, y0 + h * 0.1), (x + w, y0 + h * 0.1), (x + w, y0 - h * 1.1)]
+    defs = f'<clipPath id="{clip}"><polygon points="{pts(outline)}"/></clipPath>'
+    body = [poly(outline, pal["lit"]), f'<g clip-path="url(#{clip})">{poly(shade, pal["dark"])}</g>']
+    if kick:
+        ks = []
+        for k in range(tiers):
+            a, b = left[2 * k], left[2 * k + 1]
+            ks.append(poly([b, a, (a[0] + w * 0.12, a[1] - 1.5), (b[0] + w * 0.05, b[1] + h * 0.03)], pal["kick"]))
+        body.append(f'<g clip-path="url(#{clip})">{"".join(ks)}</g>')
+    body.append(f'<polygon points="{pts(outline)}" fill="none" {ink_attr(ink)}/>')
+    return defs, "".join(body)
+
+
+def poly(points, fill, extra=""):
+    return f'<polygon points="{pts(points)}" fill="{fill}" {extra}/>'
+
+
+def pine_rows(rnd, pal, band, hmin, hmax, step, ink, kick=True, inner_scatter=0, avoid=None):
+    """Pines stacked along both edges (and a few clumps inside), sorted by y
+    so lower trees overlap the ones above, wrapped for a seamless tile."""
+    items = []
+    for side in (0, 1):
+        y = 0.0
+        while y < H:
+            for _ in range(2):
+                d = rnd.uniform(0, band)
+                h = rnd.uniform(hmin, hmax) * (1.0 - 0.25 * d / band)
+                x = d if side == 0 else W - d
+                items.append((y + rnd.uniform(-step * 0.4, step * 0.4), x, h, h * rnd.uniform(0.58, 0.7), rnd.random()))
+            y += step
+    for _ in range(inner_scatter):
+        cx, cy = rnd.uniform(band, W - band), rnd.uniform(0, H)
+        if avoid and avoid(cx, cy):
+            continue
+        for j in range(rnd.randint(2, 4)):
+            h = rnd.uniform(hmin, hmax) * 0.7
+            items.append((cy + rnd.uniform(-14, 14), cx + rnd.uniform(-18, 18), h, h * 0.62, rnd.random()))
+    out = []
+    for y, x, h, w, seed in items:
+        for dy in (-H, 0, H):
+            out.append((y + dy, x, h, w, seed))
+    out.sort(key=lambda t: t[0])
+    defs, body = [], []
+    for y, x, h, w, seed in out:
+        if y - h > H + 10 or y + h * 0.2 < -10:
+            continue
+        d, b = pine(random.Random(seed), x, y, h, w, pal, ink, kick=kick)
+        defs.append(d)
+        body.append(b)
+    return "".join(defs), "".join(body)
+
+
+def edge_foot(rnd, color, reach, ink):
+    """A continuous flat ground band behind each pine row (no gaps)."""
+    out = []
+    for side in (0, 1):
+        n = PNoise(rnd)
+        ys = [H * k / 32 for k in range(33)]
+        fx = [reach * (0.8 + 0.2 * n(y / H)) for y in ys]
+        if side == 0:
+            shape = [(-10, -10)] + list(zip(fx, ys)) + [(-10, H + 10)]
+        else:
+            shape = [(W + 10, -10)] + [(W - x, y) for x, y in zip(fx, ys)] + [(W + 10, H + 10)]
+        out.append(f'<polygon points="{pts(shape)}" fill="{color}" {ink_attr(ink)}/>')
+    return "".join(out)
+
+
+def lantern(x, y, color, r=2.0):
+    """A shrine lantern: a tiny flat square with a stepped hard glow."""
+    return (hard_glow(x, y, r * 3.2, color, 0.7, 2)
+            + f'<rect x="{x - r:.1f}" y="{y - r:.1f}" width="{2 * r:.1f}" height="{2 * r:.1f}" fill="{color}"/>')
+
+
+# ------------------------------------------------------------------ tiles ---
+
 def sky():
-    """Opaque far layer: the canopy far below in the dark, with neon blooms."""
+    """Opaque far layer: indigo night, the canopy far below as dark crowns
+    with sky gaps between, tiny shrine lanterns and teal blooms."""
     rnd = random.Random(101)
     s = P["sky"]
     defs = (lin("bg", [(0, s[0], 1), (0.25, s[1], 1), (0.5, s[2], 1), (0.75, s[3], 1), (1, s[4], 1)])
-            + lin("vig", [(0, P["vignette"], 0.75), (0.28, P["vignette"], 0), (0.72, P["vignette"], 0),
-                          (1, P["vignette"], 0.75)], 0, 0, 1, 0)
-            + blur("b40", 40) + grain_defs())
+            + lin("vig", [(0, P["vignette"], 0.7), (0.25, P["vignette"], 0), (0.75, P["vignette"], 0),
+                          (1, P["vignette"], 0.7)], 0, 0, 1, 0)
+            + grain_defs())
     body = [f'<rect width="{W}" height="{H}" fill="url(#bg)"/>']
     crowns = []
-    for i in range(300):
+    for i in range(240):
         x, y = rnd.uniform(-10, W + 10), rnd.uniform(0, H)
-        r = rnd.uniform(8, 16)
+        r = rnd.uniform(9, 18)
         base = rnd.choice(P["canopy"])
         seed = rnd.random()
         crowns.append((y, lambda dy, x=x, y=y, r=r, base=base, seed=seed:
-                       crown(random.Random(seed), x, y, r, base, P["canopy_hi"], dy)))
+                       crown(random.Random(seed), x + r * 0.3, y + r * 0.3, r, P["canopy_gap"], P["canopy_gap"], dy)
+                       + crown(random.Random(seed), x, y, r, base, P["canopy_hi"], dy, ink=1.0)))
     body.append(wrap_y(crowns, H))
-    bloom = []
-    for i in range(36):
-        x, y = rnd.uniform(0, W), rnd.uniform(0, H)
+    lights = []
+    for i in range(46):
+        x, y = rnd.uniform(8, W - 8), rnd.uniform(0, H)
         c = rnd.choice(P["blossom"])
-        bloom.append((y, lambda dy, x=x, y=y, c=c: f'<rect x="{x - 1.5:.0f}" y="{y + dy - 1.5:.0f}" width="3" height="3" '
-                      f'fill="{c}" opacity="0.6"/>'))
-    body.append(wrap_y(bloom, H))
-    mist = []
-    for i in range(8):
-        x, y = rnd.uniform(0, W), rnd.uniform(0, H)
-        mist.append((y, lambda dy, x=x, y=y, rx=rnd.uniform(120, 220), ry=rnd.uniform(50, 110):
-                     f'<ellipse cx="{x:.0f}" cy="{y + dy:.0f}" rx="{rx:.0f}" ry="{ry:.0f}" fill="{P["mist"]}" '
-                     f'opacity="0.4" filter="url(#b40)"/>'))
-    body.append(wrap_y(mist, H))
+        r = rnd.choice((1.0, 1.5, 1.5))
+        lights.append((y, lambda dy, x=x, y=y, c=c, r=r: lantern(x, y + dy, c, r)))
+    for i in range(5):
+        x, y = rnd.uniform(30, W - 30), rnd.uniform(0, H)
+        lights.append((y, lambda dy, x=x, y=y: f'<rect x="{x:.0f}" y="{y + dy:.0f}" width="2" height="2" '
+                                                f'fill="{P["lantern_red"]}"/>'))
+    body.append(wrap_y(lights, H))
     body.append(f'<rect width="{W}" height="{H}" fill="url(#vig)"/>')
     body.append(grain(W, H))
     return doc(W, H, "".join(body), defs)
 
 
-def far():
-    """Distant green hills scattered far below, heavily hazed."""
-    rnd = random.Random(111)
-    d, b = scatter_peaks(rnd, W, H, P["far"], 30, 26, 52, cap=0.22, ink=1.2)
-    hd, hb = hazed(b, P["air"], 0.45)
-    return doc(W, H, hb, d + hd)
-
-
 def river_geom():
     rnd = random.Random(121)
     n1, n2 = PNoise(rnd), PNoise(rnd)
-    return (lambda y: W / 2 + 9 * n1(y / H)), (lambda y: 20 + 4 * n2(y / H))
+    return (lambda y: W / 2 + 10 * n1(y / H)), (lambda y: 24 + 4 * n2(y / H))
+
+
+def far():
+    """Far pine rows: small, dark teal-green on indigo, thin ink. A very
+    light air tint only; depth comes from the value step to `mid`."""
+    rnd = random.Random(111)
+    cxf, hwf = river_geom()
+    foot = edge_foot(rnd, P["far"]["foot"], 150, 1.2)
+    d, b = pine_rows(rnd, P["far"], 150, 34, 54, 20, 1.2, kick=True, inner_scatter=26,
+                     avoid=lambda x, y: abs(x - cxf(y)) < hwf(y) + 60)
+    hd, hb = hazed(foot + b, P["air"], 0.12)
+    return doc(W, H, hb, d + hd)
 
 
 def mid():
-    """The jungle valley far below: a narrow river, banks, small crowns and
-    low ridges along the edges. Moderate haze."""
+    """The river valley: banks, a teal river with one shadow plane and an
+    inked edge, crowns and bigger pines one value step up, sodium lanterns."""
     rnd = random.Random(131)
     cxf, hwf = river_geom()
-    ys = [H * i / 48 for i in range(49)]
+    ys = [H * i / 64 for i in range(65)]
     body = []
-    bl = [(cxf(y) - hwf(y) - 10, y) for y in ys]
-    br = [(cxf(y) + hwf(y) + 10, y) for y in ys]
+    bl = [(cxf(y) - hwf(y) - 14, y) for y in ys]
+    br = [(cxf(y) + hwf(y) + 14, y) for y in ys]
     body.append(f'<polygon points="{pts(bl + list(reversed(br)))}" fill="{P["bank"]}"/>')
     left = [(cxf(y) - hwf(y), y) for y in ys]
     right = [(cxf(y) + hwf(y), y) for y in ys]
     body.append(f'<polygon points="{pts(left + list(reversed(right)))}" fill="{P["water"]}"/>')
-    sh = [(cxf(y) + hwf(y) * 0.4, y) for y in ys]
+    sh = [(cxf(y) + hwf(y) * 0.35, y) for y in ys]
     body.append(f'<polygon points="{pts(sh + list(reversed(right)))}" fill="{P["water_shadow"]}"/>')
-    for side in (left, right, bl, br):
+    # lit left water edge: one highlight tone
+    hl = [(cxf(y) - hwf(y) + 3, y) for y in ys]
+    body.append(f'<polyline points="{pts(hl)}" fill="none" stroke="{P["water_edge"]}" stroke-width="3"/>')
+    for side in (left, right):
+        body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(2.2)}/>')
+    for side in (bl, br):
         body.append(f'<polyline points="{pts(side)}" fill="none" {ink_attr(1.6)}/>')
+    # crowns between the river and the pine rows
     trees = []
-    for i in range(110):
+    for i in range(70):
         y = rnd.uniform(0, H)
         sd = rnd.choice((-1, 1))
-        x = cxf(y) + sd * (hwf(y) + rnd.uniform(14, 70))
-        r = rnd.uniform(5, 10)
+        x = cxf(y) + sd * (hwf(y) + rnd.uniform(22, 80))
+        r = rnd.uniform(7, 12)
         seed = rnd.random()
         trees.append((y, lambda dy, x=x, y=y, r=r, seed=seed:
-                      crown(random.Random(seed), x + r * 0.25, y + r * 0.3, r, P["tree_dark"], P["tree_dark"], dy)
-                      + crown(random.Random(seed), x, y, r, P["tree"], P["tree_hi"], dy, ink=1.2)))
+                      crown(random.Random(seed), x + r * 0.35, y + r * 0.35, r, P["tree_dark"], P["tree_dark"], dy)
+                      + crown(random.Random(seed), x, y, r, P["tree"], P["tree_hi"], dy, ink=1.4)))
     body.append(wrap_y(trees, H))
-    d, b = edge_range(rnd, W, H, P["near"], 12, 50, 84, 34, 60, 100, cap=0.2, rim=P["rim"], ink=1.4,
-                      foot=P["near"]["dark"])
-    hd, hb = hazed("".join(body) + b, P["air"], 0.25)
-    return doc(W, H, hb, d + hd)
+    # shrine lanterns along the banks
+    lamps = []
+    for i in range(14):
+        y = rnd.uniform(0, H)
+        sd = rnd.choice((-1, 1))
+        x = cxf(y) + sd * (hwf(y) + rnd.uniform(16, 26))
+        c = SODIUM if i % 3 else AMBER
+        lamps.append((y, lambda dy, x=x, y=y, c=c: lantern(x, y + dy, c, 2.0)))
+    body.append(wrap_y(lamps, H))
+    foot = edge_foot(rnd, P["near"]["foot"], 92, 1.6)
+    d, b = pine_rows(rnd, P["near"], 96, 60, 92, 30, 2.0, kick=True)
+    return doc(W, H, "".join(body) + foot + b, d)
 
 
 def flow():
+    """Teal and cyan highlight dashes on the river (scrolls faster than the
+    banks, so the water reads as running)."""
     w = 128
     rnd = random.Random(141)
     items = []
-    for i in range(34):
-        x = rnd.uniform(57, 71)
+    for i in range(44):
+        x = rnd.uniform(46, 80)
         y = rnd.uniform(0, H)
-        L = rnd.uniform(6, 14)
-        items.append((y, lambda dy, x=x, y=y, L=L:
-                      f'<rect x="{x - 1:.1f}" y="{y + dy - L / 2:.1f}" width="2" height="{L:.1f}" '
-                      f'fill="{P["water_dash"]}" opacity="0.7"/>'))
+        L = rnd.uniform(8, 22)
+        c = rnd.choice((TEAL, TEAL, CYAN))
+        wd = 2 if c == TEAL else 2.5
+        items.append((y, lambda dy, x=x, y=y, L=L, c=c, wd=wd:
+                      f'<rect x="{x - wd / 2:.1f}" y="{y + dy - L / 2:.1f}" width="{wd}" height="{L:.1f}" fill="{c}"/>'))
+    for i in range(6):
+        x = rnd.uniform(48, 78)
+        y = rnd.uniform(0, H)
+        items.append((y, lambda dy, x=x, y=y:
+                      f'<rect x="{x - 1:.1f}" y="{y + dy - 3:.1f}" width="2" height="6" fill="{BONE}"/>'))
     return doc(w, H, wrap_y(items, H), "")
 
 
+# -------------------------------------------------------------- landmarks ---
+
 def waterfall(phase):
-    """A mesa-edge waterfall seen from altitude: an angular plateau island
-    with a few crowns and a river running to its lip, an inked cliff band
-    (one shadow plane, strata lines), the falling sheet with highlight
-    dashes that drop each frame, angular mist cels at the plunge pool and a
-    short river tail. 8 frames; mist steps between two sizes (snappy)."""
+    """A mesa-edge waterfall seen from altitude: a flat green plateau with
+    crowns and a river to its lip, an inked indigo cliff band (one shadow
+    plane, one lit ledge), a bright teal falling sheet whose cyan/bone
+    dashes drop each frame, angular mist cels at the plunge pool."""
     w, h = 256, 256
     rnd = random.Random(7)
     top_edge = [(24, 40), (70, 12), (128, 4), (190, 10), (236, 40)]
     lip = [(240, 92), (198, 104), (150, 100), (128, 108), (106, 100), (54, 106), (16, 92)]
     plateau = top_edge + lip
-    drop = 58
+    drop = 60
     cliff = list(reversed(lip)) + [(x, y + drop + (6 if i % 2 else 0)) for i, (x, y) in enumerate(lip)]
-    cliff_shadow = [(150, 100), (198, 104), (240, 92), (240, 150), (198, 166), (150, 158)]
-    river_top = [(120, 6), (136, 6), (142, 46), (136, 76), (140, 104), (116, 104), (120, 76), (114, 46)]
-    fall = [(116, 104), (140, 104), (144, 166), (112, 166)]
-    pool = [(92, 164), (164, 162), (178, 182), (150, 196), (104, 196), (82, 182)]
-    tail = [(114, 194), (142, 194), (146, 222), (130, 250), (112, 222)]
-    g = [f'<polygon points="{pts(plateau)}" fill="{P["plateau"]}"/>',
-         f'<polygon points="{pts([(150, 6), (190, 10), (236, 40), (240, 92), (198, 104), (150, 100)])}" fill="{P["plateau_dark"]}"/>']
-    for i in range(10):
-        x, y = rnd.uniform(40, 220), rnd.uniform(26, 86)
-        if 100 < x < 156:
+    cliff_shadow = [(150, 100), (198, 104), (240, 92), (240, 150), (198, 168), (150, 160)]
+    river_top = [(118, 6), (138, 6), (144, 46), (138, 76), (142, 106), (114, 106), (118, 76), (112, 46)]
+    fall = [(112, 104), (144, 104), (150, 168), (106, 168)]
+    pool = [(84, 164), (172, 162), (186, 182), (156, 198), (100, 198), (74, 182)]
+    tail = [(112, 196), (144, 196), (148, 224), (132, 252), (110, 224)]
+    g = [poly(plateau, P["plateau"]),
+         poly([(150, 6), (190, 10), (236, 40), (240, 92), (198, 104), (150, 100)], P["plateau_dark"]),
+         poly([(24, 40), (70, 12), (100, 7), (60, 30), (34, 52)], P["plateau_hi"])]
+    for i in range(12):
+        x, y = rnd.uniform(36, 224), rnd.uniform(24, 88)
+        if 98 < x < 158:
             continue
-        g.append(crown(random.Random(rnd.random()), x, y, rnd.uniform(6, 10), P["tree"], P["tree_hi"], 0, ink=1.4))
-    g.append(f'<polygon points="{pts(river_top)}" fill="{P["water"]}"/>')
-    g.append(f'<polygon points="{pts(cliff)}" fill="{P["rock"]}"/>')
-    g.append(f'<polygon points="{pts(cliff_shadow)}" fill="{P["rock_dark"]}"/>')
-    g.append(f'<polyline points="16,95 54,109 106,103" stroke="{P["rock_hi"]}" stroke-width="3" fill="none"/>')
-    for x in (40, 80, 176, 216):
-        g.append(f'<polyline points="{x},{110} {x + 4},{130} {x - 2},{150}" fill="none" {ink_attr(1.4)}/>')
-    g.append(f'<polygon points="{pts(pool)}" fill="{P["water"]}"/>')
-    g.append(f'<polygon points="{pts(tail)}" fill="{P["water"]}"/>')
-    ink = (f'<polygon points="{pts(plateau)}" fill="none" {ink_attr(3)}/>'
-           f'<polygon points="{pts(cliff)}" fill="none" {ink_attr(3)}/>'
-           f'<polygon points="{pts(river_top)}" fill="none" {ink_attr(2)}/>'
-           f'<polygon points="{pts(pool)}" fill="none" {ink_attr(2.5)}/>'
-           f'<polygon points="{pts(tail)}" fill="none" {ink_attr(2)}/>')
-    d, body = hazed("".join(g) + ink, P["air"], 0.3)
-    out = [f'<polygon points="{pts(fall)}" fill="{P["fall"]}" {ink_attr(2.5)}/>',
-           f'<polygon points="{pts([(130, 104), (140, 104), (144, 166), (132, 166)])}" fill="{P["fall_shadow"]}"/>']
-    for i in range(6):
-        x = 118 + i * 4
-        L = 10 + (i * 7) % 9
-        y = 104 + ((i * 0.37 + phase) % 1) * 62
-        out.append(f'<rect x="{x}" y="{y - L / 2:.1f}" width="2" height="{L}" fill="{P["fall_hi"]}" opacity="0.85"/>')
+        r = rnd.uniform(7, 11)
+        sd = random.Random(rnd.random())
+        st = sd.random()
+        g.append(crown(random.Random(st), x + r * 0.3, y + r * 0.3, r, P["tree_dark"], P["tree_dark"])
+                 + crown(random.Random(st), x, y, r, P["tree"], P["tree_hi"], 0, ink=1.4))
+    g.append(poly(river_top, P["water"]))
+    g.append(poly([(128, 6), (138, 6), (144, 46), (138, 76), (142, 106), (128, 106)], P["water_shadow"]))
+    g.append(poly(cliff, P["cliff"]))
+    g.append(poly(cliff_shadow, P["cliff_dark"]))
+    g.append(f'<polyline points="16,95 54,109 106,103" stroke="{P["cliff_hi"]}" stroke-width="4" fill="none"/>')
+    for x in (36, 76, 180, 220):
+        g.append(f'<polyline points="{x},112 {x + 5},134 {x - 2},156" fill="none" {ink_attr(1.6)}/>')
+    g.append(poly(pool, P["water"]))
+    g.append(poly(tail, P["water"]))
+    g.append(f'<polygon points="{pts(plateau)}" fill="none" {ink_attr(3)}/>'
+             f'<polygon points="{pts(cliff)}" fill="none" {ink_attr(3)}/>'
+             f'<polygon points="{pts(river_top)}" fill="none" {ink_attr(2)}/>'
+             f'<polygon points="{pts(pool)}" fill="none" {ink_attr(2.5)}/>'
+             f'<polygon points="{pts(tail)}" fill="none" {ink_attr(2)}/>')
+    # bright falling sheet: teal base, one shadow plane, falling dashes
+    out = [poly(fall, P["fall"]),
+           poly([(132, 104), (144, 104), (150, 168), (134, 168)], P["fall_shadow"])]
+    for i in range(8):
+        x = 112 + i * 4.2
+        L = 12 + (i * 7) % 11
+        y = 104 + ((i * 0.37 + phase) % 1) * 64
+        c = P["fall_kick"] if i % 3 == 0 else P["fall_hi"]
+        out.append(f'<rect x="{x:.1f}" y="{max(104, y - L / 2):.1f}" width="2.4" '
+                   f'height="{min(L, 168 - max(104, y - L / 2)):.1f}" fill="{c}"/>')
+    out.append(f'<polygon points="{pts(fall)}" fill="none" {ink_attr(2.5)}/>')
     big = int(phase * 8) % 2 == 0
-    for j, (mx, my) in enumerate([(106, 170), (128, 166), (150, 170)]):
-        r = (11 if big else 8) + (j % 2) * 2
+    for j, (mx, my) in enumerate([(104, 172), (128, 168), (152, 172)]):
+        r = (13 if big else 9) + (j % 2) * 2
         p = [(mx + r * math.cos(a), my + r * 0.7 * math.sin(a)) for a in [k * TAU / 6 + j for k in range(6)]]
-        out.append(f'<polygon points="{pts(p)}" fill="{P["fall_hi"]}" opacity="0.45" {ink_attr(1.2)}/>')
+        out.append(poly(p, P["fall_hi"], ink_attr(1.4)))
+        out.append(poly([(mx - r * 0.5, my - r * 0.35), (mx, my - r * 0.6), (mx + r * 0.1, my)], BONE))
     for i in range(3):
-        y = 198 + ((i / 3 + phase) % 1) * 40
-        out.append(f'<rect x="{125 + (i % 2) * 5}" y="{y:.1f}" width="2" height="8" fill="{P["water_dash"]}" opacity="0.7"/>')
-    return doc(w, h, body + "".join(out), d)
+        y = 200 + ((i / 3 + phase) % 1) * 40
+        out.append(f'<rect x="{125 + (i % 2) * 5}" y="{y:.1f}" width="2" height="8" fill="{P["water_dash"]}"/>')
+    return doc(w, h, "".join(g) + "".join(out))
+
+
+GLYPHS = [(64, 145), (100, 145), (136, 145), (80, 96), (120, 96), (100, 52)]
+
+
 def ruin(phase):
-    """Overgrown ruin tower: angular slabs, one shadow plane, ink outlines;
-    neon glyphs blink in a 4-step sequence with hard bloom."""
+    """Overgrown ruin tower: indigo stone slabs, one shadow plane, a lit
+    edge kick, green vines with a highlight, neon glyphs (cyan / sodium)
+    blinking in a 4-step sequence with hard bloom, a red tip light."""
     w, h = 200, 200
     k = int(phase * 4)
     lit, dark = P["stone_lit"], P["stone_dark"]
@@ -195,43 +347,103 @@ def ruin(phase):
              [(52, 120), (148, 120), (140, 70), (60, 70)],
              [(72, 70), (128, 70), (122, 30), (78, 30)],
              [(88, 30), (112, 30), (100, 8)]]
+    body.append(poly([(10, 184), (190, 184), (176, 170), (24, 170)], dark, ink_attr(3)))
     for s in slabs:
-        body.append(f'<polygon points="{pts(s)}" fill="{lit}"/>')
+        body.append(poly(s, lit))
         mx = sum(p[0] for p in s) / len(s)
         sh = [(max(x, mx), y) for x, y in s]
-        body.append(f'<polygon points="{pts(sh)}" fill="{dark}"/>')
+        body.append(poly(sh, dark))
+        # lit top-left edge kick
+        a, b = s[-1], s[0]
+        body.append(f'<polyline points="{pts([s[0], s[-1]])}" stroke="{P["stone_hi"]}" stroke-width="3" '
+                    f'fill="none" transform="translate(2 0)"/>')
         body.append(f'<polygon points="{pts(s)}" fill="none" {ink_attr(3)}/>')
-    body.append(f'<polygon points="{pts([(10, 184), (190, 184), (176, 170), (24, 170)])}" fill="{dark}" {ink_attr(3)}/>')
     rnd = random.Random(12)
-    for i in range(5):
-        seg = jitter_ridge(rnd, rnd.uniform(40, 160), rnd.uniform(40, 160), rnd.uniform(40, 160), rnd.uniform(60, 180), 4, 8)
-        body.append(f'<polyline points="{pts(seg)}" stroke="#1e4a30" stroke-width="3" fill="none"/>')
-    glyphs = [(64, 145), (100, 145), (136, 145), (80, 96), (120, 96), (100, 52)]
-    for i, (x, y) in enumerate(glyphs):
+    for i in range(6):
+        x0 = rnd.uniform(40, 160)
+        seg = [(x0 + rnd.uniform(-10, 10), y) for y in range(int(rnd.uniform(40, 90)), int(rnd.uniform(130, 180)), 12)]
+        body.append(f'<polyline points="{pts(seg)}" stroke="{P["vine"]}" stroke-width="4" fill="none" '
+                    f'stroke-linejoin="miter"/>')
+        body.append(f'<polyline points="{pts(seg)}" stroke="{P["vine_hi"]}" stroke-width="1.4" fill="none" '
+                    f'transform="translate(-1 0)"/>')
+    for i, (x, y) in enumerate(GLYPHS):
         on = (i + k) % 3 == 0 or (i == 5 and k % 2 == 0)
         c = P["glyph_b"] if i % 2 else P["glyph_a"]
         if on:
-            body.append(hard_glow(x, y, 13, c, 0.9, 3))
-        body.append(f'<polygon points="{x},{y - 6} {x + 6},{y} {x},{y + 6} {x - 6},{y}" fill="{c if on else dark}" '
+            body.append(hard_glow(x, y, 14, c, 0.9, 3))
+        body.append(f'<polygon points="{x},{y - 7} {x + 7},{y} {x},{y + 7} {x - 7},{y}" fill="{c if on else P["glyph_off"]}" '
                     f'{ink_attr(1.5)}/>')
+        if on:
+            body.append(f'<rect x="{x - 1.5}" y="{y - 1.5}" width="3" height="3" fill="{BONE}"/>')
+    if k % 2 == 0:
+        body.append(hard_glow(100, 6, 6, P["lantern_red"], 0.8, 2))
+    body.append(f'<rect x="98.5" y="4.5" width="3" height="3" fill="{P["lantern_red"] if k % 2 == 0 else dark}"/>')
     return doc(w, h, "".join(body))
 
 
 def obelisk(seed):
-    """Angular signal pylon with a neon band (pulsed in code)."""
+    """Angular signal pylon: indigo stone, one shadow plane, teal glyph
+    bands and a sodium tip (pulsed in code)."""
     rnd = random.Random(seed)
     w, h = 120, 200
     tall = rnd.uniform(0.75, 0.95)
     top = h - 16 - (h - 30) * tall
-    body = [f'<polygon points="40,{h - 16} 80,{h - 16} 70,{top:.0f} 60,{top - 14:.0f} 50,{top:.0f}" fill="{P["obelisk"]}"/>',
+    shape = f"40,{h - 16} 80,{h - 16} 70,{top:.0f} 60,{top - 14:.0f} 50,{top:.0f}"
+    body = [f'<polygon points="28,{h - 4} 92,{h - 4} 84,{h - 16} 36,{h - 16}" fill="{P["obelisk_dark"]}" {ink_attr(2.5)}/>',
+            f'<polygon points="{shape}" fill="{P["obelisk"]}"/>',
             f'<polygon points="60,{h - 16} 80,{h - 16} 70,{top:.0f} 60,{top - 14:.0f}" fill="{P["obelisk_dark"]}"/>',
-            f'<polygon points="40,{h - 16} 80,{h - 16} 70,{top:.0f} 60,{top - 14:.0f} 50,{top:.0f}" fill="none" {ink_attr(3)}/>']
+            f'<polyline points="42,{h - 18} 51,{top + 2:.0f}" stroke="{P["stone_hi"]}" stroke-width="2.5" fill="none"/>',
+            f'<polygon points="{shape}" fill="none" {ink_attr(3)}/>']
     for j in range(3):
-        y = top + 20 + j * 34
-        body.append(f'<rect x="{56 + j}" y="{y:.0f}" width="{8 - 2 * j}" height="5" fill="{P["obelisk_light"]}"/>')
-    body.append(hard_glow(60, top - 6, 16, P["obelisk_light"], 0.8, 3))
-    body.append(f'<polygon points="28,{h - 4} 92,{h - 4} 84,{h - 16} 36,{h - 16}" fill="{P["obelisk_dark"]}" {ink_attr(2.5)}/>')
+        y = top + 22 + j * 34
+        body.append(hard_glow(60, y + 2.5, 9, P["obelisk_light"], 0.6, 2))
+        body.append(f'<rect x="{54 + j}" y="{y:.0f}" width="{12 - 2 * j}" height="5" fill="{P["obelisk_light"]}"/>')
+    body.append(hard_glow(60, top - 6, 16, P["obelisk_tip"], 0.8, 3))
+    body.append(f'<rect x="57" y="{top - 9:.0f}" width="6" height="6" fill="{P["obelisk_tip"]}"/>')
     return doc(w, h, "".join(body))
+
+
+# -------------------------------------------------------------- particles ---
+
+# Firefly blink, 8 drawings at 8 fps: held dark rest, anticipation, a
+# 4-point flash, settle (docs/art-style.md 3: holds, snappy, no tweening).
+FIREFLY = ["rest", "rest", "rest", "dot", "diamond", "flash", "diamond", "dot"]
+
+
+def firefly(phase):
+    s = 32
+    kind = FIREFLY[int(phase * len(FIREFLY)) % len(FIREFLY)]
+    c, core = P["firefly"], P["firefly_core"]
+    if kind == "rest":
+        body = f'<rect x="14.5" y="14.5" width="3" height="3" fill="{SODIUM}" opacity="0.55"/>'
+    elif kind == "dot":
+        body = hard_glow(16, 16, 6, c, 0.5, 2) + f'<rect x="14" y="14" width="4" height="4" fill="{c}"/>'
+    elif kind == "diamond":
+        body = (hard_glow(16, 16, 10, c, 0.55, 2)
+                + f'<polygon points="16,9 23,16 16,23 9,16" fill="{c}"/>'
+                + f'<rect x="15" y="15" width="2" height="2" fill="{core}"/>')
+    else:
+        body = (hard_glow(16, 16, 14, c, 0.6, 3)
+                + f'<polygon points="16,1 18.5,13.5 31,16 18.5,18.5 16,31 13.5,18.5 1,16 13.5,13.5" fill="{c}"/>'
+                + f'<polygon points="16,9 19,16 16,23 13,16" fill="{core}"/>')
+    return doc(s, s, body)
+
+
+def spore(phase):
+    """A drifting spore: a small angular hex that turns in 4 snappy steps,
+    one shadow half, ink edge."""
+    s = 24
+    a0 = int(phase * 4) * (math.pi / 12)
+    p = [(12 + 7 * math.cos(a0 + i * TAU / 6), 12 + 7 * math.sin(a0 + i * TAU / 6)) for i in range(6)]
+    body = (poly(p, P["spore"], ink_attr(1.6))
+            + poly([p[0], p[1], p[2], (12, 12)], TEAL_SH)
+            + f'<rect x="10.5" y="10.5" width="3" height="3" fill="{BONE}"/>')
+    return doc(s, s, body)
+
+
+# ------------------------------------------------------------------ build ---
+
+LANDMARK_HAZE = 0.08
 
 
 def build():
@@ -240,13 +452,15 @@ def build():
     w.tile("far", far())
     w.tile("mid", mid())
     w.tile("flow", flow())
-    w.flipbook("anim", "waterfall", 8, waterfall)
-    w.flipbook("anim", "ruin", 4, lambda p: haze_doc(ruin(p), P["air"], 0.3))
-    w.sprite("fx", "obelisk0", haze_doc(obelisk(1), P["air"], 0.3))
-    w.sprite("fx", "obelisk1", haze_doc(obelisk(5), P["air"], 0.3))
+    w.flipbook("anim", "waterfall", 8, lambda p: haze_doc(waterfall(p), P["air"], LANDMARK_HAZE))
+    w.flipbook("anim", "ruin", 4, lambda p: haze_doc(ruin(p), P["air"], LANDMARK_HAZE))
+    w.sprite("fx", "obelisk0", haze_doc(obelisk(1), P["air"], LANDMARK_HAZE))
+    w.sprite("fx", "obelisk1", haze_doc(obelisk(5), P["air"], LANDMARK_HAZE))
     w.sprite("fx", "cloud0", cloud_cel(4, P["cloud"], P["cloud_shadow"]))
     w.sprite("fx", "cloud1", cloud_cel(9, P["cloud"], P["cloud_shadow"]))
     w.sprite("fx", "haze", haze_band(P["band"]), size=(256, 48))
+    w.flipbook("fx", "firefly", len(FIREFLY), firefly)
+    w.flipbook("fx", "spore", 4, spore)
     w.sprite("fx", "star", space.star_sprite())
     w.sprite("fx", "dot", space.soft_dot())
     w.sprite("fx", "streak", space.streak())
@@ -254,21 +468,31 @@ def build():
 
 
 def preview(t):
+    """Mirrors BackdropCatalog / VerdantDirector for the offline composer."""
     v = 30 * (0.2 + 0.25)
     fr = lambda n, fps: int(t * fps) % n
     c = [("tile", "sky", t * v * 0.006, 1, (1, 1, 1, 1)),
          ("tile", "far", t * v * 0.014, 1, (1, 1, 1, 1)),
          ("tile", "mid", t * v * 0.024, 1, (1, 1, 1, 1)),
-         ("strip", "flow", t * v * 0.024 + t * 0.3, 0.25, 1)]
-    c.append(("sprite", "anim", f"waterfall_{fr(8, 12):02d}", -1.3, 2 - (t * v * 0.03) % 12, 1.5, 0, (1, 1, 1, 1), False))
-    c.append(("sprite", "anim", f"ruin_{fr(4, 3):02d}", 1.4, -2 - (t * v * 0.036) % 12 + 6, 0.9, 0, (1, 1, 1, 1), False))
-    c.append(("sprite", "fx", "haze", 0.0, 4 - (t * v * 0.12) % 14, 7.0, 0, (1, 1, 1, 0.35), False))
-    c.append(("sprite", "fx", "cloud1", -0.6, 7 - (t * v * 0.3 + 9) % 20, 2.4, 0, (1, 1, 1, 0.35), False))
-    for i in range(16):
+         ("strip", "flow", t * v * 0.025 + t * 0.30, 0.25, 1)]
+    c.append(("sprite", "anim", f"waterfall_{fr(8, 12):02d}", -1.2, 2.2 - (t * v * 0.030) % 12, 1.5, 0, (1, 1, 1, 1), False))
+    c.append(("sprite", "anim", f"ruin_{fr(4, 3):02d}", 1.35, -1.5 - (t * v * 0.036) % 12 + 6, 1.05, 0, (1, 1, 1, 1), False))
+    beat = (t * 0.6) % 1
+    c.append(("sprite", "fx", "obelisk1", 1.7, -4.2 - (t * v * 0.036) % 12 + 6, 0.5, 0,
+              (1, 1, 1, 1 if beat < 0.12 else 0.8), False))
+    c.append(("sprite", "fx", "haze", 0.0, 4 - (t * v * 0.12) % 14, 7.0, 0, (1, 1, 1, 0.27), False))
+    c.append(("sprite", "fx", "cloud1", -0.6, 7 - (t * v * 0.3 + 9) % 20, 2.4, 0, (1, 1, 1, 0.3), False))
+    for i in range(14):
         x = ((i * 0.618 + 0.2 * math.sin(t * 0.7 + i)) % 1) * 5 - 2.5
         y = (((i * 0.377) % 1) * 13 - t * v * 0.4 + t * 0.25) % 13 - 6.5
-        blink = math.sin(t * 2.4 + i * 2.1) > 0.55
-        c.append(("sprite", "fx", "dot", x, y, 0.08, 0, (0.75, 1, 0.45, 0.7 if blink else 0.05), False))
+        f = int(t * 8 + i * 2.7) % len(FIREFLY)
+        c.append(("sprite", "fx", f"firefly_{f:02d}", x, y, 0.16, 0, (1, 1, 1, 0.9), False))
+    for i in range(10):
+        x = ((i * 0.43 + 0.1 * math.sin(t * 0.5 + i)) % 1) * 5.4 - 2.7
+        y = (((i * 0.71) % 1) * 13 - t * v * 0.5 + t * 0.5) % 13 - 6.5
+        c.append(("sprite", "fx", f"spore_{int(t * 4 + i) % 4:02d}", x, y, 0.09, 0, (1, 1, 1, 0.6), False))
     return c
+
+
 if __name__ == "__main__":
     build()
