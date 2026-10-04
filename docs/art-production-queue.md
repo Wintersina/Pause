@@ -37,7 +37,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 20. **Queued — `frost_big`**
 21. **Queued — `verdant_big`**
 22. **Queued — `ember_big`**
-23. **Queued — `space_rock_crater`**
+23. **Installed, validated — `space_rock_crater`**
 24. **Queued — `space_rock_cluster`**
 25. **Queued — `space_rock_dark`**
 26. **Queued — `frost_rock_chunk`**
