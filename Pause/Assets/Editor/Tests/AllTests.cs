@@ -69,6 +69,7 @@ public static class AllTests
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TallScreenTest", TallScreenTest.Execute),
+        ("TeleportKillTest", TeleportKillTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
         ("TutorialAtomFlowTest", TutorialAtomFlowTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),

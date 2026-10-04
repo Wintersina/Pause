@@ -268,8 +268,11 @@ public class ScoreHud : MonoBehaviour
 
         TickBadges(now);
 
-        // Popups live on the world's clock: they freeze with it.
-        StepPopups(buttonClicks.playerDied ? -1f : Time.deltaTime);
+        // Popups live on the explosions' clock (TargetExplosion.Delta): they
+        // freeze with the world, and through the ultimate's deep slow motion
+        // (x0.06) they still pop and rise at half speed beside the blasts
+        // that scored them instead of hanging there for ten seconds.
+        StepPopups(buttonClicks.playerDied ? -1f : TargetExplosion.Delta());
     }
 
     // SPD xN: shown above x1, punches and flashes BONE-white as it steps up

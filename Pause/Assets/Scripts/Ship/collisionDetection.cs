@@ -102,14 +102,31 @@ public class collisionDetection : MonoBehaviour {
         score.AwardStarDust(amount);
     }
 
-    public static void AwardDestroyedTarget(GameObject target)
+    // Every way the pilot destroys a hazard ends here -- weapons, the
+    // ultimate, secret powers, ramming it shielded, blinking onto it with the
+    // pause-teleport -- so each pays the same: codex, secret meter, run score
+    // (with the kill chain and speed multiplier, plus `bonusPoints`), the
+    // kill achievements and a little star dust.
+    public static void AwardDestroyedTarget(GameObject target, int bonusPoints = 0)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        // Score first: nothing below (a codex toast, the meter) may cost points.
+        RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         Codex.Discover(target);   // ultimate kills count as meeting it too
         SecretPowerController.OnKill();   // kills fill the secret power's meter
-        RunScore.OnKill(target);          // run score (ScoreRules), with the kill chain
+        RecordKillAchievement(target);
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
+    }
+
+    // Kill 5/25/50/150/1000/3500 Aliens (##08-13), destroy 5/25/50/100/1500
+    // Asteroids (##14-18). Used to fire for shielded rams only, so weapon,
+    // ultimate and teleport kills never counted.
+    public static void RecordKillAchievement(GameObject target)
+    {
+        if (target == null) return;
+        if (PrefabName.Is(target, "alien1")) achievementAPICalls.alien_killed();
+        if (target.CompareTag("Astr")) achievementAPICalls.asteroid_destroyed();
     }
 
     // Shaves time off the ultimate's countdown on pickup -- a little for
@@ -198,17 +215,7 @@ public class collisionDetection : MonoBehaviour {
 
             if (safe)
             {
-                // acchivment reporting
-                if (PrefabName.Is(hit.gameObject, "alien1"))
-                {
-                    //------------------------- Kill 5/25/50/150/1000/3500 Aliens ---##08-13---
-                    achievementAPICalls.alien_killed();
-                }
-                if (hit.gameObject.CompareTag("Astr"))
-                {
-                    //------------------------- Destroy 5/25/50/100/1500 Asteroids ---##14-18---
-                    achievementAPICalls.asteroid_destroyed();
-                }
+                // (kill achievements: AwardDestroyedTarget, below)
                 // Shows the hit on the shield; a no-op under Cloak alone,
                 // where no shield is up.
                 ShipShield.For(gameObject).Absorb(hit.transform.position);
