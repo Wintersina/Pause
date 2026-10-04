@@ -112,12 +112,16 @@ public static class ShipSelectionTest
         return dock;
     }
 
-    // Tap the ship's berth and press the popup button (LAUNCH if owned).
-    // Returns the art the berth showed and what LAUNCH saved.
+    // Tap the ship's berth -- found by its slot in the cheapest-first rack,
+    // not by its bay object, so the slot -> ShipId mapping is what's tested --
+    // and press the popup button (LAUNCH if owned). Returns the art the berth
+    // showed and what LAUNCH saved.
     static int TapAndPress(SpaceDock dock, int id, out Sprite dockArt)
     {
         dockArt = dock.bays[id] != null ? dock.bays[id].hull.sprite : null;
-        dock.Tap(dock.bays[id].transform.position);
+        int slot = SpaceDock.SlotOf(id);
+        dock.Tap(dock.rack.TransformPoint(dock.layout.BayCenter(slot)));
+        tappedRight = dock.Selected == id && dock.popup.ShipIndex == id;
         if (dock.Selected == id && dock.popup.Visible) dock.popup.Press();
         return PlayerPrefs.GetInt(ShipId.SelectedKey, -1);
     }
@@ -144,6 +148,8 @@ public static class ShipSelectionTest
         }
         return ship;
     }
+
+    static bool tappedRight;
 
     // The hull art right after spawn, before the ship's own Start ran.
     static Sprite spawnedArt;
@@ -238,19 +244,22 @@ public static class ShipSelectionTest
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
         var saved = new Dictionary<int, int>();
         var dockArt = new Dictionary<int, Sprite>();
-        foreach (int id in ShipId.All)
+        // Through the rack's own order: cheapest berth first.
+        foreach (int id in SpaceDock.BayOrder)
         {
             var dock = FreshDock();
             if (dock == null) { Check(context + ": the dock builds", false); return; }
             Sprite art;
             saved[id] = TapAndPress(dock, id, out art);
             dockArt[id] = art;
+            Check(context + ": berth slot " + SpaceDock.SlotOf(id) + " selects " + Label(id), tappedRight);
+            Check(context + ": " + Label(id) + " is parked in full colour, not as a silhouette", !dock.bays[id].Silhouetted);
             Check(context + ": LAUNCH on " + Label(id) + " starts the launch", dock.Launching);
             Check(context + ": LAUNCH on " + Label(id) + " saves it (" + saved[id] + ")", saved[id] == id);
         }
 
         EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
-        foreach (int id in ShipId.All)
+        foreach (int id in SpaceDock.BayOrder)
         {
             PlayerPrefs.SetInt(ShipId.SelectedKey, saved[id]);
             var ship = SpawnInGame();
@@ -319,6 +328,8 @@ public static class ShipSelectionTest
             Sprite art;
             saved[id] = TapAndPress(dock, id, out art);
             bool isOwned = id == 1 || System.Array.IndexOf(owned, id) >= 0;
+            Check("partial: " + Label(id) + (isOwned ? " shows its art" : " is a black silhouette until bought"),
+                  tappedRight && dock.bays[id].Silhouetted == !isOwned);
             if (isOwned)
                 Check("partial: LAUNCH on owned " + Label(id) + " saves it", saved[id] == id && dock.Launching);
             else

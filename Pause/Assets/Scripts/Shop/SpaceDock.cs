@@ -18,6 +18,11 @@ using UnityEngine.UI;
 // its berth, then accelerates out through the gate with its engine flaring
 // -- and the game continues to the same scene the PLAY button always led to.
 //
+// Berths are laid out cheapest first (BayOrder: price ascending, ties by
+// ShipId), so the starter leads the rack. That is display order only: bays[]
+// and everything else stay indexed by ShipId. Ships not bought yet park as
+// ink silhouettes (DockBay) and are revealed when bought.
+//
 // Built entirely from code by ShopSceneExtender when shopS6 loads.
 public class SpaceDock : MonoBehaviour
 {
@@ -27,7 +32,7 @@ public class SpaceDock : MonoBehaviour
     const float UndockTime = DockLaunch.UndockTime;
     const float DragThresholdInches = .08f;
 
-    public DockBay[] bays;            // by ship index; [0] unused
+    public DockBay[] bays;            // by ship index (ShipId); [0] unused
     public DockPopup popup;
     public Transform rack;
     public DockLayout layout;
@@ -213,7 +218,9 @@ public class SpaceDock : MonoBehaviour
         if (shopingShips.ships == null || shopingShips.ships.Length < total)
             shopingShips.ships = new GameObject[total];
         bays = new DockBay[total];
-        for (int i = 1; i < total; i++)
+        // Built in berth order (cheapest first) so the hierarchy reads like
+        // the rack; still stored by ShipId.
+        foreach (int i in BayOrder)
         {
             bays[i] = DockBay.Create(rack, i, font);
             shopingShips.ships[i] = bays[i].ship.gameObject;
@@ -277,7 +284,7 @@ public class SpaceDock : MonoBehaviour
         rack.localScale = new Vector3(layout.scale, layout.scale, 1f);
 
         for (int i = 1; i < bays.Length; i++)
-            if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(i - 1);
+            if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(SlotOf(i));
 
         float w = layout.Width, h = layout.Height;
         backplate.size = new Vector2(w, h);
@@ -346,6 +353,43 @@ public class SpaceDock : MonoBehaviour
         if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
             p = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, p);
         return cam.ScreenToWorldPoint(new Vector3(p.x, p.y, -cam.transform.position.z)).y;
+    }
+
+    // ----------------------------------------------------------------- order
+
+    static int[] bayOrder;
+
+    // ShipIds in berth order (slot 0 = top-left, row-major): price ascending,
+    // ties broken by ShipId. Display only -- never saved.
+    public static int[] BayOrder
+    {
+        get
+        {
+            if (bayOrder == null || bayOrder.Length != ShipId.Count)
+            {
+                var ids = new List<int>(ShipId.All);
+                ids.Sort((a, b) =>
+                {
+                    int byPrice = shopingShips.CostFor(a).CompareTo(shopingShips.CostFor(b));
+                    return byPrice != 0 ? byPrice : a.CompareTo(b);
+                });
+                bayOrder = ids.ToArray();
+            }
+            return bayOrder;
+        }
+    }
+
+    // The berth slot ship `id` is parked in, or -1.
+    public static int SlotOf(int id)
+    {
+        return System.Array.IndexOf(BayOrder, id);
+    }
+
+    // The ship parked in berth `slot`, or ShipId.None.
+    public static int ShipAt(int slot)
+    {
+        var order = BayOrder;
+        return slot >= 0 && slot < order.Length ? order[slot] : ShipId.None;
     }
 
     // ----------------------------------------------------------------- state
@@ -426,6 +470,8 @@ public class SpaceDock : MonoBehaviour
         float price = shopingShips.CostFor(index);
         if (shopingShips.TryPurchase(index, price))
         {
+            // Out of the shadows: black -> white -> the hull's colours.
+            if (bays[index] != null) bays[index].BeginReveal();
             startMenu.spawnTracker = index;
             rotateRight.shipSelected = index;
             if (shop != null) shop.RefreshStarDust();

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -92,10 +94,11 @@ public static class ShopTest
                   (owned || bay.PriceLabel == Mathf.RoundToInt(shopingShips.CostFor(i)).ToString("N0")));
         }
 
-        // Berths are packed edge to edge, without overlapping.
-        var b1 = dock.bays[1].transform.position;
-        var b2 = dock.bays[2].transform.position;
-        var below = dock.bays[1 + dock.layout.columns].transform.position;
+        // Berths are packed edge to edge, without overlapping (slots 0, 1
+        // and the one below 0 in the cheapest-first order).
+        var b1 = dock.bays[SpaceDock.ShipAt(0)].transform.position;
+        var b2 = dock.bays[SpaceDock.ShipAt(1)].transform.position;
+        var below = dock.bays[SpaceDock.ShipAt(dock.layout.columns)].transform.position;
         Check("neighbouring berths are packed close (" + (b2.x - b1.x).ToString("F2") + "u apart)",
               b2.x - b1.x < 1.9f && b2.x - b1.x >= DockLayout.BaySize.x * dock.layout.scale - .001f);
         Check("berth rows are packed close (" + (b1.y - below.y).ToString("F2") + "u apart)",
@@ -113,6 +116,12 @@ public static class ShopTest
             Check("ship" + i + " hull is dimmed while parked", bay.hull.color.r < .7f);
         }
 
+        BayOrder(dock);
+        Silhouettes(dock);
+
+        // Selection powers an owned ship up.
+        PlayerPrefs.SetString("boughtship2", "True");
+        dock.RefreshStatuses();
         dock.Select(2);
         dock.bays[2].SnapPower();
         RunThrusters();
@@ -128,6 +137,21 @@ public static class ShopTest
         RunThrusters();
         Check("selecting another ship powers the first back down",
               !dock.bays[2].Powered && !dock.bays[2].thruster.IsBurning && dock.bays[3].Powered);
+        // Ship 3 is not bought: the tap still lights its berth, but the hull
+        // stays an ink shadow with a cold engine and no idle flipbook.
+        dock.bays[3].SnapPower();
+        dock.bays[3].SendMessage("Update");
+        RunThrusters();
+        Check("a selected unbought ship's berth lights come up", dock.bays[3].LightLevel > dock.bays[4].LightLevel + .3f);
+        Check("a selected unbought ship stays a silhouette", dock.bays[3].Silhouetted);
+        Check("a selected unbought ship has no exhaust", dock.bays[3].thruster != null && !dock.bays[3].thruster.IsBurning);
+        Check("a selected unbought ship holds still on its rest drawing",
+              dock.bays[3].hull.sprite == ShipHullArt.Get(3, dock.bays[3].Skin, 0, 0) &&
+              Mathf.Abs(dock.bays[3].ship.localPosition.y - DockBay.ShipRest.y) < 1e-4f);
+        Check("an unbought ship can't launch: LAUNCH falls through to BUY",
+              LaunchUnbought(dock, 3));
+        PlayerPrefs.DeleteKey("boughtship2");
+        dock.RefreshStatuses();
 
         PopupAnchoring(dock, cam);
         Purchases(dock);
@@ -153,9 +177,11 @@ public static class ShopTest
         int last = shopingShips.shipTotal - 1;
         // Corners and middle of the rack: top row must flip or clamp, side
         // columns must clamp horizontally.
-        int[] probe = { 1, 2, dock.layout.columns, 1 + dock.layout.columns * 2, last - dock.layout.columns + 1, last };
-        foreach (int i in probe)
+        // (berth slots, mapped to the ShipIds parked there)
+        int[] probe = { 0, 1, dock.layout.columns - 1, dock.layout.columns * 2, last - dock.layout.columns, last - 1 };
+        foreach (int slot in probe)
         {
+            int i = SpaceDock.ShipAt(slot);
             dock.Select(i);
             var popup = dock.popup;
             popup.SendMessage("LateUpdate");
@@ -201,8 +227,26 @@ public static class ShopTest
         PlayerPrefs.SetFloat("PlayerCurrecny", price + 500f);
         dock.Select(ship);
         Check("a locked ship's popup offers BUY", dock.popup.CurrentMode == DockPopup.Mode.Buy);
+        Check("a locked ship is a silhouette before buying", dock.bays[ship].Silhouetted);
         int saves = PrefsSaver.SaveCount;
         dock.popup.Press();
+        // The reveal: ink fills with white, the art swaps in under the
+        // white, the white fades into the colours.
+        var bay = dock.bays[ship];
+        Check("buying starts the reveal", bay.Revealing && bay.SilhouetteAmount > 0f);
+        bay.SendMessage("StepReveal", .15f);
+        Check("reveal: the ink fills with white first", bay.Silhouetted && bay.FlashAmount > .1f && bay.FlashAmount < 1f);
+        bay.SendMessage("StepReveal", DockBay.RevealPeak);
+        Check("reveal: at full white the art swaps in", !bay.Silhouetted && bay.FlashAmount > .99f);
+        bay.SendMessage("StepReveal", .7f);
+        Check("reveal: the white fades into the colours", !bay.Silhouetted && bay.FlashAmount > 0f && bay.FlashAmount < 1f);
+        bay.SnapPower();
+        RunThrusters();
+        Check("after the reveal the bought ship shows in full colour, powered up and burning",
+              !bay.Revealing && !bay.Silhouetted && bay.FlashAmount == 0f && bay.Powered &&
+              bay.thruster != null && bay.thruster.IsBurning);
+        var shown = RenderHull(bay);
+        Check("the revealed ship renders its full art (" + shown.colours + " colours)", !shown.rendered || shown.colours > 8);
         Check("buying deducts the price exactly once",
               Mathf.Approximately(PlayerPrefs.GetFloat("PlayerCurrecny"), 500f));
         Check("buying marks the ship bought", PlayerPrefs.GetString("boughtship" + ship) == "True");
@@ -249,8 +293,17 @@ public static class ShopTest
         bool allOwned = true;
         for (int i = 1; i < shopingShips.shipTotal; i++) allOwned &= dock.bays[i].ShowsStatusIcon && !dock.bays[i].ShowsPrice;
         Check("DeveloperUnlocks: every berth shows as owned at once", allOwned);
+        bool noShadows = true;
+        for (int i = 1; i < shopingShips.shipTotal; i++) noShadows &= !dock.bays[i].Silhouetted && !dock.bays[i].Revealing;
+        Check("DeveloperUnlocks: no berth is a silhouette (and none replays the reveal)", noShadows);
+        if (noShadows)
+        {
+            var r = RenderHull(dock.bays[9]);
+            Check("DeveloperUnlocks: an unbought hull renders its art (" + r.colours + " colours)", !r.rendered || r.colours > 8);
+        }
         DeveloperUnlocks.SetEnabled(false);
         Check("DeveloperUnlocks off restores locked berths", dock.bays[9].ShowsPrice);
+        Check("DeveloperUnlocks off puts the silhouettes back", dock.bays[9].Silhouetted);
     }
 
     static void LaunchFlow(SpaceDock dock)
@@ -267,5 +320,253 @@ public static class ShopTest
         Check("LAUNCH equips the ship and saves", PlayerPrefs.GetInt("spawnShip") == 1 && PrefsSaver.SaveCount > saves);
         Check("the popup is gone during the launch", !dock.popup.Visible);
         Check("the launching ship is powered", dock.bays[1].Powered);
+    }
+
+
+    static bool LaunchUnbought(SpaceDock dock, int id)
+    {
+        float dust = PlayerPrefs.GetFloat("PlayerCurrecny");
+        int equipped = PlayerPrefs.GetInt("spawnShip");
+        PlayerPrefs.SetFloat("PlayerCurrecny", 0f);
+        dock.Launch(id);
+        bool ok = !dock.Launching && !ShipId.IsOwned(id) && PlayerPrefs.GetInt("spawnShip") == equipped &&
+                  dock.bays[id].Silhouetted && dock.LiftOffIndex() != id;
+        PlayerPrefs.SetFloat("PlayerCurrecny", dust);
+        return ok;
+    }
+
+    // ---- Berth order: cheapest first, display only ----
+
+    static void BayOrder(SpaceDock dock)
+    {
+        var order = SpaceDock.BayOrder;
+        var seen = new HashSet<int>();
+        foreach (int id in order) seen.Add(id);
+        Check("the bay order holds every ship exactly once", order.Length == ShipId.Count && seen.Count == ShipId.Count &&
+              seen.IsSupersetOf(ShipId.All));
+        Check("the starter (Neon Comet, free) is the first berth", order[0] == ShipId.Starter && shopingShips.CostFor(order[0]) == 0f);
+        bool ascending = true;
+        for (int k = 1; k < order.Length; k++)
+        {
+            float a = shopingShips.CostFor(order[k - 1]), b = shopingShips.CostFor(order[k]);
+            ascending &= a < b || (a == b && order[k - 1] < order[k]);
+        }
+        var names = new List<string>();
+        foreach (int id in order) names.Add(shopingShips.NameFor(id) + " " + shopingShips.CostFor(id));
+        Debug.Log("[ST] bay order: " + string.Join(", ", names));
+        Check("berths run from cheapest to most expensive (ties by ShipId)", ascending);
+        Check("the most expensive ship (Gold Warden) is the last berth", order[order.Length - 1] == 7);
+
+        bool placed = true, identity = true;
+        for (int slot = 0; slot < order.Length; slot++)
+        {
+            int id = order[slot];
+            var bay = dock.bays[id];
+            placed &= bay != null && ((Vector2)bay.transform.localPosition - dock.layout.BayCenter(slot)).sqrMagnitude < 1e-8f &&
+                      SpaceDock.SlotOf(id) == slot;
+            identity &= bay != null && bay.index == id && bay.ship.name == ShipId.ObjectName(id) &&
+                        shopingShips.ships[id] == bay.ship.gameObject && bay.NameLabel == shopingShips.NameFor(id).ToUpperInvariant();
+        }
+        Check("every ship sits in its price slot", placed);
+        Check("berths are still indexed by ShipId (bays[id], ship<id>, name)", identity);
+
+        // Tapping a slot's position selects the ship parked there.
+        bool taps = true;
+        for (int slot = 0; slot < order.Length; slot++)
+        {
+            Vector3 world = dock.rack.TransformPoint(dock.layout.BayCenter(slot));
+            dock.Tap(world);
+            taps &= dock.Selected == order[slot] && dock.popup.Visible && dock.popup.ShipIndex == order[slot];
+        }
+        dock.Deselect();
+        Check("tapping each berth selects the ship in that slot, popup included", taps);
+        Check("ShipIds are not renumbered (save keys / roster)", ShipId.KeyOf(7) == "GoldWarden" && ShipId.OwnedKey(7) == "boughtship7" &&
+              shopingShips.NameFor(1) == "Neon Comet");
+
+        AspectRatios(dock);
+    }
+
+    static void AspectRatios(SpaceDock dock)
+    {
+        var cam = Camera.main;
+        var sizes = new[]
+        {
+            new Vector2Int(1080, 1920), new Vector2Int(1080, 2340), new Vector2Int(1080, 2400), new Vector2Int(1440, 3200),
+            new Vector2Int(720, 1280), new Vector2Int(1536, 2048), new Vector2Int(1100, 800), new Vector2Int(1920, 1080),
+        };
+        float aspect = cam.aspect, ortho = cam.orthographicSize;
+        foreach (var size in sizes)
+        {
+            cam.aspect = size.x / (float)size.y;
+            cam.orthographicSize = CameraFit.ComputeSize(5f, 2.85f, size.x, size.y);
+            dock.Relayout();
+            float halfW = cam.orthographicSize * cam.aspect;
+            float cx = cam.transform.position.x;
+            float bayW = DockLayout.BaySize.x * dock.layout.scale;
+            bool fits = true, ordered = true;
+            for (int slot = 0; slot < ShipId.Count; slot++)
+            {
+                var bay = dock.bays[SpaceDock.ShipAt(slot)];
+                Vector3 p = bay.transform.position;
+                fits &= Mathf.Abs(p.x - cx) + bayW * .5f <= halfW + .001f;
+                if (slot > 0)
+                {
+                    Vector3 prev = dock.bays[SpaceDock.ShipAt(slot - 1)].transform.position;
+                    bool sameRow = slot % dock.layout.columns != 0;
+                    // reading order: left to right, then the next row down
+                    ordered &= sameRow ? p.x > prev.x + bayW - .001f && Mathf.Abs(p.y - prev.y) < 1e-4f
+                                       : p.y < prev.y - DockLayout.BaySize.y * dock.layout.scale + .001f;
+                }
+            }
+            string tag = size.x + "x" + size.y;
+            Check(tag + ": three columns, every berth fits the width", dock.layout.columns == 3 && fits);
+            Check(tag + ": berths read cheapest first, left to right, top to bottom, without overlapping", ordered);
+        }
+        cam.aspect = aspect;
+        cam.orthographicSize = ortho;
+        dock.Relayout();
+    }
+
+    // ---- Silhouettes ----
+
+    static void Silhouettes(SpaceDock dock)
+    {
+        bool match = true;
+        for (int i = 1; i < shopingShips.shipTotal; i++)
+            match &= dock.bays[i].Silhouetted == !ShipId.IsOwned(i);
+        Check("unbought ships (and only they) park as silhouettes", match);
+        Check("the dock hull shader is supported", DockArt.ShipMaterial != null && DockArt.ShipMaterial.shader.isSupported &&
+              dock.bays[2].hull.sharedMaterial == DockArt.ShipMaterial);
+
+        if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+        {
+            Check("rendered silhouettes need a graphics device (run without -nographics)", false);
+            return;
+        }
+        foreach (int id in new[] { 2, 7, 11, 13, 15 })
+        {
+            var bay = dock.bays[id];
+            var parked = RenderHull(bay, Path.Combine(PreviewDir, "silhouette-" + id + "-parked.png"));
+            string why;
+            Check(Label(id) + ": a parked unbought hull renders one flat ink colour inside its alpha mask (" + Why(parked) + ")",
+                  Flat(parked, out why));
+
+            dock.Select(id);
+            bay.SnapPower();
+            bay.SendMessage("Update");
+            RunThrusters();
+            if (bay.drift != null) { bay.drift.SendMessage("Start"); bay.drift.Step(1f / 24f); }
+            var selected = RenderHull(bay, Path.Combine(PreviewDir, "silhouette-" + id + "-selected.png"));
+            Check(Label(id) + ": selected, it is still one flat ink colour (" + Why(selected) + ")", Flat(selected, out why));
+            Check(Label(id) + ": selected, no exhaust or glow spills past the hull (" + parked.covered + " vs " + selected.covered + " px)",
+                  Mathf.Abs(selected.covered - parked.covered) <= parked.covered / 50 + 4 &&
+                  (bay.thruster == null || !bay.thruster.IsBurning) &&
+                  (bay.drift == null || (!bay.drift.Ring.enabled && !bay.drift.Wake.enabled)));
+        }
+        dock.Deselect();
+
+        // The same measurement sees the art of a bought hull.
+        dock.Select(1);
+        dock.bays[1].SnapPower();
+        RunThrusters();
+        var owned = RenderHull(dock.bays[1], Path.Combine(PreviewDir, "silhouette-1-owned.png"));
+        Check("a bought hull renders its full art (" + Why(owned) + ")", owned.rendered && owned.colours > 8 && !dock.bays[1].Silhouetted);
+        dock.Deselect();
+        dock.bays[1].SnapPower();
+    }
+
+    static string Label(int id) { return "ship" + id + " (" + shopingShips.NameFor(id) + ")"; }
+
+    static string PreviewDir
+    {
+        get
+        {
+            string dir = System.Environment.GetEnvironmentVariable("PAUSE_DOCK_PREVIEW_DIR");
+            if (string.IsNullOrEmpty(dir)) dir = Path.Combine(Path.GetTempPath(), "pause-dock-silhouettes");
+            Directory.CreateDirectory(dir);
+            return dir;
+        }
+    }
+
+    public struct HullRender
+    {
+        public int covered;      // pixels the ship (hull + engine) touches at all
+        public int opaque;       // pixels it covers completely (same over black and white)
+        public int colours;      // distinct colours among the opaque pixels
+        public Color32 first;
+        public bool rendered;
+    }
+
+    static string Why(HullRender r) { return r.opaque + "/" + r.covered + " px opaque, " + r.colours + " colour(s), first " + r.first; }
+
+    static bool Flat(HullRender r, out string why)
+    {
+        Color32 ink = (Color)DockBay.SilhouetteInk;
+        why = Why(r);
+        return r.rendered && r.opaque >= 200 && r.colours == 1 &&
+               Mathf.Abs(r.first.r - ink.r) <= 1 && Mathf.Abs(r.first.g - ink.g) <= 1 && Mathf.Abs(r.first.b - ink.b) <= 1;
+    }
+
+    // Renders only this berth's ship (hull plus every child: exhaust, spin
+    // drift) once over black and once over white. A pixel that comes out the
+    // same over both is fully inside the alpha mask.
+    public static HullRender RenderHull(DockBay bay, string savePath = null)
+    {
+        var result = new HullRender();
+        if (bay == null || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return result;
+        const int Layer = 31, W = 256;
+        var renderers = bay.ship.GetComponentsInChildren<Renderer>(false);
+        var layers = new int[renderers.Length];
+        for (int k = 0; k < renderers.Length; k++) { layers[k] = renderers[k].gameObject.layer; renderers[k].gameObject.layer = Layer; }
+
+        var camGo = new GameObject("~HullCam");
+        var cam = camGo.AddComponent<Camera>();
+        Bounds b = bay.hull.bounds;
+        camGo.transform.position = new Vector3(b.center.x, b.center.y, b.center.z - 10f);
+        cam.orthographic = true;
+        cam.orthographicSize = Mathf.Max(b.extents.x, b.extents.y) * 2.2f;
+        cam.aspect = 1f;
+        cam.cullingMask = 1 << Layer;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.enabled = false;
+        var rt = new RenderTexture(W, W, 24, RenderTextureFormat.ARGB32);
+        cam.targetTexture = rt;
+
+        var shots = new Color32[2][];
+        var backs = new[] { Color.black, Color.white };
+        for (int k = 0; k < 2; k++)
+        {
+            cam.backgroundColor = backs[k];
+            cam.Render();
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(W, W, TextureFormat.RGBA32, false);
+            tex.ReadPixels(new Rect(0, 0, W, W), 0, 0);
+            tex.Apply();
+            RenderTexture.active = prev;
+            shots[k] = tex.GetPixels32();
+            if (k == 1 && savePath != null) File.WriteAllBytes(savePath, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+        }
+        cam.targetTexture = null;
+        Object.DestroyImmediate(rt);
+        Object.DestroyImmediate(camGo);
+        for (int k = 0; k < renderers.Length; k++) renderers[k].gameObject.layer = layers[k];
+
+        var seen = new HashSet<int>();
+        for (int i = 0; i < shots[0].Length; i++)
+        {
+            Color32 bl = shots[0][i], wh = shots[1][i];
+            bool onBlack = bl.r > 0 || bl.g > 0 || bl.b > 0;
+            bool onWhite = wh.r < 255 || wh.g < 255 || wh.b < 255;
+            if (!onBlack && !onWhite) continue;
+            result.covered++;
+            if (Mathf.Abs(bl.r - wh.r) > 1 || Mathf.Abs(bl.g - wh.g) > 1 || Mathf.Abs(bl.b - wh.b) > 1) continue;
+            result.opaque++;
+            if (seen.Add((bl.r << 16) | (bl.g << 8) | bl.b) && seen.Count == 1) result.first = bl;
+        }
+        result.colours = seen.Count;
+        result.rendered = true;
+        return result;
     }
 }

@@ -8,6 +8,13 @@ using UnityEngine;
 // engine lights and the hull starts a gentle hover. The component disables
 // itself once a berth has settled powered-down, so fourteen idle berths cost
 // nothing per frame.
+//
+// A ship the player has not bought yet is parked as a solid ink silhouette
+// of its hull ("who's that Pokemon?"): no colour, no interior detail, no
+// idle flipbook, no hover and a cold engine, even while selected -- only the
+// berth lights answer the tap, and its name and price tag stay readable.
+// Buying it reveals it: the shape fills with white, then the white fades
+// into the hull's own colours.
 public class DockBay : MonoBehaviour
 {
     // Sorting orders, back to front.
@@ -17,6 +24,9 @@ public class DockBay : MonoBehaviour
     public static readonly Vector3 ShipRest = new Vector3(0f, .10f, 0f);
     public const float HullSize = .64f;      // longest edge of every parked hull
     const float PowerTime = .38f;
+    public const float RevealTime = .6f;
+    public const float RevealPeak = .3f;     // white-out point of the reveal (0..1)
+    public static readonly Color SilhouetteInk = AkiraPalette.Ink;
 
     static readonly Vector3[] LightSpots =
     {
@@ -28,7 +38,7 @@ public class DockBay : MonoBehaviour
     static readonly Color LightOn = AkiraPalette.Cyan;
     static readonly Color NameOwned = AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f);
     static readonly Color NameLocked = AkiraPalette.WithAlpha(AkiraPalette.Muted, .9f);
-    static int saturationId;
+    static int saturationId, silhouetteId, inkId, flashId;
 
     public int index;
     public Transform ship;
@@ -55,6 +65,9 @@ public class DockBay : MonoBehaviour
     float clampOpen;
     float spin;
     float phase;
+    float silhouette;                        // 1 = ink shadow, 0 = full art
+    float flash;                             // white fill during the reveal
+    float reveal = -1f;                      // reveal progress 0..1, <0 idle
 
     public static DockBay Create(Transform parent, int index, Font font)
     {
@@ -70,7 +83,13 @@ public class DockBay : MonoBehaviour
         index = i;
         phase = i * 1.37f;
         wind = ShipExhaust.UsesWind(i);
-        if (saturationId == 0) saturationId = Shader.PropertyToID("_Saturation");
+        if (saturationId == 0)
+        {
+            saturationId = Shader.PropertyToID("_Saturation");
+            silhouetteId = Shader.PropertyToID("_Silhouette");
+            inkId = Shader.PropertyToID("_Ink");
+            flashId = Shader.PropertyToID("_Flash");
+        }
         block = new MaterialPropertyBlock();
 
         bayRenderer = MakeSprite("Berth", DockArt.Get("bay"), Vector3.zero, OrderBay);
@@ -195,7 +214,7 @@ public class DockBay : MonoBehaviour
         if (skin == Skin && rest != null) return;
         LoadSkin(skin);
         if (hull == null || Launching) return;
-        if (Power > .05f && !Launching)
+        if (Power > .05f && !Launching && silhouette <= 0f)
         {
             int drawing = ShipHullArt.IdleDrawingAt(Time.unscaledTime * ShipHullArt.TicksPerSecond + phase * 10f);
             hull.sprite = idle[Mathf.Clamp(drawing, 0, idle.Length - 1)];
@@ -213,6 +232,12 @@ public class DockBay : MonoBehaviour
         statusIcon.sprite = DockArt.Get(equipped ? "icon_active" : "icon_owned");
         statusIcon.color = equipped ? Color.white : new Color(1f, 1f, 1f, .85f);
         bool locked = !owned;
+        // Unbought: the ink silhouette. Bought: full art, unless the reveal
+        // that BeginReveal started is still playing.
+        if (locked) { silhouette = 1f; flash = 0f; reveal = -1f; }
+        else if (reveal < 0f) { silhouette = 0f; flash = 0f; }
+        if (silhouette > 0f && hull != null && !Launching) hull.sprite = rest;
+        ApplyPower(DockTween.InOutCubic(power));
         chip.gameObject.SetActive(locked);
         if (locked)
         {
@@ -226,6 +251,41 @@ public class DockBay : MonoBehaviour
             chipText.transform.localPosition = new Vector3(width * .5f - .045f, -.002f, 0f);
         }
     }
+
+    // The ship was just bought: play the black -> white -> colour reveal.
+    // Call before RefreshStatus marks the berth owned.
+    public void BeginReveal()
+    {
+        if (silhouette <= 0f) return;
+        reveal = 0f;
+        enabled = true;
+    }
+
+    // Reveal curve: the ink fills with white up to RevealPeak, the art swaps
+    // in under the full white, and the white fades away into the colours.
+    void StepReveal(float t)
+    {
+        reveal = Mathf.Clamp01(t);
+        if (reveal < RevealPeak)
+        {
+            silhouette = 1f;
+            flash = DockTween.InOutCubic(reveal / RevealPeak);
+        }
+        else
+        {
+            silhouette = 0f;
+            flash = 1f - DockTween.InOutCubic((reveal - RevealPeak) / (1f - RevealPeak));
+        }
+        if (reveal >= 1f) { reveal = -1f; silhouette = 0f; flash = 0f; }
+    }
+
+    public bool Silhouetted { get { return silhouette > 0f; } }
+    public float SilhouetteAmount { get { return silhouette; } }
+    public float FlashAmount { get { return flash; } }
+    public bool Revealing { get { return reveal >= 0f; } }
+    // Whether the hull shows its own art and runs its idle life (flipbook,
+    // hover, engine): bought, and not still in the black part of the reveal.
+    bool Alive { get { return Owned && silhouette <= 0f; } }
 
     public void SetPowered(bool on)
     {
@@ -256,27 +316,29 @@ public class DockBay : MonoBehaviour
         float dt = Time.unscaledDeltaTime;
         float target = Powered || Launching ? 1f : 0f;
         power = Mathf.MoveTowards(power, target, dt / PowerTime);
+        if (reveal >= 0f) StepReveal(reveal + dt / RevealTime);
         float p = DockTween.InOutCubic(power);
         ApplyPower(p);
 
         if (!Launching)
         {
             float t = Time.unscaledTime;
-            float bob = Mathf.Sin(t * 2.4f + phase) * .022f * p;
+            float live = Alive ? p : 0f;
+            float bob = Mathf.Sin(t * 2.4f + phase) * .022f * live;
             ship.localPosition = new Vector3(ShipRest.x, ShipRest.y + bob, 0f);
             // The hull's own idle flipbook (lights blink, canopy glint), on
             // the same tick table it flies with; a parked hull holds still.
             int drawing = ShipHullArt.IdleDrawingAt(t * ShipHullArt.TicksPerSecond + phase * 10f);
-            hull.sprite = p > .05f ? idle[Mathf.Clamp(drawing, 0, idle.Length - 1)] : rest;
+            hull.sprite = live > .05f ? idle[Mathf.Clamp(drawing, 0, idle.Length - 1)] : rest;
             if (wind)
             {
-                spin += 80f * p * dt;
+                spin += 80f * live * dt;
                 ship.localRotation = Quaternion.Euler(0f, 0f, spin);
             }
             SetShadow(bob * .6f, .55f);
         }
 
-        if (!Powered && !Launching && power <= 0f)
+        if (!Powered && !Launching && power <= 0f && reveal < 0f)
         {
             if (wind) { spin = 0f; ship.localRotation = Quaternion.identity; }
             ApplyPower(0f);
@@ -291,7 +353,13 @@ public class DockBay : MonoBehaviour
             hull.color = Color.Lerp(OffTint, Color.white, p);
             hull.GetPropertyBlock(block);
             block.SetFloat(saturationId, Mathf.Lerp(.22f, 1f, p));
+            block.SetFloat(silhouetteId, silhouette);
+            block.SetColor(inkId, SilhouetteInk);
+            block.SetFloat(flashId, flash);
             hull.SetPropertyBlock(block);
+            // Without the dock shader (unsupported device) a black tint is
+            // the closest the default sprite material gets to a silhouette.
+            if (silhouette > 0f && hull.sharedMaterial != DockArt.ShipMaterial) hull.color = SilhouetteInk;
         }
         float t = Time.unscaledTime;
         float pulse = p > 0f ? .5f + .5f * Mathf.Sin(t * 3.2f + phase) : 0f;
@@ -306,10 +374,12 @@ public class DockBay : MonoBehaviour
         ring.color = new Color(DockArt.Cyan.r, DockArt.Cyan.g, DockArt.Cyan.b, p * (.5f + .25f * pulse));
         float rs = Mathf.Lerp(.86f, 1f, p);
         ring.transform.localScale = new Vector3(rs, rs, 1f);
-        if (thruster != null) thruster.powered = Launching || (Powered && power > .3f);
+        // A silhouette's engine stays cold, selected or not.
+        bool burn = Launching || (Powered && power > .3f && Alive);
+        if (thruster != null) thruster.powered = burn;
         if (drift != null)
         {
-            drift.powered = Launching || (Powered && power > .3f);
+            drift.powered = burn;
             drift.boost = Launching;
         }
     }
@@ -318,6 +388,7 @@ public class DockBay : MonoBehaviour
     // dock is rebuilt and by the edit-mode tests, where no time passes.
     public void SnapPower()
     {
+        if (reveal >= 0f) StepReveal(1f);
         power = Powered || Launching ? 1f : 0f;
         ApplyPower(power);
     }
