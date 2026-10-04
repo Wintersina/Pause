@@ -44,7 +44,36 @@ public static class DockPreview
         EditorApplication.Exit(0);
     }
 
-    static void Render(Vector2Int size, int selected, string path)
+    // The weapon row on the skin popup (ShipWeaponUpgrades): Lightning with
+    // one colour bought, previewing a locked one, and at max level, into
+    // $PAUSE_DOCK_PREVIEW_DIR as pause-dock-weapon-<case>-<w>x<h>.png.
+    public static void RunWeapons()
+    {
+        string dir = System.Environment.GetEnvironmentVariable("PAUSE_DOCK_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            DeveloperUnlocks.SetEnabled(false);
+            foreach (int id in new[] { 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
+            PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
+            PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);
+            foreach (var size in new[] { new Vector2Int(1080, 1920), new Vector2Int(1080, 2520), new Vector2Int(1100, 800) })
+            {
+                string tag = "-" + size.x + "x" + size.y + ".png";
+                for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(8, n));
+                PlayerPrefs.SetInt(ShipSkins.OwnedKey(8, 1), 1);
+                Render(size, 8, Path.Combine(dir, "pause-dock-weapon-level1" + tag));
+                Render(size, 8, Path.Combine(dir, "pause-dock-weapon-preview" + tag), dock => dock.popup.TapSwatch(3));
+                for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.SetInt(ShipSkins.OwnedKey(8, n), 1);
+                Render(size, 8, Path.Combine(dir, "pause-dock-weapon-max" + tag));
+                ShipSkins.ClearPreview();
+            }
+        }
+        EditorApplication.Exit(0);
+    }
+
+    static void Render(Vector2Int size, int selected, string path, System.Action<SpaceDock> after = null)
     {
         EditorSceneLoader.Open("shopS6");
         ShopSceneExtender.Build();
@@ -73,6 +102,7 @@ public static class DockPreview
         {
             dock.Select(selected);
             dock.bays[selected].SnapPower();
+            if (after != null) after(dock);
             dock.popup.SkipAppear();
             dock.popup.SendMessage("LateUpdate");
         }
