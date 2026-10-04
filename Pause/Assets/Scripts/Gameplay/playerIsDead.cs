@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Settles a finished run (best speed, star dust) and hands the numbers to the
-// Flight Complete panel. The panel itself -- frame, cards, buttons and the
-// intro animation -- lives in DeathPanelView.
+// Settles a finished run (best speed, star dust) and hands the numbers -- with
+// the run score (RunScore, banked by score.cs) -- to the Flight Complete
+// panel. The panel itself -- frame, cards, buttons and the intro animation --
+// lives in DeathPanelView.
 public class playerIsDead : MonoBehaviour
 {
     public Text deathHighScoreText;
@@ -34,9 +35,14 @@ public class playerIsDead : MonoBehaviour
 
         var results = new DeathPanelView.Results
         {
+            score = RunScore.Total,
+            bestScore = RunScore.SavesBest ? System.Math.Max(RunScore.BestAtStart, RunScore.Total) : RunScore.BestAtStart,
+            newBest = RunScore.IsNewBest,
+            ranked = RunScore.SavesBest,
+            practice = !RunScore.Scoring,
+            parts = RunScore.Parts,
             bestSpeed = bestSpeed,
             runSpeed = runSpeed,
-            newBest = runSpeed > previousBest,
             dustAtStart = score.runStartCurrency,
             dustWon = Mathf.Max(0f, score.totalCurrency - score.runStartCurrency),
         };

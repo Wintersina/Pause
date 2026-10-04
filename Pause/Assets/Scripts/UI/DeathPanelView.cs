@@ -18,20 +18,45 @@ using UnityEngine.UI;
 // Every position comes from the constants below, which is what DeathPanelTest
 // checks. All animation runs on unscaled time -- the world is frozen at
 // timeScale 0 while this is on screen.
+//
+// Cards, top to bottom: the run SCORE (headline, counting up, NEW BEST), the
+// breakdown of where it came from (one counting row per source, staggered,
+// with this run's top speed and the best speed in its title row), and the
+// star dust earned / new total.
 public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 {
     public struct Results
     {
+        public long score;          // this run's points (RunScore.Total)
+        public long bestScore;      // the best after this run
+        public bool newBest;        // this run set a new best score
+        public bool ranked;         // a run that may set a best (not developer mode / practice)
+        public bool practice;       // the run scored nothing (practice run)
+        public RunScore.Breakdown parts;
         public int bestSpeed;
         public int runSpeed;
-        public bool newBest;
         public float dustAtStart;
         public float dustWon;
     }
 
+    // Breakdown rows, in display order.
+    public static readonly string[] BreakdownLabels =
+        { "DISTANCE", "KILLS", "STAR DUST", "ATOMS", "TELEPORTS", "BOSSES", "WORLDS" };
+
+    public static long[] BreakdownPoints(RunScore.Breakdown b)
+    {
+        return new[] { b.distance, b.kills, b.dust, b.atoms, b.teleports, b.bosses, b.worlds };
+    }
+
+    // The count shown beside each row (distance has none).
+    public static int[] BreakdownCounts(RunScore.Breakdown b)
+    {
+        return new[] { -1, b.killCount, b.dustCount, b.atomCount, b.teleportCount, b.bossCount, b.worldCount };
+    }
+
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
 
-    public const float Width = 680f, Height = 690f;
+    public const float Width = 680f, Height = 760f;
     // How far the frame sprite's neon bloom reaches outside the panel body.
     public const float GlowMargin = 20f;
     public const float CardWidth = 600f;
@@ -41,16 +66,21 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     const float LabelLeft = -CardWidth * .5f + 40f;
     const float ValueRight = CardWidth * .5f - 28f;
 
-    public static readonly Rect HeaderRect = Centered(0f, 281f, 600f, 56f);
-    public static readonly Rect DividerRect = Centered(0f, 237f, 440f, 16f);
+    public static readonly Rect HeaderRect = Centered(0f, 326f, 600f, 56f);
+    public static readonly Rect DividerRect = Centered(0f, 280f, 440f, 16f);
     public static readonly Rect[] CardRects =
     {
-        Centered(0f, 149f, CardWidth, 112f),   // best speed
-        Centered(0f, 21f, CardWidth, 112f),    // this run
-        Centered(0f, -115f, CardWidth, 128f),  // star dust
+        Centered(0f, 196f, CardWidth, 128f),   // score
+        Centered(0f, 4f, CardWidth, 232f),     // breakdown
+        Centered(0f, -178f, CardWidth, 108f),  // star dust
     };
-    public static readonly Rect ReplayRect = Centered(-156f, -259f, ButtonWidth, ButtonHeight);
-    public static readonly Rect MenuRect = Centered(156f, -259f, ButtonWidth, ButtonHeight);
+    public static readonly Rect ReplayRect = Centered(-156f, -302f, ButtonWidth, ButtonHeight);
+    public static readonly Rect MenuRect = Centered(156f, -302f, ButtonWidth, ButtonHeight);
+
+    // Breakdown card (card-local): title row, then one row per source.
+    public const float BreakdownTitleY = 92f;
+    public const float BreakdownFirstRowY = 60f, BreakdownRowStep = 26f, BreakdownRowHeight = 26f;
+    const float CountRight = 96f;
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }
 
     // ---- Timeline (seconds of unscaled time since the panel appeared) ----
@@ -58,15 +88,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public const float IntroDuration = 1.2f;
     const float PanelIn = .38f;
     const float CardStart = .2f, CardStagger = .1f, CardDuration = .32f;
-    const float BestCountFrom = .24f, BestCountTo = .64f;
-    const float RunCountFrom = .34f, RunCountTo = .78f;
-    const float DustCountFrom = .44f, DustCountTo = .84f;
-    const float NewBestAt = .6f;
+    const float ScoreCountFrom = .22f, ScoreCountTo = .8f;
+    const float RowCountFrom = .3f, RowStagger = .07f, RowCountDuration = .28f;
+    const float DustCountFrom = .5f, DustCountTo = .9f;
+    const float NewBestAt = .78f;
     const float DustBurstAt = .82f, BurstDuration = .38f;
     const float ButtonsStart = .66f, ButtonStagger = .07f, ButtonDuration = .3f;
 
-    // Akira palette (docs/art-style.md): CYAN best speed, Kaneda RED for this
-    // run and MENU, AMBER star dust, BONE type over INK.
+    // Akira palette (docs/art-style.md): CYAN score, Kaneda RED for the
+    // breakdown and MENU, AMBER star dust, BONE type over INK.
     static readonly Color Cyan = AkiraPalette.Cyan;
     static readonly Color Coral = AkiraPalette.Red;
     static readonly Color Gold = AkiraPalette.Amber;
@@ -87,7 +117,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     RectTransform[] headerSparkles = new RectTransform[2];
     RectTransform[] cards = new RectTransform[3];
     CanvasGroup[] cardGroups = new CanvasGroup[3];
-    Text bestValue, runValue, dustValue, dustTotal;
+    Text scoreValue, speedLine, dustValue, dustTotal;
+    Text[] rowValues = new Text[0];
+    long[] rowPoints = new long[0];
+    long[] shownRows = new long[0];
     RectTransform pill;
     RectTransform[] buttonSlots = new RectTransform[2];
     CanvasGroup[] buttonGroups = new CanvasGroup[2];
@@ -100,7 +133,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     bool finalApplied;
     float fitScale = 1f;
     int lastScreenW, lastScreenH;
-    int shownBest = -1, shownRun = -1, shownDustCents = -1;
+    long shownScore = -1;
+    int shownDustCents = -1;
 
     public RectTransform Panel { get { return panel; } }
     public RectTransform ReplaySlot { get { return buttonSlots[0]; } }
@@ -202,22 +236,39 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(divider.rectTransform, DividerRect);
     }
 
+    // The score card's sub-label: the best to beat, or why this run can't set one.
+    public static string ScoreSubLabel(Results r)
+    {
+        if (r.practice) return "PRACTICE RUN";
+        if (!r.ranked) return "DEV RUN - NOT SAVED";
+        return "BEST  " + RunScore.Format(r.bestScore);
+    }
+
+    public static string SpeedLine(Results r)
+    {
+        return "SPEED " + r.runSpeed + "  /  BEST " + r.bestSpeed;
+    }
+
+    // The scene's Texts keep their jobs under new names: bestText (was best
+    // speed) is the score, runText (was this run's speed) is the speed line
+    // in the breakdown's title row, dustText the star dust.
     void BuildCards(Text bestText, Text runText, Text dustText)
     {
-        cards[0] = BuildCard(0, "BEST SPEED", results.newBest ? null : "ALL-TIME", Cyan, bestText, out bestValue);
-        cards[1] = BuildCard(1, "THIS RUN", "SPEED", Coral, runText, out runValue);
+        cards[0] = BuildCard(0, "SCORE", results.newBest ? null : ScoreSubLabel(results), Cyan, bestText, out scoreValue);
+        Place(scoreValue.rectTransform, Centered(ValueRight - 170f, 0f, 340f, 80f));
+        cards[1] = BuildBreakdown(runText);
         cards[2] = BuildCard(2, "STAR DUST", "EARNED THIS RUN", Gold, dustText, out dustValue);
 
         // Star dust: the earned amount and the new total on separate lines,
-        // both right-aligned on the same column as the speed values.
-        Place(dustValue.rectTransform, Centered(ValueRight - 150f, 16f, 300f, 64f));
-        dustValue.fontSize = 48;
-        dustTotal = NewText("Total", cards[2], "", 22, Muted, TextAnchor.MiddleRight);
-        Place(dustTotal.rectTransform, Centered(ValueRight - 150f, -32f, 300f, 30f));
+        // both right-aligned on the same column as the score.
+        Place(dustValue.rectTransform, Centered(ValueRight - 150f, 13f, 300f, 52f));
+        dustValue.fontSize = 44;
+        dustTotal = NewText("Total", cards[2], "", 20, Muted, TextAnchor.MiddleRight);
+        Place(dustTotal.rectTransform, Centered(ValueRight - 150f, -28f, 300f, 26f));
 
         // Burst origins: roughly the middle of the right-aligned digits.
-        dustValueCentre = CardRects[2].center + new Vector2(ValueRight - 95f, 16f);
-        bestValueCentre = CardRects[0].center + new Vector2(ValueRight - 60f, 0f);
+        dustValueCentre = CardRects[2].center + new Vector2(ValueRight - 95f, 13f);
+        bestValueCentre = CardRects[0].center + new Vector2(ValueRight - 90f, 0f);
 
         if (results.newBest)
         {
@@ -238,7 +289,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         }
     }
 
-    RectTransform BuildCard(int index, string label, string sub, Color accent, Text value, out Text valueOut)
+    RectTransform CardBody(int index, Color accent)
     {
         var rect = CardRects[index];
         var go = new GameObject("Card" + index, typeof(RectTransform), typeof(CanvasGroup));
@@ -254,6 +305,69 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Stretch(bg.rectTransform);
         var bar = NewImage("Accent", card, Load("dp_bar"), accent);
         Place(bar.rectTransform, Centered(-CardWidth * .5f + 20f, 0f, 14f, rect.height - 30f));
+        return card;
+    }
+
+    // Where the run's points came from: a title row (with the speed line on
+    // its right) and one row per source -- label, count, points.
+    RectTransform BuildBreakdown(Text speedText)
+    {
+        var card = CardBody(1, Coral);
+        var title = NewText("Label", card, "BREAKDOWN", 22, Coral, TextAnchor.MiddleLeft);
+        Place(title.rectTransform, Centered(LabelLeft + 100f, BreakdownTitleY, 200f, 30f));
+        AddOutline(title.gameObject, Ink, 1.5f);
+
+        AdoptSceneText(speedText, card, 20, Muted, TextAnchor.MiddleRight);
+        speedText.fontStyle = FontStyle.Bold;
+        Place(speedText.rectTransform, Centered(ValueRight - 160f, BreakdownTitleY, 320f, 30f));
+        speedText.text = SpeedLine(results);
+        speedLine = speedText;
+
+        rowPoints = BreakdownPoints(results.parts);
+        int[] counts = BreakdownCounts(results.parts);
+        rowValues = new Text[rowPoints.Length];
+        shownRows = new long[rowPoints.Length];
+        for (int i = 0; i < rowPoints.Length; i++)
+        {
+            float y = BreakdownFirstRowY - i * BreakdownRowStep;
+            var row = new GameObject("Row" + i, typeof(RectTransform));
+            row.transform.SetParent(card, false);
+            var rt = (RectTransform)row.transform;
+            Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+
+            var label = NewText("Label", rt, BreakdownLabels[i], 19, Bone, TextAnchor.MiddleLeft);
+            Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
+            var count = NewText("Count", rt, counts[i] >= 0 ? counts[i].ToString() : "", 19, Muted, TextAnchor.MiddleRight);
+            Place(count.rectTransform, new Rect(CountRight - 90f, -BreakdownRowHeight * .5f, 90f, BreakdownRowHeight));
+            var value = NewText("Points", rt, "0", 21, rowPoints[i] > 0 ? Bone : Muted, TextAnchor.MiddleRight);
+            Place(value.rectTransform, new Rect(ValueRight - 160f, -BreakdownRowHeight * .5f, 160f, BreakdownRowHeight));
+            AddOutline(value.gameObject, Ink, 1.5f);
+            rowValues[i] = value;
+            shownRows[i] = -1;
+        }
+        return card;
+    }
+
+    // A scene Text moved into the panel, its old layout switched off.
+    void AdoptSceneText(Text t, Transform parent, int size, Color color, TextAnchor align)
+    {
+        t.transform.SetParent(parent, false);
+        t.gameObject.SetActive(true);
+        t.transform.localScale = Vector3.one;
+        foreach (var le in t.GetComponents<LayoutElement>()) le.ignoreLayout = true;
+        t.font = font;
+        t.fontSize = size;
+        t.alignment = align;
+        t.resizeTextForBestFit = false;
+        t.horizontalOverflow = HorizontalWrapMode.Overflow;
+        t.verticalOverflow = VerticalWrapMode.Overflow;
+        t.raycastTarget = false;
+        t.color = color;
+    }
+
+    RectTransform BuildCard(int index, string label, string sub, Color accent, Text value, out Text valueOut)
+    {
+        var card = CardBody(index, accent);
 
         // Label column: name on top, a quieter sub-label (or the NEW BEST
         // capsule) underneath, both starting just right of the accent bar.
@@ -268,19 +382,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // The scene's own Text becomes the value, so playerIsDead's serialized
         // references keep pointing at the number the player reads.
-        value.transform.SetParent(card, false);
-        value.gameObject.SetActive(true);
-        value.transform.localScale = Vector3.one;
-        foreach (var le in value.GetComponents<LayoutElement>()) le.ignoreLayout = true;
-        value.font = font;
-        value.fontSize = 56;
+        AdoptSceneText(value, card, 56, Bone, TextAnchor.MiddleRight);
         value.fontStyle = FontStyle.Bold;
-        value.alignment = TextAnchor.MiddleRight;
-        value.resizeTextForBestFit = false;
-        value.horizontalOverflow = HorizontalWrapMode.Overflow;
-        value.verticalOverflow = VerticalWrapMode.Overflow;
-        value.raycastTarget = false;
-        value.color = Bone;
         Place(value.rectTransform, Centered(ValueRight - 130f, 0f, 260f, 80f));
         AddOutline(value.gameObject, Ink, 2f);
         valueOut = value;
@@ -451,10 +554,16 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             cards[i].anchoredPosition = CardRects[i].center + new Vector2((1f - cq) * 48f, 0f);
         }
 
-        int best = Mathf.RoundToInt(results.bestSpeed * EaseOutCubic(Progress(t, BestCountFrom, BestCountTo)));
-        if (best != shownBest) { shownBest = best; bestValue.text = best.ToString(); }
-        int run = Mathf.RoundToInt(results.runSpeed * EaseOutCubic(Progress(t, RunCountFrom, RunCountTo)));
-        if (run != shownRun) { shownRun = run; runValue.text = run.ToString(); }
+        long score = CountUp(results.score, Progress(t, ScoreCountFrom, ScoreCountTo));
+        if (score != shownScore) { shownScore = score; scoreValue.text = RunScore.Format(score); }
+        for (int i = 0; i < rowValues.Length; i++)
+        {
+            float from = RowCountFrom + i * RowStagger;
+            long v = CountUp(rowPoints[i], Progress(t, from, from + RowCountDuration));
+            if (v == shownRows[i]) continue;
+            shownRows[i] = v;
+            rowValues[i].text = rowPoints[i] > 0 ? "+" + RunScore.Format(v) : "0";
+        }
         float won = results.dustWon * EaseOutCubic(Progress(t, DustCountFrom, DustCountTo));
         int cents = Mathf.RoundToInt(won * 100f);
         if (cents != shownDustCents)
@@ -715,6 +824,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     static float OnTwos(float t) { return t >= IntroDuration ? t : Mathf.Floor(t * 12f) / 12f; }
 
     static float Progress(float t, float from, float to) { return Mathf.Clamp01((t - from) / (to - from)); }
+    static long CountUp(long target, float p) { return p >= 1f ? target : (long)System.Math.Round(target * (double)EaseOutCubic(p)); }
     static float EaseOutCubic(float x) { x = Mathf.Clamp01(x); float i = 1f - x; return 1f - i * i * i; }
     static float EaseOutBack(float x)
     {
