@@ -221,6 +221,23 @@ public class UltimateGun : MonoBehaviour
         return env;
     }
 
+    // Where the gun draws while it rests beside the hull (its full hover
+    // drift, barrel at full size), in the hull's local space: the low part
+    // of LocalEnvelope, which also spans the ride up to the firing slot.
+    public Bounds LocalRestEnvelope()
+    {
+        Bounds part = new Bounds(Vector3.zero, Vector3.zero);
+        var br = barrel != null ? barrel.GetComponent<SpriteRenderer>() : null;
+        if (br != null && br.sprite != null)
+            part = new Bounds(barrel.localPosition + Vector3.Scale(br.sprite.bounds.center, barrel.localScale),
+                              Vector3.Scale(br.sprite.bounds.size, barrel.localScale));
+        part = Grown(part);
+        Vector2 a = HoverAmplitude(shipIndex);
+        var env = new Bounds(restingOffset + part.center, new Vector3(a.x * 2f, a.y * 2f, 0f) + part.size);
+        env.center = new Vector3(env.center.x, env.center.y, 0f);
+        return env;
+    }
+
     // Everywhere the muzzle point can be, in the hull's local space (the
     // charge indicator rides onto it when the ultimate is ready).
     public Bounds LocalMuzzleEnvelope()

@@ -60,6 +60,7 @@ public static class AllTests
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
+        ("ShipLivesTest", ShipLivesTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
         ("ShipSelectionTest", ShipSelectionTest.Execute),
         ("ShipSkinsTest", ShipSkinsTest.Execute),

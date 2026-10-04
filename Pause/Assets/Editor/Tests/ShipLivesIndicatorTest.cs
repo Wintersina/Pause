@@ -38,25 +38,24 @@ public static class ShipLivesIndicatorTest
         DamageEffectsAttachToEveryHull();
         ShieldBubbleAttachesToAnyHull();
 
-        // A Retro80s ship (has its own damage art) should get no hearts at all.
-        // Destroy() is deferred (and Play-mode oriented) so the component may
-        // still be structurally attached right after this call even in the
-        // correct-behaviour case -- what actually matters is that Build()
-        // did not run, i.e. no heart children exist.
-        PlayerPrefs.SetInt("spawnShip", 3);
-        var withArt = new GameObject("WithDamageArt", typeof(SpriteRenderer));
+        // Every ship floats one heart per life it flies with (ShipLives):
+        // a Retro80s hull with its own damage art too.
+        PlayerPrefs.SetInt("spawnShip", 7);   // Gold Warden: 5
+        PlayerPrefs.SetString("boughtship7", "True");
+        collisionDetection.MAXLIFE = 0;       // not yet set by a collisionDetection: the equipped ship's
+        var withArt = new GameObject("ship7(Clone)", typeof(SpriteRenderer));
         var indicatorA = withArt.AddComponent<ShipLivesIndicator>();
         indicatorA.SendMessage("Start");
-        int strayHearts = 0;
+        int artHearts = 0;
         foreach (Transform c in withArt.transform)
-            if (c.name.StartsWith("Heart")) strayHearts++;
-        Check("ship with its own damage art gets no hearts built", strayHearts == 0);
+            if (c.name.StartsWith("Heart")) artHearts++;
+        Check("a ship with its own damage art gets its hearts too (" + artHearts + ", Gold Warden 5)", artHearts == 5);
         Object.DestroyImmediate(withArt);
 
-        // A legacy ship (no damage art) should get exactly MAXLIFE hearts,
-        // all visible at full health.
+        // A legacy ship gets exactly MAXLIFE hearts, all visible at full health.
         PlayerPrefs.SetInt("spawnShip", 8); // Lightning
         PlayerPrefs.SetString("boughtship8", "True"); // an unowned selection flies the starter
+        collisionDetection.MAXLIFE = ShipLives.Max(8);
         var legacy = new GameObject("Legacy", typeof(SpriteRenderer));
         var sr = legacy.GetComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(
@@ -72,7 +71,7 @@ public static class ShipLivesIndicatorTest
 
         int visible = 0;
         foreach (Transform c in legacy.transform)
-            if (c.gameObject.activeSelf) visible++;
+            if (c.name.StartsWith("Heart") && !c.name.StartsWith("HeartBreaks") && c.gameObject.activeSelf) visible++;
         Check("all hearts start visible at full health (" + visible + "/" + heartCount + ")",
               visible == collisionDetection.MAXLIFE);
 
@@ -82,22 +81,143 @@ public static class ShipLivesIndicatorTest
         indicatorB.SendMessage("Update");
         visible = 0;
         foreach (Transform c in legacy.transform)
-            if (c.gameObject.activeSelf) visible++;
+            if (c.name.StartsWith("Heart") && !c.name.StartsWith("HeartBreaks") && c.gameObject.activeSelf) visible++;
         Check("one hit hides exactly one heart (" + visible + " left)", visible == collisionDetection.MAXLIFE - 1);
 
         collisionDetection.lifeCounter = 0; // heal atom restoring a life
         indicatorB.SendMessage("Update");
         visible = 0;
         foreach (Transform c in legacy.transform)
-            if (c.gameObject.activeSelf) visible++;
+            if (c.name.StartsWith("Heart") && !c.name.StartsWith("HeartBreaks") && c.gameObject.activeSelf) visible++;
         Check("healing brings a heart back (" + visible + " shown)", visible == collisionDetection.MAXLIFE);
 
         collisionDetection.lifeCounter = savedLife;
         Object.DestroyImmediate(legacy);
         PlayerPrefs.DeleteKey("spawnShip");
 
+        StarterHeartsFollowItsColour();
+        EveryShipHasItsOwnStyle();
+        LostHeartsCrumbleHealedOnesPop();
+
         Debug.Log("[SL] failures: " + fails);
         return fails;
+    }
+
+    // Neon Comet: 2 hearts, 3 once it owns a colour; a run rebuilds them.
+    static void StarterHeartsFollowItsColour()
+    {
+        PlayerPrefs.SetInt("spawnShip", ShipId.Starter);
+        for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, n));
+        collisionDetection.MAXLIFE = 0;
+        var ship = new GameObject(ShipId.ObjectName(ShipId.Starter), typeof(SpriteRenderer));
+        var hearts = ship.AddComponent<ShipLivesIndicator>();
+        hearts.SendMessage("Start");
+        Check("the starter floats 2 hearts", hearts.Hearts != null && hearts.Hearts.Length == 2);
+        collisionDetection.lifeCounter = 1;
+        hearts.SendMessage("Update");
+        int shown = 0;
+        foreach (var h in hearts.Hearts) if (h.gameObject.activeSelf) shown++;
+        Check("one hit leaves the starter its last heart (" + shown + ")", shown == 1);
+        collisionDetection.lifeCounter = 0;
+
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 2), 1);
+        hearts.BuildHearts();
+        int built = 0;
+        foreach (Transform c in ship.transform) if (c.name.StartsWith("Heart")) built++;
+        Check("with a colour of its own the starter floats 3 (" + hearts.Hearts.Length + ", " + built + " built)",
+              hearts.Hearts.Length == 3 && built == 3);
+        PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, 2));
+        Object.DestroyImmediate(ship);
+        PlayerPrefs.DeleteKey("spawnShip");
+        collisionDetection.MAXLIFE = 3;
+    }
+
+    static void EveryShipHasItsOwnStyle()
+    {
+        var used = new System.Collections.Generic.HashSet<HeartStyle>();
+        foreach (int id in ShipId.All)
+        {
+            var style = ShipHeartStyles.For(id);
+            used.Add(style);
+            Check(ShipId.KeyOf(id) + " wears its hearts as " + style + (ShipUiSlots.Spins(id) ? " (spinner)" : ""),
+                  (style == HeartStyle.ShieldRing) == ShipUiSlots.Spins(id));
+        }
+        Check("all five heart styles are in use (" + used.Count + ")", used.Count == 5);
+    }
+
+    // A hit breaks the lost heart away into falling shards (pooled, frozen
+    // with the world, gone after BreakSeconds); a heal pops one back in.
+    // The spray API gives the shown hearts' positions without allocating.
+    static void LostHeartsCrumbleHealedOnesPop()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        foreach (int count in new[] { 2, 5 })
+        {
+            collisionDetection.lifeCounter = 0;
+            var rig = HeartsPlacementTest.Build(7, Vector3.zero, withPower: false, hearts: count);
+            var hearts = rig.hearts;
+            hearts.SendMessage("Update");
+            hearts.Place(0f);
+            string who = count + " hearts: ";
+            var positions = new System.Collections.Generic.List<Vector3>(8);
+            Check(who + "HeartPositions gives every shown heart",
+                  hearts.HeartPositions(positions) == count && positions.Count == count && hearts.ShownCount == count);
+            Vector3 lostAt = hearts.HeartPosition(count - 1);
+
+            collisionDetection.lifeCounter = 1;
+            hearts.SendMessage("Update");
+            Check(who + "a hit starts one break-up", hearts.ActiveBreaks == 1 && hearts.ShownCount == count - 1);
+            var pieces = rig.ship.transform.Find("~HeartBreaks");
+            hearts.StepBreaks(ShipLivesIndicator.BreakShake * .5f);
+            var ghost = pieces.Find("Ghost0").GetComponent<SpriteRenderer>();
+            Check(who + "it shakes loose where the heart was",
+                  ghost.enabled && ((Vector2)(ghost.transform.position - lostAt)).magnitude < .1f);
+            hearts.StepBreaks(ShipLivesIndicator.BreakShake + ShipLivesIndicator.BreakCrack);
+            int shardsOn = 0;
+            foreach (Transform c in pieces) if (c.name.StartsWith("Shard0_") && c.GetComponent<SpriteRenderer>().enabled) shardsOn++;
+            Check(who + "then cracks into shards (" + shardsOn + ")", shardsOn >= 4 && !ghost.enabled);
+            var shard = pieces.Find("Shard0_0");
+            Vector3 held = shard.position;
+            for (int f = 0; f < 10; f++) hearts.StepBreaks(0f);
+            Check(who + "frozen with the world", shard.position == held);
+            hearts.StepBreaks(.2f);
+            Check(who + "the shards fall and fade", shard.position.y < held.y &&
+                  shard.GetComponent<SpriteRenderer>().color.a < 1f);
+            hearts.StepBreaks(ShipLivesIndicator.BreakSeconds);
+            bool anyOn = false;
+            foreach (Transform c in pieces) if (c.GetComponent<SpriteRenderer>().enabled) anyOn = true;
+            Check(who + "and are gone after the break-up", hearts.ActiveBreaks == 0 && !anyOn);
+
+            collisionDetection.lifeCounter = 0;
+            hearts.SendMessage("Update");
+            hearts.Place(0f, 0f);
+            var back = hearts.Hearts[count - 1];
+            float start = back.localScale.x;
+            hearts.Place(0f, ShipLivesIndicator.PopSeconds * .55f);
+            float mid = back.localScale.x;
+            hearts.Place(0f, ShipLivesIndicator.PopSeconds);
+            float end = back.localScale.x;
+            Check(who + "a heal pops the heart back in (" + start.ToString("F3") + " -> " + mid.ToString("F3") + " -> " +
+                  end.ToString("F3") + ")", back.gameObject.activeSelf && start < end * .2f && mid > end * .95f && hearts.ActiveBreaks == 0);
+
+            // No garbage per frame: placement, sway, the break-up and the spray API.
+            collisionDetection.lifeCounter = 1;
+            hearts.SendMessage("Update");
+            hearts.Place(0f, 1f / 60f);
+            long before = System.GC.GetAllocatedBytesForCurrentThread();
+            for (int f = 0; f < 60; f++)
+            {
+                hearts.Place(1f / 240f, 1f / 60f);
+                hearts.StepBreaks(1f / 60f);
+                positions.Clear();
+                hearts.HeartPositions(positions);
+            }
+            long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+            Check(who + "no allocation per frame (" + allocated + " bytes over 60 frames)", allocated == 0);
+            collisionDetection.lifeCounter = 0;
+            HeartsPlacementTest.Teardown(rig);
+        }
+        collisionDetection.MAXLIFE = 3;
     }
 
     static void DamageEffectsAttachToEveryHull()

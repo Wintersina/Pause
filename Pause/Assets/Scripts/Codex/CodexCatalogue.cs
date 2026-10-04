@@ -178,7 +178,7 @@ public static class CodexCatalogue
             string lore;
             if (!ShipLore.TryGetValue(key, out lore))
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
-            lore += "\n\n" + LoadoutLore(index);
+            lore += "\n\n" + LoadoutLore(index) + "\n" + LivesLore(index);
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
                 () => ShipHullArt.StockRest(index), lore));
         }
@@ -190,6 +190,16 @@ public static class CodexCatalogue
     // What the ship fights with, from ShipLoadoutTable: its attack (fires when
     // the charge meter fills) and its secret power (its own meter, fills from
     // star dust and kills, fires itself at the right moment).
+    // How many hearts the hull flies with (ShipLives, by price tier).
+    public static string LivesLore(int ship)
+    {
+        int lives = ShipLives.Base(ship);
+        string line = "HULL  " + lives + " HEARTS";
+        if (ship == ShipId.Starter)
+            line += " (" + (lives + ShipLives.StarterColourBonus) + " once it wears a new colour)";
+        return line;
+    }
+
     public static string LoadoutLore(int ship)
     {
         var l = ShipLoadoutTable.For(ship);

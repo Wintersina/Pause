@@ -91,7 +91,7 @@ public static class ShipDamageTable
     // The flown ship's max lives: the single place the damage art / FX read it.
     // (Before any ship has set it -- an editor tool, a test -- one life per
     // damage row.)
-    public static int MaxLives() { return collisionDetection.MAXLIFE > 0 ? collisionDetection.MAXLIFE : States; }
+    public static int MaxLives() { return ShipLives.RunMax; }
 
     // The sheet row for hits taken (collisionDetection.lifeCounter) on a ship
     // with `maxLives` lives: intact at full lives, critical on the last one,
