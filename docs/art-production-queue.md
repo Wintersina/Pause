@@ -15,52 +15,54 @@ Status is deliberately kept factual: **Queued**, **In progress**, **Staged for r
 Every numbered line is a separate commit/merge unit unless it explicitly says
 **review** or **audit**.  The active item is the only art asset being changed.
 
-1. **Installed and validated — `frost_fighter_4`:** Hailstorm commander; rugged raster strip is live, Preview-opened, and roster-validated.
-2. **Installed and validated — `space_fighter_1`:** rugged Needle scout strip is live, Preview-opened, and roster-validated.
-3. **Queued — `verdant_fighter_1`**
-4. **Queued — `verdant_fighter_2`**
-5. **Queued — `verdant_fighter_3`**
-6. **Queued — `verdant_fighter_4`**
-7. **Queued — `ember_fighter_1`**
-8. **Queued — `ember_fighter_2`**
-9. **Queued — `ember_fighter_3`**
-10. **Queued — `ember_fighter_4`**
-11. **Queued — `verdant_alien`**
-12. **Queued — `ember_alien`**
-13. **Queued — `space_chaser`**
-14. **Queued — `frost_chaser`**
-15. **Queued — `verdant_chaser`**
-16. **Queued — `ember_chaser`**
-17. **Queued — `space_big`**
-18. **Queued — `frost_big`**
-19. **Queued — `verdant_big`**
-20. **Queued — `ember_big`**
-21. **Queued — `space_rock_crater`**
-22. **Queued — `space_rock_cluster`**
-23. **Queued — `space_rock_dark`**
-24. **Queued — `frost_rock_chunk`**
-25. **Queued — `frost_rock_rime`**
-26. **Queued — `frost_rock_shard`**
-27. **Queued — `verdant_rock_spore`**
-28. **Queued — `verdant_rock_vine`**
-29. **Queued — `verdant_rock_pod`**
-30. **Queued — `verdant_rock_knot`**
-31. **Queued — `ember_rock_magma`**
-32. **Queued — `ember_rock_islet`**
-33. **Queued — `ember_rock_cinder`**
-34. **Queued — `ember_rock_obsidian`**
-35. **Queued — rail-mine audit:** verify all four themed rows retain their approved quality and rail-clamped scroll behavior; rebuild only a failing row.
-36. **Queued — impact/destruction VFX family:** enemy impacts, explosions, and debris sprite families.
-37. **Queued — projectile-hazard VFX family:** enemy projectile and telegraph hazards.
-38. **Queued — Space boss support:** `Space_shots`, `Space_card`, and animation-support audit.
-39. **Queued — Frost boss support:** `Frost_shots`, `Frost_card`, and animation-support audit.
-40. **Queued — Verdant boss support:** `Verdant_shots`, `Verdant_card`, and animation-support audit.
-41. **Queued — Ember boss support:** `Ember_shots`, `Ember_card`, and animation-support audit.
-42. **Queued — Frost world integration:** promote the staged sky/far/mid/flow/anim/fx layers, preserve parallax and spinning landmark behavior, validate.
-43. **Queued — Verdant world rebuild:** sky, far, mid, flow, anim, fx, walls, parallax, and spinning landmark as one coherent world commit.
-44. **Queued — Ember world rebuild:** sky, far, mid, flow, anim, fx, walls, parallax, and spinning landmark as one coherent world commit.
-45. **Queued — Space world audit:** retain the live backdrop and industrial rails; fix only any visual/scrolling gap found in review.
-46. **Queued — legacy cleanup audit:** remove a legacy SVG/source family only after its exact live raster replacement and tests are verified.
+1. **Installed and validated — `frost_fighter_4`:** Hailstorm commander.
+2. **Installed and validated — `space_fighter_1`:** rugged Needle scout.
+3. **Installed and validated — `verdant_fighter_1`:** rugged Gnat scout.
+4. **Priority queued — `space_alien`:** rebuild Bile Mite taller; current art reads too wide/short inside its valid frame.
+5. **Priority queued — `frost_alien`:** rebuild Cryo Jelly taller; current art reads too wide/short inside its valid frame.
+6. **Queued — `verdant_fighter_2`**
+7. **Queued — `verdant_fighter_3`**
+8. **Queued — `verdant_fighter_4`**
+9. **Queued — `ember_fighter_1`**
+10. **Queued — `ember_fighter_2`**
+11. **Queued — `ember_fighter_3`**
+12. **Queued — `ember_fighter_4`**
+13. **Queued — `verdant_alien`**
+14. **Queued — `ember_alien`**
+15. **Queued — `space_chaser`**
+16. **Queued — `frost_chaser`**
+17. **Queued — `verdant_chaser`**
+18. **Queued — `ember_chaser`**
+19. **Queued — `space_big`**
+20. **Queued — `frost_big`**
+21. **Queued — `verdant_big`**
+22. **Queued — `ember_big`**
+23. **Queued — `space_rock_crater`**
+24. **Queued — `space_rock_cluster`**
+25. **Queued — `space_rock_dark`**
+26. **Queued — `frost_rock_chunk`**
+27. **Queued — `frost_rock_rime`**
+28. **Queued — `frost_rock_shard`**
+29. **Queued — `verdant_rock_spore`**
+30. **Queued — `verdant_rock_vine`**
+31. **Queued — `verdant_rock_pod`**
+32. **Queued — `verdant_rock_knot`**
+33. **Queued — `ember_rock_magma`**
+34. **Queued — `ember_rock_islet`**
+35. **Queued — `ember_rock_cinder`**
+36. **Queued — `ember_rock_obsidian`**
+37. **Queued — rail-mine audit:** all four rows, art and rail-clamped scrolling behavior.
+38. **Queued — impact/destruction VFX family:** enemy impacts, explosions, debris.
+39. **Queued — projectile-hazard VFX family:** projectiles and telegraphs.
+40. **Queued — Space boss support:** `Space_shots`, `Space_card`, animation-support audit.
+41. **Queued — Frost boss support:** `Frost_shots`, `Frost_card`, animation-support audit.
+42. **Queued — Verdant boss support:** `Verdant_shots`, `Verdant_card`, animation-support audit.
+43. **Queued — Ember boss support:** `Ember_shots`, `Ember_card`, animation-support audit.
+44. **Queued — Frost world integration:** staged layers, parallax, spinning landmark, validation.
+45. **Queued — Verdant world rebuild:** complete backdrop, walls, parallax, spinning landmark.
+46. **Queued — Ember world rebuild:** complete backdrop, walls, parallax, spinning landmark.
+47. **Queued — Space world audit:** live backdrop and industrial rails.
+48. **Queued — legacy cleanup audit:** delete a legacy source family only after its live replacement is verified.
 
 ## Already approved / installed
 
