@@ -80,7 +80,7 @@ public static class BossEncounterTest
     {
         var wm = new GameObject("~WorldManager").AddComponent<WorldManager>();
         wm.SendMessage("Awake");
-        typeof(WorldManager).GetField("timer", Inst).SetValue(wm, timer);
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(wm, timer);
         return wm;
     }
 

@@ -193,13 +193,14 @@ public class WorldMusic : MonoBehaviour
     {
         // Count only active flight, using WorldManager's level clock. Each
         // stage is a new arrangement of the same original song, with one more
-        // instrument joining every 30 seconds. Stage 06 owns the final 30s.
+        // instrument joining every sixth of the world. Stage 06 owns the last.
         if (WorldManager.Instance == null || !UsesStages(WorldManager.Current))
         {
             return;
         }
-        float elapsed = world.WorldLength - world.SecondsLeftInWorld;
-        int nextStage = Mathf.Clamp(Mathf.FloorToInt(elapsed / 30f), 0, 5);
+        // Worlds are a distance now (faster flight ends them sooner), so the
+        // stages follow the share of it flown: six equal steps.
+        int nextStage = Mathf.Clamp(Mathf.FloorToInt(world.Progress01 * 6f), 0, 5);
         if (nextStage <= musicStage) return;
 
         var upbeat = Resources.Load<AudioClip>(StageResource(WorldManager.Current, nextStage + 1));
