@@ -112,8 +112,11 @@ public static class CodexTest
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
         var spawner = UnityEngine.Object.FindFirstObjectByType<enmiesOnBoard>();
         Check("gameS1 has the enemy spawner", spawner != null);
-        if (spawner != null)
-            CheckMaps("enmiesOnBoard alien", spawner.alien1, "enemy_alien");
+        // The old alien1.prefab fallback is gone: every alien is the world's
+        // roster alien (below), the Space one keeping the enemy_alien entry.
+        Check("enmiesOnBoard has no alien1 prefab fallback", typeof(enmiesOnBoard).GetField("alien1") == null);
+        Check("the Space roster alien is the enemy_alien entry",
+              EnemyRoster.One(0, EnemyRole.Alien) != null && EnemyRoster.One(0, EnemyRole.Alien).codexId == "enemy_alien");
 
         // Every world's roster (EnemyRoster) -- what enmiesOnBoard actually
         // spawns -- maps to its own entry, built exactly as the spawner builds
@@ -1011,6 +1014,188 @@ public static class CodexTest
 
     static bool Ink(Graphic g) { return g == null || !g.enabled || (g.color.r < .1f && g.color.g < .1f && g.color.b < .2f); }
 
+    // ---- Rendered silhouettes ("who's that Pokemon?") ----
+
+    public struct ArtRender
+    {
+        public int covered;      // pixels the art touches at all
+        public int opaque;       // pixels it covers completely (same over black and white)
+        public int colours;      // distinct colours among the opaque pixels
+        public Color32 first;    // one of them
+        public bool rendered;
+    }
+
+    // Renders only `show` (plus the masks that clip it) from the panel's own
+    // canvas, once over black and once over white. A pixel that comes out the
+    // same over both is fully inside the drawing's alpha mask; a flat
+    // silhouette has exactly one colour across all of those.
+    public static ArtRender RenderArt(CodexPanel panel, Graphic[] show, string savePath = null)
+    {
+        var result = new ArtRender();
+        var canvas = panel.GetComponent<Canvas>();
+        if (canvas == null || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return result;
+
+        var keep = new HashSet<Graphic>();
+        foreach (var g in show) if (g != null && g.enabled && g.gameObject.activeInHierarchy) keep.Add(g);
+        if (keep.Count == 0) return result;
+        var hidden = new List<Graphic>();
+        foreach (var g in canvas.GetComponentsInChildren<Graphic>(false))
+        {
+            if (!g.enabled || keep.Contains(g)) continue;
+            var mask = g.GetComponent<Mask>();
+            if (mask != null && mask.enabled) continue;   // writes the stencil the art is clipped by
+            g.enabled = false;
+            hidden.Add(g);
+        }
+
+        var mode = canvas.renderMode;
+        var oldCam = canvas.worldCamera;
+        float plane = canvas.planeDistance;
+        var camGo = new GameObject("~CodexArtCam");
+        camGo.transform.position = new Vector3(5000f, 5000f, -10f);   // away from every world sprite
+        var cam = camGo.AddComponent<Camera>();
+        cam.orthographic = true;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.enabled = false;
+        const int W = 800, H = 1280;
+        var rt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+        cam.targetTexture = rt;
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.worldCamera = cam;
+        canvas.planeDistance = 1f;
+        Canvas.ForceUpdateCanvases();
+
+        var shots = new Color32[2][];
+        var colours = new[] { Color.black, Color.white };
+        for (int k = 0; k < 2; k++)
+        {
+            cam.backgroundColor = colours[k];
+            cam.Render();
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+            tex.ReadPixels(new Rect(0, 0, W, H), 0, 0);
+            tex.Apply();
+            RenderTexture.active = prev;
+            shots[k] = tex.GetPixels32();
+            if (k == 0 && savePath != null) File.WriteAllBytes(savePath, tex.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(tex);
+        }
+
+        canvas.renderMode = mode;
+        canvas.worldCamera = oldCam;
+        canvas.planeDistance = plane;
+        cam.targetTexture = null;
+        UnityEngine.Object.DestroyImmediate(rt);
+        UnityEngine.Object.DestroyImmediate(camGo);
+        foreach (var g in hidden) g.enabled = true;
+        Canvas.ForceUpdateCanvases();
+
+        var seen = new HashSet<int>();
+        for (int i = 0; i < shots[0].Length; i++)
+        {
+            Color32 b = shots[0][i], w = shots[1][i];
+            bool onBlack = b.r > 0 || b.g > 0 || b.b > 0;
+            bool onWhite = w.r < 255 || w.g < 255 || w.b < 255;
+            if (!onBlack && !onWhite) continue;
+            result.covered++;
+            if (Mathf.Abs(b.r - w.r) > 1 || Mathf.Abs(b.g - w.g) > 1 || Mathf.Abs(b.b - w.b) > 1) continue;
+            result.opaque++;
+            if (seen.Add((b.r << 16) | (b.g << 8) | b.b) && seen.Count == 1) result.first = b;
+        }
+        result.colours = seen.Count;
+        result.rendered = true;
+        return result;
+    }
+
+    static bool Flat(ArtRender r, out string why)
+    {
+        Color32 ink = (Color)CodexUi.Silhouette;
+        bool inkOk = Mathf.Abs(r.first.r - ink.r) <= 1 && Mathf.Abs(r.first.g - ink.g) <= 1 && Mathf.Abs(r.first.b - ink.b) <= 1;
+        why = r.opaque + "/" + r.covered + " px opaque, " + r.colours + " colour(s), first " + r.first;
+        return r.rendered && r.opaque >= 200 && r.colours == 1 && inkOk;
+    }
+
+    static void CheckRenderedSilhouettes(CodexPanel panel)
+    {
+        if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+        {
+            Check("rendered silhouettes need a graphics device (run without -nographics)", false);
+            return;
+        }
+        Check("the silhouette shader ships in Resources and is supported",
+              Resources.Load<Shader>(CodexUi.SilhouetteShaderPath) != null && CodexUi.SilhouetteMaterial != null &&
+              CodexUi.SilhouetteMaterial.shader.isSupported);
+
+        // Locked cards: one flat ink colour inside the alpha mask, every
+        // frame of the idle loop.
+        foreach (var tab in new[] { CodexCategory.Enemies, CodexCategory.Hazards, CodexCategory.Atoms, CodexCategory.Ships })
+        {
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            int tested = 0;
+            for (int i = 0; i < panel.VisibleCards && tested < 3; i++)
+            {
+                var e = panel.CardEntry(i);
+                if (Codex.IsDiscovered(e)) continue;
+                tested++;
+                ScrollTo(panel, i);
+                var a = panel.CardAnimator(i);
+                Check(tab + " " + e.id + ": locked art draws through the silhouette material",
+                      CodexUi.IsSilhouette(a.Image) && (a.Overlay == null || !a.Overlay.enabled || CodexUi.IsSilhouette(a.Overlay)));
+                bool flat = true;
+                string why = "";
+                for (int frame = 0; frame < 3; frame++)
+                {
+                    var r = RenderArt(panel, new Graphic[] { a.Image, a.Overlay });
+                    string w;
+                    flat &= Flat(r, out w);
+                    why += (frame > 0 ? " | " : "") + w;
+                    Tick(panel, .25f);
+                }
+                Check(tab + " " + e.id + ": locked card renders one flat colour, no interior detail (" + why + ")", flat);
+            }
+            Check(tab + ": rendered some locked cards", tested > 0);
+        }
+
+        // Sanity: the same measurement sees the detail of a discovered card.
+        panel.ShowCategory(CodexCategory.Enemies);
+        panel.SkipAnimations();
+        int found = -1;
+        for (int i = 0; i < panel.VisibleCards; i++) if (Codex.IsDiscovered(panel.CardEntry(i))) { found = i; break; }
+        if (found >= 0)
+        {
+            ScrollTo(panel, found);
+            var a = panel.CardAnimator(found);
+            Check("a discovered card uses the default material", !CodexUi.IsSilhouette(a.Image));
+            var r = RenderArt(panel, new Graphic[] { a.Image, a.Overlay });
+            Check("a discovered card renders its full detail (" + r.colours + " colours over " + r.opaque + " px)",
+                  r.rendered && r.colours > 8);
+        }
+
+        // The locked detail view: the same silhouette, overlay included.
+        panel.ShowCategory(CodexCategory.Atoms);
+        panel.SkipAnimations();
+        panel.ShowDetail(Codex.Find("atom_green"));
+        panel.SkipAnimations();
+        bool dflat = true;
+        string dwhy = "";
+        for (int frame = 0; frame < 3; frame++)
+        {
+            var r = RenderArt(panel, new Graphic[] { panel.DetailArt, panel.DetailAnimator.Overlay });
+            string w;
+            dflat &= Flat(r, out w);
+            dwhy += (frame > 0 ? " | " : "") + w;
+            Tick(panel, .25f);
+        }
+        Check("the locked detail view renders one flat colour (" + dwhy + ")", dflat);
+        Check("the locked detail draws through the silhouette material",
+              CodexUi.IsSilhouette(panel.DetailArt) &&
+              (panel.DetailAnimator.Overlay == null || !panel.DetailAnimator.Overlay.enabled || CodexUi.IsSilhouette(panel.DetailAnimator.Overlay)));
+        panel.ShowGrid();
+        panel.SkipAnimations();
+    }
+
     static void CheckPanelAnimation(CodexPanel panel)
     {
         panel.ApplyLayout(Screens[1].safe);
@@ -1178,6 +1363,7 @@ public static class CodexTest
               detailInk && panel.DetailAnimator.FrameChanges > dWas);
         panel.ShowGrid();
         panel.SkipAnimations();
+        CheckRenderedSilhouettes(panel);
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();
         bool noBoss = true;

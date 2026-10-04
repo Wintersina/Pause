@@ -609,7 +609,11 @@ public static class EnemyRosterTest
               !Regex.IsMatch(scene, @"^  astroid[1-5]:", RegexOptions.Multiline));
         Check("enmiesOnBoard no longer has the astroid1-5 fields",
               typeof(enmiesOnBoard).GetField("astroid1") == null && typeof(enmiesOnBoard).GetField("rails") == null);
-        Check("gameS1's alien fallback is set", spawner.alien1 != null);
+        // The alien1.prefab fallback was retired with its invader art: every
+        // alien comes from the roster, in every world.
+        Check("enmiesOnBoard no longer has the alien1 prefab fallback", typeof(enmiesOnBoard).GetField("alien1") == null);
+        Check("gameS1 no longer serializes the alien1 fallback",
+              !Regex.IsMatch(scene, @"^  alien1:", RegexOptions.Multiline));
         Check("the deleted prefab guid is gone from gameS1",
               !File.ReadAllText("Assets/Scenes/gameS1.unity").Contains("1390ffc126996fb4388474c4cdff00ac"));
     }

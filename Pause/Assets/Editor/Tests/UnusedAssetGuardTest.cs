@@ -18,6 +18,12 @@ using UnityEngine;
 // under Resources. Its old copies (and the two Ember beat frames), the old
 // RailBombSprites slicer and the flat-cartoon <world>_mine strips that
 // replaced it stay deleted.
+//
+// The original invader alien went too: alien1.prefab (the title screen's
+// drifting alien and the spawner's fallback), its invader32x32x4 sheet and
+// its alieanShip clip / invader32x32x4_0 controller. The title screen flies
+// the Space roster alien (TitleScreenAlien) and the spawner only ever spawns
+// roster aliens, so none of those files, guids or names may come back.
 public static class UnusedAssetGuardTest
 {
     static int fails;
@@ -74,6 +80,7 @@ public static class UnusedAssetGuardTest
         RailMineArtIsTheRestoredAtlasOnly();
         NothingReferencesARetiredPrefab();
         DefaultCursorResolves();
+        OldInvaderAlienStaysDeleted();
 
         Debug.Log("[UAG] failures: " + fails);
         return fails;
@@ -167,6 +174,73 @@ public static class UnusedAssetGuardTest
             if (!string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(guid)) &&
                 AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)) != null)
                 Check("retired prefab " + guid + " is deleted (" + AssetDatabase.GUIDToAssetPath(guid) + ")", false);
+    }
+
+    public static readonly string[] RetiredAlienAssets =
+    {
+        "Assets/Resources/prefabs/alien1.prefab",
+        "Assets/Art/invader32x32x4.png",
+        "Assets/Art/Animation/invader32x32x4_0.controller",
+        "Assets/Art/Animation/alieanShip.anim",
+    };
+
+    // alien1.prefab, invader32x32x4.png, invader32x32x4_0.controller, alieanShip.anim
+    public static readonly string[] RetiredAlienGuids =
+    {
+        "1716f248879a3d9409936e4fc65c75a4", "fb448a50c99cf7645932abe0605d52ec",
+        "7acff94875db60441ad09b1a59f3e2e1", "4bcc69e05df0c7a4fa6e539c4550f904",
+    };
+
+    static readonly Regex RetiredAlienName = new Regex(@"^(alien1|invader32x32x4(_\d+)?|alieanShip)$", RegexOptions.IgnoreCase);
+
+    static void OldInvaderAlienStaysDeleted()
+    {
+        foreach (string path in RetiredAlienAssets)
+            Check(path + " stays deleted", !File.Exists(path) && !File.Exists(path + ".meta"));
+        foreach (string guid in RetiredAlienGuids)
+            Check("retired alien guid " + guid + " resolves to nothing",
+                  string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(guid)) ||
+                  AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)) == null);
+
+        // No file of that name anywhere in the project (a re-import under a
+        // new guid would dodge the guid checks).
+        var named = new List<string>();
+        foreach (string file in Directory.GetFiles("Assets", "*", SearchOption.AllDirectories))
+        {
+            string path = file.Replace('\\', '/');
+            if (path.EndsWith(".meta") || path.EndsWith(".cs")) continue;
+            if (RetiredAlienName.IsMatch(Path.GetFileNameWithoutExtension(path))) named.Add(path);
+        }
+        foreach (string path in named) Debug.Log("[UAG] old alien asset is back: " + path);
+        Check("no alien1 / invader32x32x4 / alieanShip asset anywhere under Assets (" + named.Count + ")", named.Count == 0);
+        Check("Resources can't load the old alien1 prefab", Resources.Load<GameObject>("prefabs/alien1") == null);
+
+        // Nothing serialized points at them: scenes, prefabs, assets,
+        // animator controllers, clips, materials and the project settings.
+        var guids = new HashSet<string>(RetiredAlienGuids);
+        int dangling = 0;
+        var files = new List<string>();
+        foreach (string ext in new[] { "*.unity", "*.prefab", "*.asset", "*.controller", "*.anim", "*.mat", "*.overrideController" })
+            files.AddRange(Directory.GetFiles("Assets", ext, SearchOption.AllDirectories));
+        files.AddRange(Directory.GetFiles("ProjectSettings", "*.asset", SearchOption.TopDirectoryOnly));
+        foreach (string path in files)
+        {
+            string text = File.ReadAllText(path);
+            foreach (Match m in Regex.Matches(text, "guid: ([0-9a-f]{32})"))
+                if (guids.Contains(m.Groups[1].Value))
+                {
+                    dangling++;
+                    Debug.Log("[UAG] " + path + " references retired alien asset " + m.Groups[1].Value);
+                    break;
+                }
+        }
+        Check("no scene, prefab, asset or setting references the old alien (" + dangling + " files)", dangling == 0);
+
+        // ...and no code path brings back a prefab fallback for it.
+        Check("enmiesOnBoard has no alien1 prefab slot", typeof(enmiesOnBoard).GetField("alien1") == null);
+        var title = File.ReadAllText("Assets/Scenes/startS4.unity");
+        Check("startS4's drifting alien is the roster alien (TitleScreenAlien), not a prefab",
+              title.Contains("m_Name: TitleAlien") && !Regex.IsMatch(title, @"m_Name: alien1\b"));
     }
 
     static void DefaultCursorResolves()
