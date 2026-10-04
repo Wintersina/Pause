@@ -73,7 +73,7 @@ public class BossActor : MonoBehaviour
         charge.sortingOrder = 29;
         charge.enabled = false;
 
-        transform.position = new Vector3(0f, 7.6f, 0f);
+        transform.position = new Vector3(0f, ArrivalY, 0f);
         basePos = new Vector3(0f, BossConfig.BossY, 0f);
         SetFrame(BossArt.Idle0);
         body.enabled = false;
@@ -87,8 +87,18 @@ public class BossActor : MonoBehaviour
 
     // ---- arrival (intro, real time) ------------------------------------
 
+    // Where the warp-in starts: fully above the visible top (7.6 on the
+    // authored view; higher on a tall screen, whose view reaches further up).
+    public static float ArrivalY
+    {
+        get { return Mathf.Max(7.6f, CameraFit.ViewTop + BossConfig.BossWorldSize * .5f + .3f); }
+    }
+
+    float arrivalY = 7.6f;
+
     public void BeginArrival()
     {
+        arrivalY = ArrivalY;
         mode = Mode.Arriving;
         realClock = 0f;
         body.enabled = true;
@@ -105,7 +115,7 @@ public class BossActor : MonoBehaviour
         const float s = 1.6f;
         float u = t - 1f;
         float e = 1f + (s + 1f) * u * u * u + s * u * u;
-        transform.position = Vector3.LerpUnclamped(new Vector3(0f, 7.6f, 0f), basePos, e);
+        transform.position = Vector3.LerpUnclamped(new Vector3(0f, arrivalY, 0f), basePos, e);
 
         if (t < .55f)
             SetFrame(BossArt.Retreat0 + BossArt.FrameAt(BossArt.RetreatTicks, realClock, true)); // warp smear
@@ -393,7 +403,8 @@ public class BossActor : MonoBehaviour
         retreatVy = Mathf.Min(16f, retreatVy + 40f * dt);
         transform.position += Vector3.up * retreatVy * dt;
         SetFrame(BossArt.Retreat0 + BossArt.FrameAt(BossArt.RetreatTicks, outroClock, true));
-        if (transform.position.y > 8f) { body.enabled = false; mode = Mode.Gone; }
+        if (transform.position.y > Mathf.Max(8f, CameraFit.ViewTop + BossConfig.BossWorldSize * .5f + .3f))
+        { body.enabled = false; mode = Mode.Gone; }
     }
 
     static readonly float[] BlastTimes = { 0f, .12f, .26f, .4f };

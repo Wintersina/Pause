@@ -94,6 +94,9 @@ public static class DeathPanelTest
         var cases = new[]
         {
             ("tall phone 1080x2340", new Rect(-400f, -866f, 800f, 1733f), (Rect?)null),
+            ("9:22 phone 1080x2640", new Rect(-400f, -978f, 800f, 1956f), (Rect?)null),
+            ("9:24 phone 1080x2880", new Rect(-400f, -1067f, 800f, 2133f), (Rect?)null),
+            ("Z Fold cover 968x2376", new Rect(-400f, -982f, 800f, 1964f), (Rect?)null),
             ("phone with notch + home bar", new Rect(-400f, -820f, 800f, 1640f), (Rect?)null),
             ("iPad 1536x2048", new Rect(-400f, -533f, 800f, 1066f), (Rect?)null),
             ("landscape Mac window", new Rect(-480f, -300f, 960f, 600f), (Rect?)null),

@@ -64,6 +64,29 @@ public class CameraFit : MonoBehaviour
         cam.orthographicSize = size;
     }
 
+    // The main camera's visible top / bottom edge in world units, for
+    // anything that must enter or leave just off screen: the view grows with
+    // the screen's height (up to ~7.6 half-height on a 9:24 phone), so a
+    // fixed "just above the top" Y pops into view on tall screens. Falls
+    // back to the authored size-5 view without a camera.
+    public static float ViewTop
+    {
+        get
+        {
+            var c = Camera.main;
+            return c != null && c.orthographic ? c.transform.position.y + c.orthographicSize : 5f;
+        }
+    }
+
+    public static float ViewBottom
+    {
+        get
+        {
+            var c = Camera.main;
+            return c != null && c.orthographic ? c.transform.position.y - c.orthographicSize : -5f;
+        }
+    }
+
     // Pure and testable without entering Play mode: never shrinks below
     // baseSize, and grows exactly enough to guarantee minHalfWidth stays
     // visible at the given screen dimensions.
