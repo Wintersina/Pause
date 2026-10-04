@@ -1,0 +1,1339 @@
+fileFormatVersion: 2
+guid: 4ffe90b594eb249fcb39f3e02f80f365
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2918892036562753767
+    second: frost_fighter_4_rugged_v2_concept_0
+  - first:
+      213: -6705831667895451750
+    second: frost_fighter_4_rugged_v2_concept_1
+  - first:
+      213: -2861212819863592580
+    second: frost_fighter_4_rugged_v2_concept_2
+  - first:
+      213: -7881459806315209029
+    second: frost_fighter_4_rugged_v2_concept_3
+  - first:
+      213: 8610735563542393179
+    second: frost_fighter_4_rugged_v2_concept_4
+  - first:
+      213: -8691603462214772822
+    second: frost_fighter_4_rugged_v2_concept_5
+  - first:
+      213: 7836570530662825288
+    second: frost_fighter_4_rugged_v2_concept_6
+  - first:
+      213: -6165264386992857264
+    second: frost_fighter_4_rugged_v2_concept_7
+  - first:
+      213: 2194241638137439314
+    second: frost_fighter_4_rugged_v2_concept_8
+  - first:
+      213: -3910109170982814781
+    second: frost_fighter_4_rugged_v2_concept_9
+  - first:
+      213: 6036246301558567281
+    second: frost_fighter_4_rugged_v2_concept_10
+  - first:
+      213: -8162147137106643703
+    second: frost_fighter_4_rugged_v2_concept_11
+  - first:
+      213: 3013901156148378957
+    second: frost_fighter_4_rugged_v2_concept_12
+  - first:
+      213: -7849516781307132548
+    second: frost_fighter_4_rugged_v2_concept_13
+  - first:
+      213: 2205989423760183305
+    second: frost_fighter_4_rugged_v2_concept_14
+  - first:
+      213: -7804314437136779854
+    second: frost_fighter_4_rugged_v2_concept_15
+  - first:
+      213: -7634544267172889777
+    second: frost_fighter_4_rugged_v2_concept_16
+  - first:
+      213: -7648911584705227471
+    second: frost_fighter_4_rugged_v2_concept_17
+  - first:
+      213: -8708541294892866085
+    second: frost_fighter_4_rugged_v2_concept_18
+  - first:
+      213: -979690998268312522
+    second: frost_fighter_4_rugged_v2_concept_19
+  - first:
+      213: -5910772884758230674
+    second: frost_fighter_4_rugged_v2_concept_20
+  - first:
+      213: -3725637816636371669
+    second: frost_fighter_4_rugged_v2_concept_21
+  - first:
+      213: 7710922532192227547
+    second: frost_fighter_4_rugged_v2_concept_22
+  - first:
+      213: 3860682176338233946
+    second: frost_fighter_4_rugged_v2_concept_23
+  - first:
+      213: -2557034265962692509
+    second: frost_fighter_4_rugged_v2_concept_24
+  - first:
+      213: 3523966517883477628
+    second: frost_fighter_4_rugged_v2_concept_25
+  - first:
+      213: 423099229461404263
+    second: frost_fighter_4_rugged_v2_concept_26
+  - first:
+      213: 3516532692336567246
+    second: frost_fighter_4_rugged_v2_concept_27
+  - first:
+      213: -398263749463784791
+    second: frost_fighter_4_rugged_v2_concept_28
+  - first:
+      213: -8005757528022566474
+    second: frost_fighter_4_rugged_v2_concept_29
+  - first:
+      213: 3573781930101222160
+    second: frost_fighter_4_rugged_v2_concept_30
+  - first:
+      213: -8660658246599621819
+    second: frost_fighter_4_rugged_v2_concept_31
+  - first:
+      213: 6103596925797373474
+    second: frost_fighter_4_rugged_v2_concept_32
+  - first:
+      213: 2817139344906964459
+    second: frost_fighter_4_rugged_v2_concept_33
+  - first:
+      213: -3059772674969484331
+    second: frost_fighter_4_rugged_v2_concept_34
+  - first:
+      213: -8948607035442497366
+    second: frost_fighter_4_rugged_v2_concept_35
+  - first:
+      213: -401385340272873873
+    second: frost_fighter_4_rugged_v2_concept_36
+  - first:
+      213: -1480338182836431029
+    second: frost_fighter_4_rugged_v2_concept_37
+  - first:
+      213: 7841360348458273218
+    second: frost_fighter_4_rugged_v2_concept_38
+  - first:
+      213: -2442953149230542475
+    second: frost_fighter_4_rugged_v2_concept_39
+  - first:
+      213: 8809643442710374261
+    second: frost_fighter_4_rugged_v2_concept_40
+  - first:
+      213: 6954057177612420060
+    second: frost_fighter_4_rugged_v2_concept_41
+  - first:
+      213: 3852932959798848768
+    second: frost_fighter_4_rugged_v2_concept_42
+  - first:
+      213: 6325765133043718450
+    second: frost_fighter_4_rugged_v2_concept_43
+  - first:
+      213: -1324254386372616033
+    second: frost_fighter_4_rugged_v2_concept_44
+  - first:
+      213: -9027383458564556525
+    second: frost_fighter_4_rugged_v2_concept_45
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 2172
+        height: 718
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e81a01a7dcf18820800000000000000
+      internalID: 2918892036562753767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 698
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9fb68780a910f2a0800000000000000
+      internalID: -6705831667895451750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 683
+        width: 38
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c71ac35891eea48d0800000000000000
+      internalID: -2861212819863592580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 693
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbe101d501e6f9290800000000000000
+      internalID: -7881459806315209029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 644
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5174c79f5a7f7770800000000000000
+      internalID: 8610735563542393179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 87
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa7122283b8316780800000000000000
+      internalID: -8691603462214772822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 915
+        y: 79
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84db371b06711cc60800000000000000
+      internalID: 7836570530662825288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 77
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05f9cea74b4907aa0800000000000000
+      internalID: -6165264386992857264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 67
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 254ad80f423837e10800000000000000
+      internalID: 2194241638137439314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 666
+        y: 61
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3cb7296fc608cb9c0800000000000000
+      internalID: -3910109170982814781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 62
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 171f925a70e05c350800000000000000
+      internalID: 6036246301558567281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 57
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90579487c6a3abe80800000000000000
+      internalID: -8162147137106643703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 45
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4dfc58122783d920800000000000000
+      internalID: 3013901156148378957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 51
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7588bf631ae01390800000000000000
+      internalID: -7849516781307132548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 23
+        width: 32
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9009e7d61bf3d9e10800000000000000
+      internalID: 2205989423760183305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 762
+        y: 33
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b572035e5181b390800000000000000
+      internalID: -7804314437136779854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 31
+        width: 9
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4b3a254076ac0690800000000000000
+      internalID: -7634544267172889777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 978
+        y: 41
+        width: 15
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 135564b707b99d590800000000000000
+      internalID: -7648911584705227471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 31
+        width: 34
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd5271605db052780800000000000000
+      internalID: -8708541294892866085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1923
+        y: 49
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 634c19a4a307762f0800000000000000
+      internalID: -979690998268312522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 32
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6989ffb067b8fda0800000000000000
+      internalID: -5910772884758230674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 30
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2d80a12520eb4cc0800000000000000
+      internalID: -3725637816636371669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd09fd55033b20b60800000000000000
+      internalID: 7710922532192227547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 17
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5a825f0cf5e39530800000000000000
+      internalID: 3860682176338233946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 336
+        y: 21
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 360cac202e6938cd0800000000000000
+      internalID: -2557034265962692509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 13
+        width: 31
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7e90d290e4a7e030800000000000000
+      internalID: 3523966517883477628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 17
+        width: 7
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76ad9cce1862fd500800000000000000
+      internalID: 423099229461404263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 545
+        y: 21
+        width: 9
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec3e4cf2adb3dc030800000000000000
+      internalID: 3516532692336567246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a2cb4eda35197af0800000000000000
+      internalID: -398263749463784791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 30
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b93e40d1f5d5e090800000000000000
+      internalID: -8005757528022566474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 658
+        y: 29
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ba4601bbf989130800000000000000
+      internalID: 3573781930101222160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 676
+        y: 31
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5434f5af5392fc780800000000000000
+      internalID: -8660658246599621819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 0
+        width: 52
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2269156d01554b450800000000000000
+      internalID: 6103596925797373474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 818
+        y: 29
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bedc4ffee4d781720800000000000000
+      internalID: 2817139344906964459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 915
+        y: 29
+        width: 25
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d34ff6a6f08985d0800000000000000
+      internalID: -3059772674969484331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 973
+        y: 33
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa873e1205920d380800000000000000
+      internalID: -8948607035442497366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 1094
+        y: 17
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6e6cfed82efd6af0800000000000000
+      internalID: -401385340272873873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_37
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 15
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4756901448c47be0800000000000000
+      internalID: -1480338182836431029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_38
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 21
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c940bd01bb12dc60800000000000000
+      internalID: 7841360348458273218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_39
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 13
+        width: 19
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5711139dd03e81ed0800000000000000
+      internalID: -2442953149230542475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_40
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 19
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 577e9902904224a70800000000000000
+      internalID: 8809643442710374261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_41
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 13
+        width: 20
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd3085ba826c18060800000000000000
+      internalID: 6954057177612420060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_42
+      rect:
+        serializedVersion: 2
+        x: 668
+        y: 17
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00d643cfc1e587530800000000000000
+      internalID: 3852932959798848768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_43
+      rect:
+        serializedVersion: 2
+        x: 692
+        y: 18
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2395f978fd1a9c750800000000000000
+      internalID: 6325765133043718450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_44
+      rect:
+        serializedVersion: 2
+        x: 989
+        y: 5
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f90e10cd6ad4f9de0800000000000000
+      internalID: -1324254386372616033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_4_rugged_v2_concept_45
+      rect:
+        serializedVersion: 2
+        x: 1108
+        y: 12
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 319b505d29a48b280800000000000000
+      internalID: -9027383458564556525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_fighter_4_rugged_v2_concept_0: 2918892036562753767
+      frost_fighter_4_rugged_v2_concept_1: -6705831667895451750
+      frost_fighter_4_rugged_v2_concept_10: 6036246301558567281
+      frost_fighter_4_rugged_v2_concept_11: -8162147137106643703
+      frost_fighter_4_rugged_v2_concept_12: 3013901156148378957
+      frost_fighter_4_rugged_v2_concept_13: -7849516781307132548
+      frost_fighter_4_rugged_v2_concept_14: 2205989423760183305
+      frost_fighter_4_rugged_v2_concept_15: -7804314437136779854
+      frost_fighter_4_rugged_v2_concept_16: -7634544267172889777
+      frost_fighter_4_rugged_v2_concept_17: -7648911584705227471
+      frost_fighter_4_rugged_v2_concept_18: -8708541294892866085
+      frost_fighter_4_rugged_v2_concept_19: -979690998268312522
+      frost_fighter_4_rugged_v2_concept_2: -2861212819863592580
+      frost_fighter_4_rugged_v2_concept_20: -5910772884758230674
+      frost_fighter_4_rugged_v2_concept_21: -3725637816636371669
+      frost_fighter_4_rugged_v2_concept_22: 7710922532192227547
+      frost_fighter_4_rugged_v2_concept_23: 3860682176338233946
+      frost_fighter_4_rugged_v2_concept_24: -2557034265962692509
+      frost_fighter_4_rugged_v2_concept_25: 3523966517883477628
+      frost_fighter_4_rugged_v2_concept_26: 423099229461404263
+      frost_fighter_4_rugged_v2_concept_27: 3516532692336567246
+      frost_fighter_4_rugged_v2_concept_28: -398263749463784791
+      frost_fighter_4_rugged_v2_concept_29: -8005757528022566474
+      frost_fighter_4_rugged_v2_concept_3: -7881459806315209029
+      frost_fighter_4_rugged_v2_concept_30: 3573781930101222160
+      frost_fighter_4_rugged_v2_concept_31: -8660658246599621819
+      frost_fighter_4_rugged_v2_concept_32: 6103596925797373474
+      frost_fighter_4_rugged_v2_concept_33: 2817139344906964459
+      frost_fighter_4_rugged_v2_concept_34: -3059772674969484331
+      frost_fighter_4_rugged_v2_concept_35: -8948607035442497366
+      frost_fighter_4_rugged_v2_concept_36: -401385340272873873
+      frost_fighter_4_rugged_v2_concept_37: -1480338182836431029
+      frost_fighter_4_rugged_v2_concept_38: 7841360348458273218
+      frost_fighter_4_rugged_v2_concept_39: -2442953149230542475
+      frost_fighter_4_rugged_v2_concept_4: 8610735563542393179
+      frost_fighter_4_rugged_v2_concept_40: 8809643442710374261
+      frost_fighter_4_rugged_v2_concept_41: 6954057177612420060
+      frost_fighter_4_rugged_v2_concept_42: 3852932959798848768
+      frost_fighter_4_rugged_v2_concept_43: 6325765133043718450
+      frost_fighter_4_rugged_v2_concept_44: -1324254386372616033
+      frost_fighter_4_rugged_v2_concept_45: -9027383458564556525
+      frost_fighter_4_rugged_v2_concept_5: -8691603462214772822
+      frost_fighter_4_rugged_v2_concept_6: 7836570530662825288
+      frost_fighter_4_rugged_v2_concept_7: -6165264386992857264
+      frost_fighter_4_rugged_v2_concept_8: 2194241638137439314
+      frost_fighter_4_rugged_v2_concept_9: -3910109170982814781
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
