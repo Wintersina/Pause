@@ -50,7 +50,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 33. **Installed and validated — `ember_rock_magma`** — rugged basalt pressure boulder with copper braces and pulsing molten seams; seven-cell boundary and flipbook continuity checked.
 34. **Installed and validated — `ember_rock_islet`** — rugged floating basalt shelf with slag, copper clamps, and molten seams; seven-cell boundary and flipbook continuity checked.
 35. **Installed and validated — `ember_rock_cinder`** — rugged stacked cinder furnace blocks with copper plumbing and a molten core; seven-cell boundary and flipbook continuity checked.
-36. **Queued — `ember_rock_obsidian`**
+36. **Installed and validated — `ember_rock_obsidian`** — rugged copper-braced violet obsidian blade with a molten internal vein; seven-cell boundary and flipbook continuity checked.
 37. **Queued — rail-mine audit:** all four rows, art and rail-clamped scrolling behavior.
 38. **Queued — impact/destruction VFX family:** enemy impacts, explosions, debris.
 39. **Queued — projectile-hazard VFX family:** projectiles and telegraphs.
