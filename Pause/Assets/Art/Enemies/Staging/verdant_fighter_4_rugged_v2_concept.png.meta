@@ -1,0 +1,2041 @@
+fileFormatVersion: 2
+guid: cd0c7c31c57984f049414722df33e143
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3329824774380976210
+    second: verdant_fighter_4_rugged_v2_concept_0
+  - first:
+      213: 1503481681780041655
+    second: verdant_fighter_4_rugged_v2_concept_1
+  - first:
+      213: 3301135004319499277
+    second: verdant_fighter_4_rugged_v2_concept_2
+  - first:
+      213: 1191131176534840652
+    second: verdant_fighter_4_rugged_v2_concept_3
+  - first:
+      213: -4811610140221113567
+    second: verdant_fighter_4_rugged_v2_concept_4
+  - first:
+      213: -1635113571913489407
+    second: verdant_fighter_4_rugged_v2_concept_5
+  - first:
+      213: -7143897105607018373
+    second: verdant_fighter_4_rugged_v2_concept_6
+  - first:
+      213: -584175353666767141
+    second: verdant_fighter_4_rugged_v2_concept_7
+  - first:
+      213: -1344776322809771383
+    second: verdant_fighter_4_rugged_v2_concept_8
+  - first:
+      213: -2510712510367360242
+    second: verdant_fighter_4_rugged_v2_concept_9
+  - first:
+      213: -4151607277175619645
+    second: verdant_fighter_4_rugged_v2_concept_10
+  - first:
+      213: 8195903094694306964
+    second: verdant_fighter_4_rugged_v2_concept_11
+  - first:
+      213: -3847015145101433747
+    second: verdant_fighter_4_rugged_v2_concept_12
+  - first:
+      213: -5847532934900202576
+    second: verdant_fighter_4_rugged_v2_concept_13
+  - first:
+      213: -6545483087246533654
+    second: verdant_fighter_4_rugged_v2_concept_14
+  - first:
+      213: -5291102171384829953
+    second: verdant_fighter_4_rugged_v2_concept_15
+  - first:
+      213: -1603301049939000497
+    second: verdant_fighter_4_rugged_v2_concept_16
+  - first:
+      213: -4541472558333056659
+    second: verdant_fighter_4_rugged_v2_concept_17
+  - first:
+      213: 8738252580888713541
+    second: verdant_fighter_4_rugged_v2_concept_18
+  - first:
+      213: 2795022962081052250
+    second: verdant_fighter_4_rugged_v2_concept_19
+  - first:
+      213: 5023845141308806769
+    second: verdant_fighter_4_rugged_v2_concept_20
+  - first:
+      213: -4769006595885285914
+    second: verdant_fighter_4_rugged_v2_concept_21
+  - first:
+      213: -2612689270302760280
+    second: verdant_fighter_4_rugged_v2_concept_22
+  - first:
+      213: -9025678389166984125
+    second: verdant_fighter_4_rugged_v2_concept_23
+  - first:
+      213: -3030899327394484239
+    second: verdant_fighter_4_rugged_v2_concept_24
+  - first:
+      213: -5515862139248717758
+    second: verdant_fighter_4_rugged_v2_concept_25
+  - first:
+      213: 8877224053640321821
+    second: verdant_fighter_4_rugged_v2_concept_26
+  - first:
+      213: 2217755090608745140
+    second: verdant_fighter_4_rugged_v2_concept_27
+  - first:
+      213: 3191641918865792339
+    second: verdant_fighter_4_rugged_v2_concept_28
+  - first:
+      213: -2394197417792222462
+    second: verdant_fighter_4_rugged_v2_concept_29
+  - first:
+      213: 3073976287885665424
+    second: verdant_fighter_4_rugged_v2_concept_30
+  - first:
+      213: 8877370944052984062
+    second: verdant_fighter_4_rugged_v2_concept_31
+  - first:
+      213: -884096093822934130
+    second: verdant_fighter_4_rugged_v2_concept_32
+  - first:
+      213: 4056893520054661873
+    second: verdant_fighter_4_rugged_v2_concept_33
+  - first:
+      213: -2867117598775280922
+    second: verdant_fighter_4_rugged_v2_concept_34
+  - first:
+      213: 3127873308734519732
+    second: verdant_fighter_4_rugged_v2_concept_35
+  - first:
+      213: 8128069787865892762
+    second: verdant_fighter_4_rugged_v2_concept_36
+  - first:
+      213: 3377312189871919589
+    second: verdant_fighter_4_rugged_v2_concept_37
+  - first:
+      213: -4393599312200179120
+    second: verdant_fighter_4_rugged_v2_concept_38
+  - first:
+      213: -5444644939612678768
+    second: verdant_fighter_4_rugged_v2_concept_39
+  - first:
+      213: 6248669122929914409
+    second: verdant_fighter_4_rugged_v2_concept_40
+  - first:
+      213: -391675437395218505
+    second: verdant_fighter_4_rugged_v2_concept_41
+  - first:
+      213: -2296228516556564206
+    second: verdant_fighter_4_rugged_v2_concept_42
+  - first:
+      213: 2939055841419834640
+    second: verdant_fighter_4_rugged_v2_concept_43
+  - first:
+      213: 3542827498074172035
+    second: verdant_fighter_4_rugged_v2_concept_44
+  - first:
+      213: -596879041824249592
+    second: verdant_fighter_4_rugged_v2_concept_45
+  - first:
+      213: 4313915483102337625
+    second: verdant_fighter_4_rugged_v2_concept_46
+  - first:
+      213: 5637363033476097150
+    second: verdant_fighter_4_rugged_v2_concept_47
+  - first:
+      213: 5120376019714602354
+    second: verdant_fighter_4_rugged_v2_concept_48
+  - first:
+      213: 5027927948693859966
+    second: verdant_fighter_4_rugged_v2_concept_49
+  - first:
+      213: 1628017411004635156
+    second: verdant_fighter_4_rugged_v2_concept_50
+  - first:
+      213: 492853117153870015
+    second: verdant_fighter_4_rugged_v2_concept_51
+  - first:
+      213: 2887053092432913189
+    second: verdant_fighter_4_rugged_v2_concept_52
+  - first:
+      213: -3797879498992219741
+    second: verdant_fighter_4_rugged_v2_concept_53
+  - first:
+      213: 6139977103480781119
+    second: verdant_fighter_4_rugged_v2_concept_54
+  - first:
+      213: -3872987123430967214
+    second: verdant_fighter_4_rugged_v2_concept_55
+  - first:
+      213: 5251202899692920959
+    second: verdant_fighter_4_rugged_v2_concept_56
+  - first:
+      213: 324600195961469705
+    second: verdant_fighter_4_rugged_v2_concept_57
+  - first:
+      213: 5853296286609726352
+    second: verdant_fighter_4_rugged_v2_concept_58
+  - first:
+      213: 1934567522996908189
+    second: verdant_fighter_4_rugged_v2_concept_59
+  - first:
+      213: -4834624837124738634
+    second: verdant_fighter_4_rugged_v2_concept_60
+  - first:
+      213: -7324410931798949270
+    second: verdant_fighter_4_rugged_v2_concept_61
+  - first:
+      213: 7172552414053589840
+    second: verdant_fighter_4_rugged_v2_concept_62
+  - first:
+      213: -5688378589887256940
+    second: verdant_fighter_4_rugged_v2_concept_63
+  - first:
+      213: 3033105877333179621
+    second: verdant_fighter_4_rugged_v2_concept_64
+  - first:
+      213: 856793650130236333
+    second: verdant_fighter_4_rugged_v2_concept_65
+  - first:
+      213: -5642908698741037300
+    second: verdant_fighter_4_rugged_v2_concept_66
+  - first:
+      213: 3795105271436776819
+    second: verdant_fighter_4_rugged_v2_concept_67
+  - first:
+      213: 5376581474038467636
+    second: verdant_fighter_4_rugged_v2_concept_68
+  - first:
+      213: -952694318517739798
+    second: verdant_fighter_4_rugged_v2_concept_69
+  - first:
+      213: -3174152827616906306
+    second: verdant_fighter_4_rugged_v2_concept_70
+  - first:
+      213: -7963390747646768803
+    second: verdant_fighter_4_rugged_v2_concept_71
+  - first:
+      213: -9079277862367248230
+    second: verdant_fighter_4_rugged_v2_concept_72
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 600
+        width: 136
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 258f5497df9e53e20800000000000000
+      internalID: 3329824774380976210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 619
+        width: 154
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b76ec0bf907dd410800000000000000
+      internalID: 1503481681780041655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 630
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d044218dbccffcd20800000000000000
+      internalID: 3301135004319499277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 590
+        width: 204
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4590428e7fb78010800000000000000
+      internalID: 1191131176534840652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 665
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12bf37a021ab93db0800000000000000
+      internalID: -4811610140221113567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 651
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1042daa9ed8ee49e0800000000000000
+      internalID: -1635113571913489407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 664
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b783a54be67cbdc90800000000000000
+      internalID: -7143897105607018373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 641
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd677266c9794e7f0800000000000000
+      internalID: -584175353666767141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 647
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98a41903f05665de0800000000000000
+      internalID: -1344776322809771383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 643
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0b9c6e2648282dd0800000000000000
+      internalID: -2510712510367360242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 643
+        y: 610
+        width: 187
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3cf35057d278266c0800000000000000
+      internalID: -4151607277175619645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 826
+        y: 650
+        width: 14
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49467ccd072bdb170800000000000000
+      internalID: 8195903094694306964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 658
+        width: 127
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d646eae9b18ac9ac0800000000000000
+      internalID: -3847015145101433747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 987
+        y: 596
+        width: 156
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b340eaf6c369dea0800000000000000
+      internalID: -5847532934900202576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 580
+        width: 36
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aebd755cfc5c925a0800000000000000
+      internalID: -6545483087246533654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1237
+        y: 0
+        width: 646
+        height: 716
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff72f4ccb9a3296b0800000000000000
+      internalID: -5291102171384829953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1890
+        y: 16
+        width: 274
+        height: 646
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f430062903eefb9e0800000000000000
+      internalID: -1603301049939000497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1931
+        y: 540
+        width: 43
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d69af5b15c279f0c0800000000000000
+      internalID: -4541472558333056659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 53
+        width: 314
+        height: 496
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5491381dc62844970800000000000000
+      internalID: 8738252580888713541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 108
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a56b6e9439ae9c620800000000000000
+      internalID: 2795022962081052250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 77
+        width: 20
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 176984ed98848b540800000000000000
+      internalID: 5023845141308806769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 93
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ed33c0b4c511ddb0800000000000000
+      internalID: -4769006595885285914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 79
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a2212783fcddbbd0800000000000000
+      internalID: -2612689270302760280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 83
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34438cc33595eb280800000000000000
+      internalID: -9025678389166984125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 106
+        width: 38
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ff6ea0ce1510f5d0800000000000000
+      internalID: -3030899327394484239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 332
+        y: 37
+        width: 295
+        height: 498
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 240dd00db98b373b0800000000000000
+      internalID: -5515862139248717758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 85
+        width: 7
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1bd8c44e3c323b70800000000000000
+      internalID: 8877224053640321821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 79
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ba6c86318c07ce10800000000000000
+      internalID: 2217755090608745140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 87
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35ddd384a6dfa4c20800000000000000
+      internalID: 3191641918865792339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 142
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20b465e222a16ced0800000000000000
+      internalID: -2394197417792222462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 98
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 094266fa525f8aa20800000000000000
+      internalID: 3073976287885665424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 128
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef8f6abd6d1c23b70800000000000000
+      internalID: 8877370944052984062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 557
+        y: 114
+        width: 11
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e83af5c694f0bb3f0800000000000000
+      internalID: -884096093822934130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 78
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f23172892bfc4830800000000000000
+      internalID: 4056893520054661873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 633
+        y: 79
+        width: 303
+        height: 509
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ea7abb0cb3f538d0800000000000000
+      internalID: -2867117598775280922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 125
+        width: 17
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b9fb8db330786b20800000000000000
+      internalID: 3127873308734519732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 694
+        y: 95
+        width: 13
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a97c45f5864bcc070800000000000000
+      internalID: 8128069787865892762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_37
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 120
+        width: 9
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e199ecfa8f9ede20800000000000000
+      internalID: 3377312189871919589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_38
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 81
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05268ee24bcc603c0800000000000000
+      internalID: -4393599312200179120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_39
+      rect:
+        serializedVersion: 2
+        x: 800
+        y: 93
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 095124e364cb074b0800000000000000
+      internalID: -5444644939612678768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_40
+      rect:
+        serializedVersion: 2
+        x: 802
+        y: 100
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 922703fd57bb7b650800000000000000
+      internalID: 6248669122929914409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_41
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 122
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bfefcec34d709af0800000000000000
+      internalID: -391675437395218505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_42
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 81
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 219168384582220e0800000000000000
+      internalID: -2296228516556564206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_43
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 93
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 015bdda47bf99c820800000000000000
+      internalID: 2939055841419834640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_44
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 79
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38a623bb6d6aa2130800000000000000
+      internalID: 3542827498074172035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_45
+      rect:
+        serializedVersion: 2
+        x: 824
+        y: 93
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 809a0328ca577b7f0800000000000000
+      internalID: -596879041824249592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_46
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 85
+        width: 21
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95a5f59964b1edb30800000000000000
+      internalID: 4313915483102337625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_47
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 94
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e74e2489fcfeb3e40800000000000000
+      internalID: 5637363033476097150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_48
+      rect:
+        serializedVersion: 2
+        x: 909
+        y: 112
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 275748b6cda3f0740800000000000000
+      internalID: 5120376019714602354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_49
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 23
+        width: 289
+        height: 536
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7ee72a84d9c6c540800000000000000
+      internalID: 5027927948693859966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_50
+      rect:
+        serializedVersion: 2
+        x: 1032
+        y: 93
+        width: 7
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 418151fa531e79610800000000000000
+      internalID: 1628017411004635156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_51
+      rect:
+        serializedVersion: 2
+        x: 1034
+        y: 110
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb0866e7c47f6d600800000000000000
+      internalID: 492853117153870015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_52
+      rect:
+        serializedVersion: 2
+        x: 1038
+        y: 98
+        width: 7
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5232826cd7fd01820800000000000000
+      internalID: 2887053092432913189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_53
+      rect:
+        serializedVersion: 2
+        x: 1042
+        y: 95
+        width: 13
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a984dab7b83b4bc0800000000000000
+      internalID: -3797879498992219741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_54
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 71
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f39f00605a4953550800000000000000
+      internalID: 6139977103480781119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_55
+      rect:
+        serializedVersion: 2
+        x: 1058
+        y: 85
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2583c303bb2604ac0800000000000000
+      internalID: -3872987123430967214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_56
+      rect:
+        serializedVersion: 2
+        x: 1126
+        y: 73
+        width: 19
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f70a2b7173500e840800000000000000
+      internalID: 5251202899692920959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_57
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 95
+        width: 24
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90b3e4e8826318400800000000000000
+      internalID: 324600195961469705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_58
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 106
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09b5c78e5f51b3150800000000000000
+      internalID: 5853296286609726352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_59
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 67
+        width: 20
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d90fc3299e6f8da10800000000000000
+      internalID: 1934567522996908189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_60
+      rect:
+        serializedVersion: 2
+        x: 1178
+        y: 77
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b136e85356f7ecb0800000000000000
+      internalID: -4834624837124738634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_61
+      rect:
+        serializedVersion: 2
+        x: 1180
+        y: 115
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a62c22d50177a5a90800000000000000
+      internalID: -7324410931798949270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_62
+      rect:
+        serializedVersion: 2
+        x: 1180
+        y: 98
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 053e8843b660a8360800000000000000
+      internalID: 7172552414053589840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_63
+      rect:
+        serializedVersion: 2
+        x: 1213
+        y: 96
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49625d19fc1de01b0800000000000000
+      internalID: -5688378589887256940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_64
+      rect:
+        serializedVersion: 2
+        x: 1315
+        y: 93
+        width: 44
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ecf790b9b1c71a20800000000000000
+      internalID: 3033105877333179621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_65
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 95
+        width: 6
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da3b2d90941f3eb00800000000000000
+      internalID: 856793650130236333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_66
+      rect:
+        serializedVersion: 2
+        x: 1494
+        y: 87
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0724979f6c50b1b0800000000000000
+      internalID: -5642908698741037300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_67
+      rect:
+        serializedVersion: 2
+        x: 1520
+        y: 69
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3759335132ceaa430800000000000000
+      internalID: 3795105271436776819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_68
+      rect:
+        serializedVersion: 2
+        x: 1532
+        y: 31
+        width: 14
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43c42024d547d9a40800000000000000
+      internalID: 5376581474038467636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_69
+      rect:
+        serializedVersion: 2
+        x: 1906
+        y: 63
+        width: 26
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aee973d909957c2f0800000000000000
+      internalID: -952694318517739798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_70
+      rect:
+        serializedVersion: 2
+        x: 2025
+        y: 60
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb3b71712d423f3d0800000000000000
+      internalID: -3174152827616906306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_71
+      rect:
+        serializedVersion: 2
+        x: 1822
+        y: 29
+        width: 33
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d59c1ee8e4a5c7190800000000000000
+      internalID: -7963390747646768803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_concept_72
+      rect:
+        serializedVersion: 2
+        x: 1540
+        y: 15
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a90488463eceff180800000000000000
+      internalID: -9079277862367248230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_fighter_4_rugged_v2_concept_0: 3329824774380976210
+      verdant_fighter_4_rugged_v2_concept_1: 1503481681780041655
+      verdant_fighter_4_rugged_v2_concept_10: -4151607277175619645
+      verdant_fighter_4_rugged_v2_concept_11: 8195903094694306964
+      verdant_fighter_4_rugged_v2_concept_12: -3847015145101433747
+      verdant_fighter_4_rugged_v2_concept_13: -5847532934900202576
+      verdant_fighter_4_rugged_v2_concept_14: -6545483087246533654
+      verdant_fighter_4_rugged_v2_concept_15: -5291102171384829953
+      verdant_fighter_4_rugged_v2_concept_16: -1603301049939000497
+      verdant_fighter_4_rugged_v2_concept_17: -4541472558333056659
+      verdant_fighter_4_rugged_v2_concept_18: 8738252580888713541
+      verdant_fighter_4_rugged_v2_concept_19: 2795022962081052250
+      verdant_fighter_4_rugged_v2_concept_2: 3301135004319499277
+      verdant_fighter_4_rugged_v2_concept_20: 5023845141308806769
+      verdant_fighter_4_rugged_v2_concept_21: -4769006595885285914
+      verdant_fighter_4_rugged_v2_concept_22: -2612689270302760280
+      verdant_fighter_4_rugged_v2_concept_23: -9025678389166984125
+      verdant_fighter_4_rugged_v2_concept_24: -3030899327394484239
+      verdant_fighter_4_rugged_v2_concept_25: -5515862139248717758
+      verdant_fighter_4_rugged_v2_concept_26: 8877224053640321821
+      verdant_fighter_4_rugged_v2_concept_27: 2217755090608745140
+      verdant_fighter_4_rugged_v2_concept_28: 3191641918865792339
+      verdant_fighter_4_rugged_v2_concept_29: -2394197417792222462
+      verdant_fighter_4_rugged_v2_concept_3: 1191131176534840652
+      verdant_fighter_4_rugged_v2_concept_30: 3073976287885665424
+      verdant_fighter_4_rugged_v2_concept_31: 8877370944052984062
+      verdant_fighter_4_rugged_v2_concept_32: -884096093822934130
+      verdant_fighter_4_rugged_v2_concept_33: 4056893520054661873
+      verdant_fighter_4_rugged_v2_concept_34: -2867117598775280922
+      verdant_fighter_4_rugged_v2_concept_35: 3127873308734519732
+      verdant_fighter_4_rugged_v2_concept_36: 8128069787865892762
+      verdant_fighter_4_rugged_v2_concept_37: 3377312189871919589
+      verdant_fighter_4_rugged_v2_concept_38: -4393599312200179120
+      verdant_fighter_4_rugged_v2_concept_39: -5444644939612678768
+      verdant_fighter_4_rugged_v2_concept_4: -4811610140221113567
+      verdant_fighter_4_rugged_v2_concept_40: 6248669122929914409
+      verdant_fighter_4_rugged_v2_concept_41: -391675437395218505
+      verdant_fighter_4_rugged_v2_concept_42: -2296228516556564206
+      verdant_fighter_4_rugged_v2_concept_43: 2939055841419834640
+      verdant_fighter_4_rugged_v2_concept_44: 3542827498074172035
+      verdant_fighter_4_rugged_v2_concept_45: -596879041824249592
+      verdant_fighter_4_rugged_v2_concept_46: 4313915483102337625
+      verdant_fighter_4_rugged_v2_concept_47: 5637363033476097150
+      verdant_fighter_4_rugged_v2_concept_48: 5120376019714602354
+      verdant_fighter_4_rugged_v2_concept_49: 5027927948693859966
+      verdant_fighter_4_rugged_v2_concept_5: -1635113571913489407
+      verdant_fighter_4_rugged_v2_concept_50: 1628017411004635156
+      verdant_fighter_4_rugged_v2_concept_51: 492853117153870015
+      verdant_fighter_4_rugged_v2_concept_52: 2887053092432913189
+      verdant_fighter_4_rugged_v2_concept_53: -3797879498992219741
+      verdant_fighter_4_rugged_v2_concept_54: 6139977103480781119
+      verdant_fighter_4_rugged_v2_concept_55: -3872987123430967214
+      verdant_fighter_4_rugged_v2_concept_56: 5251202899692920959
+      verdant_fighter_4_rugged_v2_concept_57: 324600195961469705
+      verdant_fighter_4_rugged_v2_concept_58: 5853296286609726352
+      verdant_fighter_4_rugged_v2_concept_59: 1934567522996908189
+      verdant_fighter_4_rugged_v2_concept_6: -7143897105607018373
+      verdant_fighter_4_rugged_v2_concept_60: -4834624837124738634
+      verdant_fighter_4_rugged_v2_concept_61: -7324410931798949270
+      verdant_fighter_4_rugged_v2_concept_62: 7172552414053589840
+      verdant_fighter_4_rugged_v2_concept_63: -5688378589887256940
+      verdant_fighter_4_rugged_v2_concept_64: 3033105877333179621
+      verdant_fighter_4_rugged_v2_concept_65: 856793650130236333
+      verdant_fighter_4_rugged_v2_concept_66: -5642908698741037300
+      verdant_fighter_4_rugged_v2_concept_67: 3795105271436776819
+      verdant_fighter_4_rugged_v2_concept_68: 5376581474038467636
+      verdant_fighter_4_rugged_v2_concept_69: -952694318517739798
+      verdant_fighter_4_rugged_v2_concept_7: -584175353666767141
+      verdant_fighter_4_rugged_v2_concept_70: -3174152827616906306
+      verdant_fighter_4_rugged_v2_concept_71: -7963390747646768803
+      verdant_fighter_4_rugged_v2_concept_72: -9079277862367248230
+      verdant_fighter_4_rugged_v2_concept_8: -1344776322809771383
+      verdant_fighter_4_rugged_v2_concept_9: -2510712510367360242
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
