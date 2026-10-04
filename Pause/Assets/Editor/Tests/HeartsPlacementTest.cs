@@ -390,10 +390,16 @@ public static class HeartsPlacementTest
                         meters++;
                         var mb = meter.View.GetComponent<SpriteRenderer>().bounds;
                         if (!ShipUiSlots.Inside(safe, mb)) meterOff = meterOff ?? ShipId.KeyOf(id) + " at " + spot;
-                        if (Hits(hearts, meter.Footprint)) hitAt = hitAt ?? ShipId.KeyOf(id) + " hearts/meter at " + spot;
+                        // orbiting hearts (spinners) only keep clear of the badge as drawn
+                        Bounds keep = rig.hearts.Orbiting ? mb : meter.Footprint;
+                        if (Hits(hearts, keep)) hitAt = hitAt ?? ShipId.KeyOf(id) + " hearts/meter at " + spot;
                     }
-                    if (Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds) ||
-                        Hits(hearts, ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id)))
+                    bool hit = rig.hearts.Orbiting
+                        ? HitsCircle(hearts, spot, HullRadius(rig)) ||
+                          Hits(hearts, rig.indicator.View.GetComponent<SpriteRenderer>().bounds)
+                        : Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds) ||
+                          Hits(hearts, ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id));
+                    if (hit)
                         hitAt = hitAt ?? ShipId.KeyOf(id) + " at " + spot;
                 }
                 Teardown(rig);
