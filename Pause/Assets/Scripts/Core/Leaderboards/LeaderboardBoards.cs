@@ -16,6 +16,7 @@ public enum LeaderboardSort
 // What a finished run measured, in the units the boards store.
 public struct LeaderboardRunStats
 {
+    public long score;         // the run score (RunScore.Total)
     public long topSpeed;      // the speed readout: round(moveBackGround.speed * 100)
     public float starDust;     // star dust earned in this run
     public int worldIndex;     // furthest world reached (0 = Space)
@@ -68,12 +69,26 @@ public sealed class LeaderboardBoard
 
 public static class LeaderboardBoards
 {
+    public const string TopScore = "top_score";
     public const string TopSpeed = "top_speed";
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";
 
+    // Order is tab order: the primary board first.
     public static readonly LeaderboardBoard[] All =
     {
+        // The primary board. Disabled until the Play Console board exists:
+        // paste its generated id (Get resources) into the empty string.
+        new LeaderboardBoard(TopScore,
+            "",   // Play Console id
+            AchievementIds.IosPrefix + "top_score",
+            "Top Score",
+            "Best score in a single run.",
+            LeaderboardSort.HigherIsBetter,
+            FormatScore,
+            run => run.score),
+
+        // Secondary: already live in both stores.
         new LeaderboardBoard(TopSpeed,
             StringHolder.leaderboard_highest_speed_reached,
             AchievementIds.IosPrefix + "highest_speed",
@@ -114,6 +129,11 @@ public static class LeaderboardBoards
         var list = new List<LeaderboardBoard>();
         foreach (var b in All) if (b.Enabled) list.Add(b);
         return list;
+    }
+
+    public static string FormatScore(long v)
+    {
+        return v.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
     }
 
     public static string FormatHundredths(long v)

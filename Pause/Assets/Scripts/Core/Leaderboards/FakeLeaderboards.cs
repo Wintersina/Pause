@@ -138,9 +138,11 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         {
             string id = board.PlatformId(ios);
             if (string.IsNullOrEmpty(id)) continue;
+            // Score boards read in the tens of thousands, not speed units.
+            long k = board.id == LeaderboardBoards.TopScore ? 97 : 1;
             var list = new List<LeaderboardEntry>();
-            for (int i = 0; i < names.Length; i++) list.Add(Entry(i + 1, names[i], 400 - i * 17));
-            list.Add(Entry(14, "KANEDA", 172, true));
+            for (int i = 0; i < names.Length; i++) list.Add(Entry(i + 1, names[i], (400 - i * 17) * k));
+            list.Add(Entry(14, "KANEDA", 172 * k, true));
             fake.Boards[id] = list;
         }
         return fake;
