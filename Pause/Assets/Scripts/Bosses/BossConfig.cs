@@ -80,11 +80,36 @@ public static class BossConfig
     public static float ShardWorldSize = .42f;
     public static float BoltHitRadius = .13f;
     public static float ShardHitRadius = .12f;
-    // Lanes split the playfield (the ship's x clamp, +/-2.4) into this many
-    // columns; a lane beam's hitbox is this fraction of its column.
+    // Lobbed shots (Frost's hail) split the playfield (the ship's x clamp,
+    // +/-2.4) into this many columns and rain on all but one, aimed to be
+    // over their column by LobTargetY (where the ship usually flies).
     public static int LaneSlots = 5;
     public static float LaneHalfWidth = 2.4f;
-    public static float LaneHitFraction = .7f;
+    public static float LobTargetY = -3.2f;
+    public static float LobJitter = .15f;
+
+    // ---- lasers (BossBeam) ----
+    // A live beam's hitbox is this fraction of its drawn width.
+    public static float BeamHitFraction = .7f;
+    // It grows out of its part at this speed (world units / s) -- never
+    // pops in full length -- and the tell's sight line at GrowSpeed x 2.
+    public static float BeamGrowSpeed = 26f;
+    // Width of the tell's sight line, as a fraction of the beam's.
+    public static float BeamSightWidth = .3f;
+    // The tell's sight line scans the arc the beam will sweep this often.
+    public static float BeamScanSeconds = .4f;
+    // After its hold the beam thins out over this (harmless) before it goes.
+    public static float BeamFadeSeconds = .1f;
+    // Size of the flash at a beam's root and of the spark where it meets a rail.
+    public static float BeamFlashSize = .55f;
+
+    // ---- rails ----
+    // Size of the spark a ricochet or a splash makes on a rail.
+    public static float RailSparkSize = .5f;
+    public static int SparkPoolMax = 16;
+    // Size of the flash at a part the instant it fires, and of its tell's charge.
+    public static float MuzzleFlashSize = .6f;
+    public static float ChargeMinSize = .3f, ChargeMaxSize = .75f;
 
     // ---- developer ----
     // Boss rush (Options > developer): seconds of flight before the boss.

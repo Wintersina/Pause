@@ -22,6 +22,7 @@ public static class AllTests
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
+        ("BossAttackTest", BossAttackTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),

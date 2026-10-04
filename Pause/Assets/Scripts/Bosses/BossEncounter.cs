@@ -187,6 +187,7 @@ public class BossEncounter : MonoBehaviour
         preSpeed = moveBackGround.speed;
         freePress = true;
         actor = BossActor.Spawn(boss);
+        BossRails.Measure();   // the walls boss shots ricochet off or splash on
         pool = new BossProjectilePool(BossConfig.ProjectilePoolMax, BossConfig.BeamPoolMax);
         if (Application.isPlaying) ui = BossIntroUI.Play(boss);
         WorldMusic.BeginBoss(WorldManager.Worlds[Mathf.Clamp(world, 0, WorldManager.Worlds.Length - 1)]);

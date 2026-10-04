@@ -25,15 +25,18 @@ using UnityEngine;
 // The hull's hit flash (ShipHullAnimator) is untouched; the shield and Cloak
 // don't involve this at all.
 //
-// Fire retardant: while the ship is hurt, the life hearts floating round it
-// (ShipLivesIndicator; the heart nearest the spot) -- or, on a hull with no
-// hearts, the companion gun hovering beside it (UltimateGun, never while it
-// is sliding out to fire) -- periodically spray cartoon retardant at the
-// worst live spot (flame first, then arc, smoke, smolder, sparks; never the
-// same spot twice running): a jet of pale-blue droplets that lands as
-// bubbly white foam. A doused spot calms for a moment -- the flame shrinks,
-// the arc and sparks stop, its smoke turns to thin pale steam. The critical
-// state sprays about twice as often; healed to intact, it stops.
+// Fire retardant: the companion drone floating beside the ship (UltimateGun)
+// is its firefighter. Every hit startles it (a jolt and an alarm blink);
+// then, while the ship is hurt, it hurries in to a station beside the worst
+// live spot (flame first, then arc, smoke, smolder, sparks; never the same
+// spot twice running), leans toward it, pops its nozzle out and sprays a jet
+// of pale-blue droplets that lands as bubbly white foam. A doused spot calms
+// for a moment -- the flame shrinks, the arc and sparks stop, its smoke
+// turns to thin pale steam. Between sprays it drifts back to its hover. The
+// critical state sprays about three times as often; healed to intact, it
+// stops. It never sprays around the ultimate: it gives way a moment before
+// the gun starts sliding out to fire and until it has settled back.
+// The hearts don't spray (they only keep the spray from drawing over them).
 //
 // Emitters ride the hull: each is placed every frame at its canvas point
 // posed like the frame on screen (bob, bank lean -- ShipDamageTable.Local),
@@ -55,8 +58,8 @@ public class ShipDamageFx : MonoBehaviour
 
     // DamageFx atlas rows (damage_fx.py), 4 drawings each.
     public const int RowCrackle = 0, RowSpark = 1, RowArc = 2, RowSmoke = 3, RowFlame = 4,
-                     RowDrop = 5, RowChunk = 6, RowScrap = 7, RowFoam = 8, RowSpray = 9;
-    const int AtlasColumns = 4, AtlasRows = 10;
+                     RowDrop = 5, RowChunk = 6, RowScrap = 7, RowFoam = 8, RowSpray = 9, RowNozzle = 10;
+    const int AtlasColumns = 4, AtlasRows = 11;
 
     // Sizes and speeds are fractions of the hull's longest edge (world), so a
     // big and a small hull read alike.
@@ -65,13 +68,19 @@ public class ShipDamageFx : MonoBehaviour
     public const float SmolderStart = .08f, SmolderEnd = .19f;
     public const float SprayDropSize = .2f, FoamStart = .16f, FoamEnd = .32f;
     // The furthest anything flies from its emitter, in hull lengths (tests);
-    // the retardant flies from the heart / gun to the hull, so further.
+    // the retardant flies from the drone to the hull, so further.
     public const float MaxReach = .75f, SprayReach = 3f;
 
     // Retardant timing (seconds of gameplay time).
     public const float SprayFirst = .8f, SprayDuration = .7f, DouseSeconds = 1.6f;
     public const float SprayGapDamaged = 3f, SprayGapCritical = 1.0f;
-    const float SprayTravel = .22f;        // a droplet's flight time, heart to spot
+    // A hit: the drone is startled, then flies in to spray this soon.
+    public const float HitReact = UltimateGun.StartleSeconds + .35f;
+    // It starts flying in this long before a spray is due.
+    const float ApproachLead = .45f;
+    // It stands down this long before the ultimate starts sliding out.
+    public const float UltimateYield = .8f;
+    const float SprayTravel = .22f;        // a droplet's flight time, nozzle to spot
 
     static Sprite[] frames;
     static readonly int[] CrackleTicks = { 1, 1, 2, 2 };
@@ -100,6 +109,7 @@ public class ShipDamageFx : MonoBehaviour
     lifeControler life;
     ShipLivesIndicator hearts;
     UltimateGun gun;
+    ShipPowerController power;
     Transform root;
     Emitter[] emitters;
     Particle[] particles;
@@ -113,7 +123,7 @@ public class ShipDamageFx : MonoBehaviour
 
     // retardant
     float clock, sprayNext = SprayFirst, sprayLeft, sprayAge, sprayEmit, foamEmit;
-    int sprayTarget = -1, sprayHeart = -1;
+    int sprayTarget = -1, aimTarget = -1, lastHits, gunAvoid = -1;
     Vector3 sprayFrom;
 
     public int ShipIdShown { get { return id; } }
@@ -124,13 +134,15 @@ public class ShipDamageFx : MonoBehaviour
     public float HullSize { get { return hullSize; } }
     public int Bursts { get; private set; }
 
-    // Retardant (tests): sprays started, the one running, where it comes from.
+    // Retardant (tests): sprays started, the one running, where it comes from
+    // (the drone's nozzle), the spot the drone is heading for, hits seen.
     public int Sprays { get; private set; }
     public bool Spraying { get { return sprayLeft > 0f && sprayTarget >= 0; } }
     public int SprayTarget { get { return Spraying ? sprayTarget : -1; } }
+    public int AimTarget { get { return state > 0 ? aimTarget : -1; } }
     public Vector3 SprayFrom { get { return sprayFrom; } }
-    // Which heart is spraying (-1: none, or the gun is).
-    public int SprayHeart { get { return Spraying ? sprayHeart : -1; } }
+    public UltimateGun Firefighter { get { return gun; } }
+    public int HitsSeen { get; private set; }
     public float Doused(int i) { return emitters != null && i >= 0 && i < emitters.Length ? emitters[i].doused : 0f; }
 
     public int ActiveParticles
@@ -238,6 +250,7 @@ public class ShipDamageFx : MonoBehaviour
         }
         hearts = GetComponent<ShipLivesIndicator>();
         state = CurrentState();
+        lastHits = collisionDetection.lifeCounter;
     }
 
     int CurrentState()
@@ -258,6 +271,11 @@ public class ShipDamageFx : MonoBehaviour
         if (dt <= 0f) return;
         clock += dt;
 
+        // a hit (even one that leaves the state as it was) startles the drone
+        int hits = collisionDetection.lifeCounter;
+        if (hits > lastHits && !buttonClicks.playerDied) Hit();
+        lastHits = hits;
+
         int now = CurrentState();
         if (now != state)
         {
@@ -270,9 +288,18 @@ public class ShipDamageFx : MonoBehaviour
 
         if (hearts == null) TryGetComponent(out hearts);   // attached after the ship spawns
         if (gun == null) gun = GetComponentInChildren<UltimateGun>();
+        if (power == null) TryGetComponent(out power);
         avoid.Clear();
-        ShipUiSlots.Drawn(transform, avoid, this);
+        // the drone's own box last: the retardant leaves its nozzle, so only
+        // the rest ducks it
+        ShipUiSlots.Drawn(transform, avoid, gun != null ? (Object)gun : this);
         if (hearts != null) hearts.HeartBounds(avoid);
+        gunAvoid = -1;
+        if (gun != null)
+        {
+            var g = ShipUiSlots.DrawnBounds(gun.transform);
+            if (g.size.sqrMagnitude > 0f) { gunAvoid = avoid.Count; avoid.Add(g); }
+        }
 
         int column = life != null && life.HullAnimator != null ? life.HullAnimator.Column : 0;
         int live = ShipDamageTable.Count(id, state);
@@ -491,76 +518,73 @@ public class ShipDamageFx : MonoBehaviour
         return best;
     }
 
-    // Where the retardant comes from for a spot: the nearest shown heart, or
-    // the companion gun when the hull has no hearts (not while it's sliding
-    // out to fire the ultimate). False: nothing to spray from right now.
-    bool SpraySource(Vector3 target, out Vector3 from, out int heart)
-    {
-        from = Vector3.zero;
-        heart = -1;
-        var list = hearts != null ? hearts.Hearts : null;
-        if (list != null)
-        {
-            float best = float.MaxValue;
-            for (int i = 0; i < list.Length; i++)
-            {
-                var h = list[i];
-                if (h == null || !h.gameObject.activeInHierarchy || hearts.Shrink(i) < .5f) continue;
-                float d = (h.position - target).sqrMagnitude;
-                if (d < best) { best = d; heart = i; from = h.position; }
-            }
-            if (heart >= 0) return true;
-        }
-        if (gun != null && gun.isActiveAndEnabled && gun.Extend01 < .05f && !gun.Flashing)
-        {
-            from = gun.transform.position;
-            return true;
-        }
-        return false;
-    }
-
     void StopSpray()
     {
         sprayLeft = 0f;
         sprayTarget = -1;
-        sprayHeart = -1;
+    }
+
+    // A hit: the drone jolts, stops what it was doing and comes in soon.
+    void Hit()
+    {
+        HitsSeen++;
+        if (gun != null) gun.Startle();
+        if (sprayLeft > 0f) StopSpray();
+        aimTarget = -1;
+        sprayNext = HitReact;
+    }
+
+    // The ultimate is about to slide the drone out (or is): stand down.
+    bool UltimateSoon()
+    {
+        if (gun != null && gun.Busy) return true;
+        return power != null && power.isActiveAndEnabled && power.SecondsLeft <= power.extendLeadSeconds + UltimateYield;
     }
 
     void StepSpray(int column, float dt, int live)
     {
-        if (state == 0) { StopSpray(); sprayNext = SprayFirst; return; }
+        if (state == 0 || gun == null || !gun.isActiveAndEnabled)
+        {
+            StopSpray();
+            aimTarget = -1;
+            sprayNext = SprayFirst;
+            if (gun != null) gun.Firefight(false, transform.position, false);
+            return;
+        }
         bool critical = state >= ShipDamageTable.States - 1;
+        if (UltimateSoon())
+        {
+            StopSpray();
+            aimTarget = -1;
+            sprayNext = Mathf.Max(sprayNext, ApproachLead + .2f);
+            gun.Firefight(false, transform.position, false);
+            return;
+        }
 
         if (sprayLeft <= 0f || sprayTarget < 0)
         {
             sprayNext -= dt;
+            if (aimTarget >= live || (aimTarget >= 0 && emitters[aimTarget].doused > 0f)) aimTarget = -1;
+            if (aimTarget < 0 && sprayNext <= ApproachLead) aimTarget = PickSprayTarget();
+            bool approach = aimTarget >= 0 && sprayNext <= ApproachLead && !gun.Startling;
+            gun.Firefight(approach, aimTarget >= 0 ? EmitterWorld(aimTarget, column) : transform.position, false);
             if (sprayNext > 0f) return;
-            int target = PickSprayTarget();
-            Vector3 from;
-            int heart;
-            if (target < 0 || !SpraySource(EmitterWorld(target, column), out from, out heart))
-            {
-                sprayNext = .5f;   // nothing to spray at / from yet: look again soon
-                return;
-            }
-            sprayTarget = target;
-            sprayHeart = heart;
-            sprayFrom = from;
+            if (aimTarget < 0) { sprayNext = .5f; return; }   // nothing to spray yet: look again soon
+            if (!gun.OnStation) return;                       // still flying in
+            sprayTarget = aimTarget;
             sprayLeft = SprayDuration;
             sprayAge = 0f;
             sprayEmit = 0f;
             foamEmit = 0f;
-            emitters[target].lastSprayed = clock;
+            emitters[sprayTarget].lastSprayed = clock;
             Sprays++;
         }
 
-        if (sprayTarget >= live) { StopSpray(); sprayNext = .5f; return; }
+        if (sprayTarget >= live) { StopSpray(); aimTarget = -1; sprayNext = .5f; return; }
         Vector3 to = EmitterWorld(sprayTarget, column);
-        Vector3 src;
-        int h;
-        if (!SpraySource(to, out src, out h)) { StopSpray(); sprayNext = .5f; return; }
+        gun.Firefight(true, to, true);
+        Vector3 src = gun.NozzlePosition;
         sprayFrom = src;
-        sprayHeart = h;
 
         Vector3 d = to - src;
         d.z = 0f;
@@ -569,16 +593,16 @@ public class ShipDamageFx : MonoBehaviour
         sprayLeft -= dt;
         sprayAge += dt;
 
-        // the jet: droplets flying from the heart / gun to the spot
+        // the jet: droplets flying from the nozzle to the spot
         sprayEmit -= dt;
         while (sprayEmit <= 0f && sprayLeft > SprayTravel * .5f)
         {
             sprayEmit += .025f;
-            float a = Random.Range(-10f, 10f) * Mathf.Deg2Rad;
+            float a = Random.Range(-8f, 8f) * Mathf.Deg2Rad;
             var v = new Vector3(dir.x * Mathf.Cos(a) - dir.y * Mathf.Sin(a), dir.x * Mathf.Sin(a) + dir.y * Mathf.Cos(a), 0f);
             float speed = dist / SprayTravel;
             float size = SprayDropSize * hullSize * Random.Range(.8f, 1.15f);
-            Spawn(RowSpray, src + v * hullSize * .05f, v * speed, SprayTravel * Random.Range(.9f, 1.1f), size, size * .7f,
+            Spawn(RowSpray, src, v * speed, SprayTravel * Random.Range(.9f, 1.05f), size * .7f, size,
                   0f, 0f, 0f, Color.white, -1, true, SprayReach, false);
         }
 
@@ -597,17 +621,10 @@ public class ShipDamageFx : MonoBehaviour
             }
         }
 
-        // the spraying heart leans into it (ShipLivesIndicator resets it upright every frame)
-        if (sprayHeart >= 0 && hearts != null && hearts.Hearts != null && sprayHeart < hearts.Hearts.Length &&
-            hearts.Hearts[sprayHeart] != null)
-        {
-            float lean = Mathf.Clamp(Mathf.DeltaAngle(-90f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg), -25f, 25f);
-            hearts.Hearts[sprayHeart].rotation = Quaternion.Euler(0f, 0f, lean);
-        }
-
         if (sprayLeft <= 0f)
         {
             StopSpray();
+            aimTarget = -1;
             float gap = critical ? SprayGapCritical : SprayGapDamaged;
             sprayNext = gap * Random.Range(.85f, 1.15f);
         }
@@ -637,11 +654,12 @@ public class ShipDamageFx : MonoBehaviour
         };
         var sr = particleRenderers[slot];
         sr.color = tint;
-        // engine smoke and drips go behind the hull; sparks, debris, the
-        // smolder off a wound and the retardant in front
+        // engine smoke and drips go behind the hull; sparks, debris and the
+        // smolder off a wound in front; the retardant over the drone too
         int order = hull != null ? hull.sortingOrder : 0;
         bool behind = row == RowDrop || (row == RowSmoke && !fade);
-        sr.sortingOrder = behind ? order - 1 : order + 1;
+        bool retardant = row == RowSpray || row == RowFoam;
+        sr.sortingOrder = behind ? order - 1 : retardant ? order + 3 : order + 1;
         sr.sprite = Frame(row, drawing < 0 ? 0 : drawing);
         sr.enabled = true;
         particles[slot].angle = drawing >= 0 && !faceVelocity ? particles[slot].angle : 0f;
@@ -691,16 +709,18 @@ public class ShipDamageFx : MonoBehaviour
                 angle = Mathf.Atan2(p.vel.y, p.vel.x) * Mathf.Rad2Deg - 90f;   // drawn pointing +y
             t.rotation = Quaternion.Euler(0f, 0f, angle);
             t.localScale = Vector3.one * (Mathf.Lerp(p.size0, p.size1, u) * local);
-            Duck(sr, p.pos, Mathf.Lerp(p.size0, p.size1, u) * .5f);
+            Duck(sr, p.pos, Mathf.Lerp(p.size0, p.size1, u) * .5f, p.row == RowSpray || p.row == RowFoam);
         }
     }
 
-    // Hidden this frame if it would cover a heart or a ship element.
-    void Duck(SpriteRenderer sr, Vector3 at, float radius)
+    // Hidden this frame if it would cover a heart or a ship element (the
+    // retardant may cross its own drone).
+    void Duck(SpriteRenderer sr, Vector3 at, float radius, bool retardant = false)
     {
         if (!sr.enabled) return;
         for (int k = 0; k < avoid.Count; k++)
         {
+            if (retardant && k == gunAvoid) continue;
             var b = avoid[k];
             if (Mathf.Abs(at.x - b.center.x) < b.extents.x + radius &&
                 Mathf.Abs(at.y - b.center.y) < b.extents.y + radius)

@@ -1,0 +1,1885 @@
+fileFormatVersion: 2
+guid: c6e6631b7d9e84d618dd05a9f54d28a4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6388395611838975016
+    second: ember_fighter_4_rugged_v2_concept_0
+  - first:
+      213: 8810962233306671381
+    second: ember_fighter_4_rugged_v2_concept_1
+  - first:
+      213: 5253894296065766774
+    second: ember_fighter_4_rugged_v2_concept_2
+  - first:
+      213: 6729010643945073253
+    second: ember_fighter_4_rugged_v2_concept_3
+  - first:
+      213: 7939689970180012099
+    second: ember_fighter_4_rugged_v2_concept_4
+  - first:
+      213: -2448196633116180797
+    second: ember_fighter_4_rugged_v2_concept_5
+  - first:
+      213: -4102315282651987455
+    second: ember_fighter_4_rugged_v2_concept_6
+  - first:
+      213: 253325221649628224
+    second: ember_fighter_4_rugged_v2_concept_7
+  - first:
+      213: -5514681168192192709
+    second: ember_fighter_4_rugged_v2_concept_8
+  - first:
+      213: 5578079196381372236
+    second: ember_fighter_4_rugged_v2_concept_9
+  - first:
+      213: 3559734793942722600
+    second: ember_fighter_4_rugged_v2_concept_10
+  - first:
+      213: 4058896640008918456
+    second: ember_fighter_4_rugged_v2_concept_11
+  - first:
+      213: -1289243083334587824
+    second: ember_fighter_4_rugged_v2_concept_12
+  - first:
+      213: 6173216871578548124
+    second: ember_fighter_4_rugged_v2_concept_13
+  - first:
+      213: -5434123661500073578
+    second: ember_fighter_4_rugged_v2_concept_14
+  - first:
+      213: 7617570868840786363
+    second: ember_fighter_4_rugged_v2_concept_15
+  - first:
+      213: -6560037132215611127
+    second: ember_fighter_4_rugged_v2_concept_16
+  - first:
+      213: 8466392890098911406
+    second: ember_fighter_4_rugged_v2_concept_17
+  - first:
+      213: -4760422051581559832
+    second: ember_fighter_4_rugged_v2_concept_18
+  - first:
+      213: -9068427481117508326
+    second: ember_fighter_4_rugged_v2_concept_19
+  - first:
+      213: -2370544488558578206
+    second: ember_fighter_4_rugged_v2_concept_20
+  - first:
+      213: -711273486501937904
+    second: ember_fighter_4_rugged_v2_concept_21
+  - first:
+      213: -1477756436444277954
+    second: ember_fighter_4_rugged_v2_concept_22
+  - first:
+      213: -8160947247277707594
+    second: ember_fighter_4_rugged_v2_concept_23
+  - first:
+      213: 8297808995722203192
+    second: ember_fighter_4_rugged_v2_concept_24
+  - first:
+      213: -2500575018274158792
+    second: ember_fighter_4_rugged_v2_concept_25
+  - first:
+      213: 4049384172096280263
+    second: ember_fighter_4_rugged_v2_concept_26
+  - first:
+      213: 6780962192890861849
+    second: ember_fighter_4_rugged_v2_concept_27
+  - first:
+      213: -3565861076919397622
+    second: ember_fighter_4_rugged_v2_concept_28
+  - first:
+      213: -6098572203654998458
+    second: ember_fighter_4_rugged_v2_concept_29
+  - first:
+      213: -370339953473278485
+    second: ember_fighter_4_rugged_v2_concept_30
+  - first:
+      213: 4150473411489855072
+    second: ember_fighter_4_rugged_v2_concept_31
+  - first:
+      213: -4756337722588814500
+    second: ember_fighter_4_rugged_v2_concept_32
+  - first:
+      213: 7767221378063310299
+    second: ember_fighter_4_rugged_v2_concept_33
+  - first:
+      213: 6183076686546415208
+    second: ember_fighter_4_rugged_v2_concept_34
+  - first:
+      213: -1776499295253258425
+    second: ember_fighter_4_rugged_v2_concept_35
+  - first:
+      213: -6001540996130552660
+    second: ember_fighter_4_rugged_v2_concept_36
+  - first:
+      213: -3343971689156452176
+    second: ember_fighter_4_rugged_v2_concept_37
+  - first:
+      213: 8671333920384569026
+    second: ember_fighter_4_rugged_v2_concept_38
+  - first:
+      213: -7995550523954027422
+    second: ember_fighter_4_rugged_v2_concept_39
+  - first:
+      213: 816179892023008790
+    second: ember_fighter_4_rugged_v2_concept_40
+  - first:
+      213: -6603313537929282239
+    second: ember_fighter_4_rugged_v2_concept_41
+  - first:
+      213: -1488500901888876584
+    second: ember_fighter_4_rugged_v2_concept_42
+  - first:
+      213: 3607765609108810627
+    second: ember_fighter_4_rugged_v2_concept_43
+  - first:
+      213: -296653499232325598
+    second: ember_fighter_4_rugged_v2_concept_44
+  - first:
+      213: 590483756042123228
+    second: ember_fighter_4_rugged_v2_concept_45
+  - first:
+      213: -2060113298676759822
+    second: ember_fighter_4_rugged_v2_concept_46
+  - first:
+      213: -7936531850375399448
+    second: ember_fighter_4_rugged_v2_concept_47
+  - first:
+      213: -176050231821077332
+    second: ember_fighter_4_rugged_v2_concept_48
+  - first:
+      213: -5359431935702921770
+    second: ember_fighter_4_rugged_v2_concept_49
+  - first:
+      213: -444847143620265698
+    second: ember_fighter_4_rugged_v2_concept_50
+  - first:
+      213: -8007879600254805295
+    second: ember_fighter_4_rugged_v2_concept_51
+  - first:
+      213: -5064949316294144792
+    second: ember_fighter_4_rugged_v2_concept_52
+  - first:
+      213: 2900124277496000253
+    second: ember_fighter_4_rugged_v2_concept_53
+  - first:
+      213: -3194008074345746438
+    second: ember_fighter_4_rugged_v2_concept_54
+  - first:
+      213: -6527517923865069792
+    second: ember_fighter_4_rugged_v2_concept_55
+  - first:
+      213: -1697930122963811640
+    second: ember_fighter_4_rugged_v2_concept_56
+  - first:
+      213: -389559516509716923
+    second: ember_fighter_4_rugged_v2_concept_57
+  - first:
+      213: 7910154875156886069
+    second: ember_fighter_4_rugged_v2_concept_58
+  - first:
+      213: 1553297500627391506
+    second: ember_fighter_4_rugged_v2_concept_59
+  - first:
+      213: 9194441725464462737
+    second: ember_fighter_4_rugged_v2_concept_60
+  - first:
+      213: -3102979046470459112
+    second: ember_fighter_4_rugged_v2_concept_61
+  - first:
+      213: -6328613156620582151
+    second: ember_fighter_4_rugged_v2_concept_62
+  - first:
+      213: 6457189058757536127
+    second: ember_fighter_4_rugged_v2_concept_63
+  - first:
+      213: 7235366082314194791
+    second: ember_fighter_4_rugged_v2_concept_64
+  - first:
+      213: -327335341011608875
+    second: ember_fighter_4_rugged_v2_concept_65
+  - first:
+      213: 1576604230927553733
+    second: ember_fighter_4_rugged_v2_concept_66
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 23
+        width: 926
+        height: 665
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d37ca7c90cd757a0800000000000000
+      internalID: -6388395611838975016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 624
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51960adf773d64a70800000000000000
+      internalID: 8810962233306671381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 629
+        y: 636
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6757374a60599e840800000000000000
+      internalID: 5253894296065766774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 632
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56a2b22678f326d50800000000000000
+      internalID: 6729010643945073253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 883
+        y: 624
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 348bf4b26f17f2e60800000000000000
+      internalID: 7939689970180012099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 616
+        width: 68
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ce7dce1222460ed0800000000000000
+      internalID: -2448196633116180797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1048
+        y: 586
+        width: 138
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1024fd44cf5a117c0800000000000000
+      internalID: -4102315282651987455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 624
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04cb21962fdf38300800000000000000
+      internalID: 253325221649628224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1078
+        y: 612
+        width: 15
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3f3e5012bae773b0800000000000000
+      internalID: -5514681168192192709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 1221
+        y: 564
+        width: 193
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4fde45a971596d40800000000000000
+      internalID: 5578079196381372236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1430
+        y: 19
+        width: 742
+        height: 665
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 828ed8f4fe7b66130800000000000000
+      internalID: 3559734793942722600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 608
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b512c73df8145830800000000000000
+      internalID: 4058896640008918456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 562
+        width: 34
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05a66b41f30bb1ee0800000000000000
+      internalID: -1289243083334587824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1070
+        y: 618
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9733ef990caba550800000000000000
+      internalID: 6173216871578548124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 596
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6993eb2325d1694b0800000000000000
+      internalID: -5434123661500073578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 587
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb96e98785c07b960800000000000000
+      internalID: 7617570868840786363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 588
+        width: 30
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9019aec1cf016f4a0800000000000000
+      internalID: -6560037132215611127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 582
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea80d370a7bae7570800000000000000
+      internalID: 8466392890098911406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 580
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eb7b8aad559fedb0800000000000000
+      internalID: -4760422051581559832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 128
+        width: 18
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1db994a049762280800000000000000
+      internalID: -9068427481117508326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 130
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e5b43be8522a1fd0800000000000000
+      internalID: -2370544488558578206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 124
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01df5e2588c0126f0800000000000000
+      internalID: -711273486501937904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 118
+        width: 25
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e33113db954fd7be0800000000000000
+      internalID: -1477756436444277954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 128
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6be6f4797bd7ebe80800000000000000
+      internalID: -8160947247277707594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 112
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8301014615db72370800000000000000
+      internalID: 8297808995722203192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 183
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8378d8df44c2c4dd0800000000000000
+      internalID: -2500575018274158792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 146
+        width: 13
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c653e0337d423830800000000000000
+      internalID: 4049384172096280263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 95
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9191d96ff21da1e50800000000000000
+      internalID: 6780962192890861849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 128
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a03d3d74e34838ec0800000000000000
+      internalID: -3565861076919397622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 109
+        width: 13
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 646921474e48d5ba0800000000000000
+      internalID: -6098572203654998458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 98
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bed271346c94cdaf0800000000000000
+      internalID: -370339953473278485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 118
+        width: 6
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0667e8dd391799930800000000000000
+      internalID: 4150473411489855072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 110
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c53ad4d9a081efdb0800000000000000
+      internalID: -4756337722588814500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 95
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdd984bd0b6bacb60800000000000000
+      internalID: 7767221378063310299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 112
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86e2990bc73bec550800000000000000
+      internalID: 6183076686546415208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 114
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74f92b2ad4b9857e0800000000000000
+      internalID: -1776499295253258425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 150
+        width: 11
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca4c1b4f24e36bca0800000000000000
+      internalID: -6001540996130552660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_37
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 152
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b0edd04773d791d0800000000000000
+      internalID: -3343971689156452176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_38
+      rect:
+        serializedVersion: 2
+        x: 555
+        y: 154
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ce41550244c65870800000000000000
+      internalID: 8671333920384569026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_39
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 146
+        width: 15
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 264280429291a0190800000000000000
+      internalID: -7995550523954027422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_40
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 174
+        width: 19
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61e19d89947a35b00800000000000000
+      internalID: 816179892023008790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_41
+      rect:
+        serializedVersion: 2
+        x: 690
+        y: 97
+        width: 21
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14d7237b2515c54a0800000000000000
+      internalID: -6603313537929282239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_42
+      rect:
+        serializedVersion: 2
+        x: 732
+        y: 136
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8df901fe058c75be0800000000000000
+      internalID: -1488500901888876584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_43
+      rect:
+        serializedVersion: 2
+        x: 742
+        y: 120
+        width: 17
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38b2dcbe4bb511230800000000000000
+      internalID: 3607765609108810627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_44
+      rect:
+        serializedVersion: 2
+        x: 754
+        y: 110
+        width: 27
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22071e4d63312ebf0800000000000000
+      internalID: -296653499232325598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_45
+      rect:
+        serializedVersion: 2
+        x: 814
+        y: 180
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd7778cf8d1d13800800000000000000
+      internalID: 590483756042123228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_46
+      rect:
+        serializedVersion: 2
+        x: 925
+        y: 71
+        width: 626
+        height: 462
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f2405baed10963e0800000000000000
+      internalID: -2060113298676759822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_47
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 97
+        width: 25
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e7fcc5e456cbd190800000000000000
+      internalID: -7936531850375399448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_48
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 110
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca4fda53f3b8e8df0800000000000000
+      internalID: -176050231821077332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_49
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 134
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dd0b8acc097f95b0800000000000000
+      internalID: -5359431935702921770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_50
+      rect:
+        serializedVersion: 2
+        x: 1138
+        y: 174
+        width: 38
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e19ba2931e593d9f0800000000000000
+      internalID: -444847143620265698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_51
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 102
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1da17be5eeb4ed090800000000000000
+      internalID: -8007879600254805295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_52
+      rect:
+        serializedVersion: 2
+        x: 1168
+        y: 146
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ec0eec9e6fa5b9b0800000000000000
+      internalID: -5064949316294144792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_53
+      rect:
+        serializedVersion: 2
+        x: 1174
+        y: 144
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfea2a43aaf4f3820800000000000000
+      internalID: 2900124277496000253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_54
+      rect:
+        serializedVersion: 2
+        x: 1285
+        y: 100
+        width: 13
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aff64e6349a9ca3d0800000000000000
+      internalID: -3194008074345746438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_55
+      rect:
+        serializedVersion: 2
+        x: 1333
+        y: 79
+        width: 27
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 027f60358099965a0800000000000000
+      internalID: -6527517923865069792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_56
+      rect:
+        serializedVersion: 2
+        x: 1356
+        y: 83
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c28e479c8dbf68e0800000000000000
+      internalID: -1697930122963811640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_57
+      rect:
+        serializedVersion: 2
+        x: 1364
+        y: 83
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54eb0970fa1089af0800000000000000
+      internalID: -389559516509716923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_58
+      rect:
+        serializedVersion: 2
+        x: 1510
+        y: 101
+        width: 20
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 532fc0cf2f386cd60800000000000000
+      internalID: 7910154875156886069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_59
+      rect:
+        serializedVersion: 2
+        x: 1522
+        y: 87
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 214d56bd8db6e8510800000000000000
+      internalID: 1553297500627391506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_60
+      rect:
+        serializedVersion: 2
+        x: 1523
+        y: 92
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 195c65af808399f70800000000000000
+      internalID: 9194441725464462737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_61
+      rect:
+        serializedVersion: 2
+        x: 1671
+        y: 77
+        width: 60
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 811e5ad5ff000f4d0800000000000000
+      internalID: -3102979046470459112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_62
+      rect:
+        serializedVersion: 2
+        x: 1713
+        y: 132
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f244ce4ddf3c28a0800000000000000
+      internalID: -6328613156620582151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_63
+      rect:
+        serializedVersion: 2
+        x: 1723
+        y: 83
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7928cebc3b8c9950800000000000000
+      internalID: 6457189058757536127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_64
+      rect:
+        serializedVersion: 2
+        x: 1862
+        y: 67
+        width: 32
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76f4f340e1f296460800000000000000
+      internalID: 7235366082314194791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_65
+      rect:
+        serializedVersion: 2
+        x: 1892
+        y: 71
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5da529cdd32157bf0800000000000000
+      internalID: -327335341011608875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_4_rugged_v2_concept_66
+      rect:
+        serializedVersion: 2
+        x: 2049
+        y: 23
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c490dfd13931e510800000000000000
+      internalID: 1576604230927553733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_fighter_4_rugged_v2_concept_0: -6388395611838975016
+      ember_fighter_4_rugged_v2_concept_1: 8810962233306671381
+      ember_fighter_4_rugged_v2_concept_10: 3559734793942722600
+      ember_fighter_4_rugged_v2_concept_11: 4058896640008918456
+      ember_fighter_4_rugged_v2_concept_12: -1289243083334587824
+      ember_fighter_4_rugged_v2_concept_13: 6173216871578548124
+      ember_fighter_4_rugged_v2_concept_14: -5434123661500073578
+      ember_fighter_4_rugged_v2_concept_15: 7617570868840786363
+      ember_fighter_4_rugged_v2_concept_16: -6560037132215611127
+      ember_fighter_4_rugged_v2_concept_17: 8466392890098911406
+      ember_fighter_4_rugged_v2_concept_18: -4760422051581559832
+      ember_fighter_4_rugged_v2_concept_19: -9068427481117508326
+      ember_fighter_4_rugged_v2_concept_2: 5253894296065766774
+      ember_fighter_4_rugged_v2_concept_20: -2370544488558578206
+      ember_fighter_4_rugged_v2_concept_21: -711273486501937904
+      ember_fighter_4_rugged_v2_concept_22: -1477756436444277954
+      ember_fighter_4_rugged_v2_concept_23: -8160947247277707594
+      ember_fighter_4_rugged_v2_concept_24: 8297808995722203192
+      ember_fighter_4_rugged_v2_concept_25: -2500575018274158792
+      ember_fighter_4_rugged_v2_concept_26: 4049384172096280263
+      ember_fighter_4_rugged_v2_concept_27: 6780962192890861849
+      ember_fighter_4_rugged_v2_concept_28: -3565861076919397622
+      ember_fighter_4_rugged_v2_concept_29: -6098572203654998458
+      ember_fighter_4_rugged_v2_concept_3: 6729010643945073253
+      ember_fighter_4_rugged_v2_concept_30: -370339953473278485
+      ember_fighter_4_rugged_v2_concept_31: 4150473411489855072
+      ember_fighter_4_rugged_v2_concept_32: -4756337722588814500
+      ember_fighter_4_rugged_v2_concept_33: 7767221378063310299
+      ember_fighter_4_rugged_v2_concept_34: 6183076686546415208
+      ember_fighter_4_rugged_v2_concept_35: -1776499295253258425
+      ember_fighter_4_rugged_v2_concept_36: -6001540996130552660
+      ember_fighter_4_rugged_v2_concept_37: -3343971689156452176
+      ember_fighter_4_rugged_v2_concept_38: 8671333920384569026
+      ember_fighter_4_rugged_v2_concept_39: -7995550523954027422
+      ember_fighter_4_rugged_v2_concept_4: 7939689970180012099
+      ember_fighter_4_rugged_v2_concept_40: 816179892023008790
+      ember_fighter_4_rugged_v2_concept_41: -6603313537929282239
+      ember_fighter_4_rugged_v2_concept_42: -1488500901888876584
+      ember_fighter_4_rugged_v2_concept_43: 3607765609108810627
+      ember_fighter_4_rugged_v2_concept_44: -296653499232325598
+      ember_fighter_4_rugged_v2_concept_45: 590483756042123228
+      ember_fighter_4_rugged_v2_concept_46: -2060113298676759822
+      ember_fighter_4_rugged_v2_concept_47: -7936531850375399448
+      ember_fighter_4_rugged_v2_concept_48: -176050231821077332
+      ember_fighter_4_rugged_v2_concept_49: -5359431935702921770
+      ember_fighter_4_rugged_v2_concept_5: -2448196633116180797
+      ember_fighter_4_rugged_v2_concept_50: -444847143620265698
+      ember_fighter_4_rugged_v2_concept_51: -8007879600254805295
+      ember_fighter_4_rugged_v2_concept_52: -5064949316294144792
+      ember_fighter_4_rugged_v2_concept_53: 2900124277496000253
+      ember_fighter_4_rugged_v2_concept_54: -3194008074345746438
+      ember_fighter_4_rugged_v2_concept_55: -6527517923865069792
+      ember_fighter_4_rugged_v2_concept_56: -1697930122963811640
+      ember_fighter_4_rugged_v2_concept_57: -389559516509716923
+      ember_fighter_4_rugged_v2_concept_58: 7910154875156886069
+      ember_fighter_4_rugged_v2_concept_59: 1553297500627391506
+      ember_fighter_4_rugged_v2_concept_6: -4102315282651987455
+      ember_fighter_4_rugged_v2_concept_60: 9194441725464462737
+      ember_fighter_4_rugged_v2_concept_61: -3102979046470459112
+      ember_fighter_4_rugged_v2_concept_62: -6328613156620582151
+      ember_fighter_4_rugged_v2_concept_63: 6457189058757536127
+      ember_fighter_4_rugged_v2_concept_64: 7235366082314194791
+      ember_fighter_4_rugged_v2_concept_65: -327335341011608875
+      ember_fighter_4_rugged_v2_concept_66: 1576604230927553733
+      ember_fighter_4_rugged_v2_concept_7: 253325221649628224
+      ember_fighter_4_rugged_v2_concept_8: -5514681168192192709
+      ember_fighter_4_rugged_v2_concept_9: 5578079196381372236
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -120,15 +120,14 @@ public static class TallScreenTest
             Check(s.name + ": a portal spawns above the view (" + Portal.SpawnY.ToString("F2") + ")",
                   Portal.SpawnY - .9f > size);
 
-            // A beam reaches past the bottom of the view.
+            // A laser burning straight down grows past the bottom of the view.
             var root = new GameObject("~beams");
             var beam = BossBeam.Create(root.transform);
-            beam.Begin(BossCatalog.All[0], 0f, .6f, 3f, .2f, .2f);
-            float lowest = float.MaxValue;
-            foreach (var r in beam.GetComponentsInChildren<SpriteRenderer>(true))
-                if (r.transform.localScale.y > 1f) lowest = Mathf.Min(lowest, r.transform.position.y - r.transform.localScale.y * .5f);
-            Check(s.name + ": a boss beam lane reaches past the bottom of the view (" + lowest.ToString("F2") + ")",
-                  lowest < -size);
+            beam.Begin(BossCatalog.All[0], null, -1, new Vector3(0f, 3f, 0f), -90f, 0f, .2f, 1f, .6f);
+            for (int i = 0; i < 20; i++) beam.Step(.05f);   // its tell, then grown out to full length
+            float lowest = beam.Origin.y + beam.Direction.y * beam.Length;
+            Check(s.name + ": a boss laser reaches past the bottom of the view (" + lowest.ToString("F2") + ")",
+                  beam.Live && lowest < -size);
             Object.DestroyImmediate(root);
         }
     }
