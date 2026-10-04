@@ -52,3 +52,10 @@ Builds/
 
 # Claude Code local state
 .claude/
+
+# Python caches from art generators
+__pycache__/
+*.pyc
+
+# Atom art generator (local only)
+Pause/Assets/Art/Atoms/src~/
