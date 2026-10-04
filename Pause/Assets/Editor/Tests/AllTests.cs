@@ -82,6 +82,7 @@ public static class AllTests
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
+        ("WorldPaceTest", WorldPaceTest.Execute),
     };
 
     public static void RunAll()

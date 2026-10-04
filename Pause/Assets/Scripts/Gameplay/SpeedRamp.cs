@@ -46,4 +46,32 @@ public static class SpeedRamp
     {
         lastFrame = int.MinValue;
     }
+
+    // ---- the ramp as a curve (pure; WorldManager measures worlds with it) ----
+    // Speed starts at v0, climbs `rate` per second, holds at `max`. A start at
+    // or above the cap holds where it is (Tick never lowers speed).
+
+    // Distance (speed x seconds) flown in `seconds`.
+    public static float DistanceOver(float v0, float rate, float max, float seconds)
+    {
+        if (seconds <= 0f) return 0f;
+        v0 = Mathf.Max(0f, v0);
+        if (v0 >= max || rate <= 0f) return v0 * seconds;
+        float tc = (max - v0) / rate;
+        if (seconds <= tc) return v0 * seconds + .5f * rate * seconds * seconds;
+        return v0 * tc + .5f * rate * tc * tc + max * (seconds - tc);
+    }
+
+    // Seconds needed to fly `distance` (the inverse of DistanceOver).
+    // Infinity when the speed is and stays zero.
+    public static float SecondsToCover(float v0, float rate, float max, float distance)
+    {
+        if (distance <= 0f) return 0f;
+        v0 = Mathf.Max(0f, v0);
+        if (v0 >= max || rate <= 0f) return v0 > 0f ? distance / v0 : float.PositiveInfinity;
+        float tc = (max - v0) / rate;
+        float dc = DistanceOver(v0, rate, max, tc);
+        if (distance <= dc) return (-v0 + Mathf.Sqrt(v0 * v0 + 2f * rate * distance)) / rate;
+        return tc + (distance - dc) / max;
+    }
 }
