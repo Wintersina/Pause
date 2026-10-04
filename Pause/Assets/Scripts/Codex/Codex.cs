@@ -126,6 +126,10 @@ public static class Codex
     public static bool Discover(string id)
     {
         if (id == null || Find(id) == null) return false;
+        // Already known -- nearly every contact in a run: nothing else to
+        // check (the scene-name lookup below allocates).
+        EnsureLoaded();
+        if (seen.Contains(id)) return false;
         if (InTutorial()) return false;
         // Developer mode shows everything already, and its runs are not the
         // player's real progress: nothing is recorded and no toast fires.
@@ -229,6 +233,15 @@ public static class Codex
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Reload();
+        Prewarm();
+    }
+
+    // Builds the catalogue lookup and parses the saved discoveries now (scene
+    // load) instead of on the run's first collision or pickup.
+    public static void Prewarm()
+    {
+        Find(string.Empty);
+        EnsureLoaded();
     }
 
     // ---------------------------------------------------------------------
@@ -244,9 +257,10 @@ public static class Codex
         var roster = EnemyIdentity.Of(go);
         if (roster != null) return roster.codexId;
         // A chaser built from any other hull is still the Space chaser.
-        if (go.GetComponent<ChaserEnemy>() != null) return "enemy_chaser";
+        ChaserEnemy chaser;
+        if (go.TryGetComponent(out chaser)) return "enemy_chaser";
 
-        string raw = go.name;
+        string raw = PrefabName.NameOf(go);   // shared with the collision checks this frame
         if (idByName == null) idByName = new Dictionary<string, string>();
         string id;
         if (idByName.TryGetValue(raw, out id)) return id;

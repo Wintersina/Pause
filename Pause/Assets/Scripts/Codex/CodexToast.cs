@@ -37,6 +37,15 @@ public class CodexToast : MonoBehaviour
     {
         Codex.Discovered -= OnDiscovered;
         Codex.Discovered += OnDiscovered;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    // Builds the (hidden) toast as a run loads, so a first discovery -- often
+    // a first pickup -- doesn't build a canvas mid-flight.
+    static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "gameS1" && instance == null) instance = Build();
     }
 
     static void OnDiscovered(CodexEntry entry)

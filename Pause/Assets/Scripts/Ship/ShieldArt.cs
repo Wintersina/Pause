@@ -45,6 +45,14 @@ public static class ShieldArt
         }
     }
 
+    // Loads the atlas, material and every flipbook now (ship spawn) rather
+    // than on the first pickup, hit or shatter.
+    public static void Prewarm()
+    {
+        if (Material == null || Impact == null || Spark == null || Shards == null)
+            Debug.LogWarning("ShieldArt: shield art missing");
+    }
+
     public static Sprite[] Impact { get { return Frames(ref impact, "Shield/shield_impact", 4); } }
     public static Sprite[] Spark { get { return Frames(ref spark, "Shield/shield_spark", 4); } }
     public static Sprite[] Shards { get { return Frames(ref shards, "Shield/shield_shards", 4); } }

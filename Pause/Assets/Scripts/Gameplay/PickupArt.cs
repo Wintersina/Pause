@@ -75,8 +75,8 @@ public static class PickupArt
     {
         kind = PickupKind.Shield;
         if (go == null) return false;
-        var book = go.GetComponent<PickupFlipbook>();
-        if (book != null) { kind = book.kind; return true; }
+        PickupFlipbook book;
+        if (go.TryGetComponent(out book)) { kind = book.kind; return true; }
         if (PrefabName.Is(go, HealAtom.ObjectName)) { kind = PickupKind.Heal; return true; }
         if (PrefabName.Is(go, "atom3a")) { kind = PickupKind.Shield; return true; }
         if (PrefabName.Is(go, "pauseAtom")) { kind = PickupKind.Pause; return true; }

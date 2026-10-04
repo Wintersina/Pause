@@ -57,7 +57,8 @@ public static class ShieldFitTest
             Check(name + " has hull art", sprite != null);
             if (sprite == null) continue;
 
-            var contour = ShieldContour.For(sprite);
+            // The contour the game uses: cut from the baked silhouette.
+            var contour = ShieldContour.ForShip(i);
             Check(name + " gets a contour shield", contour != null && contour.Polygon.Length >= 3);
             if (contour == null) continue;
 
@@ -67,6 +68,13 @@ public static class ShieldFitTest
                 Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w, h);
             Check(name + " source pixels readable for the check", truth != null);
             if (truth == null) continue;
+
+            // ...which is exactly the contour of the art itself.
+            var fromArt = ShieldContour.Build(truth, w, h, sprite.pivot, sprite.pixelsPerUnit);
+            bool same = fromArt != null && fromArt.Polygon.Length == contour.Polygon.Length;
+            for (int k = 0; same && k < contour.Polygon.Length; k++)
+                same = (fromArt.Polygon[k] - contour.Polygon[k]).sqrMagnitude < 1e-12f;
+            Check(name + " baked-silhouette contour equals the art's own contour", same);
 
             // The runtime readback (GPU) sees the same silhouette as the PNG.
             if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
@@ -153,8 +161,8 @@ public static class ShieldFitTest
             var shield = ShipShield.For(go);
             shield.Show();
             var hull = go.GetComponent<SpriteRenderer>().sprite;
-            Check("ShipId " + id + " (" + ShipId.KeyOf(id) + ") shield is cut from the hull ApplyHull set",
-                  hull != null && ReferenceEquals(shield.Contour, ShieldContour.For(hull)));
+            Check("ShipId " + id + " (" + ShipId.KeyOf(id) + ") shield is the ship's own contour",
+                  hull != null && ReferenceEquals(shield.Contour, ShieldContour.ForShip(id)));
             shield.Hide();
             Object.DestroyImmediate(go);
         }
@@ -196,10 +204,14 @@ public static class ShieldFitTest
     static void ContourIsCachedPerShipType()
     {
         var sprite = shopingShips.SpriteFor(4, 0);
-        var first = ShieldContour.For(sprite);
+        var first = ShieldContour.ForShip(4);
         int builds = ShieldContour.BuildCount;
         Check("asking again returns the cached contour",
-              ReferenceEquals(ShieldContour.For(sprite), first) && ShieldContour.BuildCount == builds);
+              ReferenceEquals(ShieldContour.ForShip(4), first) && ShieldContour.BuildCount == builds);
+        var bySprite = ShieldContour.For(sprite);
+        Check("a sprite-keyed contour is cached too",
+              ReferenceEquals(ShieldContour.For(sprite), bySprite) && ShieldContour.BuildCount <= builds + 1);
+        builds = ShieldContour.BuildCount;
 
         var ship = MakeShip(4);
         var shield = ShipShield.For(ship);

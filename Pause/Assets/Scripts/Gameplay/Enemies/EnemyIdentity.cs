@@ -34,8 +34,8 @@ public class EnemyIdentity : MonoBehaviour
     public static EnemyDef Of(GameObject go)
     {
         if (go == null) return null;
-        var id = go.GetComponent<EnemyIdentity>();
-        return id != null ? id.Def : null;
+        EnemyIdentity id;   // TryGetComponent: no editor allocation on a miss
+        return go.TryGetComponent(out id) ? id.Def : null;
     }
 
     public static bool IsRole(GameObject go, EnemyRole role)

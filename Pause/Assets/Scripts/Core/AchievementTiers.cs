@@ -65,9 +65,14 @@ public static class AchievementTiers
         }
     }
 
+    static readonly string[] counterKeys = new string[4];
+
     public static string CounterKey(AchievementCategory category)
     {
-        return "achv_count_" + category.ToString().ToLowerInvariant();
+        int i = (int)category;
+        if (i < 0 || i >= counterKeys.Length) return "achv_count_" + category.ToString().ToLowerInvariant();
+        // Built once: Record() runs on every star pickup and kill.
+        return counterKeys[i] ?? (counterKeys[i] = "achv_count_" + category.ToString().ToLowerInvariant());
     }
 
     // The per-tier key the old clamped counters were stored under.
@@ -96,13 +101,25 @@ public static class AchievementTiers
         return seed;
     }
 
+    // Progress waiting to go to Game Center / Play Games: tier id -> percent.
+    static readonly Dictionary<string, double> pendingReports = new Dictionary<string, double>();
+    static readonly List<string> flushIds = new List<string>();
+    static readonly List<KeyValuePair<string, double>> reported = new List<KeyValuePair<string, double>>();
+
+    public static int PendingReports { get { return pendingReports.Count; } }
+
     // Adds to the category's count and reports progress for every tier that
     // was still incomplete before this step. Returns what it reported, in
-    // tier order. The count is written to PlayerPrefs but not flushed to disk;
-    // PrefsSaver batches that.
+    // tier order (a shared list, valid until the next call). The count is
+    // written to PlayerPrefs but not flushed to disk; PrefsSaver batches that.
+    //
+    // Runs on every star pickup and kill, so partial progress isn't sent to
+    // the platform from here: the latest percent per tier is queued and sent
+    // by FlushReports (on PrefsSaver's batched save, at most every
+    // SaveInterval, and at the end of a run). A tier completing is sent at once.
     public static List<KeyValuePair<string, double>> Record(AchievementCategory category, int steps = 1)
     {
-        var reported = new List<KeyValuePair<string, double>>();
+        reported.Clear();
         int before = Count(category);
         int after = Mathf.Max(0, before + steps);
         PlayerPrefs.SetInt(CounterKey(category), after);
@@ -113,8 +130,23 @@ public static class AchievementTiers
             if (before >= tier.threshold) continue;   // already complete
             double percent = Percent(after, tier.threshold);
             reported.Add(new KeyValuePair<string, double>(tier.id, percent));
-            SocialBridge.ReportProgress(tier.id, percent);
+            if (percent >= 100.0)
+            {
+                pendingReports.Remove(tier.id);
+                SocialBridge.ReportProgress(tier.id, percent);
+            }
+            else pendingReports[tier.id] = percent;
         }
         return reported;
+    }
+
+    // Sends the queued progress reports.
+    public static void FlushReports()
+    {
+        if (pendingReports.Count == 0) return;
+        flushIds.Clear();
+        foreach (var pair in pendingReports) flushIds.Add(pair.Key);
+        foreach (var id in flushIds) SocialBridge.ReportProgress(id, pendingReports[id]);
+        pendingReports.Clear();
     }
 }
