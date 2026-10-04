@@ -19,7 +19,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 2. **Installed and validated — `space_fighter_1`:** rugged Needle scout.
 3. **Installed and validated — `verdant_fighter_1`:** rugged Gnat scout.
 4. **Installed and validated — `space_alien`:** Bile Mite rebuilt taller; live strip is Preview-opened and roster-validated.
-5. **Priority queued — `frost_alien`:** rebuild Cryo Jelly taller; current art reads too wide/short inside its valid frame.
+5. **Installed and validated — `frost_alien`:** Cryo Jelly rebuilt taller; live strip is Preview-opened and roster-validated.
 6. **Queued — `verdant_fighter_2`**
 7. **Queued — `verdant_fighter_3`**
 8. **Queued — `verdant_fighter_4`**
