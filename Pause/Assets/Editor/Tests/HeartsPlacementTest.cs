@@ -52,6 +52,7 @@ public static class HeartsPlacementTest
             SpinnersOrbit();
             NonSpinnersStayInTheirSlot();
             OrbitFreezesWithTheWorld();
+            EveryHeartCountFits();
         }
         finally
         {
@@ -89,8 +90,10 @@ public static class HeartsPlacementTest
 
     // A flying hull as gameS1 spawns it (roster art, normalised scale), its
     // ultimate (gun + charge indicator) and its hearts.
-    public static Rig Build(int id, Vector3 at, bool withPower = true)
+    // `hearts` 0 is the ship's own lives (ShipLives.Max), else 2..5.
+    public static Rig Build(int id, Vector3 at, bool withPower = true, int hearts = 0)
     {
+        collisionDetection.MAXLIFE = hearts > 0 ? hearts : ShipLives.Max(id);
         PlayerPrefs.SetInt("spawnShip", id);
         var go = new GameObject(ShipId.ObjectName(id), typeof(SpriteRenderer));
         var sr = go.GetComponent<SpriteRenderer>();
@@ -111,7 +114,7 @@ public static class HeartsPlacementTest
             rig.meter = go.GetComponentInChildren<SecretMeter>();
         }
         rig.hearts = go.AddComponent<ShipLivesIndicator>();
-        rig.hearts.BuildHearts();
+        rig.hearts.BuildHearts(collisionDetection.MAXLIFE);
         return rig;
     }
 
@@ -529,7 +532,7 @@ public static class HeartsPlacementTest
             Check(name + ": tight to the ship (ring within a heart and a half of the hull's spin circle)",
                   r - HullRadius(rig) <= rig.hearts.heartSize * 1.6f);
 
-            // One hit hides one heart; the two left share the ring.
+            // One hit hides one heart; the ones left share the ring.
             collisionDetection.lifeCounter = 1;
             rig.hearts.SendMessage("Update");
             int active = 0;
@@ -537,7 +540,10 @@ public static class HeartsPlacementTest
             Check(name + ": a hit hides exactly one heart (" + active + " left)", active == collisionDetection.MAXLIFE - 1);
             Spin(rig, 120f, 60, 1f / 60f);
             float split = Mathf.Abs(Mathf.DeltaAngle(Polar(rig, 0), Polar(rig, 1)));
-            Check(name + ": the hearts left close up evenly (" + split.ToString("F0") + " deg apart)", Mathf.Abs(split - 180f) < 5f);
+            float evenSplit = 360f / (collisionDetection.MAXLIFE - 1);
+            if (evenSplit > 180f) evenSplit = 360f - evenSplit;
+            Check(name + ": the hearts left close up evenly (" + split.ToString("F0") + " deg apart, expected " +
+                  evenSplit.ToString("F0") + ")", Mathf.Abs(split - evenSplit) < 5f);
             collisionDetection.lifeCounter = 0;
             rig.hearts.SendMessage("Update");
             Teardown(rig);
@@ -549,7 +555,7 @@ public static class HeartsPlacementTest
         ShipUiSlots.ScreenOverride = () => Everywhere;
         foreach (int id in ShipId.All)
         {
-            if (ShipUiSlots.Spins(id) || id < ShipLivesIndicator.FirstShipWithoutDamageArt) continue;
+            if (ShipUiSlots.Spins(id)) continue;
             FreshScene();
             var rig = Build(id, Vector3.zero);
             rig.hearts.Place(0f, 1f / 60f);
@@ -597,6 +603,65 @@ public static class HeartsPlacementTest
         }
     }
 
+    // Every ship with every heart count the roster uses (2 on the starter ..
+    // 5 on Gold Warden), wherever it can fly on the gameplay screen and a
+    // tall one: on screen, clear of the hull, the charge indicator and the
+    // secret meter (a spinner's ring: clear of its spin circle).
+    static void EveryHeartCountFits()
+    {
+        var screens = new[] { ("9:16", 1080, 1920, 0, 0), ("9:24", 1080, 2880, 96, 48) };
+        var spots = new[]
+        {
+            Vector3.zero, new Vector3(-2.4f, 0f, 0f), new Vector3(2.4f, 0f, 0f), new Vector3(0f, -4.15f, 0f),
+            new Vector3(-2.4f, -4.15f, 0f), new Vector3(2.4f, -4.15f, 0f), new Vector3(0f, 4.5f, 0f),
+        };
+        foreach (var (screen, w, h, top, bottom) in screens)
+        {
+            float size = CameraFit.ComputeSize(5f, 2.85f, w, h);
+            float halfW = size * w / h, unit = 2f * size / h;
+            Rect safe = Rect.MinMaxRect(-halfW, -size + bottom * unit, halfW, size - top * unit);
+            ShipUiSlots.ScreenOverride = () => safe;
+            for (int count = ShipLives.Fewest; count <= ShipLives.Most; count++)
+            {
+                string offAt = null, hitAt = null, wrong = null;
+                foreach (int id in ShipId.All)
+                {
+                    FreshScene();
+                    var rig = Build(id, Vector3.zero, true, count);
+                    if (rig.hearts.Hearts.Length != count) wrong = wrong ?? ShipId.KeyOf(id) + " built " + rig.hearts.Hearts.Length;
+                    var meter = rig.meter;
+                    foreach (var spot in spots)
+                    {
+                        rig.ship.transform.position = spot;
+                        for (int f = 0; f < 3; f++)
+                        {
+                            if (rig.hearts.Orbiting) Pose(rig, Field<float>(rig.power, "cooldown") * .5f, 0f, f * .3f, 1f, f * 40f);
+                            else rig.hearts.Place(0f);
+                            if (meter != null) meter.Step(0f);
+                        }
+                        var hearts = HeartBounds(rig);
+                        string where = ShipId.KeyOf(id) + " at " + spot;
+                        foreach (var b in hearts)
+                            if (!ShipUiSlots.Inside(safe, b)) { offAt = offAt ?? where; break; }
+                        bool hit = rig.hearts.Orbiting
+                            ? HitsCircle(hearts, spot, HullRadius(rig)) ||
+                              Hits(hearts, rig.indicator.View.GetComponent<SpriteRenderer>().bounds)
+                            : Hits(hearts, rig.ship.GetComponent<SpriteRenderer>().bounds) ||
+                              Hits(hearts, ShipUiSlots.ChargeIndicatorFootprint(rig.ship.transform, id)) ||
+                              (meter != null && Hits(hearts, meter.Footprint));
+                        if (hit) hitAt = hitAt ?? where;
+                    }
+                    Teardown(rig);
+                }
+                string label = screen + ", " + count + " hearts";
+                Check(label + ": every ship builds exactly that many" + (wrong != null ? " -- " + wrong : ""), wrong == null);
+                Check(label + ": on screen everywhere the ship flies" + (offAt != null ? " -- off: " + offAt : ""), offAt == null);
+                Check(label + ": clear of the hull, indicator and meter" + (hitAt != null ? " -- hit: " + hitAt : ""), hitAt == null);
+            }
+        }
+        ShipUiSlots.ScreenOverride = null;
+        collisionDetection.MAXLIFE = 3;
+    }
 
     static Bounds HeartsArea(Rig rig)
     {

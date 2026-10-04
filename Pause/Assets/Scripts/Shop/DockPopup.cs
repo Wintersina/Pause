@@ -59,6 +59,9 @@ public class DockPopup : MonoBehaviour
     CanvasGroup group;
     RectTransform panel, tail, dustIcon;
     Text title, status, message, buttonLabel;
+    // The ship's lives (ShipLives): a heart and its count, left of the status.
+    RectTransform livesBadge;
+    Text livesLabel;
     Image buttonImage;
     Transform target;
     float above, below;
@@ -119,6 +122,16 @@ public class DockPopup : MonoBehaviour
         dust.sprite = DockArt.Get("icon_dust");
         dust.raycastTarget = false;
         Place(dustIcon, new Vector2(1f, 1f), new Vector2(-60f, -10f), new Vector2(12f, 12f), new Vector2(.5f, .5f));
+        livesBadge = Rect("Lives", panel);
+        Place(livesBadge, new Vector2(1f, 1f), new Vector2(-80f, -17f), new Vector2(LivesIconSize + 10f, 12f), new Vector2(1f, .5f));
+        var heart = Rect("Heart", livesBadge);
+        Place(heart, new Vector2(0f, .5f), Vector2.zero, new Vector2(LivesIconSize, LivesIconSize), new Vector2(0f, .5f));
+        var heartImage = heart.gameObject.AddComponent<Image>();
+        heartImage.sprite = Resources.Load<Sprite>("Vfx/lifeHeart");
+        heartImage.preserveAspect = true;
+        heartImage.raycastTarget = false;
+        livesLabel = Label("Count", livesBadge, font, 10, TextAnchor.MiddleLeft, AkiraPalette.Bone);
+        Place(livesLabel.rectTransform, new Vector2(0f, .5f), new Vector2(LivesIconSize + 2f, 0f), new Vector2(10f, 12f), new Vector2(0f, .5f));
         message = Label("Message", panel, font, 9, TextAnchor.MiddleCenter, DockArt.Warn);
         Place(message.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -9f), new Vector2(Width / CanvasScale - 16f, 16f), new Vector2(.5f, 1f));
 
@@ -245,6 +258,7 @@ public class DockPopup : MonoBehaviour
         // The skin's name sits on its own line under the ship's.
         string skinName = shown == ShipSkins.Stock ? "" : "\n" + ShipSkins.Get(index, shown).DisplayName;
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant() + skinName;
+        ShowLives(index);
         if (!ShipSkins.IsOwned(index, shown))
         {
             CurrentMode = Mode.BuySkin;
@@ -286,10 +300,26 @@ public class DockPopup : MonoBehaviour
         ((RectTransform)transform).sizeDelta = new Vector2(Width, CurrentHeight) / CanvasScale;
     }
 
+    const float LivesIconSize = 9f;
+
+    // Hearts the ship shown flies with (ShipLives.Max: the starter's goes
+    // 2 -> 3 once it owns a colour).
+    public int LivesShown { get; private set; }
+    public bool LivesBadgeVisible { get { return livesBadge != null && livesBadge.gameObject.activeSelf; } }
+
+    void ShowLives(int index)
+    {
+        LivesShown = ShipLives.Max(index);
+        livesLabel.text = LivesShown.ToString();
+    }
+
     void FitTitle()
     {
         float statusWidth = status.text.Length > 0 ? status.preferredWidth + (CurrentMode != Mode.Launch ? 16f : 0f) + 6f : 0f;
-        title.rectTransform.sizeDelta = new Vector2(Width / CanvasScale - 22f - statusWidth, 16f);
+        float livesWidth = LivesIconSize + 2f + livesLabel.preferredWidth;
+        livesBadge.sizeDelta = new Vector2(livesWidth, 12f);
+        livesBadge.anchoredPosition = new Vector2(-11f - statusWidth, -17f);
+        title.rectTransform.sizeDelta = new Vector2(Width / CanvasScale - 22f - statusWidth - livesWidth - 6f, 16f);
     }
 
     public void Show(int index, Transform ship, float halfHeight, bool owned, bool equipped,
@@ -302,6 +332,7 @@ public class DockPopup : MonoBehaviour
         below = halfHeight + .34f;        // clear the engine plume
         gameObject.SetActive(true);
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant();
+        ShowLives(index);
         messageUntil = 0f;
         if (owned)
         {
@@ -377,6 +408,7 @@ public class DockPopup : MonoBehaviour
     {
         title.enabled = row;
         status.enabled = row;
+        livesBadge.gameObject.SetActive(row);
         dustIcon.gameObject.SetActive(row && CurrentMode != Mode.Launch);
         message.enabled = !row;
     }

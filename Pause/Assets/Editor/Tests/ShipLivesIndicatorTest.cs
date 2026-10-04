@@ -38,25 +38,24 @@ public static class ShipLivesIndicatorTest
         DamageEffectsAttachToEveryHull();
         ShieldBubbleAttachesToAnyHull();
 
-        // A Retro80s ship (has its own damage art) should get no hearts at all.
-        // Destroy() is deferred (and Play-mode oriented) so the component may
-        // still be structurally attached right after this call even in the
-        // correct-behaviour case -- what actually matters is that Build()
-        // did not run, i.e. no heart children exist.
-        PlayerPrefs.SetInt("spawnShip", 3);
-        var withArt = new GameObject("WithDamageArt", typeof(SpriteRenderer));
+        // Every ship floats one heart per life it flies with (ShipLives):
+        // a Retro80s hull with its own damage art too.
+        PlayerPrefs.SetInt("spawnShip", 7);   // Gold Warden: 5
+        PlayerPrefs.SetString("boughtship7", "True");
+        collisionDetection.MAXLIFE = 0;       // not yet set by a collisionDetection: the equipped ship's
+        var withArt = new GameObject("ship7(Clone)", typeof(SpriteRenderer));
         var indicatorA = withArt.AddComponent<ShipLivesIndicator>();
         indicatorA.SendMessage("Start");
-        int strayHearts = 0;
+        int artHearts = 0;
         foreach (Transform c in withArt.transform)
-            if (c.name.StartsWith("Heart")) strayHearts++;
-        Check("ship with its own damage art gets no hearts built", strayHearts == 0);
+            if (c.name.StartsWith("Heart")) artHearts++;
+        Check("a ship with its own damage art gets its hearts too (" + artHearts + ", Gold Warden 5)", artHearts == 5);
         Object.DestroyImmediate(withArt);
 
-        // A legacy ship (no damage art) should get exactly MAXLIFE hearts,
-        // all visible at full health.
+        // A legacy ship gets exactly MAXLIFE hearts, all visible at full health.
         PlayerPrefs.SetInt("spawnShip", 8); // Lightning
         PlayerPrefs.SetString("boughtship8", "True"); // an unowned selection flies the starter
+        collisionDetection.MAXLIFE = ShipLives.Max(8);
         var legacy = new GameObject("Legacy", typeof(SpriteRenderer));
         var sr = legacy.GetComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(
@@ -96,8 +95,39 @@ public static class ShipLivesIndicatorTest
         Object.DestroyImmediate(legacy);
         PlayerPrefs.DeleteKey("spawnShip");
 
+        StarterHeartsFollowItsColour();
+
         Debug.Log("[SL] failures: " + fails);
         return fails;
+    }
+
+    // Neon Comet: 2 hearts, 3 once it owns a colour; a run rebuilds them.
+    static void StarterHeartsFollowItsColour()
+    {
+        PlayerPrefs.SetInt("spawnShip", ShipId.Starter);
+        for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, n));
+        collisionDetection.MAXLIFE = 0;
+        var ship = new GameObject(ShipId.ObjectName(ShipId.Starter), typeof(SpriteRenderer));
+        var hearts = ship.AddComponent<ShipLivesIndicator>();
+        hearts.SendMessage("Start");
+        Check("the starter floats 2 hearts", hearts.Hearts != null && hearts.Hearts.Length == 2);
+        collisionDetection.lifeCounter = 1;
+        hearts.SendMessage("Update");
+        int shown = 0;
+        foreach (var h in hearts.Hearts) if (h.gameObject.activeSelf) shown++;
+        Check("one hit leaves the starter its last heart (" + shown + ")", shown == 1);
+        collisionDetection.lifeCounter = 0;
+
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 2), 1);
+        hearts.BuildHearts();
+        int built = 0;
+        foreach (Transform c in ship.transform) if (c.name.StartsWith("Heart")) built++;
+        Check("with a colour of its own the starter floats 3 (" + hearts.Hearts.Length + ", " + built + " built)",
+              hearts.Hearts.Length == 3 && built == 3);
+        PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, 2));
+        Object.DestroyImmediate(ship);
+        PlayerPrefs.DeleteKey("spawnShip");
+        collisionDetection.MAXLIFE = 3;
     }
 
     static void DamageEffectsAttachToEveryHull()

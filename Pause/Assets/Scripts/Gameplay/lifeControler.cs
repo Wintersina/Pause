@@ -89,13 +89,14 @@ public class lifeControler : MonoBehaviour {
 
 	}
 
-    // lifeCounter can exceed the number of damage frames a ship has; clamp
-    // instead of indexing past the end.
+    // The frame is the damage state (intact / damaged / critical) for the
+    // hits taken against this ship's own lives (ShipLives: 2 to 5 of them),
+    // clamped to the frames the ship has.
     void applyDamageSprite()
     {
         if (img == null || img.Length == 0) return;
         int life = isLiveGameplay ? collisionDetection.lifeCounter : 0;
-        int frame = Mathf.Clamp(life, 0, img.Length - 1);
+        int frame = Mathf.Clamp(isLiveGameplay ? ShipLives.RunDamageState : 0, 0, img.Length - 1);
         Sprite animated = null;
         if (hullAnimator != null)
         {

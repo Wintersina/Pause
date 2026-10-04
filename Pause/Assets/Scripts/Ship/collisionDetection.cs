@@ -125,7 +125,8 @@ public class collisionDetection : MonoBehaviour {
 
 	void Start () {
 
-        MAXLIFE = 3;
+        // This ship's own lives (ShipLives: 2 to 5 by price tier).
+        MAXLIFE = ShipLives.Max(ShipId.Of(gameObject, ShipId.Equipped()));
         // Fills the needed componets for this player.
         hypeText = GameObject.Find("hypeText").GetComponent<Text>();
         boostText = GameObject.Find("boostText").GetComponent<Text>();

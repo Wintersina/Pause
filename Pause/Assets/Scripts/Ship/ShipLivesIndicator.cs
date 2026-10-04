@@ -1,12 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Three small hearts floating beside the ship, shown only for hulls that
-// have no damage-frame art of their own (the eight single-image legacy ships
-// -- Lightning through Turtle -- whose SpriteFor ignores damage state
-// entirely and always draws the same sprite). Every other ship already shows
-// damage through its own intact/damaged/critical art, so this would be
-// redundant there.
+// The ship's lives as small hearts floating beside it, on every hull: one
+// heart per life the ship flies with (ShipLives -- 2 on the starter, 3 once
+// it has a colour of its own and on the cheap ships, 4 on the dear ones, 5
+// on Gold Warden), one hidden per hit taken.
 //
 // Where they float comes from ShipUiSlots: the first free slot around the
 // hull -- above, below, left, right -- that is clear of the hull, its exhaust
@@ -31,10 +29,6 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(50)]
 public class ShipLivesIndicator : MonoBehaviour
 {
-    [Tooltip("Ships at or past this roster index have no damage sprites of " +
-             "their own -- see shopingShips.SpriteFor.")]
-    public const int FirstShipWithoutDamageArt = 8;
-
     [Tooltip("Gap kept between the hearts and the hull or any other ship " +
              "element, in world units.")]
     public float clearance = 0.08f;
@@ -99,27 +93,34 @@ public class ShipLivesIndicator : MonoBehaviour
 
     void Start()
     {
-        // The flown ship's own id (its name), not the raw saved selection:
-        // an unowned selection flies the starter, which has damage art.
-        int shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
-        if (shipIndex < FirstShipWithoutDamageArt)
-        {
-            Destroy(this);
-            return;
-        }
-
         BuildHearts();
         seed = Random.value * 10f;
     }
 
+    // One heart per life of this run (ShipLives.RunMax).
     public void BuildHearts()
+    {
+        BuildHearts(ShipLives.RunMax);
+    }
+
+    public void BuildHearts(int count)
     {
         var hull = GetComponent<SpriteRenderer>();
         var sprite = Resources.Load<Sprite>("Vfx/lifeHeart");
         if (sprite == null) { Destroy(this); return; }
+        // The flown ship's own id (its name), not the raw saved selection:
+        // an unowned selection flies the starter.
         shipId = ShipId.Of(gameObject, ShipId.Equipped());
 
-        int count = Mathf.Max(1, collisionDetection.MAXLIFE);
+        if (hearts != null)
+            foreach (var old in hearts)
+                if (old != null)
+                {
+                    if (Application.isPlaying) Destroy(old.gameObject);
+                    else DestroyImmediate(old.gameObject);
+                }
+        lastShown = -1;
+        count = Mathf.Clamp(count, 1, ShipLives.Most);
         hearts = new Transform[count];
         renderers = new SpriteRenderer[count];
         spot = new float[count];
@@ -153,7 +154,7 @@ public class ShipLivesIndicator : MonoBehaviour
 
     public ShipUiSlots.Request Request()
     {
-        int count = hearts != null ? hearts.Length : Mathf.Max(1, collisionDetection.MAXLIFE);
+        int count = hearts != null ? hearts.Length : ShipLives.RunMax;
         float length = (count - 1) * spacing + heartSize;
         float thick = heartSize + BobAmplitude * 2f;
         return new ShipUiSlots.Request
@@ -187,7 +188,8 @@ public class ShipLivesIndicator : MonoBehaviour
     {
         if (hearts == null) return;
 
-        int remaining = Mathf.Clamp(collisionDetection.MAXLIFE - collisionDetection.lifeCounter, 0, hearts.Length);
+        // Hearts left: the lives built, less the hits taken (ShipLives).
+        int remaining = Mathf.Clamp(hearts.Length - collisionDetection.lifeCounter, 0, hearts.Length);
         if (remaining != lastShown)
         {
             lastShown = remaining;

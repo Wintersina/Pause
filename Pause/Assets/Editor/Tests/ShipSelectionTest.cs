@@ -276,11 +276,14 @@ public static class ShipSelectionTest
         string who = context + ": " + Label(id);
 
         var hearts = ship.AddComponent<ShipLivesIndicator>();
+        int savedMax = collisionDetection.MAXLIFE;
+        collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Of(ship));   // as its collisionDetection.Start sets it
         Call(hearts, "Start");
         int count = 0;
         foreach (Transform c in ship.transform) if (c.name.StartsWith("Heart")) count++;
-        Check(who + " shows life hearts only if it has no damage art (" + count + ")",
-              (count > 0) == (id >= ShipLivesIndicator.FirstShipWithoutDamageArt));
+        Check(who + " floats one heart per life (" + count + " of " + ShipLives.Max(id) + ")",
+              count == ShipLives.Max(id));
+        collisionDetection.MAXLIFE = savedMax;
 
         var power = ship.AddComponent<ShipPowerController>();
         try { Call(power, "Start"); } catch (System.Exception) { }
