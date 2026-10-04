@@ -286,14 +286,30 @@ public static class CloakShieldTest
         styler.SendMessage("Start");
         styler.SendMessage("Update");
         var speed = SceneUtil.FindAny("SpeedText");
-        var dust = SceneUtil.FindAny("CurrecnyGatheredText");
         var pause = SceneUtil.FindAny("PauseCounter") ?? SceneUtil.FindAny("PausesRemainingText");
-        Check(scene + ": SPEED, star dust and PAUSES read-outs kept",
-              speed != null && dust != null && pause != null &&
+        Check(scene + ": SPEED and PAUSES read-outs kept",
+              speed != null && pause != null &&
               speed.GetComponent<Text>().text.StartsWith("SPEED") &&
               pause.GetComponent<Text>().text.StartsWith("PAUSES"));
+        // Star dust shows when the run ends (Flight Complete), not in the HUD.
+        Check(scene + ": the star dust row (CurrecnyGatheredText) is gone", SceneUtil.FindAny("CurrecnyGatheredText") == null);
+        Check(scene + ": no star dust text anywhere in the in-run HUD", !HudShowsDust(styler.HudRoot));
         Check(scene + ": the pause bar is kept", pause != null && pause.transform.Find("PauseBar") != null);
         Object.DestroyImmediate(go);
+    }
+
+    // Any text under the read-out that reads like a star dust figure.
+    public static bool HudShowsDust(RectTransform hudRoot)
+    {
+        if (hudRoot == null) return false;
+        foreach (var t in hudRoot.GetComponentsInChildren<Text>(true))
+        {
+            string s = (t.text ?? "").ToUpperInvariant();
+            string n = t.gameObject.name.ToLowerInvariant();
+            if (s.Contains("★") || s.Contains("DUST") || n.Contains("currecny") || n.Contains("currency") || n.Contains("dust"))
+                return true;
+        }
+        return false;
     }
 
     static void GameHudPanelTightened()
@@ -309,17 +325,16 @@ public static class CloakShieldTest
         styler.SendMessage("Start");
         styler.SendMessage("Update");
 
-        // The run score (ScoreHud) takes the top row the timer used to fill
-        // lower down: SCORE, SPEED, star dust, PAUSES.
-        Check("gameS1: the read-out stacks exactly SCORE, SPEED, star dust, PAUSES (" + rows.childCount + " rows)",
-              rows.childCount == 4 && rows.GetChild(0).name == ScoreHud.RowName &&
-              rows.GetChild(1).name == "SpeedText" &&
-              rows.GetChild(2).name == "CurrecnyGatheredText" && rows.GetChild(3).name == "PauseCounter");
+        // The run score (ScoreHud) takes the top row; the star dust row is
+        // gone (dust shows at the end of the run): SCORE, SPEED, PAUSES.
+        Check("gameS1: the read-out stacks exactly SCORE, SPEED, PAUSES (" + rows.childCount + " rows)",
+              rows.childCount == 3 && rows.GetChild(0).name == ScoreHud.RowName &&
+              rows.GetChild(1).name == "SpeedText" && rows.GetChild(2).name == "PauseCounter");
 
-        // The scene's 3-row stack (131 / 113) plus one row (33) and one gap
+        // The scene's 2-row stack (91 / 73) plus one row (33) and one gap
         // (7) for SCORE, with the panel's own padding round it unchanged.
-        Check("gameS1: the panel is one row taller for SCORE (" + panel.rect.height + ", scene 131)",
-              Mathf.Approximately(panel.rect.height, 171f) && Mathf.Approximately(rows.rect.height, 153f));
+        Check("gameS1: the panel is one row taller for SCORE (" + panel.rect.height + ", scene 91)",
+              Mathf.Approximately(panel.rect.height, 131f) && Mathf.Approximately(rows.rect.height, 113f));
         float topPad = (panel.rect.height - rows.rect.height) * .5f - rows.anchoredPosition.y;
         float bottomPad = (panel.rect.height - rows.rect.height) * .5f + rows.anchoredPosition.y;
         Check("gameS1: padding round the rows unchanged (top " + topPad.ToString("F1") + ", bottom " +
@@ -337,7 +352,7 @@ public static class CloakShieldTest
             lowest = Mathf.Min(lowest, row.localPosition.y + row.rect.yMin);
         }
         Check("gameS1: every row still fits its text", fits);
-        Check("gameS1: the last row reaches the bottom of the stack (no empty gap where the timer was)",
+        Check("gameS1: the last row reaches the bottom of the stack (no empty gap where the timer or star dust was)",
               Mathf.Abs(lowest - rows.rect.yMin) < 1f);
 
         Object.DestroyImmediate(go);

@@ -3,7 +3,8 @@ using UnityEngine.UI;
 
 // The run score on the in-game read-out, plus the kill-chain badge and the
 // "+N" popups. Added by HudStyler in gameS1 only -- the tutorial scores
-// nothing, so its read-out stays SPEED / star dust / PAUSES.
+// nothing, so its read-out stays SPEED / PAUSES. Neither shows star dust
+// during a run: the dust a run earned is on the Flight Complete card.
 //
 //   SCORE  12,345  x3     top row of the read-out (BONE, like the other rows'
 //                         flat cel type with an INK outline). The number ticks
@@ -15,8 +16,11 @@ using UnityEngine.UI;
 //                         the SPEED row, coloured by tier; it punches, flashes
 //                         and calls out "SPD x2" under the read-out as it
 //                         steps up, and hides at x1
-//   ★ 12.3       LOOP 2   the run's loop (RunLoop) on the star dust row, only
-//                         once the run has looped back past the final world
+//   PAUSES  5    LOOP 2   the run's loop (RunLoop) on the PAUSES row, only
+//                         once the run has looped back past the final world.
+//                         (SCORE and SPEED are too full for it: SCORE
+//                         9,999,999 + x4, SPEED 60 + SPD x2.5 leave no room
+//                         for a second badge in the 323-unit row.)
 //   +5                    pops up and rises from where a kill, a star dust or
 //                         atom pickup, a boss or a world clear happened
 //                         (RunScore.Scored), coloured by what it was; bosses
@@ -42,7 +46,7 @@ public class ScoreHud : MonoBehaviour
 
     Text scoreText, chainText;
     // Right-hand badges on the rows under SCORE: the speed multiplier on the
-    // SPEED row, the loop on the star dust row (once looping has started).
+    // SPEED row, the loop on the PAUSES row (once looping has started).
     Text speedBadge, loopBadge;
     float lastSpeedMultiplier = 1f;
     float speedPunchAt = -1f;
@@ -70,7 +74,8 @@ public class ScoreHud : MonoBehaviour
 
     public const string SpeedBadgeName = "SpeedMultiplier";
     public const string LoopBadgeName = "Loop";
-    public const string DustRowName = "CurrecnyGatheredText";
+    // The row the LOOP badge sits on (gameS1's pause counter).
+    public const string LoopRowName = "PauseCounter";
     public const float BadgeWidth = 132f;
     public const int BadgeFontSize = 22;
 
@@ -120,11 +125,11 @@ public class ScoreHud : MonoBehaviour
             Grow(rows.parent as RectTransform, RowStep);
         }
 
-        // The badges sit right-aligned on the SPEED and star dust rows, a
+        // The badges sit right-aligned on the SPEED and PAUSES rows, a
         // column under the chain badge, so neither the panel nor any row grows.
         hud.speedBadge = Badge(speedText.transform, SpeedBadgeName, hud.font);
-        var dustRow = rows.Find(DustRowName);
-        hud.loopBadge = Badge(dustRow != null ? dustRow : speedText.transform, LoopBadgeName, hud.font);
+        var loopRow = rows.Find(LoopRowName);
+        hud.loopBadge = Badge(loopRow != null ? loopRow : speedText.transform, LoopBadgeName, hud.font);
         hud.lastSpeedMultiplier = 1f;
         hud.lastLoop = 0;
 
@@ -326,8 +331,9 @@ public class ScoreHud : MonoBehaviour
         p.rise = 30f;
         Vector2 at = near != null ? (Vector2)canvasRect.InverseTransformPoint(near.position) : Vector2.zero;
         Vector2 size = canvasRect.rect.size;
-        // Below the read-out (its rows are ~150 units tall), kept on screen.
-        at.y -= 150f;
+        // Below the read-out (its bottom is ~60 units under the SPEED row),
+        // kept on screen.
+        at.y -= 110f;
         at.x = Mathf.Clamp(at.x - 40f, -size.x * .5f + 120f, size.x * .5f - 120f);
         p.from = at;
         p.age = 0f;

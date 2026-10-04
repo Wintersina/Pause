@@ -45,7 +45,7 @@ public class Hints : MonoBehaviour {
     TutorialGuides guides;
     TutorialSkip skip;
     SpokenLine[] lines;
-    Text pauseReadout, dustReadout;
+    Text pauseReadout;
     RectTransform hudPanel;
     readonly Vector3[] corners = new Vector3[4];
 
@@ -87,7 +87,6 @@ public class Hints : MonoBehaviour {
         guides = TutorialGuides.Create(speaker.Root);
 
         pauseReadout = FindText("PausesRemainingText");
-        dustReadout = FindText("CurrecnyGatheredText");
         hudPanel = TopPanelOf(pauseReadout);
 
         startedAt = Time.unscaledTime;
@@ -184,8 +183,9 @@ public class Hints : MonoBehaviour {
                 guides.PointAt(pauseReadout);
                 break;
             case TutorialCue.SpawnStars:
+                // No arrow: the HUD has no star dust read-out any more (the
+                // run's dust shows on the Tutorial Complete card).
                 spawnGoodStuffTut.StartStars();
-                guides.PointAt(dustReadout);
                 break;
             case TutorialCue.SpawnGreenAtom:
             case TutorialCue.SpawnBlueAtom:

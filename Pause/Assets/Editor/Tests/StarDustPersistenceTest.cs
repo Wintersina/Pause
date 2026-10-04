@@ -120,7 +120,6 @@ public static class StarDustPersistenceTest
     {
         var go = new GameObject("~ScoreHud");
         var hud = go.AddComponent<score>();
-        hud.currencyText = new GameObject("c").AddComponent<Text>();
         hud.speedValue = new GameObject("s").AddComponent<Text>();
         hud.pauseCounterText = new GameObject("p").AddComponent<Text>();
         return hud;

@@ -92,7 +92,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         // The HUD's Orbitron (the dialog's own button labels use the legacy
         // default font).
         var hud = Object.FindFirstObjectByType<score>();
-        Font font = hud != null && hud.currencyText != null ? hud.currencyText.font : null;
+        Font font = hud != null && hud.speedValue != null ? hud.speedValue.font : null;
         return Build(canvasGo.transform,
                      playGo != null ? playGo.GetComponent<Button>() : null,
                      menuGo != null ? menuGo.GetComponent<Button>() : null,

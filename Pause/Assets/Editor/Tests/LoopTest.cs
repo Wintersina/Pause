@@ -500,26 +500,36 @@ public static class LoopTest
         Step(hud, .01f);
         Check("looping: 'LOOP 2' ('" + hud.LoopBadge.text + "'), popping", hud.LoopBadge.text == "LOOP 2" &&
               hud.LoopBadge.rectTransform.localScale.x > 1.05f);
-        Check("the speed badge sits on the SPEED row, the loop badge on the star dust row",
-              hud.SpeedBadge.transform.parent.name == "SpeedText" && hud.LoopBadge.transform.parent.name == ScoreHud.DustRowName);
+        Check("the speed badge sits on the SPEED row, the loop badge on the PAUSES row",
+              hud.SpeedBadge.transform.parent.name == "SpeedText" && hud.LoopBadge.transform.parent.name == ScoreHud.LoopRowName &&
+              ScoreHud.LoopRowName == "PauseCounter");
+        Check("the LOOP badge is shown and drawn over the pause bar",
+              hud.LoopBadge.gameObject.activeInHierarchy && hud.LoopBadge.enabled &&
+              hud.LoopBadge.transform.GetSiblingIndex() == hud.LoopBadge.transform.parent.childCount - 1);
+        Check("no star dust row for it to sit on", SceneUtil.FindAny("CurrecnyGatheredText") == null &&
+              !CloakShieldTest.HudShowsDust(styler.HudRoot));
 
         // Widest content: the rows' own text plus the badge, never touching.
         var rows = (RectTransform)hud.ScoreText.transform.parent;
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rows);
         var speedRow = hud.SpeedBadge.transform.parent.GetComponent<Text>();
-        var dustRow = hud.LoopBadge.transform.parent.GetComponent<Text>();
+        var pauseRow = hud.LoopBadge.transform.parent.GetComponent<Text>();
         speedRow.text = "SPEED  99";
-        dustRow.text = "★ 99999.9";
+        pauseRow.text = "PAUSES  15";
         hud.SpeedBadge.text = "SPD x2.5";
         hud.LoopBadge.text = "LOOP 99";
         float width = rows.rect.width;
         float speedFit = speedRow.preferredWidth + 12f + hud.SpeedBadge.preferredWidth;
-        float loopFit = dustRow.preferredWidth + 12f + hud.LoopBadge.preferredWidth;
+        float loopFit = pauseRow.preferredWidth + 12f + hud.LoopBadge.preferredWidth;
         Check("SPEED 99 + SPD x2.5 fit across the row (" + speedFit.ToString("F0") + " <= " + width + ")", speedFit <= width);
-        Check("★ 99999.9 + LOOP 99 fit across the row (" + loopFit.ToString("F0") + " <= " + width + ")", loopFit <= width);
+        Check("PAUSES 15 + LOOP 99 fit across the row (" + loopFit.ToString("F0") + " <= " + width + ")", loopFit <= width);
         Check("the badges fit their own rects", hud.SpeedBadge.preferredWidth <= ScoreHud.BadgeWidth &&
               hud.LoopBadge.preferredWidth <= ScoreHud.BadgeWidth);
-        Check("the badges don't grow the read-out (171)", Mathf.Approximately(styler.HudRoot.rect.size.y, 171f));
+        Check("the badges don't grow the read-out (131)", Mathf.Approximately(styler.HudRoot.rect.size.y, 131f));
+        // At rest: the one-tick pop (edit mode's unscaled clock never moves
+        // on, so it would hold here) may poke past the bottom row's edge, as
+        // the PAUSES figure's own punch does.
+        hud.SpeedBadge.rectTransform.localScale = hud.LoopBadge.rectTransform.localScale = Vector3.one;
         Check("the badges stay inside the read-out's rows",
               Inside(rows, hud.SpeedBadge.rectTransform) && Inside(rows, hud.LoopBadge.rectTransform));
 

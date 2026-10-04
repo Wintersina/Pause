@@ -19,7 +19,9 @@ public class score : MonoBehaviour {
     // Snapshot used by the death card to show what this run earned before it
     // was added to the player's lifetime total.
     public static float runStartCurrency;
-    public Text currencyText;
+    // The in-run HUD has no star dust read-out: a run's dust is shown when it
+    // ends (DeathPanelView, TutorialCompletePanel). It is still earned and
+    // banked here exactly as before (StarDustLedger).
     public Text speedValue;
 
     private float currencyHolder;
@@ -54,7 +56,6 @@ public class score : MonoBehaviour {
         // A run still open (Replay: this Awake beat the old scene's
         // OnDestroy) gets its score bonus before the ledger banks it.
         Settle(RunScore.RunId, StarDustLedger.RunId);
-        // currencyText.text = "Currency Gathered : " + PlayerPrefs.GetInt("brickScore").ToString();
         tutorialCurrency = 0;
         paysRealDust = PaysRealDust(gameObject.scene.name,
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
@@ -63,16 +64,7 @@ public class score : MonoBehaviour {
         // best (or reach a leaderboard).
         scoreRun = RunScore.BeginRun(paysRealDust, !DeveloperUnlocks.Enabled);
         committedOnDeath = false;
-        if (paysRealDust)
-        {
-            currencyHolder = StarDustLedger.Balance;
-            currencyText.text = "Star Dust : " + currencyHolder.ToString("F2");
-        }
-        else
-        {
-
-            currencyText.text = "Star Dust : 0";
-        }
+        if (paysRealDust) currencyHolder = StarDustLedger.Balance;
     }
 	// Use this for initialization
 	void Start () {
@@ -180,7 +172,8 @@ public class score : MonoBehaviour {
         else calcScore(ref tutorialCurrency);
     }
 
-    // calculates score and updates canvis; returns the dust just earned
+    // calculates the dust earned this frame and updates the pause read-out;
+    // returns the dust just earned
     float calcScore(ref float tc)
     {
         // Was `(int)speed + .001f`. speed never reaches 1, so the cast was
@@ -189,7 +182,6 @@ public class score : MonoBehaviour {
         float t = topSpeed <= 0 ? 0 : Mathf.Clamp01(moveBackGround.speed / topSpeed);
         float earned = dustPerSecondAtTopSpeed * t * Time.deltaTime;
         tc += earned;
-        currencyText.text = "Star Dust : " + tc.ToString("F2");
         pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
         return earned;
     }
@@ -232,13 +224,6 @@ public class score : MonoBehaviour {
             StarDustLedger.Earn(amount);
         }
         else tutorialCurrency += amount;
-
-        var hud = Object.FindFirstObjectByType<score>();
-        if (hud != null && hud.currencyText != null)
-        {
-            float value = paysRealDust ? totalCurrency : tutorialCurrency;
-            hud.currencyText.text = "Star Dust : " + value.ToString("F2");
-        }
     }
     public static void incromentPause()
     {

@@ -378,7 +378,7 @@ public static class NextFeatures0907Test
         {
             Vector2 pos; float fit;
             HudStyler.ComputeHudLayout(new Rect(0, 0, 540, 1170), new Vector2(540, 1170), 540f / 800f,
-                                       new Vector2(351, 171), out pos, out fit);
+                                       new Vector2(351, 131), out pos, out fit);
             Check("540x1170: panel top is ~16px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
                   -pos.y * 540f / 800f < 20f);
             Check("540x1170: panel keeps full size", Mathf.Approximately(fit, 1f));
@@ -389,7 +389,7 @@ public static class NextFeatures0907Test
             var size = new Vector2(400, 2400);
             var safe = new Rect(0, 0, 400, 2400);
             float hudScale = 400f / 800f * 1.6f;   // a canvas wider-scaled than gameS1's
-            Rect hud = HudStyler.HudScreenRect(safe, size, hudScale, new Vector2(351, 171));
+            Rect hud = HudStyler.HudScreenRect(safe, size, hudScale, new Vector2(351, 131));
             Check("narrow screen: HUD shrinks to stay clear of the quick actions",
                   !hud.Overlaps(PauseQuickActions.ScreenRectFor(safe, size)));
         }

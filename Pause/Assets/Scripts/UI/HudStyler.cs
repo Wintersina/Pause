@@ -14,9 +14,12 @@ using UnityEngine.UI;
 public class HudStyler : MonoBehaviour
 {
     // Akira palette (docs/art-style.md, art-samples/ui_hud.png): CYAN speed,
-    // AMBER star dust, Kaneda red pauses that blink BONE when nearly out.
+    // Kaneda red pauses that blink BONE when nearly out.
+    //
+    // There is no star dust row: the run's dust is shown when it ends (the
+    // Flight Complete card), so the read-out is SCORE / SPEED / PAUSES in
+    // gameS1 and SPEED / PAUSES in the tutorial.
     static readonly Color Speed = AkiraPalette.Cyan;
-    static readonly Color Dust = AkiraPalette.Amber;
     static readonly Color Pause = AkiraPalette.RedHi;
     static readonly Color PauseLow = AkiraPalette.Bone;
     static readonly Color MeterOn = AkiraPalette.Red;
@@ -28,15 +31,14 @@ public class HudStyler : MonoBehaviour
     const string MeterSprite = "Hud/hud_meter";
     static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
-    Text speedText, dustText, pauseText;
+    Text speedText, pauseText;
     Image pauseBar;
     Image pauseBarBack;
 
     // Reactive motion (unscaled: the HUD lives on through the freeze).
     // A stat that changes snaps to a punch pose for a couple of ticks.
     int lastPauses = int.MinValue;
-    float lastDust = float.NaN;
-    float pausePunchAt = -1f, dustPunchAt = -1f;
+    float pausePunchAt = -1f;
 
     // The read-out's root: the child of the HUD's root canvas that holds the
     // stats (gameS1 "Model Panel", tutorialS5 "Panel").
@@ -51,7 +53,6 @@ public class HudStyler : MonoBehaviour
     void Start()
     {
         speedText = Find("SpeedText");
-        dustText = Find("CurrecnyGatheredText");
         // gameS1 names this PauseCounter; tutorialS5 names the same readout
         // PausesRemainingText. Find() returning null for the first name used
         // to short-circuit Update() entirely (see below), which is why none
@@ -62,7 +63,6 @@ public class HudStyler : MonoBehaviour
         if (ScoreHud.ShouldShow(speedText)) ScoreHud.Attach(gameObject, speedText);
 
         Style(speedText, Speed, 26);
-        Style(dustText, Dust, 26);
         Style(pauseText, Pause, 30);
 
         if (pauseText != null)
@@ -71,9 +71,12 @@ public class HudStyler : MonoBehaviour
             pauseBarBack.fillAmount = 1f;
             pauseBarBack.color = MeterOff;
             pauseBar = BuildPauseBar(pauseText, "PauseBar");
+            // ScoreHud's LOOP badge shares this row: drawn over the bar.
+            var loop = pauseText.transform.Find(ScoreHud.LoopBadgeName);
+            if (loop != null) loop.SetAsLastSibling();
         }
 
-        hudRoot = FindHudRoot(speedText ?? dustText ?? pauseText, out hudCanvas);
+        hudRoot = FindHudRoot(speedText ?? pauseText, out hudCanvas);
         if (hudRoot != null)
         {
             hudScaler = hudCanvas.GetComponent<CanvasScaler>();
@@ -310,19 +313,6 @@ public class HudStyler : MonoBehaviour
 
         if (speedText != null)
             speedText.text = "SPEED  " + Mathf.RoundToInt(moveBackGround.speed * 100f);
-
-        if (dustText != null)
-        {
-            float dust = score.totalCurrency;
-            float now = Time.unscaledTime;
-            if (!float.IsNaN(lastDust) && dust > lastDust + .0001f) dustPunchAt = now;
-            lastDust = dust;
-            dustText.text = "★ " + dust.ToString("F1");
-            float since = now - dustPunchAt;
-            // A pickup flashes the figure BONE for two ticks as it punches.
-            dustText.color = since >= 0f && since < 2f / 24f ? AkiraPalette.Bone : Dust;
-            Punch(dustText.rectTransform, since);
-        }
     }
 }
 

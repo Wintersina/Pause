@@ -84,7 +84,9 @@ public static class TutorialCurrencyTest
         Call(hud, "Start");
         Check(label + ": does not pay real dust", !score.paysRealDust);
         Check(label + ": gets the tutorial's 50 pauses", score.pauseCounter == 50);
-        Check(label + ": HUD starts at 0 dust", hud.currencyText.text == "Star Dust : 0");
+        Check(label + ": practice dust starts at 0", score.tutorialCurrency == 0f);
+        Check(label + ": no star dust read-out in the tutorial HUD",
+              typeof(score).GetField("currencyText") == null && SceneUtil.FindAny("CurrecnyGatheredText") == null);
         Check(label + ": speed readout is spelled \"Current\"", hud.speedValue.text == "Current Speed : 0");
 
         score.AwardStarDust(3f);

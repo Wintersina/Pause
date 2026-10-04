@@ -101,7 +101,6 @@ public static class ScoringTest
     {
         var go = new GameObject("~ScoreHud");
         var s = go.AddComponent<score>();
-        s.currencyText = new GameObject("c").AddComponent<Text>();
         s.speedValue = new GameObject("s").AddComponent<Text>();
         s.pauseCounterText = new GameObject("p").AddComponent<Text>();
         return s;
@@ -546,6 +545,18 @@ public static class ScoringTest
         for (int i = 0; i < 400; i++) Step(hud, .05f);
         Check("it ticks up to the exact total ('" + hud.ScoreText.text + "')", hud.ScoreText.text == "SCORE  305");
 
+        // Star dust is still earned in the run but only shown when it ends:
+        // the read-out is SCORE / SPEED / PAUSES with no dust figure.
+        System.Func<float> runDust = () => score.paysRealDust ? score.totalCurrency : score.tutorialCurrency;
+        float dustBefore = runDust();
+        score.AwardStarDust(2f);
+        styler.SendMessage("Update");
+        Check("a dust pickup still pays the run's dust", Mathf.Approximately(runDust(), dustBefore + 2f));
+        Check("... but the in-run HUD shows no star dust", !CloakShieldTest.HudShowsDust(styler.HudRoot));
+        var dustPop = hud.ShowPopup(ScoreRules.SmallDust, new Vector3(1f, 2f, 0f), RunScore.Source.Dust);
+        Check("a dust pickup still pops its score ('" + (dustPop != null ? dustPop.text : "null") + "')",
+              dustPop != null && dustPop.gameObject.activeSelf && dustPop.text == "+" + ScoreRules.SmallDust);
+
         var rock = EnemyRoster.One(0, EnemyRole.Rock);
         for (int i = 0; i < 3; i++) Kill(Enemy(rock));
         hud.SendMessage("Update");
@@ -616,7 +627,7 @@ public static class ScoringTest
         var canvas = root.parent.GetComponent<Canvas>();
         var scaler = canvas.GetComponent<CanvasScaler>();
         Vector2 hudSize = root.rect.size;
-        Check("the panel stays compact (one row taller: " + hudSize.y + ")", Mathf.Approximately(hudSize.y, 171f));
+        Check("the panel stays compact (SCORE / SPEED / PAUSES: " + hudSize.y + ")", Mathf.Approximately(hudSize.y, 131f));
         foreach (var s in Screens)
         {
             float scale = HudStyler.HudCanvasScale(canvas, scaler, s.size);
@@ -643,9 +654,9 @@ public static class ScoringTest
         foreach (var (name, h) in new[] { ("9:16", 1422f), ("9:19.5", 1733f), ("9:20", 1778f), ("9:22", 1956f), ("9:24", 2133f), ("iPad 3:4", 1066f) })
         {
             var safe = new Rect(-400f, -h * .5f, 800f, h);
-            // The top band: quick actions + the HUD (now 171 tall) under a
-            // notch-sized inset.
-            var band = new Rect(-400f, h * .5f - 60f - 171f - 16f, 800f, 171f + 16f);
+            // The top band: quick actions + the HUD (131 tall, no star dust
+            // row) under a notch-sized inset.
+            var band = new Rect(-400f, h * .5f - 60f - 131f - 16f, 800f, 131f + 16f);
             DeathPanelView.ComputeFit(safe, band, out var centre, out var scale);
             float w = (DeathPanelView.Width + 2f * DeathPanelView.GlowMargin) * scale;
             float ph = (DeathPanelView.Height + 2f * DeathPanelView.GlowMargin) * scale;
@@ -686,7 +697,7 @@ public static class ScoringTest
         Check("a source with no points shows 0", view.Panel.Find("Card1/Row5/Points").GetComponent<Text>().text == "0");
         Check("kills row: count and points", view.Panel.Find("Card1/Row1/Count").GetComponent<Text>().text == "131" &&
               view.Panel.Find("Card1/Row1/Points").GetComponent<Text>().text == "+1,375");
-        Check("star dust card keeps earned / total", dust.text == "+2.00" &&
+        Check("the Flight Complete star dust card keeps earned / total", dust.text == "+2.00" &&
               dust.transform.parent.Find("Total").GetComponent<Text>().text == "TOTAL  12.00");
 
         r.ranked = false;

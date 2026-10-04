@@ -82,7 +82,6 @@ public static class ScoreBonusTest
     {
         var go = new GameObject("~ScoreBonus");
         var s = go.AddComponent<score>();
-        s.currencyText = new GameObject("c").AddComponent<Text>();
         s.speedValue = new GameObject("s").AddComponent<Text>();
         s.pauseCounterText = new GameObject("p").AddComponent<Text>();
         return s;

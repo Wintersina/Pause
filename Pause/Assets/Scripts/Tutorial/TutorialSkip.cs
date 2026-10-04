@@ -163,7 +163,7 @@ public class TutorialSkip : MonoBehaviour
     static Font SceneFont()
     {
         var hud = Object.FindFirstObjectByType<score>();
-        if (hud != null && hud.currencyText != null && hud.currencyText.font != null) return hud.currencyText.font;
+        if (hud != null && hud.speedValue != null && hud.speedValue.font != null) return hud.speedValue.font;
         return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
