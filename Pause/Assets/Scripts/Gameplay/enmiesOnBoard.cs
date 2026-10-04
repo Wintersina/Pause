@@ -386,6 +386,12 @@ public class enmiesOnBoard : MonoBehaviour {
     // Applied by dividing rolled delays (Roll() below), so higher density
     // means shorter delays -- more spawns per minute, on every active type
     // at once, not just the ones a phase newly unlocks.
+    //
+    // Roll() also multiplies in LoopDifficulty.DensityScale: x1 on a first
+    // pass, x1.1 / x1.2 / x1.3 on later loops, and KEEP FLYING's endless
+    // climb on top (LoopRules.Density; WorldManager sets it). However dense,
+    // every roster spawn still goes through SpawnLane, so each row keeps a
+    // ship-width gap -- a crowded row skips the spawn and the timer rolls on.
     const float DensityTickSeconds = 10f;
     const float DensityFirstMinute = 60f;
     const float DensityFinalStretch = 30f;
@@ -416,7 +422,7 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float Roll(Vector2 range)
     {
-        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier());
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale);
     }
 
     void spawn() { spawn(Time.deltaTime); }
