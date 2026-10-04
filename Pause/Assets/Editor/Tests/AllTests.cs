@@ -51,6 +51,7 @@ public static class AllTests
         ("PickupHitchTest", PickupHitchTest.Execute),
         ("PickupRulesTest", PickupRulesTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
+        ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),
         ("ResumeFxTest", ResumeFxTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),

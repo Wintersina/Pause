@@ -319,6 +319,9 @@ public class collisionDetection : MonoBehaviour {
                 RunScore.OnAtom(RunScore.Atom.Pause, hit.transform.position);
                 score.incromentPause();
                 BoostUltimate(dust: false);
+                // ...and a free shot of the main weapon (the charge timer
+                // keeps its progress; ShipPowerController.FreeShot).
+                if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
