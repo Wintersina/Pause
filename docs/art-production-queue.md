@@ -16,7 +16,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 **review** or **audit**.  The active item is the only art asset being changed.
 
 1. **Installed and validated — `frost_fighter_4`:** Hailstorm commander; rugged raster strip is live, Preview-opened, and roster-validated.
-2. **Queued — `space_fighter_1`:** ruggedness review; rebuild only if it falls below the new Space 2–4 benchmark.
+2. **Installed and validated — `space_fighter_1`:** rugged Needle scout strip is live, Preview-opened, and roster-validated.
 3. **Queued — `verdant_fighter_1`**
 4. **Queued — `verdant_fighter_2`**
 5. **Queued — `verdant_fighter_3`**
@@ -64,7 +64,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 
 ## Already approved / installed
 
-- Space Fighters 2–4 and Frost Fighters 1–4 have been rebuilt against the rugged industrial reference and are live as the current quality benchmarks.
+- Space Fighters 1–4 and Frost Fighters 1–4 have been rebuilt against the rugged industrial reference and are live as the current quality benchmarks.
 - Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
