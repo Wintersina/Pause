@@ -3,37 +3,86 @@ using UnityEngine;
 // The four end-of-level bosses, one per world (index-aligned with
 // WorldManager.Worlds), and their attack patterns.
 //
-// Every attack has a tell: the boss holds a drawn anticipation pose while a
-// telegraph shows where it is going (a charging muzzle flash for shots, a
-// flashing stripe for a lane), and only then fires. Patterns unlock in
-// thirds of the fight: attacks[0] alone, then [0] and [1] in turn, then all
-// three with shorter cooldowns (BossConfig.FinalPhaseCooldownScale).
+// Every attack comes OUT OF THE BOSS: it names the body parts it fires from
+// (BossEmitters; the muzzle pixels are measured from the art, per drawing),
+// so a shot leaves the Archon's chin cannon, a laser grows out of the
+// Leviathan's eyes, spores burst from the Bloom Queen's petal tips. And
+// every attack has a tell drawn on that same part: the boss holds its tell
+// pose (tell0/1/2, one per attack, each lighting the part that is about to
+// fire) while a charge gathers at the muzzle -- and for a laser, a thin
+// sight line scans the ground it is about to cover -- and only then fires.
+//
+// Projectiles meet the side rails in one of three ways (BossRailMode):
+// ricochet off them (a limited number of times, with a spark, then they
+// splash on the next one), splash against them at once, or fly on past.
+// Lasers stop where they meet a rail, sparking.
+//
+// Patterns unlock in thirds of the fight: attacks[0] alone, then [0] and
+// [1] in turn, then all three with shorter cooldowns
+// (BossConfig.FinalPhaseCooldownScale; later loops: LoopRules).
 public enum BossAttackKind
 {
-    Aimed,  // volleys at the ship's current position
-    Fan,    // an even fan straight down, rotating a little between volleys
-    Lanes,  // telegraphed columns that turn into beams
+    Aimed,  // volleys at the ship from the attack's part(s)
+    Fan,    // even fans out of the part(s), turning a little between volleys
+    Lob,    // arcs up out of the part and rains down on chosen columns
+    Beam,   // a laser that grows out of the part(s), then sweeps
 }
 
 public enum BossShotStyle { Bolt, Shard }
 
+// What a projectile does at a side rail.
+public enum BossRailMode
+{
+    Absorb,  // splashes against the rail (a spark) and is gone
+    Bounce,  // ricochets `bounces` times (a spark each), then splashes
+    Pass,    // flies on past the rail and off the screen
+}
+
+// Where a laser points when its tell starts.
+public enum BossBeamAim
+{
+    Down,    // straight down, turned aimDeg outward (away from the boss's middle)
+    AtShip,  // at the ship's position when the tell starts
+}
+
 public sealed class BossAttack
 {
+    public string name;             // what it is, for previews and tests
     public BossAttackKind kind;
     public int tell;                // which drawn tell pose (0..2) the boss holds
     public float tellSeconds = .7f; // telegraph before the first shot / beam
+    // The body parts it fires from (BossEmitterTable names) and their
+    // resolved indices (filled by BossCatalog).
+    public string[] emitters;
+    public int[] parts;
+    // On each volley the boss shows its drawn Fire pose -- whose muzzle burst
+    // is drawn at this attack's part -- instead of holding its tell pose.
+    public bool fireFrame;
+    // Aimed / fan: one part per volley, in turn, instead of all at once.
+    public bool alternate;
+    // Fan: each part fans out along the line from this part through it
+    // (spores flying off the petal tips, away from the bulb), bent down
+    // towards the ship by radialBend (1 = straight out, 0 = straight down).
+    public string radialFrom;
+    public int radialPart = -1;
+    public float radialBend = .6f;
     public int volleys = 1;
     public float volleyGap = .3f;
-    public int count = 1;           // shots per volley, or lanes
+    public int count = 1;           // shots per part per volley (lob: columns hit)
     public float spreadDeg;         // aimed: spread of a volley; fan: total arc
     public float rotateDeg;         // fan: offset alternated between volleys
     public float speed = 4f;        // world units / second
     public BossShotStyle style;
-    public Vector2 muzzle;          // local offset from the boss centre
-    // Lanes
-    public bool sweep;              // every lane but one safe lane, in order
-    public float stagger = .3f;     // sweep: seconds between lanes
-    public float laneHold = .6f;    // seconds a beam stays live
+    public BossRailMode rail = BossRailMode.Absorb;
+    public int bounces;             // Bounce: ricochets before it splashes
+    // Lob: thrown up at lobUp, falls under gravity to at most fallSpeed.
+    public float lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f;
+    // Beam
+    public BossBeamAim aim;
+    public float aimDeg;            // Down: turned this far outward
+    public float sweepDeg;          // over the hold: + outward (or away from the ship's side), - inward
+    public float beamWidth = .3f;   // world units
+    public float hold = .7f;        // seconds a beam stays live
     public float cooldown = 1.2f;   // idle time after the attack
 }
 
@@ -84,9 +133,11 @@ public static class BossCatalog
 
     static BossDef[] Build()
     {
-        return new[]
+        var bosses = new[]
         {
             // ---------------------------------------------------------- Space
+            // A carrier: a chin cannon, a reactor core behind a chest hatch,
+            // two engine pods hanging off its shoulders.
             new BossDef
             {
                 id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space",
@@ -96,16 +147,30 @@ public static class BossCatalog
                 swayX = 1.15f, swayY = .12f, freqX = .32f, freqY = .64f, flash = Magenta,
                 attacks = new[]
                 {
-                    new BossAttack { kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .7f, volleys = 3, volleyGap = .32f,
-                                     count = 1, speed = 4.8f, style = BossShotStyle.Bolt, muzzle = new Vector2(0f, -1.2f), cooldown = 1.1f },
-                    new BossAttack { kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f, volleys = 2, volleyGap = .55f,
-                                     count = 7, spreadDeg = 100f, rotateDeg = 7f, speed = 3.1f, style = BossShotStyle.Shard,
-                                     muzzle = new Vector2(0f, -.27f), cooldown = 1.3f },
-                    new BossAttack { kind = BossAttackKind.Lanes, tell = 2, tellSeconds = .95f, count = 2, laneHold = .7f,
-                                     muzzle = new Vector2(0f, -.6f), cooldown = 1.3f },
+                    // The chin cannon glows, then snaps three bolts at the ship;
+                    // they splash on a rail.
+                    new BossAttack { name = "chin cannon", kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .7f,
+                                     emitters = new[] { "Chin" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .32f, count = 1, speed = 4.8f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Absorb, cooldown = 1.1f },
+                    // The chest hatch opens on the core, which vents two fans
+                    // of plasma shards that ricochet once off the rails.
+                    new BossAttack { name = "core burst", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
+                                     emitters = new[] { "Core" },
+                                     volleys = 2, volleyGap = .55f, count = 7, spreadDeg = 100f, rotateDeg = 7f,
+                                     speed = 3.1f, style = BossShotStyle.Shard,
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.3f },
+                    // Both engine pods flare and burn two lasers straight down
+                    // that swing outward: the middle, between them, is safe.
+                    new BossAttack { name = "pod lasers", kind = BossAttackKind.Beam, tell = 2, tellSeconds = .95f,
+                                     emitters = new[] { "PodL", "PodR" },
+                                     aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 18f, beamWidth = .32f, hold = .9f,
+                                     cooldown = 1.3f },
                 },
             },
             // ---------------------------------------------------------- Frost
+            // Half whale, half fortress: an icicle jaw, two glaring eyes, a
+            // blowhole crown on top.
             new BossDef
             {
                 id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost",
@@ -115,17 +180,31 @@ public static class BossCatalog
                 swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice,
                 attacks = new[]
                 {
-                    new BossAttack { kind = BossAttackKind.Fan, tell = 0, tellSeconds = .8f, volleys = 3, volleyGap = .5f,
-                                     count = 5, spreadDeg = 70f, rotateDeg = 9f, speed = 3f, style = BossShotStyle.Shard,
-                                     muzzle = new Vector2(0f, -.85f), cooldown = 1.2f },
-                    new BossAttack { kind = BossAttackKind.Aimed, tell = 1, tellSeconds = .7f, volleys = 2, volleyGap = .45f,
-                                     count = 3, spreadDeg = 18f, speed = 4.3f, style = BossShotStyle.Bolt,
-                                     muzzle = new Vector2(0f, -.85f), cooldown = 1.2f },
-                    new BossAttack { kind = BossAttackKind.Lanes, tell = 2, tellSeconds = .8f, sweep = true, stagger = .3f,
-                                     laneHold = .55f, muzzle = new Vector2(0f, -.6f), cooldown = 1.4f },
+                    // The jaw fills with cold light and sprays icicles that
+                    // ricochet off the rails twice before they shatter.
+                    new BossAttack { name = "icicle spray", kind = BossAttackKind.Fan, tell = 0, tellSeconds = .8f,
+                                     emitters = new[] { "Jaw" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .5f, count = 5, spreadDeg = 70f, rotateDeg = 9f,
+                                     speed = 3f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Bounce, bounces = 2, cooldown = 1.2f },
+                    // Both eyes flare and lock on where the ship is; two
+                    // freezing beams cross there, then drift apart.
+                    new BossAttack { name = "glare beams", kind = BossAttackKind.Beam, tell = 1, tellSeconds = .8f,
+                                     emitters = new[] { "EyeL", "EyeR" },
+                                     aim = BossBeamAim.AtShip, sweepDeg = 10f, beamWidth = .26f, hold = .6f,
+                                     cooldown = 1.2f },
+                    // The blowhole crown spouts: hail crystals arc up out of it
+                    // and rain down on four of five columns.
+                    new BossAttack { name = "blowhole hail", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
+                                     emitters = new[] { "Crown" },
+                                     volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
+                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
+                                     rail = BossRailMode.Absorb, cooldown = 1.4f },
                 },
             },
             // -------------------------------------------------------- Verdant
+            // A flower with teeth: a brass stinger under the seed bulb, six
+            // petal tips, two acid cannons on its flanks.
             new BossDef
             {
                 id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant",
@@ -135,16 +214,31 @@ public static class BossCatalog
                 swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight,
                 attacks = new[]
                 {
-                    new BossAttack { kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .6f, volleys = 4, volleyGap = .24f,
-                                     count = 1, speed = 4.1f, style = BossShotStyle.Bolt, muzzle = new Vector2(0f, -.4f), cooldown = 1.1f },
-                    new BossAttack { kind = BossAttackKind.Fan, tell = 1, tellSeconds = .9f, volleys = 1,
-                                     count = 11, spreadDeg = 150f, speed = 2.5f, style = BossShotStyle.Shard,
-                                     muzzle = new Vector2(0f, -.5f), cooldown = 1.3f },
-                    new BossAttack { kind = BossAttackKind.Lanes, tell = 2, tellSeconds = 1f, count = 3, laneHold = .8f,
-                                     muzzle = new Vector2(0f, -.5f), cooldown = 1.4f },
+                    // The stinger swells and spits four thorns at the ship;
+                    // they stick in a rail.
+                    new BossAttack { name = "stinger thorns", kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .6f,
+                                     emitters = new[] { "Stinger" }, fireFrame = true,
+                                     volleys = 4, volleyGap = .24f, count = 1, speed = 4.1f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Absorb, cooldown = 1.1f },
+                    // Every petal tip sparks, then flings two spiky spores out
+                    // and down, away from the bulb; they bounce once.
+                    new BossAttack { name = "spore bloom", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .9f,
+                                     emitters = new[] { "PetalUL", "PetalUR", "PetalL", "PetalR", "PetalLL", "PetalLR" },
+                                     radialFrom = "Bulb", radialBend = .6f,
+                                     volleys = 1, count = 2, spreadDeg = 24f, speed = 2.5f, style = BossShotStyle.Shard,
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.3f },
+                    // The flank cannons glow and hose acid: two jets start
+                    // aimed out at the rails and swing in to straight down --
+                    // get between the cannons.
+                    new BossAttack { name = "acid cannons", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
+                                     emitters = new[] { "CannonL", "CannonR" },
+                                     aim = BossBeamAim.Down, aimDeg = 30f, sweepDeg = -30f, beamWidth = .3f, hold = .8f,
+                                     cooldown = 1.4f },
                 },
             },
             // ---------------------------------------------------------- Ember
+            // A basalt dragon: a burning maw, a chest furnace, a gem on its
+            // brow between the eyes.
             new BossDef
             {
                 id = CodexPrefix + "ember", name = "CINDER DRAKE", title = "VOLCANIC WYRM", artKey = "Ember",
@@ -154,17 +248,37 @@ public static class BossCatalog
                 swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = Magenta,
                 attacks = new[]
                 {
-                    new BossAttack { kind = BossAttackKind.Fan, tell = 0, tellSeconds = .7f, volleys = 2, volleyGap = .5f,
-                                     count = 9, spreadDeg = 120f, rotateDeg = 6f, speed = 3.3f, style = BossShotStyle.Shard,
-                                     muzzle = new Vector2(0f, -1.1f), cooldown = 1.1f },
-                    new BossAttack { kind = BossAttackKind.Aimed, tell = 1, tellSeconds = .6f, volleys = 3, volleyGap = .36f,
-                                     count = 3, spreadDeg = 24f, speed = 4.9f, style = BossShotStyle.Bolt,
-                                     muzzle = new Vector2(0f, -.95f), cooldown = 1.1f },
-                    new BossAttack { kind = BossAttackKind.Lanes, tell = 2, tellSeconds = .7f, sweep = true, stagger = .25f,
-                                     laneHold = .5f, muzzle = new Vector2(0f, -.7f), cooldown = 1.3f },
+                    // It rears and breathes two wide fans of fireballs from
+                    // its maw; each splashes off a rail once.
+                    new BossAttack { name = "fire breath", kind = BossAttackKind.Fan, tell = 0, tellSeconds = .7f,
+                                     emitters = new[] { "Jaw" }, fireFrame = true,
+                                     volleys = 2, volleyGap = .5f, count = 9, spreadDeg = 120f, rotateDeg = 6f,
+                                     speed = 3.3f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.1f },
+                    // The chest furnace roars and hurls three triplets of
+                    // magma at the ship; they splash on a rail.
+                    new BossAttack { name = "furnace slugs", kind = BossAttackKind.Aimed, tell = 1, tellSeconds = .6f,
+                                     emitters = new[] { "Furnace" },
+                                     volleys = 3, volleyGap = .36f, count = 3, spreadDeg = 24f, speed = 4.9f,
+                                     style = BossShotStyle.Shard, rail = BossRailMode.Absorb, cooldown = 1.1f },
+                    // The brow gem locks on to the ship, then burns a laser
+                    // that rakes away from that side towards the other --
+                    // step out behind it.
+                    new BossAttack { name = "brow laser", kind = BossAttackKind.Beam, tell = 2, tellSeconds = .8f,
+                                     emitters = new[] { "Brow" },
+                                     aim = BossBeamAim.AtShip, sweepDeg = 55f, beamWidth = .34f, hold = .8f,
+                                     cooldown = 1.3f },
                 },
             },
         };
+
+        foreach (var b in bosses)
+            foreach (var a in b.attacks)
+            {
+                a.parts = BossEmitters.Resolve(b, a.emitters);
+                a.radialPart = string.IsNullOrEmpty(a.radialFrom) ? -1 : BossEmitters.Part(b, a.radialFrom);
+            }
+        return bosses;
     }
 
     // Which attacks are in rotation at a point of the fight (0..1 of the
