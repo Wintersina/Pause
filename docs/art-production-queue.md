@@ -60,7 +60,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 43. **Queued — Ember boss support:** `Ember_shots`, `Ember_card`, animation-support audit.
 44. **Queued — Frost world integration:** staged layers, parallax, spinning landmark, validation.
 45. **Queued — Verdant world rebuild:** complete backdrop, walls, parallax, spinning landmark.
-46. **Queued — Ember world rebuild:** complete backdrop, walls, parallax, spinning landmark.
+46. **Installed and validated — Ember world rebuild:** live parallax stack, ember/ash effects, freshly rebuilt mirrored forge-tower gameplay walls, and a refreshed eight-frame rugged refinery-volcano landmark atlas are wired through the existing Ember backdrop director; Ember-specific backdrop checks pass.
 47. **Queued — Space world audit:** live backdrop and industrial rails.
 48. **Queued — legacy cleanup audit:** delete a legacy source family only after its live replacement is verified.
 

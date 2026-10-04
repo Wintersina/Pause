@@ -1,0 +1,1105 @@
+fileFormatVersion: 2
+guid: 67a1ff5277e6c4dd0b576cb3fa0c4a6d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2139853064070257127
+    second: ember_volcano_refinery_rugged_v2_concept_0
+  - first:
+      213: -6839802816695124804
+    second: ember_volcano_refinery_rugged_v2_concept_1
+  - first:
+      213: 8257114289705691504
+    second: ember_volcano_refinery_rugged_v2_concept_2
+  - first:
+      213: 13846415207606256
+    second: ember_volcano_refinery_rugged_v2_concept_3
+  - first:
+      213: 4710712244684901570
+    second: ember_volcano_refinery_rugged_v2_concept_4
+  - first:
+      213: -7673977684158807646
+    second: ember_volcano_refinery_rugged_v2_concept_5
+  - first:
+      213: 3854996579938704354
+    second: ember_volcano_refinery_rugged_v2_concept_6
+  - first:
+      213: -7082795513860097690
+    second: ember_volcano_refinery_rugged_v2_concept_7
+  - first:
+      213: 3294945547762711404
+    second: ember_volcano_refinery_rugged_v2_concept_8
+  - first:
+      213: -6712338006818429654
+    second: ember_volcano_refinery_rugged_v2_concept_9
+  - first:
+      213: -4046760310758374725
+    second: ember_volcano_refinery_rugged_v2_concept_10
+  - first:
+      213: 1776967518396959414
+    second: ember_volcano_refinery_rugged_v2_concept_11
+  - first:
+      213: -8548610989719956296
+    second: ember_volcano_refinery_rugged_v2_concept_12
+  - first:
+      213: 3543731550793844016
+    second: ember_volcano_refinery_rugged_v2_concept_13
+  - first:
+      213: 3429385009617267702
+    second: ember_volcano_refinery_rugged_v2_concept_14
+  - first:
+      213: -4130821158356037034
+    second: ember_volcano_refinery_rugged_v2_concept_15
+  - first:
+      213: 7050719662838588066
+    second: ember_volcano_refinery_rugged_v2_concept_16
+  - first:
+      213: 6558679925654659588
+    second: ember_volcano_refinery_rugged_v2_concept_17
+  - first:
+      213: 4264139308178929912
+    second: ember_volcano_refinery_rugged_v2_concept_18
+  - first:
+      213: 1701970325520539867
+    second: ember_volcano_refinery_rugged_v2_concept_19
+  - first:
+      213: -277841972759053384
+    second: ember_volcano_refinery_rugged_v2_concept_20
+  - first:
+      213: 3963973589193589760
+    second: ember_volcano_refinery_rugged_v2_concept_21
+  - first:
+      213: 7286850759194512712
+    second: ember_volcano_refinery_rugged_v2_concept_22
+  - first:
+      213: 6973373106758852716
+    second: ember_volcano_refinery_rugged_v2_concept_23
+  - first:
+      213: -7121951048221095921
+    second: ember_volcano_refinery_rugged_v2_concept_24
+  - first:
+      213: 3897734551572491507
+    second: ember_volcano_refinery_rugged_v2_concept_25
+  - first:
+      213: 6213990420313447609
+    second: ember_volcano_refinery_rugged_v2_concept_26
+  - first:
+      213: -6422529699176914854
+    second: ember_volcano_refinery_rugged_v2_concept_27
+  - first:
+      213: -1358022444557644401
+    second: ember_volcano_refinery_rugged_v2_concept_28
+  - first:
+      213: 2690859954898146785
+    second: ember_volcano_refinery_rugged_v2_concept_29
+  - first:
+      213: 6995703014769162534
+    second: ember_volcano_refinery_rugged_v2_concept_30
+  - first:
+      213: -1841617139808906431
+    second: ember_volcano_refinery_rugged_v2_concept_31
+  - first:
+      213: 5895392481950211052
+    second: ember_volcano_refinery_rugged_v2_concept_32
+  - first:
+      213: 2485220775554984579
+    second: ember_volcano_refinery_rugged_v2_concept_33
+  - first:
+      213: -5393489764464269336
+    second: ember_volcano_refinery_rugged_v2_concept_34
+  - first:
+      213: -4677255268450958948
+    second: ember_volcano_refinery_rugged_v2_concept_35
+  - first:
+      213: -1852022737619807780
+    second: ember_volcano_refinery_rugged_v2_concept_36
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 777
+        width: 146
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 916af84c9f6bd42e0800000000000000
+      internalID: -2139853064070257127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 773
+        width: 88
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbcbb29b3932411a0800000000000000
+      internalID: -6839802816695124804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 424
+        width: 491
+        height: 447
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 079a5bbc2b9279270800000000000000
+      internalID: 8257114289705691504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 844
+        width: 61
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f7acd3cd31313000800000000000000
+      internalID: 13846415207606256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 424
+        width: 451
+        height: 453
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ccc68ff3dfcf5140800000000000000
+      internalID: 4710712244684901570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1326
+        y: 338
+        width: 445
+        height: 549
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a1807964fd808590800000000000000
+      internalID: -7673977684158807646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 779
+        width: 46
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eb979df6f2bf7530800000000000000
+      internalID: 3854996579938704354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 805
+        width: 25
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66973a3a10bd4bd90800000000000000
+      internalID: -7082795513860097690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1321
+        y: 805
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6bb6a0b48ff9bd20800000000000000
+      internalID: 3294945547762711404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 1326
+        y: 811
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a25eb33752cf8d2a0800000000000000
+      internalID: -6712338006818429654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 789
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb2091220f407d7c0800000000000000
+      internalID: -4046760310758374725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1324
+        y: 777
+        width: 8
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ba457f0b8e09a810800000000000000
+      internalID: 1776967518396959414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 761
+        width: 21
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b4ddbae89b3d5980800000000000000
+      internalID: -8548610989719956296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 877
+        y: 769
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0354968e11ddd2130800000000000000
+      internalID: 3543731550793844016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 739
+        width: 31
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fb69402f7f979f20800000000000000
+      internalID: 3429385009617267702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1328
+        y: 757
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6525581ea006ca6c0800000000000000
+      internalID: -4130821158356037034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 424
+        width: 432
+        height: 342
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a22b525d2039d160800000000000000
+      internalID: 7050719662838588066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 739
+        width: 10
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 402a12c94ac150b50800000000000000
+      internalID: 6558679925654659588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 743
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f8f8c0cb144d2b30800000000000000
+      internalID: 4264139308178929912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 749
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd068ee5efc9e9710800000000000000
+      internalID: 1701970325520539867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 725
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bbb006a238e42cf0800000000000000
+      internalID: -277841972759053384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 634
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0040ae23afcd20730800000000000000
+      internalID: 3963973589193589760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1195
+        y: 446
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84d03197828102560800000000000000
+      internalID: 7286850759194512712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 444
+        y: 430
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c60af92e4e566c060800000000000000
+      internalID: 6973373106758852716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 839
+        y: 426
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f088f0f514fb92d90800000000000000
+      internalID: -7121951048221095921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 1322
+        y: 424
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fcae3f6ce8871630800000000000000
+      internalID: 3897734551572491507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 440
+        height: 425
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bc96783d578c3650800000000000000
+      internalID: 6213990420313447609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 441
+        y: 0
+        width: 437
+        height: 425
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a50e92144479ed6a0800000000000000
+      internalID: -6422529699176914854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 877
+        y: 13
+        width: 455
+        height: 410
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8d422328c5572de0800000000000000
+      internalID: -1358022444557644401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1328
+        y: 360
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e517084fdad75520800000000000000
+      internalID: 2690859954898146785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 1329
+        y: 356
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 629f17db3dab51160800000000000000
+      internalID: 6995703014769162534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 1335
+        y: 352
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1435b69f7f24176e0800000000000000
+      internalID: -1841617139808906431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 1353
+        y: 353
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceb962a2a34a0d150800000000000000
+      internalID: 5895392481950211052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 311
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38a206bc0274d7220800000000000000
+      internalID: 2485220775554984579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 1320
+        y: 313
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e7e66992a97625b0800000000000000
+      internalID: -5393489764464269336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 1322
+        y: 311
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9108205d1d071fb0800000000000000
+      internalID: -4677255268450958948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_volcano_refinery_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 0
+        width: 429
+        height: 340
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd19930f12b4c46e0800000000000000
+      internalID: -1852022737619807780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_volcano_refinery_rugged_v2_concept_0: -2139853064070257127
+      ember_volcano_refinery_rugged_v2_concept_1: -6839802816695124804
+      ember_volcano_refinery_rugged_v2_concept_10: -4046760310758374725
+      ember_volcano_refinery_rugged_v2_concept_11: 1776967518396959414
+      ember_volcano_refinery_rugged_v2_concept_12: -8548610989719956296
+      ember_volcano_refinery_rugged_v2_concept_13: 3543731550793844016
+      ember_volcano_refinery_rugged_v2_concept_14: 3429385009617267702
+      ember_volcano_refinery_rugged_v2_concept_15: -4130821158356037034
+      ember_volcano_refinery_rugged_v2_concept_16: 7050719662838588066
+      ember_volcano_refinery_rugged_v2_concept_17: 6558679925654659588
+      ember_volcano_refinery_rugged_v2_concept_18: 4264139308178929912
+      ember_volcano_refinery_rugged_v2_concept_19: 1701970325520539867
+      ember_volcano_refinery_rugged_v2_concept_2: 8257114289705691504
+      ember_volcano_refinery_rugged_v2_concept_20: -277841972759053384
+      ember_volcano_refinery_rugged_v2_concept_21: 3963973589193589760
+      ember_volcano_refinery_rugged_v2_concept_22: 7286850759194512712
+      ember_volcano_refinery_rugged_v2_concept_23: 6973373106758852716
+      ember_volcano_refinery_rugged_v2_concept_24: -7121951048221095921
+      ember_volcano_refinery_rugged_v2_concept_25: 3897734551572491507
+      ember_volcano_refinery_rugged_v2_concept_26: 6213990420313447609
+      ember_volcano_refinery_rugged_v2_concept_27: -6422529699176914854
+      ember_volcano_refinery_rugged_v2_concept_28: -1358022444557644401
+      ember_volcano_refinery_rugged_v2_concept_29: 2690859954898146785
+      ember_volcano_refinery_rugged_v2_concept_3: 13846415207606256
+      ember_volcano_refinery_rugged_v2_concept_30: 6995703014769162534
+      ember_volcano_refinery_rugged_v2_concept_31: -1841617139808906431
+      ember_volcano_refinery_rugged_v2_concept_32: 5895392481950211052
+      ember_volcano_refinery_rugged_v2_concept_33: 2485220775554984579
+      ember_volcano_refinery_rugged_v2_concept_34: -5393489764464269336
+      ember_volcano_refinery_rugged_v2_concept_35: -4677255268450958948
+      ember_volcano_refinery_rugged_v2_concept_36: -1852022737619807780
+      ember_volcano_refinery_rugged_v2_concept_4: 4710712244684901570
+      ember_volcano_refinery_rugged_v2_concept_5: -7673977684158807646
+      ember_volcano_refinery_rugged_v2_concept_6: 3854996579938704354
+      ember_volcano_refinery_rugged_v2_concept_7: -7082795513860097690
+      ember_volcano_refinery_rugged_v2_concept_8: 3294945547762711404
+      ember_volcano_refinery_rugged_v2_concept_9: -6712338006818429654
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

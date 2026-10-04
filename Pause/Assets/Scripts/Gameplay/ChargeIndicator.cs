@@ -147,6 +147,7 @@ public class ChargeIndicator : MonoBehaviour
             ChargeFrame = ChargeFrameFor(shown);
             view.sprite = WeaponArt.Charge(ship, ChargeFrame);
         }
+        StepFreeFlash(unscaledDt);
         Place();
     }
 
@@ -175,6 +176,31 @@ public class ChargeIndicator : MonoBehaviour
         Vector3 lossy = transform.lossyScale;
         t.localScale = new Vector3(WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
                                    WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
+    }
+
+    // The red atom's free shot (ShipPowerController.FreeShot) went off: a
+    // short stepped red flash over whatever drawing is showing. The charge
+    // progress is untouched.
+    public const float FreeFlashSeconds = .3f;
+    float freeFlashT = -1f;
+    public bool FreeFlashing => freeFlashT >= 0f;
+    public int FreeFlashCount { get; private set; }
+
+    public void FlashFree()
+    {
+        freeFlashT = 0f;
+        FreeFlashCount++;
+        if (view != null) view.color = AkiraPalette.RedHi;
+    }
+
+    void StepFreeFlash(float unscaledDt)
+    {
+        if (freeFlashT < 0f || view == null) return;
+        freeFlashT += unscaledDt;
+        if (freeFlashT >= FreeFlashSeconds) { freeFlashT = -1f; view.color = Color.white; return; }
+        // on and off in 24 fps ticks: red, red, white, red, red, white...
+        int tick = Mathf.FloorToInt(freeFlashT * 24f);
+        view.color = tick % 3 == 2 ? Color.white : AkiraPalette.RedHi;
     }
 
     // The ultimate just went off.
