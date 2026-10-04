@@ -5,7 +5,8 @@ using UnityEngine;
 //
 // A ship's id is its roster index: 1..Count, the same number as
 //   - its position in shopingShips.Roster / Prices,
-//   - the dock berth that shows it (SpaceDock.bays[id]),
+//   - the dock berth that shows it (SpaceDock.bays[id]; the berths are
+//     *laid out* cheapest first, SpaceDock.BayOrder, but stay indexed by id),
 //   - its ownership key   "boughtship<id>" == "True",
 //   - the saved selection "spawnShip" == id,
 //   - its GameObject name "ship<id>" ("ship<id>(Clone)" when spawned),

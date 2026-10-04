@@ -344,6 +344,9 @@ public static class ExhaustStyleTest
     {
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
         PlayerPrefs.SetString("boughtship1", "True");
+        // Unbought hulls park as silhouettes with a cold engine; own the
+        // ships whose exhaust this checks.
+        foreach (int id in new[] { 2, 11, 13 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
         PlayerPrefs.SetInt("spawnShip", 1);
         ShopSceneExtender.Build();
         var dock = SpaceDock.Instance;
