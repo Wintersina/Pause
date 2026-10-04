@@ -1,0 +1,845 @@
+fileFormatVersion: 2
+guid: d7737748776454a7dba29af7790ebb2a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1885859268029122774
+    second: space_fighter_2_rugged_v3_concept_0
+  - first:
+      213: -2888340224263057375
+    second: space_fighter_2_rugged_v3_concept_1
+  - first:
+      213: -5900390651009020742
+    second: space_fighter_2_rugged_v3_concept_2
+  - first:
+      213: 5134102830956652730
+    second: space_fighter_2_rugged_v3_concept_3
+  - first:
+      213: 6715057658462836260
+    second: space_fighter_2_rugged_v3_concept_4
+  - first:
+      213: 7979349676765356137
+    second: space_fighter_2_rugged_v3_concept_5
+  - first:
+      213: -3997412085221057502
+    second: space_fighter_2_rugged_v3_concept_6
+  - first:
+      213: 9213704890401449586
+    second: space_fighter_2_rugged_v3_concept_7
+  - first:
+      213: 8407571605359787824
+    second: space_fighter_2_rugged_v3_concept_8
+  - first:
+      213: -1498747873010574040
+    second: space_fighter_2_rugged_v3_concept_9
+  - first:
+      213: 510687022288183248
+    second: space_fighter_2_rugged_v3_concept_10
+  - first:
+      213: -28394148405590016
+    second: space_fighter_2_rugged_v3_concept_11
+  - first:
+      213: 8318028928635793455
+    second: space_fighter_2_rugged_v3_concept_12
+  - first:
+      213: -7068140843521145595
+    second: space_fighter_2_rugged_v3_concept_13
+  - first:
+      213: 2805398709181997201
+    second: space_fighter_2_rugged_v3_concept_14
+  - first:
+      213: 3148856135568507409
+    second: space_fighter_2_rugged_v3_concept_15
+  - first:
+      213: 6797543760520928254
+    second: space_fighter_2_rugged_v3_concept_16
+  - first:
+      213: 5598434175368448289
+    second: space_fighter_2_rugged_v3_concept_17
+  - first:
+      213: 8464847710491724720
+    second: space_fighter_2_rugged_v3_concept_18
+  - first:
+      213: 7264394619303841626
+    second: space_fighter_2_rugged_v3_concept_19
+  - first:
+      213: 5457176145688187316
+    second: space_fighter_2_rugged_v3_concept_20
+  - first:
+      213: 3462851778715367547
+    second: space_fighter_2_rugged_v3_concept_21
+  - first:
+      213: 3055119899073623313
+    second: space_fighter_2_rugged_v3_concept_22
+  - first:
+      213: 7475806622940383912
+    second: space_fighter_2_rugged_v3_concept_23
+  - first:
+      213: 400946637460429680
+    second: space_fighter_2_rugged_v3_concept_24
+  - first:
+      213: -7693163269563053858
+    second: space_fighter_2_rugged_v3_concept_25
+  - first:
+      213: 935556121144551537
+    second: space_fighter_2_rugged_v3_concept_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_0
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 659
+        width: 60
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a27feb8ccf414d5e0800000000000000
+      internalID: -1885859268029122774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_1
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 627
+        width: 59
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 120145e7edd8ae7d0800000000000000
+      internalID: -2888340224263057375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_2
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 57
+        width: 530
+        height: 649
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abc429ae6f99d1ea0800000000000000
+      internalID: -5900390651009020742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_3
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 176
+        width: 361
+        height: 502
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab8af77b25fff3740800000000000000
+      internalID: 5134102830956652730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 610
+        width: 114
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42691facc5da03d50800000000000000
+      internalID: 6715057658462836260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1464
+        y: 610
+        width: 144
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9602a3e21485cbe60800000000000000
+      internalID: 7979349676765356137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_6
+      rect:
+        serializedVersion: 2
+        x: 2087
+        y: 638
+        width: 38
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22c9b8f33e65688c0800000000000000
+      internalID: -3997412085221057502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_7
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 47
+        width: 280
+        height: 516
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27668a118c7addf70800000000000000
+      internalID: 9213704890401449586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_8
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 47
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03f712174d1bda470800000000000000
+      internalID: 8407571605359787824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_9
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 55
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82d155d00c0633be0800000000000000
+      internalID: -1498747873010574040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_10
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 127
+        width: 40
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0df93ea1423561700800000000000000
+      internalID: 510687022288183248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_11
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 114
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 008c5962caf1b9ff0800000000000000
+      internalID: -28394148405590016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_12
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 39
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2072c26d339f6370800000000000000
+      internalID: 8318028928635793455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_13
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 120
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5050e77f95be8ed90800000000000000
+      internalID: -7068140843521145595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_14
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 102
+        width: 12
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 190e12a2347cee620800000000000000
+      internalID: 2805398709181997201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_15
+      rect:
+        serializedVersion: 2
+        x: 623
+        y: 83
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 112ce51d8fbf2bb20800000000000000
+      internalID: 3148856135568507409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_16
+      rect:
+        serializedVersion: 2
+        x: 629
+        y: 35
+        width: 299
+        height: 534
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efbd507090ab55e50800000000000000
+      internalID: 6797543760520928254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_17
+      rect:
+        serializedVersion: 2
+        x: 813
+        y: 99
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1294e318832a1bd40800000000000000
+      internalID: 5598434175368448289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_18
+      rect:
+        serializedVersion: 2
+        x: 961
+        y: 23
+        width: 160
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bb43add42e297570800000000000000
+      internalID: 8464847710491724720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1182
+        y: 25
+        width: 366
+        height: 548
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5f4dd7fa6050d460800000000000000
+      internalID: 7264394619303841626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 79
+        width: 7
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b1da788ac8cbbb40800000000000000
+      internalID: 5457176145688187316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1337
+        y: 55
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b78b82488558e0030800000000000000
+      internalID: 3462851778715367547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 79
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 115b28a8c57f56a20800000000000000
+      internalID: 3055119899073623313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_23
+      rect:
+        serializedVersion: 2
+        x: 1561
+        y: 176
+        width: 294
+        height: 388
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8aacfd9d3866fb760800000000000000
+      internalID: 7475806622940383912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_24
+      rect:
+        serializedVersion: 2
+        x: 1661
+        y: 0
+        width: 500
+        height: 570
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07b57bba7d2709500800000000000000
+      internalID: 400946637460429680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_25
+      rect:
+        serializedVersion: 2
+        x: 1910
+        y: 63
+        width: 16
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed88c9634c46c3590800000000000000
+      internalID: -7693163269563053858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_2_rugged_v3_concept_26
+      rect:
+        serializedVersion: 2
+        x: 1929
+        y: 63
+        width: 13
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 178634cd553cbfc00800000000000000
+      internalID: 935556121144551537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      space_fighter_2_rugged_v3_concept_0: -1885859268029122774
+      space_fighter_2_rugged_v3_concept_1: -2888340224263057375
+      space_fighter_2_rugged_v3_concept_10: 510687022288183248
+      space_fighter_2_rugged_v3_concept_11: -28394148405590016
+      space_fighter_2_rugged_v3_concept_12: 8318028928635793455
+      space_fighter_2_rugged_v3_concept_13: -7068140843521145595
+      space_fighter_2_rugged_v3_concept_14: 2805398709181997201
+      space_fighter_2_rugged_v3_concept_15: 3148856135568507409
+      space_fighter_2_rugged_v3_concept_16: 6797543760520928254
+      space_fighter_2_rugged_v3_concept_17: 5598434175368448289
+      space_fighter_2_rugged_v3_concept_18: 8464847710491724720
+      space_fighter_2_rugged_v3_concept_19: 7264394619303841626
+      space_fighter_2_rugged_v3_concept_2: -5900390651009020742
+      space_fighter_2_rugged_v3_concept_20: 5457176145688187316
+      space_fighter_2_rugged_v3_concept_21: 3462851778715367547
+      space_fighter_2_rugged_v3_concept_22: 3055119899073623313
+      space_fighter_2_rugged_v3_concept_23: 7475806622940383912
+      space_fighter_2_rugged_v3_concept_24: 400946637460429680
+      space_fighter_2_rugged_v3_concept_25: -7693163269563053858
+      space_fighter_2_rugged_v3_concept_26: 935556121144551537
+      space_fighter_2_rugged_v3_concept_3: 5134102830956652730
+      space_fighter_2_rugged_v3_concept_4: 6715057658462836260
+      space_fighter_2_rugged_v3_concept_5: 7979349676765356137
+      space_fighter_2_rugged_v3_concept_6: -3997412085221057502
+      space_fighter_2_rugged_v3_concept_7: 9213704890401449586
+      space_fighter_2_rugged_v3_concept_8: 8407571605359787824
+      space_fighter_2_rugged_v3_concept_9: -1498747873010574040
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
