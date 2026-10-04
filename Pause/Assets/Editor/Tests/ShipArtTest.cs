@@ -97,7 +97,9 @@ public static class ShipArtTest
     }
 
     // World size and collider: compare the hull as spawnShips.ApplyHull
-    // dresses it now against the same maths on the old rect.
+    // dresses it now against the same maths on the old rect. The collider is
+    // the tight baked polygon now (ShipHitbox, ShipHitboxTest): it must fit
+    // inside the drawn hull, never bigger.
     static void Size(int id)
     {
         string who = Label(id);
@@ -107,7 +109,6 @@ public static class ShipArtTest
         Vector2 oldBounds = oldRects[id] / 100f;
         float oldScale = shopingShips.ReferenceHullSize / Mathf.Max(oldBounds.x, oldBounds.y);
         Vector2 oldWorld = oldBounds * oldScale;
-        Vector2 oldCollider = oldBounds * .78f * oldScale;
 
         var go = new GameObject("ship" + id + "(Clone)", typeof(SpriteRenderer), typeof(BoxCollider2D));
         try
@@ -116,11 +117,14 @@ public static class ShipArtTest
             var sr = go.GetComponent<SpriteRenderer>();
             float scale = go.transform.localScale.x;
             Vector2 world = (Vector2)sr.sprite.bounds.size * scale;
-            Vector2 collider = go.GetComponent<BoxCollider2D>().size * scale;
+            var hb = ShipHitbox.Of(go);
+            Bounds hit = hb != null ? hb.Hull.bounds : new Bounds();
+            Vector2 collider = hb != null ? (Vector2)hit.size : Vector2.zero;
             Check(who + " hull size " + world.ToString("F3") + " within 10% of " + oldWorld.ToString("F3"),
                   Within(world, oldWorld));
-            Check(who + " collider " + collider.ToString("F3") + " within 10% of " + oldCollider.ToString("F3"),
-                  Within(collider, oldCollider));
+            Check(who + " hull hitbox " + collider.ToString("F3") + " is a polygon inside the hull (" + world.ToString("F3") + ")",
+                  hb != null && go.GetComponent<BoxCollider2D>() == null && collider.x > 0f &&
+                  collider.x <= world.x && collider.y <= world.y);
             Check(who + " sprite bounds keep the old local size (PPU-matched)",
                   Within(sr.sprite.bounds.size, oldBounds));
         }

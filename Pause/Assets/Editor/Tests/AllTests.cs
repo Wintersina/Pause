@@ -53,6 +53,7 @@ public static class AllTests
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
+        ("ShipHitboxTest", ShipHitboxTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
