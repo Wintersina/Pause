@@ -26,8 +26,8 @@ using UnityEngine;
 public static class AppIconSetter
 {
     public const string Root = "Assets/Art/AppIcon";
-    public const string Recommended = "NeonComet";
-    public static readonly string[] Candidates = { "NeonComet", "SolarFang", "Lightning", "Ninja" };
+    public const string Recommended = "GoldWarden";   // Gold Warden in its Regent skin
+    public static readonly string[] Candidates = { "GoldWarden", "NeonComet", "SolarFang", "Lightning", "Ninja" };
 
     // file part -> pixel size
     public const string Master = "1024", Ios = "ios_1024", AdaptiveFg = "adaptive_fg_432",
@@ -39,7 +39,8 @@ public static class AppIconSetter
 
     public static string PathOf(string ship, string part) { return Root + "/" + ship + "/" + ship + "_" + part + ".png"; }
 
-    [MenuItem("Pause/App Icon/Neon Comet (recommended)")] static void MenuNeonComet() { Apply("NeonComet"); }
+    [MenuItem("Pause/App Icon/Gold Warden Regent (recommended)")] static void MenuGoldWarden() { Apply("GoldWarden"); }
+    [MenuItem("Pause/App Icon/Neon Comet")] static void MenuNeonComet() { Apply("NeonComet"); }
     [MenuItem("Pause/App Icon/Solar Fang")] static void MenuSolarFang() { Apply("SolarFang"); }
     [MenuItem("Pause/App Icon/Lightning")] static void MenuLightning() { Apply("Lightning"); }
     [MenuItem("Pause/App Icon/Ninja")] static void MenuNinja() { Apply("Ninja"); }

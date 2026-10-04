@@ -66,7 +66,9 @@ def hexc(h, a=255):
 # bars: the pause bars' neon; glow: the hull's halo; bloom: the backdrop glow
 # behind the ship (a contrasting tone, so the hull never sits on its own hue);
 # sky: backdrop top / bottom; streaks: speed-line colours; k: hull scale (max,
-# reduced until it fits the adaptive safe circle); cy: hull centre (viewport).
+# reduced until it fits the adaptive safe circle); cy: hull centre (viewport);
+# pause (optional): bar width, gap, height, centre y (viewport fractions);
+# hull (optional): the roster hull, when the candidate is named otherwise.
 CANDIDATES = {
     "NeonComet": dict(skin="Kaneda", k=9, cy=0.46, bars="#6EF2EE", glow="#FF5B45",
                       bloom="#3B2FB0", sky=("#05041A", "#160A3A"), streaks=("#6EF2EE", "#FF3FA4"),
@@ -77,11 +79,20 @@ CANDIDATES = {
     "Lightning": dict(skin=None, k=9, cy=0.46, bars="#FF3FA4", glow="#FFF6A8",
                       bloom="#5A22B0", sky=("#0A0420", "#22093F"), streaks=("#FF3FA4", "#6EF2EE"),
                       title="Lightning"),
+    "GoldWarden": dict(skin="Regent", k=9, cy=0.47, bars="#FF3FA4", glow="#FFD36A",
+                       bloom="#4A1E9A", sky=("#07031C", "#1A0838"), streaks=("#FF3FA4", "#6EF2EE"),
+                       title="Gold Warden / Regent"),
+    # the flagship in its top skin: gold + navy hull, magenta halo to lift the
+    # navy half off the violet night, cyan bars (the canopy's colour) set wide
+    # so the pause sign frames the broad hull instead of hiding behind it
+    "GoldWarden": dict(skin="Regent", k=10, cy=0.53, pause=(0.09, 0.44, 0.68, 0.48),
+                       bars="#6EF2EE", glow="#FF3FA4", bloom="#5A1E9A", sky=("#08031C", "#1E0838"),
+                       streaks=("#6EF2EE", "#FFD36A"), title="Gold Warden / Regent"),
     "Ninja": dict(skin=None, k=9, cy=0.46, bars="#FFB43C", glow="#6EF2EE",
                   bloom="#8A1A78", sky=("#08041A", "#1E0832"), streaks=("#FFB43C", "#FF3FA4"),
                   title="Ninja"),
 }
-RECOMMENDED = "NeonComet"
+RECOMMENDED = "GoldWarden"
 
 
 # ------------------------------------------------------- generated tables --
@@ -232,8 +243,8 @@ def pause_bars(cv, c):
     core = lerp(col, (255, 255, 255, 255), 0.65)
     shade = lerp(col, (0, 0, 0, 255), 0.45)
     lay = Image.new("RGBA", (n, n), (0, 0, 0, 0))
-    bw, gap, bh = 0.125, 0.11, 0.70          # viewport fractions
-    cyb = 0.5
+    # bar width, gap, height, centre y (viewport fractions)
+    bw, gap, bh, cyb = c.get("pause", (0.125, 0.11, 0.70, 0.5))
     g = lambda f: int(round(cv.o / G + f * V / G))
     rects = []
     for side in (-1, 1):
@@ -281,6 +292,7 @@ def stepped_glow(alpha_full, cv, colour, steps=((1, 200), (2, 120), (4, 60), (6,
 
 def ship_layers(cv, key, c, k):
     """(exhaust, glow, hull) RGBA layers of the canvas for hull scale k."""
+    key = c.get("hull", key)          # a candidate may be named apart from its hull
     cell = hull_cell(key, c["skin"])
     r = RECTS[key]
     rx, ry_top = r["x"], CELL - r["y"] - r["h"]
