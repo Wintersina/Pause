@@ -33,6 +33,7 @@ public static class AllTests
         ("ExhaustStyleTest", ExhaustStyleTest.Execute),
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
+        ("HeartsPlacementTest", HeartsPlacementTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
