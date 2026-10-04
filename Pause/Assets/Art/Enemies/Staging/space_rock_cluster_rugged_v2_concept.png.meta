@@ -1,0 +1,949 @@
+fileFormatVersion: 2
+guid: 11080212bd59f487ebc41aca9423ac50
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5800335539106321536
+    second: space_rock_cluster_rugged_v2_concept_0
+  - first:
+      213: 3640983551050428278
+    second: space_rock_cluster_rugged_v2_concept_1
+  - first:
+      213: 2853524475484222259
+    second: space_rock_cluster_rugged_v2_concept_2
+  - first:
+      213: 8856459529089247552
+    second: space_rock_cluster_rugged_v2_concept_3
+  - first:
+      213: -258240052147706422
+    second: space_rock_cluster_rugged_v2_concept_4
+  - first:
+      213: 5218687671720818216
+    second: space_rock_cluster_rugged_v2_concept_5
+  - first:
+      213: -156055571293944182
+    second: space_rock_cluster_rugged_v2_concept_6
+  - first:
+      213: 2649595681618069006
+    second: space_rock_cluster_rugged_v2_concept_7
+  - first:
+      213: -339968314408595888
+    second: space_rock_cluster_rugged_v2_concept_8
+  - first:
+      213: -1847820571790909160
+    second: space_rock_cluster_rugged_v2_concept_9
+  - first:
+      213: -285279338995472334
+    second: space_rock_cluster_rugged_v2_concept_10
+  - first:
+      213: 235515921366290207
+    second: space_rock_cluster_rugged_v2_concept_11
+  - first:
+      213: 8300256322984879773
+    second: space_rock_cluster_rugged_v2_concept_12
+  - first:
+      213: -6843331398373752550
+    second: space_rock_cluster_rugged_v2_concept_13
+  - first:
+      213: -5675397836499717690
+    second: space_rock_cluster_rugged_v2_concept_14
+  - first:
+      213: 1083698612421499010
+    second: space_rock_cluster_rugged_v2_concept_15
+  - first:
+      213: 7688667259814503542
+    second: space_rock_cluster_rugged_v2_concept_16
+  - first:
+      213: 5029507794649576315
+    second: space_rock_cluster_rugged_v2_concept_17
+  - first:
+      213: 2086259498171239085
+    second: space_rock_cluster_rugged_v2_concept_18
+  - first:
+      213: 8808778179025441067
+    second: space_rock_cluster_rugged_v2_concept_19
+  - first:
+      213: -6650423736205957119
+    second: space_rock_cluster_rugged_v2_concept_20
+  - first:
+      213: 8179673565967087235
+    second: space_rock_cluster_rugged_v2_concept_21
+  - first:
+      213: -917743494009666832
+    second: space_rock_cluster_rugged_v2_concept_22
+  - first:
+      213: -6632854574861897946
+    second: space_rock_cluster_rugged_v2_concept_23
+  - first:
+      213: -2293063088434426382
+    second: space_rock_cluster_rugged_v2_concept_24
+  - first:
+      213: -2558541192234996903
+    second: space_rock_cluster_rugged_v2_concept_25
+  - first:
+      213: -424206876908789377
+    second: space_rock_cluster_rugged_v2_concept_26
+  - first:
+      213: 4208599794961668941
+    second: space_rock_cluster_rugged_v2_concept_27
+  - first:
+      213: 5482714334409433392
+    second: space_rock_cluster_rugged_v2_concept_28
+  - first:
+      213: -3190837609261941908
+    second: space_rock_cluster_rugged_v2_concept_29
+  - first:
+      213: 5830189269175403880
+    second: space_rock_cluster_rugged_v2_concept_30
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 120
+        width: 318
+        height: 522
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08b6e750f81118fa0800000000000000
+      internalID: -5800335539106321536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 570
+        width: 162
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67fa669bf3f578230800000000000000
+      internalID: 3640983551050428278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 538
+        width: 272
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 333be1f4461c99720800000000000000
+      internalID: 2853524475484222259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 584
+        width: 205
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 049ecf6a40778ea70800000000000000
+      internalID: 8856459529089247552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1186
+        y: 630
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac525f07a0c8a6cf0800000000000000
+      internalID: -258240052147706422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1287
+        y: 586
+        width: 198
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82631a2a9c08c6840800000000000000
+      internalID: 5218687671720818216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1559
+        y: 69
+        width: 475
+        height: 567
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a86cdc3e84495ddf0800000000000000
+      internalID: -156055571293944182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1878
+        y: 223
+        width: 280
+        height: 409
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e060149fb3145c420800000000000000
+      internalID: 2649595681618069006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 608
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05e89c88e90384bf0800000000000000
+      internalID: -339968314408595888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 623
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8116eb9eaf83b56e0800000000000000
+      internalID: -1847820571790909160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 622
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 238aa61e3fb7a0cf0800000000000000
+      internalID: -285279338995472334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 594
+        width: 18
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1f8cff8b78b44300800000000000000
+      internalID: 235515921366290207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1191
+        y: 600
+        width: 41
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d96243c262f603370800000000000000
+      internalID: 8300256322984879773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1500
+        y: 606
+        width: 34
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a11c7a7c95a9701a0800000000000000
+      internalID: -6843331398373752550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 608
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c1f96cbcbfec31b0800000000000000
+      internalID: -5675397836499717690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 608
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28897f475221a0f00800000000000000
+      internalID: 1083698612421499010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 612
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6746b61f222a3ba60800000000000000
+      internalID: 7688667259814503542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1231
+        y: 598
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b73752711b66cc540800000000000000
+      internalID: 5029507794649576315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1440
+        y: 586
+        width: 7
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: daa08c9c5f1e3fc10800000000000000
+      internalID: 2086259498171239085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 39
+        width: 283
+        height: 462
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b21160a35111f3a70800000000000000
+      internalID: 8808778179025441067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 57
+        width: 328
+        height: 444
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1082e9de8d2f4b3a0800000000000000
+      internalID: -6650423736205957119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 146
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 386fe1e35c9048170800000000000000
+      internalID: 8179673565967087235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 949
+        y: 223
+        width: 278
+        height: 276
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f2c0a497258343f0800000000000000
+      internalID: -917743494009666832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 953
+        y: 116
+        width: 152
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62f288218ed53f3a0800000000000000
+      internalID: -6632854574861897946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 1255
+        y: 112
+        width: 291
+        height: 389
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd4e4e25476d20e0800000000000000
+      internalID: -2293063088434426382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 1357
+        y: 126
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95be0a5675c3e7cd0800000000000000
+      internalID: -2558541192234996903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 128
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f71e29ec71aec1af0800000000000000
+      internalID: -424206876908789377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 1625
+        y: 134
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4bd8742733f76a30800000000000000
+      internalID: 4208599794961668941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 130
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 031aa6373a3861c40800000000000000
+      internalID: 5482714334409433392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 152
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6b3cf3a91ed7b3d0800000000000000
+      internalID: -3190837609261941908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_rock_cluster_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 1727
+        y: 164
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8658e7a204ef8e050800000000000000
+      internalID: 5830189269175403880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      space_rock_cluster_rugged_v2_concept_0: -5800335539106321536
+      space_rock_cluster_rugged_v2_concept_1: 3640983551050428278
+      space_rock_cluster_rugged_v2_concept_10: -285279338995472334
+      space_rock_cluster_rugged_v2_concept_11: 235515921366290207
+      space_rock_cluster_rugged_v2_concept_12: 8300256322984879773
+      space_rock_cluster_rugged_v2_concept_13: -6843331398373752550
+      space_rock_cluster_rugged_v2_concept_14: -5675397836499717690
+      space_rock_cluster_rugged_v2_concept_15: 1083698612421499010
+      space_rock_cluster_rugged_v2_concept_16: 7688667259814503542
+      space_rock_cluster_rugged_v2_concept_17: 5029507794649576315
+      space_rock_cluster_rugged_v2_concept_18: 2086259498171239085
+      space_rock_cluster_rugged_v2_concept_19: 8808778179025441067
+      space_rock_cluster_rugged_v2_concept_2: 2853524475484222259
+      space_rock_cluster_rugged_v2_concept_20: -6650423736205957119
+      space_rock_cluster_rugged_v2_concept_21: 8179673565967087235
+      space_rock_cluster_rugged_v2_concept_22: -917743494009666832
+      space_rock_cluster_rugged_v2_concept_23: -6632854574861897946
+      space_rock_cluster_rugged_v2_concept_24: -2293063088434426382
+      space_rock_cluster_rugged_v2_concept_25: -2558541192234996903
+      space_rock_cluster_rugged_v2_concept_26: -424206876908789377
+      space_rock_cluster_rugged_v2_concept_27: 4208599794961668941
+      space_rock_cluster_rugged_v2_concept_28: 5482714334409433392
+      space_rock_cluster_rugged_v2_concept_29: -3190837609261941908
+      space_rock_cluster_rugged_v2_concept_3: 8856459529089247552
+      space_rock_cluster_rugged_v2_concept_30: 5830189269175403880
+      space_rock_cluster_rugged_v2_concept_4: -258240052147706422
+      space_rock_cluster_rugged_v2_concept_5: 5218687671720818216
+      space_rock_cluster_rugged_v2_concept_6: -156055571293944182
+      space_rock_cluster_rugged_v2_concept_7: 2649595681618069006
+      space_rock_cluster_rugged_v2_concept_8: -339968314408595888
+      space_rock_cluster_rugged_v2_concept_9: -1847820571790909160
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
