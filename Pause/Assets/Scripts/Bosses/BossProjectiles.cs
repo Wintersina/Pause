@@ -54,6 +54,7 @@ public class BossProjectile : MonoBehaviour
     BossShotStyle style;
     Vector2 velocity;
     float age;
+    float viewTop = 5f, viewBottom = -5f;     // read once per shot, not per frame
 
     public bool Active { get; private set; }
     public Vector2 Velocity => velocity;
@@ -76,6 +77,8 @@ public class BossProjectile : MonoBehaviour
         style = shotStyle;
         velocity = v;
         age = 0f;
+        viewTop = CameraFit.ViewTop;
+        viewBottom = CameraFit.ViewBottom;
         transform.position = new Vector3(at.x, at.y, 0f);
         float size = style == BossShotStyle.Bolt ? BossConfig.BoltWorldSize : BossConfig.ShardWorldSize;
         transform.localScale = Vector3.one * size;
@@ -116,7 +119,10 @@ public class BossProjectile : MonoBehaviour
         int frame = BossArt.FrameAt(BossArt.ShotTicks, age, true);
         sr.sprite = BossArt.Shot(boss, FirstCell + frame);
 
-        if (p.y < -6.5f || p.y > 7.5f || Mathf.Abs(p.x) > 4.2f) Recycle();
+        // off screen: past the view's edge (it grows on tall screens), never
+        // nearer than the authored -6.5 / 7.5
+        if (p.y < Mathf.Min(-6.5f, viewBottom - 1f) || p.y > Mathf.Max(7.5f, viewTop + 1f) || Mathf.Abs(p.x) > 4.2f)
+            Recycle();
     }
 
     public void Recycle()
@@ -176,7 +182,8 @@ public class BossBeam : MonoBehaviour
         transform.localScale = Vector3.one;
         if (hitbox != null) { BossUtil.Kill(hitbox); hitbox = null; }
 
-        const float bottom = -5.6f;
+        // down to just past the view's bottom (lower on a tall screen)
+        float bottom = Mathf.Min(-5.6f, CameraFit.ViewBottom - .6f);
         float height = top - bottom;
         float mid = (top + bottom) * .5f;
         telegraph.sprite = BossArt.Shot(boss, BossArt.Telegraph);
@@ -218,7 +225,8 @@ public class BossBeam : MonoBehaviour
         age = 0f;
         telegraph.enabled = false;
         beam.enabled = true;
-        const float bottom = -5.6f;
+        // down to just past the view's bottom (lower on a tall screen)
+        float bottom = Mathf.Min(-5.6f, CameraFit.ViewBottom - .6f);
         hitbox = BossHitbox.Box(transform, "BossLaneHit",
             new Vector2(width * BossConfig.LaneHitFraction, top - bottom));
         hitbox.transform.localPosition = new Vector3(0f, (top + bottom) * .5f, 0f);

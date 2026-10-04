@@ -495,6 +495,9 @@ public static class AccountSignInTest
             (new Vector2(1170f, 2532f), new Rect(0f, 102f, 1170f, 2328f), "iPhone 1170x2532"),
             (new Vector2(1536f, 2048f), new Rect(0f, 0f, 1536f, 2048f), "tablet 3:4"),
             (new Vector2(720f, 1280f), new Rect(0f, 0f, 720f, 1280f), "720x1280"),
+            (new Vector2(1080f, 2640f), new Rect(0f, 48f, 1080f, 2496f), "9:22 1080x2640"),
+            (new Vector2(1080f, 2880f), new Rect(0f, 48f, 1080f, 2736f), "9:24 1080x2880"),
+            (new Vector2(968f, 2376f), new Rect(0f, 0f, 968f, 2286f), "Z Fold cover 968x2376"),
         };
         foreach (bool dev in new[] { false, true })
         {

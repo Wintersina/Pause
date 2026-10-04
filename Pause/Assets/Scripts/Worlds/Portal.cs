@@ -12,14 +12,21 @@ public class Portal : MonoBehaviour
     float life;
     SpriteRenderer ring, core, sparks;
     float spin;
+    float missBelow = -8f;
+
+    public static float SpawnY { get { return Mathf.Max(7f, CameraFit.ViewTop + 1.2f); } }
 
     public static Portal Spawn(Color color, float lifetime, Action onMissed)
     {
         var go = new GameObject("~Portal");
-        go.transform.position = new Vector3(UnityEngine.Random.Range(-1.6f, 1.6f), 7f, 0f);
+        // Just above the visible top (7 on the authored view, higher on a
+        // tall screen), and given the extra fall time that costs.
+        float y = SpawnY;
+        go.transform.position = new Vector3(UnityEngine.Random.Range(-1.6f, 1.6f), y, 0f);
 
         var p = go.AddComponent<Portal>();
-        p.life = lifetime;
+        p.life = lifetime + (y - 7f) / Mathf.Max(.01f, p.fallSpeed);
+        p.missBelow = CameraFit.ViewBottom - 1.2f;
         p.onMissed = onMissed;
         p.Build(color);
         return p;
@@ -88,7 +95,7 @@ public class Portal : MonoBehaviour
         }
 
         life -= Time.deltaTime;
-        if (life <= 0f || transform.position.y < -8f) Miss();
+        if (life <= 0f || transform.position.y < Mathf.Min(-8f, missBelow)) Miss();
     }
 
     void Miss()

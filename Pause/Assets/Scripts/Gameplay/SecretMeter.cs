@@ -153,6 +153,8 @@ public class SecretMeter : MonoBehaviour
         if (pick < 0) pick = ShipUiSlots.Choose(slots, p, screen, NearReach, slotIndex);
         if (pick >= 0)
         {
+            // a new slot: the hearts (which keep clear of this badge) re-lay out now
+            if (pick != slotIndex && slotIndex >= 0) ShipUiSlots.Moved();
             slotIndex = pick;
             offset = slots[pick].offset;
             // sit a touch below the hull's centre line when beside it

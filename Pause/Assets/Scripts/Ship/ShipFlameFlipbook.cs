@@ -8,6 +8,9 @@ using UnityEngine;
 // Scaled time, like the hull's own idle flipbook (ShipHullAnimator): when
 // the world freezes (timeScale 0, the game's pause) the plume holds its
 // drawing. The thruster still shrinks it to a pilot light.
+//
+// The plume wears the ship's skin (ExhaustRemap): re-applied whenever a
+// skin changes (ExhaustRemap.Version), paused or not.
 public class ShipFlameFlipbook : MonoBehaviour
 {
     SpriteRenderer target;
@@ -15,9 +18,13 @@ public class ShipFlameFlipbook : MonoBehaviour
     bool boost;
     float ticks;
     int shown = -1;
+    int skinVersion = -1;
 
     public int ShipIdShown { get { return shipId; } }
     public int FrameShown { get { return shown; } }
+
+    // Re-reads the skin on the next step (a caller swapped the material).
+    public void RefreshSkin() { skinVersion = -1; Apply(); }
 
     // The boost drawings (longer, hotter) instead of the cruise ones.
     public bool Boost
@@ -37,6 +44,7 @@ public class ShipFlameFlipbook : MonoBehaviour
         // twin plumes run out of step, so the pair never pulses as one
         book.ticks = nozzle * 5f + Random.value * 3f;
         book.shown = -1;
+        book.skinVersion = -1;
         book.Apply();
         return book;
     }
@@ -54,6 +62,11 @@ public class ShipFlameFlipbook : MonoBehaviour
     {
         if (target == null) target = GetComponent<SpriteRenderer>();
         if (target == null) return;
+        if (skinVersion != ExhaustRemap.Version)
+        {
+            skinVersion = ExhaustRemap.Version;
+            ExhaustRemap.Apply(target, shipId);
+        }
         int frame = ShipExhaust.FrameAt(shipId, ticks);
         if (frame == shown) return;
         var sprite = ShipExhaust.Frame(shipId, boost, frame);

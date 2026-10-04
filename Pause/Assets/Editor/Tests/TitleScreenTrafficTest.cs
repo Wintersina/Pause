@@ -630,6 +630,8 @@ public static class TitleScreenTrafficTest
             new[] { 9f / 16f, 0f, 0f },
             new[] { 1170f / 2532f, .056f, .04f },   // notch
             new[] { 1080f / 2520f, .038f, .02f },   // tall
+            new[] { 1080f / 2880f, .033f, .02f },   // 9:24
+            new[] { 968f / 2376f, .038f, .02f },    // Z Fold cover
             new[] { 3f / 4f, .02f, .02f },          // tablet
         };
         bool sitesSafe = true, offLogo = true, populated = true;

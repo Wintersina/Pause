@@ -51,6 +51,10 @@ public static class CameraFitTest
             {1080, 2400},   // 20:9
             {1080, 2520},   // ~23.3:9, Galaxy Z Flip
             {1440, 3200},   // 20:9 at higher density
+            {1080, 2640},   // 9:22
+            {1080, 2880},   // 9:24
+            {968, 2376},    // Galaxy Z Fold6 cover, ~2.45:1
+            {904, 2316},    // Galaxy Z Fold5 cover, ~2.56:1
             {750, 1000},    // 4:3, e.g. an iPad in portrait
         };
         for (int i = 0; i < devices.GetLength(0); i++)
@@ -62,6 +66,18 @@ public static class CameraFitTest
                   size >= baseSize - 0.0001f);
             Check(string.Format("{0}x{1}: half-width {2:F3} covers the minimum", w, h, halfWidth),
                   halfWidth >= minHalfWidth - 0.001f);
+        }
+
+        // Very tall screens keep the play field's width exactly and only gain
+        // height: no letterbox, no pillarbox, nothing cropped at the sides.
+        int[,] tall = { {1080, 2640}, {1080, 2880}, {968, 2376}, {904, 2316} };
+        for (int i = 0; i < tall.GetLength(0); i++)
+        {
+            int w = tall[i, 0], h = tall[i, 1];
+            float size = CameraFit.ComputeSize(baseSize, minHalfWidth, w, h);
+            float halfWidth = size * ((float)w / h);
+            Check(string.Format("{0}x{1}: width kept at the floor ({2:F3}), height extended ({3:F2} > 5)", w, h, halfWidth, size),
+                  Mathf.Abs(halfWidth - minHalfWidth) < 0.001f && size > baseSize);
         }
 
         // Degenerate input should not throw or return something unusable.

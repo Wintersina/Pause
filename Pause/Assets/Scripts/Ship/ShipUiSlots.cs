@@ -63,6 +63,12 @@ public static class ShipUiSlots
         Version++;
     }
 
+    // A registered element moved to another slot (a badge flipping sides at
+    // the screen edge): its footprint is somewhere new, so everyone else
+    // re-lays out on their next placement instead of at their periodic
+    // refresh (up to a second of overlap otherwise).
+    public static void Moved() { Version++; }
+
     public static void Unregister(UnityEngine.Object owner)
     {
         for (int i = entries.Count - 1; i >= 0; i--)

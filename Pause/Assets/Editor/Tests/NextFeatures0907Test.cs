@@ -295,6 +295,8 @@ public static class NextFeatures0907Test
             ("iPhone 15 Pro Max",      new Vector2(1290, 2796), new Rect(0, 102, 1290, 2796 - 102 - 177)),
             ("Pixel 1080x2400 cutout", new Vector2(1080, 2400), new Rect(0, 0, 1080, 2400 - 118)),
             ("Z Flip 1080x2640",       new Vector2(1080, 2640), new Rect(0, 0, 1080, 2640 - 96)),
+            ("9:24 1080x2880",         new Vector2(1080, 2880), new Rect(0, 48, 1080, 2880 - 48 - 120)),
+            ("Z Fold cover 968x2376",  new Vector2(968, 2376),  new Rect(0, 0, 968, 2376 - 90)),
             ("side inset 1080x2340",   new Vector2(1080, 2340), new Rect(60, 40, 1080 - 120, 2340 - 140)),
             ("iPad 1536x2048",         new Vector2(1536, 2048), new Rect(0, 0, 1536, 2048)),
             ("iPad Pro 2048x2732",     new Vector2(2048, 2732), new Rect(0, 40, 2048, 2732 - 80)),

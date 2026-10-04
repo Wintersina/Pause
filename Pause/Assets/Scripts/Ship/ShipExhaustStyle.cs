@@ -53,30 +53,154 @@ public struct ExhaustStyle
 }
 
 // The one place a ship's exhaust colours are looked up. Code that needs an
-// exhaust colour (renderer tints, tests, FX that match the exhaust) asks here,
-// so a colour source other than the default identity palette (ship skins)
-// is a change to this class only.
+// exhaust colour (renderer tints, tests, FX that match the exhaust) asks here.
 //
-// The atlas is drawn in each ship's default palette (For); Tint is the
-// multiplier every exhaust renderer (plumes, boost plumes, spin drift) is
-// drawn with, white = exactly as drawn.
+// The atlas is drawn in each ship's stock palette (Stock). The exhaust
+// follows the ship's skin "somewhat" (For): the flame keeps its themed shape,
+// its hot core and any friendly-red accent, while the outer, mid and dark
+// bands move SkinBlend of the way toward the skin's base, highlight and
+// shadow (hue a little further, so the band reads as the skin's colour; the
+// bands are never darkened below the flame's own brightness). The renderers
+// get there by a palette-remap shader (ExhaustRemap), not new art. Stock
+// skin = the stock palette exactly.
+//
+// Tint is the multiplier every exhaust renderer (plumes, boost plumes, spin
+// drift) is drawn with, white = exactly as drawn.
 public static class ExhaustColors
 {
     public struct Palette
     {
         public Color outer, mid, core, dark, accent;
+
+        public Color this[int band]
+        {
+            get
+            {
+                switch (band)
+                {
+                    case 0: return outer;
+                    case 1: return mid;
+                    case 2: return core;
+                    case 3: return dark;
+                    default: return accent;
+                }
+            }
+        }
+        public const int Bands = 5;
     }
 
-    public static Palette For(int shipId)
+    // How far the exhaust's colour bands move toward the skin (0 = stock
+    // colours whatever the skin, 1 = the skin's colours). The one knob.
+    public const float SkinBlend = .5f;
+    // Hue travels this much faster than lightness and chroma, so a band at
+    // SkinBlend already reads as the skin's colour rather than a muddy mix.
+    public const float HueLead = 1.6f;
+    // A non-red accent (sparks, tips) moves this fraction of SkinBlend.
+    public const float AccentShare = .5f;
+
+    // The hull's friendly red (lights, trim): an accent in it never changes.
+    public static readonly Color FriendlyRed = new Color(216f / 255f, 35f / 255f, 44f / 255f);
+
+    // The colours the atlas is drawn in.
+    public static Palette Stock(int shipId)
     {
         var s = ShipExhaustStyle.For(shipId);
         return new Palette { outer = s.outer, mid = s.mid, core = s.core, dark = s.dark, accent = s.accent };
+    }
+
+    // The exhaust's colours as shown now: the ship's shown skin (equipped,
+    // or the dock's preview).
+    public static Palette For(int shipId)
+    {
+        return For(shipId, ShipId.IsValid(shipId) ? ShipSkins.Shown(shipId) : ShipSkins.Stock);
+    }
+
+    public static bool IsStock(int shipId, int skin)
+    {
+        return skin == ShipSkins.Stock || !ShipSkins.Has(shipId, skin);
+    }
+
+    public static Palette For(int shipId, int skin)
+    {
+        var p = Stock(shipId);
+        if (IsStock(shipId, skin)) return p;
+        var s = ShipSkins.Get(shipId, skin);
+        Color accentTarget = s.kind == ShipSkinKind.Special ? s.accentColor : s.highlight;
+        return new Palette
+        {
+            outer = Toward(p.outer, s.primary, SkinBlend, true),
+            mid = Toward(p.mid, s.highlight, SkinBlend, true),
+            core = p.core,
+            dark = Toward(p.dark, s.shadow, SkinBlend, false),
+            accent = IsFriendlyRed(p.accent) ? p.accent : Toward(p.accent, accentTarget, SkinBlend * AccentShare, true),
+        };
+    }
+
+    public static bool IsFriendlyRed(Color c)
+    {
+        return Mathf.Abs(c.r - FriendlyRed.r) < .01f && Mathf.Abs(c.g - FriendlyRed.g) < .01f
+            && Mathf.Abs(c.b - FriendlyRed.b) < .01f;
     }
 
     public static Color Tint(int shipId)
     {
         return new Color(1f, 1f, 1f, .96f);
     }
+
+    // ------------------------------------------------------------ colour math
+    //
+    // `from` moved `t` of the way to `to` in OKLCh: lightness and chroma by
+    // t, hue (shortest way round) by t * HueLead. `keepBright`: a flame band
+    // never goes darker than it was drawn, so a dark skin colour (Night's
+    // indigo) is taken at the band's own brightness.
+    public static Color Toward(Color from, Color to, float t, bool keepBright)
+    {
+        Vector3 a = ToOklab(from), b = ToOklab(to);
+        if (keepBright && b.x < a.x) b.x = a.x;
+        float ca = Mathf.Sqrt(a.y * a.y + a.z * a.z), cb = Mathf.Sqrt(b.y * b.y + b.z * b.z);
+        float ha = Mathf.Atan2(a.z, a.y), hb = Mathf.Atan2(b.z, b.y);
+        const float grey = .02f;     // below this chroma a hue means nothing
+        if (cb < grey) hb = ha;
+        if (ca < grey) ha = hb;
+        float dh = Mathf.Repeat(hb - ha + Mathf.PI, 2f * Mathf.PI) - Mathf.PI;
+        float h = ha + dh * Mathf.Min(1f, t * HueLead);
+        float c = Mathf.Lerp(ca, cb, t);
+        float l = Mathf.Lerp(a.x, b.x, t);
+        var result = FromOklab(new Vector3(l, c * Mathf.Cos(h), c * Mathf.Sin(h)));
+        result.a = from.a;
+        return result;
+    }
+
+    static float ToLinear(float c) { return c <= .04045f ? c / 12.92f : Mathf.Pow((c + .055f) / 1.055f, 2.4f); }
+    static float ToGamma(float c)
+    {
+        c = Mathf.Clamp01(c);
+        return c <= .0031308f ? c * 12.92f : 1.055f * Mathf.Pow(c, 1f / 2.4f) - .055f;
+    }
+
+    public static Vector3 ToOklab(Color c)
+    {
+        float r = ToLinear(c.r), g = ToLinear(c.g), b = ToLinear(c.b);
+        float l = Cbrt(.4122214708f * r + .5363325363f * g + .0514459929f * b);
+        float m = Cbrt(.2119034982f * r + .6806995451f * g + .1073969566f * b);
+        float s = Cbrt(.0883024619f * r + .2817188376f * g + .6299787005f * b);
+        return new Vector3(.2104542553f * l + .7936177850f * m - .0040720468f * s,
+                           1.9779984951f * l - 2.4285922050f * m + .4505937099f * s,
+                           .0259040371f * l + .7827717662f * m - .8086757660f * s);
+    }
+
+    public static Color FromOklab(Vector3 lab)
+    {
+        float l = lab.x + .3963377774f * lab.y + .2158037573f * lab.z;
+        float m = lab.x - .1055613458f * lab.y - .0638541728f * lab.z;
+        float s = lab.x - .0894841775f * lab.y - 1.2914855480f * lab.z;
+        l = l * l * l; m = m * m * m; s = s * s * s;
+        return new Color(ToGamma(4.0767416621f * l - 3.3077115913f * m + .2309699292f * s),
+                         ToGamma(-1.2684380046f * l + 2.6097574011f * m - .3413193965f * s),
+                         ToGamma(-.0041960863f * l - .5034186967f * m + 1.5153396970f * s), 1f);
+    }
+
+    static float Cbrt(float x) { return x < 0f ? -Mathf.Pow(-x, 1f / 3f) : Mathf.Pow(x, 1f / 3f); }
 }
 
 public static class ShipExhaustStyle

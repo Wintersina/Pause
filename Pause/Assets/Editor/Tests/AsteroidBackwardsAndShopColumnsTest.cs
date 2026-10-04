@@ -73,6 +73,7 @@ public static class AsteroidBackwardsAndShopColumnsTest
         {
             new Vector2Int(1080, 1920), new Vector2Int(1080, 2400), new Vector2Int(1080, 2520),
             new Vector2Int(720, 1280), new Vector2Int(1536, 2048), new Vector2Int(1100, 800),
+            new Vector2Int(1080, 2640), new Vector2Int(1080, 2880), new Vector2Int(968, 2376),
         };
         foreach (var s in screens)
         {
