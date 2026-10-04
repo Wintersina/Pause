@@ -1,0 +1,403 @@
+fileFormatVersion: 2
+guid: 091966b2bac844f35b454215d0ebe989
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2148925378462947383
+    second: frost_fighter_1_rugged_v2_strip_candidate_0
+  - first:
+      213: -8312621480261427597
+    second: frost_fighter_1_rugged_v2_strip_candidate_1
+  - first:
+      213: -4408152839826592957
+    second: frost_fighter_1_rugged_v2_strip_candidate_2
+  - first:
+      213: -554180838817564816
+    second: frost_fighter_1_rugged_v2_strip_candidate_3
+  - first:
+      213: -7687209626963771420
+    second: frost_fighter_1_rugged_v2_strip_candidate_4
+  - first:
+      213: 2284893847204122025
+    second: frost_fighter_1_rugged_v2_strip_candidate_5
+  - first:
+      213: 5989008562420142962
+    second: frost_fighter_1_rugged_v2_strip_candidate_6
+  - first:
+      213: 453142978816239560
+    second: frost_fighter_1_rugged_v2_strip_candidate_7
+  - first:
+      213: -7617188981114477854
+    second: frost_fighter_1_rugged_v2_strip_candidate_8
+  - first:
+      213: 7511319140317826821
+    second: frost_fighter_1_rugged_v2_strip_candidate_9
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_0
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 6
+        width: 173
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7381b180f3482dd10800000000000000
+      internalID: 2148925378462947383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_1
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 7
+        width: 178
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37e5cbc4ec2a3ac80800000000000000
+      internalID: -8312621480261427597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_2
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 6
+        width: 163
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34ba18af85813d2c0800000000000000
+      internalID: -4408152839826592957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_3
+      rect:
+        serializedVersion: 2
+        x: 588
+        y: 6
+        width: 167
+        height: 163
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07773f896772f48f0800000000000000
+      internalID: -554180838817564816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_4
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 169
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ef7cd6a29b815590800000000000000
+      internalID: -7687209626963771420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_5
+      rect:
+        serializedVersion: 2
+        x: 732
+        y: 94
+        width: 24
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9adc31029d295bf10800000000000000
+      internalID: 2284893847204122025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_6
+      rect:
+        serializedVersion: 2
+        x: 775
+        y: 6
+        width: 178
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27353df6e8b3d1350800000000000000
+      internalID: 5989008562420142962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 937
+        y: 153
+        width: 16
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c7edcc6323e94600800000000000000
+      internalID: 453142978816239560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 983
+        y: 6
+        width: 146
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e2e6a1bafe4a4690800000000000000
+      internalID: -7617188981114477854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_fighter_1_rugged_v2_strip_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1169
+        y: 6
+        width: 158
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50f8c3126f09d3860800000000000000
+      internalID: 7511319140317826821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_fighter_1_rugged_v2_strip_candidate_0: 2148925378462947383
+      frost_fighter_1_rugged_v2_strip_candidate_1: -8312621480261427597
+      frost_fighter_1_rugged_v2_strip_candidate_2: -4408152839826592957
+      frost_fighter_1_rugged_v2_strip_candidate_3: -554180838817564816
+      frost_fighter_1_rugged_v2_strip_candidate_4: -7687209626963771420
+      frost_fighter_1_rugged_v2_strip_candidate_5: 2284893847204122025
+      frost_fighter_1_rugged_v2_strip_candidate_6: 5989008562420142962
+      frost_fighter_1_rugged_v2_strip_candidate_7: 453142978816239560
+      frost_fighter_1_rugged_v2_strip_candidate_8: -7617188981114477854
+      frost_fighter_1_rugged_v2_strip_candidate_9: 7511319140317826821
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
