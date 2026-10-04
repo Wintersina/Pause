@@ -10,7 +10,8 @@ using UnityEngine;
 //               the world's (scaled) clock, so a frozen world earns nothing
 //               and flying faster earns more; times the speed multiplier
 //   kills       by role (below), times the kill-chain multiplier and the
-//               speed multiplier (together capped at MaxTotalMultiplier)
+//               speed multiplier (together capped at MaxTotalMultiplier);
+//               a teleport kill adds TeleportKillBonus before multiplying
 //   star dust   per pickup
 //   atoms       per pickup (heal / shield / pause-refill)
 //   teleports   per blink, scaled by how far it moved, capped per world
@@ -50,6 +51,10 @@ public static class ScoreRules
     // own body hitbox (which respawns) and lane beams score nothing, so a
     // shielded ship can't farm the boss.
     public static int BossShot = 1;
+    // A kill made by blinking onto it with the pause-teleport (TeleportFx):
+    // added to the enemy's own points before the chain and speed multipliers,
+    // a small reward for using a pause offensively. Not on boss parts.
+    public static int TeleportKillBonus = 5;
 
     // ---- pickups ----
     public static int SmallDust = 2;

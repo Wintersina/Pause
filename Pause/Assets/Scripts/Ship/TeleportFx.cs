@@ -59,26 +59,70 @@ public class TeleportFx : MonoBehaviour
         source.PlayOneShot(warpSound, 0.78f);
     }
 
-    // Destroy what we landed on, reusing the game's own explosion art.
-    static void Strike(Vector3 at)
+    // Teleport kills (tests, diagnostics).
+    public static int Kills;
+
+    // Fixed buffer for the landing-zone query: nothing allocates per blink.
+    static readonly Collider2D[] landedOn = new Collider2D[32];
+    static ContactFilter2D everything = NoFilter();
+
+    static ContactFilter2D NoFilter()
     {
-        var explosion = Resources.Load<GameObject>("Prefabs/explosion_0");
+        var f = new ContactFilter2D();
+        f.NoFilter();
+        return f;
+    }
 
-        foreach (var col in Physics2D.OverlapCircleAll(at, BlastRadius))
+    // Erases every hazard the ship materialised on top of. Each is a real
+    // kill, paid like any other (collisionDetection.AwardDestroyedTarget:
+    // kill points + ScoreRules.TeleportKillBonus with the chain and speed
+    // multipliers, the "+N" popup, secret meter, codex, achievements, dust),
+    // but blown apart with the teleport's own "erased by the pause" blast
+    // (TeleportKillFx) instead of the weapons' cel explosion.
+    //
+    // The boss is not a hazard here: its body hitbox (an IShipAttackTarget)
+    // is left alone -- a blink never costs it a hit point, as before, and no
+    // longer knocks out its hitbox for the respawn delay either. Its shots
+    // and lane beams are plain hazards and are erased (boss shots pay
+    // ScoreRules.BossShot, beams nothing, exactly as a shielded ram does).
+    public static int Strike(Vector3 at)
+    {
+        Physics2D.SyncTransforms();
+        int n = Physics2D.OverlapCircle(at, BlastRadius, everything, landedOn);
+        int kills = 0;
+        for (int i = 0; i < n; i++)
         {
+            var col = landedOn[i];
+            if (col == null) continue;
             var go = col.gameObject;
-            if (!go.CompareTag("Enimey") && !go.CompareTag("Astr")) continue;
-
-            collisionDetection.PlayExplosion();
-
-            if (explosion != null)
-            {
-                var fx = Instantiate(explosion, go.transform.position, Quaternion.identity);
-                fx.AddComponent<moveItemEnmInStrightLine>();
-                Destroy(fx, 2f);
-            }
-            Destroy(go);
+            if (!ClearTarget.IsHazard(go)) continue;
+            if (go.GetComponent<IShipAttackTarget>() != null) continue;   // the boss body
+            if (ShipAttackHits.AlreadyHit(go) || SeenBefore(go, i)) continue;
+            Erase(go);
+            kills++;
         }
+        System.Array.Clear(landedOn, 0, n);
+        return kills;
+    }
+
+    // One hazard with two colliders is still one kill (Destroy is deferred).
+    static bool SeenBefore(GameObject go, int index)
+    {
+        for (int j = 0; j < index; j++)
+            if (landedOn[j] != null && landedOn[j].gameObject == go) return true;
+        return false;
+    }
+
+    static void Erase(GameObject go)
+    {
+        Kills++;
+        RailBombAnimator.Burst(go);   // a rail mine flashes its burst frame first (no-op otherwise)
+        TeleportKillFx.Spawn(go);
+        collisionDetection.PlayExplosion();
+        collisionDetection.AwardDestroyedTarget(go, ScoreRules.TeleportKillBonus);
+        ClearTarget.Release(go);
+        if (Application.isPlaying) Destroy(go);
+        else DestroyImmediate(go);
     }
 
     // Unscaled time: a teleport begins while the world is still frozen.
