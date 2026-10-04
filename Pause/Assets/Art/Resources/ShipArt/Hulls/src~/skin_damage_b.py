@@ -345,9 +345,12 @@ def _is_ours(ft):
 
 
 def _hook():
-    base = _hk.damage_draw
-    if getattr(base, "_skin_b", False):
+    # once per process (a flag on hullkit, like batch A's, so it holds whatever
+    # order the modules' wrappers were installed in); chains to the previous one
+    if getattr(_hk, "_skin_damage_b", False):
         return
+    _hk._skin_damage_b = True
+    base = _hk.damage_draw
 
     def damage_draw(ft, hue, W, seed):
         if _is_ours(ft):
@@ -355,7 +358,6 @@ def _hook():
             return STYLES[style](ft[2], dict(opt), hue, W, seed)
         return base(ft, hue, W, seed)
 
-    damage_draw._skin_b = True
     _hk.damage_draw = damage_draw
 
 

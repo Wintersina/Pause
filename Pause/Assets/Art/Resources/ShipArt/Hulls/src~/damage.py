@@ -287,12 +287,38 @@ CONCEPTS = {
 # skin whose emitters differ. Every feature is clipped to its form, so a
 # skin's damage keeps the stock sheet's exact alpha (asserted by
 # build_skins.py and by ShipDamageTest in Unity).
+#
+# The per-skin designs live in skin_damage_*.py (batch a/b/c, five ships
+# each), merged into SKIN_D below. Some register extra draw styles by wrapping
+# hullkit.damage_draw / damage_holes / render; each wrapper chains to the
+# previous one, acts only on its own module's features / seeds, and installs
+# itself once per process (a flag on hullkit). Each module is loaded once and
+# kept in sys.modules, so importing damage again (another module object,
+# `python3 damage.py`, ...) reuses the same module, tables and hooks, and the
+# order the modules load in does not matter.
+#
+# Verify after touching any of this (regenerates every sheet in memory, all
+# modules loaded, and compares with the committed ones; also checks a reload
+# and the reversed load order):
+#
+#     python3 check_skin_damage.py && python3 check_skin_damage.py --reverse
 SKIN_D = {}
-# ---- per-skin damage modules (identical block in every batch; do not edit) --
-import glob as _glob, importlib.util as _ilu, os as _os
+# ---- per-skin damage modules ----------------------------------------------
+import glob as _glob, importlib.util as _ilu, os as _os, sys as _sys
 for _p in sorted(_glob.glob(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "skin_damage_*.py"))):
-    _spec = _ilu.spec_from_file_location(_os.path.splitext(_os.path.basename(_p))[0], _p)
-    _mod = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_mod)
+    _name = _os.path.splitext(_os.path.basename(_p))[0]
+    _mod = _sys.modules.get(_name)
+    if _mod is None:
+        _spec = _ilu.spec_from_file_location(_name, _p)
+        _mod = _ilu.module_from_spec(_spec)
+        _sys.modules[_name] = _mod
+        try:
+            _spec.loader.exec_module(_mod)
+        except BaseException:
+            del _sys.modules[_name]
+            raise
+    _dup = SKIN_D.keys() & _mod.SKIN_D.keys()
+    assert not _dup, f"{_name}: skins already designed by another module: {sorted(_dup)}"
     SKIN_D.update(_mod.SKIN_D)
 # ---- end per-skin damage modules --
 
