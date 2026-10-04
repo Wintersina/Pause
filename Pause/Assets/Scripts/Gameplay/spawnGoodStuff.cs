@@ -165,12 +165,12 @@ public class spawnGoodStuff : MonoBehaviour {
     void spawnSmStar(int pos, Vector3 vPos)
     {
         Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
-        Instantiate(smStar, spawner, transform.rotation);
+        Place(smStar, spawner);
     }
     void spawnMidStar(int pos, Vector3 vPos)
     {
         Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
-        Instantiate(midStar, spawner, transform.rotation);
+        Place(midStar, spawner);
     }
     // will make you invensiable for a few seconds.
     void spawnAtom()
@@ -178,12 +178,25 @@ public class spawnGoodStuff : MonoBehaviour {
 
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
         // spawn 3 enimies at the same time
-        AtomSpin.AddTo(Instantiate(Atom, randomStarPos, transform.rotation) as GameObject);
+        AtomSpin.AddTo(Place(Atom, randomStarPos));
 
     }
     void spawnRedAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
-        AtomSpin.AddTo(Instantiate(redAtom, randomStarPos, transform.rotation) as GameObject);
+        AtomSpin.AddTo(Place(redAtom, randomStarPos));
+    }
+
+    // Placement only (SpawnSpace): a pickup lands clear of the enemies'
+    // footprints when there's room nearby (another x, or a short lift above
+    // the spawn line), and reserves its spot so enemy spawns prefer to keep
+    // off it. Soft both ways -- on a packed board it keeps its spot.
+    GameObject Place(GameObject prefab, Vector3 pos)
+    {
+        Vector2 half = prefab != null ? SpawnSpace.BodyHalf(prefab) : Vector2.one * .2f;
+        pos = SpawnSpace.PickupSpot(pos, half, -2.2f, 2.2f);
+        var go = Instantiate(prefab, pos, transform.rotation) as GameObject;
+        SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
+        return go;
     }
 }

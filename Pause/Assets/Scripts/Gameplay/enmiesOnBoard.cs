@@ -101,7 +101,6 @@ public class enmiesOnBoard : MonoBehaviour {
         new System.Collections.Generic.List<Transform>();
     readonly System.Collections.Generic.List<Transform> liveMines =
         new System.Collections.Generic.List<Transform>();
-    Transform pendingMineRail;
 
     void Start () {
 
@@ -236,78 +235,171 @@ public class enmiesOnBoard : MonoBehaviour {
         }
     }
 
-    // Mines are rail hardware -- they belong in a rail lane, not at an
-    // arbitrary x. Everything else spawns wherever it was asked to.
+    // ---- placement (SpawnSpace) -------------------------------------------
     //
-    // A side is picked first and the rail search is filtered to that side --
-    // NearestLiveRail() used to match on vertical distance alone, so with
-    // both a left and a right rail on screen at once (spawnRails() alternates
-    // sides freely) a mine could be hung on whichever rail was nearest in Y
-    // regardless of which side it actually came from, landing it on the
-    // wrong lane -- reported as mines inconsistently sticking to different
-    // parts of the screen.
-    Vector3 PlaceFor(GameObject prefab, float x)
+    // Every enemy goes through SpawnSpace before it is built: its footprint
+    // -- its body plus the band its movement pattern sweeps (a rock's weave)
+    // -- must stay clear of every live enemy's, and of every pickup's when
+    // there is a choice. A spawn that finds no clear spot (another x or
+    // weave, or a short lift above the spawn line, still off screen) is
+    // deferred and retried every frame for up to MaxDeferSeconds instead of
+    // landing on top of something. The board scrolls past fast enough that
+    // nearly all of them land within a few frames, so density stays where
+    // the timers put it (SpawnSpaceTest measures it).
+
+    public enum SlotKind { Rock, Big, Alien, Extra, Mine, Chaser }
+
+    struct Deferred { public SlotKind kind; public float age; }
+
+    public const int MaxDeferred = 24;
+    public const float MaxDeferSeconds = 1f;
+    const int PlaceTries = 6;
+    const int LiftSteps = 4;
+    const float LiftStep = .5f;
+    const int MineLiftSteps = 8;
+    const int ChaserDropSteps = 3;   // stays above the Destroyer (BelowCameraDestroyer)
+
+    readonly Deferred[] deferred = new Deferred[MaxDeferred];
+    int deferredCount;
+
+    // Running totals (tests, tuning): enemies built, spawns that had to
+    // wait, and the few that waited too long and were let go.
+    public int SpawnedCount { get; private set; }
+    public int DeferredTotal { get; private set; }
+    public int DroppedTotal { get; private set; }
+    public int PendingCount => deferredCount;
+
+    readonly WeavePlan weaveCandidate = new WeavePlan();
+
+    void Spawn(SlotKind kind)
     {
-        pendingMineRail = null;
-        if (PrefabName.Is(prefab, "mine"))
-        {
-            bool right = Random.value < 0.5f;
-            Transform rail = NearestLiveRail(right);
-            // A mine can be selected by the enemy table before a rail on
-            // this side happens to be on screen. Create its mounting rail
-            // first in that case.
-            if (rail == null) rail = SpawnRail(right);
-            if (rail != null)
-            {
-                pendingMineRail = rail;
-                x = rail.position.x;
-                // Hold enough vertical space for the mine's full circular
-                // silhouette before it enters the visible board.
-                float y = ReserveMineY(rail, transform.position.y);
-                return new Vector3(x, y, 0f);
-            }
-        }
-        return new Vector3(x, transform.position.y, 0f);
+        if (!TrySpawn(kind)) Defer(kind);
     }
 
-    float ReserveMineY(Transform rail, float requestedY)
+    void Defer(SlotKind kind)
     {
-        for (int i = liveMines.Count - 1; i >= 0; i--)
-            if (liveMines[i] == null) liveMines.RemoveAt(i);
+        DeferredTotal++;
+        if (deferredCount >= MaxDeferred) { DroppedTotal++; return; }
+        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f };
+    }
 
-        float y = requestedY;
-        bool moved;
-        do
+    void RetryDeferred(float dt)
+    {
+        for (int i = 0; i < deferredCount; )
         {
-            moved = false;
-            for (int i = 0; i < liveMines.Count; i++)
+            deferred[i].age += dt;
+            bool done = TrySpawn(deferred[i].kind);
+            if (!done && deferred[i].age < MaxDeferSeconds) { i++; continue; }
+            if (!done) DroppedTotal++;
+            deferred[i] = deferred[--deferredCount];
+        }
+    }
+
+    // false = no clear spot right now (defer); true = built, or nothing to
+    // build (missing roster art -- EnemyRosterTest guards it).
+    bool TrySpawn(SlotKind kind)
+    {
+        int world = EnemyRoster.CurrentWorld;
+        switch (kind)
+        {
+            // "small enemy" and the three asteroid slots: one of the world's rocks
+            case SlotKind.Rock: return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Rock), 0f);
+            // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps
+            // to the middle of the lane (SpawnLane.HeavyMaxX), clear of the
+            // walls and the rail mines.
+            case SlotKind.Big:
+                return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Big), Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
+            case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), 0f);
+            case SlotKind.Extra: return TrySpawnExtra();
+            case SlotKind.Mine: return TrySpawnMine();
+            case SlotKind.Chaser: return TrySpawnChaser();
+        }
+        return true;
+    }
+
+    static bool Weaves(EnemyDef def)
+    {
+        // EnemyFactory gives rocks and aliens the weaving mover (moveEnimes)
+        return def.role == EnemyRole.Rock || def.role == EnemyRole.Alien;
+    }
+
+    // A clear spot on (or just above) the spawn line for a body of `half`:
+    // a weaver tries weave amplitudes (its weave, not its spawn x, decides
+    // where it flies), anything else x's near preferredX within +/-maxX.
+    // laneDef, when set, must also leave its row a ship-width gap
+    // (SpawnLane). The first pass also keeps clear of pickups; the second
+    // only of enemies.
+    bool TryPlace(Vector2 half, bool weaves, float preferredX, float maxX, EnemyDef laneDef,
+                  out Vector3 pos, out float amplitude)
+    {
+        float clock = SpawnSpace.Clock;
+        float baseY = transform.position.y;
+        int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
+        for (int pass = 0; pass < passes; pass++)
+            for (int lift = 0; lift < LiftSteps; lift++)
             {
-                if (Mathf.Abs(liveMines[i].position.x - rail.position.x) < 0.02f &&
-                    Mathf.Abs(liveMines[i].position.y - y) < 1.18f)
+                float y = baseY + lift * LiftStep;
+                for (int t = 0; t < PlaceTries; t++)
                 {
-                    y += 1.22f;
-                    moved = true;
-                    break;
+                    float x;
+                    amplitude = 0f;
+                    if (weaves)
+                    {
+                        amplitude = WeavePlan.Safe(Random.Range(moveEnimes.MinAmplitude, moveEnimes.MaxAmplitude));
+                        x = WeavePlan.X(amplitude, clock);
+                        weaveCandidate.amplitude = amplitude;
+                    }
+                    else x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
+                    var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : null);
+                    if (!SpawnSpace.Fits(c)) continue;
+                    if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
+                    if (laneDef != null && !SpawnLane.Fits(laneDef, x, y)) continue;
+                    pos = new Vector3(x, y, 0f);
+                    return true;
                 }
             }
-        } while (moved);
-        return y;
+        pos = Vector3.zero;
+        amplitude = 0f;
+        return false;
     }
 
-    GameObject SpawnEnemy(GameObject prefab, float x)
+    // The current world's enemy for a role (nothing spawns if its roster
+    // art is missing; EnemyRosterTest guards the art).
+    bool TrySpawnDef(EnemyDef def, float preferredX)
     {
-        if (prefab == null) return null;
-        GameObject spawned = Instantiate(prefab, PlaceFor(prefab, x), transform.rotation);
-        if (PrefabName.Is(prefab, "mine"))
+        if (def == null || EnemyArt.Frames(def) == null) return true;
+        bool weaves = Weaves(def);
+        Vector3 pos;
+        float amplitude;
+        if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, SpawnLane.MaxX(def), def, out pos, out amplitude))
+            return false;
+        var go = EnemyFactory.Create(def, pos, transform.rotation);
+        if (weaves)
         {
-            liveMines.Add(spawned.transform);
-            if (spawned.GetComponent<RailBombAnimator>() == null)
-                spawned.AddComponent<RailBombAnimator>();
-            var mount = spawned.GetComponent<RailMineMount>();
-            if (mount == null) mount = spawned.AddComponent<RailMineMount>();
-            mount.MountTo(pendingMineRail);
+            var mover = go.GetComponent<moveEnimes>();
+            if (mover != null) mover.SetWeave(amplitude);
         }
-        return spawned;
+        SpawnedCount++;
+        return true;
+    }
+
+    // An inspector prefab override (extraEnemyPrefabs): same placement,
+    // footprint from its collider.
+    bool TrySpawnPrefab(GameObject prefab, float preferredX)
+    {
+        var weaver = prefab.GetComponent<moveEnimes>();
+        Vector2 half = SpawnSpace.BodyHalf(prefab);
+        Vector3 pos;
+        float amplitude;
+        if (!TryPlace(half, weaver != null, preferredX, SpawnLane.LaneHalf - half.x, null, out pos, out amplitude))
+            return false;
+        var go = Instantiate(prefab, pos, transform.rotation);
+        var mover = go.GetComponent<moveEnimes>();
+        if (mover != null) mover.SetWeave(amplitude);
+        SpawnFootprint.Attach(go, half);
+        SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
+        SpawnedCount++;
+        return true;
     }
 
     // right: only rails on the positive-x side are considered a match, so a
@@ -390,8 +482,9 @@ public class enmiesOnBoard : MonoBehaviour {
     // Roll() also multiplies in LoopDifficulty.DensityScale: x1 on a first
     // pass, x1.1 / x1.2 / x1.3 on later loops, and KEEP FLYING's endless
     // climb on top (LoopRules.Density; WorldManager sets it). However dense,
-    // every roster spawn still goes through SpawnLane, so each row keeps a
-    // ship-width gap -- a crowded row skips the spawn and the timer rolls on.
+    // every spawn still goes through SpawnSpace (no enemy on top of another)
+    // and SpawnLane (each row keeps a ship-width gap): a spawn with no room
+    // waits a few frames for the board to scroll on (RetryDeferred).
     const float DensityTickSeconds = 10f;
     const float DensityFirstMinute = 60f;
     const float DensityFinalStretch = 30f;
@@ -437,6 +530,9 @@ public class enmiesOnBoard : MonoBehaviour {
     // is 0 outside Play mode.
     void spawn(float dt)
     {
+        // spawns that found no clear spot get first go at the board
+        RetryDeferred(dt);
+
         railDelayTimer -= dt;
         smEnmDelayTimer -= dt;
         bigEnmDelayTimer -= dt;
@@ -500,85 +596,68 @@ public class enmiesOnBoard : MonoBehaviour {
         }
     }
 
-    // The current world's enemy for a role, at x on the spawn line (nothing
-    // spawns if its roster art is missing; EnemyRosterTest guards the art).
-    GameObject SpawnRole(EnemyRole role, float x)
-    {
-        var def = EnemyRoster.Pick(EnemyRoster.CurrentWorld, role);
-        if (def == null || EnemyArt.Frames(def) == null) return null;
-        // Lane guard: keep a ship-width gap in this spawn row (see
-        // SpawnLane). No safe x this time -> skip; the timer rolls again.
-        float safeX;
-        if (!SpawnLane.PickX(def, x, transform.position.y, out safeX)) return null;
-        return EnemyFactory.Create(def, new Vector3(safeX, transform.position.y, 0f), transform.rotation);
-    }
-
     // "small enemy" slot: one of the world's rocks
     void spawnAstroid2()
     {
-        SpawnRole(EnemyRole.Rock, Random.Range(-2.2f, 2.4f));
+        Spawn(SlotKind.Rock);
     }
 
-    // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps to
-    // the middle of the lane (SpawnLane.HeavyMaxX), clear of the walls and
-    // the rail mines, and SpawnLane leaves a ship-width gap beside it.
+    // "big enemy" slot: the world's armoured heavy (SpawnLane.HeavyMaxX
+    // keeps it mid-lane and leaves a ship-width gap beside it).
     void spawnAstroid1()
     {
-        SpawnRole(EnemyRole.Big, Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
+        Spawn(SlotKind.Big);
     }
 
     // will create a line of animated enimies that the player is able to doge through
+    // (Each alien weaves on its own amplitude from its first frame, so the
+    // "line" only ever decided how many come; each one is placed -- or
+    // deferred -- on its own. The old in-lane filter keeps the count.)
     void spawnAnimatedEnimeOne()
     {
-        Vector3 randomEnmPosition = new Vector3(Random.Range(-2.3f, 2f), transform.position.y, transform.rotation.z);
-        var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Alien);
-        bool roster = def != null && EnemyArt.Frames(def) != null;
+        float startX = Random.Range(-2.3f, 2f);
         int max = Random.Range(1, 5);
         for (int i = 0; i < max; i++)
         {
-            Vector3 newPositionForAnimatedAliean = new Vector3(randomEnmPosition.x + (i + .5f), randomEnmPosition.y, randomEnmPosition.z);
-            if (newPositionForAnimatedAliean.x >= -2.4 && newPositionForAnimatedAliean.x <= 2.2)
-            {
-                // the line stops short rather than close the row (SpawnLane)
-                if (!roster || !SpawnLane.Fits(def, newPositionForAnimatedAliean.x, newPositionForAnimatedAliean.y)) break;
-                EnemyFactory.Create(def, newPositionForAnimatedAliean, transform.rotation);
-            }
+            float x = startX + (i + .5f);
+            if (x >= -2.4f && x <= 2.2f) Spawn(SlotKind.Alien);
         }
     }
 
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
     {
-        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2.3f));
+        Spawn(SlotKind.Rock);
     }
 
     void spawnMidAstroid()
     {
-        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2f));
+        Spawn(SlotKind.Rock);
     }
 
     void spawnLargeAstroid()
     {
-        SpawnRole(EnemyRole.Rock, Random.Range(-2.3f, 2.3f));
+        Spawn(SlotKind.Rock);
     }
 
     // The current world's fighters, tiered so later phases meet the nastier
     // hulls (see ChooseExtraDef). Prefabs in extraEnemyPrefabs override it.
     void spawnExtraEnemy()
     {
-        Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Spawn(SlotKind.Extra);
+    }
+
+    bool TrySpawnExtra()
+    {
+        float x = Random.Range(-2.2f, 2.2f);
         if (extraEnemyPrefabs != null && extraEnemyPrefabs.Length > 0)
         {
             GameObject pick = extraEnemyPrefabs[Random.Range(0, extraEnemyPrefabs.Length)];
-            if (pick != null) Instantiate(pick, pos, transform.rotation);
-            return;
+            return pick == null || TrySpawnPrefab(pick, x);
         }
         var def = ChooseExtraDef(EnemyRoster.CurrentWorld, astroidSelector);
-        if (def == null || EnemyArt.Frames(def) == null) return;
-        float x = def.role == EnemyRole.Big ? Mathf.Clamp(pos.x, -SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX) : pos.x;
-        float safeX;
-        if (SpawnLane.PickX(def, x, pos.y, out safeX))
-            EnemyFactory.Create(def, new Vector3(safeX, pos.y, 0f), transform.rotation);
+        if (def != null && def.role == EnemyRole.Big) x = Mathf.Clamp(x, -SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX);
+        return TrySpawnDef(def, x);
     }
 
     // Phase index -> fighter tier window: the extras start in phase 2, which
@@ -599,38 +678,68 @@ public class enmiesOnBoard : MonoBehaviour {
         SpawnRail(Random.Range(1, 10) % 2 == 0);
     }
 
-    // x is ignored here -- PlaceFor() always overrides it with whichever
-    // rail the mine actually gets mounted to.
+    // Mines are rail hardware -- they belong in a rail lane, not at an
+    // arbitrary x. A side is picked first and the rail search is filtered to
+    // that side, so a mine never hangs on the opposite lane's rail; a rail
+    // is created if that side has none on screen yet.
     void spawnMine()
+    {
+        Spawn(SlotKind.Mine);
+    }
+
+    bool TrySpawnMine()
     {
         // The legacy blue mine prefab has been retired. Rail mines are now
         // built from the current world's EnemyRoster mine, so their
         // visual always matches the rail and planet they are mounted on.
-        if (mine != null) { SpawnEnemy(mine, 0f); return; }
+        // (Without the mine art -- the neon atlas, RailMineArt -- no mine
+        // spawns; RailMineArtTest guards it.)
+        var def = mine == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine) : null;
+        if (mine == null && (def == null || EnemyArt.Frames(def) == null)) return true;
 
         bool right = Random.value < .5f;
         Transform rail = NearestLiveRail(right);
         if (rail == null) rail = SpawnRail(right);
-        if (rail == null) return;
+        if (rail == null) return true;
 
-        var def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine);
-        if (def != null && EnemyArt.Frames(def) != null)
-        {
-            float mineY = ReserveMineY(rail, transform.position.y);
-            // a mine never closes the last gap in its row (a heavy may sit
-            // beside the rail lane); it waits for the next roll instead
-            if (!SpawnLane.Fits(def, rail.position.x, mineY)) return;
-            var built = EnemyFactory.Create(def,
-                new Vector3(rail.position.x, mineY, 0f), Quaternion.identity);
-            // The clamp is drawn on the left (toward a left-hand wall); a
-            // right-hand rail mirrors it so it always grips its own wall.
-            built.GetComponent<SpriteRenderer>().flipX = rail.position.x > 0f;
-            var builtMount = built.AddComponent<RailMineMount>();
-            builtMount.MountTo(rail);
-            liveMines.Add(built.transform);
-        }
-        // Without the mine art (the neon atlas, RailMineArt) no mine spawns;
-        // RailMineArtTest guards it.
+        // The x is the rail's; the mine may sit a little further up it (still
+        // off screen) to clear whatever is already there -- other mines, a
+        // heavy beside the rail lane, a rock weaving out to the wall.
+        Vector2 half = def != null ? SpawnSpace.BodyHalf(def) : SpawnSpace.BodyHalf(mine);
+        float x = rail.position.x;
+        int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
+        for (int pass = 0; pass < passes; pass++)
+            for (int k = 0; k < MineLiftSteps; k++)
+            {
+                float y = transform.position.y + k * LiftStep;
+                var c = new SpawnCandidate(new Vector2(x, y), half);
+                if (!SpawnSpace.Fits(c)) continue;
+                if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
+                // a mine never closes the last gap in its row
+                if (def != null && !SpawnLane.Fits(def, x, y)) continue;
+
+                GameObject built;
+                if (def != null)
+                {
+                    built = EnemyFactory.Create(def, new Vector3(x, y, 0f), Quaternion.identity);
+                    // The clamp is drawn on the left (toward a left-hand wall); a
+                    // right-hand rail mirrors it so it always grips its own wall.
+                    built.GetComponent<SpriteRenderer>().flipX = x > 0f;
+                }
+                else
+                {
+                    built = Instantiate(mine, new Vector3(x, y, 0f), transform.rotation);
+                    if (built.GetComponent<RailBombAnimator>() == null) built.AddComponent<RailBombAnimator>();
+                    SpawnFootprint.Attach(built, half);
+                }
+                var mount = built.GetComponent<RailMineMount>();
+                if (mount == null) mount = built.AddComponent<RailMineMount>();
+                mount.MountTo(rail);
+                liveMines.Add(built.transform);
+                SpawnedCount++;
+                return true;
+            }
+        return false;
     }
 
     // Enters from below the visible board (everything else scrolls in from
@@ -638,23 +747,50 @@ public class enmiesOnBoard : MonoBehaviour {
     // drift -- see ChaserEnemy for the actual behaviour.
     void spawnChaser()
     {
+        Spawn(SlotKind.Chaser);
+    }
+
+    bool TrySpawnChaser()
+    {
         var def = chaser == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Chaser) : null;
-        if (chaser == null && (def == null || EnemyArt.Frames(def) == null)) return;
+        if (chaser == null && (def == null || EnemyArt.Frames(def) == null)) return true;
 
         var cam = Camera.main;
         float bottomY = cam != null && cam.orthographic
             ? cam.transform.position.y - cam.orthographicSize - 1f
             : transform.position.y - 12f;
-        Vector3 pos = new Vector3(Random.Range(-2.2f, 2.2f), bottomY, 0f);
+        Vector2 half = def != null ? SpawnSpace.BodyHalf(def) : SpawnSpace.BodyHalf(chaser);
 
-        if (def != null) { EnemyFactory.Create(def, pos, Quaternion.identity); return; }
+        // It steers itself from here on (SpawnSpace.ResolveSteer); it only
+        // has to start clear of everything, below the board.
+        int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
+        for (int pass = 0; pass < passes; pass++)
+            for (int k = 0; k < ChaserDropSteps; k++)
+                for (int t = 0; t < PlaceTries; t++)
+                {
+                    var at = new Vector2(Random.Range(-2.2f, 2.2f), bottomY - k * LiftStep);
+                    var c = new SpawnCandidate(at, half);
+                    if (!SpawnSpace.ClearForSteerer(null, at, half) || !SpawnSpace.Fits(c)) continue;
+                    if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
 
-        GameObject spawned = Instantiate(chaser, pos, Quaternion.identity);
-        // The borrowed hull's own straight-line scroller would fight
-        // ChaserEnemy for control of the transform.
-        var straightLine = spawned.GetComponent<moveItemEnmInStrightLine>();
-        if (straightLine != null) Destroy(straightLine);
-        if (spawned.GetComponent<ChaserEnemy>() == null) spawned.AddComponent<ChaserEnemy>();
+                    Vector3 pos = new Vector3(at.x, at.y, 0f);
+                    if (def != null) EnemyFactory.Create(def, pos, Quaternion.identity);
+                    else
+                    {
+                        GameObject spawned = Instantiate(chaser, pos, Quaternion.identity);
+                        // The borrowed hull's own straight-line scroller would fight
+                        // ChaserEnemy for control of the transform.
+                        var straightLine = spawned.GetComponent<moveItemEnmInStrightLine>();
+                        if (straightLine != null) Destroy(straightLine);
+                        var hunter = spawned.GetComponent<ChaserEnemy>();
+                        if (hunter == null) hunter = spawned.AddComponent<ChaserEnemy>();
+                        SpawnFootprint.Attach(spawned, half);
+                        SpawnFootprint.Bind(spawned, hunter);
+                    }
+                    SpawnedCount++;
+                    return true;
+                }
+        return false;
     }
 }
 
@@ -665,7 +801,10 @@ public class enmiesOnBoard : MonoBehaviour {
 // single source of travel (its own side rail), keeps its clamp seated through
 // a frame of animation, and prevents a rail/mine pair from shearing apart
 // when the board speed changes.
-public class RailMineMount : MonoBehaviour
+//
+// For SpawnSpace it is a board-locked pattern: the rail scrolls with the
+// board, so the mine's sweep is its body (MountTo binds it).
+public class RailMineMount : MonoBehaviour, IMovementFootprint
 {
     public Transform rail;
     public float lockedX;
@@ -700,7 +839,16 @@ public class RailMineMount : MonoBehaviour
         // mine's movement authority: this mount follows the rail instead.
         var looseScroller = GetComponent<moveItemEnmInStrightLine>();
         if (looseScroller != null) looseScroller.enabled = !mounted;
+        // the rail is its mover now (a switched-off scroller would read as held)
+        SpawnFootprint.Bind(gameObject, mounted ? (IMovementFootprint)this : (IMovementFootprint)looseScroller);
     }
+
+    public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
+    {
+        return SpawnSpace.BodyRect(center, half);
+    }
+
+    public bool SelfSteering => false;
 
     void LateUpdate()
     {
