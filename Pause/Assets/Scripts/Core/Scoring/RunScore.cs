@@ -83,7 +83,8 @@ public static class RunScore
         }
     }
 
-    public static int Chain { get { return chainLeft > 0f ? chain : 0; } }
+    // The live chain; none once the run has ended (the HUD badge clears on death).
+    public static int Chain { get { return !ended && chainLeft > 0f ? chain : 0; } }
     public static int Multiplier { get { return ScoreRules.MultiplierFor(Chain); } }
     // 1 -> 0 as the chain window runs out (HUD fade).
     public static float ChainLeft01
