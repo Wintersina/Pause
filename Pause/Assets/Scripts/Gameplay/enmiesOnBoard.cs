@@ -52,9 +52,9 @@ public class enmiesOnBoard : MonoBehaviour {
     // Verdant, Ember) has its own cast filling the same roles, picked from
     // the *current* world at every spawn, so a portal switches the set and the
     // tutorial (no WorldManager) gets Space. The old per-phase asteroid
-    // prefab arrays (astroid1-5) were retired with their aestroid_* art;
-    // alien1 is only the fallback if the roster alien's art is missing.
-    public GameObject alien1;
+    // prefab arrays (astroid1-5) were retired with their aestroid_* art,
+    // and the old alien1 invader prefab with its art: aliens always come
+    // from the current world's roster (no art, no alien line).
 
     [Tooltip("Left empty (the default), the current world's rail mine is built from EnemyRoster.")]
     public GameObject mine;
@@ -528,9 +528,8 @@ public class enmiesOnBoard : MonoBehaviour {
             if (newPositionForAnimatedAliean.x >= -2.4 && newPositionForAnimatedAliean.x <= 2.2)
             {
                 // the line stops short rather than close the row (SpawnLane)
-                if (roster && !SpawnLane.Fits(def, newPositionForAnimatedAliean.x, newPositionForAnimatedAliean.y)) break;
-                if (roster) EnemyFactory.Create(def, newPositionForAnimatedAliean, transform.rotation);
-                else if (alien1 != null) Instantiate(alien1, newPositionForAnimatedAliean, transform.rotation);
+                if (!roster || !SpawnLane.Fits(def, newPositionForAnimatedAliean.x, newPositionForAnimatedAliean.y)) break;
+                EnemyFactory.Create(def, newPositionForAnimatedAliean, transform.rotation);
             }
         }
     }

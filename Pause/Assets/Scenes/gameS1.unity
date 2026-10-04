@@ -691,7 +691,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d15bef161797ec147910e904f562b8ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alien1: {fileID: 128726, guid: 1716f248879a3d9409936e4fc65c75a4, type: 3}
   extraEnemyPrefabs: []
   phases: []
 --- !u!4 &184872559

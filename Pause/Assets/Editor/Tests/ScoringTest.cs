@@ -148,6 +148,21 @@ public static class ScoringTest
         BreakChain();
         Check("legacy mine pays a mine", Kill(Named("mine", "Enimey")) == ScoreRules.Mine);
 
+        // With the alien1.prefab fallback gone, every alien is a roster
+        // alien: built exactly as the spawner builds it, in every world, it
+        // pays an alien and keeps collisionDetection's "alien1" achievement key.
+        for (int world = 0; world < EnemyRoster.WorldKeys.Length; world++)
+        {
+            BreakChain();
+            var def = EnemyRoster.One(world, EnemyRole.Alien);
+            var go = def != null ? EnemyFactory.Create(def, Vector3.zero, Quaternion.identity) : null;
+            if (go != null) go.name += "(Clone)";
+            bool key = go != null && PrefabName.Is(go, "alien1");
+            long paid = go != null ? Kill(go) : -1;
+            Check(EnemyRoster.WorldKeys[world] + " roster alien pays an alien (" + paid + ") and counts for the alien achievement",
+                  paid == ScoreRules.Alien && key);
+        }
+
         // Boss parts: no farming the respawning body hitbox.
         BreakChain();
         Check("the boss body hitbox pays nothing", Kill(Named("BossBody", "Enimey")) == 0);
