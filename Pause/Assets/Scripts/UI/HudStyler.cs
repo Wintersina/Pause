@@ -64,6 +64,8 @@ public class HudStyler : MonoBehaviour
 
         Style(speedText, Speed, 26);
         Style(pauseText, Pause, 30);
+        // Resume slow-mo indicator: SLOW-MO count-up + spool bar in this row.
+        ResumeSpeedRow.Attach(speedText);
 
         if (pauseText != null)
         {
@@ -312,7 +314,7 @@ public class HudStyler : MonoBehaviour
         }
 
         if (speedText != null)
-            speedText.text = "SPEED  " + Mathf.RoundToInt(moveBackGround.speed * 100f);
+            speedText.text = ResumeSpeedRow.SpeedLabel(ResumeSpeedRow.HudSpeed);
     }
 }
 

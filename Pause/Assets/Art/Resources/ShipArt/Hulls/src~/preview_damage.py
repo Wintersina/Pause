@@ -17,7 +17,7 @@ from preview import LANE, font
 from ships import ORDER
 
 KIND_COL = {"sparks": (255, 180, 60), "arc": (110, 242, 238), "smoke": (163, 180, 204),
-            "flame": (255, 91, 69), "leak": (46, 230, 166)}
+            "flame": (255, 91, 69), "leak": (46, 230, 166), "smolder": (220, 220, 235)}
 
 
 def main():

@@ -72,13 +72,10 @@ public static class ShipLives
 
     public static bool FullHealth { get { return collisionDetection.lifeCounter <= 0; } }
 
-    // Damage state for art: 0 intact (full), 2 critical (one life left),
-    // 1 damaged in between (a two-heart ship goes straight intact -> critical).
-    public static int DamageState(int hitsTaken, int max)
-    {
-        if (hitsTaken <= 0) return 0;
-        return max - hitsTaken <= 1 ? 2 : 1;
-    }
+    // Damage state for art (ShipDamageTable.StateFor): 0 intact (full),
+    // 2 critical (one life left), 1 damaged in between (a two-heart ship goes
+    // straight intact -> critical).
+    public static int DamageState(int hitsTaken, int max) { return ShipDamageTable.StateFor(hitsTaken, max); }
 
     public static int RunDamageState
     {
