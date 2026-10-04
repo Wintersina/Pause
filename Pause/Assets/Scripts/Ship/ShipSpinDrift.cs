@@ -12,7 +12,8 @@ using UnityEngine;
 //
 // Both are flipbooks on scaled time (frozen at timeScale 0, like the hull and
 // the plumes), with boost drawings while the boost holder is lit (blue atom)
-// or `boost` is set (the dock launch). No allocation per frame.
+// or `boost` is set (the dock launch). No allocation per frame. Both wear
+// the ship's skin (ExhaustRemap), re-applied when a skin changes.
 public class ShipSpinDrift : MonoBehaviour
 {
     public float degreesPerSecond = 300f;
@@ -61,6 +62,7 @@ public class ShipSpinDrift : MonoBehaviour
     GameObject boostHolder;
     float ticks, ringAngle, wakeDrop;
     int shown = -1;
+    int skinVersion = -1;
     bool shownBoost;
 
     void Start()
@@ -90,6 +92,7 @@ public class ShipSpinDrift : MonoBehaviour
         wakeT = wake.transform;
 
         shown = -1;
+        skinVersion = -1;
         if (!ShipExhaust.UsesSpinDrift(ShipIndex))
         {
             ring.enabled = wake.enabled = false;
@@ -108,6 +111,16 @@ public class ShipSpinDrift : MonoBehaviour
         ring.sortingOrder = order;
         wake.sortingOrder = order - 1;
         Apply(true);
+    }
+
+    // Puts the shown skin on the ring and wake now (also after a caller
+    // swapped their material).
+    public void RefreshSkin()
+    {
+        if (ring == null) return;
+        skinVersion = ExhaustRemap.Version;
+        ExhaustRemap.Apply(ring, ShipIndex);
+        ExhaustRemap.Apply(wake, ShipIndex);
     }
 
     SpriteRenderer Layer(string name)
@@ -155,6 +168,7 @@ public class ShipSpinDrift : MonoBehaviour
     void Apply(bool force)
     {
         if (ring == null || !ShipExhaust.UsesSpinDrift(ShipIndex)) return;
+        if (skinVersion != ExhaustRemap.Version) RefreshSkin();
         bool b = boost || (boostHolder != null && boostHolder.activeInHierarchy);
         int frame = ShipExhaustStyle.FrameAt(ShipIndex, ticks);
         if (force || frame != shown || b != shownBoost)

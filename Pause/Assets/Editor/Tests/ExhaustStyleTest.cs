@@ -110,7 +110,7 @@ public static class ExhaustStyleTest
         foreach (int id in ShipId.All)
         {
             string who = ShipId.NameOf(id);
-            var style = ExhaustColors.For(id);
+            var style = ExhaustColors.Stock(id);
             var tones = new[] { style.outer, style.mid, style.core, style.dark, style.accent };
             var hue = ShipHullArt.IdentityHue(id);
             var weapon = WeaponStyleTable.For(id);

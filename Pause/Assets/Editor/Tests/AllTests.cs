@@ -31,6 +31,7 @@ public static class AllTests
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("EnemyRosterTest", EnemyRosterTest.Execute),
+        ("ExhaustSkinTest", ExhaustSkinTest.Execute),
         ("ExhaustStyleTest", ExhaustStyleTest.Execute),
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),

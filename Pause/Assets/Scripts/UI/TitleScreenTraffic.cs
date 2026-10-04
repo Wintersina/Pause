@@ -705,12 +705,15 @@ public class TitleScreenTraffic : MonoBehaviour
         {
             f.nozzles[i].sortingOrder = order + 2;
             if (mat != null) f.nozzles[i].sharedMaterial = mat;
+            // the exhaust wears the ship's skin on either material
+            ExhaustRemap.Apply(f.nozzles[i], f.id);
         }
         if (f.drift != null && f.drift.Ring != null)
         {
             f.drift.Ring.sortingOrder = order + 2;
             f.drift.Wake.sortingOrder = order + 1;
             if (mat != null) { f.drift.Ring.sharedMaterial = mat; f.drift.Wake.sharedMaterial = mat; }
+            f.drift.RefreshSkin();
         }
     }
 

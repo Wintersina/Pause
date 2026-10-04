@@ -16,6 +16,7 @@ Shader "Pause/TitleTrafficHaze"
         _Haze ("Haze amount", Range(0, 1)) = 0.3
         _Desat ("Desaturate", Range(0, 1)) = 0.45
         _Dim ("Value", Range(0, 1)) = 0.75
+        [HideInInspector] _ExOn ("Exhaust skin remap", Float) = 0
     }
 
     SubShader
@@ -40,6 +41,8 @@ Shader "Pause/TitleTrafficHaze"
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
+            // far exhaust keeps its skin colours (ExhaustRemap.cs)
+            #include "../ShipArt/Exhaust/ExhaustRemap.cginc"
 
             struct appdata
             {
@@ -70,7 +73,9 @@ Shader "Pause/TitleTrafficHaze"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 c = tex2D(_MainTex, i.uv) * i.color;
+                float4 t = tex2D(_MainTex, i.uv);
+                t.rgb = ExhaustRemap(t.rgb);
+                fixed4 c = t * i.color;
                 half grey = dot(c.rgb, half3(0.299, 0.587, 0.114));
                 c.rgb = lerp(c.rgb, grey.xxx, _Desat) * _Dim;
                 c.rgb = lerp(c.rgb, _HazeColor.rgb, _Haze);
