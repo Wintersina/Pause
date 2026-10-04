@@ -22,6 +22,13 @@ using UnityEngine.UI;
 // angular corners, Kaneda red for selection. Every rect comes from
 // ComputeLayout(safe area), which is what CodexTest checks across aspect
 // ratios. All motion runs on unscaled time and nothing allocates per frame.
+//
+// Every card's art and the detail art play the entry's idle animation
+// (CodexAnimator, resolved through the game's own art loaders by
+// CodexAnimations); the detail view also plays the occasional attack tell.
+// Locked entries animate as the ink silhouette. Only cards inside the list's
+// viewport tick, nothing ticks behind the detail view, and a closed panel is
+// inactive, so nothing animates at all.
 public class CodexPanel : MonoBehaviour
 {
     // ---- Layout constants (canvas units) ----
@@ -54,6 +61,9 @@ public class CodexPanel : MonoBehaviour
     public const float SwapDuration = .22f;
     public const float TabFadeDuration = .18f;
     public const float JumpDuration = .35f;
+    // Cards start this far apart in their loops (seconds x card index), so a
+    // row of one family doesn't move in lockstep.
+    public const float CardPhaseStep = .37f;
 
     public static readonly CodexCategory[] Tabs =
     {
@@ -268,6 +278,7 @@ public class CodexPanel : MonoBehaviour
     RectTransform detail;
     CanvasGroup detailGroup;
     Image detailFrame, detailFrameEdge, detailMask, detailArt;
+    CodexAnimator detailAnim;
     Mask detailMaskComp;
     Text detailName, detailPillLabel, detailSubtitle, detailLore, detailIndex;
     Image detailPill, detailLoreCard, detailLoreEdge;
@@ -327,6 +338,7 @@ public class CodexPanel : MonoBehaviour
         public RectTransform artBox;
         public Text name;
         public CodexEntry entry;
+        public CodexAnimator anim;
     }
 
     public bool IsOpen { get { return phase == Phase.Opening || phase == Phase.Open; } }
@@ -346,6 +358,9 @@ public class CodexPanel : MonoBehaviour
     public Text CardName(int i) { return cards[i].name; }
     public Image CardArt(int i) { return cards[i].art; }
     public CodexEntry CardEntry(int i) { return cards[i].entry; }
+    public CodexAnimator CardAnimator(int i) { return cards[i].anim; }
+    public CodexAnimator DetailAnimator { get { return detailAnim; } }
+    public RectTransform CardArtBox(int i) { return cards[i].artBox; }
     public RectTransform CardRect(int i) { return cards[i].rt; }
     public Text TabLabel(int i) { return tabLabels[i]; }
 
@@ -608,6 +623,7 @@ public class CodexPanel : MonoBehaviour
         card.art = CodexUi.NewImage("Art", card.artBox, null, Color.white);
         card.art.preserveAspect = true;
         CodexUi.Stretch(card.art.rectTransform);
+        card.anim = CodexAnimator.On(card.art);
 
         card.name = CodexUi.NewText("Name", card.rt, font, "", 18, CodexUi.Body, TextAnchor.MiddleCenter, true);
         card.name.verticalOverflow = VerticalWrapMode.Truncate;
@@ -638,6 +654,7 @@ public class CodexPanel : MonoBehaviour
         detailArt = CodexUi.NewImage("Art", detailArtBox, null, Color.white);
         detailArt.preserveAspect = true;
         CodexUi.Stretch(detailArt.rectTransform);
+        detailAnim = CodexAnimator.On(detailArt);
 
         detailIndex = CodexUi.NewText("Index", detail, font, "", 16, CodexUi.Muted, TextAnchor.UpperRight);
 
@@ -790,6 +807,7 @@ public class CodexPanel : MonoBehaviour
         {
             var c = cards[i];
             CodexUi.Place(c.artBox, CodexUi.Centered(0f, h * .5f - 14f - art * .5f, art, art));
+            c.anim.Relayout();
             CodexUi.Place(c.name.rectTransform, CodexUi.Centered(0f, -h * .5f + 8f + CardNameHeight * .5f, w - 20f, CardNameHeight));
             CodexUi.Place(c.lockIcon.rectTransform, CodexUi.Centered(w * .5f - 24f, h * .5f - 24f, 24f, 24f));
         }
@@ -823,6 +841,7 @@ public class CodexPanel : MonoBehaviour
         float y = top - 18f - art * .5f;
         CodexUi.Place(detailFrame.rectTransform, CodexUi.Centered(0f, y, art + 36f, art + 36f));
         CodexUi.Place(detailArtBox, CodexUi.Centered(0f, 0f, art, art));
+        detailAnim.Relayout();
         CodexUi.Place(detailIndex.rectTransform, new Rect(w * .5f - 120f, top - 30f, 120f, 30f));
         y -= art * .5f + 18f;
 
@@ -920,6 +939,7 @@ public class CodexPanel : MonoBehaviour
         detailIndex.text = "No. " + number.ToString("00");
 
         ApplyArt(detailArt, detailMask, detailMaskComp, entry, found);
+        detailAnim.Bind(CodexAnimations.For(entry), !found, true);
         LayoutDetail();
 
         inDetail = true;
@@ -962,10 +982,14 @@ public class CodexPanel : MonoBehaviour
                 card.edge.color = found ? CodexUi.Accent : CodexUi.Locked;
                 card.lockIcon.gameObject.SetActive(!found);
                 ApplyArt(card.art, card.mask, card.maskComp, e, found);
+                card.anim.Bind(CodexAnimations.For(e), !found, false, (shownCount - 1) * CardPhaseStep);
             }
         }
         for (int i = 0; i < cards.Length; i++)
+        {
             cards[i].rt.gameObject.SetActive(i < shownCount);
+            cards[i].anim.Ticking = false;
+        }
 
         for (int i = 0; i < MaxSections; i++)
         {
@@ -1143,6 +1167,52 @@ public class CodexPanel : MonoBehaviour
         if (Screen.width != lastW || Screen.height != lastH || Screen.safeArea != lastSafe) Fit();
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
+        if (phase != Phase.Hidden) TickAnimations(Time.unscaledDeltaTime);
+    }
+
+    // ---------------------------------------------------------------------
+    // Art animation
+    // ---------------------------------------------------------------------
+
+    // Advances the art by dt seconds (unscaled; timeScale never enters it):
+    // the cards inside the list's viewport while the grid shows, and the
+    // detail art while the detail view shows. Everything else holds its
+    // drawing and is marked not ticking. Arithmetic only, no allocation.
+    public void TickAnimations(float dt)
+    {
+        bool gridShown = phase != Phase.Hidden && gridGroup.alpha > .001f;
+        float top = content.anchoredPosition.y;
+        float bottom = top + viewport.rect.height;
+        for (int i = 0; i < cards.Length; i++)
+        {
+            var a = cards[i].anim;
+            bool on = gridShown && i < shownCount && CardInView(i, top, bottom);
+            a.Ticking = on && a.Animates;
+            if (a.Ticking) a.Advance(dt);
+        }
+        detailAnim.Ticking = phase != Phase.Hidden && detailEntry != null && detailGroup.alpha > .001f && detailAnim.Animates;
+        if (detailAnim.Ticking) detailAnim.Advance(dt);
+    }
+
+    // Is any part of card i inside the viewport (content-space y, from the top)?
+    public bool CardOnScreen(int i)
+    {
+        float top = content.anchoredPosition.y;
+        return i >= 0 && i < shownCount && CardInView(i, top, top + viewport.rect.height);
+    }
+
+    bool CardInView(int i, float top, float bottom)
+    {
+        var rt = cards[i].rt;
+        float centre = -rt.anchoredPosition.y;
+        float half = rt.sizeDelta.y * .5f;
+        return centre + half > top && centre - half < bottom;
+    }
+
+    void StopAnimations()
+    {
+        for (int i = 0; i < cards.Length; i++) cards[i].anim.Ticking = false;
+        detailAnim.Ticking = false;
     }
 
     // Jump every running transition to its end (tests, and a tap mid-intro
@@ -1171,6 +1241,7 @@ public class CodexPanel : MonoBehaviour
             if (p >= 1f)
             {
                 phase = Phase.Hidden;
+                StopAnimations();
                 BackNavigator.Unregister(this);
                 gameObject.SetActive(false);
                 var handler = Closed;

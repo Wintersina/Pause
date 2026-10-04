@@ -19,7 +19,8 @@ public static class TeleportPortalSprites
 
     static void EnsureFrames()
     {
-        if (frames != null) return;
+        // Sprite.Create()d frames die with an editor scene swap: slice again.
+        if (frames != null && frames.Length > 0 && frames[0] != null) return;
 
         var atlas = Resources.Load<Texture2D>("Vfx/teleport_portal_atlas");
         frames = new Sprite[FrameCount];
