@@ -97,11 +97,14 @@ public static class CodexCatalogue
     public const string PortalId = "world_portal";
     public const string VioletAtomId = "atom_violet";
 
-    // What the codex quotes for the atoms' charge cuts (ShipPowerController's
-    // secondsPerAtom on the blue / red / green atoms, secondsPerCooldownAtom
-    // on the violet capacitor).
-    public const string AtomChargeCut = "5 s";
-    public const string CapacitorCut = "12 s";
+    // What the codex quotes for the atoms' charge cuts, from the gameplay
+    // values (ShipPowerController): the red atom's own cut, the shared atom
+    // cut on the blue and green atoms, the violet capacitor's.
+    public static string RedAtomCut { get { return Seconds(ShipPowerController.RedAtomCutSeconds); } }
+    public static string BlueAtomCut { get { return Seconds(ShipPowerController.AtomCutSeconds); } }
+    public static string GreenAtomCut { get { return Seconds(ShipPowerController.AtomCutSeconds); } }
+    public static string CapacitorCut { get { return Seconds(ShipPowerController.CooldownAtomCutSeconds); } }
+    public static string Seconds(float s) { return s.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s"; }
 
     // World ids, index-aligned with WorldManager.Worlds.
     public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember" };
@@ -150,16 +153,16 @@ public static class CodexCatalogue
                 () => Pickup(PickupKind.Shield, "prefabs/atom3a"),
                 "Pure forward momentum. Grab one and a shield snaps around your hull for about six seconds - plough " +
                 "through anything while the world speeds up around you. It also pays two star dust and cuts " +
-                AtomChargeCut + " off your weapon's charge.",
+                BlueAtomCut + " off your weapon's charge.",
                 new[] { "atom3a" }),
             new CodexEntry("atom_red", "Red Atom", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Pause, "prefabs/pauseAtom"),
                 "Condensed wormhole energy. Each one adds two pauses to your stash, fires a free shot of your " +
-                "weapon and cuts " + AtomChargeCut + " off its next charge.",
+                "weapon and cuts " + RedAtomCut + " off its next charge.",
                 new[] { "pauseatom" }),
             new CodexEntry("atom_green", "Green Atom", CodexCategory.Atoms, () => Texture("Pickups/heal_atom_green"),
                 "A rare repair kit from who-knows-where: it patches one heart of hull damage and cuts " +
-                AtomChargeCut + " off your weapon's charge. It only turns up when you're already banged up, and " +
+                GreenAtomCut + " off your weapon's charge. It only turns up when you're already banged up, and " +
                 "never more than a couple of times a world.",
                 new[] { Codex.Normalise(HealAtom.ObjectName) }),
             new CodexEntry(VioletAtomId, "Violet Atom", CodexCategory.Atoms,

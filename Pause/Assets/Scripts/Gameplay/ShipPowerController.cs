@@ -36,15 +36,22 @@ public class ShipPowerController : MonoBehaviour
 
     [Tooltip("Seconds shaved off the current countdown per atom collected -- " +
              "the blue shield atom and the green heal atom count the same.")]
-    public float secondsPerAtom = 7f;
+    public float secondsPerAtom = AtomCutSeconds;
 
     [Tooltip("Seconds shaved off the current countdown by a red pause atom -- " +
              "smaller than secondsPerAtom because the violet capacitor atom is " +
              "the dedicated charge-cutter now (the red atom also gives a free shot).")]
-    public float secondsPerRedAtom = 5f;
+    public float secondsPerRedAtom = RedAtomCutSeconds;
 
     [Tooltip("Seconds shaved off the active weapon charge by a violet capacitor atom.")]
-    public float secondsPerCooldownAtom = 12f;
+    public float secondsPerCooldownAtom = CooldownAtomCutSeconds;
+
+    // The atoms' charge cuts as shipped (the fields' defaults; the controller
+    // is added at runtime, so these are the values played). The codex quotes
+    // them (CodexCatalogue.*Cut).
+    public const float AtomCutSeconds = 7f;          // blue shield, green heal
+    public const float RedAtomCutSeconds = 5f;       // red pause atom
+    public const float CooldownAtomCutSeconds = 12f; // violet capacitor (up to)
 
     [Header("Cinematic clear")]
     [Tooltip("Real seconds the world is held slowed after the last homing shot " +
