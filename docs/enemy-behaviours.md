@@ -828,3 +828,76 @@ rendered 60 fps sequences and tests. Not seen on a device.
   from the same number). The rail art now also rolls during the ultimate's slow motion, when the lanes do;
   it used to stand still there while the mines moved.
 
+
+## Hazard sizes
+
+Branch `feature/hazard-size-variety`. User: "the hazards should come varying sizes, like rocks and stuff floating
+around." Headless simulation, tests and editor renders only; nothing here has been played.
+
+**What varies.** The 14 rocks only. Rail mines (clamped to the drawn rail with a measured clamp reach) and every
+pilot (fighters, heavies, aliens, chasers: measured shot origins and identities) stay one size; `EnemyFactory`
+ignores a size for anything but a rock. Backdrop rocks and planets (non-interactive, `Worlds/Backdrop`), pickups
+and atoms, and the title-screen traffic are not hazards and are untouched. No other floating gameplay hazard
+exists (no `Astr`-tagged prefab or scene object is left; `extraEnemyPrefabs` is empty in gameS1).
+
+**Data.** Each rock's behaviour record carries three tier sizes (`EnemyBehaviour.Sizes(small, typical, large)`,
+multiples of the roster size). `HazardSize.Draw` takes one `Random.value` from the spawner's stream: 28% small,
+55% typical, 17% large (`SmallShare`, `LargeShare`), then +/-5% inside the tier (`Jitter`). The tiers are chosen
+so each rock's mean area (sum of share x size^2) is within 3% of 1: the board holds as much rock as it was tuned
+with. A spawn that has to wait (the deferred queue) keeps its draw, so waiting never trades a big rock for a small
+one (without that the realised mix fell to 37% small / 11% large and 0.92 mean area at loop density).
+
+| Rocks | small / typical / large | range |
+|---|---|---|
+| `space_rock_crater`, `space_rock_dark`, `verdant_rock_pod`, `verdant_rock_vine` | 0.78 / 0.98 / 1.32 | 0.74-1.39 |
+| `space_rock_cluster`, `ember_rock_islet` (chunky) | 0.80 / 0.92 / 1.48 | 0.76-1.55 |
+| `frost_rock_chunk`, `verdant_rock_spore`, `ember_rock_magma`, `ember_rock_cinder` | 0.80 / 0.96 / 1.40 | 0.76-1.47 |
+| `frost_rock_rime`, `verdant_rock_knot` | 0.76 / 1.00 / 1.30 | 0.72-1.37 |
+| `frost_rock_shard`, `ember_rock_obsidian` (slim) | 0.76 / 1.02 / 1.24 | 0.72-1.30 |
+
+**Art.** A rock strip is bilinear, no mipmaps, 192 px a cell; at nominal size a phone draws it at 95.8 px (2.0
+texels per screen pixel). The range runs from 2.78 (0.72x) to 1.29 (1.55x) texels per pixel: never magnified,
+the small end still legible in the renders. `FrameWorldSize` and the roster sizes are unchanged; the size is a
+per-instance transform scale on top.
+
+**What scales with size:** transform (sprite, trigger collider, split fragments, death-domino pieces);
+`EnemyIdentity.Scale`; the footprint and placement envelope (`SpawnSpace.BodyHalf(def, size)`); the lane extents,
+row-gap guard and lane limit (`SpawnLane.HalfExtents / Fits / MaxX`); the brain's lane clamp and envelope
+(`EnemyBrain.Envelope(..., reach)`, `EnemyBrainPlan.reach`), and so the pilots' sidestep, column routing and the
+elites' spawn shadow, which read those sweeps; the hit radius (`ClearTarget.Radius` = collider half x size: elite
+evasion sensor, mine blasts, crashes, the domino, weapons, secret powers); the shockwave's radial shove
+(`ShoveScale` = size^-1, 0.6-1.4; the column push is the same for all); the blast size (`Blast`: below 0.85x
+small, above 1.3x large, so big rocks split more often); the kill value (`RockPoints`: 5 x size rounded, 4 to 7;
+4.98 on average over the draws, ScoreRules.Rock 5). Rocks still die in one hit.
+
+**Weight.** Derived from size, no new tables: `Reach` = size^-0.5 (0.8-1.15) on the band, rise, sink and the
+floating tilt (capped 15 degrees); `Pace` = size^-0.5 (0.8-1.2) on drift / glide / sink speeds, sway / bob /
+pulse / orbit cycles and the tumble. A 1.55x cluster drifts in a 0.44 u band at 0.26 u/s, a 0.76x one in 0.63 u
+at 0.37 u/s.
+
+**Threat table** (`HazardSizeTest`, EnemyDensityProbe's stepping, 1080x2520, 4 seeds; the same seeds with sizes
+off, the draw still taken so the streams match):
+
+| HUD | threats off -> on | rock area in view off -> on |
+|---|---|---|
+| 5 | 7.44 -> 7.30 (-1.9%) | 4.75 -> 4.56 |
+| 10 | 8.32 -> 8.27 (-0.6%) | 6.16 -> 6.13 |
+| 20 | 8.81 -> 8.66 (-1.6%) | 6.59 -> 6.52 |
+| 30 | 11.59 -> 11.74 (+1.4%) | 9.01 -> 8.88 |
+| 35 | 12.42 -> 12.32 (-0.8%) | 9.81 -> 9.58 |
+| whole run | 8.51 -> 8.46 (-0.5%) | 6.33 -> 6.41 |
+
+Threat accounting still counts bodies; the area-neutral draw keeps it where it was tuned, so the threat ceiling,
+the portal-pressure escalation and its body cap are unchanged code (OpenPortalTest).
+
+**Tunables** (`HazardSize`): `Enabled`, `SmallShare`, `LargeShare`, `Jitter`, `ReachExponent` / `MinReach` /
+`MaxReach`, `PaceExponent` / `MinPace` / `MaxPace`, `MaxTilt`, `ShoveExponent` / `MinShove` / `MaxShove`,
+`SmallBlastBelow`, `LargeBlastAbove`; per rock, `.Sizes(...)` in `EnemyBehaviours`.
+
+**Pooling, pause, 60 fps.** Roster enemies are not pooled; `HazardSize.Apply` still sets everything absolutely
+from the def, so applying a size again resets a body (tested). Sizes are fixed at spawn; every motion runs through
+the existing paused-frame gates. No per-frame allocation (profiler GC.Alloc with a positive control); the
+three-argument `Mathf.Max` in `SpawnSpace.BodyHalf` (a params array, one allocation per spawn try) became two calls.
+
+**Evidence.** `HazardSizeTest`; `HazardSizeRender.Run` writes per world a spawner-flown field, the same with lane
+and collider guides, and a smallest / typical / largest sheet per rock at 1080x2520.

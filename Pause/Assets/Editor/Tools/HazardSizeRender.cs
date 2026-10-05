@@ -83,6 +83,11 @@ public static class HazardSizeRender
         EnemyDensityProbe.Clear();
         EnemyDensityProbe.chasers.Clear();
         LoopDifficulty.Reset();
+        // the spawner draws from the current world's roster (EnemyRoster.CurrentWorld)
+        var wmGo = new GameObject("~SizeWorlds");
+        var backing = typeof(WorldManager).GetField("<Instance>k__BackingField",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        backing.SetValue(null, wmGo.AddComponent<WorldManager>());
         Random.InitState(5150 + w);
         const int hud = 20;
         moveBackGround.speed = hud / 100f;
@@ -96,7 +101,7 @@ public static class HazardSizeRender
             t += Dt;
             EnemyDensityProbe.Elapsed.SetValue(board, levelSecond);
             EnemyDensityProbe.StepBoard(board, ship, t, hud * .3f, _ => new Vector3(0f, -50f, 0f));
-            if (f > 60 * 12 && RocksInView(out _) >= 7) break;
+            if (f > 60 * 12 && RocksInView(out string s) >= 7 && Mixed()) break;
         }
         ship.position = new Vector3(0f, -50f, 0f);
         // (the tumble only runs in play mode: give the tumblers a pose)
@@ -110,8 +115,25 @@ public static class HazardSizeRender
         Shot(cam, path.Replace(".png", "-guides.png"));
         Object.DestroyImmediate(guides);
         Object.DestroyImmediate(ship.gameObject);
+        backing.SetValue(null, null);
+        Object.DestroyImmediate(wmGo);
         EnemyDensityProbe.Clear();
         SpawnSpace.ClockOverride = null;
+    }
+
+    // a small and a large rock both in view
+    static bool Mixed()
+    {
+        bool small = false, large = false;
+        foreach (var id in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+        {
+            if (id.Def == null || id.Def.role != EnemyRole.Rock) continue;
+            float y = id.transform.position.y;
+            if (y < CameraFit.ViewBottom + 1f || y > CameraFit.ViewTop - 1f) continue;
+            small |= id.Scale < .85f;
+            large |= id.Scale > 1.25f;
+        }
+        return small && large;
     }
 
     static int RocksInView(out string sizes)
