@@ -18,8 +18,9 @@ using UnityEngine.SceneManagement;
 // neon palette (MAGENTA = slowed, CYAN = speed):
 //
 //   World layer (ResumeFxView, sprites under every gameplay renderer):
-//   - a stepped, dithered MAGENTA side-edge vignette flecked with CYAN
-//     (a chromatic split), alpha = Intensity;
+//   - a faint, stepped MAGENTA side-edge vignette flecked with CYAN
+//     (a chromatic split). It falls away faster than the rest of the effect,
+//     leaving the motion and HUD to communicate the speed recovery;
 //   - speed streaks in two side lanes that crawl as short dashes while time
 //     is slow and stretch into long fast lines as speed returns ("warp back
 //     up"), fading out on the last few percent;
@@ -63,7 +64,10 @@ public static class ResumeFx
 
     // ---- tuning (shared with the test) ---------------------------------
 
-    public const float VignetteAlpha = 0.85f;
+    // A peripheral accent, not a danger wash. The HUD and moving streaks are
+    // the primary explanation of the resume ramp; the rails only establish
+    // the slowed state, then recede quickly as normal speed returns.
+    public const float VignetteAlpha = 0.24f;
 
     public const int StreaksPerSide = 5;
     public const float StreakWidthScale = 2f;     // 4 texels -> 8 px-art cells
@@ -92,6 +96,12 @@ public static class ResumeFx
 
     public static readonly Color Slow = AkiraPalette.Magenta;
     public static readonly Color Fast = AkiraPalette.Cyan;
+
+    public static float VignetteOpacity(float intensity)
+    {
+        intensity = Mathf.Clamp01(intensity);
+        return VignetteAlpha * intensity * intensity;
+    }
 
     // Streak length / speed for a given intensity. Stretch leads the fade
     // (sqrt) so the lines are long while they are still clearly visible.
@@ -264,7 +274,7 @@ public class ResumeFxView : MonoBehaviour
         var t = vignette.transform;
         t.position = new Vector3(centre.x, centre.y, 0f);
         t.localScale = new Vector3(2f * halfW / vignetteSpriteSize.x, 2f * halfH / vignetteSpriteSize.y, 1f);
-        vignette.color = new Color(1f, 1f, 1f, ResumeFx.VignetteAlpha * intensity);
+        vignette.color = new Color(1f, 1f, 1f, ResumeFx.VignetteOpacity(intensity));
     }
 
     void MoveStreaks(float intensity, float realDt, Vector3 centre, float halfW, float halfH)
