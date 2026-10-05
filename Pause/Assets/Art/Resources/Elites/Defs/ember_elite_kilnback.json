@@ -1,0 +1,71 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_kilnback",
+  "displayName": "Kilnback",
+  "role": "armored hauler",
+  "brain": "hauler",
+  "attack": "slag_drop",
+  "armored": true,
+  "lore": "A slab-shielded forge hauler that shoulders rocks aside. It drifts into your lane and parks there, dumping molten slag that sinks down the board. Only mines, rails and its own kind crack its armour.",
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.34,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 6,
+  "speed": 1.6,
+  "accel": 3,
+  "turnRate": 120,
+  "followDistance": 2.4,
+  "aggression": 0.45,
+  "tellSeconds": 0.6,
+  "attackGap": 3.8,
+  "avoidance": 0.5,
+  "lookAhead": 0.35,
+  "actionSeconds": 0.9,
+  "shotCount": 4,
+  "shotSpeed": 1.0,
+  "shotSpread": 15,
+  "shotInterval": 0.2,
+  "shotSize": 0.34,
+  "shotKind": "slag",
+  "exhaustScale": 0.3,
+  "muzzles": [
+    {
+      "name": "l",
+      "x": 85,
+      "y": 134,
+      "dir": 270.0
+    },
+    {
+      "name": "r",
+      "x": 110,
+      "y": 136,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 88,
+      "y": 147,
+      "dir": 270.0
+    },
+    {
+      "name": "r",
+      "x": 117,
+      "y": 146,
+      "dir": 270.0
+    }
+  ],
+  "codexId": "elite_ember_kilnback"
+}

@@ -1,0 +1,980 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+// An elite enemy ship: a named, hunting craft with its own personality
+// (EliteBrain), its own attack (EliteAttack) and two hearts.
+//
+// LIFE CYCLE (EliteState)
+//   Parked   sitting on a landing site on the world's background terrain
+//            (LandingSites): small, hazy and dim, behind gameplay, no
+//            collider, not a target. In its last second the engine lights
+//            blink on -- the tell that it is about to launch.
+//   LiftOff  dust and heat shimmer at the pad, the engines ignite and it
+//            rises; scale, brightness and sorting interpolate from the
+//            background's depth up to the play layer. Still no collider.
+//   Join     fully in the play layer: the collider, the hazard tag, the
+//            hearts and its SpawnSpace footprint switch on, and it swoops
+//            in from the side / behind to its pursuit position. Never ends
+//            on top of the pilot (EliteDirector picks the lift-off's end
+//            well away), and attacks wait out an escape window.
+//   Follow   its brain flies it (interceptor, gunship, striker, hauler,
+//            skirmisher, siege), dodging what the board throws at it.
+//   Attack   the tell drawing for tellSeconds, then the action drawing
+//            while its attack plays (a dash, a broadside, a dive ...).
+//   Dead     its hearts ran out: the death FX (pluggable, EliteDeath),
+//            the pilot's reward, gone.
+// A hit (any damage) shows the hit drawing for a few ticks and costs a
+// heart, which darts to the impact and crumbles (EliteHearts, HeartOrbit).
+//
+// ENDING. Elites never retreat or time out: they die by crashing -- into
+// rocks, enemies, mines, other elites and the side rails -- or to the
+// pilot. They try to dodge (lookAhead / avoidance), but a fast board or a
+// committed dash beats them, and they do NOT teleport with the pilot: a
+// pause-teleport leaves them flying where they thought the ship was
+// (perception), the best way to bait them into something. Their shots hit
+// everything (friendly fire, EliteShots) without paying the pilot.
+//
+// DAMAGE (one heart each, then half a second of grace): a player weapon,
+// the ultimate, the red atom's free shot or a secret power
+// (ShipAttackHits -> TakeShipAttack), a blink landing on it (TeleportFx ->
+// TeleportStrike), touching the pilot (collisionDetection -> Rammed; the
+// pilot loses a heart too unless shielded), a crash, a rail, another elite,
+// friendly fire. A shielded ram (blue atom / Cloak) takes both hearts.
+// Every kill, crash or lure included, pays ScoreRules.EliteDown +
+// EliteDownDust with an "ELITE DOWN" popup.
+//
+// Positions are world (screen) space: like the chaser it holds its place in
+// the world while the board pours past it. Stepped by EliteSystem on the
+// world's clock -- frozen at timeScale 0 -- with no per-frame allocation.
+public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
+public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire }
+
+[DisallowMultipleComponent]
+public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
+{
+    public static readonly List<EliteShip> Live = new List<EliteShip>(8);
+
+    // ---- tuning shared by every elite ----
+    public const int PlayOrder = 5;            // over rocks (2) and enemies (3), under mines (12)
+    public const float GraceSeconds = .5f;     // after losing a heart
+    public const float EscapeWindow = 2f;      // after joining: no attacks yet
+    public const float JoinSeconds = 1.1f;
+    public const float LiftSeconds = 1.7f;
+    public const float EngineTellSeconds = 1f; // parked: lights blink before launch
+    public const float MinJoinDistance = 2.6f; // lift-off ends at least this far from the pilot
+    public const float HitFlashSeconds = EliteArt.HitTicks * EliteArt.Tick;
+    public static readonly Color Haze = new Color(.42f, .38f, .56f, .78f);
+
+    // ---- counters (tests, previews) ----
+    public static int Kills, CrashKills, FriendlyKills, Crashes;
+    public static EliteDamage LastKillCause;
+
+    public EliteDef Def { get; private set; }
+    public EliteBrain Brain { get; private set; }
+    public EliteAttack Attack { get; private set; }
+    public EliteState State { get; private set; }
+    public int Hearts { get; private set; }
+    public Vector2 Velocity { get { return velocity; } set { velocity = value; } }
+    public float Facing { get { return facing; } }
+    public Vector2 Seen { get { return seen; } }
+    public bool PlayerLost { get { return lost; } }
+    public float StateTime { get { return stateTime; } }
+    public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack;
+    public bool Telling => State == EliteState.Attack && attackPhase == 0;
+    public bool Acting => State == EliteState.Attack && attackPhase == 1;
+    public int CurrentFrame { get; private set; }
+    public float Grace => grace;
+    public SpriteRenderer Hull => hull;
+    public CircleCollider2D Collider => col;
+    public float HullScale => hullTf != null ? hullTf.localScale.x : 1f;
+    public float AttackCooldown { get { return cooldown; } set { cooldown = value; } }
+    public float EscapeLeft { get { return escapeLeft; } set { escapeLeft = value; } }
+    public LandingSite Site => site;
+    public Vector2 LiftTarget => liftTo;
+    public int Attacks { get; private set; }
+    public Vector2 Position => transform.position;
+    public EliteDamage LastHitCause { get; private set; }
+
+    Transform hullTf;
+    SpriteRenderer hull;
+    CircleCollider2D col;
+    ClearTarget target;
+    SpawnFootprint footprint;
+    EliteHearts heartsView;
+    Sprite[] frames, parkedFrames, liftFrames;
+    SpriteRenderer[] plumes, glows;
+    Vector2[] nozzleLocal;
+    float[] nozzleAngle;
+    SpriteRenderer sight;
+
+    LandingSite site;
+    Vector3 sitePos;
+    float parkSeconds;
+    Vector2 liftFrom, liftTo;
+    Vector2 velocity;
+    float facing = 90f, bank;
+    float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
+    int idleStep, attackPhase;
+    float thrust;
+    Vector2 seen, lastPlayer;
+    bool lost, havePlayer;
+    bool impactPending;
+    Vector3 impactAt;
+    Vector2 attackAim;
+    float attackClock;
+
+    // ---- creation --------------------------------------------------------
+
+    // A parked elite on `site`; it lifts off after `parkFor` seconds and
+    // ends its lift-off at `liftEnd` (world), where it joins the play.
+    public static EliteShip Create(EliteDef def, LandingSite site, float parkFor, Vector2 liftEnd)
+    {
+        var go = new GameObject(def.key);
+        go.transform.SetParent(EliteSystem.Root, false);
+        var ship = go.AddComponent<EliteShip>();
+        ship.Init(def);
+        ship.site = site;
+        ship.sitePos = site.Valid ? site.Position : Vector3.zero;
+        ship.parkSeconds = Mathf.Max(EngineTellSeconds + .2f, parkFor);
+        ship.liftTo = liftEnd;
+        ship.transform.position = new Vector3(ship.sitePos.x, ship.sitePos.y, 0f);
+        ship.EnterParked();
+        return ship;
+    }
+
+    // Straight into the play layer at `at` (tests, previews).
+    public static EliteShip CreateInPlay(EliteDef def, Vector2 at)
+    {
+        var go = new GameObject(def.key);
+        go.transform.SetParent(EliteSystem.Root, false);
+        go.transform.position = at;
+        var ship = go.AddComponent<EliteShip>();
+        ship.Init(def);
+        ship.liftTo = at;
+        ship.EnterPlay();
+        ship.State = EliteState.Follow;
+        ship.escapeLeft = 0f;
+        return ship;
+    }
+
+    void Init(EliteDef def)
+    {
+        Def = def;
+        Hearts = def.hearts;
+        Brain = EliteBrains.Create(def.brain);
+        Attack = EliteAttacks.Create(def.attack);
+        Brain.Bind(this);
+        Attack.Bind(this);
+        frames = EliteArt.Frames(def);
+        parkedFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Parked);
+        liftFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Liftoff);
+
+        hullTf = new GameObject("Hull").transform;
+        hullTf.SetParent(transform, false);
+        hull = hullTf.gameObject.AddComponent<SpriteRenderer>();
+        hull.sortingOrder = PlayOrder;
+        if (frames != null) hull.sprite = frames[0];
+
+        col = gameObject.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = def.hullRadius;
+        col.enabled = false;
+
+        BuildEngines();
+        sight = NewPiece(transform, "Sight", EliteFxArt.Sight, PlayOrder - 1);
+        sight.enabled = false;
+
+        cooldown = def.attackGap * Mathf.Lerp(.6f, 1.1f, Random.value);
+        facing = def.turnsToFace ? def.noseDeg : 90f;
+        Live.Add(this);
+    }
+
+    void BuildEngines()
+    {
+        int n = Def.nozzles.Length;
+        plumes = new SpriteRenderer[n];
+        glows = new SpriteRenderer[n];
+        nozzleLocal = new Vector2[n];
+        nozzleAngle = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            var nz = Def.nozzles[i];
+            nozzleLocal[i] = Def.PixelToLocal(nz.x, nz.y);
+            nozzleAngle[i] = nz.dir >= 0f ? nz.dir : Def.noseDeg + 180f;
+            plumes[i] = NewPiece(hullTf, "Plume" + i, ShipExhaust.Frame(Def.exhaustShip, false, 0), PlayOrder - 1);
+            plumes[i].transform.localPosition = nozzleLocal[i];
+            plumes[i].transform.localRotation = Quaternion.Euler(0f, 0f, nozzleAngle[i] + 90f);
+            glows[i] = NewPiece(hullTf, "Glow" + i, EliteFxArt.Glow, PlayOrder + 1);
+            glows[i].transform.localPosition = nozzleLocal[i];
+            glows[i].color = Def.EngineColor;
+        }
+    }
+
+    static SpriteRenderer NewPiece(Transform parent, string name, Sprite sprite, int order)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = sprite;
+        sr.sortingOrder = order;
+        sr.enabled = false;
+        return sr;
+    }
+
+    void OnDestroy()
+    {
+        Live.Remove(this);
+    }
+
+    // ---- states ----------------------------------------------------------
+
+    void EnterParked()
+    {
+        State = EliteState.Parked;
+        stateTime = 0f;
+        gameObject.tag = "Untagged";
+        col.enabled = false;
+        float s = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
+        hullTf.localScale = Vector3.one * s;
+        hull.sortingOrder = site.order;
+        hull.color = Haze;
+        if (parkedFrames != null) hull.sprite = parkedFrames[0];
+        else if (frames != null) hull.sprite = frames[0];
+        SetOrders(site.order);
+        thrust = 0f;
+        RenderEngines(0f);
+    }
+
+    void BeginLiftOff()
+    {
+        State = EliteState.LiftOff;
+        stateTime = 0f;
+        liftFrom = transform.position;
+        EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
+    }
+
+    void EnterPlay()
+    {
+        State = EliteState.Join;
+        stateTime = 0f;
+        escapeLeft = EscapeWindow;
+        gameObject.tag = "Enimey";
+        col.enabled = true;
+        hullTf.localScale = Vector3.one;
+        hull.color = Color.white;
+        hull.sortingOrder = PlayOrder;
+        SetOrders(PlayOrder);
+        target = ClearTarget.Ensure(gameObject);
+        target.enabled = true;
+        target.SetRadius(Def.hullRadius);
+        footprint = SpawnFootprint.Attach(gameObject, new Vector2(Def.hullRadius, Def.hullRadius));
+        SpawnFootprint.Bind(gameObject, this);
+        if (heartsView == null)
+        {
+            heartsView = gameObject.AddComponent<EliteHearts>();
+            heartsView.Bind(this);
+        }
+        Physics2D.SyncTransforms();
+        var p = EliteSystem.Player;
+        if (p != null) { seen = p.position; lastPlayer = seen; havePlayer = true; lost = false; }
+        Codex.Discover(gameObject);
+        Brain.OnJoin();
+    }
+
+    void SetOrders(int order)
+    {
+        if (plumes == null) return;
+        for (int i = 0; i < plumes.Length; i++)
+        {
+            plumes[i].sortingOrder = order - 1;
+            glows[i].sortingOrder = order + 1;
+        }
+        if (sight != null) sight.sortingOrder = order - 1;
+    }
+
+    // ---- the step ----------------------------------------------------------
+
+    public void Step(float dt)
+    {
+        if (dt <= 0f || State == EliteState.Dead) return;
+        stateTime += dt;
+        if (grace > 0f) grace = Mathf.Max(0f, grace - dt);
+        if (hitFlash > 0f) hitFlash = Mathf.Max(0f, hitFlash - dt);
+        if (blinkCooldown > 0f) blinkCooldown -= dt;
+        exhaustClock += dt;
+
+        switch (State)
+        {
+            case EliteState.Parked: StepParked(dt); break;
+            case EliteState.LiftOff: StepLiftOff(dt); break;
+            default: StepPlay(dt); break;
+        }
+        if (State == EliteState.Dead) return;
+        Animate(dt);
+        Render();
+    }
+
+    void StepParked(float dt)
+    {
+        if (site.Valid) sitePos = site.Position;
+        transform.position = new Vector3(sitePos.x, sitePos.y, 0f);
+        bool siteLeaving = !site.Valid || sitePos.y < EliteSystem.ViewBottom + 2f;
+        if (stateTime >= parkSeconds || siteLeaving) BeginLiftOff();
+    }
+
+    void StepLiftOff(float dt)
+    {
+        if (site.Valid) liftFrom = site.Position;
+        float k = Mathf.Clamp01(stateTime / LiftSeconds);
+        // rises straight off the pad first, then arcs out to the join point
+        float e = k * k * (3f - 2f * k);
+        Vector2 rise = liftFrom + Vector2.up * .6f;
+        Vector2 a = Vector2.Lerp(liftFrom, rise, Mathf.Clamp01(k * 2.5f));
+        Vector2 p = Vector2.Lerp(a, liftTo, Mathf.Clamp01((e - .15f) / .85f));
+        Vector2 prev = transform.position;
+        transform.position = new Vector3(p.x, p.y, 0f);
+        if (dt > 0f) velocity = (p - prev) / dt;
+
+        float s0 = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
+        hullTf.localScale = Vector3.one * Mathf.Lerp(s0, 1f, e);
+        hull.color = Color.Lerp(Haze, Color.white, e);
+        int order = k < .45f ? site.order : k < .9f ? -1 : PlayOrder;
+        if (hull.sortingOrder != order) { hull.sortingOrder = order; SetOrders(order); }
+        thrust = Mathf.Lerp(.2f, 1.2f, Mathf.Clamp01(k * 2f));
+        if (k < .5f && Mathf.Repeat(stateTime, .12f) < dt) EliteSystem.Fx.HeatShimmer(transform.position, order - 1, hullTf.localScale.x * Def.cellWorldSize);
+        if (k >= 1f) EnterPlay();
+    }
+
+    void StepPlay(float dt)
+    {
+        if (escapeLeft > 0f) escapeLeft -= dt;
+        Perceive(dt);
+
+        Vector2 pos = transform.position;
+        bool driven = false;
+        if (State == EliteState.Join)
+        {
+            Vector2 goal = Brain.Goal(seen, dt);
+            Steer(goal, 1.35f, dt);
+            if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
+        }
+        else if (State == EliteState.Follow)
+        {
+            Vector2 goal = Brain.Goal(seen, dt);
+            Steer(goal, Brain.SpeedScale, dt);
+            if (Brain.DodgesByBlink && blinkCooldown <= 0f && ThreatSeverity() > .55f) Blink(BlinkSpot(), false);
+            cooldown -= dt;
+            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && Brain.WantsAttack(seen)) BeginAttack();
+        }
+        else if (State == EliteState.Attack)
+        {
+            attackClock += dt;
+            if (attackPhase == 0)
+            {
+                Attack.StepTell(dt);
+                if (Attack.HoldsDuringTell) Brake(dt);
+                else Steer(Brain.Goal(seen, dt), Brain.SpeedScale * .5f, dt);
+                if (attackClock >= Attack.TellSeconds) { attackPhase = 1; attackClock = 0f; Attack.BeginAction(); }
+            }
+            else
+            {
+                bool done = Attack.StepAction(dt);
+                driven = Attack.DrivesMovement;
+                if (!driven) Steer(Brain.Goal(seen, dt), Brain.SpeedScale, dt);
+                if (done) EndAttack();
+            }
+        }
+
+        Vector2 next = (Vector2)transform.position + velocity * dt;
+        transform.position = new Vector3(next.x, next.y, 0f);
+        Face(dt);
+        KeepInView(dt);
+        Collide();
+        thrust = Mathf.Lerp(thrust, Mathf.Clamp01(velocity.magnitude / Mathf.Max(.1f, Def.speed)) * .8f + .25f, 1f - Mathf.Exp(-6f * dt));
+    }
+
+    void BeginAttack()
+    {
+        State = EliteState.Attack;
+        attackPhase = 0;
+        attackClock = 0f;
+        Attacks++;
+        Attack.BeginTell(seen);
+    }
+
+    void EndAttack()
+    {
+        Attack.End();
+        State = EliteState.Follow;
+        stateTime = 0f;
+        attackPhase = 0;
+        sight.enabled = false;
+        cooldown = Def.attackGap * Mathf.Lerp(1.25f, .6f, Mathf.Clamp01(Def.aggression)) * Random.Range(.8f, 1.2f);
+    }
+
+    // Where it thinks the pilot is. It follows every ordinary move, but a
+    // pause-teleport (a jump of TeleportFx.MinimumJump or more in one step)
+    // loses it: it keeps flying towards the old spot and only finds the
+    // ship again at `perception` u/s.
+    void Perceive(float dt)
+    {
+        var p = EliteSystem.Player;
+        if (p == null) { havePlayer = false; return; }
+        Vector2 actual = ShipDecoy.Active ? (Vector2)ShipDecoy.Position : (Vector2)p.position;
+        if (!havePlayer) { seen = lastPlayer = actual; havePlayer = true; lost = false; return; }
+        Vector2 jump = actual - lastPlayer;
+        lastPlayer = actual;
+        if (!lost && jump.magnitude >= TeleportFx.MinimumJump) lost = true;
+        if (lost)
+        {
+            seen = Vector2.MoveTowards(seen, actual, Def.perception * dt);
+            if ((seen - actual).sqrMagnitude < .04f) lost = false;
+        }
+        else seen = actual;
+    }
+
+    // Arrive at `goal`, dodging, within accel and turn limits.
+    public void Steer(Vector2 goal, float speedScale, float dt)
+    {
+        goal = ClampGoal(goal);
+        Vector2 pos = transform.position;
+        Vector2 d = goal - pos;
+        float max = Def.speed * Mathf.Max(.1f, speedScale);
+        float dist = d.magnitude;
+        Vector2 want = dist > 1e-4f ? d / dist * Mathf.Min(max, dist * 2.4f) : Vector2.zero;
+        want += Avoid();
+        want += Walls();
+        if (want.sqrMagnitude > max * max * 2.25f) want = want.normalized * max * 1.5f;
+        Accelerate(want, Def.accel, dt);
+    }
+
+    public void Brake(float dt)
+    {
+        Accelerate(Avoid() * .5f, Def.accel, dt);
+    }
+
+    void Accelerate(Vector2 want, float accel, float dt)
+    {
+        Vector2 v = Vector2.MoveTowards(velocity, want, accel * dt);
+        // turn-rate limit on the heading of travel
+        float sp = v.magnitude, old = velocity.magnitude;
+        if (sp > .3f && old > .3f)
+        {
+            float a0 = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
+            float a1 = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+            float turn = Mathf.Clamp(Mathf.DeltaAngle(a0, a1), -Def.turnRate * dt, Def.turnRate * dt);
+            float r = (a0 + turn) * Mathf.Deg2Rad;
+            v = new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * sp;
+        }
+        velocity = v;
+    }
+
+    // Set by attacks that take the stick (a dash, a dive).
+    public void Drive(Vector2 v) { velocity = v; }
+
+    public Vector2 ClampGoal(Vector2 g)
+    {
+        float edge = EliteSystem.RailEdge - Def.hullRadius - .3f;
+        g.x = Mathf.Clamp(g.x, -edge, edge);
+        g.y = Mathf.Clamp(g.y, EliteSystem.ViewBottom + Def.hullRadius + .5f, EliteSystem.ViewTop - Def.hullRadius - .4f);
+        return g;
+    }
+
+    // A soft push off the rails (the hard crash is Collide's).
+    Vector2 Walls()
+    {
+        float x = transform.position.x, edge = EliteSystem.RailEdge - Def.hullRadius;
+        float near = .6f;
+        Vector2 push = Vector2.zero;
+        if (x > edge - near) push.x -= (x - (edge - near)) / near * Def.speed * Def.avoidance;
+        if (x < -edge + near) push.x += ((-edge + near) - x) / near * Def.speed * Def.avoidance;
+        return push;
+    }
+
+    // How hard something on the board is about to hit it (0 none .. 1).
+    float lastThreat;
+    public float ThreatSeverity() { return lastThreat; }
+
+    // Dodging: every hazard it would meet within lookAhead seconds of
+    // closing (the board falls at the scroll speed; other elites fly their
+    // own velocity) pushes it sideways off the line, harder the sooner and
+    // the more squarely. Skill (avoidance) and reaction (lookAhead) are
+    // limited, so a fast board, a dash or a tight squeeze still catch it.
+    Vector2 Avoid()
+    {
+        Vector2 pos = transform.position;
+        Vector2 push = Vector2.zero;
+        float worst = 0f;
+        float scroll = EliteSystem.Scroll;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
+            Vector2 hp = t.transform.position;
+            Vector2 hv = HazardVelocity(t, scroll);
+            Vector2 r = hp - pos;
+            Vector2 rv = hv - velocity;
+            float R = Def.hullRadius + t.Radius + .15f;
+            float rv2 = rv.sqrMagnitude;
+            float tca = rv2 > 1e-4f ? -Vector2.Dot(r, rv) / rv2 : 0f;
+            if (tca <= 0f)
+            {
+                if (r.sqrMagnitude < R * R) { push -= r.normalized; worst = Mathf.Max(worst, 1f); }
+                continue;
+            }
+            if (tca > Def.lookAhead) continue;
+            Vector2 closest = r + rv * tca;
+            float dd = closest.magnitude;
+            if (dd >= R) continue;
+            Vector2 away;
+            if (dd > 1e-3f) away = -closest / dd;
+            else
+            {
+                // dead centre: go towards the middle of the lane
+                away = new Vector2(pos.x > 0f ? -1f : 1f, 0f);
+            }
+            float urgency = (1f - tca / Def.lookAhead) * (1f - dd / R) + .25f;
+            push += away * urgency;
+            worst = Mathf.Max(worst, urgency);
+        }
+        lastThreat = worst;
+        return push * Def.avoidance * Def.speed * 2.2f;
+    }
+
+    static Vector2 HazardVelocity(ClearTarget t, float scroll)
+    {
+        var live = Live;
+        for (int i = 0; i < live.Count; i++)
+            if (live[i] != null && live[i].gameObject == t.gameObject) return live[i].velocity;
+        if (t.TryGetComponent(out ChaserEnemy _)) return Vector2.zero;
+        return new Vector2(0f, -scroll);
+    }
+
+    void KeepInView(float dt)
+    {
+        Vector3 p = transform.position;
+        float bottom = EliteSystem.ViewBottom + Def.hullRadius * .6f, top = EliteSystem.ViewTop + 1.5f;
+        if (p.y < bottom) { p.y = bottom; if (velocity.y < 0f) velocity.y = 0f; }
+        if (p.y > top) { p.y = top; if (velocity.y > 0f) velocity.y = 0f; }
+        transform.position = p;
+    }
+
+    void Face(float dt)
+    {
+        float want;
+        float? pref = State == EliteState.Attack ? Attack.FaceDeg : null;
+        if (pref == null) pref = Brain.FaceDeg(seen);
+        if (pref != null) want = pref.Value;
+        else if (velocity.sqrMagnitude > .16f) want = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
+        else want = facing;
+        facing = Mathf.MoveTowardsAngle(facing, want, Def.turnRate * 1.4f * dt);
+        float b = -Mathf.Clamp(velocity.x / Mathf.Max(.1f, Def.speed), -1f, 1f) * Def.maxBank;
+        bank = Mathf.Lerp(bank, b, 1f - Mathf.Exp(-6f * dt));
+    }
+
+    // ---- collisions -------------------------------------------------------
+
+    void Collide()
+    {
+        if (!InPlay) return;
+        Vector2 pos = transform.position;
+
+        // the side rails
+        float edge = EliteSystem.RailEdge;
+        if (Mathf.Abs(pos.x) + Def.hullRadius * .7f > edge)
+        {
+            float side = Mathf.Sign(pos.x);
+            pos.x = side * (edge - Def.hullRadius * .7f - .01f);
+            transform.position = new Vector3(pos.x, pos.y, 0f);
+            velocity.x = -side * Mathf.Max(1.5f, Mathf.Abs(velocity.x) * .6f);
+            if (grace <= 0f)
+            {
+                Crashes++;
+                EliteSystem.Fx.Sparks(new Vector2(side * edge, pos.y), Def.ShotColor, 8);
+                TakeHit(EliteDamage.Rail, new Vector3(side * edge, pos.y, 0f));
+                if (State == EliteState.Dead) return;
+            }
+        }
+
+        if (grace > 0f) return;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
+            Vector2 hp = t.transform.position;
+            float R = Def.hullRadius * .85f + t.Radius * .8f;
+            if ((hp - pos).sqrMagnitude > R * R) continue;
+            CrashInto(t.gameObject, hp);
+            return;   // one crash a step (the registry changes under a kill)
+        }
+    }
+
+    void CrashInto(GameObject other, Vector2 at)
+    {
+        Crashes++;
+        Vector2 pos = transform.position;
+        Vector2 away = pos - at;
+        away = away.sqrMagnitude > 1e-6f ? away.normalized : Vector2.down;
+        var elite = other.GetComponent<EliteShip>();
+        if (elite != null)
+        {
+            if (elite.grace > 0f) return;
+            velocity = away * 3f;
+            elite.velocity = -away * 3f;
+            elite.TakeHit(EliteDamage.Crash, pos);
+            TakeHit(EliteDamage.Crash, at);
+            return;
+        }
+        bool rock = other.CompareTag("Astr");
+        FriendlyKill(other);
+        if (Def.armored && rock)
+        {
+            velocity += away * 1f;
+            return;
+        }
+        velocity = away * 2.5f + velocity * .3f;
+        TakeHit(EliteDamage.Crash, at);
+    }
+
+    // A hazard destroyed by an elite (a crash, its shots): the blast and the
+    // sound, but nothing for the pilot -- no score, no dust, no codex.
+    public static void FriendlyKill(GameObject go)
+    {
+        if (go == null) return;
+        FriendlyKills++;
+        TargetExplosion.Spawn(go, ShipId.None);
+        EnemyDeathAudio.Play(go);
+        ClearTarget.Release(go);
+        BossUtil.Kill(go);
+    }
+
+    // ---- damage -------------------------------------------------------------
+
+    // One heart (two for a shielded ram); false if it was in its grace.
+    public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
+    {
+        if (State == EliteState.Dead || !InPlay) return false;
+        if (grace > 0f && cause != EliteDamage.ShieldRam) return false;
+        Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
+        LastHitCause = cause;
+        impactPending = true;
+        impactAt = at;
+        grace = GraceSeconds;
+        hitFlash = HitFlashSeconds;
+        Vector2 away = (Vector2)transform.position - (Vector2)at;
+        if (away.sqrMagnitude > 1e-6f) velocity += away.normalized * 1.5f;
+        if (heartsView != null) heartsView.Refresh();
+        EliteSystem.Fx.Sparks(at, Def.HeartColor, 6);
+        if (Hearts <= 0) Die(cause);
+        return true;
+    }
+
+    public bool TakeImpact(out Vector3 at)
+    {
+        at = impactAt;
+        bool had = impactPending;
+        impactPending = false;
+        return had;
+    }
+
+    void Die(EliteDamage cause)
+    {
+        State = EliteState.Dead;
+        Kills++;
+        LastKillCause = cause;
+        if (cause == EliteDamage.Crash || cause == EliteDamage.Rail || cause == EliteDamage.FriendlyFire) CrashKills++;
+        Live.Remove(this);
+        col.enabled = false;
+        if (target != null) ClearTarget.Release(gameObject);
+        if (footprint != null) footprint.enabled = false;
+        if (Attack != null) Attack.End();
+        EliteRewards.Pay(this);
+        EliteDeath.Play(this, cause);
+        BossUtil.Kill(gameObject);
+    }
+
+    // IShipAttackTarget: every player weapon, the ultimate's homing shots,
+    // the red atom's free shot and the secret powers (ShipAttackHits).
+    public void TakeShipAttack(int ship, float weight, Vector3 at)
+    {
+        if (!InPlay || weight <= 0f) return;
+        Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
+        if (TakeHit(EliteDamage.PlayerWeapon, at))
+            TargetExplosion.Spawn(blast, TargetExplosion.Kind.Metal, TargetExplosion.Size.Small, ship);
+    }
+
+    // ---- hooks for the pilot's side ----------------------------------------
+
+    // TeleportFx.Strike: a blink landed on it -- a heart, and it is flung
+    // out of the landing blast so the ship doesn't sit inside it. A blink
+    // onto an elite's shot erases the shot. True when handled.
+    public static bool TeleportStrike(GameObject go, Vector3 at)
+    {
+        if (go == null) return false;
+        var elite = go.GetComponent<EliteShip>();
+        if (elite != null)
+        {
+            if (!elite.InPlay) return true;
+            elite.TakeHit(EliteDamage.Teleport, at);
+            if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
+            return true;
+        }
+        return EliteShots.EraseHitbox(go);
+    }
+
+    // collisionDetection, shielded (blue atom / Cloak): the ram takes both
+    // hearts; an elite shot is absorbed. True when handled.
+    public static bool ShieldRam(GameObject go, Vector3 shipAt)
+    {
+        if (go == null) return false;
+        var elite = go.GetComponent<EliteShip>();
+        if (elite != null)
+        {
+            elite.TakeHit(EliteDamage.ShieldRam, shipAt, elite.Hearts);
+            return true;
+        }
+        return EliteShots.EraseHitbox(go);
+    }
+
+    // collisionDetection, unshielded: the pilot pays a heart as for any
+    // enemy; the elite loses one too and is knocked away instead of being
+    // destroyed. True for an elite (don't Destroy it); an elite shot is
+    // left to the normal path (its hitbox is destroyed, the shot recycles).
+    public static bool Rammed(GameObject go, Vector3 shipAt)
+    {
+        if (go == null) return false;
+        var elite = go.GetComponent<EliteShip>();
+        if (elite == null) return false;
+        elite.TakeHit(EliteDamage.PlayerContact, shipAt);
+        if (elite != null && elite.State != EliteState.Dead) elite.Shove(shipAt, elite.Def.hullRadius + .75f);
+        return true;
+    }
+
+    void Shove(Vector3 from, float distance)
+    {
+        Vector2 away = (Vector2)transform.position - (Vector2)from;
+        away = away.sqrMagnitude > 1e-6f ? away.normalized : Vector2.up;
+        Vector2 p = (Vector2)from + away * distance;
+        p = ClampGoal(p);
+        transform.position = new Vector3(p.x, p.y, 0f);
+        velocity = away * 3f;
+        Physics2D.SyncTransforms();
+    }
+
+    // ---- blink (skirmisher) ---------------------------------------------------
+
+    public Vector2 BlinkSpot()
+    {
+        Vector2 pos = transform.position;
+        Vector2 toPilot = seen - pos;
+        Vector2 side = toPilot.sqrMagnitude > 1e-4f ? new Vector2(-toPilot.y, toPilot.x).normalized : Vector2.right;
+        Vector2 best = pos;
+        float bestScore = float.MinValue;
+        for (int k = 0; k < 6; k++)
+        {
+            float sign = k % 2 == 0 ? 1f : -1f;
+            float dist = Def.blinkDistance * (1f - .15f * (k / 2));
+            Vector2 c = ClampGoal(pos + side * sign * dist + Vector2.up * (k / 2) * .3f);
+            float score = Clearance(c) - Mathf.Abs((c - seen).magnitude - Def.keepDistance) * .3f;
+            if (score > bestScore) { bestScore = score; best = c; }
+        }
+        return best;
+    }
+
+    // Distance to the nearest hazard's edge from `at` (capped).
+    float Clearance(Vector2 at)
+    {
+        float best = 3f;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
+            float d = ((Vector2)t.transform.position - at).magnitude - t.Radius - Def.hullRadius;
+            if (d < best) best = d;
+        }
+        return best;
+    }
+
+    public int Blinks { get; private set; }
+
+    public void Blink(Vector2 to, bool attack)
+    {
+        Vector2 from = transform.position;
+        EliteSystem.Fx.BlinkBurst(from, Def.ShotColor, Def.cellWorldSize);
+        transform.position = new Vector3(to.x, to.y, 0f);
+        EliteSystem.Fx.BlinkBurst(to, Def.ShotCore, Def.cellWorldSize * .8f);
+        velocity *= .3f;
+        blinkCooldown = attack ? 1f : 2.2f;
+        Blinks++;
+        Physics2D.SyncTransforms();
+    }
+
+    // ---- muzzles ------------------------------------------------------------
+
+    public Transform HullTransform => hullTf;
+
+    // The drawing's rotation right now (degrees).
+    public float ArtRotation => Def.turnsToFace ? facing - Def.noseDeg : bank;
+
+    public Vector2 MuzzleWorld(int i)
+    {
+        if (Def.muzzles.Length == 0) return transform.position;
+        var m = Def.muzzles[Mathf.Clamp(i, 0, Def.muzzles.Length - 1)];
+        Vector2 local = Def.PixelToLocal(m.x, m.y) * HullScale;
+        return (Vector2)transform.position + Rotate(local, ArtRotation);
+    }
+
+    // The way a shot leaves muzzle i (world degrees).
+    public float MuzzleDeg(int i)
+    {
+        if (Def.muzzles.Length == 0) return facing;
+        var m = Def.muzzles[Mathf.Clamp(i, 0, Def.muzzles.Length - 1)];
+        return m.dir >= 0f ? m.dir + ArtRotation : facing;
+    }
+
+    public Vector2 NozzleWorld(int i)
+    {
+        if (nozzleLocal == null || nozzleLocal.Length == 0) return transform.position;
+        return (Vector2)transform.position + Rotate(nozzleLocal[Mathf.Clamp(i, 0, nozzleLocal.Length - 1)] * HullScale, ArtRotation);
+    }
+
+    public int NozzleCount => nozzleLocal != null ? nozzleLocal.Length : 0;
+
+    public static Vector2 Rotate(Vector2 v, float deg)
+    {
+        float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r);
+        return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c);
+    }
+
+    // Shows the siege cannon's sight line from `from` along `deg`.
+    public void ShowSight(Vector2 from, float deg, float length, bool on)
+    {
+        if (sight == null) return;
+        sight.enabled = on;
+        if (!on) return;
+        sight.transform.position = new Vector3(from.x, from.y, 0f);
+        sight.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
+        sight.transform.localScale = new Vector3(.06f, length, 1f);
+        Color c = Def.ShotColor;
+        c.a = .7f;
+        sight.color = c;
+    }
+
+    // ---- drawing ---------------------------------------------------------------
+
+    void Animate(float dt)
+    {
+        if (frames == null) return;
+        int frame;
+        if (State == EliteState.Parked)
+        {
+            frame = 0;
+            if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; return; }
+        }
+        else if (State == EliteState.LiftOff && liftFrames != null)
+        {
+            int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(stateTime / LiftSeconds * liftFrames.Length));
+            SetSprite(liftFrames[f]);
+            CurrentFrame = 0;
+            return;
+        }
+        else if (hitFlash > 0f) frame = EliteArt.Hit;
+        else if (State == EliteState.Attack) frame = attackPhase == 0 ? EliteArt.Tell : EliteArt.Action;
+        else
+        {
+            frameHold -= dt;
+            if (frameHold <= 0f)
+            {
+                idleStep = (idleStep + 1) % EliteArt.IdleFrames;
+                frameHold += EliteArt.IdleTicks[idleStep] * EliteArt.Tick;
+                if (frameHold <= 0f) frameHold = EliteArt.IdleTicks[idleStep] * EliteArt.Tick;
+            }
+            frame = idleStep;
+        }
+        CurrentFrame = frame;
+        SetSprite(frames[Mathf.Min(frame, frames.Length - 1)]);
+    }
+
+    void SetSprite(Sprite s)
+    {
+        if (hull.sprite != s) hull.sprite = s;
+    }
+
+    void Render()
+    {
+        hullTf.localRotation = Quaternion.Euler(0f, 0f, ArtRotation);
+        if (State == EliteState.Parked)
+        {
+            // the launch tell: running lights blink on in its last second
+            bool tell = stateTime >= parkSeconds - EngineTellSeconds;
+            bool on = tell && Mathf.FloorToInt(stateTime / (3f * EliteArt.Tick)) % 2 == 0;
+            RenderEngines(0f, on ? .9f : 0f);
+            return;
+        }
+        RenderEngines(thrust, Mathf.Clamp01(thrust));
+    }
+
+    public bool EngineLightsOn { get; private set; }
+    public float Thrust => thrust;
+
+    void RenderEngines(float plume) { RenderEngines(plume, plume); }
+
+    void RenderEngines(float plume, float light)
+    {
+        EngineLightsOn = light > .05f;
+        if (plumes == null) return;
+        int ticks = Mathf.FloorToInt(exhaustClock * 24f);
+        float len = Def.cellWorldSize * Def.exhaustScale * plume;
+        for (int i = 0; i < plumes.Length; i++)
+        {
+            var p = plumes[i];
+            bool showPlume = len > .02f && Def.exhaustScale > 0f;
+            p.enabled = showPlume;
+            if (showPlume)
+            {
+                var s = ShipExhaust.Frame(Def.exhaustShip, false, ShipExhaust.FrameAt(Def.exhaustShip, ticks + i * 3));
+                if (s != null)
+                {
+                    if (p.sprite != s) p.sprite = s;
+                    float sx = len * .42f / Mathf.Max(.01f, s.bounds.size.x), sy = len / Mathf.Max(.01f, s.bounds.size.y);
+                    p.transform.localScale = new Vector3(sx, sy, 1f);
+                }
+                else p.enabled = false;
+            }
+            var g = glows[i];
+            g.enabled = light > .05f;
+            if (g.enabled)
+            {
+                Color c = Def.EngineColor;
+                c.a = Mathf.Clamp01(light);
+                g.color = c;
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * .16f * (.7f + .5f * light);
+            }
+        }
+    }
+
+    // ---- IMovementFootprint (SpawnSpace) ---------------------------------------
+
+    // Where it may be over the next moments: it holds its place in the
+    // world (rising through the board at the scroll speed) plus its own
+    // flight. SpawnSpace only reserves SteerHorizon of it; regular spawns
+    // keep off that, the elite looks after itself after.
+    public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
+    {
+        float own = Mathf.Max(Def.speed, Def.dashSpeed) * to;
+        return Rect.MinMaxRect(center.x - half.x - own, center.y - half.y - own,
+                               center.x + half.x + own, center.y + half.y + own + SpawnSpace.ScrollSpeed * to);
+    }
+
+    public bool SelfSteering => true;
+
+    // ---- direct control (tests, previews) ---------------------------------------
+
+    public void ForceLiftOff() { if (State == EliteState.Parked) { stateTime = parkSeconds; } }
+    public void ForceAttack() { if (State == EliteState.Follow || State == EliteState.Join) { State = EliteState.Follow; cooldown = 0f; escapeLeft = 0f; BeginAttack(); } }
+    public void SetSeen(Vector2 p) { seen = p; lastPlayer = p; havePlayer = true; lost = false; }
+    public float ParkSeconds => parkSeconds;
+}

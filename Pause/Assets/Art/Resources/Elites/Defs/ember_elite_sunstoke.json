@@ -1,0 +1,64 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_sunstoke",
+  "displayName": "Sunstoke",
+  "role": "spear interceptor",
+  "brain": "interceptor",
+  "attack": "lance_dash",
+  "lore": "A forge-built interceptor with a heat lance for a nose. It stalks you from behind, flares, then rams straight down the line it locked. Blink away mid-wind-up and it spears whatever is waiting there instead.",
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.36,
+  "noseDeg": 54,
+  "turnsToFace": true,
+  "speed": 3.0,
+  "accel": 7,
+  "turnRate": 260,
+  "followDistance": 2.0,
+  "aggression": 0.6,
+  "tellSeconds": 0.6,
+  "attackGap": 3.0,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "perception": 2.4,
+  "actionSeconds": 0.55,
+  "dashSpeed": 8.5,
+  "shotCount": 2,
+  "shotSpeed": 5,
+  "shotSpread": 10,
+  "shotSize": 0.2,
+  "shotKind": "bolt",
+  "exhaustScale": 0.5,
+  "muzzles": [
+    {
+      "name": "lance",
+      "x": 154,
+      "y": 20,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "left",
+      "x": 57,
+      "y": 146,
+      "dir": -1.0
+    },
+    {
+      "name": "right",
+      "x": 91,
+      "y": 159,
+      "dir": -1.0
+    }
+  ],
+  "codexId": "elite_ember_sunstoke"
+}

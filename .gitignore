@@ -50,8 +50,9 @@ crashlytics-build.properties
 # Unity build output
 Builds/
 
-# Claude Code local state
-.claude/
+# Claude Code local state (project skills are shared and tracked)
+.claude/*
+!.claude/skills/
 
 # Python caches from art generators
 __pycache__/

@@ -1,0 +1,63 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#B45CFF",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_ash_wraith",
+  "displayName": "Ash Wraith",
+  "role": "shadow skirmisher",
+  "brain": "skirmisher",
+  "attack": "blink_shards",
+  "lore": "A crescent of soot with a magenta heart. It keeps its distance, blinks out of anything that comes near, then fans shards at you from its beak. Corner it against the rocks - it cannot blink forever.",
+  "cellWorldSize": 1.45,
+  "hullRadius": 0.37,
+  "noseDeg": 200,
+  "turnsToFace": true,
+  "speed": 2.8,
+  "accel": 8,
+  "turnRate": 300,
+  "keepDistance": 2.6,
+  "aggression": 0.55,
+  "tellSeconds": 0.45,
+  "attackGap": 2.8,
+  "avoidance": 0.9,
+  "lookAhead": 0.5,
+  "actionSeconds": 0.5,
+  "blinkDistance": 1.5,
+  "shotCount": 3,
+  "shotSpeed": 6,
+  "shotSpread": 16,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0.4,
+  "muzzles": [
+    {
+      "name": "beak",
+      "x": 24,
+      "y": 136,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 144,
+      "y": 41,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 165,
+      "y": 50,
+      "dir": -1.0
+    }
+  ],
+  "codexId": "elite_ember_ash_wraith"
+}

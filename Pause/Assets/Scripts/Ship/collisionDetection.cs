@@ -231,6 +231,8 @@ public class collisionDetection : MonoBehaviour {
                 ShipShield.For(gameObject).Absorb(hit.transform.position);
                 // show the texts for only half of a second.
                 savedTimer = .4f;
+                // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
+                if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
 
                 // The player destroyed it: the pooled cartoon target
                 // explosion (metal / rock / mine), flashed in this ship's
@@ -283,7 +285,10 @@ public class collisionDetection : MonoBehaviour {
                     Destroy(exp, 2);
                     PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 }
-                Destroy(hit.gameObject);
+                // An elite survives a non-fatal contact with a heart less
+                // (EliteShip); on the fatal one it is the killer DeathCrash
+                // tumbles into the rail, so it goes like any other.
+                if (fatal || !EliteShip.Rammed(hit.gameObject, shipPos)) Destroy(hit.gameObject);
 
             }
         }

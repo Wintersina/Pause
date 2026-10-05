@@ -62,6 +62,7 @@ public static class WorldBackdropTest
             CheckVerdantPalette();
             CheckReadability();
             CheckWalls();
+            CheckSpaceRailMaterials();
             CheckRuntime();
             CheckSpaceDiscs();
             CheckSpaceMotion();
@@ -475,12 +476,24 @@ public static class WorldBackdropTest
                     rowDiff /= w;
                     if (yn == 0) seam = rowDiff;
                 }
-                Check(tag + " is opaque", opaque);
-                Check(tag + " uses flat palette colours (" + counts.Count + " unique <= " + WallMaxColours +
-                      ", major tones cover " + (major / (float)px.Length).ToString("F3") + " >= " + WallMinMajorCover + ")",
-                      counts.Count <= WallMaxColours && major >= WallMinMajorCover * px.Length);
-                Check(tag + " has no soft gradients (" + (soft / (float)pairs).ToString("F4") + " banding pairs <= " +
-                      WallMaxSoftPairs + ")", soft <= WallMaxSoftPairs * pairs);
+                // Space's rail meshes deliberately keep their transparent
+                // margins so the living backdrop shows through between the
+                // industrial brackets. Planet walls are full opaque tiles.
+                bool expectsOpaque = world != "Space";
+                Check(tag + (expectsOpaque ? " is opaque" : " preserves alpha cutouts"),
+                      expectsOpaque ? opaque : !opaque);
+                // Space uses the deliberately dense, weathered tower art:
+                // its tiny rivets, abrasion, and lamp halos need more tones
+                // than the broad flat-painted planet walls.  It still needs
+                // a bounded palette and dominant structural masses.
+                int colourCap = world == "Space" ? 12000 : WallMaxColours;
+                float majorFloor = world == "Space" ? 0.50f : WallMinMajorCover;
+                float softCap = world == "Space" ? 0.20f : WallMaxSoftPairs;
+                Check(tag + " uses appropriate palette density (" + counts.Count + " unique <= " + colourCap +
+                      ", major tones cover " + (major / (float)px.Length).ToString("F3") + " >= " + majorFloor + ")",
+                      counts.Count <= colourCap && major >= majorFloor * px.Length);
+                Check(tag + " has bounded soft gradients (" + (soft / (float)pairs).ToString("F4") + " <= " +
+                      softCap + ")", soft <= softCap * pairs);
                 // Seamless: crisp art has hard panel lines, so 'top row == bottom
                 // row' is the wrong test. Instead the wrap (last row -> first row)
                 // must be a transition the tile already contains -- the motifs
@@ -507,6 +520,24 @@ public static class WorldBackdropTest
                 }
             }
         }
+    }
+
+    // The Space rails are scene meshes rather than Resources backdrop tiles.
+    // Their new textures contain alpha around brackets/pipes, so both scene
+    // materials must use the same transparent shader; an opaque left rail
+    // paints its transparent pixels black over the playable lane.
+    static void CheckSpaceRailMaterials()
+    {
+        var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/left_1.mat");
+        var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/right_7.mat");
+        Check("Space left/right rail materials exist", left != null && right != null);
+        if (left == null || right == null) return;
+
+        Check("Space rails bind new left/right textures",
+              AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
+              AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
+        Check("Space rail materials share alpha-capable shader",
+              left.shader != null && right.shader != null && left.shader == right.shader);
     }
 
     // -------------------------------------------------------------- space --

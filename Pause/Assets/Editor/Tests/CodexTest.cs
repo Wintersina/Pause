@@ -142,10 +142,11 @@ public static class CodexTest
             Check(WorldManager.Worlds[world].displayName + " roster is covered (" + roles + " enemies)", roles >= 6);
         }
         foreach (var go in built) UnityEngine.Object.DestroyImmediate(go);
-        Check("every codex enemy/hazard entry is a roster enemy",
+        Check("every codex enemy/hazard entry is a roster enemy, an elite or a boss",
               Array.TrueForAll(Codex.Entries, e =>
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
                   EnemyRoster.FindByCodexId(e.id) != null ||
+                  EliteCatalog.FindByCodexId(e.id) != null ||   // the elite ships
                   BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
                                         "enemy_black", "enemy_blue", "enemy_green", "enemy_red" })
@@ -799,6 +800,7 @@ public static class CodexTest
         {
             var want = new HashSet<string>();
             foreach (var d in EnemyRoster.All) if (d.world == w && !d.IsHazard) want.Add(d.codexId);
+            foreach (var d in EliteCatalog.All) if (d.WorldIndex == w) want.Add(d.codexId);   // its elite ships
             var got = new HashSet<string>();
             var section = panel.SectionAt(w);
             for (int i = 0; i < section.entries.Count; i++)
@@ -809,7 +811,7 @@ public static class CodexTest
             }
             ok &= want.SetEquals(got) && got.Count == section.entries.Count && section.world == w;
         }
-        Check("each world section holds exactly that world's roster enemies" + (bossesShown ? " (bosses shown)" : ""), ok);
+        Check("each world section holds exactly that world's roster enemies and elites" + (bossesShown ? " (bosses shown)" : ""), ok);
     }
 
     static string Labels(CodexPanel panel)
@@ -840,6 +842,13 @@ public static class CodexTest
             case CodexAnimKind.Enemy:
             case CodexAnimKind.Mine:
             {
+                var elite = EliteCatalog.FindByCodexId(e.id);
+                if (elite != null)
+                {
+                    var ef = EliteArt.Frames(elite);
+                    if (ef != null) for (int i = 0; i < EliteArt.IdleFrames; i++) drawings.Add(ef[i]);
+                    break;
+                }
                 var frames = EnemyArt.Frames(EnemyRoster.FindByCodexId(e.id));
                 if (frames != null) for (int i = 0; i < Mathf.Min(EnemyRoster.TellFrame, frames.Length); i++) drawings.Add(frames[i]);
                 break;
@@ -879,6 +888,7 @@ public static class CodexTest
             case CodexCategory.Worlds: return e.id == CodexCatalogue.PortalId ? CodexAnimKind.Portal : CodexAnimKind.World;
         }
         if (BossCatalog.Find(e.id) != null) return CodexAnimKind.Boss;
+        if (EliteCatalog.FindByCodexId(e.id) != null) return CodexAnimKind.Enemy;
         return EnemyRoster.FindByCodexId(e.id).role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy;
     }
 

@@ -252,6 +252,15 @@ public static class CodexCatalogue
                                        () => EnemyArt.Frame(d, 0), d.lore, matches.ToArray());
             (d.IsHazard ? hazards : enemies).Add(entry);
         }
+        // The elite ships (EliteCatalog), after the roster's enemies.
+        foreach (var elite in EliteCatalog.All)
+        {
+            var e = elite;
+            string lore = e.lore;
+            if (!string.IsNullOrEmpty(e.role)) lore += "\n\nELITE  " + e.role.ToUpperInvariant() + " - " + e.hearts + " HEARTS";
+            enemies.Add(new CodexEntry(e.codexId, e.displayName, CodexCategory.Enemies,
+                                       () => EliteArt.Frame(e, 0), lore, new[] { Codex.Normalise(e.key) }));
+        }
         enemies.AddRange(hazards);
         return enemies;
     }

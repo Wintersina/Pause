@@ -1,0 +1,76 @@
+{
+  "world": "ember",
+  "heartColor": "#C85AFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#FF9A3C",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "ember_elite_coalrunner",
+  "displayName": "Coalrunner",
+  "role": "compact gunship",
+  "brain": "gunship",
+  "attack": "broadside",
+  "lore": "A squat furnace gunship that hovers in the lane beside you and holds it. When its side nacelles glow, both cannons strafe across the board. Whatever is in the crossfire burns too.",
+  "cellWorldSize": 1.45,
+  "hullRadius": 0.37,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 10,
+  "speed": 2.6,
+  "accel": 6,
+  "turnRate": 200,
+  "laneOffset": 1.7,
+  "aggression": 0.5,
+  "tellSeconds": 0.5,
+  "attackGap": 3.2,
+  "avoidance": 0.75,
+  "lookAhead": 0.45,
+  "actionSeconds": 0.6,
+  "shotCount": 4,
+  "shotSpeed": 5.5,
+  "shotInterval": 0.14,
+  "shotSpread": 0,
+  "shotSize": 0.2,
+  "shotKind": "bolt",
+  "exhaustScale": 0.35,
+  "muzzles": [
+    {
+      "name": "left",
+      "x": 36,
+      "y": 95,
+      "dir": 180.0
+    },
+    {
+      "name": "right",
+      "x": 136,
+      "y": 98,
+      "dir": 0.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 56,
+      "y": 156,
+      "dir": 270.0
+    },
+    {
+      "name": "b",
+      "x": 84,
+      "y": 150,
+      "dir": 270.0
+    },
+    {
+      "name": "c",
+      "x": 131,
+      "y": 157,
+      "dir": 270.0
+    }
+  ],
+  "codexId": "elite_ember_coalrunner"
+}

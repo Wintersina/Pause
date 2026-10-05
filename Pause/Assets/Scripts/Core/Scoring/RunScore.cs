@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -210,6 +210,18 @@ public static class RunScore
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
+        return points;
+    }
+
+    // An elite ship went down (EliteShip.Die), whatever brought it down:
+    // flat `points` (ScoreRules.EliteDown) counted as a kill, no chain or
+    // speed multiplier, with the "ELITE DOWN" popup at `at`.
+    public static int OnElite(Vector3 at, int points)
+    {
+        if (!Live || points <= 0) return 0;
+        parts.kills += points;
+        parts.killCount++;
+        Raise(points, at, Source.Elite);
         return points;
     }
 

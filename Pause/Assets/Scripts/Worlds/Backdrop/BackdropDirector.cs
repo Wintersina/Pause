@@ -34,6 +34,11 @@ public abstract class BackdropDirector
     // Releases anything the director created itself (materials, textures).
     public virtual void Teardown() { }
 
+    // Where elite ships may sit parked on this world's terrain right now
+    // (LandingSites / EliteDirector). Appends to `into`; a world without
+    // elites (yet) reports none.
+    public virtual void LandingSites(List<LandingSite> into) { }
+
     public void Tick(float dt, float velocity)
     {
         clock += dt;

@@ -57,6 +57,7 @@ public static class CodexAnimations
             case CodexCategory.Worlds: return e.id == CodexCatalogue.PortalId ? CodexAnimKind.Portal : CodexAnimKind.World;
         }
         if (BossCatalog.Find(e.id) != null) return CodexAnimKind.Boss;
+        if (EliteCatalog.FindByCodexId(e.id) != null) return CodexAnimKind.Enemy;
         var def = EnemyRoster.FindByCodexId(e.id);
         if (def != null) return def.role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy;
         return CodexAnimKind.Static;
@@ -68,7 +69,10 @@ public static class CodexAnimations
         switch (KindOf(e))
         {
             case CodexAnimKind.Enemy:
-            case CodexAnimKind.Mine: return Enemy(EnemyRoster.FindByCodexId(e.id));
+            case CodexAnimKind.Mine:
+                var elite = EliteCatalog.FindByCodexId(e.id);
+                if (elite != null) return Elite(elite);
+                return Enemy(EnemyRoster.FindByCodexId(e.id));
             case CodexAnimKind.Boss: return Boss(BossCatalog.Find(e.id));
             case CodexAnimKind.Atom: return Atom(e);
             case CodexAnimKind.Ship: return Ship(CodexCatalogue.ShipIndex(e.id));
@@ -123,6 +127,29 @@ public static class CodexAnimations
             }
             else a.spinDegreesPerSecond = RockSpin;
         }
+        return a.Finish();
+    }
+
+    // ---- Elite ships: EliteArt's strip, EliteShip's idle timing ----
+
+    public static CodexAnimation Elite(EliteDef def)
+    {
+        if (def == null) return null;
+        var frames = EliteArt.Frames(def);
+        if (frames == null || frames.Length < EliteArt.FrameCount) return null;
+        var steps = new Sprite[EliteArt.IdleFrames];
+        var holds = new float[EliteArt.IdleFrames];
+        for (int i = 0; i < steps.Length; i++)
+        {
+            steps[i] = frames[i];
+            holds[i] = EliteArt.IdleTicks[i] * EliteArt.Tick;
+        }
+        var a = CodexAnimation.Loop(CodexAnimKind.Enemy, steps, holds);
+        if (a == null) return null;
+        // the tell then the action, as it attacks
+        a.AddTell(new[] { frames[EliteArt.Tell], frames[EliteArt.Action] },
+                  new[] { def.tellSeconds, Mathf.Max(.2f, def.actionSeconds) });
+        a.tellGap = new Vector2(2.5f, 4.5f);
         return a.Finish();
     }
 
