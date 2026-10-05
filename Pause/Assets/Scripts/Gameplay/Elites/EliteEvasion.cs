@@ -21,23 +21,36 @@ using UnityEngine;
 // Other elites, the rails and the pilot are read per ship in Plan.
 //
 // PLAN, per elite, every ReactionSeconds (its reaction delay; EliteShip.
-// Navigate): the brain says where it WANTS to be; a handful of candidate
-// spots round the ship are each flown on paper -- on at its present velocity
-// for a beat, then straight to the spot, then holding -- against every
-// threat's straight-line path, in closed form. It takes the cheapest spot:
-// no hit comes first, then closeness to the brain's goal, so an elite with
-// clear air flies exactly its own pattern and one in trouble sidesteps,
-// climbs, drops back or holds. The ship then steers there with its own
-// arrive / accelerate / turn limits (a little sharper while evading), so it
-// swerves; it does not teleport, and a fast enough board still catches it.
+// Navigate): the brain says where it WANTS to be. If the way there is clear
+// it flies exactly that -- its own pattern, untouched. If not, candidate
+// spots round the ship (a fine comb sideways, each a little higher and a
+// little lower) are each flown on paper -- the swing of its velocity at its
+// real acceleration, the run to the spot, then holding there -- against
+// every threat's straight-line path, in closed form, and against the rails.
+// It takes the cheapest: a hit inside its commit window (CommitShare of the
+// look-ahead) costs most, the sooner the worse; a hit read further off only
+// makes a lane less attractive; then a tight squeeze, then distance from
+// the brain's wish. So it sidesteps, climbs, drops back or holds, and goes
+// back to its pattern the moment that is clean. The ship steers to the spot
+// with its own arrive / accelerate / turn limits (sharper while evading,
+// capped): it swerves, it does not teleport, and what arrives inside its
+// reaction time still catches it.
 //
 // LIFT-OFF asks the same question about the air it would join (BestJoin):
 // it waits on its pad for a clear moment, slides its join point as it rises
 // and hovers just under the play layer -- still out of reach, as the whole
-// lift-off is -- until the spot is clear (each wait capped).
+// lift-off always was -- until the spot is clear (each wait capped).
+//
+// THE SPAWN SHADOW (EliteShip.SpawnShadow, read by SpawnSpace.Fits): the
+// spawner drops nothing new into the column an elite is flying. The board
+// only guarantees one ship-wide gap a row, wherever it falls; an elite is
+// wider and far slower sideways than the pilot's finger, so without this a
+// fast board walls it in however well it reads it (the probe shows both).
 //
 // Friendly fire is unchanged: everything here is avoidance. A committed
-// dash, a blink that loses the pilot and a crowded board still kill elites.
+// dash, what is behind the pilot when it dashes, a blink that loses the
+// pilot, another elite's shot it could not get clear of and a crowded board
+// still hurt and kill elites.
 public static class EliteEvasion
 {
     // ---- TUNABLES (every number of the evasion lives here) ----------------
@@ -91,6 +104,7 @@ public static class EliteEvasion
     // (the spawner then only keeps off the ship itself, as it always did).
     public static float SpawnShadowSeconds = 1.2f;
     public static float SpawnShadowPad = .12f;
+    public static float SpawnShadowLead = 1f;    // how far towards its goal the column stretches (u)
     // How far above the view it sees hazards coming (u).
     public static float SenseAboveView = 4f;
     // Lift-off: the join spot must be clear for this long after it joins;
@@ -104,6 +118,10 @@ public static class EliteEvasion
     // how far it may jink while charging before it gives the attack up (u).
     public static float BreakOffCooldown = .6f;
     public static float JinkReach = 1f;
+    // A blink (the skirmisher's dodge, the blink attack) lands only where
+    // nothing arrives for this long; it blinks out when the best line it
+    // can steer still gets it hit within the same time.
+    public static float BlinkClearSeconds = .4f;
     // An attack held because a dash line is blocked or a friendly elite is
     // in the line of fire: seconds before it looks again.
     public static float HoldFireSeconds = .3f;
@@ -250,6 +268,7 @@ public static class EliteEvasion
         public float hitIn;       // seconds until the first hit, < 0: none in the window
         public float clearance;   // the smallest gap left to any threat (u)
         public float danger;      // summed weight of what hits
+        public float hitWeight;   // the weight of that first hit (1: a body, a hostile shot; less: the pilot's shots)
         public bool Hit => hitIn >= 0f;
     }
 
@@ -262,7 +281,7 @@ public static class EliteEvasion
         float c = r0.sqrMagnitude - R * R;
         if (c <= 0f)
         {
-            if (o.hitIn < 0f || legStart < o.hitIn) o.hitIn = legStart;
+            if (o.hitIn < 0f || legStart < o.hitIn) { o.hitIn = legStart; o.hitWeight = w; }
             o.danger += w;
             o.clearance = Mathf.Min(o.clearance, 0f);
             return;
@@ -281,7 +300,7 @@ public static class EliteEvasion
         float hit = disc > 0f ? (-b - Mathf.Sqrt(disc)) / a : tca;
         if (hit > seconds) { o.clearance = Mathf.Min(o.clearance, 0f); return; }
         hit += legStart;
-        if (o.hitIn < 0f || hit < o.hitIn) o.hitIn = hit;
+        if (o.hitIn < 0f || hit < o.hitIn) { o.hitIn = hit; o.hitWeight = w; }
         o.danger += w;
         o.clearance = Mathf.Min(o.clearance, 0f);
     }
@@ -293,6 +312,7 @@ public static class EliteEvasion
     {
         public Vector2 pos, v0, to, p1, u;
         public float wait, lagEnd, arrive;
+        public float xMin, xMax;   // the columns it crosses
 
         public Path(Vector2 pos, float wait, Vector2 v0, float lag, Vector2 to, float speed)
         {
@@ -303,6 +323,8 @@ public static class EliteEvasion
             float dist = d.magnitude;
             if (dist > 1e-4f && speed > 1e-3f) { u = d / dist * speed; arrive = lagEnd + dist / speed; }
             else { u = Vector2.zero; arrive = lagEnd; }
+            xMin = Mathf.Min(pos.x, Mathf.Min(p1.x, to.x));
+            xMax = Mathf.Max(pos.x, Mathf.Max(p1.x, to.x));
         }
     }
 
@@ -324,6 +346,9 @@ public static class EliteEvasion
     static void Against(in Path path, Vector2 p, Vector2 v, float R, float t0, float t1, float w, ref Outlook o, float slack = 0f)
     {
         if (t1 <= t0) return;
+        // most of the board is in other columns for the whole window: out at once
+        float room = R + slack * t1, drift = v.x * t1;
+        if (p.x + Mathf.Max(0f, drift) + room < path.xMin || p.x + Mathf.Min(0f, drift) - room > path.xMax) return;
         if (slack > 0f)
         {
             // (the further ahead, the less sure: judged in two halves, each with the room of its middle)
@@ -359,6 +384,7 @@ public static class EliteEvasion
         {
             float room = rail - Mathf.Abs(path.pos.x), run = Mathf.Abs(path.p1.x) - Mathf.Abs(path.pos.x);
             o.hitIn = path.wait + (path.lagEnd - path.wait) * Mathf.Clamp01(room / Mathf.Max(1e-3f, run));
+            o.hitWeight = 1f;
             o.danger = 1f;
             o.clearance = 0f;
         }
@@ -428,8 +454,8 @@ public static class EliteEvasion
     {
         if (o.Hit)
         {
-            if (o.hitIn > commit) return FarHitCost;
-            return HitCost * (1f + Mathf.Clamp01((commit - o.hitIn) / commit)) + ExtraHitCost * Mathf.Max(0f, o.danger - 1f);
+            if (o.hitIn > commit) return FarHitCost * o.hitWeight;
+            return HitCost * o.hitWeight * (1f + Mathf.Clamp01((commit - o.hitIn) / commit)) + ExtraHitCost * Mathf.Max(0f, o.danger - o.hitWeight);
         }
         return o.clearance < SafetyMargin ? NearMissCost * (1f - Mathf.Max(0f, o.clearance) / SafetyMargin) : 0f;
     }
@@ -466,9 +492,12 @@ public static class EliteEvasion
             if (k == -1) { if (!wasEvading) continue; c = previous; }
             else c = pos + new Vector2(SideOffset(k / 3), k % 3 == 0 ? 0f : k % 3 == 1 ? HeightStep : -HeightStep);
             c = self.ClampGoal(c);
+            // (already dearer than the best, before any danger: not worth flying on paper)
+            float cost = GoalCost * (c - goal).magnitude + EffortCost * (c - pos).magnitude;
+            if (cost >= best) continue;
             path = Steered(pos, v0, c, evadeSpeed, evadeAccel, react);
             o = Fly(self, path, 0f, horizon, armored, true);
-            float cost = Cost(o, commit) + GoalCost * (c - goal).magnitude + EffortCost * (c - pos).magnitude;
+            cost += Cost(o, commit);
             if ((c - pilot).sqrMagnitude < pilotKeep * pilotKeep) cost += PilotCost;
             if (wasEvading && (c - previous).sqrMagnitude > .3f * .3f) cost += SwitchCost;
             if (cost >= best) continue;

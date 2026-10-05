@@ -8,10 +8,15 @@ using UnityEngine;
 //   Parked   sitting on a landing site on the world's background terrain
 //            (LandingSites): small, hazy and dim, behind gameplay, no
 //            collider, not a target. In its last second the engine lights
-//            blink on -- the tell that it is about to launch.
+//            blink on -- the tell that it is about to launch. It waits a
+//            little longer (lights still blinking) while the air it would
+//            rise into is busy.
 //   LiftOff  dust and heat shimmer at the pad, the engines ignite and it
 //            rises; scale, brightness and sorting interpolate from the
 //            background's depth up to the play layer. Still no collider.
+//            Its join point is chosen now, clear of traffic and away from
+//            the pilot, slides if traffic arrives, and it hovers just under
+//            the play layer if there is no clear spot yet (EliteEvasion).
 //   Join     fully in the play layer: the collider, the hazard tag, the
 //            hearts and its SpawnSpace footprint switch on, and it swoops
 //            in from the side / behind to its pursuit position. Never ends
@@ -39,7 +44,8 @@ using UnityEngine;
 //
 // ENDING. Elites never retreat or time out: they die by crashing -- into
 // rocks, enemies, mines, other elites and the side rails -- or to the
-// pilot. They try to dodge (lookAhead / avoidance), but a fast board or a
+// pilot. They read the board and dodge (EliteEvasion; `avoidance` is their
+// skill at it), but what arrives inside their reaction time or a
 // committed dash beats them, and they do NOT teleport with the pilot: a
 // pause-teleport leaves them flying where they thought the ship was
 // (perception), the best way to bait them into something. Their shots hit
@@ -344,7 +350,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         target.SetRadius(Def.hullRadius);
         target.Elite = this;
         claim = transform.position;
-        planIn = 0f;
+        // (elites read the board on different frames: the plans never pile up in one)
+        planIn = (Live.IndexOf(this) % 3) * EliteEvasion.ReactionFor(Def) / 3f;
         // (it arrives at flying speed, not at whatever the lift-off's last frame measured)
         if (EliteEvasion.Enabled) velocity = Vector2.ClampMagnitude(velocity, Def.speed);
         footprint = SpawnFootprint.Attach(gameObject, new Vector2(Def.hullRadius, Def.hullRadius));
@@ -484,7 +491,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     }
 
     // Nothing it can steer to gets it clear in time (the skirmisher blinks).
-    bool Cornered => evading && hitIn >= 0f && hitIn < .4f;
+    bool Cornered => evading && hitIn >= 0f && hitIn < EliteEvasion.BlinkClearSeconds;
 
     // May it start (or, `release`, go through with) its attack now? Not a
     // dash down a blocked line -- up to the pilot and a little past, so what
@@ -1041,8 +1048,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             float lift = k < 6 ? 0f : k < 12 ? .5f : -.5f;
             Vector2 c = ClampGoal(pos + side * sign * dist + Vector2.up * lift);
             float score = Clearance(c) - Mathf.Abs((c - seen).magnitude - Def.keepDistance) * .3f - Mathf.Abs(lift) * .2f;
-            var o = EliteEvasion.Hold(this, c, 0f, BlinkClearSeconds);
-            if (o.Hit) score -= 5f + (BlinkClearSeconds - o.hitIn) * 6f;
+            var o = EliteEvasion.Hold(this, c, 0f, EliteEvasion.BlinkClearSeconds);
+            if (o.Hit) score -= 5f + (EliteEvasion.BlinkClearSeconds - o.hitIn) * 6f;
             if (score <= bestScore) continue;
             bestScore = score;
             best = c;
@@ -1051,8 +1058,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         return best;
     }
 
-    // A blink lands only where nothing arrives for this long.
-    public const float BlinkClearSeconds = .4f;
     // Whether the last BlinkSpot() found a spot that is.
     public bool BlinkSpotSafe { get; private set; }
 
@@ -1359,8 +1364,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (seconds <= 0f || !InPlay) return false;
         Vector2 p = transform.position;
         float pad = Def.hullRadius + EliteEvasion.SpawnShadowPad;
-        column = Rect.MinMaxRect(Mathf.Min(p.x, claim.x) - pad, Mathf.Min(p.y, claim.y) - Def.hullRadius,
-                                 Mathf.Max(p.x, claim.x) + pad, Mathf.Max(p.y, claim.y) + Def.hullRadius + SpawnSpace.ScrollSpeed * seconds);
+        // (towards where it is heading, but never a wide slab of the lane: a far goal is not a column)
+        float toX = p.x + Mathf.Clamp(claim.x - p.x, -EliteEvasion.SpawnShadowLead, EliteEvasion.SpawnShadowLead);
+        float toY = p.y + Mathf.Clamp(claim.y - p.y, -EliteEvasion.SpawnShadowLead, EliteEvasion.SpawnShadowLead);
+        column = Rect.MinMaxRect(Mathf.Min(p.x, toX) - pad, Mathf.Min(p.y, toY) - Def.hullRadius,
+                                 Mathf.Max(p.x, toX) + pad, Mathf.Max(p.y, toY) + Def.hullRadius + SpawnSpace.ScrollSpeed * seconds);
         return true;
     }
 

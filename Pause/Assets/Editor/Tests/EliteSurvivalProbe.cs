@@ -16,6 +16,14 @@ using UnityEngine;
 //   hunted   solo, but the pilot lines up under it and shoots (virtual
 //            straight shots, TakeShipAttack on a hit): it must still die
 //
+// Run() prints each mode with the evasion off ("before": the game as it
+// was), on, and -- solo -- on without the spawn shadow, plus what the board
+// spawned per second while the elites were out.
+//
+// Caveat: the stand-in pilot has no body. A dash that would have ended on
+// the ship flies on through it into whatever is behind, so the dashers'
+// board deaths are overstated.
+//
 // Logged as "[ELITEPROBE] ..." lines; EliteEvasionTest asserts on the same
 // numbers. -executeMethod EliteSurvivalProbe.Run prints the tables.
 public static class EliteSurvivalProbe
@@ -139,11 +147,20 @@ public static class EliteSurvivalProbe
         try
         {
             Open();
+            float shadow = EliteEvasion.SpawnShadowSeconds;
+            EliteEvasion.Enabled = false;
+            Print("solo, evasion OFF (before)", Solo(HudPoints, 6, false));
+            Print("group, evasion OFF (before)", Groups(HudPoints, 6));
+            Print("hunted, evasion OFF (before)", Solo(new[] { 10, 20, 30 }, 4, true));
+            EliteEvasion.Enabled = true;
             Print("solo", Solo(HudPoints, 6, false));
             Print("group", Groups(HudPoints, 6));
             Print("hunted", Solo(new[] { 10, 20, 30 }, 4, true));
+            EliteEvasion.SpawnShadowSeconds = 0f;
+            Print("solo, no spawn shadow", Solo(HudPoints, 6, false));
+            EliteEvasion.SpawnShadowSeconds = shadow;
         }
-        finally { Close(); }
+        finally { EliteEvasion.Enabled = true; Close(); }
         return 0;
     }
 
@@ -154,12 +171,14 @@ public static class EliteSurvivalProbe
         foreach (var k in t.order) Debug.Log(Line(mode, t.rows[k]));
         Debug.Log(Line(mode, t.Total()));
         if (BySpeed != null) foreach (var k in BySpeed.order) Debug.Log(Line(mode, BySpeed.rows[k]));
+        Debug.Log(string.Format("[ELITEPROBE] {0}: the board spawned {1:F2} bodies/s while elites were parked or out ({2:F0} s)",
+                                mode, watchSeconds > 0f ? watchSpawns / watchSeconds : 0f, watchSeconds));
     }
 
     static string Line(string mode, Row r)
     {
         var sb = new StringBuilder();
-        sb.AppendFormat("[ELITEPROBE] {0,-6} {1,-28} flown {2,3}  deaths {3,3} ({4,4:P0})  early {5,3} ({6,4:P0})  mean {7,4:F1}s  pilot kills {8,3}{9}  attacks/survivor {10:F1} |",
+        sb.AppendFormat("[ELITEPROBE] {0} | {1,-28} flown {2,3}  deaths {3,3} ({4,4:P0})  early {5,3} ({6,4:P0})  mean {7,4:F1}s  pilot kills {8,3}{9}  attacks/survivor {10:F1} |",
                         mode, r.key, r.flown, r.deaths, r.DeathRate, r.early, r.EarlyRate, r.MeanDeathSeconds, r.playerKills,
                         r.playerKills > 0 ? " (mean " + (r.killSeconds / r.playerKills).ToString("F1") + "s)" : "", r.AttacksPerSurvivor);
         var keys = new List<string>(r.sources.Keys);
@@ -224,6 +243,9 @@ public static class EliteSurvivalProbe
         }
         LandingSites.Override = list => list.AddRange(pads);
     }
+
+    // What the spawner did while the trial's elites were parked or out.
+    static float watchSpawns, watchSeconds;
 
     // The trial under way.
     static Table table;
@@ -340,6 +362,8 @@ public static class EliteSurvivalProbe
 
         float clock = 0f;
         bool spawned = false;
+        int spawnsAtStart = 0;
+        float startedAt = 0f;
         watch.Clear();
         traceAt = 0;
         System.Array.Clear(trace, 0, TraceFrames);
@@ -350,6 +374,8 @@ public static class EliteSurvivalProbe
             if (!spawned && clock >= WarmupSeconds)
             {
                 spawned = true;
+                spawnsAtStart = board.SpawnedCount;
+                startedAt = clock;
                 MakePads(6);
                 spawn(dir);
                 watch.AddRange(EliteShip.Live);
@@ -371,6 +397,8 @@ public static class EliteSurvivalProbe
             }
             if (!busy) break;
         }
+        watchSpawns += board.SpawnedCount - spawnsAtStart;
+        watchSeconds += clock - startedAt;
         for (int i = 0; i < watch.Count; i++)
         {
             var e = watch[i];
@@ -393,6 +421,7 @@ public static class EliteSurvivalProbe
     {
         table = new Table();
         BySpeed = new Table();
+        watchSpawns = watchSeconds = 0f;
         hunted = pilotShoots;
         EliteShip.Died = OnDied;
         foreach (var def in EliteCatalog.All)
@@ -419,6 +448,7 @@ public static class EliteSurvivalProbe
     {
         table = new Table();
         BySpeed = new Table();
+        watchSpawns = watchSeconds = 0f;
         hunted = false;
         EliteShip.Died = OnDied;
         for (int world = 0; world < EnemyRoster.WorldKeys.Length; world++)

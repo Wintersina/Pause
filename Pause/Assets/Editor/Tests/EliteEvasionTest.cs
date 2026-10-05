@@ -489,7 +489,7 @@ public static class EliteEvasionTest
             EliteSystem.Shots.Fire(null, style, EliteShots.Kind.Slag, new Vector2(i % 2 == 0 ? -2f : 2f, -3f + i * .19f), Vector2.zero);
         for (int i = 0; i < 12; i++) Rock(new Vector2(-2.1f + (i % 4) * 1.4f, 5.5f + i * .7f));
         Step(1.5f);   // warm up: every plan, sidestep and puff once
-        int live = EliteSystem.Shots.ActiveCount, plans = EliteEvasion.Plans;
+        int live = EliteSystem.Shots.ActiveCount, plans = EliteEvasion.Plans, threats = EliteEvasion.ThreatCount;
         long before = System.GC.GetAllocatedBytesForCurrentThread();
         for (int i = 0; i < 180; i++)
         {
@@ -497,10 +497,20 @@ public static class EliteEvasionTest
             EliteSystem.Step(Dt);
         }
         long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        int timedPlans = EliteEvasion.Plans;
+        for (int i = 0; i < 180; i++)
+        {
+            FallRocks();
+            EliteSystem.Step(Dt);
+        }
+        watch.Stop();
+        double perFrame = watch.Elapsed.TotalMilliseconds / 180.0;
+        Check("bounded cost: " + perFrame.ToString("F3") + " ms a frame for the whole elite step here in the editor (" + (EliteEvasion.Plans - timedPlans) + " plans)", perFrame < 1.0);
         Check("zero allocations over 180 frames: three elites sensing and planning with " + live + " shots and " + rocks.Count + " rocks alive (" +
               allocated + " bytes, " + (EliteEvasion.Plans - plans) + " plans)", allocated == 0 && live >= 30 && EliteEvasion.Plans - plans >= 30);
-        Check("the threat picture is bounded (" + EliteEvasion.ThreatCount + " of " + EliteEvasion.MaxThreats + ")",
-              EliteEvasion.ThreatCount > 30 && EliteEvasion.ThreatCount <= EliteEvasion.MaxThreats);
+        Check("the threat picture is bounded (" + threats + " of " + EliteEvasion.MaxThreats + ")",
+              threats > 30 && threats <= EliteEvasion.MaxThreats);
     }
 
     // ---- the player -------------------------------------------------------------------
