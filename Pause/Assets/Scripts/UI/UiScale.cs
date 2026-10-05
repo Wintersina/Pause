@@ -40,6 +40,53 @@ public static class UiScale
 
     public static float MinTapPointsFor(bool ios) { return ios ? MinTapPt : MinTapDp; }
 
+    // ---- the minimum UI scale ----------------------------------------------
+    //
+    // Every canvas scales with the screen's PIXELS (CanvasScaler), so a phone
+    // that is small in points / dp (a 480x854 hdpi or 720x1280 xhdpi Android,
+    // the iPhone SE) drew every button and label smaller than on a big phone,
+    // targets down to ~34-45 dp and type under 7 dp. The rule: a canvas
+    // states its design floor -- the smallest touch target and the smallest
+    // type it lays out, in its own units -- and is never drawn at fewer
+    // pixels per unit than make those MinTap (44 pt / 48 dp) and MinTextPt:
+    //
+    //     scale = max(pixelScale, pxPerPoint * max(minTap / minTapUnits,
+    //                                               MinTextPt / minTextUnits))
+    //
+    // Where the pixel scale already clears the floor (every phone of 411 dp
+    // and up, and the iPhones from the 13 on, for most canvases) nothing
+    // changes. Where it does not, the canvas has fewer units to lay out in and
+    // its layout reflows (UiScaleFloor; the codex, leaderboard, death and
+    // tutorial panels are laid out from the canvas's size).
+    public const float MinTextPt = 7f;   // pt / dp: the legibility floor (ScreenFitRig.MinTextPt)
+
+    public static float FloorFor(float minTapUnits, float minTextUnits, float pxPerPoint, bool ios)
+    {
+        float k = 0f;
+        if (minTapUnits > 0f) k = Mathf.Max(k, MinTapPointsFor(ios) / minTapUnits);
+        if (minTextUnits > 0f) k = Mathf.Max(k, MinTextPt / minTextUnits);
+        return pxPerPoint * k;
+    }
+
+    // Pixels per canvas unit the live / overridden screen needs at least.
+    // In the editor outside Play mode the "screen" is whatever the batch /
+    // editor window happens to be (no device, no density), so there is no
+    // floor unless a test or the screen-fit rig fakes a device through
+    // ScreenInfo.Override: edit-mode suites keep the plain pixel scaling.
+    public static bool Active { get { return ScreenInfo.Overridden || !Application.isEditor || Application.isPlaying; } }
+
+    public static float Floor(float minTapUnits, float minTextUnits)
+    {
+        if (!Active) return 0f;
+        return FloorFor(minTapUnits, minTextUnits, PxPerPoint, ScreenInfo.IsIos);
+    }
+
+    // `pixelScale` (what CanvasScaler alone would give), raised to the floor.
+    public static float Apply(float pixelScale, float minTapUnits, float minTextUnits)
+    {
+        return Mathf.Max(pixelScale, Floor(minTapUnits, minTextUnits));
+    }
+
     public static float PxPerPoint { get { return PxPerPointFor(ScreenInfo.Dpi, ScreenInfo.IsIos, ScreenInfo.Width, ScreenInfo.Height); } }
     public static float MinTapPoints { get { return MinTapPointsFor(ScreenInfo.IsIos); } }
     public static float MinTapPx { get { return MinTapPoints * PxPerPoint; } }

@@ -119,6 +119,7 @@ public sealed class ScreenFitRig : IDisposable
     // again after anything that creates a canvas or changes a scaler.
     public void Sync()
     {
+        UiScaleFloor.ApplyAll();   // UiScale's floors, for this device
         foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!canvas.isRootCanvas || canvas.renderMode == RenderMode.WorldSpace) continue;

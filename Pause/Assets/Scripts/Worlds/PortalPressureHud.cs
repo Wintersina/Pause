@@ -247,6 +247,9 @@ public class PortalPressureHud : MonoBehaviour
         float h = ChipHeight * scale;
         float cx = .5f * (band.left + band.right);
         float top = band.top - ChipTopOffset * scale;
+        // under the read-out when a small phone stacks it under the actions
+        Rect readout = HudStyler.StackedReadout;
+        if (readout.height > 0f) top = Mathf.Min(top, readout.yMin - 12f * scale);
         return new Rect(cx - .5f * w, top - h, w, h);
     }
 

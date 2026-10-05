@@ -336,7 +336,7 @@ public static class LeaderboardTest
         Check("populated: one tab per enabled board", panel.Tabs.Count == LeaderboardBoards.Enabled().Count);
         Check("populated: first tab selected", panel.SelectedBoard == LeaderboardBoards.TopScore);
         Check("populated: View all shown", panel.ViewAllButton.gameObject.activeSelf);
-        var row0 = panel.PanelRoot.Find("Body/Row0");
+        var row0 = panel.PanelRoot.Find("List/Rows/Row0");
         var shape0 = row0 != null ? row0.GetComponent<CelShape>() : null;
         Check("populated: other players' rows are card-coloured", shape0 != null && shape0.fill == AkiraPalette.Card);
         var own = panel.PanelRoot.Find("PlayerRow/Row");
@@ -348,7 +348,7 @@ public static class LeaderboardTest
         mine.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "TETSUO", 300), FakeLeaderboards.Entry(2, "KANEDA", 250, true),
                       FakeLeaderboards.Entry(3, "KAI", 200));
         panel = OpenPanel(mine);
-        var row1 = panel.PanelRoot.Find("Body/Row1");
+        var row1 = panel.PanelRoot.Find("List/Rows/Row1");
         Check("top-10 player: list row highlighted red",
               row1 != null && row1.GetComponent<CelShape>().fill == AkiraPalette.Red);
         Check("top-10 player: rows match entries", panel.RowCount == 3 && panel.PlayerRankText == "#2");
@@ -466,11 +466,13 @@ public static class LeaderboardTest
     static bool ContentInsidePanel(LeaderboardPanel panel)
     {
         var root = panel.PanelRoot;
-        float hx = LeaderboardPanel.DesignWidth * .5f + 10f, hy = LeaderboardPanel.DesignHeight * .5f + 10f;
+        float hx = panel.PanelSize.x * .5f + 10f, hy = panel.PanelSize.y * .5f + 10f;
         var corners = new Vector3[4];
         foreach (var rt in root.GetComponentsInChildren<RectTransform>(true))
         {
             if (rt == root) continue;
+            // rows inside the scrolling list are clipped to it (the list itself is checked)
+            if (rt.parent != null && rt.GetComponentInParent<RectMask2D>() != null && rt.GetComponent<RectMask2D>() == null) continue;
             rt.GetWorldCorners(corners);
             foreach (var c in corners)
             {

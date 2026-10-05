@@ -25,8 +25,8 @@ public class DevBuildBadge : MonoBehaviour
         canvas.sortingOrder = 32000;
         var scaler = gameObject.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(800f, 1000f);
         scaler.matchWidthOrHeight = 0.5f;
+        UiScaleFloor.Configure(scaler, new Vector2(800f, 1000f), 0f, 0f);   // developer builds only: no floor
 
         var label = new GameObject("Label", typeof(RectTransform));
         label.transform.SetParent(transform, false);

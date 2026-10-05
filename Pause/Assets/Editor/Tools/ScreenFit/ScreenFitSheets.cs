@@ -43,6 +43,8 @@ public static class ScreenFitRunner
                 if (w.Applies(screen.id, device)) rig.Waive(w.kind, w.element, w.reason);
             try
             {
+                UiScaleFloor.AttachScene();   // what the scene-load hook does on a device
+                rig.Sync();
                 screen.stage(rig);
                 rig.Sync();
                 rig.RunChecks();
@@ -102,6 +104,7 @@ public static class ScreenFitRunner
         AccountDialog.Close();
         LeaderboardPanel.Close();
         LeaderboardBoards.OverrideForTests(null);
+        HudStyler.StackedReadout = default(Rect);
         ShipSkins.ClearPreview();
         PortalPressure.Reset();
     }
@@ -160,6 +163,8 @@ public static class ScreenFitSheets
 
     public static void Run()
     {
+        // SCREEN_FIT_DPI=unreported: every device reports no density (UiScale's fallback)
+        ScreenFitRig.Dpi = Env("SCREEN_FIT_DPI", "reported") == "unreported" ? ScreenFitRig.DpiMode.Unreported : ScreenFitRig.DpiMode.Reported;
         string dir = Path.Combine(Env("SCREEN_FIT_DIR", "Builds/ScreenFit"), Env("SCREEN_FIT_LABEL", "run"));
         int height = int.Parse(Env("SCREEN_FIT_HEIGHT", "720"));
         var screens = Filter("SCREEN_FIT_SCREENS");

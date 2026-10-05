@@ -46,23 +46,13 @@ public class FitWaiver
 
 public static class ScreenFitScreens
 {
-    const string ShortPhones = "and-480x854,and-720x1280";
-
     public static readonly FitWaiver[] Waivers =
     {
-        // Every canvas scales with the screen's PIXELS, so a phone that is
-        // short in dp (a 480x854 hdpi phone is 569 dp tall, a 720x1280 xhdpi
-        // one 640 dp) gets every target ~15-20% under 48 dp and the smallest
-        // labels under 7 dp. Fixing it is a dp-aware minimum UI scale for
-        // all screens: a design decision, reported, not guessed.
-        new FitWaiver { kind = "TAPSIZE", element = "", devices = ShortPhones,
-                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
-        new FitWaiver { kind = "SMALLTEXT", element = "", devices = ShortPhones,
-                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
+        // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
-                        reason = "developer-only rows (DeveloperUnlocks.Available builds)" },
+                        reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
         new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
-                        reason = "developer-only sign-in details line" },
+                        reason = "DEVELOPER-ONLY sign-in details line (not shipped to players): left as is by decision" },
     };
 
     const float Dt = 1f / 60f;
@@ -542,7 +532,7 @@ public static class ScreenFitScreens
 
     // HudStyler / PauseQuickActions read Screen.* themselves (another branch
     // owns them), so their published pure layout functions are applied here.
-    static void PlaceHudBand(ScreenFitRig rig, HudStyler styler)
+    static void PlaceHudBand(ScreenFitRig rig, HudStyler styler, bool check = true)
     {
         var screen = new Vector2(rig.W, rig.H);
         Rect safe = rig.device.Safe;
@@ -557,12 +547,67 @@ public static class ScreenFitScreens
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(styler.HudRoot);
             Vector2 hudSize = styler.HudRoot.rect.size;
-            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit);
+            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit, out bool stacked);
             styler.HudRoot.anchoredPosition = at;
             styler.HudRoot.localScale = new Vector3(fit, fit, 1f);
+            HudStyler.StackedReadout = stacked ? HudStyler.HudScreenRect(Band(rig), screen, hudScale, hudSize) : default(Rect);
             rig.Ignore(styler.HudRoot);
+            Canvas.ForceUpdateCanvases();
+            if (check) BandChecks(rig, styler, fit);
         }
         Canvas.ForceUpdateCanvases();
+    }
+
+    static bool Overlap(Rect a, Rect b)
+    {
+        return Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin) > 1f && Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin) > 1f;
+    }
+
+    // The band itself (its own suites check its arithmetic): the quick
+    // actions finger-sized, inside the band's right end; the read-out inside
+    // its left end, at no less than TopBand.ReadoutMinScale, clear of them.
+    static void BandChecks(ScreenFitRig rig, HudStyler styler, float fit)
+    {
+        var screen = new Vector2(rig.W, rig.H);
+        var band = Band(rig);
+        float minTap = rig.device.MinTapPx;
+        Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+        for (int slot = 0; slot < 2; slot++)
+        {
+            Rect b = PauseQuickActions.ButtonScreenRect(band, screen, slot);
+            if (b.width < minTap - .5f || b.height < minTap - .5f)
+                rig.Fail("BAND", "quick action " + (slot == 0 ? "replay" : "home"), "button " + (b.width / rig.device.pxPerPt).ToString("F1") +
+                         (rig.device.ios ? "pt" : "dp") + " is under " + (rig.device.ios ? "44pt" : "48dp"), b);
+            rig.AddImportant("quick action " + slot, b);
+        }
+        if (actions.xMax > band.right + 1f || actions.yMax > band.top + 1f)
+            rig.Fail("BAND", "quick actions", "outside the band: " + actions, actions);
+        Rect hud = rig.PixelRect(styler.HudRoot);
+        rig.AddImportant("HUD read-out", hud);
+        if (fit < TopBand.ReadoutMinScale - .001f)
+            rig.Fail("BAND", "HUD read-out", "shrunk to " + fit.ToString("F2") + ", under TopBand.ReadoutMinScale " + TopBand.ReadoutMinScale, hud);
+        if (hud.xMin < band.left - 1f || hud.yMax > band.top + 1f)
+            rig.Fail("BAND", "HUD read-out", "outside the band: " + hud + " band " + band.left.ToString("F0") + " top " + band.top.ToString("F0"), hud);
+        if (Overlap(hud, actions))
+            rig.Fail("BAND", "HUD read-out", "runs into the quick actions: " + hud + " vs " + actions, hud);
+        if (hud.xMax > band.right + 1f)
+            rig.Fail("BAND", "HUD read-out", "runs past the band's right end", hud);
+        // BOSS INCOMING's chip: inside the band, clear of the read-out and the actions
+        var warn = BossWarningHud.ComputeLayout(rig.device.Safe, screen, hud, band);
+        if (Overlap(warn.chip, hud) || Overlap(warn.chip, actions))
+            rig.Fail("BAND", "boss chip", "overlaps the " + (Overlap(warn.chip, hud) ? "read-out" : "quick actions") + ": " + warn.chip, warn.chip);
+        if (warn.chip.xMin < band.left - 1f || warn.chip.xMax > band.right + 1f)
+            rig.Fail("BAND", "boss chip", "outside the band: " + warn.chip, warn.chip);
+        // the read-out's type, at the size the band leaves it
+        foreach (var t in styler.HudRoot.GetComponentsInChildren<Text>())
+        {
+            if (!t.IsActive() || string.IsNullOrWhiteSpace(t.text) || t.color.a < .05f) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            float pt = fontPx / rig.device.pxPerPt;
+            if (pt < ScreenFitRig.MinTextPt)
+                rig.Fail("BAND", "HUD read-out " + t.name + " \"" + t.text + "\"", "type " + pt.ToString("F1") + "pt under the " + ScreenFitRig.MinTextPt + " floor", glyphs);
+        }
     }
 
     // The top band as the device lays it out: inside the rails, under its cutouts.
@@ -895,7 +940,7 @@ public static class ScreenFitScreens
                         dustAtStart = 99987.65f, dustWon = 12.34f,
                     });
                     rig.Sync();
-                    PlaceHudBand(rig, styler);
+                    PlaceHudBand(rig, styler, false);
                     Call(viewPanel, "Fit");
                     viewPanel.Skip();
                     Call(viewPanel, "Fit");

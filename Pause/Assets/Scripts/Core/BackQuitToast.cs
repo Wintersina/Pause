@@ -36,7 +36,7 @@ public class BackQuitToast : MonoBehaviour
 
     static BackQuitToast Build()
     {
-        var c = CodexUi.NewOverlayCanvas("~BackQuitToast", 650, false);
+        var c = CodexUi.NewOverlayCanvas("~BackQuitToast", 650, false, 0f, 18f);
         var toast = c.gameObject.AddComponent<BackQuitToast>();
         toast.canvas = c;
         toast.BuildUi(CodexUi.FindFont());

@@ -30,27 +30,47 @@ public static class ScreenFitTest
 {
     public static void Run() { TestHarness.Exit(Execute()); }
 
+    // Second pass: every device reporting no dpi at all (UiScale's
+    // fallback density), on the shapes where that matters most.
+    static readonly string[] UnreportedDevices =
+    {
+        "and-480x854", "and-720x1280", "and-1080x1920", "flip7-1080x2520", "fold-1812x2176", "tab-1600x2560", "iphone-se", "iphone-15",
+    };
+
     public static int Execute()
     {
         int fails = 0, cells = 0, waived = 0;
         bool full = TestHarness.Slow("screen-fit: the whole device matrix");
-        foreach (var screen in ScreenFitScreens.All)
+        foreach (var dpi in new[] { ScreenFitRig.DpiMode.Reported, ScreenFitRig.DpiMode.Unreported })
         {
-            using (new TestHarness.Sandbox())
+            ScreenFitRig.Dpi = dpi;
+            string tag = dpi == ScreenFitRig.DpiMode.Unreported ? " (dpi unreported)" : "";
+            try
             {
-                foreach (var device in FitDevice.All)
+                foreach (var screen in ScreenFitScreens.All)
                 {
-                    if (!full && device.id != "flip7-1080x2520") continue;
-                    var shot = ScreenFitRunner.Run(screen, device, null, 0);
-                    cells++;
-                    foreach (var f in shot.findings)
+                    using (new TestHarness.Sandbox())
                     {
-                        if (f.waived) { waived++; continue; }
-                        Debug.Log("[FIT] FAIL  " + screen.id + " @ " + device.id + "  " + f.kind + "  " + f.element + ": " + f.detail);
-                        fails++;
+                        foreach (var device in FitDevice.All)
+                        {
+                            if (!full && device.id != "flip7-1080x2520") continue;
+                            if (dpi == ScreenFitRig.DpiMode.Unreported && System.Array.IndexOf(UnreportedDevices, device.id) < 0) continue;
+                            var shot = ScreenFitRunner.Run(screen, device, null, 0);
+                            cells++;
+                            foreach (var f in shot.findings)
+                            {
+                                if (f.waived) { waived++; continue; }
+                                Debug.Log("[FIT] FAIL  " + screen.id + " @ " + device.id + tag + "  " + f.kind + "  " + f.element + ": " + f.detail);
+                                fails++;
+                            }
+                            if (shot.failures == 0) Debug.Log("[FIT] PASS  " + screen.id + " @ " + device.id + tag);
+                        }
                     }
-                    if (shot.failures == 0) Debug.Log("[FIT] PASS  " + screen.id + " @ " + device.id);
                 }
+            }
+            finally
+            {
+                ScreenFitRig.Dpi = ScreenFitRig.DpiMode.Reported;
             }
         }
         Debug.Log("[FIT] " + cells + " screen x device cells, " + fails + " failing checks, " + waived + " waived findings");

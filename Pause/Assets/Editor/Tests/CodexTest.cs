@@ -759,7 +759,7 @@ public static class CodexTest
         var uiRect = (RectTransform)uiPanel;
         float top = uiRect.anchoredPosition.y + uiRect.sizeDelta.y * .5f;
         float h = ((RectTransform)SceneUtil.FindAny("MainMenuCanvas").transform).rect.height;
-        float oldTop = -h * .08f + Mathf.Min(330f, h * .4f) * .5f;
+        float oldTop = -h * .08f + Mathf.Min(330f, h * .5f) * .5f;   // 330 units on any canvas of 660+ (startMenu.LayoutHome)
         Check("home menu keeps its top edge under the logo (" + top + " vs " + oldTop + ")",
               Mathf.Abs(top - oldTop) < .5f);
         var quit = (RectTransform)SceneUtil.FindAny("QuitButton").transform;

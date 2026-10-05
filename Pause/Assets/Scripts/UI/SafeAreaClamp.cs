@@ -70,8 +70,8 @@ public class SafeAreaClamp : MonoBehaviour
         var canvas = go != null ? go.GetComponentInParent<Canvas>() : null;
         var scaler = canvas != null ? canvas.rootCanvas.GetComponent<UnityEngine.UI.CanvasScaler>() : null;
         if (scaler == null || scaler.uiScaleMode != UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize) return;
-        scaler.referenceResolution = PortraitReference;
         scaler.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.Expand;
+        UiScaleFloor.Configure(scaler, PortraitReference, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits);
     }
 
     void LateUpdate()

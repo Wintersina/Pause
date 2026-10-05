@@ -39,6 +39,9 @@ public class startMenu : MonoBehaviour {
 
     // Keep the main actions together and the footer at the bottom, regardless
     // of phone aspect ratio or desktop window size.
+    // A menu row's touch height: (330 - 4 x 12) / 5 + 12.
+    public const float HomeRowUnits = 68f;
+
     public void LayoutHome()
     {
         var canvasObject = SceneUtil.FindAny("MainMenuCanvas");
@@ -48,16 +51,21 @@ public class startMenu : MonoBehaviour {
         if (scaler != null)
         {
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(800f, 1000f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 1f;
+            // The menu rows are HomeRowUnits tall (touch: half of each gap
+            // too): never under 44 pt / 48 dp (UiScale's floor).
+            UiScaleFloor.Configure(scaler, new Vector2(800f, 1000f), HomeRowUnits, 0f);
         }
         Canvas.ForceUpdateCanvases();
         var bounds = canvasObject.GetComponent<RectTransform>().rect;
         float width = bounds.width;
         float height = bounds.height;
         float safeBottom = canvas != null ? ScreenInfo.SafeArea.yMin / canvas.scaleFactor : 0f;
+        // The column keeps its 330 units (five ~68-unit touch rows) on any
+        // canvas of 660+ units: a short phone's floor-raised canvas is ~800.
         Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, -height * 0.08f),
-              new Vector2(Mathf.Min(520f, width * 0.78f), Mathf.Min(330f, height * 0.4f)));
+              new Vector2(Mathf.Min(520f, width * 0.78f), Mathf.Min(330f, height * 0.5f)));
         var panel = SceneUtil.FindAny("UIPanel");
         var group = panel != null ? panel.GetComponent<VerticalLayoutGroup>() : null;
         if (group != null)

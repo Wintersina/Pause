@@ -58,7 +58,7 @@ public class CodexToast : MonoBehaviour
 
     public static CodexToast Build()
     {
-        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false);
+        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false, 0f, CodexUi.TextUnits);
         var toast = canvas.gameObject.AddComponent<CodexToast>();
         toast.canvas = canvas;
         toast.BuildUi(CodexUi.FindFont());
@@ -181,6 +181,9 @@ public class CodexToast : MonoBehaviour
         if (banner.height > 0f) top = Mathf.Max(top, (screenH - banner.yMin) / sf + WarningGap);
         if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
         if (portalChip.height > 0f) top = Mathf.Max(top, (screenH - portalChip.yMin) / sf + WarningGap);
+        // the read-out, when a small phone stacks it under the quick actions
+        Rect readout = HudStyler.StackedReadout;
+        if (readout.height > 0f) top = Mathf.Max(top, (screenH - readout.yMin) / sf + WarningGap);
         return top;
     }
 

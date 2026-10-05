@@ -743,9 +743,10 @@ public class SpaceDock : MonoBehaviour
             var scaler = c.GetComponent<CanvasScaler>();
             if (scaler == null) continue;
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(720, 960);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
+            // BACK / LIFT-OFF: FooterH + FooterTapPad tall (UiScale's floor)
+            UiScaleFloor.Configure(scaler, new Vector2(720, 960), FooterH + FooterTapPad, UiScaleFloor.SceneTextUnits);
         }
         if (canvas == null) return;
         PlaceFooter("BackButton", canvas.transform, -1);
