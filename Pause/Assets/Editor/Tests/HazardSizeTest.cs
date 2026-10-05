@@ -12,8 +12,8 @@ using Random = UnityEngine.Random;
 //
 //   - every rock has a size range; draws stay inside it with the designed
 //     shares (small / typical / large) and an area-neutral mean
-//   - a seed gives the same sizes (the draw is on the spawner's random stream;
-//     off, it still consumes its number), the real spawner included
+//   - a seed gives the same sizes (their own stream, seeded off the
+//     spawner's without consuming it), the real spawner included
 //   - the size is real: transform scale, collider, sprite, footprint and
 //     placement envelope, lane extents, hit radius, the brain's lane clamp
 //   - the roster's nominal-size and collider checks hold at both ends of
@@ -163,7 +163,7 @@ public static class HazardSizeTest
         foreach (var d in Rocks())
         {
             var b = d.Behaviour;
-            Random.InitState(7000 + d.key.Length * 31 + d.world);
+            HazardSize.Seed((uint)(7000 + d.key.Length * 31 + d.world));
             float lo = HazardSize.Min(b), hi = HazardSize.Max(b);
             bool inside = true;
             int[] tiers = new int[3];
@@ -192,28 +192,33 @@ public static class HazardSizeTest
         var a = new float[64];
         var b = new float[64];
         Random.InitState(424242);
+        var seeded = Random.state;
+        HazardSize.Seed();
         for (int i = 0; i < a.Length; i++) a[i] = HazardSize.Draw(def);
-        var after = Random.state;
+        bool untouched = Random.state.Equals(seeded);
         Random.InitState(424242);
+        HazardSize.Seed();
         for (int i = 0; i < b.Length; i++) b[i] = HazardSize.Draw(def);
-        bool same = true;
-        for (int i = 0; i < a.Length; i++) same &= a[i] == b[i];
-        Check("the same seed draws the same sizes", same);
+        bool same = true, varied = false;
+        for (int i = 0; i < a.Length; i++) { same &= a[i] == b[i]; varied |= a[i] != a[0]; }
+        Random.InitState(424243);
+        HazardSize.Seed();
+        bool other = false;
+        for (int i = 0; i < a.Length; i++) other |= HazardSize.Draw(def) != a[i];
+        Check("the same seed draws the same sizes, another seed others", same && varied && other);
+        Check("seeding and drawing sizes never touch the spawner's own random stream (it is consumed exactly as before sizes)", untouched);
 
         HazardSize.Enabled = false;
-        Random.InitState(424242);
         bool ones = true;
         for (int i = 0; i < a.Length; i++) ones &= HazardSize.Draw(def) == 1f;
-        bool sameStream = Random.state.Equals(after);
         HazardSize.Enabled = true;
-        Check("switched off every rock is nominal, and the draw still takes its number (a seeded board is otherwise the same)",
-              ones && sameStream);
+        Check("switched off every rock is nominal", ones);
 
         Random.InitState(99);
         var before = Random.state;
         HazardSize.Draw(EnemyRoster.Fighter(0, 2));
         HazardSize.Draw(EnemyRoster.One(0, EnemyRole.Mine));
-        Check("a pilot's or a mine's spawn draws nothing (their stream is as it was)", Random.state.Equals(before));
+        Check("a pilot's or a mine's spawn draws nothing", Random.state.Equals(before));
 
         // the real spawner, twice from one seed
         var first = SpawnerSizes(31337, 40f);
@@ -536,7 +541,7 @@ public static class HazardSizeTest
         int n = 0;
         foreach (var r in Rocks())
         {
-            Random.InitState(55 + n);
+            HazardSize.Seed((uint)(55 + n));
             for (int i = 0; i < 2000; i++, n++) paid += HazardSize.RockPoints(HazardSize.Draw(r));
         }
         float mean = (float)(paid / n);

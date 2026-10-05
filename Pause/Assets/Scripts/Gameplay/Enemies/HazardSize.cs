@@ -7,8 +7,9 @@ using UnityEngine;
 //
 // DATA. Each rock's behaviour record carries three tier sizes
 // (EnemyBehaviour.Sizes: small / typical / large, as multiples of the
-// roster's nominal size). A spawn draws ONE number from the spawner's random
-// stream (UnityEngine.Random, so a seed gives the same sizes every time):
+// roster's nominal size). A spawn draws ONE number from the sizes' own
+// stream (seeded off UnityEngine.Random without consuming it, so a seed gives
+// the same sizes every time and the spawner's own draws are untouched):
 // it picks the tier by SmallShare / LargeShare (the rest are typical) and,
 // inside the tier, a size within +/-Jitter of its centre. The tiers are
 // chosen per rock so a rock's mean AREA is today's (sum of share x size^2
@@ -37,8 +38,8 @@ using UnityEngine;
 public static class HazardSize
 {
     // ---- tunables ----
-    // Off: every rock is the nominal size (the draw still consumes its random
-    // number, so a seeded board is otherwise identical: before / after probes).
+    // Off: every rock is the nominal size (the size stream still advances, so
+    // a seeded board is otherwise identical: before / after probes).
     public static bool Enabled = true;
     // Share of spawns drawn from the small and the large tier; the rest are
     // typical.
@@ -83,8 +84,41 @@ public static class HazardSize
     public static float Draw(EnemyDef def, ref float u)
     {
         if (!Varies(def)) return 1f;
-        if (float.IsNaN(u)) u = Random.value;
+        if (float.IsNaN(u)) u = Next01();
         return Enabled ? FromUniform(def.Behaviour, u) : 1f;
+    }
+
+    // ---- the size stream ----
+    // Sizes come from their own xorshift stream, never UnityEngine.Random:
+    // the spawner's stream is consumed exactly as it was before sizes, so
+    // every other seeded thing (placement, picks, probes) is unchanged.
+    // Seed() derives the stream from UnityEngine.Random's current state
+    // without drawing from it -- the spawner calls it in Start -- so a given
+    // Random.InitState still gives the same sizes.
+    static uint rng = 0x2545F491u;
+
+    struct RandomWords { public uint a, b, c, d; }
+
+    public static void Seed()
+    {
+        var state = Random.state;
+        var w = Unity.Collections.LowLevel.Unsafe.UnsafeUtility.As<Random.State, RandomWords>(ref state);
+        uint h = 2166136261u;
+        h = (h ^ w.a) * 16777619u; h = (h ^ w.b) * 16777619u;
+        h = (h ^ w.c) * 16777619u; h = (h ^ w.d) * 16777619u;
+        Seed(h);
+    }
+
+    public static void Seed(uint seed)
+    {
+        rng = seed == 0u ? 0x2545F491u : seed;
+        for (int i = 0; i < 4; i++) Next01();   // stir
+    }
+
+    static float Next01()
+    {
+        rng ^= rng << 13; rng ^= rng >> 17; rng ^= rng << 5;
+        return (rng & 0xFFFFFF) / 16777216f;
     }
 
     // The size a uniform u in [0, 1) maps to (monotone within each tier).

@@ -152,6 +152,9 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 
     void Start () {
+        // rock sizes come from their own stream, seeded off this one without
+        // consuming it (HazardSize.Seed): the spawner's draws are as they were
+        HazardSize.Seed();
 
         if (phases == null || phases.Length == 0)
             phases = DefaultPhases();
