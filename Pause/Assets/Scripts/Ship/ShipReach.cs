@@ -27,7 +27,8 @@ using UnityEngine;
 //           30% below its top, a Swoop dips 9% further), hazards appear at
 //           its top edge, and the HUD band and the boss sit above that; the
 //           ship stops under all of it with about half a second to react at
-//           HUD 35.
+//           HUD 35. While a boss is up it also stays under the boss
+//           (BossCeilingFor).
 //   SIDES   +/-HalfWidth (unchanged: the lane and rails are fixed in x).
 //
 // The range follows the live camera and safe area every frame (a foldable
@@ -83,6 +84,34 @@ public static class ShipReach
         return Mathf.Clamp(f.At(StartShare), BottomFor(f), TopFor(f));
     }
 
+    // While a boss is up the ship also stays BossConfig.ShipCeilingBelowFor
+    // under it: under its lowest muzzle with a clear gap, never inside its
+    // art. The ceiling follows the boss as it warps in (and as it retreats),
+    // so a ship parked high is eased down by the arriving boss, not snapped.
+    // +infinity with no boss.
+    public static float BossCeilingFor(PlayField.Frame f)
+    {
+        if (!FitToView) return float.PositiveInfinity;
+        var enc = BossEncounter.Instance;
+        var actor = enc != null ? enc.Actor : null;
+        if (actor == null) return float.PositiveInfinity;
+        float y;
+        switch (actor.State)
+        {
+            case BossActor.Mode.Fighting:
+            case BossActor.Mode.Dying:
+                y = BossConfig.RestYFor(f);
+                break;
+            case BossActor.Mode.Arriving:
+            case BossActor.Mode.Retreating:
+                y = actor.transform.position.y;
+                break;
+            default:
+                return float.PositiveInfinity;
+        }
+        return y - BossConfig.ShipCeilingBelowFor(f);
+    }
+
     // ---- live (the main camera, the device's safe area, the boss) ----
     public static float Bottom => BottomFor(PlayField.Live);
     public static float Top
@@ -91,7 +120,7 @@ public static class ShipReach
         {
             var f = PlayField.Live;
             if (!FitToView) return LegacyTop;
-            return TopFor(f);
+            return Mathf.Max(BottomFor(f) + MinSpan, Mathf.Min(TopFor(f), BossCeilingFor(f)));
         }
     }
     public static float ClampY(float y) => Mathf.Clamp(y, Bottom, Top);
