@@ -30,7 +30,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 13. **Installed and validated — `verdant_alien`:** Snap Sprout rebuilt as a rugged bio-industrial seed crawler with thorn-leaf armor, a pruning jaw, resin sacs, copper root conduits, and a toxic magenta-green core; native seven-cell QA complete.
 14. **Installed and validated — `ember_alien`:** Ember Imp rebuilt as a rugged soot-forge drone with basalt heat shields, copper bracing, orange vents, and a contained magenta furnace core; native seven-cell QA complete.
 15. **Installed and validated — `space_chaser`:** Steel Hound rebuilt as a rugged gunmetal pursuit drone with copper conduit, cyan navigation slit, and magenta core; native seven-cell QA complete.
-16. **Queued — `frost_chaser`**
+16. **Installed and validated — `frost_chaser`:** Frost Lancer rebuilt as a rime-armored copper pursuit lance with a cyan cryo core; native seven-cell QA complete.
 17. **Queued — `verdant_chaser`**
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
 19. **Queued — `space_big`**
