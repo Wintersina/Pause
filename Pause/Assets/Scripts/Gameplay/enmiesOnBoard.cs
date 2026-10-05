@@ -865,6 +865,8 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
     // How far along its rail the mine has slid from where it was clamped
     // (EnemyBrain: Patrol / Creep), and the brain whose envelope bounds it.
     [System.NonSerialized] public float Slide;
+    // ... and how far a shove has slid it along the rail (EnemyShove).
+    [System.NonSerialized] public float Shove;
     [System.NonSerialized] public EnemyBrain brain;
 
     // Kept public for the headless regression test and for quick inspection
@@ -926,7 +928,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         }
 
         if (rail != null)
-            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide, transform.position.z);
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove, transform.position.z);
         else
             transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }

@@ -20,7 +20,8 @@ using UnityEngine;
 //             at the hit point, a hard ripple running both ways round the
 //             outline, and the plates there crack.
 //   expiring  the last ExpireWindow seconds blink with an accelerating beat.
-//   Hide()    the plates shatter into pooled flat shards (ShieldShards).
+//   Hide()    the plates shatter into pooled flat shards (ShieldShards) and
+//             the release shockwave shoves the board away (ShieldShockwave).
 //
 // Gameplay is unchanged: collisionDetection still owns the 5.8 s timer and
 // the "destroy whatever touches you while atomCheck" rule. While the shield
@@ -194,6 +195,7 @@ public class ShipShield : MonoBehaviour
         }
         ShieldArt.Prewarm();
         if (Application.isPlaying) ShieldShards.Prewarm();
+        if (Application.isPlaying) ShieldShockwave.Prewarm();   // the release ring and column streak
         UnityEngine.Profiling.Profiler.EndSample();
     }
 
@@ -292,7 +294,11 @@ public class ShipShield : MonoBehaviour
     public void Hide()
     {
         if (root == null) return;
-        if (phase != Phase.Off && contour != null && root.activeInHierarchy) Shatter();
+        if (phase != Phase.Off && contour != null && root.activeInHierarchy)
+        {
+            Shatter();
+            Shockwave();
+        }
         phase = Phase.Off;
         Blinking = false;
         SwapCollider(false);
@@ -506,6 +512,15 @@ public class ShipShield : MonoBehaviour
             flash.transform.localScale = new Vector3(size, size, 1f);
         }
         else flash.enabled = false;
+    }
+
+    // The shield lets go: its shockwave shoves the board away (ShieldShockwave).
+    void Shockwave()
+    {
+        var hull = GetComponent<SpriteRenderer>();
+        float halfWidth = contour.VisibleBounds.width * .5f * Mathf.Abs(transform.lossyScale.x);
+        ShieldShockwave.Release(transform.position, halfWidth,
+                                hull != null ? hull.sortingLayerID : 0, (hull != null ? hull.sortingOrder : 0) + 3);
     }
 
     void Shatter()

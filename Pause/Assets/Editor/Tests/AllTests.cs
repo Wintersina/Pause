@@ -91,6 +91,7 @@ public static class AllTests
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),
+        ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
