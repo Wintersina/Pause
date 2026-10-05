@@ -81,9 +81,84 @@ public static class UnusedAssetGuardTest
         NothingReferencesARetiredPrefab();
         DefaultCursorResolves();
         OldInvaderAlienStaysDeleted();
+        ReplacedAssetsStayDeleted();
+        EveryAssetIsReachable();
 
         Debug.Log("[UAG] failures: " + fails);
         return fails;
+    }
+
+    // The 2026-10 cleanup: the Unity-5 explosion_0 prefab and its
+    // controller / clip / sheet (TargetExplosion draws every explosion now),
+    // the old xenon2 default app icon (the icon is Art/AppIcon/GoldWarden),
+    // and the scrollingText behaviour nothing attached.
+    public static readonly string[] ReplacedAssets =
+    {
+        "Assets/Resources/prefabs/explosion_0.prefab",
+        "Assets/Art/Animation/explosion_0.controller",
+        "Assets/Art/Animation/explotion2.anim",
+        "Assets/Art/Animation/explosion.png",
+        "Assets/Art/Retro80s/Ships/SourceStrips/xenon2_ship.png",
+        "Assets/Scripts/UI/scrollingText.cs",
+    };
+
+    static void ReplacedAssetsStayDeleted()
+    {
+        foreach (string path in ReplacedAssets)
+            Check(path + " stays deleted", !File.Exists(path) && !File.Exists(path + ".meta"));
+    }
+
+    // Every imported asset must be pulled in by something that ships: a
+    // build scene, a Resources folder (anything there can be Resources.Load-ed,
+    // so it counts as a root; keeping those folders lean is up to the loaders
+    // and the per-system tests), or the project settings (icons, cursor,
+    // splash). An asset nothing reaches is dead weight in the repo; delete it
+    // or wire it up. Exempt: code, editor-only folders, third-party SDK
+    // folders, docs/licences, the app-icon candidates and the art staging
+    // areas (Codex's working files, promoted into Resources by hand or by
+    // EliteArtSync).
+    static readonly string[] ExemptPrefixes =
+    {
+        "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
+        "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/", "Assets/Art/Staging/",
+    };
+
+    static bool Exempt(string path)
+    {
+        if (path.EndsWith(".cs") || path.EndsWith(".md") || path.EndsWith(".txt") ||
+            path.EndsWith(".asmdef") || path.Contains("/Editor/"))
+            return true;
+        if (path.Contains("/Staging/") || path.Contains("/staging/")) return true;
+        foreach (string prefix in ExemptPrefixes)
+            if (path.StartsWith(prefix)) return true;
+        return false;
+    }
+
+    static void EveryAssetIsReachable()
+    {
+        var roots = new List<string>();
+        foreach (var scene in EditorBuildSettings.scenes)
+            if (scene.enabled) roots.Add(scene.path);
+        var all = new List<string>();
+        foreach (string path in AssetDatabase.GetAllAssetPaths())
+        {
+            if (!path.StartsWith("Assets/") || AssetDatabase.IsValidFolder(path)) continue;
+            all.Add(path);
+            if (path.Contains("/Resources/")) roots.Add(path);
+        }
+        foreach (string file in Directory.GetFiles("ProjectSettings", "*.asset"))
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), "guid: ([0-9a-f]{32})"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(m.Groups[1].Value);
+                if (!string.IsNullOrEmpty(path) && path.StartsWith("Assets/")) roots.Add(path);
+            }
+        var reached = new HashSet<string>(AssetDatabase.GetDependencies(roots.ToArray(), true));
+        var orphans = new List<string>();
+        foreach (string path in all)
+            if (!reached.Contains(path) && !Exempt(path)) orphans.Add(path);
+        foreach (string path in orphans) Debug.Log("[UAG] unreferenced asset: " + path);
+        Check("every asset is reached by a build scene, a Resources folder or the project settings (" +
+              orphans.Count + " orphans)", orphans.Count == 0);
     }
 
     static void NoRetiredArtUnderResources()

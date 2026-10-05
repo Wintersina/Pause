@@ -708,60 +708,85 @@ public static class EnemyRosterTest
                   env.TryGetValue(key, out want) && EnemyPalette.Html((Color)f.GetValue(null)) == want);
         }
 
-        var svgs = Directory.GetFiles(ArtSrc + "svg", "*.svg");
-        int drawn = 0;
-        foreach (var d in EnemyRoster.All) if (d.role != EnemyRole.Mine) drawn++;   // the mines are the neon atlas
-        Check("enemy SVG sources exist (" + svgs.Length + ")", svgs.Length == drawn * EnemyRoster.FrameCount);
-        int raw = 0, unknown = 0, rasters = 0, blurOutsideGlow = 0;
-        foreach (var path in svgs)
+        // The shipped strips (the per-frame SVGs build.py writes are untracked
+        // intermediates): one per drawn enemy, FrameCount square frames butted
+        // left to right, and the player's reds never more than a trace of a
+        // drawing (red means friendly; a few anti-aliased texels may land on it).
+        Check("the enemy generator exists", File.Exists(ArtSrc + "build.py") && File.Exists(ArtSrc + "render.sh"));
+        Color32[] reds = new Color32[PlayerReds.Length];
+        for (int i = 0; i < reds.Length; i++)
         {
-            string src = File.ReadAllText(path);
-            string body = Regex.Replace(src, "<filter[^>]*>.*?</filter>", "", RegexOptions.Singleline);
-            if (Regex.IsMatch(body, "#[0-9A-Fa-f]{6}")) raw++;
-            foreach (Match c in Regex.Matches(src, "@([A-Z_]+)@")) if (!env.ContainsKey(c.Groups[1].Value)) unknown++;
-            if (src.Contains("<image") || src.Contains("Gradient")) rasters++;
-            // blur is for lights only: never inside the base/shadow/highlight/ink/detail cels
-            foreach (string layer in new[] { "base", "shadow", "highlight", "ink", "detail" })
-            {
-                var g = Regex.Match(src, "<g id=\"" + layer + "\">(.*?)</g>\\s*(<g id=|</svg>)", RegexOptions.Singleline);
-                if (g.Success && g.Groups[1].Value.Contains("filter=")) blurOutsideGlow++;
-            }
+            Color c;
+            ColorUtility.TryParseHtmlString(PlayerReds[i], out c);
+            reds[i] = c;
         }
-        Check("every SVG colour is a palette.env token (" + raw + " raw hex)", raw == 0);
-        Check("every token exists in palette.env (" + unknown + " unknown)", unknown == 0);
-        Check("no gradients or raster images in the sources", rasters == 0);
-        Check("glow blur only on lights, never on cels (" + blurOutsideGlow + ")", blurOutsideGlow == 0);
         foreach (var d in EnemyRoster.All)
-            if (d.role != EnemyRole.Mine)
-            Check(d.key + " sources exist", File.Exists(ArtSrc + "svg/" + d.key + "_0.svg") &&
-                                            File.Exists(ArtSrc + "svg/" + d.key + "_" + EnemyRoster.HitFrame + ".svg"));
+        {
+            if (d.role == EnemyRole.Mine) continue;   // the mines are the neon atlas (RailMineArtTest)
+            var tex = LoadStrip(d);
+            Check(d.key + " strip exists", tex != null);
+            if (tex == null) continue;
+            Check(string.Format("{0} strip is {1} square frames ({2}x{3})", d.key, EnemyRoster.FrameCount, tex.width, tex.height),
+                  tex.width == tex.height * EnemyRoster.FrameCount);
+            int opaque = 0, red = 0;
+            foreach (var p in tex.GetPixels32())
+            {
+                if (p.a <= 128) continue;
+                opaque++;
+                foreach (var r in reds)
+                    if (Mathf.Abs(p.r - r.r) + Mathf.Abs(p.g - r.g) + Mathf.Abs(p.b - r.b) <= 24) { red++; break; }
+            }
+            Check(string.Format("{0} keeps off the player's reds ({1} of {2} texels)", d.key, red, opaque),
+                  opaque > 0 && red < opaque * .02f);
+            UnityEngine.Object.DestroyImmediate(tex);
+        }
+    }
+
+    static Texture2D LoadStrip(EnemyDef d)
+    {
+        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        if (!File.Exists(path)) return null;
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(path));
+        return tex;
     }
 
     // ---- 7: detail floor ---------------------------------------------------------
 
     // The art can't slide back to blobby simple shapes: every enemy's key
-    // pose (frame 0) is built from many inked sub-shapes (panel lines,
-    // rivets, plates, sockets, teeth...), counted straight from its SVG.
-    // The heavies, drawn twice as big, carry more.
-    public const int MinInkedShapes = 28, MinShapes = 60, MinInkedShapesBig = 40, MinShapesBig = 100;
-
-    static readonly Regex InkedShape = new Regex("<(?:polygon|polyline|path|circle)[^>]*(?:stroke|fill)=\"@INK@\"");
-    static readonly Regex AnyShape = new Regex("<(?:polygon|polyline|path|circle)");
+    // pose (frame 0, read from the shipped strip) is built from many tones
+    // and many colour boundaries (panel lines, rivets, plates, sockets,
+    // teeth...). The heavies, drawn twice as big, carry more. Floors sit
+    // well under the 2026-10 art (fewest: 374 tones, 4362 boundaries).
+    public const int MinTones = 300, MinBoundaries = 3000, MinBoundariesBig = 6000;
 
     static void DetailFloor()
     {
         foreach (var d in EnemyRoster.All)
         {
-            if (d.role == EnemyRole.Mine) continue;   // neon pixel art, not a flat-ink drawing
-            string path = ArtSrc + "svg/" + d.key + "_0.svg";
-            if (!File.Exists(path)) { Check(d.key + " key pose source exists", false); continue; }
-            string src = File.ReadAllText(path);
-            int inked = InkedShape.Matches(src).Count, shapes = AnyShape.Matches(src).Count;
-            bool big = d.role == EnemyRole.Big;
-            int needInked = big ? MinInkedShapesBig : MinInkedShapes, needShapes = big ? MinShapesBig : MinShapes;
-            Check(string.Format("{0} key pose is detailed ({1} inked sub-shapes >= {2}, {3} shapes >= {4})",
-                                d.key, inked, needInked, shapes, needShapes),
-                  inked >= needInked && shapes >= needShapes);
+            if (d.role == EnemyRole.Mine) continue;   // the neon atlas, held by RailMineArtTest
+            var tex = LoadStrip(d);
+            if (tex == null) { Check(d.key + " key pose strip exists", false); continue; }
+            int h = tex.height;
+            var px = tex.GetPixels32();
+            var tones = new HashSet<int>();
+            int boundaries = 0;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < h; x++)
+                {
+                    var a = px[y * tex.width + x];
+                    if (a.a <= 128) continue;
+                    tones.Add(a.r << 16 | a.g << 8 | a.b);
+                    bool edge = false;
+                    if (x + 1 < h) { var b = px[y * tex.width + x + 1]; edge |= b.a > 128 && (b.r != a.r || b.g != a.g || b.b != a.b); }
+                    if (y + 1 < h) { var b = px[(y + 1) * tex.width + x]; edge |= b.a > 128 && (b.r != a.r || b.g != a.g || b.b != a.b); }
+                    if (edge) boundaries++;
+                }
+            UnityEngine.Object.DestroyImmediate(tex);
+            int need = d.role == EnemyRole.Big ? MinBoundariesBig : MinBoundaries;
+            Check(string.Format("{0} key pose is detailed ({1} tones >= {2}, {3} colour boundaries >= {4})",
+                                d.key, tones.Count, MinTones, boundaries, need),
+                  tones.Count >= MinTones && boundaries >= need);
         }
     }
 
