@@ -410,6 +410,7 @@ public static class SpawnSpaceTest
     // Summed per density level.
     const int BaselineFirstPass = 9420;   // density x1
     const int BaselineMaxLoop = 19219;    // max loop density
+    const float BaselineChaosSeconds = 130f;
 
     static void LongRunsNeverOverlap()
     {
@@ -438,6 +439,11 @@ public static class SpawnSpaceTest
                         float v = speeds[si];
                         moveBackGround.speed = v / 30f;
                         var board = NewBoard();
+                        // the baseline was counted on the old phase schedule
+                        // (Chaos at 130s, so never in a 120s run); Chaos now
+                        // comes at enmiesOnBoard.ChaosStartSeconds, a
+                        // deliberate difficulty change, not a planner one
+                        board.phases[board.phases.Length - 1].activeAfterSeconds = BaselineChaosSeconds;
                         var chasers = new HashSet<ChaserEnemy>();
                         int overlapFrames = 0;
                         for (float t = 0f; t < runSeconds; t += dt)

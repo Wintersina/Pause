@@ -35,8 +35,13 @@ public class ShipPowerController : MonoBehaviour
     public float secondsPerDust = 0.5f;
 
     [Tooltip("Seconds shaved off the current countdown per atom collected -- " +
-             "blue, red or the green heal atom all count the same.")]
+             "the blue shield atom and the green heal atom count the same.")]
     public float secondsPerAtom = 7f;
+
+    [Tooltip("Seconds shaved off the current countdown by a red pause atom -- " +
+             "smaller than secondsPerAtom because the violet capacitor atom is " +
+             "the dedicated charge-cutter now (the red atom also gives a free shot).")]
+    public float secondsPerRedAtom = 5f;
 
     [Tooltip("Seconds shaved off the active weapon charge by a violet capacitor atom.")]
     public float secondsPerCooldownAtom = 12f;

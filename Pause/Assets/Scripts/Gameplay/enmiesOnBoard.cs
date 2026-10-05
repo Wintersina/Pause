@@ -146,7 +146,16 @@ public class enmiesOnBoard : MonoBehaviour {
     // board reads as busier at every stage, not just once Chaos hits. Still
     // tuned against a 300s (5 minute) level at phaseRampScale 1 (Space);
     // every other world reaches Chaos sooner still.
-    static SpawnPhase[] DefaultPhases()
+    //
+    // 2026-10-04: worlds are a distance now (~120s at a stock start), and the
+    // phases run on the world's level clock (PhaseClockSeconds), so Chaos at
+    // 130s never came before Space's boss. It starts at 105s of the 120s
+    // level: the last ~1/8 of Space, earlier in each later world
+    // (enemyRampScale; Ember ~78s) and earlier again on loops -- always
+    // before the boss, at any start speed.
+    public const float ChaosStartSeconds = 105f;
+
+    public static SpawnPhase[] DefaultPhases()
     {
         return new[]
         {
@@ -190,7 +199,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 alienInterval = new Vector2(1.5f, 2.7f),
             },
             new SpawnPhase {
-                name = "Chaos", extraEnemies = true, activeAfterSeconds = 130f,
+                name = "Chaos", extraEnemies = true, activeAfterSeconds = ChaosStartSeconds,
                 rails = true, mines = true, chasers = true, bigEnemy = true, smallEnemy = true,
                 midAstroid = true, smallAstroid = true, bigAstroid = true, aliens = true,
                 railInterval = new Vector2(0.4f, 0.65f),
@@ -214,9 +223,20 @@ public class enmiesOnBoard : MonoBehaviour {
         if (flying && !BossEncounter.SuspendsSpawning) spawn();
     }
 
+    // The clock the phases run on. In gameS1 it is the world's level clock
+    // (WorldManager.LevelClockSeconds): 0 on arrival, 120 at the boss, so
+    // every world -- and every visit -- goes through the phases again, a
+    // faster start just as a stock one, proportionally sooner. Without a
+    // WorldManager (tutorial, headless tests) it is the seconds flown.
+    float PhaseClockSeconds()
+    {
+        var world = WorldManager.Instance;
+        return world != null && world.HasLevelClock ? world.LevelClockSeconds : elapsedFlightSeconds;
+    }
+
     void SelectPhase()
     {
-        float effectiveTime = elapsedFlightSeconds * Mathf.Max(0.01f, phaseRampScale);
+        float effectiveTime = PhaseClockSeconds() * Mathf.Max(0.01f, phaseRampScale);
         // Searched from the end: elapsed time only ever grows, so the
         // correct phase is the *latest* one whose threshold has been
         // reached, not the first (ascending-search made sense for the old
