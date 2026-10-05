@@ -264,7 +264,9 @@ public static class EliteDeath
         {
             EliteSystem.Fx.Flipbook(death, 12f, at, ship.Velocity * .3f, ship.Def.cellWorldSize, ship.ArtRotation);
         }
-        TargetExplosion.Spawn(at, TargetExplosion.Kind.Metal, TargetExplosion.Size.Large,
+        // sometimes it breaks into spinning pieces of its hull (EnemySplit), over a smaller blast
+        bool split = EnemySplit.TrySplitElite(ship);
+        TargetExplosion.Spawn(at, TargetExplosion.Kind.Metal, split ? TargetExplosion.Size.Medium : TargetExplosion.Size.Large,
                               cause == EliteDamage.Crash || cause == EliteDamage.Rail || cause == EliteDamage.FriendlyFire ? ShipId.None : ShipId.Equipped());
         collisionDetection.PlayExplosion();
         EliteSystem.Fx.Debris(ship);

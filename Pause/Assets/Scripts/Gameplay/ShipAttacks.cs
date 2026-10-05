@@ -950,6 +950,9 @@ public class AttackProjectile : MonoBehaviour
         Vector3 to = from + dir * speed * dt;
         travelled += speed * dt;
         transform.position = to;
+        // Defensive play: hostile shots it passes through are shot down
+        // (no score); it flies on, its own hits unchanged (HostileShots).
+        HostileShots.ShootDownAlong(from, to, radius);
 
         switch (kind)
         {

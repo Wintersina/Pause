@@ -92,6 +92,7 @@ public sealed class EliteShots
     public void Step(float dt)
     {
         for (int i = 0; i < shots.Count; i++) if (shots[i] != null && shots[i].Active) shots[i].Step(dt);
+        if (dt > 0f) HostileShots.Resolve();   // shot vs shot (HostileShots)
     }
 
     internal void CountFriendly() { FriendlyHits++; }
@@ -119,10 +120,14 @@ public class EliteShotHitbox : MonoBehaviour, IShipAttackTarget
     }
 }
 
-public class EliteShot : MonoBehaviour
+public class EliteShot : MonoBehaviour, IHostileShot
 {
     EliteShots pool;
     SpriteRenderer body, core, mark;
+    SpriteRenderer glow;      // the visibility wrapper (HostileGlow)
+    float glowBase;           // its local scale before the pulse
+    Color glowTint;
+    int ownerId;
     GameObject hitbox;
     CircleCollider2D hitCol;
     EliteShip owner;
@@ -147,8 +152,39 @@ public class EliteShot : MonoBehaviour
     public Vector2 LobTarget => lobTo;
     public int Bounced { get; private set; }
     public bool MarkShown => mark != null && mark.enabled;
-    // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard.
+    // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard,
+    // 5 broken by another shot or a player shot.
     public int EndReason { get; private set; }
+    public SpriteRenderer Glow => glow;
+
+    // IHostileShot (HostileShots: shot vs shot)
+    public bool ShotCollidable => Active && !airborne && hitbox != null && hitCol != null && hitCol.enabled;
+    public Vector2 ShotPosition => transform.position;
+    public float ShotRadius => radius;
+    public int ShotOwner => ownerId;
+    public float ShotAge => age;
+    public int ShotMass => Kind == EliteShots.Kind.Glob ? HostileShots.Fixed
+                         : Kind == EliteShots.Kind.Slag || Kind == EliteShots.Kind.Shell ? HostileShots.Heavy
+                         : HostileShots.Light;
+    public Color ShotTint => def != null ? def.ShotColor : Color.white;
+
+    public void ShotPop(Vector2 at)
+    {
+        if (!Active) return;
+        if (def != null) EliteSystem.Fx.Sparks(at, def.ShotColor, 4);
+        EndReason = 5;
+        Recycle();
+    }
+
+    void OnDestroy() { HostileShots.Unregister(this); }
+
+    void Pulse()
+    {
+        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age));
+        var c = glowTint;
+        c.a = HostileGlow.PulseAlphaAt(age);
+        glow.color = c;
+    }
 
     public static EliteShot Create(Transform root, EliteShots owner)
     {
@@ -162,6 +198,8 @@ public class EliteShot : MonoBehaviour
         c.transform.SetParent(go.transform, false);
         s.core = c.AddComponent<SpriteRenderer>();
         s.core.sortingOrder = 31;
+        s.glow = HostileGlow.Attach(go.transform, HostileGlow.SortBehindShots);
+        HostileShots.Register(s);
         var m = new GameObject("Mark");
         m.transform.SetParent(root, false);
         s.mark = m.AddComponent<SpriteRenderer>();
@@ -207,6 +245,10 @@ public class EliteShot : MonoBehaviour
         EnsureHitbox();
         hitCol.radius = radius / k;
         hitCol.enabled = true;
+        ownerId = from != null ? from.GetInstanceID() : 0;
+        glowTint = HostileGlow.Tint(d.ShotColor);
+        glowBase = HostileGlow.DiameterFor(size * HostileGlow.EliteShotBody) / k;
+        Pulse();
         Active = true;
         gameObject.SetActive(true);
     }
@@ -244,6 +286,8 @@ public class EliteShot : MonoBehaviour
         radius = size * .42f;
         hitCol.radius = radius / k;
         hitCol.enabled = true;
+        glowBase = HostileGlow.DiameterFor(size * HostileGlow.PoolBody) / k;
+        Pulse();
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
@@ -275,6 +319,7 @@ public class EliteShot : MonoBehaviour
         if (hitbox == null) { EndReason = 3; Recycle(); return; }
         if (dt <= 0f) return;
         age += dt;
+        Pulse();
         Vector3 p = transform.position;
         if (airborne)
         {
@@ -344,6 +389,7 @@ public class EliteShot : MonoBehaviour
         {
             var t = live[i];
             if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
+            if (FriendlyFire.Immune(t.gameObject)) continue;   // the boss is never hurt by friendly fire
             bool own = owner != null && t.gameObject == owner.gameObject;
             if (own && age < .35f) continue;
             float R = radius + t.Radius * .8f;
