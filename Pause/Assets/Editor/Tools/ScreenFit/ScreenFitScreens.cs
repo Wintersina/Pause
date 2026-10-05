@@ -59,8 +59,6 @@ public static class ScreenFitScreens
                         reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
         new FitWaiver { kind = "SMALLTEXT", element = "", devices = ShortPhones,
                         reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
-        new FitWaiver { screen = "codex-grid", kind = "TAPSIZE", element = "/Tabs/Tab",
-                        reason = "six tabs share the panel's width: ~32-40 dp tall even with the hit padding (decision: taller tab row)" },
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
                         reason = "developer-only rows (DeveloperUnlocks.Available builds)" },
         new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
