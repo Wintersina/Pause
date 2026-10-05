@@ -91,6 +91,17 @@ public class CameraFit : MonoBehaviour
         }
     }
 
+    // Every scene's camera is authored at this orthographic size.
+    public const float AuthoredSize = 5f;
+
+    // World units from the centre line to the screen's side edge in the
+    // gameplay scenes, for a screen of this size (what Apply arrives at).
+    public static float GameplayViewHalfWidth(Vector2 screen)
+    {
+        if (screen.x <= 0f || screen.y <= 0f) return GameplayHalfWidth;
+        return Mathf.Max(GameplayHalfWidth, AuthoredSize * screen.x / screen.y);
+    }
+
     // Pure and testable without entering Play mode: never shrinks below
     // baseSize, and grows exactly enough to guarantee minHalfWidth stays
     // visible at the given screen dimensions.
