@@ -93,10 +93,12 @@ public class score : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        // Bank the run the moment it ends. playerIsDead also writes the
-        // total; the ledger writes the same absolute value, so the order of
-        // the two does not matter and nothing is counted twice.
-        if (buttonClicks.playerDied && !committedOnDeath)
+        // Bank the run once it has ended: the moment the death crash is
+        // over (DeathCrash.PanelReady), so its DEATH COMBO is in the score,
+        // the best and the dust bonus. playerIsDead also writes the total;
+        // the ledger writes the same absolute value, so the order of the two
+        // does not matter and nothing is counted twice.
+        if (buttonClicks.playerDied && !committedOnDeath && DeathCrash.PanelReady)
         {
             committedOnDeath = true;
             Settle(scoreRun, ledgerRun);

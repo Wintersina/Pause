@@ -47,7 +47,7 @@ using UnityEngine;
 // the world while the board pours past it. Stepped by EliteSystem on the
 // world's clock -- frozen at timeScale 0 -- with no per-frame allocation.
 public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
-public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire }
+public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino }
 
 [DisallowMultipleComponent]
 public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
@@ -656,7 +656,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
     {
         if (State == EliteState.Dead || !InPlay) return false;
-        if (grace > 0f && cause != EliteDamage.ShieldRam) return false;
+        if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino) return false;   // Domino: the death crash's wreckage (DeathCrash)
         Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
         LastHitCause = cause;
         impactPending = true;

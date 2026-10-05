@@ -150,7 +150,7 @@ public static class DeathPanelTest
         var parts = new RunScore.Breakdown
         {
             distance = 999999, kills = 999999, dust = 99999, atoms = 9999, teleports = 9999,
-            bosses = 99999, worlds = 99999,
+            bosses = 99999, worlds = 99999, deathCombo = 99999, deathComboKills = 99,
             killCount = 999, dustCount = 999, atomCount = 99, teleportCount = 99, bossCount = 9, worldCount = 9,
         };
         var view = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
@@ -173,8 +173,8 @@ public static class DeathPanelTest
               run.text == "SPEED 999  /  BEST 999");
         var labels = DeathPanelView.BreakdownLabels;
         var points = DeathPanelView.BreakdownPoints(parts);
-        Check("the breakdown lists distance, kills, star dust, atoms, teleports, bosses, worlds",
-              string.Join(",", labels) == "DISTANCE,KILLS,STAR DUST,ATOMS,TELEPORTS,BOSSES,WORLDS");
+        Check("the breakdown lists distance, kills, star dust, atoms, teleports, bosses, worlds, death combo",
+              string.Join(",", labels) == "DISTANCE,KILLS,STAR DUST,ATOMS,TELEPORTS,BOSSES,WORLDS,DEATH COMBO");
         for (int i = 0; i < labels.Length; i++)
         {
             var row = panel.Find("Card1/Row" + i);

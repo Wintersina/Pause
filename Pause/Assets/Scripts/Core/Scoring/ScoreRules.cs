@@ -64,6 +64,24 @@ public static class ScoreRules
     public static int EliteDown = 50;
     public static float EliteDownDust = 15f;
 
+    // ---- death combo (DeathCrash's domino) ----
+    // The wreckage of the pilot's death destroys what it hits, and what that
+    // breaks into can hit more. The n-th kill of that chain earns its kill
+    // points above x n (DOMINO x2, x3 ...), capped at DominoMaxMultiplier;
+    // no speed multiplier (the run is over) and it never touches the in-run
+    // kill chain. An elite counts DominoEliteBase (its own EliteDown reward
+    // is paid as well, as for any elite going down). A MEGA DOMINO (the death
+    // takes the whole screen) adds MegaDominoBonus. The chain's total is
+    // added once, as RunScore's deathCombo.
+    public static int DominoMaxMultiplier = 5;
+    public static int DominoEliteBase = 40;
+    public static int MegaDominoBonus = 100;
+
+    public static int DominoMultiplier(int killIndex)
+    {
+        return Mathf.Clamp(killIndex, 1, Mathf.Max(1, DominoMaxMultiplier));
+    }
+
     // ---- pickups ----
     public static int SmallDust = 2;
     public static int LargeDust = 5;

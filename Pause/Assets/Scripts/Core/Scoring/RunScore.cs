@@ -35,6 +35,9 @@ public static class RunScore
     public struct Breakdown
     {
         public long distance, kills, dust, atoms, teleports, bosses, worlds;
+        // The death's domino (DeathCrash): its total, its kills, MEGA DOMINOs.
+        public long deathCombo;
+        public int deathComboKills, megaDominos;
         public int killCount, dustCount, atomCount, teleportCount, bossCount, worldCount;
         public int bestChain;
         // Times LOOP BACK's portal was flown (RunLoop.Index at the end).
@@ -43,7 +46,7 @@ public static class RunScore
         // chain x speed on kills (within ScoreRules.MaxTotalMultiplier).
         public float bestMultiplier;
 
-        public long Total { get { return distance + kills + dust + atoms + teleports + bosses + worlds; } }
+        public long Total { get { return distance + kills + dust + atoms + teleports + bosses + worlds + deathCombo; } }
     }
 
     // A scoring event worth showing at its source (HUD "+N" popups).
@@ -222,6 +225,19 @@ public static class RunScore
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);
+        return points;
+    }
+
+    // The death crash's domino is over (DeathCrash): its total, added once
+    // (the crash calls it once per death). Counted apart from kills -- the
+    // death panel's DEATH COMBO row. The run is still open: score.cs settles
+    // it only once the crash has finished.
+    public static int OnDeathCombo(int points, int kills, bool mega)
+    {
+        if (!Live || points <= 0) return 0;
+        parts.deathCombo += points;
+        parts.deathComboKills += Mathf.Max(0, kills);
+        if (mega) parts.megaDominos++;
         return points;
     }
 
