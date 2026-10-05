@@ -60,6 +60,16 @@ public static class BossAttackTest
         return fails;
     }
 
+    // Only the dodge simulation (every pattern leaves a way through), for
+    // suites that change what shots do (HostileProjectileTest). Failures.
+    public static int DodgeSimulation()
+    {
+        fails = 0;
+        try { EveryPatternLeavesAWayThrough(); }
+        finally { BossEncounter.ResetRun(); BossRails.Reset(); }
+        return fails;
+    }
+
     // ---- fixtures ------------------------------------------------------
 
     static void FreshScene(int world = 0)

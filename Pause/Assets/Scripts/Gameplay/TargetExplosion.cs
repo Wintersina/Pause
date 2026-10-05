@@ -69,7 +69,11 @@ public static class TargetExplosion
     {
         if (target == null) return;
         RailBombAnimator.Burst(target);   // a rail mine flashes its burst frame first (no-op otherwise)
-        Spawn(target.transform.position, KindFor(target), SizeFor(target), ship);
+        var size = SizeFor(target);
+        // Sometimes it breaks into spinning pieces of itself instead, over a
+        // blast a size smaller (EnemySplit).
+        if (EnemySplit.TrySplit(target, size)) size = EnemySplit.Smaller(size);
+        Spawn(target.transform.position, KindFor(target), size, ship);
     }
 
     public static void Spawn(Vector3 at, Kind kind, Size size, int ship)

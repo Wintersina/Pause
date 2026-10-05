@@ -41,6 +41,8 @@ public class RailBombAnimator : EnemyFlipbook
             def = EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine);
             if (def == null) return null;
         }
+        // Its blast catches whatever is near a beat later (friendly fire).
+        FriendlyFire.MineBlast(mine);
         var sprite = RailMineArt.Frame(def.world, RailMineArt.Burst);
         if (sprite == null) return null;
 
