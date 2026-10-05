@@ -318,6 +318,9 @@ public static class ExhaustSkinTest
         ResetSkins();
     }
 
+    // The home-screen traffic flies every skin (TitleScreenTraffic.Skins):
+    // each flight's plumes / spin ring wear that flight's skin, whatever the
+    // player has equipped.
     static void TrafficFollowsTheSkin()
     {
         ResetSkins();
@@ -327,47 +330,41 @@ public static class ExhaustSkinTest
         var go = new GameObject("~xs-traffic");
         var traffic = go.AddComponent<TitleScreenTraffic>();
         traffic.Init();
-        for (int k = 0; k < 30; k++) traffic.Step(1f / 30f);
+        for (int k = 0; k < 30 * 60; k++) traffic.Step(1f / 30f);
+        foreach (var book in go.GetComponentsInChildren<ShipFlameFlipbook>(true)) book.Step(0f);
 
-        int nozzles = 0, remapped = 0, drifts = 0, driftsRemapped = 0, haze = 0;
+        string why;
+        int skinned = Count(traffic, out why);
+        Check("traffic: skinned flights are in the air (" + skinned + ")", skinned > 0);
+        Check("traffic: every plume / spin ring wears its own flight's skin" + (why != null ? " (" + why + ")" : ""), why == null);
+
+        // the player's choice doesn't repaint ships already flying
+        foreach (int id in ShipId.All) Wear(id, ShipSkins.Stock);
+        for (int k = 0; k < 3; k++) traffic.Step(1f / 30f);
+        foreach (var book in go.GetComponentsInChildren<ShipFlameFlipbook>(true)) book.Step(0f);
+        Count(traffic, out why);
+        Check("traffic: equipping a skin leaves each flight in its own skin" + (why != null ? " (" + why + ")" : ""), why == null);
+        traffic.Shutdown();
+        Object.DestroyImmediate(go);
+        ResetSkins();
+    }
+
+    static int Count(TitleScreenTraffic traffic, out string why)
+    {
+        why = null;
+        int skinned = 0;
         foreach (var f in traffic.Pool)
         {
             if (!f.active) continue;
+            bool want = !ExhaustColors.IsStock(f.id, f.skin);
+            if (want) skinned++;
             if (f.nozzles != null)
                 foreach (var n in f.nozzles)
-                {
-                    nozzles++;
-                    if (ExhaustRemap.IsRemapped(n)) remapped++;
-                    if (n.sharedMaterial != null && n.sharedMaterial.shader.name == "Pause/TitleTrafficHaze") haze++;
-                }
-            if (f.drift != null && f.drift.Ring != null)
-            {
-                drifts++;
-                if (ExhaustRemap.IsRemapped(f.drift.Ring) && ExhaustRemap.IsRemapped(f.drift.Wake)) driftsRemapped++;
-            }
+                    if (ExhaustRemap.IsRemapped(n) != want) why = ShipId.KeyOf(f.id) + " skin " + f.skin + " plume";
+            if (f.drift != null && f.drift.Ring != null &&
+                (ExhaustRemap.IsRemapped(f.drift.Ring) != want || ExhaustRemap.IsRemapped(f.drift.Wake) != want))
+                why = ShipId.KeyOf(f.id) + " skin " + f.skin + " drift";
         }
-        Check("traffic: every skinned nozzle plume is remapped (" + remapped + "/" + nozzles + ", " + haze + " hazed)",
-              nozzles > 0 && remapped == nozzles);
-        Check("traffic: skinned spinners' drift remapped (" + driftsRemapped + "/" + drifts + ")", driftsRemapped == drifts);
-
-        foreach (int id in ShipId.All) Wear(id, ShipSkins.Stock);
-        for (int k = 0; k < 3; k++) traffic.Step(1f / 30f);
-        // the plumes' own LateUpdate (edit mode doesn't tick it)
-        foreach (var book in go.GetComponentsInChildren<ShipFlameFlipbook>(true)) book.Step(0f);
-        int left = 0, ours = 0;
-        foreach (var f in traffic.Pool)
-        {
-            if (f.nozzles != null)
-                foreach (var n in f.nozzles)
-                {
-                    if (!f.active) continue;
-                    if (ExhaustRemap.IsRemapped(n)) left++;
-                    if (n.sharedMaterial == ExhaustRemap.Material) ours++;
-                }
-        }
-        Check("traffic: back to stock, no exhaust remapped (" + left + ", " + ours + " on the remap material)",
-              left == 0 && ours == 0);
-        Object.DestroyImmediate(go);
-        ResetSkins();
+        return skinned;
     }
 }

@@ -106,6 +106,7 @@ public static class AllTests
         ("TallScreenTest", TallScreenTest.Execute),
         ("TeleportKillTest", TeleportKillTest.Execute),
         ("TitleScreenTrafficTest", TitleScreenTrafficTest.Execute),
+        ("TitleScreenCombatTest", TitleScreenCombatTest.Execute),
         ("TutorialAtomFlowTest", TutorialAtomFlowTest.Execute),
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),

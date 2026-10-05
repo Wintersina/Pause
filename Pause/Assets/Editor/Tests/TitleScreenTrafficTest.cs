@@ -73,6 +73,7 @@ public static class TitleScreenTrafficTest
 
     static void Done(TitleScreenTraffic t)
     {
+        t.Shutdown();
         Object.DestroyImmediate(t.gameObject);
     }
 
@@ -390,7 +391,7 @@ public static class TitleScreenTrafficTest
             {
                 // Place takes a random free hull; walk until it lands on this spinner
                 int guard = 0;
-                while (g != f && guard++ < 40)
+                while (g != f && guard++ < 400)
                 {
                     if (g != null) { g.active = false; g.go.SetActive(false); }
                     g = Place(t, TitleScreenTraffic.Depth.Mid, at, 0f);
@@ -476,7 +477,7 @@ public static class TitleScreenTrafficTest
             var d = f.drift;
             var g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
             int guard = 0;
-            while (g != f && guard++ < 40)
+            while (g != f && guard++ < 400)
             {
                 if (g != null) { g.active = false; g.go.SetActive(false); }
                 g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
@@ -544,7 +545,7 @@ public static class TitleScreenTrafficTest
             // a dizzy tumble adds to the spin, and shaking it off doesn't snap back
             g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
             guard = 0;
-            while (g != f && guard++ < 40)
+            while (g != f && guard++ < 400)
             {
                 if (g != null) { g.active = false; g.go.SetActive(false); }
                 g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
@@ -849,6 +850,9 @@ public static class TitleScreenTrafficTest
         int spinners = 0;
         foreach (var f in t.Pool) if (f.active && f.drift != null) spinners++;
         Check("a spinner is flying during the allocation window (" + spinners + ")", spinners > 0);
+        // the skin wardrobe's scheduled sheet decodes are measured apart
+        // (TitleScreenCombatTest skips those frames); everything else here
+        t.SkinWorkPaused = true;
         System.GC.Collect();
         long before = System.GC.GetTotalMemory(false);
         for (int i = 0; i < 900; i++) t.Step(Dt);
