@@ -17,8 +17,8 @@ public class DockPopup : MonoBehaviour
     // How big the whole popup is drawn: frame, text, chips, pips, badge,
     // button and their touch targets all scale with it. The layout below is
     // authored in canvas units at 1x; this only changes how many world units
-    // one canvas unit covers.
-    public const float PopupScale = 1.15f;
+    // one canvas unit covers. Two 15% steps up from the original 1x card.
+    public const float PopupScale = 1.15f * 1.15f;
     // World units. The canvas is scaled so 1 canvas unit = 0.01 * PopupScale
     // world units.
     public const float Width = 1.50f * PopupScale;

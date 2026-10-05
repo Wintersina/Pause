@@ -99,7 +99,7 @@ public class HudStyler : MonoBehaviour
     // on a 19.5:9 phone it hung ~130pt down and ~60pt in from the left,
     // floating mid-screen, and it ignored the notch/safe area entirely. It is
     // now pinned to the safe area's top-left corner with the quick actions'
-    // EdgeMargin, top-aligned with them, and re-placed whenever the screen
+    // EdgeMargin / TopMargin, top-aligned with them, and re-placed whenever the screen
     // or safe area changes (rotation, foldables, window resize).
     // ---------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ public class HudStyler : MonoBehaviour
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
         float margin = PauseQuickActions.EdgeMargin * actionScale;
         float left = safeArea.xMin + margin;
-        float top = safeArea.yMax - margin;
+        float top = safeArea.yMax - PauseQuickActions.TopMargin * actionScale;
 
         float available = PauseQuickActions.ScreenRectFor(safeArea, screen).xMin
                           - MinGapToActions * actionScale - left;
