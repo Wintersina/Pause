@@ -417,7 +417,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
             if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
             pool.CountFriendly();
             var elite = t.GetComponent<EliteShip>();
-            if (elite != null) elite.TakeHit(EliteDamage.FriendlyFire, p);
+            if (elite != null)
+            {
+                EliteShip.HitBy = Kind == EliteShots.Kind.Glob ? (own ? "own resin pool" : "resin pool") : own ? "own shot" : "elite shot";
+                elite.TakeHit(EliteDamage.FriendlyFire, p);
+            }
             else EliteShip.FriendlyKill(t.gameObject);
             if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
             break;   // the registry may have changed

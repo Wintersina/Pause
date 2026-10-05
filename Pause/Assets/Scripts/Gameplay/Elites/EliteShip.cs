@@ -77,6 +77,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     // ---- counters (tests, previews) ----
     public static int Kills, CrashKills, FriendlyKills, Crashes;
     public static EliteDamage LastKillCause;
+    // Diagnostics (probes, tests): what the next hit comes from -- set by the
+    // code about to call TakeHit, cleared by it -- and a death callback
+    // (ship, cause, source). Constant strings only: nothing allocates.
+    public static string HitBy;
+    public static System.Action<EliteShip, EliteDamage, string> Died;
+    public string LastHitBy { get; private set; }
+    // Seconds since it joined the play layer.
+    public float PlaySeconds { get; private set; }
 
     public EliteDef Def { get; private set; }
     public EliteBrain Brain { get; private set; }
@@ -382,6 +390,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
 
     void StepPlay(float dt)
     {
+        PlaySeconds += dt;
         if (escapeLeft > 0f) escapeLeft -= dt;
         Perceive(dt);
 
@@ -627,6 +636,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             {
                 Crashes++;
                 EliteSystem.Fx.Sparks(new Vector2(side * edge, pos.y), Def.ShotColor, 8);
+                HitBy = "rail";
                 TakeHit(EliteDamage.Rail, new Vector3(side * edge, pos.y, 0f));
                 if (State == EliteState.Dead) return;
             }
@@ -658,11 +668,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             if (elite.grace > 0f) return;
             velocity = away * 3f;
             elite.velocity = -away * 3f;
+            HitBy = "elite body";
             elite.TakeHit(EliteDamage.Crash, pos);
+            HitBy = "elite body";
             TakeHit(EliteDamage.Crash, at);
             return;
         }
         bool rock = other.CompareTag("Astr");
+        string what = SourceName(other);
         FriendlyKill(other);
         if (rock && Acting && Attack.Ploughs)
         {
@@ -677,7 +690,24 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             return;
         }
         velocity = away * 2.5f + velocity * .3f;
+        HitBy = what;
         TakeHit(EliteDamage.Crash, at);
+    }
+
+    // What a hazard is, for the diagnostics (constant strings).
+    public static string SourceName(GameObject go)
+    {
+        var d = EnemyIdentity.Of(go);
+        if (d == null) return go != null && go.CompareTag("Astr") ? "rock body" : "enemy body";
+        switch (d.role)
+        {
+            case EnemyRole.Rock: return "rock body";
+            case EnemyRole.Mine: return "mine body";
+            case EnemyRole.Chaser: return "chaser body";
+            case EnemyRole.Alien: return "alien body";
+            case EnemyRole.Big: return "heavy body";
+            default: return "fighter body";
+        }
     }
 
     // A hazard destroyed by an elite (a crash, its shots): the blast and the
@@ -697,10 +727,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     // One heart (two for a shielded ram); false if it was in its grace.
     public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
     {
+        string by = HitBy;
+        HitBy = null;
         if (State == EliteState.Dead || !InPlay) return false;
         if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino) return false;   // Domino: the death crash's wreckage (DeathCrash)
         Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
         LastHitCause = cause;
+        LastHitBy = by;
         impactPending = true;
         impactAt = at;
         grace = GraceSeconds;
@@ -733,6 +766,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         if (footprint != null) footprint.enabled = false;
         if (Attack != null) Attack.End();
         EliteRewards.Pay(this);
+        if (Died != null) Died(this, cause, LastHitBy);
         EliteDeath.Play(this, cause);
         BossUtil.Kill(gameObject);
     }

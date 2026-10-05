@@ -152,13 +152,19 @@ public class EliteDirector : MonoBehaviour
             var def = defs[Random.Range(0, defs.Count)];
             float park = Random.Range(ParkSeconds.x, ParkSeconds.y) + stagger;
             stagger += Random.Range(.8f, 1.6f);
-            var brain = EliteBrains.Create(def.brain);
-            EliteShip.Create(def, sites[s], park, JoinPoint(def, brain.JoinFrom, sites[s].Position));
+            Spawn(def, sites[s], park);
             made++;
-            Spawned++;
         }
         if (made > 0) Groups++;
         return made;
+    }
+
+    // One elite of `def` parked on `site` for `park` seconds.
+    public EliteShip Spawn(EliteDef def, LandingSite site, float park)
+    {
+        var brain = EliteBrains.Create(def.brain);
+        Spawned++;
+        return EliteShip.Create(def, site, park, JoinPoint(def, brain.JoinFrom, site.Position));
     }
 
     int PickSite()
