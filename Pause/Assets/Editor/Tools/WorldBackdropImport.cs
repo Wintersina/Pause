@@ -45,7 +45,9 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        ti.maxTextureSize = file.StartsWith("forest_industrial_center_v") ? 512 : 1024;
+        // Verdant's central world tile is the visual anchor behind the thick
+        // rails. Keep its high-resolution industrial detail on modern phones.
+        ti.maxTextureSize = 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
