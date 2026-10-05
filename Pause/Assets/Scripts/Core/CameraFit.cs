@@ -19,6 +19,10 @@ using UnityEngine.SceneManagement;
 // obstacle arrives -- so only width is protected.
 public class CameraFit : MonoBehaviour
 {
+    // Approved rail reference: the full reinforced sides frame the lane.
+    // Their outer silhouette sits near +/-3.7; the old 2.85 view cropped
+    // almost all of that art away on phones.
+    public const float GameplayHalfWidth = 3.72f;
     [Tooltip("Minimum visible half-width, in world units. The player reaches " +
              "+/-2.4 and the walls' inner edge sits at about +/-2.5.")]
     public float minHalfWidth = 2.85f;
@@ -122,7 +126,8 @@ public static class CameraFitBootstrap
     {
         var cam = Camera.main;
         if (cam == null) return;
-        if (cam.GetComponent<CameraFit>() == null)
-            cam.gameObject.AddComponent<CameraFit>();
+        var fit = cam.GetComponent<CameraFit>() ?? cam.gameObject.AddComponent<CameraFit>();
+        if (cam.gameObject.scene.name == "gameS1" || cam.gameObject.scene.name == "tutorialS5")
+            fit.minHalfWidth = CameraFit.GameplayHalfWidth;
     }
 }

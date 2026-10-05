@@ -51,6 +51,29 @@ public class RailFit : MonoBehaviour
         var scale = transform.localScale;
         scale.y = requiredWorldHeight / meshHeight;
         transform.localScale = scale;
+        RefreshTextureTiling(gameObject);
+    }
+
+    // Extending the mesh to cover a taller screen must repeat the art rather
+    // than stretch its bolts, pipes and lamps. Recompute after world changes
+    // too, because each texture has a different transparent canvas width.
+    public static void RefreshTextureTiling(GameObject wall)
+    {
+        var renderer = wall.GetComponent<Renderer>();
+        var mesh = wall.GetComponent<MeshFilter>();
+        if (renderer == null || mesh == null || mesh.sharedMesh == null) return;
+        var mat = renderer.material;
+        var texture = mat.mainTexture;
+        if (texture == null || texture.width == 0) return;
+        var bounds = mesh.sharedMesh.bounds.size;
+        float width = Mathf.Abs(bounds.x * wall.transform.lossyScale.x);
+        float height = Mathf.Abs(bounds.y * wall.transform.lossyScale.y);
+        float overlap = mat.HasProperty("_Overlap") ? mat.GetFloat("_Overlap") : 0f;
+        float tileHeight = width * texture.height / texture.width * (1f - overlap);
+        if (tileHeight <= 0) return;
+        var tiling = mat.mainTextureScale;
+        tiling.y = height / tileHeight;
+        mat.mainTextureScale = tiling;
     }
 }
 

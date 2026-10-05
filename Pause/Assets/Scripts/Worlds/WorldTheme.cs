@@ -9,8 +9,8 @@ using UnityEngine;
 // surgery.
 //
 // Wall textures live at Resources/Worlds/<resourceFolder>/:
-//   wallLeft      64 x 448,  seamless vertical tile
-//   wallRight     64 x 448,  seamless vertical tile
+//   rail_<theme>_wide_v1   reinforced industrial tile, mirrored on the right
+//   wallLeft / wallRight  legacy fallback for worlds without a reinforced rail
 // Backgrounds live at Resources/Worlds/<displayName>/Backdrop/ (see
 // BackdropCatalog), generated from Assets/Art/Worlds/<displayName>/src~/.
 [System.Serializable]
@@ -18,9 +18,8 @@ public class WorldTheme
 {
     public string displayName = "Space";
 
-    [Tooltip("Folder under Resources/Worlds/. Empty means the scene's own " +
-             "authored art is left alone -- that is how the original space " +
-             "world stays exactly as it was.")]
+    [Tooltip("Folder under Resources/Worlds/. Reinforced rails use the world " +
+             "display name when empty; worlds without one keep scene art.")]
     public string resourceFolder = "";
 
     [Tooltip("Multiplied into the walls. Lets one texture set be " +

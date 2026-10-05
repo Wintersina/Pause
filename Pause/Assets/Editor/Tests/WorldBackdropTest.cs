@@ -427,6 +427,13 @@ public static class WorldBackdropTest
         for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
         {
             string world = WorldManager.Worlds[wi].displayName;
+            // The reinforced planet rails replace the legacy flat wall pair.
+            // Validate the art that WorldPainter actually binds at runtime.
+            if (WorldPainter.RailTextureName(world) != null)
+            {
+                failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
+                continue;
+            }
             var paths = WallPaths(wi);
             Color32[] left = null;
             for (int side = 0; side < 2; side++)
