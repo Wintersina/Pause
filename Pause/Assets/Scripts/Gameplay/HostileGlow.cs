@@ -28,8 +28,10 @@ public static class HostileGlow
     public const float FillAlpha = .22f, DarkAlpha = .85f, HaloAlpha = .55f;
     public const float PulseHz = 2.2f, PulseScale = .07f, PulseAlpha = .15f;
     public const int SortBehindShots = 29, SortBehindBeam = 25;
-    // A boss shot's drawn body, as a multiple of its hit radius; a laser's
-    // as a share of its drawn width (half of it: the edge).
+    // A boss shot's drawn body, as a multiple of its hit radius (only the
+    // fallback now: boss shots wear BossArt.ShotRim, a rim cut from their
+    // own silhouette, and this wrapper only if that could not be built); a
+    // laser's as a share of its drawn width (half of it: the edge).
     public const float BossShotBody = 1.35f, BeamBody = .5f;
     // An elite shot's drawn body: half its drawn diameter (shotSize).
     public const float EliteShotBody = .5f;
@@ -126,7 +128,8 @@ public static class HostileGlow
     }
 
     // The wrapper's pulse at `age` seconds: a scale factor, an alpha.
-    public static float PulseScaleAt(float age) => 1f + PulseScale * Mathf.Sin(age * PulseHz * 2f * Mathf.PI);
+    public static float PulseScaleAt(float age) => PulseScaleAt(age, PulseScale);
+    public static float PulseScaleAt(float age, float amount) => 1f + amount * Mathf.Sin(age * PulseHz * 2f * Mathf.PI);
     public static float PulseAlphaAt(float age) => 1f - PulseAlpha * (.5f + .5f * Mathf.Sin(age * PulseHz * 2f * Mathf.PI + 1.3f));
 
     // A glow renderer child under `parent`, drawn just behind the shot.
