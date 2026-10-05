@@ -67,6 +67,7 @@ public static class AllTests
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HeartsPlacementTest", HeartsPlacementTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
+        ("HostileProjectileTest", HostileProjectileTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
         ("LoopTest", LoopTest.Execute),

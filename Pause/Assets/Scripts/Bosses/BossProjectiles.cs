@@ -52,9 +52,11 @@ public static class BossHitbox
 // and meets the side rails as its attack says (BossRailMode): ricochets
 // (mirrored off the rail's inner face, a spark, a bounce spent), splashes
 // (a spark, gone) or flies on past.
-public class BossProjectile : MonoBehaviour
+public class BossProjectile : MonoBehaviour, IHostileShot
 {
-    SpriteRenderer sr;
+    SpriteRenderer sr, glow;     // glow: the visibility wrapper (HostileGlow)
+    float glowBase;              // its local scale before the pulse
+    Color glowTint;
     GameObject hitbox;
     BossDef boss;
     BossShotStyle style;
@@ -76,8 +78,30 @@ public class BossProjectile : MonoBehaviour
     public float Radius => radius;
     public Vector3 LaunchedAt => launchedAt;
     // Why it last left play (tests): 0 none, 1 off screen, 2 splashed on a
-    // rail, 3 hitbox destroyed (hit the ship, shot down, erased).
+    // rail, 3 hitbox destroyed (hit the ship, shot down, erased), 4 hit a
+    // hazard (friendly fire), 5 broken by another shot or a player shot.
     public int EndReason { get; private set; }
+    public SpriteRenderer Glow => glow;
+    public float Age => age;
+
+    // IHostileShot (HostileShots: shot vs shot)
+    public bool ShotCollidable => Active && hitbox != null;
+    public Vector2 ShotPosition => transform.position;
+    public float ShotRadius => radius;
+    public int ShotOwner => pool != null ? pool.OwnerId : 0;
+    public float ShotAge => age;
+    public int ShotMass => HostileShots.Light;
+    public Color ShotTint => boss != null ? boss.flash : Color.white;
+
+    public void ShotPop(Vector2 at)
+    {
+        if (!Active) return;
+        if (pool != null) pool.Spark(boss, at);
+        EndReason = 5;
+        Recycle();
+    }
+
+    void OnDestroy() { HostileShots.Unregister(this); }
 
     public static BossProjectile Create(Transform root, BossProjectilePool owner)
     {
@@ -87,6 +111,8 @@ public class BossProjectile : MonoBehaviour
         p.pool = owner;
         p.sr = go.AddComponent<SpriteRenderer>();
         p.sr.sortingOrder = 30;
+        p.glow = HostileGlow.Attach(go.transform, HostileGlow.SortBehindShots);
+        HostileShots.Register(p);
         go.SetActive(false);
         return p;
     }
@@ -122,9 +148,22 @@ public class BossProjectile : MonoBehaviour
             var col = hitbox.GetComponent<CircleCollider2D>();
             if (col != null) col.radius = radius / size;
         }
+        // The wrapper: the body sits at its hairline; the art is drawn at
+        // the size it always was (the root's scale), the hitbox unchanged.
+        glowBase = HostileGlow.DiameterFor(radius * HostileGlow.BossShotBody) / size;
+        glowTint = HostileGlow.Tint(boss != null ? boss.flash : Color.white);
+        Pulse();
         Active = true;
         gameObject.SetActive(true);
         sr.sprite = BossArt.Shot(boss, FirstCell);
+    }
+
+    void Pulse()
+    {
+        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age));
+        var c = glowTint;
+        c.a = HostileGlow.PulseAlphaAt(age);
+        glow.color = c;
     }
 
     // Art points down the screen; turn it to face along its velocity.
@@ -183,6 +222,11 @@ public class BossProjectile : MonoBehaviour
         transform.position = p;
         int frame = BossArt.FrameAt(BossArt.ShotTicks, age, true);
         sr.sprite = BossArt.Shot(boss, FirstCell + frame);
+        Pulse();
+
+        // Friendly fire: a rock, an enemy, a mine or an elite in its way
+        // takes the hit (unpaid; FriendlyFire) and the shot is spent.
+        if (HitsHazard(p)) { EndReason = 4; Recycle(); return; }
 
         // off screen: past the view's edge (it grows on tall screens), never
         // nearer than the authored -6.5 / 7.5
@@ -191,6 +235,24 @@ public class BossProjectile : MonoBehaviour
             EndReason = 1;
             Recycle();
         }
+    }
+
+    bool HitsHazard(Vector3 p)
+    {
+        if (DeathCrash.Running) return false;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
+            float R = radius + t.Radius * .8f;
+            Vector3 d = t.transform.position - p;
+            if (d.x * d.x + d.y * d.y > R * R) continue;
+            if (FriendlyFire.Immune(t.gameObject)) continue;
+            FriendlyFire.Hit(t.gameObject, p);
+            return true;
+        }
+        return false;
     }
 
     public void Recycle()
@@ -211,7 +273,9 @@ public class BossProjectile : MonoBehaviour
 // hurts.
 public class BossBeam : MonoBehaviour
 {
-    SpriteRenderer sight, beam, flash, impact;
+    SpriteRenderer sight, beam, flash, impact, sheath;   // sheath: the glow along its length (HostileGlow)
+    Color sheathTint;
+    BossProjectilePool pool;
     GameObject hitbox;
     BoxCollider2D box;
     BossDef boss;
@@ -237,12 +301,31 @@ public class BossBeam : MonoBehaviour
     public BossActor Owner => owner;
     public Vector2 Direction => Heading(Angle);
     public float X => origin.x;
+    public SpriteRenderer Sheath => sheath;
+    public int OwnerId => pool != null ? pool.OwnerId : 0;
+    public float LiveAge => age;   // seconds since it ignited (once live)
 
-    public static BossBeam Create(Transform root)
+    // Does a circle at p (radius r) touch the live beam's hitbox?
+    public bool Touches(Vector2 p, float r)
+    {
+        if (!Live) return false;
+        Vector2 o = origin, d = Direction;
+        float t = Mathf.Clamp(Vector2.Dot(p - o, d), 0f, length);
+        float half = width * BossConfig.BeamHitFraction * .5f + r;
+        return (o + d * t - p).sqrMagnitude < half * half;
+    }
+
+    void OnDestroy() { HostileShots.Unregister(this); }
+
+    public static BossBeam Create(Transform root, BossProjectilePool owner = null)
     {
         var go = new GameObject("BossBeam");
         go.transform.SetParent(root, false);
         var b = go.AddComponent<BossBeam>();
+        b.pool = owner;
+        b.sheath = HostileGlow.Attach(go.transform, HostileGlow.SortBehindBeam, beam: true);
+        b.sheath.enabled = false;
+        HostileShots.Register(b);
         b.sight = Piece(go.transform, "Sight", 24);
         b.beam = Piece(go.transform, "Beam", 26);
         b.flash = Piece(go.transform, "Flash", 31);
@@ -287,6 +370,8 @@ public class BossBeam : MonoBehaviour
         impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0);
         sight.enabled = true;
         beam.enabled = flash.enabled = impact.enabled = false;
+        sheath.enabled = false;
+        sheathTint = HostileGlow.Tint(boss != null ? boss.flash : Color.white);
 
         Active = true;
         gameObject.SetActive(true);
@@ -362,6 +447,7 @@ public class BossBeam : MonoBehaviour
         Angle = startDeg;
         sight.enabled = false;
         beam.enabled = flash.enabled = true;
+        sheath.enabled = true;
         hitbox = BossHitbox.Box(transform, "BossBeamHit", new Vector2(width * BossConfig.BeamHitFraction, .01f));
         box = hitbox.GetComponent<BoxCollider2D>();
         Place(0f);
@@ -405,6 +491,13 @@ public class BossBeam : MonoBehaviour
             w *= step % 2 == 0 ? 1f : .85f;
         }
         Span(beam.transform, w, length);
+        // the sheath: the same wrapper as a shot, along the beam's length
+        sheath.transform.localPosition = new Vector3(0f, length * .5f, 0f);
+        sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
+                                                  Mathf.Max(.001f, length) / HostileGlow.SheathHeight, 1f);
+        var sc = sheathTint;
+        sc.a = HostileGlow.PulseAlphaAt(age);
+        sheath.color = sc;
         beam.sprite = BossArt.Shot(boss, BossArt.Beam0 + BossArt.FrameAt(BossArt.BeamTicks, age, true));
 
         int f = BossArt.FrameAt(BossAttackFx.FlashTickTable, age, true);
@@ -426,6 +519,30 @@ public class BossBeam : MonoBehaviour
         {
             box.size = new Vector2(width * BossConfig.BeamHitFraction, Mathf.Max(.01f, length));
             box.offset = new Vector2(0f, length * .5f);
+            BurnHazards();
+        }
+    }
+
+    // Friendly fire: everything the live beam crosses -- rocks, enemies,
+    // mines -- is destroyed (unpaid), an elite loses a heart. One a frame
+    // (the registry changes under a kill).
+    void BurnHazards()
+    {
+        if (DeathCrash.Running || length <= 0f) return;
+        var live = ClearTarget.Live;
+        Vector2 o = origin, d = Direction;
+        float half = width * BossConfig.BeamHitFraction * .5f;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
+            Vector2 p = t.transform.position;
+            float along = Mathf.Clamp(Vector2.Dot(p - o, d), 0f, length);
+            float R = half + t.Radius * .8f;
+            if ((o + d * along - p).sqrMagnitude > R * R) continue;
+            if (FriendlyFire.Immune(t.gameObject)) continue;
+            FriendlyFire.Hit(t.gameObject, o + d * along);
+            return;
         }
     }
 
@@ -439,6 +556,7 @@ public class BossBeam : MonoBehaviour
     {
         Active = false;
         live = fading = false;
+        if (sheath != null) sheath.enabled = false;
         if (hitbox != null) { BossUtil.Kill(hitbox); hitbox = null; box = null; }
         gameObject.SetActive(false);
     }
@@ -505,9 +623,12 @@ public sealed class BossProjectilePool
         this.maxBeams = Mathf.Max(1, maxBeams);
         maxSparks = Mathf.Max(1, BossConfig.SparkPoolMax);
         root = new GameObject("~BossProjectiles");
+        OwnerId = root.GetInstanceID();
     }
 
     public int Capacity => maxShots;
+    // Who fired, for the shot-vs-shot volley rule (HostileShots).
+    public int OwnerId { get; }
     public int BeamCapacity => maxBeams;
     public int Created => shots.Count;
     public int BeamsCreated => beams.Count;
@@ -567,7 +688,7 @@ public sealed class BossProjectilePool
         if (b == null)
         {
             if (beams.Count >= maxBeams || root == null) return null;
-            b = BossBeam.Create(root.transform);
+            b = BossBeam.Create(root.transform, this);
             beams.Add(b);
         }
         b.Begin(boss, owner, part, from, angleDeg, sweepDeg, tell, hold, width);
@@ -594,6 +715,7 @@ public sealed class BossProjectilePool
         for (int i = 0; i < shots.Count; i++) if (shots[i] != null) shots[i].Step(dt);
         for (int i = 0; i < beams.Count; i++) if (beams[i] != null) beams[i].Step(dt);
         for (int i = 0; i < sparks.Count; i++) if (sparks[i] != null) sparks[i].Step(dt);
+        if (dt > 0f) HostileShots.Resolve();   // shot vs shot, lasers burning shots
     }
 
     public void RecycleAll()
