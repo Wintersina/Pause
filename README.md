@@ -31,6 +31,23 @@ $UNITY -batchmode -quit -projectPath Pause -executeMethod BuildScript.BuildMac
 
 Output lands in `Pause/Builds/`.
 
+### Local shortcuts
+
+The root `Makefile` wraps the common local workflows:
+
+```bash
+make mac-run              # build and launch the Mac app
+make mac-dev-run          # build and launch the PAUSE_DEV Mac app
+make android-deploy       # build, install, and launch on a connected Android device
+make android-dev-deploy   # same, using the PAUSE_DEV build
+make android-log          # stream Unity logs from the device
+```
+
+`android-*` commands require `adb` with USB debugging enabled. If more than one
+device is connected, select one with `ANDROID_SERIAL=<serial> make android-deploy`.
+Set `UNITY=/path/to/Unity` if Unity is installed somewhere other than the default
+Unity Hub location.
+
 ## Credits
 
 - **Developed by** — Sina Serati
