@@ -86,8 +86,13 @@ public static class DifficultyRebalanceTest
         var leftRail = (Transform)spawnRail.Invoke(comp, new object[] { false });
         Check("SpawnRail(true) lands on the positive-x side", rightRail.position.x > 0f);
         Check("SpawnRail(false) lands on the negative-x side", leftRail.position.x < 0f);
-        Check("right rail is inside the visible play lane", rightRail.position.x <= 2.35f);
-        Check("left rail is inside the visible play lane", leftRail.position.x >= -2.35f);
+        // (the mines ride the DRAWN rail now, not the old 2.35 lane edge: RailsVettingTest
+        // holds the clamp against the rail art in every world)
+        float halfW = Camera.main != null ? Camera.main.orthographicSize * Camera.main.aspect : 3.72f;
+        Check("right rail is inside what the camera shows and where enmiesOnBoard.WorldRailX says (" + rightRail.position.x.ToString("F3") + ")",
+              rightRail.position.x < halfW && Mathf.Approximately(rightRail.position.x, enmiesOnBoard.WorldRailX(false)));
+        Check("left rail mirrors it (" + leftRail.position.x.ToString("F3") + ")",
+              leftRail.position.x > -halfW && Mathf.Approximately(leftRail.position.x, -rightRail.position.x));
 
         // Move the right rail far away in Y and leave the left one close --
         // a search that ignored side would now prefer the (far) right rail

@@ -49,6 +49,10 @@ public static class WorldPainter
             Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
             Paint(RightWallName, rail, theme.tint, cachedRight, true);
             SetRailLayout(theme.displayName);
+            // the rails just changed: the edge everything bounces off, crashes
+            // into and breaks on (BossRails.InnerEdge; elites, shots) is the
+            // drawn one from now on, not only after the first boss intro
+            BossRails.Measure();
         }
         else
         {

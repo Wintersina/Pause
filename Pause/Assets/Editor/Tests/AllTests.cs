@@ -84,6 +84,7 @@ public static class AllTests
         ("PickupRulesTest", PickupRulesTest.Execute),
         ("PostHitInvulnTest", PostHitInvulnTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
+        ("RailsVettingTest", RailsVettingTest.Execute),
         ("RamKillTest", RamKillTest.Execute),
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),
         ("ResumeFxTest", ResumeFxTest.Execute),

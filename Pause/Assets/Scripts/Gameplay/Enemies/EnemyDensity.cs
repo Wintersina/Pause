@@ -62,9 +62,25 @@ public static class EnemyDensity
         return Disabled ? 1f : Mathf.Lerp(RateAtLowSpeed, RateAtHighSpeed, K(hud));
     }
 
+    // The ceilings above are for the authored 10 u view. A taller view shows
+    // more board (CameraFit: 13.2 u at 1080x1920, 17.4 u at 1080x2520), so
+    // the same density of hazards is more bodies in view: the ceiling grows
+    // with the stretch of board it counts, or tall phones would get a
+    // sparser board than short ones.
+    public const float AuthoredViewHeight = 10f;
+
+    public static float ViewScale
+    {
+        get
+        {
+            float h = CameraFit.ViewTop - CameraFit.ViewBottom;
+            return Mathf.Max(1f, (h + CountAboveView) / (AuthoredViewHeight + CountAboveView));
+        }
+    }
+
     public static float MaxThreats(float hud)
     {
-        return Disabled ? float.MaxValue : Mathf.Lerp(ThreatsAtLowSpeed, ThreatsAtHighSpeed, K(hud));
+        return Disabled ? float.MaxValue : Mathf.Lerp(ThreatsAtLowSpeed, ThreatsAtHighSpeed, K(hud)) * ViewScale;
     }
 
     // Bodies in play (in the view or about to enter it) plus weighted shots.

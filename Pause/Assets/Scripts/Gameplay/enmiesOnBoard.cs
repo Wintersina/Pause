@@ -105,9 +105,51 @@ public class enmiesOnBoard : MonoBehaviour {
 
     // A new world begins with a short, scenic fly-in. A ship that already
     // launches at SPEED 10+ skips that beat and reaches the encounter pace.
+    //
+    // The window belongs to each WORLD ARRIVAL, not to the scene: it starts
+    // again when a portal brings the ship to the next world (or back round
+    // on a loop), unless the ship arrives at SPEED 10+. Nothing spawns in it
+    // -- hazards, pilots, chasers, the deferred queue -- and when it ends the
+    // slots come in one after another (StaggerAfterCalm), never as a burst.
     public const int FastArrivalHudSpeed = 10;
     public const float CalmArrivalSeconds = 8f;
     bool openingEncounterPrimed;
+    float calmEndsAt;          // elapsedFlightSeconds when this arrival's window ends
+    int arrivalKey = -1;       // world + loop the current window belongs to
+
+    public bool InCalmWindow => !openingEncounterPrimed;
+    public int CalmWindows { get; private set; }   // windows begun (tests)
+
+    static int ArrivalKey()
+    {
+        return EnemyRoster.CurrentWorld + 16 * RunLoop.Index;
+    }
+
+    // A new world (a portal, a loop): the calm arrival again, unless the
+    // ship is already fast. Whatever was queued for the old world is dropped.
+    void BeginArrival()
+    {
+        arrivalKey = ArrivalKey();
+        deferredCount = 0;
+        if (Mathf.RoundToInt(moveBackGround.speed * 100f) >= FastArrivalHudSpeed) { PrimeOpeningEncounter(); return; }
+        openingEncounterPrimed = false;
+        calmEndsAt = elapsedFlightSeconds + CalmArrivalSeconds;
+        CalmWindows++;
+    }
+
+    // The least each slot waits after a calm window ends, so the board fills
+    // one enemy at a time (the first heavy and rock: PrimeOpeningEncounter).
+    void StaggerAfterCalm()
+    {
+        railDelayTimer = Mathf.Max(railDelayTimer, .5f);
+        mineDelayTimer = Mathf.Max(mineDelayTimer, 4f);
+        midAstroidDelayTimer = Mathf.Max(midAstroidDelayTimer, 5f);
+        spawnAnimatedEnimeOneDelayTimer = Mathf.Max(spawnAnimatedEnimeOneDelayTimer, 6f);
+        smallAstroidDelayTimer = Mathf.Max(smallAstroidDelayTimer, 7f);
+        extraEnemyDelayTimer = Mathf.Max(extraEnemyDelayTimer, 8f);
+        bigAstroidDelayTimer = Mathf.Max(bigAstroidDelayTimer, 9f);
+        chaserDelayTimer = Mathf.Max(chaserDelayTimer, 10f);
+    }
 
     void Start () {
 
@@ -135,6 +177,9 @@ public class enmiesOnBoard : MonoBehaviour {
         mineDelayTimer = 10f;
         chaserDelayTimer = 20f;
 
+        arrivalKey = ArrivalKey();
+        calmEndsAt = CalmArrivalSeconds;
+        CalmWindows = 1;
         if (ShipStartSpeed.EquippedHud() >= FastArrivalHudSpeed)
             PrimeOpeningEncounter();
     }
@@ -236,8 +281,7 @@ public class enmiesOnBoard : MonoBehaviour {
         // A boss encounter clears the board and suspends normal spawning.
         if (flying && !BossEncounter.SuspendsSpawning)
         {
-            if (!openingEncounterPrimed && elapsedFlightSeconds >= CalmArrivalSeconds)
-                PrimeOpeningEncounter();
+            StepCalmArrival();
             if (openingEncounterPrimed) spawn();
         }
     }
@@ -535,14 +579,23 @@ public class enmiesOnBoard : MonoBehaviour {
         return spawned.transform;
     }
 
-    static float WorldRailX(bool left)
+    // Where a rail mine's centre rides: clamped to the DRAWN rail. The wall
+    // quad is no guide (it carries the texture's transparent canvas well into
+    // the lane), so the x comes from the rail art's visible inner edge
+    // (WorldPainter.VisibleRailEdges) and the mine art's own clamp
+    // (RailMineArt.MountX); a wall without the rail art keeps the authored
+    // lane edge. Never outside what the camera shows.
+    public static float WorldRailX(bool left)
     {
         GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
+        float inner, outer;
+        float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
+            ? RailMineArt.MountX(inner) : RailMineArt.FallbackRailX;
         var cam = Camera.main;
         float visibleLimit = cam != null && cam.orthographic
-            ? cam.orthographicSize * cam.aspect - .30f : 2.35f;
-        float safeLimit = Mathf.Max(.65f, Mathf.Min(2.35f, visibleLimit));
+            ? cam.orthographicSize * cam.aspect - .30f : railX;
+        float safeLimit = Mathf.Max(.65f, Mathf.Min(railX, visibleLimit));
         return Mathf.Sign(wallX == 0f ? (left ? -1f : 1f) : wallX) * safeLimit;
     }
 
@@ -601,6 +654,18 @@ public class enmiesOnBoard : MonoBehaviour {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud));
+    }
+
+    // The calm window's clock (Update; tests step it): a new world starts a
+    // new window, and a window that has run out primes the first encounter.
+    void StepCalmArrival()
+    {
+        if (ArrivalKey() != arrivalKey) BeginArrival();
+        if (!openingEncounterPrimed && elapsedFlightSeconds >= calmEndsAt)
+        {
+            StaggerAfterCalm();
+            PrimeOpeningEncounter();
+        }
     }
 
     void PrimeOpeningEncounter()

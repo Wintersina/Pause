@@ -29,7 +29,39 @@ public static class EnemyDensityProbe
 
     public const float Dt = 1f / 60f;
     public const float WarmupSeconds = 12f, WindowSeconds = 36f;
-    public const float ViewHalfHeight = 5f, SpawnY = 7f;
+    // The view the probe measures in: the scene camera's (10 u tall as
+    // authored; SetView makes it a phone's, as CameraFit would at run time).
+    public static float ViewHalfHeight => (CameraFit.ViewTop - CameraFit.ViewBottom) * .5f;
+    public static float SpawnY => CameraFit.ViewTop + 2f;
+    public const float AuthoredHalfHeight = 5f;
+
+    static float savedOrtho = -1f, savedAspect;
+
+    // The camera a `width` x `height` phone gets (CameraFit.GameplayHalfWidth).
+    public static void SetView(int width, int height)
+    {
+        var cam = Camera.main;
+        if (cam == null) return;
+        if (savedOrtho < 0f) { savedOrtho = cam.orthographicSize; savedAspect = cam.aspect; }
+        cam.aspect = width / (float)height;
+        cam.orthographicSize = CameraFit.ComputeSize(AuthoredHalfHeight, CameraFit.GameplayHalfWidth, width, height);
+    }
+
+    // The authored 10 u view the recorded baseline was measured in.
+    public static void SetAuthoredView()
+    {
+        var cam = Camera.main;
+        if (cam == null) return;
+        if (savedOrtho < 0f) { savedOrtho = cam.orthographicSize; savedAspect = cam.aspect; }
+        cam.orthographicSize = AuthoredHalfHeight;
+    }
+
+    public static void RestoreView()
+    {
+        var cam = Camera.main;
+        if (cam != null && savedOrtho > 0f) { cam.orthographicSize = savedOrtho; cam.aspect = savedAspect; }
+        savedOrtho = -1f;
+    }
 
     public struct Sample
     {
@@ -167,7 +199,7 @@ public static class EnemyDensityProbe
         foreach (var f in buffer)
         {
             float y = f.transform.position.y;
-            if (y < -8f || y > 20f) Object.DestroyImmediate(f.gameObject);   // off the board (departed pilots park at +/-60)
+            if (y < -ViewHalfHeight - 3f || y > ViewHalfHeight + 15f) Object.DestroyImmediate(f.gameObject);   // off the board (departed pilots park at +/-60)
         }
         EliteSystem.Step(Dt);
     }

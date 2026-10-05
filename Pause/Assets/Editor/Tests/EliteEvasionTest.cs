@@ -403,7 +403,7 @@ public static class EliteEvasionTest
         pilot.position = new Vector3(0f, -3.5f, 0f);
         EnemyDef lunger = null;
         foreach (var d in EnemyRoster.All)
-            if (d.Behaviour != null && d.Behaviour.attack == EnemyAttack.Lunge && d.Behaviour.lungeDive > 0f && d.role != EnemyRole.Chaser) { lunger = d; break; }
+            if (d.Behaviour != null && d.Behaviour.attack == EnemyAttack.Lunge && d.Behaviour.lungeDive > 0f && d.Behaviour.maxVolleys > 0 && d.role != EnemyRole.Chaser) { lunger = d; break; }   // (a scout's dash is its exit run: maxVolleys 0)
         var go = EnemyFactory.Create(lunger, new Vector3(0f, 3.2f, 0f), Quaternion.identity);
         var brain = go.GetComponent<EnemyBrain>();
         brain.TargetOverride = pilot;

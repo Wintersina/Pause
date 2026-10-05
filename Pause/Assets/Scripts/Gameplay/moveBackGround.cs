@@ -17,6 +17,25 @@ public class moveBackGround : MonoBehaviour {
     public static float speed;
     float offsetY;
     Material wallMaterial;
+    Renderer wallRenderer;
+
+    // The rail art rides the BOARD's scroll: `speed` x BoardScroll world
+    // units a second, the rate every hazard, pickup and rail mine falls at
+    // (SpawnSpace.ScrollSpeed). It used to advance the texture offset by
+    // `speed` tiles a second whatever a tile measured -- about 5.2 u
+    // (Frost, Verdant) or 6.8 u (Space, Ember) with the wide rails, 14 u
+    // before them -- so a mine clamped to a rail slid along the rail's own
+    // art. One switch back: RailRidesBoard = false.
+    public const float BoardScroll = 30f;
+    public static bool RailRidesBoard = true;
+
+    // Texture tiles a second the wall scrolls at `speed`, for a wall whose
+    // art repeats `tiles` times over `worldHeight` units.
+    public static float RailTilesPerSecond(float speed, float tiles, float worldHeight)
+    {
+        if (!RailRidesBoard || worldHeight <= 0f || tiles <= 0f) return speed;
+        return speed * BoardScroll * tiles / worldHeight;
+    }
 
     void Start () {
         offsetY = 0f;
@@ -24,6 +43,7 @@ public class moveBackGround : MonoBehaviour {
         // start speed (ShipStartSpeed). The tutorial keeps its own.
         speed = WorldManager.Instance != null ? WorldManager.RunStartSpeed(startSpeed) : startSpeed;
         var r = GetComponent<Renderer>();
+        wallRenderer = r;
         wallMaterial = r != null ? r.material : null;
         Screen.orientation = ScreenOrientation.Portrait;
     }
@@ -66,7 +86,10 @@ public class moveBackGround : MonoBehaviour {
     // `speed` the longer a run went on.
     void moveBackground()
     {
-        offsetY = Mathf.Repeat(offsetY + speed * Time.deltaTime, 1f);
+        float rate = speed;
+        if (wallMaterial != null && wallRenderer != null)
+            rate = RailTilesPerSecond(speed, Mathf.Abs(wallMaterial.mainTextureScale.y), wallRenderer.bounds.size.y);
+        offsetY = Mathf.Repeat(offsetY + rate * Time.deltaTime, 1f);
         if (wallMaterial != null) wallMaterial.mainTextureOffset = new Vector2(0f, offsetY);
     }
 

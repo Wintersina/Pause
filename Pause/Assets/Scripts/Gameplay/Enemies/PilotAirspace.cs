@@ -276,6 +276,20 @@ public static class PilotAirspace
         }
     }
 
+    // Is an elite in play over [xMin, xMax]? (Read only: EliteShip.Live.)
+    static bool EliteOver(float xMin, float xMax)
+    {
+        var elites = EliteShip.Live;
+        for (int i = 0; i < elites.Count; i++)
+        {
+            var e = elites[i];
+            if (e == null || !e.InPlay) continue;
+            float x = e.transform.position.x, r = e.Def != null ? e.Def.hullRadius : .3f;
+            if (xMin < x + r && xMax > x - r) return true;
+        }
+        return false;
+    }
+
     // ---- admission ----
 
     // Room for this pilot now? Gives the station x of a free column near
@@ -294,6 +308,9 @@ public static class PilotAirspace
         {
             float c = t == 0 && !float.IsNaN(preferredX) ? Mathf.Clamp(preferredX, -limit, limit) : Random.Range(-limit, limit);
             if (Blocks(c - half, c + half)) continue;
+            // an elite hovering there: somewhere else if there is anywhere
+            // else (the last tries take it anyway: an elite never starves a pilot)
+            if (t < Tries - 3 && EliteOver(c - half, c + half)) continue;
             x = c;
             Admitted++;
             return true;

@@ -52,6 +52,18 @@ public class EnemyBrain : MonoBehaviour
     public const float ShoveReturnSpeed = 3f;     // u/s back to its line after something pushed it (a shockwave)
     public const float SidestepLookSeconds = .5f; // how far up the board (seconds of scroll) it watches for hazards beside its column
 
+    // THE VIEW. A pilot's script is written for a view 10 u tall (the
+    // authored camera). The game's camera shows more than that and differs by
+    // phone (CameraFit: 13.2 u at 1080x1920, 17.4 u at 1080x2520), so every
+    // distance and speed a pilot flies by -- station depth, entry, exit and
+    // run speeds, dives, the windup clearances, its shots' speed -- is
+    // multiplied by ViewScale: a pilot holds the same place ON SCREEN, takes
+    // the same time to arrive and leave, and its shots take the same time to
+    // reach the ship, whatever the camera shows. Lateral numbers are not
+    // scaled (the lane is as wide as it was).
+    public const float AuthoredViewHeight = 10f;
+    public static float ViewScale => Mathf.Max(.5f, (CameraFit.ViewTop - CameraFit.ViewBottom) / AuthoredViewHeight);
+
     // Pilots fly their engagement scripts (false: every enemy rides the
     // scroll as a hazard, the first pass's behaviour).
     public static bool PilotsEnabled = true;
@@ -140,6 +152,7 @@ public class EnemyBrain : MonoBehaviour
     Vector2 anchor;                 // world: where its pattern is centred
     float columnHalf, stageTime, engaged, waited, peelDir, runToX, runFromX;
     bool swoopDipped, runDiving, hasLastSet;
+    float viewScale = 1f;           // this frame's ViewScale (pilots; 1 for a hazard)
     Vector3 lastSet;                // where it last put itself (a different position next frame = it was pushed)
     SpawnFootprint footprint;
     moveEnimes weaverMover;
@@ -441,7 +454,9 @@ public class EnemyBrain : MonoBehaviour
         var t = Target;
         stageTime += dt;
         if (!Ordered && PilotAirspace.MustClear) Ordered = true;
-        float stationY = top - b.stationDepth;
+        float view = Mathf.Max(.5f, (top - bottom) / AuthoredViewHeight);
+        viewScale = view;
+        float stationY = top - b.stationDepth * view;
         bool descends = b.entry == PilotEntry.Descend;
 
         switch (Stage)
@@ -458,8 +473,8 @@ public class EnemyBrain : MonoBehaviour
             {
                 if (Ordered) { BeginExit(PilotExit.Climb); break; }
                 bool swoop = b.entry == PilotEntry.Swoop && !swoopDipped;
-                float goal = swoop ? stationY - SwoopOvershoot : stationY;
-                float speed = b.entrySpeed * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
+                float goal = swoop ? stationY - SwoopOvershoot * view : stationY;
+                float speed = b.entrySpeed * view * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
                 anchor.y = Mathf.MoveTowards(anchor.y, goal, speed * dt);
                 if (Mathf.Abs(anchor.y - goal) > 1e-3f) break;
                 if (swoop) swoopDipped = true;
@@ -470,7 +485,7 @@ public class EnemyBrain : MonoBehaviour
                 engaged += dt;
                 if (descends)
                 {
-                    anchor.y -= b.descendSpeed * dt;
+                    anchor.y -= b.descendSpeed * view * dt;
                     if (anchor.y < bottom - LeaveMargin) { Depart(PilotExit.Run); return; }
                 }
                 if (State != Phase.Idle) break;   // never leaves mid-attack
@@ -509,7 +524,7 @@ public class EnemyBrain : MonoBehaviour
         Vector2 from = p;
         Vector2 want = new Vector2(wantX, wantY);
         if (Displaced && (want - from).sqrMagnitude < .05f * .05f) Displaced = false;   // back on its line
-        Vector2 wish = Vector2.MoveTowards(from, want, (Displaced ? ShoveReturnSpeed : CatchUpSpeed) * dt);
+        Vector2 wish = Vector2.MoveTowards(from, want, (Displaced ? ShoveReturnSpeed : CatchUpSpeed * view) * dt);
 
         // the chaser's rule: never step into another body (another pilot, a
         // chaser, an elite, a hazard that got into its column anyway)
@@ -554,12 +569,12 @@ public class EnemyBrain : MonoBehaviour
                     if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.Release);
                 }
                 lx = Mathf.Lerp(runFromX, runToX, Mathf.Clamp01(stageTime / .25f)) - ox;
-                anchor.y -= b.runSpeed * Mathf.Clamp01(.4f + stageTime * 3f) * dt;
+                anchor.y -= b.runSpeed * viewScale * Mathf.Clamp01(.4f + stageTime * 3f) * dt;
                 if (anchor.y + oy + ly < bottom - LeaveMargin) Depart(PilotExit.Run);
                 break;
             default:
                 // retreats: eases off, then climbs away (a Peel swings to the open side)
-                anchor.y += b.exitSpeed * Mathf.Clamp01(.25f + stageTime * 1.5f) * dt;
+                anchor.y += b.exitSpeed * viewScale * Mathf.Clamp01(.25f + stageTime * 1.5f) * dt;
                 if (LeftBy == PilotExit.Peel)
                     ox = Mathf.MoveTowards(ox, peelDir * b.bandX - lx, 1.8f * dt);
                 if (anchor.y > top + LeaveMargin) Depart(LeftBy);
@@ -599,8 +614,9 @@ public class EnemyBrain : MonoBehaviour
         Vector3 s = t.position;
         if (Behaviour.attack == EnemyAttack.Cross)
             return Mathf.Abs(p.y - s.y) < 6f && p.y > s.y - .5f;   // its row matters, not its height
-        if (p.y - s.y < MinFireAbove) return false;
-        return ((Vector2)(s - p)).sqrMagnitude >= MinFireDistance * MinFireDistance;
+        if (p.y - s.y < MinFireAbove * viewScale) return false;
+        float clear = MinFireDistance * viewScale;
+        return ((Vector2)(s - p)).sqrMagnitude >= clear * clear;
     }
 
     // A body dash never starts through a friendly elite: one in the band it
@@ -613,7 +629,7 @@ public class EnemyBrain : MonoBehaviour
         var b = Behaviour;
         float seconds = Mathf.Max(TellFloorSeconds, b.tell) + b.lungeSeconds;
         float reachX = (b.lungeX > 0f ? b.bandX * 2f : 0f) + halfX;
-        float reachY = b.lungeDive + SpawnSpace.ScrollSpeed * seconds + halfX;
+        float reachY = b.lungeDive * viewScale + SpawnSpace.ScrollSpeed * seconds + halfX;
         for (int i = 0; i < live.Count; i++)
         {
             var e = live[i];
@@ -662,7 +678,7 @@ public class EnemyBrain : MonoBehaviour
         }
         if (State != Phase.Windup) return false;
         float baseX = transform.position.x - ox - lx;
-        reach = new Vector2(LungeGoal(baseX, Target) - lx, -b.lungeDive - ly);
+        reach = new Vector2(LungeGoal(baseX, Target) - lx, -b.lungeDive * viewScale - ly);
         inSeconds = Mathf.Max(0f, Mathf.Max(TellFloorSeconds, b.tell) - stateTime);
         return true;
     }
@@ -729,7 +745,7 @@ public class EnemyBrain : MonoBehaviour
             lungeFromX = lx;
             lungeFromY = ly;
             lungeToX = LungeGoal(baseX, t);
-            lungeToY = -b.lungeDive;
+            lungeToY = -b.lungeDive * viewScale;
             return;
         }
         ReleaseReservation();
@@ -863,6 +879,7 @@ public static class EnemyVolley
         var style = b.ShotStyle;
         var source = brain.gameObject;
         pilotVolley = brain.IsPilot;
+        pilotView = brain.IsPilot ? EnemyBrain.ViewScale : 1f;
         Volleys++;
         int n = 0;
         switch (b.attack)
@@ -917,7 +934,7 @@ public static class EnemyVolley
 
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
-        float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed : b.shotSpeed;
+        float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
         var s = pool.Fire(null, style, b.shotKind, at, direction * speed);
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);
@@ -925,6 +942,7 @@ public static class EnemyVolley
     }
 
     static bool pilotVolley;
+    static float pilotView = 1f;
 
     static Vector2 Turn(Vector2 v, float deg)
     {
