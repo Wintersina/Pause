@@ -13,7 +13,7 @@ using UnityEngine;
 // unless v/w covered the ~12.5 units from the spawn (5.5) to the bottom
 // destroyer (-7) -- v >= 7 u/s, HUD ~23 -- it never left: it dipped, flew back
 // off the top, and came round again, out of the ship's reach (the ship tops
-// out at y 4.5). Every run starts below HUD 23 (stock HUD 0 ramps ~0.3/s).
+// out at y 4.5 then; ShipReach now). Every run starts below HUD 23 (stock HUD 0 ramps ~0.3/s).
 //
 // Now the scroller hands atoms to this instead (Space.World; the spin stays
 // purely visual):
@@ -41,7 +41,6 @@ public class AtomWander
     public const float LateralSwing = 1.1f;         // sideways sway speed (amplitude ~0.8)
     public const float MinOmega = 1.2f, MaxOmega = 1.8f;   // loop rate, rad/s (3.5 - 5.2 s loops)
     public const float CeilingBelowTop = .8f;       // ceiling sits this far under the view's top
-    public const float ShipTopY = 4.5f;             // movePlayer.ClampPlayerY's top
     public const float ShipReachAbove = .35f;       // the hull still touches this far above it
     public const float SoftBand = 1.0f;             // upward motion fades out over this band
     public const float ExitBelowBottom = 1.0f;      // destroyed this far under the view
@@ -83,7 +82,14 @@ public class AtomWander
     // and within the ship's reach, whatever the screen's height.
     public static float Ceiling(float viewTop)
     {
-        return Mathf.Min(viewTop - CeilingBelowTop, ShipTopY + ShipReachAbove);
+        return Mathf.Min(viewTop - CeilingBelowTop, ShipTopFor(viewTop) + ShipReachAbove);
+    }
+
+    // The top of the ship's reach in a view centred on y 0 (the run's
+    // camera) whose top is `viewTop` (ShipReach: a share of the view).
+    public static float ShipTopFor(float viewTop)
+    {
+        return ShipReach.TopFor(PlayField.For(-viewTop, 2f * viewTop, Vector2.zero, default(Rect), -1f));
     }
 
     public static bool Gone(float y, float viewBottom)

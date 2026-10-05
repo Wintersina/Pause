@@ -5,8 +5,8 @@ using UnityEngine;
 // "Enemey_Item_Position" (the shared object enmiesOnBoard/spawnGoodStuff
 // spawn from, in both gameS1 and tutorialS5) sat at a fixed world Y -- 5.5 in
 // gameS1, tuned for the camera's default orthographicSize of 5, half a unit
-// of headroom above its visible top edge. CameraFit grows that size on tall
-// phones (up to 6.65 on the device it was written against), and nothing
+// of headroom above its visible top edge. CameraFit grows that size on
+// phones (6.6 on a 16:9 one, 8.7 on a 21:9 one, ~9.1 on 22:9), and nothing
 // repositioned the spawn point to match, so enemies and pickups started
 // appearing already inside the visible area on exactly the devices CameraFit
 // exists to support.

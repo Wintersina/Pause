@@ -901,3 +901,45 @@ three-argument `Mathf.Max` in `SpawnSpace.BodyHalf` (a params array, one allocat
 
 **Evidence.** `HazardSizeTest`; `HazardSizeRender.Run` writes per world a spawner-flown field, the same with lane
 and collider guides, and a smallest / typical / largest sheet per rock at 1080x2520.
+
+## Ship reach and boss height
+
+Branch `fix/ship-reach-and-boss-height`. Verified by simulation, tests (`ShipReachTest`) and editor renders
+(`ShipReachRender`); not played on a device.
+
+**Touch.** Absolute, not relative: every frame a finger is down the ship's centre is put 1 u above the finger
+(`ShipReach.FingerOffset`, the thumb pad never covers the hull), clamped to the reach; the first touch after a lift
+is a teleport there. The reach used to be the constant y -4.15 .. 4.5. In the original 2016 design (a 10 u view,
+the ship 1.5 u above the finger) the ship reached 15% .. 95% of the view; on phones the old constant gave 19% .. 84%
+(16:9) and 26% .. 76% (21:9): the bottom fifth to quarter was out of reach.
+
+**Chosen (all tunables in `ShipReach`, `PlayField`, `BossConfig`):**
+
+| | Rule | 1080x1920 | 1080x2520 | iPhone 15 |
+|---|---|---|---|---|
+| Ship floor | safe-area bottom + hull and flame (`HullBelow` 0.82) + `BottomMargin` 0.15 | -5.64 (7%) | -7.71 (6%) | -6.45 (10%) |
+| Ship ceiling | `TopShare` 0.60 of the view (never into the HUD band) | 1.32 (60%) | 1.74 (60%) | 1.61 (60%) |
+| HUD 35, top edge to the hull at the ceiling | | 0.48 s (was 0.17) | 0.63 s (was 0.37) | 0.59 s (was 0.31) |
+| Boss rest | cell top at the top of its sway `BossTopMargin` 0.2 under the HUD band (read-out + icons) | 3.38 (76%) | 4.71 (77%) | 3.78 (73%) |
+| Boss shot speed | x `ShotScale` = gap boss -> ship row (18% of the view) / authored 6.35 | x1.20 | x1.62 | x1.41 |
+| Ship ceiling in a boss fight | boss rest - (`MuzzleDrop` 1.2 + sway + `ShipGap` 1.0 x ShotScale + hull) | 0.42 (53%) | 1.33 (58%) | 0.62 (54%) |
+
+Why 60%: pilots own the top third of the view (stations 14% - 30% below its top, a Swoop dips 9% further, all
+scaled with the view), hazards appear at the top edge, the HUD band covers the top 9% - 13%. At 60% the hull stays
+under every station on every shape and the player has about half a second at HUD 35 to read what appears at the
+top. Sideways reach is unchanged (+/-2.4). The range is a pure function of the camera and the safe area, so it
+follows a fold or a gesture bar the frame it changes. `ShipReach.FitToView = false` / `BossConfig.FitToView = false`
+restore the old constants.
+
+**Dependents.** Pilots: windups at a ship on the ceiling keep the authored clearance (x view; 138/138 in the test);
+a Swoop's dip never drops onto a ship at the ceiling (`ShipReach.EntryFloor`, guard in `EnemyBrain`). A ship parked
+at the ceiling denies the windups of the deepest-station pilots (station depth over 2.4 u), as the old reach (higher)
+did more. Chasers from below reach a ship at the floor no sooner than in the authored view (unchanged spawn). The
+portal's station (50%), pickup atoms (their soft ceiling follows the reach), the tutorial's hovering atoms (they
+were below the old floor on 20:9+ phones) and the ship's start (y -2) are inside the reach on every shape; elites
+join away from a ship at either end. While a boss is up the ship's ceiling follows the boss down as it warps in.
+
+**Boss attacks** keep their time to the ship's row within 12% of the authored view on 16:9, 20:9, 21:9, 22:9 and
+iPhone 15 (before: up to 52% slower on tall phones); straight shots scale as a whole (aim and angles kept), lobs
+stretch vertically (columns kept), beams grow faster by the same factor. Fans and angled beams keep their angles,
+so on a tall screen they spread wider by the ship's row and meet the rails sooner: slightly easier, not retuned.

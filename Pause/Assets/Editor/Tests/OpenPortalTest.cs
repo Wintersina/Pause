@@ -287,7 +287,7 @@ public static class OpenPortalTest
             if (portal.OnStation)
             {
                 inView &= at.y - Portal.Radius >= CameraFit.ViewBottom && at.y + Portal.Radius <= CameraFit.ViewTop;
-                inReach &= Mathf.Abs(at.x) <= 2.4f && at.y >= -4.15f && at.y <= 4.5f;
+                inReach &= Mathf.Abs(at.x) <= ShipReach.HalfWidth && at.y >= ShipReach.Bottom && at.y <= ShipReach.Top;   // (was y -4.15..4.5)
                 minX = Mathf.Min(minX, at.x);
                 maxX = Mathf.Max(maxX, at.x);
             }

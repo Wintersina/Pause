@@ -44,7 +44,10 @@ public class Portal : MonoBehaviour
     // Flight seconds since it appeared.
     public float SecondsOpen { get { return clock; } }
 
-    public static float SpawnY { get { return Mathf.Max(7f, CameraFit.ViewTop + 1.2f); } }
+    // Just above the visible top on every screen (it was max(7, top + 1.2): 7
+    // only mattered for the authored 10 u view, whose top is +5).
+    public static float SpawnAboveTop = 1.2f;
+    public static float SpawnY { get { return CameraFit.ViewTop + SpawnAboveTop; } }
     public static float StationY { get { return Mathf.Lerp(CameraFit.ViewBottom, CameraFit.ViewTop, StationHeight); } }
     public static float ColumnHalf { get { return DriftHalf + Radius + ColumnMargin; } }
 
@@ -60,8 +63,7 @@ public class Portal : MonoBehaviour
     public static Portal Spawn(Color color)
     {
         var go = new GameObject("~Portal");
-        // Just above the visible top (7 on the authored view, higher on a
-        // tall screen), off-centre on a random side.
+        // Just above the visible top (SpawnY), off-centre on a random side.
         float side = Random.value < .5f ? -1f : 1f;
         float x = side * Random.Range(HomeMinX, HomeMaxX);
         go.transform.position = new Vector3(x, SpawnY, 0f);

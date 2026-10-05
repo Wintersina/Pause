@@ -37,7 +37,9 @@ public static class AtomFlightTest
     // Worst case: 9:24 view (half-height 7.6), spawn 0.5 over the top, gone
     // 1 under the bottom = 16.7 units at MinDescent 1.2 = 13.9 s, + the wander.
     const float MaxSeconds = 20f;
-    const float ShipLowestY = -4.15f;        // movePlayer.ClampPlayerY
+    // movePlayer's floor in a view (ShipReach; it was the constant -4.15)
+    static float ShipLowestY(float bottom, float top) =>
+        ShipReach.BottomFor(new PlayField.Frame { bottom = bottom, top = top, safeBottom = bottom, safeTop = top, bandBottom = top });
     const int AtomsPerCase = 120;
 
     static readonly float[] Speeds = { 0f, .05f, .15f, .30f, SpeedRamp.Cap + SpeedRamp.MaxBoost };
@@ -65,8 +67,10 @@ public static class AtomFlightTest
 
     static void Tuning()
     {
+        // (the reach's top was the constant 4.5; it is a share of the view now)
         Check("the ceiling is inside the ship's reach at every screen height",
-              AtomWander.Ceiling(5f) <= 4.5f + .5f && AtomWander.Ceiling(7.6f) <= 4.5f + .5f);
+              AtomWander.Ceiling(5f) <= AtomWander.ShipTopFor(5f) + .5f && AtomWander.Ceiling(7.6f) <= AtomWander.ShipTopFor(7.6f) + .5f &&
+              AtomWander.Ceiling(9.1f) <= AtomWander.ShipTopFor(9.1f) + .5f);
         Check("the ceiling is under the top of the default view (" + AtomWander.Ceiling(5f) + " < 5)",
               AtomWander.Ceiling(5f) < 5f);
         Check("atoms always drift down, even when the world stands still",
@@ -118,7 +122,7 @@ public static class AtomFlightTest
                 if (Mathf.Abs(p.x) > AtomWander.LaneHalfWidth + 1e-4f) outOfLane++;
                 if (entered && p.y > before + 1e-5f) bobbed++;
                 minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
-                if (p.y < ShipLowestY) crossedShip = true;
+                if (p.y < ShipLowestY(bottom, top)) crossedShip = true;
                 if (AtomWander.Gone(p.y, bottom)) { gone = true; break; }
             }
             if (!gone) stuck++;

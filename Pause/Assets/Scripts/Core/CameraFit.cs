@@ -23,8 +23,13 @@ public class CameraFit : MonoBehaviour
     // Their outer silhouette sits near +/-3.7; the old 2.85 view cropped
     // almost all of that art away on phones.
     public const float GameplayHalfWidth = 3.72f;
-    [Tooltip("Minimum visible half-width, in world units. The player reaches " +
-             "+/-2.4 and the walls' inner edge sits at about +/-2.5.")]
+    // 2.85 is the menus' floor (their art is laid out for it); the two
+    // gameplay scenes are switched to GameplayHalfWidth by the bootstrap
+    // below, so the run's view is 7.44 u wide and 13.2 u (16:9) to 18.2 u
+    // (22:9) tall -- ShipReach and BossConfig place the ship's reach and the
+    // boss in shares of that, not in the authored 10 u view's numbers.
+    [Tooltip("Minimum visible half-width, in world units. The menus keep 2.85 " +
+             "(the player reaches +/-2.4); gameplay scenes use GameplayHalfWidth.")]
     public float minHalfWidth = 2.85f;
 
     Camera cam;
@@ -104,7 +109,7 @@ public class CameraFit : MonoBehaviour
 
     // The main camera's visible top / bottom edge in world units, for
     // anything that must enter or leave just off screen: the view grows with
-    // the screen's height (up to ~7.6 half-height on a 9:24 phone), so a
+    // the screen's height (gameplay: 6.6 half-height at 16:9, ~9.9 at 9:24), so a
     // fixed "just above the top" Y pops into view on tall screens. Falls
     // back to the authored size-5 view without a camera.
     public static float ViewTop

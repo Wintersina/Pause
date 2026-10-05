@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 public class HealAtom : MonoBehaviour
 {
     public const string ObjectName = "healAtom";
+    public const float DespawnBelowView = 3f;
 
     static Sprite cached;
 
@@ -63,7 +64,9 @@ public class HealAtom : MonoBehaviour
         // The animation lives in PickupFlipbook (sprite overlays). Nothing here
         // may touch transform.localScale: an old pulse around 1.0 threw away
         // the ~0.04 fit scale set in Spawn and drew the atom ~25x too large.
-        if (transform.position.y < -12f) Destroy(gameObject);
+        // A backstop (AtomWander removes it one unit under the view): well
+        // under the visible bottom on every screen (it was a fixed -12).
+        if (transform.position.y < CameraFit.ViewBottom - DespawnBelowView) Destroy(gameObject);
     }
 
     // Square crop around the opaque art of heal_atom_green.png (1254 x 1254).
