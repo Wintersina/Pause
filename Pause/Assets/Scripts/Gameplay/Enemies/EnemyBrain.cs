@@ -474,6 +474,8 @@ public class EnemyBrain : MonoBehaviour
                 if (Ordered) { BeginExit(PilotExit.Climb); break; }
                 bool swoop = b.entry == PilotEntry.Swoop && !swoopDipped;
                 float goal = swoop ? stationY - SwoopOvershoot * view : stationY;
+                // the dip never drops its body onto a ship parked at the top of its reach
+                if (swoop) goal = Mathf.Max(goal, Mathf.Min(stationY, ShipReach.EntryFloor + halfX));
                 float speed = b.entrySpeed * view * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
                 anchor.y = Mathf.MoveTowards(anchor.y, goal, speed * dt);
                 if (Mathf.Abs(anchor.y - goal) > 1e-3f) break;
