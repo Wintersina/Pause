@@ -79,7 +79,7 @@ public static class LeaderboardTest
     // placeholder. (With the speed board retired, the real table has no
     // enabled board until the Play Console score id is pasted in.)
     const string TestScoreAndroid = "CgkTestTopScore", TestWorldAndroid = "CgkTestFurthestWorld";
-    static LeaderboardBoard[] LiveTable()
+    internal static LeaderboardBoard[] LiveTable()
     {
         return new[]
         {

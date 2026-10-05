@@ -35,17 +35,18 @@ form; the inverse is a bisection).
 
 Tunables, all in `SpeedRamp`: `Cap` .35, `EaseKnee` .25 (the ease spans `Cap - EaseKnee`).
 
-Seconds from a start of 0 to each HUD speed, first pass (old = linear to 30, 40% rate above):
+Seconds from a start of 0 to each HUD speed, first pass (old = linear to 30, 40% rate above)
+*(measured, `SpeedCapTest` "TABLE ramp")*:
 
 | World | rate HUD/s | to 10 old / new | to 20 | to 30 | to 35 | old cap, reached at |
 |---|---|---|---|---|---|---|
-| Space | 0.315 | 31.7 / 31.7 | 63.5 / 63.5 | 95.2 / 98.0 | 134.9 / 142.9 | 38 at 159 s |
-| Frost | 0.330 | 30.3 / 30.3 | 60.6 / 60.6 | 90.9 / 93.5 | 128.8 / 136.4 | 40 at 167 s |
-| Verdant | 0.345 | 29.0 / 29.0 | 58.0 / 58.0 | 87.0 / 89.5 | 123.2 / 130.4 | 42 at 174 s |
-| Ember | 0.365 | 27.4 / 27.4 | 54.8 / 54.8 | 82.2 / 84.6 | 116.4 / 123.3 | 44 at 178 s |
+| Space | 0.315 | 31.7 / 31.7 | 63.5 / 63.5 | 95.2 / 98.0 | 134.9 / 142.2 | 38 at 159 s |
+| Frost | 0.330 | 30.3 / 30.3 | 60.6 / 60.6 | 90.9 / 93.5 | 128.8 / 135.8 | 40 at 167 s |
+| Verdant | 0.345 | 29.0 / 29.0 | 58.0 / 58.0 | 87.0 / 89.4 | 123.2 / 129.9 | 42 at 174 s |
+| Ember | 0.365 | 27.4 / 27.4 | 54.8 / 54.8 | 82.2 / 84.5 | 116.4 / 122.7 | 44 at 178 s |
 
-So the first 80 s of a world are unchanged, 30 comes about 3 s later, 35 about 7-8 s later, and 35 is
-where it stops. (`SpeedCapTest` prints and checks this table.)
+So the first 80 s of a world are unchanged, 30 comes about 2.5 s later, 35 about 6-7 s later, and 35 is
+where it stops.
 
 ### What still differs between worlds
 
@@ -86,7 +87,20 @@ Unchanged table (`ShipStartSpeed`): regular ships 0 / 5 / 10 / 15 / 20 by colour
 world is a distance (what a start of 0 covers in 120 s on the world's curve), so a faster start meets the
 boss sooner, and arrives in every later world at its start speed again (or the loop's arrival speed,
 whichever is higher). With the cap at 35 nobody can out-ramp a fast start: time to the boss by start
-speed is in the table below *(measured, `SpeedCapTest`)*.
+speed *(measured, `SpeedCapTest` "TABLE time to the boss")*, seconds old / new:
+
+| World (distance old / new) | 0 | 5 | 10 | 15 | 20 | 25 | 30 |
+|---|---|---|---|---|---|---|---|
+| Space (22.1 / 22.1) | 120/120 | 105/105 | 93/93 | 83/83 | 75/75 | 69/69 | 65/65 |
+| Frost (22.9 / 23.0) | 120/120 | 106/106 | 94/94 | 84/84 | 77/77 | 71/71 | 67/68 |
+| Verdant (23.7 / 23.8) | 120/120 | 107/107 | 95/95 | 86/86 | 78/79 | 73/73 | 68/70 |
+| Ember (24.7 / 24.8) | 120/120 | 107/107 | 96/97 | 87/88 | 80/81 | 75/76 | 70/73 |
+| First pass, 4 levels of flight | 480/480 | 425/425 | 379/379 | 341/341 | 310/311 | 287/290 | 270/276 |
+
+A start of 30 meets every boss 39-46% sooner than a stock start and flies a first pass in 276 s
+instead of 480 (boss fights not counted). The cap costs the fastest starts up to 3 s a level against
+the old curve (they used to keep climbing past 35 late in a level); nobody can make the time up by
+out-ramping them any more.
 
 Starting at or near 35 (tested with a start override of 35): the calm arrival is skipped (HUD >= 10, as
 before), the first enemy is primed, the boss warning's lead (30 s) is shorter than the shortest possible
@@ -134,8 +148,14 @@ read or written by the game), the Top Speed leaderboard (table row, submission, 
 
 * **Dust.** The trickle was `0.05 x min(1, speed / 0.6)` dust per second. Speed never reached 0.6, so it
   was always proportional to speed: 1/12 dust per unit of speed-seconds. It is now exactly that, named
-  for what it is: `ScoreRules.DustPerDistance` = 1/12 per unit of distance flown. Same income to the
-  last digit for every run; a limit break pays for the extra distance as it did before.
+  for what it is: `ScoreRules.DustPerDistance` = 1/12 per unit of distance flown. Same income at every
+  speed (`ScoringTest` checks the two formulas agree from HUD 0 to 45); a limit break pays for the
+  extra distance as it did before. Per level it is unchanged because a level is a distance: 1.84 / 1.91 / 1.98 / 2.06 dust for Space / Frost / Verdant / Ember, old and new alike (`SpeedCapTest`
+  "flight dust"), about
+  7.8 for a first pass, whatever the ship. What is lower is the dust per *minute* late in a long level
+  for a stock ship (it now holds 35 where it used to creep to 38-44: up to 20% less trickle for those
+  seconds), and nothing is paid while a portal is kept waiting past its grace (anti-farm). A faster
+  ship earns the same per level but more levels per run.
 * **Saves.** `ProgressSnapshot.highestSpeed` stays in the cloud-save format as a legacy field: it still
   round-trips and merges (max), so an older build on another device keeps its value and old saves load.
   The game no longer uses it.
@@ -168,8 +188,10 @@ retry lap (`OnPortalMissed`, `portalLifetime`, `LoopPortalRetrySeconds`), `LoopR
 
 ### How the portal stays reachable
 
-It appears above the view, comes down at 1.6 u/s to a station 62% of the way up the view and **holds
-there**, drifting slowly sideways (a sine, +/-0.6 u, 9 s period) and never leaving. It moves only on
+It appears above the view, comes down at 1.6 u/s to a station half way up the view (`Portal.StationHeight`
+.5) and **holds there**, drifting slowly sideways about a home 0.7-1.2 u off the centre line (a sine,
++/-0.4 u, 9 s period) and never leaving. `OpenPortalTest` flies ten minutes beside it: on station it
+never leaves the view and stays inside the ship's reach (x within +/-2.4, y within the ship's clamp). It moves only on
 flying frames. There is no lifetime and no "missed".
 
 Its approach stays clear:
@@ -238,6 +260,17 @@ Art / audio gaps: no dedicated portal-waiting art, no pressure meter art, no ded
 done; `Ahead` only in Stage Level. The KEEP FLYING / LOOP BACK / encore / missed-portal cases are gone
 with their states. A warning can never run while a portal waits.
 
+### Runtime fix found by the tests
+
+`enmiesOnBoard.RetryDeferred` did not look at the threat ceiling: a spawn deferred for lack of room
+landed later whatever the board held. Under portal pressure (x5 spawn rate) the backlog landed all at
+once, up to 38 bodies in view against a ceiling of 24 (past the absolute cap of 36). While a portal
+waits, deferred spawns now wait for room like new ones; outside the wait the board is untouched (made
+general it shifted other tuned suites, e.g. EliteEvasionTest's control). Measured with the real
+spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 10-11 (ceiling 10);
+30 s peak 16 (13.3); 120 s peak 24 (24); 600 s peak 25 (24). The ceiling is soft by a body or three
+(it is checked as a spawn is placed, above the view); the absolute body cap is never reached.
+
 ## Open questions
 
 1. Grace 8 s / Level every 10 s: is the wait punished too early or too late? (Tunables.)
@@ -250,11 +283,12 @@ with their states. A warning can never run while a portal waits.
 ## Progress
 
 * [x] Study, this design
-* [ ] Stage 1: speed cap, curve, limit break
-* [ ] Stage 2: top speed removed (panel, leaderboard, dust, achievement), docs/leaderboards.md
-* [ ] Stage 3: loop state machine, open portal, FinalChoicePanel deleted
-* [ ] Stage 4: PortalPressure (escalation, anti-farm), HUD chip, audio hook
-* [ ] Stage 5: per-loop axes, score tiers
-* [ ] Stage 6: tests (new suites, existing expectations), AllTests.RunAll
-* [ ] Measured tables filled in
+* [x] Stage 1: speed cap, curve, limit break (53496ef0)
+* [x] Stage 2: top speed removed (panel, leaderboard, dust, achievement), docs/leaderboards.md
+* [x] Stage 3: loop state machine, open portal, FinalChoicePanel deleted (53496ef0)
+* [x] Stage 4: PortalPressure (escalation, anti-farm), HUD chip, audio hook (53496ef0)
+* [x] Stage 5: per-loop axes, score tiers (53496ef0)
+* [x] Stage 6: tests: SpeedCapTest, OpenPortalTest, existing suites updated (782af8ee and after)
+* [x] Measured tables filled in
+* [ ] Merge integrate/oct05-full-master (BoardRoll, TopBand), AllTests.RunAll after it
 * [ ] Play it (not done: simulation and tests only)

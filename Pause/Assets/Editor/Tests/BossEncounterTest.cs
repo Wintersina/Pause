@@ -33,7 +33,7 @@ public static class BossEncounterTest
         {
             EveryWorldHasCompleteArt();
             LevelEndStartsTheBossThenThePortal();
-            EmberHasABossButNoPortal();
+            EmberHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
             SpeedIsHeldAt20ThenReleased();
             ProjectilesFreezeAtTimeScaleZero();
@@ -158,7 +158,7 @@ public static class BossEncounterTest
         Check("the same world's boss doesn't come back for a missed portal", !BossEncounter.Begin(0, null));
     }
 
-    static void EmberHasABossButNoPortal()
+    static void EmberHasABossThenTheLoopPortal()
     {
         FreshScene(3);
         var wm = World(-1f);
@@ -170,7 +170,13 @@ public static class BossEncounterTest
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         wm.SendMessage("Update");
-        Check("no portal after the last world's boss", !wm.PortalIsOpen && !BossEncounter.Running);
+        // (Was "no portal after the last world's boss": the final choice came
+        // up instead. Now every world ends the same way, the final one with
+        // the portal back to where the run began.)
+        Check("after the last world's boss the loop portal opens, back to the run's start world",
+              wm.PortalIsOpen && !BossEncounter.Running && wm.Stage == WorldManager.LevelStage.Portal &&
+              WorldManager.PortalDestination == RunLoop.StartWorld && PortalPressure.Active &&
+              PortalPressure.Destination == RunLoop.StartWorld && Object.FindFirstObjectByType<Portal>() != null);
     }
 
     static void IntroFreezeIsScriptedAndFree()
@@ -208,9 +214,9 @@ public static class BossEncounterTest
         SpeedRamp.AddBoost();   // a blue atom's boost on its way in when the boss arrives
         BossEncounter.Begin(0, null);
         var e = BossEncounter.Instance;
-        Check("the boss intro cancels a boost in progress (no limit break into a boss)",
-              SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
         e.Step(.1f, 1f);
+        Check("the boss intro cancels a boost in progress (no limit break into a boss)",
+              e.State == BossEncounter.Phase.Intro && SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
         e.Step(BossConfig.SpeedDrainSeconds * .5f, 0f);
         Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > 0f);
         e.Step(BossConfig.SpeedDrainSeconds, 0f);

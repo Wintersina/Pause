@@ -384,7 +384,15 @@ public class enmiesOnBoard : MonoBehaviour {
         for (int i = 0; i < deferredCount; )
         {
             deferred[i].age += dt;
-            bool done = TrySpawn(deferred[i].kind, deferred[i].x);
+            // While a portal is kept waiting (PortalPressure.Active) the
+            // threat ceiling holds for a deferred spawn too: with the board
+            // full it waits (and lapses like any other). Without this the
+            // backlog the pressure's spawn rate builds landed all at once,
+            // far past the ceiling and the body cap. (Outside the wait the
+            // board is left exactly as it was tuned: there a deferred spawn
+            // only overshoots by one or two.)
+            bool done = (!PortalPressure.Active || EnemyDensity.RoomFor(EnemyDensity.Hud)) &&
+                        TrySpawn(deferred[i].kind, deferred[i].x);
             if (!done && deferred[i].age < MaxDeferSeconds) { i++; continue; }
             if (!done) DroppedTotal++;
             deferred[i] = deferred[--deferredCount];

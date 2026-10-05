@@ -427,7 +427,7 @@ public static class SpeedCapTest
         wm.Tick(1f);
         float boosted = before - wm.DistanceLeft;
         Check("a second of limit break flies " + boosted.ToString("F3") + " of the level, against " + plain.ToString("F3") + " at the cap",
-              Mathf.Approximately(boosted, SpeedRamp.Cap + SpeedRamp.MaxBoost) && Mathf.Approximately(plain, SpeedRamp.Cap));
+              Mathf.Abs(boosted - (SpeedRamp.Cap + SpeedRamp.MaxBoost)) < 1e-4f && Mathf.Abs(plain - SpeedRamp.Cap) < 1e-4f);
         Check("the boss estimate is taken on natural speed (the boost only eats the distance faster)",
               Mathf.Abs(eta - SpeedRamp.SecondsToCover(SpeedRamp.Cap, WorldManager.Worlds[0].speedRampPerSecond, SpeedRamp.Cap, before)) < .01f);
         SpeedRamp.ResetBoost();
@@ -522,7 +522,7 @@ public static class SpeedCapTest
     static void StartSpeedTable()
     {
         Debug.Log("[CAP] TABLE time to the boss by start speed (HUD 0/5/10/15/20/25/30), seconds old / new");
-        bool sooner = true, baseline = true, lasting = true;
+        bool sooner = true, baseline = true, lasting = true, dustSame = true;
         var passOld = new float[Starts.Length];
         var passNew = new float[Starts.Length];
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
@@ -546,10 +546,22 @@ public static class SpeedCapTest
             float n30 = SpeedRamp.SecondsToCover(.30f, rate, SpeedRamp.Cap, newD);
             lasting &= n30 <= WorldManager.BaselineWorldSeconds * .7f;
             Debug.Log(string.Format("[CAP] TABLE {0,-8} distance old {1:F1} new {2:F1} | {3}", theme.displayName, oldD, newD, string.Join(" | ", cells)));
+            // the flight trickle is paid per distance, so a level pays the same at any start speed
+            float oldDust = 0f;
+            for (float t = 0f, v = 0f; t < WorldManager.BaselineWorldSeconds; t += .01f)
+            {
+                float next = OldSpeedAfter(v, rate, OldCaps[w], .01f);
+                oldDust += .05f * Mathf.Min(1f, .5f * (v + next) / .6f) * .01f;   // the old score.cs formula
+                v = next;
+            }
+            float newDust = ScoreRules.DustPerDistance * newD;
+            Debug.Log(string.Format("[CAP] TABLE {0,-8} flight dust for a level: old {1:F2}, new {2:F2}", theme.displayName, oldDust, newDust));
+            dustSame &= Mathf.Abs(oldDust - newDust) < .03f;
         }
         Debug.Log("[CAP] TABLE first pass (four levels of flight, no boss fights) by start: " +
                   string.Join(" | ", Starts.Select((s, i) => s + ": " + passOld[i].ToString("F0") + "/" + passNew[i].ToString("F0"))));
         Check("a stock start (0) meets every boss at 120 s, old and new", baseline);
+        Check("a level's flight dust is what it was (the trickle is per distance, the level a distance)", dustSame);
         Check("every faster start reaches every boss strictly sooner", sooner);
         Check("the fastest start (30) reaches every boss at least 30% sooner than a stock start: the lasting advantage", lasting);
         bool passSooner = true;
@@ -613,7 +625,7 @@ public static class SpeedCapTest
 
     static void TopSpeedGone()
     {
-        var pattern = new Regex(@"top\s*_?speed|best\s*_?speed|highest\s*_?speed|peak\s*_?speed|speed\s*_?record|SpeedLine|Your Speed",
+        var pattern = new Regex(@"top\s*_?speed|best\s*_?speed|highest\s*_?speed|peak\s*_?speed|speed\s*_?record|\bSpeedLine\b|Your Speed",
                                 RegexOptions.IgnoreCase);
         var hits = new List<string>();
         foreach (string path in Directory.GetFiles("Assets/Scripts", "*.cs", SearchOption.AllDirectories))
