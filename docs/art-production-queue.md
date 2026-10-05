@@ -33,7 +33,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 16. **Installed and validated — `frost_chaser`:** Frost Lancer rebuilt as a rime-armored copper pursuit lance with a cyan cryo core; native seven-cell QA complete.
 17. **Installed and validated — `verdant_chaser`:** Dragonsting rebuilt as a thorn-leaf steel stinger with copper roots, resin sac, and toxic core; native seven-cell QA complete.
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
-19. **Queued — `space_big`**
+19. **Installed — `space_big`:** Bastion rebuilt as a rugged gunmetal armoured block with a caged magenta reactor core, copper conduit, twin antennae, and twin thrusters; seven-cell strip pixel-audited for alpha, cell margins (20 px minimum), and idle continuity, and roster-validated in the source worktree; in-engine review of the installed strip is pending, and the second tell cell and hit cell draw the hull about 9% and 5% smaller than idle.
 20. **Installed and validated — `frost_big`:** Glacier Golem rebuilt as a rugged icebreaker-steel and glacier-ice hulk with copper pressure plumbing, a cyan cryo visor, asymmetric frost damage, and a crushing ice-slam tell; seven-cell strip vetted for safe cell margins, idle continuity, and roster validation.
 21. **Queued — `verdant_big`**
 22. **Queued — `ember_big`**
