@@ -795,3 +795,36 @@ burst. Elites cannot lift off before 20 s in a world, so they are outside it alr
 * [x] `RailsVettingTest`; `AllTests.RunAll` 92 suites, 90 pass (Frost wrapper contrast and Verdant mid value: known)
 * [ ] On a device: rail scroll at speed, mines on the rails, pilots' distance from the ship, calm arrivals
 
+## Rails roll (follow-up)
+
+Branch `fix/rails-roll`. "Make sure rails and rail mines roll nicely": the scroll vetted frame by frame, in
+rendered 60 fps sequences and tests. Not seen on a device.
+
+* **What was wrong in motion.** The rail art is point-filtered and drawn smaller than it was painted: one
+  screen pixel covers 2.14 texels (Space, Ember) or 2.79 (Frost, Verdant) at 145.2 px per unit, never a whole
+  number. Scrolled by a fraction of a pixel, point sampling picks different texels each frame, so thin lines
+  and lamp edges crawl. Measured on rendered frames (mean difference between a frame and the previous one
+  moved down by the step): 8 to 13 of 255, at the old slow rate just as at the board's rate. The rail art
+  and a mine also integrated the scroll separately, with nothing holding them together.
+* **What it does now (`BoardRoll`).** One distance, advanced once a frame, read by both walls and every rail
+  lane. The rail art's offset is computed from the total (never accumulated: bounded, both walls identical,
+  exact after an hour) and drawn on whole screen pixels; a mine is lifted by the same sub-pixel remainder so
+  it is drawn on the same pixels. Measured: frame-to-frame difference 0.00 to 0.02 of 255 in every world,
+  the tile seam included; a mine stays within 0.05 px of the art under it through 600 frames of ramping
+  speed, a speed boost, a slide and a shove.
+* **Speeds.** At 60 fps the rails move 3.6 / 7.3 / 14.5 / 21.8 / 27.6-31.9 px a frame at HUD 5 / 10 / 20 / 30
+  / 38-44. A tile is 753 to 982 px tall and its lamps are not evenly spaced (no repeat inside a tile
+  correlates above 0.25), so the largest step is about 4% of the only period there is: no wagon-wheel
+  strobing. At the caps the rails are a fast streak, the same speed as the rocks beside them.
+* **Choice.** Board rate on whole pixels. The alternatives stay one tunable away: `BoardRoll.RailRate` below
+  1 is a slower, readable rail that mines then slide along; `BoardRoll.PixelSnap = false` is the unsnapped
+  roll; `BoardRoll.LegacyTileRate` is Codex's original rate. A speed blur in the shader and a carriage
+  sprite for mines were considered and not built: the first changes approved art's look, the second needs
+  new art.
+* **Seam.** The 3% crossfade blends the tile's last rows over its first, and those do not match (mean
+  difference 42 to 69 of 255), so there is a soft double image about 25 px tall once per tile. It rides the
+  art rigidly now (no pop, no gap), but it is there: the rail textures need to be made to tile.
+* **Pause, boss, death.** Nothing rolls on a frame where time is frozen (the roll is speed x dt, and resumes
+  from the same number). The rail art now also rolls during the ultimate's slow motion, when the lanes do;
+  it used to stand still there while the mines moved.
+
