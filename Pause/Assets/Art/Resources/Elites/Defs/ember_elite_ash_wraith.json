@@ -18,7 +18,7 @@
   "lore": "A crescent of soot with a magenta heart. It keeps its distance, blinks out of anything that comes near, then fans shards at you from its beak. Corner it against the rocks - it cannot blink forever.",
   "cellWorldSize": 1.45,
   "hullRadius": 0.37,
-  "noseDeg": 200,
+  "noseDeg": 90,
   "turnsToFace": true,
   "speed": 2.8,
   "accel": 8,
