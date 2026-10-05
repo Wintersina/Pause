@@ -205,8 +205,8 @@ public class movePlayer : MonoBehaviour
     {
         // Blink Dash (a secret power) throws the hull sideways off the finger
         // for a moment, then eases it back.
-        float x = Mathf.Clamp(fingerPos.x + SecretPowerController.DashOffsetX, -2.4f, 2.4f);
-        float y = ClampPlayerY(fingerPos.y + 1f);
+        float x = ShipReach.ClampX(fingerPos.x + SecretPowerController.DashOffsetX);
+        float y = ClampPlayerY(fingerPos.y + ShipReach.FingerOffset);
         this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
 
@@ -217,9 +217,11 @@ public class movePlayer : MonoBehaviour
     }
 
     // The old movement only capped the top edge. A low touch could therefore
-    // place the ship below the visible board. Keep the full hull in play.
+    // place the ship below the visible board. Keep the full hull in play --
+    // in the view this device shows (ShipReach: shares of the view, clear of
+    // the home indicator; it used to be the constant -4.15 .. 4.5).
     public static float ClampPlayerY(float y)
     {
-        return Mathf.Clamp(y, -4.15f, 4.5f);
+        return ShipReach.ClampY(y);
     }
 }
