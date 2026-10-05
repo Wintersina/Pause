@@ -93,6 +93,7 @@ public class EnemyBrain : MonoBehaviour
         marchTimer = behaviour.lateralPeriod;
         cooldown = behaviour.firstDelay;
         State = Phase.Idle;
+        if (flipbook != null) flipbook.SetBrainDriven(Armed);
         if (behaviour.Shoots && Armed) BuildChargeLight();
     }
 

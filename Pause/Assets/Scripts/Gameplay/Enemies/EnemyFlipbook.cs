@@ -48,6 +48,10 @@ public class EnemyFlipbook : MonoBehaviour
     // Its tell belongs to its attack: no timed / proximity tell.
     public bool BrainDriven { get; private set; }
 
+    // The brain says whether this individual attacks at all (a Bile Mite
+    // that is not a spitter keeps its ordinary near-pilot tell).
+    public void SetBrainDriven(bool driven) { BrainDriven = driven; }
+
     public DrivePhase Driving => drive;
     public int CurrentFrame { get; private set; }
     public bool Telling => state == State.Tell;
