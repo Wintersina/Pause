@@ -354,6 +354,7 @@ public class CodexPanel : MonoBehaviour
     public Text DetailName { get { return detailName; } }
     public Text DetailLore { get { return detailLore; } }
     public Image DetailArt { get { return detailArt; } }
+    public Text DetailSubtitle { get { return detailSubtitle; } }
     public Text Counter { get { return counter; } }
     public int VisibleCards { get { return shownCount; } }
 

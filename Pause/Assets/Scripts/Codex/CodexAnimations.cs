@@ -15,7 +15,8 @@ using UnityEngine;
 //   Atom    PickupArt.Frames on PickupArt.IdleTicks; the green atom keeps its
 //           original drawing and plays its light overlays on top
 //   Ship    ShipHullArt stock sheet, idle drawings on ShipHullArt's tick
-//           table; the spinners (Ninja, UFO) turn
+//           table; the spinners (Ninja, UFO) turn. The detail view cycles
+//           through the hull's other colours (ShipSkins) as its "tell"
 //   World   the world's sky tile, slowly panned inside the round mask
 //   Portal  TeleportPortalSprites' 16 frames at Portal's 15 fps, turning
 //   Log     static story art
@@ -198,6 +199,7 @@ public static class CodexAnimations
             case "atom_blue": kind = PickupKind.Shield; return true;
             case "atom_red": kind = PickupKind.Pause; return true;
             case "atom_green": kind = PickupKind.Heal; return true;
+            case CodexCatalogue.VioletAtomId: kind = PickupKind.Cooldown; return true;
         }
         kind = PickupKind.Shield;
         return false;
@@ -240,22 +242,45 @@ public static class CodexAnimations
     {
         if (id < 0 || !ShipHullArt.Has(id)) return null;
         // ShipHullArt's table, one step per run of ticks on the same drawing.
-        int loop = ShipHullArt.IdleLoopTicks;
         var steps = new List<Sprite>();
         var holds = new List<float>();
+        IdleLoop(id, ShipSkins.Stock, steps, holds);
+        var a = CodexAnimation.Loop(CodexAnimKind.Ship, steps.ToArray(), holds.ToArray());
+        if (a == null) return null;
+        if (ShipExhaust.UsesWind(id)) a.spinDegreesPerSecond = ShipSpin;
+
+        // Detail view: one "tell" that shows off every other colour in turn
+        // (ShipSkins), each for ShipColourLoops idle loops, then back to stock.
+        var colourSteps = new List<Sprite>();
+        var colourHolds = new List<float>();
+        for (int skin = 1; skin < ShipSkins.CountFor(id); skin++)
+            for (int k = 0; k < ShipColourLoops; k++) IdleLoop(id, skin, colourSteps, colourHolds);
+        if (colourSteps.Count > 0)
+        {
+            a.AddTell(colourSteps.ToArray(), colourHolds.ToArray());
+            a.tellGap = ShipColourGap;
+        }
+        return a.Finish();
+    }
+
+    // How many idle loops each extra colour shows for in the detail view,
+    // and the stock colour's stay between rounds.
+    public const int ShipColourLoops = 2;
+    public static readonly Vector2 ShipColourGap = new Vector2(1.5f, 2.5f);
+
+    // One idle loop of ship `id` in colour `skin`, as held steps.
+    static void IdleLoop(int id, int skin, List<Sprite> steps, List<float> holds)
+    {
+        int loop = ShipHullArt.IdleLoopTicks;
         int last = -1;
         for (int t = 0; t < loop; t++)
         {
             int drawing = ShipHullArt.IdleDrawingAt(t + .5f);
             if (drawing == last) { holds[holds.Count - 1] += 1f / ShipHullArt.TicksPerSecond; continue; }
             last = drawing;
-            steps.Add(ShipHullArt.Get(id, ShipSkins.Stock, 0, drawing));
+            steps.Add(ShipHullArt.Get(id, skin, 0, drawing));
             holds.Add(1f / ShipHullArt.TicksPerSecond);
         }
-        var a = CodexAnimation.Loop(CodexAnimKind.Ship, steps.ToArray(), holds.ToArray());
-        if (a == null) return null;
-        if (ShipExhaust.UsesWind(id)) a.spinDegreesPerSecond = ShipSpin;
-        return a.Finish();
     }
 
     // ---- Worlds: the sky tile, panned slowly in the round window ----

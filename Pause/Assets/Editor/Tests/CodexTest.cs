@@ -34,9 +34,11 @@ public static class CodexTest
         Codex.Reload();
 
         CheckCatalogue();
+        CheckInventory();
         CheckAnimationCatalogue();
         CheckSpawnerCoverage();
         CheckDiscovery();
+        CheckDiscoveryHooks();
         CheckDeveloperMode();
         CheckHooksAndSources();
         CheckLayoutMath();
@@ -163,6 +165,8 @@ public static class CodexTest
             CheckMaps("large star", goods.midStar, "atom_bigstar");
             CheckMaps("blue atom", goods.Atom, "atom_blue");
             CheckMaps("red atom", goods.redAtom, "atom_red");
+            CheckMaps("violet capacitor atom", goods.cooldownAtom != null ? goods.cooldownAtom : Resources.Load<GameObject>("prefabs/cooldownAtom"),
+                      CodexCatalogue.VioletAtomId);
         }
 
         // Runtime-built objects, named exactly as their spawners name them.
@@ -277,6 +281,301 @@ public static class CodexTest
         {
             Codex.Discovered -= handler;
         }
+    }
+
+    // ---- Inventory: everything the game fields or unlocks has an entry ----
+
+    // Walks every source of encounterable / unlockable things -- the enemy
+    // roster (fighters, chasers, aliens, heavies, rocks, rail mines in all
+    // four worlds), the elite defs, the bosses, every pickup kind, the
+    // ships with their colours, the worlds -- and checks each has exactly
+    // its entry with live art and up-to-date lore; then that no entry is
+    // left over (stale) and nothing is listed twice.
+    static void CheckInventory()
+    {
+        var accounted = new HashSet<string>();
+        foreach (string log in new[] { "log_pilot", "log_wormhole" }) accounted.Add(log);
+
+        // ---- roster enemies and hazards ----
+        foreach (var d in EnemyRoster.All)
+        {
+            var e = Codex.Find(d.codexId);
+            Check("inventory: roster " + d.key + " -> " + d.codexId,
+                  e != null && e.name == d.displayName && !e.secret &&
+                  e.category == (d.IsHazard ? CodexCategory.Hazards : CodexCategory.Enemies));
+            var frames = EnemyArt.Frames(d);
+            Check("inventory: " + d.key + " art has every frame (idle + tell)",
+                  frames != null && frames.Length >= EnemyRoster.TellFrame + 2 && Array.TrueForAll(frames, f => f != null));
+            accounted.Add(d.codexId);
+        }
+
+        // ---- elites ----
+        Check("elites pay 50 points and 15 star dust by default", ScoreRules.EliteDown == 50 && Mathf.Approximately(ScoreRules.EliteDownDust, 15f));
+        foreach (var d in EliteCatalog.All)
+        {
+            var e = Codex.Find(d.codexId);
+            Check("inventory: elite " + d.key + " -> " + d.codexId,
+                  e != null && e.name == d.displayName && !e.secret && e.category == CodexCategory.Enemies &&
+                  Array.IndexOf(e.matches, Codex.Normalise(d.key)) >= 0);
+            if (e == null) continue;
+            Check("elite " + d.key + " belongs to a real world (" + d.world + ")",
+                  d.WorldIndex >= 0 && d.WorldIndex < EnemyRoster.WorldKeys.Length);
+            var frames = EliteArt.Frames(d);
+            Check("elite " + d.key + " strip has every mapped cell",
+                  frames != null && frames.Length >= d.cells.Count && Array.TrueForAll(frames, f => f != null));
+            Check("elite " + d.key + " lore gives its role, hearts and reward (+" + d.Score + " / +" + d.Dust + ")",
+                  e.lore.Contains(d.hearts + " HEARTS") && e.lore.Contains("+" + d.Score + " POINTS") &&
+                  e.lore.Contains("+" + Mathf.RoundToInt(d.Dust) + " STAR DUST") &&
+                  (string.IsNullOrEmpty(d.role) || e.lore.Contains(d.role.ToUpperInvariant())));
+            Check("elite " + d.key + " detail subtitle names its world",
+                  d.WorldIndex >= 0 && e.Subtitle == EnemyRoster.WorldKeys[d.WorldIndex].ToUpperInvariant() + " ELITE");
+            accounted.Add(d.codexId);
+        }
+
+        // ---- bosses: secret until met, attacks by body part ----
+        foreach (var b in BossCatalog.All)
+        {
+            var e = Codex.Find(b.id);
+            Check("inventory: boss " + b.name + " -> " + b.id + " (secret)",
+                  e != null && e.secret && e.category == CodexCategory.Enemies && e.name == CodexCatalogue.BossDisplayName(b.name));
+            if (e == null) continue;
+            Check("boss " + b.id + " subtitle is its title", e.Subtitle == b.title);
+            bool attacks = true, parts = true;
+            foreach (var a in b.attacks)
+            {
+                attacks &= e.lore.Contains(a.name.ToUpperInvariant() + "  ");
+                foreach (string em in a.emitters)
+                {
+                    string word = CodexCatalogue.PartWord(em);
+                    parts &= word != null && e.lore.Contains(word);
+                }
+            }
+            Check("boss " + b.id + " lore lists every attack", attacks);
+            Check("boss " + b.id + " lore names the body part each attack fires from", parts);
+            Check("boss " + b.id + " lore says how the fight ends",
+                  e.lore.Contains(BossConfig.HitPoints + " weapon hits") && e.lore.Contains(Mathf.RoundToInt(BossConfig.FightSeconds) + " s"));
+            accounted.Add(b.id);
+        }
+
+        // ---- pickups: one entry per PickupKind ----
+        foreach (PickupKind kind in Enum.GetValues(typeof(PickupKind)))
+        {
+            string id = null;
+            foreach (var e in Codex.Entries)
+            {
+                PickupKind k;
+                if (e.category == CodexCategory.Atoms && CodexAnimations.TryPickupKind(e.id, out k) && k == kind) id = e.id;
+            }
+            Check("inventory: pickup " + kind + " -> " + (id ?? "none"), id != null);
+            var frames = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
+            Check("pickup " + kind + " idle art has every frame", Array.TrueForAll(frames, f => f != null));
+            if (id != null) accounted.Add(id);
+        }
+        Check("every atoms entry is a pickup kind", Array.TrueForAll(Codex.Entries, e =>
+        {
+            PickupKind k;
+            return e.category != CodexCategory.Atoms || CodexAnimations.TryPickupKind(e.id, out k);
+        }));
+        // What each pickup does, as the game does it.
+        string red = Codex.Find("atom_red").lore, blue = Codex.Find("atom_blue").lore, green = Codex.Find("atom_green").lore;
+        var violet = Codex.Find(CodexCatalogue.VioletAtomId);
+        Check("red atom lore: two pauses, a free shot and a charge cut",
+              red.Contains("two pauses") && red.Contains("free shot") && red.Contains(CodexCatalogue.AtomChargeCut));
+        Check("blue atom lore: a shield", blue.Contains("shield") && blue.Contains(CodexCatalogue.AtomChargeCut));
+        Check("green atom lore: heals a heart", green.Contains("heart") && green.Contains("hull"));
+        Check("violet atom entry exists, named and filed", violet != null && violet.name == "Violet Atom" && violet.category == CodexCategory.Atoms);
+        string power = File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs");
+        Check("violet atom lore quotes the capacitor's cut (ShipPowerController.secondsPerCooldownAtom)",
+              violet != null && violet.lore.Contains(CodexCatalogue.CapacitorCut) &&
+              Regex.IsMatch(power, @"secondsPerCooldownAtom\s*=\s*" + CodexCatalogue.CapacitorCut.Replace(" s", "") + @"f"));
+        Check("violet atom lore quotes the per-world count",
+              violet != null && violet.lore.Contains(PickupRules.CooldownAtomsPerWorld + " drift"));
+        Check("score.incromentPause still adds two pauses (red atom lore)",
+              Regex.IsMatch(File.ReadAllText("Assets/Scripts/Core/score.cs"), @"pauseCounter\s*\+=\s*2;"));
+
+        // ---- ships: hearts, weapon + upgrades, colours, start speeds ----
+        foreach (int ship in ShipId.All)
+        {
+            var e = Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship));
+            Check("inventory: ship " + ShipId.KeyOf(ship), e != null);
+            if (e == null) continue;
+            var l = ShipLoadoutTable.For(ship);
+            bool colours = ShipSkins.CountFor(ship) == ShipSkins.PerShip;
+            var speeds = new List<string>();
+            for (int skin = 0; skin < ShipSkins.CountFor(ship); skin++)
+            {
+                colours &= e.lore.Contains(ShipSkins.Get(ship, skin).DisplayName);
+                speeds.Add(ShipStartSpeed.HudFor(ship, skin).ToString());
+            }
+            bool upgrades = true;
+            for (int level = 1; level <= ShipWeaponUpgrades.MaxLevel; level++)
+                upgrades &= e.lore.Contains(ShipWeaponUpgrades.Step(ship, level).label);
+            Check("ship " + ShipId.KeyOf(ship) + " lore: attack + secret power", e.lore.Contains(l.attackName) && e.lore.Contains(l.powerName));
+            Check("ship " + ShipId.KeyOf(ship) + " lore: " + ShipLives.Base(ship) + " hearts",
+                  e.lore.Contains("HULL  " + ShipLives.Base(ship) + " HEARTS") &&
+                  ShipLives.Base(ship) >= ShipLives.Fewest && ShipLives.Base(ship) <= ShipLives.Most);
+            Check("ship " + ShipId.KeyOf(ship) + " lore: all " + ShipSkins.PerShip + " colours", colours);
+            Check("ship " + ShipId.KeyOf(ship) + " lore: the weapon upgrade each colour buys", upgrades);
+            Check("ship " + ShipId.KeyOf(ship) + " lore: start speed by colour (" + string.Join("/", speeds) + ")",
+                  e.lore.Contains("START SPEED  " + string.Join(" / ", speeds)));
+            Check("ship " + ShipId.KeyOf(ship) + " subtitle is its loadout", e.Subtitle == ShipLoadoutTable.Summary(ship));
+            accounted.Add(e.id);
+        }
+
+        // ---- worlds and the portal ----
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        {
+            Check("inventory: world " + WorldManager.Worlds[w].displayName, Codex.Find(Codex.WorldId(w)) != null);
+            accounted.Add(Codex.WorldId(w));
+        }
+        accounted.Add(CodexCatalogue.PortalId);
+
+        // ---- nothing stale, nothing twice ----
+        var names = new HashSet<string>();
+        foreach (var e in Codex.Entries)
+        {
+            Check(e.id + " is backed by live game data (not a stale entry)", accounted.Contains(e.id));
+            Check(e.id + " name '" + e.name + "' is unique", names.Add(e.name));
+            Check(e.id + " lore is filled in", !string.IsNullOrEmpty(e.lore) && e.lore.Trim().Length > 40);
+            var a = CodexAnimations.For(e);
+            bool art = a != null && a.HasArt && Array.TrueForAll(a.idle, s => s != null);
+            if (a != null && a.tells != null) foreach (var t in a.tells) art &= Array.TrueForAll(t, s => s != null);
+            Check(e.id + " art: sprite and every animation frame present", e.Sprite != null && art);
+            var kind = CodexAnimations.KindOf(e);
+            if (kind == CodexAnimKind.Enemy || kind == CodexAnimKind.Mine || kind == CodexAnimKind.Boss)
+                Check(e.id + " detail plays an attack tell", a != null && a.HasTell);
+        }
+
+        // ---- ships show off every colour in the detail view ----
+        foreach (int ship in ShipId.All)
+        {
+            var a = CodexAnimations.For(Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship)));
+            bool ok = a != null && a.HasTell && a.tells.Length == 1;
+            if (ok)
+            {
+                var skins = new HashSet<Sprite>(a.tells[0]);
+                for (int skin = 1; skin < ShipSkins.CountFor(ship); skin++)
+                    ok &= skins.Contains(ShipHullArt.Get(ship, skin, 0, ShipHullArt.IdleDrawingAt(.5f)));
+            }
+            Check("ship " + ShipId.KeyOf(ship) + " detail cycles through its other colours", ok);
+        }
+
+        // Counts, for the record.
+        foreach (CodexCategory c in Enum.GetValues(typeof(CodexCategory)))
+        {
+            int all = 0, secret = 0;
+            foreach (var e in Codex.Entries) if (e.category == c) { all++; if (e.secret) secret++; }
+            Debug.Log("[CDX] count " + c + ": " + all + (secret > 0 ? " (" + secret + " secret)" : ""));
+        }
+        Debug.Log("[CDX] count total: " + Codex.Entries.Length);
+    }
+
+    // ---- Discovery hooks: meeting each thing once discovers its entry ----
+
+    // Every entry, through the hook the game fires for it: roster enemies,
+    // rocks and mines as the spawner builds them (collisionDetection's
+    // first-contact hook and AwardDestroyedTarget's kill hook both call
+    // Codex.Discover(the object)), elites as EliteShip names them (joining /
+    // being downed), pickups as their prefabs spawn (contact), the portal,
+    // bosses (BossEncounter, by id), worlds (WorldManager) and ships (owning).
+    static void CheckDiscoveryHooks()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.DeleteKey(Codex.PrefsKey);
+        PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
+        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        Codex.Reload();
+
+        var toasts = new List<string>();
+        Action<CodexEntry> handler = e => toasts.Add(e.id);
+        Codex.Discovered += handler;
+        var temp = new List<GameObject>();
+        try
+        {
+            foreach (var d in EnemyRoster.All)
+            {
+                var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
+                go.name += "(Clone)";
+                temp.Add(go);
+                Hook(d.codexId, "first contact with a spawned " + d.key, () => Codex.Discover(go), toasts);
+            }
+            foreach (var d in EliteCatalog.All)
+            {
+                var go = new GameObject(d.key);
+                temp.Add(go);
+                Hook(d.codexId, "elite " + d.key + " joining", () => Codex.Discover(go), toasts);
+            }
+            var pickups = new[]
+            {
+                ("atom_stardust", "prefabs/smStar_1"), ("atom_bigstar", "prefabs/LargeStar_1"), ("atom_blue", "prefabs/atom3a"),
+                ("atom_red", "prefabs/pauseAtom"), (CodexCatalogue.VioletAtomId, "prefabs/cooldownAtom"),
+            };
+            foreach (var (id, path) in pickups)
+            {
+                var prefab = Resources.Load<GameObject>(path);
+                Check(path + " prefab loads", prefab != null);
+                if (prefab == null) continue;
+                var go = (GameObject)UnityEngine.Object.Instantiate(prefab);
+                temp.Add(go);
+                Hook(id, "picking up " + go.name, () => Codex.Discover(go), toasts);
+            }
+            var heal = new GameObject(HealAtom.ObjectName);
+            temp.Add(heal);
+            Hook("atom_green", "picking up the heal atom", () => Codex.Discover(heal), toasts);
+            var portal = new GameObject("~Portal");
+            temp.Add(portal);
+            Hook(CodexCatalogue.PortalId, "flying through the portal", () => Codex.Discover(portal), toasts);
+            foreach (var b in BossCatalog.All)
+            {
+                var e = Codex.Find(b.id);
+                Check(b.id + " stays off the list until met", !Codex.IsListed(e));
+                Hook(b.id, "meeting the boss (BossEncounter)", () => Codex.Discover(b.id), toasts);
+                Check(b.id + " is listed once met", Codex.IsListed(e));
+            }
+            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            {
+                int world = w;
+                Hook(Codex.WorldId(w), "entering the world (WorldManager)", () => Codex.Discover(Codex.WorldId(world)), toasts);
+            }
+            foreach (int ship in ShipId.All)
+            {
+                string id = CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship);
+                if (ship == ShipId.Starter) { Check(id + " (the starter) is discovered from the start", Codex.IsDiscovered(id)); continue; }
+                bool before = Codex.IsDiscovered(id);
+                PlayerPrefs.SetString(ShipId.OwnedKey(ship), "True");
+                Check(id + ": buying it discovers it", !before && Codex.IsDiscovered(id));
+            }
+            Check("meeting everything once discovers the whole codex (" + Codex.DiscoveredCount + "/" + Codex.Total + ")",
+                  Codex.DiscoveredCount == Codex.Entries.Length && Codex.Total == Codex.Entries.Length);
+        }
+        finally
+        {
+            Codex.Discovered -= handler;
+            foreach (var go in temp) if (go != null) UnityEngine.Object.DestroyImmediate(go);
+            PlayerPrefs.DeleteKey(Codex.PrefsKey);
+            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            Codex.Reload();
+        }
+
+        // The hooks themselves are still wired where the game meets things.
+        Check("EliteShip discovers an elite as it joins", File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShip.cs").Contains("Codex.Discover(gameObject);"));
+        Check("EliteFx discovers an elite as it is downed", File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteFx.cs").Contains("Codex.Discover(ship.gameObject);"));
+        Check("BossEncounter discovers its boss", File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("Codex.Discover(boss.id);"));
+        string collision = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        Check("collisionDetection collects the violet atom after the contact hook",
+              collision.Contains("PrefabName.Is(hit.gameObject, \"cooldownAtom\")") &&
+              collision.IndexOf("Codex.Discover(hit.gameObject);", StringComparison.Ordinal) <
+              collision.IndexOf("\"cooldownAtom\"", StringComparison.Ordinal));
+    }
+
+    static void Hook(string id, string how, Func<bool> hook, List<string> toasts)
+    {
+        bool before = Codex.IsDiscovered(id);
+        int n = toasts.Count;
+        bool first = hook();
+        Check(id + ": " + how + " discovers it, with one toast",
+              !before && first && Codex.IsDiscovered(id) && toasts.Count == n + 1 && toasts[n] == id);
     }
 
     // ---- Developer mode: everything visible, nothing written ----
@@ -600,6 +899,7 @@ public static class CodexTest
 
         CheckSections(panel, entry);
         CheckPanelAnimation(panel);
+        CheckEveryEntry(panel);
 
         panel.Close();
         panel.SkipAnimations();
@@ -623,6 +923,130 @@ public static class CodexTest
         foreach (var g in toast.GetComponentsInChildren<Graphic>(true)) blocks |= g.raycastTarget;
         Check("toast can never block a touch", !blocks);
         UnityEngine.Object.DestroyImmediate(toast.gameObject);
+    }
+
+    // ---- Every entry in the real panel: locked, unlocked, scrolled to ----
+
+    static void CheckEveryEntry(CodexPanel panel)
+    {
+        bool render = SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null;
+        string realSeen = PlayerPrefs.GetString(Codex.PrefsKey);
+        panel.ApplyLayout(Screens[1].safe);
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.DeleteKey(Codex.PrefsKey);
+        Codex.Reload();
+        panel.Refresh();
+
+        // Locked: every card that isn't discovered on a fresh profile opens
+        // to a solid silhouette with no name, lore or subtitle.
+        int lockedChecked = 0;
+        foreach (var tab in CodexPanel.Tabs)
+        {
+            if (tab == CodexCategory.Log) continue;
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            for (int i = 0; i < panel.VisibleCards; i++)
+            {
+                var e = panel.CardEntry(i);
+                if (Codex.IsDiscovered(e)) continue;
+                lockedChecked++;
+                bool card = panel.CardName(i).text == Codex.LockedName && CodexUi.IsSilhouette(panel.CardArt(i)) && panel.CardArt(i).sprite != null;
+                panel.ShowDetail(e);
+                panel.SkipAnimations();
+                bool ok = card && panel.DetailName.text == Codex.LockedName && panel.DetailLore.text == CodexPanel.LockedHint &&
+                          !panel.DetailSubtitle.gameObject.activeSelf && panel.DetailArt.sprite != null &&
+                          CodexUi.IsSilhouette(panel.DetailArt);
+                string why = "";
+                if (render)
+                {
+                    var r = RenderArt(panel, new Graphic[] { panel.DetailArt, panel.DetailAnimator.Overlay });
+                    ok &= Flat(r, out why);
+                }
+                Check(e.id + ": locked card and detail are a solid silhouette, nothing revealed " + why, ok);
+                panel.ShowGrid();
+                panel.SkipAnimations();
+            }
+        }
+        Check("checked the locked view of every undiscovered entry (" + lockedChecked + ")", lockedChecked >= Codex.Entries.Length - 10);
+
+        // Unlocked (developer mode reveals every entry, the bosses too): full
+        // name, lore, subtitle and colour art, and its animation plays.
+        DeveloperUnlocks.SetEnabled(true);
+        int unlockedChecked = 0;
+        foreach (var tab in CodexPanel.Tabs)
+        {
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            for (int i = 0; i < panel.VisibleCards; i++)
+            {
+                var e = panel.CardEntry(i);
+                unlockedChecked++;
+                panel.ShowDetail(e);
+                panel.SkipAnimations();
+                string sub = e.Subtitle;
+                var d = panel.DetailAnimator;
+                bool ok = panel.CardName(i).text == e.name && panel.DetailName.text == e.name && panel.DetailLore.text == e.lore &&
+                          panel.DetailSubtitle.gameObject.activeSelf == (sub != null) && (sub == null || panel.DetailSubtitle.text == sub) &&
+                          panel.DetailArt.sprite != null && !CodexUi.IsSilhouette(panel.DetailArt) &&
+                          d.Animation == CodexAnimations.For(e);
+                if (d.Animation != null && d.Animation.Animates)
+                {
+                    float clock = d.Clock;
+                    Tick(panel, 2f);
+                    ok &= d.FrameChanges > 0 || d.Clock > clock + 1.9f;
+                }
+                string why = "";
+                if (render)
+                {
+                    var r = RenderArt(panel, new Graphic[] { panel.DetailArt, d.Overlay });
+                    string flat;
+                    // not the silhouette: the art's own colours over its whole shape
+                    ok &= r.rendered && r.covered >= 200 && !Flat(r, out flat);
+                    why = "(" + r.colours + " opaque colours, " + r.covered + " px)";
+                }
+                Check(e.id + ": unlocked detail shows name, lore, subtitle and animated full-colour art " + why, ok);
+                panel.ShowGrid();
+                panel.SkipAnimations();
+            }
+        }
+        Check("checked the unlocked view of every entry (" + unlockedChecked + "/" + Codex.Entries.Length + ")",
+              unlockedChecked == Codex.Entries.Length);
+
+        // Every screen: each tab scrolls to its very last card (the full,
+        // developer-mode count), and every lore fits at a readable size.
+        foreach (var (name, safe) in Screens)
+        {
+            panel.ApplyLayout(safe);
+            foreach (var tab in CodexPanel.Tabs)
+            {
+                panel.ShowCategory(tab);
+                panel.SkipAnimations();
+                panel.SetScrollY(panel.MaxScroll);
+                Canvas.ForceUpdateCanvases();
+                var view = PanelSpace(panel.Panel, panel.Viewport);
+                var last = PanelSpace(panel.Panel, panel.CardRect(panel.VisibleCards - 1));
+                Check(name + " / " + tab + ": scrolls to its last card (" + panel.VisibleCards + " cards)",
+                      last.yMin >= view.yMin - .5f && last.yMax <= view.yMax + .5f && panel.CardOnScreen(panel.VisibleCards - 1));
+                panel.SetScrollY(0f);
+            }
+            var tooLong = new List<string>();
+            foreach (var e in Codex.Entries)
+            {
+                panel.ShowDetail(e);
+                Canvas.ForceUpdateCanvases();
+                if (!FitsAt(panel.DetailLore, 18)) tooLong.Add(e.id);
+                panel.ShowGrid();
+            }
+            panel.SkipAnimations();
+            Check(name + ": every entry's lore fits at >= 18px" + (tooLong.Count > 0 ? " (not: " + string.Join(", ", tooLong) + ")" : ""),
+                  tooLong.Count == 0);
+        }
+
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
+        Codex.Reload();
+        panel.Refresh();
+        panel.ApplyLayout(Screens[1].safe);
     }
 
     // ---- ENEMIES / HAZARDS: world sections, secret bosses, chips, pinned header ----

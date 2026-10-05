@@ -68,15 +68,24 @@ public sealed class CodexEntry
         }
     }
 
-    // Subtitle line for the detail view (a ship's attack + secret power), or null.
+    // Subtitle line for the detail view, or null: a ship's attack + secret
+    // power, a boss's title, an elite's world.
     public string Subtitle
     {
         get
         {
-            if (category != CodexCategory.Ships) return null;
-            int index = CodexCatalogue.ShipIndex(id);
-            if (index < 0) return null;
-            return ShipLoadoutTable.Summary(index);
+            if (category == CodexCategory.Ships)
+            {
+                int index = CodexCatalogue.ShipIndex(id);
+                return index < 0 ? null : ShipLoadoutTable.Summary(index);
+            }
+            if (category != CodexCategory.Enemies) return null;
+            var boss = BossCatalog.Find(id);
+            if (boss != null) return boss.title;
+            var elite = EliteCatalog.FindByCodexId(id);
+            if (elite != null && elite.WorldIndex >= 0 && elite.WorldIndex < EnemyRoster.WorldKeys.Length)
+                return EnemyRoster.WorldKeys[elite.WorldIndex].ToUpperInvariant() + " ELITE";
+            return null;
         }
     }
 }
@@ -86,6 +95,13 @@ public static class CodexCatalogue
     public const string ShipPrefix = "ship_";
     public const string WorldPrefix = "world_";
     public const string PortalId = "world_portal";
+    public const string VioletAtomId = "atom_violet";
+
+    // What the codex quotes for the atoms' charge cuts (ShipPowerController's
+    // secondsPerAtom on the blue / red / green atoms, secondsPerCooldownAtom
+    // on the violet capacitor).
+    public const string AtomChargeCut = "5 s";
+    public const string CapacitorCut = "12 s";
 
     // World ids, index-aligned with WorldManager.Worlds.
     public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember" };
@@ -112,29 +128,46 @@ public static class CodexCatalogue
                 "of a wormhole. Home is out there somewhere. I'm flying until I find it."),
             new CodexEntry("log_wormhole", "Wormhole Gift", CodexCategory.Log, () => Art("cx_wormhole"),
                 "The black hole kept my map but left me its wormhole. Lift your finger and time folds shut - " +
-                "the whole universe pauses while you think. Pauses run out, so spend them wisely, and when your " +
-                "ultimate fires, time slows to a crawl."),
+                "the whole universe pauses while you think, and a touch somewhere else blinks your ship there. " +
+                "Pauses run out, so spend them wisely - red atoms bring more."),
 
             // -------------------------------------------------------------- Atoms
-            new CodexEntry("atom_stardust", "Star Dust", CodexCategory.Atoms, () => Prefab("Prefabs/smStar_1"),
+            // Art: the pixel pickup's own idle frame (PickupArt), the drawing
+            // the game shows -- the prefabs' authored sprites are replaced by
+            // PickupFlipbook in flight. The green atom keeps its original.
+            new CodexEntry("atom_stardust", "Star Dust", CodexCategory.Atoms,
+                () => Pickup(PickupKind.DustSmall, "prefabs/smStar_1"),
                 "Glittering crumbs of collapsed stars, scattered in long trails. Scoop them up - star dust buys " +
-                "new ships, and each one charges your ultimate a little faster.",
+                "new ships and colours, and every crumb shaves a moment off your weapon's charge and feeds your " +
+                "secret power.",
                 new[] { "smstar" }),
-            new CodexEntry("atom_bigstar", "Bright Star", CodexCategory.Atoms, () => Prefab("Prefabs/LargeStar_1"),
-                "A fat, bright clump of star dust worth twice a small one. Worth a swerve.",
+            new CodexEntry("atom_bigstar", "Bright Star", CodexCategory.Atoms,
+                () => Pickup(PickupKind.Dust, "prefabs/LargeStar_1"),
+                "A fat, bright clump of star dust worth twice a small one. It charges your weapon and your secret " +
+                "power just the same, so it's worth a swerve.",
                 new[] { "largestar" }),
-            new CodexEntry("atom_blue", "Blue Atom", CodexCategory.Atoms, () => Prefab("Prefabs/atom3a"),
-                "Pure forward momentum. Grab one and a shield snaps around your hull for a few seconds - plough " +
-                "through anything while the world speeds up around you. Rare, so make it count.",
+            new CodexEntry("atom_blue", "Blue Atom", CodexCategory.Atoms,
+                () => Pickup(PickupKind.Shield, "prefabs/atom3a"),
+                "Pure forward momentum. Grab one and a shield snaps around your hull for about six seconds - plough " +
+                "through anything while the world speeds up around you. It also pays two star dust and cuts " +
+                AtomChargeCut + " off your weapon's charge.",
                 new[] { "atom3a" }),
-            new CodexEntry("atom_red", "Red Atom", CodexCategory.Atoms, () => Prefab("Prefabs/pauseAtom"),
-                "Condensed wormhole energy. Each one adds a pause to your stash, so you can freeze the " +
-                "universe one more time.",
+            new CodexEntry("atom_red", "Red Atom", CodexCategory.Atoms,
+                () => Pickup(PickupKind.Pause, "prefabs/pauseAtom"),
+                "Condensed wormhole energy. Each one adds two pauses to your stash, fires a free shot of your " +
+                "weapon and cuts " + AtomChargeCut + " off its next charge.",
                 new[] { "pauseatom" }),
             new CodexEntry("atom_green", "Green Atom", CodexCategory.Atoms, () => Texture("Pickups/heal_atom_green"),
-                "A rare repair kit from who-knows-where. It patches one point of hull damage, and only turns up " +
-                "when you're already banged up.",
+                "A rare repair kit from who-knows-where: it patches one heart of hull damage and cuts " +
+                AtomChargeCut + " off your weapon's charge. It only turns up when you're already banged up, and " +
+                "never more than a couple of times a world.",
                 new[] { Codex.Normalise(HealAtom.ObjectName) }),
+            new CodexEntry(VioletAtomId, "Violet Atom", CodexCategory.Atoms,
+                () => Pickup(PickupKind.Cooldown, "prefabs/cooldownAtom"),
+                "A capacitor humming with stored lightning. Grab one and it dumps up to " + CapacitorCut +
+                " into your weapon's charge - often enough to fire it on the spot. Only " +
+                PickupRules.CooldownAtomsPerWorld + " drift through each world, so they're worth a detour.",
+                new[] { "cooldownatom" }),
 
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
@@ -165,7 +198,8 @@ public static class CodexCatalogue
         {
             var def = boss;
             bosses.Add(new CodexEntry(def.id, BossDisplayName(def.name), CodexCategory.Enemies,
-                () => BossArt.Body(def, BossArt.Portrait), def.lore, null, false, secret: true));
+                () => BossArt.Body(def, BossArt.Portrait), def.lore + "\n\n" + BossAttackLore(def),
+                null, false, secret: true));
         }
         list.InsertRange(enemyEnd, bosses);
 
@@ -178,7 +212,7 @@ public static class CodexCatalogue
             string lore;
             if (!ShipLore.TryGetValue(key, out lore))
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
-            lore += "\n\n" + LoadoutLore(index) + "\n" + LivesLore(index);
+            lore += "\n\n" + LoadoutLore(index) + "\n" + LivesLore(index) + "\n" + ColoursLore(index);
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
                 () => ShipHullArt.StockRest(index), lore));
         }
@@ -198,6 +232,110 @@ public static class CodexCatalogue
         if (ship == ShipId.Starter)
             line += " (" + (lives + ShipLives.StarterColourBonus) + " once it wears a new colour)";
         return line;
+    }
+
+    // Its colours (ShipSkins), what each one bought adds to the attack
+    // (ShipWeaponUpgrades) and the start speed each colour flies at
+    // (ShipStartSpeed). Spec lines, no sentence stops.
+    public static string ColoursLore(int ship)
+    {
+        int n = ShipSkins.CountFor(ship);
+        var names = new List<string>();
+        var speeds = new List<string>();
+        for (int skin = 0; skin < n; skin++)
+        {
+            names.Add(ShipSkins.Get(ship, skin).DisplayName);
+            speeds.Add(ShipStartSpeed.HudFor(ship, skin).ToString());
+        }
+        var steps = new List<string>();
+        for (int level = 1; level <= ShipWeaponUpgrades.MaxLevel; level++)
+            steps.Add(ShipWeaponUpgrades.Step(ship, level).label);
+        return "COLOURS  " + string.Join(" / ", names) + "\n" +
+               "UPGRADES  each colour bought adds " + string.Join(", ", steps) + "\n" +
+               "START SPEED  " + string.Join(" / ", speeds) + " by colour";
+    }
+
+    // A boss's attacks, one spec line each: what it fires and from which
+    // part of its body (BossCatalog), then how the fight escalates.
+    public static string BossAttackLore(BossDef boss)
+    {
+        var lines = new List<string>();
+        foreach (var a in boss.attacks)
+            lines.Add(a.name.ToUpperInvariant() + "  " + AttackWhat(a) + " from " + PartsOf(a));
+        lines.Add("PHASES  one attack, then two, then all " + boss.attacks.Length + " faster");
+        lines.Add("ENDS  land " + BossConfig.HitPoints + " weapon hits (+" + ScoreRules.BossDestroyed +
+                  ") or outlast it for " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (+" + ScoreRules.BossSurvived + ")");
+        return string.Join("\n", lines);
+    }
+
+    static string AttackWhat(BossAttack a)
+    {
+        string shots = a.style == BossShotStyle.Shard ? "shards" : "bolts";
+        string what;
+        switch (a.kind)
+        {
+            case BossAttackKind.Aimed: what = (a.count > 1 ? "aimed spreads of " : "aimed ") + shots; break;
+            case BossAttackKind.Fan: what = "fans of " + shots; break;
+            case BossAttackKind.Lob: what = "hail lobbed onto your lanes"; break;
+            default:
+                bool twin = a.emitters != null && a.emitters.Length > 1;
+                what = (twin ? "twin lasers" : "a laser") +
+                       (a.aim == BossBeamAim.AtShip ? " locked on you, then sweeping," : " sweeping the lanes");
+                break;
+        }
+        if (a.kind != BossAttackKind.Beam && a.rail == BossRailMode.Bounce)
+            what += a.bounces == 1 ? " that ricochet once" : " that ricochet " + a.bounces + " times";
+        return what;
+    }
+
+    // Body-part words for the boss art's emitters (BossEmitterTable names,
+    // the L / R / UL ... sides folded together).
+    static readonly Dictionary<string, string> PartWords = new Dictionary<string, string>
+    {
+        { "Chin", "its chin cannon" }, { "Core", "its reactor core" }, { "Pod", "its engine pods" },
+        { "Jaw", "its jaw" }, { "Eye", "its eyes" }, { "Crown", "its blowhole crown" },
+        { "Stinger", "its stinger" }, { "Petal", "every petal tip" }, { "Cannon", "its flank cannons" },
+        { "Furnace", "its chest furnace" }, { "Brow", "the gem on its brow" },
+    };
+
+    // "PetalUL" -> "every petal tip"; null for a part with no words yet.
+    public static string PartWord(string emitter)
+    {
+        string key = PartKey(emitter);
+        string word;
+        return key != null && PartWords.TryGetValue(key, out word) ? word : null;
+    }
+
+    static string PartKey(string emitter)
+    {
+        if (string.IsNullOrEmpty(emitter)) return null;
+        foreach (string side in new[] { "UL", "UR", "LL", "LR", "L", "R" })
+            if (emitter.Length > side.Length + 2 && emitter.EndsWith(side, StringComparison.Ordinal) &&
+                char.IsLower(emitter[emitter.Length - side.Length - 1]))
+                return emitter.Substring(0, emitter.Length - side.Length);
+        return emitter;
+    }
+
+    static string PartsOf(BossAttack a)
+    {
+        var words = new List<string>();
+        if (a.emitters != null)
+            foreach (string em in a.emitters)
+            {
+                string w = PartWord(em) ?? em.ToLowerInvariant();
+                if (!words.Contains(w)) words.Add(w);
+            }
+        return words.Count > 0 ? string.Join(" and ", words) : "its body";
+    }
+
+    // An elite's spec lines: its role, hearts and what downing it pays
+    // (EliteDef.Score / Dust: ScoreRules' defaults unless the def says).
+    public static string EliteLore(EliteDef e)
+    {
+        string role = string.IsNullOrEmpty(e.role) ? "SHIP" : e.role.ToUpperInvariant();
+        return e.lore + "\n\n" +
+               "ELITE  " + role + " - " + e.hearts + " HEARTS" + (e.armored ? ", ARMOURED" : "") + "\n" +
+               "DOWNED  +" + e.Score + " POINTS, +" + Mathf.RoundToInt(e.Dust) + " STAR DUST";
     }
 
     public static string LoadoutLore(int ship)
@@ -256,10 +394,8 @@ public static class CodexCatalogue
         foreach (var elite in EliteCatalog.All)
         {
             var e = elite;
-            string lore = e.lore;
-            if (!string.IsNullOrEmpty(e.role)) lore += "\n\nELITE  " + e.role.ToUpperInvariant() + " - " + e.hearts + " HEARTS";
             enemies.Add(new CodexEntry(e.codexId, e.displayName, CodexCategory.Enemies,
-                                       () => EliteArt.Frame(e, e.cells.Flight0), lore, new[] { Codex.Normalise(e.key) }));
+                                       () => EliteArt.Frame(e, e.cells.Flight0), EliteLore(e), new[] { Codex.Normalise(e.key) }));
         }
         enemies.AddRange(hazards);
         return enemies;
@@ -335,6 +471,14 @@ public static class CodexCatalogue
         var go = Resources.Load<GameObject>(path);
         var sr = go != null ? go.GetComponentInChildren<SpriteRenderer>(true) : null;
         return sr != null ? sr.sprite : null;
+    }
+
+    // A pickup's first idle drawing (PickupArt), else its prefab's sprite.
+    static Sprite Pickup(PickupKind kind, string prefabPath)
+    {
+        var frames = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
+        if (frames != null && frames.Length > 0 && frames[0] != null) return frames[0];
+        return Prefab(prefabPath);
     }
 
     static Sprite Art(string name)
