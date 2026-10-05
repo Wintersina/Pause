@@ -76,9 +76,15 @@ public static class ExhaustRemap
     // Shows ship `shipId`'s exhaust on `renderer` in its shown skin.
     public static void Apply(SpriteRenderer renderer, int shipId)
     {
+        if (!ShipId.IsValid(shipId)) shipId = ShipId.Starter;
+        Apply(renderer, shipId, ShipSkins.Shown(shipId));
+    }
+
+    // ... in a given skin (the home-screen traffic flies every skin).
+    public static void Apply(SpriteRenderer renderer, int shipId, int skin)
+    {
         if (renderer == null) return;
         if (!ShipId.IsValid(shipId)) shipId = ShipId.Starter;
-        int skin = ShipSkins.Shown(shipId);
         var current = renderer.sharedMaterial;
         bool ours = current != null && current == material;
 

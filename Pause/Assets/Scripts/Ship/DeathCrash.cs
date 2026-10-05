@@ -762,7 +762,9 @@ public class DeathCrash : MonoBehaviour
 
     // ---- fragments ----
 
-    sealed class FragmentSet
+    // A hull drawing cut into pieces (see Cut). Destroy() frees its sprites
+    // and textures.
+    public sealed class FragmentSet
     {
         public Sprite[] sprites;
         public Texture2D[] textures;
@@ -791,6 +793,16 @@ public class DeathCrash : MonoBehaviour
     static readonly Vector2[] massSum = new Vector2[MaxFragments];
     static readonly int[] minX = new int[MaxFragments], minY = new int[MaxFragments];
     static readonly int[] maxX = new int[MaxFragments], maxY = new int[MaxFragments];
+
+    // The same cut for a cosmetic user (the home screen's shoot-downs): owned
+    // by the caller, outside this class's cache (so a death never evicts it,
+    // nor it a death's), freed with FragmentSet.Destroy(). No gameplay
+    // state is read or touched.
+    public static FragmentSet CutFragments(Sprite hull, int id, int variant)
+    {
+        if (hull == null || hull.texture == null) return null;
+        return Cut(hull, id, variant);
+    }
 
     // How many pieces a hull breaks into for a given seed (tests).
     public static int FragmentsFor(int id, Sprite hull, int variant)
