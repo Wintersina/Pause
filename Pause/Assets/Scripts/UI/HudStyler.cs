@@ -51,6 +51,13 @@ public class HudStyler : MonoBehaviour
 
     public RectTransform HudRoot { get { return hudRoot; } }
 
+    // The read-out leaves with its scene: nothing (the home menu's codex
+    // toasts, the next run before its HUD is placed) keeps dodging it.
+    void OnDestroy()
+    {
+        StackedReadout = default(Rect);
+    }
+
     void Start()
     {
         speedText = Find("SpeedText");

@@ -52,6 +52,7 @@ public class PortalPressureHud : MonoBehaviour
     Vector2 laidOutFor = new Vector2(-1f, -1f);
     Rect laidOutSafe;
     TopBand.Frame laidOutBand;
+    Rect laidOutReadout;
 
     public Text Chip { get { return chip; } }
     public Image LeftGlow { get { return left; } }
@@ -226,16 +227,19 @@ public class PortalPressureHud : MonoBehaviour
     }
 
     // Inside the rails and under any cutout (TopBand), whatever the screen
-    // (re-laid only when the screen, its safe area or the band changes).
+    // (re-laid only when the screen, its safe area, the band or a stacked
+    // read-out it drops under changes).
     void PlaceChip()
     {
         var screen = new Vector2(Screen.width, Screen.height);
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
-        if (screen == laidOutFor && safe == laidOutSafe && band.Same(laidOutBand)) return;
+        Rect readout = HudStyler.StackedReadout;
+        if (screen == laidOutFor && safe == laidOutSafe && band.Same(laidOutBand) && readout == laidOutReadout) return;
         laidOutFor = screen;
         laidOutSafe = safe;
         laidOutBand = band;
+        laidOutReadout = readout;
         float scale = canvas != null && canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
         Layout(band, screen, scale);
     }

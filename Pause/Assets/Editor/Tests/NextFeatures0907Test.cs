@@ -56,6 +56,7 @@ public static class NextFeatures0907Test
         QuickActionIconFiles();
         HudPinnedTopLeft();
         TopBandInsideRailsClearOfCutouts();
+        TopBandWithUiScaleFloor();
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();
 
         Debug.Log("[NF] failures: " + fails);
@@ -451,6 +452,150 @@ public static class NextFeatures0907Test
             ("centre punch-hole, safe area not inset", new Rect(0, 0, w, h), new[] { hole }),
             ("corner punch-hole, safe area not inset", new Rect(0, 0, w, h), new[] { corner }),
         };
+    }
+
+    // ---- 3c: the top band on phones small in points / dp (UiScale's floor) ----
+
+    // Shapes the floor raises (their real density, as the OS reports it) and
+    // two it must leave alone (the user's 1080x2520 phone, iPhone 15).
+    static readonly (string name, Vector2 size, float dpi, bool ios, float pxPerPt, bool raised)[] FloorShapes =
+    {
+        ("480x854 hdpi",        new Vector2(480, 854),   240f, false, 1.5f,   true),
+        ("720x1280 xhdpi",      new Vector2(720, 1280),  320f, false, 2f,     true),
+        ("1080x1920 420dpi",    new Vector2(1080, 1920), 420f, false, 2.625f, true),
+        ("iPhone SE 750x1334",  new Vector2(750, 1334),  326f, true,  2f,     true),
+        ("Z Flip7 1080x2520",   new Vector2(1080, 2520), 420f, false, 2.625f, false),
+        ("iPhone 15 1179x2556", new Vector2(1179, 2556), 460f, true,  3f,     false),
+    };
+
+    // With the floor (dpi reported, and not), on every cutout case: the
+    // quick actions are >= 44 pt / 48 dp; the read-out keeps at least
+    // TopBand.ReadoutMinScale -- beside them, or stacked under them where the
+    // lane is too narrow -- and every piece (read-out, buttons, BOSS
+    // INCOMING's chip and banner, PORTAL DANGER's chip, the codex toast's
+    // top) stays inside the rails' inner edges and the safe area, clear of
+    // the cutouts and of each other. Where the floor does not raise the
+    // actions, the band is exactly what it was without it.
+    static void TopBandWithUiScaleFloor()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+        UiScaleFloor.AttachScene();   // what the scene-load hook does on a device
+        var go = new GameObject("~TopBandFloorTest");
+        var styler = go.AddComponent<HudStyler>();
+        styler.SendMessage("Start");
+        var root = styler.HudRoot;
+        Check("floor: the read-out exists", root != null);
+        if (root == null) { Object.DestroyImmediate(go); return; }
+        var canvas = root.parent.GetComponent<Canvas>();
+        var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+        Check("floor: the HUD canvas carries UiScale's floor", scaler.GetComponent<UiScaleFloor>() != null);
+        Vector2 hudSize = root.rect.size;
+
+        float painted = float.MaxValue;
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        {
+            WorldPainter.Apply(WorldManager.Worlds[w]);
+            painted = Mathf.Min(painted, BossRails.InnerEdge);
+        }
+
+        try
+        {
+            foreach (var shape in FloorShapes)
+            {
+                Vector2 size = shape.size;
+                float halfW = CameraFit.GameplayViewHalfWidth(size);
+                float railL = size.x * .5f - painted / halfW * size.x * .5f, railR = size.x - railL;
+                float minTap = shape.ios ? 44f : 48f;
+
+                // the band without any floor (the editor's plain pixel scaling)
+                var plainCase = CutoutCases(size)[0];
+                Rect plainRead = HudStyler.HudScreenRect(TopBand.FrameFor(plainCase.safe, size, painted, plainCase.cutouts), size,
+                                                         HudStyler.HudCanvasScale(canvas, scaler, size), hudSize);
+
+                foreach (bool reported in new[] { true, false })
+                {
+                    string tag = "floor: " + shape.name + (reported ? "" : " (dpi unreported)") + ": ";
+                    string why = "";
+                    int stackedCases = 0;
+                    float worstFit = 1f, worstTap = float.MaxValue;
+                    foreach (var c in CutoutCases(size))
+                    {
+                        using (ScreenInfo.Override((int)size.x, (int)size.y, c.safe, c.cutouts, reported ? shape.dpi : 0f, shape.ios))
+                        {
+                            UiScaleFloor.ApplyAll();
+                            float s = PauseQuickActions.CanvasScaleFor(size);
+                            float hudScale = HudStyler.HudCanvasScale(canvas, scaler, size);
+                            var band = TopBand.FrameFor(c.safe, size, painted, c.cutouts);
+                            Vector2 pos; float fit; bool stacked;
+                            HudStyler.ComputeHudLayout(band, size, hudScale, hudSize, out pos, out fit, out stacked);
+                            Rect read = HudStyler.HudScreenRect(band, size, hudScale, hudSize);
+                            Rect actions = PauseQuickActions.ScreenRectFor(band, size);
+                            Rect home = PauseQuickActions.ButtonScreenRect(band, size, 1);
+                            Rect replay = PauseQuickActions.ButtonScreenRect(band, size, 0);
+                            HudStyler.StackedReadout = stacked ? read : default(Rect);
+                            var l = BossWarningHud.ComputeLayout(c.safe, size, read, band);
+                            float portalScale = Mathf.Min(size.x / 800f, size.y / 1200f);   // its overlay canvas: 800x1200, Expand
+                            Rect portal = PortalPressureHud.ChipScreenRect(band, portalScale);
+                            float toastTop = size.y - CodexToast.TopOffset(0f, size.y, 1f, default(Rect), default(Rect), portal);
+                            if (stacked) stackedCases++;
+                            worstFit = Mathf.Min(worstFit, fit);
+                            worstTap = Mathf.Min(worstTap, Mathf.Min(home.width, home.height) / shape.pxPerPt);
+
+                            var pieces = new[] { ("read-out", read), ("home", home), ("replay", replay), ("boss chip", l.chip) };
+                            float gap = TopBand.CutoutClearance * s - .5f;
+                            for (int i = 0; i < pieces.Length && why == ""; i++)
+                            {
+                                Rect r = pieces[i].Item2;
+                                string at = " [" + c.name + ": " + pieces[i].Item1 + " " + r + "; rails " + railL.ToString("F0") + ".." + railR.ToString("F0") + "]";
+                                if (r.xMin < railL - .01f || r.xMax > railR + .01f) why = "outside the rails" + at;
+                                else if (!InsideRect(c.safe, r)) why = "outside the safe area" + at;
+                                foreach (var cut in c.cutouts)
+                                    if (why == "" && r.Overlaps(new Rect(cut.x - gap, cut.y - gap, cut.width + 2f * gap, cut.height + 2f * gap)))
+                                        why = "on a cutout" + at;
+                                for (int j = i + 1; j < pieces.Length && why == ""; j++)
+                                    if (r.Overlaps(pieces[j].Item2)) why = "overlaps the " + pieces[j].Item1 + at;
+                            }
+                            if (why == "" && fit < TopBand.ReadoutMinScale - .001f)
+                                why = "read-out at " + fit.ToString("F2") + " [" + c.name + "]";
+                            if (why == "" && Mathf.Min(home.width, home.height) / shape.pxPerPt < minTap - .01f)
+                                why = "a button is " + (home.width / shape.pxPerPt).ToString("F1") + " [" + c.name + "]";
+                            if (why == "" && stacked && read.yMax > actions.yMin + .5f)
+                                why = "stacked read-out is not under the quick actions [" + c.name + "]";
+                            if (why == "" && !stacked && (Mathf.Abs(read.yMax - band.top) > .5f || Mathf.Abs(home.yMax - band.top) > .5f))
+                                why = "read-out and icons do not share the band's top edge [" + c.name + "]";
+                            if (why == "" && (!InsideRect(c.safe, l.banner) || l.banner.Overlaps(read) || l.banner.Overlaps(actions)))
+                                why = "BOSS INCOMING's banner on the band [" + c.name + "]";
+                            if (why == "" && (portal.Overlaps(read) || portal.Overlaps(actions) || portal.xMin < band.left - .5f || portal.xMax > band.right + .5f))
+                                why = "PORTAL DANGER's chip on the band or outside it: " + portal + " [" + c.name + "]";
+                            if (why == "" && (toastTop > read.yMin + .5f || toastTop > actions.yMin + .5f || toastTop > portal.yMin + .5f))
+                                why = "the codex toast's top " + toastTop.ToString("F0") + " is over the band [" + c.name + "]";
+                            // (with no dpi reported the fallback takes the screen as small
+                            // as its shape can be, so it may raise these too: only checked
+                            // with the density the device really reports)
+                            if (why == "" && !shape.raised && reported && (stacked || c.name == "no cutout" && !SameRect(read, plainRead)))
+                                why = "the band moved where the floor has nothing to raise: " + read + " vs " + plainRead + " [" + c.name + "]";
+                        }
+                    }
+                    Check(tag + "buttons >= " + minTap + (shape.ios ? " pt" : " dp") + " (" + worstTap.ToString("F1") + "), read-out >= " +
+                          TopBand.ReadoutMinScale + " (" + worstFit.ToString("F2") + (stackedCases > 0 ? ", stacked under the actions on " + stackedCases + " of 8 cutout cases" : ", beside the actions") +
+                          "), every piece inside the rails and the safe area, clear of cutouts and each other" + (why == "" ? "" : ": " + why), why == "");
+                    if (shape.raised && reported)
+                        Debug.Log("[NF] floor: " + shape.name + ": quick-action buttons " + worstTap.ToString("F1") + (shape.ios ? " pt" : " dp") +
+                                  ", read-out " + (stackedCases > 0 ? "stacked under them (" + stackedCases + "/8 cases)" : "beside them") + ", fit " + worstFit.ToString("F2"));
+                }
+            }
+        }
+        finally
+        {
+            HudStyler.StackedReadout = default(Rect);
+            UiScaleFloor.ApplyAll();   // back to the editor's own (unfloored) scaling
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    static bool SameRect(Rect a, Rect b)
+    {
+        return Mathf.Abs(a.xMin - b.xMin) < .5f && Mathf.Abs(a.yMin - b.yMin) < .5f && Mathf.Abs(a.xMax - b.xMax) < .5f && Mathf.Abs(a.yMax - b.yMax) < .5f;
     }
 
     static bool InsideRect(Rect outer, Rect inner)

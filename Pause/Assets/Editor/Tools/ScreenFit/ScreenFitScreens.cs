@@ -1023,6 +1023,19 @@ public static class ScreenFitScreens
                 if (r.Overlaps(chip) && Rect.MinMaxRect(Mathf.Max(r.xMin, chip.xMin), Mathf.Max(r.yMin, chip.yMin),
                                                         Mathf.Min(r.xMax, chip.xMax), Mathf.Min(r.yMax, chip.yMax)).height > 1f)
                     rig.Fail("OVERLAP", "codex toast (portal chip up)", "covers the PORTAL DANGER chip", r);
+                // nor the ENTER THE PORTAL card (WorldBanner): on a short phone
+                // the toast, dropped under a stacked read-out, reaches it
+                var bannerObj = (WorldBanner)typeof(WorldBanner).GetField("instance", PrivateStatic).GetValue(null);
+                var card = bannerObj != null ? (RectTransform)Field(bannerObj, "card") : null;
+                if (card == null || !card.gameObject.activeInHierarchy)
+                    rig.Fail("STAGE", "ENTER THE PORTAL", "the banner card is not up");
+                else
+                {
+                    Rect cardPx = rig.PixelRect(card);
+                    if (Rect.MinMaxRect(Mathf.Max(r.xMin, cardPx.xMin), Mathf.Max(r.yMin, cardPx.yMin),
+                                        Mathf.Min(r.xMax, cardPx.xMax), Mathf.Min(r.yMax, cardPx.yMax)) is Rect o && o.width > 1f && o.height > 1f)
+                        rig.Fail("OVERLAP", "codex toast (portal chip up)", "runs into the ENTER THE PORTAL card " + cardPx, r);
+                }
             }
         }
     }
