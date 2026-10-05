@@ -47,6 +47,7 @@ public static class AllTests
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
+        ("BossWarningTest", BossWarningTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
