@@ -92,8 +92,10 @@ EOF
 The zoom is easier to read on a dark backdrop with a 16 px grid (alpha
 composite onto (30,24,60) and draw lines every 16 px) -- you can read
 seed coordinates straight off it. Note stray pixels near the cell edges
-(e.g. `resin_warden.png` cell 3 has a dark sliver at x~163): report them to
-Codex, never edit the art.
+(a slice of the neighbouring pose, left by a grid cut: `resin_warden.png` cell 3
+had one at x~163 until it was re-celled from its concept sheet on 2026-10-05;
+`Art/Enemies/src~/audit_cells.py` finds them): report them to Codex, never
+edit the art.
 
 Then Read the zoomed PNG. Decide: which way the **nose** points in the art
 (degrees, 0 right, 90 up), whether it is a hover/upright design (gunships,
