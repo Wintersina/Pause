@@ -42,14 +42,19 @@ public class AsteroidSpin : MonoBehaviour
         bool flying = !buttonClicks.playerDied &&
                       (TouchInput.IsPressed || score.pauseCounter <= 0);
         if (!flying) return;
+        Advance(Time.deltaTime);
+    }
 
+    // One step of the tumble / sway (DeathCrash's slow motion steps it by hand).
+    public void Advance(float dt)
+    {
         if (Sways)
         {
-            swayClock += Time.deltaTime;
+            swayClock += dt;
             float a = Mathf.Sin(swayClock / Mathf.Max(.1f, swayPeriod) * 2f * Mathf.PI) * swayDegrees;
             transform.rotation = rest * Quaternion.Euler(0f, 0f, a);
             return;
         }
-        transform.Rotate(0f, 0f, speed * Time.deltaTime);
+        transform.Rotate(0f, 0f, speed * dt);
     }
 }

@@ -32,7 +32,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 15. **Queued — `space_chaser`**
 16. **Queued — `frost_chaser`**
 17. **Queued — `verdant_chaser`**
-18. **Queued — `ember_chaser`**
+18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
 19. **Queued — `space_big`**
 20. **Queued — `frost_big`**
 21. **Queued — `verdant_big`**

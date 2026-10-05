@@ -18,10 +18,12 @@ using UnityEngine;
 // own pixels, pivoted at its centre of mass so it spins about it. The sets
 // are cached per hull drawing and variant.
 //
-//   0          the fatal hit: a blast on the hull, the world freezes as it
-//              always has on death (playerDied: spawns, scroll, the boss,
-//              the score all stop), the hull is hidden and the pieces take
-//              its place, flashing, the camera kicks
+//   0          the fatal hit: a blast on the hull; gameplay stops as it
+//              always has on death (playerDied: spawns, input, the boss,
+//              the score all stop) but the board drops into a slow motion
+//              (SlowMo on this sequence's clock, DeathCrashDomino), the hull
+//              is hidden and the pieces take its place, flashing, the camera
+//              kicks
 //   HitStop    the pieces fly, staggered (LaunchSpread): a quadratic arc
 //              up and over to a random spot (side per piece, y anywhere on
 //              screen) on the left or right rail, spinning, trailing smoke
@@ -43,13 +45,20 @@ using UnityEngine;
 // (ShipLivesIndicator) and every blast (TargetExplosion.Delta) run on this
 // sequence's clock while it plays, so they animate over the frozen world.
 //
+// Domino (DeathCrashDomino.cs): a flying piece that touches an enemy, rock,
+// mine or elite on the board destroys it; it bursts into its own pieces,
+// which fly on and may hit more (a chain), and pieces ricochet off what they
+// hit. The chain runs as long as it has to (ExtraCeiling at most) and the
+// panel waits for it; every chain kill scores with a rising multiplier and
+// the total lands once as the run's DEATH COMBO.
+//
 // Clock: unscaled time, each step clamped to MaxStep, so coming back from
 // the background resumes where it was instead of jumping to the end. A fresh
 // tap after SkipAfter skips straight to the panel. Everything is pooled (the
 // pieces and a fixed particle pool, built once per scene); a frame
 // allocates nothing.
 [DefaultExecutionOrder(-60)]   // FrameDt is set before the hearts and the blasts read it
-public class DeathCrash : MonoBehaviour
+public partial class DeathCrash : MonoBehaviour
 {
     // ---- timeline (seconds from the fatal hit) ----
     public const float HitStop = .15f;
@@ -67,11 +76,13 @@ public class DeathCrash : MonoBehaviour
 
     public const int MinFragments = 3, MaxFragments = 6, Variants = 3;
     public const int MaxPieces = MaxFragments + 2;   // + the drone + the killer
-    public const int MaxParticles = 112;
+    public const int MaxParticles = 192;
+    // Every piece slot: the ship's own (MaxPieces) plus the domino's.
+    public const int PieceSlots = MaxPieces + MaxChainPieces;
     public const int SmokeOrder = 59, PieceOrder = 60, SparkOrder = 61;
 
     public enum KillerKind { None, Physical, Projectile, BossBody }
-    public enum PieceKind { Hull, Drone, Killer }
+    public enum PieceKind { Hull, Drone, Killer, Debris }
 
     public static DeathCrash Instance { get; private set; }
 
@@ -93,7 +104,9 @@ public class DeathCrash : MonoBehaviour
         public bool active, landed, main;
         public Vector3 start, control, target, outward, baseScale;
         public float delay, dur, angle, spin, landedAt, emit, radius;
-        public int side;
+        public float t0;          // crash-clock time its current arc began (after the hit-stop)
+        public Vector3 prev;      // last step's position (its heading, for ricochets)
+        public int side, gen, ricochets, lastHit;
         public TargetExplosion.Kind blast;
     }
 
@@ -105,7 +118,7 @@ public class DeathCrash : MonoBehaviour
         public Color tint;
     }
 
-    readonly Piece[] pieces = new Piece[MaxPieces];
+    readonly Piece[] pieces = new Piece[PieceSlots];
     readonly Particle[] particles = new Particle[MaxParticles];
     readonly SpriteRenderer[] particleRenderers = new SpriteRenderer[MaxParticles];
     readonly List<GameObject> hiddenChildren = new List<GameObject>();
@@ -203,7 +216,7 @@ public class DeathCrash : MonoBehaviour
     {
         if (built) return;
         built = true;
-        for (int i = 0; i < MaxPieces; i++)
+        for (int i = 0; i < PieceSlots; i++)
         {
             var go = new GameObject("~CrashPiece" + i, typeof(SpriteRenderer));
             go.transform.SetParent(transform, false);
@@ -297,7 +310,8 @@ public class DeathCrash : MonoBehaviour
         killerKind = Classify(killer);
         if (killerKind == KillerKind.Physical)
         {
-            var ksr = killer.GetComponent<SpriteRenderer>();
+            var eliteKiller = killer.GetComponent<EliteShip>();
+            var ksr = eliteKiller != null ? eliteKiller.Hull : killer.GetComponent<SpriteRenderer>();
             if (ksr == null || ksr.sprite == null) ksr = killer.GetComponentInChildren<SpriteRenderer>();
             if (ksr != null && ksr.sprite != null)
             {
@@ -317,6 +331,7 @@ public class DeathCrash : MonoBehaviour
         plannedEnd += Settle;
 
         HideShip(ship, hull);
+        BeginDomino(killer, shipTf.position);
 
         // The fatal blast on the hull, and the kick.
         Blast(shipTf.position, TargetExplosion.Kind.Metal, 1.05f, true);
@@ -330,31 +345,24 @@ public class DeathCrash : MonoBehaviour
     int Add(PieceKind kind, Sprite sprite, Vector3 start, Quaternion rotation, Vector3 scale, float radius,
             int side, bool main, Vector3 outward, bool flipX, bool flipY, TargetExplosion.Kind blast, float wantY)
     {
-        if (pieceCount >= MaxPieces || sprite == null) return -1;
+        int limit = kind == PieceKind.Debris ? PieceSlots : MaxPieces;
+        if (pieceCount >= limit || sprite == null) return -1;
         int i = pieceCount++;
         ref var p = ref pieces[i];
         p.kind = kind;
         p.active = true;
         p.landed = false;
         p.main = main;
-        p.side = side;
         p.radius = Mathf.Max(.04f, radius);
         p.blast = blast;
-        p.start = start;
-        p.outward = outward;
         p.baseScale = scale;
         p.angle = rotation.eulerAngles.z;
         p.emit = Random.Range(0f, .03f);
-
-        float inset = Mathf.Clamp(p.radius * .35f, .03f, .16f);
-        float y = float.IsNaN(wantY) ? PickY(side) : Mathf.Clamp(wantY, MinY, MaxY);
-        p.target = new Vector3(side * (edge - inset), y, start.z);
-
-        Vector3 mid = Vector3.Lerp(start, p.target, .35f);
-        float lift = Random.Range(.6f, 1.5f);
-        float cx = Mathf.Clamp(mid.x + outward.x * .5f, -edge + .2f, edge - .2f);
-        float cy = Mathf.Min(Mathf.Max(start.y, y) + lift, viewTop - .4f);
-        p.control = new Vector3(cx, cy, start.z);
+        p.gen = 0;
+        p.ricochets = 0;
+        p.lastHit = -1;
+        p.prev = start;
+        Plan(ref p, start, outward, side, wantY);
 
         switch (kind)
         {
@@ -368,12 +376,19 @@ public class DeathCrash : MonoBehaviour
                 p.dur = Random.Range(.66f, .82f);
                 p.spin = (Random.value < .5f ? -1f : 1f) * Random.Range(600f, 900f);
                 break;
+            case PieceKind.Debris:
+                p.delay = 0f;
+                p.dur = Random.Range(DebrisFlightMin, DebrisFlightMax);
+                p.spin = (Random.value < .5f ? -1f : 1f) * Random.Range(420f, 960f);
+                break;
             default:
                 p.delay = Random.Range(.03f, .08f);
                 p.dur = Random.Range(.62f, .84f);
                 p.spin = (Random.value < .5f ? -1f : 1f) * Random.Range(300f, 620f);
                 break;
         }
+        // the ship's own pieces wait out the hit-stop; debris flies at once
+        p.t0 = kind == PieceKind.Debris ? elapsed : HitStop + p.delay;
 
         p.sr.sprite = sprite;
         p.sr.flipX = flipX;
@@ -385,6 +400,23 @@ public class DeathCrash : MonoBehaviour
         p.tf.rotation = Quaternion.Euler(0f, 0f, p.angle);
         p.tf.localScale = scale;
         return i;
+    }
+
+    // The arc to a random spot on the `side` rail: start -> control -> target.
+    void Plan(ref Piece p, Vector3 start, Vector3 outward, int side, float wantY)
+    {
+        p.side = side;
+        p.start = start;
+        p.outward = outward;
+        float inset = Mathf.Clamp(p.radius * .35f, .03f, .16f);
+        float y = float.IsNaN(wantY) ? PickY(side) : Mathf.Clamp(wantY, MinY, MaxY);
+        p.target = new Vector3(side * (edge - inset), y, start.z);
+
+        Vector3 mid = Vector3.Lerp(start, p.target, .35f);
+        float lift = Random.Range(.6f, 1.5f);
+        float cx = Mathf.Clamp(mid.x + outward.x * .5f, -edge + .2f, edge - .2f);
+        float cy = Mathf.Min(Mathf.Max(start.y, y) + lift, viewTop - .4f);
+        p.control = new Vector3(cx, cy, start.z);
     }
 
     float MinY => viewBottom + .9f;
@@ -446,6 +478,9 @@ public class DeathCrash : MonoBehaviour
     public bool Skip()
     {
         if (!running || elapsed < SkipAfter) return false;
+        // The chain still in the air plays out at once, unseen, so every
+        // kill it would have made is scored (FastForward).
+        FastForward();
         for (int i = 0; i < pieceCount; i++)
         {
             ref var p = ref pieces[i];
@@ -459,6 +494,7 @@ public class DeathCrash : MonoBehaviour
         lastLanding = elapsed;
         skipped = true;
         shake = Mathf.Max(shake, .03f);
+        AnnounceCombo();
         Finish();
         return true;
     }
@@ -470,6 +506,7 @@ public class DeathCrash : MonoBehaviour
         elapsed += dt;
         shakeClock += dt;
         shake *= Mathf.Exp(-11f * dt);
+        if (running) StepDomino(dt);
 
         bool allLanded = true;
         for (int i = 0; i < pieceCount; i++)
@@ -481,19 +518,26 @@ public class DeathCrash : MonoBehaviour
         }
         StepParticles(dt);
 
-        if (running && allLanded && elapsed >= lastLanding + Settle) Finish();
+        // The chain is over: nothing left in the air that could still hit
+        // something, no cascade kill pending. Its total lands now, and the
+        // panel follows the settle (plus a beat for the banner).
+        if (running && allLanded && !CascadePending)
+        {
+            AnnounceCombo();
+            if (elapsed >= lastLanding + SettleTime) Finish();
+        }
         if (finished && elapsed >= finishedAt + Tail && !AnyVisible()) Stop();
     }
 
     void Fly(int i, float dt)
     {
         ref var p = ref pieces[i];
-        float t = elapsed - HitStop - p.delay;
+        float t = elapsed - p.t0;
         if (t < 0f)
         {
             // Hit-stop: the hull holds together, flashing and shuddering,
             // already cracking apart a hair along its cuts.
-            float crack = Mathf.Clamp01(elapsed / (HitStop + p.delay)) * .025f;
+            float crack = Mathf.Clamp01(elapsed / Mathf.Max(.001f, p.t0)) * .025f;
             Vector3 jitter = elapsed < HitStop ? (Vector3)(Random.insideUnitCircle * .018f) : Vector3.zero;
             p.tf.position = p.start + p.outward * crack + jitter;
             bool hot = Mathf.FloorToInt(elapsed * 30f) % 2 == 0;
@@ -503,11 +547,13 @@ public class DeathCrash : MonoBehaviour
         p.sr.color = Color.white;
         float u = Mathf.Clamp01(t / p.dur);
         float e = u * (.55f + .45f * u);   // speeds up into the wall
+        p.prev = p.tf.position;
         p.tf.position = Bezier(p.start, p.control, p.target, e);
         p.angle += p.spin * dt;
         p.tf.rotation = Quaternion.Euler(0f, 0f, p.angle);
         Trail(i, dt);
-        if (u >= 1f) Land(i);
+        if (u >= 1f) { Land(i); return; }
+        Collide(i);
     }
 
     void Land(int i)
@@ -635,6 +681,7 @@ public class DeathCrash : MonoBehaviour
         disabled.Clear();
         ship = null;
         running = finished = false;
+        ResetDomino();
         Stop();
     }
 
@@ -647,7 +694,7 @@ public class DeathCrash : MonoBehaviour
 
     void HideAll()
     {
-        for (int i = 0; i < MaxPieces; i++)
+        for (int i = 0; i < PieceSlots; i++)
         {
             pieces[i].active = false;
             if (pieces[i].sr != null) pieces[i].sr.enabled = false;
@@ -692,6 +739,7 @@ public class DeathCrash : MonoBehaviour
 
     void Blast(Vector3 at, TargetExplosion.Kind kind, float size, bool flash)
     {
+        if (fastForward) return;   // a skipped chain plays out unseen
         if (!Application.isPlaying && !EditorBlasts) return;   // edit-mode tests: no pooled flipbooks
         Color energy = WeaponStyleTable.For(shipId).energy;
         if (flash) WeaponFx.Flipbook().Play(FlipbookFx.Mode.Flash, at, size * 1.15f, shipId, kind, energy, 1f, 64);
@@ -704,6 +752,7 @@ public class DeathCrash : MonoBehaviour
     void Emit(int row, int drawing, Vector3 pos, Vector2 vel, float life, float size0, float size1,
               float gravity, float spin, float drag, Color tint, int order)
     {
+        if (fastForward) return;
         int slot = -1;
         for (int n = 0; n < MaxParticles; n++)
         {
@@ -801,7 +850,7 @@ public class DeathCrash : MonoBehaviour
     public static FragmentSet CutFragments(Sprite hull, int id, int variant)
     {
         if (hull == null || hull.texture == null) return null;
-        return Cut(hull, id, variant);
+        return Cut(hull, id, variant, 0);
     }
 
     // How many pieces a hull breaks into for a given seed (tests).
@@ -821,7 +870,7 @@ public class DeathCrash : MonoBehaviour
             foreach (var old in sets.Values) if (old != null) old.Destroy();
             sets.Clear();
         }
-        var set = Cut(hull, id, variant);
+        var set = Cut(hull, id, variant, 0);
         if (set != null) sets[key] = set;
         return set;
     }
@@ -860,7 +909,9 @@ public class DeathCrash : MonoBehaviour
     // the distance jittered in small blocks so the cracks run jagged. Each
     // piece is its own small texture, cropped to its pixels and pivoted on
     // their centre of mass.
-    static FragmentSet Cut(Sprite hull, int id, int variant)
+    // `id` < 0: not a ship (no ShipHitbox outline; the drawing's box is
+    // used). `forceCount` > 0 fixes the number of pieces.
+    static FragmentSet Cut(Sprite hull, int id, int variant, int forceCount)
     {
         var copy = ReadableCopy(hull);
         if (copy == null) return null;
@@ -871,7 +922,7 @@ public class DeathCrash : MonoBehaviour
 
         // The hull's body outline, in sprite pixels.
         int pn = 0;
-        var shape = ShipHitbox.ShapeFor(id);
+        var shape = id >= 0 ? ShipHitbox.ShapeFor(id) : null;
         if (shape != null && shape.hull != null && shape.hull.Length >= 3)
         {
             pn = Mathf.Min(shape.hull.Length, PolyMax);
@@ -905,7 +956,7 @@ public class DeathCrash : MonoBehaviour
         float aspect = Mathf.Max(max.x - min.x, max.y - min.y) / Mathf.Max(1f, Mathf.Min(max.x - min.x, max.y - min.y));
         int count = 3 + Mathf.Clamp(Mathf.FloorToInt((compact - 1.25f) * 1.6f + (aspect - 1f) * .8f), 0, 2)
                       + (Next01(ref rng) < .5f ? 1 : 0);
-        count = Mathf.Clamp(count, MinFragments, MaxFragments);
+        count = forceCount > 0 ? Mathf.Clamp(forceCount, 1, MaxFragments) : Mathf.Clamp(count, MinFragments, MaxFragments);
 
         // Seeds inside the body, spread out (best of several candidates).
         for (int k = 0; k < count; k++)
