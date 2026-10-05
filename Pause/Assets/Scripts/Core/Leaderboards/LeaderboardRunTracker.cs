@@ -37,6 +37,8 @@ public class LeaderboardRunTracker : MonoBehaviour
         if (ended) return;
         if (buttonClicks.playerDied)
         {
+            // The death crash's DEATH COMBO is part of the run's score.
+            if (!DeathCrash.PanelReady) return;
             End();
             return;
         }

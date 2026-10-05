@@ -211,8 +211,23 @@ public class ScoreHud : MonoBehaviour
     // The live run HUD (gameS1 only), for one-word callouts from gameplay.
     public static ScoreHud Current { get; private set; }
 
-    void OnEnable() { RunScore.Scored += OnScored; Current = this; }
-    void OnDisable() { RunScore.Scored -= OnScored; if (Current == this) Current = null; }
+    void OnEnable()
+    {
+        RunScore.Scored += OnScored;
+        DeathCrash.DominoKill += OnDominoKill;
+        DeathCrash.MegaDominoStarted += OnMegaDomino;
+        DeathCrash.DeathCombo += OnDeathCombo;
+        Current = this;
+    }
+
+    void OnDisable()
+    {
+        RunScore.Scored -= OnScored;
+        DeathCrash.DominoKill -= OnDominoKill;
+        DeathCrash.MegaDominoStarted -= OnMegaDomino;
+        DeathCrash.DeathCombo -= OnDeathCombo;
+        if (Current == this) Current = null;
+    }
 
     void Update()
     {
@@ -275,7 +290,68 @@ public class ScoreHud : MonoBehaviour
         // freeze with the world, and through the ultimate's deep slow motion
         // (x0.06) they still pop and rise at half speed beside the blasts
         // that scored them instead of hanging there for ten seconds.
-        StepPopups(buttonClicks.playerDied ? -1f : TargetExplosion.Delta());
+        // On death they clear -- except through the death crash, whose
+        // DOMINO popups and banners run on its clock until the panel shows.
+        StepPopups(!buttonClicks.playerDied ? TargetExplosion.Delta()
+                   : DeathCrash.Running ? DeathCrash.FrameDt : -1f);
+    }
+
+    // ---- the death crash's domino (DeathCrash) ----------------------------
+    //
+    //   DOMINO x3  +45      over each chain kill (amber, Kaneda red from x3)
+    //   MEGA DOMINO!        mid-screen as the death takes the whole screen
+    //   DEATH COMBO +N      mid-screen as the chain ends, before the panel
+
+    public const string MegaDominoLabel = "MEGA DOMINO!";
+
+    public static string DominoLabel(int multiplier, int points)
+    {
+        return (multiplier <= 1 ? "DOMINO" : "DOMINO x" + multiplier) + "  +" + RunScore.Format(points);
+    }
+
+    public static string DeathComboLabel(int points) { return "DEATH COMBO +" + RunScore.Format(points); }
+
+    void OnDominoKill(Vector3 at, int multiplier, int points)
+    {
+        if (!RunScore.Scoring) return;
+        ShowWord(DominoLabel(multiplier, points), at, multiplier >= 3 ? AkiraPalette.RedHi : AkiraPalette.Amber,
+                 Mathf.Min(38, 26 + multiplier * 2));
+    }
+
+    void OnMegaDomino(Vector3 at)
+    {
+        if (!RunScore.Scoring) return;
+        ShowBanner(MegaDominoLabel, AkiraPalette.Magenta, 58, 1.8f, .2f);
+    }
+
+    void OnDeathCombo(int points, int kills, bool mega)
+    {
+        if (!RunScore.Scoring || points <= 0) return;
+        ShowBanner(DeathComboLabel(points), mega ? AkiraPalette.Magenta : AkiraPalette.Amber, mega ? 54 : 48, 1.4f, .05f);
+    }
+
+    // A big line across the middle of the screen (`y`: a fraction of the
+    // canvas height above centre), in the popups' pool and motion.
+    public Text ShowBanner(string text, Color colour, int size, float seconds, float y)
+    {
+        if (canvasRect == null || string.IsNullOrEmpty(text)) return null;
+        if (popups == null) BuildPopups();
+        int index = nextPopup;
+        nextPopup = (nextPopup + 1) % popups.Length;
+        var p = popups[index];
+        p.text.text = text;
+        p.text.fontSize = size;
+        p.text.color = colour;
+        p.seconds = seconds;
+        p.rise = 24f;
+        p.from = new Vector2(0f, canvasRect.rect.size.y * y);
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.rectTransform.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
     }
 
     // SPD xN: shown above x1, punches and flashes BONE-white as it steps up
