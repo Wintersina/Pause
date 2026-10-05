@@ -1,2 +1,1599 @@
 fileFormatVersion: 2
 guid: 088ef5b289c8046118d5460327e10f1f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -836802543489178249
+    second: ember_elite_kilnback_concept_0
+  - first:
+      213: -4690704371177268981
+    second: ember_elite_kilnback_concept_1
+  - first:
+      213: 778134007294287891
+    second: ember_elite_kilnback_concept_2
+  - first:
+      213: -4203350025072885535
+    second: ember_elite_kilnback_concept_3
+  - first:
+      213: -4342993196927320690
+    second: ember_elite_kilnback_concept_4
+  - first:
+      213: -3443412288731385980
+    second: ember_elite_kilnback_concept_5
+  - first:
+      213: 5773883244746640791
+    second: ember_elite_kilnback_concept_6
+  - first:
+      213: 8133603660746530445
+    second: ember_elite_kilnback_concept_7
+  - first:
+      213: -7513045874851247351
+    second: ember_elite_kilnback_concept_8
+  - first:
+      213: 8530646521790842826
+    second: ember_elite_kilnback_concept_9
+  - first:
+      213: 6475067986213365793
+    second: ember_elite_kilnback_concept_10
+  - first:
+      213: -13112647589242761
+    second: ember_elite_kilnback_concept_11
+  - first:
+      213: -1359010964169282209
+    second: ember_elite_kilnback_concept_12
+  - first:
+      213: 1253026184735001159
+    second: ember_elite_kilnback_concept_13
+  - first:
+      213: -2835446384343111454
+    second: ember_elite_kilnback_concept_14
+  - first:
+      213: -6273294759928144803
+    second: ember_elite_kilnback_concept_15
+  - first:
+      213: -740672183329297535
+    second: ember_elite_kilnback_concept_16
+  - first:
+      213: 1157154166491046512
+    second: ember_elite_kilnback_concept_17
+  - first:
+      213: 6770387207956287598
+    second: ember_elite_kilnback_concept_18
+  - first:
+      213: 2990218820015018214
+    second: ember_elite_kilnback_concept_19
+  - first:
+      213: 2744680174019367509
+    second: ember_elite_kilnback_concept_20
+  - first:
+      213: 469263811134016676
+    second: ember_elite_kilnback_concept_21
+  - first:
+      213: -5735621941492345457
+    second: ember_elite_kilnback_concept_22
+  - first:
+      213: -1291783300324062932
+    second: ember_elite_kilnback_concept_23
+  - first:
+      213: -8675023350351554280
+    second: ember_elite_kilnback_concept_24
+  - first:
+      213: 7157815653368385547
+    second: ember_elite_kilnback_concept_25
+  - first:
+      213: 5151579278985078128
+    second: ember_elite_kilnback_concept_26
+  - first:
+      213: 2418009748605690309
+    second: ember_elite_kilnback_concept_27
+  - first:
+      213: 7745318157154563191
+    second: ember_elite_kilnback_concept_28
+  - first:
+      213: -1879516904634067722
+    second: ember_elite_kilnback_concept_29
+  - first:
+      213: 8158111990913446857
+    second: ember_elite_kilnback_concept_30
+  - first:
+      213: -3154299710887275526
+    second: ember_elite_kilnback_concept_31
+  - first:
+      213: -4379739923935402078
+    second: ember_elite_kilnback_concept_32
+  - first:
+      213: 3908498774644743695
+    second: ember_elite_kilnback_concept_33
+  - first:
+      213: 7469500322456194821
+    second: ember_elite_kilnback_concept_34
+  - first:
+      213: -7291170077294129379
+    second: ember_elite_kilnback_concept_35
+  - first:
+      213: -5028394091813621826
+    second: ember_elite_kilnback_concept_36
+  - first:
+      213: 4234903219188109917
+    second: ember_elite_kilnback_concept_37
+  - first:
+      213: 425731904888177351
+    second: ember_elite_kilnback_concept_38
+  - first:
+      213: -6814329821264626137
+    second: ember_elite_kilnback_concept_39
+  - first:
+      213: 2466811696269484091
+    second: ember_elite_kilnback_concept_40
+  - first:
+      213: -7414017474810851887
+    second: ember_elite_kilnback_concept_41
+  - first:
+      213: -6692244817613037998
+    second: ember_elite_kilnback_concept_42
+  - first:
+      213: 1568253471553955110
+    second: ember_elite_kilnback_concept_43
+  - first:
+      213: 6209014456917726334
+    second: ember_elite_kilnback_concept_44
+  - first:
+      213: -3719361457932035543
+    second: ember_elite_kilnback_concept_45
+  - first:
+      213: -3068350428968020497
+    second: ember_elite_kilnback_concept_46
+  - first:
+      213: -5934932722515922063
+    second: ember_elite_kilnback_concept_47
+  - first:
+      213: 5192794865577830816
+    second: ember_elite_kilnback_concept_48
+  - first:
+      213: -1076314487425646968
+    second: ember_elite_kilnback_concept_49
+  - first:
+      213: 938413933145938026
+    second: ember_elite_kilnback_concept_50
+  - first:
+      213: -4530760582998191371
+    second: ember_elite_kilnback_concept_51
+  - first:
+      213: 8481983372514610806
+    second: ember_elite_kilnback_concept_52
+  - first:
+      213: 3520520924219560291
+    second: ember_elite_kilnback_concept_53
+  - first:
+      213: -2678413066708320432
+    second: ember_elite_kilnback_concept_54
+  - first:
+      213: 5539388509622361310
+    second: ember_elite_kilnback_concept_55
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 2162
+        height: 710
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7752f2035841364f0800000000000000
+      internalID: -836802543489178249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_1
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 673
+        width: 17
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b095b911a3547eeb0800000000000000
+      internalID: -4690704371177268981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_2
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 694
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3106d64c1cc7cca00800000000000000
+      internalID: 778134007294287891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_3
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 642
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e0c6e82c63baa5c0800000000000000
+      internalID: -4203350025072885535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_4
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 79
+        width: 13
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8d753392b69ab3c0800000000000000
+      internalID: -4342993196927320690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_5
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 79
+        width: 24
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48f63f274ca8630d0800000000000000
+      internalID: -3443412288731385980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_6
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 77
+        width: 19
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79d04b14834f02050800000000000000
+      internalID: 5773883244746640791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1062
+        y: 86
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8e1d9e8f6d50e070800000000000000
+      internalID: 8133603660746530445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 93
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90b0748259c4cb790800000000000000
+      internalID: -7513045874851247351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_9
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 98
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac7c3c370d1f26670800000000000000
+      internalID: 8530646521790842826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1985
+        y: 87
+        width: 9
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12860cee6001cd950800000000000000
+      internalID: 6475067986213365793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_11
+      rect:
+        serializedVersion: 2
+        x: 446
+        y: 83
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 778d062dd1a61dff0800000000000000
+      internalID: -13112647589242761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_12
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 63
+        width: 7
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5d24da7ab2d32de0800000000000000
+      internalID: -1359010964169282209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_13
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 77
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74a846b1da4a36110800000000000000
+      internalID: 1253026184735001159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_14
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 66
+        width: 25
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e82099498876a8d0800000000000000
+      internalID: -2835446384343111454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_15
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 79
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5cd92737a7c0f8a0800000000000000
+      internalID: -6273294759928144803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_16
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 83
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18be4a1d29a98b5f0800000000000000
+      internalID: -740672183329297535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 78
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 072ef0465990f0010800000000000000
+      internalID: 1157154166491046512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1178
+        y: 75
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e60551a6b4f35fd50800000000000000
+      internalID: 6770387207956287598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1188
+        y: 87
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e0dea78c246f7920800000000000000
+      internalID: 2990218820015018214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1343
+        y: 87
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5525b7a8310171620800000000000000
+      internalID: 2744680174019367509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 87
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4acc69033f8238600800000000000000
+      internalID: 469263811134016676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_22
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 51
+        width: 20
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f85996b9b3af660b0800000000000000
+      internalID: -5735621941492345457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_23
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c290769bee9a21ee0800000000000000
+      internalID: -1291783300324062932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_24
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 61
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8199310a9302c9780800000000000000
+      internalID: -8675023350351554280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_25
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 65
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b00d0cab96ba55360800000000000000
+      internalID: 7157815653368385547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_26
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 31
+        width: 38
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0752b2c5f061e7740800000000000000
+      internalID: 5151579278985078128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_27
+      rect:
+        serializedVersion: 2
+        x: 623
+        y: 62
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c1e2112e0f7e8120800000000000000
+      internalID: 2418009748605690309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_28
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 63
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 774b495d3d5ec7b60800000000000000
+      internalID: 7745318157154563191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1341
+        y: 53
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f4d1f5555d9ae5e0800000000000000
+      internalID: -1879516904634067722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_30
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 29
+        width: 16
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c33048d1af673170800000000000000
+      internalID: 8158111990913446857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_31
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 49
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af35279002da934d0800000000000000
+      internalID: -3154299710887275526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_32
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 41
+        width: 30
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a7eb397eb90833c0800000000000000
+      internalID: -4379739923935402078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_33
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 53
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0edfbb6de6cd3630800000000000000
+      internalID: 3908498774644743695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_34
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 47
+        width: 7
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50fcaa9d7fef8a760800000000000000
+      internalID: 7469500322456194821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_35
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 39
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1f0de9e17f80da90800000000000000
+      internalID: -7291170077294129379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_36
+      rect:
+        serializedVersion: 2
+        x: 690
+        y: 23
+        width: 34
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebfa6ce073e873ab0800000000000000
+      internalID: -5028394091813621826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_37
+      rect:
+        serializedVersion: 2
+        x: 722
+        y: 43
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d529dd55a0665ca30800000000000000
+      internalID: 4234903219188109917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_38
+      rect:
+        serializedVersion: 2
+        x: 847
+        y: 49
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c2096079e088e500800000000000000
+      internalID: 425731904888177351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_39
+      rect:
+        serializedVersion: 2
+        x: 977
+        y: 51
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72ebb25a123ae61a0800000000000000
+      internalID: -6814329821264626137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_40
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 47
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b30ebe30b20eb3220800000000000000
+      internalID: 2466811696269484091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_41
+      rect:
+        serializedVersion: 2
+        x: 1030
+        y: 47
+        width: 18
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dd4c57436e1c1990800000000000000
+      internalID: -7414017474810851887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_42
+      rect:
+        serializedVersion: 2
+        x: 1197
+        y: 43
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25ed930abce5023a0800000000000000
+      internalID: -6692244817613037998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_43
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 0
+        width: 56
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6252fb1393e83c510800000000000000
+      internalID: 1568253471553955110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_44
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 41
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7498d570c9da2650800000000000000
+      internalID: 6209014456917726334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_45
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92a9ea4c57c226cc0800000000000000
+      internalID: -3719361457932035543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_46
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 31
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe591faaa870b65d0800000000000000
+      internalID: -3068350428968020497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_47
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 30
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 173b89c2222e2ada0800000000000000
+      internalID: -5934932722515922063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_48
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 31
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a92d3aea63801840800000000000000
+      internalID: 5192794865577830816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_49
+      rect:
+        serializedVersion: 2
+        x: 668
+        y: 31
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88e336e1da92011f0800000000000000
+      internalID: -1076314487425646968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_50
+      rect:
+        serializedVersion: 2
+        x: 740
+        y: 25
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a68d071108ae50d00800000000000000
+      internalID: 938413933145938026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_51
+      rect:
+        serializedVersion: 2
+        x: 744
+        y: 26
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f21d0831418f11c0800000000000000
+      internalID: -4530760582998191371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_52
+      rect:
+        serializedVersion: 2
+        x: 997
+        y: 31
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67ec08510fe06b570800000000000000
+      internalID: 8481983372514610806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_53
+      rect:
+        serializedVersion: 2
+        x: 1106
+        y: 19
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 361df68c0276bd030800000000000000
+      internalID: 3520520924219560291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_54
+      rect:
+        serializedVersion: 2
+        x: 1482
+        y: 17
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05ff515b18d54dad0800000000000000
+      internalID: -2678413066708320432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_kilnback_concept_55
+      rect:
+        serializedVersion: 2
+        x: 1506
+        y: 31
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edcdbe4208cdfdc40800000000000000
+      internalID: 5539388509622361310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_kilnback_concept_0: -836802543489178249
+      ember_elite_kilnback_concept_1: -4690704371177268981
+      ember_elite_kilnback_concept_10: 6475067986213365793
+      ember_elite_kilnback_concept_11: -13112647589242761
+      ember_elite_kilnback_concept_12: -1359010964169282209
+      ember_elite_kilnback_concept_13: 1253026184735001159
+      ember_elite_kilnback_concept_14: -2835446384343111454
+      ember_elite_kilnback_concept_15: -6273294759928144803
+      ember_elite_kilnback_concept_16: -740672183329297535
+      ember_elite_kilnback_concept_17: 1157154166491046512
+      ember_elite_kilnback_concept_18: 6770387207956287598
+      ember_elite_kilnback_concept_19: 2990218820015018214
+      ember_elite_kilnback_concept_2: 778134007294287891
+      ember_elite_kilnback_concept_20: 2744680174019367509
+      ember_elite_kilnback_concept_21: 469263811134016676
+      ember_elite_kilnback_concept_22: -5735621941492345457
+      ember_elite_kilnback_concept_23: -1291783300324062932
+      ember_elite_kilnback_concept_24: -8675023350351554280
+      ember_elite_kilnback_concept_25: 7157815653368385547
+      ember_elite_kilnback_concept_26: 5151579278985078128
+      ember_elite_kilnback_concept_27: 2418009748605690309
+      ember_elite_kilnback_concept_28: 7745318157154563191
+      ember_elite_kilnback_concept_29: -1879516904634067722
+      ember_elite_kilnback_concept_3: -4203350025072885535
+      ember_elite_kilnback_concept_30: 8158111990913446857
+      ember_elite_kilnback_concept_31: -3154299710887275526
+      ember_elite_kilnback_concept_32: -4379739923935402078
+      ember_elite_kilnback_concept_33: 3908498774644743695
+      ember_elite_kilnback_concept_34: 7469500322456194821
+      ember_elite_kilnback_concept_35: -7291170077294129379
+      ember_elite_kilnback_concept_36: -5028394091813621826
+      ember_elite_kilnback_concept_37: 4234903219188109917
+      ember_elite_kilnback_concept_38: 425731904888177351
+      ember_elite_kilnback_concept_39: -6814329821264626137
+      ember_elite_kilnback_concept_4: -4342993196927320690
+      ember_elite_kilnback_concept_40: 2466811696269484091
+      ember_elite_kilnback_concept_41: -7414017474810851887
+      ember_elite_kilnback_concept_42: -6692244817613037998
+      ember_elite_kilnback_concept_43: 1568253471553955110
+      ember_elite_kilnback_concept_44: 6209014456917726334
+      ember_elite_kilnback_concept_45: -3719361457932035543
+      ember_elite_kilnback_concept_46: -3068350428968020497
+      ember_elite_kilnback_concept_47: -5934932722515922063
+      ember_elite_kilnback_concept_48: 5192794865577830816
+      ember_elite_kilnback_concept_49: -1076314487425646968
+      ember_elite_kilnback_concept_5: -3443412288731385980
+      ember_elite_kilnback_concept_50: 938413933145938026
+      ember_elite_kilnback_concept_51: -4530760582998191371
+      ember_elite_kilnback_concept_52: 8481983372514610806
+      ember_elite_kilnback_concept_53: 3520520924219560291
+      ember_elite_kilnback_concept_54: -2678413066708320432
+      ember_elite_kilnback_concept_55: 5539388509622361310
+      ember_elite_kilnback_concept_6: 5773883244746640791
+      ember_elite_kilnback_concept_7: 8133603660746530445
+      ember_elite_kilnback_concept_8: -7513045874851247351
+      ember_elite_kilnback_concept_9: 8530646521790842826
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,2 +1,507 @@
 fileFormatVersion: 2
 guid: 50c372454e06747d7bf5530093317c65
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6471495818023268258
+    second: ember_elite_sunstoke_concept_0
+  - first:
+      213: 8848906415076010208
+    second: ember_elite_sunstoke_concept_1
+  - first:
+      213: -1037517140091820956
+    second: ember_elite_sunstoke_concept_2
+  - first:
+      213: 2913239037907374585
+    second: ember_elite_sunstoke_concept_3
+  - first:
+      213: 5450775574661048838
+    second: ember_elite_sunstoke_concept_4
+  - first:
+      213: -3969229290860861025
+    second: ember_elite_sunstoke_concept_5
+  - first:
+      213: 780614060869715599
+    second: ember_elite_sunstoke_concept_6
+  - first:
+      213: -7813782628244318865
+    second: ember_elite_sunstoke_concept_7
+  - first:
+      213: -6562504909316949782
+    second: ember_elite_sunstoke_concept_8
+  - first:
+      213: 2485722747268844
+    second: ember_elite_sunstoke_concept_9
+  - first:
+      213: 5512031726387988946
+    second: ember_elite_sunstoke_concept_10
+  - first:
+      213: -825488462499221316
+    second: ember_elite_sunstoke_concept_11
+  - first:
+      213: -3167289602259388848
+    second: ember_elite_sunstoke_concept_12
+  - first:
+      213: -3448144085356996277
+    second: ember_elite_sunstoke_concept_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_0
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 57
+        width: 289
+        height: 647
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2afe3b6b82f5fc950800000000000000
+      internalID: 6471495818023268258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_1
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 39
+        width: 357
+        height: 657
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e8e7414081adca70800000000000000
+      internalID: 8848906415076010208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_2
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 17
+        width: 364
+        height: 607
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 464a27878aff991f0800000000000000
+      internalID: -1037517140091820956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_3
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 162
+        width: 281
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f115405877ed6820800000000000000
+      internalID: 2913239037907374585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_4
+      rect:
+        serializedVersion: 2
+        x: 989
+        y: 612
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60a2c06718b05ab40800000000000000
+      internalID: 5450775574661048838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1102
+        y: 18
+        width: 438
+        height: 654
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f99a9266df67ae8c0800000000000000
+      internalID: -3969229290860861025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1502
+        y: 162
+        width: 333
+        height: 464
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8680dc3a5c45da00800000000000000
+      internalID: 780614060869715599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1796
+        y: 21
+        width: 362
+        height: 615
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f65116b491edf8390800000000000000
+      internalID: -7813782628244318865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_8
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 118
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae8f76bfd8c4de4a0800000000000000
+      internalID: -6562504909316949782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_9
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 120
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cee6c5d60c4d80000800000000000000
+      internalID: 2485722747268844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_10
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 101
+        width: 13
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d90a02b6abae7c40800000000000000
+      internalID: 5512031726387988946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_11
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 114
+        width: 18
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb0fc82fd964b84f0800000000000000
+      internalID: -825488462499221316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_12
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 109
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0567a8443e68b04d0800000000000000
+      internalID: -3167289602259388848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_sunstoke_concept_13
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 87
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b499ee1393bb520d0800000000000000
+      internalID: -3448144085356996277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_sunstoke_concept_0: 6471495818023268258
+      ember_elite_sunstoke_concept_1: 8848906415076010208
+      ember_elite_sunstoke_concept_10: 5512031726387988946
+      ember_elite_sunstoke_concept_11: -825488462499221316
+      ember_elite_sunstoke_concept_12: -3167289602259388848
+      ember_elite_sunstoke_concept_13: -3448144085356996277
+      ember_elite_sunstoke_concept_2: -1037517140091820956
+      ember_elite_sunstoke_concept_3: 2913239037907374585
+      ember_elite_sunstoke_concept_4: 5450775574661048838
+      ember_elite_sunstoke_concept_5: -3969229290860861025
+      ember_elite_sunstoke_concept_6: 780614060869715599
+      ember_elite_sunstoke_concept_7: -7813782628244318865
+      ember_elite_sunstoke_concept_8: -6562504909316949782
+      ember_elite_sunstoke_concept_9: 2485722747268844
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

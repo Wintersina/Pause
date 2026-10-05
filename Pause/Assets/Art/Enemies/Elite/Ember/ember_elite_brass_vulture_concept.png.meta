@@ -1,2 +1,585 @@
 fileFormatVersion: 2
 guid: dc78e6b23d6e2414a8b69f68d87e0c91
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7499582637897083060
+    second: ember_elite_brass_vulture_concept_0
+  - first:
+      213: -6649334511796076510
+    second: ember_elite_brass_vulture_concept_1
+  - first:
+      213: -1786208759023295655
+    second: ember_elite_brass_vulture_concept_2
+  - first:
+      213: -295667562194787846
+    second: ember_elite_brass_vulture_concept_3
+  - first:
+      213: 78852584939626113
+    second: ember_elite_brass_vulture_concept_4
+  - first:
+      213: 6624068894666814257
+    second: ember_elite_brass_vulture_concept_5
+  - first:
+      213: -635366255175756908
+    second: ember_elite_brass_vulture_concept_6
+  - first:
+      213: -7971559999223754229
+    second: ember_elite_brass_vulture_concept_7
+  - first:
+      213: 6843693038550452450
+    second: ember_elite_brass_vulture_concept_8
+  - first:
+      213: -8031070961827885578
+    second: ember_elite_brass_vulture_concept_9
+  - first:
+      213: 6819487544229918538
+    second: ember_elite_brass_vulture_concept_10
+  - first:
+      213: -4410060669004601509
+    second: ember_elite_brass_vulture_concept_11
+  - first:
+      213: -5454897253732699232
+    second: ember_elite_brass_vulture_concept_12
+  - first:
+      213: 7143197605835656610
+    second: ember_elite_brass_vulture_concept_13
+  - first:
+      213: 8816164600505553669
+    second: ember_elite_brass_vulture_concept_14
+  - first:
+      213: -9024544424400708170
+    second: ember_elite_brass_vulture_concept_15
+  - first:
+      213: 8043094647152714480
+    second: ember_elite_brass_vulture_concept_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_0
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 665
+        width: 99
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c47157843512ce790800000000000000
+      internalID: -7499582637897083060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_1
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 102
+        width: 364
+        height: 634
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22046afbd71d8b3a0800000000000000
+      internalID: -6649334511796076510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_2
+      rect:
+        serializedVersion: 2
+        x: 695
+        y: 684
+        width: 171
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 953a9bfe89c1637e0800000000000000
+      internalID: -1786208759023295655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_3
+      rect:
+        serializedVersion: 2
+        x: 1169
+        y: 651
+        width: 217
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af126cf2be395ebf0800000000000000
+      internalID: -295667562194787846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1415
+        y: 651
+        width: 90
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18e92fa1204281100800000000000000
+      internalID: 78852584939626113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1502
+        y: 56
+        width: 581
+        height: 678
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 133745a509b6deb50800000000000000
+      internalID: 6624068894666814257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1519
+        y: 720
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4939af9d1c9be27f0800000000000000
+      internalID: -635366255175756908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1521
+        y: 716
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b021e847a645f5190800000000000000
+      internalID: -7971559999223754229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_8
+      rect:
+        serializedVersion: 2
+        x: 919
+        y: 42
+        width: 309
+        height: 653
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e80d922f8ea9fe50800000000000000
+      internalID: 6843693038550452450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_9
+      rect:
+        serializedVersion: 2
+        x: 1641
+        y: 684
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fd4b4ab287eb8090800000000000000
+      internalID: -8031070961827885578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_10
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 68
+        width: 308
+        height: 539
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4776005acfa3ae50800000000000000
+      internalID: 6819487544229918538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_11
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 170
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b572f02ef215cc2c0800000000000000
+      internalID: -4410060669004601509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_12
+      rect:
+        serializedVersion: 2
+        x: 614
+        y: 101
+        width: 334
+        height: 521
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a3320959df4c44b0800000000000000
+      internalID: -5454897253732699232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_13
+      rect:
+        serializedVersion: 2
+        x: 993
+        y: 146
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ad4140506cb12360800000000000000
+      internalID: 7143197605835656610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1183
+        y: 133
+        width: 330
+        height: 475
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 503d18e7efe495a70800000000000000
+      internalID: 8816164600505553669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1504
+        y: 152
+        width: 15
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bd1ddbf8a062c280800000000000000
+      internalID: -9024544424400708170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 101
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f2226aa7ffce9f60800000000000000
+      internalID: 8043094647152714480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_brass_vulture_concept_0: -7499582637897083060
+      ember_elite_brass_vulture_concept_1: -6649334511796076510
+      ember_elite_brass_vulture_concept_10: 6819487544229918538
+      ember_elite_brass_vulture_concept_11: -4410060669004601509
+      ember_elite_brass_vulture_concept_12: -5454897253732699232
+      ember_elite_brass_vulture_concept_13: 7143197605835656610
+      ember_elite_brass_vulture_concept_14: 8816164600505553669
+      ember_elite_brass_vulture_concept_15: -9024544424400708170
+      ember_elite_brass_vulture_concept_16: 8043094647152714480
+      ember_elite_brass_vulture_concept_2: -1786208759023295655
+      ember_elite_brass_vulture_concept_3: -295667562194787846
+      ember_elite_brass_vulture_concept_4: 78852584939626113
+      ember_elite_brass_vulture_concept_5: 6624068894666814257
+      ember_elite_brass_vulture_concept_6: -635366255175756908
+      ember_elite_brass_vulture_concept_7: -7971559999223754229
+      ember_elite_brass_vulture_concept_8: 6843693038550452450
+      ember_elite_brass_vulture_concept_9: -8031070961827885578
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

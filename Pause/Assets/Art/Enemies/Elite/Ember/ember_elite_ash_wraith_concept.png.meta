@@ -1,2 +1,637 @@
 fileFormatVersion: 2
 guid: 3d456784f4d1d486fb4d59a442d4e65f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7935582470432019615
+    second: ember_elite_ash_wraith_concept_0
+  - first:
+      213: -1997124530913173616
+    second: ember_elite_ash_wraith_concept_1
+  - first:
+      213: 4661082389718818192
+    second: ember_elite_ash_wraith_concept_2
+  - first:
+      213: 1717370611540849146
+    second: ember_elite_ash_wraith_concept_3
+  - first:
+      213: 8308291783962491342
+    second: ember_elite_ash_wraith_concept_4
+  - first:
+      213: 1580116424310575466
+    second: ember_elite_ash_wraith_concept_5
+  - first:
+      213: -8530895222011184557
+    second: ember_elite_ash_wraith_concept_6
+  - first:
+      213: -4726496546623527958
+    second: ember_elite_ash_wraith_concept_7
+  - first:
+      213: 4398753259204176772
+    second: ember_elite_ash_wraith_concept_8
+  - first:
+      213: -1526155540262102073
+    second: ember_elite_ash_wraith_concept_9
+  - first:
+      213: 4689003444037646552
+    second: ember_elite_ash_wraith_concept_10
+  - first:
+      213: -8001039525166698411
+    second: ember_elite_ash_wraith_concept_11
+  - first:
+      213: -2374803513265659039
+    second: ember_elite_ash_wraith_concept_12
+  - first:
+      213: -8586520009410072752
+    second: ember_elite_ash_wraith_concept_13
+  - first:
+      213: 6717931682697850974
+    second: ember_elite_ash_wraith_concept_14
+  - first:
+      213: -8138952457929499869
+    second: ember_elite_ash_wraith_concept_15
+  - first:
+      213: -2142460254833196656
+    second: ember_elite_ash_wraith_concept_16
+  - first:
+      213: -9142315643327217619
+    second: ember_elite_ash_wraith_concept_17
+  - first:
+      213: 7603843368488862396
+    second: ember_elite_ash_wraith_concept_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_0
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 596
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f94daeb563ad02e60800000000000000
+      internalID: 7935582470432019615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_1
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 112
+        width: 299
+        height: 496
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09f93b202d9c844e0800000000000000
+      internalID: -1997124530913173616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_2
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 554
+        width: 96
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09dd40cecbd7fa040800000000000000
+      internalID: 4661082389718818192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_3
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 63
+        width: 514
+        height: 559
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af17690e87355d710800000000000000
+      internalID: 1717370611540849146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1830
+        y: 122
+        width: 328
+        height: 497
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec97169bb5bfc4370800000000000000
+      internalID: 8308291783962491342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_5
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 114
+        width: 290
+        height: 461
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a61dace1483bde510800000000000000
+      internalID: 1580116424310575466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_6
+      rect:
+        serializedVersion: 2
+        x: 601
+        y: 216
+        width: 325
+        height: 376
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35a32f38efb2c9980800000000000000
+      internalID: -8530895222011184557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_7
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 108
+        width: 343
+        height: 481
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae3e462de6c186eb0800000000000000
+      internalID: -4726496546623527958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1204
+        y: 252
+        width: 309
+        height: 247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48be47d98c28b0d30800000000000000
+      internalID: 4398753259204176772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_9
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 158
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cbdeae3f9102dae0800000000000000
+      internalID: -1526155540262102073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_10
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 114
+        width: 128
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d87278f9cfa21140800000000000000
+      internalID: 4689003444037646552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1267
+        y: 112
+        width: 59
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 550349471f896f090800000000000000
+      internalID: -8001039525166698411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1601
+        y: 132
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 163637479c00b0fd0800000000000000
+      internalID: -2374803513265659039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_13
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 128
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05f24567b8d86d880800000000000000
+      internalID: -8586520009410072752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_14
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 130
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e503c84b543ea3d50800000000000000
+      internalID: 6717931682697850974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1553
+        y: 130
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32bd15d8cd1ac0f80800000000000000
+      internalID: -8138952457929499869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1657
+        y: 114
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 091464ddfb37442e0800000000000000
+      internalID: -2142460254833196656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_17
+      rect:
+        serializedVersion: 2
+        x: 778
+        y: 95
+        width: 28
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d200cf64c58ff1180800000000000000
+      internalID: -9142315643327217619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_ash_wraith_concept_18
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 97
+        width: 13
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb20d7ab147468960800000000000000
+      internalID: 7603843368488862396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_ash_wraith_concept_0: 7935582470432019615
+      ember_elite_ash_wraith_concept_1: -1997124530913173616
+      ember_elite_ash_wraith_concept_10: 4689003444037646552
+      ember_elite_ash_wraith_concept_11: -8001039525166698411
+      ember_elite_ash_wraith_concept_12: -2374803513265659039
+      ember_elite_ash_wraith_concept_13: -8586520009410072752
+      ember_elite_ash_wraith_concept_14: 6717931682697850974
+      ember_elite_ash_wraith_concept_15: -8138952457929499869
+      ember_elite_ash_wraith_concept_16: -2142460254833196656
+      ember_elite_ash_wraith_concept_17: -9142315643327217619
+      ember_elite_ash_wraith_concept_18: 7603843368488862396
+      ember_elite_ash_wraith_concept_2: 4661082389718818192
+      ember_elite_ash_wraith_concept_3: 1717370611540849146
+      ember_elite_ash_wraith_concept_4: 8308291783962491342
+      ember_elite_ash_wraith_concept_5: 1580116424310575466
+      ember_elite_ash_wraith_concept_6: -8530895222011184557
+      ember_elite_ash_wraith_concept_7: -4726496546623527958
+      ember_elite_ash_wraith_concept_8: 4398753259204176772
+      ember_elite_ash_wraith_concept_9: -1526155540262102073
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

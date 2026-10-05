@@ -7,8 +7,8 @@ the charge-up.
                           a sensor mast pair, bolted panels, warning stripes
   frost    Glacier Golem  an iceberg hulk with a riveted brow, a cyan visor,
                           frost-vent cheeks and a crystal maw
-  verdant  Bloom Maw      a carnivorous bud whose veined petals fold back on
-                          a ring of teeth and glowing stamens
+  verdant  Bloom Maw      a spinning carnivorous flower with a toothed,
+                          glowing maw that opens and snaps shut
   ember    Magma Skull    a horned basalt skull bolted together, temple vents
                           and a furnace jaw behind a toothed grille
 
@@ -285,15 +285,21 @@ def magma_skull(i):
 
 # ---------------------------------------------------------------- Verdant ----
 def bloom(i):
-    """Verdant: a carnivorous bud. Veined petals breathe; the tell opens the
-    maw on a double ring of teeth and five glowing stamens."""
-    lv, spread, sy = FRAMES[i]
+    """Verdant: a spinning carnivorous flower.  The silhouette stays rigid
+    while its central maw works; it must never read as five flapping wings."""
+    lv, _, _ = FRAMES[i]
     ba, bb = BLINK[i]
     p = Parts()
-    openness = max(0.0, min(1.0, (spread + 5) / 15))   # 0 shut .. 1 wide
+    # The old animation pushed every petal in and out, which made this heavy
+    # look like it was flapping.  Advance the whole flower around its centre
+    # instead, then reserve the squash/stretch exclusively for the mouth.
+    spin = (0, 18, 36, 54, 72, 96)[i]
+    openness = (0.35, 0.55, 0.72, 0.5, 0.12, 1.0)[i]
+    R = lambda q: xf(q, CX, CY, rot=spin)
     # sepals (back leaves): ribbed, with chitin scales at the root
     for a in (-150, -30, 90):
         lf = xf([(CX, CY), (CX - 11, CY - 24), (CX, CY - 48), (CX + 11, CY - 24)], CX, CY, rot=a + 90)
+        lf = R(lf)
         cid = cel(p, lf, BILE, BILE_SH, BILE_HI, sh_off=(4, 4), ink_w=3.2)
         plane(p, cid, [lf[0], lf[2], lf[3]], BILE_SH)
         p.ink += line([lf[0], lf[2]], 1.4)
@@ -301,50 +307,54 @@ def bloom(i):
             a0 = lerp_pts([lf[0]], [lf[2]], t)[0]
             p.ink += line([a0, lerp_pts([lf[1]], [lf[2]], t * 0.7)[0]], 1.1) + line([a0, lerp_pts([lf[3]], [lf[2]], t * 0.7)[0]], 1.1)
     # the maw inside
-    maw = ngon(CX, CY, 27, 8, 22.5)
+    maw = R(xf(ngon(CX, CY, 27, 8, 22.5), CX, CY, 1, 0.58 + 0.42 * openness))
     p.base += poly(maw, INK)
-    core(p, CX, CY, 8 + 4 * openness, BILE_LIGHT, lv, socket=False)
+    core(p, *R([(CX, CY)])[0], 6 + 6 * openness, BILE_LIGHT, lv, socket=False)
     for k in range(8):   # outer thorn teeth ringing the maw
         a = math.radians(k * 45)
         t = [(CX + 26 * math.cos(a - 0.18), CY + 26 * math.sin(a - 0.18)),
-             (CX + (16 - 4 * openness) * math.cos(a), CY + (16 - 4 * openness) * math.sin(a)),
+             (CX + (21 - 10 * openness) * math.cos(a), CY + (21 - 10 * openness) * math.sin(a)),
              (CX + 26 * math.cos(a + 0.18), CY + 26 * math.sin(a + 0.18))]
-        p.detail += poly(t, BONE) + poly([t[1], t[2], (CX + 25 * math.cos(a), CY + 25 * math.sin(a))], FLASH_SH) + inkpoly(t, 1.4)
+        t = R(t)
+        shade_tip = R([(CX + 25 * math.cos(a), CY + 25 * math.sin(a))])[0]
+        p.detail += poly(t, BONE) + poly([t[1], t[2], shade_tip], FLASH_SH) + inkpoly(t, 1.4)
     for k in range(8):   # inner ring, offset
         a = math.radians(k * 45 + 22.5)
         t = [(CX + 19 * math.cos(a - 0.2), CY + 19 * math.sin(a - 0.2)),
-             (CX + (12 - 3 * openness) * math.cos(a), CY + (12 - 3 * openness) * math.sin(a)),
+             (CX + (16 - 7 * openness) * math.cos(a), CY + (16 - 7 * openness) * math.sin(a)),
              (CX + 19 * math.cos(a + 0.2), CY + 19 * math.sin(a + 0.2))]
+        t = R(t)
         p.detail += poly(t, BONE) + inkpoly(t, 1.1)
     # stamens: stalks with bud lights, blinking in turn
     for k in range(5):
         a = math.radians(k * 72 - 54)
-        tip = (CX + (14 + 6 * openness) * math.cos(a), CY + (14 + 6 * openness) * math.sin(a))
-        p.detail += line([(CX, CY), tip], 2.6) + line([(CX, CY), tip], 1.1, BILE_HI)
+        tip = (CX + (12 + 8 * openness) * math.cos(a), CY + (12 + 8 * openness) * math.sin(a))
+        root, tip = R([(CX, CY), tip])
+        p.detail += line([root, tip], 2.6) + line([root, tip], 1.1, BILE_HI)
         hexlight(p, tip[0], tip[1], 2.2, ba if k % 2 else bb, BILE_LIGHT, rot=0)
-    # five petals: closed they cover the maw, open they fold back
+    # Five rigid petals turn together as one body.  Only the mouth above moves.
     for k in range(5):
         a = k * 72 - 90
         r = math.radians(a)
-        d = 10 + 20 * openness
+        d = 27
         px, py = CX + d * math.cos(r), CY + d * math.sin(r)
         L = 35
-        R = lambda q: xf(xf(q, px, py, rot=a + 90), CX, CY, 1, sy)
-        pet = R([(px, py + 10), (px - 16, py - 8), (px - 8, py - L * 0.7), (px, py - L), (px + 8, py - L * 0.7), (px + 16, py - 8)])
+        P = lambda q: R(xf(q, px, py, rot=a + 90))
+        pet = P([(px, py + 10), (px - 16, py - 8), (px - 8, py - L * 0.7), (px, py - L), (px + 8, py - L * 0.7), (px + 16, py - 8)])
         cid = cel(p, pet, BRUISE, BRUISE_SH, BRUISE_HI, sh_off=(4, 4), ink_w=0, detail=True)
-        p.detail += plane_svg(cid, R([(px, py + 12), (px, py - L), (px + 20, py - L), (px + 20, py + 12)]), BRUISE_SH)
+        p.detail += plane_svg(cid, P([(px, py + 12), (px, py - L), (px + 20, py - L), (px + 20, py + 12)]), BRUISE_SH)
         p.detail += inkpoly(pet, 3.2)
         # veins: midrib and two side veins
-        p.detail += line(R([(px, py + 6), (px, py - L + 8)]), 1.5)
-        p.detail += line(R([(px, py - 6), (px - 9, py - 18)]), 1.1) + line(R([(px, py - 12), (px + 8, py - 24)]), 1.1)
+        p.detail += line(P([(px, py + 6), (px, py - L + 8)]), 1.5)
+        p.detail += line(P([(px, py - 6), (px - 9, py - 18)]), 1.1) + line(P([(px, py - 12), (px + 8, py - 24)]), 1.1)
         # magenta warning spots and the thorn tip
         for q in ((px - 6, py - 4), (px + 5, py - 14)):
-            d_ = R(ngon(q[0], q[1], 2, 4, 45))
+            d_ = P(ngon(q[0], q[1], 2, 4, 45))
             p.detail += poly(d_, MAGENTA_SH) + inkpoly(d_, 0.9)
-        p.detail += line(R([(px - 15, py - 8), (px - 8, py - L * 0.7)]), 1.3, BONE)
-        tip = R([(px - 3, py - L + 2), (px, py - L - 8), (px + 3, py - L + 2)])
+        p.detail += line(P([(px - 15, py - 8), (px - 8, py - L * 0.7)]), 1.3, BONE)
+        tip = P([(px - 3, py - L + 2), (px, py - L - 8), (px + 3, py - L + 2)])
         p.detail += poly(tip, MAGENTA) + inkpoly(tip, 1.4)
-        side = R([(px + 12, py - 12), (px + 19, py - 15), (px + 13, py - 6)])
+        side = P([(px + 12, py - 12), (px + 19, py - 15), (px + 13, py - 6)])
         p.detail += poly(side, MAGENTA) + inkpoly(side, 1.1)
     if i == 5:
         for x, y in ((16, 28), (112, 32), (22, 112), (108, 108)):

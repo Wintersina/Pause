@@ -4,25 +4,19 @@ using UnityEngine;
 //
 // Finds the objects by the names the scene already uses rather than requiring
 // new references, and caches the originals so the space world can always be
-// restored exactly as authored. The backdrop behind the walls is no longer a
+// restored with the shared Frost rail thickness. The backdrop behind the walls is no longer a
 // texture swap: WorldBackdrop builds an animated parallax set per world.
 public static class WorldPainter
 {
     const string LeftWallName = "leftPipe";
     const string RightWallName = "rightPipe";
 
-    // Full-cell wall tiles (Frost, Ember) were tuned under the walls' old lit
-    // shader, which showed them at this fraction of their art's colour (the
-    // scene's one directional light plus ambient on a camera-facing quad;
-    // measured lit / unlit on all three planet worlds). The walls are unlit
-    // now (Pause/WorldWall), so this keeps those tiles looking exactly as
-    // they did. Rail art (Space's pipes, Verdant's forest rail) shows its
-    // colours as drawn.
-    public static readonly Color PlanetWallShade = new Color(0.71f, 0.72f, 0.755f, 1f);
-
     static bool cached;
     static Texture cachedLeft, cachedRight;
     static Color cachedLeftTint = Color.white, cachedRightTint = Color.white;
+    static Shader cachedLeftShader, cachedRightShader;
+    static float cachedLeftWidth = 1f, cachedRightWidth = 1f;
+    static float cachedLeftX, cachedRightX;
 
     public static void Apply(WorldTheme theme)
     {
@@ -30,27 +24,98 @@ public static class WorldPainter
 
         CacheOriginals();
 
-        if (string.IsNullOrEmpty(theme.resourceFolder))
+        if (string.IsNullOrEmpty(theme.resourceFolder) && RailTextureName(theme.displayName) == null)
         {
             Restore();
             return;
         }
 
-        string root = "Worlds/" + theme.resourceFolder + "/";
-        // Verdant's reinforced forest rail is authored once (as a left rail)
-        // and mirrored for the opposite wall, keeping both gameplay-facing
-        // edges identical.
-        if (theme.displayName == "Verdant")
+        string root = "Worlds/" + (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
+        // Reinforced rails share Frost's visible width and are mirrored so
+        // their lamp/pipe edges face the playfield on both sides.
+        string railName = RailTextureName(theme.displayName);
+        if (railName != null)
         {
-            var rail = Resources.Load<Texture2D>(root + VerdantRailName);
+            var rail = Resources.Load<Texture2D>(root + railName);
+            // Preserve neon brightness and remove residual exterior mattes.
+            SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
+            foreach (var wall in new[] { LeftWallName, RightWallName })
+            {
+                var mat = MaterialOf(wall);
+                if (mat == null || !mat.HasProperty("_Overlap")) continue;
+                mat.SetFloat("_Overlap", 0.03f);
+                mat.SetFloat("_BlackCutout", 1f);
+            }
             Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
             Paint(RightWallName, rail, theme.tint, cachedRight, true);
+            SetRailLayout(theme.displayName);
         }
         else
         {
+            SetRailShader(null);
             Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft, false);
             Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight, false);
+            SetRailWidth(1f);
         }
+    }
+
+    public static string RailTextureName(string world)
+    {
+        switch (world)
+        {
+            case "Verdant": return "rail_forest_wide_v1";
+            case "Frost": return "rail_frost_wide_v1";
+            case "Ember": return "rail_ember_wide_v1";
+            case "Space": return "rail_space_wide_v1";
+            default: return null;
+        }
+    }
+
+    public static float RailWidthFactor(string world)
+    {
+        // Measure visible silhouette boundaries, excluding transparent/black
+        // padding. Frost's approved 1.25x presentation is the common standard.
+        RailBounds(world, out float min, out float max);
+        return 1.25f * (443f / 725f) / (max - min);
+    }
+
+    static void RailBounds(string world, out float min, out float max)
+    {
+        switch (world)
+        {
+            case "Frost": min = 140f / 725f; max = 583f / 725f; break;
+            case "Verdant": min = 139f / 725f; max = 580f / 725f; break;
+            case "Ember": min = 157f / 725f; max = 497f / 725f; break;
+            default: min = 159f / 725f; max = 499f / 725f; break;
+        }
+    }
+
+    static void SetRailLayout(string world)
+    {
+        float factor = RailWidthFactor(world);
+        SetRailWidth(factor);
+        RailBounds(world, out float min, out float max);
+        // Match both visible edges to Frost as well as its thickness; this
+        // prevents asymmetric canvas padding from shifting the flight lane.
+        float frostCentre = (140f + 583f) / (2f * 725f) - 0.5f;
+        float centre = (min + max) * 0.5f - 0.5f;
+        float shift = 1.25f * frostCentre - factor * centre;
+        var left = GameObject.Find(LeftWallName);
+        var right = GameObject.Find(RightWallName);
+        if (left != null)
+        {
+            var p = left.transform.localPosition;
+            p.x = cachedLeftX + cachedLeftWidth * shift;
+            left.transform.localPosition = p;
+        }
+        if (right != null)
+        {
+            var p = right.transform.localPosition;
+            p.x = cachedRightX - cachedRightWidth * shift;
+            right.transform.localPosition = p;
+        }
+        if (left != null) RailFit.RefreshTextureTiling(left);
+        if (right != null) RailFit.RefreshTextureTiling(right);
     }
 
     static void CacheOriginals()
@@ -59,15 +124,51 @@ public static class WorldPainter
         cached = true;
         cachedLeft = MaterialOf(LeftWallName) != null ? MaterialOf(LeftWallName).mainTexture : null;
         cachedRight = MaterialOf(RightWallName) != null ? MaterialOf(RightWallName).mainTexture : null;
+        var left = GameObject.Find(LeftWallName);
+        var right = GameObject.Find(RightWallName);
+        if (left != null) cachedLeftWidth = left.transform.localScale.x;
+        if (right != null) cachedRightWidth = right.transform.localScale.x;
+        if (left != null) cachedLeftX = left.transform.localPosition.x;
+        if (right != null) cachedRightX = right.transform.localPosition.x;
 
         var m = MaterialOf(LeftWallName); if (m != null && m.HasProperty("_Color")) cachedLeftTint = m.color;
         m = MaterialOf(RightWallName);    if (m != null && m.HasProperty("_Color")) cachedRightTint = m.color;
+        cachedLeftShader = MaterialOf(LeftWallName)?.shader;
+        cachedRightShader = MaterialOf(RightWallName)?.shader;
     }
 
     static void Restore()
     {
+        SetRailShader(null);
         Paint(LeftWallName, null, cachedLeftTint, cachedLeft, false);
         Paint(RightWallName, null, cachedRightTint, cachedRight, false);
+        SetRailLayout("Space");
+    }
+
+    static void SetRailShader(Shader shader)
+    {
+        var left = MaterialOf(LeftWallName);
+        var right = MaterialOf(RightWallName);
+        if (left != null && (shader != null || cachedLeftShader != null)) left.shader = shader != null ? shader : cachedLeftShader;
+        if (right != null && (shader != null || cachedRightShader != null)) right.shader = shader != null ? shader : cachedRightShader;
+    }
+
+    static void SetRailWidth(float factor)
+    {
+        var left = GameObject.Find(LeftWallName);
+        var right = GameObject.Find(RightWallName);
+        if (left != null)
+        {
+            var s = left.transform.localScale;
+            s.x = cachedLeftWidth * factor;
+            left.transform.localScale = s;
+        }
+        if (right != null)
+        {
+            var s = right.transform.localScale;
+            s.x = cachedRightWidth * factor;
+            right.transform.localScale = s;
+        }
     }
 
     static Material MaterialOf(string objectName)
@@ -80,7 +181,6 @@ public static class WorldPainter
 
     // A missing texture falls back to the cached original rather than painting
     // the world black -- a half-shipped planet should still be playable.
-    // `mirrorX`: the texture is drawn for the other wall and is flipped here.
     static void Paint(string objectName, Texture2D tex, Color tint, Texture fallback, bool mirrorX)
     {
         var mat = MaterialOf(objectName);
@@ -91,103 +191,10 @@ public static class WorldPainter
         // would stretch the final edge into a long line, so repeat the tile.
         if (selected != null) selected.wrapMode = TextureWrapMode.Repeat;
         mat.mainTexture = selected;
-        RailArt art;
-        if (!TryRailArt(selected, out art))
-        {
-            float a = tint.a;
-            tint *= PlanetWallShade;
-            tint.a = a;
-        }
+        // Also apply in editor captures, where WorldBackdrop's play-mode
+        // queue fix never runs. Backdrop layers must render below the neon.
+        mat.renderQueue = 3000;
+        mat.mainTextureScale = new Vector2(mirrorX ? -1f : 1f, 1f);
         if (mat.HasProperty("_Color")) mat.color = tint;
-        var wall = GameObject.Find(objectName);
-        SetMirrored(wall, mirrorX);
-        FitBand(wall);
-    }
-
-    // ---------------------------------------------------------- rail art --
-
-    // A rail texture is a band of art inside a wider cell, with transparent
-    // margins on both sides (Space's pipe rails Assets/Art/left.png and
-    // right.png, Verdant's forest rail). Columns [first, end) hold art;
-    // `innerAtEnd`: the gameplay-facing edge of the art is its right one (a
-    // rail drawn for the left wall). WorldBackdropTest re-measures the PNGs
-    // against this table. Wall tiles that fill their cell (Frost, Ember) are
-    // not listed. width / height are the PNG's; the imported texture may be
-    // smaller (max-size clamp), which changes nothing: the fit works in
-    // fractions of the cell.
-    public struct RailArt
-    {
-        public string name;
-        public int width, height, first, end;
-        public bool innerAtEnd;
-    }
-
-    public const string VerdantRailName = "rail_forest_wide_v1";
-
-    public static readonly RailArt[] Rails =
-    {
-        new RailArt { name = "left", width = 96, height = 448, first = 6, end = 76, innerAtEnd = true },
-        new RailArt { name = "right", width = 96, height = 448, first = 20, end = 90, innerAtEnd = false },
-        new RailArt { name = VerdantRailName, width = 725, height = 2169, first = 139, end = 577, innerAtEnd = true },
-    };
-
-    public static bool TryRailArt(Texture tex, out RailArt art)
-    {
-        art = default(RailArt);
-        if (tex == null) return false;
-        foreach (var r in Rails)
-            if (tex.name == r.name) { art = r; return true; }
-        return false;
-    }
-
-    static readonly int UBand = Shader.PropertyToID("_UBand");
-    // Walls whose texture is drawn for the opposite side (see Paint).
-    static readonly System.Collections.Generic.HashSet<int> mirrored = new System.Collections.Generic.HashSet<int>();
-
-    static void SetMirrored(GameObject wall, bool on)
-    {
-        if (wall == null) return;
-        if (on) mirrored.Add(wall.GetInstanceID());
-        else mirrored.Remove(wall.GetInstanceID());
-    }
-
-    // Which slice of its texture a wall quad shows (Pause/WorldWall's _UBand).
-    //
-    // Only the wall's inner ~0.4 units are on screen on a phone (the view's
-    // half-width is 2.85, the wall's inner edge 2.435), i.e. the inner 30% of
-    // the quad. Stretching a rail texture's whole cell over the quad would
-    // put little but the art's transparent inner margin there. So for a rail
-    // texture the art's inner edge is pinned to the wall's inner edge, and
-    // the texture is scaled across the quad so its texels come out as wide
-    // as RailFit's height makes them tall (square pixels, at any screen
-    // shape). The wall quads themselves never change size with the world, so
-    // the lane, the wall colliders and everything measured from them
-    // (BossRails, rail mines) are the same in every world. Every other wall
-    // tile fills its cell and maps 0..1 (1..0 mirrored).
-    // Called whenever the wall's texture (Paint) or size (RailFit) changes.
-    public static void FitBand(GameObject wall)
-    {
-        var r = wall != null ? wall.GetComponent<Renderer>() : null;
-        if (r == null) return;
-        var mat = r.material;     // this wall's own instance, the one moveBackGround scrolls
-        if (mat == null || !mat.HasProperty(UBand)) return;
-        mat.SetVector(UBand, BandFor(mat.mainTexture, wall.transform.lossyScale, wall.transform.position.x < 0f,
-                                     mirrored.Contains(wall.GetInstanceID())));
-    }
-
-    // (u at the quad's left edge, u at its right edge). `leftWall`: its inner
-    // edge is its right one. `mirrorX`: the texture is shown flipped.
-    public static Vector4 BandFor(Texture tex, Vector3 quadSize, bool leftWall, bool mirrorX = false)
-    {
-        RailArt art;
-        if (!TryRailArt(tex, out art) || quadSize.y <= 0f)
-            return mirrorX ? new Vector4(1f, 0f, 0f, 0f) : new Vector4(0f, 1f, 0f, 0f);
-        // Fraction of the texture's width the quad spans at square texels.
-        float across = Mathf.Abs(quadSize.x) * (art.height / quadSize.y) / art.width;
-        // u of the art's gameplay-facing edge, and which way u runs from it
-        // toward the wall's outer edge.
-        float inner = (art.innerAtEnd ? art.end : art.first) / (float)art.width;
-        float outer = inner + (art.innerAtEnd ? -across : across);
-        return leftWall ? new Vector4(outer, inner, 0f, 0f) : new Vector4(inner, outer, 0f, 0f);
     }
 }

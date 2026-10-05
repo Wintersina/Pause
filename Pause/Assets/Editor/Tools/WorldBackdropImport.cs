@@ -20,8 +20,7 @@ using UnityEngine;
 // compressed. Mobile: ASTC 6x6 (~0.9 bpp); desktop: DXT1/DXT5 automatic.
 public class WorldBackdropImport : AssetPostprocessor
 {
-    public const float TileUnits = 6f;                  // a tile is 6 units wide, whatever its pixel width
-    public const float TilePixelsPerUnit = 512f / TileUnits;
+    public const float TilePixelsPerUnit = 512f / 6f;   // a tile is 6 units wide
 
     static bool IsBackdrop(string path)
     {
@@ -58,6 +57,8 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
+        // Verdant's central world tile is the visual anchor behind the thick
+        // rails. Keep its high-resolution industrial detail on modern phones.
         ti.maxTextureSize = 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -66,9 +67,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            int srcW, srcH;
-            ti.GetSourceTextureWidthAndHeight(out srcW, out srcH);
-            ti.spritePixelsPerUnit = srcW > 0 ? srcW / TileUnits : TilePixelsPerUnit;
+            ti.spritePixelsPerUnit = TilePixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
             settings.spriteMeshType = file == "sky" ? SpriteMeshType.FullRect : SpriteMeshType.Tight;

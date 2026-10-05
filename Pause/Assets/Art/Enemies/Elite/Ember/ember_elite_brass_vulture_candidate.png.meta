@@ -1,2 +1,455 @@
 fileFormatVersion: 2
 guid: b156c4450a821484187db924a9efc5af
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 9070334912520324051
+    second: ember_elite_brass_vulture_candidate_0
+  - first:
+      213: -1392459186928111874
+    second: ember_elite_brass_vulture_candidate_1
+  - first:
+      213: -6800537932808596529
+    second: ember_elite_brass_vulture_candidate_2
+  - first:
+      213: -909746799218665258
+    second: ember_elite_brass_vulture_candidate_3
+  - first:
+      213: -2805206031697654588
+    second: ember_elite_brass_vulture_candidate_4
+  - first:
+      213: 7875140758462220220
+    second: ember_elite_brass_vulture_candidate_5
+  - first:
+      213: -7335209419054209917
+    second: ember_elite_brass_vulture_candidate_6
+  - first:
+      213: -2391389358788798648
+    second: ember_elite_brass_vulture_candidate_7
+  - first:
+      213: -2114832790153705043
+    second: ember_elite_brass_vulture_candidate_8
+  - first:
+      213: 8590901656508107701
+    second: ember_elite_brass_vulture_candidate_9
+  - first:
+      213: 611827765996488089
+    second: ember_elite_brass_vulture_candidate_10
+  - first:
+      213: -3544598746149102613
+    second: ember_elite_brass_vulture_candidate_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_0
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 6
+        width: 126
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d30996db8d40ed70800000000000000
+      internalID: 9070334912520324051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_1
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 74
+        width: 14
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efeabee3fbdfcace0800000000000000
+      internalID: -1392459186928111874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_2
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 6
+        width: 136
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc3df59e7c2af91a0800000000000000
+      internalID: -6800537932808596529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_3
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 72
+        width: 9
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d8d50d2b1eef53f0800000000000000
+      internalID: -909746799218665258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_4
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 6
+        width: 137
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ccc0ee0af7e119d0800000000000000
+      internalID: -2805206031697654588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_5
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 6
+        width: 158
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb74758abce1a4d60800000000000000
+      internalID: 7875140758462220220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_6
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 64
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 384ac20a5e9143a90800000000000000
+      internalID: -7335209419054209917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 805
+        y: 6
+        width: 117
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8479ebd5c0410ded0800000000000000
+      internalID: -2391389358788798648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 6
+        width: 119
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da94a8f38ca96a2e0800000000000000
+      internalID: -2114832790153705043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1183
+        y: 6
+        width: 129
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bb0b704a83093770800000000000000
+      internalID: 8590901656508107701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_10
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 36
+        width: 11
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99501ff8c16ad7800800000000000000
+      internalID: 611827765996488089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_brass_vulture_candidate_11
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 43
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bebdc70783e0fcec0800000000000000
+      internalID: -3544598746149102613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_brass_vulture_candidate_0: 9070334912520324051
+      ember_elite_brass_vulture_candidate_1: -1392459186928111874
+      ember_elite_brass_vulture_candidate_10: 611827765996488089
+      ember_elite_brass_vulture_candidate_11: -3544598746149102613
+      ember_elite_brass_vulture_candidate_2: -6800537932808596529
+      ember_elite_brass_vulture_candidate_3: -909746799218665258
+      ember_elite_brass_vulture_candidate_4: -2805206031697654588
+      ember_elite_brass_vulture_candidate_5: 7875140758462220220
+      ember_elite_brass_vulture_candidate_6: -7335209419054209917
+      ember_elite_brass_vulture_candidate_7: -2391389358788798648
+      ember_elite_brass_vulture_candidate_8: -2114832790153705043
+      ember_elite_brass_vulture_candidate_9: 8590901656508107701
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

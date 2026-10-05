@@ -822,9 +822,11 @@ public static class EnemyRosterTest
     public const float CutScar = .15f;
     static readonly string[] KnownCutStrips =
     {
-        // flat-ink heavies: straight hull sides and bursts that reach the cell
-        // edge; not confirmed as cuts, listed until someone reviews them
-        "ember_big",
+        // Codex's redrawn heavies, confirmed by audit_cells.py: Magma Skull has
+        // one drawing sliced across cells 5 and 6 (a 436 px piece of it sits
+        // against cell 6's left side); Bloom Maw's petals run onto the cell
+        // outline in every frame. The fix is the art's.
+        "ember_big", "verdant_big",
     };
     const string EliteStrips = "Assets/Art/Resources/Elites";
     static readonly string[] KnownCutEliteStrips =
@@ -832,9 +834,9 @@ public static class EnemyRosterTest
         // cut by the grid (fragment / clipped wing / clipped nose): the fix is
         // Codex's, in Art/Enemies/Elite (EliteArtSync overwrites Resources),
         // and moving the art means re-measuring the def's muzzles and nozzles
-        "verdant_elite_resin_warden", "ember_elite_brass_vulture", "ember_elite_ash_wraith",
-        // flat armour plates on the hull's side; not confirmed as cuts
-        "ember_elite_coalrunner", "ember_elite_kilnback",
+        "verdant_elite_resin_warden",
+        // reworked strip: a 37 px ruler-straight edge in frame 6; not confirmed as a cut
+        "ember_elite_cauterizer",
     };
 
     static void CellsHoldOnePoseEach()

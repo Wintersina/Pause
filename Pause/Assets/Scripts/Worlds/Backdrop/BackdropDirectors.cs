@@ -900,7 +900,10 @@ public class VerdantDirector : PlanetDirector
     Sprite[] fall, ruin, firefly, spore, steamFrames;
     Timer fallTimer = new Timer(10f, 16f, 7f);
     Timer ruinTimer = new Timer(7f, 12f, 3f);
-    Timer steamTimer = new Timer(3.5f, 6.5f, 1.2f);
+    // Steam is a quiet near-rail accent, not a foreground effect. The static
+    // tile supplies the distant refinery stacks; these sparse plumes make a
+    // few of their vents feel alive without obscuring the flight lane.
+    Timer steamTimer = new Timer(5.5f, 8.5f, 2.2f);
 
     public VerdantDirector() : base(1990) { }
 
@@ -1003,17 +1006,19 @@ public class VerdantDirector : PlanetDirector
         if (steamFrames == null || steamFrames.Length == 0) return;
         var p = steam.Spawn();
         if (p == null) return;
-        SetSprite(p, steamFrames[0], Rand(.75f, 1.15f));
+        SetSprite(p, steamFrames[0], Rand(.58f, .82f));
         p.frames = steamFrames;
         p.fps = Rand(4.5f, 6f);
         p.loop = false;
         p.age = 0f;
-        p.x = (Chance(.5) ? -1f : 1f) * Rand(1.25f, 1.95f);
+        // Keep plumes just inside the thick rails: visible in the open scene,
+        // never pasted over the frame or across the ship's flight lane.
+        p.x = (Chance(.5) ? -1f : 1f) * Rand(HalfW * .46f, HalfW * .62f);
         p.y = Rand(-HalfH * .65f, HalfH * .75f);
         p.vx = Rand(-.035f, .035f);
         p.vy = Rand(.04f, .10f);
         p.rate = set.Spec.Rate("haze") * .35f;
-        p.color = new Color(.72f, 1f, .84f, Rand(.34f, .52f));
+        p.color = new Color(.67f, .90f, .82f, Rand(.24f, .38f));
         Place(p);
     }
 

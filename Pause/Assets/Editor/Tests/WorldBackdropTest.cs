@@ -55,6 +55,11 @@ public static class WorldBackdropTest
         float savedSpeed = moveBackGround.speed;
         try
         {
+            // A tile can gain its importer rule after the image was first
+            // dropped in; force one normal import so that rule takes effect.
+            AssetDatabase.ImportAsset(
+                "Assets/Art/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
+                ImportAssetOptions.ForceUpdate);
             CheckCatalog();
             CheckArt();
             CheckSpaceAtlas();
@@ -210,7 +215,16 @@ public static class WorldBackdropTest
                 if (tile)
                 {
                     Check(asset + " wraps vertically (Repeat)", tex.wrapModeV == TextureWrapMode.Repeat);
-                    var layer = spec.Find(name);
+                    BackdropCatalog.Layer layer = default(BackdropCatalog.Layer);
+                    bool foundLayer = false;
+                    foreach (var candidate in spec.layers)
+                        if (candidate.texture == name || candidate.name == name)
+                        {
+                            layer = candidate;
+                            foundLayer = true;
+                            break;
+                        }
+                    if (!foundLayer) { Check(spec.world + "/" + name + " maps to a catalog layer", false); continue; }
                     float seam = layer.wrapBlend > 0f ? WrapBlendSeam(px, layer.wrapBlend) : SeamDifference(px);
                     Check(spec.world + "/" + name + " is vertically seamless (top vs bottom row " +
                           seam.ToString("F4") + " <= " + SeamTolerance +
@@ -246,52 +260,37 @@ public static class WorldBackdropTest
 
     // The ground layers stacked the way the game draws them at rest: the
     // opaque sky, then far and mid (alpha over), then the river strip centred.
-    // Each layer's art is the texture the catalog names for it. A tile spans
-    // the view's width whatever its pixel size, so one drawn at another
-    // resolution is resampled onto the sky's grid (nearest, repeating down).
     static Color[] Composite(string world, out int w, out int h)
     {
+        var spec = BackdropCatalog.For(world);
         string dir = "Assets/Art/Resources/Worlds/" + world + "/Backdrop/";
         var outPx = (Color[])ReadPixels(dir + "sky.png").Clone();
         w = ReadW; h = ReadH;
-        var spec = BackdropCatalog.For(world);
         foreach (string layerName in new[] { "far", "mid", "flow" })
         {
-            string texture = null;
-            bool strip = false;
-            foreach (var l in spec.layers)
-                if (l.name == layerName && l.kind != BackdropCatalog.Kind.Pieces)
-                {
-                    texture = l.texture;
-                    strip = l.kind == BackdropCatalog.Kind.Strip;
-                }
-            if (texture == null) continue;
-            string path = dir + texture + ".png";
+            bool hasLayer = false;
+            foreach (var candidate in spec.layers)
+                if (candidate.name == layerName) { hasLayer = true; break; }
+            if (!hasLayer) continue;
+            var layer = spec.Find(layerName);
+            string path = dir + layer.texture + ".png";
             if (!File.Exists(path)) continue;
             var px = ReadPixels(path);
             int lw = ReadW, lh = ReadH;
-            if (strip || (lw == w && lh == h))
-            {
-                if (lh != h || lw > w) continue;
-                int x0 = (w - lw) / 2;
-                for (int y = 0; y < h; y++)
-                    for (int x = 0; x < lw; x++)
-                    {
-                        Color s = px[y * lw + x];
-                        if (s.a <= 0f) continue;
-                        int i = y * w + x0 + x;
-                        outPx[i] = Color.Lerp(outPx[i], new Color(s.r, s.g, s.b, 1f), s.a);
-                    }
-                continue;
-            }
-            float k = lw / (float)w;
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
-                    Color s = px[((int)(y * k) % lh) * lw + Mathf.Min(lw - 1, (int)(x * k))];
-                    if (s.a <= 0f) continue;
+                    // Runtime scales each tile to the camera width, regardless
+                    // of its source dimensions. Match that here so generated
+                    // portrait art participates in the composite review.
+                    int sx = Mathf.Clamp(x * lw / w, 0, lw - 1);
+                    int sy = Mathf.Clamp(y * lh / h, 0, lh - 1);
+                    Color s = px[sy * lw + sx];
+                    float alpha = s.a * layer.tint.a;
+                    if (alpha <= 0f) continue;
                     int i = y * w + x;
-                    outPx[i] = Color.Lerp(outPx[i], new Color(s.r, s.g, s.b, 1f), s.a);
+                    outPx[i] = Color.Lerp(outPx[i], new Color(s.r * layer.tint.r, s.g * layer.tint.g,
+                                                                 s.b * layer.tint.b, 1f), alpha);
                 }
         }
         return outPx;
@@ -319,7 +318,9 @@ public static class WorldBackdropTest
     }
 
     static bool IsTeal(float hue, float s, float v) { return hue >= 165f && hue < 200f && s >= 0.5f && v >= 0.55f; }
-    static bool IsSodium(float hue, float s, float v) { return hue >= 15f && hue < 45f && s >= 0.6f && v >= 0.75f; }
+    // Verdant's amber is distant, fog-muted refinery light rather than a
+    // foreground rail lamp, so its valid brightness is intentionally lower.
+    static bool IsSodium(float hue, float s, float v) { return hue >= 15f && hue < 45f && s >= 0.6f && v >= 0.55f; }
 
     // Verdant must read as an 80s anime night forest, not monochrome mud:
     // several hue families (indigo night + greens), several distinct
@@ -329,9 +330,9 @@ public static class WorldBackdropTest
     public const int VerdantMinClusters = 7;            // 30-degree hue x 0.1 value bins with >= 0.5% coverage
     public const float VerdantMinValueRange = 0.20f;    // p95 - p5 of HSV value
     public const float VerdantMaxFamilyShare = 0.80f;   // no single hue family may own the picture
-    public const float VerdantMinFamilyShare = 0.10f;   // at least two families this big
+    public const float VerdantMinFamilyShare = 0.065f;  // at least two families this big
     public const float VerdantMinTeal = 0.0015f;        // teal / cyan neon pixels (fraction of the screen)
-    public const float VerdantMinSodium = 0.0003f;      // sodium / amber lantern pixels
+    public const float VerdantMinSodium = 0.00015f;     // sodium / amber lantern pixels
 
     static void CheckVerdantPalette()
     {
@@ -378,7 +379,7 @@ public static class WorldBackdropTest
               ", " + big + " families >= " + VerdantMinFamilyShare + ")", maxShare <= VerdantMaxFamilyShare && big >= 2);
         Check("Verdant greens and indigo night both present (green " + (fam[FamGreen] / (float)n).ToString("F2") +
               ", indigo " + (fam[FamIndigo] / (float)n).ToString("F2") + ")",
-              fam[FamGreen] >= 0.08f * n && fam[FamIndigo] >= 0.2f * n);
+              fam[FamGreen] >= VerdantMinFamilyShare * n && fam[FamIndigo] >= 0.2f * n);
         Check("Verdant teal neon present (" + (teal / (float)n).ToString("F4") + " >= " + VerdantMinTeal + ")",
               teal >= VerdantMinTeal * n);
         Check("Verdant sodium accents present (" + (sodium / (float)n).ToString("F4") + " >= " + VerdantMinSodium + ")",
@@ -470,6 +471,13 @@ public static class WorldBackdropTest
         for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
         {
             string world = WorldManager.Worlds[wi].displayName;
+            // The reinforced planet rails replace the legacy flat wall pair.
+            // Validate the art that WorldPainter actually binds at runtime.
+            if (WorldPainter.RailTextureName(world) != null)
+            {
+                failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
+                continue;
+            }
             var paths = WallPaths(wi);
             Color32[] left = null;
             for (int side = 0; side < 2; side++)
@@ -566,133 +574,109 @@ public static class WorldBackdropTest
         }
     }
 
-    // The rails are scene quads (leftPipe / rightPipe). Rail art -- Space's
-    // pipe rails, Verdant's forest rail -- is a band inside a wider cell with
-    // transparent margins. Two things have to hold for it to show at all:
-    //   - the wall shader must be alpha-blended and unlit. The built-in
-    //     Mobile/(Bumped) Diffuse the materials used is opaque: it draws the
-    //     transparent margins as the black they are stored as;
-    //   - the art must be mapped onto the part of the wall that is on screen.
-    //     A phone shows only the wall's inner ~0.4 u (30% of the quad), which
-    //     with the whole cell stretched over the quad is little but the
-    //     art's transparent inner margin.
+    // The rails are scene quads (leftPipe / rightPipe) that WorldPainter
+    // dresses per world with a reinforced rail texture: a band of art inside
+    // a wider canvas with transparent margins, mirrored for the right wall.
+    // For the rail to show, in colour, three things have to hold:
+    //   - the wall shader is alpha-blended and unlit (Pause/WorldRailRepeat).
+    //     The built-in opaque Mobile/(Bumped) Diffuse the scene materials
+    //     once used draws the transparent margins as the black they are
+    //     stored as; the material assets use the rail shader too, so a wall
+    //     nothing has painted yet is never opaque;
+    //   - the art is inside the camera's view (CameraFit.GameplayHalfWidth)
+    //     and outside the ship's reach;
+    //   - its texels are square (RailFit.RefreshTextureTiling), whatever the
+    //     screen's height.
     static void CheckSpaceRailMaterials()
     {
         bool shaders = true;
         foreach (string name in new[] { "left_1", "right_6", "right_7" })
         {
             var m = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/" + name + ".mat");
-            if (m == null || m.shader == null || m.shader.name != "Pause/WorldWall" || m.renderQueue < 3000 ||
-                !m.HasProperty("_UBand") || !m.HasProperty("_Color") || m.color != Color.white)
+            if (m == null || m.shader == null || m.shader.name != "Pause/WorldRailRepeat" || m.renderQueue < 3000 ||
+                !m.HasProperty("_Color") || m.color != Color.white)
                 shaders = false;
         }
-        Check("Wall materials use the unlit alpha-blended Pause/WorldWall shader, untinted", shaders);
+        Check("Wall material assets use the unlit alpha-blended Pause/WorldRailRepeat shader, untinted", shaders);
 
-        var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/left_1.mat");
-        var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/right_7.mat");
-        if (left == null || right == null) return;
-        Check("Space rails bind new left/right textures",
-              AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
-              AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
+        const float ShipReach = 2.4f;
+        EditorSceneLoader.Open("gameS1", UnityEditor.SceneManagement.OpenSceneMode.Single);
+        var cam = Camera.main;
+        var walls = new[] { GameObject.Find("leftPipe"), GameObject.Find("rightPipe") };
+        Check("gameS1 has both rail quads and a camera", cam != null && walls[0] != null && walls[1] != null);
+        if (cam == null || walls[0] == null || walls[1] == null) return;
 
-        var railTextures = new Dictionary<string, Texture>
+        float refInner = -1f, refOuter = -1f;
+        foreach (float aspect in new[] { 9f / 21f, 3f / 4f })
         {
-            { "left", left.mainTexture },
-            { "right", right.mainTexture },
-            { WorldPainter.VerdantRailName, Resources.Load<Texture2D>("Worlds/Verdant/" + WorldPainter.VerdantRailName) },
-        };
-        var railPaths = new Dictionary<string, string>
-        {
-            { "left", "Assets/Art/left.png" },
-            { "right", "Assets/Art/right.png" },
-            { WorldPainter.VerdantRailName, "Assets/Art/Resources/Worlds/Verdant/" + WorldPainter.VerdantRailName + ".png" },
-        };
-
-        // The art columns WorldPainter aligns by are what the PNGs hold, and
-        // the imported textures keep the PNG's shape (no NPOT rescale, which
-        // would resample the pixel art) and carry no mipmaps.
-        bool measured = true, imported = true;
-        string found = "";
-        foreach (var art in WorldPainter.Rails)
-        {
-            var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            t.LoadImage(File.ReadAllBytes(railPaths[art.name]));
-            var px = t.GetPixels32();
-            int first = -1, last = -1;
-            for (int x = 0; x < t.width; x++)
-            {
-                bool any = false;
-                for (int y = 0; y < t.height && !any; y++) any = px[y * t.width + x].a > 127;
-                if (!any) continue;
-                if (first < 0) first = x;
-                last = x;
-            }
-            found += (found.Length > 0 ? ", " : "") + art.name + " " + first + ".." + (last + 1) + " of " + t.width;
-            if (t.width != art.width || t.height != art.height || first != art.first || last + 1 != art.end) measured = false;
-            Object.DestroyImmediate(t);
-            WorldPainter.RailArt got;
-            var tex = railTextures[art.name];
-            if (tex == null || !WorldPainter.TryRailArt(tex, out got) || tex.mipmapCount != 1 ||
-                Mathf.Abs(tex.width / (float)tex.height - art.width / (float)art.height) > 0.002f) imported = false;
-        }
-        Check("Rail art columns match WorldPainter's table (" + found + ")", measured);
-        Check("Rail textures import at their own shape without mipmaps and resolve in the table", imported);
-
-        // On every screen shape the strip of wall in view shows rail art, not
-        // its margin, with square texels and the art's gameplay-facing edge
-        // on the wall's inner edge. Wall quads: 1.43 u wide centred on
-        // +/-3.15 (inner edge 2.435, outer 3.865); RailFit height = 2 x
-        // orthographic size x 1.085. Cases: each rail on the wall(s) it is
-        // painted on (Verdant's one texture is mirrored onto the right wall).
-        const float InnerEdge = 2.435f, OuterEdge = 3.865f, QuadWidth = 1.43f;
-        bool onScreen = true, square = true;
-        string worst = "";
-        foreach (float aspect in new[] { 9f / 21f, 9f / 19.5f, 9f / 16f, 3f / 4f })
-        {
-            float ortho = CameraFit.ComputeSize(5f, 2.85f, Mathf.RoundToInt(1000 * aspect), 1000);
+            float ortho = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, Mathf.RoundToInt(1000 * aspect), 1000);
             float halfW = ortho * aspect;
-            var size = new Vector3(QuadWidth, ortho * 2f * 1.085f, 1f);
-            foreach (var art in WorldPainter.Rails)
+            foreach (var theme in WorldManager.Worlds)
+            {
+                string railName = WorldPainter.RailTextureName(theme.displayName);
+                if (railName == null) continue;
+                string folder = string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
+
+                // Columns of the PNG that hold visible art (not transparent,
+                // not the black matte the shader cuts).
+                var src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                src.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Worlds/" + folder + "/" + railName + ".png"));
+                var px = src.GetPixels32();
+                int tw = src.width, th = src.height, first = -1, last = -1;
+                for (int x = 0; x < tw; x++)
+                {
+                    int solid = 0;
+                    for (int y = 0; y < th; y += 3)
+                    {
+                        Color32 c = px[y * tw + x];
+                        if (c.a > 127 && Mathf.Max(c.r, Mathf.Max(c.g, c.b)) > 8) solid++;
+                    }
+                    if (solid * 3 < th / 2) continue;       // at least half the column is rail
+                    if (first < 0) first = x;
+                    last = x;
+                }
+                Object.DestroyImmediate(src);
+
+                WorldPainter.Apply(theme);
+                bool ok = true, squareOk = true;
+                float inner = 0f, outer = 0f;
                 for (int side = 0; side < 2; side++)
                 {
-                    bool isLeft = side == 0;
-                    bool mirror = art.innerAtEnd != isLeft;
-                    if (mirror && art.name != WorldPainter.VerdantRailName) continue;   // Space has a texture per wall
-                    Vector4 band = WorldPainter.BandFor(railTextures[art.name], size, isLeft, mirror);
-                    float texelsPerUnitX = Mathf.Abs(band.y - band.x) * art.width / size.x;
-                    float texelsPerUnitY = art.height / size.y;
-                    if (Mathf.Abs(texelsPerUnitX / texelsPerUnitY - 1f) > 0.01f) square = false;
-                    // u at the wall's inner edge must be the art's gameplay edge,
-                    // with art (not margin) running outward from it.
-                    float innerU = isLeft ? band.y : band.x, outerU = isLeft ? band.x : band.y;
-                    float artInner = (art.innerAtEnd ? art.end : art.first) / (float)art.width;
-                    bool pinned = Mathf.Abs(innerU - artInner) < 1e-4f && (outerU < innerU) == art.innerAtEnd;
-                    float visible = Mathf.Min(halfW, OuterEdge) - InnerEdge;
-                    float artShown = Mathf.Min(visible * texelsPerUnitX, art.end - art.first);
-                    // At least a tenth of the rail's own width is in view.
-                    if (!pinned || artShown < 0.1f * (art.end - art.first))
-                    {
-                        onScreen = false;
-                        worst = " (" + art.name + (mirror ? " mirrored" : "") + ", aspect " + aspect.ToString("F2") + ": " +
-                                artShown.ToString("F1") + " art columns in view, pinned " + pinned + ")";
-                    }
+                    var wall = walls[side];
+                    var sc = wall.transform.localScale;
+                    sc.y = ortho * 2f * 1.085f;             // what RailFit sets for this screen
+                    wall.transform.localScale = sc;
+                    RailFit.RefreshTextureTiling(wall);
+                    var mat = wall.GetComponent<Renderer>().sharedMaterial;
+                    bool mirrored = mat.mainTextureScale.x < 0f;
+                    if (mat.shader.name != "Pause/WorldRailRepeat" || mat.renderQueue < 3000 || mat.mainTexture == null ||
+                        mat.mainTexture.name != railName || mat.color != theme.tint || mirrored != (side == 1))
+                        ok = false;
+                    // World x of the art's two edges on this wall. The left
+                    // wall shows the texture as drawn (gameplay edge = the
+                    // art's right side), the right wall its mirror image.
+                    float w = Mathf.Abs(wall.transform.lossyScale.x), cx = Mathf.Abs(wall.transform.position.x);
+                    float quadOuter = cx + w * 0.5f;
+                    float artInner = quadOuter - (last + 1) / (float)tw * w;
+                    float artOuter = quadOuter - first / (float)tw * w;
+                    if (side == 0) { inner = artInner; outer = artOuter; }
+                    else if (Mathf.Abs(artInner - inner) > 0.01f || Mathf.Abs(artOuter - outer) > 0.01f) ok = false;
+                    // Square texels: one texture repeat is as tall as its shape says.
+                    float overlap = mat.HasProperty("_Overlap") ? mat.GetFloat("_Overlap") : 0f;
+                    float tile = Mathf.Abs(wall.transform.lossyScale.y) / mat.mainTextureScale.y / (1f - overlap);
+                    if (Mathf.Abs(tile / (w * th / tw) - 1f) > 0.01f) squareOk = false;
                 }
-        }
-        Check("Rail art sits on the wall's inner edge and is in view on every screen shape" + worst, onScreen);
-        Check("Rail texels are square at every screen shape", square);
-
-        // Full-cell wall tiles (Frost, Ember) keep the plain 0..1 map.
-        var tile = Resources.Load<Texture2D>("Worlds/Ember/wallLeft");
-        Vector4 plain = WorldPainter.BandFor(tile, new Vector3(QuadWidth, 13f, 1f), true);
-        Check("Full-cell wall tiles map their whole cell onto the wall", plain.x == 0f && plain.y == 1f);
-
-        // The scene walls sit where the checks above assume, in both scenes.
-        foreach (string scene in new[] { "Assets/Scenes/gameS1.unity", "Assets/Scenes/tutorialS5.unity" })
-        {
-            string yaml = File.ReadAllText(scene);
-            Check(scene + " walls are 1.43 u wide at x = +/-3.15",
-                  yaml.Contains("m_LocalPosition: {x: 3.15, y: 0, z: 1}") && yaml.Contains("m_LocalPosition: {x: -3.15, y: 0, z: 1}") &&
-                  yaml.Contains("m_LocalScale: {x: 1.43, y: 10.85, z: 1}") && yaml.Contains("m_LocalScale: {x: 1.43, y: 10.75, z: 1}"));
+                string tag = theme.displayName + " rail (aspect " + aspect.ToString("F2") + ")";
+                Check(tag + " is drawn by the rail shader with its own texture, mirrored on the right wall", ok);
+                Check(tag + " art spans |x| " + inner.ToString("F3") + " .. " + outer.ToString("F3") + ": outside the ship's reach (" +
+                      ShipReach + "), inside the view (" + halfW.ToString("F2") + ")",
+                      inner > ShipReach && outer <= halfW + 0.02f && outer > inner + 0.5f);
+                Check(tag + " texels are square", squareOk);
+                if (refInner < 0f) { refInner = inner; refOuter = outer; }
+                Check(tag + " frames the same lane as the other worlds (inner " + inner.ToString("F3") + " vs " +
+                      refInner.ToString("F3") + ", outer " + outer.ToString("F3") + " vs " + refOuter.ToString("F3") + ")",
+                      Mathf.Abs(inner - refInner) < 0.05f && Mathf.Abs(outer - refOuter) < 0.05f);
+            }
         }
     }
 

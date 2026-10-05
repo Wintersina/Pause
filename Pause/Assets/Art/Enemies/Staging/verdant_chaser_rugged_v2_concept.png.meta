@@ -1,2 +1,1079 @@
 fileFormatVersion: 2
 guid: 4322fa48c37804667978392611af17a3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1312474799912744927
+    second: verdant_chaser_rugged_v2_concept_0
+  - first:
+      213: 6834166130716143437
+    second: verdant_chaser_rugged_v2_concept_1
+  - first:
+      213: 705612989531602747
+    second: verdant_chaser_rugged_v2_concept_2
+  - first:
+      213: -4651905727049971085
+    second: verdant_chaser_rugged_v2_concept_3
+  - first:
+      213: -2383509238378900549
+    second: verdant_chaser_rugged_v2_concept_4
+  - first:
+      213: 7763722652880643768
+    second: verdant_chaser_rugged_v2_concept_5
+  - first:
+      213: 7099506918167545302
+    second: verdant_chaser_rugged_v2_concept_6
+  - first:
+      213: 1851758045701945204
+    second: verdant_chaser_rugged_v2_concept_7
+  - first:
+      213: 3735454069673799128
+    second: verdant_chaser_rugged_v2_concept_8
+  - first:
+      213: -4563536372734317795
+    second: verdant_chaser_rugged_v2_concept_9
+  - first:
+      213: 2199492328475981934
+    second: verdant_chaser_rugged_v2_concept_10
+  - first:
+      213: 5064683529629331582
+    second: verdant_chaser_rugged_v2_concept_11
+  - first:
+      213: -8605361869256357701
+    second: verdant_chaser_rugged_v2_concept_12
+  - first:
+      213: 2624483704481899740
+    second: verdant_chaser_rugged_v2_concept_13
+  - first:
+      213: 6469962882727254320
+    second: verdant_chaser_rugged_v2_concept_14
+  - first:
+      213: -1102014436453804866
+    second: verdant_chaser_rugged_v2_concept_15
+  - first:
+      213: -4775759072095950980
+    second: verdant_chaser_rugged_v2_concept_16
+  - first:
+      213: -4985614705083031415
+    second: verdant_chaser_rugged_v2_concept_17
+  - first:
+      213: 1052259704051884304
+    second: verdant_chaser_rugged_v2_concept_18
+  - first:
+      213: 4202169692955522796
+    second: verdant_chaser_rugged_v2_concept_19
+  - first:
+      213: 3168260090727497583
+    second: verdant_chaser_rugged_v2_concept_20
+  - first:
+      213: -1802828509596654078
+    second: verdant_chaser_rugged_v2_concept_21
+  - first:
+      213: 6281444222927856472
+    second: verdant_chaser_rugged_v2_concept_22
+  - first:
+      213: 4173055680722572020
+    second: verdant_chaser_rugged_v2_concept_23
+  - first:
+      213: -2482048509872151518
+    second: verdant_chaser_rugged_v2_concept_24
+  - first:
+      213: 1307789555536678302
+    second: verdant_chaser_rugged_v2_concept_25
+  - first:
+      213: 175479207168843913
+    second: verdant_chaser_rugged_v2_concept_26
+  - first:
+      213: 1956666755189758333
+    second: verdant_chaser_rugged_v2_concept_27
+  - first:
+      213: 8851922088263377904
+    second: verdant_chaser_rugged_v2_concept_28
+  - first:
+      213: -805328319748137199
+    second: verdant_chaser_rugged_v2_concept_29
+  - first:
+      213: 5630497956990957703
+    second: verdant_chaser_rugged_v2_concept_30
+  - first:
+      213: -6765309819516325780
+    second: verdant_chaser_rugged_v2_concept_31
+  - first:
+      213: -3355614419233230015
+    second: verdant_chaser_rugged_v2_concept_32
+  - first:
+      213: -1158102457747653000
+    second: verdant_chaser_rugged_v2_concept_33
+  - first:
+      213: 8638625900786904268
+    second: verdant_chaser_rugged_v2_concept_34
+  - first:
+      213: 3524058062013679625
+    second: verdant_chaser_rugged_v2_concept_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 389
+        height: 716
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd7737170e8d63210800000000000000
+      internalID: 1312474799912744927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 597
+        width: 273
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4f675d03e5d7de50800000000000000
+      internalID: 6834166130716143437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 814
+        y: 660
+        width: 75
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3fbee58647dac900800000000000000
+      internalID: 705612989531602747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 670
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37ac49a536c117fb0800000000000000
+      internalID: -4651905727049971085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 622
+        width: 28
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb3509fd9f21ceed0800000000000000
+      internalID: -2383509238378900549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 618
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b6aa9b6e984ebb60800000000000000
+      internalID: 7763722652880643768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 1022
+        y: 580
+        width: 64
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d50ec16de3868260800000000000000
+      internalID: 7099506918167545302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 589
+        width: 16
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 477390ca124c2b910800000000000000
+      internalID: 1851758045701945204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 1184
+        y: 592
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dda1b16faff6d330800000000000000
+      internalID: 3735454069673799128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 1186
+        y: 584
+        width: 42
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1ba89ff8df0ba0c0800000000000000
+      internalID: -4563536372734317795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1273
+        y: 56
+        width: 345
+        height: 658
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e68f10d8e9a268e10800000000000000
+      internalID: 2199492328475981934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1793
+        y: 50
+        width: 358
+        height: 669
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e70f35b16de594640800000000000000
+      internalID: 5064683529629331582
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 0
+        width: 297
+        height: 591
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb8884b19fc939880800000000000000
+      internalID: -8605361869256357701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 31
+        width: 318
+        height: 559
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd4e17c260a0c6420800000000000000
+      internalID: 2624483704481899740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 553
+        width: 64
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0399be666fce9c950800000000000000
+      internalID: 6469962882727254320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1096
+        y: 551
+        width: 24
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb491d175bbd4b0f0800000000000000
+      internalID: -1102014436453804866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1639
+        y: 147
+        width: 255
+        height: 439
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c772fde4d6819bdb0800000000000000
+      internalID: -4775759072095950980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 98
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 980ef8437d98fcab0800000000000000
+      internalID: -4985614705083031415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 108
+        width: 21
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 011687f20a06a9e00800000000000000
+      internalID: 1052259704051884304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 614
+        y: 83
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce6b68a521b115a30800000000000000
+      internalID: 4202169692955522796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 66
+        width: 21
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6ffbdf24cbe7fb20800000000000000
+      internalID: 3168260090727497583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 670
+        y: 68
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2066b86b5011bf6e0800000000000000
+      internalID: -1802828509596654078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 830
+        y: 72
+        width: 572
+        height: 468
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8536b008d3c2c2750800000000000000
+      internalID: 6281444222927856472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 94
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f21565280ca9e930800000000000000
+      internalID: 4173055680722572020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 980
+        y: 132
+        width: 30
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22468cdd70efd8dd0800000000000000
+      internalID: -2482048509872151518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 1014
+        y: 145
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9dcabafba3362210800000000000000
+      internalID: 1307789555536678302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 1032
+        y: 142
+        width: 18
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98024c0c86d6f6200800000000000000
+      internalID: 175479207168843913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 1034
+        y: 130
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d79d6e60c0a772b10800000000000000
+      internalID: 1956666755189758333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 1060
+        y: 116
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f36f526d3858da70800000000000000
+      internalID: 8851922088263377904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1085
+        y: 98
+        width: 17
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11f99d5f826e2d4f0800000000000000
+      internalID: -805328319748137199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 1160
+        y: 120
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 788320b6f0c832e40800000000000000
+      internalID: 5630497956990957703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 1228
+        y: 101
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c607444309acc12a0800000000000000
+      internalID: -6765309819516325780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 1251
+        y: 118
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 143bc6ae6767e61d0800000000000000
+      internalID: -3355614419233230015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 1254
+        y: 215
+        width: 14
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87eb17853f79defe0800000000000000
+      internalID: -1158102457747653000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 1257
+        y: 183
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccc64e3cc7092e770800000000000000
+      internalID: 8638625900786904268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 1831
+        y: 66
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9084d2ad228f7e030800000000000000
+      internalID: 3524058062013679625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_chaser_rugged_v2_concept_0: 1312474799912744927
+      verdant_chaser_rugged_v2_concept_1: 6834166130716143437
+      verdant_chaser_rugged_v2_concept_10: 2199492328475981934
+      verdant_chaser_rugged_v2_concept_11: 5064683529629331582
+      verdant_chaser_rugged_v2_concept_12: -8605361869256357701
+      verdant_chaser_rugged_v2_concept_13: 2624483704481899740
+      verdant_chaser_rugged_v2_concept_14: 6469962882727254320
+      verdant_chaser_rugged_v2_concept_15: -1102014436453804866
+      verdant_chaser_rugged_v2_concept_16: -4775759072095950980
+      verdant_chaser_rugged_v2_concept_17: -4985614705083031415
+      verdant_chaser_rugged_v2_concept_18: 1052259704051884304
+      verdant_chaser_rugged_v2_concept_19: 4202169692955522796
+      verdant_chaser_rugged_v2_concept_2: 705612989531602747
+      verdant_chaser_rugged_v2_concept_20: 3168260090727497583
+      verdant_chaser_rugged_v2_concept_21: -1802828509596654078
+      verdant_chaser_rugged_v2_concept_22: 6281444222927856472
+      verdant_chaser_rugged_v2_concept_23: 4173055680722572020
+      verdant_chaser_rugged_v2_concept_24: -2482048509872151518
+      verdant_chaser_rugged_v2_concept_25: 1307789555536678302
+      verdant_chaser_rugged_v2_concept_26: 175479207168843913
+      verdant_chaser_rugged_v2_concept_27: 1956666755189758333
+      verdant_chaser_rugged_v2_concept_28: 8851922088263377904
+      verdant_chaser_rugged_v2_concept_29: -805328319748137199
+      verdant_chaser_rugged_v2_concept_3: -4651905727049971085
+      verdant_chaser_rugged_v2_concept_30: 5630497956990957703
+      verdant_chaser_rugged_v2_concept_31: -6765309819516325780
+      verdant_chaser_rugged_v2_concept_32: -3355614419233230015
+      verdant_chaser_rugged_v2_concept_33: -1158102457747653000
+      verdant_chaser_rugged_v2_concept_34: 8638625900786904268
+      verdant_chaser_rugged_v2_concept_35: 3524058062013679625
+      verdant_chaser_rugged_v2_concept_4: -2383509238378900549
+      verdant_chaser_rugged_v2_concept_5: 7763722652880643768
+      verdant_chaser_rugged_v2_concept_6: 7099506918167545302
+      verdant_chaser_rugged_v2_concept_7: 1851758045701945204
+      verdant_chaser_rugged_v2_concept_8: 3735454069673799128
+      verdant_chaser_rugged_v2_concept_9: -4563536372734317795
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

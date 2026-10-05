@@ -1,2 +1,1209 @@
 fileFormatVersion: 2
 guid: c3db5d75c13d1421489f385bb6b046f4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2495856297328181234
+    second: ember_elite_coalrunner_concept_0
+  - first:
+      213: -3436912012810076131
+    second: ember_elite_coalrunner_concept_1
+  - first:
+      213: 7111624262316110108
+    second: ember_elite_coalrunner_concept_2
+  - first:
+      213: 7903380262610151551
+    second: ember_elite_coalrunner_concept_3
+  - first:
+      213: 8889487178501356901
+    second: ember_elite_coalrunner_concept_4
+  - first:
+      213: -7644885393144956059
+    second: ember_elite_coalrunner_concept_5
+  - first:
+      213: -3460830770596754068
+    second: ember_elite_coalrunner_concept_6
+  - first:
+      213: 746903990301958306
+    second: ember_elite_coalrunner_concept_7
+  - first:
+      213: -8414042131732588674
+    second: ember_elite_coalrunner_concept_8
+  - first:
+      213: -8033858084428549565
+    second: ember_elite_coalrunner_concept_9
+  - first:
+      213: 533420830701894380
+    second: ember_elite_coalrunner_concept_10
+  - first:
+      213: -2848798628821487008
+    second: ember_elite_coalrunner_concept_11
+  - first:
+      213: -459768434014511878
+    second: ember_elite_coalrunner_concept_12
+  - first:
+      213: 6764043114405130288
+    second: ember_elite_coalrunner_concept_13
+  - first:
+      213: -4539827796604018734
+    second: ember_elite_coalrunner_concept_14
+  - first:
+      213: -2039954038854875517
+    second: ember_elite_coalrunner_concept_15
+  - first:
+      213: -3198298701515405284
+    second: ember_elite_coalrunner_concept_16
+  - first:
+      213: -5237815907064800712
+    second: ember_elite_coalrunner_concept_17
+  - first:
+      213: 61328807573969820
+    second: ember_elite_coalrunner_concept_18
+  - first:
+      213: 4866627598132163355
+    second: ember_elite_coalrunner_concept_19
+  - first:
+      213: -2740966279115272440
+    second: ember_elite_coalrunner_concept_20
+  - first:
+      213: 5877747342769979728
+    second: ember_elite_coalrunner_concept_21
+  - first:
+      213: -2685998259687361319
+    second: ember_elite_coalrunner_concept_22
+  - first:
+      213: 5034646372886896820
+    second: ember_elite_coalrunner_concept_23
+  - first:
+      213: 446476390194678482
+    second: ember_elite_coalrunner_concept_24
+  - first:
+      213: -2905510704436294615
+    second: ember_elite_coalrunner_concept_25
+  - first:
+      213: -236071751665358321
+    second: ember_elite_coalrunner_concept_26
+  - first:
+      213: 444602536179120832
+    second: ember_elite_coalrunner_concept_27
+  - first:
+      213: -9155170724285935829
+    second: ember_elite_coalrunner_concept_28
+  - first:
+      213: 4343600400350385823
+    second: ember_elite_coalrunner_concept_29
+  - first:
+      213: -2915570243637016312
+    second: ember_elite_coalrunner_concept_30
+  - first:
+      213: -1982676868244822075
+    second: ember_elite_coalrunner_concept_31
+  - first:
+      213: 4654815863596877862
+    second: ember_elite_coalrunner_concept_32
+  - first:
+      213: 3643888535797717140
+    second: ember_elite_coalrunner_concept_33
+  - first:
+      213: -1710764926890266044
+    second: ember_elite_coalrunner_concept_34
+  - first:
+      213: 880006419403963930
+    second: ember_elite_coalrunner_concept_35
+  - first:
+      213: -5479101468573803139
+    second: ember_elite_coalrunner_concept_36
+  - first:
+      213: 8597130710999217934
+    second: ember_elite_coalrunner_concept_37
+  - first:
+      213: -1695574258681558862
+    second: ember_elite_coalrunner_concept_38
+  - first:
+      213: 3060528825261995131
+    second: ember_elite_coalrunner_concept_39
+  - first:
+      213: -5663535863744824662
+    second: ember_elite_coalrunner_concept_40
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_0
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 0
+        width: 2175
+        height: 695
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fffaac241013a220800000000000000
+      internalID: 2495856297328181234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_1
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 655
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d10ce20ebb2ad40d0800000000000000
+      internalID: -3436912012810076131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_2
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 653
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c11b66b669091b260800000000000000
+      internalID: 7111624262316110108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_3
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 653
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7826b599727ead60800000000000000
+      internalID: 7903380262610151551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_4
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 647
+        width: 9
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56d76f58d7dcd5b70800000000000000
+      internalID: 8889487178501356901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_5
+      rect:
+        serializedVersion: 2
+        x: 1367
+        y: 661
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56bb5014d39e7e590800000000000000
+      internalID: -7644885393144956059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_6
+      rect:
+        serializedVersion: 2
+        x: 2005
+        y: 664
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6dc6da10c8a8ffc0800000000000000
+      internalID: -3460830770596754068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_7
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 642
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a0254fc8398d5a00800000000000000
+      internalID: 746903990301958306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_8
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 615
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7798ecb2415b3b80800000000000000
+      internalID: -8414042131732588674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_9
+      rect:
+        serializedVersion: 2
+        x: 918
+        y: 623
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3427cbd23a0028090800000000000000
+      internalID: -8033858084428549565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_10
+      rect:
+        serializedVersion: 2
+        x: 877
+        y: 607
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceab7c95b67176700800000000000000
+      internalID: 533420830701894380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1819
+        y: 595
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 062b97c9db80778d0800000000000000
+      internalID: -2848798628821487008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1819
+        y: 590
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afc90a39b039e99f0800000000000000
+      internalID: -459768434014511878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_13
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 64
+        width: 48
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0307b870065bedd50800000000000000
+      internalID: 6764043114405130288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_14
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 66
+        width: 36
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2df19f90caa4ff0c0800000000000000
+      internalID: -4539827796604018734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_15
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 55
+        width: 55
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3868eeb1c90a0b3e0800000000000000
+      internalID: -2039954038854875517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_16
+      rect:
+        serializedVersion: 2
+        x: 894
+        y: 48
+        width: 55
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c18c49ab64c5d93d0800000000000000
+      internalID: -3198298701515405284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1055
+        y: 54
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83a13840f2a8f47b0800000000000000
+      internalID: -5237815907064800712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 56
+        width: 36
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9bd1fdb932e9d000800000000000000
+      internalID: 61328807573969820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1487
+        y: 64
+        width: 68
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b13b7c8140cb98340800000000000000
+      internalID: 4866627598132163355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1576
+        y: 45
+        width: 49
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80f820001b126f9d0800000000000000
+      internalID: -2740966279115272440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 45
+        width: 74
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0510d4d0114f19150800000000000000
+      internalID: 5877747342769979728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1850
+        y: 74
+        width: 37
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d4740850da69bad0800000000000000
+      internalID: -2685998259687361319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_23
+      rect:
+        serializedVersion: 2
+        x: 1884
+        y: 74
+        width: 67
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b0e1a19338aed540800000000000000
+      internalID: 5034646372886896820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_24
+      rect:
+        serializedVersion: 2
+        x: 2013
+        y: 35
+        width: 87
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2da072e49e3323600800000000000000
+      internalID: 446476390194678482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_25
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 64
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92ccafa886d8da7d0800000000000000
+      internalID: -2905510704436294615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_26
+      rect:
+        serializedVersion: 2
+        x: 974
+        y: 46
+        width: 9
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0a6b7c1efd49bcf0800000000000000
+      internalID: -236071751665358321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_27
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 48
+        width: 20
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cab13ba6ab8b2600800000000000000
+      internalID: 444602536179120832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_28
+      rect:
+        serializedVersion: 2
+        x: 1485
+        y: 56
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2f81e08bbc42f080800000000000000
+      internalID: -9155170724285935829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1874
+        y: 50
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f96112dfc81974c30800000000000000
+      internalID: 4343600400350385823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_30
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 45
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 809015e8f40d987d0800000000000000
+      internalID: -2915570243637016312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_31
+      rect:
+        serializedVersion: 2
+        x: 741
+        y: 39
+        width: 15
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c722eb94ed1c74e0800000000000000
+      internalID: -1982676868244822075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_32
+      rect:
+        serializedVersion: 2
+        x: 1012
+        y: 54
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6288b8c9d5a399040800000000000000
+      internalID: 4654815863596877862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_33
+      rect:
+        serializedVersion: 2
+        x: 1250
+        y: 47
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49857513151b19230800000000000000
+      internalID: 3643888535797717140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_34
+      rect:
+        serializedVersion: 2
+        x: 1914
+        y: 42
+        width: 6
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 442328eec542248e0800000000000000
+      internalID: -1710764926890266044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_35
+      rect:
+        serializedVersion: 2
+        x: 1918
+        y: 44
+        width: 7
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1ef2ac0d29663c00800000000000000
+      internalID: 880006419403963930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_36
+      rect:
+        serializedVersion: 2
+        x: 1922
+        y: 37
+        width: 9
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7d565d6e3256f3b0800000000000000
+      internalID: -5479101468573803139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_37
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 35
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e07b5b405d42f4770800000000000000
+      internalID: 8597130710999217934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_38
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 35
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b84dfcf13c1878e0800000000000000
+      internalID: -1695574258681558862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_39
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 31
+        width: 7
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b74b59e40ce297a20800000000000000
+      internalID: 3060528825261995131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_elite_coalrunner_concept_40
+      rect:
+        serializedVersion: 2
+        x: 1332
+        y: 29
+        width: 28
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aaafdcc73241761b0800000000000000
+      internalID: -5663535863744824662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_elite_coalrunner_concept_0: 2495856297328181234
+      ember_elite_coalrunner_concept_1: -3436912012810076131
+      ember_elite_coalrunner_concept_10: 533420830701894380
+      ember_elite_coalrunner_concept_11: -2848798628821487008
+      ember_elite_coalrunner_concept_12: -459768434014511878
+      ember_elite_coalrunner_concept_13: 6764043114405130288
+      ember_elite_coalrunner_concept_14: -4539827796604018734
+      ember_elite_coalrunner_concept_15: -2039954038854875517
+      ember_elite_coalrunner_concept_16: -3198298701515405284
+      ember_elite_coalrunner_concept_17: -5237815907064800712
+      ember_elite_coalrunner_concept_18: 61328807573969820
+      ember_elite_coalrunner_concept_19: 4866627598132163355
+      ember_elite_coalrunner_concept_2: 7111624262316110108
+      ember_elite_coalrunner_concept_20: -2740966279115272440
+      ember_elite_coalrunner_concept_21: 5877747342769979728
+      ember_elite_coalrunner_concept_22: -2685998259687361319
+      ember_elite_coalrunner_concept_23: 5034646372886896820
+      ember_elite_coalrunner_concept_24: 446476390194678482
+      ember_elite_coalrunner_concept_25: -2905510704436294615
+      ember_elite_coalrunner_concept_26: -236071751665358321
+      ember_elite_coalrunner_concept_27: 444602536179120832
+      ember_elite_coalrunner_concept_28: -9155170724285935829
+      ember_elite_coalrunner_concept_29: 4343600400350385823
+      ember_elite_coalrunner_concept_3: 7903380262610151551
+      ember_elite_coalrunner_concept_30: -2915570243637016312
+      ember_elite_coalrunner_concept_31: -1982676868244822075
+      ember_elite_coalrunner_concept_32: 4654815863596877862
+      ember_elite_coalrunner_concept_33: 3643888535797717140
+      ember_elite_coalrunner_concept_34: -1710764926890266044
+      ember_elite_coalrunner_concept_35: 880006419403963930
+      ember_elite_coalrunner_concept_36: -5479101468573803139
+      ember_elite_coalrunner_concept_37: 8597130710999217934
+      ember_elite_coalrunner_concept_38: -1695574258681558862
+      ember_elite_coalrunner_concept_39: 3060528825261995131
+      ember_elite_coalrunner_concept_4: 8889487178501356901
+      ember_elite_coalrunner_concept_40: -5663535863744824662
+      ember_elite_coalrunner_concept_5: -7644885393144956059
+      ember_elite_coalrunner_concept_6: -3460830770596754068
+      ember_elite_coalrunner_concept_7: 746903990301958306
+      ember_elite_coalrunner_concept_8: -8414042131732588674
+      ember_elite_coalrunner_concept_9: -8033858084428549565
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

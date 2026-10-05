@@ -137,7 +137,10 @@ public static class BackdropCatalog
         new Spec { world = "Verdant", layers = new[] {
             Layer.Tile("sky", 0.006f, W),
             Layer.Tile("far", 0.014f, W),
-            Layer.Tile("mid", 0.024f, W).WithTexture("forest_industrial_center_v1"),
+            // Distant planet-side industry stays beneath the high-contrast
+            // rail frame and ship silhouettes.
+            Layer.Tile("mid", 0.024f, new Color(.78f, .78f, .78f, 1f)).WithTexture("forest_industrial_center_v1")
+                .WrapBlended(0.50f),
             Layer.Strip("flow", 0.025f, 0.30f, 0f, W),
             Layer.Pieces("waterfalls", 0.030f, Role.Landmark),
             Layer.Pieces("ruins", 0.036f, Role.Landmark),
