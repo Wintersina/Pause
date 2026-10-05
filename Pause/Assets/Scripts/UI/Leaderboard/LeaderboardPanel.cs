@@ -229,6 +229,7 @@ public class LeaderboardPanel : MonoBehaviour
                                 .Cuts(true, false, true, false);
             shape.cut = 14f;
             shape.raycastTarget = true;
+            shape.raycastPadding = new Vector4(0f, -10f, 0f, -10f);   // a bigger finger target, same art
             var label = Child(rt, "Label");
             Stretch(label, 10f);
             Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f);

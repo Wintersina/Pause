@@ -156,6 +156,9 @@ public class AccountOptions : MonoBehaviour
 
         action = AccountUi.MakeButton(card, "Action", font, 24f, 182f, CardWidth - 48f, 88f, "",
                                       AkiraPalette.Red, true, OnAction, 26);
+        // a finger-sized hit area (the 88-unit button is ~35 dp on a phone):
+        // up over the status line, down to the developer details row
+        if (action.targetGraphic != null) action.targetGraphic.raycastPadding = new Vector4(0f, -12f, 0f, -16f);
 
         detailsRow = AccountUi.Place(card, "Details", 24f, 282f, CardWidth - 48f, DevDetailsHeight - 6f);
         detailsText = AccountUi.Label(detailsRow, font, "", 14, AkiraPalette.Amber, TextAnchor.UpperLeft, 0f, false);

@@ -46,8 +46,35 @@ public class FitWaiver
 
 public static class ScreenFitScreens
 {
+    const string ShortPhones = "and-480x854,and-720x1280";
+
     public static readonly FitWaiver[] Waivers =
     {
+        // Every canvas scales with the screen's PIXELS, so a phone that is
+        // short in dp (a 480x854 hdpi phone is 569 dp tall, a 720x1280 xhdpi
+        // one 640 dp) gets every target ~15-20% under 48 dp and the smallest
+        // labels under 7 dp. Fixing it is a dp-aware minimum UI scale for
+        // all screens: a design decision, reported, not guessed.
+        new FitWaiver { kind = "TAPSIZE", element = "", devices = ShortPhones,
+                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
+        new FitWaiver { kind = "SMALLTEXT", element = "", devices = ShortPhones,
+                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
+        new FitWaiver { screen = "codex-grid", kind = "TAPSIZE", element = "/Tabs/Tab",
+                        reason = "six tabs share the panel's width: ~32-40 dp tall even with the hit padding (decision: taller tab row)" },
+        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
+                        reason = "developer-only rows (DeveloperUnlocks.Available builds)" },
+        new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
+                        reason = "developer-only sign-in details line" },
+        new FitWaiver { screen = "leaderboard", kind = "TAPSIZE", element = "/Tab_",
+                        reason = "the single board's tab (~36 dp with padding); taller tabs are a design change" },
+        new FitWaiver { screen = "leaderboard", kind = "SMALLTEXT", element = "/Name ",
+                        reason = "27-character player names best-fit down to 8 px (decision: larger floor + ellipsis)" },
+        new FitWaiver { screen = "dock-popup", kind = "TAPSIZE", element = "~DockPopup/",
+                        reason = "the ship popup's size (scale 1.3225): swatches ~19-30 dp, action button ~25-35 dp (decision: popup size)" },
+        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "Panel/Skins/",
+                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp swatch prices / weapon line (decision: popup size)" },
+        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "~DockPopup/Panel/",
+                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp stats line (decision: popup size)" },
     };
 
     const float Dt = 1f / 60f;

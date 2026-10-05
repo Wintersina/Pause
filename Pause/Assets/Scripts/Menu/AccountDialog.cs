@@ -145,6 +145,10 @@ public class AccountDialog : MonoBehaviour
             PrimaryButton = AccountUi.MakeButton(panel, "Primary", font, 40f + half + 20f, top, half, h, primary,
                                                  AkiraPalette.Red, true, onPrimary, 26);
         else CenterSecondary();
+        // finger-sized hit areas (the 92-unit buttons are ~37 dp on a phone)
+        // reaching into the panel's margin below and the gap above
+        foreach (var b in new[] { SecondaryButton, PrimaryButton })
+            if (b != null && b.targetGraphic != null) b.targetGraphic.raycastPadding = new Vector4(0f, -14f, 0f, -14f);
     }
 
     void CenterSecondary()
