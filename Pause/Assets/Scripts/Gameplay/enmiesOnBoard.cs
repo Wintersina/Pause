@@ -1031,7 +1031,8 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         }
 
         if (rail != null)
-            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove, transform.position.z);
+            // (SnapLift: drawn on the same whole screen pixel as the rail art, under half a pixel from true)
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove + BoardRoll.SnapLift, transform.position.z);
         else
             transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }
@@ -1048,8 +1049,10 @@ public class RailLaneScroller : MonoBehaviour
 {
     void Update()
     {
+        // the same step the rail art takes this frame (BoardRoll), so a mine
+        // on this lane stays registered to the art it is clamped to
         if (TouchInput.IsPressed || score.pauseCounter <= 0)
-            transform.position += Vector3.down * moveBackGround.speed * Time.deltaTime * 30f;
+            transform.position += Vector3.down * BoardRoll.Advance(moveBackGround.speed, Time.deltaTime);
         if (transform.position.y < -12f) Destroy(gameObject);
     }
 }
