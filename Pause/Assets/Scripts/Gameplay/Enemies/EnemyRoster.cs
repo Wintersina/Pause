@@ -57,6 +57,9 @@ public sealed class EnemyDef
     public Vector2 ColliderSize => EnemyRoster.ColliderSize(role);
 
     public bool IsHazard => role == EnemyRole.Rock || role == EnemyRole.Mine;
+
+    // What it does: its movement pattern and attack (EnemyBehaviours).
+    public EnemyBehaviour Behaviour => EnemyBehaviours.For(key);
 }
 
 public static class EnemyRoster

@@ -32,39 +32,55 @@ public static class EnemyFactory
         col.isTrigger = true;
         col.size = def.ColliderSize;
 
+        // What it does (EnemyBehaviours): the mover below scrolls it, the
+        // brain adds its pattern and its attack on top.
+        var behaviour = EnemyBehaviours.For(def);
+        moveEnimes weaver = null;
+        moveItemEnmInStrightLine scroller = null;
+
         switch (def.role)
         {
             case EnemyRole.Rock:
-                go.AddComponent<moveEnimes>();
+                weaver = go.AddComponent<moveEnimes>();
                 var spin = go.AddComponent<AsteroidSpin>();
-                spin.speedRange = new Vector2(15f, 60f);   // the aestroid_* prefabs' tuning
+                spin.speedRange = behaviour != null ? behaviour.spin : new Vector2(15f, 60f);   // the aestroid_* prefabs' tuning
                 if (def.floating)
                 {
                     // a chunk of the world's ground: it stays upright (cap on
                     // top) and rocks gently; its frames draw the bob
-                    spin.swayDegrees = EnemyRoster.FloatSwayDegrees;
-                    spin.swayPeriod = EnemyRoster.FloatSwayPeriod;
+                    spin.swayDegrees = behaviour != null && behaviour.tilt > 0f ? behaviour.tilt : EnemyRoster.FloatSwayDegrees;
+                    spin.swayPeriod = behaviour != null && behaviour.tilt > 0f ? behaviour.tiltPeriod : EnemyRoster.FloatSwayPeriod;
                 }
                 break;
             case EnemyRole.Alien:
-                go.AddComponent<moveEnimes>();
+                weaver = go.AddComponent<moveEnimes>();
                 break;
             case EnemyRole.Mine:
-                go.AddComponent<moveItemEnmInStrightLine>();
+                scroller = go.AddComponent<moveItemEnmInStrightLine>();
                 break;
             case EnemyRole.Chaser:
                 Kinematic(go);
-                go.AddComponent<ChaserEnemy>();
+                go.AddComponent<ChaserEnemy>().Configure(behaviour);
                 break;
             default:
                 Kinematic(go);
-                go.AddComponent<moveItemEnmInStrightLine>();
+                scroller = go.AddComponent<moveItemEnmInStrightLine>();
                 break;
         }
+        // the brain owns the sideways movement: no ping-pong weave
+        if (weaver != null && behaviour != null) weaver.Straight();
 
         var flipbook = def.role == EnemyRole.Mine ? go.AddComponent<RailBombAnimator>() : go.AddComponent<EnemyFlipbook>();
         flipbook.Init(def);
         ClearTarget.Ensure(go);
+
+        if (behaviour != null && def.role != EnemyRole.Chaser)
+        {
+            var brain = go.AddComponent<EnemyBrain>();
+            brain.Init(def, behaviour);
+            if (weaver != null) weaver.brain = brain;
+            if (scroller != null) scroller.brain = brain;
+        }
 
         // Its reserved space on the board (SpawnSpace): the body, and the
         // mover as its movement pattern (a mine rebinds to its rail mount).

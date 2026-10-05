@@ -21,6 +21,9 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
     AtomWander wander;
     bool atomChecked;
 
+    // The enemy's behaviour, when it has one: its envelope widens the sweep.
+    [System.NonSerialized] public EnemyBrain brain;
+
     // The atom's wander, once it has moved (null for everything else).
     public AtomWander Wander { get { return wander; } }
 
@@ -73,7 +76,7 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return SpawnSpace.BodyRect(center, half);
+        return EnemyBrain.Widen(brain, center, half);
     }
 
     public bool SelfSteering => false;

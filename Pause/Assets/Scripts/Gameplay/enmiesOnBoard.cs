@@ -43,6 +43,8 @@ public class enmiesOnBoard : MonoBehaviour {
         public Vector2 mineInterval = new Vector2(6f, 10f);
         public Vector2 chaserInterval = new Vector2(7f, 11f);
         public Vector2 enemyInterval = new Vector2(2.5f, 5f);
+        [Tooltip("The armoured heavy's own timer: it holds a column and attacks, so it comes less often than the rocks.")]
+        public Vector2 heavyInterval = new Vector2(6f, 9f);
         public Vector2 astroidInterval = new Vector2(2.5f, 5f);
         public Vector2 alienInterval = new Vector2(2.5f, 4f);
         public Vector2 extraInterval = new Vector2(2.5f, 4.5f);
@@ -168,6 +170,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.6f, 0.9f),
                 mineInterval = new Vector2(7f, 10f),
                 enemyInterval = new Vector2(2.4f, 3.4f),
+                heavyInterval = new Vector2(7f, 10f),
             },
             new SpawnPhase {
                 name = "Debris", activeAfterSeconds = 20f,
@@ -175,6 +178,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.55f, 0.85f),
                 mineInterval = new Vector2(6f, 9f),
                 enemyInterval = new Vector2(1.8f, 3f),
+                heavyInterval = new Vector2(6f, 9f),
                 astroidInterval = new Vector2(2.2f, 3.5f),
             },
             new SpawnPhase {
@@ -184,6 +188,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.5f, 0.8f),
                 mineInterval = new Vector2(5f, 8f),
                 enemyInterval = new Vector2(1.4f, 2.4f),
+                heavyInterval = new Vector2(5f, 8f),
                 astroidInterval = new Vector2(1.5f, 2.8f),
                 alienInterval = new Vector2(2.2f, 3.5f),
             },
@@ -195,6 +200,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 mineInterval = new Vector2(4f, 7f),
                 chaserInterval = new Vector2(7f, 10f),
                 enemyInterval = new Vector2(0.9f, 1.8f),
+                heavyInterval = new Vector2(4.5f, 7f),
                 astroidInterval = new Vector2(1.1f, 2.2f),
                 alienInterval = new Vector2(1.5f, 2.7f),
             },
@@ -206,6 +212,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 mineInterval = new Vector2(3.5f, 6f),
                 chaserInterval = new Vector2(5f, 8f),
                 enemyInterval = new Vector2(0.5f, 1.1f),
+                heavyInterval = new Vector2(4f, 6f),
                 astroidInterval = new Vector2(0.6f, 1.4f),
                 alienInterval = new Vector2(1.2f, 2f),
             },
@@ -269,7 +276,7 @@ public class enmiesOnBoard : MonoBehaviour {
 
     public enum SlotKind { Rock, Big, Alien, Extra, Mine, Chaser }
 
-    struct Deferred { public SlotKind kind; public float age; }
+    struct Deferred { public SlotKind kind; public float age; public float x; }
 
     public const int MaxDeferred = 24;
     public const float MaxDeferSeconds = 1f;
@@ -290,17 +297,25 @@ public class enmiesOnBoard : MonoBehaviour {
     public int PendingCount => deferredCount;
 
     readonly WeavePlan weaveCandidate = new WeavePlan();
+    // a roster enemy's behaviour envelope, as a spawn candidate's pattern
+    readonly EnemyBrainPlan brainCandidate = new EnemyBrainPlan();
 
-    void Spawn(SlotKind kind)
+    // Spawns skipped because the board already held its fill of threats
+    // (EnemyDensity.MaxThreats): not queued, the timer simply comes round again.
+    public int SkippedForThreats { get; private set; }
+
+    // `x`: where it would like to be (NaN: anywhere in its lane).
+    void Spawn(SlotKind kind, float x = float.NaN)
     {
-        if (!TrySpawn(kind)) Defer(kind);
+        if (!EnemyDensity.RoomFor(EnemyDensity.Hud)) { SkippedForThreats++; return; }
+        if (!TrySpawn(kind, x)) Defer(kind, x);
     }
 
-    void Defer(SlotKind kind)
+    void Defer(SlotKind kind, float x)
     {
         DeferredTotal++;
         if (deferredCount >= MaxDeferred) { DroppedTotal++; return; }
-        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f };
+        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f, x = x };
     }
 
     void RetryDeferred(float dt)
@@ -308,7 +323,7 @@ public class enmiesOnBoard : MonoBehaviour {
         for (int i = 0; i < deferredCount; )
         {
             deferred[i].age += dt;
-            bool done = TrySpawn(deferred[i].kind);
+            bool done = TrySpawn(deferred[i].kind, deferred[i].x);
             if (!done && deferred[i].age < MaxDeferSeconds) { i++; continue; }
             if (!done) DroppedTotal++;
             deferred[i] = deferred[--deferredCount];
@@ -317,19 +332,19 @@ public class enmiesOnBoard : MonoBehaviour {
 
     // false = no clear spot right now (defer); true = built, or nothing to
     // build (missing roster art -- EnemyRosterTest guards it).
-    bool TrySpawn(SlotKind kind)
+    bool TrySpawn(SlotKind kind, float x = float.NaN)
     {
         int world = EnemyRoster.CurrentWorld;
         switch (kind)
         {
             // "small enemy" and the three asteroid slots: one of the world's rocks
-            case SlotKind.Rock: return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Rock), 0f);
+            case SlotKind.Rock: return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Rock), float.NaN);
             // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps
             // to the middle of the lane (SpawnLane.HeavyMaxX), clear of the
             // walls and the rail mines.
             case SlotKind.Big:
                 return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Big), Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
-            case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), 0f);
+            case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), x);
             case SlotKind.Extra: return TrySpawnExtra();
             case SlotKind.Mine: return TrySpawnMine();
             case SlotKind.Chaser: return TrySpawnChaser();
@@ -339,8 +354,10 @@ public class enmiesOnBoard : MonoBehaviour {
 
     static bool Weaves(EnemyDef def)
     {
-        // EnemyFactory gives rocks and aliens the weaving mover (moveEnimes)
-        return def.role == EnemyRole.Rock || def.role == EnemyRole.Alien;
+        // EnemyFactory gives rocks and aliens the weaving mover (moveEnimes);
+        // with a behaviour (EnemyBehaviours) it only scrolls and the brain
+        // moves them, so only an entry without one still weaves
+        return (def.role == EnemyRole.Rock || def.role == EnemyRole.Alien) && def.Behaviour == null;
     }
 
     // A clear spot on (or just above) the spawn line for a body of `half`:
@@ -350,8 +367,9 @@ public class enmiesOnBoard : MonoBehaviour {
     // (SpawnLane). The first pass also keeps clear of pickups; the second
     // only of enemies.
     bool TryPlace(Vector2 half, bool weaves, float preferredX, float maxX, EnemyDef laneDef,
-                  out Vector3 pos, out float amplitude)
+                  out Vector3 pos, out float amplitude, IMovementFootprint plan = null)
     {
+        if (float.IsNaN(preferredX)) preferredX = Random.Range(-maxX, maxX);
         float clock = SpawnSpace.Clock;
         float baseY = transform.position.y;
         int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
@@ -370,7 +388,7 @@ public class enmiesOnBoard : MonoBehaviour {
                         weaveCandidate.amplitude = amplitude;
                     }
                     else x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
-                    var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : null);
+                    var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : plan);
                     if (!SpawnSpace.Fits(c)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
                     if (laneDef != null && !SpawnLane.Fits(laneDef, x, y)) continue;
@@ -391,7 +409,12 @@ public class enmiesOnBoard : MonoBehaviour {
         bool weaves = Weaves(def);
         Vector3 pos;
         float amplitude;
-        if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, SpawnLane.MaxX(def), def, out pos, out amplitude))
+        // its whole pattern (the behaviour's envelope) must fit, inside the lane
+        var behaviour = def.Behaviour;
+        brainCandidate.behaviour = behaviour;
+        float maxX = Mathf.Max(0f, SpawnLane.MaxX(def) - (behaviour != null ? behaviour.bandX : 0f));
+        if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, maxX, def, out pos, out amplitude,
+                      behaviour != null ? brainCandidate : null))
             return false;
         var go = EnemyFactory.Create(def, pos, transform.rotation);
         if (weaves)
@@ -541,7 +564,9 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float Roll(Vector2 range)
     {
-        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale);
+        // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
+        return Random.Range(range.x, range.y) /
+               Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale * EnemyDensity.RateScale(EnemyDensity.Hud));
     }
 
     void spawn() { spawn(Time.deltaTime); }
@@ -587,7 +612,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (bigEnmDelayTimer <= 0)
         {
             if (phase.bigEnemy) spawnAstroid1();
-            bigEnmDelayTimer = Roll(phase.enemyInterval);
+            bigEnmDelayTimer = Roll(phase.heavyInterval);
         }
         if (smallAstroidDelayTimer <= 0)
         {
@@ -635,14 +660,18 @@ public class enmiesOnBoard : MonoBehaviour {
     // deferred -- on its own. The old in-lane filter keeps the count.)
     void spawnAnimatedEnimeOne()
     {
+        // (With behaviours the line is a real line: AlienLineSpacing apart,
+        // each wiggling or marching in step inside its own narrow band.)
         float startX = Random.Range(-2.3f, 2f);
         int max = Random.Range(1, 5);
         for (int i = 0; i < max; i++)
         {
-            float x = startX + (i + .5f);
-            if (x >= -2.4f && x <= 2.2f) Spawn(SlotKind.Alien);
+            float x = startX + (i + .5f) * AlienLineSpacing;
+            if (x >= -AlienLineMaxX && x <= AlienLineMaxX) Spawn(SlotKind.Alien, x);
         }
     }
+
+    public const float AlienLineSpacing = 1.4f, AlienLineMaxX = 1.75f;
 
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
@@ -732,7 +761,8 @@ public class enmiesOnBoard : MonoBehaviour {
             for (int k = 0; k < MineLiftSteps; k++)
             {
                 float y = transform.position.y + k * LiftStep;
-                var c = new SpawnCandidate(new Vector2(x, y), half);
+                brainCandidate.behaviour = def != null ? def.Behaviour : null;
+                var c = new SpawnCandidate(new Vector2(x, y), half, brainCandidate.behaviour != null ? brainCandidate : null);
                 if (!SpawnSpace.Fits(c)) continue;
                 if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
                 // a mine never closes the last gap in its row
@@ -755,6 +785,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 var mount = built.GetComponent<RailMineMount>();
                 if (mount == null) mount = built.AddComponent<RailMineMount>();
                 mount.MountTo(rail);
+                mount.brain = built.GetComponent<EnemyBrain>();   // its slide's envelope (SweptBounds)
                 liveMines.Add(built.transform);
                 SpawnedCount++;
                 return true;
@@ -831,6 +862,11 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
     float railOffsetY;
     bool mounted;
 
+    // How far along its rail the mine has slid from where it was clamped
+    // (EnemyBrain: Patrol / Creep), and the brain whose envelope bounds it.
+    [System.NonSerialized] public float Slide;
+    [System.NonSerialized] public EnemyBrain brain;
+
     // Kept public for the headless regression test and for quick inspection
     // while playing in the editor.
     public float AlignmentError
@@ -865,7 +901,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return SpawnSpace.BodyRect(center, half);
+        return EnemyBrain.Widen(brain, center, half);
     }
 
     public bool SelfSteering => false;
@@ -890,7 +926,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         }
 
         if (rail != null)
-            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY, transform.position.z);
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide, transform.position.z);
         else
             transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }
