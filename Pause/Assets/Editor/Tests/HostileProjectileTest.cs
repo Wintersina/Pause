@@ -157,7 +157,10 @@ public static class HostileProjectileTest
                           BossArt.ShotRimAlpha + " opaque (its sprite " + d.ToString("F2") + " wu across with its clear pad)",
                           reach > .02f && reach <= .1f && BossArt.ShotRimAlpha >= .4f && BossArt.ShotRimAlpha <= .8f &&
                           BossArt.ShotRimPad > BossArt.ShotRimReach * BossArt.ShotRimTexels &&
-                          d > drawn && (d - drawn) * .5f <= .12f && RimHugsArt(BossArt.Shot(boss, cell), g.sprite));
+                          d > drawn && (d - drawn) * .5f <= .12f);
+                    string hug;
+                    bool hugs = RimHugsArt(BossArt.Shot(boss, cell), g.sprite, out hug);
+                    Check("... and it sits on the drawing itself, not stretched or shifted (" + hug + ")", hugs);
                     Check("... tinted " + Hex(g.color) + ", never the player's red (" + HueGap(g.color, PlayerRed).ToString("F0") + " deg)",
                           HueGap(g.color, PlayerRed) >= 20f && !HostileGlow.IsPlayerRed(g.color));
                     s.Recycle();
@@ -371,20 +374,55 @@ public static class HostileProjectileTest
         return count;
     }
 
-    // The rim's alpha, read back: opaque enough under the art's middle,
-    // clear at its sprite's corners and edges (it never fills its quad).
-    static bool RimHugsArt(Sprite art, Sprite rim)
+    // The rim's alpha, read back, against the drawing's own alpha from its
+    // source file (the cell's whole rect): full strength exactly under the
+    // art -- the same bounds within the cell, to RimFit of it -- clear at
+    // its sprite's edges, and never most of its quad.
+    public const float RimFit = .04f;
+
+    static bool RimHugsArt(Sprite art, Sprite rim, out string what)
     {
+        what = "no art or rim";
         if (art == null || rim == null) return false;
         int w, h;
         var px = ShieldContour.ReadPixels(rim, out w, out h);
-        if (px == null) return false;
+        Rect ar = art.rect;
+        int aw = Mathf.RoundToInt(ar.width), ah = Mathf.RoundToInt(ar.height);
+        var src = ShieldContour.ReadFromSourceFile(art.texture, Mathf.RoundToInt(ar.x), Mathf.RoundToInt(ar.y), aw, ah);
+        what = "could not read the rim or the art back";
+        if (px == null || src == null || px.Length < w * h || src.Length < aw * ah) return false;
+
         int most = 0, lit = 0;
         for (int i = 0; i < px.Length; i++) { most = Mathf.Max(most, px[i].a); if (px[i].a > 8) lit++; }
         bool clearEdges = true;
         for (int x = 0; x < w; x++) clearEdges &= px[x].a == 0 && px[(h - 1) * w + x].a == 0;
         for (int y = 0; y < h; y++) clearEdges &= px[y * w].a == 0 && px[y * w + w - 1].a == 0;
-        return clearEdges && lit > 0 && lit < px.Length / 2 && Mathf.Abs(most - 255f * BossArt.ShotRimAlpha) <= 2f;
+
+        // bounds, as shares of the cell: the rim's full-strength core, the art's solid pixels
+        float pad = BossArt.ShotRimPad, n = BossArt.ShotRimTexels;
+        Vector4 core = Bounds(px, w, h, most > 0 ? most : 255, -pad, n);
+        Vector4 solid = Bounds(src, aw, ah, 128, 0f, aw);
+        float off = Mathf.Max(Mathf.Max(Mathf.Abs(core.x - solid.x), Mathf.Abs(core.y - solid.y)),
+                              Mathf.Max(Mathf.Abs(core.z - solid.z), Mathf.Abs(core.w - solid.w)));
+        what = "peak alpha " + most + ", " + lit + " of " + px.Length + " texels lit, edges " + (clearEdges ? "clear" : "NOT clear") +
+               ", core x " + core.x.ToString("F2") + ".." + core.z.ToString("F2") + " y " + core.y.ToString("F2") + ".." + core.w.ToString("F2") +
+               " of the cell over art x " + solid.x.ToString("F2") + ".." + solid.z.ToString("F2") + " y " + solid.y.ToString("F2") + ".." +
+               solid.w.ToString("F2") + ", off by " + off.ToString("F3");
+        return clearEdges && lit > 0 && lit < px.Length / 2 && Mathf.Abs(most - 255f * BossArt.ShotRimAlpha) <= 2f && off <= RimFit;
+    }
+
+    // (xMin, yMin, xMax, yMax) of the pixels with alpha >= `atLeast`, each
+    // (index + shift) / per: a share of the cell.
+    static Vector4 Bounds(Color32[] px, int w, int h, int atLeast, float shift, float per)
+    {
+        int x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                if (px[y * w + x].a < atLeast) continue;
+                x0 = Mathf.Min(x0, x); y0 = Mathf.Min(y0, y); x1 = Mathf.Max(x1, x); y1 = Mathf.Max(y1, y);
+            }
+        return new Vector4((x0 + shift) / per, (y0 + shift) / per, (x1 + 1 + shift) / per, (y1 + 1 + shift) / per);
     }
 
     // Mean relative luminance of the pixels between radii a and b.

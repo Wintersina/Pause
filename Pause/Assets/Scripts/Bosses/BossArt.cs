@@ -169,11 +169,24 @@ public static class BossArt
         const int Far = 1 << 20;
         float reach = Mathf.Max(1f, ShotRimReach * n);   // texels
 
+        // The cells' pixels, read back once as one strip. By each cell's own
+        // rect, never a shot sprite's textureRect: that is trimmed to the
+        // drawing (the sprites have tight meshes), and a rim built from it
+        // would be the drawing stretched over the whole cell.
+        var first = Shot(boss, 0);
+        if (first == null) return false;
+        Rect cellRect = first.rect;
+        int w = Mathf.RoundToInt(cellRect.width), h = Mathf.RoundToInt(cellRect.height);
+        if (w <= 0 || h <= 0 || cellRect.x + w * ShotRimCells > first.texture.width + .5f) return false;
+        var strip = Sprite.Create(first.texture, new Rect(cellRect.x, cellRect.y, w * ShotRimCells, h),
+                                  new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
+        int stripW, stripH;
+        Color32[] art = ShieldContour.ReadPixels(strip, out stripW, out stripH);
+        if (Application.isPlaying) Object.Destroy(strip); else Object.DestroyImmediate(strip);
+        if (art == null || stripW != w * ShotRimCells || stripH != h || art.Length < stripW * stripH) return false;
+
         for (int cell = 0; cell < ShotRimCells; cell++)
         {
-            int w, h;
-            Color32[] art = ShieldContour.ReadPixels(Shot(boss, cell), out w, out h);
-            if (art == null || w <= 0 || h <= 0 || art.Length < w * h) return false;
 
             // the silhouette, at the rim's resolution
             for (int i = 0; i < dist.Length; i++) dist[i] = Far;
@@ -185,7 +198,7 @@ public static class BossArt
                     int x0 = tx * w / n, x1 = Mathf.Max(x0 + 1, (tx + 1) * w / n);
                     int sum = 0;
                     for (int y = y0; y < y1; y++)
-                        for (int x = x0; x < x1; x++) sum += art[y * w + x].a;
+                        for (int x = x0; x < x1; x++) sum += art[y * stripW + cell * w + x].a;
                     if (sum >= ShotRimCoverage * 255f * (x1 - x0) * (y1 - y0)) dist[(ty + pad) * side + tx + pad] = 0;
                 }
             }
