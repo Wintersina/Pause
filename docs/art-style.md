@@ -155,6 +155,17 @@ Measured against the current game:
   therefore use `FrameWorldSize = frame_px / 64`, where `frame_px` is the native frame height.
   Any other value changes the pixel size. Bosses (`BossConfig.BossWorldSize`) and backgrounds
   follow the same rule.
+- **Cell rule.** `EnemyArt` cuts a strip at `width / FrameCount`, so every pose must be composed
+  inside its own cell: the hull on the same anchor through the idle loop, at least 4 px of clear
+  margin, nothing on the cell outline. Frames 0-5 share one scale, chosen to keep the enemy's
+  in-game size; the hit frame (6) may be drawn smaller when its smoke and debris alone would not
+  fit, and a burst frame only when sharing a scale would push the enemy out of the roster's size
+  band. Never cut a free-layout pose sheet at grid multiples and never fit each frame to the cell
+  on its own (the body then changes size between idle frames).
+  `Art/Enemies/src~/recell.py SHEET OUT.png --match OLD.png` rebuilds a strip from a pose sheet at
+  the old strip's size; `Art/Enemies/src~/audit_cells.py STRIP.png` audits one (cut scars,
+  straddling pieces, anchor and scale drift). `EnemyRosterTest.CellsHoldOnePoseEach` holds the
+  shipped enemy and elite strips to it.
 
 | Asset class | Gameplay size today | Native frame (game px) | Silhouette inside the frame |
 |---|---|---|---|
