@@ -29,6 +29,9 @@ public class DockPopup : MonoBehaviour
     public const float StartSpeedLineHeight = .07f * PopupScale;
     public const float TailLength = .085f * PopupScale;
     public const float Gap = .04f;
+    // A popup flipped below its ship hangs this far under the hull, so the
+    // tail's tip clears the engine plume. Ship geometry: not scaled.
+    public const float PlumeClearance = .34f;
     public const float CanvasScale = .01f * PopupScale;
     const float AppearTime = .2f;
 
@@ -420,7 +423,7 @@ public class DockPopup : MonoBehaviour
         ShipIndex = index;
         target = ship;
         above = halfHeight + Gap;
-        below = halfHeight + .34f;        // clear the engine plume
+        below = halfHeight + PlumeClearance;
         gameObject.SetActive(true);
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant();
         ShowLives(index);
