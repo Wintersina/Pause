@@ -522,6 +522,7 @@ public static class RailsVettingTest
             // deep into the level, timers all due; then a portal to the next world
             fly(60f);
             int before = board.SpawnedCount, windows = board.CalmWindows;
+            Sweep();                                                          // (nothing scrolls in this fixture: the old world's board has gone by)
             moveBackGround.speed = 0f;                                        // WorldManager.Advance resets speed
             PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 1);            // ... and moves to the next world
             fly(enmiesOnBoard.CalmArrivalSeconds - .1f);
@@ -545,6 +546,7 @@ public static class RailsVettingTest
             fly(20f);
             windows = board.CalmWindows;
             before = board.SpawnedCount;
+            Sweep();
             moveBackGround.speed = enmiesOnBoard.FastArrivalHudSpeed / 100f;
             PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 2);
             fly(3f);
@@ -563,6 +565,12 @@ public static class RailsVettingTest
             moveBackGround.speed = 0f;
             Clear();
         }
+    }
+
+    static void Sweep()
+    {
+        foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Object.DestroyImmediate(e.gameObject);
+        PilotAirspace.Clear();
     }
 
     // ---- 9: pilots and elites -----------------------------------------------------
