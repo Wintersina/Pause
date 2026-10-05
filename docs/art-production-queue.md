@@ -21,11 +21,11 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 4. **Installed and validated — `space_alien`:** Bile Mite rebuilt taller; live strip is Preview-opened and roster-validated.
 5. **Installed and validated — `frost_alien`:** Cryo Jelly rebuilt taller; live strip is Preview-opened and roster-validated.
 6. **Installed and validated — `verdant_fighter_2`:** Wasp rebuilt as a compact, rugged bio-industrial stinger with an offset turbine, thorn-leaf wing, resin sac, and toxic reactor eye; live strip is Preview-opened and roster-validated.
-7. **Installed and validated — `verdant_fighter_3`:** Mantis rebuilt as a rugged pruning mech with an iron boiler head, chartreuse reactor eye, and oversized chipped bone-and-steel scythes; live strip is Preview-opened and roster-validated. Re-celled 2026-10-04 from the concept sheet with `recell.py` (one pose per cell, uniform scale 0.384, body-anchored idle); the first install had been cut at grid multiples.
+7. **Installed and validated — `verdant_fighter_3`:** Mantis rebuilt as a rugged pruning mech with an iron boiler head, chartreuse reactor eye, and oversized chipped bone-and-steel scythes; live strip is Preview-opened and roster-validated.
 8. **Installed and validated — `verdant_fighter_4`:** Hornet Queen rebuilt as a heavy, weathered bio-industrial matriarch with damaged leaf-metal wings, chipped pruning scythes, a toxic resin abdomen, and a queen stinger; live strip is Preview-opened and roster-validated.
 9. **Installed and validated — `ember_fighter_1`:** Cinder rebuilt as a compact scorched forge-dart with jagged heat-shield plates, orange furnace vents, and a magenta furnace jaw; live strip is Preview-opened and roster-validated.
 10. **Installed and validated — `ember_fighter_2`:** Scorch rebuilt as a scorched fork-claw with uneven molten vents and a sodium-white furnace core; live strip is Preview-opened and roster-validated.
-11. **Installed and validated — `ember_fighter_3`:** Brand rebuilt as a lean scorched furnace flier with hooked ember-edged exhaust fins, a magenta heat slit, and a compact lower boiler; live strip is Preview-opened and roster-validated. Re-celled 2026-10-04 from the concept sheet with `recell.py` (one pose per cell, uniform scale 0.469, body-anchored idle); the first install had been cut at grid multiples.
+11. **Installed and validated — `ember_fighter_3`:** Brand rebuilt as a lean scorched furnace flier with hooked ember-edged exhaust fins, a magenta heat slit, and a compact lower boiler; live strip is Preview-opened and roster-validated.
 12. **Installed and validated — `ember_fighter_4`:** Pyre rebuilt as a scorched furnace-heavy with shield slabs, an uneven boiler stack, and a grille-contained sodium core; live strip is Preview-opened and roster-validated.
 13. **Installed and validated — `verdant_alien`:** Snap Sprout rebuilt as a rugged bio-industrial seed crawler with thorn-leaf armor, a pruning jaw, resin sacs, copper root conduits, and a toxic magenta-green core; native seven-cell QA complete.
 14. **Installed and validated — `ember_alien`:** Ember Imp rebuilt as a rugged soot-forge drone with basalt heat shields, copper bracing, orange vents, and a contained magenta furnace core; native seven-cell QA complete.
@@ -70,3 +70,41 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 - Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
+
+## Cell-integrity re-cell (2026-10-04)
+
+The first rugged installs of the strips below were cut from their free-layout concept sheets at
+grid multiples and each cut was fitted to its cell on its own, so cells held slices of the
+neighbouring pose, wide poses were clipped, and the body changed size and position through the
+idle loop. Each live strip was rebuilt from its concept sheet with
+`Pause/Assets/Art/Enemies/src~/recell.py` (one whole pose per cell, 4 px clear margin, idle frames
+anchored on the body; no art redrawn) and passes `audit_cells.py` and
+`EnemyRosterTest.CellsHoldOnePoseEach`. Not yet opened in Unity or checked on device.
+
+"Frame 0" is the drawn size of the key pose on its longest side, before -> after. Frames 0-5 share
+the listed scale of the concept sheet unless a frame is named with its own.
+
+| Strip | Frame 0 | Scale | Own-scale frames | Size limited by |
+| --- | --- | --- | --- | --- |
+| `verdant_fighter_3` Mantis | 178 -> 177 px | 0.430 | hit 0.378 | nothing (size kept) |
+| `ember_fighter_3` Brand | 178 -> 169 px | 0.467 | hit 0.410 | tell frame's flame on the idle baseline |
+| `frost_fighter_3` Frost Kite | 178 -> 172 px | 0.404 | hit 0.343 | width of the beam frame (5) |
+| `frost_fighter_2` Icicle | 160 -> 160 px | 0.469 | hit 0.461 | nothing (size kept) |
+| `ember_rock_magma` | 178 -> 167 px | 0.488 | none | height of the burst frame (5) |
+| `frost_alien` Cryo Jelly | 178 -> 177 px | 0.294 | none | nothing (size kept) |
+| `frost_fighter_4` Hailstorm | 160 -> 159 px | 0.393 | burst (5) 0.345, hit 0.384 | nothing (size kept) |
+| `verdant_fighter_2` Wasp | 178 -> 174 px | 0.408 | hit 0.368 | height of idle frame 3 |
+| `verdant_fighter_4` Hornet Queen | 176 -> 168 px | 0.499 | tell (4) 0.453, strike (5) 0.424, hit 0.438 | idle wings on the shared baseline |
+| `verdant_rock_pod` | 176 -> 172 px | 0.497 | none | height of idle frame 3 |
+
+- `frost_fighter_2` and `frost_fighter_4` had already been through `df9658a1`, which only shrank
+  each cell's existing content to a 16 px margin (178 -> 160 px); the neighbour slices and cut
+  bodies stayed. They are rebuilt at that 160 px size.
+- `frost_fighter_3`: one bolt of the hit debris lies nearer the beam tip of pose 5 than its own
+  hull on the sheet and is assigned to the hit frame by hand (`--assign 1874,446:6`).
+- `verdant_rock_pod` was rebuilt from `verdant_rock_pod_rugged_v2_concept.png`, which exists only
+  uncommitted in the `rework/verdant-rock-pod-rugged` worktree, not in this repository's Staging.
+- Still cut, not rebuilt: the elites `verdant_elite_resin_warden` (cell 3 fragment, cell 4 left
+  wing), `ember_elite_brass_vulture` (cell 6 left side) and `ember_elite_ash_wraith` (nose in
+  cells 4-6). Their source art is Codex's (`Art/Enemies/Elite`, copied over Resources by
+  `EliteArtSync`) and their defs hold measured muzzle and nozzle points.

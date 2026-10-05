@@ -793,11 +793,11 @@ public static class EnemyRosterTest
 
     // ---- 7b: cell integrity -----------------------------------------------------
 
-    // EnemyArt cuts a strip at width / FrameCount. A strip whose poses were
-    // not composed on that grid shows slices of the neighbouring pose inside
-    // a frame and loses the tips of the wide ones (the 2026-10 Mantis and
-    // Brand: sliced straight off their free-layout concept sheets). Two cheap
-    // tells, per cell:
+    // EnemyArt (and EliteArt) cut a strip into square cells. A strip whose
+    // poses were not composed on that grid shows slices of the neighbouring
+    // pose inside a frame and loses the tips of the wide ones (the 2026-10
+    // rugged strips: sliced straight off their free-layout concept sheets).
+    // Two cheap tells, per cell:
     //   - solid art on the cell's left / right outline column: it runs into
     //     the next frame (and bleeds under bilinear filtering);
     //   - a ruler-straight vertical silhouette edge, solid on one side and
@@ -805,64 +805,93 @@ public static class EnemyRosterTest
     //     the scar a grid cut leaves, even after the cell was re-centred.
     // Art/Enemies/src~/audit_cells.py is the full audit (components, anchor
     // and scale drift, contact sheets); recell.py rebuilds a strip from its
-    // pose sheet. Strips in KnownCutStrips still carry the defect and are
-    // only logged: take a key off the list when its strip is rebuilt.
+    // pose sheet. Strips on the Known lists still trip the check and are
+    // only logged. A listed strip that has become clean is logged as a
+    // notice, never failed: strips get replaced on other branches, and a
+    // stale entry here must not turn the suite red when they merge.
     public const float CutScar = .15f;
     static readonly string[] KnownCutStrips =
     {
-        "frost_fighter_2", "frost_fighter_3", "frost_fighter_4", "frost_alien",
-        "ember_rock_magma", "verdant_fighter_2", "verdant_fighter_4", "verdant_rock_pod",
         // flat-ink heavies: straight hull sides and bursts that reach the cell
         // edge; not confirmed as cuts, listed until someone reviews them
         "ember_big", "verdant_big", "space_big",
     };
+    const string EliteStrips = "Assets/Art/Resources/Elites";
+    static readonly string[] KnownCutEliteStrips =
+    {
+        // cut by the grid (fragment / clipped wing / clipped nose): the fix is
+        // Codex's, in Art/Enemies/Elite (EliteArtSync overwrites Resources),
+        // and moving the art means re-measuring the def's muzzles and nozzles
+        "verdant_elite_resin_warden", "ember_elite_brass_vulture", "ember_elite_ash_wraith",
+        // flat armour plates on the hull's side; not confirmed as cuts
+        "ember_elite_coalrunner", "ember_elite_kilnback",
+    };
 
     static void CellsHoldOnePoseEach()
     {
-        foreach (var key in KnownCutStrips)
-            Check(key + " (known cut strip) is still an enemy", EnemyRoster.Find(key) != null);
         foreach (var d in EnemyRoster.All)
         {
             if (d.role == EnemyRole.Mine) continue;   // the neon atlas has its own grid (RailMineArtTest)
             var tex = LoadStrip(d);
             if (tex == null) continue;                // PaletteCompliance already reports a missing strip
-            int w = tex.width, h = tex.height, cw = w / EnemyRoster.FrameCount;
-            var px = tex.GetPixels32();
-            UnityEngine.Object.DestroyImmediate(tex);
-            int need = Mathf.CeilToInt(CutScar * h);
-            int outline = 0, worst = 0, worstCell = -1;
-            for (int cell = 0; cell < EnemyRoster.FrameCount; cell++)
-            {
-                int x0 = cell * cw;
-                for (int y = 0; y < h; y++)
-                {
-                    if (px[y * w + x0].a > 128) outline++;
-                    if (px[y * w + x0 + cw - 1].a > 128) outline++;
-                }
-                for (int x = 0; x < cw; x++)
-                    for (int side = -1; side <= 1; side += 2)
-                    {
-                        int nx = x + side, run = 0;
-                        bool inside = nx >= 0 && nx < cw;
-                        for (int y = 0; y < h; y++)
-                        {
-                            bool edge = px[y * w + x0 + x].a > 128 && (!inside || px[y * w + x0 + nx].a == 0);
-                            run = edge ? run + 1 : 0;
-                            if (run > worst) { worst = run; worstCell = cell; }
-                        }
-                    }
-            }
-            bool clean = outline == 0 && worst < need;
-            string what = string.Format("{0} cells each hold one whole pose ({1} texels on a cell's side outline, " +
-                                        "longest straight cut {2} px in frame {3}, limit {4})",
-                                        d.key, outline, worst, worstCell, need);
-            if (Array.IndexOf(KnownCutStrips, d.key) >= 0)
-            {
-                if (clean) Check(d.key + " is clean now: take it off KnownCutStrips", false);
-                else Debug.Log("[ER] KNOWN " + what);
-            }
-            else Check(what, clean);
+            CheckCells(d.key, tex, EnemyRoster.FrameCount, KnownCutStrips);
         }
+
+        // The elites: the same square-cell strips, any layout (EliteCells).
+        // The optional _parked / _liftoff / _death strips are FX sequences
+        // with their own framing and are left out.
+        if (!Directory.Exists(EliteStrips)) return;
+        var paths = Directory.GetFiles(EliteStrips, "*.png", SearchOption.AllDirectories);
+        Array.Sort(paths, StringComparer.Ordinal);
+        foreach (var path in paths)
+        {
+            string key = Path.GetFileNameWithoutExtension(path);
+            if (key.EndsWith("_parked") || key.EndsWith("_liftoff") || key.EndsWith("_death")) continue;
+            var tex = new Texture2D(2, 2);
+            tex.LoadImage(File.ReadAllBytes(path));
+            if (tex.height > 0 && tex.width % tex.height == 0)
+                CheckCells(key, tex, tex.width / tex.height, KnownCutEliteStrips);
+            else
+                UnityEngine.Object.DestroyImmediate(tex);   // not a strip of square cells: EliteTest's business
+        }
+    }
+
+    // Destroys tex.
+    static void CheckCells(string key, Texture2D tex, int frames, string[] known)
+    {
+        int w = tex.width, h = tex.height, cw = w / frames;
+        var px = tex.GetPixels32();
+        UnityEngine.Object.DestroyImmediate(tex);
+        int need = Mathf.CeilToInt(CutScar * h);
+        int outline = 0, worst = 0, worstCell = -1;
+        for (int cell = 0; cell < frames; cell++)
+        {
+            int x0 = cell * cw;
+            for (int y = 0; y < h; y++)
+            {
+                if (px[y * w + x0].a > 128) outline++;
+                if (px[y * w + x0 + cw - 1].a > 128) outline++;
+            }
+            for (int x = 0; x < cw; x++)
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    int nx = x + side, run = 0;
+                    bool inside = nx >= 0 && nx < cw;
+                    for (int y = 0; y < h; y++)
+                    {
+                        bool edge = px[y * w + x0 + x].a > 128 && (!inside || px[y * w + x0 + nx].a == 0);
+                        run = edge ? run + 1 : 0;
+                        if (run > worst) { worst = run; worstCell = cell; }
+                    }
+                }
+        }
+        bool clean = outline == 0 && worst < need;
+        string what = string.Format("{0} cells each hold one whole pose ({1} texels on a cell's side outline, " +
+                                    "longest straight cut {2} px in frame {3}, limit {4})",
+                                    key, outline, worst, worstCell, need);
+        if (Array.IndexOf(known, key) < 0) Check(what, clean);
+        else if (clean) Debug.Log("[ER] NOTE  " + key + " is on the known-cut list but is clean now: take it off the list");
+        else Debug.Log("[ER] KNOWN " + what);
     }
 
     // ---- 8: floating rocks -------------------------------------------------------
