@@ -49,6 +49,7 @@ public class EnemyBrain : MonoBehaviour
     public const float CatchUpSpeed = 12f;        // u/s back to its line after giving way
     public const float DodgeSpeed = 4f;           // u/s sideways when ResolveSteer has to give way
     public const float LungeRecoverSeconds = .55f;
+    public const float ShoveReturnSpeed = 3f;     // u/s back to its line after something pushed it (a shockwave)
     public const float SidestepLookSeconds = .5f; // how far up the board (seconds of scroll) it watches for hazards beside its column
 
     // Pilots fly their engagement scripts (false: every enemy rides the
@@ -92,8 +93,29 @@ public class EnemyBrain : MonoBehaviour
     public float StateTime => stateTime;
     public SpriteRenderer ChargeLight => charge;
 
-    // Where the offset is measured from: the mover's own position.
-    public Vector2 Base => new Vector2(transform.position.x - ox - lx, transform.position.y - oy - ly);
+    // THE anchor: what the brain's pattern is added to. For a hazard it is the
+    // mover's own position (the body minus the brain's offset); for a pilot it
+    // is its station / flight anchor in world space.
+    //
+    // EXTERNAL DISPLACEMENT (a shove: something else writes transform.position).
+    // A hazard's brain only ever ADDS its offset's change each frame, so a
+    // shove moves its Base with it and stays. A pilot notices that it is not
+    // where it last put itself and flies back to its line at ShoveReturnSpeed
+    // -- over time, never a snap -- while its anchor (its station) stays put;
+    // set Base to move the station itself.
+    public Vector2 Base
+    {
+        get { return IsPilot ? anchor : new Vector2(transform.position.x - ox - lx, transform.position.y - oy - ly); }
+        set
+        {
+            if (IsPilot) { anchor = value; return; }
+            Vector2 d = value - Base;
+            transform.position += new Vector3(d.x, d.y, 0f);
+        }
+    }
+
+    // True while a pilot is flying back from where something pushed it.
+    public bool Displaced { get; private set; }
 
     // What it attacks (the ship; tests set a stand-in).
     public Transform TargetOverride;
@@ -117,7 +139,8 @@ public class EnemyBrain : MonoBehaviour
     // pilot state
     Vector2 anchor;                 // world: where its pattern is centred
     float columnHalf, stageTime, engaged, waited, peelDir, runToX, runFromX;
-    bool swoopDipped, runDiving;
+    bool swoopDipped, runDiving, hasLastSet;
+    Vector3 lastSet;                // where it last put itself (a different position next frame = it was pushed)
     SpawnFootprint footprint;
     moveEnimes weaverMover;
     moveItemEnmInStrightLine scrollMover;
@@ -411,6 +434,7 @@ public class EnemyBrain : MonoBehaviour
         if (Stage == PilotStage.Gone) return;
         var b = Behaviour;
         Vector3 p = transform.position;
+        if (hasLastSet && ((Vector2)(p - lastSet)).sqrMagnitude > 1e-6f) Displaced = true;   // pushed since its last step
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
         bool inView = p.y < top - ViewInset && p.y > bottom;
         if (inView) seen += dt;
@@ -483,13 +507,17 @@ public class EnemyBrain : MonoBehaviour
         float wantX = Mathf.Clamp(anchor.x + total, -lane, lane);
         float wantY = anchor.y + oy + ly;
         Vector2 from = p;
-        Vector2 wish = Vector2.MoveTowards(from, new Vector2(wantX, wantY), CatchUpSpeed * dt);
+        Vector2 want = new Vector2(wantX, wantY);
+        if (Displaced && (want - from).sqrMagnitude < .05f * .05f) Displaced = false;   // back on its line
+        Vector2 wish = Vector2.MoveTowards(from, want, (Displaced ? ShoveReturnSpeed : CatchUpSpeed) * dt);
 
         // the chaser's rule: never step into another body (another pilot, a
         // chaser, an elite, a hazard that got into its column anyway)
         if (footprint != null && footprint.isActiveAndEnabled)
             wish = SpawnSpace.ResolveSteer(footprint, from, wish, SpawnSpace.ScrollSpeed * dt, DodgeSpeed * dt);
         transform.position = new Vector3(wish.x, wish.y, p.z);
+        lastSet = transform.position;
+        hasLastSet = true;
     }
 
     void BeginExit(PilotExit how)

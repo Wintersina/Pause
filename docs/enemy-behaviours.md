@@ -242,6 +242,11 @@ instead of staying for ever.
 and live pilots are ordered to `Climb` out. The boss's existing board clear (every `ClearTarget` hazard)
 takes whatever is left, pilots included, as it always has.
 
+**External displacement (a shove).** `EnemyBrain.Base` is the one public anchor. A hazard's brain only adds
+its offset's change each frame, so writing its `transform.position` moves its `Base` and the shove stays.
+A pilot notices it is not where it last put itself (`Displaced`) and flies back to its line at
+`ShoveReturnSpeed` (3 u/s), never a snap; its station (`Base`) does not move unless `Base` is set.
+
 **Escape.** A pilot that leaves pays nothing and does not touch the kill chain, the same as any enemy
 that scrolled off the bottom before.
 
