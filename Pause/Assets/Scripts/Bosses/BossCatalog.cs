@@ -175,7 +175,7 @@ public static class BossCatalog
             {
                 id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost",
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
-                       "Its breath freezes whole lanes solid and its jaw is full of icicles the size of your ship. " +
+                       "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
                 swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice,
                 attacks = new[]
@@ -209,7 +209,7 @@ public static class BossCatalog
             {
                 id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant",
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
-                       "She spits thorns, coughs clouds of acid spores and lashes whole lanes with her roots. " +
+                       "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",
                 swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight,
                 attacks = new[]
@@ -243,7 +243,7 @@ public static class BossCatalog
             {
                 id = CodexPrefix + "ember", name = "CINDER DRAKE", title = "VOLCANIC WYRM", artKey = "Ember",
                 lore = "A basalt dragon that swims through magma the way the pilot swims through stars. " +
-                       "It guards the last gate before home, raking the sky with fire and burying lanes under its breath. " +
+                       "It guards the last gate before home, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",
                 swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = Magenta,
                 attacks = new[]
