@@ -622,7 +622,7 @@ public static class WorldBackdropTest
                 var src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 src.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Worlds/" + folder + "/" + railName + ".png"));
                 var px = src.GetPixels32();
-                int tw = src.width, th = src.height, first = -1, last = -1;
+                int tw = src.width, th = src.height, first = -1, last = -1, lastAny = -1;
                 for (int x = 0; x < tw; x++)
                 {
                     int solid = 0;
@@ -631,6 +631,7 @@ public static class WorldBackdropTest
                         Color32 c = px[y * tw + x];
                         if (c.a > 127 && Mathf.Max(c.r, Mathf.Max(c.g, c.b)) > 8) solid++;
                     }
+                    if (solid * 3 >= th / 50 && x > lastAny) lastAny = x;   // any art at all (2% of the column)
                     if (solid * 3 < th / 2) continue;       // at least half the column is rail
                     if (first < 0) first = x;
                     last = x;
@@ -639,7 +640,7 @@ public static class WorldBackdropTest
 
                 WorldPainter.Apply(theme);
                 bool ok = true, squareOk = true;
-                float inner = 0f, outer = 0f;
+                float inner = 0f, outer = 0f, tip = 0f;
                 for (int side = 0; side < 2; side++)
                 {
                     var wall = walls[side];
@@ -658,6 +659,7 @@ public static class WorldBackdropTest
                     float w = Mathf.Abs(wall.transform.lossyScale.x), cx = Mathf.Abs(wall.transform.position.x);
                     float quadOuter = cx + w * 0.5f;
                     float artInner = quadOuter - (last + 1) / (float)tw * w;
+                    if (side == 0) tip = quadOuter - (lastAny + 1) / (float)tw * w;
                     float artOuter = quadOuter - first / (float)tw * w;
                     if (side == 0) { inner = artInner; outer = artOuter; }
                     else if (Mathf.Abs(artInner - inner) > 0.01f || Mathf.Abs(artOuter - outer) > 0.01f) ok = false;
@@ -672,6 +674,18 @@ public static class WorldBackdropTest
                       ShipReach + "), inside the view (" + halfW.ToString("F2") + ")",
                       inner > ShipReach && outer <= halfW + 0.02f && outer > inner + 0.5f);
                 Check(tag + " texels are square", squareOk);
+                // The rail edge gameplay measures (boss shots, and whatever
+                // else reads BossRails) is the drawn rail's innermost reach:
+                // not the padded quad's face, which is well inside the lane,
+                // and not the authored fallback that face used to trigger.
+                BossRails.Measure();
+                float quadFace = Mathf.Abs(walls[0].transform.position.x) - Mathf.Abs(walls[0].transform.lossyScale.x) * 0.5f;
+                Check(tag + " BossRails.InnerEdge " + BossRails.InnerEdge.ToString("F3") + " is the drawn rail's innermost art (" +
+                      tip.ToString("F3") + " measured from the PNG; solid body from " + inner.ToString("F3") +
+                      "), not the padded quad's face (" + quadFace.ToString("F3") + ")",
+                      Mathf.Abs(BossRails.InnerEdge - tip) < 0.03f && BossRails.InnerEdge > ShipReach &&
+                      BossRails.InnerEdge <= inner + 0.005f);
+                BossRails.Reset();
                 if (refInner < 0f) { refInner = inner; refOuter = outer; }
                 Check(tag + " frames the same lane as the other worlds (inner " + inner.ToString("F3") + " vs " +
                       refInner.ToString("F3") + ", outer " + outer.ToString("F3") + " vs " + refOuter.ToString("F3") + ")",

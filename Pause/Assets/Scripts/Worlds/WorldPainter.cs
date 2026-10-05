@@ -90,6 +90,34 @@ public static class WorldPainter
         }
     }
 
+    // Where the rail a wall is showing really is: the world x (as a distance
+    // from the centre line) of the inner, gameplay-facing edge of its art
+    // and of its outer edge. The wall quad itself is no guide any more: it is
+    // padded with the texture's transparent canvas, so its renderer bounds
+    // reach well into the lane (to about 2.26 on Frost and Verdant, 1.87 on
+    // Space and Ember) while the drawn rail starts near 2.61 in every world.
+    // False if the wall is not showing one of the reinforced rails.
+    public static bool VisibleRailEdges(GameObject wall, out float inner, out float outer)
+    {
+        inner = outer = 0f;
+        var r = wall != null ? wall.GetComponent<Renderer>() : null;
+        var mat = r != null ? r.sharedMaterial : null;
+        var tex = mat != null ? mat.mainTexture : null;
+        if (tex == null) return false;
+        string world = null;
+        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember" })
+            if (RailTextureName(w) == tex.name) world = w;
+        if (world == null) return false;
+        RailBounds(world, out float min, out float max);
+        // Both walls show the art's `max` side toward the lane: the left one
+        // as drawn, the right one mirrored.
+        float width = r.bounds.size.x;
+        float quadOuter = Mathf.Abs(r.bounds.center.x) + width * 0.5f;
+        inner = quadOuter - max * width;
+        outer = quadOuter - min * width;
+        return true;
+    }
+
     static void SetRailLayout(string world)
     {
         float factor = RailWidthFactor(world);
