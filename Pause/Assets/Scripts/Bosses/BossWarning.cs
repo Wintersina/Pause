@@ -15,8 +15,9 @@ using UnityEngine;
 //                       animation of the warning (they run on the same clock)
 //   resume slow-mo      timeScale 0.6: the count runs 0.6x in real time,
 //                       exactly as the world (and the boss's arrival) does
-//   speed changes       the estimate moves (a blue atom: a few seconds
-//                       nearer, then back when the boost ends). The number
+//   speed changes       the estimate moves (it is taken on the natural
+//                       speed; a blue atom's boost eats the distance faster,
+//                       so the estimate falls faster while it lasts). The number
 //                       on screen never follows it in a jump: it only ever
 //                       counts DOWN, at between MinRate and MaxRate of a
 //                       second per flight second, closing the gap to the
@@ -25,7 +26,9 @@ using UnityEngine;
 //
 // It fires once per level visit, the first time the estimate is at or under
 // LeadSeconds, and cannot fire again until that boss has come (or the pilot
-// died): every world's boss, the bosses met again on a loop, the encore's.
+// died): every world's boss, and the bosses met again on a loop. Never while
+// a portal is open and waiting (WorldManager.Stage == Portal): the level
+// clock is stopped there and this visit's boss is done.
 // A level entered with less than the lead left gets a shortened warning
 // (a shorter banner, or none, and the count starts where it is). Not in the
 // tutorial, which has no WorldManager and no boss.
@@ -119,7 +122,7 @@ public enum BossWarningBeat
 // Where the level stands, as the warning sees it.
 public enum BossWarningInput
 {
-    None,       // no boss ahead: dead, tutorial, portal, the fight itself, KEEP FLYING ...
+    None,       // no boss ahead: dead, tutorial, the fight itself, a portal open and waiting
     Ahead,      // flying (or paused) towards this world's boss
     Holding,    // the level is flown; the encounter waits out an ultimate's cinematic
     Arriving,   // the boss intro is running
@@ -313,11 +316,9 @@ public static class BossWarning
                 default: return BossWarningInput.None;
             }
         }
-        if (wm.PortalIsOpen || wm.DistanceLeft <= 0f) return BossWarningInput.None;
-        // KEEP FLYING has no boss; LOOP BACK's distance is only the portal's.
-        if (wm.Route != WorldManager.FinalRoute.None && wm.Route != WorldManager.FinalRoute.Encore)
-            return BossWarningInput.None;
-        // A missed portal coming round again: this visit's boss is done.
+        // A portal is open and waiting (any world, the loop portal too): the
+        // level clock is stopped and this visit's boss is done.
+        if (wm.Stage == WorldManager.LevelStage.Portal || wm.DistanceLeft <= 0f) return BossWarningInput.None;
         if (BossEncounter.DoneInWorld(WorldManager.CurrentIndex)) return BossWarningInput.None;
         return BossWarningInput.Ahead;
     }

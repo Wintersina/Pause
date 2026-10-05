@@ -1,22 +1,27 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Settles a finished run (best speed, star dust) and hands the numbers -- with
-// the run score (RunScore, banked by score.cs) -- to the Flight Complete
-// panel. The panel itself -- frame, cards, buttons and the intro animation --
-// lives in DeathPanelView.
+// Settles a finished run (star dust) and hands the numbers -- with the run
+// score (RunScore, banked by score.cs) -- to the Flight Complete panel. The
+// panel itself -- frame, cards, buttons and the intro animation -- lives in
+// DeathPanelView. No speed is recorded or shown: speed is capped
+// (SpeedRamp.Cap), so it is not a result of a run.
 public class playerIsDead : MonoBehaviour
 {
     public Text deathHighScoreText;
-    public Text deathHighestSpeedText;
-    public Text deathSpeedReachedThisRoundText;
+    // The scene's two old speed Texts, kept wired under their serialized
+    // names: the first is the panel's score figure, the second has no job.
+    [UnityEngine.Serialization.FormerlySerializedAs("deathHighestSpeedText")]
+    public Text deathScoreText;
+    [UnityEngine.Serialization.FormerlySerializedAs("deathSpeedReachedThisRoundText")]
+    public Text deathSpareText;
     bool waitingForDeath = true;
 
     void Start()
     {
         deathHighScoreText.gameObject.SetActive(false);
-        deathHighestSpeedText.gameObject.SetActive(false);
-        deathSpeedReachedThisRoundText.gameObject.SetActive(false);
+        deathScoreText.gameObject.SetActive(false);
+        deathSpareText.gameObject.SetActive(false);
     }
 
     void Update()
@@ -31,10 +36,6 @@ public class playerIsDead : MonoBehaviour
         // Bank the run and its star-dust score bonus first, so the totals
         // below (and the dust written) include it.
         float scoreBonus = score.SettleCurrentRun();
-        int previousBest = Mathf.RoundToInt(PlayerPrefs.GetFloat("HighestSpeed"));
-        int runSpeed = Mathf.RoundToInt(moveBackGround.speed * 100f);
-        int bestSpeed = Mathf.Max(previousBest, runSpeed);
-        PlayerPrefs.SetFloat("HighestSpeed", bestSpeed);
         PlayerPrefs.SetFloat("PlayerCurrecny", score.totalCurrency);
         PlayerPrefs.Save();
 
@@ -46,8 +47,6 @@ public class playerIsDead : MonoBehaviour
             ranked = RunScore.SavesBest,
             practice = !RunScore.Scoring,
             parts = RunScore.Parts,
-            bestSpeed = bestSpeed,
-            runSpeed = runSpeed,
             dustAtStart = score.runStartCurrency,
             dustWon = Mathf.Max(0f, score.totalCurrency - score.runStartCurrency),
             dustBonus = scoreBonus,
@@ -55,7 +54,7 @@ public class playerIsDead : MonoBehaviour
 
         var canvas = SceneUtil.FindAny("PopUpCanvas");
         if (canvas == null) return;
-        DeathPanelView.Build(canvas.transform, deathHighestSpeedText, deathSpeedReachedThisRoundText,
+        DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
     }
 

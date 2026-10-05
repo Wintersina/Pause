@@ -4,8 +4,8 @@ using UnityEngine.UI;
 // The developer section of the Options screen (leaderboardS3): a developer
 // mode switch and, while it is on, a start-world picker and the BOSS RUSH
 // switch: ON (every run's end-of-level boss arrives a few seconds in) or
-// FINAL (straight to the end of the final world's boss and its KEEP FLYING /
-// LOOP BACK choice; see BossDev).
+// FINAL (straight to the end of the final world's boss and the portal back
+// round; see BossDev).
 //
 // Built at runtime from the screen's own "Tutorial" button, so it shares the
 // screen's font, size and transparent-button look; the labels are tinted

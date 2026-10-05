@@ -610,11 +610,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // at once, not just the ones a phase newly unlocks.
     //
     // Roll() also multiplies in LoopDifficulty.DensityScale: x1 on a first
-    // pass, x1.1 / x1.2 / x1.3 on later loops, and KEEP FLYING's endless
-    // climb on top (LoopRules.Density; WorldManager sets it). However dense,
-    // every spawn still goes through SpawnSpace (no enemy on top of another)
-    // and SpawnLane (each row keeps a ship-width gap): a spawn with no room
-    // waits a few frames for the board to scroll on (RetryDeferred).
+    // pass, x1.1 / x1.2 / x1.3 on later loops (LoopRules.DensityScale;
+    // WorldManager sets it), and PortalPressure.DensityScale: x1 except while
+    // a portal is open and waiting, when it climbs without limit. However
+    // dense, every spawn still goes through SpawnSpace (no enemy on top of
+    // another), the threat ceiling (EnemyDensity.MaxThreats) and SpawnLane
+    // (each row keeps a ship-width gap): a spawn with no room waits a few
+    // frames for the board to scroll on (RetryDeferred).
     const float DensityTickSeconds = 10f;
     const float DensityFirstMinute = 60f;
     const float DensityFinalStretch = 30f;
@@ -653,7 +655,7 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
-               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud));
+               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale);
     }
 
     // The calm window's clock (Update; tests step it): a new world starts a
@@ -820,11 +822,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // fields tiers 1-2; phase 3 tiers 1-3; phase 4 tiers 2-4. From phase 2 a
     // quarter of the picks are the world's rocks or its heavy instead (where
     // the Kenney meteors used to fold in).
+    // Later loops shift the window up (LoopRules.TierShift: +1, then +2), so
+    // a loop meets the nastier hulls from its first fighters on.
     public static EnemyDef ChooseExtraDef(int world, int phaseIndex)
     {
         if (phaseIndex >= 2 && Random.value < .25f)
             return EnemyRoster.Pick(world, Random.value < .7f ? EnemyRole.Rock : EnemyRole.Big);
-        int maxTier = Mathf.Clamp(phaseIndex, 1, 4);
+        int maxTier = Mathf.Clamp(phaseIndex + LoopRules.TierShift(RunLoop.Index), 1, 4);
         int minTier = Mathf.Max(1, maxTier - 2);
         return EnemyRoster.Fighter(world, Random.Range(minTier, maxTier + 1));
     }

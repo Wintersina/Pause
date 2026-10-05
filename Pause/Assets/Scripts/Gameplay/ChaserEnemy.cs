@@ -166,7 +166,8 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
             if (player != null)
             {
                 float k = 1f - Mathf.Clamp01(chaseTimer / Mathf.Max(0.01f, chaseSeconds));
-                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k);
+                // (faster without limit once a portal has been kept waiting into overdrive)
+                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k) * PortalPressure.ChaserSpeedScale;
                 // a Flare Decoy (secret power) draws the chase off the ship
                 Vector3 goal = ShipDecoy.Active ? ShipDecoy.Position : player.position;
                 Vector3 toPlayer = goal - from;

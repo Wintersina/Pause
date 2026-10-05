@@ -81,9 +81,6 @@ public class movePlayer : MonoBehaviour
             // guard, that same press was consumed as a teleport target before
             // the UI click completed, making the pause actions appear broken.
             if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
-            // Likewise a press on the final world's KEEP FLYING / LOOP BACK
-            // choice: it is a menu, not a teleport target.
-            if (FinalChoicePanel.IsUp) return;
 
             // show start timer, give player 1 second to prep. This used to
             // subtract Time.timeSinceLevelLoad (the whole time since load)

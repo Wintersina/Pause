@@ -1,34 +1,75 @@
-using System;
 using UnityEngine;
 
-// The gateway between planets.
+// The gateway between planets -- and, after the final world, back round to
+// the world the run began in.
 //
-// Built from primitives at runtime -- a glowing ring that drifts down the
-// screen like everything else. Flying into it advances the world.
+// Built from primitives at runtime. It comes down from above the view to a
+// station in the middle of the screen and STAYS there, drifting slowly from
+// side to side, until the ship flies into it: there is no lifetime and it
+// can not be missed (WorldManager; PortalPressure is what waiting costs).
+//
+// It moves only while the world is running, on its own clock, so a paused
+// game holds it still.
+//
+// Its approach stays clear: it is parked off-centre, so one side of the
+// lane is always open to pilots, and the column it drifts in is closed to
+// them (PilotAirspace.TryAdmit asks Reserves). Pilots hold stations above
+// it, chasers orbit and leave, and board-riding hazards scroll through in
+// about a second, so nothing can sit on it.
 public class Portal : MonoBehaviour
 {
-    public float fallSpeed = 1.6f;
-    Action onMissed;
-    float life;
+    // ---- tunables ----
+    // World units a second it comes down at.
+    public static float FallSpeed = 1.6f;
+    // Where it holds: this share of the view's height, from the bottom.
+    public static float StationHeight = .5f;
+    // Its home x is this far off the centre line, on either side ...
+    public static float HomeMinX = .7f, HomeMaxX = 1.2f;
+    // ... and it drifts this far either side of home, once per DriftSeconds.
+    public static float DriftHalf = .4f, DriftSeconds = 9f;
+    public const float Radius = .55f;
+    // The column closed to pilots: its drift, its body and this margin.
+    public static float ColumnMargin = .1f;
+
+    // The open portal, if any (one at a time).
+    public static Portal Live { get; private set; }
+
     SpriteRenderer ring, core, sparks;
-    float spin;
-    float missBelow = -8f;
+    float spin, clock, held;
+    float homeX;
+
+    public float HomeX { get { return homeX; } }
+    // It has reached its station (it is holding, not arriving).
+    public bool OnStation { get; private set; }
+    // Flight seconds since it appeared.
+    public float SecondsOpen { get { return clock; } }
 
     public static float SpawnY { get { return Mathf.Max(7f, CameraFit.ViewTop + 1.2f); } }
+    public static float StationY { get { return Mathf.Lerp(CameraFit.ViewBottom, CameraFit.ViewTop, StationHeight); } }
+    public static float ColumnHalf { get { return DriftHalf + Radius + ColumnMargin; } }
 
-    public static Portal Spawn(Color color, float lifetime, Action onMissed)
+    // Does [xMin, xMax] cross the column the open portal drifts in?
+    public static bool Reserves(float xMin, float xMax)
+    {
+        var p = Live;
+        if (p == null) return false;
+        float h = ColumnHalf;
+        return xMin < p.homeX + h && xMax > p.homeX - h;
+    }
+
+    public static Portal Spawn(Color color)
     {
         var go = new GameObject("~Portal");
         // Just above the visible top (7 on the authored view, higher on a
-        // tall screen), and given the extra fall time that costs.
-        float y = SpawnY;
-        go.transform.position = new Vector3(UnityEngine.Random.Range(-1.6f, 1.6f), y, 0f);
+        // tall screen), off-centre on a random side.
+        float side = Random.value < .5f ? -1f : 1f;
+        float x = side * Random.Range(HomeMinX, HomeMaxX);
+        go.transform.position = new Vector3(x, SpawnY, 0f);
 
         var p = go.AddComponent<Portal>();
-        p.life = lifetime + (y - 7f) / Mathf.Max(.01f, p.fallSpeed);
-        p.missBelow = CameraFit.ViewBottom - 1.2f;
-        p.onMissed = onMissed;
+        p.homeX = x;
         p.Build(color);
+        Live = p;
         return p;
     }
 
@@ -44,13 +85,13 @@ public class Portal : MonoBehaviour
 
         var col = gameObject.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.55f;
+        col.radius = Radius;
 
         var rb = gameObject.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
 
-        WorldBanner.Show("PORTAL OPEN");
+        WorldBanner.Show(PortalPressure.OpenBanner);
     }
 
     SpriteRenderer MakePart(string name, Sprite sprite, Color color, int order)
@@ -64,18 +105,42 @@ public class Portal : MonoBehaviour
         return sr;
     }
 
+    void OnDestroy()
+    {
+        if (Live == this) Live = null;
+    }
+
     void Update()
     {
-        // Drift down only while the world is actually moving, so a paused game
-        // does not quietly lose the portal.
-        bool running = !buttonClicks.playerDied &&
-                       (TouchInput.IsPressed || score.pauseCounter <= 0);
-        if (!running) return;
+        // Only while the world is actually moving: a paused game holds it.
+        if (WorldManager.Flying) Step(Time.deltaTime);
+    }
 
-        transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+    // One running frame. Public so edit-mode tests can step it
+    // (Time.deltaTime is 0 there).
+    public void Step(float dt)
+    {
+        if (dt <= 0f) return;
+        clock += dt;
 
-        spin += Time.deltaTime * 90f;
-        int frame = Mathf.FloorToInt(Time.time * 15f);
+        Vector3 at = transform.position;
+        float station = StationY;
+        if (!OnStation)
+        {
+            at.y = Mathf.Max(station, at.y - FallSpeed * dt);
+            if (at.y <= station) OnStation = true;
+        }
+        else
+        {
+            // holds its height (the view may change shape) and drifts
+            held += dt;
+            at.y = station;
+            at.x = homeX + DriftHalf * Mathf.Sin(held * 2f * Mathf.PI / Mathf.Max(.1f, DriftSeconds));
+        }
+        transform.position = at;
+
+        spin += dt * 90f;
+        int frame = Mathf.FloorToInt(clock * 15f);
         if (ring != null)
         {
             ring.sprite = TeleportPortalSprites.FrameAt(frame);
@@ -84,7 +149,9 @@ public class Portal : MonoBehaviour
         if (core != null)
         {
             core.sprite = TeleportPortalSprites.FrameAt(frame + 5);
-            float pulse = 0.5f + Mathf.PingPong(Time.time * 0.6f, 0.25f);
+            // the core beats faster as the pressure climbs
+            float rate = .6f * Mathf.Min(4f, 1f + .25f * PortalPressure.Level);
+            float pulse = 0.5f + Mathf.PingPong(clock * rate, 0.25f);
             core.transform.localScale = Vector3.one * pulse;
             core.transform.localRotation = Quaternion.Euler(0, 0, -spin * 0.6f);
         }
@@ -93,29 +160,24 @@ public class Portal : MonoBehaviour
             sparks.sprite = TeleportPortalSprites.FrameAt(frame + 10);
             sparks.transform.localRotation = Quaternion.Euler(0, 0, spin * 1.45f);
         }
-
-        life -= Time.deltaTime;
-        if (life <= 0f || transform.position.y < Mathf.Min(-8f, missBelow)) Miss();
-    }
-
-    void Miss()
-    {
-        var cb = onMissed;
-        onMissed = null;
-        Destroy(gameObject);
-        if (cb != null) cb();
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.GetComponent<movePlayer>() == null &&
             other.GetComponentInParent<movePlayer>() == null) return;
+        Enter();
+    }
 
-        onMissed = null;
+    // The ship flew in: on to the next world (or round again).
+    public void Enter()
+    {
+        if (Live == this) Live = null;
         if (WorldManager.Instance != null) WorldManager.Instance.Advance();
-        Destroy(gameObject);
+        BossUtil.Kill(gameObject);
     }
 }
+
 
 // Portal sprites, drawn once into textures so no art assets are required.
 public static class PortalArt
