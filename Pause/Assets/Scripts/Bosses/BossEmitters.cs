@@ -48,7 +48,7 @@ public static class BossEmitters
         // same mechanisms as its authored tell poses.  Reuse the measured
         // anchor for that mechanism until the visual matcher grows a
         // per-part rig for the farther-extending lance drawing.
-        if (bodyFrame >= BossArt.SpaceTell0 && bodyFrame < BossArt.SpaceTell0 + 12)
+        if (bodyFrame >= BossArt.SpaceTell0 && bodyFrame < BossArt.SpaceTell0 + 3 * BossArt.SpaceTellFrames)
         {
             int pose = (bodyFrame - BossArt.SpaceTell0) / BossArt.SpaceTellFrames;
             return pose == 0 ? 6 : pose == 1 ? 8 : 11;
@@ -65,12 +65,20 @@ public static class BossEmitters
         // shift the nozzle a few pixels before it reaches the measured full
         // extension.  Keep a real ink pixel under each beam root throughout
         // that mechanical travel.
-        if (w == 0 && part >= 2 && part <= 3 && bodyFrame >= BossArt.SpaceTell0 + 8 && bodyFrame < BossArt.SpaceTell0 + 12)
+        if (w == 0 && part >= 2 && part <= 3 && bodyFrame >= BossArt.SpaceTell0 + 2 * BossArt.SpaceTellFrames && bodyFrame < BossArt.SpaceTell0 + 3 * BossArt.SpaceTellFrames)
         {
-            int stage = bodyFrame - (BossArt.SpaceTell0 + 8);
+            int stage = bodyFrame - (BossArt.SpaceTell0 + 2 * BossArt.SpaceTellFrames);
             if (part == 2)
                 return stage == 0 ? new Vector2Int(50, 306) : stage == 1 ? new Vector2Int(50, 303) : new Vector2Int(53, 305);
             return stage == 0 ? new Vector2Int(333, 305) : stage == 1 ? new Vector2Int(334, 304) : new Vector2Int(333, 305);
+        }
+        // Bloom petals flex independently during the expanded spore-bloom
+        // release. These are the actual ink tips in its final release pose.
+        if (w == 2 && part >= 1 && part <= 6 && bodyFrame == BossArt.SpaceTell0 + 7)
+        {
+            Vector2Int[] petals = { new Vector2Int(121, 70), new Vector2Int(262, 67), new Vector2Int(71, 143),
+                                    new Vector2Int(326, 145), new Vector2Int(71, 260), new Vector2Int(312, 258) };
+            return petals[part - 1];
         }
         var pts = BossEmitterTable.Points[w][part];
         int f = TableFrame(bodyFrame);

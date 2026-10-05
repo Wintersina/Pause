@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Slices the boss atlases rendered by Art/Bosses/src~/bosses.py.
 //
-//   Resources/Bosses/<Key>.png        body flipbook, 5 x 8 cells, row 0 on top
+//   Resources/Bosses/<Key>.png        body flipbook, 5 x 4 base cells; Space has 3 added painted rows
 //     row 0  idle 0..3 | hit
 //     row 1  tell0 a,b | tell1 a,b | fire
 //     row 2  tell2 a,b | death 0..2
@@ -19,7 +19,7 @@ using UnityEngine;
 public static class BossArt
 {
     public const string Folder = "Bosses/";
-    public const int BodyColumns = 5, BodyRows = 8, BodyFrames = BodyColumns * BodyRows;
+    public const int BodyColumns = 5, BodyRows = 7, BodyFrames = BodyColumns * BodyRows;
     public const int ShotColumns = 8;
 
     // Flat body frame indices.
@@ -28,18 +28,17 @@ public static class BossArt
     public const int Death0 = 12, DeathFrames = 5;
     public const int Retreat0 = 17, RetreatFrames = 2;
     public const int Portrait = 19;
-    // Expanded-boss frames in the lower half of the atlas. Eight are a
-    // character idle loop; each of its three weapons has four anticipation
-    // drawings. Space and Frost currently use this set.
-    public const int SpaceIdle0 = 20, SpaceIdleFrames = 8, SpaceTell0 = 28, SpaceTellFrames = 4;
-    public static readonly int[] SpaceIdleTicks = { 2, 2, 2, 2, 2, 2, 2, 2 };
+    // New hand-painted Space rows: six engine-idle cells followed by three
+    // cells for each weapon tell (chin, reactor, pod lances).
+    public const int SpaceIdle0 = 20, SpaceIdleFrames = 6, SpaceTell0 = 26, SpaceTellFrames = 3;
+    public static readonly int[] SpaceIdleTicks = { 2, 2, 2, 2, 2, 2 };
     public static int Tell(int pose, int frame)
     {
         pose = Mathf.Clamp(pose, 0, 2);
         frame = Mathf.Clamp(frame, 0, 1);
         return pose == 0 ? 5 + frame : pose == 1 ? 7 + frame : 10 + frame;
     }
-    public static bool HasExpandedCombat(BossDef boss) => boss != null && (boss.artKey == "Space" || boss.artKey == "Frost");
+    public static bool HasExpandedCombat(BossDef boss) => boss != null && boss.artKey == "Space";
     public static int IdleFrame(BossDef boss, float seconds)
     {
         return HasExpandedCombat(boss)

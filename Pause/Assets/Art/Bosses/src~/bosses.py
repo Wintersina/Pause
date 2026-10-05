@@ -465,7 +465,10 @@ def verdant(p):
     spread = 10 * p.open[1] - 6 * p.open[0]
     for i, a in enumerate((-140, 140, -95, 95, -45, 45)):
         sgn = -1 if a < 0 else 1
-        ang = a + sgn * spread
+        # Each petal has a slightly offset beat, giving the queen a living,
+        # predatory flutter instead of a single rigid radial pose.
+        flutter = math.sin(p.phase * math.tau + i * 1.37) * (5 + 5 * p.open[1])
+        ang = a + sgn * spread + flutter
         R = (104 + breathe) * reach
         W = 36.0
         local = [(0, 10), (W * .62, R * .3), (W * .5, R * .74), (0, R), (-W * .42, R * .8), (-W * .6, R * .34)]
@@ -575,7 +578,9 @@ def verdant(p):
 def ember(p):
     L = lit(p.lights, MAGENTA, MAGENTA_SH)
     parts = []
-    flap = math.sin(p.phase * math.tau) * 5
+    # A broad, readable wingbeat gives the drake a clear silhouette even
+    # during idle.  It grows stronger when a wing-based attack is charging.
+    flap = math.sin(p.phase * math.tau) * (9 + 4 * max(p.open[0], p.open[2]))
     for side in (0, 1):
         f = (lambda q: q) if side == 0 else mx
         ang = (flap - 16 * p.open[0] + 9 * p.open[2]) * (1 if side == 0 else -1)
@@ -599,6 +604,19 @@ def ember(p):
         parts.append(wg)
 
     rear = -10 * p.open[1]
+    # Twin volcanic thrusters make its back read as a living jet engine.
+    # The plume alternates on the idle beat and stretches during a charge.
+    eng = Part("engines", (128, 36))
+    flick = 4 + int((math.sin(p.phase * math.tau) + 1) * 4)
+    boost = 8 * max(p.open) + 12 * max(p.charge)
+    for x in (108, 148):
+        nozzle = [(x - 9, 46), (x + 9, 46), (x + 6, 28), (x - 6, 28)]
+        eng.solid(nozzle, ROCK, ROCK_SH, [(x, 28), (x + 6, 28), (x + 9, 46), (x + 2, 43)], ROCK_HI,
+                  [(x - 6, 31), (x - 2, 30), (x - 3, 41), (x - 7, 42)], OUT_W * .75)
+        plume = [(x - 5, 29), (x + 5, 29), (x + 3, 16 - flick - boost), (x, 4 - flick - boost), (x - 3, 16 - flick - boost)]
+        eng.light(plume, MAGENTA)
+        eng.light([(x - 2, 28), (x + 2, 28), (x, 11 - flick - boost)], BONE, glow=False)
+    parts.append(eng)
     bd = Part("body", (128, 70))
     B = mirror([(128, 26), (114, 34), (104, 62), (106, 98), (128, 112)])
     bd.solid(B, ROCK, ROCK_SH, [(128, 60), (152, 62), (150, 98), (128, 112)], ROCK_HI, [(114, 36), (106, 62), (110, 62), (117, 38)])
@@ -875,6 +893,54 @@ def frame_table(key):
                     sx=(1.024, 1.012, 1.0, .986)[stage],
                     sy=(.966, .986, 1.006, 1.026)[stage],
                     lights=(.4, .6, .84, 1.0)[stage]), 2))
+    elif key == "Verdant":
+        # The queen's six petals beat out of sequence, like a carnivorous
+        # flower testing the air.  Its bulb and eye-pods pulse between beats.
+        for i in range(8):
+            phase = i / 8.0
+            T.append(("bloom_idle_%d" % i, Pose(
+                phase=phase, bob=(0, -2, -3, -1, 1, 3, 2, 1)[i],
+                sx=(1.0, 1.014, 1.024, 1.012, .996, .986, .978, .99)[i],
+                sy=(1.0, .988, .976, .99, 1.004, 1.014, 1.022, 1.01)[i],
+                lights=(.56, .72, .92, .78, .62, .76, 1.0, .8)[i]), 2))
+        # Stinger jaws snap shut around a thorn charge; petals spread wide
+        # for spores; the twin vines rear, tense, then lash downward.
+        for tell in range(3):
+            for stage in range(4):
+                o = [0.0, 0.0, 0.0]
+                c = [0.0, 0.0, 0.0]
+                o[tell] = (.16, .42, .74, 1.0)[stage]
+                c[tell] = (.04, .28, .66, 1.0)[stage]
+                T.append(("bloom_tell%d_%d" % (tell, stage), Pose(
+                    phase=.08 + stage * .19, open=o, charge=c,
+                    bob=(2, 1, -1, -3)[stage],
+                    sx=(1.026, 1.014, 1.0, .984)[stage],
+                    sy=(.964, .986, 1.008, 1.03)[stage],
+                    lights=(.38, .58, .82, 1.0)[stage]), 2))
+    elif key == "Ember":
+        # An aggressive eight-beat wing cycle: the rear jets cough bright,
+        # then the wings drive down and lift the whole drake.
+        for i in range(8):
+            phase = i / 8.0
+            T.append(("drake_idle_%d" % i, Pose(
+                phase=phase, bob=(2, 0, -3, -4, -1, 2, 4, 3)[i],
+                sx=(.986, .998, 1.014, 1.026, 1.012, .996, .982, .976)[i],
+                sy=(1.02, 1.006, .988, .974, .99, 1.008, 1.022, 1.03)[i],
+                lights=(.62, .8, 1.0, .86, .68, .76, .96, .74)[i]), 2))
+        # Wings tuck for the ember barrage, head/furnace draws back for the
+        # fireball, and both wings spread around the overdriven jet vents.
+        for tell in range(3):
+            for stage in range(4):
+                o = [0.0, 0.0, 0.0]
+                c = [0.0, 0.0, 0.0]
+                o[tell] = (.18, .46, .78, 1.0)[stage]
+                c[tell] = (.05, .3, .7, 1.0)[stage]
+                T.append(("drake_tell%d_%d" % (tell, stage), Pose(
+                    phase=.12 + stage * .17, open=o, charge=c,
+                    bob=(3, 1, -2, -4)[stage],
+                    sx=(1.028, 1.014, 1.0, .982)[stage],
+                    sy=(.962, .984, 1.01, 1.034)[stage],
+                    lights=(.42, .64, .88, 1.0)[stage]), 2))
     else:
         # Keep every atlas the same dimensions so runtime slicing remains
         # deterministic while the other bosses await their expanded sets.
@@ -1168,6 +1234,7 @@ def write_preview(key, frames, shots, card_png, out_dir):
 def main(argv):
     preview = None
     only = None
+    overwrite = False
     i = 0
     while i < len(argv):
         if argv[i] == "--preview":
@@ -1176,8 +1243,15 @@ def main(argv):
         elif argv[i] == "--only":
             only = argv[i + 1].split(",")
             i += 2
+        elif argv[i] == "--overwrite-painted-art-with-legacy-vector":
+            overwrite = True
+            i += 1
         else:
             raise SystemExit("unknown argument " + argv[i])
+    if not overwrite:
+        raise SystemExit(
+            "Refusing to overwrite the approved hand-painted Resources/Bosses atlases with legacy SVG art. "
+            "Use --overwrite-painted-art-with-legacy-vector only for an intentional rollback.")
     build_warning()
     for key in BOSSES:
         if only and key not in only:

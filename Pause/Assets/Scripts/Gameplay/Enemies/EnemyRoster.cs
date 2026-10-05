@@ -390,9 +390,9 @@ public static class EnemyRoster
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
                 "to scatter thorns everywhere."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
-                "Spinning five-petal carnivorous flower; its toothed glowing maw opens and snaps shut.",
-                "A flower that eats ships. Its petals spin as one body while the maw at its centre opens " +
-                "wide when it's hungry."),
+                "Five-petal carnivorous bud; the petals fold back to show a toothed glowing maw.",
+                "A flower that eats ships. Shut, it's just a big bud; when the petals snap open, it's " +
+                "hungry."),
             Def("verdant_fighter_1", "Gnat", F, 2, 1, "enemy_verdant_fighter_1", Spore,
                 "Small bile bug, buzzing leaf wings, bile eyes.",
                 "Little buzzing bugs that swarm anything new. You're very new."),

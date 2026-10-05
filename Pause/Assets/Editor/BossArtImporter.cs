@@ -21,7 +21,9 @@ public class BossArtImporter : AssetPostprocessor
         importer.wrapMode = UnityEngine.TextureWrapMode.Clamp;
         importer.npotScale = TextureImporterNPOTScale.None;
         importer.isReadable = false;
-        importer.maxTextureSize = 2048;
+        // Space now carries three additional painted rows (1920 x 2688).
+        // Never downscale it: runtime slicing is in fixed 384px cells.
+        importer.maxTextureSize = 4096;
         importer.textureCompression = TextureImporterCompression.CompressedHQ;
     }
 }
