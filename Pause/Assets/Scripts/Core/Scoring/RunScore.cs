@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -40,6 +40,8 @@ public static class RunScore
         public int deathComboKills, megaDominos;
         public int killCount, dustCount, atomCount, teleportCount, bossCount, worldCount;
         public int bestChain;
+        // Hostile projectiles absorbed by a shield (their points are in `kills`).
+        public int shieldedShots;
         // Times LOOP BACK's portal was flown (RunLoop.Index at the end).
         public int loops;
         // The highest multiplier any points were earned at: speed on flight,
@@ -63,6 +65,7 @@ public static class RunScore
     static int chain;
     static float chainLeft;
     static int teleportsThisWorld;
+    static int shieldedShotsThisShield;
 
     // Run ends banked (tests, diagnostics).
     public static int BankCount { get; private set; }
@@ -128,6 +131,7 @@ public static class RunScore
         chain = 0;
         chainLeft = 0f;
         teleportsThisWorld = 0;
+        shieldedShotsThisShield = 0;
         // The loop is part of the run: a new run is always on its first pass.
         RunLoop.Reset();
         return runId;
@@ -225,6 +229,46 @@ public static class RunScore
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);
+        return points;
+    }
+
+    // ---- shielded projectile hits ----
+
+    // A blue atom raised (or refreshed) the shield: its absorb allowance
+    // starts again (collisionDetection).
+    public static void OnShieldRaised()
+    {
+        shieldedShotsThisShield = 0;
+    }
+
+    public static int ShieldedShotsThisShield { get { return shieldedShotsThisShield; } }
+
+    // Is `go` a hostile projectile's hitbox (roster / elite shot or pool,
+    // boss shot)? Lasers and bodies are not.
+    public static bool IsHostileShot(GameObject go)
+    {
+        if (go == null) return false;
+        if (go.TryGetComponent(out EliteShotHitbox _)) return true;
+        var parent = go.transform.parent;
+        return parent != null && parent.TryGetComponent(out BossProjectile _);
+    }
+
+    // The shield (blue atom) absorbed hostile projectile `shot` at `at`:
+    // ScoreRules.ShieldedShot, flat, for the first ShieldedShotsPerShield of
+    // this shield. Counted with the kills. A boss shot is also paid its
+    // BossShot by OnKill on the same hit, so it gets the difference here:
+    // every absorbed projectile is worth the same. Returns what this added.
+    public static int OnShieldedShot(GameObject shot, Vector3 at)
+    {
+        if (!Live || !IsHostileShot(shot)) return 0;
+        if (shieldedShotsThisShield >= ScoreRules.ShieldedShotsPerShield) return 0;
+        shieldedShotsThisShield++;
+        bool boss = !shot.TryGetComponent(out EliteShotHitbox _);
+        int points = Mathf.Max(0, ScoreRules.ShieldedShot - (boss ? ScoreRules.BossShot : 0));
+        if (points <= 0) return 0;
+        parts.kills += points;
+        parts.shieldedShots++;
+        Raise(ScoreRules.ShieldedShot, at, Source.Shield);
         return points;
     }
 

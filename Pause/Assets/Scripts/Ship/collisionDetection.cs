@@ -228,6 +228,9 @@ public class collisionDetection : MonoBehaviour {
                 ShipShield.For(gameObject).Absorb(hit.transform.position);
                 // show the texts for only half of a second.
                 savedTimer = .4f;
+                // A hostile projectile absorbed by the shield itself (the blue
+                // atom's, not Cloak) pays ScoreRules.ShieldedShot (RunScore).
+                if (atomCheck) RunScore.OnShieldedShot(hit.gameObject, hit.transform.position);
                 // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
                 if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
 
@@ -378,6 +381,7 @@ public class collisionDetection : MonoBehaviour {
                 // ----------------------------
 
                 ShipShield.For(gameObject).Show();
+                RunScore.OnShieldRaised();   // a fresh shield: its absorb allowance starts again
                 awardDust(blueAtomValue);
                 boostText.text = "Boost!";
                 Destroy(hit.gameObject);
