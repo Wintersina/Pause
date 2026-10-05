@@ -25,11 +25,15 @@ public class PauseQuickActions : MonoBehaviour
     // ~44pt minimum comfortable tap target.
     public const float ButtonSize = 72f;
     public const float ButtonGap = 14f;
-    // Inset from the safe area's top/right edges. HudStyler pins the score
+    // Inset from the safe area's right edge. HudStyler pins the score
     // read-out to the top-left corner with this same margin (converted to
     // screen pixels) and the same top edge, so the two blocks frame the top
     // of the screen symmetrically.
     public const float EdgeMargin = 18f;
+    // Inset from the safe area's top edge, shared by the buttons and the
+    // score read-out: the whole top band sits 20% of a button higher than
+    // the side margin, still inside the safe area.
+    public const float TopMargin = EdgeMargin - .2f * ButtonSize;
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = 0.5f;
 
@@ -78,7 +82,7 @@ public class PauseQuickActions : MonoBehaviour
     {
         float s = CanvasScaleFor(screen);
         float right = safeArea.xMax - EdgeMargin * s;
-        float top = safeArea.yMax - EdgeMargin * s;
+        float top = safeArea.yMax - TopMargin * s;
         float width = (2f * ButtonSize + ButtonGap) * s;
         float height = ButtonSize * s;
         return new Rect(right - width, top - height, width, height);
@@ -144,7 +148,7 @@ public class PauseQuickActions : MonoBehaviour
         rt.pivot = new Vector2(1f, 1f);
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
-        rt.anchoredPosition = new Vector2(-EdgeMargin - slotFromRight * (ButtonSize + ButtonGap), -EdgeMargin);
+        rt.anchoredPosition = new Vector2(-EdgeMargin - slotFromRight * (ButtonSize + ButtonGap), -TopMargin);
     }
 
     // The icon carries its own plate, rim and glyph, so the button is just

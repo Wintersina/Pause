@@ -333,13 +333,16 @@ public static class NextFeatures0907Test
                 Rect actions = PauseQuickActions.ScreenRectFor(s.safe, s.size);
                 float actionScale = PauseQuickActions.CanvasScaleFor(s.size);
                 float margin = PauseQuickActions.EdgeMargin * actionScale;
+                float topMargin = PauseQuickActions.TopMargin * actionScale;
                 string tag = scene + " @ " + s.name + ": ";
 
                 Check(tag + "HUD left edge sits one margin in from the safe area (" +
                       (hud.xMin - s.safe.xMin).ToString("F1") + "px vs " + margin.ToString("F1") + ")",
                       Mathf.Abs(hud.xMin - s.safe.xMin - margin) < 1f);
-                Check(tag + "HUD top edge sits one margin below the safe area's top",
-                      Mathf.Abs(s.safe.yMax - hud.yMax - margin) < 1f);
+                Check(tag + "HUD top edge sits one top margin below the safe area's top",
+                      Mathf.Abs(s.safe.yMax - hud.yMax - topMargin) < 1f);
+                Check(tag + "quick actions sit one top margin below the safe area's top, inside it",
+                      Mathf.Abs(s.safe.yMax - actions.yMax - topMargin) < 1f && actions.yMax < s.safe.yMax);
                 Check(tag + "HUD top aligned with the quick actions (" +
                       ((hud.yMax - actions.yMax) / actionScale).ToString("F2") + " units)",
                       Mathf.Abs(hud.yMax - actions.yMax) / actionScale < 3f);
@@ -379,7 +382,7 @@ public static class NextFeatures0907Test
             Vector2 pos; float fit;
             HudStyler.ComputeHudLayout(new Rect(0, 0, 540, 1170), new Vector2(540, 1170), 540f / 800f,
                                        new Vector2(351, 131), out pos, out fit);
-            Check("540x1170: panel top is ~16px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
+            Check("540x1170: panel top is ~3px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
                   -pos.y * 540f / 800f < 20f);
             Check("540x1170: panel keeps full size", Mathf.Approximately(fit, 1f));
         }
