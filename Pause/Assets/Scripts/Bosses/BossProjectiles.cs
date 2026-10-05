@@ -476,7 +476,8 @@ public class BossBeam : MonoBehaviour
         if (owner != null && part >= 0) origin = owner.Emitter(part);
         Vector2 dir = Heading(Angle);
         reach = ReachFrom(origin, dir, out railHit);
-        float grow = BossConfig.BeamGrowSpeed * (live ? 1f : 2f);
+        // (x ShotScale: it reaches the ship's rows as soon on every screen)
+        float grow = BossConfig.BeamGrowSpeed * BossConfig.ShotScale * (live ? 1f : 2f);
         length = Mathf.Min(reach, length + grow * dt);
         if (dt <= 0f && !live) length = Mathf.Min(length, reach);
 
