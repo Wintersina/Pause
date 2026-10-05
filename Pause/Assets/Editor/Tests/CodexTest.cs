@@ -341,17 +341,18 @@ public static class CodexTest
             if (e == null) continue;
             Check("boss " + b.id + " subtitle is its title", e.Subtitle == b.title);
             bool attacks = true, parts = true;
+            string missing = "";
             foreach (var a in b.attacks)
             {
                 attacks &= e.lore.Contains(a.name.ToUpperInvariant() + "  ");
                 foreach (string em in a.emitters)
                 {
                     string word = CodexCatalogue.PartWord(em);
-                    parts &= word != null && e.lore.Contains(word);
+                    if (word == null || !e.lore.Contains(word)) { parts = false; missing += " " + em + "=" + (word ?? "?"); }
                 }
             }
             Check("boss " + b.id + " lore lists every attack", attacks);
-            Check("boss " + b.id + " lore names the body part each attack fires from", parts);
+            Check("boss " + b.id + " lore names the body part each attack fires from" + (parts ? "" : " (missing" + missing + " in: " + e.lore.Replace("\n", " | ") + ")"), parts);
             Check("boss " + b.id + " lore says how the fight ends",
                   e.lore.Contains(BossConfig.HitPoints + " weapon hits") && e.lore.Contains(Mathf.RoundToInt(BossConfig.FightSeconds) + " s"));
             accounted.Add(b.id);

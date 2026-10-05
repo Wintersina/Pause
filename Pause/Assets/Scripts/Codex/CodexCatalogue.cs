@@ -289,21 +289,32 @@ public static class CodexCatalogue
     }
 
     // Body-part words for the boss art's emitters (BossEmitterTable names,
-    // the L / R / UL ... sides folded together).
-    static readonly Dictionary<string, string> PartWords = new Dictionary<string, string>
+    // the L / R / UL ... sides folded together). A switch rather than a
+    // static table, so no test sandbox can snapshot and clear it.
+    static string PartWordFor(string key)
     {
-        { "Chin", "its chin cannon" }, { "Core", "its reactor core" }, { "Pod", "its engine pods" },
-        { "Jaw", "its jaw" }, { "Eye", "its eyes" }, { "Crown", "its blowhole crown" },
-        { "Stinger", "its stinger" }, { "Petal", "every petal tip" }, { "Cannon", "its flank cannons" },
-        { "Furnace", "its chest furnace" }, { "Brow", "the gem on its brow" },
-    };
+        switch (key)
+        {
+            case "Chin": return "its chin cannon";
+            case "Core": return "its reactor core";
+            case "Pod": return "its engine pods";
+            case "Jaw": return "its jaw";
+            case "Eye": return "its eyes";
+            case "Crown": return "its blowhole crown";
+            case "Stinger": return "its stinger";
+            case "Petal": return "every petal tip";
+            case "Cannon": return "its flank cannons";
+            case "Furnace": return "its chest furnace";
+            case "Brow": return "the gem on its brow";
+            default: return null;
+        }
+    }
 
     // "PetalUL" -> "every petal tip"; null for a part with no words yet.
     public static string PartWord(string emitter)
     {
         string key = PartKey(emitter);
-        string word;
-        return key != null && PartWords.TryGetValue(key, out word) ? word : null;
+        return key != null ? PartWordFor(key) : null;
     }
 
     static string PartKey(string emitter)
