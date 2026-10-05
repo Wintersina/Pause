@@ -9,10 +9,9 @@ using UnityEngine;
 // go through WorldManager.EndLevel, the same path as the real level clock.
 //   * "BOSS RUSH  FINAL" (the switch's third setting): a few seconds into a
 //     run it jumps straight to the final world with a 1.5s boss fight, so the
-//     KEEP FLYING / LOOP BACK choice comes up almost at once; after a LOOP
-//     BACK it rushes every boss like ON. Letting the choice time out rushes
-//     the encore's Ember boss too, so the automatic LOOP BACK is quick to
-//     reach. F in the editor / a dev build: the same jump, right now.
+//     portal back to the start world opens almost at once; after that loop
+//     it rushes every boss like ON. F in the editor / a dev build: the same
+//     jump, right now.
 public static class BossDev
 {
     public const string RushKey = "developerBossRush";
@@ -47,14 +46,14 @@ public static class BossDev
     }
 
     // Jumps to the final world and starts its boss with a short fight; when
-    // it ends the KEEP FLYING / LOOP BACK choice comes up. False when there
+    // it ends the portal back to the start world opens. False when there
     // is no level running, developer mode is off, or it can't start.
     public static bool TriggerFinal()
     {
         if (!DeveloperUnlocks.Enabled) return false;
         var world = WorldManager.Instance;
         if (world == null || BossEncounter.Running) return false;
-        if (world.Route != WorldManager.FinalRoute.None) return false;
+        if (world.PortalIsOpen && !WorldManager.HasNext) return false;
         world.DevJumpToFinal();
         if (BossEncounter.DoneInWorld(WorldManager.CurrentIndex)) BossEncounter.ForgetDone();
         BossEncounter.DevShortFight = true;

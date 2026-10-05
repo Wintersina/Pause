@@ -165,6 +165,14 @@ public class ScoreHud : MonoBehaviour
         return multiplier > 1f ? "SPD " + ScoreRules.MultiplierLabel(multiplier) : "";
     }
 
+    public const string LimitBreakWord = "LIMIT BREAK";
+
+    // The callout as a tier is reached: "SPD x2", or "LIMIT BREAK x2.5".
+    public static string SpeedCalloutLabel(float multiplier, bool limitBreak)
+    {
+        return limitBreak ? LimitBreakWord + " " + ScoreRules.MultiplierLabel(multiplier) : SpeedBadgeLabel(multiplier);
+    }
+
     public static string LoopBadgeLabel(int loopIndex)
     {
         return loopIndex > 0 ? "LOOP " + (loopIndex + 1) : "";
@@ -366,7 +374,9 @@ public class ScoreHud : MonoBehaviour
                 if (m > lastSpeedMultiplier && m > 1f)
                 {
                     speedPunchAt = now;
-                    ShowCallout(SpeedBadgeLabel(m), SpeedBadgeColour(m), speedBadge.rectTransform);
+                    // past the cap on the boost shield: the callout says so
+                    ShowCallout(SpeedCalloutLabel(m, ScoreRules.IsLimitBreak(moveBackGround.speed)),
+                                SpeedBadgeColour(m), speedBadge.rectTransform);
                 }
                 speedBadge.text = SpeedBadgeLabel(m);
                 lastSpeedMultiplier = m;

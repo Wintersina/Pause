@@ -17,8 +17,7 @@ public enum LeaderboardSort
 public struct LeaderboardRunStats
 {
     public long score;         // the run score (RunScore.Total)
-    public long topSpeed;      // the speed readout: round(moveBackGround.speed * 100)
-    public float starDust;     // star dust earned in this run
+    public float starDust;    // star dust earned in this run
     public int worldIndex;     // furthest world reached (0 = Space)
 }
 
@@ -70,12 +69,25 @@ public sealed class LeaderboardBoard
 public static class LeaderboardBoards
 {
     public const string TopScore = "top_score";
-    public const string TopSpeed = "top_speed";
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";
 
-    // Order is tab order: the primary board first.
-    public static readonly LeaderboardBoard[] All =
+    // The board the game used to have for speed. Speed is capped now
+    // (SpeedRamp.Cap), so there is nothing to rank: the board is gone from
+    // the table, nothing is submitted to it, and a value an older build left
+    // in the offline queue under this id is dropped the next time the queue
+    // is sent (LeaderboardService.Flush). The store-side board has to be
+    // retired in the consoles (docs/leaderboards.md).
+    public const string RetiredSpeedBoard = "top_speed";
+
+    // The table. Order is tab order: the primary board first.
+    public static LeaderboardBoard[] All { get { return overrideAll ?? table; } }
+
+    // Tests: a table of their own (null: the real one again).
+    static LeaderboardBoard[] overrideAll;
+    public static void OverrideForTests(LeaderboardBoard[] boards) { overrideAll = boards; }
+
+    static readonly LeaderboardBoard[] table =
     {
         // The primary board. Disabled until the Play Console board exists:
         // paste its generated id (Get resources) into the empty string.
@@ -87,16 +99,6 @@ public static class LeaderboardBoards
             LeaderboardSort.HigherIsBetter,
             FormatScore,
             run => run.score),
-
-        // Secondary: already live in both stores.
-        new LeaderboardBoard(TopSpeed,
-            StringHolder.leaderboard_highest_speed_reached,
-            AchievementIds.IosPrefix + "highest_speed",
-            "Top Speed",
-            "Best speed reached in a single run.",
-            LeaderboardSort.HigherIsBetter,
-            v => v.ToString(),
-            run => run.topSpeed),
 
         // Placeholders: fill in both ids once the boards exist in the consoles.
         new LeaderboardBoard(RunStarDust,

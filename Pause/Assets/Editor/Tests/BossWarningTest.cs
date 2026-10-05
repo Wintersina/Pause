@@ -17,7 +17,8 @@ using UnityEngine.UI;
 //   3  pausing holds the count and every pose of the warning
 //   4  a blue atom's speed boost (and its end) mid-countdown
 //   5  a level entered with less than the lead left
-//   6  loops, the encore, KEEP FLYING, LOOP BACK, a missed portal
+//   6  loops and portals: never while a portal waits (any world, the loop
+//      portal too), none for a boss already done, warned again on a loop
 //   7  the tutorial has none
 //   8  death hides it at once
 //   9  layout: clear of the read-out and the quick actions, inside the
@@ -269,6 +270,8 @@ public static class BossWarningTest
         SpeedRamp.FrameOverride = () => frame;
         SpeedRamp.DeltaOverride = () => Dt;
         SpeedRamp.ResetFrameGuard();
+        SpeedRamp.ResetBoost();
+        PortalPressure.Reset();
         ResumeSlowMo.ClockOverride = () => clock;
         ResumeSlowMo.ResetRun();
     }
@@ -317,7 +320,7 @@ public static class BossWarningTest
     {
         // the distance `seconds` of flight covers from here
         var theme = WorldManager.Current;
-        float d = SpeedRamp.DistanceOver(moveBackGround.speed, theme.speedRampPerSecond, theme.maxSpeed, seconds);
+        float d = SpeedRamp.DistanceOver(moveBackGround.speed, theme.speedRampPerSecond, SpeedRamp.Cap, seconds);
         typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, d);
     }
 
@@ -325,6 +328,8 @@ public static class BossWarningTest
     {
         if (rig.hud != null) UnityEngine.Object.DestroyImmediate(rig.hud.gameObject);
         BossEncounter.ResetRun();
+        SpeedRamp.ResetBoost();
+        PortalPressure.Reset();
     }
 
     // ---- 2. every world ---------------------------------------------------------
@@ -480,8 +485,9 @@ public static class BossWarningTest
             var c = rig.hud.Countdown;
             FlyTo(rig, 22f);
             float etaBefore = rig.wm.SecondsLeftInWorld;
-            moveBackGround.speed += .05f;                 // a blue atom
+            SpeedRamp.AddBoost();                         // a blue atom (the boost comes on over ~0.2 s)
             float etaBoost = rig.wm.SecondsLeftInWorld;
+            float peakBoost = 0f, etaBoostEnd = 0f;
             bool rose = false;
             float worst = 0f, least = float.MaxValue;
             float boostLeft = 5f;
@@ -501,16 +507,24 @@ public static class BossWarningTest
                 secondsDown &= c.Seconds <= lastSeconds;
                 lastSeconds = c.Seconds;
                 boostLeft -= Dt;
+                peakBoost = Mathf.Max(peakBoost, SpeedRamp.Boost);
                 if (boosted && boostLeft <= 0f)
                 {
                     boosted = false;
                     float e = rig.wm.SecondsLeftInWorld;
-                    moveBackGround.speed -= .05f;          // the boost ends
+                    etaBoostEnd = e;
+                    SpeedRamp.EndBoost();                 // the shield ends: the boost eases off
                     etaAfter = rig.wm.SecondsLeftInWorld - e;
                 }
             }
-            Check(name + ": a blue atom moves the estimate " + (etaBoost - etaBefore).ToString("F1") + " s, its end " +
-                  etaAfter.ToString("+0.0;-0.0") + " s", etaBoost < etaBefore - 1f && etaAfter > 1f);
+            // The estimate is taken on natural speed: the boost does not move it
+            // in a jump, either way; it eats the distance faster while it lasts.
+            float boostDrop = etaBefore - etaBoostEnd;
+            Check(name + ": a blue atom's boost (peak +" + Mathf.RoundToInt(peakBoost * 100f) + ") never jumps the estimate (" +
+                  (etaBoost - etaBefore).ToString("+0.00;-0.00") + " s on, " + etaAfter.ToString("+0.00;-0.00") + " s off) and " +
+                  "brings the boss nearer while it lasts (" + boostDrop.ToString("F2") + " s in 5 s of flight)",
+                  Mathf.Abs(etaBoost - etaBefore) < .01f && Mathf.Abs(etaAfter) < .01f &&
+                  Mathf.Approximately(peakBoost, SpeedRamp.BoostPerAtom) && boostDrop > 5.3f && boostDrop < 7f);
             Check(name + ": the count never rises or jumps through it (" + (least / Dt).ToString("F2") + "x .. " + (worst / Dt).ToString("F2") + "x)",
                   !rose && secondsDown && worst <= BossWarningConfig.MaxRate * Dt + 1e-4f && least >= BossWarningConfig.MinRate * Dt - 1e-4f);
             Check(name + ": ... and still reads 1 (" + c.Shown.ToString("F2") + " s) as the boss arrives, one warning only",
@@ -563,11 +577,14 @@ public static class BossWarningTest
         Drop(rig);
     }
 
-    // ---- 6. loops and routes ---------------------------------------------------------
+    // ---- 6. loops and portals ---------------------------------------------------------
 
-    static void SetRoute(WorldManager wm, WorldManager.FinalRoute route)
+    // The portal opens and waits (WorldManager.OpenPortal without the
+    // portal's GameObject: the stage and the pressure clock are what Read sees).
+    static void OpenPortal(WorldManager wm)
     {
-        typeof(WorldManager).GetField("route", Inst).SetValue(wm, route);
+        typeof(WorldManager).GetField("portalOpen", Inst).SetValue(wm, true);
+        PortalPressure.Open(WorldManager.PortalDestination);
     }
 
     static void LoopsAndRoutes()
@@ -579,26 +596,43 @@ public static class BossWarningTest
         while (!BossEncounter.Running && rig.flown < 300f) rig.Frame();
         Check("first pass, " + WorldManager.Worlds[last].displayName + ": warned once", BossEncounter.Running && c.Triggers == 1);
 
-        // the fight is over: the choice, then each way out of it
+        // the fight is over: the portal back round opens and waits
         BossEncounter.ResetRun();
         typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, last);
         rig.hud.Step(BossWarning.Read(rig.wm), 0f, 0f, 1f);
         Check("after the boss: no boss ahead", BossWarning.Read(rig.wm) == BossWarningInput.None && !rig.hud.Visible);
 
-        SetRoute(rig.wm, WorldManager.FinalRoute.KeepFlying);
-        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 5f);
-        Check("KEEP FLYING: no boss, no warning", BossWarning.Read(rig.wm) == BossWarningInput.None &&
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
+        OpenPortal(rig.wm);
+        Check("the final world's portal leads back to the start world", WorldManager.PortalDestination == 0 &&
+              PortalPressure.Destination == 0 && rig.wm.Stage == WorldManager.LevelStage.Portal);
+        Check("the loop portal waiting: no warning", BossWarning.Read(rig.wm) == BossWarningInput.None &&
               float.IsPositiveInfinity(BossWarning.SecondsToBoss));
-        SetRoute(rig.wm, WorldManager.FinalRoute.LoopBack);
-        Check("LOOP BACK waiting on its portal (and a missed portal's retry): no warning", BossWarning.Read(rig.wm) == BossWarningInput.None);
-        SetRoute(rig.wm, WorldManager.FinalRoute.Choosing);
-        Check("the final choice: no warning", BossWarning.Read(rig.wm) == BossWarningInput.None);
+        // the stage alone keeps it quiet: even with distance on the clock and
+        // the boss forgotten, a waiting portal never has a boss ahead
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 5f);
+        BossEncounter.ForgetDone();
+        Check("a waiting portal (stage Portal) has no boss ahead whatever the clock says",
+              BossWarning.Read(rig.wm) == BossWarningInput.None);
+        typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, last);
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
 
-        // LOOP BACK through the portal: the start world again, one loop on
-        SetRoute(rig.wm, WorldManager.FinalRoute.LoopBack);
+        // a minute and a half of waiting, pressure and all: never a warning
+        bool quiet = true;
+        for (int i = 0; i < 60 * 90; i++)
+        {
+            rig.Frame();
+            quiet &= !c.Active && !rig.hud.Visible && BossWarning.Read(rig.wm) == BossWarningInput.None;
+        }
+        Check("90 s at the waiting loop portal (pressure level " + PortalPressure.Level.ToString("F1") + "): never a warning",
+              quiet && c.Triggers == 1 && rig.wm.Stage == WorldManager.LevelStage.Portal && PortalPressure.Pressing &&
+              !BossEncounter.Running);
+
+        // through the loop portal: the start world again, one loop on
         try { rig.wm.Advance(); } catch (Exception e) { Debug.Log("[BW] Advance side effect threw (ignored): " + e.Message); }
         Check("looped: back in " + WorldManager.Current.displayName + ", loop " + RunLoop.Index + ", its boss ahead again",
-              WorldManager.CurrentIndex == 0 && RunLoop.Index == 1 && BossWarning.Read(rig.wm) == BossWarningInput.Ahead &&
+              WorldManager.CurrentIndex == 0 && RunLoop.Index == 1 && rig.wm.Stage == WorldManager.LevelStage.Level &&
+              !PortalPressure.Active && BossWarning.Read(rig.wm) == BossWarningInput.Ahead &&
               BossWarning.SecondsToBoss > 40f);
         float start = rig.flown, firedAt = -1f;
         bool early = false;
@@ -612,21 +646,30 @@ public static class BossWarningTest
               BossEncounter.Running && c.Triggers == 2 && !early && Mathf.Abs(rig.flown - firedAt - 30f) < .3f &&
               rig.hud.Accent == BossWarningConfig.Accent(0));
 
-        // a boss done on this visit, the portal missed, the level coming round again
+        // a boss already done on this visit with the level clock running again
+        // (nothing in the game does that now; the guard stays): no warning
         BossEncounter.ResetRun();
         typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
-        typeof(WorldManager).GetMethod("OnPortalMissed", Inst).Invoke(rig.wm, null);
-        bool none = rig.wm.DistanceLeft > 0f;
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, rig.wm.WorldDistance);
+        bool none = rig.wm.DistanceLeft > 0f && rig.wm.Stage == WorldManager.LevelStage.Level;
         for (int i = 0; i < 300; i++) { rig.Frame(); none &= !c.Active; }
-        Check("a missed portal's second lap (boss already done): no warning", none && c.Triggers == 2);
+        Check("a boss already done on this visit (level clock running): no warning", none && c.Triggers == 2);
         Drop(rig);
 
-        // the encore: the final world once more, its boss again
-        rig = Fly(last, .3f);
-        SetRoute(rig.wm, WorldManager.FinalRoute.Encore);
-        Check("the encore pass has a boss ahead", BossWarning.Read(rig.wm) == BossWarningInput.Ahead);
-        while (!BossEncounter.Running && rig.flown < 300f) rig.Frame();
-        Check("the encore: warned once before its boss", BossEncounter.Running && rig.hud.Countdown.Triggers == 1);
+        // a mid-run portal: quiet while it waits, the next world's boss warned once
+        rig = Fly(1, .3f);
+        typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 1);
+        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
+        OpenPortal(rig.wm);
+        quiet = WorldManager.PortalDestination == 2;
+        for (int i = 0; i < 60 * 20; i++) { rig.Frame(); quiet &= !rig.hud.Countdown.Active && BossWarning.Read(rig.wm) == BossWarningInput.None; }
+        Check("a mid-run portal waiting 20 s: no warning", quiet && rig.hud.Countdown.Triggers == 0);
+        try { rig.wm.Advance(); } catch (Exception e) { Debug.Log("[BW] Advance side effect threw (ignored): " + e.Message); }
+        Check("through it: " + WorldManager.Current.displayName + ", the same loop, its boss ahead",
+              WorldManager.CurrentIndex == 2 && RunLoop.Index == 0 && BossWarning.Read(rig.wm) == BossWarningInput.Ahead);
+        float t0 = rig.flown;
+        while (!BossEncounter.Running && rig.flown - t0 < 300f) rig.Frame();
+        Check("the next world: warned once before its boss", BossEncounter.Running && rig.hud.Countdown.Triggers == 1);
         Drop(rig);
     }
 

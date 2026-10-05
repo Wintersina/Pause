@@ -7,7 +7,7 @@ using System.Reflection;
 // in rotation with a side-matching fix for their rail mounting, enemy
 // density (enmiesOnBoard's SpawnPhase) now driven by elapsed flight time
 // instead of moveBackGround.speed so it keeps escalating past the speed
-// cap, per-world maxSpeed lowered ~20% with a new per-world enemyRampScale
+// cap, per-world speed caps (since replaced by the one SpeedRamp.Cap) with a new per-world enemyRampScale
 // wired through WorldManager.ApplyDifficulty, and the new ChaserEnemy hazard.
 public static class DifficultyRebalanceTest
 {
@@ -227,15 +227,15 @@ public static class DifficultyRebalanceTest
 
     static void WorldSpeedCapsLoweredAndRampScaleWired()
     {
-        // 2026-10: lowered again (0.46 -> 0.38, 0.62 -> 0.44): "too hard past speed 35"
-        Check("Space's maxSpeed was lowered from the old 0.58, and again from 0.46",
-              WorldManager.Worlds[0].maxSpeed < 0.46f && WorldManager.Worlds[0].maxSpeed > 0.35f);
-        Check("Ember's maxSpeed was lowered from the old 0.78, and again from 0.62",
-              WorldManager.Worlds[3].maxSpeed < 0.50f && WorldManager.Worlds[3].maxSpeed > 0.40f);
-        Check("worlds stay ordered least to most top speed",
-              WorldManager.Worlds[0].maxSpeed < WorldManager.Worlds[1].maxSpeed &&
-              WorldManager.Worlds[1].maxSpeed < WorldManager.Worlds[2].maxSpeed &&
-              WorldManager.Worlds[2].maxSpeed < WorldManager.Worlds[3].maxSpeed);
+        // 2026-10, second pass: the per-world caps (0.58 -> 0.46 -> 0.38 for
+        // Space, 0.78 -> 0.62 -> 0.44 for Ember) are gone; every world shares
+        // SpeedRamp.Cap (HUD 35) and later worlds get there sooner.
+        Check("the one cap (HUD 35) is under every old per-world cap (Space's 0.38 the lowest)",
+              SpeedRamp.Cap <= 0.35f + 1e-6f);
+        Check("worlds stay ordered least to most hurried: later worlds ramp to the cap faster",
+              WorldManager.Worlds[0].speedRampPerSecond < WorldManager.Worlds[1].speedRampPerSecond &&
+              WorldManager.Worlds[1].speedRampPerSecond < WorldManager.Worlds[2].speedRampPerSecond &&
+              WorldManager.Worlds[2].speedRampPerSecond < WorldManager.Worlds[3].speedRampPerSecond);
         Check("later worlds ramp enemy density faster than earlier ones",
               WorldManager.Worlds[0].enemyRampScale < WorldManager.Worlds[1].enemyRampScale &&
               WorldManager.Worlds[1].enemyRampScale < WorldManager.Worlds[2].enemyRampScale &&
@@ -249,8 +249,8 @@ public static class DifficultyRebalanceTest
         var applyDifficulty = typeof(WorldManager).GetMethod("ApplyDifficulty", BindingFlags.NonPublic | BindingFlags.Static);
         applyDifficulty.Invoke(null, new object[] { WorldManager.Worlds[3] }); // Ember
 
-        Check("ApplyDifficulty sets moveBackGround.maxSpeed from the theme",
-              Mathf.Approximately(bg.maxSpeed, WorldManager.Worlds[3].maxSpeed));
+        Check("ApplyDifficulty sets moveBackGround.maxSpeed to the one cap",
+              Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap));
         Check("ApplyDifficulty sets enmiesOnBoard.phaseRampScale from the theme",
               Mathf.Approximately(enemies.phaseRampScale, WorldManager.Worlds[3].enemyRampScale));
 

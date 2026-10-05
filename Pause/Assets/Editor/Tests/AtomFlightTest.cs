@@ -40,7 +40,7 @@ public static class AtomFlightTest
     const float ShipLowestY = -4.15f;        // movePlayer.ClampPlayerY
     const int AtomsPerCase = 120;
 
-    static readonly float[] Speeds = { 0f, .05f, .15f, .30f, LoopRules.AbsoluteMaxSpeed };
+    static readonly float[] Speeds = { 0f, .05f, .15f, .30f, SpeedRamp.Cap + SpeedRamp.MaxBoost };
 
     public static int Execute()
     {

@@ -57,8 +57,14 @@ public static class SpawnLane
         float band = half.y + ShipGap;
         FillRowSpans(y - band, y + band, buffer);
         buffer.Add(new Vector2(x - half.x, x + half.x));
-        return WidestGap(buffer) >= ShipGap;
+        return WidestGap(buffer) >= GuaranteedGap;
     }
+
+    // The gap every row is promised: a ship's width -- shrinking to nothing
+    // once a portal has been kept waiting deep into overdrive
+    // (PortalPressure.ShipGapScale; x1 at every other time), which is what
+    // finally makes staying fatal.
+    public static float GuaranteedGap => ShipGap * PortalPressure.ShipGapScale;
 
     static readonly List<Vector2> buffer = new List<Vector2>(64);
 

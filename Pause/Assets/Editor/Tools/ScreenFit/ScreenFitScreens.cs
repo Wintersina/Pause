@@ -105,7 +105,7 @@ public static class ScreenFitScreens
         new FitScreen { id = "game-world-banner", scene = "gameS1", title = "World banner + portal", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.Banner) },
         new FitScreen { id = "game-boss-intro", scene = "gameS1", title = "Boss intro: name plate", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.BossIntro) },
         new FitScreen { id = "game-boss-fight", scene = "gameS1", title = "Boss at rest (BossY)", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.BossFight) },
-        new FitScreen { id = "game-final-choice", scene = "gameS1", title = "KEEP FLYING / LOOP BACK", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.FinalChoice) },
+        new FitScreen { id = "game-portal-pressure", scene = "gameS1", title = "Open portal: ENTER THE PORTAL, DANGER chip, lane glows", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.PortalPressure) },
         new FitScreen { id = "game-death", scene = "gameS1", title = "Flight complete panel", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.Death) },
     };
 
@@ -601,11 +601,11 @@ public static class ScreenFitScreens
 
     // ---- the run ---------------------------------------------------------------------------------
 
-    enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, FinalChoice, Death }
+    enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, PortalPressure, Death }
 
     static void Game(ScreenFitRig rig, GameShot shot)
     {
-        int world = shot == GameShot.BossIntro ? 1 : shot == GameShot.FinalChoice ? 3 : shot == GameShot.BossFight ? 2 : 0;
+        int world = shot == GameShot.BossIntro ? 1 : shot == GameShot.PortalPressure ? 3 : shot == GameShot.BossFight ? 2 : 0;
         var styler = WorldBase(rig, world, shot == GameShot.Paused, false);
         Rect view = rig.WorldView;
 
@@ -704,10 +704,10 @@ public static class ScreenFitScreens
             case GameShot.Banner:
                 {
                     ShowBanner(rig, "PORTAL OPEN");
-                    var portal = Portal.Spawn(new Color(.4f, .9f, 1f), 12f, null);
+                    var portal = Portal.Spawn(new Color(.4f, .9f, 1f));
                     portal.transform.position = new Vector3(1.6f, view.yMax - 2.2f, 0f);
                     // the longest banner the game shows
-                    string longest = "KEEP FLYING";
+                    string longest = PortalPressure.UrgeBanner;
                     foreach (var w in WorldManager.Worlds)
                     {
                         string s = w.displayName.ToUpperInvariant() + "  ONE MORE";
@@ -751,12 +751,9 @@ public static class ScreenFitScreens
                     break;
                 }
 
-            case GameShot.FinalChoice:
+            case GameShot.PortalPressure:
                 {
-                    var panel = FinalChoicePanel.Show(3, 0, 0, _ => { });
-                    rig.Sync();
-                    Call(panel, "Fit");
-                    for (int i = 0; i < 60; i++) panel.Step(Dt);
+                    PortalPressureShot(rig, styler, world);
                     break;
                 }
 
@@ -770,6 +767,7 @@ public static class ScreenFitScreens
                     }
                     var canvas = SceneUtil.FindAny("PopUpCanvas");
                     canvas.SetActive(true);
+                    // the scene's old speed Texts: the score figure, and a spare the panel switches off
                     var best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
                     var run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
                     var dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
@@ -784,7 +782,7 @@ public static class ScreenFitScreens
                     var viewPanel = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
                     {
                         score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
-                        bestSpeed = 999, runSpeed = 999, dustAtStart = 99987.65f, dustWon = 12.34f,
+                        dustAtStart = 99987.65f, dustWon = 12.34f,
                     });
                     rig.Sync();
                     PlaceHudBand(rig, styler);
@@ -797,6 +795,60 @@ public static class ScreenFitScreens
         Canvas.ForceUpdateCanvases();
         WorldChecks(rig, false);
         DevBadge(rig);
+    }
+
+    // An open portal kept waiting past its grace (PortalPressure): the portal
+    // at its station, the ENTER THE PORTAL banner, PORTAL DANGER's chip at a
+    // two-digit Level and the glows down the lane's edges (PortalPressureHud).
+    // The HUD reads Screen.* itself (as
+    // BossWarningHud does), so its pure placement is applied for the device.
+    static void PortalPressureShot(ScreenFitRig rig, HudStyler styler, int world)
+    {
+        var screen = new Vector2(rig.W, rig.H);
+        var band = Band(rig);
+        int destination = (world + 1) % WorldManager.Worlds.Length;
+
+        var portal = Portal.Spawn(WorldManager.Worlds[destination].portalColor);
+        // at the far end of its drift, at its station
+        portal.transform.position = new Vector3(Portal.HomeMaxX + Portal.DriftHalf, Portal.StationY, 0f);
+        float reach = Portal.HomeMaxX + Portal.DriftHalf + Portal.Radius;
+        if (reach > BossRails.InnerEdge)
+            rig.Fail("WORLD", "portal", "at the far end of its drift its edge reaches x " + reach.ToString("F2") + ", over the rails' inner edge " + BossRails.InnerEdge.ToString("F2"));
+        if (Portal.StationY + Portal.Radius > rig.WorldView.yMax || Portal.StationY - Portal.Radius < rig.WorldView.yMin)
+            rig.Fail("WORLD", "portal", "its station y " + Portal.StationY.ToString("F2") + " is not inside the view");
+
+        // a Level that puts two digits on the chip (its widest)
+        PortalPressure.Open(destination);
+        PortalPressure.Tick(PortalPressure.GraceSeconds + PortalPressure.LevelSeconds * 11.5f);
+        ShowBanner(rig, PortalPressure.UrgeBanner);
+
+        var hud = PortalPressureHud.Ensure();
+        rig.Sync();
+        hud.Refresh();   // text, colours, beat (and a layout for the editor's own screen ...)
+        var canvas = hud.GetComponent<Canvas>();
+        hud.Layout(band, screen, Mathf.Max(canvas.scaleFactor, .0001f));   // ... replaced by the device's
+        Canvas.ForceUpdateCanvases();
+
+        if (!hud.Showing || hud.Chip.text != PortalPressureHud.ChipLabel(PortalPressure.DangerNumber))
+            rig.Fail("STAGE", "portal danger chip", "not showing (" + (hud.Chip != null ? hud.Chip.text : "null") + ")");
+        Rect chip = rig.PixelRect(hud.Chip.rectTransform);
+        rig.AddImportant("portal danger chip", chip);
+        if (chip.xMin < band.left - 1f || chip.xMax > band.right + 1f || chip.yMax > band.top + 1f)
+            rig.Fail("BAND", "portal danger chip", "outside the band between the rails: " + chip + " band " + band.left.ToString("F0") + ".." +
+                     band.right.ToString("F0") + " top " + band.top.ToString("F0"), chip);
+        // (safe area, cutouts, corners: the generic checks, through AddImportant;
+        // its text's fit and size: the generic text checks)
+        // no boss warning is up while a portal is open: the read-out and the quick actions
+        ClearOfBand(rig, styler, "portal danger chip", chip, false, false);
+
+        foreach (var glow in new[] { hud.LeftGlow, hud.RightGlow })
+        {
+            Rect g = rig.PixelRect(glow.rectTransform);
+            if (g.width < 1f || g.xMin < band.left - 1f || g.xMax > band.right + 1f)
+                rig.Fail("BAND", "portal " + glow.name, "not inside the rails: " + g + " band " + band.left.ToString("F0") + ".." + band.right.ToString("F0"), g);
+            if (g.yMin > 1f || g.yMax < rig.H - 1f)
+                rig.Fail("BAND", "portal " + glow.name, "does not run the screen's height: " + g, g);
+        }
     }
 
     static Sprite FirstSprite()

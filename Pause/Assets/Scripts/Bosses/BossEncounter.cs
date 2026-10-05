@@ -57,9 +57,8 @@ public class BossEncounter : MonoBehaviour
 
     public static bool Running => Instance != null && Instance.IsRunning;
     // moveBackGround: hold timeScale at 0 regardless of the finger -- the
-    // intro, and the final world's KEEP FLYING / LOOP BACK choice after it.
-    public static bool ScriptedFreeze =>
-        (Instance != null && Instance.state == Phase.Intro) || FinalChoicePanel.IsUp;
+    // intro.
+    public static bool ScriptedFreeze => Instance != null && Instance.state == Phase.Intro;
     // moveBackGround (ramp) and collisionDetection (atom boost): hands off speed.
     public static bool SpeedLocked => Instance != null &&
         (Instance.state == Phase.Intro || Instance.state == Phase.Fight || Instance.state == Phase.Outro);
@@ -67,13 +66,11 @@ public class BossEncounter : MonoBehaviour
     public static bool SuspendsSpawning => Running;
     // score: a press during the intro, or the first one after it, is not a
     // spent pause -- the freeze was the boss's, not the player's.
-    // The final choice's freeze is scripted too (FinalChoicePanel.FreePress).
-    public static bool FreePress => (Instance != null && Instance.freePress) || FinalChoicePanel.FreePress;
+    public static bool FreePress => Instance != null && Instance.freePress;
 
-    public static float FilterSpeedChange(float delta) => SpeedLocked ? 0f : delta;
     public static bool DoneInWorld(int worldIndex) => doneWorld == worldIndex;
 
-    // LOOP BACK: every boss comes round again on the next loop.
+    // A loop: every boss comes round again on the next pass.
     public static void ForgetDone() { doneWorld = -1; }
 
     // Developer (BossDev.TriggerFinal): the next fight lasts DevShortFightSeconds.
@@ -166,7 +163,7 @@ public class BossEncounter : MonoBehaviour
 
         switch (state)
         {
-            // Done too: after a boss, the next world's (or the encore's) rushes.
+            // Done too: after a boss, the next world's rushes.
             case Phase.Idle: case Phase.Done: TickDevRush(dt); break;
             case Phase.Pending:
                 if (!ShipPowerController.CinematicClearActive) StartIntro();
@@ -184,6 +181,7 @@ public class BossEncounter : MonoBehaviour
     {
         state = Phase.Intro;
         introClock = 0f;
+        SpeedRamp.CancelBoost();   // the boss holds the speed: no limit break through its intro
         preSpeed = moveBackGround.speed;
         freePress = true;
         actor = BossActor.Spawn(boss);
@@ -363,10 +361,8 @@ public class BossEncounter : MonoBehaviour
     void TickDevRush(float dt)
     {
         if (!BossDev.RushEnabled || WorldManager.Instance == null) return;
-        // The encore (choice timed out) rushes its Ember boss like ON.
-        bool encore = WorldManager.Instance.Route == WorldManager.FinalRoute.Encore;
-        if (WorldManager.Instance.Route != WorldManager.FinalRoute.None && !encore) return;
-        bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0 && !encore;
+        if (WorldManager.Instance.PortalIsOpen) return;
+        bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0;
         if (!final && DoneInWorld(WorldManager.CurrentIndex)) return;
         if (final && DoneInWorld(WorldManager.Worlds.Length - 1)) return;
         rushClock += dt;

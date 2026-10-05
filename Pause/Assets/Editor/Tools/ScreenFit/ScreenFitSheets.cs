@@ -102,6 +102,7 @@ public static class ScreenFitRunner
         AccountDialog.Close();
         LeaderboardPanel.Close();
         ShipSkins.ClearPreview();
+        PortalPressure.Reset();
     }
 }
 

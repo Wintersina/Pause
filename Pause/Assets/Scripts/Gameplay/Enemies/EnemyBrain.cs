@@ -815,6 +815,23 @@ public static class EnemyThreat
     // A live projectile as a share of a body, for the spawner's threat cap.
     public static float ShotWeight = .5f;
 
+    // The live budget: the two numbers above, plus what later loops
+    // (LoopRules) and a portal kept waiting (PortalPressure) add. Never more
+    // than PortalPressure.ShotCap alive, whatever asks.
+    public static int ShotBudget
+    {
+        get
+        {
+            return Mathf.Min(Mathf.Max(MaxEnemyShots, PortalPressure.ShotCap),
+                             MaxEnemyShots + LoopRules.ShotBonus(RunLoop.Index) + PortalPressure.ShotBonus);
+        }
+    }
+
+    public static float Gap
+    {
+        get { return VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale; }
+    }
+
     // Tests: allow firing with no EliteDirector stepping the shots.
     public static bool ForceShooting;
 
@@ -855,9 +872,9 @@ public static class EnemyThreat
     {
         float now = SpawnSpace.Clock;
         if (now < lastVolley) lastVolley = float.NegativeInfinity;   // a new run / a test's clock
-        if (now - lastVolley < VolleyGap) return false;
+        if (now - lastVolley < Gap) return false;
         int n = Mathf.Max(1, shots);
-        if (LiveShots + pending + n > MaxEnemyShots) return false;
+        if (LiveShots + pending + n > ShotBudget) return false;
         lastVolley = now;
         pending += n;
         return true;
@@ -935,6 +952,7 @@ public static class EnemyVolley
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
         float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
+        speed *= PortalPressure.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
         var s = pool.Fire(null, style, b.shotKind, at, direction * speed);
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);

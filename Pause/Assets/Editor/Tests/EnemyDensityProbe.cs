@@ -77,6 +77,10 @@ public static class EnemyDensityProbe
     // The stock Space ramp the pinned points are taken along (the curve the
     // game shipped with before the 2026-10 retune): HUD speed per second.
     public const float ReferenceHudPerSecond = .315f;
+    // 35 is the natural cap (SpeedRamp.Cap). 40 and 46 stay in the table
+    // because the recorded "before" numbers were taken there; they are now
+    // limit-break speeds only (the blue atom's boost over the cap, at most
+    // 45), where EnemyDensity fields exactly what it fields at 35.
     public static readonly int[] HudPoints = { 5, 10, 20, 30, 35, 40, 46 };
 
     public static float LevelSecondFor(int hud)
@@ -103,11 +107,11 @@ public static class EnemyDensityProbe
                 Debug.Log(string.Format("[DENSITY] pinned hud {0,2} t {1,5:F1}s  spawns/s {2:F2}  onscreen {3:F2} / {4:F0}  shots {5:F2}  threats {6:F2}",
                                         hud, LevelSecondFor(hud), s.spawnsPerSecond, s.onScreen, s.peakOnScreen, s.shots, s.Threats));
             }
-            var r = WholeRun(ReferenceHudPerSecond, 46f, 3);
+            var r = WholeRun(ReferenceHudPerSecond, SpeedRamp.CapHud, 3);
             Debug.Log(string.Format("[DENSITY] run reference ramp  spawns/s {0:F2}  onscreen {1:F2}  shots {2:F2}  threats {3:F2}",
                                     r.spawnsPerSecond, r.onScreen, r.shots, r.Threats));
             var theme = WorldManager.Worlds[0];
-            r = WholeRun(t => 100f * SpeedRamp.SpeedAfter(0f, theme.speedRampPerSecond, theme.maxSpeed, t), 3);
+            r = WholeRun(t => 100f * SpeedRamp.SpeedAfter(0f, theme.speedRampPerSecond, SpeedRamp.Cap, t), 3);
             Debug.Log(string.Format("[DENSITY] run live Space curve  spawns/s {0:F2}  onscreen {1:F2}  shots {2:F2}  threats {3:F2}",
                                     r.spawnsPerSecond, r.onScreen, r.shots, r.Threats));
         }

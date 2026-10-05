@@ -188,8 +188,7 @@ public class BossActor : MonoBehaviour
         attackIndex = -1;
         // Later loops: shorter cooldowns and one more pattern in rotation
         // from the start (LoopRules).
-        // The encore pass (FinalChoicePanel timed out) fights at the next loop's.
-        loop = RunLoop.DifficultyIndex;
+        loop = RunLoop.Index;
         EnsureBodyHitbox();
     }
 

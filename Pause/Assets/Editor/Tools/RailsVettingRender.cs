@@ -252,7 +252,8 @@ public static class RailsVettingRender
                                         theme.displayName, tex.width, tex.height, tileWorld, tileWorld * ppu,
                                         tex.height * (1f - .03f) / (tileWorld * ppu), ppu));
 
-                int capHud = Mathf.RoundToInt(theme.maxSpeed * 100f);
+                // the fastest the board rolls: a full limit break over the one cap (SpeedRamp)
+                int capHud = Mathf.RoundToInt((SpeedRamp.Cap + SpeedRamp.MaxBoost) * 100f);
                 foreach (int hud in new[] { 10, capHud })
                     foreach (string mode in new[] { "old", "board", "snap" })
                     {

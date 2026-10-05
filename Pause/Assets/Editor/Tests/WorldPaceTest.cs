@@ -9,7 +9,7 @@ using UnityEngine;
 //
 //   1  the start-speed table: regular ships 0/5/10/15/20, high-end ships
 //      (the four priciest) 10/15/20/25/30, by colour 1..5
-//   2  a run starts at the equipped colour's speed, clamped to the world cap;
+//   2  a run starts at the equipped colour's speed, clamped to the speed cap;
 //      a portal arrival never drops below it
 //   3  each world reaches its boss after ~120s of flight at the baseline
 //      (stock start), and strictly sooner at starts 5/10/20/30 (logged)
@@ -93,9 +93,8 @@ public static class WorldPaceTest
         Check("no ship: the stock start", ShipStartSpeed.HudFor(0, 3) == 0);
         Check("speed = HUD / 100", Mathf.Approximately(ShipStartSpeed.SpeedFor(15, 4), .30f));
         Check("label", ShipStartSpeed.Label(15) == "START SPD 15");
-        float lowestCap = WorldManager.Worlds.Min(w => w.maxSpeed);
-        Check("the fastest start (HUD 30) is under every world's cap (lowest " + lowestCap + ")",
-              ShipStartSpeed.SpeedFor(7, 4) < lowestCap);
+        Check("the fastest start (HUD 30) is under the one speed cap (" + SpeedRamp.Cap + ")",
+              ShipStartSpeed.SpeedFor(7, 4) < SpeedRamp.Cap);
     }
 
     // ---- 2. a run's start ---------------------------------------------------------
@@ -152,8 +151,8 @@ public static class WorldPaceTest
         ShipStartSpeed.EquippedHudOverride = () => 15;
         Check("colour start HUD 15 -> 0.15", Mathf.Approximately(WorldManager.RunStartSpeed(0f), .15f));
         ShipStartSpeed.EquippedHudOverride = () => 99;
-        Check("a start past the cap is clamped to the world's (" + WorldManager.Current.maxSpeed + ")",
-              Mathf.Approximately(WorldManager.RunStartSpeed(0f), WorldManager.Current.maxSpeed));
+        Check("a start past the cap is clamped to the cap (" + SpeedRamp.Cap + ")",
+              Mathf.Approximately(WorldManager.RunStartSpeed(0f), SpeedRamp.Cap));
 
         // The real equipped ship/colour, through ShipId and ShipSkins.
         ShipStartSpeed.EquippedHudOverride = null;
@@ -197,7 +196,7 @@ public static class WorldPaceTest
         foreach (var w in walls)
         {
             w.speedRampPerSecond = WorldManager.Worlds[world].speedRampPerSecond;
-            w.maxSpeed = WorldManager.Worlds[world].maxSpeed;
+            w.maxSpeed = SpeedRamp.Cap;
         }
         moveBackGround.speed = startHud / 100f;
         float t = 0f;
@@ -237,7 +236,7 @@ public static class WorldPaceTest
             for (int i = 1; i < times.Length; i++) shorter &= times[i] < times[i - 1] - 1f;
             Check(name + ": every faster start reaches the boss strictly sooner", shorter);
             float predicted = SpeedRamp.SecondsToCover(.30f, WorldManager.Worlds[w].speedRampPerSecond,
-                                                       WorldManager.Worlds[w].maxSpeed, WorldManager.WorldDistanceFor(w));
+                                                       SpeedRamp.Cap, WorldManager.WorldDistanceFor(w));
             Check(name + ": the estimate matches the flight at start 30 (" + predicted.ToString("F1") + "s)",
                   Mathf.Abs(predicted - times[4]) <= 1f);
         }

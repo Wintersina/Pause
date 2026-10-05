@@ -39,15 +39,20 @@ public static class EnemyDensity
     // Chasers hold no column; they have their own cap.
     public static int ChasersAtLowSpeed = 2, ChasersAtHighSpeed = 1;
 
+    // (Speed is capped at HUD 35 -- SpeedRamp.Cap -- and K clamps there, so a
+    // limit break's few seconds above it field what 35 fields. Later loops
+    // and a portal kept waiting add to the budgets instead: LoopRules,
+    // PortalPressure.)
     public static float MaxPilotLoad(float hud, int world)
     {
         world = Mathf.Clamp(world, 0, PilotLoadAtLowSpeed.Length - 1);
-        return Mathf.Lerp(PilotLoadAtLowSpeed[world], PilotLoadAtHighSpeed[world], K(hud));
+        return Mathf.Lerp(PilotLoadAtLowSpeed[world], PilotLoadAtHighSpeed[world], K(hud))
+               + LoopRules.PilotLoadBonus(RunLoop.Index) + PortalPressure.PilotLoadBonus;
     }
 
     public static int MaxChasers(float hud)
     {
-        return K(hud) < .5f ? ChasersAtLowSpeed : ChasersAtHighSpeed;
+        return (K(hud) < .5f ? ChasersAtLowSpeed : ChasersAtHighSpeed) + PortalPressure.ChaserBonus;
     }
 
     // Tests / the probe: 1 = the old spawner's rate, no ceiling.
@@ -80,7 +85,10 @@ public static class EnemyDensity
 
     public static float MaxThreats(float hud)
     {
-        return Disabled ? float.MaxValue : Mathf.Lerp(ThreatsAtLowSpeed, ThreatsAtHighSpeed, K(hud)) * ViewScale;
+        if (Disabled) return float.MaxValue;
+        float authored = Mathf.Lerp(ThreatsAtLowSpeed, ThreatsAtHighSpeed, K(hud)) + LoopRules.ThreatBonus(RunLoop.Index);
+        // a portal kept waiting raises it, up to the body cap (PortalPressure)
+        return PortalPressure.Ceiling(authored, ViewScale);
     }
 
     // Bodies in play (in the view or about to enter it) plus weighted shots.

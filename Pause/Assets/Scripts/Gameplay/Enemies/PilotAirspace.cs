@@ -252,7 +252,9 @@ public static class PilotAirspace
 
     // ---- boss / portal ----
 
-    // A boss or a portal is here or seconds away: pilots clear out.
+    // A boss is here or seconds away, or a portal has just opened: pilots
+    // clear out. A portal that is kept waiting lets them back in once its
+    // grace is over (PortalPressure): they are part of what waiting costs.
     public static bool MustClear
     {
         get
@@ -260,8 +262,8 @@ public static class PilotAirspace
             if (BossEncounter.Running) return true;
             var wm = WorldManager.Instance;
             if (wm == null) return false;
-            if (wm.PortalIsOpen || wm.Route == WorldManager.FinalRoute.Choosing) return true;
-            return wm.Route != WorldManager.FinalRoute.KeepFlying && wm.DistanceLeft > 0f && wm.SecondsLeftInWorld < ClearLeadSeconds;
+            if (wm.PortalIsOpen) return !PortalPressure.AdmitsPilots;
+            return wm.DistanceLeft > 0f && wm.SecondsLeftInWorld < ClearLeadSeconds;
         }
     }
 
@@ -271,8 +273,7 @@ public static class PilotAirspace
         {
             if (MustClear) return true;
             var wm = WorldManager.Instance;
-            return wm != null && wm.Route != WorldManager.FinalRoute.KeepFlying && wm.DistanceLeft > 0f &&
-                   wm.SecondsLeftInWorld < AdmitLeadSeconds;
+            return wm != null && wm.DistanceLeft > 0f && wm.SecondsLeftInWorld < AdmitLeadSeconds;
         }
     }
 
@@ -308,6 +309,8 @@ public static class PilotAirspace
         {
             float c = t == 0 && !float.IsNaN(preferredX) ? Mathf.Clamp(preferredX, -limit, limit) : Random.Range(-limit, limit);
             if (Blocks(c - half, c + half)) continue;
+            // never over the open portal: its column stays clear
+            if (Portal.Reserves(c - half, c + half)) continue;
             // an elite hovering there: somewhere else if there is anywhere
             // else (the last tries take it anyway: an elite never starves a pilot)
             if (t < Tries - 3 && EliteOver(c - half, c + half)) continue;

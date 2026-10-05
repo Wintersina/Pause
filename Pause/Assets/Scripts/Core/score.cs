@@ -5,14 +5,9 @@ using UnityEngine.UI;
 
 public class score : MonoBehaviour {
 
-    [Header("Star dust")]
-    [Tooltip("Star dust earned per second at top speed. Payout scales with " +
-             "speed, so flying fast is worth more than crawling.")]
-    public float dustPerSecondAtTopSpeed = 0.05f;
-
-    [Tooltip("Speed treated as 'top speed' for the payout curve. Should match " +
-             "moveBackGround.maxSpeed.")]
-    public float topSpeed = 0.6f;
+    // The flight trickle of star dust is paid per unit of distance flown
+    // (ScoreRules.DustPerDistance), so flying fast is worth more than
+    // crawling and a boost pays for the ground it covers.
 
     public static float totalCurrency;
     public static float tutorialCurrency;
@@ -181,8 +176,8 @@ public class score : MonoBehaviour {
         // Was `(int)speed + .001f`. speed never reaches 1, so the cast was
         // always 0 and this was really a flat .001 *per frame* -- framerate
         // dependent, paying out twice as fast at 120Hz as at 60Hz.
-        float t = topSpeed <= 0 ? 0 : Mathf.Clamp01(moveBackGround.speed / topSpeed);
-        float earned = dustPerSecondAtTopSpeed * t * Time.deltaTime;
+        // (nothing while a portal is kept waiting past its grace: PortalPressure)
+        float earned = PortalPressure.EarningsClosed ? 0f : ScoreRules.FlightDust(moveBackGround.speed, Time.deltaTime);
         tc += earned;
         pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
         return earned;
@@ -220,6 +215,8 @@ public class score : MonoBehaviour {
     public static void AwardStarDust(float amount)
     {
         dustPickups++;
+        // A portal kept waiting past its grace: nothing earns (PortalPressure).
+        if (PortalPressure.EarningsClosed) return;
         if (paysRealDust)
         {
             totalCurrency += amount;

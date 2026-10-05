@@ -43,6 +43,8 @@ public static class ScoringTest
             HudShowsScoreAndFits();
             DeathPanelFitsEveryAspect();
             LeaderboardRegistry();
+            SpeedTiersDustAndMilestones();
+            LoopScoreScale();
         }
         finally
         {
@@ -217,10 +219,15 @@ public static class ScoringTest
         Check("HitPoints rule: 10s left adds 50", RunScore.Total - t == 350);
 
         t = RunScore.Total;
+        RunScore.Tick(10f, .35f);
+        // (2026-10, second pass: speed is capped at HUD 35 -- SpeedRamp.Cap --
+        // and the cap itself is the x2 tier; tiers 20 / 30 / 35)
+        Check("ten seconds at HUD speed 35 (the cap) pay 17.5 distance points (speed / 20 a second) x2 speed tier = 35",
+              RunScore.Total - t == 35 || RunScore.Total - t == 36);
+        t = RunScore.Total;
         RunScore.Tick(10f, .46f);
-        // (2026-10: the speed tiers moved down with the caps -- 20 / 30 / 40 / 46 --
-        // so HUD 46 is the top tier now, x2.5; it was x1.5)
-        Check("ten seconds at HUD speed 46 pay 23 distance points (speed / 20 a second) x2.5 speed tier = 57",
+        // above the cap only a boost gets there: the limit break, x2.5
+        Check("ten seconds at HUD 46 (a limit break) pay 23 distance points x2.5 = 57",
               RunScore.Total - t == 57 || RunScore.Total - t == 58);
         t = RunScore.Total;
         RunScore.Tick(10f, .19f);
@@ -413,7 +420,7 @@ public static class ScoringTest
         {
             Check("developer run: submission blocked", LeaderboardService.SubmissionBlocked());
             Check("developer run: SubmitRun queues nothing",
-                  service.SubmitRun(new LeaderboardRunStats { score = 99999, topSpeed = 99 }) == 0 && fake.Submissions.Count == 0);
+                  service.SubmitRun(new LeaderboardRunStats { score = 99999, worldIndex = 3 }) == 0 && fake.Submissions.Count == 0);
         }
         LeaderboardService.Instance = prev;
         Object.DestroyImmediate(s.gameObject);
@@ -436,8 +443,10 @@ public static class ScoringTest
         RunScore.OnDust(false);
         RunScore.EndRun(run);
         Check("a worse run never lowers it", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
-        Check("HighestSpeed is still its own key (speed achievements)", ProgressSnapshot.HighestSpeedKey == "HighestSpeed" &&
-              RunScore.BestScoreKey == "BestScore");
+        // (HighestSpeed is a legacy cloud-save field now: the game no longer
+        // reads or writes it, it only round-trips for older builds.)
+        Check("BestScore is its own key, apart from the legacy HighestSpeed field",
+              ProgressSnapshot.HighestSpeedKey == "HighestSpeed" && RunScore.BestScoreKey == "BestScore");
 
         var snap = ProgressSnapshot.Capture(1);
         Check("cloud snapshot captures BestScore", snap.bestScore == 300);
@@ -694,7 +703,7 @@ public static class ScoringTest
         var r = new DeathPanelView.Results
         {
             score = parts.Total, bestScore = 3799, newBest = false, ranked = true, parts = parts,
-            bestSpeed = 52, runSpeed = 46, dustAtStart = 10f, dustWon = 2f,
+            dustAtStart = 10f, dustWon = 2f,
         };
         var view = DeathPanelView.Build(canvas.transform, best, run, dust,
             SceneUtil.FindAny("Replay").GetComponent<Button>(), SceneUtil.FindAny("MainMenu").GetComponent<Button>(), r);
@@ -712,6 +721,12 @@ public static class ScoringTest
               view.Panel.Find("Card0/Sub") != null && view.Panel.Find("Card0/Sub").GetComponent<Text>().text == "BEST  3,799" &&
               view.Panel.Find("Card0/NewBest") == null);
         Check("the last row settles on its points", lastRow.text == "+1,050");
+        // Speed is capped: it is not a result, so the panel shows none.
+        bool noSpeed = true;
+        foreach (var t in view.Panel.GetComponentsInChildren<Text>(false))
+            noSpeed &= !t.text.ToUpperInvariant().Contains("SPEED");
+        Check("no speed line anywhere on the panel (the scene's old speed Text is switched off)",
+              noSpeed && !run.gameObject.activeSelf);
         Check("a source with no points shows 0", view.Panel.Find("Card1/Row5/Points").GetComponent<Text>().text == "0");
         Check("kills row: count and points", view.Panel.Find("Card1/Row1/Count").GetComponent<Text>().text == "131" &&
               view.Panel.Find("Card1/Row1/Points").GetComponent<Text>().text == "+1,375");
@@ -743,14 +758,14 @@ public static class ScoringTest
     {
         var all = LeaderboardBoards.All;
         var top = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
-        var speed = LeaderboardBoards.Get(LeaderboardBoards.TopSpeed);
         Check("top_score is the first (primary) board", all.Length > 0 && all[0].id == LeaderboardBoards.TopScore);
         Check("Top Score: iOS id me.sinaserati.Pause.top_score", top != null && top.iosId == "me.sinaserati.Pause.top_score");
         Check("Top Score: no Play Console id yet, so disabled", top != null && top.androidId == "" && !top.Enabled &&
               top.PlatformId(true) == null && top.PlatformId(false) == null);
-        Check("Top Score never reuses the speed board's ids",
-              top.iosId != speed.iosId && top.androidId != StringHolder.leaderboard_highest_speed_reached);
-        Check("Top Speed stays enabled as the secondary board", speed.Enabled && System.Array.IndexOf(all, speed) == 1);
+        Check("Top Score never reuses the retired speed board's ids",
+              !top.iosId.EndsWith("highest_speed") && top.androidId != StringHolder.leaderboard_highest_speed_reached);
+        Check("the speed board is retired: not in the table, no board enabled until Top Score's id is in",
+              LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null && LeaderboardBoards.Enabled().Count == 0);
         Check("Top Score: higher is better, measures the run score, formats 1,234,567",
               top.sort == LeaderboardSort.HigherIsBetter && top.Measure(new LeaderboardRunStats { score = 1234567 }) == 1234567 &&
               top.Format(1234567) == "1,234,567");
@@ -767,12 +782,13 @@ public static class ScoringTest
               !service.Offer(LeaderboardBoards.TopScore, 5000));
         using (EnableTopScoreForTest())
         {
-            Check("once its Play Console id is in, Top Score is the first tab",
-                  service.UsableBoards().Count >= 2 && service.UsableBoards()[0].id == LeaderboardBoards.TopScore);
-            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, topSpeed = 46 });
+            Check("once its Play Console id is in, Top Score is the first (and only) tab",
+                  service.UsableBoards().Count == 1 && service.UsableBoards()[0].id == LeaderboardBoards.TopScore);
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, starDust = 3f, worldIndex = 2 });
             long v;
-            Check("a run end queues the score (and the speed)", accepted == 2 &&
-                  service.HasPending(LeaderboardBoards.TopScore, out v) && v == 15451);
+            Check("a run end queues the score, and nothing for speed", accepted == 1 &&
+                  service.HasPending(LeaderboardBoards.TopScore, out v) && v == 15451 &&
+                  !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));
             Check("improvement only: a lower score is dropped", !service.Offer(LeaderboardBoards.TopScore, 9000));
             startMenu.youAreInTutorial = true;
             Check("never from the tutorial", service.SubmitRun(new LeaderboardRunStats { score = 99999 }) == 0);
@@ -780,5 +796,107 @@ public static class ScoringTest
         }
         LeaderboardService.Instance = prev;
         PlayerPrefs.DeleteKey(LeaderboardService.PendingKey);
+    }
+
+    // ---- 12. speed tiers at the cap, the flight dust, the speed achievements --------------------
+
+    static void SpeedTiersDustAndMilestones()
+    {
+        // (2026-10, second pass: was 20 / 30 / 40 / 46 -> x1.25 / 1.5 / 2 / 2.5.
+        // Speed is capped at HUD 35; above it is only ever a limit break.)
+        Check("speed tiers: 20 / 30 / 35 -> x1.25 / 1.5 / 2",
+              string.Join(",", ScoreRules.SpeedTierHud) == "20,30,35" &&
+              ScoreRules.SpeedTierMultiplier.Length == 3 && ScoreRules.SpeedTierMultiplier[0] == 1.25f &&
+              ScoreRules.SpeedTierMultiplier[1] == 1.5f && ScoreRules.SpeedTierMultiplier[2] == 2f);
+        Check("the top tier is the cap itself", ScoreRules.SpeedTierHud[ScoreRules.SpeedTierHud.Length - 1] == SpeedRamp.CapHud &&
+              SpeedRamp.CapHud == 35);
+        Check("tier table: 19 x1, 20 x1.25, 29 x1.25, 30 x1.5, 34 x1.5, 35 x2",
+              ScoreRules.SpeedMultiplierFor(.19f) == 1f && ScoreRules.SpeedMultiplierFor(.20f) == 1.25f &&
+              ScoreRules.SpeedMultiplierFor(.29f) == 1.25f && ScoreRules.SpeedMultiplierFor(.30f) == 1.5f &&
+              ScoreRules.SpeedMultiplierFor(.34f) == 1.5f && ScoreRules.SpeedMultiplierFor(.35f) == 2f);
+        Check("limit break: anything above HUD 35 is x" + ScoreRules.LimitBreakMultiplier + " (36, 40, 45)",
+              ScoreRules.LimitBreakMultiplier == 2.5f &&
+              ScoreRules.SpeedMultiplierFor(.36f) == ScoreRules.LimitBreakMultiplier &&
+              ScoreRules.SpeedMultiplierFor(.40f) == ScoreRules.LimitBreakMultiplier &&
+              ScoreRules.SpeedMultiplierFor(.45f) == ScoreRules.LimitBreakMultiplier &&
+              ScoreRules.IsLimitBreak(.36f) && !ScoreRules.IsLimitBreak(.35f));
+
+        // The flight trickle: the old 0.05 a second at "top speed" 0.6, in
+        // proportion below it, is exactly 1/12 per unit of distance at every
+        // speed the game reaches. Same income, named for what it is.
+        bool same = true;
+        float worst = 0f;
+        for (int i = 0; i <= 45; i++)
+        {
+            float speed = i / 100f;
+            foreach (float dt in new[] { 1f / 60f, 1f / 120f, .5f })
+            {
+                float old = .05f * Mathf.Min(1f, speed / .6f) * dt;
+                float now = ScoreRules.FlightDust(speed, dt);
+                float err = Mathf.Abs(now - old);
+                worst = Mathf.Max(worst, err);
+                same &= err <= 1e-6f * Mathf.Max(1f, old);
+            }
+        }
+        Check("flight dust per distance equals the old top-speed trickle at every speed 0-45 (worst error " + worst + ")", same);
+        Check("flight dust: nothing frozen or stopped", ScoreRules.FlightDust(.35f, 0f) == 0f && ScoreRules.FlightDust(0f, 1f) == 0f);
+        Check("score has no top-speed fields any more",
+              typeof(score).GetField("topSpeed") == null && typeof(score).GetField("dustPerSecondAtTopSpeed") == null);
+        Check("source: the trickle is ScoreRules.FlightDust",
+              System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs").Contains("ScoreRules.FlightDust(moveBackGround.speed, Time.deltaTime)"));
+
+        // Flash / Speedster / Super Sonic mark the cap and the limit break.
+        float cap = SpeedRamp.Cap, max = SpeedRamp.MaxBoost;
+        Check("milestones: below the cap, none (34, or 25 on a boost)",
+              achievementAPICalls.SpeedMilestones.Reached(cap - .01f, 0f) == 0 &&
+              achievementAPICalls.SpeedMilestones.Reached(.20f, .05f) == 0);
+        Check("milestones: natural 35 without a boost is Flash (1)", achievementAPICalls.SpeedMilestones.Reached(cap, 0f) == 1);
+        Check("milestones: boosted past the cap is Speedster (2)",
+              achievementAPICalls.SpeedMilestones.Reached(cap, SpeedRamp.BoostPerAtom) == 2);
+        Check("milestones: the full boost at the cap is Super Sonic (3)", achievementAPICalls.SpeedMilestones.Reached(cap, max) == 3);
+    }
+
+    // ---- 13. loops pay more for flight and kills ------------------------------------------------
+
+    static void LoopScoreScale()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        RealContext();
+        RunScore.BeginRun(true, true);
+        var rock = EnemyRoster.One(0, EnemyRole.Rock);
+        try
+        {
+            Check("loop score scale: x1 / 1.15 / 1.30 / 1.45, x1.6 from loop 4",
+                  LoopRules.ScoreScale(0) == 1f && Mathf.Approximately(LoopRules.ScoreScale(1), 1.15f) &&
+                  Mathf.Approximately(LoopRules.ScoreScale(3), 1.45f) && Mathf.Approximately(LoopRules.ScoreScale(4), 1.6f) &&
+                  Mathf.Approximately(LoopRules.ScoreScale(9), 1.6f));
+
+            long t = RunScore.Total;
+            RunScore.Tick(100f, .19f);
+            long first = RunScore.Total - t;
+            BreakChain();
+            long k0 = Kill(Enemy(rock));
+            BreakChain();
+
+            RunLoop.Advance();   // loop 2 (Index 1)
+            t = RunScore.Total;
+            RunScore.Tick(100f, .19f);
+            long second = RunScore.Total - t;
+            BreakChain();
+            long k1 = Kill(Enemy(rock));
+            BreakChain();
+            Check("flight: 100 s at HUD 19 pay " + first + " on the first pass and " + second + " on loop 2 (x1.15)",
+                  Mathf.Abs(first - 95f) <= 1f && Mathf.Abs(second - 95f * LoopRules.ScoreScale(1)) <= 1f);
+
+            for (int i = 0; i < 3; i++) RunLoop.Advance();   // Index 4: the cap
+            long k4 = Kill(Enemy(rock));
+            Check("kills: a rock pays " + k0 + " / " + k1 + " / " + k4 + " on loops 1 / 2 / 5 (5 x1, x1.15, x1.6)",
+                  k0 == ScoreRules.Rock && k1 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(1)) &&
+                  k4 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(4)));
+        }
+        finally
+        {
+            RunLoop.Reset();
+        }
     }
 }
