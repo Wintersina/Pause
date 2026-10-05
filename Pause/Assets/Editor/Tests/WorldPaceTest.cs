@@ -344,7 +344,7 @@ public static class WorldPaceTest
         popup.Show(2, ship, .3f, true, false, 0f, 0f);
         popup.ShowSkins(2, 3, 0f);
         Check("Volt Viper colour 4: START SPD 15", popup.StartSpeedText == "START SPD 15");
-        Check("the popup grows by the line's height", Mathf.Approximately(popup.CurrentHeight,
-              DockPopup.Height + DockPopup.SkinRowHeight + DockPopup.WeaponRowHeight + DockPopup.StartSpeedLineHeight));
+        Check("the popup grows by the line's height", Mathf.Approximately(popup.CurrentHeightUnits,
+              DockPopup.BaseHeight + DockPopup.SkinRowHeight + DockPopup.WeaponRowHeight + DockPopup.StartSpeedLineHeight));
     }
 }

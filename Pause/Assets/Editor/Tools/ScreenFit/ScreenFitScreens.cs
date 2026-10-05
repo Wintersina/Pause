@@ -69,12 +69,6 @@ public static class ScreenFitScreens
                         reason = "the single board's tab (~36 dp with padding); taller tabs are a design change" },
         new FitWaiver { screen = "leaderboard", kind = "SMALLTEXT", element = "/Name ",
                         reason = "27-character player names best-fit down to 8 px (decision: larger floor + ellipsis)" },
-        new FitWaiver { screen = "dock-popup", kind = "TAPSIZE", element = "~DockPopup/",
-                        reason = "the ship popup's size (scale 1.3225): swatches ~19-30 dp, action button ~25-35 dp (decision: popup size)" },
-        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "Panel/Skins/",
-                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp swatch prices / weapon line (decision: popup size)" },
-        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "~DockPopup/Panel/",
-                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp stats line (decision: popup size)" },
     };
 
     const float Dt = 1f / 60f;
@@ -369,10 +363,70 @@ public static class ScreenFitScreens
             dock.popup.SkipAppear();
             dock.popup.SendMessage("LateUpdate");
             Canvas.ForceUpdateCanvases();
+            PopupChecks(rig, dock, selected);
         }
         for (int k = 0; k < 20; k++)
             foreach (var thruster in UnityEngine.Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None)) thruster.SendMessage("LateUpdate");
         DevBadge(rig);
+    }
+
+    // The ship card's own floors, on top of the generic ones (7 pt type,
+    // 44 pt / 48 dp targets): its stats, prices and weapon line at least
+    // PopupSmallPt, the name PopupNamePt, the action's label PopupActionPt;
+    // the action, each swatch and the close button finger-sized; the drawn
+    // swatch chips PopupChipGapPt apart; and the card itself beside its ship
+    // (not over it), its tail pointing at it.
+    public const float PopupSmallPt = 11f, PopupNamePt = 13f, PopupActionPt = 16f, PopupChipGapPt = 8f;
+
+    static void PopupChecks(ScreenFitRig rig, SpaceDock dock, int selected)
+    {
+        var popup = dock.popup;
+        float minTap = rig.device.MinTapPx;
+        foreach (var t in popup.GetComponentsInChildren<Text>())
+        {
+            if (!t.enabled || string.IsNullOrWhiteSpace(t.text)) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            float pt = fontPx / rig.device.pxPerPt;
+            float floor = t.name == "Title" && t.transform.parent.name == "Panel" ? PopupNamePt
+                        : t.transform.parent.name == "Action" ? PopupActionPt : PopupSmallPt;
+            if (pt < floor - .05f)
+                rig.Fail("POPUP", "~DockPopup/" + t.transform.parent.name + "/" + t.name + " \"" + t.text + "\"",
+                         "type " + pt.ToString("F1") + "pt is under the card's " + floor + "pt floor", glyphs);
+        }
+        var hits = new List<KeyValuePair<string, Rect>>();
+        hits.Add(new KeyValuePair<string, Rect>("action", rig.HitRect(popup.ActionButton)));
+        hits.Add(new KeyValuePair<string, Rect>("close", rig.HitRect(popup.CloseButton)));
+        var chips = new List<Rect>();
+        if (popup.SkinRowVisible)
+            foreach (var w in popup.swatches)
+                if (w.root.gameObject.activeInHierarchy)
+                {
+                    hits.Add(new KeyValuePair<string, Rect>(w.root.name, rig.HitRect(w.button)));
+                    chips.Add(rig.PixelRect(w.body.rectTransform));
+                }
+        foreach (var kv in hits)
+            if (kv.Value.width < minTap - .5f || kv.Value.height < minTap - .5f)
+                rig.Fail("POPUP", "~DockPopup/" + kv.Key, "touch target " + (kv.Value.width / rig.device.pxPerPt).ToString("F0") + "x" +
+                         (kv.Value.height / rig.device.pxPerPt).ToString("F0") + "pt is under " + (minTap / rig.device.pxPerPt).ToString("F0"), kv.Value);
+        for (int i = 1; i < chips.Count; i++)
+        {
+            float gap = (chips[i].xMin - chips[i - 1].xMax) / rig.device.pxPerPt;
+            if (gap < PopupChipGapPt)
+                rig.Fail("POPUP", "~DockPopup/swatch chips " + (i - 1) + "-" + i, "drawn chips only " + gap.ToString("F1") + "pt apart", chips[i]);
+        }
+        // beside its ship: the card does not cover the hull, and the tail
+        // points at it (the ship's x is within the card's width)
+        Rect card = rig.PixelRect(popup.WorldRect);
+        Rect hull = rig.TightPixelRect(dock.bays[selected].hull);
+        float overlapY = Mathf.Min(card.yMax, hull.yMax) - Mathf.Max(card.yMin, hull.yMin);
+        float overlapX = Mathf.Min(card.xMax, hull.xMax) - Mathf.Max(card.xMin, hull.xMin);
+        if (overlapX > 1f && overlapY > hull.height * .15f)
+            rig.Fail("POPUP", "~DockPopup/card", "covers its own ship (" + overlapY.ToString("F0") + "px of the hull's " + hull.height.ToString("F0") + ")", card);
+        float shipX = rig.Pixel(dock.bays[selected].ship.position).x;
+        if (shipX < card.xMin || shipX > card.xMax)
+            rig.Fail("POPUP", "~DockPopup/card", "is not over its ship's column", card);
+        rig.AddImportant("ship card", card);
     }
 
     // ---- gameplay scenes: the world -------------------------------------------------------
