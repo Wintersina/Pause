@@ -49,6 +49,7 @@ public static class FriendlyFire
         if (go.TryGetComponent(out EliteShip elite))
         {
             EliteHits++;
+            if (EliteShip.HitBy == null) EliteShip.HitBy = "boss shot";
             elite.TakeHit(EliteDamage.FriendlyFire, at);
             return;
         }
@@ -117,7 +118,12 @@ public static class FriendlyFire
             scratch.Add(t);
         }
         for (int i = 0; i < scratch.Count; i++)
-            if (scratch[i] != null && scratch[i].isActiveAndEnabled) Hit(scratch[i].gameObject, at);
+            if (scratch[i] != null && scratch[i].isActiveAndEnabled)
+            {
+                EliteShip.HitBy = "mine blast";
+                Hit(scratch[i].gameObject, at);
+                EliteShip.HitBy = null;
+            }
         scratch.Clear();
     }
 

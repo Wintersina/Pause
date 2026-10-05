@@ -62,6 +62,7 @@ public static class AllTests
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("DifficultyRetuneTest", DifficultyRetuneTest.Execute),
         ("EliteTest", EliteTest.Execute),
+        ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyDensityTest", EnemyDensityTest.Execute),
         ("EnemyRosterTest", EnemyRosterTest.Execute),

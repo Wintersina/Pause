@@ -31,6 +31,27 @@ public class ClearTarget : MonoBehaviour
 
     float radius = -1f;
 
+    // ---- the elites' threat sensor (EliteEvasion.Sense) ----
+    // Where it was the last time the sensor looked and how fast it was
+    // moving (measured, so a weave, a lunge and a chaser all read true), and
+    // what it is, looked up once per object -- never per frame.
+    [System.NonSerialized] public Vector2 SensedAt, SensedVelocity;
+    [System.NonSerialized] public int SensedStep = -1;
+    [System.NonSerialized] public bool SensedMeasured;   // false: first sight, SensedVelocity is a guess
+    [System.NonSerialized] public EliteShip Elite;   // set by the elite itself when it joins the play
+    EnemyBrain brain;
+    bool classified, shotHitbox;
+
+    void Classify()
+    {
+        classified = true;
+        TryGetComponent(out brain);
+        shotHitbox = TryGetComponent(out EliteShotHitbox _);
+    }
+
+    public EnemyBrain Brain { get { if (!classified) Classify(); return brain; } }
+    public bool IsShotHitbox { get { if (!classified) Classify(); return shotHitbox; } }
+
     // Rough hit radius in world units, from the collider (or renderer) the
     // first time it's asked, so per-frame hit tests never call GetComponent.
     public float Radius

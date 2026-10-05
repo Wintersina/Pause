@@ -16,12 +16,12 @@ using UnityEngine;
 // numbers). -executeMethod EnemyDensityProbe.Run prints the table.
 public static class EnemyDensityProbe
 {
-    const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
+    internal const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
     static readonly MethodInfo SpawnStep = typeof(enmiesOnBoard).GetMethod("spawn", Inst, null, new[] { typeof(float) }, null);
     static readonly MethodInfo Select = typeof(enmiesOnBoard).GetMethod("SelectPhase", Inst);
-    static readonly FieldInfo Elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", Inst);
+    internal static readonly FieldInfo Elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", Inst);
     static readonly FieldInfo Rails = typeof(enmiesOnBoard).GetField("liveRails", Inst);
-    static readonly string[] Timers =
+    internal static readonly string[] Timers =
     {
         "railDelayTimer", "smEnmDelayTimer", "bigEnmDelayTimer", "smallAstroidDelayTimer", "midAstroidDelayTimer",
         "bigAstroidDelayTimer", "spawnAnimatedEnimeOneDelayTimer", "extraEnemyDelayTimer", "mineDelayTimer", "chaserDelayTimer",
@@ -90,7 +90,7 @@ public static class EnemyDensityProbe
 
     // ---- fixtures ----------------------------------------------------------
 
-    static enmiesOnBoard NewBoard()
+    internal static enmiesOnBoard NewBoard()
     {
         var board = new GameObject("~DensityBoard").AddComponent<enmiesOnBoard>();
         board.transform.position = new Vector3(0f, SpawnY, 0f);
@@ -110,13 +110,14 @@ public static class EnemyDensityProbe
     }
 
     static readonly List<SpawnFootprint> buffer = new List<SpawnFootprint>(128);
-    static readonly HashSet<ChaserEnemy> chasers = new HashSet<ChaserEnemy>();
+    internal static readonly HashSet<ChaserEnemy> chasers = new HashSet<ChaserEnemy>();
 
     // One frame of the whole board at scroll `v` (u/s), `t` on the weave clock.
-    static void StepBoard(enmiesOnBoard board, Transform ship, float t, float v)
+    // (`pilot`: where the stand-in ship flies this frame; null: the slow weave.)
+    internal static void StepBoard(enmiesOnBoard board, Transform ship, float t, float v, System.Func<float, Vector3> pilot = null)
     {
         SpawnSpace.ClockOverride = t;
-        ship.position = new Vector3(Mathf.Sin(t * .7f) * 1.8f, -3f, 0f);
+        ship.position = pilot != null ? pilot(t) : new Vector3(Mathf.Sin(t * .7f) * 1.8f, -3f, 0f);
         Select.Invoke(board, null);
         SpawnStep.Invoke(board, new object[] { Dt });
 
