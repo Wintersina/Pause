@@ -1,5 +1,4 @@
 using System.IO;
-using System.Reflection;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -26,7 +25,6 @@ public static class RailsVettingRender
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity");
         var cam = Camera.main;
         var walls = new[] { GameObject.Find("leftPipe"), GameObject.Find("rightPipe") };
-        var railX = typeof(enmiesOnBoard).GetMethod("WorldRailX", BindingFlags.NonPublic | BindingFlags.Static);
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         EnemyThreat.ForceShooting = true;
@@ -56,7 +54,7 @@ public static class RailsVettingRender
                 wb.Show(theme.displayName, false);
                 for (int i = 0; i < 30; i++) wb.Step(Dt);
 
-                float left = (float)railX.Invoke(null, new object[] { true }), right = (float)railX.Invoke(null, new object[] { false });
+                float left = enmiesOnBoard.WorldRailX(true), right = enmiesOnBoard.WorldRailX(false);
                 float inL, outL, inR, outR;
                 WorldPainter.VisibleRailEdges(walls[0], out inL, out outL);
                 WorldPainter.VisibleRailEdges(walls[1], out inR, out outR);
