@@ -31,7 +31,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 14. **Installed and validated — `ember_alien`:** Ember Imp rebuilt as a rugged soot-forge drone with basalt heat shields, copper bracing, orange vents, and a contained magenta furnace core; native seven-cell QA complete.
 15. **Installed and validated — `space_chaser`:** Steel Hound rebuilt as a rugged gunmetal pursuit drone with copper conduit, cyan navigation slit, and magenta core; native seven-cell QA complete.
 16. **Installed and validated — `frost_chaser`:** Frost Lancer rebuilt as a rime-armored copper pursuit lance with a cyan cryo core; native seven-cell QA complete.
-17. **Queued — `verdant_chaser`**
+17. **Installed and validated — `verdant_chaser`:** Dragonsting rebuilt as a thorn-leaf steel stinger with copper roots, resin sac, and toxic core; native seven-cell QA complete.
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
 19. **Queued — `space_big`**
 20. **Queued — `frost_big`**
