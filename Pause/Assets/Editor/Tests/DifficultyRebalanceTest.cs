@@ -195,10 +195,11 @@ public static class DifficultyRebalanceTest
 
     static void WorldSpeedCapsLoweredAndRampScaleWired()
     {
-        Check("Space's maxSpeed was lowered from the old 0.58",
-              WorldManager.Worlds[0].maxSpeed < 0.55f && WorldManager.Worlds[0].maxSpeed > 0.35f);
-        Check("Ember's maxSpeed was lowered from the old 0.78",
-              WorldManager.Worlds[3].maxSpeed < 0.70f && WorldManager.Worlds[3].maxSpeed > 0.50f);
+        // 2026-10: lowered again (0.46 -> 0.38, 0.62 -> 0.44): "too hard past speed 35"
+        Check("Space's maxSpeed was lowered from the old 0.58, and again from 0.46",
+              WorldManager.Worlds[0].maxSpeed < 0.46f && WorldManager.Worlds[0].maxSpeed > 0.35f);
+        Check("Ember's maxSpeed was lowered from the old 0.78, and again from 0.62",
+              WorldManager.Worlds[3].maxSpeed < 0.50f && WorldManager.Worlds[3].maxSpeed > 0.40f);
         Check("worlds stay ordered least to most top speed",
               WorldManager.Worlds[0].maxSpeed < WorldManager.Worlds[1].maxSpeed &&
               WorldManager.Worlds[1].maxSpeed < WorldManager.Worlds[2].maxSpeed &&

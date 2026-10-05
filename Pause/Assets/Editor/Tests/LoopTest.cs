@@ -423,7 +423,8 @@ public static class LoopTest
     {
         var expect = new (int hud, float m)[]
         {
-            (0, 1f), (19, 1f), (20, 1.25f), (34, 1.25f), (35, 1.5f), (49, 1.5f), (50, 2f), (64, 2f), (65, 2.5f), (72, 2.5f), (99, 2.5f),
+            // 2026-10: 20 / 35 / 50 / 65 -> 20 / 30 / 40 / 46, with the lower speed caps
+            (0, 1f), (19, 1f), (20, 1.25f), (29, 1.25f), (30, 1.5f), (39, 1.5f), (40, 2f), (45, 2f), (46, 2.5f), (50, 2.5f), (99, 2.5f),
         };
         foreach (var (hud, m) in expect)
             Check("HUD " + hud + " -> x" + m, Mathf.Approximately(ScoreRules.SpeedMultiplierFor(hud / 100f), m));

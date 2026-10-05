@@ -60,6 +60,7 @@ public static class EnemyDensityProbe
         using var sandbox = new TestHarness.Sandbox();
         try
         {
+            EnemyThreat.ForceShooting = true;
             EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
             Debug.Log("[DENSITY] pinned: HUD speed, level second -> spawns/s, on screen (mean / peak), shots, threats");
             foreach (int hud in HudPoints)
@@ -68,15 +69,17 @@ public static class EnemyDensityProbe
                 Debug.Log(string.Format("[DENSITY] pinned hud {0,2} t {1,5:F1}s  spawns/s {2:F2}  onscreen {3:F2} / {4:F0}  shots {5:F2}  threats {6:F2}",
                                         hud, LevelSecondFor(hud), s.spawnsPerSecond, s.onScreen, s.peakOnScreen, s.shots, s.Threats));
             }
-            foreach (float perSecond in new[] { ReferenceHudPerSecond })
-            {
-                var r = WholeRun(perSecond, 46f, 3);
-                Debug.Log(string.Format("[DENSITY] run reference ramp  spawns/s {0:F2}  onscreen {1:F2}  shots {2:F2}  threats {3:F2}",
-                                        r.spawnsPerSecond, r.onScreen, r.shots, r.Threats));
-            }
+            var r = WholeRun(ReferenceHudPerSecond, 46f, 3);
+            Debug.Log(string.Format("[DENSITY] run reference ramp  spawns/s {0:F2}  onscreen {1:F2}  shots {2:F2}  threats {3:F2}",
+                                    r.spawnsPerSecond, r.onScreen, r.shots, r.Threats));
+            var theme = WorldManager.Worlds[0];
+            r = WholeRun(t => 100f * SpeedRamp.SpeedAfter(0f, theme.speedRampPerSecond, theme.maxSpeed, t), 3);
+            Debug.Log(string.Format("[DENSITY] run live Space curve  spawns/s {0:F2}  onscreen {1:F2}  shots {2:F2}  threats {3:F2}",
+                                    r.spawnsPerSecond, r.onScreen, r.shots, r.Threats));
         }
         finally
         {
+            EnemyThreat.ForceShooting = false;
             SpawnSpace.ClockOverride = null;
             Clear();
         }
@@ -95,6 +98,8 @@ public static class EnemyDensityProbe
 
     public static void Clear()
     {
+        EliteSystem.Clear();
+        EnemyThreat.Reset();
         foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Object.DestroyImmediate(f.gameObject);
         foreach (var r in Object.FindObjectsByType<RailLaneScroller>(FindObjectsSortMode.None)) Object.DestroyImmediate(r.gameObject);
         foreach (var b in Object.FindObjectsByType<enmiesOnBoard>(FindObjectsSortMode.None)) Object.DestroyImmediate(b.gameObject);
@@ -130,6 +135,15 @@ public static class EnemyDensityProbe
                 r.position += Vector3.down * v * Dt;
                 if (r.position.y < -12f) { Object.DestroyImmediate(r.gameObject); rails.RemoveAt(i); }
             }
+        // LateUpdate: the brains (pattern + attack), then the mines settle on
+        // their rails, then the chasers steer; then the shots
+        foreach (var f in buffer)
+        {
+            EnemyBrain brain;
+            if (f == null || !f.TryGetComponent(out brain) || !brain.enabled) continue;
+            brain.TargetOverride = ship;
+            brain.Step(Dt);
+        }
         foreach (var f in buffer)
         {
             RailMineMount mount;
@@ -151,6 +165,7 @@ public static class EnemyDensityProbe
             float y = f.transform.position.y;
             if (y < -8f || y > 20f) Object.DestroyImmediate(f.gameObject);
         }
+        EliteSystem.Step(Dt);
     }
 
     static int OnScreen()
