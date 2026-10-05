@@ -1,0 +1,260 @@
+# Speed cap, limit break and the open portal
+
+Branch `feature/speed-cap-and-open-portal` (from `integrate/oct05-full-master`). This design is committed
+before the implementation; the checklist at the bottom is updated with each stage. Numbers marked
+*(measured)* are filled in from the tests once they run. Nothing here has been played: it is simulation
+and tests only.
+
+The request: remove "top speed" from scoreboards and stats; cap speed at 35 unless the boost shield
+breaks the limit; make the ramp to 35 slightly slower; let ships that start faster reach the boss sooner
+and loop more; keep the portal open at the end of every level until the player flies through it, with
+enemy density rising until they do or die, the final loop back included.
+
+## 1. Speed
+
+### The cap
+
+`SpeedRamp.Cap` = **0.35 (HUD 35)** is the one natural speed limit: every world, every loop, the
+tutorial. Gone: `WorldTheme.maxSpeed` (38 / 40 / 42 / 44), the per-loop cap bonus (+1 / +2), KEEP
+FLYING's +4 and `LoopRules.AbsoluteMaxSpeed` (50).
+
+`moveBackGround.speed` stays the effective scroll speed everything reads. It is now
+`natural + SpeedRamp.Boost`:
+
+* **natural** is what the ramp owns. `SpeedRamp.Tick` never raises it past the cap, and everything that
+  sets a speed for a level (run start, portal arrival) goes through `SpeedRamp.SetNatural`, which clamps.
+* **Boost** is the limit break (below). It is the only way the effective speed passes 35.
+
+### The curve
+
+Linear at the world's `speedRampPerSecond` up to `SpeedRamp.EaseKnee` (HUD **25**), then an ease into
+the cap: the rate falls off as the square root of the distance left to the cap, so speed follows a
+parabola that arrives at 35 with zero slope, in a finite time (`2 x (cap - knee) / rate` after the knee).
+No wall, no asymptote. `Tick`, `SpeedAfter`, `DistanceOver` and `SecondsToCover` all follow it (closed
+form; the inverse is a bisection).
+
+Tunables, all in `SpeedRamp`: `Cap` .35, `EaseKnee` .25 (the ease spans `Cap - EaseKnee`).
+
+Seconds from a start of 0 to each HUD speed, first pass (old = linear to 30, 40% rate above):
+
+| World | rate HUD/s | to 10 old / new | to 20 | to 30 | to 35 | old cap, reached at |
+|---|---|---|---|---|---|---|
+| Space | 0.315 | 31.7 / 31.7 | 63.5 / 63.5 | 95.2 / 98.0 | 134.9 / 142.9 | 38 at 159 s |
+| Frost | 0.330 | 30.3 / 30.3 | 60.6 / 60.6 | 90.9 / 93.5 | 128.8 / 136.4 | 40 at 167 s |
+| Verdant | 0.345 | 29.0 / 29.0 | 58.0 / 58.0 | 87.0 / 89.5 | 123.2 / 130.4 | 42 at 174 s |
+| Ember | 0.365 | 27.4 / 27.4 | 54.8 / 54.8 | 82.2 / 84.6 | 116.4 / 123.3 | 44 at 178 s |
+
+So the first 80 s of a world are unchanged, 30 comes about 3 s later, 35 about 7-8 s later, and 35 is
+where it stops. (`SpeedCapTest` prints and checks this table.)
+
+### What still differs between worlds
+
+The cap is shared. Worlds differ by: ramp rate (above: Ember reaches 35 twenty seconds before Space),
+`enemyRampScale` (phases arrive sooner: x1.00 / 1.10 / 1.20 / 1.35), the roster itself (each world's
+enemies and behaviours), pilot load (3-2 in Space and Frost, 3.5-2.5 in Verdant and Ember), the boss.
+Unchanged by this branch except that the cap no longer separates them.
+
+### Limit break (the blue atom's boost)
+
+While the blue atom's shield is up the ship boosts, as today: +5 HUD per blue atom caught while shielded.
+
+| Tunable (`SpeedRamp`) | Value | Meaning |
+|---|---|---|
+| `BoostPerAtom` | .05 | each blue atom adds this to the boost target |
+| `MaxBoost` | .10 | the most the boost can add (HUD 45 at the cap) |
+| `BoostRisePerSecond` | .25 | the boost comes on over 0.2 s (was a one-frame jump) |
+| `BoostSettlePerSecond` | .05 | when the shield ends the boost eases off: 1 s per atom |
+
+* The boost is an offset on top of natural speed; the ramp keeps running underneath. (Before: the +5 was
+  added to the one speed value, the ramp then stopped at the cap, and the -5 at the end left the ship
+  5 under where it would have been. That is fixed by the split.)
+* Below the cap a boost is just a boost. At or near the cap it passes 35: the limit break. When the
+  shield ends, speed returns smoothly to natural, so to at most 35.
+* **Distance flown during a boost counts toward the level** (the level clock integrates the effective
+  speed). Boosting is how you get ahead.
+* A boss still holds speed at 20: the boost is cancelled when the intro starts and atoms give none during
+  the fight (as before).
+* Fairness above 35: `EnemyDensity` clamps at HUD 35 (rate, ceiling, pilot load: the same as at 35); shots
+  are world-space or board-relative already; the estimate to the boss (`SecondsLeftInWorld`) is taken on
+  natural speed, so a boost only makes the boss arrive up to about a second early and the countdown
+  converges as it does for any speed change. The shield's release shockwave and "+5 ABSORB" do not read
+  speed; tests run them at boosted speed.
+
+### Ship start speed is the advantage
+
+Unchanged table (`ShipStartSpeed`): regular ships 0 / 5 / 10 / 15 / 20 by colour, high-end 10 - 30. A
+world is a distance (what a start of 0 covers in 120 s on the world's curve), so a faster start meets the
+boss sooner, and arrives in every later world at its start speed again (or the loop's arrival speed,
+whichever is higher). With the cap at 35 nobody can out-ramp a fast start: time to the boss by start
+speed is in the table below *(measured, `SpeedCapTest`)*.
+
+Starting at or near 35 (tested with a start override of 35): the calm arrival is skipped (HUD >= 10, as
+before), the first enemy is primed, the boss warning's lead (30 s) is shorter than the shortest possible
+level (about 63 s at a flat 35), density starts at its HUD-35 values.
+
+### Things that were keyed to speeds above 35
+
+| What | Was | Now |
+|---|---|---|
+| `ScoreRules.SpeedTierHud` | 20 / 30 / 40 / 46 -> x1.25 / 1.5 / 2 / 2.5 | 20 / 30 / 35 -> x1.25 / 1.5 / 2; **limit break** (HUD above the cap) -> `LimitBreakMultiplier` x2.5 |
+| `EnemyDensity` rate / ceiling / pilot load | sampled to 46, flat above `HighHud` 35 | unchanged: 35 is now the top of the natural range |
+| Loop cap bonus, KEEP FLYING speed | +1 / +2, +4, never past 50 | removed |
+| `achievement_speedster` | never unlocked by code | **repurposed**: unlocked on the first limit break (speed above 35 with the boost shield) |
+| Top Speed leaderboard, best speed | submitted, shown | removed (section 2) |
+
+Scoring potential: x2 used to need HUD 40 (a later world's cap or a fast ship) and x2.5 needed 46 (loops
+only). Now x2 is the sustained final speed, and x2.5 is the few seconds of a limit break. A stock ship
+reaches 35 only late in Verdant / Ember or on a loop; a fast ship holds x2 for most of every level. That
+is the intended reward for start speed. The chain x speed cap (`MaxTotalMultiplier` 8) is unchanged.
+
+### Loops: another axis than speed
+
+Loops can no longer add speed. Kept from before (`LoopRules`, capped at `MaxScaledLoops` 3): arrival
+speed 4 / 8 / 12, ramp x1.1 / 1.2 / 1.3 (35 arrives sooner), enemy phases x1.15 / 1.30 / 1.45, spawn
+density x1.1 / 1.2 / 1.3, boss cooldowns x0.9 / 0.8 / 0.7 and one more pattern from the start, elites
+more often, boss and world bonuses x1.5 / 2 / 2.5 / 3.
+
+New per loop (all tunables in `LoopRules`):
+
+| Axis | Tunable | Loop 2 / 3 / 4+ | Where it lands |
+|---|---|---|---|
+| Pilot load | `PilotLoadPerLoop` .5 | +0.5 / +1 / +1.5 | `EnemyDensity.MaxPilotLoad` |
+| Threat ceiling | `ThreatsPerLoop` 1 | +1 / +2 / +3 bodies (x view scale) | `EnemyDensity.MaxThreats` |
+| Fighter tiers | `TierShiftPerLoop` 1, cap 2 | tiers shift up 1 / 2 / 2 | `enmiesOnBoard.ChooseExtraDef` |
+| Shot budget | `ShotsPerLoop` 2 | 14 / 16 / 18 roster shots alive | `EnemyThreat.ShotBudget` |
+| Shot cadence | `VolleyGapPerLoop` .1 | gap x0.9 / 0.8 / 0.7 | `EnemyThreat.Gap` |
+| Score | `ScorePerLoop` .15, cap at loop 5 | flight and kill points x1.15 / 1.30 / 1.45 (x1.6 at most) | `RunScore` (applied after the chain x speed cap) |
+
+## 2. "Top speed" is gone
+
+Removed: the death panel's "SPEED n / BEST n" line, the saved best speed (`HighestSpeed` is no longer
+read or written by the game), the Top Speed leaderboard (table row, submission, the legacy
+`leaderboard_highest_speed_reached` call, `LeaderboardRunStats.topSpeed`), `score.topSpeed` and
+`dustPerSecondAtTopSpeed`. The live SPEED read-out in the gameplay HUD stays: it is the current speed.
+
+* **Dust.** The trickle was `0.05 x min(1, speed / 0.6)` dust per second. Speed never reached 0.6, so it
+  was always proportional to speed: 1/12 dust per unit of speed-seconds. It is now exactly that, named
+  for what it is: `ScoreRules.DustPerDistance` = 1/12 per unit of distance flown. Same income to the
+  last digit for every run; a limit break pays for the extra distance as it did before.
+* **Saves.** `ProgressSnapshot.highestSpeed` stays in the cloud-save format as a legacy field: it still
+  round-trips and merges (max), so an older build on another device keeps its value and old saves load.
+  The game no longer uses it.
+* **Stores** (cannot be done from code; listed in `docs/leaderboards.md`): archive / stop showing the
+  "Highest Speed Reached" leaderboard in Play Console and App Store Connect; re-word the Speedster
+  achievement.
+
+## 3. The portal stays open
+
+### State machine
+
+`WorldManager.Stage` (replaces `FinalRoute`: `None / Choosing / KeepFlying / LoopBack / Encore`):
+
+```
+Level --distance flown--> Boss --encounter over--> Portal --ship enters--> Level (next world,
+                                                     |                      or the run's start world
+                                                     +-- stays until entered, or the pilot dies     with loop + 1)
+```
+
+* **Level**: the level clock eats distance. The boss warning runs in its last 30 s.
+* **Boss**: `BossEncounter` (unchanged).
+* **Portal**: the portal is open and waiting. The level clock is stopped. `PortalPressure` runs on
+  flight time. This is the same in every world. After the final world the portal leads back to the
+  world the run started in, one loop on ("SPACE  LOOP 2"), wearing that world's colour.
+
+Deleted: `FinalChoicePanel` (the KEEP FLYING / LOOP BACK prompt and its countdown), KEEP FLYING and
+its endless escalation, the encore pass, `RunLoop.EncorePass` / `DifficultyIndex`, the missed portal's
+retry lap (`OnPortalMissed`, `portalLifetime`, `LoopPortalRetrySeconds`), `LoopRules.Endless*`,
+`AutoPickSeconds`, `MaxSpeed*`, `AbsoluteMaxSpeed`.
+
+### How the portal stays reachable
+
+It appears above the view, comes down at 1.6 u/s to a station 62% of the way up the view and **holds
+there**, drifting slowly sideways (a sine, +/-0.6 u, 9 s period) and never leaving. It moves only on
+flying frames. There is no lifetime and no "missed".
+
+Its approach stays clear:
+
+* For the grace period nothing changes from today: no pilot is admitted and live pilots climb out
+  (`PilotAirspace.MustClear`), elites do not lift off.
+* After the grace, pilots are admitted again as part of the pressure, but never into the portal's
+  column (`PilotAirspace` treats the portal's drift band plus a margin as reserved, outside the
+  reserved-share accounting), and chasers orbit, they do not park. Board-riding hazards scroll through
+  and are gone in about a second. So nothing can sit on the portal.
+* Elites stay out for the whole wait (they pay dust and take seconds to lift off).
+
+### Pressure (`PortalPressure`, every number a tunable)
+
+`Seconds` = flight seconds since the portal opened (paused time does not count).
+`Level` = `max(0, Seconds - GraceSeconds) / LevelSeconds`, continuous and unbounded.
+Defaults: `GraceSeconds` 8, `LevelSeconds` 10.
+
+| Dial | Formula | At 8 s | 30 s | 60 s | 120 s | 240 s | Bound |
+|---|---|---|---|---|---|---|---|
+| Level | | 0 | 2.2 | 5.2 | 11.2 | 23.2 | none |
+| Spawn rate | x `GraceDensity` .6 in the grace, then x(1 + .35 Level) | x1 | x1.77 | x2.82 | x4.92 | x9.12 | none |
+| Threat ceiling (bodies + half-shots, 10 u view) | +1.5 per Level | 10 | 13.3 | 17.8 | 24 | 24 | `BodyCap` 24 (x view scale, at most `BodyCapAbsolute` 36) |
+| Pilot load | +.5 per Level | base | +1.1 | +2.6 | +4 | +4 | `PilotLoadBonusCap` 4 |
+| Chasers | +1 per 2 Levels | base | +1 | +2 | +3 | +3 | `ChaserBonusCap` 3 |
+| Roster shots alive | +2 per Level | 12 | 16 | 22 | 30 | 30 | `ShotCap` 30 |
+| Volley gap | / (1 + .3 Level) | 0.40 s | 0.24 | 0.16 | 0.09 | 0.05 | none |
+| **Overdrive** = Level past `OverdriveLevel` 6 | | 0 | 0 | 0 | 5.2 | 17.2 | none |
+| Roster shot speed | x(1 + .08 Overdrive) | x1 | x1 | x1 | x1.42 | x2.38 | none |
+| Chaser pursuit speed | x(1 + .10 Overdrive) | x1 | x1 | x1 | x1.52 | x2.72 | none |
+| Guaranteed ship gap in a row | x max(0, 1 - .08 Overdrive) | x1 | x1 | x1 | x0.58 | 0 (from 193 s) | 0 |
+
+The first ten seconds after the grace are gentle on purpose (Level 1 at 18 s is +35% spawns and one and
+a half more bodies). Bodies are capped for 60 fps; when the caps are reached (about 70-100 s) the
+**overdrive** dials take over and have no ceiling: shots and chasers get faster without limit and the
+row guard that guarantees a ship-wide gap shrinks to nothing, so rows can close. Staying is eventually
+fatal. The speed cap applies throughout (natural speed climbs from the boss's 20 toward 35 as usual).
+
+### Anti-farm
+
+After the grace the run **earns nothing until the portal is flown**: no points from distance, kills,
+elites, absorbs, pickups or teleports, no kill chain (it neither starts nor extends), no death-combo
+points, no star dust (trickle, kills, pickups), and star clusters stop being released. Boss and world
+bonuses are not affected (the world bonus is paid on entering). During the grace everything pays as
+usual. `PortalPressure.EarningsClosed` is the one switch; `SpeedCapTest` / `OpenPortalTest` hold it.
+
+### What the player sees and hears
+
+* "PORTAL OPEN" banner when it appears (as today).
+* At the end of the grace: "ENTER THE PORTAL" banner; from then a HUD chip under the banner area,
+  "PORTAL  DANGER n" (n = whole Level + 1), and an edge glow that grows with Level, in the destination
+  world's portal colour shifting toward white-hot amber at high levels. Never the player's red
+  (`HostileGlow.IsPlayerRed` is checked on every colour in the test).
+* The portal itself pulses faster with Level (its core's existing pulse).
+* Sound: `PortalPressure.Beat` (Open, GraceOver, LevelUp, Entered) drives the boss warning's procedural
+  ticks (`BossWarningAudio`), no audio files.
+* The chip is its own component (`PortalPressureHud`), on its own overlay canvas. **Placement note for
+  the HUD-layout work:** it must end up inside the rails and clear of cutouts; today it is centred
+  horizontally under the banner line.
+
+Art / audio gaps: no dedicated portal-waiting art, no pressure meter art, no dedicated sound.
+
+### Boss warning
+
+`BossWarning.Read`: `None` while the portal is open (Stage Portal) and whenever this visit's boss is
+done; `Ahead` only in Stage Level. The KEEP FLYING / LOOP BACK / encore / missed-portal cases are gone
+with their states. A warning can never run while a portal waits.
+
+## Open questions
+
+1. Grace 8 s / Level every 10 s: is the wait punished too early or too late? (Tunables.)
+2. Should the earnings switch also stop the blue atom's own 2 dust and atoms' points? (It does today.)
+3. `MaxBoost` .10 allows HUD 45 with two blue atoms in one shield. Lower it to .05 for a hard 40?
+4. Loop score x1.15 per loop: enough to make loops "worth more" without speed?
+5. The portal holds in view. If it should instead swing past repeatedly, `Portal` has the station
+   numbers in one place.
+
+## Progress
+
+* [x] Study, this design
+* [ ] Stage 1: speed cap, curve, limit break
+* [ ] Stage 2: top speed removed (panel, leaderboard, dust, achievement), docs/leaderboards.md
+* [ ] Stage 3: loop state machine, open portal, FinalChoicePanel deleted
+* [ ] Stage 4: PortalPressure (escalation, anti-farm), HUD chip, audio hook
+* [ ] Stage 5: per-loop axes, score tiers
+* [ ] Stage 6: tests (new suites, existing expectations), AllTests.RunAll
+* [ ] Measured tables filled in
+* [ ] Play it (not done: simulation and tests only)
