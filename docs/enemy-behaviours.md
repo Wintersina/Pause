@@ -682,3 +682,116 @@ this Unity Mono; `EliteTest`'s two older allocation checks still use it and prov
       should hurt elites (roster shots do not today, so elites ignore them)
 * [ ] An exact predictor for weaving bodies (ask `EnemyBrain` where its pattern will be instead of extrapolating a
       straight line) would let elites thread alien lines; today they give weavers extra room instead
+
+## Rails and view
+
+Branch `fix/rails-vetting` (from `integrate/oct05-full-master`). The roster vetted against the reinforced rails
+and the wider, taller camera (`CameraFit.GameplayHalfWidth` 3.72, approved by the user as permanent). Headless
+tests and editor renders only; nothing here has been played.
+
+### Authoritative values
+
+| What | Value | Where it comes from | Who uses it |
+|---|---|---|---|
+| View half-width | 3.72 u on phones | `CameraFit.GameplayHalfWidth` | camera |
+| View height | 13.2 u at 1080x1920, 17.4 u at 1080x2520 (10 u as authored) | `CameraFit.ViewTop` / `ViewBottom` | pilots, threat ceiling, spawner, probes |
+| Drawn rail, inner edge | 2.606 u in all four worlds | `WorldPainter.VisibleRailEdges` | `BossRails.InnerEdge`, mine mount |
+| Rail edge for gameplay | 2.606 u from the moment rails are painted | `BossRails.InnerEdge` (`WorldPainter.Apply` now calls `Measure`) | elites (`EliteSystem.RailEdge`), elite and roster shots, boss shots, death crash |
+| Rail mine centre | 2.436 u | `enmiesOnBoard.WorldRailX` = `RailMineArt.MountX(inner)` = inner + `ClampBite` 0.16 - `ClampReach` 0.33 | spawner |
+| Enemy lane | 2.35 u (centres stay within 2.35 minus half a body) | `SpawnLane.LaneHalf` | `EnemyBrain`, `PilotAirspace`, `SpawnSpace`, `ShieldShockwave`, `ChaserEnemy` |
+| Ship's reach | 2.4 u (centre) | `movePlayer` clamp, `BossConfig.LaneHalfWidth` | player, bosses |
+
+### Rail mines
+
+* **Mount.** A mine's pivot is its body's centre; its clamp reaches 0.33 u toward the wall (measured in every
+  atlas cell). At the old 2.35 u the clamp's face ended at 2.68 u, on the rail's lamp glow but short of its
+  solid body, so the mine read as hanging beside the rail. It is now derived from the drawn rail: the clamp's
+  face sits 0.16 u inside the rail's inner edge, which puts the centre at 2.436 u, 0.086 u further out, the
+  same on both walls and at both phone shapes. With no rail art (a bare wall, headless tests) it stays 2.35.
+* **Still a hazard.** Its 0.62 u box spans 2.13 to 2.75 u; the ship's centre reaches 2.4 u, so a ship at its
+  clamp is inside the box. Chosen on purpose: a real hazard at the edge of the lane, not decoration.
+* **Motion.** Position on the rail line = rail + spacing + `Slide` (the brain: Patrol, Creep) + `Shove` (the
+  shockwave). x is always the rail's. Tested through slides, shoves both ways and a scrolling rail.
+* **Scroll (decision).** Mines ride the board's scroll like every hazard: gameplay position has to agree with
+  rocks, pickups and `SpawnSpace`. The rail ART was what disagreed: it advanced one texture tile per unit of
+  speed, a tile being 5.2 u (Frost, Verdant) or 6.8 u (Space, Ember), against the board's 30 u. The rail art
+  now falls at the board's rate (`moveBackGround.RailTilesPerSecond`), so a clamped mine does not slide along
+  its rail's art. This is a visible change to the rails at speed (about five times faster);
+  `moveBackGround.RailRidesBoard = false` restores the old rate.
+* **Firing.** Shots leave 0.5 u inside the mine, on the lane's side, inside the rail edge, and cross the lane;
+  from the new mount that is 1.94 u. The tell is the mine's own waking -> charging loop plus the charge
+  light; both draw over the rail art (mine sorting order 12).
+* **Blast.** `FriendlyFire.MineBlastRadius` 1.05 u from 2.436 reaches in to 1.39 u: its own fifth of the lane.
+* **Art.** All 16 cells are whole. Space and Frost carry none of the player's red. **Art gap:** the Ember
+  mine's lava is orange-red (42% of the dormant cell is inside `HostileGlow`'s red band) and the Verdant
+  mine's thorns touch it (14%).
+
+### The strip between the lane and the rail
+
+Enemy bodies stop at 2.35 u, the ship's centre at 2.4 u (its hull to about 2.69 u), the drawn rail starts at
+2.606 u. Only the backdrop shows in that strip; rail mines (2.13 to 2.77 u), shots (they break at 2.606 u) and
+the ship's own hull enter it. **Recommendation:** leave the lane at 2.35 u and the ship at 2.4 u. Widening the
+enemy lane to the rail would add 0.25 u a side that the ship's centre cannot reach, so hazards there could
+only be grazed; widening the ship's reach is a player-feel change that needs the user. The strip reads as the
+rail's hardware zone now that the mines sit in it.
+
+### The rail quads' colliders
+
+The padded quads carry a 3D `MeshCollider` and their bounds reach in to about 1.87 u. Nothing touches them:
+the walls have no 2D collider or body, and no script makes a 3D physics query or receives a 3D collision
+(`RailsVettingTest` scans for it). Elites' rail crashes, shots and the death crash use `BossRails.InnerEdge`.
+
+### The taller view
+
+Everything a pilot flies by is multiplied by `EnemyBrain.ViewScale` (view height / 10): station depth, entry,
+exit, run and descend speeds, dives, the windup clearances and its shots' speed. Measured with a Warden in a
+10 / 13.2 / 17.4 u view: station 16% of the way down the screen in all three, 10.1 s in view in all three, and
+its shell reaches the ship's row in 1.40 / 1.43 / 1.45 s (4.3 / 5.6 / 7.4 u/s). Lateral numbers are not scaled.
+Chasers' pursuit speeds are not scaled (they chase the ship, wherever it is).
+
+The threat ceiling grows with the board the view shows (`EnemyDensity.ViewScale`): 10-11 bodies in a 10 u
+view, about 16-17.5 at 17.4 u.
+
+Threat table re-measured in the real phone views. The original spawner was never measured there; all its
+enemies rode the board, so "original" is the recorded number scaled by view height.
+
+| HUD | 13.2 u view: original / now / cut | 17.4 u view: original / now / cut | pilots in view | shots in flight |
+|---|---|---|---|---|
+| 5 | 8.3 / 5.6 / 33% | 10.9 / 7.2 / 34% | 0.5-0.6 | 0.78 |
+| 10 | 8.7 / 6.5 / 25% | 11.5 / 8.3 / 28% | 0.6 | 0.84-0.92 |
+| 20 | 13.3 / 6.8 / 49% | 17.5 / 8.9 / 49% | 1.2-1.3 | 0.39-0.49 |
+| 30 | 20.1 / 9.2 / 54% | 26.4 / 11.8 / 55% | 1.8-2.0 | 0.52-0.71 |
+| 35 | 26.0 / 9.5 / 63% | 34.1 / 11.9 / 65% | 1.7-1.8 | 0.38-0.57 |
+| 40 | 22.9 / 9.0 / 61% | 30.1 / 12.0 / 60% | 1.8-1.9 | 0.44-0.74 |
+| 46 | 20.0 / 8.2 / 59% | 26.3 / 10.9 / 58% | 1.9-2.0 | 0.59-0.61 |
+| whole run | 13.2 / 6.8 / 49% | 17.3 / 8.3 / 52% | 1.1-1.2 | 0.59-0.72 |
+
+No retune was needed: the cut holds at 49-52% over a run in both views (47% in the authored view).
+
+### Calm arrival
+
+Codex's 8 s spawn-free window ran once per scene load (a flag on the component), though its comment said
+"a new world begins with". It now belongs to each world arrival: a portal or a loop starts it again, unless
+the ship arrives at SPEED 10+. Nothing spawns in it (hazards, pilots, chasers; the old world's deferred queue
+is dropped), and when it ends the slots come in staggered over ten seconds (`StaggerAfterCalm`), not as a
+burst. Elites cannot lift off before 20 s in a world, so they are outside it already.
+
+### Elites with pilots
+
+* The spawn shadow (`ISpawnShadow`) is read only by `SpawnSpace.Fits`, which pilots do not go through, so an
+  elite cannot block a pilot's admission and there is no deadlock. Pilot admission now prefers a column no
+  elite is hovering over and takes it anyway on its last tries (`PilotAirspace.EliteOver`, read-only).
+* `EliteSurvivalProbe` on this branch (real pilots, world-space shots, art repairs merged), 192 solo flights:
+  60% died to the board with evasion off, 8% with it on (rail deaths 20 -> 2); groups 85% -> 6%; a hunting
+  pilot still kills 94 of 96. The probe runs in the authored 10 u view.
+* No elite file was edited.
+
+## Progress / next steps (rails)
+
+* [x] Rail-mine audit, mount on the drawn rail, rail art on the board's scroll
+* [x] Rail edge right from scene start; colliders checked; lane/rail strip documented
+* [x] Pilots and threat ceiling follow the view; table re-measured at both phone shapes
+* [x] Calm arrival per world, staggered
+* [x] `RailsVettingTest`; `AllTests.RunAll` 92 suites, 90 pass (Frost wrapper contrast and Verdant mid value: known)
+* [ ] On a device: rail scroll at speed, mines on the rails, pilots' distance from the ship, calm arrivals
+

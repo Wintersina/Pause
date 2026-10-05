@@ -51,7 +51,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 34. **Installed and validated — `ember_rock_islet`** — rugged floating basalt shelf with slag, copper clamps, and molten seams; seven-cell boundary and flipbook continuity checked.
 35. **Installed and validated — `ember_rock_cinder`** — rugged stacked cinder furnace blocks with copper plumbing and a molten core; seven-cell boundary and flipbook continuity checked.
 36. **Installed and validated — `ember_rock_obsidian`** — rugged copper-braced violet obsidian blade with a molten internal vein; seven-cell boundary and flipbook continuity checked.
-37. **Queued — rail-mine audit:** all four rows, art and rail-clamped scrolling behavior.
+37. **Done (code; art gap open) — rail-mine audit** (`fix/rails-vetting`, `docs/enemy-behaviours.md` "Rails and view"): all 16 cells whole; mines now clamp to the drawn rail (centre 2.436 u, clamp 0.16 u inside the rail art) on both walls and phone shapes; the rail art scrolls at the board's rate so a mine no longer slides along it; slide + shove stay on the rail line. **Open art item:** the Ember row's lava is orange-red (42% of the dormant cell in the player's red band) and the Verdant row's thorns touch it (14%): recolour toward amber / magenta-pink.
 38. **Queued — impact/destruction VFX family:** enemy impacts, explosions, debris.
 39. **Queued — projectile-hazard VFX family:** projectiles and telegraphs.
 40. **Queued — Space boss support:** `Space_shots`, `Space_card`, animation-support audit.
