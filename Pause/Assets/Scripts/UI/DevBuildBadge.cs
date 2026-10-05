@@ -47,11 +47,17 @@ public class DevBuildBadge : MonoBehaviour
 
     void Update() { Place(); }
 
-    // Clear of the rounded corner / gesture bar on phones.
+    // Clear of the rounded corner / gesture bar on phones. Android reports no
+    // inset for a display's rounded corners (only cutouts and bars), so with
+    // no bottom inset the tag keeps CornerMargin from both edges: enough to
+    // clear the arc of the roundest phone corners (about 0.3 x the radius).
+    public const float CornerMargin = 24f;
+
     void Place()
     {
         float scale = canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
         var safe = ScreenInfo.SafeArea;
-        rect.anchoredPosition = new Vector2(safe.xMin / scale + 10f, safe.yMin / scale + 8f);
+        float left = safe.xMin / scale, bottom = safe.yMin / scale;
+        rect.anchoredPosition = new Vector2(left + Mathf.Max(10f, CornerMargin - left), bottom + Mathf.Max(8f, CornerMargin - bottom));
     }
 }

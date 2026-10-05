@@ -20,6 +20,9 @@ public class SpawnAboveCamera : MonoBehaviour
     public float margin = 0.5f;
 
     int lastScreenW = -1, lastScreenH = -1;
+    // CameraFit may settle the camera's size after this object's own Start /
+    // Update in the same frame; follow the size itself, not only the screen.
+    float lastCamSize = -1f;
 
     void Start()
     {
@@ -28,7 +31,9 @@ public class SpawnAboveCamera : MonoBehaviour
 
     void Update()
     {
-        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
+        var cam = Camera.main;
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH
+            || (cam != null && cam.orthographic && !Mathf.Approximately(cam.orthographicSize, lastCamSize)))
             Reposition();
     }
 
@@ -39,6 +44,7 @@ public class SpawnAboveCamera : MonoBehaviour
 
         lastScreenW = ScreenInfo.Width;
         lastScreenH = ScreenInfo.Height;
+        lastCamSize = cam.orthographicSize;
 
         // Camera y is not assumed to be exactly 0 -- add its own position so
         // this is correct even if a scene's camera is not perfectly centred.

@@ -22,6 +22,10 @@ public class RailFit : MonoBehaviour
 
     MeshFilter meshFilter;
     int lastScreenW = -1, lastScreenH = -1;
+    // The camera's size is what the rail is fitted to: CameraFit may settle
+    // it after this object's own Start / Update in the same frame, and a
+    // screen-size check alone would then never refit the rail.
+    float lastCamSize = -1f;
 
     void Start()
     {
@@ -31,8 +35,14 @@ public class RailFit : MonoBehaviour
 
     void Update()
     {
-        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH || CameraSizeChanged())
             Reposition();
+    }
+
+    bool CameraSizeChanged()
+    {
+        var cam = Camera.main;
+        return cam != null && cam.orthographic && !Mathf.Approximately(cam.orthographicSize, lastCamSize);
     }
 
     void Reposition()
@@ -40,6 +50,7 @@ public class RailFit : MonoBehaviour
         var cam = Camera.main;
         if (cam == null || !cam.orthographic) return;
         if (meshFilter == null || meshFilter.sharedMesh == null) return;
+        lastCamSize = cam.orthographicSize;
 
         float meshHeight = meshFilter.sharedMesh.bounds.size.y;
         if (meshHeight <= 0f) return;

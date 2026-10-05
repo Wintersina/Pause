@@ -66,6 +66,40 @@ public class CameraFit : MonoBehaviour
             Debug.Log(string.Format("[CameraFit] {0} {1}x{2} -> orthographicSize {3:F3}",
                 gameObject.scene.name, ScreenInfo.Width, ScreenInfo.Height, size));
         cam.orthographicSize = size;
+        CoverBackdrops(cam);
+    }
+
+    // The scenes' full-screen background quads ("menuBackground" on the home
+    // screen, "starsBackground" everywhere else) were sized for a phone: on
+    // anything wider than about 9:16 (a foldable's inner screen, a tablet, an
+    // iPad) the view is wider than the quad and the camera's flat background
+    // colour showed as a band down each side. Grow such a quad -- uniformly,
+    // so its art is never stretched, and never shrink it -- until it covers
+    // the whole view with a little overscan. Phones are left exactly as
+    // authored (the quad already covers them).
+    public static readonly string[] BackdropNames = { "menuBackground", "starsBackground", "starsBackground0" };
+    public const float BackdropOverscan = 1.02f;
+
+    public static void CoverBackdrops(Camera cam)
+    {
+        if (cam == null || !cam.orthographic) return;
+        float viewH = cam.orthographicSize * 2f * BackdropOverscan;
+        float viewW = cam.orthographicSize * 2f * cam.aspect * BackdropOverscan;
+        Vector3 c = cam.transform.position;
+        foreach (string name in BackdropNames)
+        {
+            var go = GameObject.Find(name);
+            var r = go != null ? go.GetComponent<Renderer>() : null;
+            if (r == null) continue;
+            Bounds b = r.bounds;
+            if (b.size.x <= 0f || b.size.y <= 0f) continue;
+            // what the quad must span to cover the view from where it sits
+            float needW = 2f * Mathf.Max(c.x + viewW * .5f - b.center.x, b.center.x - (c.x - viewW * .5f));
+            float needH = 2f * Mathf.Max(c.y + viewH * .5f - b.center.y, b.center.y - (c.y - viewH * .5f));
+            float k = Mathf.Max(needW / b.size.x, needH / b.size.y);
+            if (k <= 1.0001f) continue;
+            go.transform.localScale *= k;
+        }
     }
 
     // The main camera's visible top / bottom edge in world units, for
