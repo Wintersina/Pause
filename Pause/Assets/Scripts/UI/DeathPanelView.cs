@@ -42,17 +42,18 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // Breakdown rows, in display order.
     public static readonly string[] BreakdownLabels =
-        { "DISTANCE", "KILLS", "STAR DUST", "ATOMS", "TELEPORTS", "BOSSES", "WORLDS" };
+        { "DISTANCE", "KILLS", "STAR DUST", "ATOMS", "TELEPORTS", "BOSSES", "WORLDS", "DEATH COMBO" };
 
     public static long[] BreakdownPoints(RunScore.Breakdown b)
     {
-        return new[] { b.distance, b.kills, b.dust, b.atoms, b.teleports, b.bosses, b.worlds };
+        return new[] { b.distance, b.kills, b.dust, b.atoms, b.teleports, b.bosses, b.worlds, b.deathCombo };
     }
 
-    // The count shown beside each row (distance has none).
+    // The count shown beside each row (distance has none; DEATH COMBO counts
+    // the kills of the death's domino, DeathCrash).
     public static int[] BreakdownCounts(RunScore.Breakdown b)
     {
-        return new[] { -1, b.killCount, b.dustCount, b.atomCount, b.teleportCount, b.bossCount, b.worldCount };
+        return new[] { -1, b.killCount, b.dustCount, b.atomCount, b.teleportCount, b.bossCount, b.worldCount, b.deathComboKills };
     }
 
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
@@ -80,9 +81,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // Breakdown card (card-local): title row, then one row per source.
     public const float BreakdownTitleY = 92f;
-    // Seven source rows, then the LOOPS line (loops flown, and the highest
-    // score multiplier reached) -- eight rows in the same card.
-    public const float BreakdownFirstRowY = 64f, BreakdownRowStep = 23f, BreakdownRowHeight = 23f;
+    // Eight source rows (the last, DEATH COMBO, the death's domino), then the
+    // LOOPS line (loops flown, and the highest score multiplier reached) --
+    // nine rows in the same card.
+    public const float BreakdownFirstRowY = 64f, BreakdownRowStep = 21f, BreakdownRowHeight = 21f;
     public const string LoopsRowName = "Loops";
     const float CountRight = 96f;
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }

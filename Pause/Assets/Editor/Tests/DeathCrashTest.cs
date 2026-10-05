@@ -54,7 +54,7 @@ public static class DeathCrashTest
 
     // ---------------------------------------------------------------- rig
 
-    sealed class Rig
+    internal sealed class Rig
     {
         public GameObject ship, heart, gun;
         public SpriteRenderer hull;
@@ -114,7 +114,7 @@ public static class DeathCrashTest
         }
     }
 
-    static GameObject Killer(string name, string tag, Vector3 at)
+    internal static GameObject Killer(string name, string tag, Vector3 at)
     {
         var go = new GameObject(name, typeof(SpriteRenderer), typeof(CircleCollider2D));
         go.tag = tag;
