@@ -21,6 +21,14 @@ using UnityEngine;
 //                 shards at the pilot from its beak
 //   siege_cannon  Cauterizer: a long charge with a sight line down its
 //                 lane, then one piercing shell straight down it
+//   ice_ram       Rimebreaker: locks the lane below it, then ploughs
+//                 straight down it, breaking through rocks (no heart lost);
+//                 frost shards fly off the prow at the launch and off every
+//                 rock it breaks, glancing off the rails
+//   resin_mortar  Resin Warden: plants itself, then lobs resin globs in
+//                 high arcs onto a row of marked spots across the lane
+//                 ahead of the pilot; each lands as a sticky pool that
+//                 rides the board for a few seconds
 public abstract class EliteAttack
 {
     protected EliteShip ship;
@@ -41,6 +49,9 @@ public abstract class EliteAttack
     public virtual bool HoldsDuringTell => false;
     public virtual bool DrivesMovement => false;
     public virtual float? FaceDeg => null;
+    // Breaks through rocks while acting (EliteShip.CrashInto): no heart lost.
+    public virtual bool Ploughs => false;
+    public virtual void OnPlough(Vector2 at) { }
 
     public virtual void BeginTell(Vector2 seen)
     {
@@ -61,6 +72,7 @@ public abstract class EliteAttack
         Vector2 at = ship.MuzzleWorld(muzzle);
         float r = deg * Mathf.Deg2Rad;
         Fired++;
+        ship.OnFired(muzzle, deg);
         return EliteSystem.Shots.Fire(ship, def, EliteShots.KindOf(def.shotKind), at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
     }
 
@@ -69,7 +81,7 @@ public abstract class EliteAttack
 
 public static class EliteAttacks
 {
-    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon" };
+    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar" };
 
     public static EliteAttack Create(string id)
     {
@@ -80,6 +92,8 @@ public static class EliteAttacks
             case "slag_drop": return new SlagDropAttack();
             case "blink_shards": return new BlinkShardsAttack();
             case "siege_cannon": return new SiegeCannonAttack();
+            case "ice_ram": return new IceRamAttack();
+            case "resin_mortar": return new ResinMortarAttack();
             default: return new LanceDashAttack();
         }
     }
@@ -304,4 +318,130 @@ public class SiegeCannonAttack : EliteAttack
     }
 
     public override void End() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
+}
+
+// Rimebreaker: an icebreaker. The tell locks the lane straight below it
+// (the prow glows, the hull squats); the action ploughs down that lane at
+// dashSpeed -- committed, no steering, so a sidestep makes it miss -- and
+// breaks through any rock in its way without losing a heart. As it launches
+// it throws two frost shards off the prow, down and out to both sides;
+// every rock it breaks throws two more, flatter. Shards glance off the
+// rails (shotBounces), so they come back across the board.
+public class IceRamAttack : EliteAttack
+{
+    public const int MaxPloughShards = 3;   // rocks per ram that throw shards
+    int smashed;
+    float laneX;
+    public IceRamAttack() { Id = "ice_ram"; }
+    public override bool HoldsDuringTell => true;
+    public override bool DrivesMovement => true;
+    public override bool Ploughs => true;
+    public float LaneX => laneX;
+    public int Smashed => smashed;
+
+    public override void BeginTell(Vector2 seen)
+    {
+        base.BeginTell(seen);
+        laneX = ship.Position.x;
+        dir = Vector2.down;
+        aim = new Vector2(laneX, seen.y);
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        smashed = 0;
+        ship.Drive(Vector2.down * def.dashSpeed);
+        // the launch: a shard down-left and one down-right off the prow
+        float spread = Mathf.Max(10f, def.shotSpread);
+        Fire(0, -90f - spread, def.shotSpeed);
+        Fire(0, -90f + spread, def.shotSpeed);
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        bool braking = t >= def.actionSeconds * .8f;
+        ship.Drive(Vector2.down * def.dashSpeed * (braking ? .35f : 1f));
+        return t >= def.actionSeconds;
+    }
+
+    public override void OnPlough(Vector2 at)
+    {
+        if (smashed++ >= MaxPloughShards) return;
+        // the broken rock's ice: two flat shards, out to both rails
+        Fire(0, -90f - 70f, def.shotSpeed * .9f);
+        Fire(0, -90f + 70f, def.shotSpeed * .9f);
+    }
+}
+
+// Resin Warden: a bio-industrial mortar. The tell plants it (the resin
+// chambers charge, the hull squats); the action lobs shotCount resin
+// globs, one after another out of alternate pods, in high arcs onto a row
+// of spots lobSpacing apart across the lane lobAhead in front of the pilot
+// (centred on where it sees the pilot, kept inside the rails), sweeping
+// from its own side across. Each spot is marked by a blinking ring while
+// its glob is in the air; harmless in flight, a glob lands as a sticky
+// resin pool that rides the board for poolSeconds -- a wall with gaps.
+public class ResinMortarAttack : EliteAttack
+{
+    float next;
+    int lobbed;
+    Vector2 rowCentre;
+    bool fromLeft;
+    public ResinMortarAttack() { Id = "resin_mortar"; }
+    public override bool HoldsDuringTell => true;
+    public Vector2 RowCentre => rowCentre;
+    public int Lobbed => lobbed;
+
+    public Vector2 Spot(int i)
+    {
+        int n = Mathf.Max(1, def.shotCount);
+        return new Vector2(rowCentre.x + (i - (n - 1) * .5f) * def.lobSpacing, rowCentre.y);
+    }
+
+    public override void BeginTell(Vector2 seen)
+    {
+        base.BeginTell(seen);
+        rowCentre = seen + Vector2.up * def.lobAhead;
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        next = 0f;
+        lobbed = 0;
+        // the row: lobAhead in front of the pilot when the globs come down
+        // (the spots ride the board meanwhile), inside the rails
+        rowCentre = ship.Seen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
+        float half = (Mathf.Max(1, def.shotCount) - 1) * .5f * def.lobSpacing;
+        float edge = Mathf.Max(0f, EliteSystem.RailEdge - def.shotSize - half);
+        rowCentre.x = Mathf.Clamp(rowCentre.x, -edge, edge);
+        fromLeft = ship.Position.x < rowCentre.x;
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        rowCentre.y -= EliteSystem.Scroll * dt;   // the row is on the board: it rides it
+        int n = Mathf.Max(1, def.shotCount);
+        while (t >= next && lobbed < n)
+        {
+            int spot = fromLeft ? lobbed : n - 1 - lobbed;
+            int m = def.muzzles.Length > 0 ? lobbed % def.muzzles.Length : 0;
+            Vector2 to = Spot(spot);
+            var shot = Fire(m, Deg(to - ship.MuzzleWorld(m)), 0f);
+            if (shot != null) shot.Lob(to, def.lobSeconds);
+            lobbed++;
+            next += def.shotInterval;
+        }
+        return t >= def.actionSeconds && lobbed >= n;
+    }
+
+    // planted no more: it crosses to its other station
+    public override void End()
+    {
+        var w = ship.Brain as WardenBrain;
+        if (w != null) w.Cross();
+    }
 }

@@ -21,11 +21,16 @@ using UnityEngine;
 //   shard  a small diamond (fans)
 //   slag   a big molten blob that sinks down the board, lingering
 //   shell  the siege shell: big, fast, pierces two hazards
+//   glob   resin lobbed in a high arc (Lob) onto a marked spot: harmless
+//          and untouchable in the air, it lands as a sticky pool that
+//          rides the board (poolSeconds) and catches whatever touches it
+// A def's shotBounces lets its shots glance off the side rails that many
+// times (the Rimebreaker's frost shards) instead of breaking there.
 // All drawn in the elite's shotColor with a shotCore centre -- magenta /
 // violet / cyan, never the player's red.
 public sealed class EliteShots
 {
-    public enum Kind { Bolt, Shard, Slag, Shell }
+    public enum Kind { Bolt, Shard, Slag, Shell, Glob }
     public const int MaxShots = 48;
     public const string HitboxName = "EliteShotHit";
 
@@ -62,6 +67,7 @@ public sealed class EliteShots
             case "shard": return Kind.Shard;
             case "slag": return Kind.Slag;
             case "shell": return Kind.Shell;
+            case "glob": return Kind.Glob;
             default: return Kind.Bolt;
         }
     }
@@ -116,14 +122,18 @@ public class EliteShotHitbox : MonoBehaviour, IShipAttackTarget
 public class EliteShot : MonoBehaviour
 {
     EliteShots pool;
-    SpriteRenderer body, core;
+    SpriteRenderer body, core, mark;
     GameObject hitbox;
     CircleCollider2D hitCol;
     EliteShip owner;
     EliteDef def;
     Vector2 velocity;
     float age, radius, life;
-    int pierce;
+    int pierce, bounces;
+    // a lobbed glob: in the air until `landAt`, flying from `lobFrom` to `lobTo`
+    bool airborne;
+    float lobTime, lobTotal;
+    Vector2 lobFrom, lobTo;
 
     public bool Active { get; private set; }
     public EliteShots.Kind Kind { get; private set; }
@@ -132,6 +142,11 @@ public class EliteShot : MonoBehaviour
     public EliteShip Owner => owner;
     public float Radius => radius;
     public GameObject Hitbox => hitbox;
+    public bool Airborne => airborne;
+    public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
+    public Vector2 LobTarget => lobTo;
+    public int Bounced { get; private set; }
+    public bool MarkShown => mark != null && mark.enabled;
     // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard.
     public int EndReason { get; private set; }
 
@@ -147,6 +162,11 @@ public class EliteShot : MonoBehaviour
         c.transform.SetParent(go.transform, false);
         s.core = c.AddComponent<SpriteRenderer>();
         s.core.sortingOrder = 31;
+        var m = new GameObject("Mark");
+        m.transform.SetParent(root, false);
+        s.mark = m.AddComponent<SpriteRenderer>();
+        s.mark.sortingOrder = 4;
+        s.mark.enabled = false;
         s.EnsureHitbox();
         go.SetActive(false);
         return s;
@@ -161,6 +181,10 @@ public class EliteShot : MonoBehaviour
         age = 0f;
         EndReason = 0;
         LaunchedAt = at;
+        airborne = false;
+        bounces = Mathf.Max(0, d.shotBounces);
+        Bounced = 0;
+        if (mark != null) mark.enabled = false;
         float size = Mathf.Max(.06f, d.shotSize);
         Sprite sprite;
         switch (kind)
@@ -168,6 +192,7 @@ public class EliteShot : MonoBehaviour
             case EliteShots.Kind.Shard: sprite = EliteFxArt.Shard; radius = size * .32f; life = 4f; pierce = 0; break;
             case EliteShots.Kind.Slag: sprite = EliteFxArt.Slag; radius = size * .42f; life = 7f; pierce = 0; break;
             case EliteShots.Kind.Shell: sprite = EliteFxArt.Shell; radius = size * .36f; life = 4f; pierce = 2; break;
+            case EliteShots.Kind.Glob: sprite = EliteFxArt.Slag; radius = size * .4f; life = d.lobSeconds + d.poolSeconds; pierce = 0; break;
             default: sprite = EliteFxArt.Bolt; radius = size * .3f; life = 4f; pierce = 0; break;
         }
         body.sprite = sprite;
@@ -181,8 +206,49 @@ public class EliteShot : MonoBehaviour
         Face();
         EnsureHitbox();
         hitCol.radius = radius / k;
+        hitCol.enabled = true;
         Active = true;
         gameObject.SetActive(true);
+    }
+
+    // Turns a just-fired glob into a lob onto `to` (world), landing in
+    // `seconds`: no hitbox until it lands, a blinking ring marks the spot.
+    public void Lob(Vector2 to, float seconds)
+    {
+        airborne = true;
+        lobFrom = transform.position;
+        lobTo = to;
+        lobTime = 0f;
+        lobTotal = Mathf.Max(.1f, seconds);
+        velocity = (to - lobFrom) / lobTotal;
+        hitCol.enabled = false;
+        mark.sprite = EliteFxArt.Ring;
+        mark.enabled = true;
+        mark.transform.position = new Vector3(to.x, to.y, 0f);
+        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+        mark.color = def.ShotColor;
+    }
+
+    // The glob comes down: a flat sticky pool on the board.
+    void Land()
+    {
+        airborne = false;
+        Vector3 p = new Vector3(lobTo.x, lobTo.y, 0f);
+        transform.position = p;
+        transform.rotation = Quaternion.identity;
+        body.sprite = EliteFxArt.Pool;
+        core.sprite = EliteFxArt.Pool;
+        float size = def.shotSize * 2.1f;
+        float k = size / Mathf.Max(.01f, EliteFxArt.Pool.bounds.size.x);
+        transform.localScale = Vector3.one * k;
+        radius = size * .42f;
+        hitCol.radius = radius / k;
+        hitCol.enabled = true;
+        mark.enabled = false;
+        velocity = new Vector2(0f, -EliteSystem.Scroll);
+        age = def.lobSeconds;
+        EliteSystem.Fx.Sparks(lobTo, def.ShotColor, 5);
+        Physics2D.SyncTransforms();
     }
 
     void EnsureHitbox()
@@ -210,7 +276,32 @@ public class EliteShot : MonoBehaviour
         if (dt <= 0f) return;
         age += dt;
         Vector3 p = transform.position;
-        if (Kind == EliteShots.Kind.Slag)
+        if (airborne)
+        {
+            // the spot rides the board; the glob arcs up and drops onto it
+            lobTo.y -= EliteSystem.Scroll * dt;
+            lobTime += dt;
+            float k = Mathf.Clamp01(lobTime / lobTotal);
+            Vector2 g = Vector2.Lerp(lobFrom, lobTo, k);
+            float height = Mathf.Sin(k * Mathf.PI);
+            transform.position = new Vector3(g.x, g.y + height * .35f, 0f);
+            transform.localScale = Vector3.one * (def.shotSize / Mathf.Max(.01f, EliteFxArt.Slag.bounds.size.y)) * (1f + .9f * height);
+            transform.rotation = Quaternion.Euler(0f, 0f, age * 240f);
+            mark.transform.position = new Vector3(lobTo.x, lobTo.y, 0f);
+            Color mc = def.ShotColor;
+            mc.a = Mathf.FloorToInt(lobTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
+            mark.color = mc;
+            if (k >= 1f) Land();
+            return;
+        }
+        if (Kind == EliteShots.Kind.Glob)
+        {
+            // a pool: rides the board, wobbling a little, then dries up
+            velocity = new Vector2(0f, -EliteSystem.Scroll);
+            float pulse = 1f + .08f * (Mathf.FloorToInt(age * 5f) % 2);
+            core.transform.localScale = Vector3.one * .55f * pulse;
+        }
+        else if (Kind == EliteShots.Kind.Slag)
         {
             // sinks with the board, slowly, wobbling
             velocity.y = Mathf.MoveTowards(velocity.y, -EliteSystem.Scroll * .5f - .6f, 2f * dt);
@@ -228,9 +319,22 @@ public class EliteShot : MonoBehaviour
         if (Mathf.Abs(p.x) + radius > edge)
         {
             EliteSystem.Fx.Sparks(new Vector2(Mathf.Sign(p.x) * edge, p.y), def.ShotColor, 4);
-            EndReason = 2;
-            Recycle();
-            return;
+            if (bounces > 0 && Mathf.Sign(velocity.x) == Mathf.Sign(p.x))
+            {
+                // glances off the rail, back across the board
+                bounces--;
+                Bounced++;
+                velocity.x = -velocity.x * .85f;
+                p.x = Mathf.Sign(p.x) * (edge - radius - .01f);
+                transform.position = p;
+                Face();
+            }
+            else if (bounces <= 0)
+            {
+                EndReason = 2;
+                Recycle();
+                return;
+            }
         }
 
         // friendly fire
@@ -263,6 +367,8 @@ public class EliteShot : MonoBehaviour
     {
         if (!Active) return;
         Active = false;
+        airborne = false;
+        if (mark != null) mark.enabled = false;
         gameObject.SetActive(false);
     }
 }

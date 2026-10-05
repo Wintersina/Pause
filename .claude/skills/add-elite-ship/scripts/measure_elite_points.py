@@ -8,8 +8,13 @@ numbers) for its EliteDef JSON.  Needs Pillow + numpy.
       [--write Pause/Assets/Art/Resources/Elites/Defs/<key>.json] \
       [--preview OUT.png]
 
-STRIP is the final 7-cell strip (idle0..3, tell, action, hit), square
-cells.  Each seed is NAME:X,Y[:DIR] in cell pixels (x right, y down) -- a
+STRIP is the final strip of square cells: by default the Ember layout
+(idle0..3, tell, action, hit).  For a flight layout (landed, grounded
+idle, lift-off, hover, bank left, bank right, damaged -- Frost's
+Rimebreaker, Verdant's Resin Warden) pass --layout flight: muzzles,
+nozzles and the body numbers are then all measured on the hover cell (3),
+the frame the ship flies and fires on (pick the frames yourself with
+--muzzle-frame / --nozzle-frame / --body-frame).  Each seed is NAME:X,Y[:DIR] in cell pixels (x right, y down) -- a
 rough click is enough, look at the zoomed cells first.  DIR (degrees, 0
 right, 90 up, art space) is the way a shot / plume leaves; leave it out for
 "along the nose" (muzzles) / "away from the nose" (nozzles).
@@ -18,6 +23,8 @@ right, 90 up, art space) is the way a shot / plume leaves; leave it out for
           hottest pixels (the muzzle flash / glowing tip) within RADIUS of
           the seed, then snapped onto the nearest solid pixel
   nozzles are refined on IDLE 0 (cell 0) the same way (the engine glow)
+          -- flames drawn into the art are bright: seed on the engine bell,
+          keep RADIUS small, and check the preview
 
 It also prints, for the def:
   cellPixels      the cell size
@@ -116,15 +123,22 @@ def main():
     ap.add_argument("--radius", type=float, default=14)
     ap.add_argument("--muzzle-frame", type=int, default=ACTION,
                     help="cell the muzzles are refined on (default 5, the action; some strips flash in the tell, 4)")
+    ap.add_argument("--nozzle-frame", type=int, default=IDLE, help="cell the nozzles are refined on (default 0)")
+    ap.add_argument("--body-frame", type=int, default=IDLE, help="cell hullRadius / noseDeg are measured on (default 0)")
+    ap.add_argument("--layout", choices=["ember", "flight"], default="ember",
+                    help="flight: muzzles, nozzles and body all on the hover cell 3")
     ap.add_argument("--write")
     ap.add_argument("--preview")
     args = ap.parse_args()
 
+    if args.layout == "flight":
+        args.muzzle_frame = args.nozzle_frame = args.body_frame = 3
     frames, cell = cells(args.strip)
     if len(frames) < 7:
-        print("warning: %d cells (expected 7: idle0..3, tell, action, hit)" % len(frames))
+        print("warning: %d cells (expected 7)" % len(frames))
     action = frames[min(args.muzzle_frame, len(frames) - 1)]
-    idle = frames[IDLE]
+    idle = frames[min(args.nozzle_frame, len(frames) - 1)]
+    bodyframe = frames[min(args.body_frame, len(frames) - 1)]
 
     muzzles, nozzles = [], []
     for s in args.muzzle:
@@ -136,7 +150,7 @@ def main():
         px, py = refine(idle, x, y, args.radius)
         nozzles.append({"name": n, "x": px, "y": py, "dir": d})
 
-    radius, nose, centre = body(idle)
+    radius, nose, centre = body(bodyframe)
     print("cellPixels   %d" % cell)
     print("hullRadiusPx %.1f  (x cellWorldSize / cellPixels for hullRadius; ~0.85x for a fair hitbox)" % radius)
     print("noseDeg      %.0f  (check it: art-space degrees, 0 right, 90 up)" % nose)

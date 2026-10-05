@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// An elite's drawings: Resources/Elites/<World>/<key>.png (seven square
-// cells: idle 0..3, tell, action, hit), sliced so one cell is the def's
-// cellWorldSize in the world, plus the optional strips that take over from
+// An elite's drawings: Resources/Elites/<World>/<key>.png (square cells;
+// which is which is the def's EliteCells map -- by default idle 0..3, tell,
+// action, hit), sliced so one cell is the def's cellWorldSize in the world, plus the optional strips that take over from
 // the procedural placeholders the moment they exist (see EliteDef):
 // <key>_parked, <key>_liftoff, <key>_death -- any number of square cells.
 //
@@ -13,6 +13,7 @@ using UnityEngine;
 public static class EliteArt
 {
     public const int FrameCount = 7;
+    // The default (Ember) layout; a def's `cells` may name others.
     public const int Idle0 = 0, IdleFrames = 4, Tell = 4, Action = 5, Hit = 6;
     public const float Tick = 1f / 24f;
     // Hold ticks per drawing (24 fps), the fighters' rhythm.
@@ -39,7 +40,7 @@ public static class EliteArt
     public static Sprite[] Frames(EliteDef def)
     {
         if (def == null) return null;
-        return Load(StripPath(def), def, FrameCount);
+        return Load(StripPath(def), def, 0);
     }
 
     public static Sprite Frame(EliteDef def, int i)
@@ -87,7 +88,7 @@ public static class EliteArt
         if (def == null) return null;
         Sprite[] s;
         if (shards.TryGetValue(def.key, out s) && s != null && s[0] != null) return s;
-        var f = Frame(def, Hit);
+        var f = Frame(def, def.cells.Debris);
         if (f == null) return null;
         Rect r = f.textureRect;
         // the drawing sits inset in its cell: cut the middle 70%
@@ -117,7 +118,7 @@ public static class EliteArt
 // The procedural placeholder drawings, built once (never per frame).
 public static class EliteFxArt
 {
-    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight;
+    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool;
 
     // A soft-looking dot drawn in four hard steps (white: tint it).
     public static Sprite Glow => glow != null ? glow : (glow = Disc("EliteGlow", 16, new[] { 1f, .78f, .45f, .2f }));
@@ -129,6 +130,8 @@ public static class EliteFxArt
     // Shots: white core, the colour comes from the tint (two layers).
     public static Sprite Bolt => bolt != null ? bolt : (bolt = Capsule("EliteBolt", 8, 16));
     public static Sprite Slag => slag != null ? slag : (slag = Blob("EliteSlag", 16, 23));
+    // A landed resin pool: a flat, lumpy puddle (wider than tall).
+    public static Sprite Pool => pool != null ? pool : (pool = Puddle("ElitePool", 24, 14, 31));
     public static Sprite Shell => shell != null ? shell : (shell = Capsule("EliteShell", 12, 24));
     public static Sprite Shard => shard != null ? shard : (shard = Diamond("EliteShard", 10, 16));
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
@@ -211,6 +214,35 @@ public static class EliteFxArt
                 t.SetPixel(x, y, new Color(v * lit, v * lit, v * lit, best < .85f ? 1f : .7f));
             }
         return Make(t, n);
+    }
+
+    // A flat puddle: overlapping ellipses, hard-stepped rim.
+    static Sprite Puddle(string name, int w, int h, int seed)
+    {
+        var t = NewTex(w, h, name);
+        var rng = new System.Random(seed);
+        var cx = new float[4]; var cy = new float[4]; var rx = new float[4]; var ry = new float[4];
+        for (int i = 0; i < 4; i++)
+        {
+            cx[i] = w * (.3f + .4f * (float)rng.NextDouble());
+            cy[i] = h * (.4f + .2f * (float)rng.NextDouble());
+            rx[i] = w * (.2f + .08f * (float)rng.NextDouble());
+            ry[i] = h * (.28f + .1f * (float)rng.NextDouble());
+        }
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float best = 9f;
+                for (int i = 0; i < 4; i++)
+                {
+                    float dx = (x - cx[i]) / rx[i], dy = (y - cy[i]) / ry[i];
+                    best = Mathf.Min(best, Mathf.Sqrt(dx * dx + dy * dy));
+                }
+                if (best > 1f) { t.SetPixel(x, y, Color.clear); continue; }
+                float v = best < .5f ? 1f : best < .8f ? .8f : .6f;
+                t.SetPixel(x, y, new Color(v, v, v, best < .8f ? 1f : .75f));
+            }
+        return Make(t, w);
     }
 
     static Sprite StreakSprite()

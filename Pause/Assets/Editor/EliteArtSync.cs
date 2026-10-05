@@ -13,7 +13,9 @@ using UnityEngine;
 //
 // Final strips are <world>_elite_<name>.png plus the optional
 // <world>_elite_<name>_parked / _liftoff / _death.png; anything ending in
-// _candidate or _concept (Codex's working files) is skipped.
+// _candidate or _concept (Codex's working files) is skipped. A strip
+// delivered under its bare name (Frost/rimebreaker.png) is copied under the
+// convention name (Frost/frost_elite_rimebreaker.png): the def's key.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteArtSync.SyncAllAndExit
 public class EliteArtSync : AssetPostprocessor
@@ -22,12 +24,22 @@ public class EliteArtSync : AssetPostprocessor
     public const string TargetRoot = "Assets/Art/Resources/Elites";
 
     static readonly Regex Final = new Regex(@"^[a-z]+_elite_[a-z0-9_]+\.png$");
+    static readonly Regex Bare = new Regex(@"^[a-z][a-z0-9_]*\.png$");
+    static readonly string[] WorkingSuffixes = { "_candidate", "_concept", "_wip", "_draft", "_old" };
 
     public static bool IsFinalStrip(string fileName)
     {
-        if (!Final.IsMatch(fileName)) return false;
+        if (!Final.IsMatch(fileName) && !Bare.IsMatch(fileName)) return false;
         string stem = Path.GetFileNameWithoutExtension(fileName);
-        return !stem.EndsWith("_candidate") && !stem.EndsWith("_concept");
+        foreach (string w in WorkingSuffixes) if (stem.EndsWith(w)) return false;
+        return true;
+    }
+
+    // The name the game loads it by: <world>_elite_<name>.png.
+    public static string TargetName(string world, string fileName)
+    {
+        string prefix = world.ToLowerInvariant() + "_elite_";
+        return Final.IsMatch(fileName) ? fileName : prefix + fileName;
     }
 
     static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] movedFrom)
@@ -81,7 +93,7 @@ public class EliteArtSync : AssetPostprocessor
         if (!IsFinalStrip(file)) return false;
         string world = Path.GetFileName(Path.GetDirectoryName(source));
         string dir = TargetRoot + "/" + world;
-        string target = dir + "/" + file;
+        string target = dir + "/" + TargetName(world, file);
         if (File.Exists(target) && Same(source, target)) return false;
         Directory.CreateDirectory(dir);
         File.Copy(source, target, true);
