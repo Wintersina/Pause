@@ -64,6 +64,7 @@ public static class EnemyBehaviourTest
             PilotBudgetHolds();
             PilotsClearForBossAndPortal();
             StunHoldsTheBrain();
+            ShovedEnemiesRecover();
             AllocatesNothing();
         }
         finally
@@ -698,30 +699,188 @@ public static class EnemyBehaviourTest
 
     // ---- 11 ------------------------------------------------------------------
 
+    // ---- allocation meter ---------------------------------------------------
+    //
+    // GC.GetAllocatedBytesForCurrentThread() reads 0 for everything under this
+    // Unity Mono, which would make a "0 bytes" result meaningless. So the
+    // meter is chosen by a POSITIVE CONTROL: the same loop shape with one small
+    // allocation per brain per frame must read as allocating, or that meter is
+    // not used. Candidates, in order: the thread counter; the profiler's
+    // GC.Alloc recorder (managed bytes allocated); the Mono
+    // heap's used size; GC.GetTotalMemory. (The collector cannot be switched
+    // off in the editor, so the heap meters collect first and a collection
+    // mid-run would read negative, never a false zero on the control.)
+
+    static readonly string[] MeterNames =
+    {
+        "GC.GetAllocatedBytesForCurrentThread (bytes)", "ProfilerRecorder GC.Alloc (bytes)",
+        "Profiler.GetMonoUsedSizeLong (bytes)", "GC.GetTotalMemory (bytes)",
+    };
+    // What the positive control must read at least, per meter (it makes 16,800 allocations of >= 32 bytes).
+    static readonly long[] MeterFloor = { 100000, 8000, 100000, 100000 };
+    static object controlSink;
+
+    static long Measure(int meter, System.Action work)
+    {
+        switch (meter)
+        {
+            case 0:
+            {
+                long before = System.GC.GetAllocatedBytesForCurrentThread();
+                work();
+                return System.GC.GetAllocatedBytesForCurrentThread() - before;
+            }
+            case 1:
+            {
+                using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1,
+                           Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately))
+                {
+                    if (!rec.Valid) return 0;
+                    long before = rec.CurrentValue;
+                    work();
+                    return rec.CurrentValue - before;
+                }
+            }
+            case 2:
+            {
+                System.GC.Collect();
+                long before = UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong();
+                work();
+                return UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong() - before;
+            }
+            default:
+            {
+                System.GC.Collect();
+                long before = System.GC.GetTotalMemory(false);
+                work();
+                return System.GC.GetTotalMemory(false) - before;
+            }
+        }
+    }
+
+    const int ControlPerFrame = 28, ControlFrames = 300;
+
+    // One 32-byte array and a short string per "brain" per frame: what a
+    // careless per-frame allocation in the brain loop would look like.
+    static void Control()
+    {
+        for (int i = 0; i < ControlFrames; i++)
+            for (int k = 0; k < ControlPerFrame; k++)
+            {
+                controlSink = new byte[32];
+                controlSink = "f" + i + k;
+            }
+    }
+
+    static int PickMeter(out long controlBytes)
+    {
+        controlBytes = 0;
+        for (int m = 0; m < MeterNames.Length; m++)
+        {
+            long bytes = Measure(m, Control);
+            Debug.Log("[BRAIN] allocation meter candidate " + MeterNames[m] + ": positive control reads " + bytes + " bytes");
+            if (bytes >= MeterFloor[m]) { controlBytes = bytes; return m; }
+        }
+        return -1;
+    }
+
     static void AllocatesNothing()
     {
+        long controlBytes;
+        int meter = PickMeter(out controlBytes);
+        Check("an allocation meter passes its positive control (" + (meter >= 0 ? MeterNames[meter] + ": " + controlBytes + " bytes for " +
+              (ControlFrames * ControlPerFrame) + " small allocations" : "none of them sees the control") + ")", meter >= 0);
+        if (meter < 0) return;
+
         Fresh();
         var brains = new List<EnemyBrain>();
+        // every hazard and every pilot, spread out so they fly their scripts
+        int n = 0;
         foreach (var def in EnemyRoster.All)
         {
             if (def.role == EnemyRole.Chaser || def.role == EnemyRole.Mine) continue;
-            brains.Add(Build(def, new Vector2(Random.Range(-1.5f, 1.5f), Random.Range(0f, 4f))));
+            brains.Add(Build(def, new Vector2(-1.8f + (n % 4) * 1.2f, 1f + (n / 4) * .35f)));
+            n++;
         }
-        long bytes = 0;
-        for (int warm = 0; warm < 2; warm++)
+        var chasers = new List<ChaserEnemy>();
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
-            long before = System.GC.GetAllocatedBytesForCurrentThread();
+            var c = EnemyFactory.Create(EnemyRoster.One(w, EnemyRole.Chaser), new Vector3(-1.5f + w, -5.5f, 0f), Quaternion.identity).GetComponent<ChaserEnemy>();
+            c.Target = ship;
+            chasers.Add(c);
+        }
+        int pilots = 0;
+        foreach (var b in brains) if (b.IsPilot) pilots++;
+        System.Action frames = () =>
+        {
             for (int i = 0; i < 300; i++)
             {
                 clock += Dt;
                 SpawnSpace.ClockOverride = clock;
                 for (int k = 0; k < brains.Count; k++) brains[k].Step(Dt);
+                for (int k = 0; k < chasers.Count; k++) if (chasers[k].enabled) chasers[k].Step(Dt);
                 EliteSystem.Step(Dt);
+                EnemyDensity.Threats();
+                PilotAirspace.Blocks(-1f, 1f);
             }
-            bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        };
+        frames();   // warm: pools built, statics initialised, first shots fired
+        int shotsBefore = EliteSystem.Shots.Launched;
+        long bytes = Measure(meter, frames);
+        long again = Measure(meter, frames);
+        Check(brains.Count + " brains (" + pilots + " pilots flying their scripts) and " + chasers.Count + " chasers moving, telling, firing (" +
+              (EliteSystem.Shots.Launched - shotsBefore) + " shots) and sidestepping for 2 x 300 frames allocate nothing, by the meter that saw the " +
+              "control (" + bytes + " and " + again + " bytes; control " + controlBytes + ")", bytes == 0 && again == 0 && pilots >= 20);
+        foreach (var b in brains) if (b != null) Object.DestroyImmediate(b.gameObject);
+        foreach (var c in chasers) if (c != null) Object.DestroyImmediate(c.gameObject);
+    }
+
+    // ---- external displacement (a shove) -------------------------------------
+
+    static void ShovedEnemiesRecover()
+    {
+        // a hazard: its brain only adds its offset, so a shove stays
+        Fresh();
+        var rock = Build(EnemyRoster.Find("space_rock_cluster"), new Vector2(0f, 2f));
+        for (int i = 0; i < 30; i++) Step(rock);
+        Vector2 baseBefore = rock.Base;
+        rock.transform.position += new Vector3(.8f, .5f, 0f);
+        Check("a shoved hazard: its Base moves with the shove", ((rock.Base - baseBefore) - new Vector2(.8f, .5f)).magnitude < 1e-4f);
+        for (int i = 0; i < 120; i++) Step(rock);
+        Check("... and stays moved (the brain adds to its Base, it never snaps back)", ((rock.Base - baseBefore) - new Vector2(.8f, .5f)).magnitude < 1e-3f);
+        rock.Base = baseBefore;
+        Check("... and Base can be set", (rock.Base - baseBefore).magnitude < 1e-4f);
+        Object.DestroyImmediate(rock.gameObject);
+
+        // a pilot on station: pushed off its line, it flies back over time
+        Fresh();
+        float top = CameraFit.ViewTop;
+        var pilot = Build(EnemyRoster.Find("space_fighter_4"), new Vector2(0f, top - 1.6f), armed: false);
+        for (int i = 0; i < 90; i++) Step(pilot);
+        Vector2 station = pilot.Base;
+        Vector3 pushed = pilot.transform.position + new Vector3(1.2f, -1f, 0f);
+        pilot.transform.position = pushed;
+        Step(pilot);
+        float firstStep = (pilot.transform.position - pushed).magnitude;
+        Check("a shoved pilot does not snap back: one frame later it has moved " + firstStep.ToString("F3") + " u of the 1.56 u it was pushed",
+              pilot.Displaced && firstStep <= EnemyBrain.ShoveReturnSpeed * Dt + 1e-3f && (pilot.Base - station).magnitude < 1e-4f);
+        float secs = Dt, worstStep = 0f;
+        Vector3 last = pilot.transform.position;
+        while (pilot.Displaced && secs < 5f)
+        {
+            Step(pilot);
+            worstStep = Mathf.Max(worstStep, (pilot.transform.position - last).magnitude);
+            last = pilot.transform.position;
+            secs += Dt;
         }
-        Check(brains.Count + " brains moving, telling and firing for 300 frames allocate nothing (" + bytes + " bytes)", bytes == 0);
-        foreach (var b in brains) Object.DestroyImmediate(b.gameObject);
+        Check("... it flies back to its line at no more than " + EnemyBrain.ShoveReturnSpeed + " u/s (" + secs.ToString("F2") + " s) and its station (Base) never moved",
+              !pilot.Displaced && secs > .3f && secs < 2f && worstStep <= EnemyBrain.ShoveReturnSpeed * Dt + 1e-3f && (pilot.Base - station).magnitude < 1e-4f &&
+              Mathf.Abs(pilot.transform.position.x - station.x) <= pilot.Behaviour.bandX + .05f);
+        pilot.Base = station + new Vector2(.5f, 0f);
+        for (int i = 0; i < 120; i++) Step(pilot);
+        Check("setting a pilot's Base moves its station", Mathf.Abs(pilot.Base.x - (station.x + .5f)) < 1e-4f &&
+              Mathf.Abs(pilot.transform.position.x - pilot.Base.x) <= pilot.Behaviour.bandX + .05f);
+        Object.DestroyImmediate(pilot.gameObject);
     }
 
     // ---- presence --------------------------------------------------------------
