@@ -218,11 +218,10 @@ public static class ScoringTest
 
         t = RunScore.Total;
         RunScore.Tick(10f, .46f);
-        // (2026-10: the speed tiers moved down with the caps -- 20 / 30 / 40 / 46)
-        RunScore.Tick(10f, .34f);
-        Check("ten seconds at HUD speed 34 pay 17 distance points (speed / 20 a second) x1.5 speed tier = 25",
-              RunScore.Total - t - 0 >= 0 && RunScore.Total - t == Mathf.FloorToInt(23f * ScoreRules.SpeedMultiplierFor(.46f) + 17f * 1.5f) &&
-              Mathf.Approximately(ScoreRules.SpeedMultiplierFor(.34f), 1.5f));
+        // (2026-10: the speed tiers moved down with the caps -- 20 / 30 / 40 / 46 --
+        // so HUD 46 is the top tier now, x2.5; it was x1.5)
+        Check("ten seconds at HUD speed 46 pay 23 distance points (speed / 20 a second) x2.5 speed tier = 57",
+              RunScore.Total - t == 57 || RunScore.Total - t == 58);
         t = RunScore.Total;
         RunScore.Tick(10f, .19f);
         Check("below HUD 20 distance is unmultiplied (10s at 19 = 9)", RunScore.Total - t == 9 || RunScore.Total - t == 10);

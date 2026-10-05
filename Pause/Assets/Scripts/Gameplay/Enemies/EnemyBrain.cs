@@ -53,7 +53,7 @@ public class EnemyBrain : MonoBehaviour
     // What it attacks (the ship; tests set a stand-in).
     public Transform TargetOverride;
 
-    Behaviour hostMover;
+    UnityEngine.Behaviour hostMover;   // moveEnimes or moveItemEnmInStrightLine: the scroll authority
     RailMineMount mount;
     EnemyFlipbook flipbook;
     SpriteRenderer charge;
@@ -77,7 +77,10 @@ public class EnemyBrain : MonoBehaviour
         if (behaviour == null) { enabled = false; return; }
         TryGetComponent(out flipbook);
         if (TryGetComponent(out mount)) mount.brain = this;
-        hostMover = (Behaviour)GetComponent<moveEnimes>() ?? GetComponent<moveItemEnmInStrightLine>();
+        // (TryGetComponent: a missed GetComponent is a fake null in the editor)
+        if (TryGetComponent(out moveEnimes weaver)) hostMover = weaver;
+        else if (TryGetComponent(out moveItemEnmInStrightLine scroller)) hostMover = scroller;
+        else hostMover = null;
         onRail = def.role == EnemyRole.Mine;
         halfX = def.ColliderSize.x * .5f;
         Armed = behaviour.Attacks && (behaviour.armedChance >= 1f || Random.value < behaviour.armedChance);
