@@ -58,8 +58,25 @@ Builds/
 __pycache__/
 *.pyc
 
-# Atom art generator (local only)
-Pause/Assets/Art/Atoms/src~/
+# Atom art: only the generator is tracked (PickupArt.cs names it)
+Pause/Assets/Art/Atoms/src~/*
+!Pause/Assets/Art/Atoms/src~/pixel_atoms.py
+
+# Generated SVG intermediates. Each is re-written by the tracked generator
+# next to it (bosses.py, weapons.py/fx.py, Enemies build.py, Worlds <world>.py
+# and walls.py, Codex make_art.py, build_icons.py, build_pause.py), so only
+# the generators and the PNGs they render are tracked. Hand-authored SVG
+# sources (Shield, UI/DeathPanel, UI/Dock, UI/Hud, UI/Tutorial) stay tracked.
+Pause/Assets/Art/Bosses/src~/*.svg
+Pause/Assets/Art/Bosses/*/src~/*.svg
+Pause/Assets/Art/Weapons/*/src~/*.svg
+Pause/Assets/Art/Weapons/*/src~/fx/*.svg
+Pause/Assets/Art/Enemies/src~/svg/
+Pause/Assets/Art/Worlds/*/src~/svg/
+Pause/Assets/Art/Worlds/src~/walls/
+Pause/Assets/Art/UI/Codex/src~/*.svg
+Pause/Assets/Art/UI/Icons/src~/*.svg
+Pause/Assets/Art/UI/Pause/src~/*.svg
 
 # Personal question list (local only)
 QUESTIONS.md

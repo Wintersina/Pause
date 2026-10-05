@@ -127,7 +127,7 @@ Each world's parallax layers are in `Art/Resources/Worlds/<World>/Backdrop/`.
 | UI (flat cel) | `Art/Resources/{DeathPanel,Hud,QuickActions,Codex,Tutorial,PauseGlow,PauseGlowFx,Shield}/`, `Art/UI/**` | v1 cel style still governs the UI |
 | PAUSE logo | `Art/pause_title_2.png`, `docs/pause-title.png` | protected |
 | Splash mark | `Art/HapticGate.png` | protected |
-| App icon | `Art/Retro80s/Ships/SourceStrips/xenon2_ship.png` | on HOLD (product call) |
+| App icon | `Art/AppIcon/GoldWarden/*` (live; the other `Art/AppIcon/<Ship>/` sets are candidates) | on HOLD (product call) |
 | Font, materials, audio | `Art/Orbitron/`, `Art/Materials/` | not art |
 
 ## Suggested order

@@ -125,8 +125,14 @@ public static class BossEncounterTest
         }
         Check("warning slab resolves", BossArt.Warning() != null);
         Check("death plays every frame once", BossArt.FrameAt(BossArt.DeathTicks, BossArt.Seconds(BossArt.DeathTicks) + .01f, false) == BossArt.DeathFrames);
+        // The per-frame SVGs bosses.py writes are untracked intermediates;
+        // what ships (and what the generator must keep producing) are the
+        // rendered atlases, so hold those and the generator itself.
+        Check("the boss generator exists", File.Exists("Assets/Art/Bosses/src~/bosses.py"));
+        Check("the warning slab is rendered", File.Exists("Assets/Art/Resources/Bosses/warning.png"));
         foreach (var dir in new[] { "Space", "Frost", "Verdant", "Ember" })
-            Check(dir + " SVG sources exist", Directory.GetFiles("Assets/Art/Bosses/" + dir + "/src~", "*.svg").Length >= 29);
+            foreach (var suffix in new[] { "", "_shots", "_card" })
+                Check(dir + suffix + ".png is rendered", File.Exists("Assets/Art/Resources/Bosses/" + dir + suffix + ".png"));
     }
 
     static void LevelEndStartsTheBossThenThePortal()
