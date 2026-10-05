@@ -49,6 +49,7 @@ public static class EnemyRosterTest
         PaletteCompliance();
         FloatingRocks();
         DetailFloor();
+        CellsHoldOnePoseEach();
 
         Debug.Log("[ER] failures: " + fails);
         return fails;
@@ -787,6 +788,80 @@ public static class EnemyRosterTest
             Check(string.Format("{0} key pose is detailed ({1} tones >= {2}, {3} colour boundaries >= {4})",
                                 d.key, tones.Count, MinTones, boundaries, need),
                   tones.Count >= MinTones && boundaries >= need);
+        }
+    }
+
+    // ---- 7b: cell integrity -----------------------------------------------------
+
+    // EnemyArt cuts a strip at width / FrameCount. A strip whose poses were
+    // not composed on that grid shows slices of the neighbouring pose inside
+    // a frame and loses the tips of the wide ones (the 2026-10 Mantis and
+    // Brand: sliced straight off their free-layout concept sheets). Two cheap
+    // tells, per cell:
+    //   - solid art on the cell's left / right outline column: it runs into
+    //     the next frame (and bleeds under bilinear filtering);
+    //   - a ruler-straight vertical silhouette edge, solid on one side and
+    //     fully transparent on the other, at least CutScar of the cell tall:
+    //     the scar a grid cut leaves, even after the cell was re-centred.
+    // Art/Enemies/src~/audit_cells.py is the full audit (components, anchor
+    // and scale drift, contact sheets); recell.py rebuilds a strip from its
+    // pose sheet. Strips in KnownCutStrips still carry the defect and are
+    // only logged: take a key off the list when its strip is rebuilt.
+    public const float CutScar = .15f;
+    static readonly string[] KnownCutStrips =
+    {
+        "frost_fighter_2", "frost_fighter_3", "frost_fighter_4", "frost_alien",
+        "ember_rock_magma", "verdant_fighter_2", "verdant_fighter_4", "verdant_rock_pod",
+        // flat-ink heavies: straight hull sides and bursts that reach the cell
+        // edge; not confirmed as cuts, listed until someone reviews them
+        "ember_big", "verdant_big", "space_big",
+    };
+
+    static void CellsHoldOnePoseEach()
+    {
+        foreach (var key in KnownCutStrips)
+            Check(key + " (known cut strip) is still an enemy", EnemyRoster.Find(key) != null);
+        foreach (var d in EnemyRoster.All)
+        {
+            if (d.role == EnemyRole.Mine) continue;   // the neon atlas has its own grid (RailMineArtTest)
+            var tex = LoadStrip(d);
+            if (tex == null) continue;                // PaletteCompliance already reports a missing strip
+            int w = tex.width, h = tex.height, cw = w / EnemyRoster.FrameCount;
+            var px = tex.GetPixels32();
+            UnityEngine.Object.DestroyImmediate(tex);
+            int need = Mathf.CeilToInt(CutScar * h);
+            int outline = 0, worst = 0, worstCell = -1;
+            for (int cell = 0; cell < EnemyRoster.FrameCount; cell++)
+            {
+                int x0 = cell * cw;
+                for (int y = 0; y < h; y++)
+                {
+                    if (px[y * w + x0].a > 128) outline++;
+                    if (px[y * w + x0 + cw - 1].a > 128) outline++;
+                }
+                for (int x = 0; x < cw; x++)
+                    for (int side = -1; side <= 1; side += 2)
+                    {
+                        int nx = x + side, run = 0;
+                        bool inside = nx >= 0 && nx < cw;
+                        for (int y = 0; y < h; y++)
+                        {
+                            bool edge = px[y * w + x0 + x].a > 128 && (!inside || px[y * w + x0 + nx].a == 0);
+                            run = edge ? run + 1 : 0;
+                            if (run > worst) { worst = run; worstCell = cell; }
+                        }
+                    }
+            }
+            bool clean = outline == 0 && worst < need;
+            string what = string.Format("{0} cells each hold one whole pose ({1} texels on a cell's side outline, " +
+                                        "longest straight cut {2} px in frame {3}, limit {4})",
+                                        d.key, outline, worst, worstCell, need);
+            if (Array.IndexOf(KnownCutStrips, d.key) >= 0)
+            {
+                if (clean) Check(d.key + " is clean now: take it off KnownCutStrips", false);
+                else Debug.Log("[ER] KNOWN " + what);
+            }
+            else Check(what, clean);
         }
     }
 
