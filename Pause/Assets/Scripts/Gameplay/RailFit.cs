@@ -51,6 +51,8 @@ public class RailFit : MonoBehaviour
         var scale = transform.localScale;
         scale.y = requiredWorldHeight / meshHeight;
         transform.localScale = scale;
+        // The rail art's horizontal fit follows the rail's height.
+        WorldPainter.FitBand(gameObject);
     }
 }
 

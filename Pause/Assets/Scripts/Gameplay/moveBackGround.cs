@@ -67,7 +67,7 @@ public class moveBackGround : MonoBehaviour {
     void moveBackground()
     {
         offsetY = Mathf.Repeat(offsetY + speed * Time.deltaTime, 1f);
-        if (wallMaterial != null) wallMaterial.mainTextureOffset = new Vector2(0f, offsetY);
+        if (wallMaterial != null) wallMaterial.mainTextureOffset = new Vector2(0f, offsetY);   // v only: Pause/WorldWall maps u itself
     }
 
     // game speeds up as the time progresses. Both walls call this; SpeedRamp

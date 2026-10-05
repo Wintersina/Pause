@@ -522,22 +522,102 @@ public static class WorldBackdropTest
         }
     }
 
-    // The Space rails are scene meshes rather than Resources backdrop tiles.
-    // Their new textures contain alpha around brackets/pipes, so both scene
-    // materials must use the same transparent shader; an opaque left rail
-    // paints its transparent pixels black over the playable lane.
+    // The Space rails are scene meshes rather than Resources backdrop tiles,
+    // and their art is a 32-px band inside a 64-px cell with transparent
+    // margins. Two things have to hold for them to show at all:
+    //   - the wall shader must be alpha-blended and unlit. The built-in
+    //     Mobile/(Bumped) Diffuse the materials used is opaque: it draws the
+    //     transparent margins as the black they are stored as;
+    //   - the art must be mapped onto the part of the wall that is on screen.
+    //     A phone shows only the wall's inner ~0.35 u (a quarter of the
+    //     quad), which with the whole cell stretched over the quad is
+    //     nothing but the art's transparent inner margin.
     static void CheckSpaceRailMaterials()
     {
+        bool shaders = true;
+        foreach (string name in new[] { "left_1", "right_6", "right_7" })
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/" + name + ".mat");
+            if (m == null || m.shader == null || m.shader.name != "Pause/WorldWall" || m.renderQueue < 3000 ||
+                !m.HasProperty("_UBand") || !m.HasProperty("_Color") || m.color != Color.white)
+                shaders = false;
+        }
+        Check("Wall materials use the unlit alpha-blended Pause/WorldWall shader, untinted", shaders);
+
         var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/left_1.mat");
         var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/right_7.mat");
-        Check("Space left/right rail materials exist", left != null && right != null);
         if (left == null || right == null) return;
-
         Check("Space rails bind new left/right textures",
               AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
               AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
-        Check("Space rail materials share alpha-capable shader",
-              left.shader != null && right.shader != null && left.shader == right.shader);
+
+        // The art columns WorldPainter aligns by are what the PNGs hold.
+        bool measured = true;
+        string found = "";
+        for (int side = 0; side < 2; side++)
+        {
+            var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            t.LoadImage(File.ReadAllBytes(side == 0 ? "Assets/Art/left.png" : "Assets/Art/right.png"));
+            var px = t.GetPixels32();
+            int first = -1, last = -1;
+            for (int x = 0; x < t.width; x++)
+            {
+                bool any = false;
+                for (int y = 0; y < t.height && !any; y++) any = px[y * t.width + x].a > 127;
+                if (!any) continue;
+                if (first < 0) first = x;
+                last = x;
+            }
+            found += (side == 0 ? "left " : ", right ") + first + ".." + (last + 1);
+            int wantFirst = side == 0 ? WorldPainter.LeftRailArtFirst : WorldPainter.RightRailArtFirst;
+            int wantEnd = side == 0 ? WorldPainter.LeftRailArtEnd : WorldPainter.RightRailArtEnd;
+            if (t.width != WorldPainter.RailCellWidth || t.height != WorldPainter.RailCellHeight ||
+                first != wantFirst || last + 1 != wantEnd) measured = false;
+            Object.DestroyImmediate(t);
+        }
+        Check("Space rail art columns match WorldPainter's (" + found + ")", measured);
+
+        // On every screen shape the strip of wall in view shows rail art, not
+        // its margin, with square texels. Wall quads: 1.43 u wide centred on
+        // +/-3.21, RailFit height = 2 x orthographic size x 1.085.
+        bool onScreen = true, square = true;
+        string worst = "";
+        foreach (float aspect in new[] { 9f / 21f, 9f / 19.5f, 9f / 16f, 3f / 4f })
+        {
+            float ortho = CameraFit.ComputeSize(5f, 2.85f, Mathf.RoundToInt(1000 * aspect), 1000);
+            float halfW = ortho * aspect;
+            var size = new Vector3(1.43f, ortho * 2f * 1.085f, 1f);
+            for (int side = 0; side < 2; side++)
+            {
+                bool isLeft = side == 0;
+                Vector4 band = WorldPainter.BandFor((isLeft ? left : right).mainTexture, size, isLeft);
+                float texelsPerUnitX = (band.y - band.x) * WorldPainter.RailCellWidth / size.x;
+                float texelsPerUnitY = WorldPainter.RailCellHeight / size.y;
+                if (Mathf.Abs(texelsPerUnitX / texelsPerUnitY - 1f) > 0.01f) square = false;
+                // Columns of the texture that fall in view, from the wall's
+                // inner edge (2.495 u from the centre line) to the view's edge
+                // or the quad's outer edge.
+                float visible = Mathf.Min(halfW, 3.925f) - 2.495f;
+                float innerCol = (isLeft ? band.y : band.x) * WorldPainter.RailCellWidth;
+                float cols = visible * texelsPerUnitX;
+                int artFirst = isLeft ? WorldPainter.LeftRailArtFirst : WorldPainter.RightRailArtFirst;
+                int artEnd = isLeft ? WorldPainter.LeftRailArtEnd : WorldPainter.RightRailArtEnd;
+                float artShown = isLeft ? Mathf.Min(cols, innerCol - artFirst) : Mathf.Min(cols, artEnd - innerCol);
+                bool pinned = Mathf.Abs(innerCol - (isLeft ? artEnd : artFirst)) < 0.01f;
+                if (!pinned || artShown < 8f)
+                {
+                    onScreen = false;
+                    worst = " (aspect " + aspect.ToString("F2") + ": " + artShown.ToString("F1") + " art columns in view)";
+                }
+            }
+        }
+        Check("Space rail art sits on the wall's inner edge and is in view on every screen shape" + worst, onScreen);
+        Check("Space rail texels are square at every screen shape", square);
+
+        // Full-cell wall tiles (the planet worlds') keep the plain 0..1 map.
+        var tile = Resources.Load<Texture2D>("Worlds/Ember/wallLeft");
+        Vector4 plain = WorldPainter.BandFor(tile, new Vector3(1.43f, 13f, 1f), true);
+        Check("Planet wall tiles map their whole cell onto the wall", plain.x == 0f && plain.y == 1f);
     }
 
     // -------------------------------------------------------------- space --
