@@ -37,6 +37,7 @@ public class ClearTarget : MonoBehaviour
     // what it is, looked up once per object -- never per frame.
     [System.NonSerialized] public Vector2 SensedAt, SensedVelocity;
     [System.NonSerialized] public int SensedStep = -1;
+    [System.NonSerialized] public bool SensedMeasured;   // false: first sight, SensedVelocity is a guess
     [System.NonSerialized] public EliteShip Elite;   // set by the elite itself when it joins the play
     EnemyBrain brain;
     bool classified, shotHitbox;

@@ -172,6 +172,9 @@ public static class EliteEvasion
         count++;
     }
 
+    // True when `t`'s SensedVelocity was measured this step (not a first-sight guess).
+    public static bool Measured(ClearTarget t) => t != null && t.SensedStep == stamp && t.SensedMeasured;
+
     public static float Skill(EliteDef def) => Mathf.Clamp01(def.avoidance);
     public static float LookAheadFor(EliteDef def) => LookAheadSeconds * Mathf.Lerp(LookAheadUnskilled, 1f, Skill(def));
     public static float ReactionFor(EliteDef def) => ReactionSeconds * Mathf.Lerp(ReactionUnskilled, 1f, Skill(def));
@@ -200,13 +203,19 @@ public static class EliteEvasion
             if (!rock && !t.CompareTag("Enimey")) continue;
             if (t.IsShotHitbox) continue;   // shots are read from their pool, below
             Vector2 p = t.transform.position;
+            // Its velocity is MEASURED, never inferred from the scroll: a body may ride the board,
+            // weave, hold a station in the world or fly its own way. Only the one step it is first
+            // seen has nothing to measure; it is read as riding the board until the next.
             Vector2 v = board;
-            if (t.SensedStep == stamp - 1)
+            bool measured = t.SensedStep == stamp - 1;
+            if (measured)
             {
                 v = (p - t.SensedAt) / dt;
-                // (a jump -- a blink, a re-seat -- is not a speed)
-                v = v.sqrMagnitude > 40f * 40f ? board : Vector2.Lerp(t.SensedVelocity, v, .5f);
+                // (a jump -- a blink, a re-seat -- is not a speed; the first measurement is taken whole)
+                if (v.sqrMagnitude > 40f * 40f) { v = board; measured = false; }
+                else if (t.SensedMeasured) v = Vector2.Lerp(t.SensedVelocity, v, .5f);
             }
+            t.SensedMeasured = measured;
             t.SensedAt = p;
             t.SensedVelocity = v;
             t.SensedStep = stamp;

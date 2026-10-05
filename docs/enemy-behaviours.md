@@ -465,29 +465,31 @@ Same probe, same seeds (`EliteSurvivalProbe.Run` prints before, after and the ab
 
 | Elite | Died to the board in 15 s: before -> after | within 5 s of joining | Attacks per survivor (15 s) | Killed by (after) |
 |---|---|---|---|---|
-| Ash Wraith | 19 -> 2 of 24 | 10 -> 0 | 4.0 -> 4.0 | heavy 1, alien 1 |
-| Brass Vulture | 22 -> 7 | 16 -> 0 | 3.0 -> 2.6 | rock 3, alien 3, fighter 1 |
-| Cauterizer | 24 -> 3 | 22 -> 2 | (none survived) -> 2.3 | rock 2, fighter 1 |
-| Coalrunner | 24 -> 4 | 20 -> 1 | (none survived) -> 2.7 | alien 3, heavy 1 |
-| Kilnback | 20 -> 1 | 10 -> 0 | 2.8 -> 2.5 | alien 1 |
-| Sunstoke | 23 -> 11 | 18 -> 4 | 3.0 -> 2.9 | rock 4, alien 4, heavy 2, fighter 1 |
-| Rimebreaker | 22 -> 1 | 14 -> 1 | 2.5 -> 2.8 | alien 1 |
-| Resin Warden | 20 -> 1 | 18 -> 1 | 2.8 -> 2.7 | rock 1 |
-| **All, solo** | **174 -> 30 of 192 (91% -> 16%)** | **128 -> 9 (67% -> 5%)** | 3.1 -> 2.8 | alien 13, rock 10, heavy 4, fighter 3; no rail, no own shot |
-| **All, groups of three** | **204 -> 15 of 216 (94% -> 7%)** | **153 -> 9 (71% -> 4%)** | 3.1 -> 1.9 | rock 11, chaser 1, fighter 1, alien 1, own shot 1; **no elite on elite** |
+| Ash Wraith | 19 -> 1 of 24 | 10 -> 0 | 4.0 -> 3.9 | alien 1 |
+| Brass Vulture | 22 -> 9 | 16 -> 0 | 3.0 -> 2.5 | rock 4, alien 3, heavy 2 |
+| Cauterizer | 24 -> 3 | 22 -> 3 | (none survived) -> 2.7 | rock 2, fighter 1 |
+| Coalrunner | 24 -> 7 | 20 -> 1 | (none survived) -> 2.5 | rock 2, alien 2, heavy 2, fighter 1 |
+| Kilnback | 20 -> 0 | 10 -> 0 | 2.8 -> 2.5 | - |
+| Sunstoke | 23 -> 13 | 18 -> 1 | 3.0 -> 3.0 | rock 8, rail 3, heavy 1, alien 1 |
+| Rimebreaker | 22 -> 2 | 14 -> 2 | 2.5 -> 2.9 | alien 1, rock 1 |
+| Resin Warden | 20 -> 1 | 18 -> 1 | 2.8 -> 2.8 | rock 1 |
+| **All, solo** | **174 -> 36 of 192 (91% -> 19%)** | **128 -> 8 (67% -> 4%)** | 3.1 -> 2.9 | rock 18, alien 8, heavy 5, rail 3, fighter 2 |
+| **All, groups of three** | **204 -> 26 of 216 (94% -> 12%)** | **153 -> 9 (71% -> 4%)** | 3.1 -> 2.1 | rock 13, alien 5, rail 2, heavy 2, fighter 2, mine 1, **elite on elite 1** (was 31 + 8 shots) |
 
-By speed, solo, deaths within 5 s of joining: HUD 10 31% -> 0%, HUD 20 67% -> 10%, HUD 30 83% -> 2%, HUD 40
-85% -> 6%.
+Mean time from joining to a board death, for those that still die: 3.9 s -> 8.6 s solo, 3.6 s -> 8.4 s in groups.
+By speed, solo, deaths within 5 s of joining: HUD 10 31% -> 0%, HUD 20 67% -> 13%, HUD 30 83% -> 0%, HUD 40
+85% -> 4%. (These are the numbers of the last run on the final code; an earlier run of the same seeds one small
+change before read 16% / 5% solo and 7% / 4% in groups, so take a few points either way as noise.)
 
 **The pilot still kills them.** With a stand-in pilot that slides under the elite and fires straight up
-(`hunted`: 96 flights), the pilot killed 75 before and 89 after (the rest died to the board first), in 1.3 s
+(`hunted`: 96 flights), the pilot killed 75 before and 90 after (the rest died to the board first), in 1.3 s
 before and 1.4 s after on average.
 
 **What the spawn shadow is worth.** The same solo run with `SpawnShadowSeconds = 0` (planner, lift-off and the
-rest all on): 117 of 192 died (61%), 64 within 5 s (33%); none at HUD 10, 65% at HUD 20, about 90% at HUD 30-40.
-So reading the board alone halves the early deaths and ends the rail, own-shot and elite-on-elite deaths, and the
-shadow does the rest on a fast board. Its cost: with one elite out the board spawns as much as before (4.1
-bodies/s in both runs); with three out it spawns about a fifth less (4.05 -> 3.26 bodies/s).
+rest all on): 123 of 192 died (64%), 63 within 5 s (33%); 8% at HUD 10, 71% at HUD 20, 83-94% at HUD 30-40.
+So reading the board alone halves the early deaths and all but ends the rail, own-shot and elite-on-elite deaths,
+and the shadow does the rest on a fast board. Its cost: with one elite out the board spawns as much as before
+(4.1 -> 4.2 bodies/s); with three out it spawns about a fifth less (4.05 -> 3.33 bodies/s).
 
 Caveats:
 
@@ -506,8 +508,14 @@ lift-off; never leaves the rails or the view and never hits a rail in a 20 s sto
 do not collide (and do with the evasion off); a holding wind-up jinks or breaks off; holds fire for a friendly
 elite; a roster enemy does not lunge through an elite; the spawn shadow; nothing advances while paused; zero
 allocations and bounded cost with 40 shots alive; every elite dies to the player a heart a hit, from the frame it
-joins; and the survival probe's before / after as assertions (slow, skipped by `RunFast`). `EliteTest`'s "a very
+joins; a body that holds a station in the world is measured as standing still and flown round; an outside
+velocity kick (the shield's shockwave) is ridden out, not cancelled in a frame; and the survival probe's before /
+after as assertions (slow, skipped by `RunFast`). `EliteTest`'s "a very
 fast board still catches it" became "what arrives inside its reaction time still catches it".
+
+The allocation check uses the profiler's `GC.Alloc` recorder with a positive control (a deliberate allocation, alone
+and inside the same loop, must be reported). `GC.GetAllocatedBytesForCurrentThread` reads 0 for everything under
+this Unity Mono; `EliteTest`'s two older allocation checks still use it and prove nothing until they are switched.
 
 ### Progress
 
@@ -520,5 +528,11 @@ fast board still catches it" became "what arrives inside its reaction time still
 * [ ] Play it on a phone: the feel of the swerve (`EvadeAccelScale`, `ReactionSeconds`), whether the hover reads,
       whether the spawn shadow is noticeable as a clear lane, whether groups now attack too rarely
 * [ ] Decide on `PlayerShotAwareness` (0 today)
+* [ ] Re-measure on the branch that has the roster "pilots" (bodies that hold a station in the world, world-space
+      shots, `PilotAirspace`). The sensor measures every body's velocity instead of assuming the scroll, so a
+      hovering pilot is read as standing still (tested here with a body that does not move), but nothing here was
+      run against real pilots: the before / after table, the spawn shadow against `PilotAirspace`'s reserved
+      columns (both reserve columns; an elite and a pilot may want the same one), and whether the pilots' shots
+      should hurt elites (roster shots do not today, so elites ignore them)
 * [ ] An exact predictor for weaving bodies (ask `EnemyBrain` where its pattern will be instead of extrapolating a
       straight line) would let elites thread alien lines; today they give weavers extra room instead

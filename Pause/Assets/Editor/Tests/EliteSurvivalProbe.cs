@@ -237,7 +237,7 @@ public static class EliteSurvivalProbe
         {
             var anchor = new GameObject("~ProbePad" + i).transform;
             // background terrain: anywhere across the view's upper two thirds
-            anchor.position = new Vector3(Random.Range(-2f, 2f), Random.Range(-1f, 3.5f), 0f);
+            anchor.position = new Vector3(Random.Range(-.8f, .8f) * EliteSystem.RailEdge, Random.Range(-1f, 3.5f), 0f);
             padAnchors.Add(anchor);
             pads.Add(new LandingSite { anchor = anchor, local = Vector3.zero, scale = .3f, order = -420, id = 100 + i });
         }
@@ -294,7 +294,8 @@ public static class EliteSurvivalProbe
         var live = EliteShip.Live;
         for (int i = 0; i < live.Count; i++) if (live[i] != null && live[i].InPlay) { mark = live[i]; break; }
         float want = mark != null ? mark.Position.x : Mathf.Sin(t * .7f) * 1.8f;
-        pilotAt.x = Mathf.MoveTowards(pilotAt.x, Mathf.Clamp(want, -2.1f, 2.1f), PilotSpeed * Dt);
+        float lane = EliteSystem.RailEdge - .4f;
+        pilotAt.x = Mathf.MoveTowards(pilotAt.x, Mathf.Clamp(want, -lane, lane), PilotSpeed * Dt);
         pilotAt.y = -3f;
         fireClock -= Dt;
         if (mark != null && fireClock <= 0f && mark.Position.y > pilotAt.y && Mathf.Abs(mark.Position.x - pilotAt.x) < 1.2f)

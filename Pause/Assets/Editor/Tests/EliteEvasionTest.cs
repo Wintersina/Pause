@@ -51,6 +51,7 @@ public static class EliteEvasionTest
             TwoElitesDoNotCollide();
             WindUpJinksOrBreaksOff();
             HoldsFireForAFriend();
+            HoveringBodiesAndKicks();
             NoLungeThroughAnElite();
             SpawnShadow();
             Paused();
@@ -430,6 +431,44 @@ public static class EliteEvasionTest
         SpawnSpace.ClockOverride = null;
     }
 
+    // ---- bodies that do not ride the board; a kick from outside ----
+
+    static void HoveringBodiesAndKicks()
+    {
+        // a body holding a station in the world while the board pours past at speed: it is read
+        // as standing still (measured), not as falling with the scroll
+        Fresh(.3f);
+        pilot.position = new Vector3(0f, -3.8f, 0f);
+        var hover = EnemyFactory.Create(EnemyRoster.One(3, EnemyRole.Big), new Vector3(.9f, 1.5f, 0f), Quaternion.identity);
+        ClearTarget.Ensure(hover);
+        var e = InPlay("siege", new Vector2(-1f, 3.5f));
+        Step(.3f);   // (the test never moves `hover`)
+        var ct = hover.GetComponent<ClearTarget>();
+        Check("a body that holds its station is measured as standing still, whatever the scroll (" + ct.SensedVelocity.magnitude.ToString("F2") + " u/s at scroll " +
+              SpawnSpace.ScrollSpeed.ToString("F1") + ")", EliteEvasion.Measured(ct) && ct.SensedVelocity.magnitude < .05f);
+        // the siege's lane now leads under it: it tracks the pilot across and must go round, not through
+        pilot.position = new Vector3(1.9f, -3.8f, 0f);
+        hover.transform.position = new Vector3(.6f, 3.5f, 0f);
+        Step(5f);
+        Check("an elite flies round a hovering body in its way (hearts " + (Alive(e) ? e.Hearts : 0) + ", hover " + (hover != null ? "intact" : "rammed") + ")",
+              Alive(e) && e.Hearts == 2 && hover != null);
+        if (hover != null) Object.DestroyImmediate(hover);
+
+        // a velocity kick from outside (the shield's shockwave sets EliteShip.Velocity)
+        Fresh(.05f);
+        pilot.position = new Vector3(0f, -3.8f, 0f);
+        var k = InPlay("siege", new Vector2(-1.2f, 3.5f));
+        Step(.5f);
+        k.Velocity = new Vector2(5f, 0f);
+        EliteSystem.Step(Dt);
+        float kept = k.Velocity.magnitude;
+        Check("an outside velocity kick is not cancelled in a frame (" + kept.ToString("F2") + " of 5 u/s left after one)", kept > 4.6f);
+        bool inside = true;
+        Step(2f, () => { inside &= Alive(k) && Mathf.Abs(k.Position.x) + k.Def.hullRadius * .7f <= EliteSystem.RailEdge + 1e-3f; });
+        Check("... it rides the kick out, brakes short of the rail and flies on (speed " + (Alive(k) ? k.Velocity.magnitude.ToString("F2") : "-") + ", hearts " + (Alive(k) ? k.Hearts : 0) + ")",
+              inside && Alive(k) && k.Hearts == 2 && k.Velocity.magnitude < k.Def.speed * 1.6f);
+    }
+
     // ---- the spawn shadow -----------------------------------------------------------
 
     static void SpawnShadow()
@@ -484,19 +523,41 @@ public static class EliteEvasionTest
         InPlay("gunship", new Vector2(.9f, -2.6f));
         InPlay("siege", new Vector2(0f, 3.4f));
         var style = Def("hauler");
-        // forty slow shots hanging in the air either side, and a dozen rocks coming down
+        // forty shots hanging in the air either side for the whole measurement, and a dozen rocks
+        // coming down the middle. (Nothing is destroyed in the measured stretch: a kill builds its
+        // blast, which is an event, not a per-frame cost.)
         for (int i = 0; i < 40; i++)
-            EliteSystem.Shots.Fire(null, style, EliteShots.Kind.Slag, new Vector2(i % 2 == 0 ? -2f : 2f, -3f + i * .19f), Vector2.zero);
-        for (int i = 0; i < 12; i++) Rock(new Vector2(-2.1f + (i % 4) * 1.4f, 5.5f + i * .7f));
-        Step(1.5f);   // warm up: every plan, sidestep and puff once
+            EliteSystem.Shots.Fire(null, style, EliteShots.Kind.Shell, new Vector2(i % 2 == 0 ? -1.9f : 1.9f, -3f + i * .19f), Vector2.zero);
+        for (int i = 0; i < 12; i++) Rock(new Vector2(-1.05f + (i % 4) * .7f, 5.5f + i * .7f));
+        // (the FX pool builds its puffs the first time each is used: a shot that ends in the
+        // measured stretch sparks, so the sparks are built now)
+        for (int i = 0; i < 6; i++) EliteSystem.Fx.Sparks(new Vector2(0f, -4.5f), Color.white, 8);
+        Step(.7f);   // warm up: every plan, sidestep and puff once
         int live = EliteSystem.Shots.ActiveCount, plans = EliteEvasion.Plans, threats = EliteEvasion.ThreatCount;
-        long before = System.GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 180; i++)
+        // (GC.GetAllocatedBytesForCurrentThread reads 0 for everything under this Unity Mono: the
+        // profiler's GC.Alloc recorder is the meter, and it must SEE a deliberate allocation first)
+        long control = Allocated(() => { for (int i = 0; i < 2000; i++) { controlSink = new byte[32]; controlSink = "f" + i; } });
+        Check("the allocation meter sees a deliberate allocation (positive control reads " + control + ")", control > 0);
+        int rocksBefore = rocks.Count;
+        long allocated = Allocated(() =>
         {
-            FallRocks();
-            EliteSystem.Step(Dt);
-        }
-        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+            for (int i = 0; i < 150; i++)
+            {
+                FallRocks();
+                EliteSystem.Step(Dt);
+            }
+        });
+        int measuredPlans = EliteEvasion.Plans - plans, stillLive = EliteSystem.Shots.ActiveCount;
+        long seeded = Allocated(() =>
+        {
+            for (int i = 0; i < 30; i++)
+            {
+                FallRocks();
+                EliteSystem.Step(Dt);
+                controlSink = new byte[32];
+            }
+        });
+        Check("... and one small allocation a frame inside the very same loop (reads " + seeded + ")", seeded > 0);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         int timedPlans = EliteEvasion.Plans;
         for (int i = 0; i < 180; i++)
@@ -507,10 +568,27 @@ public static class EliteEvasionTest
         watch.Stop();
         double perFrame = watch.Elapsed.TotalMilliseconds / 180.0;
         Check("bounded cost: " + perFrame.ToString("F3") + " ms a frame for the whole elite step here in the editor (" + (EliteEvasion.Plans - timedPlans) + " plans)", perFrame < 1.0);
-        Check("zero allocations over 180 frames: three elites sensing and planning with " + live + " shots and " + rocks.Count + " rocks alive (" +
-              allocated + " bytes, " + (EliteEvasion.Plans - plans) + " plans)", allocated == 0 && live >= 30 && EliteEvasion.Plans - plans >= 30);
+        Check("zero allocations over 150 frames: three elites sensing and planning with " + live + " shots and " + rocksBefore + " rocks alive (" +
+              allocated + " bytes, " + measuredPlans + " plans, " + stillLive + " shots still alive at the end)",
+              allocated == 0 && live >= 30 && stillLive >= 30 && measuredPlans >= 20);
         Check("the threat picture is bounded (" + threats + " of " + EliteEvasion.MaxThreats + ")",
               threats > 30 && threats <= EliteEvasion.MaxThreats);
+    }
+
+    static object controlSink;
+
+
+    // What `work` allocates on the managed heap, by the profiler's GC.Alloc recorder.
+    static long Allocated(System.Action work)
+    {
+        using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1,
+                   Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately))
+        {
+            if (!rec.Valid) return -1;
+            long before = rec.CurrentValue;
+            work();
+            return rec.CurrentValue - before;
+        }
     }
 
     // ---- the player -------------------------------------------------------------------

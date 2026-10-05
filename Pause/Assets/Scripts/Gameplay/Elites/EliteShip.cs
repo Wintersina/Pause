@@ -734,7 +734,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             var t = live[i];
             if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
             Vector2 hp = t.transform.position;
-            Vector2 hv = HazardVelocity(t, scroll);
+            // (what it was measured doing this step, when the sensor has it: a body that holds a
+            // station in the world does not ride the scroll)
+            Vector2 hv = EliteEvasion.Enabled && EliteEvasion.Measured(t) ? t.SensedVelocity : HazardVelocity(t, scroll);
             Vector2 r = hp - pos;
             Vector2 rv = hv - velocity;
             float R = Def.hullRadius + t.Radius + .15f;
