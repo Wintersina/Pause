@@ -42,8 +42,15 @@ using UnityEngine.SceneManagement;
 // the air are ever the same), nothing allocates per frame, and the whole
 // thing runs on unscaled time: moveBackGround can freeze Time.timeScale on
 // the menu after a run. Purely cosmetic: no colliders, no UI graphics, all on
-// the Ignore Raycast layer, and it never touches the logo or the menu.
-public class TitleScreenTraffic : MonoBehaviour
+// the Ignore Raycast layer, and it never moves, recolours or resizes the logo
+// or a button (a crash into one is drawn on top of it; a button's label may
+// wobble and always settles back exactly).
+//
+// More in the partial files: TitleScreenTraffic.Combat.cs (ultimates,
+// shoot-downs into the walls, crashes into the logo and buttons),
+// TitleScreenTraffic.Touch.cs (the finger pushes ships around) and
+// TitleScreenTraffic.Skins.cs (every ship flies all of its skins).
+public partial class TitleScreenTraffic : MonoBehaviour
 {
     public enum Depth { Back = 0, Mid = 1, Front = 2 }
 
@@ -104,7 +111,7 @@ public class TitleScreenTraffic : MonoBehaviour
     static readonly Color Bone = new Color(.957f, .918f, .831f, 1f);    // #F4EAD4
     static readonly Color Haze = new Color(.165f, .18f, .42f, 1f);      // #2A2E6B
 
-    public enum State { Idle, Cruise, Boost, ZipIn, ZipOut, Pursue, Formation, Dizzy }
+    public enum State { Idle, Cruise, Boost, ZipIn, ZipOut, Pursue, Formation, Dizzy, Plunge }
     public enum Trick { None, Loop, Roll }
 
     // One pooled ship per roster id.
@@ -116,7 +123,6 @@ public class TitleScreenTraffic : MonoBehaviour
         public SpriteRenderer hull;
         public Transform boost;               // ShipExhaust's "Boost<id>" flame root
         public SpriteRenderer[] nozzles;
-        public Sprite[] shards;               // hull quarters for crash debris
         public float normScale;               // NormalizedHullScale for its sprite
         public bool wind;                     // Ninja / UFO: spinning craft, no flame
         public ShipSpinDrift drift;           // ...their spin drift instead (gameplay's)
@@ -147,6 +153,24 @@ public class TitleScreenTraffic : MonoBehaviour
         public bool zipFlying;
         public Trail trail;
         public bool pendingPop;
+        // skins (Skins.cs)
+        public int skin;                      // the skin this flight wears
+        public int resident;                  // its decoded non-stock skin (0: none yet)
+        public DeathCrash.FragmentSet stockFrags, residentFrags;
+        public float fragsBusyUntil;           // its pieces are on screen until then
+        public ShipFlameFlipbook[] flames;
+        // combat (Combat.cs)
+        public float ultAt;                   // when its ultimate goes off (MaxValue: not this flight)
+        public bool ulting;
+        public float ultT;
+        public Flyer aim;                     // the ship it lines up on
+        public Vector2 plungeAt;              // where it hits the logo / a button
+        public int plungeInto;                // -1 the logo, else a button index
+        public bool stricken;                 // shot and going down
+        public float emit;
+        // touch (Touch.cs)
+        public Vector2 push;
+        public DeathCrash.FragmentSet Frags => skin != ShipSkins.Stock && residentFrags != null ? residentFrags : stockFrags;
     }
 
     // An Akira tail-light streak: RED outer, AMBER middle, BONE core, hard
@@ -182,7 +206,7 @@ public class TitleScreenTraffic : MonoBehaviour
         public int index;
     }
 
-    public const int TrailPool = 4, ShardPool = 16, StarPool = 6, FxTrack = 12;
+    public const int TrailPool = 4, ShardPool = 16, StarPool = 6, FxTrack = 16;
 
     Flyer[] pool;
     readonly Trail[] trails = new Trail[TrailPool];
@@ -294,14 +318,19 @@ public class TitleScreenTraffic : MonoBehaviour
         BuildTrails();
         BuildShards();
         BuildStars();
+        BuildCombat();
+        BuildTouch();
         FindScene();
         RefreshGeometry(true);
+        FindTouchUi();
+        StartSkins();
 
         now = 0f;
         nextCrashAt = Random.Range(crashInterval.x * .6f, crashInterval.y * .6f);
         nextZoomAt = Random.Range(1.5f, 4f);
         nextFormationAt = Random.Range(3f, 7f);
         for (int i = 0; i < 3; i++) nextSpawnAt[i] = 0f;
+        nextPlungeAt = Random.Range(plungeInterval.x * .5f, plungeInterval.y * .6f);
 
         // open on a populated sky rather than an empty one filling up
         for (int d = 0; d < 3; d++)
@@ -340,8 +369,10 @@ public class TitleScreenTraffic : MonoBehaviour
                 boost.gameObject.SetActive(!f.wind);
                 f.nozzles = boost.GetComponentsInChildren<SpriteRenderer>(true);
                 for (int i = 0; i < f.nozzles.Length; i++) f.nozzles[i].gameObject.layer = 2;
+                f.flames = boost.GetComponentsInChildren<ShipFlameFlipbook>(true);
             }
             else f.nozzles = new SpriteRenderer[0];
+            if (f.flames == null) f.flames = new ShipFlameFlipbook[0];
             if (f.wind)
             {
                 // Spinners get gameplay's spin drift. The hull spins as it
@@ -361,26 +392,10 @@ public class TitleScreenTraffic : MonoBehaviour
                 foreach (var r in go.GetComponentsInChildren<Transform>(true)) r.gameObject.layer = 2;
                 f.drift = drift;
             }
-            f.shards = Quarters(sr.sprite);
             go.SetActive(false);
             pool[slot++] = f;
         }
         spriteMaterial = pool.Length > 0 ? pool[0].hull.sharedMaterial : null;
-    }
-
-    // The hull cut into four pieces for debris.
-    static Sprite[] Quarters(Sprite s)
-    {
-        var result = new Sprite[4];
-        if (s == null || s.texture == null) return result;
-        Rect r = s.textureRect;
-        float w = r.width * .5f, h = r.height * .5f;
-        for (int i = 0; i < 4; i++)
-        {
-            var q = new Rect(r.x + (i & 1) * w, r.y + (i >> 1) * h, w, h);
-            result[i] = Sprite.Create(s.texture, q, new Vector2(.5f, .5f), s.pixelsPerUnit);
-        }
-        return result;
     }
 
     void BuildTrails()
@@ -427,6 +442,7 @@ public class TitleScreenTraffic : MonoBehaviour
         logoRenderer = title != null ? title.GetComponent<SpriteRenderer>() : null;
         var panel = GameObject.Find("UIPanel");
         menuPanel = panel != null ? panel.transform : null;
+        FindButtons();
     }
 
     void RefreshGeometry(bool force)
@@ -481,7 +497,9 @@ public class TitleScreenTraffic : MonoBehaviour
     {
         // Unscaled and clamped: the menu's moveBackGround may freeze
         // timeScale, and a resumed app must not leap ships across the sky.
-        Step(Mathf.Min(Time.unscaledDeltaTime, .05f));
+        float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
+        if (built) ReadInput(dt);
+        Step(dt);
     }
 
     public void Step(float dt)
@@ -491,14 +509,18 @@ public class TitleScreenTraffic : MonoBehaviour
         now += dt;
         RefreshGeometry(false);
 
+        TickSkins();
         Populate();
         Matchmake();
+        MaybePlunge();
 
         for (int i = 0; i < pool.Length; i++)
             if (pool[i].active) Fly(pool[i], dt);
 
+        ApplyPush(dt);
         Separate(dt);
         DetectCrashes();
+        TickUltimates(dt);
 
         for (int i = 0; i < pool.Length; i++)
             if (pool[i].active) Draw(pool[i], dt);
@@ -506,6 +528,7 @@ public class TitleScreenTraffic : MonoBehaviour
         TickTrails(dt);
         TickShards(dt);
         TickStars(dt);
+        TickCombatFx(dt);
         TickFx(dt);
     }
 
@@ -584,6 +607,16 @@ public class TitleScreenTraffic : MonoBehaviour
         f.nextBoost = now + Random.Range(2.5f, 8f);
         f.nextTrick = now + Random.Range(4f, 11f);
         f.turn = 0f;
+        f.push = Vector2.zero;
+        f.stricken = false;
+        f.ulting = false;
+        f.aim = null;
+        f.plungeInto = -1;
+        f.skin = PickSkin(f);
+        Flights++;
+        // about one flight in seven lets its ultimate go at some point
+        f.ultAt = float.MaxValue;
+        if (Random.value < UltChance) { f.ultAt = now + Random.Range(ultDelay.x, ultDelay.y); UltsPlanned++; }
 
         if (leader != null && leader.active)
         {
@@ -700,23 +733,27 @@ public class TitleScreenTraffic : MonoBehaviour
     void ApplyLook(Flyer f)
     {
         var spec = Depths[(int)f.layer];
-        int order = spec.sortBase + f.slot * SortSlots;
+        int order = SortOrderOf(f);
         f.hull.sortingOrder = order + 3;
         var mat = spec.haze && hazeMaterial != null ? hazeMaterial : spriteMaterial;
         if (mat != null) f.hull.sharedMaterial = mat;
         f.hull.color = Color.white;
+        var rest = ShipHullArt.Get(f.id, f.skin, 0, 0);
+        if (rest != null) f.hull.sprite = rest;
+        for (int i = 0; i < f.flames.Length; i++) f.flames[i].skinOverride = f.skin;
         for (int i = 0; i < f.nozzles.Length; i++)
         {
             f.nozzles[i].sortingOrder = order + 2;
             if (mat != null) f.nozzles[i].sharedMaterial = mat;
-            // the exhaust wears the ship's skin on either material
-            ExhaustRemap.Apply(f.nozzles[i], f.id);
+            // the exhaust wears this flight's skin on either material
+            ExhaustRemap.Apply(f.nozzles[i], f.id, f.skin);
         }
         if (f.drift != null && f.drift.Ring != null)
         {
             f.drift.Ring.sortingOrder = order + 2;
             f.drift.Wake.sortingOrder = order + 1;
             if (mat != null) { f.drift.Ring.sharedMaterial = mat; f.drift.Wake.sharedMaterial = mat; }
+            f.drift.skinOverride = f.skin;
             f.drift.RefreshSkin();
         }
     }
@@ -725,6 +762,8 @@ public class TitleScreenTraffic : MonoBehaviour
     {
         f.active = false;
         f.state = State.Idle;
+        EndUltimate(f);
+        f.push = Vector2.zero;
         if (f.trail != null) ReleaseTrail(f);
         if (pursuerA == f || pursuerB == f) EndPursuit();
         for (int i = 0; i < StarPool; i++) if (stars[i].owner == f) { stars[i].owner = null; stars[i].sr.enabled = false; }
@@ -752,6 +791,9 @@ public class TitleScreenTraffic : MonoBehaviour
             case State.Dizzy:
                 FlyDizzy(f, dt);
                 return;
+            case State.Plunge:
+                FlyPlunge(f, dt);
+                return;
             case State.Pursue:
                 if (f.partner == null || !f.partner.active) { f.state = State.Cruise; break; }
                 want = Mathf.Atan2(f.partner.pos.y - f.pos.y, f.partner.pos.x - f.pos.x);
@@ -778,7 +820,7 @@ public class TitleScreenTraffic : MonoBehaviour
                 if (f.waypointsLeft > 0) { f.waypointsLeft--; f.waypoint = PickWaypoint(f.layer); }
                 else if (view.Contains(f.waypoint)) f.waypoint = ExitPoint(f);
             }
-            if (f.state == State.Cruise) MaybeStartSomething(f);
+            if (f.state == State.Cruise && !f.ulting) MaybeStartSomething(f);
         }
 
         // steering: turn toward the waypoint, plus a lazy weave
@@ -799,9 +841,10 @@ public class TitleScreenTraffic : MonoBehaviour
             if (f.trickT >= .5f) f.trick = Trick.None;
         }
 
+        if (f.ulting) steer = UltSteer(f, steer, turnRate);
         f.turn = steer;
         f.heading += steer * dt;
-        f.speed = f.baseSpeed * f.speedMul;
+        f.speed = f.baseSpeed * f.speedMul * (f.ulting ? UltSlow : 1f);
         f.pos += new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading)) * (f.speed * dt);
 
         // out of the sky and heading away: back to the pool
@@ -1073,11 +1116,11 @@ public class TitleScreenTraffic : MonoBehaviour
         for (int i = 0; i < pool.Length; i++)
         {
             var a = pool[i];
-            if (!a.active || a.state == State.Dizzy || a.state == State.ZipIn || a.state == State.ZipOut) continue;
+            if (!a.active || a.state == State.Dizzy || a.state == State.ZipIn || a.state == State.ZipOut || a.state == State.Plunge) continue;
             for (int j = i + 1; j < pool.Length; j++)
             {
                 var b = pool[j];
-                if (!b.active || b.layer != a.layer || b.state == State.Dizzy || b.state == State.ZipIn || b.state == State.ZipOut) continue;
+                if (!b.active || b.layer != a.layer || b.state == State.Dizzy || b.state == State.ZipIn || b.state == State.ZipOut || b.state == State.Plunge) continue;
                 if (a.partner == b || b.partner == a) continue;
                 if (CanCrash(a, b)) continue;
                 Vector2 d = b.pos - a.pos;
@@ -1095,6 +1138,7 @@ public class TitleScreenTraffic : MonoBehaviour
         if (a.layer != b.layer) return false;          // depth reads right
         if (now < nextCrashAt) return false;           // rate limit
         if (a.state == State.Dizzy || b.state == State.Dizzy) return false;
+        if (a.state == State.Plunge || b.state == State.Plunge) return false;
         if (a.partner == b && a.state == State.Formation) return false;
         if (b.partner == a && b.state == State.Formation) return false;
         return true;
@@ -1236,15 +1280,15 @@ public class TitleScreenTraffic : MonoBehaviour
 
         // lean into the turn and narrow a touch (a 2D bank)
         float turn = Mathf.Clamp(f.turn, -2.5f, 2.5f);
-        float lean = f.state == State.Dizzy ? 0f : -turn * 5f;
+        float lean = f.state == State.Dizzy || f.state == State.Plunge ? 0f : -turn * 5f;
         float bank = 1f - Mathf.Min(.1f, Mathf.Abs(turn) * .05f);
 
         // the hull's own flipbook (ShipHullArt): its idle loop, and its drawn
         // bank poses in a hard turn -- the same drawings the flying ship uses
         int column = ShipHullArt.IdleDrawingAt(now * ShipHullArt.TicksPerSecond + f.phase * 10f);
-        if (!f.wind && f.state != State.Dizzy && f.trick != Trick.Roll && Mathf.Abs(turn) > .9f)
+        if (!f.wind && f.state != State.Dizzy && f.state != State.Plunge && f.trick != Trick.Roll && Mathf.Abs(turn) > .9f)
             column = turn > 0f ? ShipHullArt.BankLeft : ShipHullArt.BankRight;
-        var drawing = ShipHullArt.Get(f.id, 0, column);
+        var drawing = ShipHullArt.Get(f.id, f.skin, f.stricken ? ShipHullArt.States - 1 : 0, column);
         if (drawing != null && f.hull.sprite != drawing) f.hull.sprite = drawing;
 
         if (f.trick == Trick.Roll)
@@ -1276,7 +1320,7 @@ public class TitleScreenTraffic : MonoBehaviour
 
         // front ships fade through the logo fast, and thin out over the menu
         float target = 1f;
-        if (f.layer == Depth.Front)
+        if (f.layer == Depth.Front && f.state != State.Plunge)
         {
             float ext = ReferenceHull * f.scale * .5f;
             if (Overlaps(logo, p, ext)) target = .18f;
@@ -1486,26 +1530,31 @@ public class TitleScreenTraffic : MonoBehaviour
     void Debris(Flyer f, DepthSpec spec)
     {
         var mat = spec.haze && hazeMaterial != null ? hazeMaterial : spriteMaterial;
+        // the hull's own wreck drawing in this flight's skin, cut the way
+        // the gameplay death cuts it (DeathCrash.CutFragments)
+        var set = FragsFor(f);
+        f.fragsBusyUntil = now + 1f;
+        int count = set != null ? Mathf.Min(set.count, 6) : 0;
         int placed = 0;
-        for (int i = 0; i < ShardPool && placed < 4; i++)
+        for (int i = 0; i < ShardPool && placed < count; i++)
         {
             var s = shards[i];
             if (s.on) continue;
-            var sprite = f.shards[placed];
-            float ang = (placed * 90f + 45f + Random.Range(-25f, 25f)) * Mathf.Deg2Rad + f.heading;
+            var sprite = set.sprites[placed];
+            float ang = (placed * (360f / count) + 45f + Random.Range(-25f, 25f)) * Mathf.Deg2Rad + f.heading;
             s.vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * Random.Range(.9f, 1.7f) * Mathf.Sqrt(f.scale);
             s.spin = Random.Range(420f, 900f) * (Random.value < .5f ? -1f : 1f);
             s.age = 0f;
             s.life = Random.Range(.55f, .8f);
-            s.size = f.normScale * f.scale;
+            s.size = Mathf.Abs(f.tr.localScale.y);
             s.on = true;
             s.sr.sprite = sprite;
             s.sr.sortingOrder = spec.fxSort + 2;
             if (mat != null) s.sr.sharedMaterial = mat;
             s.sr.color = Color.white;
             s.sr.enabled = sprite != null;
-            s.sr.transform.position = new Vector3(f.pos.x, f.pos.y, 0f);
             s.sr.transform.rotation = f.tr.rotation;
+            s.sr.transform.position = f.tr.TransformPoint(set.local[placed].x, set.local[placed].y, 0f);
             placed++;
         }
     }
@@ -1595,8 +1644,15 @@ public class TitleScreenTraffic : MonoBehaviour
         return p.x > safe.xMin + inset && p.x < safe.xMax - inset && p.y > safe.yMin + inset && p.y < safe.yMax - inset;
     }
 
-    void OnDestroy()
+    void OnDestroy() { Shutdown(); }
+
+    // Leaving the home screen: frees the skin wardrobe, settles any button
+    // mid-wobble, hands the explosions back. OnDestroy calls it; the
+    // edit-mode tests (no Awake, so no OnDestroy) call it themselves.
+    public void Shutdown()
     {
+        ReleaseSkins();
+        RestoreButtons();
         // hand any explosions we were driving back to their own clock
         for (int i = 0; i < fxCount; i++) if (fx[i] != null) fx[i].enabled = true;
         fxCount = 0;
@@ -1604,6 +1660,7 @@ public class TitleScreenTraffic : MonoBehaviour
         {
             if (Application.isPlaying) Destroy(hazeMaterial);
             else DestroyImmediate(hazeMaterial);
+            hazeMaterial = null;
         }
     }
 }

@@ -21,6 +21,10 @@ public class ShipFlameFlipbook : MonoBehaviour
     int skinVersion = -1;
 
     public int ShipIdShown { get { return shipId; } }
+
+    // A skin to wear instead of the ship's shown one (-1: follow
+    // ShipSkins.Shown). The home-screen traffic flies every skin.
+    public int skinOverride = -1;
     public int FrameShown { get { return shown; } }
 
     // Re-reads the skin on the next step (a caller swapped the material).
@@ -65,7 +69,8 @@ public class ShipFlameFlipbook : MonoBehaviour
         if (skinVersion != ExhaustRemap.Version)
         {
             skinVersion = ExhaustRemap.Version;
-            ExhaustRemap.Apply(target, shipId);
+            if (skinOverride >= 0) ExhaustRemap.Apply(target, shipId, skinOverride);
+            else ExhaustRemap.Apply(target, shipId);
         }
         int frame = ShipExhaust.FrameAt(shipId, ticks);
         if (frame == shown) return;

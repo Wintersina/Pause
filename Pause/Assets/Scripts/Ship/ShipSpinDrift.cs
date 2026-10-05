@@ -122,12 +122,17 @@ public class ShipSpinDrift : MonoBehaviour
 
     // Puts the shown skin on the ring and wake now (also after a caller
     // swapped their material).
+    // A skin to wear instead of the ship's shown one (-1: follow
+    // ShipSkins.Shown). The home-screen traffic flies every skin.
+    public int skinOverride = -1;
+
     public void RefreshSkin()
     {
         if (ring == null) return;
         skinVersion = ExhaustRemap.Version;
-        ExhaustRemap.Apply(ring, ShipIndex);
-        ExhaustRemap.Apply(wake, ShipIndex);
+        int skin = skinOverride >= 0 ? skinOverride : ShipSkins.Shown(ShipIndex);
+        ExhaustRemap.Apply(ring, ShipIndex, skin);
+        ExhaustRemap.Apply(wake, ShipIndex, skin);
     }
 
     SpriteRenderer Layer(string name)
