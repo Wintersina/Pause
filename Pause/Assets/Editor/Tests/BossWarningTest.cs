@@ -773,13 +773,20 @@ public static class BossWarningTest
                       (l.chipInBand ? " (in the band)" : " (under the icons)") + "; banner " + R(l.banner));
             Check(s.name + ": the chip (at its largest) is clear of the score read-out and the quick actions",
                   !l.chip.Overlaps(read) && !l.chip.Overlaps(actions));
-            Check(s.name + ": the chip is inside the safe area, in the top band", Inside(s.safe, l.chip) && l.chip.yMin > s.size.y * .8f);
+            // under the icons it is the band's second row: the top fifth on a phone, the top quarter on an unfolded screen
+            Check(s.name + ": the chip is inside the safe area, in the top band (its foot " + (l.chip.yMin / s.size.y).ToString("P0") + " up)",
+                  Inside(s.safe, l.chip) && l.chip.yMin > s.size.y * (s.size.x <= 1200f ? .8f : .75f));
             Check(s.name + ": the chip is big enough to read (" + (l.chip.width / BossWarningHud.ChipMaxPunch).ToString("F0") + " px wide)",
                   l.chip.width / BossWarningHud.ChipMaxPunch >= s.size.x * .1f);
             Check(s.name + ": the banner is inside the safe area, under the band, clear of all three",
                   Inside(s.safe, l.banner) && !l.banner.Overlaps(read) && !l.banner.Overlaps(actions) && !l.banner.Overlaps(l.chip));
+            // the band is two rows at its right end (icons, then the chip), so the banner hangs a chip lower
             Check(s.name + ": the banner stays in the top of the screen, off the ship's lane (its foot " + (l.banner.yMin / s.size.y).ToString("P0") + " up)",
-                  l.banner.yMin >= s.size.y * (s.size.x <= 1200f ? .74f : .65f));
+                  l.banner.yMin >= s.size.y * (s.size.x <= 1200f ? .68f : .6f));
+            var band = TopBand.FrameFor(s.safe, s.size);
+            Check(s.name + ": the chip is inside the top band's ends (inside the rails), like the read-out and the icons",
+                  l.chip.xMin >= band.left - .01f && l.chip.xMax <= band.right + .01f &&
+                  read.xMin >= band.left - .01f && actions.xMax <= band.right + .01f);
 
             // what is built matches what was computed
             hud.ApplyLayout(l);
@@ -791,17 +798,35 @@ public static class BossWarningTest
                             banner.sizeDelta == new Vector2(BossWarningHud.BannerW, BossWarningHud.BannerH);
             Check(s.name + ": the built chip and banner sit where the layout says", chipOk && bannerOk);
         }
-        Check("at the two target screens the chip sits in the band between the read-out and the icons",
-              BossWarningHud.ComputeLayout(Screens[0].safe, Screens[0].size, HudStyler.HudScreenRect(Screens[0].safe, Screens[0].size,
-                  HudStyler.HudCanvasScale(canvas, scaler, Screens[0].size), hudSize)).chipInBand &&
-              BossWarningHud.ComputeLayout(Screens[2].safe, Screens[2].size, HudStyler.HudScreenRect(Screens[2].safe, Screens[2].size,
-                  HudStyler.HudCanvasScale(canvas, scaler, Screens[2].size), hudSize)).chipInBand);
+        // The lane between the rails holds the read-out and the icons with
+        // nothing to spare, so on both target screens the chip is under the
+        // icons, right-aligned with them.
+        foreach (int i in new[] { 0, 2 })
+        {
+            Rect read = HudStyler.HudScreenRect(Screens[i].safe, Screens[i].size, HudStyler.HudCanvasScale(canvas, scaler, Screens[i].size), hudSize);
+            Rect actions = PauseQuickActions.ScreenRectFor(Screens[i].safe, Screens[i].size);
+            var l = BossWarningHud.ComputeLayout(Screens[i].safe, Screens[i].size, read);
+            Check(Screens[i].name + ": the chip sits under the icons, flush with their right end, at full size",
+                  !l.chipInBand && Mathf.Abs(l.chip.xMax - actions.xMax) < .5f && l.chip.yMax < actions.yMin &&
+                  Mathf.Approximately(l.chipScale, PauseQuickActions.CanvasScaleFor(Screens[i].size)));
+        }
+        // with room beside the read-out (no rails, a small read-out) it is in the band
+        {
+            var size = Screens[0].size;
+            var open = TopBand.FrameFor(Screens[0].safe, size, 0f, null);
+            var l = BossWarningHud.ComputeLayout(Screens[0].safe, size, new Rect(open.left, open.top - 177f, 474f, 177f), open);
+            Rect actions = PauseQuickActions.ScreenRectFor(open, size);
+            Check("with room in the band the chip sits between the read-out and the icons",
+                  l.chipInBand && l.chip.xMin > open.left + 474f && l.chip.xMax < actions.xMin && Mathf.Abs(l.chip.yMax - open.top) < .5f);
+        }
 
         // a read-out so wide there is no room beside it: under the icons
-        var wide = BossWarningHud.ComputeLayout(Screens[0].safe, Screens[0].size, new Rect(33, 2336, 700, 177));
         Rect act = PauseQuickActions.ScreenRectFor(Screens[0].safe, Screens[0].size);
+        float bandLeft = TopBand.FrameFor(Screens[0].safe, Screens[0].size).left;
+        var wideRead = new Rect(bandLeft, 2336, act.xMin - bandLeft - 4f, 177);
+        var wide = BossWarningHud.ComputeLayout(Screens[0].safe, Screens[0].size, wideRead);
         Check("no room in the band: the chip drops under the icons, still clear and on screen",
-              !wide.chipInBand && !wide.chip.Overlaps(act) && !wide.chip.Overlaps(new Rect(33, 2336, 700, 177)) &&
+              !wide.chipInBand && !wide.chip.Overlaps(act) && !wide.chip.Overlaps(wideRead) &&
               Inside(Screens[0].safe, wide.chip) && !wide.banner.Overlaps(wide.chip));
 
         // the pieces: nothing takes a touch, the canvas sorts under the icons
