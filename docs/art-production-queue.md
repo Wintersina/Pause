@@ -34,7 +34,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 17. **Installed and validated — `verdant_chaser`:** Dragonsting rebuilt as a thorn-leaf steel stinger with copper roots, resin sac, and toxic core; native seven-cell QA complete.
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
 19. **Queued — `space_big`**
-20. **Queued — `frost_big`**
+20. **Installed and validated — `frost_big`:** Glacier Golem rebuilt as a rugged icebreaker-steel and glacier-ice hulk with copper pressure plumbing, a cyan cryo visor, asymmetric frost damage, and a crushing ice-slam tell; seven-cell strip vetted for safe cell margins, idle continuity, and roster validation.
 21. **Queued — `verdant_big`**
 22. **Queued — `ember_big`**
 23. **Installed, validated — `space_rock_crater`**

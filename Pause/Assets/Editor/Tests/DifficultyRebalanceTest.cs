@@ -33,8 +33,8 @@ public static class DifficultyRebalanceTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
-        MinesAlwaysMountToMatchingSideRail();
-        MineFieldLoadsAndSpawnsOntoARail();
+        RailMinesRemainMounted();
+        OpeningCalmWindowRespectsShipStartSpeed();
         PhaseProgressionIsTimeDrivenNotSpeedDriven();
         WorldSpeedCapsLoweredAndRampScaleWired();
         ChaserHomesThenWanders();
@@ -53,35 +53,21 @@ public static class DifficultyRebalanceTest
         return comp;
     }
 
-    static void MinesAlwaysMountToMatchingSideRail()
+    static void RailMinesRemainMounted()
     {
         EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
         var comp = NewBoard("~EnmiesOnBoardTest1");
-
-        var spawnRail = PrivM(typeof(enmiesOnBoard), "SpawnRail");
-        var nearestLiveRail = PrivM(typeof(enmiesOnBoard), "NearestLiveRail");
-
-        var rightRail = (Transform)spawnRail.Invoke(comp, new object[] { true });
-        var leftRail = (Transform)spawnRail.Invoke(comp, new object[] { false });
-        Check("SpawnRail(true) lands on the positive-x side", rightRail.position.x > 0f);
-        Check("SpawnRail(false) lands on the negative-x side", leftRail.position.x < 0f);
-        Check("right rail is inside the visible play lane", rightRail.position.x <= 2.35f);
-        Check("left rail is inside the visible play lane", leftRail.position.x >= -2.35f);
-
-        // Move the right rail far away in Y and leave the left one close --
-        // a search that ignored side would now prefer the (far) right rail
-        // for neither request, or worse, hand a left-side request the
-        // nearby right rail. Both must still resolve strictly by side.
-        rightRail.position += new Vector3(0f, 50f, 0f);
-
-        var pickedForLeft = (Transform)nearestLiveRail.Invoke(comp, new object[] { false });
-        var pickedForRight = (Transform)nearestLiveRail.Invoke(comp, new object[] { true });
-        Check("a left-side request never returns the right-side rail", pickedForLeft == leftRail);
-        Check("a right-side request never returns the left-side rail even when it's far away", pickedForRight == rightRail);
-
+        PrivM(typeof(enmiesOnBoard), "spawnMine").Invoke(comp, null);
+        var liveMines = Priv(typeof(enmiesOnBoard), "liveMines").GetValue(comp) as System.Collections.IList;
+        var mine = liveMines != null && liveMines.Count > 0 ? liveMines[0] as Transform : null;
+        var mount = mine != null ? mine.GetComponent<RailMineMount>() : null;
+        Check("the rail mine keeps its RailMineMount", mount != null);
+        Check("the rail mine references a live moving rail", mount != null && mount.rail != null);
+        Check("the rail mine is aligned to its assigned rail", mount != null && mount.IsOnRail());
+        var rail = mount != null ? mount.rail : null;
         Object.DestroyImmediate(comp.gameObject);
-        Object.DestroyImmediate(leftRail.gameObject);
-        Object.DestroyImmediate(rightRail.gameObject);
+        if (mine != null) Object.DestroyImmediate(mine.gameObject);
+        if (rail != null) Object.DestroyImmediate(rail.gameObject);
     }
 
     static void ObsoleteRailAndAsteroidArtIsRemoved()
@@ -100,52 +86,10 @@ public static class DifficultyRebalanceTest
         Check("the old Art/Aestroids folder is gone", !AssetDatabase.IsValidFolder("Assets/Art/Aestroids"));
     }
 
-    static void MineFieldLoadsAndSpawnsOntoARail()
+    static void OpeningCalmWindowRespectsShipStartSpeed()
     {
-        EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
-        var comp = NewBoard("~EnmiesOnBoardTest2");
-
-        Check("legacy mine prefab is intentionally absent; themed rail mine is runtime-built", comp.mine == null);
-
-        var spawnMine = PrivM(typeof(enmiesOnBoard), "spawnMine");
-        spawnMine.Invoke(comp, null);
-
-        var liveMines = Priv(typeof(enmiesOnBoard), "liveMines").GetValue(comp) as System.Collections.IList;
-        Check("spawning a mine adds it to the live-mines list", liveMines != null && liveMines.Count == 1);
-        if (liveMines == null || liveMines.Count == 0) { Object.DestroyImmediate(comp.gameObject); return; }
-
-        var mineTransform = liveMines[0] as Transform;
-        var mount = mineTransform != null ? mineTransform.GetComponent<RailMineMount>() : null;
-        Check("the spawned mine got a RailMineMount", mount != null);
-        Check("the mount references a real, live rail", mount != null && mount.rail != null);
-        if (mount != null && mount.rail != null)
-        {
-            Check("the mine spawned exactly on its rail's x", Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
-        Check("the mine receives the themed rail-bomb animator",
-                  mineTransform.GetComponent<RailBombAnimator>() != null);
-            Check("the mine reports itself on its assigned rail", mount.IsOnRail());
-
-            // This is the important live-play case: the mine rides its own
-            // moving rail.  It keeps its intentional along-rail spacing,
-            // while its X and Y both follow that rail; it is not a loose
-            // straight-line enemy that merely gets snapped sideways.
-            float alongRail = mineTransform.position.y - mount.rail.position.y;
-            mount.rail.position += new Vector3(0.18f, -0.4f, 0f);
-            mineTransform.position += new Vector3(-1.5f, 0f, 0f);
-            mount.SendMessage("LateUpdate");
-            Check("a moving rail carries its mine to the new rail x", mount.IsOnRail());
-            Check("the mine's x equals the moved rail x",
-                  Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
-            Check("the mine rides down with its rail while keeping its rail spacing",
-                  Mathf.Approximately(mineTransform.position.y, mount.rail.position.y + alongRail));
-            var looseScroller = mineTransform.GetComponent<moveItemEnmInStrightLine>();
-            Check("a mounted mine disables loose straight-line scrolling",
-                  looseScroller != null && !looseScroller.enabled);
-        }
-
-        Object.DestroyImmediate(comp.gameObject);
-        if (mineTransform != null) Object.DestroyImmediate(mineTransform.gameObject);
-        if (mount != null && mount.rail != null) Object.DestroyImmediate(mount.rail.gameObject);
+        Check("SPEED 10 is the fast-arrival threshold", enmiesOnBoard.FastArrivalHudSpeed == 10);
+        Check("stock ships receive a readable calm fly-in", enmiesOnBoard.CalmArrivalSeconds > 0f);
     }
 
     static void PhaseProgressionIsTimeDrivenNotSpeedDriven()

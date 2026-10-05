@@ -41,6 +41,7 @@ public static class BackdropCatalog
         public float wrapBlend;     // Tile: fraction of the art cross-faded into its start (seamless whatever the art's wrap)
 
         public Layer WrapBlended(float fraction) { var l = this; l.wrapBlend = fraction; return l; }
+        public Layer WithTexture(string resourceName) { var l = this; l.texture = resourceName; return l; }
 
         public static Layer Tile(string name, float rate, Color tint, Role role = Role.Ground)
         {
@@ -125,7 +126,7 @@ public static class BackdropCatalog
         new Spec { world = "Verdant", layers = new[] {
             Layer.Tile("sky", 0.006f, W),
             Layer.Tile("far", 0.014f, W),
-            Layer.Tile("mid", 0.024f, W),
+            Layer.Tile("mid", 0.024f, W).WithTexture("forest_industrial_center_v1"),
             Layer.Strip("flow", 0.025f, 0.30f, 0f, W),
             Layer.Pieces("waterfalls", 0.030f, Role.Landmark),
             Layer.Pieces("ruins", 0.036f, Role.Landmark),

@@ -855,10 +855,11 @@ public class FrostDirector : PlanetDirector
 
 public class VerdantDirector : PlanetDirector
 {
-    BackdropPool waterfalls, ruins, glowspores, spores;
-    Sprite[] fall, ruin, firefly, spore;
+    BackdropPool waterfalls, ruins, glowspores, spores, steam;
+    Sprite[] fall, ruin, firefly, spore, steamFrames;
     Timer fallTimer = new Timer(10f, 16f, 7f);
     Timer ruinTimer = new Timer(7f, 12f, 3f);
+    Timer steamTimer = new Timer(3.5f, 6.5f, 1.2f);
 
     public VerdantDirector() : base(1990) { }
 
@@ -884,6 +885,7 @@ public class VerdantDirector : PlanetDirector
         waterfalls = LandmarkPool("waterfalls", 1);
         ruins = LandmarkPool("ruins", 3);
         BuildAir();
+        BuildSteam();
         glowspores = Pool("glowspores", 14);
         spores = Pool("spores", 12);
         // Fireflies and spores are drawn flipbooks (blink / tumble on held
@@ -901,6 +903,7 @@ public class VerdantDirector : PlanetDirector
     {
         if (fallTimer.Tick(dt, rng)) SpawnFall(float.NaN);
         if (ruinTimer.Tick(dt, rng)) SpawnRuin();
+        if (steamTimer.Tick(dt, rng)) SpawnSteam();
         StepLandmarks(waterfalls, dt, v);
         foreach (var r in ruins.items)
         {
@@ -928,6 +931,56 @@ public class VerdantDirector : PlanetDirector
             s.Animate();
             Paint(s, 1f);
         }
+        foreach (var p in steam.items)
+        {
+            if (!p.active || !Drift(p, dt, v)) continue;
+            p.Animate();
+            if (p.Finished) { Despawn(p); continue; }
+            Paint(p, 1f);
+        }
+    }
+
+    void BuildSteam()
+    {
+        steam = Pool("haze", 4, false, 2);
+        var tex = Resources.Load<Texture2D>(BackdropCatalog.Folder("Verdant") + "steam_plume_4f_v1");
+        if (tex == null) { steamFrames = new Sprite[0]; return; }
+        set.Textures.Add(tex);
+        int frameWidth = tex.width / 4;
+        steamFrames = new Sprite[4];
+        for (int i = 0; i < steamFrames.Length; i++)
+        {
+            steamFrames[i] = Sprite.Create(tex, new UnityEngine.Rect(i * frameWidth, 0, frameWidth, tex.height),
+                                            new Vector2(.5f, 0f), BackdropAtlas.PixelsPerUnit,
+                                            0, SpriteMeshType.FullRect);
+            steamFrames[i].name = "verdant_steam_" + i.ToString("00");
+        }
+    }
+
+    void SpawnSteam()
+    {
+        if (steamFrames == null || steamFrames.Length == 0) return;
+        var p = steam.Spawn();
+        if (p == null) return;
+        SetSprite(p, steamFrames[0], Rand(.75f, 1.15f));
+        p.frames = steamFrames;
+        p.fps = Rand(4.5f, 6f);
+        p.loop = false;
+        p.age = 0f;
+        p.x = (Chance(.5) ? -1f : 1f) * Rand(1.25f, 1.95f);
+        p.y = Rand(-HalfH * .65f, HalfH * .75f);
+        p.vx = Rand(-.035f, .035f);
+        p.vy = Rand(.04f, .10f);
+        p.rate = set.Spec.Rate("haze") * .35f;
+        p.color = new Color(.72f, 1f, .84f, Rand(.34f, .52f));
+        Place(p);
+    }
+
+    public override void Teardown()
+    {
+        if (steamFrames == null) return;
+        foreach (var s in steamFrames) BackdropAtlas.Kill(s);
+        steamFrames = null;
     }
 
     void SpawnFall(float y)

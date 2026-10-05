@@ -14,6 +14,7 @@ public static class WorldPainter
     static bool cached;
     static Texture cachedLeft, cachedRight;
     static Color cachedLeftTint = Color.white, cachedRightTint = Color.white;
+    static float cachedLeftWidth = 1f, cachedRightWidth = 1f;
 
     public static void Apply(WorldTheme theme)
     {
@@ -28,8 +29,21 @@ public static class WorldPainter
         }
 
         string root = "Worlds/" + theme.resourceFolder + "/";
-        Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft);
-        Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight);
+        // Verdant's reinforced forest rail is authored once and mirrored for
+        // the opposite wall, keeping both gameplay-facing edges identical.
+        if (theme.displayName == "Verdant")
+        {
+            var rail = Resources.Load<Texture2D>(root + "rail_forest_wide_v1");
+            Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
+            Paint(RightWallName, rail, theme.tint, cachedRight, true);
+            SetRailWidth(1.25f);
+        }
+        else
+        {
+            Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft, false);
+            Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight, false);
+            SetRailWidth(1f);
+        }
     }
 
     static void CacheOriginals()
@@ -38,6 +52,10 @@ public static class WorldPainter
         cached = true;
         cachedLeft = MaterialOf(LeftWallName) != null ? MaterialOf(LeftWallName).mainTexture : null;
         cachedRight = MaterialOf(RightWallName) != null ? MaterialOf(RightWallName).mainTexture : null;
+        var left = GameObject.Find(LeftWallName);
+        var right = GameObject.Find(RightWallName);
+        if (left != null) cachedLeftWidth = left.transform.localScale.x;
+        if (right != null) cachedRightWidth = right.transform.localScale.x;
 
         var m = MaterialOf(LeftWallName); if (m != null && m.HasProperty("_Color")) cachedLeftTint = m.color;
         m = MaterialOf(RightWallName);    if (m != null && m.HasProperty("_Color")) cachedRightTint = m.color;
@@ -45,8 +63,27 @@ public static class WorldPainter
 
     static void Restore()
     {
-        Paint(LeftWallName, null, cachedLeftTint, cachedLeft);
-        Paint(RightWallName, null, cachedRightTint, cachedRight);
+        Paint(LeftWallName, null, cachedLeftTint, cachedLeft, false);
+        Paint(RightWallName, null, cachedRightTint, cachedRight, false);
+        SetRailWidth(1f);
+    }
+
+    static void SetRailWidth(float factor)
+    {
+        var left = GameObject.Find(LeftWallName);
+        var right = GameObject.Find(RightWallName);
+        if (left != null)
+        {
+            var s = left.transform.localScale;
+            s.x = cachedLeftWidth * factor;
+            left.transform.localScale = s;
+        }
+        if (right != null)
+        {
+            var s = right.transform.localScale;
+            s.x = cachedRightWidth * factor;
+            right.transform.localScale = s;
+        }
     }
 
     static Material MaterialOf(string objectName)
@@ -59,7 +96,7 @@ public static class WorldPainter
 
     // A missing texture falls back to the cached original rather than painting
     // the world black -- a half-shipped planet should still be playable.
-    static void Paint(string objectName, Texture2D tex, Color tint, Texture fallback)
+    static void Paint(string objectName, Texture2D tex, Color tint, Texture fallback, bool mirrorX)
     {
         var mat = MaterialOf(objectName);
         if (mat == null) return;
@@ -69,6 +106,7 @@ public static class WorldPainter
         // would stretch the final edge into a long line, so repeat the tile.
         if (selected != null) selected.wrapMode = TextureWrapMode.Repeat;
         mat.mainTexture = selected;
+        mat.mainTextureScale = new Vector2(mirrorX ? -1f : 1f, 1f);
         if (mat.HasProperty("_Color")) mat.color = tint;
     }
 }
