@@ -18,7 +18,7 @@
   "lore": "A six-vent siege catamaran that hangs at the top of the sky. It tracks your lane, paints it with a sight line and fires one pressure shell straight down it. The shell punches through anything in the way.",
   "cellWorldSize": 1.7,
   "hullRadius": 0.48,
-  "noseDeg": 48,
+  "noseDeg": 90,
   "turnsToFace": true,
   "speed": 1.8,
   "accel": 4,
