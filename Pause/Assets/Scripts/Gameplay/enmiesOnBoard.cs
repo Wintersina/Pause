@@ -170,7 +170,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.6f, 0.9f),
                 mineInterval = new Vector2(7f, 10f),
                 enemyInterval = new Vector2(2.4f, 3.4f),
-                heavyInterval = new Vector2(7f, 10f),
+                heavyInterval = new Vector2(4.5f, 6.5f),
             },
             new SpawnPhase {
                 name = "Debris", activeAfterSeconds = 20f,
@@ -178,7 +178,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.55f, 0.85f),
                 mineInterval = new Vector2(6f, 9f),
                 enemyInterval = new Vector2(1.8f, 3f),
-                heavyInterval = new Vector2(6f, 9f),
+                heavyInterval = new Vector2(4.5f, 6.5f),
                 astroidInterval = new Vector2(2.2f, 3.5f),
             },
             new SpawnPhase {
@@ -188,7 +188,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.5f, 0.8f),
                 mineInterval = new Vector2(5f, 8f),
                 enemyInterval = new Vector2(1.4f, 2.4f),
-                heavyInterval = new Vector2(5f, 8f),
+                heavyInterval = new Vector2(5f, 7.5f),
                 astroidInterval = new Vector2(1.5f, 2.8f),
                 alienInterval = new Vector2(2.2f, 3.5f),
             },

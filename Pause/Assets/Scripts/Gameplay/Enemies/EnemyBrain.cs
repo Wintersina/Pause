@@ -204,7 +204,8 @@ public class EnemyBrain : MonoBehaviour
                 break;
             case EnemyLateral.Track:
                 if (committed || t == null) break;
-                float want = Mathf.Clamp(t.position.x - baseX, -band, band);
+                // (lx: what a lunge already moved it; the two add up to where it is)
+                float want = Mathf.Clamp(t.position.x - baseX, -band, band) - lx;
                 ox = Mathf.MoveTowards(ox, want, b.lateralSpeed * dt);
                 break;
             case EnemyLateral.March:
@@ -363,10 +364,12 @@ public class EnemyBrain : MonoBehaviour
             float want = lx;
             if (b.lungeX > 0f && t != null)
             {
-                float toPilot = t.position.x - (baseX + ox);            // from where it stands
-                if (b.lungeDive <= 0f)                                  // a slash: right across, pilot's side
-                    toPilot = (toPilot >= 0f ? band : -band) - ox;
-                want = Mathf.Clamp(ox + toPilot * b.lungeX, -band, band) - ox;
+                float here = ox + lx;                                   // where it stands in its band
+                float pilot = t.position.x - baseX;                     // where the pilot is, same frame
+                float goal = b.lungeDive <= 0f
+                    ? (pilot >= here ? band : -band)                    // a slash: right across, the pilot's side
+                    : Mathf.Lerp(here, pilot, b.lungeX);                // a pounce: toward the pilot's column
+                want = Mathf.Clamp(goal, -band, band) - ox;
             }
             lungeToX = want;
             lungeToY = -b.lungeDive;

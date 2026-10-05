@@ -19,7 +19,7 @@ public static class EnemyDensity
     // ---- tunables ----
     // Spawn rate at and below LowHud, at and above HighHud (linear between).
     public static float LowHud = 5f, HighHud = 35f;
-    public static float RateAtLowSpeed = .80f, RateAtHighSpeed = .42f;
+    public static float RateAtLowSpeed = .90f, RateAtHighSpeed = .42f;
     // Threats (bodies in or just above the view + weighted shots) allowed.
     public static float ThreatsAtLowSpeed = 11f, ThreatsAtHighSpeed = 10f;
     // How far above the top of the view a body already counts.

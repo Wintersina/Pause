@@ -303,16 +303,17 @@ public static class EnemyBehaviourTest
             var brain = Build(def, new Vector2(0f, 1.8f));
             float told = 0f;
             bool lunged = false;
-            Vector2 before = brain.Offset;
+            Vector2 before = brain.Offset;   // where it stood as the windup ended
             for (int i = 0; i < 60 * 10 && !lunged; i++)
             {
                 Step(brain);
-                if (brain.State == EnemyBrain.Phase.Windup) told += Dt;
+                if (brain.State == EnemyBrain.Phase.Windup) { told += Dt; before = brain.Offset; }
                 if (brain.State == EnemyBrain.Phase.Release) lunged = true;
             }
             for (int i = 0; i < 40; i++) Step(brain);
             bool ok = lunged && told >= Mathf.Max(EnemyBrain.TellFloorSeconds, b.tell) - 2f * Dt && brain.ShotsFired == 0;
-            if (b.lungeDive > 0f) ok &= brain.Offset.y <= before.y - b.lungeDive * .6f || brain.Offset.y <= -b.lungeDive + .05f;
+            if (b.lungeDive > 0f) ok &= brain.Offset.y <= before.y - b.lungeDive * .9f;
+            else ok &= Mathf.Abs(brain.Offset.x - before.x) >= b.bandX * .9f;   // a slash: right across its band
             if (!ok) badLunge.Add(def.key + "(told " + told.ToString("F2") + ", offset " + brain.Offset + ")");
             Object.DestroyImmediate(brain.gameObject);
         }
