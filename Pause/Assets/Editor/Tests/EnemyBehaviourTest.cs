@@ -280,7 +280,7 @@ public static class EnemyBehaviourTest
             float need = Mathf.Max(EnemyBrain.TellFloorSeconds, b.tell);
             shortest = Mathf.Min(shortest, told);
             bool ok = fired && !firedFromIdle && told >= need - 2f * Dt && brain.LastTellSeconds >= need - 1e-4f &&
-                      lightOn && tellCellOk && releaseCell && brain.ShotsFired >= 1 && fb.BrainDriven;
+                      lightOn && tellCellOk && releaseCell && brain.ShotsFired >= 1 && (fb.BrainDriven || def.role == EnemyRole.Mine);
             if (!ok)
                 bad.Add(def.key + "(fired " + fired + " told " + told.ToString("F2") + "/" + need.ToString("F2") + " light " + lightOn +
                         " tellCell " + tellCellOk + " releaseCell " + releaseCell + ")");

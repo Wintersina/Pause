@@ -64,7 +64,7 @@ public static class EnemyDensityTest
         Check("the spawn rate is cut least at low speed and most at high speed (x" + EnemyDensity.RateScale(5f) + " at HUD 5, x" +
               EnemyDensity.RateScale(35f) + " at 35)",
               EnemyDensity.RateScale(5f) > EnemyDensity.RateScale(20f) && EnemyDensity.RateScale(20f) > EnemyDensity.RateScale(35f) &&
-              EnemyDensity.RateScale(5f) <= 1f && EnemyDensity.RateScale(5f) >= .7f && EnemyDensity.RateScale(35f) <= .5f);
+              EnemyDensity.RateScale(5f) <= 1f && EnemyDensity.RateScale(5f) >= .7f && EnemyDensity.RateScale(35f) <= .6f);
         Check("past the high-speed end it holds (no further cut at the cap)",
               Mathf.Approximately(EnemyDensity.RateScale(35f), EnemyDensity.RateScale(50f)) &&
               Mathf.Approximately(EnemyDensity.RateScale(0f), EnemyDensity.RateScale(5f)));

@@ -84,7 +84,9 @@ public class EnemyFlipbook : MonoBehaviour
         chaser = GetComponent<ChaserEnemy>();
         // an attacker's tell belongs to its attack (EnemyBrain.Drive)
         var behaviour = EnemyBehaviours.For(def);
-        BrainDriven = behaviour != null && behaviour.Attacks && def.role != EnemyRole.Chaser;
+        // (a mine keeps arming near the ship as well: the same waking ->
+        // charging loop its windup plays)
+        BrainDriven = behaviour != null && behaviour.Attacks && def.role != EnemyRole.Chaser && def.role != EnemyRole.Mine;
         driveLoops = def.role == EnemyRole.Mine;
         drive = DrivePhase.None;
         state = State.Idle;

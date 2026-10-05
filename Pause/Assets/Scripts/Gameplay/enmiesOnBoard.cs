@@ -565,8 +565,8 @@ public class enmiesOnBoard : MonoBehaviour {
     float Roll(Vector2 range)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
-        return Random.Range(range.x, range.y) /
-               Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale * EnemyDensity.RateScale(EnemyDensity.Hud));
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
+               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud));
     }
 
     void spawn() { spawn(Time.deltaTime); }

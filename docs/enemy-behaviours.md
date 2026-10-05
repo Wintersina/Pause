@@ -106,7 +106,7 @@ shots are pooled; there are no neighbour scans at all.
 Tell = how cells 4-5 are used. "cosmetic" = the tell is flavour only (no attack follows).
 Shot speeds are relative to the board, in world units per second.
 
-### Space (shots: magenta)
+### Space (shots: magenta-pink, the elite shot colour)
 
 | Key | Name | What it is (art) | Movement | Shoots | Tell | Counter |
 |---|---|---|---|---|---|---|
@@ -196,18 +196,33 @@ What changed (every number is a tunable):
 
 | Where | Tunable | Value | Effect |
 |---|---|---|---|
-| `EnemyDensity` | `RateAtLowSpeed` / `RateAtHighSpeed` between `LowHud` 5 and `HighHud` 35 | x0.90 -> x0.42 | every spawn timer's rate, falling with speed |
+| `EnemyDensity` | `RateAtLowSpeed` / `RateAtHighSpeed` between `LowHud` 5 and `HighHud` 35 | x0.90 -> x0.55 | every spawn timer's rate, falling with speed |
 | `EnemyDensity` | `ThreatsAtLowSpeed` / `ThreatsAtHighSpeed` | 11 -> 10 | ceiling on bodies in (or 2.5 u above) the view plus weighted shots; a spawn past it is skipped |
 | `EnemyThreat` | `ShotWeight` | 0.5 | a live hostile projectile counts as half a body in that ceiling |
 | `EnemyThreat` | `MaxEnemyShots`, `VolleyGap` | 12, 0.4 s | roster shots alive at once; gap between two enemies' windups |
 | `enmiesOnBoard.SpawnPhase` | `heavyInterval` | 4.5-6.5 s early, 4-6 s in Chaos | heavies have their own timer (they shared the rocks' 0.5-3.4 s) |
 | every behaviour | its envelope | band / up / down | each enemy reserves its whole pattern, so fewer fit a stretch of board |
 
-**After: NOT YET MEASURED.** The values above are first estimates from the before table (rate x time on
-screen), chosen to land near -30% at HUD 5-10, -40% at 20, -50% and more from 30 up, about -45% over a
-run. The editor could not be started to run the probe (see Progress). `EnemyDensityTest` holds the
-targets (under 45% cut at HUD 5 and 10, at least 45% at 30+, 38-55% over a run, at least 4 enemies in
-view early) and prints the after table; retune `EnemyDensity` against it.
+**After** (same probe, same moments; "threats" = enemies in view + half a threat per live hostile shot):
+
+| HUD speed | spawns/s before -> after | in view before -> after | shots in flight | threats after | cut |
+|---|---|---|---|---|---|
+| 5 | 1.00 -> 0.68 | 6.3 -> 4.7 | 1.30 | 5.3 | 16% |
+| 10 | 2.03 -> 1.36 | 6.6 -> 4.6 | 0.66 | 4.9 | 25% |
+| 20 | 6.08 -> 3.65 | 10.1 -> 6.1 | 0.50 | 6.4 | 37% |
+| 30 | 14.08 -> 6.39 | 15.2 -> 7.0 | 0.30 | 7.1 | 53% |
+| 35 | 21.17 -> 7.64 | 19.6 -> 7.1 | 0.12 | 7.1 | 64% |
+| 40 | 21.26 -> 8.39 | 17.3 -> 6.8 | 0.04 | 6.8 | 61% |
+| 46 | 21.17 -> 8.93 | 15.1 -> 6.3 | 0.01 | 6.3 | 58% |
+| whole 120 s run | 7.44 -> 3.57 | 10.0 -> 5.3 | 0.53 | 5.6 | **44%** |
+
+(HUD 40 and 46 are above the new caps of most worlds; they are kept in the table as the same moments
+the before column was taken at.) `EnemyDensityTest` holds these as ranges and reprints the table.
+
+Worth knowing: shots in flight fall away as speed rises. At HUD 30 and above the board crosses the view
+in about a second, so a shooter rarely finishes its tell while it is still above the pilot. At speed the
+danger is the bodies; the shooting matters most in the first two thirds of a level. If shooters should
+stay active at speed, raise the `Brake` rises (the hover) for the hovering shooters.
 
 ## Speed (deliverable 3)
 
@@ -313,10 +328,9 @@ Listed as found; none of these blocks the feature.
 * [x] Tests written: `EnemyBehaviourTest`, `EnemyDensityTest`, `DifficultyRetuneTest`; existing
       expectations updated in `SpawnSpaceTest`, `DifficultyRebalanceTest`, `LoopTest`, `ScoringTest`
 * [x] Both assemblies compile clean with Unity's Roslyn (run outside the editor)
-* [ ] **Run the suites in the editor.** Blocked: Unity batch mode could not get a licence on this
-      machine (a stale `Unity.Licensing.Client` holds the channel; every editor launch loops on
-      "connection with the Unity Licensing Client has been lost"). Nothing in this branch has been
-      executed yet apart from the baseline probe.
-* [ ] Measure the after table and retune `EnemyDensity` to the targets
-* [ ] Fix whatever the first real test run turns up
-* [ ] Play it
+* [x] Suites run in the editor (`AllTests.RunAll`): 87 suites, 85 pass (18,696 checks pass); the 5 failing checks are in
+      `WorldBackdropTest` (3 Verdant palette checks) and `HostileProjectileTest` (the Frost wrapper
+      contrast check, and a boss-shot rim check), none of them in code this branch touches
+* [x] After table measured, `EnemyDensity` retuned once (high-speed rate 0.42 -> 0.55)
+* [ ] Play it. Nothing here has been played: every number is from headless simulation
+* [ ] Merge `integrate/oct04-batch` (the enemy strip re-cell) and re-run `EnemyRosterTest`

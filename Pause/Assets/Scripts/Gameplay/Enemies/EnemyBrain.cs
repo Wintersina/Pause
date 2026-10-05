@@ -69,6 +69,7 @@ public class EnemyBrain : MonoBehaviour
     Vector2 aim = Vector2.down;
     Vector2 lobTarget;
     float halfX;
+    int reserved;                   // shots held in EnemyThreat's budget during a windup
 
     public void Init(EnemyDef def, EnemyBehaviour behaviour)
     {
@@ -93,7 +94,7 @@ public class EnemyBrain : MonoBehaviour
         marchTimer = behaviour.lateralPeriod;
         cooldown = behaviour.firstDelay;
         State = Phase.Idle;
-        if (flipbook != null) flipbook.SetBrainDriven(Armed);
+        if (flipbook != null && !onRail) flipbook.SetBrainDriven(Armed);
         if (behaviour.Shoots && Armed) BuildChargeLight();
     }
 
@@ -270,7 +271,11 @@ public class EnemyBrain : MonoBehaviour
                 cooldown -= dt;
                 if (cooldown > 0f || Volleys >= b.maxVolleys) return;
                 if (!MayAttack(p, inView, t)) return;
-                if (b.Shoots && !EnemyThreat.TryReserveVolley(b.shotCount)) { cooldown = .25f; return; }
+                if (b.Shoots)
+                {
+                    if (!EnemyThreat.TryReserveVolley(b.shotCount)) { cooldown = .25f; return; }
+                    reserved = Mathf.Max(1, b.shotCount);
+                }
                 BeginWindup(p, t);
                 break;
             case Phase.Windup:
@@ -298,6 +303,17 @@ public class EnemyBrain : MonoBehaviour
                 break;
         }
     }
+
+    // The shots it reserved in the budget when its windup began are either
+    // in the air now or will never be fired.
+    void ReleaseReservation()
+    {
+        if (reserved <= 0) return;
+        EnemyThreat.Unreserve(reserved);
+        reserved = 0;
+    }
+
+    void OnDisable() { ReleaseReservation(); }
 
     void Enter(Phase next)
     {
@@ -375,6 +391,7 @@ public class EnemyBrain : MonoBehaviour
             lungeToY = -b.lungeDive;
             return;
         }
+        ReleaseReservation();
         ShotsFired += EnemyVolley.Fire(this, b, (Vector2)p + (Vector2)MuzzleLocal(), aim, lobTarget);
     }
 
@@ -433,6 +450,12 @@ public static class EnemyThreat
     public static bool ForceShooting;
 
     static float lastVolley = float.NegativeInfinity;
+    // Shots promised by windups in progress: they count against the budget
+    // before they exist, or several long tells would overrun it together.
+    static int pending;
+
+    public static int PendingShots => pending;
+    public static void Unreserve(int shots) { pending = Mathf.Max(0, pending - Mathf.Max(0, shots)); }
 
     // Roster enemies fire only where their shots are stepped (gameS1's
     // EliteDirector) and never in the tutorial.
@@ -464,12 +487,14 @@ public static class EnemyThreat
         float now = SpawnSpace.Clock;
         if (now < lastVolley) lastVolley = float.NegativeInfinity;   // a new run / a test's clock
         if (now - lastVolley < VolleyGap) return false;
-        if (LiveShots + Mathf.Max(1, shots) > MaxEnemyShots) return false;
+        int n = Mathf.Max(1, shots);
+        if (LiveShots + pending + n > MaxEnemyShots) return false;
         lastVolley = now;
+        pending += n;
         return true;
     }
 
-    public static void Reset() { lastVolley = float.NegativeInfinity; }
+    public static void Reset() { lastVolley = float.NegativeInfinity; pending = 0; }
 }
 
 // Fires a behaviour's projectiles through the elites' pooled shots
