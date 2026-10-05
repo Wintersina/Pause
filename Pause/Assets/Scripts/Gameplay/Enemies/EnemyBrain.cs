@@ -72,7 +72,22 @@ public class EnemyBrain : MonoBehaviour
     // band than its behaviour's (the spawner sets it; 1 = the whole band).
     public float BandScale { get; private set; } = 1f;
     public void SetBandScale(float scale) { BandScale = Mathf.Clamp01(scale); }
-    float Band => Behaviour.bandX * BandScale;
+    float Band => Behaviour.bandX * BandScale * reach;
+
+    // A rock's size (HazardSize): its pattern's amplitude (Reach: band, rise,
+    // sink) and pace (speeds up, periods down). 1 for everything else.
+    public float Size { get; private set; } = 1f;
+    public float Reach => reach;
+    public float Pace => pace;
+    float reach = 1f, pace = 1f;
+
+    public void SetSize(float size, float reachScale, float paceScale)
+    {
+        Size = size > 0f ? size : 1f;
+        reach = reachScale > 0f ? reachScale : 1f;
+        pace = paceScale > 0f ? paceScale : 1f;
+        if (Def != null) halfX = Def.ColliderSize.x * .5f * Size;
+    }
 
     public bool IsPilot { get; private set; }
     public PilotStage Stage { get; private set; }
@@ -171,7 +186,7 @@ public class EnemyBrain : MonoBehaviour
         else if (TryGetComponent(out moveItemEnmInStrightLine scroller)) { hostMover = scroller; scrollMover = scroller; }
         else hostMover = null;
         onRail = def.role == EnemyRole.Mine;
-        halfX = def.ColliderSize.x * .5f;
+        halfX = def.ColliderSize.x * .5f * Size;
         Armed = behaviour.Attacks && (behaviour.armedChance >= 1f || Random.value < behaviour.armedChance);
         // neighbours out of step, except the invader lines: wiggling and
         // marching in lockstep is the point
@@ -268,7 +283,7 @@ public class EnemyBrain : MonoBehaviour
             if (Mathf.Abs(baseX) <= lane) total = Mathf.Clamp(baseX + total, -lane, lane) - baseX;
         }
         lx = total - ox;
-        float totalY = Mathf.Clamp(oy + ly, -Behaviour.Down, Behaviour.Up);
+        float totalY = Mathf.Clamp(oy + ly, -Behaviour.Down * reach, Behaviour.Up * reach);
         ly = totalY - oy;
 
         if (onRail)
@@ -288,25 +303,27 @@ public class EnemyBrain : MonoBehaviour
     {
         var b = Behaviour;
         float band = Band;
+        // (pace: a rock's size makes its pattern slower or livelier; 1 otherwise)
+        float speed = b.lateralSpeed * pace, period = Mathf.Max(.1f, b.lateralPeriod / pace);
         switch (b.lateral)
         {
             case EnemyLateral.Drift:
                 if (committed && b.Shoots) break;
-                ox += dir * b.lateralSpeed * dt;
+                ox += dir * speed * dt;
                 if (ox > band) { ox = band; dir = -1f; }
                 else if (ox < -band) { ox = -band; dir = 1f; }
                 break;
             case EnemyLateral.Glide:
-                ox = Mathf.Clamp(ox + dir * b.lateralSpeed * dt, -band, band);
+                ox = Mathf.Clamp(ox + dir * speed * dt, -band, band);
                 break;
             case EnemyLateral.Sway:
                 if (committed) break;
                 lat += dt;
-                ox = band * Mathf.Sin(lat / Mathf.Max(.1f, b.lateralPeriod) * 2f * Mathf.PI);
+                ox = band * Mathf.Sin(lat / period * 2f * Mathf.PI);
                 break;
             case EnemyLateral.Orbit:
                 lat += dt;
-                float a = lat / Mathf.Max(.1f, b.lateralPeriod) * 2f * Mathf.PI * dir;
+                float a = lat / period * 2f * Mathf.PI * dir;
                 ox = band * Mathf.Cos(a);
                 oy = band * Mathf.Sin(a);
                 break;
@@ -333,19 +350,21 @@ public class EnemyBrain : MonoBehaviour
     void StepVertical(float dt, bool inView, bool committed)
     {
         var b = Behaviour;
+        // (reach / pace: a rock's size; 1 for everything else)
+        float period = Mathf.Max(.1f, b.verticalPeriod / pace);
         switch (b.vertical)
         {
             case EnemyVertical.Bob:
                 vert += dt;
-                oy = b.rise * Mathf.Sin(vert / Mathf.Max(.1f, b.verticalPeriod) * 2f * Mathf.PI);
+                oy = b.rise * reach * Mathf.Sin(vert / period * 2f * Mathf.PI);
                 break;
             case EnemyVertical.Pulse:
             {
                 // a kick up the board over the first quarter, a slow sink back
                 vert += dt;
-                float k = Mathf.Repeat(vert / Mathf.Max(.1f, b.verticalPeriod), 1f);
+                float k = Mathf.Repeat(vert / period, 1f);
                 float f = k < .25f ? Mathf.Sin(k / .25f * Mathf.PI * .5f) : .5f + .5f * Mathf.Cos((k - .25f) / .75f * Mathf.PI);
-                oy = b.rise * f;
+                oy = b.rise * reach * f;
                 break;
             }
             case EnemyVertical.Brake:
@@ -355,7 +374,7 @@ public class EnemyBrain : MonoBehaviour
                 break;
             case EnemyVertical.Sink:
             case EnemyVertical.Creep:
-                if (inView && !committed) oy = Mathf.Max(-b.sink, oy - b.verticalSpeed * dt);
+                if (inView && !committed) oy = Mathf.Max(-b.sink * reach, oy - b.verticalSpeed * pace * dt);
                 break;
             case EnemyVertical.Patrol:
                 if (committed) break;   // an armed mine holds still
@@ -652,10 +671,10 @@ public class EnemyBrain : MonoBehaviour
             switch (b.lateral)
             {
                 case EnemyLateral.Drift:
-                case EnemyLateral.Glide:
+                case EnemyLateral.Glide: return b.lateralSpeed * pace;
                 case EnemyLateral.Track: return b.lateralSpeed;
                 case EnemyLateral.Sway:
-                case EnemyLateral.Orbit: return b.bandX * 2f * Mathf.PI / Mathf.Max(.1f, b.lateralPeriod);
+                case EnemyLateral.Orbit: return b.bandX * reach * 2f * Mathf.PI / Mathf.Max(.1f, b.lateralPeriod / pace);
                 case EnemyLateral.March: return b.bandX * .5f / Mathf.Max(.2f, b.lateralPeriod) + .3f;
                 default: return 0f;
             }
@@ -760,13 +779,14 @@ public class EnemyBrain : MonoBehaviour
 
     // ---- SpawnSpace --------------------------------------------------------
 
-    // A body rect widened to everything the behaviour can reach around `basePoint`.
-    public static Rect Envelope(EnemyBehaviour b, Vector2 basePoint, Vector2 half, float bandScale = 1f)
+    // A body rect widened to everything the behaviour can reach around
+    // `basePoint` (`reach`: a rock's size scales its pattern, HazardSize).
+    public static Rect Envelope(EnemyBehaviour b, Vector2 basePoint, Vector2 half, float bandScale = 1f, float reach = 1f)
     {
         if (b == null) return SpawnSpace.BodyRect(basePoint, half);
-        float band = b.bandX * bandScale;
-        return Rect.MinMaxRect(basePoint.x - band - half.x, basePoint.y - b.Down - half.y,
-                               basePoint.x + band + half.x, basePoint.y + b.Up + half.y);
+        float band = b.bandX * bandScale * reach;
+        return Rect.MinMaxRect(basePoint.x - band - half.x, basePoint.y - b.Down * reach - half.y,
+                               basePoint.x + band + half.x, basePoint.y + b.Up * reach + half.y);
     }
 
     // A pilot's sweep (self-steering): where it may be over the next
@@ -785,7 +805,7 @@ public class EnemyBrain : MonoBehaviour
     {
         if (brain == null || brain.Behaviour == null || !brain.enabled) return SpawnSpace.BodyRect(center, half);
         Vector2 basePoint = new Vector2(center.x - brain.ox - brain.lx, center.y - brain.oy - brain.ly);
-        return Envelope(brain.Behaviour, basePoint, half, brain.BandScale);
+        return Envelope(brain.Behaviour, basePoint, half, brain.BandScale, brain.reach);
     }
 }
 
@@ -795,10 +815,14 @@ public sealed class EnemyBrainPlan : IMovementFootprint
 {
     public EnemyBehaviour behaviour;
     public float bandScale = 1f;
+    public float reach = 1f;   // the candidate's size (HazardSize.Reach)
+
+    // The lateral band it will sweep.
+    public float Band => behaviour != null ? behaviour.bandX * reach : 0f;
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return EnemyBrain.Envelope(behaviour, center, half, bandScale);
+        return EnemyBrain.Envelope(behaviour, center, half, bandScale, reach);
     }
 
     public bool SelfSteering => false;

@@ -144,7 +144,11 @@ public static class ShieldShockwave
                 continue;
             }
 
-            Vector2 move = away * (RadialPush * k);
+            // a rock's size is its mass: a small one flies further, a big one
+            // less far (HazardSize.ShoveScale; 1 for everything else). The
+            // column's clearing push is the same for every body.
+            float mass = rock ? HazardSize.ShoveScale(EnemyIdentity.ScaleOf(go)) : 1f;
+            Vector2 move = away * (RadialPush * k * mass);
             if (inColumn) move = new Vector2(0f, Mathf.Max(move.y, ColumnPush));
 
             RailMineMount mount;

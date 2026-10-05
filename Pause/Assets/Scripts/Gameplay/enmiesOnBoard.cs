@@ -332,7 +332,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
     public enum SlotKind { Rock, Big, Alien, Extra, Mine, Chaser }
 
-    struct Deferred { public SlotKind kind; public float age; public float x; }
+    // (sizeDraw: a rock's size draw, kept while it waits; HazardSize)
+    struct Deferred { public SlotKind kind; public float age; public float x; public float sizeDraw; }
 
     public const int MaxDeferred = 24;
     public const float MaxDeferSeconds = 1f;
@@ -369,14 +370,19 @@ public class enmiesOnBoard : MonoBehaviour {
     void Spawn(SlotKind kind, float x = float.NaN)
     {
         if (!EnemyDensity.RoomFor(EnemyDensity.Hud)) { SkippedForThreats++; return; }
+        sizeDraw = float.NaN;
         if (!TrySpawn(kind, x)) Defer(kind, x);
     }
+
+    // The size draw of the rock being tried (HazardSize.Draw): a spawn that
+    // has to wait keeps it, so waiting never trades a big rock for a small one.
+    float sizeDraw = float.NaN;
 
     void Defer(SlotKind kind, float x)
     {
         DeferredTotal++;
         if (deferredCount >= MaxDeferred) { DroppedTotal++; return; }
-        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f, x = x };
+        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f, x = x, sizeDraw = sizeDraw };
     }
 
     void RetryDeferred(float dt)
@@ -391,8 +397,10 @@ public class enmiesOnBoard : MonoBehaviour {
             // far past the ceiling and the body cap. (Outside the wait the
             // board is left exactly as it was tuned: there a deferred spawn
             // only overshoots by one or two.)
+            sizeDraw = deferred[i].sizeDraw;
             bool done = (!PortalPressure.Active || EnemyDensity.RoomFor(EnemyDensity.Hud)) &&
                         TrySpawn(deferred[i].kind, deferred[i].x);
+            deferred[i].sizeDraw = sizeDraw;
             if (!done && deferred[i].age < MaxDeferSeconds) { i++; continue; }
             if (!done) DroppedTotal++;
             deferred[i] = deferred[--deferredCount];
@@ -436,13 +444,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // (SpawnLane). The first pass also keeps clear of pickups; the second
     // only of enemies.
     bool TryPlace(Vector2 half, bool weaves, float preferredX, float maxX, EnemyDef laneDef,
-                  out Vector3 pos, out float amplitude, IMovementFootprint plan = null)
+                  out Vector3 pos, out float amplitude, IMovementFootprint plan = null, float size = 1f)
     {
         // anywhere in its lane -- but hazards are routed round the pilots: with
         // any on station, somewhere in a stretch of lane none of them holds
         // (and where the gaps are narrow it keeps a narrower band: RoutedBandScales)
         var brainPlan = plan as EnemyBrainPlan;
-        float fullBand = brainPlan != null && brainPlan.behaviour != null ? brainPlan.behaviour.bandX : 0f;
+        float fullBand = brainPlan != null ? brainPlan.Band : 0f;
         float fullMaxX = maxX;
         if (brainPlan != null) brainPlan.bandScale = 1f;
         bool routed = !weaves && PilotAirspace.Count > 0;
@@ -478,7 +486,7 @@ public class enmiesOnBoard : MonoBehaviour {
                     Rect reach = c.Sweep(0f, SpawnSpace.Lifetime);
                     if (PilotAirspace.Blocks(reach.xMin, reach.xMax)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
-                    if (laneDef != null && !SpawnLane.Fits(laneDef, x, y)) continue;
+                    if (laneDef != null && !SpawnLane.Fits(laneDef, x, y, size)) continue;
                     pos = new Vector3(x, y, 0f);
                     return true;
                 }
@@ -515,13 +523,17 @@ public class enmiesOnBoard : MonoBehaviour {
             }
             return true;
         }
-        // its whole pattern (the behaviour's envelope) must fit, inside the lane
+        // its whole pattern (the behaviour's envelope) must fit, inside the
+        // lane, at the size it is drawn at (HazardSize: rocks vary)
+        float size = HazardSize.Draw(def, ref sizeDraw);
         brainCandidate.behaviour = behaviour;
-        float maxX = Mathf.Max(0f, SpawnLane.MaxX(def) - (behaviour != null ? behaviour.bandX : 0f));
-        if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, maxX, def, out pos, out amplitude,
-                      behaviour != null ? brainCandidate : null))
+        brainCandidate.reach = HazardSize.Varies(def) ? HazardSize.Reach(size) : 1f;
+        float maxX = Mathf.Max(0f, SpawnLane.MaxX(def, size) - brainCandidate.Band);
+        if (!TryPlace(SpawnSpace.BodyHalf(def, size), weaves, preferredX, maxX, def, out pos, out amplitude,
+                      behaviour != null ? brainCandidate : null, size))
             return false;
-        var go = EnemyFactory.Create(def, pos, transform.rotation);
+        var go = EnemyFactory.Create(def, pos, transform.rotation, size);
+        sizeDraw = float.NaN;
         if (behaviour != null && brainCandidate.bandScale < 1f)
         {
             EnemyBrain squeezed;
@@ -874,6 +886,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 float y = transform.position.y + k * LiftStep;
                 brainCandidate.behaviour = def != null ? def.Behaviour : null;
                 brainCandidate.bandScale = 1f;
+                brainCandidate.reach = 1f;
                 var c = new SpawnCandidate(new Vector2(x, y), half, brainCandidate.behaviour != null ? brainCandidate : null);
                 if (!SpawnSpace.Fits(c)) continue;
                 if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;

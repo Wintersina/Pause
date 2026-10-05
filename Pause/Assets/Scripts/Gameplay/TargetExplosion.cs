@@ -49,7 +49,8 @@ public static class TargetExplosion
     {
         if (target == null) return Size.Medium;
         var def = EnemyIdentity.Of(target);
-        if (def != null) return def.explosionSize;
+        // (a rock drawn small or large blasts at its size: HazardSize.Blast)
+        if (def != null) return HazardSize.Blast(def, EnemyIdentity.ScaleOf(target));
         var r = target.GetComponentInChildren<Renderer>();
         if (r == null) return Size.Medium;
         Vector3 s = r.bounds.size;

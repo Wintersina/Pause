@@ -156,12 +156,14 @@ public static class SpawnSpace
 
     // A roster enemy's body: the larger of its drawn silhouette
     // (EnemyRoster.TargetWidth) and its collider (as SpawnLane counts it --
-    // tumbling rocks at their diagonal), as a square.
-    public static Vector2 BodyHalf(EnemyDef def)
+    // tumbling rocks at their diagonal), as a square. `scale`: the body's
+    // size (HazardSize: a rock drawn small or large; 1 for everything else).
+    public static Vector2 BodyHalf(EnemyDef def, float scale = 1f)
     {
         if (def == null) return Vector2.one * .3f;
-        Vector2 lane = SpawnLane.HalfExtents(def);
-        float half = Mathf.Max(EnemyRoster.TargetWidth(def.role) * .5f, lane.x, lane.y);
+        Vector2 lane = SpawnLane.HalfExtents(def, scale);
+        // (two-argument Max: the three-argument one is params float[], an allocation)
+        float half = Mathf.Max(Mathf.Max(EnemyRoster.TargetWidth(def.role) * .5f * scale, lane.x), lane.y);
         return new Vector2(half, half);
     }
 
@@ -169,8 +171,8 @@ public static class SpawnSpace
     // world bounds, else its renderer's.
     public static Vector2 BodyHalf(GameObject go)
     {
-        var def = EnemyIdentity.Of(go);
-        if (def != null) return BodyHalf(def);
+        EnemyIdentity id;
+        if (go.TryGetComponent(out id) && id.Def != null) return BodyHalf(id.Def, id.Scale);
         Collider2D col;
         if (go.TryGetComponent(out col) && col.enabled)
         {

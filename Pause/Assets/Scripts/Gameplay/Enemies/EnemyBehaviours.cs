@@ -48,6 +48,11 @@ public sealed class EnemyBehaviour
     public float tilt;                // > 0: stays upright, sways this many degrees
     public float tiltPeriod = EnemyRoster.FloatSwayPeriod;
 
+    // ---- hazard sizes (HazardSize; rocks only) ----
+    // Tier centres as multiples of the roster's nominal size: small, typical,
+    // large. 0 = one size (mines, pilots).
+    public float sizeSmall, sizeTypical, sizeLarge;
+
     // ---- attack ----
     public EnemyAttack attack;
     public float tell = .6f;          // windup seconds (never below EnemyBrain.TellFloorSeconds)
@@ -137,6 +142,11 @@ public sealed class EnemyBehaviour
     public EnemyBehaviour Creep(float down, float speed) { vertical = EnemyVertical.Creep; sink = down; verticalSpeed = speed; return this; }
     public EnemyBehaviour Spin(float lo, float hi) { spin = new Vector2(lo, hi); return this; }
     public EnemyBehaviour Tilt(float degrees, float period) { tilt = degrees; tiltPeriod = period; return this; }
+    public EnemyBehaviour Sizes(float small, float typical, float large)
+    {
+        sizeSmall = small; sizeTypical = typical; sizeLarge = large;
+        return this;
+    }
 
     public EnemyBehaviour Timing(float tellSeconds, float cooldownSeconds, int volleys, float first = .15f)
     {
@@ -251,11 +261,14 @@ public static class EnemyBehaviours
 
         // ================================================================ SPACE
         B("space_rock_crater", "floating beacon rock: slow heave and a lazy sway, upright")
-            .Sway(.3f, 5.2f).Bob(.16f, 3.6f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod);
+            .Sway(.3f, 5.2f).Bob(.16f, 3.6f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.78f, .98f, 1.32f);
         B("space_rock_cluster", "three welded boulders: heavy tumble, slow bouncing drift")
-            .Drift(.55f, .32f).Spin(10f, 28f);
+            .Drift(.55f, .32f).Spin(10f, 28f)
+            .Sizes(.8f, .92f, 1.48f);
         B("space_rock_dark", "coal wedge: quick tumble on one slanted line")
-            .Glide(.9f, .55f).Spin(45f, 85f);
+            .Glide(.9f, .55f).Spin(45f, 85f)
+            .Sizes(.78f, .98f, 1.32f);
         B("space_mine", "rail mine: slides up and down its rail")
             .Patrol(.8f, 2.6f);
         B("space_big", "Bastion: holds its column, twin cannon bolts straight down")
@@ -282,11 +295,14 @@ public static class EnemyBehaviours
 
         // ================================================================ FROST
         B("frost_rock_shard", "ice splinters: light, skittish bouncing drift")
-            .Drift(.95f, .7f).Spin(30f, 70f);
+            .Drift(.95f, .7f).Spin(30f, 70f)
+            .Sizes(.76f, 1.02f, 1.24f);
         B("frost_rock_chunk", "frozen bedrock: heavy slow heave, no sideways")
-            .Bob(.24f, 4.4f).Tilt(6f, 4.4f);   // (tilt: floating rocks only, <= 15 degrees)
+            .Bob(.24f, 4.4f).Tilt(6f, 4.4f)   // (tilt: floating rocks only, <= 15 degrees)
+            .Sizes(.8f, .96f, 1.4f);
         B("frost_rock_rime", "rime star: even snowflake spin in a slow circle")
-            .Orbit(.45f, 3.4f).Spin(38f, 44f);
+            .Orbit(.45f, 3.4f).Spin(38f, 44f)
+            .Sizes(.76f, 1f, 1.3f);
         B("frost_mine", "geode mine: creeps down its rail, fires a shard across the lane")
             .Creep(1.4f, .7f).Cross(Shard, 1, 0f, 3f, .22f).Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
         B("frost_big", "Glacier Golem: slow sway, a fan of three frost shards")
@@ -313,13 +329,17 @@ public static class EnemyBehaviours
 
         // ============================================================== VERDANT
         B("verdant_rock_pod", "thorn pod: slow roll, small slow sway")
-            .Sway(.3f, 3.8f).Spin(12f, 30f);
+            .Sway(.3f, 3.8f).Spin(12f, 30f)
+            .Sizes(.78f, .98f, 1.32f);
         B("verdant_rock_spore", "spore rock: each puff lifts it; slow drift")
-            .Drift(.4f, .22f).Pulse(.3f, 2.2f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod);
+            .Drift(.4f, .22f).Pulse(.3f, 2.2f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .96f, 1.4f);
         B("verdant_rock_knot", "bramble knot: fast spin, rolls across a wide band")
-            .Drift(1.1f, .6f).Spin(90f, 140f);
+            .Drift(1.1f, .6f).Spin(90f, 140f)
+            .Sizes(.76f, 1f, 1.3f);
         B("verdant_rock_vine", "vine rock: swings like a pendulum")
-            .Sway(.55f, 2.6f).Tilt(14f, 2.6f);
+            .Sway(.55f, 2.6f).Tilt(14f, 2.6f)
+            .Sizes(.78f, .98f, 1.32f);
         B("verdant_mine", "burr mine: swings on its rail, scatters three thorns once")
             .Patrol(.7f, 1.9f).Cross(Shard, 3, 20f, 2.8f, .18f).Muzzle(.5f).Timing(1f, 3.5f, 1, .15f);
         B("verdant_big", "Bloom Maw: lobs a resin glob onto the pilot's spot")
@@ -346,13 +366,17 @@ public static class EnemyBehaviours
 
         // ================================================================ EMBER
         B("ember_rock_magma", "magma rock: slow tumble, slow drift, breathing bob")
-            .Drift(.4f, .28f).Bob(.08f, 2.4f).Spin(12f, 30f);
+            .Drift(.4f, .28f).Bob(.08f, 2.4f).Spin(12f, 30f)
+            .Sizes(.8f, .96f, 1.4f);
         B("ember_rock_cinder", "cinder chunk: steady spin, sinks down the board")
-            .Sink(1.1f, .4f).Spin(20f, 24f);
+            .Sink(1.1f, .4f).Spin(20f, 24f)
+            .Sizes(.8f, .96f, 1.4f);
         B("ember_rock_obsidian", "obsidian blade: barely turns, one fast slanted slice")
-            .Glide(1.2f, .9f).Spin(5f, 9f);
+            .Glide(1.2f, .9f).Spin(5f, 9f)
+            .Sizes(.76f, 1.02f, 1.24f);
         B("ember_rock_islet", "lava islet: wide slow sway and bob")
-            .Sway(.7f, 4.2f).Bob(.14f, 3f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod);
+            .Sway(.7f, 4.2f).Bob(.14f, 3f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .92f, 1.48f);
         B("ember_mine", "crucible mine: boils over, a slow slag blob into the lane")
             .Cross(Slag, 1, 0f, 1.6f, .3f).Muzzle(.5f).Timing(1.1f, 4f, 2, .15f);
         B("ember_big", "Magma Skull: jaw drops, two slag blobs angled out")

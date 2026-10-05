@@ -25,10 +25,24 @@ public class EnemyIdentity : MonoBehaviour
 
     public string Key => key;
 
+    // This body's size as a multiple of its roster size (HazardSize; 1 for
+    // everything but a rock drawn small or large). Set at spawn.
+    public float Scale { get; private set; } = 1f;
+
     public void Set(EnemyDef d)
     {
         def = d;
         key = d != null ? d.key : null;
+        Scale = 1f;
+    }
+
+    public void SetScale(float scale) { Scale = scale > 0f ? scale : 1f; }
+
+    // A roster body's size multiple (1 for anything without an identity).
+    public static float ScaleOf(GameObject go)
+    {
+        EnemyIdentity id;
+        return go != null && go.TryGetComponent(out id) ? id.Scale : 1f;
     }
 
     public static EnemyDef Of(GameObject go)

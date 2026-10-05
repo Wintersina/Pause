@@ -295,6 +295,8 @@ public static class RunScore
     public static int BasePoints(GameObject target)
     {
         var def = EnemyIdentity.Of(target);
+        // a rock pays by its size (HazardSize.RockPoints: 4 small, 5, up to 7 large)
+        if (def != null && HazardSize.Varies(def)) return HazardSize.RockPoints(EnemyIdentity.ScaleOf(target));
         if (def != null) return ScoreRules.KillPoints(def.role, def.tier);
         if (target.CompareTag("Astr")) return ScoreRules.Rock;
         if (PrefabName.Is(target, EnemyRoster.AlienObjectName)) return ScoreRules.Alien;

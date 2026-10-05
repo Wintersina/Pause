@@ -22,7 +22,9 @@ using UnityEngine;
 // Create also registers explicitly so edit-mode builds count too).
 public static class EnemyFactory
 {
-    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation)
+    // `size`: a rock's size as a multiple of its roster size (HazardSize;
+    // the spawner draws it). Ignored for everything but a rock.
+    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation, float size = 1f)
     {
         if (def == null) return null;
         var go = new GameObject(def.ObjectName);
@@ -87,9 +89,12 @@ public static class EnemyFactory
             if (scroller != null) scroller.brain = brain;
         }
 
-        // Its reserved space on the board (SpawnSpace): the body, and the
-        // mover as its movement pattern (a mine rebinds to its rail mount).
-        SpawnFootprint.Attach(go, SpawnSpace.BodyHalf(def));
+        // Its size (rocks: scale, collider, motion, hit radius; HazardSize),
+        // then its reserved space on the board (SpawnSpace): the body at that
+        // size, and the mover as its movement pattern (a mine rebinds to its
+        // rail mount).
+        size = HazardSize.Apply(go, def, size);
+        SpawnFootprint.Attach(go, SpawnSpace.BodyHalf(def, size));
         SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
         return go;
     }
