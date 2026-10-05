@@ -196,8 +196,9 @@ public static class ShopTest
             Check("popup for ship" + i + " is anchored over the ship horizontally",
                   ship.x >= r.xMin && ship.x <= r.xMax);
             Check("popup for ship" + i + " floats " + (popup.Flipped ? "just below" : "just above") + " the ship",
-                  popup.Flipped ? r.yMax < ship.y && ship.y - r.yMax < .72f
-                                : r.yMin > ship.y && r.yMin - ship.y < .6f);
+                  // hull half-height (at most HullSize / 2) + clearance + tail
+                  popup.Flipped ? r.yMax < ship.y && ship.y - r.yMax <= DockBay.HullSize * .5f + DockPopup.PlumeClearance + DockPopup.TailLength + .001f
+                                : r.yMin > ship.y && r.yMin - ship.y <= DockBay.HullSize * .5f + DockPopup.Gap + DockPopup.TailLength + .001f);
             // An owned ship's popup carries the skin, weapon and START SPD
             // rows (~1.43 world units): still a small card, not a dialog.
             Check("popup is small (not a full-screen dialog) (" + r.height.ToString("F2") + " of " + screen.height.ToString("F2") + ")",
