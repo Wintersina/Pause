@@ -10,6 +10,7 @@ using UnityEngine;
 //     row 3  death 3..4 | retreat 0..1 | portrait (codex)
 //   Resources/Bosses/<Key>_shots.png  8 x 1 cells
 //     bolt 0..1 | shard 0..1 | lane telegraph | beam 0..1 | muzzle charge
+//     (the bolt and shard cells also get a rim built from their alpha: ShotRim)
 //   Resources/Bosses/<Key>_card.png   the intro name card
 //   Resources/Bosses/warning.png      the intro warning slab
 //
@@ -112,6 +113,137 @@ public static class BossArt
         if (boss == null) return null;
         var sheet = Sheet(shots, Folder + boss.artKey + "_shots", ShotColumns, 1);
         return sheet[Mathf.Clamp(cell, 0, ShotColumns - 1)];
+    }
+
+    // ---- the shots' rim ----------------------------------------------------
+    //
+    // A boss shot's glow: a light "shadow" that hugs the drawing's own
+    // silhouette and fades out a little way past it, so the art is framed
+    // rather than swamped (it used to wear HostileGlow's round wrapper, far
+    // wider than a thin bolt). Built once per boss from the shot cells'
+    // alpha -- a distance falloff from the silhouette, at half the art's
+    // resolution, all four cells in one small texture so every shot's rim
+    // batches -- and cached; nothing is made per shot or per frame.
+    //
+    // All of its tuning is here:
+    public const int ShotRimCells = 4;            // bolt 0..1, shard 0..1
+    public const int ShotRimTexels = 64;          // rim texels across one art cell
+    public const int ShotRimPad = 12;             // clear texels around the cell (must exceed the reach)
+    public const float ShotRimReach = .17f;       // how far past the silhouette it fades to nothing, as a share of the cell
+    public const float ShotRimAlpha = .7f;        // its opacity right at the silhouette
+    public const float ShotRimFalloff = 1.8f;     // > 1: most of the light sits tight against the art
+    public const float ShotRimCoverage = .5f;     // alpha a texel needs to count as the drawing
+    public const float ShotRimPulseScale = .03f;  // its breathing (HostileGlow's wrapper: .07); alpha pulses as the wrapper's
+
+    sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }
+    static readonly Dictionary<string, RimSet> rims = new Dictionary<string, RimSet>();
+
+    // The rim for a shot cell (Bolt0 .. Shard0 + 1), drawn at the art's own
+    // scale: its sprite spans the cell plus the pad, one cell = one unit.
+    // Null when the art is missing or could not be read (the caller falls
+    // back to the round wrapper).
+    public static Sprite ShotRim(BossDef boss, int cell)
+    {
+        if (boss == null || cell < 0 || cell >= ShotRimCells) return null;
+        string path = Folder + boss.artKey + "_shots";
+        var first = Shot(boss, 0);
+        var source = first != null ? first.texture : null;
+        RimSet set;
+        bool fresh = rims.TryGetValue(path, out set) && set.source == source &&
+                     (!set.built || (set.sprites[0] != null && set.sprites[0].texture != null));
+        if (!fresh)
+        {
+            set = new RimSet { source = source, sprites = new Sprite[ShotRimCells] };
+            set.built = source != null && BuildShotRims(boss, set.sprites);
+            rims[path] = set;
+        }
+        return set.built ? set.sprites[cell] : null;
+    }
+
+    static bool BuildShotRims(BossDef boss, Sprite[] into)
+    {
+        int n = ShotRimTexels, pad = ShotRimPad, side = n + 2 * pad;
+        var px = new Color32[side * ShotRimCells * side];
+        for (int i = 0; i < px.Length; i++) px[i] = new Color32(255, 255, 255, 0);
+        var dist = new int[side * side];
+        const int Far = 1 << 20;
+        float reach = Mathf.Max(1f, ShotRimReach * n);   // texels
+
+        for (int cell = 0; cell < ShotRimCells; cell++)
+        {
+            int w, h;
+            Color32[] art = ShieldContour.ReadPixels(Shot(boss, cell), out w, out h);
+            if (art == null || w <= 0 || h <= 0 || art.Length < w * h) return false;
+
+            // the silhouette, at the rim's resolution
+            for (int i = 0; i < dist.Length; i++) dist[i] = Far;
+            for (int ty = 0; ty < n; ty++)
+            {
+                int y0 = ty * h / n, y1 = Mathf.Max(y0 + 1, (ty + 1) * h / n);
+                for (int tx = 0; tx < n; tx++)
+                {
+                    int x0 = tx * w / n, x1 = Mathf.Max(x0 + 1, (tx + 1) * w / n);
+                    int sum = 0;
+                    for (int y = y0; y < y1; y++)
+                        for (int x = x0; x < x1; x++) sum += art[y * w + x].a;
+                    if (sum >= ShotRimCoverage * 255f * (x1 - x0) * (y1 - y0)) dist[(ty + pad) * side + tx + pad] = 0;
+                }
+            }
+
+            // distance from it: a two-pass 3-4 chamfer (thirds of a texel)
+            for (int y = 0; y < side; y++)
+                for (int x = 0; x < side; x++)
+                {
+                    int i = y * side + x, v = dist[i];
+                    if (x > 0) v = Mathf.Min(v, dist[i - 1] + 3);
+                    if (y > 0)
+                    {
+                        v = Mathf.Min(v, dist[i - side] + 3);
+                        if (x > 0) v = Mathf.Min(v, dist[i - side - 1] + 4);
+                        if (x < side - 1) v = Mathf.Min(v, dist[i - side + 1] + 4);
+                    }
+                    dist[i] = v;
+                }
+            for (int y = side - 1; y >= 0; y--)
+                for (int x = side - 1; x >= 0; x--)
+                {
+                    int i = y * side + x, v = dist[i];
+                    if (x < side - 1) v = Mathf.Min(v, dist[i + 1] + 3);
+                    if (y < side - 1)
+                    {
+                        v = Mathf.Min(v, dist[i + side] + 3);
+                        if (x < side - 1) v = Mathf.Min(v, dist[i + side + 1] + 4);
+                        if (x > 0) v = Mathf.Min(v, dist[i + side - 1] + 4);
+                    }
+                    dist[i] = v;
+                }
+
+            // the falloff: full at the silhouette (and under the art), gone at the reach
+            for (int y = 0; y < side; y++)
+                for (int x = 0; x < side; x++)
+                {
+                    float k = Mathf.Clamp01(1f - dist[y * side + x] / 3f / reach);
+                    if (k <= 0f) continue;
+                    px[y * side * ShotRimCells + cell * side + x].a =
+                        (byte)Mathf.RoundToInt(255f * ShotRimAlpha * Mathf.Pow(k, ShotRimFalloff));
+                }
+        }
+
+        var tex = new Texture2D(side * ShotRimCells, side, TextureFormat.RGBA32, false);
+        tex.name = boss.artKey + "ShotRim";
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.hideFlags = HideFlags.HideAndDontSave;
+        tex.SetPixels32(px);
+        tex.Apply(false, false);   // kept readable: tiny, and the tests read it back
+        for (int cell = 0; cell < ShotRimCells; cell++)
+        {
+            var s = Sprite.Create(tex, new Rect(cell * side, 0, side, side), new Vector2(.5f, .5f), n, 0, SpriteMeshType.FullRect);
+            s.name = tex.name + cell;
+            s.hideFlags = HideFlags.HideAndDontSave;
+            into[cell] = s;
+        }
+        return true;
     }
 
     public static Sprite Card(BossDef boss) => boss == null ? null : Single(Folder + boss.artKey + "_card");

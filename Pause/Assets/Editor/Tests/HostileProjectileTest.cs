@@ -8,10 +8,15 @@ using UnityEngine;
 // too; make sure all enemy things have friendly fire on; and when they die
 // or break they can split into pieces sometimes."
 //
-//   * every hostile projectile wears the wrapper (HostileGlow) and keeps its
-//     size and hitbox; lasers wear a sheath; none is the player's red;
+//   * every hostile projectile wears a glow and keeps its size and hitbox:
+//     elite shots the round wrapper (HostileGlow), lasers a sheath, boss
+//     shots a light rim hugging their own silhouette (BossArt.ShotRim --
+//     "the glow effect on the boss projectiles is too large, it should be
+//     more like a light shadow framing the projectile art"); none is the
+//     player's red;
 //   * the wrapper reads over every world's backdrop (and a bright flare):
-//     a contrast ratio, from real renders, above MinContrast;
+//     a contrast ratio, from real renders, above MinContrast; a rimmed boss
+//     shot stands out of every world's backdrop too;
 //   * shots of different owners (or volleys) break each other; a laser
 //     burns shots crossing it; a heavy shell survives a bolt; a resin pool
 //     swallows shots; player shots shoot hostile shots down;
@@ -140,11 +145,19 @@ public static class HostileProjectileTest
                     float hb = WorldRadius(s.Hitbox.GetComponent<CircleCollider2D>());
                     Check(boss.artKey + " " + style + ": wears the glow (behind it, no collider), drawn at " + drawn +
                           " as before, hitbox " + hb.ToString("F3") + " (" + hit + ")",
-                          g != null && g.enabled && g.sprite == HostileGlow.Halo && g.sortingOrder < 30 &&
+                          g != null && g.enabled && g.sortingOrder < 30 &&
                           g.GetComponent<Collider2D>() == null &&
                           Mathf.Abs(s.transform.lossyScale.x - drawn) < 1e-4f && Mathf.Abs(hb - hit) < 1e-4f);
-                    Check("... the glow reaches only a little past the art (" + d.ToString("F2") + " wu across, " +
-                          ((d - drawn) * .5f).ToString("F3") + " past each side)", d > drawn && (d - drawn) * .5f <= .12f);
+                    int cell = style == BossShotStyle.Bolt ? BossArt.Bolt0 : BossArt.Shard0;
+                    float reach = BossArt.ShotRimReach * drawn;
+                    Check("... the glow is a rim cut from its own drawing, not the round wrapper (" + (g.sprite != null ? g.sprite.name : "none") + ")",
+                          g.sprite != null && g.sprite == BossArt.ShotRim(boss, cell) && g.sprite != HostileGlow.Halo &&
+                          BossArt.ShotRim(boss, cell + 1) != null && BossArt.ShotRim(boss, cell + 1) != g.sprite);
+                    Check("... a light rim framing the art: gone " + reach.ToString("F3") + " wu past the silhouette, at most " +
+                          BossArt.ShotRimAlpha + " opaque (its sprite " + d.ToString("F2") + " wu across with its clear pad)",
+                          reach > .02f && reach <= .1f && BossArt.ShotRimAlpha >= .4f && BossArt.ShotRimAlpha <= .8f &&
+                          BossArt.ShotRimPad > BossArt.ShotRimReach * BossArt.ShotRimTexels &&
+                          d > drawn && (d - drawn) * .5f <= .12f && RimHugsArt(BossArt.Shot(boss, cell), g.sprite));
                     Check("... tinted " + Hex(g.color) + ", never the player's red (" + HueGap(g.color, PlayerRed).ToString("F0") + " deg)",
                           HueGap(g.color, PlayerRed) >= 20f && !HostileGlow.IsPlayerRed(g.color));
                     s.Recycle();
@@ -159,9 +172,10 @@ public static class HostileProjectileTest
                 minS = Mathf.Min(minS, p.Glow.transform.localScale.x); maxS = Mathf.Max(maxS, p.Glow.transform.localScale.x);
                 minA = Mathf.Min(minA, p.Glow.color.a); maxA = Mathf.Max(maxA, p.Glow.color.a);
             }
-            Check("the wrapper pulses (scale " + minS.ToString("F2") + ".." + maxS.ToString("F2") + ", alpha " +
+            Check("the rim breathes gently (scale " + minS.ToString("F3") + ".." + maxS.ToString("F3") + ", alpha " +
                   minA.ToString("F2") + ".." + maxA.ToString("F2") + ") while the shot keeps its size",
-                  maxS > minS * 1.08f && maxA > minA + .08f && Mathf.Abs(p.transform.lossyScale.x - BossConfig.BoltWorldSize) < 1e-4f);
+                  maxS > minS * 1.02f && maxS < minS * 1.08f && maxA > minA + .08f &&
+                  Mathf.Abs(p.transform.lossyScale.x - BossConfig.BoltWorldSize) < 1e-4f);
 
             // lasers: a sheath along their length
             var beam = pool.Beam(BossCatalog.ForWorld(1), null, -1, new Vector3(0f, 3f, 0f), -90f, 0f, 0f, 1f, .3f);
@@ -276,9 +290,20 @@ public static class HostileProjectileTest
             Color[] fg = Grab(cam, rt, tex);
 
             float worst = float.MaxValue, mean = 0f, worstLight = float.MaxValue, worstDark = float.MaxValue;
+            int wrapped = 0, rimmed = 0, fewest = int.MaxValue;
             foreach (var (shot, glow) in list)
             {
                 Vector3 c = cam.WorldToScreenPoint(glow.transform.position);
+                if (shot is BossProjectile)
+                {
+                    // a rimmed boss shot: how many of its pixels (art and
+                    // rim) stand MinContrast clear of the backdrop there
+                    float half = shot.transform.lossyScale.x * .5f * (RH / (cam.orthographicSize * 2f));
+                    fewest = Mathf.Min(fewest, StandOut(fg, bg, c, half));
+                    rimmed++;
+                    continue;
+                }
+                wrapped++;
                 float R = glow.bounds.extents.x * (RH / (cam.orthographicSize * 2f));   // pixels
                 float lightRim = Ring(fg, c, R * HostileGlow.DarkEdge, R * HostileGlow.LightEdge);
                 float darkRim = Ring(fg, c, R * HostileGlow.BodyEdge, R * HostileGlow.DarkEdge);
@@ -288,12 +313,20 @@ public static class HostileProjectileTest
                 worst = Mathf.Min(worst, score);
                 worstLight = Mathf.Min(worstLight, cl);
                 worstDark = Mathf.Min(worstDark, cd);
-                mean += score / list.Count;
+                mean += score;
             }
+            mean /= Mathf.Max(1, wrapped);
             string name = flare ? "a bright flare" : worlds[w];
             Check("the wrapper reads over " + name + ": worst contrast " + worst.ToString("F1") + ":1 (mean " + mean.ToString("F1") +
                   ":1; light rim worst " + worstLight.ToString("F1") + ", dark rim worst " + worstDark.ToString("F1") + ") over " +
-                  list.Count + " shots, need " + MinContrast + ":1", worst >= MinContrast);
+                  wrapped + " shots, need " + MinContrast + ":1", wrapped > 0 && worst >= MinContrast);
+            // The rim is a light one, made for the worlds' dark backdrops;
+            // over a full-screen flare (no world has one) the art's own dark
+            // outline is what is left, so that case is only reported.
+            string rimLine = "a rimmed boss shot stands out of " + name + ": at least " + fewest + " px at " + MinContrast +
+                             ":1 against the backdrop behind it, over " + rimmed + " shots (need " + MinStandOutPixels + ")";
+            if (flare) Debug.Log("[HOSTILE] INFO  " + rimLine);
+            else Check(rimLine, rimmed > 0 && fewest >= MinStandOutPixels);
             cam.targetTexture = null;
             Object.DestroyImmediate(rt);
             Object.DestroyImmediate(tex);
@@ -316,6 +349,42 @@ public static class HostileProjectileTest
         tex.Apply();
         RenderTexture.active = old;
         return tex.GetPixels();
+    }
+
+    public const int MinStandOutPixels = 16;
+
+    // Pixels within `half` of c (a square) whose luminance in fg stands
+    // MinContrast clear of the mean backdrop luminance over that square.
+    static int StandOut(Color[] fg, Color[] bg, Vector3 c, float half)
+    {
+        int r = Mathf.CeilToInt(half), n = 0, count = 0;
+        int x0 = Mathf.Max(0, (int)c.x - r), x1 = Mathf.Min(RW - 1, (int)c.x + r);
+        int y0 = Mathf.Max(0, (int)c.y - r), y1 = Mathf.Min(RH - 1, (int)c.y + r);
+        float behind = 0f;
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++) { behind += Luminance(bg[y * RW + x]); n++; }
+        if (n == 0) return 0;
+        behind /= n;
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+                if (Ratio(Luminance(fg[y * RW + x]), behind) >= MinContrast) count++;
+        return count;
+    }
+
+    // The rim's alpha, read back: opaque enough under the art's middle,
+    // clear at its sprite's corners and edges (it never fills its quad).
+    static bool RimHugsArt(Sprite art, Sprite rim)
+    {
+        if (art == null || rim == null) return false;
+        int w, h;
+        var px = ShieldContour.ReadPixels(rim, out w, out h);
+        if (px == null) return false;
+        int most = 0, lit = 0;
+        for (int i = 0; i < px.Length; i++) { most = Mathf.Max(most, px[i].a); if (px[i].a > 8) lit++; }
+        bool clearEdges = true;
+        for (int x = 0; x < w; x++) clearEdges &= px[x].a == 0 && px[(h - 1) * w + x].a == 0;
+        for (int y = 0; y < h; y++) clearEdges &= px[y * w].a == 0 && px[y * w + w - 1].a == 0;
+        return clearEdges && lit > 0 && lit < px.Length / 2 && Mathf.Abs(most - 255f * BossArt.ShotRimAlpha) <= 2f;
     }
 
     // Mean relative luminance of the pixels between radii a and b.
