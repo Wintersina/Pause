@@ -29,7 +29,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 12. **Installed and validated — `ember_fighter_4`:** Pyre rebuilt as a scorched furnace-heavy with shield slabs, an uneven boiler stack, and a grille-contained sodium core; live strip is Preview-opened and roster-validated.
 13. **Installed and validated — `verdant_alien`:** Snap Sprout rebuilt as a rugged bio-industrial seed crawler with thorn-leaf armor, a pruning jaw, resin sacs, copper root conduits, and a toxic magenta-green core; native seven-cell QA complete.
 14. **Installed and validated — `ember_alien`:** Ember Imp rebuilt as a rugged soot-forge drone with basalt heat shields, copper bracing, orange vents, and a contained magenta furnace core; native seven-cell QA complete.
-15. **Queued — `space_chaser`**
+15. **Installed and validated — `space_chaser`:** Steel Hound rebuilt as a rugged gunmetal pursuit drone with copper conduit, cyan navigation slit, and magenta core; native seven-cell QA complete.
 16. **Queued — `frost_chaser`**
 17. **Queued — `verdant_chaser`**
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
