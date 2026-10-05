@@ -750,7 +750,8 @@ public static class EliteTest
     // ---- dodging and baited crashes ---------------------------------------------
 
     // One rock falling at an interceptor stalking a still pilot.
-    static int RockRun(float speed, out bool dodged)
+    // (`ahead` > 0: the rock appears that far above it instead of at the top of the view.)
+    static int RockRun(float speed, out bool dodged, float ahead = -1f)
     {
         Fresh(speed);
         Random.InitState(77);
@@ -758,7 +759,7 @@ public static class EliteTest
         var e = InPlay("interceptor", new Vector2(0f, -3f));
         Step(1.5f);
         int crashes = EliteShip.Crashes;
-        var rock = Rock(new Vector2(e.Position.x, EliteSystem.ViewTop + .5f));
+        var rock = Rock(new Vector2(e.Position.x, ahead > 0f ? e.Position.y + ahead : EliteSystem.ViewTop + .5f));
         Step(2.5f, () => Fall(rock, Dt));
         dodged = rock != null;
         int c = EliteShip.Crashes - crashes;
@@ -771,8 +772,10 @@ public static class EliteTest
         bool dodged;
         int slow = RockRun(.15f, out dodged);
         Check("dodging: a rock coming down at it is usually dodged (slow board: " + slow + " crashes)", slow == 0 && dodged);
-        int fast = RockRun(1.6f, out dodged);
-        Check("dodging: a very fast board still catches it (" + fast + " crash)", fast >= 1);
+        // (it reads the board ahead now -- EliteEvasion -- so a rock from the top of the view no
+        // longer catches it; one that arrives inside its reaction time still does)
+        int fast = RockRun(.6f, out dodged, 2f);
+        Check("dodging: what arrives inside its reaction time still catches it (" + fast + " crash)", fast >= 1);
 
         // baited: an interceptor locks its dash on the pilot, the pilot blinks
         // away, and the dash runs into a rock the pilot was hiding behind

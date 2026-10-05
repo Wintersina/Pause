@@ -861,6 +861,13 @@ public class AttackProjectile : MonoBehaviour
     // Projectiles launched since load (tests, previews).
     public static int LaunchCount;
 
+    // The ones in flight right now, for the elites' threat sensor
+    // (EliteEvasion.PlayerShotAwareness; nothing reads it at the default 0).
+    public static readonly System.Collections.Generic.List<AttackProjectile> Flying = new System.Collections.Generic.List<AttackProjectile>(32);
+    public Vector2 Velocity => (Vector2)dir * speed;
+    public float HitRadius => radius;
+    void OnDestroy() { Flying.Remove(this); }
+
     public bool Active { get; private set; }
     public ShipAttackRunner Owner => owner;
     public Transform Target => target;
@@ -921,6 +928,7 @@ public class AttackProjectile : MonoBehaviour
             outer[i].color = style.main;
             core[i].color = style.energy;
         }
+        if (!Active) Flying.Add(this);
         Active = true;
         gameObject.SetActive(true);
         body.sprite = WeaponArt.Shot(ship, WeaponArt.ShotLoopFrames); // launch smear
@@ -1115,6 +1123,7 @@ public class AttackProjectile : MonoBehaviour
     {
         if (!Active) return;
         Active = false;
+        Flying.Remove(this);
         target = null;
         lastSpecial = null;
         if (hit) WeaponFx.Impact(ship, transform.position, .5f);

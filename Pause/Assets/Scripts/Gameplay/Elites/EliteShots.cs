@@ -157,6 +157,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float Age => age;
     public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
     public Vector2 LobTarget => lobTo;
+    // A glob in the air: seconds until it lands, and the pool it will be.
+    public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
+    public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
+    public float PoolSeconds => def != null ? def.poolSeconds : 0f;
     public int Bounced { get; private set; }
     public bool MarkShown => mark != null && mark.enabled;
     // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard,

@@ -71,6 +71,68 @@ public static class EliteSurvivalProbe
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
+    // A short, talkative run for tuning: every board death with where the
+    // elite was, what it was doing and what it thought was coming.
+    public static bool Verbose;
+
+    // The last second of the first watched elite, frame by frame (Verbose).
+    const int TraceFrames = 48;
+    static readonly string[] trace = new string[TraceFrames];
+    static int traceAt, tracesLeft, traceEvery;
+    static string lastThreats = "";
+
+    static void Trace(EliteShip e)
+    {
+        if (!Verbose || e == null || !e.InPlay) return;
+        // the hazard nearest to touching it
+        ClearTarget near = null;
+        float gap = 99f;
+        foreach (var t in ClearTarget.Live)
+        {
+            if (t == null || t.Elite != null || !ClearTarget.IsHazard(t.gameObject)) continue;
+            float g = ((Vector2)t.transform.position - e.Position).magnitude - (e.Def.hullRadius * .85f + t.Radius * .8f);
+            if (g < gap) { gap = g; near = t; }
+        }
+        if (traceEvery++ % 12 == 0)
+        {
+            var tb = new StringBuilder("    threats:");
+            for (int i = 0; i < EliteEvasion.ThreatCount; i++)
+                tb.AppendFormat(" [{0} {1} v {2} r {3:F2} from {4:F1}]", EliteEvasion.ThreatKind(i), EliteEvasion.ThreatAt(i).ToString("F1"),
+                                EliteEvasion.ThreatVelocity(i).ToString("F1"), EliteEvasion.ThreatRadius(i), EliteEvasion.ThreatFrom(i));
+            lastThreats = tb.ToString();
+        }
+        trace[traceAt++ % TraceFrames] = (traceEvery % 12 == 1 ? lastThreats + "\n" : "") + string.Format("  t {0:F2} {1}{2} hearts {3} at {4} v {5} | {6} to {7} hitIn {8:F2} | nearest {9} gap {10:F2} at {11} v {12} r {13:F2}",
+            e.PlaySeconds, e.State, e.Acting ? "/act" : e.Telling ? "/tell" : "", e.Hearts, e.Position.ToString("F2"), e.Velocity.ToString("F2"),
+            e.Evading ? "EVADE" : "goal", e.Claim.ToString("F2"), e.HitIn,
+            near != null ? near.name : "-", gap, near != null ? ((Vector2)near.transform.position).ToString("F2") : "", near != null ? near.SensedVelocity.ToString("F2") : "", near != null ? near.Radius : 0f);
+    }
+
+    static void DumpTrace()
+    {
+        if (tracesLeft <= 0) return;
+        tracesLeft--;
+        var sb = new StringBuilder("[ELITEPROBE] trace\n");
+        for (int i = 0; i < TraceFrames; i += 2)
+        {
+            string line = trace[(traceAt + i) % TraceFrames];
+            if (line != null) sb.Append(line).Append('\n');
+        }
+        Debug.Log(sb.ToString());
+    }
+    public static void RunDebug()
+    {
+        using var sandbox = new TestHarness.Sandbox();
+        try
+        {
+            Open();
+            Verbose = true;
+            tracesLeft = 14;
+            Print("solo", Solo(new[] { 20, 30 }, 3, false));
+        }
+        finally { Verbose = false; Close(); }
+        TestHarness.Exit(0);
+    }
+
     public static int Execute()
     {
         using var sandbox = new TestHarness.Sandbox();
@@ -177,6 +239,11 @@ public static class EliteSurvivalProbe
         var r = table.For(e.Def.key);
         bool pilot = cause == EliteDamage.PlayerWeapon || cause == EliteDamage.Teleport || cause == EliteDamage.ShieldRam || cause == EliteDamage.PlayerContact;
         string what = cause == EliteDamage.Rail ? "rail" : string.IsNullOrEmpty(by) ? cause.ToString() : by;
+        if (Verbose && !pilot)
+            Debug.Log(string.Format("[ELITEPROBE] death {0} hud {1} after {2:F2}s by {3}: state {4}{5} at {6} v {7} evading {8} to {9} hitIn {10:F2} threats {11} scroll {12:F1}",
+                                    e.Def.key, trialHud, e.PlaySeconds, what, e.State, e.Acting ? "/acting" : e.Telling ? "/telling" : "", e.Position, e.Velocity,
+                                    e.Evading, e.EvadeTarget, e.HitIn, EliteEvasion.ThreatCount, EliteSystem.Scroll));
+        if (Verbose && !pilot) DumpTrace();
         for (int pass = 0; pass < 2; pass++, r = SpeedRow)
         {
             if (pilot) { r.playerKills++; r.killSeconds += e.PlaySeconds; continue; }
@@ -274,6 +341,8 @@ public static class EliteSurvivalProbe
         float clock = 0f;
         bool spawned = false;
         watch.Clear();
+        traceAt = 0;
+        System.Array.Clear(trace, 0, TraceFrames);
         for (int guard = 0; guard < 60 * 60; guard++)
         {
             clock += Dt;
@@ -292,6 +361,7 @@ public static class EliteSurvivalProbe
             FriendlyFire.StepCrashes(view);
             if (hunted) StepBullets();
             if (!spawned) continue;
+            if (Verbose && watch.Count > 0) Trace(watch[0]);
             bool busy = false;
             for (int i = 0; i < watch.Count; i++)
             {

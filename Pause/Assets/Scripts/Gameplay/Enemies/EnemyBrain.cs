@@ -326,11 +326,94 @@ public class EnemyBrain : MonoBehaviour
     {
         if (!inView || t == null || seen < Behaviour.firstDelay) return false;
         if (Behaviour.Shoots && !EnemyThreat.ShootingAllowed) return false;
+        if (Behaviour.attack == EnemyAttack.Lunge && EliteInLungePath(p)) return false;
         Vector3 s = t.position;
         if (Behaviour.attack == EnemyAttack.Cross)
             return Mathf.Abs(p.y - s.y) < 6f && p.y > s.y - .5f;   // its row matters, not its height
         if (p.y - s.y < MinFireAbove) return false;
         return ((Vector2)(s - p)).sqrMagnitude >= MinFireDistance * MinFireDistance;
+    }
+
+    // A body dash never starts through a friendly elite: one in the band it
+    // may cross, as far below as the dive reaches by the time it lands (the
+    // elite holds its place while the board carries this enemy down).
+    bool EliteInLungePath(Vector3 p)
+    {
+        var live = EliteShip.Live;
+        if (live.Count == 0 || !EliteEvasion.Enabled) return false;
+        var b = Behaviour;
+        float seconds = Mathf.Max(TellFloorSeconds, b.tell) + b.lungeSeconds;
+        float reachX = (b.lungeX > 0f ? b.bandX * 2f : 0f) + halfX;
+        float reachY = b.lungeDive + SpawnSpace.ScrollSpeed * seconds + halfX;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e == null || !e.InPlay) continue;
+            Vector2 d = e.Position - (Vector2)p;
+            float r = e.Def.hullRadius + .15f;
+            if (Mathf.Abs(d.x) < reachX + r && d.y < r && d.y > -reachY - r) return true;
+        }
+        return false;
+    }
+
+    // For the elites' threat sensor: how fast its pattern can carry it
+    // sideways (u/s) -- how far off a straight-line guess of its path may be.
+    public float LateralPace
+    {
+        get
+        {
+            var b = Behaviour;
+            if (b == null) return 0f;
+            switch (b.lateral)
+            {
+                case EnemyLateral.Drift:
+                case EnemyLateral.Glide:
+                case EnemyLateral.Track: return b.lateralSpeed;
+                case EnemyLateral.Sway:
+                case EnemyLateral.Orbit: return b.bandX * 2f * Mathf.PI / Mathf.Max(.1f, b.lateralPeriod);
+                case EnemyLateral.March: return b.bandX * .5f / Mathf.Max(.2f, b.lateralPeriod) + .3f;
+                default: return 0f;
+            }
+        }
+    }
+
+    // For the elites' threat sensor: a body dash that is telegraphed (the
+    // windup) or under way. `reach` is from where it is now to where the dash
+    // ends, in board space; `inSeconds` how long until it goes.
+    public bool LungeAhead(out Vector2 reach, out float inSeconds)
+    {
+        reach = Vector2.zero;
+        inSeconds = 0f;
+        var b = Behaviour;
+        if (b == null || !Armed || b.attack != EnemyAttack.Lunge) return false;
+        if (State == Phase.Release)
+        {
+            reach = new Vector2(lungeToX - lx, lungeToY - ly);
+            return true;
+        }
+        if (State != Phase.Windup) return false;
+        float baseX = transform.position.x - ox - lx;
+        reach = new Vector2(LungeGoal(baseX, Target) - lx, -b.lungeDive - ly);
+        inSeconds = Mathf.Max(0f, Mathf.Max(TellFloorSeconds, b.tell) - stateTime);
+        return true;
+    }
+
+    // Where a lunge released now would take the lunge offset sideways.
+    float LungeGoal(float baseX, Transform t)
+    {
+        var b = Behaviour;
+        float band = b.bandX;
+        float want = lx;
+        if (b.lungeX > 0f && t != null)
+        {
+            float here = ox + lx;                                   // where it stands in its band
+            float pilot = t.position.x - baseX;                     // where the pilot is, same frame
+            float goal = b.lungeDive <= 0f
+                ? (pilot >= here ? band : -band)                    // a slash: right across, the pilot's side
+                : Mathf.Lerp(here, pilot, b.lungeX);                // a pounce: toward the pilot's column
+            want = Mathf.Clamp(goal, -band, band) - ox;
+        }
+        return want;
     }
 
     void BeginWindup(Vector3 p, Transform t)
@@ -376,18 +459,7 @@ public class EnemyBrain : MonoBehaviour
         {
             lungeFromX = lx;
             lungeFromY = ly;
-            float band = b.bandX;
-            float want = lx;
-            if (b.lungeX > 0f && t != null)
-            {
-                float here = ox + lx;                                   // where it stands in its band
-                float pilot = t.position.x - baseX;                     // where the pilot is, same frame
-                float goal = b.lungeDive <= 0f
-                    ? (pilot >= here ? band : -band)                    // a slash: right across, the pilot's side
-                    : Mathf.Lerp(here, pilot, b.lungeX);                // a pounce: toward the pilot's column
-                want = Mathf.Clamp(goal, -band, band) - ox;
-            }
-            lungeToX = want;
+            lungeToX = LungeGoal(baseX, t);
             lungeToY = -b.lungeDive;
             return;
         }

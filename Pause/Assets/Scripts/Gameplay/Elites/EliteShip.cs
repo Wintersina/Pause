@@ -18,7 +18,9 @@ using UnityEngine;
 //            on top of the pilot (EliteDirector picks the lift-off's end
 //            well away), and attacks wait out an escape window.
 //   Follow   its brain flies it (interceptor, gunship, striker, hauler,
-//            skirmisher, siege), dodging what the board throws at it.
+//            skirmisher, siege), dodging what the board throws at it:
+//            EliteEvasion reads the board ahead and Navigate turns the
+//            brain's wish into a spot it can reach without being hit.
 //   Attack   the tell drawing for tellSeconds, then the action drawing
 //            while its attack plays (a dash, a broadside, a dive ...).
 //   Dead     its hearts ran out: the death FX (pluggable, EliteDeath),
@@ -59,7 +61,7 @@ public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
 public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino }
 
 [DisallowMultipleComponent]
-public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
+public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, ISpawnShadow
 {
     public static readonly List<EliteShip> Live = new List<EliteShip>(8);
 
@@ -144,6 +146,31 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     Vector2 attackAim;
     float attackClock;
 
+    // ---- evasion (EliteEvasion) ----
+    float planIn;                 // seconds to its next read of the board
+    Vector2 evadeTo, claim;       // the spot it is dodging to; where it means to be shortly
+    bool evading, forcedAttack;
+    float hitIn = -1f;            // the first hit still coming on its chosen path (< 0: none)
+    Vector2 tellAnchor;           // where a holding wind-up began
+    float liftClock, liftHeld, parkHeld, liftCheckIn;
+    Vector2 liftAim;
+    bool liftClear = true;
+
+    public bool Evading => evading;
+    public Vector2 EvadeTarget => evadeTo;
+    // Where it means to be shortly (other elites keep off it).
+    public Vector2 Claim => claim;
+    public float HitIn => hitIn;
+    // Seconds until a lifting elite joins the play layer.
+    public float JoinsIn => State == EliteState.LiftOff ? Mathf.Max(0f, LiftSeconds - liftClock) : 0f;
+    // Seconds it has waited for clear air: on its pad, and hovering under the play layer.
+    public float PadWait => parkHeld;
+    public float HoverWait => liftHeld;
+    // Counters (tests, probes): sidesteps begun, wind-ups abandoned, attacks held back.
+    public int Evasions { get; private set; }
+    public int BreakOffs { get; private set; }
+    public int HeldFire { get; private set; }
+
     // ---- creation --------------------------------------------------------
 
     // A parked elite on `site`; it lifts off after `parkFor` seconds and
@@ -172,6 +199,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         var ship = go.AddComponent<EliteShip>();
         ship.Init(def);
         ship.liftTo = at;
+        ship.claim = at;
         ship.EnterPlay();
         ship.State = EliteState.Follow;
         ship.escapeLeft = 0f;
@@ -290,6 +318,12 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     {
         State = EliteState.LiftOff;
         stateTime = 0f;
+        liftClock = 0f;
+        liftCheckIn = 0f;
+        // where the pilot is NOW (the director chose its join point when it parked)
+        if (EliteEvasion.Enabled) liftTo = EliteEvasion.BestJoin(this, liftTo, LiftSeconds, out liftClear);
+        liftAim = liftTo;
+        claim = liftTo;
         liftFrom = transform.position;
         EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
     }
@@ -308,6 +342,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         target = ClearTarget.Ensure(gameObject);
         target.enabled = true;
         target.SetRadius(Def.hullRadius);
+        target.Elite = this;
+        claim = transform.position;
+        planIn = 0f;
+        // (it arrives at flying speed, not at whatever the lift-off's last frame measured)
+        if (EliteEvasion.Enabled) velocity = Vector2.ClampMagnitude(velocity, Def.speed);
         footprint = SpawnFootprint.Attach(gameObject, new Vector2(Def.hullRadius, Def.hullRadius));
         SpawnFootprint.Bind(gameObject, this);
         if (heartsView == null)
@@ -361,13 +400,44 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         if (site.Valid) sitePos = site.Position;
         transform.position = new Vector3(sitePos.x, sitePos.y, 0f);
         bool siteLeaving = !site.Valid || sitePos.y < EliteSystem.ViewBottom + 2f;
-        if (stateTime >= parkSeconds || siteLeaving) BeginLiftOff();
+        if (stateTime < parkSeconds && !siteLeaving) return;
+        // a clear moment to rise into: it waits on its pad while the air it
+        // would join is busy (not for ever, and never past its pad leaving)
+        if (!siteLeaving && EliteEvasion.Enabled && parkHeld < EliteEvasion.LiftDelayMax)
+        {
+            liftCheckIn -= dt;
+            if (liftCheckIn <= 0f)
+            {
+                liftCheckIn = EliteEvasion.ReactionFor(Def);
+                EliteEvasion.BestJoin(this, liftTo, LiftSeconds, out liftClear);
+            }
+            if (!liftClear) { parkHeld += dt; return; }
+        }
+        BeginLiftOff();
     }
 
     void StepLiftOff(float dt)
     {
         if (site.Valid) liftFrom = site.Position;
-        float k = Mathf.Clamp01(stateTime / LiftSeconds);
+        // the second half: it keeps reading the air it is about to join,
+        // slides its join point to the nearest clear spot and, if there is
+        // none yet, hovers just under the play layer (still out of reach)
+        bool hover = false;
+        if (EliteEvasion.Enabled && liftClock >= LiftSeconds * .5f)
+        {
+            liftCheckIn -= dt;
+            if (liftCheckIn <= 0f)
+            {
+                liftCheckIn = EliteEvasion.ReactionFor(Def);
+                liftAim = EliteEvasion.BestJoin(this, liftTo, Mathf.Max(0f, LiftSeconds - liftClock), out liftClear);
+            }
+            liftTo = Vector2.MoveTowards(liftTo, liftAim, EliteEvasion.LiftSlideSpeed * dt);
+            claim = liftTo;
+            hover = !liftClear && liftClock >= LiftSeconds * HoverShare && liftHeld < EliteEvasion.LiftHoldMax;
+        }
+        if (hover) liftHeld += dt;
+        else liftClock += dt;
+        float k = Mathf.Clamp01(liftClock / LiftSeconds);
         // rises straight off the pad first, then arcs out to the join point
         float e = k * k * (3f - 2f * k);
         Vector2 rise = liftFrom + Vector2.up * .6f;
@@ -388,6 +458,83 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         if (k >= 1f) EnterPlay();
     }
 
+    // The share of the lift-off after which it may hover, waiting for clear
+    // air: under .9, so it is still drawn behind the play layer.
+    public const float HoverShare = .86f;
+
+    // ---- evasion -----------------------------------------------------------
+
+    // The brain's wish, made safe: every ReactionSeconds it reads the board
+    // (EliteEvasion.Plan) and from then on flies to the spot it chose --
+    // the wish itself whenever the way there is clear.
+    Vector2 Navigate(Vector2 goal, float speedScale, float dt)
+    {
+        goal = ClampGoal(goal);
+        if (!EliteEvasion.Enabled) { evading = false; hitIn = -1f; claim = goal; return goal; }
+        planIn -= dt;
+        if (planIn <= 0f)
+        {
+            planIn = EliteEvasion.ReactionFor(Def);
+            bool was = evading;
+            evadeTo = EliteEvasion.Plan(this, goal, speedScale, evadeTo, was, out evading, out hitIn);
+            if (evading && !was) Evasions++;
+        }
+        claim = evading ? evadeTo : goal;
+        return claim;
+    }
+
+    // Nothing it can steer to gets it clear in time (the skirmisher blinks).
+    bool Cornered => evading && hitIn >= 0f && hitIn < .4f;
+
+    // May it start (or, `release`, go through with) its attack now? Not a
+    // dash down a blocked line -- up to the pilot and a little past, so what
+    // is BEHIND the pilot still catches it -- and not a shot through a
+    // friendly elite.
+    bool MayCommit(bool release)
+    {
+        if (!EliteEvasion.Enabled || forcedAttack) return true;
+        if (Attack.DrivesMovement)
+        {
+            Vector2 d;
+            float reach;
+            Attack.DashLine(seen, release, out d, out reach);
+            float seconds = Mathf.Min(Def.actionSeconds * .8f, reach / Mathf.Max(.1f, Def.dashSpeed));
+            float wait = release ? 0f : Attack.TellSeconds;
+            // not into a rail: the whole run, brake included
+            Vector2 end = (Vector2)transform.position + d * (Def.dashSpeed * Def.actionSeconds * .9f);
+            if (Mathf.Abs(end.x) + Def.hullRadius * .7f > EliteSystem.RailEdge - .05f) return false;
+            if (EliteEvasion.Dash(this, wait, d * Def.dashSpeed, seconds, Attack.Ploughs || Def.armored).Hit) return false;
+        }
+        // a blink attack: only with somewhere safe to land
+        if (Attack.Blinks) { BlinkSpot(); if (!BlinkSpotSafe) return false; }
+        return !Attack.FriendlyInLine(seen);
+    }
+
+    // A wind-up given up: back to following, a short wait, nothing fired.
+    void BreakOff()
+    {
+        BreakOffs++;
+        Attack.Cancel();
+        State = EliteState.Follow;
+        stateTime = 0f;
+        attackPhase = 0;
+        sight.enabled = false;
+        cooldown = EliteEvasion.BreakOffCooldown;
+    }
+
+    // A wind-up that holds its ground (a lance, the siege cannon, the ram,
+    // the mortar): it stays planted while that is safe, jinks a little out
+    // of the way of something coming if a small move is enough, and gives
+    // the attack up if it is not.
+    void HoldTell(float dt)
+    {
+        if (!EliteEvasion.Enabled || forcedAttack) { Brake(dt); return; }
+        Vector2 nav = Navigate(tellAnchor, .5f, dt);
+        if (!evading) { Brake(dt); return; }
+        if (hitIn >= 0f || (evadeTo - tellAnchor).sqrMagnitude > EliteEvasion.JinkReach * EliteEvasion.JinkReach) { BreakOff(); return; }
+        Steer(nav, 1f, dt);
+    }
+
     void StepPlay(float dt)
     {
         PlaySeconds += dt;
@@ -399,16 +546,24 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         if (State == EliteState.Join)
         {
             Vector2 goal = Brain.Goal(seen, dt);
-            Steer(goal, 1.35f, dt);
+            Steer(Navigate(goal, 1.35f, dt), 1.35f, dt);
             if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
         }
         else if (State == EliteState.Follow)
         {
             Vector2 goal = Brain.Goal(seen, dt);
-            Steer(goal, Brain.SpeedScale, dt);
-            if (Brain.DodgesByBlink && blinkCooldown <= 0f && ThreatSeverity() > .55f) Blink(BlinkSpot(), false);
+            Steer(Navigate(goal, Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+            if (Brain.DodgesByBlink && blinkCooldown <= 0f && (ThreatSeverity() > .55f || Cornered))
+            {
+                Vector2 spot = BlinkSpot();
+                if (BlinkSpotSafe) Blink(spot, false);   // (never out of one thing into another)
+            }
             cooldown -= dt;
-            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && Brain.WantsAttack(seen)) BeginAttack();
+            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && Brain.WantsAttack(seen))
+            {
+                if (MayCommit(false)) BeginAttack();
+                else { cooldown = EliteEvasion.HoldFireSeconds; HeldFire++; }
+            }
         }
         else if (State == EliteState.Attack)
         {
@@ -416,15 +571,20 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             if (attackPhase == 0)
             {
                 Attack.StepTell(dt);
-                if (Attack.HoldsDuringTell) Brake(dt);
-                else Steer(Brain.Goal(seen, dt), Brain.SpeedScale * .5f, dt);
-                if (attackClock >= Attack.TellSeconds) { attackPhase = 1; attackClock = 0f; Attack.BeginAction(); }
+                if (Attack.HoldsDuringTell) HoldTell(dt);
+                else Steer(Navigate(Brain.Goal(seen, dt), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
+                if (State == EliteState.Attack && attackClock >= Attack.TellSeconds)
+                {
+                    if (!MayCommit(true)) BreakOff();
+                    else { attackPhase = 1; attackClock = 0f; evading = false; Attack.BeginAction(); }
+                }
             }
             else
             {
                 bool done = Attack.StepAction(dt);
                 driven = Attack.DrivesMovement;
-                if (!driven) Steer(Brain.Goal(seen, dt), Brain.SpeedScale, dt);
+                if (!driven) Steer(Navigate(Brain.Goal(seen, dt), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                else claim = transform.position;
                 if (done) EndAttack();
             }
         }
@@ -443,6 +603,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         attackPhase = 0;
         attackClock = 0f;
         Attacks++;
+        tellAnchor = transform.position;
         Attack.BeginTell(seen);
     }
 
@@ -452,6 +613,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         State = EliteState.Follow;
         stateTime = 0f;
         attackPhase = 0;
+        forcedAttack = false;
         sight.enabled = false;
         cooldown = Def.attackGap * Mathf.Lerp(1.25f, .6f, Mathf.Clamp01(Def.aggression)) * Random.Range(.8f, 1.2f);
     }
@@ -481,15 +643,24 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     public void Steer(Vector2 goal, float speedScale, float dt)
     {
         goal = ClampGoal(goal);
+        // dodging: a little faster and sharper than its cruise, within limits
+        bool hot = evading && EliteEvasion.Enabled;
         Vector2 pos = transform.position;
         Vector2 d = goal - pos;
         float max = Def.speed * Mathf.Max(.1f, speedScale);
+        float accel = Def.accel;
+        if (hot) { max = Mathf.Max(max, EliteEvasion.EvadeSpeedFor(Def)); accel = EliteEvasion.EvadeAccelFor(Def); }
         float dist = d.magnitude;
-        Vector2 want = dist > 1e-4f ? d / dist * Mathf.Min(max, dist * 2.4f) : Vector2.zero;
-        want += Avoid();
+        float arrive = Mathf.Min(max, dist * (hot ? 6f : 2.4f));
+        // (never faster than it can stop in the room left: no overshooting into a rail)
+        if (EliteEvasion.Enabled) arrive = Mathf.Min(arrive, Mathf.Sqrt(2f * accel * dist) * .9f);
+        Vector2 want = dist > 1e-4f ? d / dist * arrive : Vector2.zero;
+        want += Avoid() * (EliteEvasion.Enabled ? EliteEvasion.ReflexWeight : 1f);
         want += Walls();
         if (want.sqrMagnitude > max * max * 2.25f) want = want.normalized * max * 1.5f;
-        Accelerate(want, Def.accel, dt);
+        // (slowing down is never weaker than its evasive thrust: it can always pull up short of a rail)
+        if (EliteEvasion.Enabled && want.sqrMagnitude < velocity.sqrMagnitude) accel = Mathf.Max(accel, EliteEvasion.EvadeAccelFor(Def));
+        Accelerate(want, accel, dt, hot ? EliteEvasion.EvadeTurnScale : 1f);
     }
 
     public void Brake(float dt)
@@ -497,7 +668,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         Accelerate(Avoid() * .5f, Def.accel, dt);
     }
 
-    void Accelerate(Vector2 want, float accel, float dt)
+    void Accelerate(Vector2 want, float accel, float dt, float turnScale = 1f)
     {
         Vector2 v = Vector2.MoveTowards(velocity, want, accel * dt);
         // turn-rate limit on the heading of travel
@@ -506,7 +677,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         {
             float a0 = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
             float a1 = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
-            float turn = Mathf.Clamp(Mathf.DeltaAngle(a0, a1), -Def.turnRate * dt, Def.turnRate * dt);
+            float turn = Mathf.Clamp(Mathf.DeltaAngle(a0, a1), -Def.turnRate * turnScale * dt, Def.turnRate * turnScale * dt);
             float r = (a0 + turn) * Mathf.Deg2Rad;
             v = new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * sp;
         }
@@ -848,16 +1019,42 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         Vector2 side = toPilot.sqrMagnitude > 1e-4f ? new Vector2(-toPilot.y, toPilot.x).normalized : Vector2.right;
         Vector2 best = pos;
         float bestScore = float.MinValue;
-        for (int k = 0; k < 6; k++)
+        BlinkSpotSafe = true;
+        if (!EliteEvasion.Enabled)
+        {
+            for (int k = 0; k < 6; k++)
+            {
+                float sign = k % 2 == 0 ? 1f : -1f;
+                float dist = Def.blinkDistance * (1f - .15f * (k / 2));
+                Vector2 c = ClampGoal(pos + side * sign * dist + Vector2.up * (k / 2) * .3f);
+                float score = Clearance(c) - Mathf.Abs((c - seen).magnitude - Def.keepDistance) * .3f;
+                if (score > bestScore) { bestScore = score; best = c; }
+            }
+            return best;
+        }
+        // either side, three lengths, level / a little up / a little down:
+        // never into something that is on its way to that spot
+        for (int k = 0; k < 18; k++)
         {
             float sign = k % 2 == 0 ? 1f : -1f;
-            float dist = Def.blinkDistance * (1f - .15f * (k / 2));
-            Vector2 c = ClampGoal(pos + side * sign * dist + Vector2.up * (k / 2) * .3f);
-            float score = Clearance(c) - Mathf.Abs((c - seen).magnitude - Def.keepDistance) * .3f;
-            if (score > bestScore) { bestScore = score; best = c; }
+            float dist = Def.blinkDistance * (1f - .2f * ((k / 2) % 3));
+            float lift = k < 6 ? 0f : k < 12 ? .5f : -.5f;
+            Vector2 c = ClampGoal(pos + side * sign * dist + Vector2.up * lift);
+            float score = Clearance(c) - Mathf.Abs((c - seen).magnitude - Def.keepDistance) * .3f - Mathf.Abs(lift) * .2f;
+            var o = EliteEvasion.Hold(this, c, 0f, BlinkClearSeconds);
+            if (o.Hit) score -= 5f + (BlinkClearSeconds - o.hitIn) * 6f;
+            if (score <= bestScore) continue;
+            bestScore = score;
+            best = c;
+            BlinkSpotSafe = !o.Hit;
         }
         return best;
     }
+
+    // A blink lands only where nothing arrives for this long.
+    public const float BlinkClearSeconds = .4f;
+    // Whether the last BlinkSpot() found a spot that is.
+    public bool BlinkSpotSafe { get; private set; }
 
     // Distance to the nearest hazard's edge from `at` (capped).
     float Clearance(Vector2 at)
@@ -885,6 +1082,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         EliteSystem.Fx.BlinkBurst(to, Def.ShotCore, Def.cellWorldSize * .8f);
         velocity *= .3f;
         blinkCooldown = attack ? 1f : 2.2f;
+        planIn = 0f;
+        evading = false;
+        claim = to;
         Blinks++;
         Physics2D.SyncTransforms();
     }
@@ -955,13 +1155,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         }
         else if (State == EliteState.LiftOff && liftFrames != null)
         {
-            int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(stateTime / LiftSeconds * liftFrames.Length));
+            int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(liftClock / LiftSeconds * liftFrames.Length));
             SetSprite(liftFrames[f]);
             CurrentFrame = 0;
             return;
         }
         else if (State == EliteState.LiftOff && c.liftoff >= 0)
-            frame = stateTime < LiftSeconds * LiftCellShare ? c.liftoff : FlightFrame(dt);
+            frame = liftClock < LiftSeconds * LiftCellShare ? c.liftoff : FlightFrame(dt);
         else if (hitFlash > 0f && c.hit >= 0) frame = c.hit;
         else if (State == EliteState.Attack && attackPhase == 0 && c.tell >= 0) frame = c.tell;
         else if (State == EliteState.Attack && attackPhase == 1 && c.action >= 0) frame = c.action;
@@ -1149,10 +1349,26 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
 
     public bool SelfSteering => true;
 
+    // ISpawnShadow: the column it is flying -- hull-wide, from the ship to
+    // where it means to be, and up the board as far as the scroll covers in
+    // EliteEvasion.SpawnShadowSeconds. The spawner drops nothing new into it.
+    public bool SpawnShadow(out Rect column)
+    {
+        column = default;
+        float seconds = EliteEvasion.Enabled ? EliteEvasion.SpawnShadowSeconds : 0f;
+        if (seconds <= 0f || !InPlay) return false;
+        Vector2 p = transform.position;
+        float pad = Def.hullRadius + EliteEvasion.SpawnShadowPad;
+        column = Rect.MinMaxRect(Mathf.Min(p.x, claim.x) - pad, Mathf.Min(p.y, claim.y) - Def.hullRadius,
+                                 Mathf.Max(p.x, claim.x) + pad, Mathf.Max(p.y, claim.y) + Def.hullRadius + SpawnSpace.ScrollSpeed * seconds);
+        return true;
+    }
+
     // ---- direct control (tests, previews) ---------------------------------------
 
     public void ForceLiftOff() { if (State == EliteState.Parked) { stateTime = parkSeconds; } }
-    public void ForceAttack() { if (State == EliteState.Follow || State == EliteState.Join) { State = EliteState.Follow; cooldown = 0f; escapeLeft = 0f; BeginAttack(); } }
+    // (a forced attack runs whatever is in its way: no hold, jink or break-off)
+    public void ForceAttack() { if (State == EliteState.Follow || State == EliteState.Join) { State = EliteState.Follow; cooldown = 0f; escapeLeft = 0f; forcedAttack = true; BeginAttack(); } }
     public void SetSeen(Vector2 p) { seen = p; lastPlayer = p; havePlayer = true; lost = false; }
     public float ParkSeconds => parkSeconds;
 }

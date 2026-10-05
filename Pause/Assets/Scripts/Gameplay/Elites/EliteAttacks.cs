@@ -66,6 +66,50 @@ public abstract class EliteAttack
     // True when the action is over.
     public abstract bool StepAction(float dt);
     public virtual void End() { }
+    // Opens with a blink (the ship wants a safe spot to land on first).
+    public virtual bool Blinks => false;
+    // The wind-up was abandoned (EliteShip.BreakOff): nothing was fired.
+    public virtual void Cancel() { }
+
+    // A dash's line (DrivesMovement attacks): the way it would go and how far
+    // the ship checks it before committing -- to the pilot and a little past.
+    // `locked`: the wind-up is over, the aim is the one it locked.
+    public virtual void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        Vector2 to = (locked ? aim : seen) - ship.Position;
+        reach = to.magnitude + DashPast;
+        d = locked && dir.sqrMagnitude > 1e-4f ? dir : to.sqrMagnitude > 1e-4f ? to.normalized : Vector2.down;
+    }
+
+    public const float DashPast = .4f;
+
+    // Would its shots, fired now, cross another elite? (Checked when it wants
+    // to attack and again as the wind-up ends; it holds fire if so.)
+    public virtual bool FriendlyInLine(Vector2 seen) => false;
+
+    // Another elite in play inside the corridor `halfWidth` either side of
+    // the line from `from` along `d` (unit) for `reach`.
+    protected bool EliteOnLine(Vector2 from, Vector2 d, float reach, float halfWidth)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e == null || e == ship || !e.InPlay) continue;
+            Vector2 rel = e.Position - from;
+            float along = Vector2.Dot(rel, d);
+            if (along < 0f || along > reach) continue;
+            float off = Mathf.Abs(rel.x * d.y - rel.y * d.x);
+            if (off < halfWidth + e.Def.hullRadius + .15f) return true;
+        }
+        return false;
+    }
+
+    protected static Vector2 Unit(float deg)
+    {
+        float r = deg * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(r), Mathf.Sin(r));
+    }
 
     protected EliteShot Fire(int muzzle, float deg, float speed)
     {
@@ -155,6 +199,13 @@ public class BroadsideAttack : EliteAttack
     public BroadsideAttack() { Id = "broadside"; }
     public int Volleys => volleys;
 
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        for (int m = 0; m < def.muzzles.Length; m++)
+            if (EliteOnLine(ship.MuzzleWorld(m), Unit(ship.MuzzleDeg(m)), 6f, def.shotSize * .5f)) return true;
+        return false;
+    }
+
     public override void BeginAction()
     {
         base.BeginAction();
@@ -182,6 +233,14 @@ public class ClawDiveAttack : EliteAttack
     public ClawDiveAttack() { Id = "claw_dive"; }
     public override bool DrivesMovement => true;
     public override float? FaceDeg => Deg(dir);
+
+    // (it dives at the spot it locked, from wherever it has circled to)
+    public override void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        Vector2 to = (locked ? aim : seen) - ship.Position;
+        reach = to.magnitude + DashPast;
+        d = to.sqrMagnitude > 1e-4f ? to.normalized : Vector2.down;
+    }
 
     public override void BeginTell(Vector2 seen)
     {
@@ -228,6 +287,9 @@ public class SlagDropAttack : EliteAttack
     int dropped;
     public SlagDropAttack() { Id = "slag_drop"; }
 
+    public override bool FriendlyInLine(Vector2 seen) =>
+        EliteOnLine(ship.Position, Vector2.down, 3.5f, def.shotSize * .5f + .1f);
+
     public override void BeginAction()
     {
         base.BeginAction();
@@ -254,7 +316,15 @@ public class BlinkShardsAttack : EliteAttack
 {
     bool fired;
     public BlinkShardsAttack() { Id = "blink_shards"; }
+    public override bool Blinks => true;
     public override float? FaceDeg => Deg(ship.Seen - ship.Position);
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, dist + 2f, .35f);
+    }
 
     public override void BeginAction()
     {
@@ -285,6 +355,15 @@ public class SiegeCannonAttack : EliteAttack
     public SiegeCannonAttack() { Id = "siege_cannon"; }
     public override bool HoldsDuringTell => true;
     public override float? FaceDeg => -90f;
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        // (its lane: the muzzle swings under the hull as it turns nose-down for the shot)
+        Vector2 p = ship.Position;
+        return EliteOnLine(p, Vector2.down, p.y - EliteSystem.ViewBottom, def.shotSize * .4f);
+    }
+
+    public override void Cancel() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
 
     public override void StepTell(float dt)
     {
@@ -336,6 +415,13 @@ public class IceRamAttack : EliteAttack
     public override bool HoldsDuringTell => true;
     public override bool DrivesMovement => true;
     public override bool Ploughs => true;
+
+    // (straight down its lane, as far as the pilot's height and a little past)
+    public override void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        d = Vector2.down;
+        reach = Mathf.Max(1f, ship.Position.y - seen.y + DashPast);
+    }
     public float LaneX => laneX;
     public int Smashed => smashed;
 

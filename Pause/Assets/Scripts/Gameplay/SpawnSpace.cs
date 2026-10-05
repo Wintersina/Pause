@@ -63,6 +63,13 @@ public interface IMovementFootprint
     bool SelfSteering { get; }
 }
 
+// A footprint that also keeps a stretch of board clear of NEW spawns: an
+// elite's column (EliteShip.SpawnShadow). Only placement reads it.
+public interface ISpawnShadow
+{
+    bool SpawnShadow(out Rect column);
+}
+
 // One spot a spawner is considering.
 public struct SpawnCandidate
 {
@@ -209,6 +216,11 @@ public static class SpawnSpace
             IMovementFootprint plan = f.Plan;
             bool steering = plan != null && plan.SelfSteering;
             bool held = f.Held;
+            if (plan is ISpawnShadow shadow && shadow.SpawnShadow(out Rect column))
+            {
+                Rect whole = candidatePlan ? c.plan.SweptBounds(c.center, c.half, 0f, SteerHorizon) : body;
+                if (Overlaps(whole, column, Margin)) return false;
+            }
             if (!candidatePlan && plan == null && !held)
             {
                 // two plain scrollers: they never move relative to each other
