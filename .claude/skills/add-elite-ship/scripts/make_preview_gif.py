@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Turns ElitePreview's frame folders into GIFs and contact sheets.
 
-  python3 make_preview_gif.py DIR [--fps 15] [--sheet-every 6]
+  python3 make_preview_gif.py DIR [--fps 15] [--sheet-every 6] [--prefix elite2-] [--only KEY]
 
 For every DIR/elite-<key>/NNN.png folder writes DIR/elite-<key>.gif and
-DIR/elite-<key>-sheet.png (every Nth frame in a grid).  Needs Pillow.
+DIR/elite-<key>-sheet.png (every Nth frame in a grid).  --prefix replaces
+the "elite-" of the outputs (a second batch next to the first: elite2-);
+--only limits it to one key.  Needs Pillow.
 """
 import argparse
 import glob
@@ -19,6 +21,8 @@ def main():
     ap.add_argument("--fps", type=float, default=15)
     ap.add_argument("--sheet-every", type=int, default=6)
     ap.add_argument("--cols", type=int, default=10)
+    ap.add_argument("--prefix", default="elite-")
+    ap.add_argument("--only", action="append", default=[])
     args = ap.parse_args()
     for folder in sorted(glob.glob(os.path.join(args.dir, "elite-*"))):
         if not os.path.isdir(folder):
@@ -27,7 +31,10 @@ def main():
         if not files:
             continue
         frames = [Image.open(f).convert("RGB") for f in files]
-        name = os.path.basename(folder)
+        key = os.path.basename(folder)[len("elite-"):]
+        if args.only and key not in args.only:
+            continue
+        name = args.prefix + key
         gif = os.path.join(args.dir, name + ".gif")
         small = [f.resize((f.width * 2 // 3, f.height * 2 // 3), Image.LANCZOS) for f in frames]
         pal = [f.quantize(colors=128, method=Image.Quantize.MEDIANCUT) for f in small]

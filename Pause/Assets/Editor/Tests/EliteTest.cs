@@ -5,11 +5,12 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The elite ships (Scripts/Gameplay/Elites): data, life cycle, the six
-// personalities and attacks, shots from muzzles, friendly fire, dodging and
-// baited crashes, perception after a teleport, hearts, every damage
-// source, rewards, the director's limits, freezing, allocations and the
-// codex silhouettes.
+// The elite ships (Scripts/Gameplay/Elites): data, life cycle, the cell
+// maps (Ember layout, flight layout), the personalities and attacks (six
+// Ember, Frost's Rimebreaker, Verdant's Resin Warden), shots from muzzles,
+// friendly fire, dodging and baited crashes, perception after a teleport,
+// hearts, every damage source, rewards, the director's limits, Frost and
+// Verdant landing sites, freezing, allocations and the codex silhouettes.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteTest.Run
 public static class EliteTest
@@ -44,6 +45,9 @@ public static class EliteTest
             Hauler();
             Skirmisher();
             Siege();
+            CellMaps();
+            Breaker();
+            Warden();
             ShotsLeaveMuzzles();
             FriendlyFire();
             Dodging();
@@ -52,6 +56,7 @@ public static class EliteTest
             DamageSources();
             Rewards();
             Director();
+            WorldSites();
             Frozen();
             Allocations();
             Codex();
@@ -148,39 +153,63 @@ public static class EliteTest
         var ember = new List<EliteDef>();
         int n = EliteCatalog.ForWorld(3, ember);
         Check("six Ember elites are defined (" + n + ")", n == 6);
-        Check("no elites in Space / Frost / Verdant yet", !EliteCatalog.WorldHasElites(0) && !EliteCatalog.WorldHasElites(1) && !EliteCatalog.WorldHasElites(2));
+        var frost = new List<EliteDef>();
+        var verdant = new List<EliteDef>();
+        EliteCatalog.ForWorld(1, frost);
+        EliteCatalog.ForWorld(2, verdant);
+        Check("Frost has its own elite: the Rimebreaker (" + frost.Count + ")", frost.Count == 1 && frost[0].key == "frost_elite_rimebreaker");
+        Check("Verdant has its own elite: the Resin Warden (" + verdant.Count + ")", verdant.Count == 1 && verdant[0].key == "verdant_elite_resin_warden");
+        Check("no elites in Space yet", !EliteCatalog.WorldHasElites(0));
         var brains = new HashSet<string>();
         var attacks = new HashSet<string>();
-        foreach (var d in ember)
+        foreach (var d in ember) { brains.Add(d.brain); attacks.Add(d.attack); }
+        Check("six different Ember brains", brains.Count == 6);
+        Check("six different Ember attacks", attacks.Count == 6);
+        brains.Clear();
+        attacks.Clear();
+        foreach (var d in EliteCatalog.All)
         {
             brains.Add(d.brain);
             attacks.Add(d.attack);
             var frames = EliteArt.Frames(d);
-            Check(d.key + ": strip loads as 7 cells", frames != null && frames.Length == EliteArt.FrameCount && frames[0] != null);
+            Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length == EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
             Check(d.key + ": two hearts", d.hearts == 2);
             Check(d.key + ": hearts are not the player's red (hue gap " + HueGap(d.HeartColor, PlayerRed).ToString("0") + ")",
                   HueGap(d.HeartColor, PlayerRed) > 40f && HueGap(d.HeartColor, AkiraPalette.Red) > 40f);
-            Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f);
+            Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
+                  HueGap(d.ShotColor, AkiraPalette.Red) > 30f);
             Check(d.key + ": has muzzles and nozzles", d.muzzles.Length > 0 && d.nozzles.Length > 0);
             Check(d.key + ": a codex id", !string.IsNullOrEmpty(d.codexId) && d.codexId.StartsWith("elite_"));
 
-            // every muzzle sits on the drawing (the action frame), every
-            // nozzle on idle 0
+            // every muzzle sits on the drawing (the action / tell cell, else
+            // the flight frame), every nozzle on the flight frame
             var tex = new Texture2D(2, 2);
-            tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Elites/Ember/" + d.key + ".png"));
+            tex.LoadImage(File.ReadAllBytes(CopyPath(d)));
             bool onArt = true;
-            foreach (var m in d.muzzles) onArt &= Opaque(tex, d, 5, m) || Opaque(tex, d, 4, m);
-            foreach (var z in d.nozzles) onArt &= Opaque(tex, d, 0, z);
+            var c = d.cells;
+            foreach (var m in d.muzzles)
+                onArt &= (c.action >= 0 && Opaque(tex, d, c.action, m)) || (c.tell >= 0 && Opaque(tex, d, c.tell, m)) || Opaque(tex, d, c.Flight0, m);
+            foreach (var z in d.nozzles) onArt &= Opaque(tex, d, c.Flight0, z);
             Object.DestroyImmediate(tex);
             Check(d.key + ": muzzles and nozzles land on the art", onArt);
-            Check(d.key + ": the original art is untouched (Resources copy matches)",
-                  File.ReadAllBytes("Assets/Art/Resources/Elites/Ember/" + d.key + ".png").Length ==
-                  File.ReadAllBytes("Assets/Art/Enemies/Elite/Ember/" + d.key + ".png").Length);
+            string src = SourcePath(d);
+            Check(d.key + ": the original art is untouched (Resources copy matches " + src + ")",
+                  File.Exists(src) && File.ReadAllBytes(CopyPath(d)).Length == File.ReadAllBytes(src).Length);
         }
-        Check("six different brains", brains.Count == 6);
-        Check("six different attacks", attacks.Count == 6);
+        Check("every elite has its own brain (" + brains.Count + ")", brains.Count == EliteCatalog.All.Length);
+        Check("every elite has its own attack (" + attacks.Count + ")", attacks.Count == EliteCatalog.All.Length);
         Check("the elite heart is white art (tinted per elite)", Resources.Load<Sprite>(EliteHearts.SpritePath) != null);
+    }
+
+    static string CopyPath(EliteDef d) => "Assets/Art/Resources/Elites/" + EliteArt.WorldFolder(d) + "/" + d.key + ".png";
+
+    // Codex's original: <world>_elite_<name>.png, or delivered bare (<name>.png).
+    static string SourcePath(EliteDef d)
+    {
+        string dir = "Assets/Art/Enemies/Elite/" + EliteArt.WorldFolder(d) + "/";
+        if (File.Exists(dir + d.key + ".png")) return dir + d.key + ".png";
+        return dir + d.key.Substring(d.key.IndexOf("_elite_") + 7) + ".png";
     }
 
     static bool Opaque(Texture2D tex, EliteDef d, int cell, ElitePoint p)
@@ -250,21 +279,30 @@ public static class EliteTest
             guard = 0;
             while (e.State == EliteState.Join && guard++ < 100) EliteSystem.Step(Dt);
             Check(k + "follows", e.State == EliteState.Follow);
-            bool told = false, acted = false, resolved = false;
-            int tellFrame = -1, actFrame = -1;
+            bool told = false, acted = false, resolved = false, glow = false;
+            int tellFrame = -1, actFrame = -1, flashes = e.MuzzleFlashesShown;
             for (int i = 0; i < 30 * 25 && !resolved; i++)
             {
                 // keep it alive and clear of the pilot for this part
                 pilot.position = new Vector3(Mathf.Sin(i * .02f) * .8f, -2.8f, 0f);
                 EliteSystem.Step(Dt);
                 if (e == null) break;
-                if (e.Telling) { told = true; tellFrame = e.CurrentFrame; }
+                if (e.Telling) { told = true; tellFrame = e.CurrentFrame; glow |= e.ChargeGlowOn; }
                 if (e.Acting) { acted = true; actFrame = e.CurrentFrame; }
                 if (acted && e.State == EliteState.Follow) resolved = true;
             }
-            Check(k + "attacks: the tell drawing, then the action drawing, then back to following (" + tellFrame + "," + actFrame + ")",
-                  told && acted && resolved && (tellFrame == EliteArt.Tell || tellFrame == EliteArt.Hit) && (actFrame == EliteArt.Action || actFrame == EliteArt.Hit));
+            var cm = def.cells;
+            bool tellOk = cm.tell >= 0 ? tellFrame == cm.tell || tellFrame == cm.hit : IsFlightCell(def, tellFrame) && glow;
+            bool actOk = cm.action >= 0 ? actFrame == cm.action || actFrame == cm.hit : IsFlightCell(def, actFrame) && e != null && e.MuzzleFlashesShown > flashes;
+            Check(k + "attacks: the tell drawing, then the action drawing, then back to following (" + tellFrame + "," + actFrame +
+                  (cm.tell < 0 ? ", procedural: charge glow " + glow : "") + ")", told && acted && resolved && tellOk && actOk);
         }
+    }
+
+    static bool IsFlightCell(EliteDef d, int frame)
+    {
+        var c = d.cells;
+        return System.Array.IndexOf(c.flight, frame) >= 0 || frame == c.bankLeft || frame == c.bankRight || frame == c.damaged;
     }
 
     // ---- personalities ---------------------------------------------------------
@@ -409,6 +447,241 @@ public static class EliteTest
         Check("siege: a sight line down its lane through the charge", sight);
         Check("siege fires a charged shell straight down the lane",
               EliteSystem.Shots.Launched > before && shell != null && shell.Velocity.y < -5f && Mathf.Abs(shell.Velocity.x) < .05f);
+    }
+
+    // ---- cell maps ---------------------------------------------------------------
+
+    static void CellMaps()
+    {
+        // the Ember six keep the default layout, cell for cell
+        foreach (var d in EliteCatalog.All)
+        {
+            if (d.world != "ember") continue;
+            var c = d.cells;
+            Check(d.key + ": the default (Ember) cell layout: idle 0-3, tell 4, action 5, hit 6, no parked / lift-off / bank / damaged cells",
+                  c.flight.Length == 4 && c.flight[0] == 0 && c.flight[3] == 3 && c.tell == EliteArt.Tell && c.action == EliteArt.Action &&
+                  c.hit == EliteArt.Hit && c.parked < 0 && c.parkedIdle < 0 && c.liftoff < 0 && !c.Banks && c.damaged < 0 && c.Parked == 0);
+        }
+        Fresh(.05f);
+        var sun = EliteShip.CreateInPlay(EliteCatalog.Find("ember_elite_sunstoke"), new Vector2(0f, 1f));
+        sun.AttackCooldown = 99f;
+        var seen = new HashSet<int>();
+        Step(1.5f, () => seen.Add(sun.CurrentFrame));
+        Check("Ember: still loops idle 0-3 (" + string.Join(",", seen) + ")", seen.SetEquals(new[] { 0, 1, 2, 3 }));
+        sun.TakeHit(EliteDamage.PlayerWeapon, sun.transform.position + Vector3.left);
+        EliteSystem.Step(Dt);
+        Check("Ember: a hit shows the hit cell, hull not tinted", sun.CurrentFrame == EliteArt.Hit && sun.Hull.color == Color.white);
+        Step(.5f);
+        Check("Ember: back on its idle loop after the hit (no damaged cell)", sun.CurrentFrame < 4 && !sun.Damaged);
+
+        foreach (string key in new[] { "frost_elite_rimebreaker", "verdant_elite_resin_warden" })
+        {
+            var def = EliteCatalog.Find(key);
+            if (def == null) { Check(key + " is defined", false); continue; }
+            string k = def.displayName + ": ";
+            var c = def.cells;
+            Check(k + "its flight cell map (parked 0, engines 1, lift-off 2, flight 3, banks 4 / 5, damaged 6; no tell / action / hit cells)",
+                  c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.flight.Length == 1 && c.flight[0] == 3 && c.bankLeft == 4 &&
+                  c.bankRight == 5 && c.damaged == 6 && c.tell < 0 && c.action < 0 && c.hit < 0);
+
+            // parked -> engines blink -> lift-off -> flight
+            Fresh(.05f);
+            pilot.position = new Vector3(0f, -3f, 0f);
+            var e = EliteShip.Create(def, Site(new Vector2(.6f, 3f)), 2.5f, new Vector2(-1.5f, 1.5f));
+            var parked = new HashSet<int>();
+            bool blinkSync = true;
+            int guard = 0;
+            while (e.State == EliteState.Parked && guard++ < 400)
+            {
+                EliteSystem.Step(Dt);
+                if (e.State != EliteState.Parked) break;
+                parked.Add(e.CurrentFrame);
+                blinkSync &= (e.CurrentFrame == c.parkedIdle) == e.EngineLightsOn;
+            }
+            Check(k + "parked on its landed cell, the grounded-idle cell blinking with the engine lights (" + string.Join(",", parked) + ")",
+                  parked.SetEquals(new[] { 0, 1 }) && blinkSync);
+            var lift = new List<int>();
+            guard = 0;
+            while (e.State == EliteState.LiftOff && guard++ < 200)
+            {
+                EliteSystem.Step(Dt);
+                if (e.State == EliteState.LiftOff && (lift.Count == 0 || lift[lift.Count - 1] != e.CurrentFrame)) lift.Add(e.CurrentFrame);
+            }
+            Check(k + "lift-off: the ignition cell, then flight (" + string.Join(",", lift) + ")",
+                  lift.Count >= 2 && lift[0] == c.liftoff && IsFlightCell(def, lift[lift.Count - 1]) && lift[lift.Count - 1] != c.liftoff);
+            Object.DestroyImmediate(e.gameObject);
+
+            // steering frames: banks by sideways speed
+            Fresh(.05f);
+            e = EliteShip.CreateInPlay(def, new Vector2(0f, 1f));
+            e.AttackCooldown = 99f;
+            Step(.3f, () => { e.SetSeen(e.Position + Vector2.down * 2f); e.Velocity = Vector2.zero; });
+            int straight = e.CurrentFrame;
+            Step(.3f, () => e.Velocity = new Vector2(-def.speed, 0f));
+            int left = e.CurrentFrame;
+            Step(.3f, () => e.Velocity = new Vector2(def.speed, 0f));
+            int right = e.CurrentFrame;
+            Step(.3f, () => e.Velocity = new Vector2(def.speed * .1f, def.speed));
+            int ahead = e.CurrentFrame;
+            Check(k + "flies on its hover cell, banks left / right when sliding sideways (" + straight + "," + left + "," + right + "," + ahead + ")",
+                  straight == c.Flight0 && left == c.bankLeft && right == c.bankRight && ahead == c.Flight0);
+
+            // a hit: the current frame flashes; the damaged cell for good
+            e.Velocity = Vector2.zero;
+            e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position + Vector3.left);
+            bool tinted = false;
+            int flashFrame = -1;
+            Step(EliteShip.HitFlashSeconds, () => { tinted |= e.Hull.color != Color.white; flashFrame = e.CurrentFrame; });
+            Check(k + "a hit flashes the frame it is on (no hit cell; the damaged cell from that hit on)", tinted && flashFrame == c.damaged);
+            var after = new HashSet<int>();
+            Step(.4f, () => e.Velocity = new Vector2(-def.speed, 0f));
+            after.Add(e.CurrentFrame);
+            Step(1.5f, () => after.Add(e.CurrentFrame));
+            Check(k + "after its first lost heart: the damaged cell, steady (" + string.Join(",", after) + ")",
+                  e.Hearts == 1 && e.Damaged && after.Count == 1 && after.Contains(c.damaged) && e.Hull.color == Color.white);
+            Check(k + "the codex weaves through flight and banks; its locked card uses the flight cell",
+                  c.CodexLoop.Length == 4 && c.CodexLoop[1] == c.bankLeft && c.CodexLoop[3] == c.bankRight &&
+                  global::Codex.Find(def.codexId) != null && global::Codex.Find(def.codexId).Sprite == EliteArt.Frame(def, c.Flight0));
+        }
+    }
+
+    // ---- Rimebreaker: breaker + ice_ram ---------------------------------------------
+
+    static void Breaker()
+    {
+        Fresh(.05f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var e = InPlay("breaker", new Vector2(1.5f, 1f));
+        if (e == null || e.Def == null) { Check("breaker elite exists", false); return; }
+        var def = e.Def;
+        float minDx = 9f, minY = 9f;
+        Step(5f, () => { minDx = Mathf.Min(minDx, Mathf.Abs(e.Position.x - pilot.position.x)); minY = Mathf.Min(minY, e.Position.y - pilot.position.y); });
+        Check("breaker prowls ahead of the pilot (at least " + minY.ToString("0.0") + " u above)", minY > def.followDistance * .5f);
+        Check("breaker sweeps across the pilot's lane (closest " + minDx.ToString("0.00") + " u)", minDx < .4f);
+
+        // line it up and force the ram
+        e.transform.position = new Vector3(.2f, pilot.position.y + def.followDistance, 0f);
+        e.Velocity = Vector2.zero;
+        Check("breaker wants to ram when over the pilot's lane", e.Brain.WantsAttack(pilot.position));
+        e.ForceAttack();
+        var ram = (IceRamAttack)e.Attack;
+        int launched = EliteSystem.Shots.Launched;
+        float tellSpeed = 0f, squash = 0f;
+        bool glow = false;
+        while (e.Telling)
+        {
+            EliteSystem.Step(Dt);
+            if (!e.Telling) break;
+            tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
+            glow |= e.ChargeGlowOn;
+            squash = Mathf.Max(squash, e.Squash);
+        }
+        Check("ice_ram tell: holds still, the prow charges (glow) and the hull squats (" + tellSpeed.ToString("0.0") + ", squash " + squash.ToString("0.00") + ")",
+              tellSpeed < 1.2f && glow && squash > .03f);
+        EliteSystem.Step(Dt);
+        Check("ice_ram: ploughs straight down its locked lane at dashSpeed (" + e.Velocity + ")",
+              e.Velocity.y < -def.dashSpeed * .85f && Mathf.Abs(e.Velocity.x) < .05f && Mathf.Abs(ram.LaneX - .2f) < .3f);
+        int left = 0, right = 0;
+        foreach (var s in EliteSystem.Shots.All)
+            if (s.Active && s.Kind == EliteShots.Kind.Shard) { if (s.Velocity.x < 0f) left++; else right++; }
+        Check("ice_ram: two frost shards off the prow, down-left and down-right (" + (EliteSystem.Shots.Launched - launched) + ": " + left + "/" + right + ")", EliteSystem.Shots.Launched - launched == 2 && left == 1 && right == 1);
+        Check("ice_ram: a muzzle flash and a recoil on the hover frame", e.MuzzleFlashesShown > 0 && e.RecoilOffset > .01f && IsFlightCell(def, e.CurrentFrame));
+
+        // a rock in its lane: broken through, no heart lost, more shards
+        var rock = Rock(e.Position + Vector2.down * .5f);
+        int before = EliteSystem.Shots.Launched;
+        Step(.2f);
+        Check("ice_ram: breaks through a rock in its lane without losing a heart",
+              rock == null && e != null && e.Hearts == 2 && e.Ploughed == 1 && EliteSystem.Shots.Launched - before == 2 && e.Velocity.y < -def.dashSpeed * .3f);
+        Step(1f);
+        Check("ice_ram: back to prowling after the ram", e.State == EliteState.Follow);
+        var rock2 = Rock(e.Position);
+        EliteSystem.Step(Dt);
+        Check("outside the ram a rock still costs it a heart (not armoured)", rock2 == null && e.Hearts == 1 && !def.armored);
+
+        // frost shards glance off the rails once, then break on them
+        Fresh(.05f);
+        e = InPlay("breaker", new Vector2(0f, 3f));
+        var shard = EliteSystem.Shots.Fire(e, e.Def, EliteShots.Kind.Shard, new Vector2(EliteSystem.RailEdge - .5f, 0f), new Vector2(5f, -.5f));
+        bool back = false;
+        Step(.5f, () => back |= shard.Active && shard.Velocity.x < 0f);
+        Check("frost shards glance off a rail and come back across the board", back && shard.Bounced == 1);
+        Step(2.5f);
+        Check("... and break on the second rail they meet", !shard.Active && shard.EndReason == 2);
+    }
+
+    // ---- Resin Warden: warden + resin_mortar -------------------------------------------
+
+    static void Warden()
+    {
+        Fresh(.02f);
+        pilot.position = new Vector3(1f, -2.5f, 0f);
+        var e = InPlay("warden", new Vector2(0f, 1f));
+        if (e == null || e.Def == null) { Check("warden elite exists", false); return; }
+        var def = e.Def;
+        var brain = (WardenBrain)e.Brain;
+        Step(4f);
+        Check("warden takes a station high on the side away from the pilot (" + e.Position + ")",
+              brain.Side < 0f && e.Position.x < -.5f && Mathf.Abs(e.Position.y - (EliteSystem.ViewTop - def.topMargin)) < .4f && brain.Settled);
+        Check("warden wants to attack once planted", brain.WantsAttack(pilot.position));
+        e.ForceAttack();
+        var mortar = (ResinMortarAttack)e.Attack;
+        bool glow = false;
+        float tellSpeed = 0f;
+        while (e.Telling)
+        {
+            EliteSystem.Step(Dt);
+            if (!e.Telling) break;
+            glow |= e.ChargeGlowOn;
+            tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
+        }
+        Check("resin_mortar tell: planted, the pods charge (" + tellSpeed.ToString("0.0") + ")", glow && tellSpeed < 1.2f);
+        Step(def.shotInterval * (def.shotCount - 1) + Dt * 2f);
+        var globs = new List<EliteShot>();
+        foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Kind == EliteShots.Kind.Glob) globs.Add(s);
+        bool air = globs.Count == def.shotCount;
+        foreach (var g in globs) air &= g.Airborne && g.MarkShown && !g.Hitbox.GetComponent<Collider2D>().enabled;
+        Check("resin_mortar lobs " + def.shotCount + " globs: in the air, harmless, each landing spot ringed (" + globs.Count + ")", air);
+        globs.Sort((a, b) => a.LobTarget.x.CompareTo(b.LobTarget.x));
+        bool row = globs.Count == def.shotCount;
+        for (int i = 1; row && i < globs.Count; i++)
+            row &= Mathf.Abs(globs[i].LobTarget.x - globs[i - 1].LobTarget.x - def.lobSpacing) < .05f &&
+                   Mathf.Abs(globs[i].LobTarget.y - globs[0].LobTarget.y) < .1f;
+        string rowInfo = "";
+        foreach (var g in globs) rowInfo += g.LobTarget.ToString("0.00") + " ";
+        Check("... onto a row across the lane, lobSpacing apart, ahead of the pilot (" + rowInfo + "centre " + mortar.RowCentre + ")",
+              row && globs[0].LobTarget.y > pilot.position.y + def.lobAhead * .6f &&
+              Mathf.Abs(mortar.RowCentre.x - pilot.position.x) < .6f);
+        Vector2 spot = globs.Count > 0 ? globs[0].LobTarget : Vector2.zero;
+        Step(def.lobSeconds + .1f);
+        bool pooled = globs.Count > 0;
+        foreach (var g in globs) pooled &= g.Pooled && !g.MarkShown && g.Hitbox.GetComponent<Collider2D>().enabled &&
+                                           Mathf.Abs(g.Velocity.y + EliteSystem.Scroll) < 1e-3f;
+        Check("globs land as sticky pools that ride the board, now hazardous", pooled && Mathf.Abs(globs[0].transform.position.x - spot.x) < .05f);
+        Step(.5f);
+        Check("after the barrage the warden crosses to its other station", brain.Side > 0f && e.State == EliteState.Follow);
+        Step(def.poolSeconds - 1.5f);
+        int live = 0;
+        foreach (var g in globs) if (g.Pooled) live++;
+        Check("pools linger for poolSeconds (" + live + " still there)", live == globs.Count);
+        // shooting one out of the way
+        if (globs.Count > 0) globs[0].Hitbox.GetComponent<EliteShotHitbox>().TakeShipAttack(3, 1f, globs[0].transform.position);
+        Check("a player weapon clears a pool", globs.Count > 0 && !globs[0].Active);
+        Step(2f);
+        live = 0;
+        foreach (var g in globs) if (g.Active) live++;
+        Check("... and the rest dry up", live == 0);
+
+        // a pool on the pilot's path costs a heart like any enemy shot
+        Fresh(.05f);
+        e = InPlay("warden", new Vector2(0f, 3f));
+        var glob = EliteSystem.Shots.Fire(e, e.Def, EliteShots.Kind.Glob, e.MuzzleWorld(0), Vector2.zero);
+        glob.Lob(new Vector2(0f, .6f), .2f);
+        Step(.3f);
+        var rig = PlayerRig(glob.transform.position);
+        rig.Touch(glob.Hitbox);
+        Check("a resin pool costs the pilot a heart", glob != null && collisionDetection.lifeCounter == 1);
+        rig.Dispose();
     }
 
     // ---- shots ---------------------------------------------------------------
@@ -733,6 +1006,20 @@ public static class EliteTest
         if (e != null) Rock(e.Position);
         EliteSystem.Step(Dt);
         Check("a lured crash kill pays the same", e == null && EliteShip.LastKillCause == EliteDamage.Crash && RunScore.Total - total == ScoreRules.EliteDown);
+
+        foreach (string brain in new[] { "breaker", "warden" })
+        {
+            Fresh(.05f);
+            e = InPlay(brain, new Vector2(0f, 1f));
+            total = RunScore.Total;
+            dust = score.totalCurrency + score.tutorialCurrency;
+            ShipAttackHits.Hit(e.gameObject, 3);
+            Step(EliteShip.GraceSeconds + .1f);
+            ShipAttackHits.Hit(e.gameObject, 3);
+            Check(Def(brain).displayName + " down pays " + ScoreRules.EliteDown + " points and " + ScoreRules.EliteDownDust + " dust",
+                  e == null && RunScore.Total - total == 50 && ScoreRules.EliteDown == 50 && ScoreRules.EliteDownDust == 15f &&
+                  Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - 15f) < .01f);
+        }
     }
 
     // ---- the director -----------------------------------------------------------
@@ -776,6 +1063,35 @@ public static class EliteTest
         Check("gaps between groups are random in " + EliteDirector.GapSeconds, g0 / 50f > EliteDirector.GapSeconds.x && g0 / 50f < EliteDirector.GapSeconds.y);
     }
 
+    // ---- Frost / Verdant landing sites ------------------------------------------------
+
+    static void WorldSites()
+    {
+        foreach (int w in new[] { 1, 2 })
+        {
+            Fresh(.3f);
+            string world = WorldManager.Worlds[w].displayName;
+            var wb = WorldBackdrop.Create(world);
+            wb.Show(world, false);
+            var sites = new List<LandingSite>();
+            for (int i = 0; i < 600 && LandingSites.Collect(sites) == 0; i++) wb.Step(1f / 15f);
+            bool background = sites.Count > 0;
+            foreach (var st in sites) background &= st.order < 0 && st.scale < .5f && st.Valid && st.Position.y > -CameraFit.ViewTop * .5f;
+            Check(world + ": its backdrop reports elite landing sites on its terrain, at background depth (" + sites.Count + ")", background);
+            Check(world + ": elites allowed there now (after 20 s)", EliteDirector.Blocked(w, 60f) == null && EliteDirector.Blocked(w, 10f) == "too early");
+            var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
+            int made = dir.SpawnGroup(w, 3);
+            bool own = made > 0;
+            foreach (var e in EliteShip.Live) own &= e.Def.WorldIndex == w && e.State == EliteState.Parked;
+            Check(world + ": spawns its own elites, parked on those sites (" + made + ")", own && made == Mathf.Min(3, sites.Count));
+            var pad = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
+            Check(world + ": a parked elite rides its landmark", pad != null && Vector2.Distance(pad.transform.position, pad.Site.Position) < .01f);
+            Object.DestroyImmediate(dir.gameObject);
+            Object.DestroyImmediate(wb.gameObject);
+        }
+        Check("Space still spawns none", EliteDirector.Blocked(0, 60f) == "no elites");
+    }
+
     // ---- frozen, allocations ------------------------------------------------------
 
     static void Frozen()
@@ -810,6 +1126,21 @@ public static class EliteTest
         }
         long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
         Check("zero per-frame allocations stepping three elites (" + allocated + " bytes over 90 frames)", allocated == 0);
+
+        Fresh(.1f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var r = InPlay("breaker", new Vector2(-1f, 1f));
+        var w = InPlay("warden", new Vector2(1f, 2f));
+        r.AttackCooldown = w.AttackCooldown = 0f;
+        Step(4f);   // warm up: rams, shards, lobs, pools
+        before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int i = 0; i < 90; i++)
+        {
+            pilot.position = new Vector3(Mathf.Sin(i * .05f), -2.5f, 0f);
+            EliteSystem.Step(Dt);
+        }
+        allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("zero per-frame allocations stepping the Rimebreaker and Resin Warden (" + allocated + " bytes over 90 frames)", allocated == 0);
     }
 
     // ---- codex -------------------------------------------------------------------

@@ -259,7 +259,7 @@ public static class CodexCatalogue
             string lore = e.lore;
             if (!string.IsNullOrEmpty(e.role)) lore += "\n\nELITE  " + e.role.ToUpperInvariant() + " - " + e.hearts + " HEARTS";
             enemies.Add(new CodexEntry(e.codexId, e.displayName, CodexCategory.Enemies,
-                                       () => EliteArt.Frame(e, 0), lore, new[] { Codex.Normalise(e.key) }));
+                                       () => EliteArt.Frame(e, e.cells.Flight0), lore, new[] { Codex.Normalise(e.key) }));
         }
         enemies.AddRange(hazards);
         return enemies;

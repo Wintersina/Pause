@@ -655,6 +655,37 @@ public abstract class PlanetDirector : BackdropDirector
         return p;
     }
 
+    // Elite landing pads on `pool`'s landmarks still in the upper part of
+    // the view (a parked ship has time to be seen before it lifts off):
+    // each pad is a fraction of the drawing's bounds from its centre (x
+    // right, y up; mirrored with the drawing), `pick` filters by drawing.
+    // Ids are unique per landmark and pad (`idBase` per pool).
+    protected void LandmarkPads(BackdropPool pool, List<LandingSite> into, System.Func<BackdropPiece, Vector2[]> pads,
+                                float scale, int idBase)
+    {
+        for (int i = 0; i < pool.items.Count; i++)
+        {
+            var p = pool.items[i];
+            if (!p.active || p.sr.sprite == null) continue;
+            if (p.y < -HalfH * .15f || p.y > HalfH - p.size * .3f) continue;
+            var list = pads(p);
+            if (list == null) continue;
+            Bounds b = p.sr.sprite.bounds;
+            float flip = p.body.localScale.x < 0f ? -1f : 1f;
+            for (int k = 0; k < list.Length; k++)
+            {
+                into.Add(new LandingSite
+                {
+                    anchor = p.root,
+                    local = new Vector3(flip * (b.center.x + list[k].x * b.size.x), b.center.y + list[k].y * b.size.y, 0f),
+                    scale = scale,
+                    order = p.sr.sortingOrder + 1,
+                    id = idBase + i * 8 + k,
+                });
+            }
+        }
+    }
+
     protected void StepLandmarks(BackdropPool pool, float dt, float v)
     {
         foreach (var p in pool.items)
@@ -676,6 +707,19 @@ public class FrostDirector : PlanetDirector
     Timer auroraTimer = new Timer(9f, 15f, 1.5f);
 
     public FrostDirector() : base(1989) { }
+
+    // Elite landing pads (Rimebreaker): on a valley glacier, the lit ice
+    // apron at its snout and the two lateral ridges either side of the
+    // ice tongue; on an ice massif, the saddle between its left and middle
+    // peaks. Far below the play area: parked ships are drawn small.
+    public static readonly Vector2[] GlacierPads = { new Vector2(0f, -.37f), new Vector2(-.33f, .06f), new Vector2(.32f, 0f) };
+    public static readonly Vector2[] MassifPads = { new Vector2(-.1f, -.14f) };
+    public const float ParkedScale = .36f;
+
+    public override void LandingSites(List<LandingSite> into)
+    {
+        LandmarkPads(glaciers, into, p => p.frames != null ? GlacierPads : MassifPads, ParkedScale, 0);
+    }
 
     protected override void Build()
     {
@@ -767,6 +811,19 @@ public class VerdantDirector : PlanetDirector
     Timer ruinTimer = new Timer(7f, 12f, 3f);
 
     public VerdantDirector() : base(1990) { }
+
+    // Elite landing pads (Resin Warden): on a stepped ruin, its summit
+    // platform and the two lower terrace ledges; on the waterfall plateau,
+    // the open canopy right of the falls. Obelisks are too thin to land on.
+    public static readonly Vector2[] RuinPads = { new Vector2(0f, .33f), new Vector2(-.27f, -.1f), new Vector2(.28f, -.1f) };
+    public static readonly Vector2[] CanopyPads = { new Vector2(.25f, .3f) };
+    public const float ParkedScale = .32f;
+
+    public override void LandingSites(List<LandingSite> into)
+    {
+        LandmarkPads(ruins, into, p => p.frames != null ? RuinPads : null, ParkedScale, 0);
+        LandmarkPads(waterfalls, into, p => CanopyPads, ParkedScale, 100);
+    }
 
     protected override void Build()
     {

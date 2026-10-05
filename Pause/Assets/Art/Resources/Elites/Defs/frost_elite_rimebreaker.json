@@ -1,0 +1,82 @@
+{
+  "key": "frost_elite_rimebreaker",
+  "displayName": "Rimebreaker",
+  "world": "frost",
+  "role": "icebreaker ram",
+  "codexId": "elite_frost_rimebreaker",
+  "lore": "A compact icebreaker in rime-steel plate that clears shipping lanes by ramming them. It sweeps back and forth ahead of you, squats when it is over your lane, then ploughs straight down it, breaking rocks without a scratch. Its frost shards glance off the rails, so watch both walls.",
+  "brain": "breaker",
+  "attack": "ice_ram",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "hullRadius": 0.25,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 4,
+  "speed": 2.8,
+  "accel": 6,
+  "turnRate": 220,
+  "followDistance": 2.6,
+  "laneOffset": 1.2,
+  "aggression": 0.55,
+  "tellSeconds": 0.65,
+  "attackGap": 3.2,
+  "avoidance": 0.75,
+  "lookAhead": 0.45,
+  "perception": 2.2,
+  "actionSeconds": 0.75,
+  "dashSpeed": 7.5,
+  "shotCount": 2,
+  "shotSpeed": 4.5,
+  "shotSpread": 50,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "shotBounces": 1,
+  "heartColor": "#5CE8FF",
+  "shotColor": "#4FE6FF",
+  "shotCore": "#F2FCFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "prow",
+      "x": 98,
+      "y": 43,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 85,
+      "y": 129,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 109,
+      "y": 130,
+      "dir": -1.0
+    }
+  ]
+}

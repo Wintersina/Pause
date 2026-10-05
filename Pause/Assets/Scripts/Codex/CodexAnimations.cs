@@ -136,19 +136,29 @@ public static class CodexAnimations
     {
         if (def == null) return null;
         var frames = EliteArt.Frames(def);
-        if (frames == null || frames.Length < EliteArt.FrameCount) return null;
-        var steps = new Sprite[EliteArt.IdleFrames];
-        var holds = new float[EliteArt.IdleFrames];
+        var cells = def.cells;
+        if (frames == null || frames.Length < cells.Count) return null;
+        // the def's cell map: the flight loop (or a weave through its banks)
+        var loop = cells.CodexLoop;
+        var steps = new Sprite[loop.Length];
+        var holds = new float[loop.Length];
         for (int i = 0; i < steps.Length; i++)
         {
-            steps[i] = frames[i];
-            holds[i] = EliteArt.IdleTicks[i] * EliteArt.Tick;
+            steps[i] = frames[loop[i]];
+            holds[i] = cells.CodexHold(i) * EliteArt.Tick;
         }
         var a = CodexAnimation.Loop(CodexAnimKind.Enemy, steps, holds);
         if (a == null) return null;
-        // the tell then the action, as it attacks
-        a.AddTell(new[] { frames[EliteArt.Tell], frames[EliteArt.Action] },
-                  new[] { def.tellSeconds, Mathf.Max(.2f, def.actionSeconds) });
+        // the tell then the action, as it attacks (no such cells: its launch)
+        var beat = cells.CodexTell;
+        var tellSteps = new Sprite[beat.Length];
+        var tellHolds = new float[beat.Length];
+        for (int i = 0; i < beat.Length; i++)
+        {
+            tellSteps[i] = frames[beat[i]];
+            tellHolds[i] = cells.tell >= 0 ? (i == 0 ? def.tellSeconds : Mathf.Max(.2f, def.actionSeconds)) : (i == beat.Length - 1 ? .5f : .25f);
+        }
+        a.AddTell(tellSteps, tellHolds);
         a.tellGap = new Vector2(2.5f, 4.5f);
         return a.Finish();
     }

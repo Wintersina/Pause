@@ -11,7 +11,7 @@ using UnityEngine;
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod ElitePreview.Run
 //   (frames to $ELITE_PREVIEW_DIR/elite-<key>/NNN.png, else Builds/ElitePreview;
-//    ELITE_PREVIEW_ONLY=<key> renders just one)
+//    ELITE_PREVIEW_ONLY=<key>[,<key>...] renders just those)
 //
 // then .claude/skills/add-elite-ship/scripts/make_preview_gif.py <dir> turns
 // every frame folder into elite-<key>.gif + elite-<key>-sheet.png.
@@ -32,7 +32,7 @@ public static class ElitePreview
             EliteCatalog.Reload();
             foreach (var def in EliteCatalog.All)
             {
-                if (!string.IsNullOrEmpty(only) && def.key != only) continue;
+                if (!string.IsNullOrEmpty(only) && System.Array.IndexOf(only.Split(','), def.key) < 0) continue;
                 try { Clip(dir, def); }
                 catch (System.Exception e) { Debug.LogError("[ElitePreview] " + def.key + ": " + e); }
             }
@@ -126,7 +126,7 @@ public static class ElitePreview
         int frame = 0;
         float dt = 1f / Fps;
 
-        // let the backdrop bring a volcano into the landing band
+        // let the backdrop bring a landmark (volcano, glacier, ruin) into the landing band
         var sites = new List<LandingSite>();
         for (int i = 0; i < 400 && LandingSites.Collect(sites) == 0; i++) WorldBackdrop.Instance.Step(dt);
         LandingSite site;
