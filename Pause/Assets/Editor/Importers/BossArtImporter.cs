@@ -23,6 +23,8 @@ public class BossArtImporter : AssetPostprocessor
         importer.isReadable = false;
         // Space now carries three additional painted rows (1920 x 2688).
         // Never downscale it: runtime slicing is in fixed 384px cells.
+        // The body atlases are 5 x 8 cells of 384 px (1920 x 3072): a 2048 cap
+        // shrank them to 1280 x 2048 on import, 256 px a cell.
         importer.maxTextureSize = 4096;
         importer.textureCompression = TextureImporterCompression.CompressedHQ;
     }
