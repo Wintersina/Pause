@@ -27,6 +27,9 @@ public static class BackdropCatalog
     // Depth limits WorldBackdropTest holds the planet worlds to.
     public const float MaxGroundRate = 0.05f;        // ground & landmarks: far parallax only
     public const float MaxLandmarkSize = 1.8f;       // world units on screen (~30% of the view width)
+    // Space: planets are the most distant bodies there are, so even the
+    // nearest planet tier stays this slow -- a fraction of any station's rate.
+    public const float MaxPlanetRate = 0.02f;
 
     public struct Layer
     {
@@ -91,17 +94,25 @@ public static class BackdropCatalog
 
     static readonly Spec[] specs =
     {
-        // Space has no ground: everything is sky at its own depth. deep..near
-        // are the depth tiers its bodies (planets, stations, moons) are dealt
-        // into -- see SpaceDirector.Tiers; comets pass behind all of them.
+        // Space has no ground: everything is sky at its own depth. A body's
+        // parallax comes from how far away it is, never from how big it is
+        // drawn: a planet that fills a third of the view is a giant thing a
+        // very long way off, so every planet tier (planet_deep..planet_near)
+        // creeps by just in front of the stars, far slower than the small
+        // stations and rocks (deep..near) that really are close to the ship.
+        // See SpaceDirector.Tiers; comets pass behind all of them.
         new Spec { world = "Space", layers = new[] {
             // Codex's sky.png doesn't wrap cleanly on its own: its last 10% is
             // cross-faded into its first rows at render time (BackdropSkyWrap).
-            Layer.Tile("sky", 0.010f, W, Role.Sky).WrapBlended(SkyWrapBlend),
-            Layer.Pieces("wisps", 0.016f, Role.Sky),
-            Layer.Pieces("galaxies", 0.022f, Role.Sky),
-            Layer.Pieces("stars", 0.030f, Role.Sky),
-            Layer.Pieces("comets", 0.040f, Role.Sky),
+            Layer.Tile("sky", 0.006f, W, Role.Sky).WrapBlended(SkyWrapBlend),
+            Layer.Pieces("wisps", 0.007f, Role.Sky),
+            Layer.Pieces("galaxies", 0.008f, Role.Sky),
+            Layer.Pieces("stars", 0.009f, Role.Sky),
+            Layer.Pieces("comets", 0.010f, Role.Sky),
+            Layer.Pieces("planet_deep", 0.0110f, Role.Sky),
+            Layer.Pieces("planet_far", 0.0125f, Role.Sky),
+            Layer.Pieces("planet_mid", 0.0140f, Role.Sky),
+            Layer.Pieces("planet_near", 0.0160f, Role.Sky),
             Layer.Pieces("deep", 0.050f, Role.Sky),
             Layer.Pieces("far", 0.064f, Role.Sky),
             Layer.Pieces("mid", 0.082f, Role.Sky),

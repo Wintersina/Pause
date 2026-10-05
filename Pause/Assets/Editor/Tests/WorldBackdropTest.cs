@@ -83,8 +83,10 @@ public static class WorldBackdropTest
         {
             var spec = BackdropCatalog.For(theme.displayName);
             Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
-            Check(theme.displayName + " has 4-10 depth layers (" + spec.layers.Length + ")",
-                  spec.layers.Length >= 4 && spec.layers.Length <= 10);
+            // Space carries two runs of body tiers (planets, structures).
+            int maxLayers = spec.world == "Space" ? 14 : 10;
+            Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
+                  spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 
             bool increasing = true;
             for (int i = 1; i < spec.layers.Length; i++)
@@ -709,14 +711,36 @@ public static class WorldBackdropTest
             var a = tiers[i - 1];
             var b = tiers[i];
             if (!(a.scale < b.scale && a.light < b.light && a.clarity <= b.clarity &&
-                  spec.Rate(a.layer) < spec.Rate(b.layer) && spec.Order(a.layer) < spec.Order(b.layer))) mono = false;
+                  spec.Rate(a.layer) < spec.Rate(b.layer) && spec.Order(a.layer) < spec.Order(b.layer) &&
+                  spec.Rate(a.planetLayer) < spec.Rate(b.planetLayer) &&
+                  spec.Order(a.planetLayer) < spec.Order(b.planetLayer))) mono = false;
         }
         Check("Space depth tiers grow, speed up and brighten strictly far -> near", mono);
+
+        // Parallax follows distance, not drawn size: the biggest planet is
+        // still far slower than (and sorted behind) the farthest station or
+        // rock, and no faster than a crawl next to the gameplay scroll.
+        var nearest = tiers[tiers.Length - 1];
+        float planetMax = spec.Rate(nearest.planetLayer), structureMin = spec.Rate(tiers[0].layer);
+        Check("Space planets parallax slower than every station / rock (largest planet " + planetMax +
+              " <= " + BackdropCatalog.MaxPlanetRate + ", < a third of the farthest structure's " + structureMin + ")",
+              planetMax <= BackdropCatalog.MaxPlanetRate && planetMax * 3f < structureMin &&
+              spec.Order(nearest.planetLayer) < spec.Order(tiers[0].layer));
+        Check("Space planets sit in front of the sky, stars and comets",
+              spec.Rate(tiers[0].planetLayer) > spec.Rate("comets") && spec.Rate("comets") > spec.Rate("stars") &&
+              spec.Rate("stars") > spec.Rate("sky"));
+        // The biggest planet tier, on a 12.4 u tall view, at a mid-run HUD
+        // speed of 30: how long from its top edge entering to it being gone.
+        float bigPlanet = 2.6f * 1.25f;
+        float seconds = (12.4f + bigPlanet) / (planetMax * WorldBackdrop.ScrollVelocity(0.30f));
+        Check("Space's largest planet stays in view a long time (" + seconds.ToString("F0") + " s at speed 30 >= 45 s)",
+              seconds >= 45f);
         float farShare = (tiers[0].weight + tiers[1].weight) / (float)total;
         float nearShare = tiers[tiers.Length - 1].weight / (float)total;
         Check("Space planets are mostly far away (two farthest tiers " + farShare.ToString("F2") +
               " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.08)", farShare >= 0.7f && nearShare <= 0.08f);
-        Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].layer));
+        Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].planetLayer) &&
+              spec.Order("comets") < spec.Order(tiers[0].layer));
         float nearRate = spec.Rate(tiers[tiers.Length - 1].layer);
         Check("Space bodies stay far behind the ship's own depth (nearest tier rate " + nearRate + " <= 0.15)",
               nearRate <= 0.15f);
@@ -729,7 +753,8 @@ public static class WorldBackdropTest
     const int SpaceKinds = 4;
     static float[,] sizeMin, sizeMax, valueMin, valueMax;
     static int[] planetsPerTier;
-    static int spriteSwaps, overlaps, tierMismatches, bodiesSeen, maxGroupsInView;
+    static int spriteSwaps, overlaps, crossings, depthErrors, tierMismatches, bodiesSeen, maxGroupsInView;
+    static float planetRateMax, structureRateMin;
 
     static void SpaceWatchReset()
     {
@@ -744,7 +769,9 @@ public static class WorldBackdropTest
                 sizeMax[k, i] = valueMax[k, i] = -1f;
             }
         planetsPerTier = new int[t];
-        spriteSwaps = overlaps = tierMismatches = bodiesSeen = maxGroupsInView = 0;
+        spriteSwaps = overlaps = crossings = depthErrors = tierMismatches = bodiesSeen = maxGroupsInView = 0;
+        planetRateMax = 0f;
+        structureRateMin = float.MaxValue;
     }
 
     static void SpaceWatch(SpaceDirector d, BackdropSet set, bool checkOverlap)
@@ -769,7 +796,9 @@ public static class WorldBackdropTest
             }
         if (!checkOverlap) return;
 
-        // No two bodies overlap, unless one is the other's own moon / station.
+        // No two bodies of one depth class overlap, unless one is the other's
+        // own moon / station. A structure crossing a planet is fine -- it is
+        // far nearer -- provided it draws in front and moves faster.
         spaceActive.Clear();
         foreach (var pool in d.Bodies)
             foreach (var p in pool.items) if (p.active) spaceActive.Add(p);
@@ -784,7 +813,13 @@ public static class WorldBackdropTest
                 var b = spaceActive[j];
                 if (SpaceDirector.Group(a) == SpaceDirector.Group(b)) continue;
                 Bounds bb = b.sr.bounds;
-                if (ba.min.x < bb.max.x && bb.min.x < ba.max.x && ba.min.y < bb.max.y && bb.min.y < ba.max.y) overlaps++;
+                if (!(ba.min.x < bb.max.x && bb.min.x < ba.max.x && ba.min.y < bb.max.y && bb.min.y < ba.max.y)) continue;
+                bool pa = SpaceDirector.InPlanetClass(a), pb = SpaceDirector.InPlanetClass(b);
+                if (pa == pb) { overlaps++; continue; }
+                var planet = pa ? a : b;
+                var structure = pa ? b : a;
+                crossings++;
+                if (!(structure.sr.sortingOrder > planet.sr.sortingOrder && structure.rate > planet.rate)) depthErrors++;
             }
         }
         maxGroupsInView = Mathf.Max(maxGroupsInView, groups);
@@ -800,9 +835,14 @@ public static class WorldBackdropTest
         float v = Value(p.color);
         valueMin[p.kind, p.tier] = Mathf.Min(valueMin[p.kind, p.tier], v);
         valueMax[p.kind, p.tier] = Mathf.Max(valueMax[p.kind, p.tier], v);
-        // Rate and sorting come from the tier; a companion shares its planet's.
-        if (!Mathf.Approximately(p.rate, spec.Rate(tier.layer))) tierMismatches++;
-        if (Mathf.Abs(p.sr.sortingOrder - spec.Order(tier.layer)) > 4) tierMismatches++;
+        // Rate and sorting come from the tier's layer for the body's depth
+        // class; a companion shares its planet's.
+        bool planetClass = SpaceDirector.InPlanetClass(p);
+        string layer = SpaceDirector.LayerOf(p.tier, planetClass);
+        if (planetClass) planetRateMax = Mathf.Max(planetRateMax, p.rate);
+        else structureRateMin = Mathf.Min(structureRateMin, p.rate);
+        if (!Mathf.Approximately(p.rate, spec.Rate(layer))) tierMismatches++;
+        if (Mathf.Abs(p.sr.sortingOrder - spec.Order(layer)) > 4) tierMismatches++;
         if (p.parent != null && (p.parent.tier != p.tier || p.parent.rate != p.rate || p.size >= p.parent.size))
             tierMismatches++;
     }
@@ -811,8 +851,13 @@ public static class WorldBackdropTest
     {
         int tiers = SpaceDirector.Tiers.Length;
         Check("Space set pieces keep the sprite they spawned with (" + spriteSwaps + " swaps)", spriteSwaps == 0);
-        Check("Space bodies never overlap over a 20-minute run (" + overlaps + " overlapping samples, at most " +
-              maxGroupsInView + " in view at once)", overlaps == 0 && maxGroupsInView <= 4);
+        Check("Space bodies of one depth class never overlap over a 20-minute run (" + overlaps +
+              " overlapping samples, at most " + maxGroupsInView + " in view at once)",
+              overlaps == 0 && maxGroupsInView <= 5);
+        Check("Space structures crossing a planet draw in front of it and move faster (" + crossings +
+              " crossing samples, " + depthErrors + " wrong)", depthErrors == 0);
+        Check("Space planets in the run all parallax slower than every station / rock (fastest planet " +
+              planetRateMax + " < slowest structure " + structureRateMin + ")", planetRateMax < structureRateMin);
         Check("Space bodies take rate and sorting from their depth tier (" + tierMismatches + " mismatches in " +
               bodiesSeen + " bodies)", tierMismatches == 0 && bodiesSeen >= 40);
 
