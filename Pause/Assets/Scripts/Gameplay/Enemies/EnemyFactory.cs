@@ -12,6 +12,11 @@ using UnityEngine;
 //   Chaser   tag Enimey, ChaserEnemy (no scroller -- it steers itself)
 //   others   tag Enimey, moveItemEnmInStrightLine, kinematic body
 //
+// On top of its mover every enemy but the chaser carries an EnemyBrain
+// running its EnemyBehaviours record (its own pattern and attack; with one,
+// a rock or alien's moveEnimes only scrolls -- the brain moves it sideways);
+// the chaser's ChaserEnemy takes its style and numbers from the same record.
+//
 // Every enemy carries a SpawnFootprint (its reserved space, see SpawnSpace)
 // bound to its mover. Every enemy is a ClearTarget (the movers register themselves in Awake;
 // Create also registers explicitly so edit-mode builds count too).
