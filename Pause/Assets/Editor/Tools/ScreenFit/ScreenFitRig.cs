@@ -89,6 +89,7 @@ public sealed class ScreenFitRig : IDisposable
             main.aspect = device.Aspect;
             if (main.orthographic)
                 main.orthographicSize = CameraFit.ComputeSize(main.orthographicSize, minHalfWidth, device.w, device.h);
+            CameraFit.CoverBackdrops(main);   // what CameraFit.Apply does next on a device
         }
         var go = new GameObject("~ScreenFitUiCamera");
         ui = go.AddComponent<Camera>();
