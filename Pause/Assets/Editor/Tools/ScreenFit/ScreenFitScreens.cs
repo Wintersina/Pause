@@ -799,8 +799,8 @@ public static class ScreenFitScreens
 
     // An open portal kept waiting past its grace (PortalPressure): the portal
     // at its station, the ENTER THE PORTAL banner, PORTAL DANGER's chip at a
-    // two-digit Level and the glows down the lane's edges (PortalPressureHud).
-    // The HUD reads Screen.* itself (as
+    // two-digit Level and the glows down the lane's edges (PortalPressureHud),
+    // with a codex toast up as well. The HUD reads Screen.* itself (as
     // BossWarningHud does), so its pure placement is applied for the device.
     static void PortalPressureShot(ScreenFitRig rig, HudStyler styler, int world)
     {
@@ -848,6 +848,27 @@ public static class ScreenFitScreens
                 rig.Fail("BAND", "portal " + glow.name, "not inside the rails: " + g + " band " + band.left.ToString("F0") + ".." + band.right.ToString("F0"), g);
             if (g.yMin > 1f || g.yMax < rig.H - 1f)
                 rig.Fail("BAND", "portal " + glow.name, "does not run the screen's height: " + g, g);
+        }
+
+        // NEW CODEX ENTRY while the chip is up: dropped in under it
+        var toast = CodexToast.Build();
+        rig.Sync();
+        var entry = LongestCodexEntry();
+        if (entry != null)
+        {
+            toast.Enqueue(entry);
+            toast.ApplyAt(.6f);
+            Canvas.ForceUpdateCanvases();
+            var box = toast.transform.Find("Toast") as RectTransform;
+            if (box != null)
+            {
+                Rect r = rig.PixelRect(box);
+                rig.AddImportant("codex toast (portal chip up)", r);
+                ClearOfBand(rig, styler, "codex toast (portal chip up)", r, false, false);
+                if (r.Overlaps(chip) && Rect.MinMaxRect(Mathf.Max(r.xMin, chip.xMin), Mathf.Max(r.yMin, chip.yMin),
+                                                        Mathf.Min(r.xMax, chip.xMax), Mathf.Min(r.yMax, chip.yMax)).height > 1f)
+                    rig.Fail("OVERLAP", "codex toast (portal chip up)", "covers the PORTAL DANGER chip", r);
+            }
         }
     }
 

@@ -151,16 +151,19 @@ public class CodexToast : MonoBehaviour
         float slide = (1f - CodexUi.EaseOutCubic(t / InDuration)) * 24f;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
         bool warn = warning != null;
+        var portal = PortalPressureHud.Instance;
         box.anchoredPosition = new Vector2(0f, -TopOffset(safeTop, ScreenInfo.Height, sf,
             warn && warning.BannerVisible ? warning.CurrentLayout.banner : default(Rect),
-            warn && warning.ChipVisible ? warning.CurrentLayout.chip : default(Rect)) + slide);
+            warn && warning.ChipVisible ? warning.CurrentLayout.chip : default(Rect),
+            portal != null && portal.Showing ? portal.ChipRect : default(Rect)) + slide);
     }
 
     // BOSS INCOMING (BossWarningHud) hangs its banner centred under the top
     // band for the warning's first ~2.6 s, and its countdown chip under the
     // quick actions for the rest of it -- where this toast sits on most
     // phones. While either is up, the toast drops in under it instead of
-    // over it.
+    // over it. The same goes for PORTAL DANGER's chip (PortalPressureHud),
+    // centred under the band while an open portal is kept waiting.
     public const float WarningGap = 12f;
     BossWarningHud warning;
 
@@ -169,9 +172,15 @@ public class CodexToast : MonoBehaviour
     // rects; an empty rect = not showing).
     public static float TopOffset(float safeTopUnits, float screenH, float sf, Rect banner, Rect chip)
     {
+        return TopOffset(safeTopUnits, screenH, sf, banner, chip, default(Rect));
+    }
+
+    public static float TopOffset(float safeTopUnits, float screenH, float sf, Rect banner, Rect chip, Rect portalChip)
+    {
         float top = safeTopUnits + TopMargin;
         if (banner.height > 0f) top = Mathf.Max(top, (screenH - banner.yMin) / sf + WarningGap);
         if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
+        if (portalChip.height > 0f) top = Mathf.Max(top, (screenH - portalChip.yMin) / sf + WarningGap);
         return top;
     }
 
