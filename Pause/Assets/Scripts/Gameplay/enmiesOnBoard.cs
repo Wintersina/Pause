@@ -96,13 +96,18 @@ public class enmiesOnBoard : MonoBehaviour {
     private int astroidSelector; // level of the game
     private SpawnPhase phase;
 
-    // A mine must be attached to a real rail, never to a magic screen x.
-    // These are the transforms returned by Instantiate(), so a mine follows
-    // the precise lane the rail was given for the current world.
+    // Rail mines attach to these moving lane transforms so the visible wall,
+    // mine art and scrolling behavior remain one coherent hazard.
     readonly System.Collections.Generic.List<Transform> liveRails =
         new System.Collections.Generic.List<Transform>();
     readonly System.Collections.Generic.List<Transform> liveMines =
         new System.Collections.Generic.List<Transform>();
+
+    // A new world begins with a short, scenic fly-in. A ship that already
+    // launches at SPEED 10+ skips that beat and reaches the encounter pace.
+    public const int FastArrivalHudSpeed = 10;
+    public const float CalmArrivalSeconds = 8f;
+    bool openingEncounterPrimed;
 
     void Start () {
 
@@ -129,6 +134,9 @@ public class enmiesOnBoard : MonoBehaviour {
         extraEnemyDelayTimer = 24f;
         mineDelayTimer = 10f;
         chaserDelayTimer = 20f;
+
+        if (ShipStartSpeed.EquippedHud() >= FastArrivalHudSpeed)
+            PrimeOpeningEncounter();
     }
 
     // Escalating mix: each phase adds a type rather than just reskinning.
@@ -163,9 +171,8 @@ public class enmiesOnBoard : MonoBehaviour {
         {
             new SpawnPhase {
                 name = "Warm-up", activeAfterSeconds = 0f,
-                // A rail mine is introduced early and then keeps returning;
-                // players should see this rail hazard before the board gets
-                // crowded with later asteroid phases.
+                // The first threat arrives after the quiet fly-in (unless a
+                // fast ship starts the run at encounter pace).
                 rails = true, mines = true, bigEnemy = true, smallEnemy = true,
                 railInterval = new Vector2(0.6f, 0.9f),
                 mineInterval = new Vector2(7f, 10f),
@@ -227,7 +234,12 @@ public class enmiesOnBoard : MonoBehaviour {
         SelectPhase();
 
         // A boss encounter clears the board and suspends normal spawning.
-        if (flying && !BossEncounter.SuspendsSpawning) spawn();
+        if (flying && !BossEncounter.SuspendsSpawning)
+        {
+            if (!openingEncounterPrimed && elapsedFlightSeconds >= CalmArrivalSeconds)
+                PrimeOpeningEncounter();
+            if (openingEncounterPrimed) spawn();
+        }
     }
 
     // The clock the phases run on. In gameS1 it is the world's level clock
@@ -491,25 +503,18 @@ public class enmiesOnBoard : MonoBehaviour {
         return true;
     }
 
-    // right: only rails on the positive-x side are considered a match, so a
-    // mine can never end up mounted to the opposite lane from the one it was
-    // meant for.
     Transform NearestLiveRail(bool right)
     {
         for (int i = liveRails.Count - 1; i >= 0; i--)
             if (liveRails[i] == null) liveRails.RemoveAt(i);
         if (liveRails.Count == 0) return null;
 
-        // Prefer the rail closest in vertical travel to this spawn point,
-        // among those on the requested side. Its x is nevertheless taken
-        // directly from that rail's transform.
         Transform best = null;
         float bestDistance = float.MaxValue;
         for (int i = 0; i < liveRails.Count; i++)
         {
             bool railIsRight = liveRails[i].position.x > 0f;
             if (railIsRight != right) continue;
-
             float distance = Mathf.Abs(liveRails[i].position.y - transform.position.y);
             if (distance < bestDistance)
             {
@@ -523,9 +528,6 @@ public class enmiesOnBoard : MonoBehaviour {
     Transform SpawnRail(bool right)
     {
         Vector3 pos = new Vector3(WorldRailX(!right), transform.position.y, 0f);
-        // Invisible lane marker: the visible rail is the themed side wall.
-        // This replaces the retired rail1/rail2/rail3 obstacle art while
-        // preserving a moving transform for mine attachment.
         GameObject spawned = new GameObject("RailMineLane");
         spawned.transform.position = pos;
         spawned.AddComponent<RailLaneScroller>();
@@ -533,24 +535,10 @@ public class enmiesOnBoard : MonoBehaviour {
         return spawned.transform;
     }
 
-    // The side-wall meshes are the rails in every world. Their inner edges
-    // move correctly with the authored geometry, regardless of texture/theme.
-    // This calculation is deliberately based on those live meshes rather than
-    // a hard-coded portrait-screen coordinate.
     static float WorldRailX(bool left)
     {
         GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
-        float wallX = 0f;
-        if (wall != null)
-        {
-            wallX = wall.transform.position.x;
-        }
-        else wallX = left ? -3.21f : 3.21f;
-
-        // The decorative pipe's transform is outside the portrait camera
-        // (about +/-3.21). Its old centerline therefore spawned both the rail
-        // and its mine beyond the visible board. Put rail hardware just
-        // inside the pipe, constrained to the camera's actual visible edge.
+        float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         var cam = Camera.main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : 2.35f;
@@ -613,6 +601,14 @@ public class enmiesOnBoard : MonoBehaviour {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud));
+    }
+
+    void PrimeOpeningEncounter()
+    {
+        openingEncounterPrimed = true;
+        // One readable enemy arrives before the ordinary cadence takes over.
+        bigEnmDelayTimer = Mathf.Min(bigEnmDelayTimer, .75f);
+        smEnmDelayTimer = Mathf.Min(smEnmDelayTimer, 1.5f);
     }
 
     void spawn() { spawn(Time.deltaTime); }
@@ -773,10 +769,8 @@ public class enmiesOnBoard : MonoBehaviour {
         SpawnRail(Random.Range(1, 10) % 2 == 0);
     }
 
-    // Mines are rail hardware -- they belong in a rail lane, not at an
-    // arbitrary x. A side is picked first and the rail search is filtered to
-    // that side, so a mine never hangs on the opposite lane's rail; a rail
-    // is created if that side has none on screen yet.
+    // Rail mines remain hardware clamped to a moving side rail. A future
+    // free-standing turret will occupy the independent stationary-hazard role.
     void spawnMine()
     {
         Spawn(SlotKind.Mine);
@@ -784,11 +778,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
     bool TrySpawnMine()
     {
-        // The legacy blue mine prefab has been retired. Rail mines are now
-        // built from the current world's EnemyRoster mine, so their
-        // visual always matches the rail and planet they are mounted on.
-        // (Without the mine art -- the neon atlas, RailMineArt -- no mine
-        // spawns; RailMineArtTest guards it.)
+        // The current world's themed rail mine keeps its original mounted
+        // movement and arming animation.
         var def = mine == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine) : null;
         if (mine == null && (def == null || EnemyArt.Frames(def) == null)) return true;
 
@@ -797,9 +788,6 @@ public class enmiesOnBoard : MonoBehaviour {
         if (rail == null) rail = SpawnRail(right);
         if (rail == null) return true;
 
-        // The x is the rail's; the mine may sit a little further up it (still
-        // off screen) to clear whatever is already there -- other mines, a
-        // heavy beside the rail lane, a rock weaving out to the wall.
         Vector2 half = def != null ? SpawnSpace.BodyHalf(def) : SpawnSpace.BodyHalf(mine);
         float x = rail.position.x;
         int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
@@ -812,15 +800,12 @@ public class enmiesOnBoard : MonoBehaviour {
                 var c = new SpawnCandidate(new Vector2(x, y), half, brainCandidate.behaviour != null ? brainCandidate : null);
                 if (!SpawnSpace.Fits(c)) continue;
                 if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
-                // a mine never closes the last gap in its row
                 if (def != null && !SpawnLane.Fits(def, x, y)) continue;
 
                 GameObject built;
                 if (def != null)
                 {
                     built = EnemyFactory.Create(def, new Vector3(x, y, 0f), Quaternion.identity);
-                    // The clamp is drawn on the left (toward a left-hand wall); a
-                    // right-hand rail mirrors it so it always grips its own wall.
                     built.GetComponent<SpriteRenderer>().flipX = x > 0f;
                 }
                 else

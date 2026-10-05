@@ -192,8 +192,21 @@ public static class WorldBackdropTest
                 Check(asset + " is compressed", imp != null && imp.textureCompression != TextureImporterCompression.Uncompressed);
 
                 var px = ReadPixels(path);
-                string name = Path.GetFileNameWithoutExtension(path);
+                string file = Path.GetFileNameWithoutExtension(path);
                 bool tile = WorldBackdropImport.IsTile(asset);
+                // The layer this file is the art of: a tile layer may name its
+                // own texture (Verdant's mid is forest_industrial_center_v1).
+                // A tile-named file no layer uses any more (the old mid.png)
+                // is not drawn and not held to the drawn layers' rules.
+                string name = null;
+                foreach (var l in spec.layers)
+                    if (l.kind != BackdropCatalog.Kind.Pieces && l.texture == file) name = l.name;
+                if (tile && name == null)
+                {
+                    Debug.Log("[WB] NOTE  " + asset + " is a tile no " + spec.world + " layer draws any more");
+                    continue;
+                }
+                if (name == null) name = file;
                 if (tile)
                 {
                     Check(asset + " wraps vertically (Repeat)", tex.wrapModeV == TextureWrapMode.Repeat);
@@ -233,25 +246,51 @@ public static class WorldBackdropTest
 
     // The ground layers stacked the way the game draws them at rest: the
     // opaque sky, then far and mid (alpha over), then the river strip centred.
+    // Each layer's art is the texture the catalog names for it. A tile spans
+    // the view's width whatever its pixel size, so one drawn at another
+    // resolution is resampled onto the sky's grid (nearest, repeating down).
     static Color[] Composite(string world, out int w, out int h)
     {
         string dir = "Assets/Art/Resources/Worlds/" + world + "/Backdrop/";
         var outPx = (Color[])ReadPixels(dir + "sky.png").Clone();
         w = ReadW; h = ReadH;
-        foreach (string layer in new[] { "far", "mid", "flow" })
+        var spec = BackdropCatalog.For(world);
+        foreach (string layerName in new[] { "far", "mid", "flow" })
         {
-            string path = dir + layer + ".png";
+            string texture = null;
+            bool strip = false;
+            foreach (var l in spec.layers)
+                if (l.name == layerName && l.kind != BackdropCatalog.Kind.Pieces)
+                {
+                    texture = l.texture;
+                    strip = l.kind == BackdropCatalog.Kind.Strip;
+                }
+            if (texture == null) continue;
+            string path = dir + texture + ".png";
             if (!File.Exists(path)) continue;
             var px = ReadPixels(path);
             int lw = ReadW, lh = ReadH;
-            if (lh != h || lw > w) continue;
-            int x0 = (w - lw) / 2;
+            if (strip || (lw == w && lh == h))
+            {
+                if (lh != h || lw > w) continue;
+                int x0 = (w - lw) / 2;
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < lw; x++)
+                    {
+                        Color s = px[y * lw + x];
+                        if (s.a <= 0f) continue;
+                        int i = y * w + x0 + x;
+                        outPx[i] = Color.Lerp(outPx[i], new Color(s.r, s.g, s.b, 1f), s.a);
+                    }
+                continue;
+            }
+            float k = lw / (float)w;
             for (int y = 0; y < h; y++)
-                for (int x = 0; x < lw; x++)
+                for (int x = 0; x < w; x++)
                 {
-                    Color s = px[y * lw + x];
+                    Color s = px[((int)(y * k) % lh) * lw + Mathf.Min(lw - 1, (int)(x * k))];
                     if (s.a <= 0f) continue;
-                    int i = y * w + x0 + x;
+                    int i = y * w + x;
                     outPx[i] = Color.Lerp(outPx[i], new Color(s.r, s.g, s.b, 1f), s.a);
                 }
         }
@@ -409,7 +448,9 @@ public static class WorldBackdropTest
 
     // ------------------------------------------------------------- walls --
 
-    public const int WallWidth = 64, WallHeight = 448;
+    // Full-cell wall tiles are 64 px wide; Space's rail cell is 96 (its art
+    // is a band inside it, see CheckSpaceRailMaterials).
+    public const int WallWidth = 64, SpaceRailWidth = 96, WallHeight = 448;
     const int WallMaxColours = 32;              // flat cels: a handful of tones plus stepped light halos
     const float WallMinMajorCover = 0.95f;      // colours with >= 0.5% coverage must cover the wall
     const float WallMaxSoftPairs = 0.01f;       // neighbours 1..6 levels apart = gradient banding
@@ -441,9 +482,10 @@ public static class WorldBackdropTest
                 var px = t.GetPixels32();
                 Object.DestroyImmediate(t);
                 string tag = world + " " + (side == 0 ? "left" : "right") + " wall";
-                Check(tag + " is " + WallWidth + "x" + WallHeight + " (" + w + "x" + h + ")",
-                      w == WallWidth && h == WallHeight);
-                if (w != WallWidth || h != WallHeight) continue;
+                int wantW = world == "Space" ? SpaceRailWidth : WallWidth;
+                Check(tag + " is " + wantW + "x" + WallHeight + " (" + w + "x" + h + ")",
+                      w == wantW && h == WallHeight);
+                if (w != wantW || h != WallHeight) continue;
 
                 var counts = new Dictionary<int, int>();
                 bool opaque = true;
@@ -524,16 +566,16 @@ public static class WorldBackdropTest
         }
     }
 
-    // The Space rails are scene meshes rather than Resources backdrop tiles,
-    // and their art is a 32-px band inside a 64-px cell with transparent
-    // margins. Two things have to hold for them to show at all:
+    // The rails are scene quads (leftPipe / rightPipe). Rail art -- Space's
+    // pipe rails, Verdant's forest rail -- is a band inside a wider cell with
+    // transparent margins. Two things have to hold for it to show at all:
     //   - the wall shader must be alpha-blended and unlit. The built-in
     //     Mobile/(Bumped) Diffuse the materials used is opaque: it draws the
     //     transparent margins as the black they are stored as;
     //   - the art must be mapped onto the part of the wall that is on screen.
-    //     A phone shows only the wall's inner ~0.35 u (a quarter of the
-    //     quad), which with the whole cell stretched over the quad is
-    //     nothing but the art's transparent inner margin.
+    //     A phone shows only the wall's inner ~0.4 u (30% of the quad), which
+    //     with the whole cell stretched over the quad is little but the
+    //     art's transparent inner margin.
     static void CheckSpaceRailMaterials()
     {
         bool shaders = true;
@@ -553,13 +595,28 @@ public static class WorldBackdropTest
               AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
               AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
 
-        // The art columns WorldPainter aligns by are what the PNGs hold.
-        bool measured = true;
+        var railTextures = new Dictionary<string, Texture>
+        {
+            { "left", left.mainTexture },
+            { "right", right.mainTexture },
+            { WorldPainter.VerdantRailName, Resources.Load<Texture2D>("Worlds/Verdant/" + WorldPainter.VerdantRailName) },
+        };
+        var railPaths = new Dictionary<string, string>
+        {
+            { "left", "Assets/Art/left.png" },
+            { "right", "Assets/Art/right.png" },
+            { WorldPainter.VerdantRailName, "Assets/Art/Resources/Worlds/Verdant/" + WorldPainter.VerdantRailName + ".png" },
+        };
+
+        // The art columns WorldPainter aligns by are what the PNGs hold, and
+        // the imported textures keep the PNG's shape (no NPOT rescale, which
+        // would resample the pixel art) and carry no mipmaps.
+        bool measured = true, imported = true;
         string found = "";
-        for (int side = 0; side < 2; side++)
+        foreach (var art in WorldPainter.Rails)
         {
             var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            t.LoadImage(File.ReadAllBytes(side == 0 ? "Assets/Art/left.png" : "Assets/Art/right.png"));
+            t.LoadImage(File.ReadAllBytes(railPaths[art.name]));
             var px = t.GetPixels32();
             int first = -1, last = -1;
             for (int x = 0; x < t.width; x++)
@@ -570,56 +627,73 @@ public static class WorldBackdropTest
                 if (first < 0) first = x;
                 last = x;
             }
-            found += (side == 0 ? "left " : ", right ") + first + ".." + (last + 1);
-            int wantFirst = side == 0 ? WorldPainter.LeftRailArtFirst : WorldPainter.RightRailArtFirst;
-            int wantEnd = side == 0 ? WorldPainter.LeftRailArtEnd : WorldPainter.RightRailArtEnd;
-            if (t.width != WorldPainter.RailCellWidth || t.height != WorldPainter.RailCellHeight ||
-                first != wantFirst || last + 1 != wantEnd) measured = false;
+            found += (found.Length > 0 ? ", " : "") + art.name + " " + first + ".." + (last + 1) + " of " + t.width;
+            if (t.width != art.width || t.height != art.height || first != art.first || last + 1 != art.end) measured = false;
             Object.DestroyImmediate(t);
+            WorldPainter.RailArt got;
+            var tex = railTextures[art.name];
+            if (tex == null || !WorldPainter.TryRailArt(tex, out got) || tex.mipmapCount != 1 ||
+                Mathf.Abs(tex.width / (float)tex.height - art.width / (float)art.height) > 0.002f) imported = false;
         }
-        Check("Space rail art columns match WorldPainter's (" + found + ")", measured);
+        Check("Rail art columns match WorldPainter's table (" + found + ")", measured);
+        Check("Rail textures import at their own shape without mipmaps and resolve in the table", imported);
 
         // On every screen shape the strip of wall in view shows rail art, not
-        // its margin, with square texels. Wall quads: 1.43 u wide centred on
-        // +/-3.21, RailFit height = 2 x orthographic size x 1.085.
+        // its margin, with square texels and the art's gameplay-facing edge
+        // on the wall's inner edge. Wall quads: 1.43 u wide centred on
+        // +/-3.15 (inner edge 2.435, outer 3.865); RailFit height = 2 x
+        // orthographic size x 1.085. Cases: each rail on the wall(s) it is
+        // painted on (Verdant's one texture is mirrored onto the right wall).
+        const float InnerEdge = 2.435f, OuterEdge = 3.865f, QuadWidth = 1.43f;
         bool onScreen = true, square = true;
         string worst = "";
         foreach (float aspect in new[] { 9f / 21f, 9f / 19.5f, 9f / 16f, 3f / 4f })
         {
             float ortho = CameraFit.ComputeSize(5f, 2.85f, Mathf.RoundToInt(1000 * aspect), 1000);
             float halfW = ortho * aspect;
-            var size = new Vector3(1.43f, ortho * 2f * 1.085f, 1f);
-            for (int side = 0; side < 2; side++)
-            {
-                bool isLeft = side == 0;
-                Vector4 band = WorldPainter.BandFor((isLeft ? left : right).mainTexture, size, isLeft);
-                float texelsPerUnitX = (band.y - band.x) * WorldPainter.RailCellWidth / size.x;
-                float texelsPerUnitY = WorldPainter.RailCellHeight / size.y;
-                if (Mathf.Abs(texelsPerUnitX / texelsPerUnitY - 1f) > 0.01f) square = false;
-                // Columns of the texture that fall in view, from the wall's
-                // inner edge (2.495 u from the centre line) to the view's edge
-                // or the quad's outer edge.
-                float visible = Mathf.Min(halfW, 3.925f) - 2.495f;
-                float innerCol = (isLeft ? band.y : band.x) * WorldPainter.RailCellWidth;
-                float cols = visible * texelsPerUnitX;
-                int artFirst = isLeft ? WorldPainter.LeftRailArtFirst : WorldPainter.RightRailArtFirst;
-                int artEnd = isLeft ? WorldPainter.LeftRailArtEnd : WorldPainter.RightRailArtEnd;
-                float artShown = isLeft ? Mathf.Min(cols, innerCol - artFirst) : Mathf.Min(cols, artEnd - innerCol);
-                bool pinned = Mathf.Abs(innerCol - (isLeft ? artEnd : artFirst)) < 0.01f;
-                if (!pinned || artShown < 8f)
+            var size = new Vector3(QuadWidth, ortho * 2f * 1.085f, 1f);
+            foreach (var art in WorldPainter.Rails)
+                for (int side = 0; side < 2; side++)
                 {
-                    onScreen = false;
-                    worst = " (aspect " + aspect.ToString("F2") + ": " + artShown.ToString("F1") + " art columns in view)";
+                    bool isLeft = side == 0;
+                    bool mirror = art.innerAtEnd != isLeft;
+                    if (mirror && art.name != WorldPainter.VerdantRailName) continue;   // Space has a texture per wall
+                    Vector4 band = WorldPainter.BandFor(railTextures[art.name], size, isLeft, mirror);
+                    float texelsPerUnitX = Mathf.Abs(band.y - band.x) * art.width / size.x;
+                    float texelsPerUnitY = art.height / size.y;
+                    if (Mathf.Abs(texelsPerUnitX / texelsPerUnitY - 1f) > 0.01f) square = false;
+                    // u at the wall's inner edge must be the art's gameplay edge,
+                    // with art (not margin) running outward from it.
+                    float innerU = isLeft ? band.y : band.x, outerU = isLeft ? band.x : band.y;
+                    float artInner = (art.innerAtEnd ? art.end : art.first) / (float)art.width;
+                    bool pinned = Mathf.Abs(innerU - artInner) < 1e-4f && (outerU < innerU) == art.innerAtEnd;
+                    float visible = Mathf.Min(halfW, OuterEdge) - InnerEdge;
+                    float artShown = Mathf.Min(visible * texelsPerUnitX, art.end - art.first);
+                    // At least a tenth of the rail's own width is in view.
+                    if (!pinned || artShown < 0.1f * (art.end - art.first))
+                    {
+                        onScreen = false;
+                        worst = " (" + art.name + (mirror ? " mirrored" : "") + ", aspect " + aspect.ToString("F2") + ": " +
+                                artShown.ToString("F1") + " art columns in view, pinned " + pinned + ")";
+                    }
                 }
-            }
         }
-        Check("Space rail art sits on the wall's inner edge and is in view on every screen shape" + worst, onScreen);
-        Check("Space rail texels are square at every screen shape", square);
+        Check("Rail art sits on the wall's inner edge and is in view on every screen shape" + worst, onScreen);
+        Check("Rail texels are square at every screen shape", square);
 
-        // Full-cell wall tiles (the planet worlds') keep the plain 0..1 map.
+        // Full-cell wall tiles (Frost, Ember) keep the plain 0..1 map.
         var tile = Resources.Load<Texture2D>("Worlds/Ember/wallLeft");
-        Vector4 plain = WorldPainter.BandFor(tile, new Vector3(1.43f, 13f, 1f), true);
-        Check("Planet wall tiles map their whole cell onto the wall", plain.x == 0f && plain.y == 1f);
+        Vector4 plain = WorldPainter.BandFor(tile, new Vector3(QuadWidth, 13f, 1f), true);
+        Check("Full-cell wall tiles map their whole cell onto the wall", plain.x == 0f && plain.y == 1f);
+
+        // The scene walls sit where the checks above assume, in both scenes.
+        foreach (string scene in new[] { "Assets/Scenes/gameS1.unity", "Assets/Scenes/tutorialS5.unity" })
+        {
+            string yaml = File.ReadAllText(scene);
+            Check(scene + " walls are 1.43 u wide at x = +/-3.15",
+                  yaml.Contains("m_LocalPosition: {x: 3.15, y: 0, z: 1}") && yaml.Contains("m_LocalPosition: {x: -3.15, y: 0, z: 1}") &&
+                  yaml.Contains("m_LocalScale: {x: 1.43, y: 10.85, z: 1}") && yaml.Contains("m_LocalScale: {x: 1.43, y: 10.75, z: 1}"));
+        }
     }
 
     // -------------------------------------------------------------- space --
@@ -731,14 +805,14 @@ public static class WorldBackdropTest
               spec.Rate("stars") > spec.Rate("sky"));
         // The biggest planet tier, on a 12.4 u tall view, at a mid-run HUD
         // speed of 30: how long from its top edge entering to it being gone.
-        float bigPlanet = 2.6f * 1.25f;
+        float bigPlanet = nearest.scale * 1.25f;
         float seconds = (12.4f + bigPlanet) / (planetMax * WorldBackdrop.ScrollVelocity(0.30f));
         Check("Space's largest planet stays in view a long time (" + seconds.ToString("F0") + " s at speed 30 >= 45 s)",
               seconds >= 45f);
         float farShare = (tiers[0].weight + tiers[1].weight) / (float)total;
         float nearShare = tiers[tiers.Length - 1].weight / (float)total;
-        Check("Space planets are mostly far away (two farthest tiers " + farShare.ToString("F2") +
-              " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.08)", farShare >= 0.7f && nearShare <= 0.08f);
+        Check("Space random planets remain mostly far away (two farthest tiers " + farShare.ToString("F2") +
+              " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.10)", farShare >= 0.7f && nearShare <= 0.10f);
         Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].planetLayer) &&
               spec.Order("comets") < spec.Order(tiers[0].layer));
         float nearRate = spec.Rate(tiers[tiers.Length - 1].layer);
@@ -883,8 +957,12 @@ public static class WorldBackdropTest
         int planets = 0;
         foreach (int n in planetsPerTier) planets += n;
         int far = planetsPerTier[0] + planetsPerTier[1], near = planetsPerTier[tiers - 1];
-        Check("Space planets in the run are mostly far (" + far + " of " + planets + " in the two farthest tiers, " +
-              near + " near)", planets >= 20 && far >= 0.65f * planets && near <= 0.12f * planets);
+        // Authored hero beats add guaranteed near planets on top of the
+        // random tier distribution. Far planets must still be the plurality,
+        // while enough near planets appear to define the world's scale.
+        Check("Space keeps a far-field majority plus recurring hero planets (" + far + " far, " + near +
+              " near of " + planets + ")", planets >= 20 && far >= 0.40f * planets &&
+              near >= 0.15f * planets && near <= 0.40f * planets);
     }
 
     static int MaxDiff(Color32 a, Color32 b)

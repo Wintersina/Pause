@@ -824,7 +824,7 @@ public static class EnemyRosterTest
     {
         // flat-ink heavies: straight hull sides and bursts that reach the cell
         // edge; not confirmed as cuts, listed until someone reviews them
-        "ember_big", "verdant_big", "space_big",
+        "ember_big",
     };
     const string EliteStrips = "Assets/Art/Resources/Elites";
     static readonly string[] KnownCutEliteStrips =

@@ -78,7 +78,7 @@ public static class BossEmitters
 // bounce off or splash against.
 //
 // The walls (leftPipe / rightPipe in gameS1) are world-fixed quads -- 1.43
-// wide at x = -/+3.21, so their inner faces are at -/+2.495 on every screen
+// wide at x = -/+3.15, so their inner faces are at -/+2.435 on every screen
 // (a wider phone only shows more of the wall, CameraFit never lets the view
 // get narrower than +/-2.85). The live walls are measured when a fight
 // starts; a scene without them (tests, the tutorial) uses the authored edge.

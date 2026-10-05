@@ -276,7 +276,7 @@ public static class BossEncounterTest
         Check("on-board hazards are cleared by the boss's arrival", hazard == null);
         Check("suspended during the fight", BossEncounter.SuspendsSpawning);
         Check("enmiesOnBoard checks it", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
-              .Contains("if (flying && !BossEncounter.SuspendsSpawning) spawn();"));
+              .Contains("if (flying && !BossEncounter.SuspendsSpawning)"));
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("spawning resumes after", !BossEncounter.SuspendsSpawning);

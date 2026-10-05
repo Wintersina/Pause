@@ -8,8 +8,8 @@ using UnityEngine.UI;
 // Feature: "when the ship is coming off pause and slowly winding up to
 // current speed, we need an indicator to show that's happening".
 //
-// ResumeFx is the indicator for ResumeSlowMo's window: a MAGENTA edge
-// vignette, side speed streaks that stretch as speed returns and hull
+// ResumeFx is the indicator for ResumeSlowMo's window: a faint MAGENTA edge
+// accent, side speed streaks that stretch as speed returns and hull
 // afterimages (ResumeFxView, under every gameplay renderer), plus the SPEED
 // row reading "SLOW-MO n" with a spool bar (ResumeSpeedRow). It must be on
 // exactly while ResumeSlowMo is, follow its time factor, snap off on a
@@ -200,7 +200,7 @@ public static class ResumeFxTest
             float i = ResumeFx.Intensity;
             if (firstIntensity < 0f) firstIntensity = i;
             if (Mathf.Abs(i - expected) > 1e-4f) intensityMatches = false;
-            if (Mathf.Abs(rig.view.Vignette.color.a - ResumeFx.VignetteAlpha * i) > 1e-4f) alphaMatches = false;
+            if (Mathf.Abs(rig.view.Vignette.color.a - ResumeFx.VignetteOpacity(i)) > 1e-4f) alphaMatches = false;
             if (Mathf.Abs(rig.row.Bar.fillAmount - scale) > 1e-4f || !rig.row.Bar.enabled) fillMatches = false;
 
             float len = MaxStreakLength(rig);
@@ -225,7 +225,9 @@ public static class ResumeFxTest
         Check("indicator is on exactly while ResumeSlowMo is active (world layer and HUD row)", onExactly);
         Check("full intensity at 0.6x (" + firstIntensity + ")", Mathf.Approximately(firstIntensity, 1f));
         Check("intensity = (1 - factor) / 0.4 every frame", intensityMatches);
-        Check("vignette alpha follows intensity", alphaMatches);
+        Check("the restrained vignette fades faster than the motion cues", alphaMatches &&
+              ResumeFx.VignetteAlpha <= 0.25f &&
+              ResumeFx.VignetteOpacity(0.5f) < ResumeFx.VignetteAlpha * 0.3f);
         Check("spool bar fill = time factor", fillMatches);
         Check("streaks stretch as speed returns (" + firstLen.ToString("F2") + " -> " + lastLen.ToString("F2") + ")",
               lengthMonotonic && firstLen <= ResumeFx.StreakMinLength * 1.6f + 1e-3f && lastLen > ResumeFx.StreakMaxLength * 0.6f);
