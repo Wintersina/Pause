@@ -178,7 +178,8 @@ Shot speeds are relative to the board, in world units per second.
 ## Density (deliverable 2)
 
 Measured with `EnemyDensityProbe` (the real spawner stepped headless, every enemy on its real mover).
-Baseline, before any change, at moments of a stock Space run:
+**Before** the change, at moments of a stock Space run (HUD speed, and the level second that run reaches
+it):
 
 | HUD speed | level second | spawns/s | on screen (mean / peak) |
 |---|---|---|---|
@@ -191,35 +192,103 @@ Baseline, before any change, at moments of a stock Space run:
 | 46 | 119.0 | 21.17 | 15.1 / 21 |
 | whole 120 s run | | 7.44 | 10.0 |
 
-Plan: all tunables in one class (`EnemyDensity`):
+What changed (every number is a tunable):
 
-* a rate scale that falls with HUD speed (cut less at low speed, more at high);
-* the level's density ramp (1x -> 3x) flattened;
-* a cap on total threats on the board that also falls with speed, where a live roster shot counts as
-  half a body, so shooters pay for their projectiles;
-* heavies get their own, slower interval (they shared the rocks') now that they deny an area.
+| Where | Tunable | Value | Effect |
+|---|---|---|---|
+| `EnemyDensity` | `RateAtLowSpeed` / `RateAtHighSpeed` between `LowHud` 5 and `HighHud` 35 | x0.90 -> x0.42 | every spawn timer's rate, falling with speed |
+| `EnemyDensity` | `ThreatsAtLowSpeed` / `ThreatsAtHighSpeed` | 11 -> 10 | ceiling on bodies in (or 2.5 u above) the view plus weighted shots; a spawn past it is skipped |
+| `EnemyThreat` | `ShotWeight` | 0.5 | a live hostile projectile counts as half a body in that ceiling |
+| `EnemyThreat` | `MaxEnemyShots`, `VolleyGap` | 12, 0.4 s | roster shots alive at once; gap between two enemies' windups |
+| `enmiesOnBoard.SpawnPhase` | `heavyInterval` | 4.5-6.5 s early, 4-6 s in Chaos | heavies have their own timer (they shared the rocks' 0.5-3.4 s) |
+| every behaviour | its envelope | band / up / down | each enemy reserves its whole pattern, so fewer fit a stretch of board |
 
-Target: about -45% threats averaged over a run, less than that below HUD 10, more above HUD 30. The
-after table goes here once measured.
+**After: NOT YET MEASURED.** The values above are first estimates from the before table (rate x time on
+screen), chosen to land near -30% at HUD 5-10, -40% at 20, -50% and more from 30 up, about -45% over a
+run. The editor could not be started to run the probe (see Progress). `EnemyDensityTest` holds the
+targets (under 45% cut at HUD 5 and 10, at least 45% at 30+, 38-55% over a run, at least 4 enemies in
+view early) and prints the after table; retune `EnemyDensity` against it.
 
 ## Speed (deliverable 3)
 
-Current: speed climbs linearly, `speedRampPerSecond` per world (HUD 0.315 / 0.330 / 0.345 / 0.365 a
-second) to a cap of HUD 46 / 51 / 56 / 62, +2/+4 on loops, +8 in KEEP FLYING, never past 72. A stock run
-meets the boss at HUD 38-44; faster ships and loops reach the caps. Scroll, every mover and the score
-multiplier follow it.
+**Before.** Speed (`moveBackGround.speed`; the HUD shows x100) climbed linearly at the world's
+`speedRampPerSecond` to its `maxSpeed`:
 
-Plan: one tunable block (`SpeedRamp` knee + `WorldManager.Worlds` caps + `LoopRules`): the ramp keeps
-its early pace to a knee (HUD 30), then climbs at a fraction of it; caps come down to about HUD 38-44
-with an absolute ceiling near 48; score speed tiers move down in proportion so every tier stays
-reachable. Final numbers and every moved threshold are listed here once implemented.
+| World | HUD per second | cap | a stock run meets the boss (120 s) at | HUD 35 reached at |
+|---|---|---|---|---|
+| Space | 0.315 | 46 | 37.8 | 111 s |
+| Frost | 0.330 | 51 | 39.6 | 106 s |
+| Verdant | 0.345 | 56 | 41.4 | 101 s |
+| Ember | 0.365 | 62 | 43.8 | 96 s |
+
+Loops added +2 / +4 to the cap, KEEP FLYING up to +8, never past 72. Scroll (speed x 30 u/s), every
+mover, the score multiplier and the dust trickle follow speed; spawn density follows the level clock.
+
+**After.** The early ramp is unchanged. Past a knee at HUD 30 the ramp keeps 40% of its rate, and the caps
+are lower:
+
+| World | HUD per second below / above the knee | cap | stock run meets the boss at | HUD 35 reached at | cap reached at |
+|---|---|---|---|---|---|
+| Space | 0.315 / 0.126 | **38** | 33.1 | 135 s (after the boss) | 159 s |
+| Frost | 0.330 / 0.132 | **40** | 33.8 | 129 s | 167 s |
+| Verdant | 0.345 / 0.138 | **42** | 34.6 | 123 s | 174 s |
+| Ember | 0.365 / 0.146 | **44** | 35.5 | 116 s | 178 s |
+
+So a stock run no longer passes 35 at all before Ember's last seconds; a fast-start ship or a loop
+climbs through 35 at about one HUD point every 7-8 seconds and plateaus at 38-44. Reasoning: the user
+reports the wall at 35; at 35 the board crosses the view in under a second, so the answer is to arrive
+there later, climb slower and stop sooner, while keeping the worlds distinct (each cap 2 apart) and
+leaving something above 35 for endurance.
+
+Tunables, all in one place each:
+
+| Tunable | Was | Now |
+|---|---|---|
+| `SpeedRamp.SoftKnee` | (none) | 0.30 |
+| `SpeedRamp.SoftRampScale` | (none) | 0.40 |
+| `WorldManager.Worlds[].maxSpeed` | .46 / .51 / .56 / .62 | .38 / .40 / .42 / .44 |
+| `LoopRules.MaxSpeedPerLoop` / `MaxSpeedBonusCap` | .02 / .04 | .01 / .02 |
+| `LoopRules.EndlessSpeedPerSecond` / `EndlessSpeedCap` | .0004 / .08 | .0002 / .04 |
+| `LoopRules.AbsoluteMaxSpeed` | .72 | .50 |
+
+Thresholds keyed to speed, checked one by one:
+
+| Threshold | Was | Now | Why |
+|---|---|---|---|
+| `ScoreRules.SpeedTierHud` (x1.25 / x1.5 / x2 / x2.5) | 20 / 35 / 50 / 65 | 20 / 30 / 40 / 46 | 50 and 65 became unreachable; each tier is reachable where it was (x1.5 late in a stock level, x2 near a later world's cap, x2.5 only on a loop / KEEP FLYING) |
+| World distance (`WorldManager.WorldDistanceFor`) | linear ramp | follows the new curve | a stock level is still exactly 120 s; no boss, portal or world moved |
+| Boss fight speed (`BossConfig.FightSpeed`) | 20 | unchanged | below every cap |
+| Resume slow-motion (`ResumeSlowMo.MinHudSpeed`) | 15 | unchanged | below every cap |
+| Ship start speeds (`ShipStartSpeed`) | 0-30 | unchanged | the fastest (30) starts at the knee, under the lowest cap (38) |
+| Loop arrival speed | 4 / 8 / 12 | unchanged | below the knee |
+| Top Speed leaderboard (`docs/leaderboards.md`) | best-ever value | unchanged code | see note |
+| `achievement_speedster` | never triggered by code | unchanged | not keyed to a speed in code |
+| `score.topSpeed` (dust trickle, scene value 0.6) | 0.6 | unchanged | under 1% of income; left so the economy does not move |
+
+Note for the user: scores already on the **Top Speed** board (and each device's saved best speed) were
+set under the old caps, up to 62-72. Under the new caps nobody can pass 50, so old entries cannot be
+beaten. That is a product decision (reset the board, or accept it), not something this branch changes.
 
 ## Shield scoring (deliverable 4)
 
-Plan: a hostile projectile (roster, elite or boss) absorbed by the blue-atom shield pays
-`ScoreRules.ShieldedShot`, flat (no chain or speed multiplier), with a popup, for at most
-`ShieldedShotsPerShield` projectiles per shield so a boss fan cannot be farmed. The shield and the shot
-behave as before (the shot is erased, the shield's timer is unchanged).
+A hostile projectile absorbed by the **blue-atom shield** pays `ScoreRules.ShieldedShot` = **5**.
+
+* Which projectiles: every hostile shot that has a hitbox -- roster enemies' shots, elite shots (and a
+  landed resin pool), boss shots. Not lasers and not a boss's body (they never paid; that stays).
+* Flat: no kill-chain and no speed multiplier, and it does not start or extend a chain.
+* Why 5: the same as a rock or a tier-1 fighter, the smallest kill. A boss shot used to pay 1 when
+  absorbed; it now pays 5 in total like the others (its 1 is part of the 5).
+* Farming guard: only the first `ScoreRules.ShieldedShotsPerShield` = **12** projectiles of each shield
+  pay (60 points at most per blue atom, against 300 for a boss). A new blue atom starts the allowance
+  again. Past the cap a boss shot pays its old 1, the others nothing.
+* What happens on the hit: exactly what happened before. The projectile is erased, the shield shows its
+  absorb flash and keeps its timer, no heart is lost.
+* Only the shield: Phase Cloak, Hard Shell and post-hit invulnerability still absorb or ignore the shot
+  as before and pay nothing.
+* Feedback: a cyan "+5  ABSORB" popup at the hit (`RunScore.Source.Shield`, `ScoreHud.StyleFor`), on top
+  of the shield's existing absorb flash. The points are counted with the kills on the death panel
+  (`Breakdown.shieldedShots` holds the count).
+* The death domino still clears shots unscored (the run is over; no shield).
 
 ## Art gaps
 
@@ -235,10 +304,19 @@ Listed as found; none of these blocks the feature.
 * [x] Study (roster, art, spawner, movers, elites, pause, domino)
 * [x] Baseline density measured (`EnemyDensityProbe`)
 * [x] This design
-* [ ] Primitives: `EnemyBehaviours`, `EnemyBrain`, envelope hooks in the movers, driven flipbook
-* [ ] Shots through the elite pool, threat budget
-* [ ] Per-world tables wired, chaser styles, mine rail slides
-* [ ] Density tunables + after table
-* [ ] Speed curve + thresholds
-* [ ] Shield scoring
-* [ ] Tests, full suite run
+* [x] Primitives: `EnemyBehaviours`, `EnemyBrain`, envelope hooks in the movers, driven flipbook
+* [x] Shots through the elite pool (`EnemyVolley`), threat budget (`EnemyThreat`)
+* [x] All 46 behaviours wired, four chaser styles, mine rail slides
+* [x] Density tunables (`EnemyDensity`, heavies' own interval)
+* [x] Speed curve + thresholds
+* [x] Shield scoring
+* [x] Tests written: `EnemyBehaviourTest`, `EnemyDensityTest`, `DifficultyRetuneTest`; existing
+      expectations updated in `SpawnSpaceTest`, `DifficultyRebalanceTest`, `LoopTest`, `ScoringTest`
+* [x] Both assemblies compile clean with Unity's Roslyn (run outside the editor)
+* [ ] **Run the suites in the editor.** Blocked: Unity batch mode could not get a licence on this
+      machine (a stale `Unity.Licensing.Client` holds the channel; every editor launch loops on
+      "connection with the Unity Licensing Client has been lost"). Nothing in this branch has been
+      executed yet apart from the baseline probe.
+* [ ] Measure the after table and retune `EnemyDensity` to the targets
+* [ ] Fix whatever the first real test run turns up
+* [ ] Play it
