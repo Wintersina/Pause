@@ -65,30 +65,38 @@ public class WorldManager : MonoBehaviour
     // 46/44/42/40s, and each world reaches its maxSpeed in 146-170s -- past
     // the 120s baseline level, so a stock start meets the boss still
     // ramping; faster starts (ShipStartSpeed) and loops get nearer the cap.
+    //
+    // 2026-10 retune ("things get too hard past speed 35"): caps down again,
+    // 0.46/0.51/0.56/0.62 -> 0.38/0.40/0.42/0.44, and the ramp softens to 40%
+    // of its rate past HUD 30 (SpeedRamp.SoftKnee / SoftRampScale). A stock
+    // start now meets the boss at about HUD 33 (Space) to 35.5 (Ember)
+    // instead of 38-44, and a fast start or a loop plateaus at 38-44 instead
+    // of 46-62. speedRampPerSecond is unchanged, so the first 90 s of a
+    // world feel as they did.
     public static readonly WorldTheme[] Worlds =
     {
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
             portalColor = new Color(0.55f, 0.85f, 1f),
-            speedRampPerSecond = 0.00315f, maxSpeed = 0.46f, enemyRampScale = 1.00f,
+            speedRampPerSecond = 0.00315f, maxSpeed = 0.38f, enemyRampScale = 1.00f,
         },
         new WorldTheme {
             displayName = "Frost", resourceFolder = "Frost",
             musicResource = "WorldMusic/Frost_Main", progressiveMusic = false,
             portalColor = new Color(0.62f, 0.92f, 1f),
-            speedRampPerSecond = 0.00330f, maxSpeed = 0.51f, enemyRampScale = 1.10f,
+            speedRampPerSecond = 0.00330f, maxSpeed = 0.40f, enemyRampScale = 1.10f,
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
             musicResource = "WorldMusic/Verdant",
             portalColor = new Color(0.60f, 1f, 0.62f),
-            speedRampPerSecond = 0.00345f, maxSpeed = 0.56f, enemyRampScale = 1.20f,
+            speedRampPerSecond = 0.00345f, maxSpeed = 0.42f, enemyRampScale = 1.20f,
         },
         new WorldTheme {
             displayName = "Ember", resourceFolder = "Ember",
             musicResource = "WorldMusic/Ember_Main", progressiveMusic = false,
             portalColor = new Color(1f, 0.62f, 0.35f),
-            speedRampPerSecond = 0.00365f, maxSpeed = 0.62f, enemyRampScale = 1.35f,
+            speedRampPerSecond = 0.00365f, maxSpeed = 0.44f, enemyRampScale = 1.35f,
         },
     };
 

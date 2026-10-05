@@ -27,7 +27,7 @@ using UnityEngine;
 //                          loop 1   loop 2   loop 3+
 //   arrival speed (HUD)       4        8       12      speed after a portal (was 0)
 //   speed ramp              x1.10    x1.20    x1.30
-//   max speed (HUD)          +2       +4       +4      capped by MaxSpeedBonusCap
+//   max speed (HUD)          +1       +2       +2      capped by MaxSpeedBonusCap
 //   enemy phase ramp        x1.15    x1.30    x1.45    enmiesOnBoard.phaseRampScale
 //   spawn density           x1.10    x1.20    x1.30    LoopDifficulty.DensityScale (enmiesOnBoard.Roll)
 //   boss cooldowns          x0.90    x0.80    x0.70
@@ -35,10 +35,12 @@ using UnityEngine;
 //   boss / world bonus      x1.5     x2.0     x2.5     (x3.0 at loop 4+, BonusLoopCap)
 //
 // KEEP FLYING (Ember, endless), on the world's clock while flying:
-//   max speed   +1 HUD every 25s past Ember's cap, at most +8 (200s)
+//   max speed   +1 HUD every 50s past Ember's cap, at most +4 (200s)
 //   density     +20% a minute, at most x1.6 (on top of the loop's own)
-//   and never past AbsoluteMaxSpeed (HUD 72) whatever the loop: the old 0.78
-//   cap was dropped because the board stopped being readable up there.
+//   and never past AbsoluteMaxSpeed (HUD 50) whatever the loop. (2026-10:
+//   every speed number here was halved or better with the world caps --
+//   WorldManager.Worlds -- so the hardest the game ever gets is Ember 44,
+//   +2 on a third loop, +4 deep into KEEP FLYING: HUD 50. Was 72.)
 public static class LoopRules
 {
     // ---- the choice ----
@@ -52,8 +54,8 @@ public static class LoopRules
     public static int MaxScaledLoops = 3;
     public static float ArrivalSpeedPerLoop = .04f;
     public static float RampPerLoop = .10f;
-    public static float MaxSpeedPerLoop = .02f;
-    public static float MaxSpeedBonusCap = .04f;
+    public static float MaxSpeedPerLoop = .01f;
+    public static float MaxSpeedBonusCap = .02f;
     public static float PhaseRampPerLoop = .15f;
     public static float DensityPerLoop = .10f;
     public static float BossCooldownPerLoop = .10f;
@@ -67,15 +69,15 @@ public static class LoopRules
     public static int BonusLoopCap = 4;
 
     // ---- KEEP FLYING ----
-    public static float EndlessSpeedPerSecond = .0004f;
-    public static float EndlessSpeedCap = .08f;
+    public static float EndlessSpeedPerSecond = .0002f;
+    public static float EndlessSpeedCap = .04f;
     public static float EndlessDensityPerSecond = .2f / 60f;
     public static float EndlessDensityCap = 1.6f;
     // Seconds of flight between re-applying the endless numbers.
     public static float EndlessStepSeconds = 1f;
 
-    // Nothing ever ramps past this (moveBackGround.speed; HUD 72).
-    public static float AbsoluteMaxSpeed = .72f;
+    // Nothing ever ramps past this (moveBackGround.speed; HUD 50).
+    public static float AbsoluteMaxSpeed = .50f;
 
     // ---- per-loop values ----
 

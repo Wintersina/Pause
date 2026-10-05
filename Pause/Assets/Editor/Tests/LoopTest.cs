@@ -46,6 +46,10 @@ public static class LoopTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // These checks read exact spawn delays to prove the loop / boss hooks;
+        // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
+        // the same delays, so it is switched off here (the Sandbox puts it back).
+        EnemyDensity.Disabled = true;
         int rush = PlayerPrefs.GetInt(BossDev.RushKey, -1);
         try
         {
@@ -423,7 +427,8 @@ public static class LoopTest
     {
         var expect = new (int hud, float m)[]
         {
-            (0, 1f), (19, 1f), (20, 1.25f), (34, 1.25f), (35, 1.5f), (49, 1.5f), (50, 2f), (64, 2f), (65, 2.5f), (72, 2.5f), (99, 2.5f),
+            // 2026-10: 20 / 35 / 50 / 65 -> 20 / 30 / 40 / 46, with the lower speed caps
+            (0, 1f), (19, 1f), (20, 1.25f), (29, 1.25f), (30, 1.5f), (39, 1.5f), (40, 2f), (45, 2f), (46, 2.5f), (50, 2.5f), (99, 2.5f),
         };
         foreach (var (hud, m) in expect)
             Check("HUD " + hud + " -> x" + m, Mathf.Approximately(ScoreRules.SpeedMultiplierFor(hud / 100f), m));
@@ -457,8 +462,9 @@ public static class LoopTest
         Check("the best multiplier is recorded (x8)", Mathf.Approximately(RunScore.Parts.bestMultiplier, 8f));
         long t = RunScore.Total;
         RunScore.Tick(10f, .5f);
-        Check("flight at HUD 50 pays 25 x2 = 50 over 10s (" + (RunScore.Total - t) + ")",
-              RunScore.Total - t == 50 || RunScore.Total - t == 49);
+        // (2026-10: HUD 50 is the top tier now, x2.5; it was x2)
+        Check("flight at HUD 50 pays 25 x2.5 = 62 over 10s (" + (RunScore.Total - t) + ")",
+              RunScore.Total - t == 62 || RunScore.Total - t == 63);
         t = RunScore.Total;
         RunScore.OnDust(true);
         RunScore.OnBoss(true, 0f, false, Vector3.zero);

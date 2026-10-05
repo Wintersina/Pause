@@ -30,6 +30,10 @@ public static class PickupRulesTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // These checks read exact spawn delays to prove the loop / boss hooks;
+        // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
+        // the same delays, so it is switched off here (the Sandbox puts it back).
+        EnemyDensity.Disabled = true;
         try
         {
             Constants();

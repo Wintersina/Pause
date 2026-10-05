@@ -41,6 +41,34 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     [Tooltip("How far ahead (seconds of scroll) it watches the board for something to sidestep.")]
     public float lookAheadSeconds = .45f;
 
+    // How it hunts (EnemyBehaviours; each world's chaser has its own):
+    //   Hound   steady pursuit
+    //   Lancer  stops to aim (AimSeconds), then dashes along the line it
+    //           locked (DashSeconds), again and again
+    //   Weaver  pursues on a sideways weave
+    //   Burner  the same pursuit, tuned short and hard (its numbers)
+    public ChaserStyle style = ChaserStyle.Hound;
+    public const float LancerAimSeconds = .55f, LancerDashSeconds = .7f;
+    public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
+    public const float WeaveSpeed = 1.5f, WeaveHz = .8f;
+
+    float styleClock;
+    Vector3 lockedHeading = Vector3.up;
+
+    // True while a Lancer is stopped, aiming its next dash.
+    public bool Aiming => style == ChaserStyle.Lancer && !wandering && styleClock < LancerAimSeconds;
+
+    public void Configure(EnemyBehaviour b)
+    {
+        if (b == null) return;
+        style = b.chaser;
+        chaseSeconds = b.chaseSeconds;
+        chaseSpeed = b.chaseSpeed;
+        startChaseSpeed = b.chaseStart;
+        wanderSpeed = b.wanderSpeed;
+        wanderRadius = b.wanderRadius;
+    }
+
     Transform player;
     float chaseTimer;
     float wanderAngle;
@@ -107,7 +135,22 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                 Vector3 toPlayer = goal - from;
                 toPlayer.z = 0f;
                 if (toPlayer.sqrMagnitude > 0.0001f)
-                    wish += toPlayer.normalized * speed * dt;
+                {
+                    Vector3 heading = toPlayer.normalized;
+                    styleClock += dt;
+                    if (style == ChaserStyle.Lancer)
+                    {
+                        // aim (nearly still, the heading follows), then a
+                        // straight dash along the heading it had locked
+                        float cycle = LancerAimSeconds + LancerDashSeconds;
+                        if (styleClock >= cycle) styleClock -= cycle;
+                        if (styleClock < LancerAimSeconds) { lockedHeading = heading; speed *= LancerAimSpeed; }
+                        else { heading = lockedHeading; speed *= LancerDashSpeed; }
+                    }
+                    wish += heading * speed * dt;
+                    if (style == ChaserStyle.Weaver)
+                        wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt;
+                }
             }
             else
             {

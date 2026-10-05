@@ -16,8 +16,38 @@ using UnityEngine;
 // exactly once per frame, however many walls exist. WorldManager.ApplyDifficulty
 // gives every instance the same ramp and cap, so it doesn't matter which one
 // goes first.
+//
+// THE SOFT KNEE (2026-10). Past HUD 35 the board was a wall: speed kept
+// climbing at the full rate right up to the cap. The ramp now keeps its
+// early pace up to SoftKnee and climbs at SoftRampScale of it from there to
+// the cap, so approaching and passing 35 is a gentle increase and the cap
+// (WorldManager.Worlds, LoopRules) is an endurance plateau. Both numbers are
+// here; Tick, DistanceOver and SecondsToCover all follow the same curve.
 public static class SpeedRamp
 {
+    // ---- tunables ----
+    // moveBackGround.speed where the ramp softens (HUD 30) ...
+    public static float SoftKnee = .30f;
+    // ... and the share of the world's ramp rate it keeps above it.
+    public static float SoftRampScale = .40f;
+
+    // The ramp rate at `speed` for a world whose base rate is `rate`.
+    public static float RateAt(float speed, float rate)
+    {
+        return speed >= SoftKnee ? rate * SoftRampScale : rate;
+    }
+
+    // `speed` after `dt` seconds of ramp (no cap).
+    public static float Advance(float speed, float rate, float dt)
+    {
+        if (dt <= 0f || rate <= 0f) return speed;
+        if (speed >= SoftKnee) return speed + rate * SoftRampScale * dt;
+        float next = speed + rate * dt;
+        if (next <= SoftKnee) return next;
+        // crossed the knee inside this step: the rest of it at the soft rate
+        return SoftKnee + (next - SoftKnee) * SoftRampScale;
+    }
+
     // Test hooks: edit-mode tests can't advance Time.frameCount or set
     // Time.deltaTime.
     public static Func<int> FrameOverride;
@@ -38,7 +68,7 @@ public static class SpeedRamp
 
         float s = moveBackGround.speed;
         if (s >= max) return true;
-        moveBackGround.speed = Mathf.Min(s + ratePerSecond * Delta, max);
+        moveBackGround.speed = Mathf.Min(Advance(s, ratePerSecond, Delta), max);
         return true;
     }
 
@@ -48,18 +78,48 @@ public static class SpeedRamp
     }
 
     // ---- the ramp as a curve (pure; WorldManager measures worlds with it) ----
-    // Speed starts at v0, climbs `rate` per second, holds at `max`. A start at
-    // or above the cap holds where it is (Tick never lowers speed).
+    // Speed starts at v0, climbs `rate` per second to SoftKnee and
+    // rate x SoftRampScale from there, holds at `max`. A start at or above
+    // the cap holds where it is (Tick never lowers speed).
+
+    // The stretch of ramp from `v`: its acceleration and the speed it ends at.
+    static void Stretch(float v, float rate, float max, out float accel, out float target)
+    {
+        bool below = v < SoftKnee && SoftKnee < max;
+        accel = v < SoftKnee ? rate : rate * SoftRampScale;
+        target = below ? SoftKnee : max;
+    }
+
+    // Speed after `seconds` on the curve.
+    public static float SpeedAfter(float v0, float rate, float max, float seconds)
+    {
+        float v = Mathf.Max(0f, v0);
+        for (int k = 0; k < 2 && seconds > 0f && v < max && rate > 0f; k++)
+        {
+            Stretch(v, rate, max, out float a, out float target);
+            float tc = (target - v) / a;
+            if (seconds <= tc) return v + a * seconds;
+            v = target;
+            seconds -= tc;
+        }
+        return v;
+    }
 
     // Distance (speed x seconds) flown in `seconds`.
     public static float DistanceOver(float v0, float rate, float max, float seconds)
     {
         if (seconds <= 0f) return 0f;
-        v0 = Mathf.Max(0f, v0);
-        if (v0 >= max || rate <= 0f) return v0 * seconds;
-        float tc = (max - v0) / rate;
-        if (seconds <= tc) return v0 * seconds + .5f * rate * seconds * seconds;
-        return v0 * tc + .5f * rate * tc * tc + max * (seconds - tc);
+        float v = Mathf.Max(0f, v0), d = 0f;
+        for (int k = 0; k < 2 && v < max && rate > 0f; k++)
+        {
+            Stretch(v, rate, max, out float a, out float target);
+            float tc = (target - v) / a;
+            if (seconds <= tc) return d + v * seconds + .5f * a * seconds * seconds;
+            d += v * tc + .5f * a * tc * tc;
+            v = target;
+            seconds -= tc;
+        }
+        return d + v * seconds;
     }
 
     // Seconds needed to fly `distance` (the inverse of DistanceOver).
@@ -67,11 +127,17 @@ public static class SpeedRamp
     public static float SecondsToCover(float v0, float rate, float max, float distance)
     {
         if (distance <= 0f) return 0f;
-        v0 = Mathf.Max(0f, v0);
-        if (v0 >= max || rate <= 0f) return v0 > 0f ? distance / v0 : float.PositiveInfinity;
-        float tc = (max - v0) / rate;
-        float dc = DistanceOver(v0, rate, max, tc);
-        if (distance <= dc) return (-v0 + Mathf.Sqrt(v0 * v0 + 2f * rate * distance)) / rate;
-        return tc + (distance - dc) / max;
+        float v = Mathf.Max(0f, v0), t = 0f;
+        for (int k = 0; k < 2 && v < max && rate > 0f; k++)
+        {
+            Stretch(v, rate, max, out float a, out float target);
+            float tc = (target - v) / a;
+            float dc = v * tc + .5f * a * tc * tc;
+            if (distance <= dc) return t + (-v + Mathf.Sqrt(v * v + 2f * a * distance)) / a;
+            distance -= dc;
+            t += tc;
+            v = target;
+        }
+        return v > 0f ? t + distance / v : float.PositiveInfinity;
     }
 }

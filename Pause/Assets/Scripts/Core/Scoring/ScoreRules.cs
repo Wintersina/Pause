@@ -51,6 +51,17 @@ public static class ScoreRules
     // own body hitbox (which respawns) and lane beams score nothing, so a
     // shielded ship can't farm the boss.
     public static int BossShot = 1;
+    // A hostile projectile -- a roster enemy's, an elite's or a boss's shot,
+    // or a landed resin pool -- absorbed by the blue-atom shield: flat, no
+    // chain or speed multiplier, an "ABSORB" popup. Only the first
+    // ShieldedShotsPerShield of each shield pay, so standing in a boss's fan
+    // is worth at most ShieldedShot x that (60) per blue atom: a bonus for
+    // flying through fire with the shield up, not something to farm. Past
+    // the cap a boss shot pays its usual BossShot, the others nothing.
+    // Cloak, Hard Shell and post-hit invulnerability are not a shield and
+    // pay nothing. Lasers and the boss's body never pay.
+    public static int ShieldedShot = 5;
+    public static int ShieldedShotsPerShield = 12;
     // A kill made by blinking onto it with the pause-teleport (TeleportFx):
     // added to the enemy's own points before the chain and speed multipliers,
     // a small reward for using a pause offensively. Not on boss parts.
@@ -132,16 +143,22 @@ public static class ScoreRules
     // "The faster they go, the higher the multiplier." Tiered by HUD speed
     // (round(speed * 100)) at the moment points are earned:
     //
-    //   below 20  x1.0    20+ x1.25    35+ x1.5    50+ x2.0    65+ x2.5
+    //   below 20  x1.0    20+ x1.25    30+ x1.5    40+ x2.0    46+ x2.5
+    //
+    // (2026-10: was 20 / 35 / 50 / 65, moved down with the speed caps --
+    // Space 38, Frost 40, Verdant 42, Ember 44, never past 50 -- so every
+    // tier is still reachable where it was: x1.5 late in a stock level, x2
+    // near a later world's cap, x2.5 only on a loop or while KEEP FLYING.)
     //
     // It multiplies flight (distance) and kills -- the points that come from
     // how the pilot flies. Boss and world bonuses are fixed rewards for
     // getting there (they scale with the loop instead, LoopRules.BonusScale),
     // and pickups stay flat. On kills it stacks with the chain multiplier
     // (x4 chain at x2.5 speed = x10), capped at MaxTotalMultiplier. Ember's
-    // cap is HUD 62, so x2.5 is only reached on a loop or while KEEP FLYING.
+    // cap is HUD 44, so x2.5 is only reached on a loop or while KEEP FLYING
+    // (or for the seconds a blue atom's +5 boost lasts).
     public static bool SpeedMultiplierEnabled = true;
-    public static readonly int[] SpeedTierHud = { 20, 35, 50, 65 };
+    public static readonly int[] SpeedTierHud = { 20, 30, 40, 46 };
     public static readonly float[] SpeedTierMultiplier = { 1.25f, 1.5f, 2f, 2.5f };
     public static float MaxTotalMultiplier = 8f;
 

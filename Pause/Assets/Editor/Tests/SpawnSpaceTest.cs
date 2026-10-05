@@ -422,7 +422,7 @@ public static class SpawnSpaceTest
         float[] densities = { 1f, maxDensity };
         const float dt = 1f / 60f, runSeconds = 120f;
         int[] spawnedAt = new int[2];
-        int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0;
+        int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0, brainsMoved = 0;
         string firstOverlap = null;
         var target = new GameObject("~SimShip").transform;
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -470,7 +470,16 @@ public static class SpawnSpaceTest
                                 r.transform.position += Vector3.down * v * dt;
                                 if (r.transform.position.y < -12f) Object.DestroyImmediate(r.gameObject);   // RailLaneScroller
                             }
-                            // LateUpdate: mines settle on their rails, then the chasers steer
+                            // LateUpdate: the brains run their patterns (EnemyBrain), mines
+                            // settle on their rails, then the chasers steer
+                            foreach (var f in buffer)
+                            {
+                                EnemyBrain brain;
+                                if (!f.TryGetComponent(out brain) || !brain.enabled) continue;
+                                brain.TargetOverride = target;
+                                brain.Step(dt);
+                                if (brain.Behaviour != null && brain.Behaviour.Moves) brainsMoved++;
+                            }
                             foreach (var f in buffer)
                             {
                                 RailMineMount mount;
@@ -528,10 +537,15 @@ public static class SpawnSpaceTest
         Check("spawns with no room were deferred (" + deferred + ")", deferred > 0);
         Check(string.Format("nearly every deferred spawn landed ({0} of {1} let go, <= 5% of all spawns)", dropped, deferred),
               dropped <= (spawnedAt[0] + spawnedAt[1]) * .05f);
+        Check("the enemies ran their own patterns in the runs (" + brainsMoved + " brain steps)", brainsMoved > 10000);
+        // 2026-10: the spawner fields fewer, smarter enemies on purpose
+        // (EnemyDensity; EnemyDensityTest holds the cut itself), and each one
+        // reserves its whole pattern, so the counts are no longer the
+        // pre-SpawnSpace spawner's: well below it, and never above.
         float r0 = spawnedAt[0] / (float)BaselineFirstPass, r1 = spawnedAt[1] / (float)BaselineMaxLoop;
-        Check(string.Format("first-pass density unchanged: {0} spawns vs {1} before ({2:P1})", spawnedAt[0], BaselineFirstPass, r0 - 1f),
-              Mathf.Abs(r0 - 1f) <= .05f);
-        Check(string.Format("max loop density unchanged: {0} spawns vs {1} before ({2:P1})", spawnedAt[1], BaselineMaxLoop, r1 - 1f),
-              Mathf.Abs(r1 - 1f) <= .05f);
+        Check(string.Format("first-pass density is the deliberate cut, not a planner loss: {0} spawns vs {1} before ({2:P1})",
+                            spawnedAt[0], BaselineFirstPass, r0 - 1f), r0 >= .3f && r0 <= .8f);
+        Check(string.Format("max loop density likewise: {0} spawns vs {1} before ({2:P1})", spawnedAt[1], BaselineMaxLoop, r1 - 1f),
+              r1 >= .2f && r1 <= .8f);
     }
 }
