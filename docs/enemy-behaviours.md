@@ -841,11 +841,11 @@ and atoms, and the title-screen traffic are not hazards and are untouched. No ot
 exists (no `Astr`-tagged prefab or scene object is left; `extraEnemyPrefabs` is empty in gameS1).
 
 **Data.** Each rock's behaviour record carries three tier sizes (`EnemyBehaviour.Sizes(small, typical, large)`,
-multiples of the roster size). `HazardSize.Draw` takes one `Random.value` from the spawner's stream: 28% small,
+multiples of the roster size). `HazardSize.Draw` takes one number from the sizes' own xorshift stream, seeded off `Random.state` in the spawner's `Start` without consuming it (so the spawner's own draws, and every seeded probe, are exactly as before sizes; a seed still gives the same sizes): 28% small,
 55% typical, 17% large (`SmallShare`, `LargeShare`), then +/-5% inside the tier (`Jitter`). The tiers are chosen
 so each rock's mean area (sum of share x size^2) is within 3% of 1: the board holds as much rock as it was tuned
 with. A spawn that has to wait (the deferred queue) keeps its draw, so waiting never trades a big rock for a small
-one (without that the realised mix fell to 37% small / 11% large and 0.92 mean area at loop density).
+one (without that the realised mix fell to 37% small / 11% large and 0.92 mean area at loop density; with it, 30% / 54% / 16% and 0.99).
 
 | Rocks | small / typical / large | range |
 |---|---|---|
@@ -876,16 +876,16 @@ pulse / orbit cycles and the tumble. A 1.55x cluster drifts in a 0.44 u band at 
 at 0.37 u/s.
 
 **Threat table** (`HazardSizeTest`, EnemyDensityProbe's stepping, 1080x2520, 4 seeds; the same seeds with sizes
-off, the draw still taken so the streams match):
+off; sizes have their own stream, so the spawner's is identical):
 
 | HUD | threats off -> on | rock area in view off -> on |
 |---|---|---|
-| 5 | 7.44 -> 7.30 (-1.9%) | 4.75 -> 4.56 |
-| 10 | 8.32 -> 8.27 (-0.6%) | 6.16 -> 6.13 |
-| 20 | 8.81 -> 8.66 (-1.6%) | 6.59 -> 6.52 |
-| 30 | 11.59 -> 11.74 (+1.4%) | 9.01 -> 8.88 |
-| 35 | 12.42 -> 12.32 (-0.8%) | 9.81 -> 9.58 |
-| whole run | 8.51 -> 8.46 (-0.5%) | 6.33 -> 6.41 |
+| 5 | 7.22 -> 7.27 (+0.7%) | 4.66 -> 5.00 |
+| 10 | 8.23 -> 8.28 (+0.6%) | 6.10 -> 5.79 |
+| 20 | 8.95 -> 8.87 (-0.9%) | 6.76 -> 6.83 |
+| 30 | 11.71 -> 11.89 (+1.5%) | 9.08 -> 9.04 |
+| 35 | 11.86 -> 12.33 (+3.9%) | 9.52 -> 9.84 |
+| whole run | 8.37 -> 8.55 (+2.1%) | 6.18 -> 6.36 |
 
 Threat accounting still counts bodies; the area-neutral draw keeps it where it was tuned, so the threat ceiling,
 the portal-pressure escalation and its body cap are unchanged code (OpenPortalTest).
