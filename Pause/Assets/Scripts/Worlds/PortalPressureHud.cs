@@ -7,8 +7,8 @@ using UnityEngine.UI;
 //
 //   * an "ENTER THE PORTAL" banner (WorldBanner), once;
 //   * a chip, "PORTAL  DANGER n" -- n goes up with every Level;
-//   * a glow down both edges of the screen that brightens and beats faster
-//     as the Level climbs, in the destination world's portal colour heating
+//   * a glow down both edges of the flight lane (just inside the rails) that
+//     brightens and beats faster as the Level climbs, in the destination world's portal colour heating
 //     toward amber. Never the player's red (HostileGlow.Tint; tested);
 //   * sound: the boss warning's procedural klaxon as the pressure starts and
 //     its thump on every Level (BossWarningAudio: no audio files).
@@ -18,10 +18,13 @@ using UnityEngine.UI;
 // pressure's own clock (flight seconds), so a paused game holds it still.
 // No per-frame allocation: the chip's text changes only when the number does.
 //
-// PLACEMENT (for the HUD layout work): the chip is centred horizontally,
-// ChipTopOffset canvas units under the top of the safe area. It has to end
-// up inside the rails and clear of display cutouts, and clear of the score
-// read-out and the quick actions; it was placed by numbers, not by eye.
+// PLACEMENT: everything sits inside the rails and clear of display cutouts
+// through TopBand (the band the score read-out, the quick actions and the
+// boss chip share): the chip is centred on the band, ChipTopOffset canvas
+// units under its top (below the read-out / quick-action row and the boss
+// chip), never wider than the band; the glows run down the band's two ends,
+// the rails' inner edges, never over rail art. Placed by numbers and
+// checked by OpenPortalTest, not by eye.
 public class PortalPressureHud : MonoBehaviour
 {
     public const string ObjectName = "~PortalPressure";
@@ -48,6 +51,7 @@ public class PortalPressureHud : MonoBehaviour
     int shownDanger = -1;
     Vector2 laidOutFor = new Vector2(-1f, -1f);
     Rect laidOutSafe;
+    TopBand.Frame laidOutBand;
 
     public Text Chip { get { return chip; } }
     public Image LeftGlow { get { return left; } }
@@ -218,18 +222,59 @@ public class PortalPressureHud : MonoBehaviour
         right.color = accent;
     }
 
-    // Under the top of the safe area, whatever the screen (re-laid only when
-    // the screen or its safe area changes).
+    // Inside the rails and under any cutout (TopBand), whatever the screen
+    // (re-laid only when the screen, its safe area or the band changes).
     void PlaceChip()
     {
         var screen = new Vector2(Screen.width, Screen.height);
         Rect safe = Screen.safeArea;
-        if (screen == laidOutFor && safe == laidOutSafe) return;
+        var band = TopBand.FrameFor(safe, screen);
+        if (screen == laidOutFor && safe == laidOutSafe && band.Same(laidOutBand)) return;
         laidOutFor = screen;
         laidOutSafe = safe;
+        laidOutBand = band;
         float scale = canvas != null && canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
-        float inset = Mathf.Max(0f, screen.y - safe.yMax) / scale;
-        chip.rectTransform.anchoredPosition = new Vector2(0f, -(inset + ChipTopOffset));
+        Layout(band, screen, scale);
+    }
+
+    // Pure placement in screen pixels (tests call it for any screen).
+    public static Rect ChipScreenRect(TopBand.Frame band, float scale)
+    {
+        float w = Mathf.Min(ChipWidth * scale, Mathf.Max(0f, band.right - band.left));
+        float h = ChipHeight * scale;
+        float cx = .5f * (band.left + band.right);
+        float top = band.top - ChipTopOffset * scale;
+        return new Rect(cx - .5f * w, top - h, w, h);
+    }
+
+    public static float ChipWidth = 520f, ChipHeight = 44f;
+
+    // The glows' outer edges: the band's ends (the rails' inner edges).
+    public static Vector2 GlowEdges(TopBand.Frame band) { return new Vector2(band.left, band.right); }
+
+    void Layout(TopBand.Frame band, Vector2 screen, float scale)
+    {
+        if (screen.x <= 0f || screen.y <= 0f) return;
+        Rect r = ChipScreenRect(band, scale);
+        var rt = chip.rectTransform;
+        rt.anchorMin = rt.anchorMax = Vector2.zero;
+        rt.pivot = new Vector2(.5f, 1f);
+        rt.sizeDelta = new Vector2(r.width / scale, r.height / scale);
+        rt.anchoredPosition = new Vector2(r.center.x / scale, r.yMax / scale);
+        // the text shrinks to the band rather than spill over a rail
+        chip.resizeTextForBestFit = true;
+        chip.resizeTextMinSize = 12;
+        chip.resizeTextMaxSize = ChipFontSize;
+        chip.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+        float l = band.left / screen.x, rr = band.right / screen.x;
+        float w = Mathf.Min(GlowWidthShare, .5f * Mathf.Max(0f, rr - l));
+        left.rectTransform.anchorMin = new Vector2(l, 0f);
+        left.rectTransform.anchorMax = new Vector2(l + w, 1f);
+        right.rectTransform.anchorMin = new Vector2(rr - w, 0f);
+        right.rectTransform.anchorMax = new Vector2(rr, 1f);
+        left.rectTransform.offsetMin = left.rectTransform.offsetMax = Vector2.zero;
+        right.rectTransform.offsetMin = right.rectTransform.offsetMax = Vector2.zero;
     }
 
     // ---- signals: the banner and the sound ----

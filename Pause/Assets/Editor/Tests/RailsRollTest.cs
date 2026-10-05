@@ -145,10 +145,12 @@ public static class RailsRollTest
             var r = walls[0].GetComponent<Renderer>();
             float tiles = Mathf.Abs(r.sharedMaterial.mainTextureScale.y), height = r.bounds.size.y;
             float tilePx = height / tiles * ppu;
-            // a minute in, and an hour in at the world's cap (43,200 frames of 13 u/s is ~ 47,000 u)
+            // a minute in, and an hour in (~ 47,000 u), at the fastest the board
+            // ever rolls: a full limit break over the one cap (SpeedRamp: HUD
+            // 35 + the boost's 10; the per-world caps 38 / 40 / 42 / 44 are gone)
             foreach (double start in new[] { 40.0, 47000.0 })
             {
-                float speed = WorldManager.Worlds[w].maxSpeed, step = speed * 30f * Dt;
+                float speed = SpeedRamp.Cap + SpeedRamp.MaxBoost, step = speed * 30f * Dt;
                 BoardRoll.SetDistance(start);
                 float last = OffsetOf(walls[0]);
                 for (int i = 1; i <= 300; i++)
@@ -179,7 +181,8 @@ public static class RailsRollTest
         bool whole = true, small = true;
         float worstLift = 0f;
         double last = BoardRoll.Snapped;
-        foreach (int hud in new[] { 5, 10, 20, 30, 38, 44 })
+        // up to the cap (35) and a full limit break past it (45)
+        foreach (int hud in new[] { 5, 10, 20, 30, 35, 40, 45 })
             for (int i = 0; i < 240; i++)
             {
                 frame++;
@@ -191,7 +194,7 @@ public static class RailsRollTest
                 small &= lift <= .5f + 1e-3f;
                 last = BoardRoll.Snapped;
             }
-        Check("at HUD 5 to 44 the drawn roll advances a whole number of screen pixels every frame", whole);
+        Check("at HUD 5 to 45 (the cap and a limit break) the drawn roll advances a whole number of screen pixels every frame", whole);
         Check("... and what is drawn is never more than half a pixel from the true roll (worst " + worstLift.ToString("F2") + " px)", small);
     }
 
@@ -221,7 +224,7 @@ public static class RailsRollTest
                 for (int i = 0; i < 600; i++)
                 {
                     frame++;
-                    float speed = Mathf.Lerp(.05f, WorldManager.Worlds[w].maxSpeed, i / 600f);   // the ramp, and a blue atom's +0.05
+                    float speed = Mathf.Lerp(.05f, SpeedRamp.Cap, i / 600f);   // the ramp to the cap, and a blue atom's +0.05 past it (a limit break)
                     if (i > 300 && i < 360) speed += .05f;
                     float step = BoardRoll.Advance(speed, Dt);                                   // what moveBackGround does ...
                     rail.transform.position += Vector3.down * BoardRoll.Advance(speed, Dt);      // ... and RailLaneScroller, same frame

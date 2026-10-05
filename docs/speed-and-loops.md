@@ -248,9 +248,13 @@ usual. `PortalPressure.EarningsClosed` is the one switch; `SpeedCapTest` / `Open
 * The portal itself pulses faster with Level (its core's existing pulse).
 * Sound: `PortalPressure.Beat` (Open, GraceOver, LevelUp, Entered) drives the boss warning's procedural
   ticks (`BossWarningAudio`), no audio files.
-* The chip is its own component (`PortalPressureHud`), on its own overlay canvas. **Placement note for
-  the HUD-layout work:** it must end up inside the rails and clear of cutouts; today it is centred
-  horizontally under the banner line.
+* The chip is its own component (`PortalPressureHud`), on its own overlay canvas, placed through
+  `TopBand` (the band the score read-out, quick actions and boss chip share): centred on the band,
+  `ChipTopOffset` under its top, never wider than it; the glows run down the band's ends, the rails'
+  inner edges, never over rail art. `OpenPortalTest` checks six screens with and without a notch.
+* Speed and the board roll: `BoardRoll.Advance` (the one board-scroll clock that rails, rail mines and
+  walls share) is fed `moveBackGround.speed`, which is natural (capped) + the boost, so the cap and a
+  limit break reach rails, mines and board alike. `RailsRollTest` now rolls at up to HUD 45.
 
 Art / audio gaps: no dedicated portal-waiting art, no pressure meter art, no dedicated sound.
 
@@ -290,5 +294,6 @@ spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 
 * [x] Stage 5: per-loop axes, score tiers (53496ef0)
 * [x] Stage 6: tests: SpeedCapTest, OpenPortalTest, existing suites updated (782af8ee and after)
 * [x] Measured tables filled in
-* [ ] Merge integrate/oct05-full-master (BoardRoll, TopBand), AllTests.RunAll after it
+* [x] Merge integrate/oct05-full-master (BoardRoll, TopBand), AllTests.RunAll after it: 95 suites, only
+  the two known base failures ([HOSTILE] Frost wrapper, [WB] Verdant/mid)
 * [ ] Play it (not done: simulation and tests only)

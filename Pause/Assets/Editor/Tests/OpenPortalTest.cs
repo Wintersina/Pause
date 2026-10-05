@@ -597,6 +597,8 @@ public static class OpenPortalTest
             Check("live: the chip and both glows wear the accent", hud.Chip.color.a > 0f && hud.LeftGlow.color.a > 0f &&
                   !HostileGlow.IsPlayerRed(hud.Chip.color));
 
+            InsideTheRails();
+
             Enter();
             hud.Refresh();
             Check("flown through: the chip and glow are gone, and the beat says Entered",
@@ -608,6 +610,31 @@ public static class OpenPortalTest
             Object.DestroyImmediate(hud.gameObject);
             Object.DestroyImmediate(wm.gameObject);
         }
+    }
+
+    // The chip and the glows sit inside the rails and under any cutout
+    // (TopBand), on phones short and tall, with and without a notch.
+    static void InsideTheRails()
+    {
+        bool inside = true;
+        var shapes = new[] { new Vector2(1080f, 1920f), new Vector2(1080f, 2340f), new Vector2(1080f, 2520f), new Vector2(1170f, 2532f),
+                             new Vector2(1536f, 2048f), new Vector2(720f, 1280f) };
+        foreach (var screen in shapes)
+            foreach (bool notch in new[] { false, true })
+            {
+                var safe = notch ? new Rect(0f, 0f, screen.x, screen.y - 130f) : new Rect(0f, 0f, screen.x, screen.y);
+                var cutouts = notch ? new[] { new Rect(screen.x * .5f - 150f, screen.y - 100f, 300f, 100f) } : new Rect[0];
+                var band = TopBand.FrameFor(safe, screen, BossRails.InnerEdge, cutouts);
+                float scale = Mathf.Min(screen.x / 800f, screen.y / 1200f);   // the overlay canvas: 800x1200, Expand
+                Rect chip = PortalPressureHud.ChipScreenRect(band, scale);
+                Vector2 glow = PortalPressureHud.GlowEdges(band);
+                bool ok = chip.xMin >= band.left - .5f && chip.xMax <= band.right + .5f && chip.yMax <= band.top && chip.yMin > 0f &&
+                          glow.x >= band.left - .5f && glow.y <= band.right + .5f;
+                foreach (var c in cutouts) ok &= !chip.Overlaps(c);
+                if (!ok) Debug.Log("[PORTAL] chip out of the band at " + screen + (notch ? " (notch)" : "") + ": " + chip + " band " + band.left + ".." + band.right + " top " + band.top);
+                inside &= ok;
+            }
+        Check("the danger chip and the edge glows sit inside the rails and clear of cutouts on six screens, notched or not (TopBand)", inside);
     }
 
     // ---- 8. allocations ---------------------------------------------------------------
