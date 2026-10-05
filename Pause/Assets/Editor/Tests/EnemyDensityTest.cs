@@ -64,7 +64,7 @@ public static class EnemyDensityTest
         Check("the spawn rate is cut least at low speed and most at high speed (x" + EnemyDensity.RateScale(5f) + " at HUD 5, x" +
               EnemyDensity.RateScale(35f) + " at 35)",
               EnemyDensity.RateScale(5f) > EnemyDensity.RateScale(20f) && EnemyDensity.RateScale(20f) > EnemyDensity.RateScale(35f) &&
-              EnemyDensity.RateScale(5f) <= 1f && EnemyDensity.RateScale(5f) >= .7f && EnemyDensity.RateScale(35f) <= .6f);
+              EnemyDensity.RateScale(5f) <= 1f + 1e-4f && EnemyDensity.RateScale(5f) >= .7f && EnemyDensity.RateScale(35f) <= .6f);
         Check("past the high-speed end it holds (no further cut at the cap)",
               Mathf.Approximately(EnemyDensity.RateScale(35f), EnemyDensity.RateScale(50f)) &&
               Mathf.Approximately(EnemyDensity.RateScale(0f), EnemyDensity.RateScale(5f)));
@@ -113,5 +113,19 @@ public static class EnemyDensityTest
               BeforeOnScreen[0] * (1f - cut[0]) >= 4f && BeforeOnScreen[1] * (1f - cut[1]) >= 4f);
         Check("the board never holds more bodies than the threat ceiling allows (peak " + peakThreats + ")",
               peakThreats <= EnemyDensity.MaxThreats(0f) + 2f);
+
+        // pilots: they stay, they are few, and they get to shoot at any speed
+        bool some = true, capped = true, shooting = true, bounded = true;
+        for (int i = 0; i < points.Length; i++)
+        {
+            some &= pilotsAt[i] >= .3f;
+            capped &= pilotsAt[i] <= EnemyDensity.MaxPilotLoad(points[i], 0) / .5f + EnemyDensity.MaxChasers(points[i]);
+            if (points[i] >= 20) { shooting &= shotsAt[i] >= .25f; some &= pilotsAt[i] >= .8f; }
+            bounded &= stayAt[i] >= 3f && stayAt[i] <= 13f;
+        }
+        Check("pilots are on screen at every speed (0.3+ on average early, 0.8+ from HUD 20) and never past their cap", some && capped);
+        Check("at HUD 20 and above, 35 and the caps included, enemy shots are in flight (0.25+ on average): shooters get to shoot at speed", shooting);
+        Check("a pilot that flies off has been in view 3 to 13 s on average at every speed (whole run " + run.inViewSeconds.ToString("F1") + " s)",
+              bounded && run.inViewSeconds >= 3f && run.inViewSeconds <= 13f);
     }
 }

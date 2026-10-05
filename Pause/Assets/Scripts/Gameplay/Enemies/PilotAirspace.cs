@@ -6,11 +6,15 @@ using UnityEngine;
 // A pilot holds its place in the world while the board pours past, so
 // instead of making it dodge every rock, hazards are routed round it:
 //
-//   * a pilot RESERVES its column -- its station x, its lateral band and its
-//     body -- from the moment it is admitted until it has left;
+//   * a pilot RESERVES its column -- its body at its station x, plus a
+//     margin -- from the moment it is admitted until it has left;
 //   * the spawner places no hazard whose envelope crosses a reserved column
-//     (Blocks), and a pilot waits above the view until the hazards that were
-//     already in its column have gone by (ColumnClear);
+//     (Blocks, TryFreeX), and a pilot waits above the view until the hazards
+//     that were already in its column have gone by (ColumnClear);
+//   * its lateral band is NOT reserved: hazards may come down beside its
+//     column, and the pilot sidesteps them -- BandLimits tells it how far
+//     either side of its column it may be while one passes, and its own
+//     column is always a safe place to duck back to;
 //   * admission is capped (TryAdmit): a pilot load by speed and world
 //     (EnemyDensity.MaxPilotLoad) and a share of the lane that may be
 //     reserved at once, so hazards always have room and so does the ship;
@@ -29,7 +33,7 @@ public static class PilotAirspace
     public const float RailClear = 2f;
     // At most this share of the lane (2 x SpawnLane.LaneHalf) is reserved
     // (one pilot is always allowed, however wide).
-    public static float MaxReservedShare = .55f;
+    public static float MaxReservedShare = .50f;
     // How far above the spawner's line a pilot waits (hazards lift to +1.5).
     public const float WaitAbove = 3f;
     // No new pilot this many seconds before a boss; pilots are ordered out
@@ -78,7 +82,36 @@ public static class PilotAirspace
 
     public static float ColumnHalf(EnemyDef def, EnemyBehaviour b)
     {
-        return (b != null ? b.bandX : 0f) + SpawnSpace.BodyHalf(def).x + ColumnMargin;
+        return SpawnSpace.BodyHalf(def).x + ColumnMargin;
+    }
+
+    // How far either side of its column a pilot may be right now: its band,
+    // cut back on a side while a hazard is passing (or about to pass) there.
+    // `lookUp` / `lookDown`: how far above / below the pilot counts as
+    // "about to". Its column is never crossed by a hazard, so every hazard is
+    // wholly on one side and lo <= 0 <= hi always holds.
+    public static void BandLimits(EnemyBrain pilot, Vector2 at, Vector2 half, float band, float lookUp, float lookDown,
+                                  out float lo, out float hi)
+    {
+        lo = -band;
+        hi = band;
+        float x = pilot.Anchor.x;
+        float yLow = at.y - half.y - lookDown, yHigh = at.y + half.y + lookUp;
+        var enemies = SpawnSpace.Live(SpawnLayer.Enemy);
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var f = enemies[i];
+            if (f == null) continue;
+            var plan = f.Plan;
+            if (plan != null && plan.SelfSteering) continue;
+            Rect e = f.Envelope();
+            if (e.yMax < yLow || e.yMin > yHigh) continue;
+            float clear = half.x + SpawnSpace.Margin * 2f + .04f;
+            if (e.center.x >= x) hi = Mathf.Min(hi, e.xMin - x - clear);
+            else lo = Mathf.Max(lo, e.xMax - x + clear);
+        }
+        if (hi < 0f) hi = 0f;
+        if (lo > 0f) lo = 0f;
     }
 
     // How much of the pilot budget an enemy takes.
@@ -126,6 +159,54 @@ public static class PilotAirspace
             if (p == null) continue;
             float x = p.Anchor.x, h = p.ColumnHalf;
             if (xMin < x + h && xMax > x - h) return true;
+        }
+        return false;
+    }
+
+    static readonly float[] gapLo = new float[10], gapHi = new float[10];
+
+    // A centre x for something reaching `reachHalf` either side of it, inside
+    // +/-maxX, in a stretch of lane no pilot has reserved: picked at random
+    // among the gaps that are wide enough, weighted by their room. False when
+    // no gap is (the caller waits for a pilot to leave).
+    public static bool TryFreeX(float reachHalf, float maxX, out float x)
+    {
+        Prune();
+        x = 0f;
+        float lo = -maxX - reachHalf, hi = maxX + reachHalf;
+        if (live.Count == 0) { x = Random.Range(-maxX, maxX); return true; }
+        // walk the lane left to right past each column in turn (a handful: no sort needed)
+        int gaps = 0;
+        float cursor = lo, room = 0f;
+        for (int guard = 0; guard < live.Count + 1 && gaps < gapLo.Length; guard++)
+        {
+            // the next column starting at or after the cursor
+            float nextLo = hi, nextHi = hi;
+            for (int i = 0; i < live.Count; i++)
+            {
+                float cLo = live[i].Anchor.x - live[i].ColumnHalf, cHi = live[i].Anchor.x + live[i].ColumnHalf;
+                if (cHi <= cursor) continue;
+                if (cLo < nextLo) { nextLo = cLo; nextHi = cHi; }
+            }
+            float gapEnd = Mathf.Min(nextLo, hi);
+            float usable = gapEnd - cursor - 2f * reachHalf;
+            if (usable >= 0f)
+            {
+                gapLo[gaps] = cursor + reachHalf;
+                gapHi[gaps] = gapEnd - reachHalf;
+                room += usable + .01f;
+                gaps++;
+            }
+            if (nextLo >= hi) break;
+            cursor = Mathf.Max(cursor, nextHi);
+        }
+        if (gaps == 0) return false;
+        float pick = Random.value * room;
+        for (int g = 0; g < gaps; g++)
+        {
+            float w = gapHi[g] - gapLo[g] + .01f;
+            if (pick <= w || g == gaps - 1) { x = Random.Range(gapLo[g], gapHi[g]); return true; }
+            pick -= w;
         }
         return false;
     }

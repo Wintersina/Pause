@@ -281,6 +281,9 @@ public class enmiesOnBoard : MonoBehaviour {
     public const int MaxDeferred = 24;
     public const float MaxDeferSeconds = 1f;
     const int PlaceTries = 6;
+    // Beside a pilot's column a hazard takes the widest of these shares of
+    // its lateral band that fits a free stretch of lane (two tries each).
+    static readonly float[] RoutedBandScales = { 1f, .45f, 0f };
     const int LiftSteps = 4;
     const float LiftStep = .5f;
     const int MineLiftSteps = 8;
@@ -371,7 +374,15 @@ public class enmiesOnBoard : MonoBehaviour {
     bool TryPlace(Vector2 half, bool weaves, float preferredX, float maxX, EnemyDef laneDef,
                   out Vector3 pos, out float amplitude, IMovementFootprint plan = null)
     {
-        if (float.IsNaN(preferredX)) preferredX = Random.Range(-maxX, maxX);
+        // anywhere in its lane -- but hazards are routed round the pilots: with
+        // any on station, somewhere in a stretch of lane none of them holds
+        // (and where the gaps are narrow it keeps a narrower band: RoutedBandScales)
+        var brainPlan = plan as EnemyBrainPlan;
+        float fullBand = brainPlan != null && brainPlan.behaviour != null ? brainPlan.behaviour.bandX : 0f;
+        float fullMaxX = maxX;
+        if (brainPlan != null) brainPlan.bandScale = 1f;
+        bool routed = !weaves && PilotAirspace.Count > 0;
+        if (!routed && float.IsNaN(preferredX)) preferredX = Random.Range(-maxX, maxX);
         float clock = SpawnSpace.Clock;
         float baseY = transform.position.y;
         int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
@@ -389,7 +400,14 @@ public class enmiesOnBoard : MonoBehaviour {
                         x = WeavePlan.X(amplitude, clock);
                         weaveCandidate.amplitude = amplitude;
                     }
-                    else x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
+                    else if (!routed) x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
+                    else
+                    {
+                        float scale = RoutedBandScales[Mathf.Min(t / 2, RoutedBandScales.Length - 1)];
+                        if (brainPlan != null) brainPlan.bandScale = scale;
+                        maxX = fullMaxX + fullBand * (1f - scale);   // a narrower band may sit nearer the rails
+                        if (!PilotAirspace.TryFreeX(half.x + fullBand * scale, maxX, out x)) continue;
+                    }
                     var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : plan);
                     if (!SpawnSpace.Fits(c)) continue;
                     // hazards are routed round the pilots: never down a reserved column
@@ -440,6 +458,11 @@ public class enmiesOnBoard : MonoBehaviour {
                       behaviour != null ? brainCandidate : null))
             return false;
         var go = EnemyFactory.Create(def, pos, transform.rotation);
+        if (behaviour != null && brainCandidate.bandScale < 1f)
+        {
+            EnemyBrain squeezed;
+            if (go.TryGetComponent(out squeezed)) squeezed.SetBandScale(brainCandidate.bandScale);
+        }
         if (weaves)
         {
             var mover = go.GetComponent<moveEnimes>();
@@ -785,6 +808,7 @@ public class enmiesOnBoard : MonoBehaviour {
             {
                 float y = transform.position.y + k * LiftStep;
                 brainCandidate.behaviour = def != null ? def.Behaviour : null;
+                brainCandidate.bandScale = 1f;
                 var c = new SpawnCandidate(new Vector2(x, y), half, brainCandidate.behaviour != null ? brainCandidate : null);
                 if (!SpawnSpace.Fits(c)) continue;
                 if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;

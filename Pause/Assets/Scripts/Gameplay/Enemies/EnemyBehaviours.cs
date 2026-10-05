@@ -260,18 +260,18 @@ public static class EnemyBehaviours
             .Patrol(.8f, 2.6f);
         B("space_big", "Bastion: holds its column, twin cannon bolts straight down")
             .Brake(1.2f, .5f).Shot(Bolt, 2, 0f, 2.6f, .2f).Twin(.42f).Muzzle(.5f).Timing(.8f, 2.6f, 3, .15f)
-            .Pilot(PilotEntry.Drop, 1.5f, 10f, PilotExit.Climb).Slow().Volleys(3);
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("space_fighter_1", "Needle: fast narrow weave, then a straight dash")
             .Sway(.45f, .9f).Lunge(0f, 1.5f, .22f).Timing(.45f, 2f, 1, .15f)
             .Pilot(PilotEntry.Swoop, 2.2f, 2.5f, PilotExit.Run).Volleys(0);
         B("space_fighter_2", "Steel Claw: shadows the pilot, pinches, pounces")
-            .Track(.75f, .8f).Brake(1.1f, .55f).Lunge(1f, 1.3f).Timing(.55f, 1.6f, 2, .15f)
+            .Track(.55f, .8f).Brake(1.1f, .55f).Lunge(1f, 1.3f).Timing(.55f, 1.6f, 2, .15f)
             .Pilot(PilotEntry.Drop, 2.6f, 5f, PilotExit.Run).Volleys(1);
         B("space_fighter_3", "Twin Claw: wide slow sweep, two splayed bolts")
-            .Sway(1f, 3.2f).Shot(Bolt, 2, 26f, 2.8f, .18f).Timing(.6f, 2.2f, 2, .15f)
+            .Sway(.7f, 2.6f).Shot(Bolt, 2, 26f, 2.8f, .18f).Timing(.6f, 2.2f, 2, .15f)
             .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(3);
         B("space_fighter_4", "Warden: hovers, tracks, one heavy aimed shell")
-            .Track(.6f, .5f).Brake(1.8f, .65f).Shot(Shell, 1, 0f, 3.4f, .3f, 28f).Muzzle(.4f).Timing(.9f, 2.4f, 2, .15f)
+            .Track(.5f, .5f).Brake(1.8f, .65f).Shot(Shell, 1, 0f, 3.4f, .3f, 28f).Muzzle(.4f).Timing(.9f, 2.4f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(4);
         B("space_chaser", "Steel Hound: steady pursuit, then orbits")
             .Chaser(ChaserStyle.Hound, 3.5f, 2.4f, .9f, 1.1f, .7f)
@@ -291,15 +291,15 @@ public static class EnemyBehaviours
             .Creep(1.4f, .7f).Cross(Shard, 1, 0f, 3f, .22f).Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
         B("frost_big", "Glacier Golem: slow sway, a fan of three frost shards")
             .Sway(.3f, 4.5f).Shot(Shard, 3, 22f, 2.4f, .22f).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
-            .Pilot(PilotEntry.Drop, 1.6f, 10f, PilotExit.Climb).Slow().Volleys(3);
+            .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("frost_fighter_1", "Flake: snowflake drift, then a lance dash at the pilot")
-            .Sway(.8f, 3.4f).Lunge(.8f, 1.5f).Timing(.55f, 2f, 1, .15f)
+            .Sway(.6f, 3f).Lunge(.8f, 1.5f).Timing(.55f, 2f, 1, .15f)
             .Pilot(PilotEntry.Swoop, 2.4f, 3f, PilotExit.Run).Volleys(0);
         B("frost_fighter_2", "Icicle: tracks, one aimed lance bolt")
-            .Track(.7f, .9f).Shot(Bolt, 1, 0f, 3.6f, .18f, 30f).Timing(.55f, 2f, 2, .15f)
+            .Track(.55f, .9f).Shot(Bolt, 1, 0f, 3.6f, .18f, 30f).Timing(.55f, 2f, 2, .15f)
             .Pilot(PilotEntry.Drop, 2.4f, 5.5f, PilotExit.Peel).Volleys(3);
         B("frost_fighter_3", "Frost Kite: quick loops, a splayed pair of shards")
-            .Orbit(.6f, 1.5f).Shot(Shard, 2, 34f, 3f, .18f).Timing(.55f, 2.2f, 2, .15f)
+            .Orbit(.5f, 1.5f).Shot(Shard, 2, 34f, 3f, .18f).Timing(.55f, 2.2f, 2, .15f)
             .Pilot(PilotEntry.Drop, 2.6f, 7f, PilotExit.Run).Volleys(3);
         B("frost_fighter_4", "Hailstorm: hovers, a wide slow hail of five")
             .Brake(1.8f, .65f).Shot(Shard, 5, 24f, 2f, .2f).Muzzle(.35f).Timing(1f, 3.4f, 2, .15f)
@@ -324,18 +324,18 @@ public static class EnemyBehaviours
             .Patrol(.7f, 1.9f).Cross(Shard, 3, 20f, 2.8f, .18f).Muzzle(.5f).Timing(1f, 3.5f, 1, .15f);
         B("verdant_big", "Bloom Maw: lobs a resin glob onto the pilot's spot")
             .Lob(.3f, 2.5f).Muzzle(.2f).Timing(.9f, 3.5f, 2, .15f)
-            .Pilot(PilotEntry.Drop, 1.4f, 10f, PilotExit.Climb).Slow().Volleys(3);
+            .Pilot(PilotEntry.Drop, 1.4f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("verdant_fighter_1", "Gnat: fast jittery weave")
             .Sway(.5f, .55f).Bob(.14f, .7f)
             .Pilot(PilotEntry.Swoop, 2.6f, 3f, PilotExit.Run);
         B("verdant_fighter_2", "Wasp: tracks, then the deepest dive in the roster")
-            .Track(.8f, 1f).Brake(1.2f, .55f).Lunge(1f, 2f, .24f).Timing(.5f, 2f, 1, .15f)
+            .Track(.6f, 1f).Brake(1.2f, .55f).Lunge(1f, 2f, .24f).Timing(.5f, 2f, 1, .15f)
             .Pilot(PilotEntry.Drop, 2.4f, 5f, PilotExit.Run).Volleys(1);
         B("verdant_fighter_3", "Mantis: hovers still, slashes sideways across its band")
-            .Band(.9f).Brake(1.6f, .65f).Lunge(1f, 0f, .2f).Timing(.6f, 1.3f, 3, .15f)
+            .Band(.7f).Brake(1.6f, .65f).Lunge(1f, 0f, .2f).Timing(.6f, 1.3f, 3, .15f)
             .Pilot(PilotEntry.Drop, 3f, 6.5f, PilotExit.Peel).Volleys(3);
         B("verdant_fighter_4", "Hornet Queen: hovers, tracks, tight fans of three stingers")
-            .Track(.6f, .6f).Brake(1.8f, .65f).Shot(Bolt, 3, 12f, 3.2f, .16f, 26f).Muzzle(.4f).Timing(.8f, 2.6f, 3, .15f)
+            .Track(.5f, .6f).Brake(1.8f, .65f).Shot(Bolt, 3, 12f, 3.2f, .16f, 26f).Muzzle(.4f).Timing(.8f, 2.6f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(4);
         B("verdant_chaser", "Dragonsting: weaving pursuit, longer and slower")
             .Chaser(ChaserStyle.Weaver, 4.6f, 2f, .9f, 1.2f, .8f)
@@ -357,15 +357,15 @@ public static class EnemyBehaviours
             .Cross(Slag, 1, 0f, 1.6f, .3f).Muzzle(.5f).Timing(1.1f, 4f, 2, .15f);
         B("ember_big", "Magma Skull: jaw drops, two slag blobs angled out")
             .Shot(Slag, 2, 56f, 1.5f, .32f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
-            .Pilot(PilotEntry.Drop, 1.5f, 10f, PilotExit.Climb).Slow().Volleys(3);
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("ember_fighter_1", "Cinder: diagonal drift, then a straight dash")
-            .Drift(.6f, .7f).Lunge(0f, 1.7f, .22f).Timing(.45f, 2f, 1, .15f)
+            .Drift(.5f, .7f).Lunge(0f, 1.7f, .22f).Timing(.45f, 2f, 1, .15f)
             .Pilot(PilotEntry.Swoop, 2.4f, 2.5f, PilotExit.Run).Volleys(0);
         B("ember_fighter_2", "Scorch: lines up over the pilot, quick bolts straight down")
-            .Track(.9f, .9f).Shot(Bolt, 1, 0f, 3.8f, .18f).Timing(.5f, 1.4f, 3, .15f)
+            .Track(.6f, .9f).Shot(Bolt, 1, 0f, 3.8f, .18f).Timing(.5f, 1.4f, 3, .15f)
             .Pilot(PilotEntry.Drop, 2.2f, 5.5f, PilotExit.Peel).Volleys(4);
         B("ember_fighter_3", "Brand: fast strafing run, one aimed bolt")
-            .Drift(1.2f, 1.5f).Shot(Bolt, 1, 0f, 3.4f, .18f, 34f).Timing(.5f, 1.8f, 2, .15f)
+            .Drift(.75f, 1.5f).Shot(Bolt, 1, 0f, 3.4f, .18f, 34f).Timing(.5f, 1.8f, 2, .15f)
             .Pilot(PilotEntry.Drop, 2.4f, 7f, PilotExit.Run).Volleys(3);
         B("ember_fighter_4", "Pyre: hovers, a full ring of eight")
             .Track(.5f, .4f).Brake(1.8f, .65f).Ring(Bolt, 8, 2.2f, .18f).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)

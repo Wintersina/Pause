@@ -49,10 +49,17 @@ public class EnemyBrain : MonoBehaviour
     public const float CatchUpSpeed = 12f;        // u/s back to its line after giving way
     public const float DodgeSpeed = 4f;           // u/s sideways when ResolveSteer has to give way
     public const float LungeRecoverSeconds = .55f;
+    public const float SidestepLookSeconds = .5f; // how far up the board (seconds of scroll) it watches for hazards beside its column
 
     // Pilots fly their engagement scripts (false: every enemy rides the
     // scroll as a hazard, the first pass's behaviour).
     public static bool PilotsEnabled = true;
+
+    // A hazard squeezed in beside a pilot's column keeps a narrower lateral
+    // band than its behaviour's (the spawner sets it; 1 = the whole band).
+    public float BandScale { get; private set; } = 1f;
+    public void SetBandScale(float scale) { BandScale = Mathf.Clamp01(scale); }
+    float Band => Behaviour.bandX * BandScale;
 
     public bool IsPilot { get; private set; }
     public PilotStage Stage { get; private set; }
@@ -217,7 +224,7 @@ public class EnemyBrain : MonoBehaviour
         StepAttack(dt, p, baseX, inView, t);
 
         // never outside the envelope, never into a rail
-        float band = Behaviour.bandX;
+        float band = Band;
         float total = Mathf.Clamp(ox + lx, -band, band);
         if (!onRail)
         {
@@ -244,7 +251,7 @@ public class EnemyBrain : MonoBehaviour
     void StepLateral(float dt, float baseX, Transform t, bool committed)
     {
         var b = Behaviour;
-        float band = b.bandX;
+        float band = Band;
         switch (b.lateral)
         {
             case EnemyLateral.Drift:
@@ -459,9 +466,19 @@ public class EnemyBrain : MonoBehaviour
         if (b.vertical != EnemyVertical.Brake) StepVertical(dt, inView, committed);   // (a pilot's hover is its station)
         if (Stage == PilotStage.Engaging) StepAttack(dt, p, anchor.x, inView, t);
 
-        // where it wants to be: inside its band, inside the lane
+        // where it wants to be: inside its band -- cut back on a side while a
+        // hazard passes there (it sidesteps toward its own column, which no
+        // hazard is ever routed down) -- and inside the lane
         float band = b.bandX;
-        float total = Mathf.Clamp(ox + lx, -band, band);
+        if (footprint == null) TryGetComponent(out footprint);
+        float bandLo = -band, bandHi = band;
+        if (band > 0f && footprint != null && Stage != PilotStage.Waiting)
+        {
+            bool diving = runDiving || (State == Phase.Release && b.attack == EnemyAttack.Lunge);
+            PilotAirspace.BandLimits(this, p, footprint.half, band, SpawnSpace.ScrollSpeed * SidestepLookSeconds + .6f,
+                                     diving ? 4f : .4f, out bandLo, out bandHi);
+        }
+        float total = Mathf.Clamp(ox + lx, bandLo, bandHi);
         float lane = SpawnLane.LaneHalf - halfX;
         float wantX = Mathf.Clamp(anchor.x + total, -lane, lane);
         float wantY = anchor.y + oy + ly;
@@ -470,7 +487,6 @@ public class EnemyBrain : MonoBehaviour
 
         // the chaser's rule: never step into another body (another pilot, a
         // chaser, an elite, a hazard that got into its column anyway)
-        if (footprint == null) TryGetComponent(out footprint);
         if (footprint != null && footprint.isActiveAndEnabled)
             wish = SpawnSpace.ResolveSteer(footprint, from, wish, SpawnSpace.ScrollSpeed * dt, DodgeSpeed * dt);
         transform.position = new Vector3(wish.x, wish.y, p.z);
@@ -629,11 +645,12 @@ public class EnemyBrain : MonoBehaviour
     // ---- SpawnSpace --------------------------------------------------------
 
     // A body rect widened to everything the behaviour can reach around `basePoint`.
-    public static Rect Envelope(EnemyBehaviour b, Vector2 basePoint, Vector2 half)
+    public static Rect Envelope(EnemyBehaviour b, Vector2 basePoint, Vector2 half, float bandScale = 1f)
     {
         if (b == null) return SpawnSpace.BodyRect(basePoint, half);
-        return Rect.MinMaxRect(basePoint.x - b.bandX - half.x, basePoint.y - b.Down - half.y,
-                               basePoint.x + b.bandX + half.x, basePoint.y + b.Up + half.y);
+        float band = b.bandX * bandScale;
+        return Rect.MinMaxRect(basePoint.x - band - half.x, basePoint.y - b.Down - half.y,
+                               basePoint.x + band + half.x, basePoint.y + b.Up + half.y);
     }
 
     // A pilot's sweep (self-steering): where it may be over the next
@@ -652,7 +669,7 @@ public class EnemyBrain : MonoBehaviour
     {
         if (brain == null || brain.Behaviour == null || !brain.enabled) return SpawnSpace.BodyRect(center, half);
         Vector2 basePoint = new Vector2(center.x - brain.ox - brain.lx, center.y - brain.oy - brain.ly);
-        return Envelope(brain.Behaviour, basePoint, half);
+        return Envelope(brain.Behaviour, basePoint, half, brain.BandScale);
     }
 }
 
@@ -661,10 +678,11 @@ public class EnemyBrain : MonoBehaviour
 public sealed class EnemyBrainPlan : IMovementFootprint
 {
     public EnemyBehaviour behaviour;
+    public float bandScale = 1f;
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return EnemyBrain.Envelope(behaviour, center, half);
+        return EnemyBrain.Envelope(behaviour, center, half, bandScale);
     }
 
     public bool SelfSteering => false;
@@ -737,13 +755,15 @@ public static class EnemyThreat
 // board. Returns how many left the muzzle (0 when the pool is spent).
 public static class EnemyVolley
 {
-    public static int Fired;   // tests
+    public static int Fired, Volleys;   // tests, the probe
 
     public static int Fire(EnemyBrain brain, EnemyBehaviour b, Vector2 at, Vector2 aim, Vector2 lobTarget)
     {
         var pool = EliteSystem.Shots;
         var style = b.ShotStyle;
         var source = brain.gameObject;
+        pilotVolley = brain.IsPilot;
+        Volleys++;
         int n = 0;
         switch (b.attack)
         {
@@ -790,13 +810,21 @@ public static class EnemyVolley
         return n;
     }
 
+    // A hazard's shot rides the board with it (its speed is over the board);
+    // a pilot holds its place in the world, so its shot flies in world space,
+    // a little faster (PilotShotSpeed), like an elite's.
+    public const float PilotShotSpeed = 1.25f;
+
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
-        var s = pool.Fire(null, style, b.shotKind, at, direction * b.shotSpeed);
+        float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed : b.shotSpeed;
+        var s = pool.Fire(null, style, b.shotKind, at, direction * speed);
         if (s == null) return 0;
-        s.AsRosterShot(source, b.ride);
+        s.AsRosterShot(source, pilotVolley ? 0f : b.ride);
         return 1;
     }
+
+    static bool pilotVolley;
 
     static Vector2 Turn(Vector2 v, float deg)
     {

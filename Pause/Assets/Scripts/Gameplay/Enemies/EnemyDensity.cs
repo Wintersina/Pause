@@ -4,6 +4,11 @@ using UnityEngine;
 // of the 2026-10 density cut in one place (docs/enemy-behaviours.md has the
 // measured before / after table; EnemyDensityTest holds it).
 //
+// Pilots (fighters, heavies, aliens, chasers) stay and fight for seconds
+// rather than crossing in one, so they are budgeted by how many are in play
+// at once (MaxPilotLoad, MaxChasers; PilotAirspace), and the ceiling below
+// counts them for as long as they are there.
+//
 // Each enemy now moves and attacks on its own, so there are fewer of them:
 // about 45% fewer threats over a run, cut less at low speed (the early game
 // must not feel empty) and more at high speed (where the board scrolls past
@@ -19,7 +24,7 @@ public static class EnemyDensity
     // ---- tunables ----
     // Spawn rate at and below LowHud, at and above HighHud (linear between).
     public static float LowHud = 5f, HighHud = 35f;
-    public static float RateAtLowSpeed = .90f, RateAtHighSpeed = .55f;
+    public static float RateAtLowSpeed = 1f, RateAtHighSpeed = .55f;
     // Threats (bodies in or just above the view + weighted shots) allowed.
     public static float ThreatsAtLowSpeed = 11f, ThreatsAtHighSpeed = 10f;
     // How far above the top of the view a body already counts.
@@ -74,7 +79,10 @@ public static class EnemyDensity
             var f = live[i];
             if (f == null) continue;
             float y = f.transform.position.y;
-            if (y >= bottom && y <= top) bodies++;
+            // (a pilot or chaser counts wherever it is: one waiting above the
+            // view or climbing in from below is already on its way)
+            var plan = f.Plan;
+            if ((y >= bottom && y <= top) || (plan != null && plan.SelfSteering)) bodies++;
         }
         return bodies + HostileShots.ActiveCount * EnemyThreat.ShotWeight;
     }
