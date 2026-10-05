@@ -463,7 +463,7 @@ public static class ScreenFitScreens
 
     // Everything the top band can put on screen (read-out, quick actions,
     // boss chip, boss banner), screen px: what an overlay up there must clear.
-    static List<KeyValuePair<string, Rect>> BandRects(ScreenFitRig rig, HudStyler styler, bool banner)
+    static List<KeyValuePair<string, Rect>> BandRects(ScreenFitRig rig, HudStyler styler, bool banner, bool chip = true)
     {
         var list = new List<KeyValuePair<string, Rect>>();
         var screen = new Vector2(rig.W, rig.H);
@@ -476,7 +476,7 @@ public static class ScreenFitScreens
         }
         list.Add(new KeyValuePair<string, Rect>("quick actions", PauseQuickActions.ScreenRectFor(band, screen)));
         var warn = BossWarningHud.ComputeLayout(rig.device.Safe, screen, hud, band);
-        list.Add(new KeyValuePair<string, Rect>("boss chip", warn.chip));
+        if (chip) list.Add(new KeyValuePair<string, Rect>("boss chip", warn.chip));
         if (banner) list.Add(new KeyValuePair<string, Rect>("boss banner", warn.banner));
         return list;
     }
@@ -485,9 +485,9 @@ public static class ScreenFitScreens
     // `banner`: also BOSS INCOMING's banner (it is up for the warning's first
     // seconds; the codex toast dodges it at run time, and it is gone by the
     // time the boss's name plate comes up).
-    static void ClearOfBand(ScreenFitRig rig, HudStyler styler, string what, Rect r, bool banner = true)
+    static void ClearOfBand(ScreenFitRig rig, HudStyler styler, string what, Rect r, bool banner = true, bool chip = true)
     {
-        foreach (var kv in BandRects(rig, styler, banner))
+        foreach (var kv in BandRects(rig, styler, banner, chip))
         {
             Rect b = kv.Value;
             float x0 = Mathf.Max(b.xMin, r.xMin), x1 = Mathf.Min(b.xMax, r.xMax);
@@ -674,7 +674,29 @@ public static class ScreenFitScreens
                         toast.ApplyAt(.6f);
                         Canvas.ForceUpdateCanvases();
                         var box = toast.transform.Find("Toast") as RectTransform;
-                        if (box != null) ClearOfBand(rig, styler, "codex toast", rig.PixelRect(box), false);
+                        if (box != null)
+                        {
+                            // at rest, with no boss warning up: clear of the read-out and the quick actions
+                            ClearOfBand(rig, styler, "codex toast", rig.PixelRect(box), false, false);
+                            // and with BOSS INCOMING's banner, then its chip, up: dropped in under them
+                            var warn = BossWarningHud.ComputeLayout(rig.device.Safe, new Vector2(rig.W, rig.H),
+                                styler != null && styler.HudRoot != null ? rig.PixelRect(styler.HudRoot) : default(Rect), Band(rig));
+                            var canvas = toast.GetComponent<Canvas>();
+                            float sf = Mathf.Max(canvas.scaleFactor, .0001f);
+                            float safeTop = (rig.H - rig.device.Safe.yMax) / sf;
+                            Vector2 rest = box.anchoredPosition;
+                            foreach (var up in new[] { "banner", "chip" })
+                            {
+                                float top = CodexToast.TopOffset(safeTop, rig.H, sf, up == "banner" ? warn.banner : default(Rect),
+                                                                 up == "chip" ? warn.chip : default(Rect));
+                                box.anchoredPosition = new Vector2(0f, -top);
+                                Canvas.ForceUpdateCanvases();
+                                Rect r = rig.PixelRect(box);
+                                ClearOfBand(rig, styler, "codex toast (boss " + up + " up)", r, up == "banner", up == "chip");
+                                rig.AddImportant("codex toast (boss " + up + " up)", r);
+                            }
+                            box.anchoredPosition = rest;
+                        }
                     }
                     break;
                 }
@@ -723,7 +745,7 @@ public static class ScreenFitScreens
                         for (int i = 0; i < ui.LetterCount; i++)
                         {
                             rig.AddImportant("boss name letter " + i, rig.PixelRect(ui.PieceAt(i)));
-                            ClearOfBand(rig, styler, "boss name letter " + i, rig.PixelRect(ui.PieceAt(i)), false);
+                            ClearOfBand(rig, styler, "boss name letter " + i, rig.PixelRect(ui.PieceAt(i)), false, false);
                         }
                     }
                     break;

@@ -149,22 +149,30 @@ public class CodexToast : MonoBehaviour
         // Drop in from just above, under the top of the safe area.
         float safeTop = SafeTopInset();
         float slide = (1f - CodexUi.EaseOutCubic(t / InDuration)) * 24f;
-        box.anchoredPosition = new Vector2(0f, -Mathf.Max(safeTop + TopMargin, BelowBossBanner()) + slide);
+        float sf = Mathf.Max(canvas.scaleFactor, .0001f);
+        bool warn = warning != null;
+        box.anchoredPosition = new Vector2(0f, -TopOffset(safeTop, ScreenInfo.Height, sf,
+            warn && warning.BannerVisible ? warning.CurrentLayout.banner : default(Rect),
+            warn && warning.ChipVisible ? warning.CurrentLayout.chip : default(Rect)) + slide);
     }
 
-    // BOSS INCOMING's banner (BossWarningHud) hangs centred under the top
-    // band for its first ~2.6 s, where this toast sits on most phones: while
-    // it is up, the toast drops in under it instead of over it.
-    public const float BannerGap = 12f;
+    // BOSS INCOMING (BossWarningHud) hangs its banner centred under the top
+    // band for the warning's first ~2.6 s, and its countdown chip under the
+    // quick actions for the rest of it -- where this toast sits on most
+    // phones. While either is up, the toast drops in under it instead of
+    // over it.
+    public const float WarningGap = 12f;
     BossWarningHud warning;
 
-    float BelowBossBanner()
+    // The toast's top, in canvas units below the screen's top: TopMargin
+    // under the safe area, or under the visible warning pieces (screen px
+    // rects; an empty rect = not showing).
+    public static float TopOffset(float safeTopUnits, float screenH, float sf, Rect banner, Rect chip)
     {
-        if (warning == null || !warning.BannerVisible) return 0f;
-        Rect banner = warning.CurrentLayout.banner;   // screen px
-        if (banner.height <= 0f) return 0f;
-        float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        return (ScreenInfo.Height - banner.yMin) / sf + BannerGap;
+        float top = safeTopUnits + TopMargin;
+        if (banner.height > 0f) top = Mathf.Max(top, (screenH - banner.yMin) / sf + WarningGap);
+        if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
+        return top;
     }
 
     float SafeTopInset()
