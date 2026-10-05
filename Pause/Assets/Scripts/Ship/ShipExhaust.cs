@@ -106,6 +106,7 @@ public static class ShipExhaust
 
     public static GameObject ConfigureBoost(GameObject ship, int index)
     {
+        ShipExhaustStyle.Prewarm(index);
         GameObject boost = null;
         foreach (var child in ship.GetComponentsInChildren<Transform>(true))
             if (child != ship.transform && (child.CompareTag("boost") || child.name.StartsWith("Boost")))

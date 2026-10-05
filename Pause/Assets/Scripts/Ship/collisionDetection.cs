@@ -153,6 +153,9 @@ public class collisionDetection : MonoBehaviour {
         boost.gameObject.SetActive(false);
         boostSound = GameObject.Find("RocketsSound").GetComponent<AudioSource>();
         astroidExpSound = GameObject.Find("AstroidExplotionSound").GetComponent<AudioSource>();
+        // The blue atom's sting, decoded before the first pickup (WorldMusic
+        // does the same when it swaps in a world's own sting).
+        WorldMusic.Prewarm(boostSound.clip);
 
         shield = ShipShield.For(gameObject).Visual;
 

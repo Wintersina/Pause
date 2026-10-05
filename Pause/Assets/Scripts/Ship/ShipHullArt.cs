@@ -293,6 +293,19 @@ public static class ShipHullArt
         return sprite;
     }
 
+    // Cuts every frame of ship `id` in the skin it is shown in (3 damage
+    // states x 9 columns) now -- the flying ship, as it spawns -- so the idle
+    // loop, a bank, a hit flash or a damage state never creates a sprite
+    // mid-run.
+    public static void Prewarm(int id)
+    {
+        if (!Has(id)) return;
+        int skin = ShipSkins.Shown(id);
+        for (int state = 0; state < States; state++)
+            for (int column = 0; column < Columns; column++)
+                Get(id, skin, state, column);
+    }
+
     // The stock art, whatever skin is equipped (the codex entry).
     public static Sprite StockRest(int id) { return Get(id, ShipSkins.Stock, 0, 0); }
 

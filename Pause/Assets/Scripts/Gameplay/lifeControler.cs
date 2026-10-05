@@ -62,6 +62,8 @@ public class lifeControler : MonoBehaviour {
         hullAnimator = new ShipHullAnimator(shipIndex, transform,
                                             isLiveGameplay ? collisionDetection.lifeCounter : 0);
 
+        if (isLiveGameplay) ShipHullArt.Prewarm(shipIndex);
+
         if (isLiveGameplay && GetComponent<ShipDamageFx>() == null)
             gameObject.AddComponent<ShipDamageFx>();
         applyDamageSprite();
