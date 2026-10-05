@@ -39,6 +39,7 @@ public static class RedAtomFreeShotTest
         using var sandbox = new TestHarness.Sandbox();
         try
         {
+            RedAtomCutsFiveSeconds();
             EveryShipFiresOnceOnPickup();
             QueuedWhileMidFire();
             QueuedThroughTheUltimateSlideOut();
@@ -229,7 +230,7 @@ public static class RedAtomFreeShotTest
                 if (once) shipsOk++; else bad += " once:" + id + "/" + lv;
 
                 // the timer: only the red atom's usual cut, nothing from the shot
-                bool timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerAtom) &&
+                bool timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerRedAtom) &&
                              Mathf.Approximately(Cooldown(c), cooldown);
                 if (timer) timerOk++; else bad += " timer:" + id + "/" + lv;
 
@@ -271,7 +272,7 @@ public static class RedAtomFreeShotTest
                 if (count) countOk++; else bad += " count:" + id + "/" + lv;
 
                 // the next auto-fire is still where it was
-                timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerAtom);
+                timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerRedAtom);
                 if (!timer) { timerOk--; bad += " timer-after:" + id + "/" + lv; }
 
                 Teardown(r);
@@ -288,6 +289,30 @@ public static class RedAtomFreeShotTest
         Check("no ultimate release, no cinematic, no slow motion (" + untouched + "/" + cases + ")", untouched == cases);
         Check("the charge indicator flashes red for the free shot (" + cueOk + "/" + cases + ")", cueOk == cases);
         Check("what went out matches each loadout at its level (" + countOk + "/" + cases + ")", countOk == cases);
+    }
+
+    // The red atom's countdown cut is 5 s (the violet capacitor is the
+    // dedicated charge-cutter now); the green heal atom keeps the shared 7 s.
+    static void RedAtomCutsFiveSeconds()
+    {
+        FreshScene();
+        var r = Ship(4);
+        var c = r.c;
+        Check("the red atom's cut is 5 s, the shared atom cut stays 7 s",
+              Mathf.Approximately(c.secondsPerRedAtom, 5f) && Mathf.Approximately(c.secondsPerAtom, 7f));
+        SetTimer(c, 20f);
+        PickUpRedAtom(r);
+        Check("picking up a red atom cuts exactly 5 s (" + c.SecondsLeft + ")",
+              Mathf.Approximately(c.SecondsLeft, 15f));
+        SetTimer(c, 20f);
+        var heal = new GameObject(HealAtom.ObjectName + "(Clone)", typeof(CircleCollider2D), typeof(SpriteRenderer));
+        heal.tag = "pickUp";
+        r.trigger(heal.GetComponent<Collider2D>());
+        if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
+        if (heal != null) Object.DestroyImmediate(heal);
+        Check("a green heal atom still cuts 7 s (" + c.SecondsLeft + ")",
+              Mathf.Approximately(c.SecondsLeft, 13f));
+        Teardown(r);
     }
 
     static void QueuedWhileMidFire()
@@ -311,7 +336,7 @@ public static class RedAtomFreeShotTest
             int frames = 0;
             while (c.Runner.ActiveRuns > 0 && frames < 1000) { c.Runner.Step(.02f); c.ServiceFreeShots(true); frames++; }
             bool fired = c.Runner.FreeFireCount == 1 && c.PendingFreeShots == 0 && c.FreeShotsFired == 1;
-            bool timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerAtom);
+            bool timer = Mathf.Approximately(c.SecondsLeft, 20f - c.secondsPerRedAtom);
             Check(l.attackName + ": a free shot mid-fire waits, never breaks the attack, then goes right after",
                   busy && queued && held && fired && timer && frames * .02f >= (Held(l.attack) ? l.duration - .2f : 0f));
             Teardown(r);
@@ -323,7 +348,7 @@ public static class RedAtomFreeShotTest
         FreshScene();
         var r = Ship(4);
         var c = r.c;
-        SetTimer(c, 7f + .6f);   // the atom's 7 s cut lands it inside the slide-out
+        SetTimer(c, 5f + .6f);   // the red atom's 5 s cut lands it inside the slide-out
         PickUpRedAtom(r);
         Check("in the ultimate's slide-out the free shot queues",
               c.PendingFreeShots == 1 && c.Runner.FreeFireCount == 0 && Mathf.Approximately(c.SecondsLeft, .6f));

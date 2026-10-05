@@ -381,14 +381,25 @@ public static class CodexTest
         string red = Codex.Find("atom_red").lore, blue = Codex.Find("atom_blue").lore, green = Codex.Find("atom_green").lore;
         var violet = Codex.Find(CodexCatalogue.VioletAtomId);
         Check("red atom lore: two pauses, a free shot and a charge cut",
-              red.Contains("two pauses") && red.Contains("free shot") && red.Contains(CodexCatalogue.AtomChargeCut));
-        Check("blue atom lore: a shield", blue.Contains("shield") && blue.Contains(CodexCatalogue.AtomChargeCut));
+              red.Contains("two pauses") && red.Contains("free shot"));
+        Check("blue atom lore: a shield", blue.Contains("shield"));
         Check("green atom lore: heals a heart", green.Contains("heart") && green.Contains("hull"));
         Check("violet atom entry exists, named and filed", violet != null && violet.name == "Violet Atom" && violet.category == CodexCategory.Atoms);
-        string power = File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs");
-        Check("violet atom lore quotes the capacitor's cut (ShipPowerController.secondsPerCooldownAtom)",
-              violet != null && violet.lore.Contains(CodexCatalogue.CapacitorCut) &&
-              Regex.IsMatch(power, @"secondsPerCooldownAtom\s*=\s*" + CodexCatalogue.CapacitorCut.Replace(" s", "") + @"f"));
+        // Each atom's lore quotes its own gameplay cut, read off a live controller.
+        var pgo = new GameObject("~CodexPower");
+        var pc = pgo.AddComponent<ShipPowerController>();
+        float redCut = pc.secondsPerRedAtom, atomCut = pc.secondsPerAtom, capCut = pc.secondsPerCooldownAtom;
+        UnityEngine.Object.DestroyImmediate(pgo);
+        string Cut(float s) => "cuts " + CodexCatalogue.Seconds(s) + " off";
+        Check("red atom lore quotes the red atom's cut (" + redCut + " s)",
+              red.Contains(Cut(redCut)) && CodexCatalogue.RedAtomCut == CodexCatalogue.Seconds(redCut) && Mathf.Approximately(redCut, 5f));
+        Check("blue atom lore quotes the shared atom cut (" + atomCut + " s)",
+              blue.Contains(Cut(atomCut)) && CodexCatalogue.BlueAtomCut == CodexCatalogue.Seconds(atomCut));
+        Check("green atom lore quotes the shared atom cut (" + atomCut + " s)",
+              green.Contains(Cut(atomCut)) && CodexCatalogue.GreenAtomCut == CodexCatalogue.Seconds(atomCut));
+        Check("violet atom lore quotes the capacitor's cut (" + capCut + " s)",
+              violet != null && violet.lore.Contains("up to " + CodexCatalogue.Seconds(capCut)) &&
+              CodexCatalogue.CapacitorCut == CodexCatalogue.Seconds(capCut));
         Check("violet atom lore quotes the per-world count",
               violet != null && violet.lore.Contains(PickupRules.CooldownAtomsPerWorld + " drift"));
         Check("score.incromentPause still adds two pauses (red atom lore)",

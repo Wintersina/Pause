@@ -179,6 +179,17 @@ public static class DifficultyRebalanceTest
         Check("zero speed with lots of elapsed time still reaches Chaos (density keeps ramping past the speed cap)",
               PhaseName() == "Chaos");
 
+        // Chaos comes before a 120s level's end (WorldManager.BaselineWorldSeconds),
+        // not at the old 130s that a stock start never reached.
+        elapsedField.SetValue(comp, enmiesOnBoard.ChaosStartSeconds - .5f);
+        selectPhase.Invoke(comp, null);
+        bool swarm = PhaseName() == "Swarm";
+        elapsedField.SetValue(comp, enmiesOnBoard.ChaosStartSeconds);
+        selectPhase.Invoke(comp, null);
+        Check("Chaos starts at " + enmiesOnBoard.ChaosStartSeconds + "s, inside the 120s baseline level",
+              swarm && PhaseName() == "Chaos" &&
+              enmiesOnBoard.ChaosStartSeconds <= WorldManager.BaselineWorldSeconds * .9f);
+
         Object.DestroyImmediate(comp.gameObject);
     }
 

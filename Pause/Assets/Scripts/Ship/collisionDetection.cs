@@ -130,14 +130,15 @@ public class collisionDetection : MonoBehaviour {
     }
 
     // Shaves time off the ultimate's countdown on pickup -- a little for
-    // star dust, a lot more for an atom (blue, red or the green heal atom
-    // all count the same). No-ops outside gameS1, where there is no
-    // ShipPowerController to speed up.
-    void BoostUltimate(bool dust)
+    // star dust, a lot more for an atom (blue shield and green heal atoms
+    // count the same; the red pause atom cuts less -- secondsPerRedAtom).
+    // No-ops outside gameS1, where there is no ShipPowerController to speed up.
+    void BoostUltimate(bool dust, bool red = false)
     {
         var power = ShipPowerController.Instance;
         if (power == null) return;
-        power.ReduceTimer(dust ? power.secondsPerDust : power.secondsPerAtom);
+        power.ReduceTimer(dust ? power.secondsPerDust
+                        : red ? power.secondsPerRedAtom : power.secondsPerAtom);
     }
 
 	void Start () {
@@ -346,7 +347,7 @@ public class collisionDetection : MonoBehaviour {
                 pauseAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Pause, hit.transform.position);
                 score.incromentPause();
-                BoostUltimate(dust: false);
+                BoostUltimate(dust: false, red: true);
                 // ...and a free shot of the main weapon (the charge timer
                 // keeps its progress; ShipPowerController.FreeShot).
                 if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();

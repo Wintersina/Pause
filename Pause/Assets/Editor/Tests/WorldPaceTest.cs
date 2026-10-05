@@ -13,6 +13,8 @@ using UnityEngine;
 //      a portal arrival never drops below it
 //   3  each world reaches its boss after ~120s of flight at the baseline
 //      (stock start), and strictly sooner at starts 5/10/20/30 (logged)
+//      ... and every world's enemy phases, Chaos last, all come before its
+//      boss at starts 0 and 30, at the same share of the level
 //   4  paused / frozen time flies no distance
 //   5  the dock popup shows the colour's START SPD
 public static class WorldPaceTest
@@ -43,6 +45,7 @@ public static class WorldPaceTest
             Table();
             RunStart();
             TimeToBoss();
+            ChaosBeforeTheBoss();
             PausedFliesNothing();
             DockLine();
         }
@@ -177,9 +180,18 @@ public static class WorldPaceTest
     // ---- 3. time to the boss ---------------------------------------------------------
 
     // Seconds of flight from `startHud` until the world's boss begins.
-    static float FlyToBoss(int world, int startHud)
+    // With `phases`, an enemy board flies along and each phase's first
+    // second is written into it (index = phase; +inf = never before the boss).
+    static float FlyToBoss(int world, int startHud, float[] phases = null)
     {
         FreshScene(world);
+        enmiesOnBoard board = null;
+        if (phases != null)
+        {
+            board = new GameObject("~PaceBoard").AddComponent<enmiesOnBoard>();
+            board.phases = enmiesOnBoard.DefaultPhases();
+            for (int i = 0; i < phases.Length; i++) phases[i] = float.PositiveInfinity;
+        }
         var wm = World();
         var walls = Walls(2);
         foreach (var w in walls)
@@ -196,8 +208,15 @@ public static class WorldPaceTest
             foreach (var w in walls) TestHarness.Send(w, "Update");
             if (WorldManager.Flying) wm.Tick(Dt);
             t += Dt;
+            if (board != null && !BossEncounter.Running)
+            {
+                SelectPhase.Invoke(board, null);
+                int p = (int)Selector.GetValue(board);
+                if (p < phases.Length && float.IsPositiveInfinity(phases[p])) phases[p] = t;
+            }
         }
         bool reached = BossEncounter.Running;
+        if (board != null) Object.DestroyImmediate(board.gameObject);
         BossEncounter.ResetRun();
         Object.DestroyImmediate(wm.gameObject);
         return reached ? t : float.PositiveInfinity;
@@ -221,6 +240,45 @@ public static class WorldPaceTest
                                                        WorldManager.Worlds[w].maxSpeed, WorldManager.WorldDistanceFor(w));
             Check(name + ": the estimate matches the flight at start 30 (" + predicted.ToString("F1") + "s)",
                   Mathf.Abs(predicted - times[4]) <= 1f);
+        }
+    }
+
+    static readonly MethodInfo SelectPhase = typeof(enmiesOnBoard).GetMethod("SelectPhase", Inst);
+    static readonly FieldInfo Selector = typeof(enmiesOnBoard).GetField("astroidSelector", Inst);
+
+    // Every world runs through all its enemy phases -- Chaos included --
+    // before its boss, at a stock start and at the fastest (30), in order;
+    // the fast start goes through them proportionally sooner.
+    static void ChaosBeforeTheBoss()
+    {
+        var names = enmiesOnBoard.DefaultPhases().Select(p => p.name).ToArray();
+        int chaos = names.Length - 1;
+        Check("the last phase is Chaos, from " + enmiesOnBoard.ChaosStartSeconds + "s of the 120s level",
+              names[chaos] == "Chaos" && enmiesOnBoard.ChaosStartSeconds < WorldManager.BaselineWorldSeconds);
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        {
+            string name = WorldManager.Worlds[w].displayName;
+            foreach (int hud in new[] { 0, 30 })
+            {
+                var at = new float[names.Length];
+                float boss = FlyToBoss(w, hud, at);
+                Debug.Log("[PACE] " + name + " start " + hud + ": phases at " +
+                          string.Join(" / ", names.Select((n, i) => n + " " + at[i].ToString("F1"))) +
+                          ", boss " + boss.ToString("F1") + "s");
+                bool ordered = true;
+                for (int i = 1; i < at.Length; i++) ordered &= at[i] > at[i - 1];
+                Check(name + " start " + hud + ": every phase in order, Chaos (" + at[chaos].ToString("F1") +
+                      "s) before the boss (" + boss.ToString("F1") + "s)",
+                      ordered && at[chaos] < boss - 3f && !float.IsInfinity(boss));
+                // Chaos lands in the same share of the level at any start
+                float expected = enmiesOnBoard.ChaosStartSeconds / WorldManager.Worlds[w].enemyRampScale /
+                                 WorldManager.BaselineWorldSeconds;
+                float share = at[chaos] / boss;
+                Check(name + " start " + hud + ": Chaos at " + (share * 100f).ToString("F0") + "% of the level (~" +
+                      (expected * 100f).ToString("F0") + "%)", Mathf.Abs(share - expected) < .03f);
+                if (w == 0) Check("Space start " + hud + ": Chaos from ~75-90% of the level",
+                                  share >= .75f && share <= .9f);
+            }
         }
     }
 

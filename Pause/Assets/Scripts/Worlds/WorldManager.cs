@@ -119,6 +119,11 @@ public class WorldManager : MonoBehaviour
     // seconds). <= 0: the level is over (boss, then portal).
     float distanceLeft;
     bool portalOpen;
+    // Seconds of level flight on this visit (the clock that eats distanceLeft).
+    float levelSeconds;
+    // A level has been begun (Start / arrival / encore) or flown: until then
+    // (a bare component in a headless test) there is no level clock.
+    bool levelBegun;
 
     // The ramp and cap last given to the walls (ApplyScaledDifficulty), for
     // turning the distance left into an estimate in seconds.
@@ -162,6 +167,26 @@ public class WorldManager : MonoBehaviour
     }
     public bool PortalIsOpen { get { return portalOpen; } }
 
+    // How far through this visit's level the flight is, on the baseline
+    // world's clock: 0 on arrival, BaselineWorldSeconds (120) at the boss.
+    // It is the share of this visit's flight time already flown (flown /
+    // (flown + SecondsLeftInWorld)), so a stock start reads its real seconds
+    // and a faster start (ShipStartSpeed, loops) runs through the same
+    // stretch proportionally sooner. enmiesOnBoard keys its phases on it.
+    // Past the level (boss, portal, final choice, KEEP FLYING, a missed
+    // portal's retry) it holds at the end. Only meaningful with HasLevelClock.
+    public bool HasLevelClock { get { return levelBegun; } }
+    public float LevelClockSeconds
+    {
+        get
+        {
+            if (distanceLeft <= 0f || BossEncounter.DoneInWorld(CurrentIndex)) return BaselineWorldSeconds;
+            float total = levelSeconds + SecondsLeftInWorld;
+            if (levelSeconds <= 0f || float.IsInfinity(total) || float.IsNaN(total) || total <= 0f) return 0f;
+            return Mathf.Clamp(BaselineWorldSeconds * levelSeconds / total, 0f, BaselineWorldSeconds);
+        }
+    }
+
     // A world's distance: what the baseline flight (ShipStartSpeed.StockHud
     // start, the world's own first-pass ramp and cap) covers in
     // BaselineWorldSeconds.
@@ -196,6 +221,8 @@ public class WorldManager : MonoBehaviour
         RunLoop.StartWorld = CurrentIndex;
 
         distanceLeft = WorldDistance;
+        levelSeconds = 0f;
+        levelBegun = true;
         WorldPainter.Apply(Current);
         WorldMusic.Apply(Current);
         WorldBackdrop.Apply(Current, false);
@@ -237,6 +264,8 @@ public class WorldManager : MonoBehaviour
             route != FinalRoute.Encore) return;
 
         distanceLeft -= dt * Mathf.Max(0f, moveBackGround.speed);
+        levelSeconds += dt;
+        levelBegun = true;
         WorldMusic.TryEscalate(this);
         if (distanceLeft <= 0f) EndLevel();
     }
@@ -327,6 +356,8 @@ public class WorldManager : MonoBehaviour
         BossEncounter.ForgetDone();
         portalOpen = false;
         distanceLeft = WorldDistance;
+        levelSeconds = 0f;
+        levelBegun = true;
         ApplyDifficulty(Current);
         WorldBanner.Show(Current.displayName.ToUpperInvariant() + "  ONE MORE");
     }
@@ -403,6 +434,8 @@ public class WorldManager : MonoBehaviour
         moveBackGround.speed = Mathf.Max(LoopRules.ArrivalSpeed(RunLoop.Index), ShipStartSpeed.EquippedSpeed());
         portalOpen = false;
         distanceLeft = WorldDistance;
+        levelSeconds = 0f;
+        levelBegun = true;
 
         var theme = Current;
         ApplyDifficulty(theme);
