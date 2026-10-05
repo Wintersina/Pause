@@ -346,7 +346,7 @@ public static class RailsVettingTest
         Check("RailRidesBoard = false is the old texture-rate scroll", Mathf.Approximately(moveBackGround.RailTilesPerSecond(.3f, 3f, 18f), .3f));
         moveBackGround.RailRidesBoard = true;
         Check("moveBackGround scrolls its wall by that rate",
-              File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("RailTilesPerSecond(speed, Mathf.Abs(wallMaterial.mainTextureScale.y), wallRenderer.bounds.size.y)"));
+              File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("BoardRoll.RailOffset(Mathf.Abs(wall.mainTextureScale.y), renderer.bounds.size.y)"));
     }
 
     // ---- 5: rail edge ----------------------------------------------------------

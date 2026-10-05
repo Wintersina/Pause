@@ -59,12 +59,20 @@ public class BossWarningHud : MonoBehaviour
     // read-out's rect (HudStyler.HudScreenRect; zero-sized when there is none).
     public static Layout ComputeLayout(Rect safe, Vector2 screen, Rect hud)
     {
+        return ComputeLayout(safe, screen, hud, TopBand.FrameFor(safe, screen));
+    }
+
+    // In a given top band (TopBand: inside the rails, under any cutout). The
+    // lane leaves no room between the read-out and the icons on a phone, so
+    // there the chip sits under the icons, inside the band's right end.
+    public static Layout ComputeLayout(Rect safe, Vector2 screen, Rect hud, TopBand.Frame band)
+    {
         var l = new Layout();
         float s = PauseQuickActions.CanvasScaleFor(screen);
-        Rect actions = PauseQuickActions.ScreenRectFor(safe, screen);
-        float top = safe.yMax - PauseQuickActions.TopMargin * s;
+        Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+        float top = band.top;
 
-        float left = Mathf.Max(hud.xMax, safe.xMin) + ChipGap * s;
+        float left = Mathf.Max(hud.xMax, band.left) + ChipGap * s;
         float right = actions.xMin - ChipGap * s;
         float need = ChipW * ChipMaxPunch * s;
         float fit = Mathf.Min(1f, (right - left) / need);
@@ -110,6 +118,7 @@ public class BossWarningHud : MonoBehaviour
     bool laidOut;
     Rect appliedSafe;
     Vector2 appliedScreen, appliedHudSize;
+    TopBand.Frame appliedBand;
     RectTransform hudRoot;
     Canvas hudCanvas;
     CanvasScaler hudScaler;
@@ -388,12 +397,14 @@ public class BossWarningHud : MonoBehaviour
         var screen = new Vector2(Screen.width, Screen.height);
         Rect safe = Screen.safeArea;
         Vector2 hudSize = hudRoot != null ? hudRoot.rect.size : Vector2.zero;
-        if (!laidOut || safe != appliedSafe || screen != appliedScreen || hudSize != appliedHudSize)
+        var band = TopBand.FrameFor(safe, screen);
+        if (!laidOut || safe != appliedSafe || screen != appliedScreen || hudSize != appliedHudSize || !band.Same(appliedBand))
         {
-            Rect hud = new Rect(safe.xMin, safe.yMax, 0f, 0f);
+            Rect hud = new Rect(band.left, band.top, 0f, 0f);
             if (hudRoot != null && hudRoot.gameObject.activeInHierarchy)
-                hud = HudStyler.HudScreenRect(safe, screen, HudStyler.HudCanvasScale(hudCanvas, hudScaler, screen), hudSize);
-            ApplyLayout(ComputeLayout(safe, screen, hud));
+                hud = HudStyler.HudScreenRect(band, screen, HudStyler.HudCanvasScale(hudCanvas, hudScaler, screen), hudSize);
+            ApplyLayout(ComputeLayout(safe, screen, hud, band));
+            appliedBand = band;
             appliedSafe = safe;
             appliedScreen = screen;
             appliedHudSize = hudSize;
