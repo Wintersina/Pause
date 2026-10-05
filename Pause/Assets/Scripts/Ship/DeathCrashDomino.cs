@@ -25,7 +25,7 @@ using UnityEngine;
 // through its own damage API (EliteShip.TakeHit, EliteDamage.Domino): its own
 // death plays and it pays its own elite reward as well as the domino points.
 // The boss body is never destroyed -- a piece sparks off it and bounces;
-// boss and elite shots are left alone.
+// a boss or elite shot (or a resin pool) it touches is cleared, unscored.
 //
 // MEGA DOMINO (MegaChance of deaths, with at least MegaMinTargets on
 // screen): the death blast throws a shockwave of shrapnel that takes every
@@ -81,7 +81,8 @@ public partial class DeathCrash
     // Tests: the old crash, with no chain at all.
     public static bool DominoEnabled = true;
 
-    public enum TargetKind { Prop, Enemy, Elite, Boss }
+    // Shot: a boss or elite shot / resin pool -- a piece clears it (no score).
+    public enum TargetKind { Prop, Enemy, Elite, Boss, Shot }
 
     // A chain kill: where, its multiplier, its points (ScoreHud's popup).
     public static event System.Action<Vector3, int, int> DominoKill;
@@ -104,12 +105,15 @@ public partial class DeathCrash
         public AsteroidSpin spin;
         public EnemyFlipbook flip;
         public EliteShip elite;
+        public EliteShot eliteShot;
+        public BossProjectile bossShot;
         public FragmentSet set;
     }
 
     readonly Actor[] actors = new Actor[MaxTargets];
     readonly int[] megaOrder = new int[MaxTargets];
     readonly float[] megaDistance = new float[MaxTargets];
+    int shotsCleared;
     int actorCount, megaCount, megaNext, dominoKills, bestDominoMultiplier, deepest, comboTotal, comboAwarded, ricochets;
     long dominoPoints;
     bool mega, comboAnnounced, fastForward;
@@ -133,6 +137,7 @@ public partial class DeathCrash
         }
     }
     public int DominoKills => dominoKills;
+    public int ShotsCleared => shotsCleared;
     public long DominoPoints => dominoPoints;
     public int BestDominoMultiplier => bestDominoMultiplier;
     public int DeepestGeneration => deepest;
@@ -166,7 +171,7 @@ public partial class DeathCrash
     {
         for (int i = 0; i < actorCount; i++) actors[i] = default;
         actorCount = megaCount = megaNext = dominoKills = bestDominoMultiplier = deepest = 0;
-        comboTotal = comboAwarded = ricochets = 0;
+        comboTotal = comboAwarded = ricochets = shotsCleared = 0;
         dominoPoints = 0;
         mega = comboAnnounced = fastForward = false;
         worldClock = lastKillTime = 0f;
@@ -215,6 +220,7 @@ public partial class DeathCrash
             var tf = go.transform;
             if (killerTf != null && (tf == killerTf || tf.IsChildOf(killerTf) || killerTf.IsChildOf(tf))) continue;
             if (shipTf != null && tf.IsChildOf(shipTf)) continue;
+            if (go.GetComponentInParent<EliteShot>() != null) continue;   // shots: below
             Vector3 pos = tf.position;
             if (Mathf.Abs(pos.x) > xIn + 2f || pos.y < yLo - 2f || pos.y > yHi + 2f) continue;
             bool onScreen = Mathf.Abs(pos.x) <= xIn && pos.y >= yLo && pos.y <= yHi;
@@ -251,6 +257,37 @@ public partial class DeathCrash
             a.spin = go.GetComponent<AsteroidSpin>();
             a.flip = go.GetComponent<EnemyFlipbook>();
         }
+
+        // Boss and elite shots (and the resin pools) on screen: not
+        // ClearTargets, so found once here. A piece clears them; no score.
+        foreach (var s in Object.FindObjectsByType<EliteShot>(FindObjectsSortMode.None))
+        {
+            if (actorCount >= MaxTargets) break;
+            if (s == null || !s.Active || !s.gameObject.activeInHierarchy) continue;
+            if (killerTf != null && killerTf.IsChildOf(s.transform)) continue;   // it's what killed the ship
+            if (AddShot(s.gameObject, Mathf.Max(.12f, s.Radius), xIn, yLo, yHi)) actors[actorCount - 1].eliteShot = s;
+        }
+        foreach (var b in Object.FindObjectsByType<BossProjectile>(FindObjectsSortMode.None))
+        {
+            if (actorCount >= MaxTargets) break;
+            if (b == null || !b.Active || !b.gameObject.activeInHierarchy) continue;
+            if (killerTf != null && killerTf.IsChildOf(b.transform)) continue;
+            if (AddShot(b.gameObject, ClearTarget.MeasureRadius(b.gameObject), xIn, yLo, yHi)) actors[actorCount - 1].bossShot = b;
+        }
+    }
+
+    bool AddShot(GameObject go, float radius, float xIn, float yLo, float yHi)
+    {
+        Vector3 pos = go.transform.position;
+        if (Mathf.Abs(pos.x) > xIn || pos.y < yLo || pos.y > yHi) return false;
+        ref var a = ref actors[actorCount++];
+        a = default;
+        a.go = go;
+        a.tf = go.transform;
+        a.kind = TargetKind.Shot;
+        a.alive = true;
+        a.radius = radius;
+        return true;
     }
 
     // ---- per step ----
@@ -273,7 +310,7 @@ public partial class DeathCrash
             ref var a = ref actors[i];
             if (!a.alive) continue;
             if (a.go == null) { a.alive = false; continue; }
-            if (a.kind == TargetKind.Boss) continue;
+            if (a.kind == TargetKind.Boss || a.kind == TargetKind.Shot) continue;   // frozen with their fight
             if (a.elite != null)
             {
                 Vector2 v = a.elite.Velocity;
@@ -316,6 +353,16 @@ public partial class DeathCrash
         ref var a = ref actors[j];
         Vector3 at = a.tf.position;
         p.lastHit = j;
+        if (a.kind == TargetKind.Shot)
+        {
+            // A shot or pool in the way is cleared; the piece flies on.
+            a.alive = false;
+            shotsCleared++;
+            Sparks(at, 4, 1.8f);
+            if (a.eliteShot != null) a.eliteShot.Recycle();
+            else if (a.bossShot != null) a.bossShot.Recycle();
+            return;
+        }
         if (a.kind == TargetKind.Boss)
         {
             // The boss shrugs it off: a spark, and the piece glances away.

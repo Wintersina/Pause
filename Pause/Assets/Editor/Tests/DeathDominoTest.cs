@@ -57,6 +57,7 @@ public static class DeathDominoTest
             SlowMotion();
             NoChain();
             ShortChain();
+            ShotsCleared();
             Chain();
             Caps(false);
             Caps(true);
@@ -218,6 +219,36 @@ public static class DeathDominoTest
 
     // One rock on the main chunk's path: one kill, and the panel follows the
     // end of the chain, not a fixed budget.
+    // An elite shot in the wreckage's way is cleared, and scores nothing.
+    static void ShotsCleared()
+    {
+        Fresh(21);
+        var rig = Ship(1, new Vector3(0f, -2.2f, 1f));
+        var defs = EliteCatalog.All;
+        if (defs == null || defs.Length == 0) { Check("shots: an elite to fire with", false); rig.Dispose(); return; }
+        var owner = EliteShip.CreateInPlay(defs[0], new Vector2(0f, CameraFit.ViewTop + 1.2f));
+        spawned.Add(owner.gameObject);
+        var shot = EliteSystem.Shots.Fire(owner, defs[0], EliteShots.Kind.Bolt, new Vector2(0f, CameraFit.ViewTop - .5f), Vector2.zero);
+        Kill(rig);
+        var crash = DeathCrash.Instance;
+        bool placed = false, early = false;
+        RunToEnd(crash, ref early, 14f, () =>
+        {
+            if (placed || shot == null) return;
+            for (int i = 0; i < crash.PieceCount; i++)
+                if (crash.IsMain(i) && crash.Flying(i))
+                {
+                    shot.transform.position = crash.PathAt(i, crash.ProgressOf(i) + .1f);
+                    placed = true;
+                }
+        });
+        Check("shots: the elite shot on the main chunk's path is cleared (" + crash.ShotsCleared + ")",
+              shot != null && !shot.Active && crash.ShotsCleared >= 1);
+        Check("shots: no chain kill, no DEATH COMBO for a shot", crash.DominoKills == 0 && RunScore.Parts.deathCombo == 0);
+        rig.Dispose();
+        EliteSystem.Clear();
+    }
+
     static void ShortChain()
     {
         Fresh(13);
