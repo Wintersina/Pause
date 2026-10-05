@@ -412,7 +412,7 @@ public static class CooldownAtomTest
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
         if (prefab == null) { Check("prefab for flight", false); return; }
         const float dt = 1f / 60f;
-        foreach (float speed in new[] { 0f, .15f, LoopRules.AbsoluteMaxSpeed })
+        foreach (float speed in new[] { 0f, .15f, SpeedRamp.Cap + SpeedRamp.MaxBoost })
         {
             Random.InitState(7 + (int)(speed * 100f));
             var go = AtomSpin.AddTo(Object.Instantiate(prefab, new Vector3(0f, 5.5f, 0f), Quaternion.identity));

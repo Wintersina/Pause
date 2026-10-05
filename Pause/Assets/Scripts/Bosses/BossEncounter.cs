@@ -163,7 +163,7 @@ public class BossEncounter : MonoBehaviour
 
         switch (state)
         {
-            // Done too: after a boss, the next world's (or the encore's) rushes.
+            // Done too: after a boss, the next world's rushes.
             case Phase.Idle: case Phase.Done: TickDevRush(dt); break;
             case Phase.Pending:
                 if (!ShipPowerController.CinematicClearActive) StartIntro();

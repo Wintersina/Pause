@@ -423,7 +423,12 @@ public static class SpawnSpaceTest
         ClearBoard();
         var wmGo = new GameObject("~SpawnSpaceRunWorlds");
         SetWorldManager(wmGo.AddComponent<WorldManager>());
-        float maxDensity = LoopRules.Density(LoopRules.MaxScaledLoops, 1e6f);
+        // The baseline's densest board: the third loop's x1.3 times the old
+        // KEEP FLYING ceiling x1.6 (both gone with the speed cap; a portal
+        // kept waiting now goes further, PortalPressure, and OpenPortalTest
+        // runs the planner there). Kept as a number so the recorded
+        // BaselineMaxLoop count still compares like for like.
+        const float maxDensity = 1.3f * 1.6f;
         float[] speeds = { 6f, 12f, 18f };
         float[] densities = { 1f, maxDensity };
         const float dt = 1f / 60f, runSeconds = 120f;

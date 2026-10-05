@@ -204,8 +204,12 @@ public static class BossEncounterTest
         var bg = new GameObject("bg").AddComponent<moveBackGround>();
         bg.speedRampPerSecond = 50f; // any real ramp would show at once
         bg.maxSpeed = 5f;
+        SpeedRamp.ResetBoost();
+        SpeedRamp.AddBoost();   // a blue atom's boost on its way in when the boss arrives
         BossEncounter.Begin(0, null);
         var e = BossEncounter.Instance;
+        Check("the boss intro cancels a boost in progress (no limit break into a boss)",
+              SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
         e.Step(.1f, 1f);
         e.Step(BossConfig.SpeedDrainSeconds * .5f, 0f);
         Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > 0f);
@@ -218,18 +222,23 @@ public static class BossEncounterTest
         for (int i = 0; i < 40; i++)
         {
             bg.SendMessage("Update");
-            moveBackGround.speed += BossEncounter.FilterSpeedChange(.05f); // the atom's boost, filtered
+            SpeedRamp.AddBoost(); // the atom's boost, refused while the boss holds the speed
             e.Step(.1f, 1f);
             held &= moveBackGround.speed == BossConfig.FightSpeed;
         }
         Check("speed held at 0.20 through ramp and atom boosts", held);
-        Check("atom boost filtered during the fight", BossEncounter.FilterSpeedChange(.05f) == 0f);
+        Check("atom boost refused during the fight", SpeedRamp.BoostTarget == 0f && SpeedRamp.Boost == 0f);
         string collision = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
-        Check("collisionDetection guards the atom's +0.05",
-              collision.Contains("if (!BossEncounter.SpeedLocked) { moveBackGround.speed += .05f; atomCounter++; }"));
+        string ramp = File.ReadAllText("Assets/Scripts/Gameplay/SpeedRamp.cs");
+        Check("collisionDetection's atom boost goes through SpeedRamp, which the boss's speed lock guards",
+              collision.Contains("SpeedRamp.AddBoost();") && !collision.Contains("moveBackGround.speed += .05f") &&
+              ramp.Contains("if (BossEncounter.SpeedLocked) return;"));
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
-        Check("speed lock released after", !BossEncounter.SpeedLocked && BossEncounter.FilterSpeedChange(.05f) == .05f);
+        SpeedRamp.AddBoost();
+        Check("speed lock released after (an atom boosts again)",
+              !BossEncounter.SpeedLocked && Mathf.Approximately(SpeedRamp.BoostTarget, SpeedRamp.BoostPerAtom));
+        SpeedRamp.ResetBoost();
         moveBackGround.speed = BossConfig.FightSpeed;
         typeof(moveBackGround).GetMethod("speedUp", Inst).Invoke(bg, null);
         Check("the ramp runs again from 20", moveBackGround.speed >= BossConfig.FightSpeed &&

@@ -13,7 +13,9 @@ using UnityEngine;
 //   - at every speed there are fewer threats than before
 //   - the cut is smaller at low speed (the early game is not empty) and
 //     larger at high speed
-//   - over a whole stock run it averages about 45%
+//   - over a whole stock run it averages about 45% (the run's reference ramp
+//     now holds at the cap, HUD 35, for its last 9 s; the recorded "before"
+//     run peaked at 37.8. HUD 40 and 46 in the table are limit-break speeds)
 //   - the tunables behave: the rate scale and the threat ceiling fall with
 //     speed, and the ceiling is never passed
 public static class EnemyDensityTest
@@ -90,7 +92,7 @@ public static class EnemyDensityTest
                 if (points[i] >= 20) { shooting &= s.shots >= .25f; pilots &= s.pilots >= .8f; }
                 bounded &= s.inViewSeconds >= 3f && s.inViewSeconds <= 13f;
             }
-            var run = EnemyDensityProbe.WholeRun(EnemyDensityProbe.ReferenceHudPerSecond, 46f, 3);
+            var run = EnemyDensityProbe.WholeRun(EnemyDensityProbe.ReferenceHudPerSecond, SpeedRamp.CapHud, 3);
             float runCut = 1f - run.Threats / (BeforeRunOnScreen * k);
             Debug.Log(string.Format("[DENSITY] PHONE {0} whole run | before (scaled) {1:F2} | now {2:F2} + {3:F2} shots = {4:F2} | cut {5:P0} | pilots in view {6:F2}, in view {7:F1}s",
                                     tag, BeforeRunOnScreen * k, run.onScreen, run.shots, run.Threats, runCut, run.pilots, run.inViewSeconds));
@@ -112,6 +114,16 @@ public static class EnemyDensityTest
               Mathf.Approximately(EnemyDensity.RateScale(35f), EnemyDensity.RateScale(50f)) &&
               Mathf.Approximately(EnemyDensity.RateScale(0f), EnemyDensity.RateScale(5f)));
         Check("the threat ceiling does not rise with speed", EnemyDensity.MaxThreats(35f) <= EnemyDensity.MaxThreats(5f));
+        // The speed cap: anything above HUD 35 is a limit break (the boost, at
+        // most 45). It fields exactly what 35 fields.
+        bool flat = true;
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            foreach (float hud in new[] { 36f, 40f, 45f, 46f })
+                flat &= Mathf.Approximately(EnemyDensity.RateScale(hud), EnemyDensity.RateScale(35f)) &&
+                        Mathf.Approximately(EnemyDensity.MaxThreats(hud), EnemyDensity.MaxThreats(35f)) &&
+                        Mathf.Approximately(EnemyDensity.MaxPilotLoad(hud, w), EnemyDensity.MaxPilotLoad(35f, w)) &&
+                        EnemyDensity.MaxChasers(hud) == EnemyDensity.MaxChasers(35f);
+        Check("a limit break (HUD 36-46) fields what the cap fields: rate, threat ceiling, pilot load, chasers", flat);
         EnemyDensity.Disabled = true;
         Check("switched off, it is the old spawner (rate x1, no ceiling)", EnemyDensity.RateScale(35f) == 1f && EnemyDensity.RoomFor(35f));
         EnemyDensity.Disabled = false;
@@ -137,7 +149,7 @@ public static class EnemyDensityTest
                                     s.spawnsPerSecond, s.onScreen, s.shots, s.Threats, cut[i], s.pilots, s.pilotsDeparted, s.engageSeconds, s.inViewSeconds));
             pilotsAt[i] = s.pilots; shotsAt[i] = s.shots; stayAt[i] = s.inViewSeconds;
         }
-        var run = EnemyDensityProbe.WholeRun(EnemyDensityProbe.ReferenceHudPerSecond, 46f, 3);
+        var run = EnemyDensityProbe.WholeRun(EnemyDensityProbe.ReferenceHudPerSecond, SpeedRamp.CapHud, 3);
         float runCut = 1f - run.Threats / BeforeRunOnScreen;
         Debug.Log(string.Format("[DENSITY] TABLE whole run | before {0:F2}/s {1:F2} | after {2:F2}/s {3:F2} + {4:F2} shots = {5:F2} | cut {6:P0} | pilots in view {7:F2}, left {8:F0}, engaged {9:F1}s, in view {10:F1}s",
                                 BeforeRunSpawnsPerSecond, BeforeRunOnScreen, run.spawnsPerSecond, run.onScreen, run.shots, run.Threats, runCut,
@@ -148,7 +160,7 @@ public static class EnemyDensityTest
         Check("fewer threats than before at every speed", fewer);
         Check(string.Format("low speed is cut least: HUD 5 {0:P0}, HUD 10 {1:P0} (under 45%, the early game is not empty)", cut[0], cut[1]),
               cut[0] < .45f && cut[1] < .45f);
-        Check(string.Format("high speed is cut most: HUD 30 {0:P0}, 35 {1:P0}, 40 {2:P0}, 46 {3:P0} (each at least 45%)", cut[3], cut[4], cut[5], cut[6]),
+        Check(string.Format("high speed is cut most: HUD 30 {0:P0}, 35 {1:P0}, limit break 40 {2:P0}, 46 {3:P0} (each at least 45%)", cut[3], cut[4], cut[5], cut[6]),
               cut[3] >= .45f && cut[4] >= .45f && cut[5] >= .45f && cut[6] >= .45f);
         Check("the cut grows with speed (HUD 5 < HUD 20 < HUD 35)", cut[0] < cut[2] && cut[2] < cut[4]);
         Check(string.Format("a whole stock run averages about 45% fewer threats ({0:P0}; 38% to 55%)", runCut), runCut >= .38f && runCut <= .55f);
