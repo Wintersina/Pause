@@ -34,7 +34,8 @@ public static class NextFeatures0907Test
 
         AsteroidsSpinSomeAtTieredSpeeds();
         AtomsStayInsideSideRails();
-        Check("player cannot move below the gameplay floor", movePlayer.ClampPlayerY(-99f) >= -4.15f);
+        Check("player cannot move below the gameplay floor (the hull and flame stay in view)",
+              movePlayer.ClampPlayerY(-99f) - ShipReach.HullBelow >= CameraFit.ViewBottom);   // (was >= -4.15)
         Check("the first launch touch does not spend a pause", !score.ShouldSpendPause(false, false));
         Check("a later pause-resume touch spends exactly one pause", score.ShouldSpendPause(true, false));
         Check("per-ship weapon atlases are present",

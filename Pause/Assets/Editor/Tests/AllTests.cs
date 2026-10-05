@@ -100,6 +100,7 @@ public static class AllTests
         ("ShipArtTest", ShipArtTest.Execute),
         ("ScreenFitTest", ScreenFitTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
+        ("ShipReachTest", ShipReachTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
