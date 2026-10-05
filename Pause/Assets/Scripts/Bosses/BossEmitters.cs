@@ -41,14 +41,37 @@ public static class BossEmitters
 
     // The drawings the table covers; any other (death, retreat, portrait)
     // falls back to the first idle drawing -- nothing fires from those.
-    public static int TableFrame(int bodyFrame) =>
-        bodyFrame >= 0 && bodyFrame < BossEmitterTable.Frames ? bodyFrame : BossArt.Idle0;
+    public static int TableFrame(int bodyFrame)
+    {
+        if (bodyFrame >= 0 && bodyFrame < BossEmitterTable.Frames) return bodyFrame;
+        // Void Archon's lower-atlas tell frames deliberately elaborate the
+        // same mechanisms as its authored tell poses.  Reuse the measured
+        // anchor for that mechanism until the visual matcher grows a
+        // per-part rig for the farther-extending lance drawing.
+        if (bodyFrame >= BossArt.SpaceTell0 && bodyFrame < BossArt.SpaceTell0 + 12)
+        {
+            int pose = (bodyFrame - BossArt.SpaceTell0) / BossArt.SpaceTellFrames;
+            return pose == 0 ? 6 : pose == 1 ? 8 : 11;
+        }
+        return BossArt.Idle0;
+    }
 
     // The muzzle pixel (cell px, x right, y down) of `part` in `bodyFrame`.
     public static Vector2Int Pixel(BossDef boss, int part, int bodyFrame)
     {
         int w = World(boss);
         if (w < 0 || part < 0) return new Vector2Int(BossEmitterTable.CellPixels / 2, BossEmitterTable.CellPixels / 2);
+        // The first two frames of the Archon's extended lance deployment
+        // shift the nozzle a few pixels before it reaches the measured full
+        // extension.  Keep a real ink pixel under each beam root throughout
+        // that mechanical travel.
+        if (w == 0 && part >= 2 && part <= 3 && bodyFrame >= BossArt.SpaceTell0 + 8 && bodyFrame < BossArt.SpaceTell0 + 12)
+        {
+            int stage = bodyFrame - (BossArt.SpaceTell0 + 8);
+            if (part == 2)
+                return stage == 0 ? new Vector2Int(50, 306) : stage == 1 ? new Vector2Int(50, 303) : new Vector2Int(53, 305);
+            return stage == 0 ? new Vector2Int(333, 305) : stage == 1 ? new Vector2Int(334, 304) : new Vector2Int(333, 305);
+        }
         var pts = BossEmitterTable.Points[w][part];
         int f = TableFrame(bodyFrame);
         return new Vector2Int(pts[f * 2], pts[f * 2 + 1]);

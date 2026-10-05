@@ -50,7 +50,10 @@ FONT = os.path.normpath(os.path.join(HERE, "..", "..", "Orbitron", "Orbitron-Bol
 CANVAS = 256          # boss authoring canvas (u)
 BODY_PX = 384         # exported cell (1.5x)
 SHOT_PX = 128
-BODY_COLS, BODY_ROWS = 5, 4
+# Body atlases are 5 x 8.  The original first four rows are the shared
+# encounter poses; the lower four rows give the Void Archon a richer combat
+# loop (and leave room for the other bosses to receive their own sets).
+BODY_COLS, BODY_ROWS = 5, 8
 SHOT_COLS = 8
 
 # Hold ticks @24fps -- BossArt.cs plays them back with the same tables.
@@ -799,7 +802,7 @@ def compose(key, pose, hold):
     return "\n".join(svg)
 
 
-def frame_table():
+def frame_table(key):
     """(name, pose, hold ticks) in atlas order (BossArt.cs)."""
     T = []
     idle = [Pose(phase=0.0, lights=.8), Pose(phase=.25, bob=-3, lights=1.0),
@@ -825,6 +828,36 @@ def frame_table():
     T.append(("retreat_0", Pose(smear=.7, phase=.1, lights=1.0), 2))
     T.append(("retreat_1", Pose(smear=1.0, phase=.6, lights=1.0, sx=.97), 2))
     T.append(("portrait", Pose(lights=1.0), 0))
+    # The Archon gets twenty additional, intentionally held drawings.  These
+    # are not tweened in game: its reactor blinks and engine nozzles cycle
+    # through an eight-frame patrol loop, while each weapon gets a four-step
+    # mechanical anticipation that the fight code plays across its tell.
+    if key == "Space":
+        for i in range(8):
+            phase = i / 8.0
+            T.append(("archon_idle_%d" % i, Pose(
+                phase=phase, bob=(-2, -3, -2, 0, 2, 3, 2, 0)[i],
+                sx=(1.0, 1.006, 1.012, 1.006, 1.0, .994, .99, .994)[i],
+                sy=(1.0, .994, .99, .994, 1.0, 1.006, 1.01, 1.006)[i],
+                lights=(.65, .8, 1.0, .86, .7, .82, 1.0, .78)[i]), 2))
+        for tell in range(3):
+            for stage in range(4):
+                o = [0.0, 0.0, 0.0]
+                c = [0.0, 0.0, 0.0]
+                o[tell] = (.22, .52, .82, 1.0)[stage]
+                c[tell] = (.08, .35, .7, 1.0)[stage]
+                T.append(("archon_tell%d_%d" % (tell, stage), Pose(
+                    phase=.2 + stage * .14, open=o, charge=c,
+                    bob=(2, 1, -1, -3)[stage],
+                    sx=(1.025, 1.012, 1.0, .985)[stage],
+                    sy=(.965, .985, 1.005, 1.025)[stage],
+                    lights=(.45, .62, .85, 1.0)[stage]), 2))
+    else:
+        # Keep every atlas the same dimensions so runtime slicing remains
+        # deterministic while the other bosses await their expanded sets.
+        for i in range(20):
+            T.append(("reserve_idle_%02d" % i, Pose(phase=(i % 8) / 8.0,
+                bob=(-2, 0, 2, 0)[i % 4], lights=.72 + .06 * (i % 3)), 2))
     assert len(T) == BODY_COLS * BODY_ROWS
     return T
 
@@ -999,7 +1032,7 @@ def build(key, preview=None):
     try:
         frames = []
         atlas = Image.new("RGBA", (BODY_COLS * BODY_PX, BODY_ROWS * BODY_PX), (0, 0, 0, 0))
-        for i, (name, pose, hold) in enumerate(frame_table()):
+        for i, (name, pose, hold) in enumerate(frame_table(key)):
             svg = compose(key, pose, hold)
             path = os.path.join(src, "%s_%02d_%s.svg" % (key.lower(), i, name))
             with open(path, "w") as f:

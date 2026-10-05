@@ -136,7 +136,7 @@ public static class BossAttackTest
         return new Vector2Int(Mathf.RoundToInt(half + d.x * k), Mathf.RoundToInt(half - d.y * k));
     }
 
-    static int FireFrameOf(BossAttack a) => a.fireFrame ? BossArt.Fire : BossArt.Tell(a.tell, 1);
+    static int FireFrameOf(BossDef boss, BossAttack a) => BossArt.AttackFrame(boss, a);
 
     // ---- tests ---------------------------------------------------------
 
@@ -200,8 +200,8 @@ public static class BossAttackTest
                 bool on = true;
                 foreach (int p in a.parts)
                 {
-                    var px = BossEmitters.Pixel(boss, p, FireFrameOf(a));
-                    on &= Alpha(boss, FireFrameOf(a), px.x, px.y) >= .5f;
+                    var px = BossEmitters.Pixel(boss, p, FireFrameOf(boss, a));
+                    on &= Alpha(boss, FireFrameOf(boss, a), px.x, px.y) >= .5f;
                     // a muzzle sits inside the drawn body, not out at the cell's edge
                     on &= px.x > 8 && px.x < 376 && px.y > 8 && px.y < 376;
                 }
@@ -234,7 +234,7 @@ public static class BossAttackTest
                         if (s == null || !s.Active || seen.Contains(s)) continue;
                         seen.Add(s);
                         launched++;
-                        frameOk &= e.Actor.BodyFrame == FireFrameOf(a);
+                        frameOk &= e.Actor.BodyFrame == FireFrameOf(boss, a);
                         float best = float.MaxValue;
                         foreach (int p in a.parts) best = Mathf.Min(best, Vector3.Distance(s.LaunchedAt, e.Actor.Emitter(p)));
                         if (best > .01f) offPart++;

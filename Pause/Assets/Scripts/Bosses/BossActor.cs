@@ -132,7 +132,7 @@ public class BossActor : MonoBehaviour
         get
         {
             if (flashLeft > 0f) return BossArt.Hit;
-            return current != null && current.fireFrame ? BossArt.Fire : BossArt.Tell(current != null ? current.tell : 0, 1);
+            return BossArt.AttackFrame(boss, current);
         }
     }
 
@@ -469,12 +469,12 @@ public class BossActor : MonoBehaviour
     void RefreshFrame()
     {
         if (flashLeft > 0f) SetFrame(BossArt.Hit);
-        else if (fireLeft > 0f && current != null && current.fireFrame && phase == AttackPhase.Volleys) SetFrame(BossArt.Fire);
+        else if (fireLeft > 0f && current != null && current.fireFrame && phase == AttackPhase.Volleys) SetFrame(BossArt.FireFrame(boss, current.tell));
         else if (phase == AttackPhase.Tell && current != null)
-            SetFrame(BossArt.Tell(current.tell, tellAge < BossArt.TellInTicks * BossArt.Tick ? 0 : 1));
+            SetFrame(BossArt.TellFrame(boss, current.tell, tellAge / Mathf.Max(.01f, current.tellSeconds)));
         else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams) && current != null)
-            SetFrame(BossArt.Tell(current.tell, 1));
-        else SetFrame(BossArt.Idle0 + BossArt.FrameAt(BossArt.IdleTicks, animClock, true));
+            SetFrame(BossArt.TellFrame(boss, current.tell, 1f));
+        else SetFrame(BossArt.IdleFrame(boss, animClock));
         RefreshGlows();
     }
 

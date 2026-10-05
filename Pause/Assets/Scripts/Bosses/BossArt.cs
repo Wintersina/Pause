@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Slices the boss atlases rendered by Art/Bosses/src~/bosses.py.
 //
-//   Resources/Bosses/<Key>.png        body flipbook, 5 x 4 cells, row 0 on top
+//   Resources/Bosses/<Key>.png        body flipbook, 5 x 8 cells, row 0 on top
 //     row 0  idle 0..3 | hit
 //     row 1  tell0 a,b | tell1 a,b | fire
 //     row 2  tell2 a,b | death 0..2
@@ -19,7 +19,7 @@ using UnityEngine;
 public static class BossArt
 {
     public const string Folder = "Bosses/";
-    public const int BodyColumns = 5, BodyRows = 4, BodyFrames = BodyColumns * BodyRows;
+    public const int BodyColumns = 5, BodyRows = 8, BodyFrames = BodyColumns * BodyRows;
     public const int ShotColumns = 8;
 
     // Flat body frame indices.
@@ -28,12 +28,35 @@ public static class BossArt
     public const int Death0 = 12, DeathFrames = 5;
     public const int Retreat0 = 17, RetreatFrames = 2;
     public const int Portrait = 19;
+    // Space-only frames in the lower half of the atlas.  Eight are an engine
+    // and reactor patrol loop; each of its three weapons has four deliberate
+    // anticipation drawings.  The other bosses retain their shared poses.
+    public const int SpaceIdle0 = 20, SpaceIdleFrames = 8, SpaceTell0 = 28, SpaceTellFrames = 4;
+    public static readonly int[] SpaceIdleTicks = { 2, 2, 2, 2, 2, 2, 2, 2 };
     public static int Tell(int pose, int frame)
     {
         pose = Mathf.Clamp(pose, 0, 2);
         frame = Mathf.Clamp(frame, 0, 1);
         return pose == 0 ? 5 + frame : pose == 1 ? 7 + frame : 10 + frame;
     }
+    public static bool HasExpandedCombat(BossDef boss) => boss != null && boss.artKey == "Space";
+    public static int IdleFrame(BossDef boss, float seconds)
+    {
+        return HasExpandedCombat(boss)
+            ? SpaceIdle0 + FrameAt(SpaceIdleTicks, seconds, true)
+            : Idle0 + FrameAt(IdleTicks, seconds, true);
+    }
+    public static int TellFrame(BossDef boss, int pose, float progress)
+    {
+        if (!HasExpandedCombat(boss)) return Tell(pose, progress < .34f ? 0 : 1);
+        pose = Mathf.Clamp(pose, 0, 2);
+        int stage = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(progress) * SpaceTellFrames), 0, SpaceTellFrames - 1);
+        return SpaceTell0 + pose * SpaceTellFrames + stage;
+    }
+    public static int FireFrame(BossDef boss, int pose) =>
+        HasExpandedCombat(boss) ? SpaceTell0 + Mathf.Clamp(pose, 0, 2) * SpaceTellFrames + SpaceTellFrames - 1 : Fire;
+    public static int AttackFrame(BossDef boss, BossAttack attack) =>
+        attack != null && attack.fireFrame ? FireFrame(boss, attack.tell) : TellFrame(boss, attack != null ? attack.tell : 0, 1f);
     // Death frames 0..2 sit at 12..14 and 3..4 at 15..16 (row-major), so the
     // flat index is simply Death0 + i.
     public static int Death(int i) => Death0 + Mathf.Clamp(i, 0, DeathFrames - 1);

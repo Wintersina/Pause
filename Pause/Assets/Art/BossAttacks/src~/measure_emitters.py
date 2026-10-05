@@ -4,7 +4,7 @@
   python3 measure_emitters.py [--preview DIR]      (needs Pillow + numpy)
 
 Reads the body atlases Codex renders into Art/Resources/Bosses/<World>.png
-(5 x 4 cells of 384 px; see BossArt.cs) and writes
+(5 x 8 cells of 384 px; see BossArt.cs) and writes
 
   Scripts/Bosses/BossEmitterTable.cs   (generated -- do not edit by hand)
 
@@ -39,6 +39,8 @@ CELL = 384
 COLS = 5
 # The drawings an attack can be told or fired from: idle 0..3, hit,
 # tell0 a/b, tell1 a/b, fire, tell2 a/b (BossArt flat indices 0..11).
+# The Archon's later combat poses map back to these measured anchors in
+# BossEmitters.TableFrame.
 FRAMES = list(range(12))
 FRAME_NAMES = ["idle0", "idle1", "idle2", "idle3", "hit", "tell0a", "tell0b",
                "tell1a", "tell1b", "fire", "tell2a", "tell2b"]
@@ -90,7 +92,7 @@ SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 def cells(world):
     im = Image.open(os.path.join(ATLAS, world + ".png")).convert("RGBA")
     out = []
-    for f in range(20):
+    for f in range(12):
         r, c = divmod(f, COLS)
         out.append(im.crop((c * CELL, r * CELL, c * CELL + CELL, r * CELL + CELL)))
     return out
@@ -172,7 +174,7 @@ def match(ref, target, seed, half, reg):
     return lo_x + ix, lo_y + iy, s
 
 
-def snap_opaque(img, x, y, radius=14):
+def snap_opaque(img, x, y, radius=96):
     a = np.asarray(img)[:, :, 3]
     xi, yi = int(round(x)), int(round(y))
     if 0 <= xi < CELL and 0 <= yi < CELL and a[yi, xi] >= 160:
