@@ -26,6 +26,15 @@ using UnityEngine;
 // A hit (any damage) shows the hit drawing for a few ticks and costs a
 // heart, which darts to the impact and crumbles (EliteHearts, HeartOrbit).
 //
+// DRAWINGS. Which strip cell shows in each state is the def's EliteCells
+// map. The Ember layout loops idle 0..3 and has tell / action / hit cells;
+// a flight layout (Frost's Rimebreaker, Verdant's Resin Warden) has real
+// parked / lift-off cells, banks into sideways moves with its bank cells,
+// switches to its damaged cell for good once it has lost a heart, and --
+// having no tell / action / hit cells -- winds up with a charge glow at its
+// muzzles and a squash and lean, fires with muzzle flashes and a recoil,
+// and flashes its current frame when hit.
+//
 // ENDING. Elites never retreat or time out: they die by crashing -- into
 // rocks, enemies, mines, other elites and the side rails -- or to the
 // pilot. They try to dodge (lookAhead / avoidance), but a fast board or a
@@ -86,7 +95,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     public float Grace => grace;
     public SpriteRenderer Hull => hull;
     public CircleCollider2D Collider => col;
-    public float HullScale => hullTf != null ? hullTf.localScale.x : 1f;
+    public float HullScale => hullBase;
     public float AttackCooldown { get { return cooldown; } set { cooldown = value; } }
     public float EscapeLeft { get { return escapeLeft; } set { escapeLeft = value; } }
     public LandingSite Site => site;
@@ -102,7 +111,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     SpawnFootprint footprint;
     EliteHearts heartsView;
     Sprite[] frames, parkedFrames, liftFrames;
-    SpriteRenderer[] plumes, glows;
+    SpriteRenderer[] plumes, glows, muzzleGlows;
+    float[] muzzleFlash;
+    float hullBase = 1f, lean, recoilLen;
+    Vector2 recoilDir;
+    int bankCell;   // -1 left, 0 straight, 1 right (steering frames)
     Vector2[] nozzleLocal;
     float[] nozzleAngle;
     SpriteRenderer sight;
@@ -115,7 +128,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     float facing = 90f, bank;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase;
-    float thrust;
+    float thrust, lastDt;
     Vector2 seen, lastPlayer;
     bool lost, havePlayer;
     bool impactPending;
@@ -181,6 +194,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         col.enabled = false;
 
         BuildEngines();
+        BuildMuzzleGlows();
         sight = NewPiece(transform, "Sight", EliteFxArt.Sight, PlayOrder - 1);
         sight.enabled = false;
 
@@ -210,6 +224,25 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         }
     }
 
+    // Charge glows / muzzle flashes, for strips with no tell / action cells.
+    void BuildMuzzleGlows()
+    {
+        int n = Def.cells.tell < 0 || Def.cells.action < 0 ? Def.muzzles.Length : 0;
+        muzzleGlows = new SpriteRenderer[n];
+        muzzleFlash = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            muzzleGlows[i] = NewPiece(hullTf, "Muzzle" + i, EliteFxArt.Glow, PlayOrder + 2);
+            muzzleGlows[i].transform.localPosition = Def.PixelToLocal(Def.muzzles[i].x, Def.muzzles[i].y);
+        }
+    }
+
+    void SetHullScale(float s)
+    {
+        hullBase = s;
+        hullTf.localScale = Vector3.one * s;
+    }
+
     static SpriteRenderer NewPiece(Transform parent, string name, Sprite sprite, int order)
     {
         var go = new GameObject(name);
@@ -235,11 +268,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         gameObject.tag = "Untagged";
         col.enabled = false;
         float s = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
-        hullTf.localScale = Vector3.one * s;
+        SetHullScale(s);
         hull.sortingOrder = site.order;
         hull.color = Haze;
         if (parkedFrames != null) hull.sprite = parkedFrames[0];
-        else if (frames != null) hull.sprite = frames[0];
+        else if (frames != null) hull.sprite = frames[Mathf.Min(Def.cells.Parked, frames.Length - 1)];
         SetOrders(site.order);
         thrust = 0f;
         RenderEngines(0f);
@@ -260,7 +293,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         escapeLeft = EscapeWindow;
         gameObject.tag = "Enimey";
         col.enabled = true;
-        hullTf.localScale = Vector3.one;
+        SetHullScale(1f);
         hull.color = Color.white;
         hull.sortingOrder = PlayOrder;
         SetOrders(PlayOrder);
@@ -310,6 +343,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             default: StepPlay(dt); break;
         }
         if (State == EliteState.Dead) return;
+        lastDt = dt;
         Animate(dt);
         Render();
     }
@@ -336,12 +370,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         if (dt > 0f) velocity = (p - prev) / dt;
 
         float s0 = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
-        hullTf.localScale = Vector3.one * Mathf.Lerp(s0, 1f, e);
+        SetHullScale(Mathf.Lerp(s0, 1f, e));
         hull.color = Color.Lerp(Haze, Color.white, e);
         int order = k < .45f ? site.order : k < .9f ? -1 : PlayOrder;
         if (hull.sortingOrder != order) { hull.sortingOrder = order; SetOrders(order); }
         thrust = Mathf.Lerp(.2f, 1.2f, Mathf.Clamp01(k * 2f));
-        if (k < .5f && Mathf.Repeat(stateTime, .12f) < dt) EliteSystem.Fx.HeatShimmer(transform.position, order - 1, hullTf.localScale.x * Def.cellWorldSize);
+        // (a drawn lift-off cell carries its own ignition: no placeholder shimmer)
+        if (k < .5f && Def.cells.liftoff < 0 && liftFrames == null && Mathf.Repeat(stateTime, .12f) < dt) EliteSystem.Fx.HeatShimmer(transform.position, order - 1, hullTf.localScale.x * Def.cellWorldSize);
         if (k >= 1f) EnterPlay();
     }
 
@@ -629,6 +664,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
         }
         bool rock = other.CompareTag("Astr");
         FriendlyKill(other);
+        if (rock && Acting && Attack.Ploughs)
+        {
+            // a ploughing attack (ice_ram) breaks through rocks, keeps going
+            Ploughed++;
+            Attack.OnPlough(at);
+            return;
+        }
         if (Def.armored && rock)
         {
             velocity += away * 1f;
@@ -799,6 +841,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     }
 
     public int Blinks { get; private set; }
+    public int Ploughed { get; private set; }
 
     public void Blink(Vector2 to, bool attack)
     {
@@ -817,7 +860,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     public Transform HullTransform => hullTf;
 
     // The drawing's rotation right now (degrees).
-    public float ArtRotation => Def.turnsToFace ? facing - Def.noseDeg : bank;
+    public float ArtRotation => (Def.turnsToFace ? facing - Def.noseDeg : bank) + lean;
 
     public Vector2 MuzzleWorld(int i)
     {
@@ -868,11 +911,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
     void Animate(float dt)
     {
         if (frames == null) return;
+        var c = Def.cells;
         int frame;
         if (State == EliteState.Parked)
         {
-            frame = 0;
             if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; return; }
+            // the launch tell: the lit cell blinks with the engine lights
+            frame = c.parkedIdle >= 0 && ParkedLightsOn ? c.parkedIdle : c.Parked;
         }
         else if (State == EliteState.LiftOff && liftFrames != null)
         {
@@ -881,40 +926,139 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
             CurrentFrame = 0;
             return;
         }
-        else if (hitFlash > 0f) frame = EliteArt.Hit;
-        else if (State == EliteState.Attack) frame = attackPhase == 0 ? EliteArt.Tell : EliteArt.Action;
-        else
-        {
-            frameHold -= dt;
-            if (frameHold <= 0f)
-            {
-                idleStep = (idleStep + 1) % EliteArt.IdleFrames;
-                frameHold += EliteArt.IdleTicks[idleStep] * EliteArt.Tick;
-                if (frameHold <= 0f) frameHold = EliteArt.IdleTicks[idleStep] * EliteArt.Tick;
-            }
-            frame = idleStep;
-        }
+        else if (State == EliteState.LiftOff && c.liftoff >= 0)
+            frame = stateTime < LiftSeconds * LiftCellShare ? c.liftoff : FlightFrame(dt);
+        else if (hitFlash > 0f && c.hit >= 0) frame = c.hit;
+        else if (State == EliteState.Attack && attackPhase == 0 && c.tell >= 0) frame = c.tell;
+        else if (State == EliteState.Attack && attackPhase == 1 && c.action >= 0) frame = c.action;
+        else frame = FlightFrame(dt);
         CurrentFrame = frame;
         SetSprite(frames[Mathf.Min(frame, frames.Length - 1)]);
     }
+
+    // The share of the lift-off drawn with the lift-off cell (then flight).
+    public const float LiftCellShare = .6f;
+
+    // The flying drawing: the flight loop, a bank cell while it slides
+    // sideways (by its sideways speed, with a little hysteresis), the
+    // damaged cell for good once it has lost a heart.
+    int FlightFrame(float dt)
+    {
+        var c = Def.cells;
+        if (Damaged) return c.damaged;
+        if (c.Banks)
+        {
+            float side = velocity.x / Mathf.Max(.1f, Def.speed);
+            if (bankCell == 0 && Mathf.Abs(side) > BankEnter) bankCell = side < 0f ? -1 : 1;
+            else if (bankCell != 0 && (Mathf.Abs(side) < BankExit || Mathf.Sign(side) != bankCell)) bankCell = 0;
+            if (bankCell != 0) return bankCell < 0 ? c.bankLeft : c.bankRight;
+        }
+        int n = c.flight.Length;
+        if (n <= 1) return c.Flight0;
+        frameHold -= dt;
+        if (frameHold <= 0f)
+        {
+            idleStep = (idleStep + 1) % n;
+            float hold = EliteArt.IdleTicks[idleStep % EliteArt.IdleTicks.Length] * EliteArt.Tick;
+            frameHold += hold;
+            if (frameHold <= 0f) frameHold = hold;
+        }
+        return c.flight[idleStep % n];
+    }
+
+    public const float BankEnter = .35f, BankExit = .2f;
+    // Lost a heart and has a damaged drawing: shown from then on.
+    public bool Damaged => Def.cells.damaged >= 0 && Hearts < Def.hearts && InPlay;
+    public int BankCell => bankCell;
 
     void SetSprite(Sprite s)
     {
         if (hull.sprite != s) hull.sprite = s;
     }
 
+    // The launch tell: running lights blink on in its last parked second.
+    bool ParkedLightsOn => State == EliteState.Parked && stateTime >= parkSeconds - EngineTellSeconds &&
+                           Mathf.FloorToInt(stateTime / (3f * EliteArt.Tick)) % 2 == 0;
+
     void Render()
     {
         hullTf.localRotation = Quaternion.Euler(0f, 0f, ArtRotation);
         if (State == EliteState.Parked)
         {
-            // the launch tell: running lights blink on in its last second
-            bool tell = stateTime >= parkSeconds - EngineTellSeconds;
-            bool on = tell && Mathf.FloorToInt(stateTime / (3f * EliteArt.Tick)) % 2 == 0;
-            RenderEngines(0f, on ? .9f : 0f);
+            RenderEngines(0f, ParkedLightsOn ? .9f : 0f);
             return;
         }
         RenderEngines(thrust, Mathf.Clamp01(thrust));
+        RenderProcedural();
+    }
+
+    // ---- procedural tell / action / hit (strips without those cells) ----
+
+    public const float FlashSeconds = .1f, RecoilKick = .14f, SquashMax = .07f, LeanMax = 6f;
+    static readonly Color HitTint = new Color(1f, .55f, .95f, 1f);
+
+    public bool ChargeGlowOn { get; private set; }
+    public int MuzzleFlashesShown { get; private set; }
+    public float RecoilOffset => recoilLen;
+    public float Squash { get; private set; }
+    public float Lean => lean;
+
+    // EliteAttack.Fire: a shot left muzzle i heading `deg`.
+    public void OnFired(int muzzle, float deg)
+    {
+        if (muzzleFlash == null || muzzleFlash.Length == 0) return;
+        muzzleFlash[Mathf.Clamp(muzzle, 0, muzzleFlash.Length - 1)] = FlashSeconds;
+        MuzzleFlashesShown++;
+        float r = deg * Mathf.Deg2Rad;
+        recoilDir = -new Vector2(Mathf.Cos(r), Mathf.Sin(r));
+        recoilLen = RecoilKick * Def.cellWorldSize / 1.5f;
+    }
+
+    void RenderProcedural()
+    {
+        var c = Def.cells;
+        float dt = lastDt;
+        // the tell: a charge glow at the muzzles, growing in hard steps and
+        // blinking faster near the end, and a squash and lean into it
+        bool charging = Telling && c.tell < 0 && muzzleGlows.Length > 0;
+        float k = charging ? Mathf.Clamp01(attackClock / Mathf.Max(.05f, Attack.TellSeconds)) : 0f;
+        ChargeGlowOn = false;
+        for (int i = 0; i < muzzleGlows.Length; i++)
+        {
+            var g = muzzleGlows[i];
+            if (muzzleFlash[i] > 0f) muzzleFlash[i] = Mathf.Max(0f, muzzleFlash[i] - dt);
+            if (muzzleFlash[i] > 0f && c.action < 0)
+            {
+                g.enabled = true;
+                g.color = Def.ShotCore;
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * (muzzleFlash[i] > FlashSeconds * .5f ? .34f : .22f);
+            }
+            else if (charging)
+            {
+                float step = k < .34f ? .1f : k < .67f ? .16f : .22f;
+                bool blinkOn = Mathf.FloorToInt(attackClock / ((k > .7f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0;
+                g.enabled = true;
+                Color col = Def.ShotColor;
+                col.a = blinkOn ? 1f : .55f;
+                g.color = col;
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * step;
+                ChargeGlowOn = true;
+            }
+            else g.enabled = false;
+        }
+        float squash = charging ? SquashMax * (k < .34f ? .4f : k < .67f ? .7f : 1f) : 0f;
+        Squash = squash;
+        float leanWant = charging ? -Mathf.Clamp(Attack.Aim.x - transform.position.x, -1f, 1f) * LeanMax : 0f;
+        lean = Mathf.MoveTowards(lean, leanWant, 40f * dt);
+        if (recoilLen > 0f) recoilLen = Mathf.Max(0f, recoilLen - recoilLen * 12f * dt - .05f * dt);
+        if (c.tell < 0 || c.action < 0)
+        {
+            hullTf.localScale = new Vector3(hullBase * (1f + squash), hullBase * (1f - squash), 1f);
+            hullTf.localPosition = recoilDir * recoilLen;
+        }
+        // a hit with no hit cell: the current frame flashes
+        if (InPlay && c.hit < 0)
+            hull.color = hitFlash > 0f && Mathf.FloorToInt(hitFlash / EliteArt.Tick) % 2 == 0 ? HitTint : Color.white;
     }
 
     public bool EngineLightsOn { get; private set; }
@@ -951,7 +1095,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint
                 Color c = Def.EngineColor;
                 c.a = Mathf.Clamp01(light);
                 g.color = c;
-                g.transform.localScale = Vector3.one * Def.cellWorldSize * .16f * (.7f + .5f * light);
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * Def.glowScale * (.7f + .5f * light);
             }
         }
     }

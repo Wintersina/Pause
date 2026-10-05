@@ -22,6 +22,12 @@ using UnityEngine;
 //                anything about to hit it
 //   siege        holds near the top of the view, tracking the pilot's lane
 //                slowly; attacks when over it
+//   breaker      prowls ahead of the pilot, sweeping side to side across
+//                its lane like an icebreaker looking for a lead; attacks
+//                the moment it is over the pilot's lane
+//   warden       takes a station high on the side away from the pilot and
+//                holds it, bobbing; after each attack it crosses to the
+//                other side and plants again
 public abstract class EliteBrain
 {
     protected EliteShip ship;
@@ -60,7 +66,7 @@ public abstract class EliteBrain
 
 public static class EliteBrains
 {
-    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege" };
+    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden" };
 
     public static EliteBrain Create(string id)
     {
@@ -71,6 +77,8 @@ public static class EliteBrains
             case "hauler": return new HaulerBrain();
             case "skirmisher": return new SkirmisherBrain();
             case "siege": return new SiegeBrain();
+            case "breaker": return new BreakerBrain();
+            case "warden": return new WardenBrain();
             default: return new InterceptorBrain();
         }
     }
@@ -234,4 +242,65 @@ public class SiegeBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen) => Mathf.Abs(Pos.x - seen.x) < .7f && Pos.y > seen.y + 1.5f;
     public override float? FaceDeg(Vector2 seen) => -90f;
     public override Vector2 JoinFrom => Vector2.up;
+}
+
+// Rimebreaker: prowls followDistance ahead of the pilot, sweeping across
+// its lane (laneOffset either side, a slow sine), so it keeps crossing over
+// the pilot -- and rams down the lane the moment it is over it.
+public class BreakerBrain : EliteBrain
+{
+    public BreakerBrain() { Id = "breaker"; }
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Clock += dt;
+        float sweep = Mathf.Sin(Clock * Mathf.Lerp(.9f, 1.4f, Aggro)) * def.laneOffset;
+        return new Vector2(seen.x + sweep, seen.y + def.followDistance);
+    }
+
+    public override bool WantsAttack(Vector2 seen) =>
+        Mathf.Abs(Pos.x - seen.x) < .45f && Pos.y > seen.y + def.followDistance * .6f;
+
+    public override Vector2 JoinFrom => Vector2.up;
+}
+
+// Resin Warden: a station high up on the side away from the pilot
+// (laneOffset off the middle, topMargin below the top), held with a slow
+// bob; it attacks once settled there, then crosses to the other side.
+public class WardenBrain : EliteBrain
+{
+    float side = 1f;
+    bool settled;
+    public float Side => side;
+    public bool Settled => settled;
+
+    public WardenBrain() { Id = "warden"; }
+
+    public override void OnJoin()
+    {
+        var p = EliteSystem.Player;
+        side = p == null || p.position.x <= 0f ? 1f : -1f;
+    }
+
+    public Vector2 Station
+    {
+        get
+        {
+            float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
+            return new Vector2(Mathf.Clamp(side * def.laneOffset, -edge, edge), EliteSystem.ViewTop - def.topMargin);
+        }
+    }
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Clock += dt;
+        Vector2 st = Station;
+        settled = (Pos - st).sqrMagnitude < .35f * .35f;
+        return st + new Vector2(0f, Mathf.Sin(Clock * 1.7f) * .12f);
+    }
+
+    public override float SpeedScale => settled ? .6f : 1f;
+    public override bool WantsAttack(Vector2 seen) => settled && Pos.y > seen.y + 1.5f;
+    public void Cross() { side = -side; settled = false; }
+    public override Vector2 JoinFrom => new Vector2(side, 1f);
 }

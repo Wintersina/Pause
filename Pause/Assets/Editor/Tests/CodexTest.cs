@@ -846,7 +846,7 @@ public static class CodexTest
                 if (elite != null)
                 {
                     var ef = EliteArt.Frames(elite);
-                    if (ef != null) for (int i = 0; i < EliteArt.IdleFrames; i++) drawings.Add(ef[i]);
+                    if (ef != null) foreach (int c in elite.cells.CodexLoop) drawings.Add(ef[c]);
                     break;
                 }
                 var frames = EnemyArt.Frames(EnemyRoster.FindByCodexId(e.id));
