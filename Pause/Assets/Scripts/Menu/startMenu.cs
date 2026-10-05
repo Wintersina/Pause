@@ -64,11 +64,16 @@ public class startMenu : MonoBehaviour {
         {
             group.spacing = 12f;
             group.childAlignment = TextAnchor.MiddleCenter;
+            EvenOutRows(panel.transform, group.spacing);
         }
         // Sign-in is automatic now, so the footer is just Quit.
         float footerWidth = Mathf.Min(180f, (width - 64f) * 0.5f);
         Place("QuitButton", new Vector2(0.5f, 0f),
               new Vector2(0f, 44f + safeBottom), new Vector2(footerWidth, 56f));
+        // a finger-sized target without bigger art (the art is 56 units tall)
+        var quit = SceneUtil.FindAny("QuitButton");
+        var quitGraphic = quit != null ? quit.GetComponent<Graphic>() : null;
+        if (quitGraphic != null) quitGraphic.raycastPadding = new Vector4(-8f, -8f, -8f, -8f);
         foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "CreditsButton", "QuitButton" })
         {
             var button = SceneUtil.FindAny(name);
@@ -82,6 +87,29 @@ public class startMenu : MonoBehaviour {
         }
         layoutWidth = ScreenInfo.Width;
         layoutHeight = ScreenInfo.Height;
+    }
+
+    // Every row of the main menu gets the same share of the panel (the
+    // Options row used to come out ~20% shorter than the rest: its label's
+    // preferred height was smaller), and each button's hit area reaches
+    // across half the gap to its neighbours, so the whole column is
+    // tappable without bigger art -- 48 dp rows on a 16:9 1080p phone.
+    static void EvenOutRows(Transform panel, float spacing)
+    {
+        int rows = 0;
+        foreach (Transform child in panel) if (child.gameObject.activeSelf) rows++;
+        if (rows == 0) return;
+        float height = ((RectTransform)panel).sizeDelta.y;
+        float share = Mathf.Max(1f, (height - spacing * (rows - 1)) / rows);
+        foreach (Transform child in panel)
+        {
+            if (!child.gameObject.activeSelf) continue;
+            var element = child.GetComponent<LayoutElement>() ?? child.gameObject.AddComponent<LayoutElement>();
+            element.minHeight = element.preferredHeight = share;
+            var button = child.GetComponent<Button>();
+            var graphic = button != null ? button.targetGraphic : child.GetComponent<Graphic>();
+            if (graphic != null) graphic.raycastPadding = new Vector4(0f, -spacing * .5f, 0f, -spacing * .5f);
+        }
     }
 
     static void Place(string name, Vector2 anchor, Vector2 position, Vector2 size)

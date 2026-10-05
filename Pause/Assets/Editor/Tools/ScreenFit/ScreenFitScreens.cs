@@ -221,6 +221,7 @@ public static class ScreenFitScreens
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
         account.Relayout();
+        SafeAreaClamp.AttachAll("leaderboardS3");
         DevBadge(rig);
         if (shot == 1)
         {
@@ -256,6 +257,7 @@ public static class ScreenFitScreens
     {
         MenuStyler.StyleScene();
         rig.Sync();
+        SafeAreaClamp.AttachAll("creditsS7");
         DevBadge(rig);
     }
 
@@ -369,6 +371,7 @@ public static class ScreenFitScreens
             if (go != null) go.SetActive(paused);
         }
         rig.Sync();
+        SafeAreaClamp.AttachAll(tutorial ? "tutorialS5" : "gameS1");
         PlaceHudBand(rig, styler);
         return styler;
     }
@@ -395,12 +398,51 @@ public static class ScreenFitScreens
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(styler.HudRoot);
             Vector2 hudSize = styler.HudRoot.rect.size;
-            HudStyler.ComputeHudLayout(safe, screen, hudScale, hudSize, out Vector2 at, out float fit);
+            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit);
             styler.HudRoot.anchoredPosition = at;
             styler.HudRoot.localScale = new Vector3(fit, fit, 1f);
             rig.Ignore(styler.HudRoot);
         }
         Canvas.ForceUpdateCanvases();
+    }
+
+    // The top band as the device lays it out: inside the rails, under its cutouts.
+    static TopBand.Frame Band(ScreenFitRig rig)
+    {
+        return TopBand.FrameFor(rig.device.Safe, new Vector2(rig.W, rig.H), BossRails.InnerEdge, rig.device.Cutouts);
+    }
+
+    // Everything the top band can put on screen (read-out, quick actions,
+    // boss chip, boss banner), screen px: what an overlay up there must clear.
+    static List<KeyValuePair<string, Rect>> BandRects(ScreenFitRig rig, HudStyler styler)
+    {
+        var list = new List<KeyValuePair<string, Rect>>();
+        var screen = new Vector2(rig.W, rig.H);
+        var band = Band(rig);
+        Rect hud = default(Rect);
+        if (styler != null && styler.HudRoot != null)
+        {
+            hud = rig.PixelRect(styler.HudRoot);
+            list.Add(new KeyValuePair<string, Rect>("HUD read-out", hud));
+        }
+        list.Add(new KeyValuePair<string, Rect>("quick actions", PauseQuickActions.ScreenRectFor(band, screen)));
+        var warn = BossWarningHud.ComputeLayout(rig.device.Safe, screen, hud, band);
+        list.Add(new KeyValuePair<string, Rect>("boss chip", warn.chip));
+        list.Add(new KeyValuePair<string, Rect>("boss banner", warn.banner));
+        return list;
+    }
+
+    // `what` (an overlay near the top) must not cover any part of the band.
+    static void ClearOfBand(ScreenFitRig rig, HudStyler styler, string what, Rect r)
+    {
+        foreach (var kv in BandRects(rig, styler))
+        {
+            Rect b = kv.Value;
+            float x0 = Mathf.Max(b.xMin, r.xMin), x1 = Mathf.Min(b.xMax, r.xMax);
+            float y0 = Mathf.Max(b.yMin, r.yMin), y1 = Mathf.Min(b.yMax, r.yMax);
+            if (x1 > x0 + 1f && y1 > y0 + 1f)
+                rig.Fail("BAND", what, "overlaps the top band's " + kv.Key + " by " + (x1 - x0).ToString("F0") + "x" + (y1 - y0).ToString("F0") + "px", Rect.MinMaxRect(x0, y0, x1, y1));
+        }
     }
 
     // The world framing every gameplay shot is checked for.
@@ -549,6 +591,9 @@ public static class ScreenFitScreens
                         icon.SetActive(true);
                         var label = PausedLabel.AttachTo(icon);
                         if (label != null) label.Advance(1f);
+                        Canvas.ForceUpdateCanvases();
+                        foreach (var t in icon.GetComponentsInChildren<Text>())
+                            ClearOfBand(rig, styler, "PAUSED label", rig.PixelRect(t.rectTransform));
                     }
                     break;
                 }
@@ -575,6 +620,9 @@ public static class ScreenFitScreens
                     {
                         toast.Enqueue(entry);
                         toast.ApplyAt(.6f);
+                        Canvas.ForceUpdateCanvases();
+                        var box = toast.transform.Find("Toast") as RectTransform;
+                        if (box != null) ClearOfBand(rig, styler, "codex toast", rig.PixelRect(box));
                     }
                     break;
                 }
@@ -621,7 +669,10 @@ public static class ScreenFitScreens
                         for (int i = 0; i < 100000 && ui.Clock < hold; i++) ui.Step(Dt);
                         Canvas.ForceUpdateCanvases();
                         for (int i = 0; i < ui.LetterCount; i++)
+                        {
                             rig.AddImportant("boss name letter " + i, rig.PixelRect(ui.PieceAt(i)));
+                            ClearOfBand(rig, styler, "boss name letter " + i, rig.PixelRect(ui.PieceAt(i)));
+                        }
                     }
                     break;
                 }

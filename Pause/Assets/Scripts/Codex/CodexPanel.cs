@@ -459,6 +459,9 @@ public class CodexPanel : MonoBehaviour
             int index = i;
             var tabFrame = CodexUi.NewImage("Tab" + CategoryLabel(Tabs[i]), tabsRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
             tabFrame.raycastTarget = true;
+            // the hit area spans the gaps beside and the margin above/below
+            // the 60-unit tab art: a finger-sized target without bigger tabs
+            tabFrame.raycastPadding = new Vector4(-TabGap * .5f, -10f, -TabGap * .5f, -10f);
             var button = tabFrame.gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
             button.targetGraphic = tabFrame;

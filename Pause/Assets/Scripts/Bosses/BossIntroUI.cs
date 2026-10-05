@@ -173,7 +173,7 @@ public class BossIntroUI : MonoBehaviour
         tint.a = 1f;
         cam = Camera.main;
         float halfH = cam != null && cam.orthographic ? cam.orthographicSize : 5f;
-        float halfW = cam != null ? halfH * cam.aspect : 2.85f;
+        float halfW = cam != null ? halfH * cam.aspect : CameraFit.GameplayHalfWidth;
         Vector2 centre = cam != null ? (Vector2)cam.transform.position : Vector2.zero;
         float bottom = centre.y - halfH;
 

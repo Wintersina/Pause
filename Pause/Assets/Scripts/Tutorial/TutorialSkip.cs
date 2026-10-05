@@ -107,6 +107,8 @@ public class TutorialSkip : MonoBehaviour
         img.sprite = Resources.Load<Sprite>("Tutorial/tut_button");
         img.type = Image.Type.Sliced;
         img.color = TutorialPalette.Steel;
+        // a finger-sized target (the plate is ~25 dp tall) without bigger art
+        img.raycastPadding = new Vector4(-16f, -20f, -16f, -20f);
 
         // Label + chevron as one centred group, drawn inside a holder that the
         // press spring scales (the button rect itself keeps its hit area).

@@ -169,8 +169,8 @@ public class WorldBackdrop : MonoBehaviour
         }
         else
         {
-            halfW = 2.85f;      // CameraFit's minimum half-width
-            halfH = 6.2f;       // a 9:19.5 phone at that width
+            halfW = CameraFit.GameplayHalfWidth;   // the gameplay view's minimum half-width
+            halfH = halfW * 19.5f / 9f;            // a 9:19.5 phone at that width
         }
     }
 
