@@ -216,13 +216,9 @@ public class collisionDetection : MonoBehaviour {
             // (DeathCrash), and the killer with it -- a mine tumbles into a
             // rail rather than bursting here.
             bool fatal = !safe && lifeCounter + 1 >= MAXLIFE;
+            // (its burst frame, friendly-fire blast and explosion: RamKill, below)
             if (PrefabName.Is(hit.gameObject, "mine") && !safe && !fatal)
-            {
-                RailBombAnimator.Burst(hit.gameObject);   // the mine's own burst frame under the blast
                 EnemyDeathAudio.Play(hit.gameObject);
-                GameObject RedExp = ScrollWithWorld(Instantiate(redExp, hit.gameObject.transform.position, hit.gameObject.transform.rotation) as GameObject);
-                Destroy(RedExp, 2);
-            }
 
             if (safe)
             {
@@ -288,8 +284,16 @@ public class collisionDetection : MonoBehaviour {
                 }
                 // An elite survives a non-fatal contact with a heart less
                 // (EliteShip); on the fatal one it is the killer DeathCrash
-                // tumbles into the rail, so it goes like any other.
-                if (fatal || !EliteShip.Rammed(hit.gameObject, shipPos)) Destroy(hit.gameObject);
+                // tumbles into the rail, so it goes like any other. Anything
+                // else rammed on a non-fatal hit dies like any kill -- its
+                // own blast, a mine's burst, sometimes spinning pieces --
+                // unpaid (RamKill).
+                if (fatal) Destroy(hit.gameObject);
+                else if (!EliteShip.Rammed(hit.gameObject, shipPos))
+                {
+                    RamKill.Blast(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
+                    Destroy(hit.gameObject);
+                }
 
             }
         }

@@ -370,8 +370,9 @@ public static class RailMineArtTest
         var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), Vector3.zero, Quaternion.identity);
         Check("Burst ignores anything that isn't a rail mine", RailBombAnimator.Burst(rock) == null);
         Object.DestroyImmediate(rock);
-        Check("collisionDetection bursts a mine it hits",
-              File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs").Contains("RailBombAnimator.Burst(hit.gameObject)"));
+        Check("collisionDetection bursts a mine it hits (RamKill -> TargetExplosion.Spawn; RamKillTest drives it)",
+              File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs").Contains("RamKill.Blast(hit.gameObject") &&
+              File.ReadAllText("Assets/Scripts/Ship/RamKill.cs").Contains("TargetExplosion.Spawn(target, ship)"));
         Check("a weapon-destroyed mine bursts too (TargetExplosion.Spawn)",
               File.ReadAllText("Assets/Scripts/Gameplay/TargetExplosion.cs").Contains("RailBombAnimator.Burst(target)"));
     }
