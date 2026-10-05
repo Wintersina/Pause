@@ -123,6 +123,7 @@ public class CodexToast : MonoBehaviour
         queueCount--;
 
         nameText.text = entry.name;
+        if (warning == null) warning = FindFirstObjectByType<BossWarningHud>();
         icon.sprite = entry.Sprite;
         icon.enabled = icon.sprite != null;
         shownAt = Time.unscaledTime;
@@ -148,7 +149,22 @@ public class CodexToast : MonoBehaviour
         // Drop in from just above, under the top of the safe area.
         float safeTop = SafeTopInset();
         float slide = (1f - CodexUi.EaseOutCubic(t / InDuration)) * 24f;
-        box.anchoredPosition = new Vector2(0f, -(safeTop + TopMargin) + slide);
+        box.anchoredPosition = new Vector2(0f, -Mathf.Max(safeTop + TopMargin, BelowBossBanner()) + slide);
+    }
+
+    // BOSS INCOMING's banner (BossWarningHud) hangs centred under the top
+    // band for its first ~2.6 s, where this toast sits on most phones: while
+    // it is up, the toast drops in under it instead of over it.
+    public const float BannerGap = 12f;
+    BossWarningHud warning;
+
+    float BelowBossBanner()
+    {
+        if (warning == null || !warning.BannerVisible) return 0f;
+        Rect banner = warning.CurrentLayout.banner;   // screen px
+        if (banner.height <= 0f) return 0f;
+        float sf = Mathf.Max(canvas.scaleFactor, .0001f);
+        return (ScreenInfo.Height - banner.yMin) / sf + BannerGap;
     }
 
     float SafeTopInset()

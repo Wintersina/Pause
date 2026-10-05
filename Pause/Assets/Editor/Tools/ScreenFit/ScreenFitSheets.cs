@@ -39,6 +39,8 @@ public static class ScreenFitRunner
 
         using (var rig = new ScreenFitRig(device, screen.MinHalfWidth))
         {
+            foreach (var w in ScreenFitScreens.Waivers)
+                if (w.Applies(screen.id, device)) rig.Waive(w.kind, w.element, w.reason);
             try
             {
                 screen.stage(rig);

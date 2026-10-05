@@ -97,6 +97,7 @@ public static class AllTests
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
+        ("ScreenFitTest", ScreenFitTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),

@@ -753,9 +753,11 @@ public class SpaceDock : MonoBehaviour
     // measured from the safe area's edges.
     const float DustY = -27f, InstructionY = -60f;
     const float FooterY = 24f, FooterW = 260f, FooterH = 64f, FooterGap = 40f, FooterSide = 20f;
-    // The footer buttons' hit areas reach this far past their art, above and
-    // below (a finger-sized target on short phones without bigger art).
-    const float FooterTapPad = 12f;
+    // The footer buttons' hit areas reach this far above their art (a
+    // finger-sized target on short phones without bigger art). Only upwards:
+    // below, they would reach into the display's rounded corners, which
+    // Android does not report as a safe-area inset.
+    const float FooterTapPad = 24f;
 
     static void PlaceFooter(string name, Transform parent, int side)
     {
@@ -771,7 +773,7 @@ public class SpaceDock : MonoBehaviour
         var t = go.GetComponentInChildren<Text>();
         if (t != null) { t.fontSize = 30; t.resizeTextForBestFit = false; }
         var g = go.GetComponent<Graphic>();
-        if (g != null) g.raycastPadding = new Vector4(0f, -FooterTapPad, 0f, -FooterTapPad);
+        if (g != null) g.raycastPadding = new Vector4(0f, 0f, 0f, -FooterTapPad);
     }
 
     // Keeps the star dust read-out and the instruction under the safe area's

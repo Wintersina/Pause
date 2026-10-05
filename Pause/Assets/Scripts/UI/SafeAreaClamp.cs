@@ -37,10 +37,16 @@ public class SafeAreaClamp : MonoBehaviour
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode) { AttachAll(scene.name); }
 
+    // Menu scenes whose whole canvas is laid out for a phone's height.
+    public static readonly string[] PortraitReferenceScenes = { "creditsS7", "leaderboardS3" };
+    // 9:16 at the scenes' 800-unit width.
+    public static readonly Vector2 PortraitReference = new Vector2(800f, 1422f);
+
     // Adds the clamp to this scene's listed elements and applies it at once.
     public static void AttachAll(string sceneName)
     {
         if (System.Array.IndexOf(Scenes, sceneName) < 0) return;
+        if (System.Array.IndexOf(PortraitReferenceScenes, sceneName) >= 0) UsePortraitReference();
         foreach (string name in Names)
         {
             var go = SceneUtil.FindAny(name);
@@ -48,6 +54,24 @@ public class SafeAreaClamp : MonoBehaviour
             var c = go.GetComponent<SafeAreaClamp>() ?? go.AddComponent<SafeAreaClamp>();
             c.Apply();
         }
+    }
+
+    // The credits and options screens stack their content over ~1100 units
+    // of a canvas scaled by WIDTH from an 800x600 reference. Every phone (9:16
+    // or taller) gives that canvas >= 1422 units of height, but a foldable's
+    // inner screen or an iPad only ~960-1070, and the column ran off the
+    // bottom (BACK under the edge, or lifted onto the row above it). Expand
+    // from a 9:16 reference instead: the very same scale on every phone,
+    // scaled by height -- everything a little smaller, nothing cut -- on
+    // anything wider.
+    static void UsePortraitReference()
+    {
+        var go = SceneUtil.FindAny("BackButton");
+        var canvas = go != null ? go.GetComponentInParent<Canvas>() : null;
+        var scaler = canvas != null ? canvas.rootCanvas.GetComponent<UnityEngine.UI.CanvasScaler>() : null;
+        if (scaler == null || scaler.uiScaleMode != UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize) return;
+        scaler.referenceResolution = PortraitReference;
+        scaler.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.Expand;
     }
 
     void LateUpdate()
