@@ -101,6 +101,7 @@ public static class ScreenFitRunner
         if (DeveloperUnlocks.Enabled) DeveloperUnlocks.SetEnabled(false);
         AccountDialog.Close();
         LeaderboardPanel.Close();
+        LeaderboardBoards.OverrideForTests(null);
         ShipSkins.ClearPreview();
         PortalPressure.Reset();
     }

@@ -29,6 +29,13 @@ public class LeaderboardPanel : MonoBehaviour
     const float ListTop = 276f;               // from the panel top
     const float PlayerRowTop = 920f, PlayerRowHeight = 66f;
     const float ButtonsTop = 1036f, ButtonHeight = 100f;
+    public const float TabTop = 144f, TabHeight = 80f, TabTouchMargin = 10f;
+    // Player names: NameSize, shrinking to NameMinSize at the least for a
+    // long one, then cut short with an ellipsis -- never smaller. The rank
+    // and score columns keep their own boxes, so they stay aligned and whole.
+    public const int NameSize = 24, NameMinSize = 20;
+    public const float NameLeft = 120f, NameWidth = 290f;
+    public const string Ellipsis = "...";
 
     public struct Layout
     {
@@ -181,7 +188,7 @@ public class LeaderboardPanel : MonoBehaviour
         BuildTitle();
         BuildTabs();
 
-        var desc = Place(panelRoot, "Description", 0f, 230f, Inner, 34f);
+        var desc = Place(panelRoot, "Description", 0f, TabTop + TabHeight + 8f, Inner, 34f);
         descriptionText = Label(desc, "", 20, AkiraPalette.Muted, TextAnchor.MiddleLeft, 2f);
 
         body = Place(panelRoot, "Body", 0f, ListTop, Inner, PlayerRowTop + PlayerRowHeight - ListTop);
@@ -218,7 +225,9 @@ public class LeaderboardPanel : MonoBehaviour
     {
         var boards = service.UsableBoards();
         if (boards.Count == 0) return;
-        const float gap = 14f, top = 150f, height = 68f;
+        // 80 tall plus 10 of touch margin above and below: a 100-unit target
+        // (>= 48 dp / 44 pt at UiScale's 0.5 dp-per-unit floor).
+        const float gap = 14f, top = TabTop, height = TabHeight;
         float w = (Inner - gap * (boards.Count - 1)) / boards.Count;
         for (int i = 0; i < boards.Count; i++)
         {
@@ -229,7 +238,7 @@ public class LeaderboardPanel : MonoBehaviour
                                 .Cuts(true, false, true, false);
             shape.cut = 14f;
             shape.raycastTarget = true;
-            shape.raycastPadding = new Vector4(0f, -10f, 0f, -10f);   // a bigger finger target, same art
+            shape.raycastPadding = new Vector4(0f, -TabTouchMargin, 0f, -TabTouchMargin);   // a bigger finger target, same art
             var label = Child(rt, "Label");
             Stretch(label, 10f);
             Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f);
@@ -467,10 +476,10 @@ public class LeaderboardPanel : MonoBehaviour
         Label(rank, e.rank > 0 ? "#" + e.rank : "#--", 26, rankColor, TextAnchor.MiddleLeft, 2.5f);
 
         var name = Child(rt, "Name");
-        Anchor(name, 120f, 290f);
+        Anchor(name, NameLeft, NameWidth);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        Label(name, who, 24, nameColor, TextAnchor.MiddleLeft, 2.5f);
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, NameWidth - 4f);
 
         if (e.rank > 0 || e.value != 0)
         {
@@ -483,6 +492,37 @@ public class LeaderboardPanel : MonoBehaviour
             Label(value, board != null ? board.Format(e.value) : e.value.ToString(), 30, valueColor,
                   TextAnchor.MiddleRight, 3f);
         }
+    }
+
+    // One line at NameSize .. NameMinSize; a name too long even at the
+    // smallest keeps as many characters as fit, then "...". Measured with the
+    // font itself (wide glyphs, any script), once, when the row is built.
+    public static void FitName(Text text, string full, float width)
+    {
+        text.resizeTextForBestFit = false;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+        text.text = full;
+        for (int size = NameSize; size >= NameMinSize; size -= 2)
+        {
+            text.fontSize = size;
+            if (text.preferredWidth <= width) return;
+        }
+        text.fontSize = NameMinSize;
+        int lo = 0, hi = full.Length;   // longest prefix that fits with the ellipsis
+        while (lo < hi)
+        {
+            int mid = (lo + hi + 1) / 2;
+            text.text = Cut(full, mid);
+            if (text.preferredWidth <= width) lo = mid; else hi = mid - 1;
+        }
+        text.text = Cut(full, lo);
+    }
+
+    static string Cut(string s, int n)
+    {
+        if (n > 0 && n < s.Length && char.IsHighSurrogate(s[n - 1])) n--;   // never split a surrogate pair
+        return s.Substring(0, n).TrimEnd() + Ellipsis;
     }
 
     // ---- per-frame ----

@@ -63,10 +63,6 @@ public static class ScreenFitScreens
                         reason = "developer-only rows (DeveloperUnlocks.Available builds)" },
         new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
                         reason = "developer-only sign-in details line" },
-        new FitWaiver { screen = "leaderboard", kind = "TAPSIZE", element = "/Tab_",
-                        reason = "the single board's tab (~36 dp with padding); taller tabs are a design change" },
-        new FitWaiver { screen = "leaderboard", kind = "SMALLTEXT", element = "/Name ",
-                        reason = "27-character player names best-fit down to 8 px (decision: larger floor + ellipsis)" },
     };
 
     const float Dt = 1f / 60f;
@@ -275,6 +271,15 @@ public static class ScreenFitScreens
         }
         else if (shot == 2)
         {
+            // The shipped table has no live store ids yet (the panel would say
+            // NO LEADERBOARDS YET): stage the one board it has, Top Score,
+            // with stand-in ids so its tab and rows are on screen.
+            var real = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
+            LeaderboardBoards.OverrideForTests(new[]
+            {
+                new LeaderboardBoard(real.id, "fit_android_top_score", "fit_ios_top_score", real.displayName, real.description,
+                                     real.sort, LeaderboardBoards.FormatScore, run => run.score),
+            });
             foreach (var b in LeaderboardBoards.All)
             {
                 var rows = new List<LeaderboardEntry>();
@@ -283,7 +288,7 @@ public static class ScreenFitScreens
                     {
                         rank = i + 1,
                         playerId = i == 3 ? fake.LocalPlayerId : "p" + i,
-                        playerName = i == 3 ? "KANEDA_THE_LONG_NAMED_PILOT" : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
+                        playerName = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
                         value = 99999999 - i * 137,
                         isLocalPlayer = i == 3,
                     });
@@ -294,7 +299,60 @@ public static class ScreenFitScreens
             rig.Sync();
             panel.SendMessage("Update");
             rig.Ignore("Canvas");
+            LeaderboardChecks(rig, panel);
         }
+    }
+
+    // Row 3 is the player's own; the rest: a 30+ character name, wide glyphs
+    // (W, CJK, a surrogate-pair emoji), a short one.
+    static readonly string[] LongNames =
+    {
+        "MAXIMILIAN_VON_STARDUST_THE_THIRD_OF_NEO_TOKYO",
+        "WWWWWWWWWWWWWWWWWWWWWWWW",
+        "\u5B87\u5B99\u306E\u30D1\u30A4\u30ED\u30C3\u30C8\u91D1\u7530\u6B63\u592A\u90CE\u3068\u5C71\u5F62\u3055\u3093",
+        "KANEDA_THE_LONG_NAMED_PILOT",
+        "ACE\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80ROCKETEER",
+        "KEI",
+    };
+
+    // Names: one line, at least LeaderboardPanel.NameMinSize, inside their
+    // box (cut with an ellipsis when too long); rank and score columns lined
+    // up row to row and never cut.
+    static void LeaderboardChecks(ScreenFitRig rig, LeaderboardPanel panel)
+    {
+        float rankX = float.NaN, valueX = float.NaN;
+        int names = 0, cut = 0;
+        foreach (var t in panel.GetComponentsInChildren<Text>())
+        {
+            var row = t.transform.parent;
+            if (row == null) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (t.name == "Name")
+            {
+                names++;
+                if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+                Rect box = rig.PixelRect(t.rectTransform);
+                if (t.fontSize < LeaderboardPanel.NameMinSize || t.resizeTextForBestFit)
+                    rig.Fail("LEADERBOARD", "name " + row.name, "drawn at " + t.fontSize + " units, under the " + LeaderboardPanel.NameMinSize + " floor", glyphs);
+                if (glyphs.xMax > box.xMax + 1f || glyphs.xMin < box.xMin - 1f)
+                    rig.Fail("LEADERBOARD", "name " + row.name + " \"" + t.text + "\"", "runs out of its column", glyphs);
+                if (glyphs.height > fontPx * 1.9f)
+                    rig.Fail("LEADERBOARD", "name " + row.name, "wraps onto a second line", glyphs);
+                if (t.text.EndsWith(LeaderboardPanel.Ellipsis)) cut++;
+            }
+            else if (t.name == "Rank" || t.name == "Value")
+            {
+                Rect box = rig.PixelRect(t.rectTransform);
+                float x = t.name == "Rank" ? box.xMin : box.xMax;
+                if (row.parent != null && row.parent.name == "PlayerRow") continue;   // the own row is inset differently
+                ref float col = ref (t.name == "Rank" ? ref rankX : ref valueX);
+                if (float.IsNaN(col)) col = x;
+                else if (Mathf.Abs(col - x) > 1f)
+                    rig.Fail("LEADERBOARD", t.name + " column", row.name + " is " + (x - col).ToString("F0") + "px out of line", box);
+            }
+        }
+        if (names < 10) rig.Fail("STAGE", "leaderboard", "only " + names + " name cells");
+        if (cut < 3) rig.Fail("LEADERBOARD", "names", "the long names were not cut with an ellipsis (" + cut + ")");
     }
 
     static void Credits(ScreenFitRig rig)
