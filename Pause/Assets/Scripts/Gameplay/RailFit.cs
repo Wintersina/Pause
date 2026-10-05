@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 // Both rails are a quad scaled to localScale.y = 10.85, baked for the
 // camera's baseline orthographicSize of 5 (visible full height 10, so the
 // rail overshoots it by ~8.5% -- a small margin against seams). CameraFit
-// grows orthographicSize on tall phones (up to 6.65 confirmed on a Galaxy Z
-// Flip) without anything telling the rails to grow too, so on those devices
+// grows orthographicSize on phones (6.6 on 16:9, 8.7 on a 21:9 Galaxy Z
+// Flip, ~9.1 on 22:9) without anything telling the rails to grow too, so on those devices
 // the fixed-height rail no longer reaches the top/bottom of the screen and
 // reads as floating in the middle instead of running edge to edge.
 //
