@@ -80,7 +80,7 @@ public class AccountOptions : MonoBehaviour
 
     void Start()
     {
-        if (card == null) Build(new Vector2(Screen.width, Screen.height), Screen.safeArea, false);
+        if (card == null) Build(new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
     // Tests pass an explicit screen and safe area.
@@ -315,10 +315,10 @@ public class AccountOptions : MonoBehaviour
     void Update()
     {
         bool changed = false;
-        if (!overridden && (Screen.width != screenSize.x || Screen.height != screenSize.y || Screen.safeArea != safeArea))
+        if (!overridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y || ScreenInfo.SafeArea != safeArea))
         {
-            screenSize = new Vector2(Screen.width, Screen.height);
-            safeArea = Screen.safeArea;
+            screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
+            safeArea = ScreenInfo.SafeArea;
             changed = true;
         }
         if (DeveloperUnlocks.Enabled != devShown) { Refresh(); return; }

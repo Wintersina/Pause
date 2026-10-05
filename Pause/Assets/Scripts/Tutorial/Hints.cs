@@ -266,7 +266,7 @@ public class Hints : MonoBehaviour {
         if (skip == null) skip = FindFirstObjectByType<TutorialSkip>();
         if (speakerCanvas == null) speakerCanvas = speaker.GetComponent<Canvas>();
         float sf = Mathf.Max(speakerCanvas.scaleFactor, .0001f);
-        float safeTop = Screen.safeArea.yMax;
+        float safeTop = ScreenInfo.SafeArea.yMax;
         float lowest = safeTop;   // lowest screen y (px) taken from the top
         if (hudPanel != null && hudPanel.gameObject.activeInHierarchy)
         {

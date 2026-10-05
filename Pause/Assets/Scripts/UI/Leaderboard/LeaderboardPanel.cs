@@ -87,7 +87,7 @@ public class LeaderboardPanel : MonoBehaviour
 
     public static LeaderboardPanel Open(LeaderboardService service = null, Font font = null)
     {
-        return Open(service, font, new Vector2(Screen.width, Screen.height), Screen.safeArea, false);
+        return Open(service, font, new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
     // Tests pass an explicit screen and safe area.
@@ -489,11 +489,11 @@ public class LeaderboardPanel : MonoBehaviour
     void Update()
     {
         if (CurrentState == State.Loading && loadingCells.Count > 0) AnimateLoading(Time.unscaledTime);
-        if (!screenOverridden && (Screen.width != screenSize.x || Screen.height != screenSize.y
-                                  || Screen.safeArea != safeArea))
+        if (!screenOverridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y
+                                  || ScreenInfo.SafeArea != safeArea))
         {
-            screenSize = new Vector2(Screen.width, Screen.height);
-            safeArea = Screen.safeArea;
+            screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
+            safeArea = ScreenInfo.SafeArea;
             ApplyLayout();
         }
     }

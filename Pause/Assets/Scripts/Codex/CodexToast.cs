@@ -154,6 +154,6 @@ public class CodexToast : MonoBehaviour
     float SafeTopInset()
     {
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        return (Screen.height - Screen.safeArea.yMax) / sf;
+        return (ScreenInfo.Height - ScreenInfo.SafeArea.yMax) / sf;
     }
 }

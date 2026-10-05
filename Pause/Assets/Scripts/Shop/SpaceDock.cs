@@ -272,8 +272,8 @@ public class SpaceDock : MonoBehaviour
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
         needsLayout = false;
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
         lastOrtho = cam.orthographicSize;
 
         float halfH = cam.orthographicSize;
@@ -631,7 +631,7 @@ public class SpaceDock : MonoBehaviour
             if (!dragging && (pointer - pressAt).magnitude > DragThresholdInches * dpi) dragging = true;
             if (dragging && scrollable)
             {
-                float worldPerPixel = cam.orthographicSize * 2f / Mathf.Max(1, Screen.height);
+                float worldPerPixel = cam.orthographicSize * 2f / Mathf.Max(1, ScreenInfo.Height);
                 float delta = (pointer.y - lastPointerY) * worldPerPixel;
                 SetRackY(rackY + delta);
                 if (dt > 0f) scrollVelocity = delta / dt;
@@ -658,7 +658,7 @@ public class SpaceDock : MonoBehaviour
     void LateUpdate()
     {
         if (cam == null) return;
-        if (needsLayout || Screen.width != lastScreenW || Screen.height != lastScreenH ||
+        if (needsLayout || ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH ||
             !Mathf.Approximately(cam.orthographicSize, lastOrtho))
             Relayout();
     }

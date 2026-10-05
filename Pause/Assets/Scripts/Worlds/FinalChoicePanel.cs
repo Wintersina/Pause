@@ -355,9 +355,9 @@ public class FinalChoicePanel : MonoBehaviour
         var root = (RectTransform)transform;
         Vector2 size = root.rect.size;
         if (size.x <= 0f || size.y <= 0f) size = new Vector2(800f, 1200f);
-        Rect safe = Screen.safeArea;
-        float sx = Screen.width > 0 ? safe.width / Screen.width : 1f;
-        float sy = Screen.height > 0 ? safe.height / Screen.height : 1f;
+        Rect safe = ScreenInfo.SafeArea;
+        float sx = ScreenInfo.Width > 0 ? safe.width / ScreenInfo.Width : 1f;
+        float sy = ScreenInfo.Height > 0 ? safe.height / ScreenInfo.Height : 1f;
         fitScale = FitScale(new Vector2(size.x * sx, size.y * sy));
     }
 

@@ -23,14 +23,14 @@ public class BelowCameraDestroyer : MonoBehaviour
 
     void Update()
     {
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
             Reposition();
     }
 
     public void Reposition()
     {
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
         var p = transform.position;
         transform.position = new Vector3(p.x, CameraFit.ViewBottom - Clearance, p.z);
     }

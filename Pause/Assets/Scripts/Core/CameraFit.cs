@@ -49,22 +49,22 @@ public class CameraFit : MonoBehaviour
         // unfolding mid-session, so this is checked continuously rather than
         // once. The check itself is two int compares; recomputing only runs
         // on an actual change.
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
             Apply();
     }
 
     void Apply()
     {
         if (cam == null || !cam.orthographic) return;
-        if (Screen.width <= 0 || Screen.height <= 0) return;
+        if (ScreenInfo.Width <= 0 || ScreenInfo.Height <= 0) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
 
-        float size = ComputeSize(baseSize, minHalfWidth, Screen.width, Screen.height);
+        float size = ComputeSize(baseSize, minHalfWidth, ScreenInfo.Width, ScreenInfo.Height);
         if (!Mathf.Approximately(size, cam.orthographicSize))
             Debug.Log(string.Format("[CameraFit] {0} {1}x{2} -> orthographicSize {3:F3}",
-                gameObject.scene.name, Screen.width, Screen.height, size));
+                gameObject.scene.name, ScreenInfo.Width, ScreenInfo.Height, size));
         cam.orthographicSize = size;
     }
 

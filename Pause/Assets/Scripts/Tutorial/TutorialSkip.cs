@@ -54,7 +54,7 @@ public class TutorialSkip : MonoBehaviour
         // Screen.width/height/safe area change on rotation, resize, or a
         // foldable changing state mid-session -- recheck cheaply and only
         // reposition on an actual change, mirroring CameraFit's own pattern.
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH || Screen.safeArea != lastSafe
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH || ScreenInfo.SafeArea != lastSafe
             || (canvas != null && !Mathf.Approximately(canvas.scaleFactor, lastScaleFactor)))
             Reposition();
 
@@ -179,9 +179,9 @@ public class TutorialSkip : MonoBehaviour
         var cam = Camera.main;
         if (cam == null) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
-        lastSafe = Screen.safeArea;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
+        lastSafe = ScreenInfo.SafeArea;
         if (canvas != null) lastScaleFactor = canvas.scaleFactor;
 
         Vector3 worldClamp = new Vector3(clampWorldX, 0f, 0f);
@@ -194,9 +194,9 @@ public class TutorialSkip : MonoBehaviour
         // the usual top-right placement on a screen wide enough that the
         // fixed margin alone would already clear the rail.
         float sf = canvas != null ? Mathf.Max(canvas.scaleFactor, .0001f) : 1f;
-        Rect safe = Screen.safeArea;
-        float safeRightInset = (Screen.width - safe.xMax) / sf;
-        float safeTopInset = (Screen.height - safe.yMax) / sf;
+        Rect safe = ScreenInfo.SafeArea;
+        float safeRightInset = (ScreenInfo.Width - safe.xMax) / sf;
+        float safeTopInset = (ScreenInfo.Height - safe.yMax) / sf;
         float rightEdgeFromFixedMargin = canvasRect.rect.xMax - safeRightInset - 18f;
         float rightEdge = Mathf.Min(rightEdgeFromFixedMargin, local.x);
 

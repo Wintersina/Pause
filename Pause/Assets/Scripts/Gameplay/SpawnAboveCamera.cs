@@ -28,7 +28,7 @@ public class SpawnAboveCamera : MonoBehaviour
 
     void Update()
     {
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
             Reposition();
     }
 
@@ -37,8 +37,8 @@ public class SpawnAboveCamera : MonoBehaviour
         var cam = Camera.main;
         if (cam == null || !cam.orthographic) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
 
         // Camera y is not assumed to be exactly 0 -- add its own position so
         // this is correct even if a scene's camera is not perfectly centred.

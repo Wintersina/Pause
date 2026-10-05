@@ -452,9 +452,9 @@ public partial class TitleScreenTraffic : MonoBehaviour
         float size = cam != null && cam.orthographic ? cam.orthographicSize : 5f;
         float aspect = cam != null ? cam.aspect : .5625f;
         if (!(aspect > .2f && aspect < 4f)) aspect = .5625f;
-        if (!force && Screen.width == screenW && Screen.height == screenH && size == camSize && aspect == camAspect)
+        if (!force && ScreenInfo.Width == screenW && ScreenInfo.Height == screenH && size == camSize && aspect == camAspect)
             return;
-        screenW = Screen.width; screenH = Screen.height; camSize = size; camAspect = aspect;
+        screenW = ScreenInfo.Width; screenH = ScreenInfo.Height; camSize = size; camAspect = aspect;
 
         Vector3 c = cam != null ? cam.transform.position : Vector3.zero;
         float halfH = size, halfW = size * aspect;
@@ -463,7 +463,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         safe = view;
         if (screenW > 0 && screenH > 0)
         {
-            Rect sa = Screen.safeArea;
+            Rect sa = ScreenInfo.SafeArea;
             safe = new Rect(view.x + view.width * sa.x / screenW, view.y + view.height * sa.y / screenH,
                             view.width * sa.width / screenW, view.height * sa.height / screenH);
             if (safe.width <= 0f || safe.height <= 0f) safe = view;

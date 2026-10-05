@@ -31,7 +31,7 @@ public class RailFit : MonoBehaviour
 
     void Update()
     {
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
             Reposition();
     }
 
@@ -44,8 +44,8 @@ public class RailFit : MonoBehaviour
         float meshHeight = meshFilter.sharedMesh.bounds.size.y;
         if (meshHeight <= 0f) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
 
         float requiredWorldHeight = cam.orthographicSize * 2f * coverageMultiplier;
         var scale = transform.localScale;

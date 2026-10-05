@@ -399,12 +399,12 @@ public static class ShipUiSlots
     {
         if (ScreenOverride != null) return ScreenOverride();
         if (cam == null) cam = Camera.main;
-        if (cam == null || Screen.width <= 0 || Screen.height <= 0)
+        if (cam == null || ScreenInfo.Width <= 0 || ScreenInfo.Height <= 0)
             return Rect.MinMaxRect(-1e4f, -1e4f, 1e4f, 1e4f);
-        Rect sa = Screen.safeArea;
-        if (sa.width <= 0f || sa.height <= 0f) sa = new Rect(0f, 0f, Screen.width, Screen.height);
-        Vector3 a = cam.ViewportToWorldPoint(new Vector3(sa.xMin / Screen.width, sa.yMin / Screen.height, 0f));
-        Vector3 b = cam.ViewportToWorldPoint(new Vector3(sa.xMax / Screen.width, sa.yMax / Screen.height, 0f));
+        Rect sa = ScreenInfo.SafeArea;
+        if (sa.width <= 0f || sa.height <= 0f) sa = new Rect(0f, 0f, ScreenInfo.Width, ScreenInfo.Height);
+        Vector3 a = cam.ViewportToWorldPoint(new Vector3(sa.xMin / ScreenInfo.Width, sa.yMin / ScreenInfo.Height, 0f));
+        Vector3 b = cam.ViewportToWorldPoint(new Vector3(sa.xMax / ScreenInfo.Width, sa.yMax / ScreenInfo.Height, 0f));
         return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
     }
 }

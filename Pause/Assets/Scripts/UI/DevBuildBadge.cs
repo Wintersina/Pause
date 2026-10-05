@@ -51,7 +51,7 @@ public class DevBuildBadge : MonoBehaviour
     void Place()
     {
         float scale = canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
-        var safe = Screen.safeArea;
+        var safe = ScreenInfo.SafeArea;
         rect.anchoredPosition = new Vector2(safe.xMin / scale + 10f, safe.yMin / scale + 8f);
     }
 }

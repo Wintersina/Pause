@@ -30,7 +30,7 @@ public class startMenu : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (layoutWidth != Screen.width || layoutHeight != Screen.height)
+        if (layoutWidth != ScreenInfo.Width || layoutHeight != ScreenInfo.Height)
             LayoutHome();
         // Back/Escape is BackNavigator's: on the home screen it closes the
         // codex one level at a time, then quits on a second press within
@@ -55,7 +55,7 @@ public class startMenu : MonoBehaviour {
         var bounds = canvasObject.GetComponent<RectTransform>().rect;
         float width = bounds.width;
         float height = bounds.height;
-        float safeBottom = canvas != null ? Screen.safeArea.yMin / canvas.scaleFactor : 0f;
+        float safeBottom = canvas != null ? ScreenInfo.SafeArea.yMin / canvas.scaleFactor : 0f;
         Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, -height * 0.08f),
               new Vector2(Mathf.Min(520f, width * 0.78f), Mathf.Min(330f, height * 0.4f)));
         var panel = SceneUtil.FindAny("UIPanel");
@@ -80,8 +80,8 @@ public class startMenu : MonoBehaviour {
                 label.resizeTextMaxSize = name == "QuitButton" ? 28 : 38;
             }
         }
-        layoutWidth = Screen.width;
-        layoutHeight = Screen.height;
+        layoutWidth = ScreenInfo.Width;
+        layoutHeight = ScreenInfo.Height;
     }
 
     static void Place(string name, Vector2 anchor, Vector2 position, Vector2 size)
