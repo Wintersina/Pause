@@ -407,7 +407,7 @@ public static class WorldBackdropTest
 
     // ------------------------------------------------------------- walls --
 
-    public const int WallWidth = 64, WallHeight = 448;
+    public const int WallWidth = 96, WallHeight = 448;
     const int WallMaxColours = 32;              // flat cels: a handful of tones plus stepped light halos
     const float WallMinMajorCover = 0.95f;      // colours with >= 0.5% coverage must cover the wall
     const float WallMaxSoftPairs = 0.01f;       // neighbours 1..6 levels apart = gradient banding
@@ -634,8 +634,8 @@ public static class WorldBackdropTest
         Check("Space depth tiers grow, speed up and brighten strictly far -> near", mono);
         float farShare = (tiers[0].weight + tiers[1].weight) / (float)total;
         float nearShare = tiers[tiers.Length - 1].weight / (float)total;
-        Check("Space planets are mostly far away (two farthest tiers " + farShare.ToString("F2") +
-              " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.08)", farShare >= 0.7f && nearShare <= 0.08f);
+        Check("Space random planets remain mostly far away (two farthest tiers " + farShare.ToString("F2") +
+              " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.10)", farShare >= 0.7f && nearShare <= 0.10f);
         Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].layer));
         float nearRate = spec.Rate(tiers[tiers.Length - 1].layer);
         Check("Space bodies stay far behind the ship's own depth (nearest tier rate " + nearRate + " <= 0.15)",
@@ -758,8 +758,12 @@ public static class WorldBackdropTest
         int planets = 0;
         foreach (int n in planetsPerTier) planets += n;
         int far = planetsPerTier[0] + planetsPerTier[1], near = planetsPerTier[tiers - 1];
-        Check("Space planets in the run are mostly far (" + far + " of " + planets + " in the two farthest tiers, " +
-              near + " near)", planets >= 20 && far >= 0.65f * planets && near <= 0.12f * planets);
+        // Authored hero beats add guaranteed near planets on top of the
+        // random tier distribution. Far planets must still be the plurality,
+        // while enough near planets appear to define the world's scale.
+        Check("Space keeps a far-field majority plus recurring hero planets (" + far + " far, " + near +
+              " near of " + planets + ")", planets >= 20 && far >= 0.40f * planets &&
+              near >= 0.15f * planets && near <= 0.40f * planets);
     }
 
     static int MaxDiff(Color32 a, Color32 b)

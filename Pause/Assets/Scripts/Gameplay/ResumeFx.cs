@@ -79,7 +79,7 @@ public static class ResumeFx
     // Lanes: |x| between these, clamped inside the rails' inner edge.
     public const float LaneInner = 1.35f;
     public const float LaneOuter = 2.3f;
-    public const float RailInnerEdge = 2.49f;
+    public const float RailInnerEdge = 2.43f;
 
     public const int Ghosts = 3;
     public const float GhostStep = 0.22f;          // world units between afterimages

@@ -29,18 +29,22 @@ public class SpaceDirector : BackdropDirector
     // a farther body is always smaller than a nearer one.
     public static readonly Tier[] Tiers =
     {
-        new Tier { layer = "deep", scale = 0.60f, light = 0.62f, clarity = 0.60f, weight = 46 },
-        new Tier { layer = "far",  scale = 1.00f, light = 0.74f, clarity = 0.75f, weight = 34 },
-        new Tier { layer = "mid",  scale = 1.60f, light = 0.86f, clarity = 0.90f, weight = 16 },
-        new Tier { layer = "near", scale = 2.60f, light = 0.96f, clarity = 1.00f, weight = 4 },
+        new Tier { layer = "deep", scale = 0.60f, light = 0.62f, clarity = 0.60f, weight = 42 },
+        new Tier { layer = "far",  scale = 1.00f, light = 0.74f, clarity = 0.75f, weight = 31 },
+        new Tier { layer = "mid",  scale = 1.60f, light = 0.86f, clarity = 0.90f, weight = 18 },
+        // A near body is a composition anchor, not just a slightly larger
+        // decoration. At this scale a planet fills roughly 60% of a phone's
+        // width and crops behind one rail, like the Space art direction.
+        new Tier { layer = "near", scale = 3.30f, light = 0.96f, clarity = 1.00f, weight = 9 },
     };
 
     // BackdropPiece.kind of a body.
     public const int Planet = 0, Station = 1, Planetoid = 2, Moon = 3;
-    static readonly float[] KindSize = { 1.0f, 0.4f, 0.5f, 0.16f };    // width in units at scale 1
+    static readonly float[] KindSize = { 1.0f, 0.65f, 0.5f, 0.16f };   // width in units at scale 1
     const float SizeJitterLo = 0.9f, SizeJitterHi = 1.25f;
-    // Lone stations and planetoids never come nearer than this tier.
-    const int StationMaxTier = 1, PlanetoidMaxTier = 2;
+    // A rare near station reads as the derelict megastructure silhouette in
+    // the reference composition; most remain deep/far through tier weights.
+    const int StationMaxTier = 3, PlanetoidMaxTier = 2;
 
     const float MinSpacing = 3.5f;      // clear sky between a new body and the one before it
     const float Clearance = 0.5f;       // gap kept between two bodies passing each other
@@ -75,22 +79,29 @@ public class SpaceDirector : BackdropDirector
     readonly MaterialPropertyBlock mpb = new MaterialPropertyBlock();
 
     // Comets cross far behind everything: small, dim and pulled toward the sky.
-    public const float CometMinWidth = 0.6f, CometMaxWidth = 0.95f, CometMaxAlpha = 0.42f;
+    public const float CometMinWidth = 0.7f, CometMaxWidth = 1.05f, CometMaxAlpha = 0.56f;
     static readonly Color CometTint = new Color(0.62f, 0.74f, 0.95f);
 
     static readonly Color[] WispTints =
     {
         new Color(0.55f, 0.35f, 0.75f, 0.24f), new Color(0.3f, 0.6f, 0.75f, 0.22f), new Color(0.45f, 0.45f, 0.85f, 0.24f),
     };
-    static readonly Color[] ShooterTints = { new Color(0.85f, 0.75f, 1f, 0.55f), new Color(0.7f, 0.95f, 1f, 0.55f) };
+    static readonly Color[] ShooterTints =
+    {
+        new Color(0.85f, 0.75f, 1f, 0.58f),
+        new Color(0.70f, 0.95f, 1f, 0.58f),
+        new Color(1.00f, 0.63f, 0.22f, 0.68f), // rare warm punctuation against the blue field
+    };
 
     BackdropPool wisps, galaxies, stars, comets, shooters, planets, stations, planetoids, moons, dust;
     Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation, comet;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
     readonly List<BackdropPool> setPieces = new List<BackdropPool>();
     Timer galaxyTimer = new Timer(30f, 50f, 30f);
-    Timer cometTimer = new Timer(22f, 38f, 9f);
+    Timer cometTimer = new Timer(16f, 26f, 7f);
     Timer shooterTimer = new Timer(5f, 11f, 2.5f);
+    Timer heroTimer = new Timer(26f, 34f, 24f);
+    bool heroDue;
 
     // The next body waits here until the sky has room for it.
     struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring; }
@@ -166,9 +177,10 @@ public class SpaceDirector : BackdropDirector
         // The streak's head is at +x; dust falls, so point it down.
         foreach (var d in dust.items) d.body.localRotation = Quaternion.Euler(0, 0, -90f);
 
-        // Open on a planet already in view, so a run never starts on an empty
-        // sky -- a distant one, like most.
-        next = PlanPlanet(Chance(0.7) ? 1 : 2);
+        // Open on a hero planet already in view. It is deliberately large,
+        // off-centre and partially cropped, establishing the world's scale
+        // before the normal body queue takes over.
+        next = PlanHero();
         Enter(HalfH * 0.3f);
         next = PlanBody();
         nextBody = Rand(3f, 5f);
@@ -227,15 +239,22 @@ public class SpaceDirector : BackdropDirector
         }
 
         if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy(float.NaN);
-        if (cometTimer.Tick(dt, rng)) SpawnComet();
+        if (cometTimer.Tick(dt, rng)) SpawnComet(v);
         if (shooterTimer.Tick(dt, rng)) SpawnShooter();
+        if (heroTimer.Tick(dt, rng) && !(next.kind == Planet && next.tier == Tiers.Length - 1))
+            heroDue = true;
 
         // One queue for every body. A plan that doesn't fit yet is held, not
         // re-rolled, so waiting for room never skews the mix toward small.
         nextBody -= dt;
         if (nextBody <= 0f)
         {
-            if (Enter(float.NaN)) { next = PlanBody(); nextBody = Rand(5f, 9f); }
+            if (Enter(float.NaN))
+            {
+                next = heroDue ? PlanHero() : PlanBody();
+                heroDue = false;
+                nextBody = Rand(5f, 9f);
+            }
             else nextBody = 0.5f;
         }
 
@@ -258,7 +277,11 @@ public class SpaceDirector : BackdropDirector
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
         foreach (var c in comets.items)
-            if (c.active && Drift(c, dt, v)) Paint(c, 1f);
+            if (c.active && Drift(c, dt, v))
+            {
+                OrientComet(c, v);
+                Paint(c, 1f);
+            }
         foreach (var s in shooters.items)
         {
             if (!s.active) continue;
@@ -268,8 +291,14 @@ public class SpaceDirector : BackdropDirector
             Place(s);
             float k = s.age / s.life;
             if (k >= 1f) { Despawn(s); continue; }
-            s.body.localScale = new Vector3(0.4f + 1.6f * Mathf.Min(1f, k * 3f), 1f, 1f);
-            Paint(s, k < 0.7f ? 1f : (1f - k) / 0.3f);
+            float stretch = Mathf.Lerp(0.45f, 1.45f, Mathf.Min(1f, k * 4f));
+            s.body.localScale = new Vector3(stretch, 1f, 1f);
+            // The streak sprite's head is at +x. Offset the scaled body so
+            // that head stays on the flight point and the trail grows back.
+            float spriteWidth = s.sr.sprite != null ? s.sr.sprite.bounds.size.x : 0f;
+            s.body.localPosition = new Vector3((1f - stretch) * spriteWidth * 0.5f, 0f, 0f);
+            float alpha = k < 0.12f ? k / 0.12f : k < 0.68f ? 1f : (1f - k) / 0.32f;
+            Paint(s, alpha);
         }
     }
 
@@ -322,6 +351,18 @@ public class SpaceDirector : BackdropDirector
             p.companionSize = SizeOf(p.companion, tier);
             p.reach = OrbitRadius(p.size, p.companionSize) + p.companionSize * 0.75f;
         }
+        return p;
+    }
+
+    // Hero planets carry the frame alone. Ordinary planets can have orbiting
+    // moons/stations; on a 60%-wide anchor those companions muddy the clean
+    // silhouette and central gameplay lane.
+    Plan PlanHero()
+    {
+        var p = PlanPlanet(Tiers.Length - 1);
+        p.companion = -1;
+        p.companionSize = 0f;
+        p.reach = p.size * 0.55f;
         return p;
     }
 
@@ -524,7 +565,7 @@ public class SpaceDirector : BackdropDirector
 
     // Comets cross far behind every body (their layer sorts below the deep
     // tier), small and dim.
-    void SpawnComet()
+    void SpawnComet(float scrollVelocity)
     {
         if (comet.Length == 0) return;
         var c = comets.Spawn();
@@ -533,17 +574,24 @@ public class SpaceDirector : BackdropDirector
         float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
         c.x = -dir * (HalfW + 1f);
         c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);
-        c.vx = dir * Rand(0.5f, 0.9f);
-        c.vy = -Rand(0.15f, 0.4f);
+        c.vx = dir * Rand(1.15f, 1.75f);
+        c.vy = -Rand(0.25f, 0.55f);
         c.rate = set.Spec.Rate("comets");
-        // Head leads. In the art the tail trails up-right of the head, i.e.
-        // the comet is drawn flying toward 213 degrees.
-        float ang = Mathf.Atan2(c.vy, c.vx) * Mathf.Rad2Deg - 213f;
-        c.root.localRotation = Quaternion.Euler(0, 0, ang);
+        OrientComet(c, scrollVelocity);
         // Hazed toward the sky's indigo and mostly see-through: the art's
         // white-hot head would otherwise outshine the gameplay in front.
         c.color = CometTint;
-        c.color.a = Rand(0.32f, CometMaxAlpha);
+        c.color.a = Rand(0.42f, CometMaxAlpha);
+    }
+
+    // The visible vertical velocity includes parallax scroll. Orienting from
+    // authored velocity alone made the head point away from its path as the
+    // run accelerated.
+    void OrientComet(BackdropPiece c, float scrollVelocity)
+    {
+        float screenVy = c.vy - c.rate * scrollVelocity;
+        float ang = Mathf.Atan2(screenVy, c.vx) * Mathf.Rad2Deg - 213f;
+        c.root.localRotation = Quaternion.Euler(0f, 0f, ang);
     }
 
     void SpawnShooter()
@@ -559,6 +607,8 @@ public class SpaceDirector : BackdropDirector
         s.vy = Mathf.Sin(ang) * spd;
         s.life = Rand(0.4f, 0.6f);
         s.root.localRotation = Quaternion.Euler(0, 0, ang * Mathf.Rad2Deg);
+        s.body.localPosition = Vector3.zero;
+        s.body.localScale = Vector3.one;
         s.color = Pick(ShooterTints);
     }
 }

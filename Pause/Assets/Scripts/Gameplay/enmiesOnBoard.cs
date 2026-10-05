@@ -476,7 +476,7 @@ public class enmiesOnBoard : MonoBehaviour {
         {
             wallX = wall.transform.position.x;
         }
-        else wallX = left ? -3.21f : 3.21f;
+        else wallX = left ? -3.15f : 3.15f;
 
         // The decorative pipe's transform is outside the portrait camera
         // (about +/-3.21). Its old centerline therefore spawned both the rail

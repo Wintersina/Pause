@@ -56,7 +56,7 @@ public static class BossAttackPreview
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
 
-        // the two walls, as in gameS1 (world-fixed quads; inner faces at +/-2.495)
+        // the two walls, as in gameS1 (world-fixed quads; inner faces at +/-2.435)
         var white = Texture2D.whiteTexture;
         var sprite = Sprite.Create(white, new Rect(0, 0, white.width, white.height), new Vector2(.5f, .5f), white.width);
         foreach (float side in new[] { -1f, 1f })
@@ -66,7 +66,7 @@ public static class BossAttackPreview
             sr.sprite = sprite;
             sr.color = new Color(.16f, .17f, .26f);
             sr.sortingOrder = -10;
-            wall.transform.position = new Vector3(side * 3.21f, 0f, 1f);
+            wall.transform.position = new Vector3(side * 3.15f, 0f, 1f);
             wall.transform.localScale = new Vector3(1.43f, 30f, 1f);
             var lip = new GameObject("lip");
             lip.transform.SetParent(wall.transform, false);

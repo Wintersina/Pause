@@ -403,17 +403,17 @@ public static class BossAttackTest
             cam.orthographicSize = CameraFit.ComputeSize(5f, 2.85f, 1080, Mathf.RoundToInt(1080 / aspect));
             var l = GameObject.CreatePrimitive(PrimitiveType.Quad);
             l.name = "leftPipe";
-            l.transform.position = new Vector3(-3.21f, 0f, 1f);
+            l.transform.position = new Vector3(-3.15f, 0f, 1f);
             l.transform.localScale = new Vector3(1.43f, 10.75f, 1f);
             var r = GameObject.CreatePrimitive(PrimitiveType.Quad);
             r.name = "rightPipe";
-            r.transform.position = new Vector3(3.21f, 0f, 1f);
+            r.transform.position = new Vector3(3.15f, 0f, 1f);
             r.transform.localScale = new Vector3(1.43f, 10.75f, 1f);
             BossRails.Measure();
             float halfW = cam.orthographicSize * cam.aspect;
             Check("aspect " + aspect.ToString("F2") + ": the rail is the walls' inner face (" + BossRails.InnerEdge.ToString("F3") +
                   "), inside the view (" + halfW.ToString("F2") + ") and outside the ship's reach (2.4)",
-                  Mathf.Abs(BossRails.InnerEdge - 2.495f) < .002f && BossRails.InnerEdge < halfW && BossRails.InnerEdge > 2.4f);
+                  Mathf.Abs(BossRails.InnerEdge - 2.435f) < .002f && BossRails.InnerEdge < halfW && BossRails.InnerEdge > 2.4f);
             Object.DestroyImmediate(l);
             Object.DestroyImmediate(r);
         }
