@@ -13,8 +13,11 @@ using Object = UnityEngine.Object;
 //   - inside the radius: pushed outward, harder the closer; outside: not at all
 //   - the ship's column: pushed up-screen however far away; the neighbouring
 //     column and anything behind the ship: not
-//   - roster enemies keep running their behaviour from the new place and stay
-//     in the lane; chasers are knocked back and close in again
+//   - hazards with a brain keep running their behaviour from the new place
+//     and stay in the lane; chasers are knocked back and close in again
+//   - pilots: one waiting above the view is not moved; one entering or on
+//     station is pushed (the column push included), keeps its station, flies
+//     back to it over time and finishes its script; a windup carries on
 //   - rail mines slide along their rail and stay on it
 //   - bosses, parked elites and hostile shots do not move; an elite in play
 //     is kicked away
@@ -55,7 +58,9 @@ public static class ShieldShockwaveTest
             TheShieldEndingFiresIt();
             RadiusPushesOutward();
             ColumnPushesUpScreen();
-            RosterEnemiesKeepTheirBehaviour();
+            HazardsKeepTheirBehaviour();
+            PilotsAreShovedAndReturn();
+            AShovedPilotsWindupContinues();
             ChasersComeBack();
             MinesStayOnTheirRail();
             BossesAndParkedElitesHold();
@@ -90,6 +95,7 @@ public static class ShieldShockwaveTest
         EliteSystem.Clear();
         EnemyShove.Clear();
         EnemyThreat.Reset();
+        PilotAirspace.Clear();
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;   // running without a touch in batch mode
         startMenu.youAreInTutorial = false;
@@ -276,7 +282,10 @@ public static class ShieldShockwaveTest
         if (mount != null) mount.SendMessage("LateUpdate");
     }
 
-    static void RosterEnemiesKeepTheirBehaviour()
+    // Hazards with a brain (rocks: an offset over a scrolling mover). The
+    // shove moves the body and the pattern's base (EnemyBrain.Base) with it,
+    // for good.
+    static void HazardsKeepTheirBehaviour()
     {
         int tried = 0, shoved = 0, offLane = 0, stuck = 0, outOfEnvelope = 0;
         var bad = new List<string>();
@@ -293,7 +302,7 @@ public static class ShieldShockwaveTest
                 UnityEngine.Random.InitState(4242);   // the twin below rolls the same enemy
                 var go = EnemyFactory.Create(def, new Vector3(x, Ship.y + .5f, 0f), Quaternion.identity);
                 var brain = go.GetComponent<EnemyBrain>();
-                if (brain == null) { Object.DestroyImmediate(go); continue; }
+                if (brain == null || brain.IsPilot) { Object.DestroyImmediate(go); continue; }
                 brain.TargetOverride = ship;
                 for (int i = 0; i < 30; i++) StepBrain(brain);
                 // what the same enemy does there left alone, for comparison
@@ -333,11 +342,224 @@ public static class ShieldShockwaveTest
                 Object.DestroyImmediate(go);
             }
         }
-        Check("every roster enemy beside the ship is shoved, its pattern's base moving with it (" + shoved + " of " + tried + ")",
-              tried > 20 && shoved == tried);
+        Check("every brained hazard beside the ship is shoved, its pattern's base moving with it for good (" + shoved + " of " + tried + ")",
+              tried >= 20 && shoved == tried);
         Check("no shove carries a pattern's base past the lane, even pushed at the rail (" + offLane + ")", offLane == 0);
         Check("each keeps inside its behaviour's envelope afterwards (" + outOfEnvelope + " did not)", outOfEnvelope == 0);
         Check("each moving pattern carries on moving afterwards (" + stuck + " stuck) " + string.Join("; ", bad), stuck == 0);
+    }
+
+
+    // ---- 4b: pilots ------------------------------------------------------------
+
+    // A pilot built above the view, as the spawner admits it (waiting).
+    static EnemyBrain Pilot(EnemyDef def, float x, bool armed = false)
+    {
+        for (int k = 0; k < 200; k++)
+        {
+            var go = EnemyFactory.Create(def, new Vector3(x, CameraFit.ViewTop + PilotAirspace.WaitAbove, 0f), Quaternion.identity);
+            var brain = go.GetComponent<EnemyBrain>();
+            brain.TargetOverride = ship;
+            if (!armed || brain.Armed) return brain;
+            Object.DestroyImmediate(go);
+        }
+        return null;
+    }
+
+    // How far the pilot is from where its script wants it (its line).
+    static Vector2 OffLine(EnemyBrain b)
+    {
+        return (Vector2)b.transform.position - (b.Base + b.Offset);
+    }
+
+    // Flown in until it is engaging, in view and on its line.
+    static bool ToStation(EnemyBrain b)
+    {
+        for (int i = 0; i < 60 * 12; i++)
+        {
+            StepBrain(b);
+            if (b.Stage == EnemyBrain.PilotStage.Engaging && !b.Displaced &&
+                b.transform.position.y < CameraFit.ViewTop - .8f && OffLine(b).magnitude < .08f) return true;
+            if (b.Stage == EnemyBrain.PilotStage.Gone) return false;
+        }
+        return false;
+    }
+
+    struct Shoved
+    {
+        public bool taken, held, noSnap, inLane, stationKept, back, scriptEnds;
+        public float peak, backAfter;
+    }
+
+    // Releases the shield at `from` and follows the pilot through the push
+    // and its flight back.
+    static Shoved ShoveAndFollow(EnemyBrain b, Vector2 from)
+    {
+        var r = new Shoved { noSnap = true, inLane = true, stationKept = true };
+        // (a pilot keeps its own body inside the lane by its collider's half width)
+        float lane = Mathf.Max(SpawnLane.LaneHalf - b.Def.ColliderSize.x * .5f, Mathf.Abs(b.transform.position.x));
+        float stationX = b.Base.x;
+        ShieldShockwave.Release(from, HullHalf);
+        r.taken = EnemyShove.IsShoved(b.transform);
+        float last = OffLine(b).magnitude;
+        int frames = Mathf.CeilToInt(ShieldShockwave.PushSeconds / Dt) + 1;
+        for (int i = 0; i < frames + 60 * 4; i++)
+        {
+            StepBrain(b);
+            if (b.Stage == EnemyBrain.PilotStage.Gone) { r.back = true; break; }
+            float off = OffLine(b).magnitude;
+            r.peak = Mathf.Max(r.peak, off);
+            // never a snap: it closes on its line no faster than it flies (its pattern moves the line a little too)
+            if (off < last - (EnemyBrain.ShoveReturnSpeed * Dt + .08f)) r.noSnap = false;
+            last = off;
+            if (Mathf.Abs(b.transform.position.x) > lane + 1e-3f) r.inLane = false;
+            if (Mathf.Abs(b.Base.x - stationX) > 1e-4f) r.stationKept = false;
+            if (i == frames - 1) r.held = off > r.peak * .8f;      // the whole push arrived
+            if (i >= frames && !r.back && off < .08f && !b.Displaced) { r.back = true; r.backAfter = (i - frames + 1) * Dt; }
+        }
+        // ... and its script still runs to its end
+        for (int i = 0; i < 60 * 30 && b.Stage != EnemyBrain.PilotStage.Gone; i++) StepBrain(b);
+        r.scriptEnds = b.Stage == EnemyBrain.PilotStage.Gone;
+        return r;
+    }
+
+    static void PilotsAreShovedAndReturn()
+    {
+        int pilots = 0, waitingMoved = 0, columnBad = 0, radialBad = 0, enteringBad = 0, entering = 0;
+        float leastColumn = 99f, leastRadial = 99f, slowestBack = 0f, fastestBack = 99f;
+        var bad = new List<string>();
+        foreach (var def in EnemyRoster.All)
+        {
+            var beh = EnemyBehaviours.For(def);
+            if (beh == null || !beh.IsPilot || def.role == EnemyRole.Chaser || def.role == EnemyRole.Mine) continue;
+            pilots++;
+
+            // waiting above the view, the ship right under its column: not in play, not moved
+            Fresh();
+            var b = Pilot(def, .4f);
+            if (!b.IsPilot) { bad.Add(def.key + " is not flying as a pilot"); Object.DestroyImmediate(b.gameObject); continue; }
+            Vector3 at = b.transform.position;
+            ship.position = new Vector3(.4f, CameraFit.ViewTop - 1f, 0f);
+            ShieldShockwave.Release(ship.position, HullHalf);
+            for (int i = 0; i < 3; i++) EnemyShove.Step(Dt);
+            if (b.Stage != EnemyBrain.PilotStage.Waiting || EnemyShove.IsShoved(b.transform) || b.transform.position != at)
+            { waitingMoved++; bad.Add(def.key + " moved while waiting"); }
+            EnemyShove.Clear();
+            ship.position = new Vector3(Ship.x, Ship.y, 0f);
+
+            // on its way in (pilots with a station: an alien line has none): shoved, and it still arrives
+            if (beh.entry != PilotEntry.Descend)
+            {
+                bool isEntering = false;
+                for (int i = 0; i < 60 * 6 && !isEntering; i++)
+                {
+                    StepBrain(b);
+                    isEntering = b.Stage == EnemyBrain.PilotStage.Entering && b.transform.position.y < CameraFit.ViewTop - .3f;
+                }
+                if (isEntering)
+                {
+                    entering++;
+                    Vector2 p = b.transform.position;
+                    ShieldShockwave.Release(new Vector2(p.x, p.y - 3f), HullHalf);
+                    bool taken = EnemyShove.IsShoved(b.transform);
+                    float peak = 0f;
+                    for (int i = 0; i < 20; i++) { StepBrain(b); peak = Mathf.Max(peak, OffLine(b).magnitude); }
+                    bool arrives = ToStation(b);
+                    if (!taken || peak < .5f || !arrives)
+                    { enteringBad++; bad.Add(def.key + " entering: taken " + taken + " peak " + peak.ToString("F2") + " arrives " + arrives); }
+                }
+            }
+            Object.DestroyImmediate(b.gameObject);
+
+            // on station in the ship's column, far outside the radius: up-screen by ColumnPush, then back
+            Fresh();
+            b = Pilot(def, .4f);
+            if (!ToStation(b)) { columnBad++; bad.Add(def.key + " never reached its station"); Object.DestroyImmediate(b.gameObject); continue; }
+            {
+                Vector2 p = b.transform.position;
+                ship.position = new Vector3(p.x + .05f, p.y - 3f, 0f);
+                var r = ShoveAndFollow(b, ship.position);
+                leastColumn = Mathf.Min(leastColumn, r.peak);
+                if (r.back && r.backAfter > 0f) { slowestBack = Mathf.Max(slowestBack, r.backAfter); fastestBack = Mathf.Min(fastestBack, r.backAfter); }
+                if (!r.taken || r.peak < ShieldShockwave.ColumnPush * .85f || !r.held || !r.noSnap || !r.inLane || !r.stationKept || !r.back || !r.scriptEnds)
+                {
+                    columnBad++;
+                    bad.Add(def.key + " column: taken " + r.taken + " peak " + r.peak.ToString("F2") + " held " + r.held + " noSnap " + r.noSnap +
+                            " lane " + r.inLane + " station " + r.stationKept + " back " + r.back + " ends " + r.scriptEnds);
+                }
+            }
+            Object.DestroyImmediate(b.gameObject);
+
+            // on station by the right-hand rail, the ship just inside it: pushed at the wall
+            Fresh();
+            b = Pilot(def, 1.75f);
+            if (!ToStation(b)) { radialBad++; bad.Add(def.key + " never reached its station by the rail"); Object.DestroyImmediate(b.gameObject); continue; }
+            {
+                Vector2 p = b.transform.position;
+                ship.position = new Vector3(p.x - .75f, p.y - .45f, 0f);
+                var r = ShoveAndFollow(b, ship.position);
+                leastRadial = Mathf.Min(leastRadial, r.peak);
+                if (!r.taken || r.peak < .12f || !r.noSnap || !r.inLane || !r.stationKept || !r.back || !r.scriptEnds)
+                {
+                    radialBad++;
+                    bad.Add(def.key + " radial: taken " + r.taken + " peak " + r.peak.ToString("F2") + " noSnap " + r.noSnap +
+                            " lane " + r.inLane + " station " + r.stationKept + " back " + r.back + " ends " + r.scriptEnds);
+                }
+            }
+            Object.DestroyImmediate(b.gameObject);
+        }
+        string notes = bad.Count == 0 ? "" : " " + string.Join("; ", bad);
+        Check("a pilot still waiting above the view is not moved, the ship right under its column (" + waitingMoved + " of " + pilots + " moved)",
+              pilots >= 24 && waitingMoved == 0);
+        Check("a pilot on its way in is shoved and still reaches its station (" + (entering - enteringBad) + " of " + entering + ")",
+              entering >= 12 && enteringBad == 0);
+        Check("a pilot hovering in the ship's column, far outside the radius, is pushed up-screen by ColumnPush (least " +
+              leastColumn.ToString("F2") + " of " + ShieldShockwave.ColumnPush + " u), with its station where it was (" + columnBad + " of " + pilots + " wrong)",
+              columnBad == 0);
+        Check("... and flies back to its station over time, never a snap (back on its line " + fastestBack.ToString("F2") + " to " +
+              slowestBack.ToString("F2") + " s after the push)", columnBad == 0 && fastestBack >= .15f && slowestBack <= 3f);
+        Check("a pilot beside the ship by the rail is pushed away (least " + leastRadial.ToString("F2") + " u), never past the lane, and returns (" +
+              radialBad + " of " + pilots + " wrong)", radialBad == 0);
+        Check("every shoved pilot's script still runs to its exit" + notes, bad.Count == 0);
+    }
+
+    // A shove does not touch the attack state machine: a windup in progress
+    // carries on and fires.
+    static void AShovedPilotsWindupContinues()
+    {
+        int tried = 0, kept = 0, fired = 0;
+        EnemyThreat.ForceShooting = true;
+        foreach (var def in EnemyRoster.All)
+        {
+            var beh = EnemyBehaviours.For(def);
+            if (beh == null || !beh.IsPilot || !beh.Shoots || def.role == EnemyRole.Chaser) continue;
+            Fresh();
+            EnemyThreat.ForceShooting = true;
+            var b = Pilot(def, .3f, true);
+            if (b == null) continue;
+            ship.position = new Vector3(.3f, CameraFit.ViewBottom + 1.2f, 0f);   // the pilot's ship, below it in its column
+            bool winding = false;
+            for (int i = 0; i < 60 * 14 && !winding && b.Stage != EnemyBrain.PilotStage.Gone; i++)
+            {
+                StepBrain(b);
+                EliteSystem.Step(Dt);
+                winding = b.State == EnemyBrain.Phase.Windup && b.StateTime > .1f;
+            }
+            if (!winding) { Object.DestroyImmediate(b.gameObject); continue; }
+            tried++;
+            int volleys = b.Volleys, windups = b.Windups;
+            float told = b.StateTime;
+            ShieldShockwave.Release(ship.position, HullHalf);
+            bool shoved = EnemyShove.IsShoved(b.transform);
+            StepBrain(b);
+            if (shoved && b.State == EnemyBrain.Phase.Windup && b.StateTime > told && b.Windups == windups) kept++;
+            for (int i = 0; i < 60 * 3 && b.Volleys == volleys; i++) { StepBrain(b); EliteSystem.Step(Dt); }
+            if (b.Volleys > volleys && b.Windups == windups) fired++;
+            Object.DestroyImmediate(b.gameObject);
+        }
+        EnemyThreat.ForceShooting = false;
+        Check("a pilot shoved mid-windup keeps winding up (" + kept + " of " + tried + " shooting pilots)", tried >= 8 && kept == tried);
+        Check("... and fires that same volley from where it was pushed to (" + fired + " of " + tried + ")", fired == tried);
     }
 
     static void ChasersComeBack()
@@ -578,24 +800,6 @@ public static class ShieldShockwaveTest
 
     // ---- 10 ------------------------------------------------------------------
 
-    // Managed bytes per call, averaged (the heap size is page-granular);
-    // retried if a collection lands in the middle.
-    static double BytesPer(int n, Action action)
-    {
-        double best = double.MaxValue;
-        for (int attempt = 0; attempt < 4; attempt++)
-        {
-            int gc = GC.CollectionCount(0);
-            long before = UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong();
-            for (int i = 0; i < n; i++) action();
-            long after = UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong();
-            if (GC.CollectionCount(0) != gc || after < before) continue;
-            best = Math.Min(best, (after - before) / (double)n);
-            if (best <= 0) break;
-        }
-        return best;
-    }
-
     static void ReleaseAllocatesNothing()
     {
         Fresh();
@@ -620,18 +824,35 @@ public static class ShieldShockwaveTest
         int least = int.MaxValue;
 
         int created = ShieldShockwaveFx.Created, objects = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Length;
-        var keep = new List<byte[]>();
-        double meter = BytesPer(200, () => keep.Add(new byte[1024]));
-        double bytes = BytesPer(200, () =>
+        object sink = null;
+        bool leak = false;
+        Action releases = () =>
         {
-            for (int i = 0; i < bodies.Count; i++) bodies[i].position = home[i];   // the same crowded board every time
-            Release();
-            if (ShieldShockwave.LastPushed < least) least = ShieldShockwave.LastPushed;
-            for (int i = 0; i < 20; i++) EnemyShove.Step(Dt);
-        });
-        Check("the allocation meter sees a 1 KB array per call (" + meter.ToString("F0") + " B/call)", meter >= 500 && meter != double.MaxValue);
-        Check("a release with " + (roster + 10) + " hazards on the board, and its push, allocate nothing (" +
-              (bytes == double.MaxValue ? "unmeasured" : bytes.ToString("F1") + " B/release") + ")", bytes < 8);
+            for (int n = 0; n < 200; n++)
+            {
+                for (int i = 0; i < bodies.Count; i++) bodies[i].position = home[i];   // the same crowded board every time
+                Release();
+                if (ShieldShockwave.LastPushed < least) least = ShieldShockwave.LastPushed;
+                for (int i = 0; i < 20; i++) EnemyShove.Step(Dt);
+                if (leak) sink = new byte[32];
+            }
+        };
+        releases();   // warm
+        least = int.MaxValue;
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        Check("the allocation meter passes its positive control (" + TestHarness.AllocControlCount + " small arrays read as " + control + " bytes)", meterWorks);
+        long bytes = TestHarness.AllocatedBytes(releases);
+        // The same stretch with one small array per release must read as
+        // allocating. (The recorder under-reads -- a single stray array can
+        // read 0 -- so what a zero rules out is an allocation per release.)
+        leak = true;
+        long withLeak = TestHarness.AllocatedBytes(releases);
+        leak = false;
+        Check("... and sees one 32-byte array per release dropped into the measured stretch (" + withLeak + " bytes read for 200)",
+              withLeak >= 200 * 8 && sink != null);
+        Check("200 releases with " + (roster + 10) + " hazards and pilots on the board, and their pushes, allocate nothing (" + bytes + " bytes)",
+              meterWorks && bytes == 0);
         Check("... and create no objects (" + (Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Length - objects) + ")",
               ShieldShockwaveFx.Created == created && Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Length == objects);
         Check("every one of those releases shoved a busy board (at least " + least + " bodies, capacity " + EnemyShove.Capacity + ")",

@@ -340,9 +340,14 @@ public static class SpawnSpaceTest
         var rockDef = EnemyRoster.One(0, EnemyRole.Rock);
         bool sink = false;
         Rect threat;
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        Check("the allocation meter passes its positive control (" + TestHarness.AllocControlCount + " small arrays read as " + control + " bytes)", meterWorks);
         for (int warm = 0; warm < 2; warm++)
         {
-            long before = GC.GetAllocatedBytesForCurrentThread();
+            // (GC.GetAllocatedBytesForCurrentThread reads 0 under this Mono)
+            long bytes = TestHarness.AllocatedBytes(() =>
+            {
             for (int i = 0; i < 200; i++)
             {
                 float x = -2f + i * .02f;
@@ -354,9 +359,9 @@ public static class SpawnSpaceTest
                 SpawnSpace.ResolveSteer(cf, new Vector2(x, -6f), new Vector2(x + .01f, -5.9f), .2f, .07f);
                 sink ^= SpawnLane.Fits(rockDef, x, 5f);
             }
-            long bytes = GC.GetAllocatedBytesForCurrentThread() - before;
+            });
             if (warm == 1)
-                Check("the planner allocates nothing per call (Fits, steering, lane guard: " + bytes + " bytes over 1400 calls)", bytes == 0);
+                Check("the planner allocates nothing per call (Fits, steering, lane guard: " + bytes + " bytes over 1400 calls)", meterWorks && bytes == 0);
         }
         Debug.Log("[SPAWN] (sink " + sink + ")");
         ClearBoard();

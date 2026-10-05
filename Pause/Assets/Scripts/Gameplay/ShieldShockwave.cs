@@ -19,9 +19,17 @@ using UnityEngine;
 // displacement fed into transform.position over PushSeconds (ease-out) by
 // EnemyShove; the mover and the brain carry on from the new place. Per kind:
 //
-//   roster enemies (EnemyBrain)   displaced; the brain's base moves with it,
+//   hazards with a brain (rocks)  displaced; the brain's base moves with it,
 //                                 and that base is kept inside the lane so the
 //                                 pattern still fits between the rails
+//   pilots (EnemyBrain.IsPilot)   hold a station in the world: the push takes
+//                                 one off its line (held on the push's curve
+//                                 while it lasts), then the pilot flies itself
+//                                 back to its station (EnemyBrain's external
+//                                 displacement rule, ShoveReturnSpeed). Its
+//                                 station (Base) is never moved, and its
+//                                 script and any windup carry on. One still
+//                                 waiting above the view, or gone, is not moved
 //   rocks / aliens still weaving  moveEnimes sets x from its weave every
 //                                 frame, so only the up/down part shows
 //   chasers                       knocked back, then steer in again
@@ -73,6 +81,7 @@ public static class ShieldShockwave
     const int Capacity = EnemyShove.Capacity;
     static readonly Transform[] who = new Transform[Capacity];
     static readonly RailMineMount[] mounts = new RailMineMount[Capacity];
+    static readonly bool[] pilots = new bool[Capacity];
     static readonly SpawnFootprint[] prints = new SpawnFootprint[Capacity];
     static readonly Vector2[] from = new Vector2[Capacity];
     static readonly Vector2[] push = new Vector2[Capacity];
@@ -103,6 +112,13 @@ public static class ShieldShockwave
             if (rock && !PushRocks) continue;
             if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _)) continue;
             if (RunScore.IsHostileShot(go)) continue;
+
+            EnemyBrain brain;
+            if (!go.TryGetComponent(out brain) || !brain.enabled || brain.Behaviour == null) brain = null;
+            bool pilot = brain != null && brain.IsPilot;
+            // above the view with its column reserved, or already off the board: not in play
+            if (pilot && brain.Stage != EnemyBrain.PilotStage.Entering &&
+                brain.Stage != EnemyBrain.PilotStage.Engaging && brain.Stage != EnemyBrain.PilotStage.Exiting) continue;
 
             Vector2 p = t.transform.position;
             SpawnFootprint print;
@@ -145,9 +161,8 @@ public static class ShieldShockwave
                 // sideways: the body -- and a brain's base, which its whole
                 // pattern hangs from -- stays between the rails
                 float lane = SpawnLane.LaneHalf - h.x;
-                float offset = 0f;
-                EnemyBrain brain;
-                if (go.TryGetComponent(out brain) && brain.enabled && brain.Behaviour != null) offset = p.x - brain.Base.x;
+                // (a pilot's Base is its station, which a shove never moves: its body is what is kept in)
+                float offset = brain != null && !pilot ? p.x - brain.Base.x : 0f;
                 float baseX = p.x - offset;
                 if (Mathf.Abs(baseX) <= lane) move.x = Mathf.Clamp(baseX + move.x, -lane, lane) - baseX;
                 else if (Mathf.Abs(baseX + move.x) > Mathf.Abs(baseX)) move.x = 0f;   // already outside: never further
@@ -158,6 +173,7 @@ public static class ShieldShockwave
 
             who[n] = t.transform;
             mounts[n] = mount;
+            pilots[n] = pilot;
             prints[n] = hasPrint ? print : null;
             from[n] = p;
             push[n] = move;
@@ -170,7 +186,7 @@ public static class ShieldShockwave
         int pushed = 0;
         for (int i = 0; i < n; i++)
         {
-            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds)) pushed++;
+            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds, pilots[i])) pushed++;
             who[i] = null; mounts[i] = null; prints[i] = null;
         }
         LastPushed = pushed;
@@ -241,6 +257,8 @@ public static class EnemyShove
         public Transform body;
         public RailMineMount mount;
         public Vector2 total;
+        public bool hold;        // a body that flies itself back (a pilot): kept on the push's curve meanwhile
+        public Vector3 last;     // where the push last put it
         public float halfX, seconds, time, done;   // done: eased share already applied
     }
 
@@ -250,9 +268,13 @@ public static class EnemyShove
     public static int Active => count;
 
     // Pushes `body` by `total` (world) over `seconds`. A mount means "along
-    // its rail" (total.y). A body already being pushed takes the new push on
-    // top of what is left of the old one.
-    public static bool Add(Transform body, RailMineMount mount, Vector2 total, float halfX, float seconds)
+    // its rail" (total.y). `hold`: the body steers itself back to its own
+    // line (a pilot), so while the push lasts each slice is added to where
+    // the push last put it, not to wherever it has flown back to since -- it
+    // gets the whole distance, then returns under its own power. A body
+    // already being pushed takes the new push on top of what is left of the
+    // old one.
+    public static bool Add(Transform body, RailMineMount mount, Vector2 total, float halfX, float seconds, bool hold = false)
     {
         if (body == null) return false;
         for (int i = 0; i < count; i++)
@@ -267,7 +289,7 @@ public static class EnemyShove
         if (count >= Capacity) return false;
         entries[count++] = new Entry
         {
-            body = body, mount = mount, total = total, halfX = halfX, seconds = Mathf.Max(.01f, seconds),
+            body = body, mount = mount, total = total, hold = hold, last = body.position, halfX = halfX, seconds = Mathf.Max(.01f, seconds),
         };
         return true;
     }
@@ -294,12 +316,14 @@ public static class EnemyShove
             if (e.mount != null) e.mount.Shove += step.y;
             else
             {
-                Vector3 p = e.body.position;
+                Vector3 p = e.hold ? e.last : e.body.position;
                 float x = p.x + step.x;
                 // whatever else moved it meanwhile, the shove never carries it into a rail
-                float lane = SpawnLane.LaneHalf - e.halfX;
-                if (Mathf.Abs(p.x) <= lane) x = Mathf.Clamp(x, -lane, lane);
-                e.body.position = new Vector3(x, p.y + step.y, p.z);
+                // (a body its own pattern already holds further out is never carried further still)
+                float lane = Mathf.Max(SpawnLane.LaneHalf - e.halfX, Mathf.Abs(p.x));
+                x = Mathf.Clamp(x, -lane, lane);
+                e.last = new Vector3(x, p.y + step.y, p.z);
+                e.body.position = e.last;
             }
             if (k >= 1f) Remove(i); else entries[i] = e;
         }
