@@ -79,6 +79,9 @@ public static class EnemyDensityTest
     {
         var points = EnemyDensityProbe.HudPoints;
         var cut = new float[points.Length];
+        var pilotsAt = new float[points.Length];
+        var shotsAt = new float[points.Length];
+        var stayAt = new float[points.Length];
         float peakThreats = 0f;
         Debug.Log("[DENSITY] HUD | level s | before: spawns/s, on screen | after: spawns/s, on screen, shots, threats | cut");
         for (int i = 0; i < points.Length; i++)
@@ -86,14 +89,16 @@ public static class EnemyDensityTest
             var s = EnemyDensityProbe.Pinned(points[i], EnemyDensityProbe.LevelSecondFor(points[i]), 3);
             cut[i] = 1f - s.Threats / BeforeOnScreen[i];
             peakThreats = Mathf.Max(peakThreats, s.peakOnScreen);
-            Debug.Log(string.Format("[DENSITY] TABLE hud {0,2} | t {1,5:F1} | before {2,5:F2}/s {3,5:F2} | after {4,5:F2}/s {5,5:F2} + {6:F2} shots = {7,5:F2} | cut {8:P0}",
+            Debug.Log(string.Format("[DENSITY] TABLE hud {0,2} | t {1,5:F1} | before {2,5:F2}/s {3,5:F2} | after {4,5:F2}/s {5,5:F2} + {6:F2} shots = {7,5:F2} | cut {8:P0} | pilots in view {9:F2}, left {10:F0}, engaged {11:F1}s, in view {12:F1}s",
                                     points[i], EnemyDensityProbe.LevelSecondFor(points[i]), BeforeSpawnsPerSecond[i], BeforeOnScreen[i],
-                                    s.spawnsPerSecond, s.onScreen, s.shots, s.Threats, cut[i]));
+                                    s.spawnsPerSecond, s.onScreen, s.shots, s.Threats, cut[i], s.pilots, s.pilotsDeparted, s.engageSeconds, s.inViewSeconds));
+            pilotsAt[i] = s.pilots; shotsAt[i] = s.shots; stayAt[i] = s.inViewSeconds;
         }
         var run = EnemyDensityProbe.WholeRun(EnemyDensityProbe.ReferenceHudPerSecond, 46f, 3);
         float runCut = 1f - run.Threats / BeforeRunOnScreen;
-        Debug.Log(string.Format("[DENSITY] TABLE whole run | before {0:F2}/s {1:F2} | after {2:F2}/s {3:F2} + {4:F2} shots = {5:F2} | cut {6:P0}",
-                                BeforeRunSpawnsPerSecond, BeforeRunOnScreen, run.spawnsPerSecond, run.onScreen, run.shots, run.Threats, runCut));
+        Debug.Log(string.Format("[DENSITY] TABLE whole run | before {0:F2}/s {1:F2} | after {2:F2}/s {3:F2} + {4:F2} shots = {5:F2} | cut {6:P0} | pilots in view {7:F2}, left {8:F0}, engaged {9:F1}s, in view {10:F1}s",
+                                BeforeRunSpawnsPerSecond, BeforeRunOnScreen, run.spawnsPerSecond, run.onScreen, run.shots, run.Threats, runCut,
+                                run.pilots, run.pilotsDeparted, run.engageSeconds, run.inViewSeconds));
 
         bool fewer = true;
         for (int i = 0; i < cut.Length; i++) fewer &= cut[i] > .05f;

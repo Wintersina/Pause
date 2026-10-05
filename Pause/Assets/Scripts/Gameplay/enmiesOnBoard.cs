@@ -303,6 +303,8 @@ public class enmiesOnBoard : MonoBehaviour {
     // Spawns skipped because the board already held its fill of threats
     // (EnemyDensity.MaxThreats): not queued, the timer simply comes round again.
     public int SkippedForThreats { get; private set; }
+    // Pilots not admitted because the airspace was full (PilotAirspace).
+    public int SkippedForPilots { get; private set; }
 
     // `x`: where it would like to be (NaN: anywhere in its lane).
     void Spawn(SlotKind kind, float x = float.NaN)
@@ -390,6 +392,9 @@ public class enmiesOnBoard : MonoBehaviour {
                     else x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
                     var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : plan);
                     if (!SpawnSpace.Fits(c)) continue;
+                    // hazards are routed round the pilots: never down a reserved column
+                    Rect reach = c.Sweep(0f, SpawnSpace.Lifetime);
+                    if (PilotAirspace.Blocks(reach.xMin, reach.xMax)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
                     if (laneDef != null && !SpawnLane.Fits(laneDef, x, y)) continue;
                     pos = new Vector3(x, y, 0f);
@@ -409,8 +414,26 @@ public class enmiesOnBoard : MonoBehaviour {
         bool weaves = Weaves(def);
         Vector3 pos;
         float amplitude;
-        // its whole pattern (the behaviour's envelope) must fit, inside the lane
         var behaviour = def.Behaviour;
+        // A pilot flies itself: it needs a free column (PilotAirspace), not
+        // a spot on the board, and waits above the view until it may come in.
+        if (EnemyBrain.PilotsEnabled && behaviour != null && behaviour.IsPilot && def.role != EnemyRole.Chaser)
+        {
+            int wing = def.role == EnemyRole.Fighter && def.tier == 1 ? 2 : 1;   // scouts fly in pairs when there is room
+            for (int k = 0; k < wing; k++)
+            {
+                float stationX;
+                if (!PilotAirspace.TryAdmit(def, behaviour, k == 0 ? preferredX : float.NaN, out stationX))
+                {
+                    if (k == 0) SkippedForPilots++;
+                    break;
+                }
+                EnemyFactory.Create(def, new Vector3(stationX, transform.position.y + PilotAirspace.WaitAbove, 0f), transform.rotation);
+                SpawnedCount++;
+            }
+            return true;
+        }
+        // its whole pattern (the behaviour's envelope) must fit, inside the lane
         brainCandidate.behaviour = behaviour;
         float maxX = Mathf.Max(0f, SpawnLane.MaxX(def) - (behaviour != null ? behaviour.bandX : 0f));
         if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, maxX, def, out pos, out amplitude,
@@ -805,6 +828,12 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         var def = chaser == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Chaser) : null;
         if (chaser == null && (def == null || EnemyArt.Frames(def) == null)) return true;
+        // chasers stay and hunt: only so many at once, none with a boss on the way
+        if (ChaserEnemy.Alive >= EnemyDensity.MaxChasers(EnemyDensity.Hud) || PilotAirspace.AdmissionClosed)
+        {
+            SkippedForPilots++;
+            return true;
+        }
 
         var cam = Camera.main;
         float bottomY = cam != null && cam.orthographic

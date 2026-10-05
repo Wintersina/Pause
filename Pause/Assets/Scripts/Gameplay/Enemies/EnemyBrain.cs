@@ -11,6 +11,19 @@ using UnityEngine;
 //   Idle -> Windup (the tell: cell 4 held, a charge light) -> Release (cell
 //   5, the shot or the lunge) -> Recover -> Idle
 //
+// PRESENCE. A hazard (rocks, mines) is run as above: an offset over its
+// scrolling mover. A PILOT (fighters, heavies, aliens; EnemyBehaviour.IsPilot)
+// flies in world space instead -- its mover is switched to `station` and no
+// longer scrolls it -- on an engagement script (StepPilot):
+//
+//   Waiting   above the view, its column reserved (PilotAirspace), until the
+//             hazards already in that column have gone by
+//   Entering  down to its station (Drop / Swoop); an alien Descends instead,
+//             marching down the screen at its own speed
+//   Engaging  the same primitives around its anchor and the same attack
+//             state machine, for at most engageSeconds
+//   Exiting   Climb / Peel out the top, or a telegraphed Run out the bottom
+//
 // PAUSE. Step(dt) is the only thing that advances it, called from LateUpdate
 // on running frames only (the same rule every mover uses), with the world's
 // scaled dt. A frozen world steps nothing: no timer runs, nothing fires.
@@ -25,6 +38,31 @@ using UnityEngine;
 public class EnemyBrain : MonoBehaviour
 {
     public enum Phase { Idle, Windup, Release, Recover }
+    public enum PilotStage { None, Waiting, Entering, Engaging, Exiting, Gone }
+
+    // ---- pilots, shared (tunables) ----
+    public const float MaxWaitSeconds = 4f;       // waiting for its column to clear, at most
+    public const float SwoopOvershoot = .9f;      // a Swoop dips this far past its station
+    public const float RunTellSeconds = .55f;     // the tell before an attack run
+    public const float LeaveMargin = 1.2f;        // gone once this far past the top / bottom of the view
+    public const float EarlyLeaveShare = .5f;     // volleys spent: may leave after this share of its window
+    public const float CatchUpSpeed = 12f;        // u/s back to its line after giving way
+    public const float DodgeSpeed = 4f;           // u/s sideways when ResolveSteer has to give way
+    public const float LungeRecoverSeconds = .55f;
+
+    // Pilots fly their engagement scripts (false: every enemy rides the
+    // scroll as a hazard, the first pass's behaviour).
+    public static bool PilotsEnabled = true;
+
+    public bool IsPilot { get; private set; }
+    public PilotStage Stage { get; private set; }
+    public Vector2 Anchor => anchor;
+    public float ColumnHalf => columnHalf;
+    public float EngagedSeconds => engaged;
+    public float InViewSeconds => seen;
+    public PilotExit LeftBy { get; private set; }
+    // True once told to clear out (boss, portal); it then Climbs.
+    public bool Ordered { get; private set; }
 
     // ---- fairness, shared by every enemy (tunables) ----
     public const float TellFloorSeconds = .45f;   // no windup is ever shorter
@@ -69,6 +107,13 @@ public class EnemyBrain : MonoBehaviour
     Vector2 aim = Vector2.down;
     Vector2 lobTarget;
     float halfX;
+    // pilot state
+    Vector2 anchor;                 // world: where its pattern is centred
+    float columnHalf, stageTime, engaged, waited, peelDir, runToX, runFromX;
+    bool swoopDipped, runDiving;
+    SpawnFootprint footprint;
+    moveEnimes weaverMover;
+    moveItemEnmInStrightLine scrollMover;
     int reserved;                   // shots held in EnemyThreat's budget during a windup
 
     public void Init(EnemyDef def, EnemyBehaviour behaviour)
@@ -79,8 +124,8 @@ public class EnemyBrain : MonoBehaviour
         TryGetComponent(out flipbook);
         if (TryGetComponent(out mount)) mount.brain = this;
         // (TryGetComponent: a missed GetComponent is a fake null in the editor)
-        if (TryGetComponent(out moveEnimes weaver)) hostMover = weaver;
-        else if (TryGetComponent(out moveItemEnmInStrightLine scroller)) hostMover = scroller;
+        if (TryGetComponent(out moveEnimes weaver)) { hostMover = weaver; weaverMover = weaver; }
+        else if (TryGetComponent(out moveItemEnmInStrightLine scroller)) { hostMover = scroller; scrollMover = scroller; }
         else hostMover = null;
         onRail = def.role == EnemyRole.Mine;
         halfX = def.ColliderSize.x * .5f;
@@ -96,6 +141,24 @@ public class EnemyBrain : MonoBehaviour
         State = Phase.Idle;
         if (flipbook != null && !onRail) flipbook.SetBrainDriven(Armed);
         if (behaviour.Shoots && Armed) BuildChargeLight();
+
+        IsPilot = PilotsEnabled && behaviour.IsPilot && def.role != EnemyRole.Chaser && !onRail && hostMover != null;
+        Stage = PilotStage.None;
+        if (!IsPilot) return;
+        // its mover holds station from here on; the brain flies it
+        if (weaverMover != null) weaverMover.station = true;
+        if (scrollMover != null) scrollMover.station = true;
+        anchor = transform.position;
+        columnHalf = PilotAirspace.ColumnHalf(def, behaviour);
+        peelDir = anchor.x >= 0f ? -1f : 1f;   // peels toward the open side of the lane
+        Stage = PilotStage.Waiting;
+        PilotAirspace.Register(this);
+    }
+
+    // Told to clear out (a boss or a portal is coming): it Climbs away.
+    public void Order()
+    {
+        Ordered = true;
     }
 
     void BuildChargeLight()
@@ -135,6 +198,7 @@ public class EnemyBrain : MonoBehaviour
         if (Behaviour == null || dt <= 0f) return;
         // stunned / gripped: whatever switched its mover off holds the brain too
         if (hostMover != null && !hostMover.enabled && !onRail) return;
+        if (IsPilot) { StepPilot(dt); return; }
         // the spawner clamps a mine to its rail after it is built
         if (onRail && mount == null && TryGetComponent(out mount)) mount.brain = this;
 
@@ -298,6 +362,14 @@ public class EnemyBrain : MonoBehaviour
                 if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.None);
                 break;
             case Phase.Recover:
+                if (IsPilot && b.attack == EnemyAttack.Lunge)
+                {
+                    // a pilot's lunge is a dive and recover: back to its station
+                    float k = Mathf.Clamp01(stateTime / LungeRecoverSeconds);
+                    lx = Mathf.Lerp(lungeToX, 0f, k);
+                    ly = Mathf.Lerp(lungeToY, 0f, k);
+                    if (k < 1f) return;
+                }
                 cooldown = b.cooldown;
                 Enter(Phase.Idle);
                 break;
@@ -313,7 +385,160 @@ public class EnemyBrain : MonoBehaviour
         reserved = 0;
     }
 
-    void OnDisable() { ReleaseReservation(); }
+    void OnDisable()
+    {
+        ReleaseReservation();
+        if (IsPilot) PilotAirspace.Unregister(this);
+    }
+
+    // ---- pilots ------------------------------------------------------------
+
+    void Go(PilotStage next)
+    {
+        Stage = next;
+        stageTime = 0f;
+    }
+
+    void StepPilot(float dt)
+    {
+        if (Stage == PilotStage.Gone) return;
+        var b = Behaviour;
+        Vector3 p = transform.position;
+        float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
+        bool inView = p.y < top - ViewInset && p.y > bottom;
+        if (inView) seen += dt;
+        var t = Target;
+        stageTime += dt;
+        if (!Ordered && PilotAirspace.MustClear) Ordered = true;
+        float stationY = top - b.stationDepth;
+        bool descends = b.entry == PilotEntry.Descend;
+
+        switch (Stage)
+        {
+            case PilotStage.Waiting:
+                // above the view, column reserved: in once what was already
+                // coming down that column has gone by
+                waited += dt;
+                if (Ordered) { Depart(PilotExit.Climb); return; }
+                if (waited < MaxWaitSeconds && !PilotAirspace.ColumnClear(this, descends ? top : stationY)) return;
+                Go(descends ? PilotStage.Engaging : PilotStage.Entering);
+                break;
+            case PilotStage.Entering:
+            {
+                if (Ordered) { BeginExit(PilotExit.Climb); break; }
+                bool swoop = b.entry == PilotEntry.Swoop && !swoopDipped;
+                float goal = swoop ? stationY - SwoopOvershoot : stationY;
+                float speed = b.entrySpeed * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
+                anchor.y = Mathf.MoveTowards(anchor.y, goal, speed * dt);
+                if (Mathf.Abs(anchor.y - goal) > 1e-3f) break;
+                if (swoop) swoopDipped = true;
+                else Go(PilotStage.Engaging);
+                break;
+            }
+            case PilotStage.Engaging:
+                engaged += dt;
+                if (descends)
+                {
+                    anchor.y -= b.descendSpeed * dt;
+                    if (anchor.y < bottom - LeaveMargin) { Depart(PilotExit.Run); return; }
+                }
+                if (State != Phase.Idle) break;   // never leaves mid-attack
+                bool spent = Armed && b.maxVolleys > 0 && Volleys >= b.maxVolleys;   // nothing left to fire
+                if (Ordered) BeginExit(PilotExit.Climb);
+                else if (!descends && (engaged >= b.engageSeconds || (spent && engaged >= b.engageSeconds * EarlyLeaveShare)))
+                    BeginExit(b.exit);
+                break;
+            case PilotStage.Exiting:
+                StepExit(dt, b, t, top, bottom);
+                if (Stage == PilotStage.Gone) return;
+                break;
+        }
+
+        bool committed = State == Phase.Windup || State == Phase.Release || runDiving || (Stage == PilotStage.Exiting && LeftBy == PilotExit.Run);
+        if (!(Stage == PilotStage.Exiting && LeftBy == PilotExit.Peel)) StepLateral(dt, anchor.x, t, committed);
+        if (b.vertical != EnemyVertical.Brake) StepVertical(dt, inView, committed);   // (a pilot's hover is its station)
+        if (Stage == PilotStage.Engaging) StepAttack(dt, p, anchor.x, inView, t);
+
+        // where it wants to be: inside its band, inside the lane
+        float band = b.bandX;
+        float total = Mathf.Clamp(ox + lx, -band, band);
+        float lane = SpawnLane.LaneHalf - halfX;
+        float wantX = Mathf.Clamp(anchor.x + total, -lane, lane);
+        float wantY = anchor.y + oy + ly;
+        Vector2 from = p;
+        Vector2 wish = Vector2.MoveTowards(from, new Vector2(wantX, wantY), CatchUpSpeed * dt);
+
+        // the chaser's rule: never step into another body (another pilot, a
+        // chaser, an elite, a hazard that got into its column anyway)
+        if (footprint == null) TryGetComponent(out footprint);
+        if (footprint != null && footprint.isActiveAndEnabled)
+            wish = SpawnSpace.ResolveSteer(footprint, from, wish, SpawnSpace.ScrollSpeed * dt, DodgeSpeed * dt);
+        transform.position = new Vector3(wish.x, wish.y, p.z);
+    }
+
+    void BeginExit(PilotExit how)
+    {
+        LeftBy = how;
+        Go(PilotStage.Exiting);
+        runDiving = false;
+        if (State != Phase.Idle) { Enter(Phase.Idle); ReleaseReservation(); }
+        if (charge != null) charge.enabled = false;
+        if (how == PilotExit.Run)
+        {
+            // the run is its last attack: told like any other
+            if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.Windup);
+        }
+        else if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.None);
+    }
+
+    void StepExit(float dt, EnemyBehaviour b, Transform t, float top, float bottom)
+    {
+        switch (LeftBy)
+        {
+            case PilotExit.Run:
+                if (!runDiving)
+                {
+                    if (stageTime < Mathf.Max(TellFloorSeconds, RunTellSeconds)) return;
+                    // the line is locked as the tell ends: its own column, shifted
+                    // toward the pilot as far as its band allows
+                    runDiving = true;
+                    runFromX = ox + lx;
+                    float goal = runFromX;
+                    if (b.lungeX > 0f && t != null) goal = Mathf.Lerp(runFromX, t.position.x - anchor.x, b.lungeX);
+                    runToX = Mathf.Clamp(goal, -b.bandX, b.bandX);
+                    stageTime = 0f;
+                    if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.Release);
+                }
+                lx = Mathf.Lerp(runFromX, runToX, Mathf.Clamp01(stageTime / .25f)) - ox;
+                anchor.y -= b.runSpeed * Mathf.Clamp01(.4f + stageTime * 3f) * dt;
+                if (anchor.y + oy + ly < bottom - LeaveMargin) Depart(PilotExit.Run);
+                break;
+            default:
+                // retreats: eases off, then climbs away (a Peel swings to the open side)
+                anchor.y += b.exitSpeed * Mathf.Clamp01(.25f + stageTime * 1.5f) * dt;
+                if (LeftBy == PilotExit.Peel)
+                    ox = Mathf.MoveTowards(ox, peelDir * b.bandX - lx, 1.8f * dt);
+                if (anchor.y > top + LeaveMargin) Depart(LeftBy);
+                break;
+        }
+    }
+
+    // Off the screen and out of play. (In the editor's headless runs the
+    // object is parked far off the board for the test's own clean-up.)
+    void Depart(PilotExit how)
+    {
+        LeftBy = how;
+        Stage = PilotStage.Gone;
+        ReleaseReservation();
+        PilotAirspace.NoteDeparture(this);
+        PilotAirspace.Unregister(this);
+        if (Application.isPlaying) Destroy(gameObject);
+        else
+        {
+            transform.position = new Vector3(transform.position.x, how == PilotExit.Run ? -60f : 60f, transform.position.z);
+            enabled = false;
+        }
+    }
 
     void Enter(Phase next)
     {
@@ -409,6 +634,16 @@ public class EnemyBrain : MonoBehaviour
         if (b == null) return SpawnSpace.BodyRect(basePoint, half);
         return Rect.MinMaxRect(basePoint.x - b.bandX - half.x, basePoint.y - b.Down - half.y,
                                basePoint.x + b.bandX + half.x, basePoint.y + b.Up + half.y);
+    }
+
+    // A pilot's sweep (self-steering): where it may be over the next
+    // moments -- it holds its place in the world, so it rises through the
+    // board at the scroll speed, plus its own speed every way.
+    public static Rect PilotSweep(EnemyBrain brain, Vector2 center, Vector2 half, float to)
+    {
+        float own = Mathf.Min(1.2f, (brain != null && brain.Behaviour != null ? brain.Behaviour.entrySpeed : 3f) * to);
+        return Rect.MinMaxRect(center.x - half.x - own, center.y - half.y - own,
+                               center.x + half.x + own, center.y + half.y + own + SpawnSpace.ScrollSpeed * to);
     }
 
     // The live enemy's sweep: its whole envelope, wherever in it the body is

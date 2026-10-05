@@ -25,6 +25,26 @@ public static class EnemyDensity
     // How far above the top of the view a body already counts.
     public static float CountAboveView = 2.5f;
 
+    // ---- pilots (PilotAirspace): they stay and fight, so they are capped ----
+    // The pilot load allowed at once, at low / high speed, per world (Space,
+    // Frost, Verdant, Ember). A scout or an alien weighs 0.5, a heavy or a
+    // tier-4 fighter 1.5, the rest 1 (PilotAirspace.Weight).
+    public static readonly float[] PilotLoadAtLowSpeed = { 3f, 3f, 3.5f, 3.5f };
+    public static readonly float[] PilotLoadAtHighSpeed = { 2f, 2f, 2.5f, 2.5f };
+    // Chasers hold no column; they have their own cap.
+    public static int ChasersAtLowSpeed = 2, ChasersAtHighSpeed = 1;
+
+    public static float MaxPilotLoad(float hud, int world)
+    {
+        world = Mathf.Clamp(world, 0, PilotLoadAtLowSpeed.Length - 1);
+        return Mathf.Lerp(PilotLoadAtLowSpeed[world], PilotLoadAtHighSpeed[world], K(hud));
+    }
+
+    public static int MaxChasers(float hud)
+    {
+        return K(hud) < .5f ? ChasersAtLowSpeed : ChasersAtHighSpeed;
+    }
+
     // Tests / the probe: 1 = the old spawner's rate, no ceiling.
     public static bool Disabled;
 

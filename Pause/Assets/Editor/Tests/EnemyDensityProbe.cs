@@ -28,12 +28,14 @@ public static class EnemyDensityProbe
     };
 
     public const float Dt = 1f / 60f;
-    public const float WarmupSeconds = 8f, WindowSeconds = 24f;
+    public const float WarmupSeconds = 12f, WindowSeconds = 36f;
     public const float ViewHalfHeight = 5f, SpawnY = 7f;
 
     public struct Sample
     {
         public float spawnsPerSecond, onScreen, shots, peakOnScreen;
+        // pilots in view (mean), and how long the ones that left had stayed
+        public float pilots, engageSeconds, inViewSeconds, pilotsDeparted;
         public float Threats => onScreen + shots * ShotWeight;
     }
 
@@ -100,6 +102,7 @@ public static class EnemyDensityProbe
     {
         EliteSystem.Clear();
         EnemyThreat.Reset();
+        PilotAirspace.Clear();
         foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Object.DestroyImmediate(f.gameObject);
         foreach (var r in Object.FindObjectsByType<RailLaneScroller>(FindObjectsSortMode.None)) Object.DestroyImmediate(r.gameObject);
         foreach (var b in Object.FindObjectsByType<enmiesOnBoard>(FindObjectsSortMode.None)) Object.DestroyImmediate(b.gameObject);
@@ -163,7 +166,7 @@ public static class EnemyDensityProbe
         foreach (var f in buffer)
         {
             float y = f.transform.position.y;
-            if (y < -8f || y > 20f) Object.DestroyImmediate(f.gameObject);
+            if (y < -8f || y > 20f) Object.DestroyImmediate(f.gameObject);   // off the board (departed pilots park at +/-60)
         }
         EliteSystem.Step(Dt);
     }
@@ -178,6 +181,38 @@ public static class EnemyDensityProbe
             if (y >= -ViewHalfHeight && y <= ViewHalfHeight) n++;
         }
         return n;
+    }
+
+    static int PilotsOnScreen()
+    {
+        int n = 0;
+        var live = PilotAirspace.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            float y = live[i].transform.position.y;
+            if (y >= -ViewHalfHeight && y <= ViewHalfHeight) n++;
+        }
+        var all = SpawnSpace.Live(SpawnLayer.Enemy);
+        for (int i = 0; i < all.Count; i++)
+        {
+            ChaserEnemy c;
+            float y = all[i].transform.position.y;
+            if (y >= -ViewHalfHeight && y <= ViewHalfHeight && all[i].TryGetComponent(out c)) n++;
+        }
+        return n;
+    }
+
+    static void AddPilotStats(ref Sample total)
+    {
+        total.pilotsDeparted += PilotAirspace.Departed;
+        total.engageSeconds += PilotAirspace.EngagedSecondsTotal;
+        total.inViewSeconds += PilotAirspace.InViewSecondsTotal;
+    }
+
+    static void FinishPilotStats(ref Sample total, int seeds)
+    {
+        total.pilots /= seeds;
+        if (total.pilotsDeparted > 0f) { total.engageSeconds /= total.pilotsDeparted; total.inViewSeconds /= total.pilotsDeparted; }
     }
 
     static int ShotsOnScreen()
@@ -204,7 +239,8 @@ public static class EnemyDensityProbe
             foreach (string timer in Timers)
                 typeof(enmiesOnBoard).GetField(timer, Inst).SetValue(board, Random.Range(0f, 1.5f));
             int before = 0;
-            float onScreen = 0f, shots = 0f, peak = 0f;
+            float onScreen = 0f, shots = 0f, peak = 0f, pilots = 0f;
+            PilotAirspace.ResetStats();
             int frames = 0;
             float clock = 0f;
             for (float t = 0f; t < WarmupSeconds + WindowSeconds; t += Dt)
@@ -219,8 +255,11 @@ public static class EnemyDensityProbe
                 onScreen += n;
                 peak = Mathf.Max(peak, n);
                 shots += ShotsOnScreen();
+                pilots += PilotsOnScreen();
             }
             total.spawnsPerSecond += (board.SpawnedCount - before) / WindowSeconds;
+            total.pilots += pilots / frames;
+            AddPilotStats(ref total);
             total.onScreen += onScreen / frames;
             total.shots += shots / frames;
             total.peakOnScreen = Mathf.Max(total.peakOnScreen, peak);
@@ -230,6 +269,7 @@ public static class EnemyDensityProbe
         total.spawnsPerSecond /= seeds;
         total.onScreen /= seeds;
         total.shots /= seeds;
+        FinishPilotStats(ref total, seeds);
         return total;
     }
 
@@ -253,7 +293,8 @@ public static class EnemyDensityProbe
             Random.InitState(9100 + seed);
             var board = NewBoard();
             var ship = new GameObject("~DensityShip").transform;
-            float onScreen = 0f, shots = 0f, peak = 0f;
+            float onScreen = 0f, shots = 0f, peak = 0f, pilots = 0f;
+            PilotAirspace.ResetStats();
             int frames = 0;
             for (float t = 0f; t < seconds; t += Dt)
             {
@@ -266,7 +307,10 @@ public static class EnemyDensityProbe
                 onScreen += n;
                 peak = Mathf.Max(peak, n);
                 shots += ShotsOnScreen();
+                pilots += PilotsOnScreen();
             }
+            total.pilots += pilots / frames;
+            AddPilotStats(ref total);
             total.spawnsPerSecond += board.SpawnedCount / seconds;
             total.onScreen += onScreen / frames;
             total.shots += shots / frames;
@@ -277,6 +321,7 @@ public static class EnemyDensityProbe
         total.spawnsPerSecond /= seeds;
         total.onScreen /= seeds;
         total.shots /= seeds;
+        FinishPilotStats(ref total, seeds);
         return total;
     }
 }

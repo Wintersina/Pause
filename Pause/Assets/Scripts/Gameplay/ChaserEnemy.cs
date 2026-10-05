@@ -52,6 +52,26 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
     public const float WeaveSpeed = 1.5f, WeaveHz = .8f;
 
+    // It does not stay for ever: after lingerSeconds of orbiting (or when a
+    // boss / portal is coming) it leaves, climbing out the top.
+    public float lingerSeconds = 5f;
+    public const float LeaveSpeed = 4.5f, LeaveMargin = 1.2f;
+    public bool Leaving { get; private set; }
+    public float SecondsAlive { get; private set; }
+    float lingered, leaveTime;
+
+    // Chasers in play (the spawner caps them: EnemyDensity.MaxChasers).
+    static readonly System.Collections.Generic.List<ChaserEnemy> alive = new System.Collections.Generic.List<ChaserEnemy>(8);
+    public static int Alive
+    {
+        get
+        {
+            for (int i = alive.Count - 1; i >= 0; i--)
+                if (alive[i] == null || !alive[i].enabled) alive.RemoveAt(i);
+            return alive.Count;
+        }
+    }
+
     float styleClock;
     Vector3 lockedHeading = Vector3.up;
 
@@ -67,6 +87,8 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         startChaseSpeed = b.chaseStart;
         wanderSpeed = b.wanderSpeed;
         wanderRadius = b.wanderRadius;
+        lingerSeconds = b.lingerSeconds;
+        if (!alive.Contains(this)) alive.Add(this);
     }
 
     Transform player;
@@ -78,7 +100,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     SpawnFootprint footprint;
 
     // True while it is still closing in (EnemyFlipbook loops its lunge then).
-    public bool IsChasing => !wandering;
+    public bool IsChasing => !wandering && !Leaving;
 
     // What it hunts (the ship; a headless simulation can set a stand-in).
     public Transform Target { get { return player; } set { player = value; } }
@@ -92,6 +114,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     {
         if (initialised) return;
         initialised = true;
+        if (!alive.Contains(this)) alive.Add(this);
         chaseTimer = chaseSeconds;
         wanderAngle = Random.value * Mathf.PI * 2f;
         if (player == null)
@@ -122,8 +145,22 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         Init();
         Vector3 from = transform.position;
         Vector3 wish = from;
+        SecondsAlive += dt;
 
-        if (!wandering)
+        if (!Leaving && (PilotAirspace.MustClear || (wandering && (lingered += dt) >= lingerSeconds))) Leaving = true;
+        if (Leaving)
+        {
+            // eases off, then climbs out of the view
+            leaveTime += dt;
+            wish += Vector3.up * LeaveSpeed * Mathf.Clamp01(.25f + leaveTime * 1.5f) * dt;
+            if (from.y > CameraFit.ViewTop + LeaveMargin)
+            {
+                if (Application.isPlaying) Destroy(gameObject);
+                else { transform.position = new Vector3(from.x, 60f, from.z); enabled = false; }
+                return;
+            }
+        }
+        else if (!wandering)
         {
             chaseTimer -= dt;
             if (player != null)
