@@ -461,21 +461,31 @@ public static class EnemyRosterTest
                 foreach (var old in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
                     UnityEngine.Object.DestroyImmediate(old.gameObject);
                 var before = new HashSet<EnemyIdentity>(UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None));
+                var roles = new HashSet<EnemyRole>();
+                bool allHere = true;
+                int n = 0;
                 foreach (string slot in slots)
+                {
                     for (int k = 0; k < 6; k++)
                     {
                         typeof(enmiesOnBoard).GetMethod(slot, BindingFlags.NonPublic | BindingFlags.Instance).Invoke(board, null);
                         Scroll(1f, false);   // the board moves on between spawns (SpawnLane keeps each row open)
                     }
-                var roles = new HashSet<EnemyRole>();
-                bool allHere = true;
-                int n = 0;
-                foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
-                {
-                    if (before.Contains(id)) continue;
-                    n++;
-                    allHere &= id.Def != null && id.Def.world == w;
-                    if (id.Def != null) roles.Add(id.Def.role);
+                    // Pilots (heavies, aliens, fighters) stay and hold the
+                    // airspace until they fly off, which nothing steps here:
+                    // count this slot's, then let them go so the next slot's
+                    // pilots are admitted (PilotAirspace caps them).
+                    foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                    {
+                        if (before.Contains(id)) continue;
+                        before.Add(id);
+                        n++;
+                        allHere &= id.Def != null && id.Def.world == w;
+                        if (id.Def == null) continue;
+                        roles.Add(id.Def.role);
+                        if (id.Def.Behaviour != null && id.Def.Behaviour.IsPilot && id.Def.role != EnemyRole.Chaser)
+                            UnityEngine.Object.DestroyImmediate(id.gameObject);
+                    }
                 }
                 Check(W(w) + ": every spawn slot draws from " + W(w) + "'s roster (" + n + " spawned)", allHere && n > 20);
                 Check(W(w) + ": the slots field every role (" + string.Join(", ", roles) + ")", roles.Count == Roles.Length);

@@ -110,6 +110,25 @@ public static class PilotAirspace
             if (e.center.x >= x) hi = Mathf.Min(hi, e.xMin - x - clear);
             else lo = Mathf.Max(lo, e.xMax - x + clear);
         }
+        // and never past the halfway line to a neighbouring pilot's column:
+        // two pilots side by side share the lane between them, half each
+        float own = pilot.ColumnHalf;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var other = live[i];
+            if (other == null || other == pilot) continue;
+            float ox = other.Anchor.x;
+            if (ox >= x)
+            {
+                float mid = ((x + own) + (ox - other.ColumnHalf)) * .5f;
+                hi = Mathf.Min(hi, mid - x - half.x - SpawnSpace.Margin);
+            }
+            else
+            {
+                float mid = ((x - own) + (ox + other.ColumnHalf)) * .5f;
+                lo = Mathf.Max(lo, mid - x + half.x + SpawnSpace.Margin);
+            }
+        }
         if (hi < 0f) hi = 0f;
         if (lo > 0f) lo = 0f;
     }

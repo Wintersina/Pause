@@ -208,22 +208,33 @@ anchor in world space and runs a script:
 
 The top and bottom are the only legal edges: the sides are the rails.
 
-**Airspace instead of dodging.** A pilot reserves its column (its lateral band plus its body) in
-`PilotAirspace` for as long as it lives. The spawner places no hazard whose envelope crosses a reserved
-column, and a pilot waits above the view until hazards already in its column have gone by. So hazards
-are routed round pilots rather than through them, the player always has the hazard-free pilot columns
-and the pilot-free hazard columns to read separately, and nothing needs a per-frame threat scan. As a
-safety net every pilot move still goes through `SpawnSpace.ResolveSteer` (the chaser's rule), which never
-lets it step into another body (another pilot, a chaser, an elite). This is self-contained in the roster
-brain files; if the elites' hazard sensor lands, `PilotAirspace.ColumnClear` and that sensor could become
-one "what is coming down this column" query.
+**Airspace, and a sidestep.** A pilot reserves its column (its body at its station x plus a margin) in
+`PilotAirspace` for as long as it lives. The spawner places no hazard whose pattern crosses a reserved
+column (it picks from the free stretches of lane, `TryFreeX`, and where they are narrow the hazard keeps
+a narrower lateral band, `EnemyBrain.BandScale`), and a pilot waits above the view, at most 4 s, until
+hazards already in its column have gone by. Its lateral band is not reserved: hazards do come down
+beside its column, and the pilot sidesteps back toward its column while one passes (`BandLimits`), then
+uses its whole band again. Two pilots side by side share the lane between them, half each. As a safety
+net every pilot move still goes through `SpawnSpace.ResolveSteer` (the chaser's rule). The long-run test
+(24 two-minute runs, every frame) shows no two bodies overlapping. All of this is self-contained in the
+roster brain files; if the elites' hazard sensor lands, `PilotAirspace.BandLimits` / `ColumnClear` and
+that sensor answer the same question ("what is coming down beside or onto me") and could become one
+query.
 
-**Budget.** `PilotAirspace` caps the pilot load by speed and world (`EnemyDensity.MaxPilotLoad`: tier-1
-fighters and aliens weigh 0.5, tier-4 fighters and heavies 1.5, the rest 1) and the share of the lane
-that may be reserved, so hazards always have room. Chasers are capped separately. The spawner's threat
-ceiling already counts bodies in view each frame, so a pilot that stays 8 s is counted for 8 s.
+**Shots.** A pilot holds its place in the world, so its shots fly in world space (they no longer ride the
+board) at 1.25x the table's speed (2.5 to 4.75 u/s). The telegraph rules are unchanged: tell never under
+0.45 s, aim locked at the tell inside its cone, windups only on station, in view, 1.6 u above and 1.8 u
+from the pilot, at most 12 roster shots alive, 0.4 s between two enemies' windups.
 
-**Bounded.** Every engagement has an upper bound (`engageSeconds`, 2.5 s for a scout to 10 s for a heavy),
+**Budget.** `EnemyDensity.MaxPilotLoad` caps the pilot load by speed and world: 3 at low speed falling to
+2 at HUD 35 in Space and Frost, 3.5 falling to 2.5 in Verdant and Ember (a scout or an alien weighs 0.5,
+a heavy or a tier-4 fighter 1.5, the rest 1). At most half the lane may be reserved
+(`PilotAirspace.MaxReservedShare`), so hazards always have room. Chasers are capped separately
+(`MaxChasers`: 2, 1 at speed). The spawner's threat ceiling counts every body in view each frame, and a
+pilot wherever it is, so a pilot that stays 8 s is counted for 8 s. Scouts (tier 1) fly in pairs when
+there is room.
+
+**Bounded.** Every engagement has an upper bound (`engageSeconds`, 2.5 s for a scout to 9 s for a heavy),
 and a pilot leaves early once its volleys are spent. Chasers leave after `lingerSeconds` of orbiting
 instead of staying for ever.
 
@@ -241,28 +252,28 @@ that scrolled off the bottom before.
 | Key | Presence | Entry | Engage | Exit |
 |---|---|---|---|---|
 | all `*_rock_*`, all `*_mine` | hazard | rides the scroll | (table above) | scrolls off |
-| `space_big` Bastion | pilot | slow Drop to 1.5 u | anchors its column, twin bolts x3, up to 10 s | slow Climb |
+| `space_big` Bastion | pilot | slow Drop to 1.5 u | anchors its column, twin bolts x3, up to 9 s | slow Climb |
 | `space_fighter_1` Needle | pilot | Swoop to 2.2 u | one weaving beat, 2.5 s | Run: straight dash down |
 | `space_fighter_2` Steel Claw | pilot | Drop to 2.6 u | shadows the pilot, one pounce and recover, 5 s | Run at the pilot's column |
 | `space_fighter_3` Twin Claw | pilot | Drop to 2.0 u | wide sweep, splayed pairs x3, 7 s | Peel |
 | `space_fighter_4` Warden | pilot | Drop to 1.6 u | holds range, tracks, aimed shells x4, 9 s | Climb |
 | `space_chaser` Steel Hound | pilot | from below (as before) | pursues, then orbits 5 s | Climb |
 | `space_alien` Bile Mite | pilot | Descend 1.1 u/s in line | wiggles; spitters spit twice | marches out the bottom |
-| `frost_big` Glacier Golem | pilot | slow Drop to 1.6 u | sways, shard fans x3, 10 s | slow Climb |
+| `frost_big` Glacier Golem | pilot | slow Drop to 1.6 u | sways, shard fans x3, 9 s | slow Climb |
 | `frost_fighter_1` Flake | pilot | Swoop to 2.4 u | snowflake drift, 3 s | Run at the pilot's column |
 | `frost_fighter_2` Icicle | pilot | Drop to 2.4 u | tracks, aimed bolts x3, 5.5 s | Peel |
 | `frost_fighter_3` Frost Kite | pilot | Drop to 2.6 u | loops, shard pairs x3, 7 s | Run |
 | `frost_fighter_4` Hailstorm | pilot | Drop to 1.5 u | holds, hail x3, 9 s | Climb |
 | `frost_chaser` Frost Lancer | pilot | from below | aim-and-dash pursuit, orbits 4 s | Climb |
 | `frost_alien` Cryo Jelly | pilot | Descend 0.9 u/s | pulses | drifts out the bottom |
-| `verdant_big` Bloom Maw | pilot | slow Drop to 1.4 u | resin lobs x3, 10 s | slow Climb |
+| `verdant_big` Bloom Maw | pilot | slow Drop to 1.4 u | resin lobs x3, 9 s | slow Climb |
 | `verdant_fighter_1` Gnat | pilot | Swoop to 2.6 u | jitters, 3 s | Run |
 | `verdant_fighter_2` Wasp | pilot | Drop to 2.4 u | tracks, one deep dive and recover, 5 s | Run (the deepest, fastest) |
 | `verdant_fighter_3` Mantis | pilot | Drop to 3.0 u | hovers still, slashes x3, 6.5 s | Peel |
 | `verdant_fighter_4` Hornet Queen | pilot | Drop to 1.6 u | tracks, stinger fans x4, 9 s | Climb |
 | `verdant_chaser` Dragonsting | pilot | from below | weaving pursuit, orbits 6 s | Climb |
 | `verdant_alien` Snap Sprout | pilot | Descend 1.0 u/s | marches sideways in step | marches out the bottom |
-| `ember_big` Magma Skull | pilot | slow Drop to 1.5 u | slag pairs x3, 10 s | slow Climb |
+| `ember_big` Magma Skull | pilot | slow Drop to 1.5 u | slag pairs x3, 9 s | slow Climb |
 | `ember_fighter_1` Cinder | pilot | Swoop to 2.4 u | diagonal drift, 2.5 s | Run |
 | `ember_fighter_2` Scorch | pilot | Drop to 2.2 u | lines up over the pilot, bolts x4, 5.5 s | Peel |
 | `ember_fighter_3` Brand | pilot | Drop to 2.4 u | strafes, aimed bolts x3, 7 s | Run |
@@ -323,6 +334,32 @@ Worth knowing: shots in flight fall away as speed rises. At HUD 30 and above the
 in about a second, so a shooter rarely finishes its tell while it is still above the pilot. At speed the
 danger is the bodies; the shooting matters most in the first two thirds of a level. If shooters should
 stay active at speed, raise the `Brake` rises (the hover) for the hovering shooters.
+
+### With pilots (follow-up): the table re-measured
+
+Same probe, same moments. Pilots stay, so the columns that matter are bodies in view per frame and how
+long a pilot is there. "Earlier" is the first pass's after table above.
+
+| HUD | threats: original | earlier | now | cut vs original | pilots in view | shots in flight | a departing pilot was in view |
+|---|---|---|---|---|---|---|---|
+| 5 | 6.3 | 5.3 | 4.5 | 28% | 0.50 | 0.82 | 10.2 s |
+| 10 | 6.6 | 4.9 | 5.2 | 21% | 0.58 | 0.91 | 10.2 s |
+| 20 | 10.1 | 6.4 | 5.6 | 45% | 1.15 | 0.49 | 7.1 s |
+| 30 | 15.2 | 7.1 | 6.7 | 56% | 1.44 | 0.57 | 8.7 s |
+| 35 | 19.6 | 7.1 | 7.1 | 64% | 1.78 | 0.80 | 8.7 s |
+| 40 | 17.3 | 6.8 | 6.7 | 62% | 1.80 | 0.49 | 7.9 s |
+| 46 | 15.1 | 6.3 | 6.3 | 58% | 1.74 | 0.64 | 9.1 s |
+| whole run | 10.0 | 5.6 | 5.3 | 47% | 1.09 | 0.63 | 8.5 s |
+
+Shots in flight at HUD 30 and above went from 0.01-0.30 to 0.5-0.8: shooters now shoot at speed. At HUD
+5 and 10 the pilots in view are mostly heavies and alien lines (fighters arrive with the third phase),
+which is why the stay reads 10 s there. Flown one at a time (`EnemyBehaviourTest`), a pilot is in view
+4.8 s (a scout) to about 12.5 s (a heavy), the same at HUD 5 as at HUD 40 (worst difference under
+0.25 s).
+
+Tunables changed for this: `EnemyDensity.RateAtLowSpeed` 0.90 -> 1.0, the new `PilotLoadAtLowSpeed` /
+`PilotLoadAtHighSpeed` / `ChasersAtLowSpeed` / `ChasersAtHighSpeed`, `PilotAirspace.MaxReservedShare`
+0.5, and the per-pilot script numbers in `EnemyBehaviours`.
 
 ## Speed (deliverable 3)
 
@@ -432,7 +469,8 @@ Listed as found; none of these blocks the feature.
       `WorldBackdropTest` (3 Verdant palette checks) and `HostileProjectileTest` (the Frost wrapper
       contrast check, and a boss-shot rim check), none of them in code this branch touches
 * [x] After table measured, `EnemyDensity` retuned once (high-speed rate 0.42 -> 0.55)
-* [ ] Follow-up: hazards and pilots (presence). Design above; implementation, re-measured table and
-      tests in progress
+* [x] Follow-up: hazards and pilots (presence). Implemented, table re-measured, suites run
+      (`AllTests.RunAll`: 87 suites, 85 pass; the 4 failing checks are the known Verdant palette three
+      and the Frost wrapper contrast one)
+* [x] `integrate/oct05-enemy-intelligence` merged in (the enemy strip re-cell); `EnemyRosterTest` passes
 * [ ] Play it. Nothing here has been played: every number is from headless simulation
-* [ ] Merge `integrate/oct04-batch` (the enemy strip re-cell) and re-run `EnemyRosterTest`
