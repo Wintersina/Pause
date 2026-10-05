@@ -436,15 +436,10 @@ public static class ScreenFitScreens
     {
         var screen = new Vector2(rig.W, rig.H);
         Rect safe = rig.device.Safe;
+        var actions = UnityEngine.Object.FindFirstObjectByType<PauseQuickActions>();
+        if (actions != null) actions.PlaceFor(safe, screen, Band(rig));
         var actionSafe = SceneUtil.FindAny("SafeArea");
-        if (actionSafe != null)
-        {
-            var rt = actionSafe.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(safe.xMin / rig.W, safe.yMin / rig.H);
-            rt.anchorMax = new Vector2(safe.xMax / rig.W, safe.yMax / rig.H);
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            rig.Ignore(actionSafe.transform.root);
-        }
+        if (actionSafe != null) rig.Ignore(actionSafe.transform.root);
         if (styler != null && styler.HudRoot != null)
         {
             var hudCanvas = styler.HudRoot.GetComponentInParent<Canvas>().rootCanvas;
