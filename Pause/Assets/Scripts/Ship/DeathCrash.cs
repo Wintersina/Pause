@@ -850,7 +850,7 @@ public partial class DeathCrash : MonoBehaviour
     public static FragmentSet CutFragments(Sprite hull, int id, int variant)
     {
         if (hull == null || hull.texture == null) return null;
-        return Cut(hull, id, variant);
+        return Cut(hull, id, variant, 0);
     }
 
     // How many pieces a hull breaks into for a given seed (tests).
