@@ -1137,14 +1137,15 @@ public static class CodexTest
               Resources.Load<Shader>(CodexUi.SilhouetteShaderPath) != null && CodexUi.SilhouetteMaterial != null &&
               CodexUi.SilhouetteMaterial.shader.isSupported);
 
-        // Locked cards: one flat ink colour inside the alpha mask, every
-        // frame of the idle loop.
+        // Locked cards: one flat ink colour inside the alpha mask -- every
+        // locked card (so no art with a translucent body slips through), and
+        // every frame of the idle loop for the first few.
         foreach (var tab in new[] { CodexCategory.Enemies, CodexCategory.Hazards, CodexCategory.Atoms, CodexCategory.Ships })
         {
             panel.ShowCategory(tab);
             panel.SkipAnimations();
             int tested = 0;
-            for (int i = 0; i < panel.VisibleCards && tested < 3; i++)
+            for (int i = 0; i < panel.VisibleCards; i++)
             {
                 var e = panel.CardEntry(i);
                 if (Codex.IsDiscovered(e)) continue;
@@ -1155,7 +1156,7 @@ public static class CodexTest
                       CodexUi.IsSilhouette(a.Image) && (a.Overlay == null || !a.Overlay.enabled || CodexUi.IsSilhouette(a.Overlay)));
                 bool flat = true;
                 string why = "";
-                for (int frame = 0; frame < 3; frame++)
+                for (int frame = 0, frames = tested <= 3 ? 3 : 1; frame < frames; frame++)
                 {
                     var r = RenderArt(panel, new Graphic[] { a.Image, a.Overlay });
                     string w;
@@ -1204,6 +1205,53 @@ public static class CodexTest
               (panel.DetailAnimator.Overlay == null || !panel.DetailAnimator.Overlay.enabled || CodexUi.IsSilhouette(panel.DetailAnimator.Overlay)));
         panel.ShowGrid();
         panel.SkipAnimations();
+
+        CheckNearSolidSilhouette(panel);
+    }
+
+    // Regression: painted art often has a near-solid body (alpha 250, not
+    // 255), a coloured interior and a soft low-alpha glow halo. Its locked
+    // silhouette must still be one solid ink shape -- the body never lets
+    // the backdrop through, and the halo doesn't smear into a grey fog.
+    static void CheckNearSolidSilhouette(CodexPanel panel)
+    {
+        const int S = 64;
+        var tex = new Texture2D(S, S, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+        var px = new Color32[S * S];
+        for (int y = 0; y < S; y++)
+            for (int x = 0; x < S; x++)
+            {
+                int d = Mathf.Max(Mathf.Abs(x - S / 2), Mathf.Abs(y - S / 2));
+                Color32 c = new Color32(0, 0, 0, 0);
+                if (d < 20) c = (x / 4 + y / 4) % 2 == 0 ? new Color32(230, 40, 200, 250) : new Color32(40, 220, 240, 252);
+                else if (d < 28) c = new Color32(255, 80, 220, 60);   // glow halo
+                px[y * S + x] = c;
+            }
+        tex.SetPixels32(px);
+        tex.Apply();
+        var sprite = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), 100f);
+
+        var go = new GameObject("~NearSolidSilhouette", typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(panel.transform, false);
+        var rt = (RectTransform)go.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(.5f, .5f);
+        rt.sizeDelta = new Vector2(320f, 320f);
+        var img = go.GetComponent<Image>();
+        img.sprite = sprite;
+        img.raycastTarget = false;
+        CodexUi.PaintArt(img, true);
+        Canvas.ForceUpdateCanvases();
+
+        var r = RenderArt(panel, new Graphic[] { img });
+        string why;
+        bool flat = Flat(r, out why);
+        // The body is 40/64 of the quad's side; nearly all of it must be solid.
+        Check("a near-solid body (alpha 250) renders a solid one-colour silhouette (" + why + ")",
+              flat && r.opaque >= .8f * r.covered);
+
+        UnityEngine.Object.DestroyImmediate(go);
+        UnityEngine.Object.DestroyImmediate(sprite);
+        UnityEngine.Object.DestroyImmediate(tex);
     }
 
     static void CheckPanelAnimation(CodexPanel panel)
