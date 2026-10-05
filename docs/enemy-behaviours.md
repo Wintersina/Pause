@@ -175,6 +175,106 @@ Shot speeds are relative to the board, in world units per second.
 17 of the 46 shoot (one of them only some of the time); 29 never do. Six more attack with their body
 (`Lunge`). Bosses are untouched. Elites are untouched apart from the small `EliteShot` addition above.
 
+## Presence: hazards and pilots (follow-up)
+
+User: "Some enemies should not rush past the player like idle objects like hazards. All hazards rushing
+past the player makes sense, they are not too bright, but some enemy ships need to be smarter and do
+more custom behavior."
+
+The first pass kept every enemy on the scroll (the brain only added a bounded offset), so at HUD 30+ a
+ship crossed the view in about a second and rarely finished its tell. Now every roster enemy has a
+**presence**:
+
+* **Hazard** (all 14 rocks, the 4 rail mines): rides the board and rushes past, exactly as in the table
+  above. Nothing changes for them.
+* **Pilot** (16 fighters, 4 heavies, 4 chasers, 4 aliens): piloted or alive. It flies under its own power
+  in world space. The scroll moves the world behind it; it does not decide how long the pilot is on
+  screen.
+
+### How a pilot flies
+
+`EnemyBrain` gets a pilot mode. The legacy mover component stays on the object (stun, the death domino
+and old tests still find it) but is switched to `station`: it no longer scrolls. The brain owns an
+anchor in world space and runs a script:
+
+1. **Wait** above the view, column already reserved, until no hazard is still coming down that column.
+2. **Enter** from the top (`Drop`: straight in; `Swoop`: overshoots its station and rises back). Aliens
+   `Descend` instead: no station, a slow march down the screen at their own speed.
+3. **Engage** on station (a depth below the top of the view) for at most `engageSeconds`. The existing
+   primitives (Sway, Track, Orbit, Drift, March, Bob, Pulse) run around the anchor, and the attack state
+   machine runs as before, now with time to finish. A lunge from a station is a dive and recover.
+4. **Exit**, in character: `Climb` (retreats up and out), `Peel` (climbs out on a sideways arc), or `Run`
+   (a telegraphed attack run straight down its column, past the pilot and out the bottom).
+
+The top and bottom are the only legal edges: the sides are the rails.
+
+**Airspace instead of dodging.** A pilot reserves its column (its lateral band plus its body) in
+`PilotAirspace` for as long as it lives. The spawner places no hazard whose envelope crosses a reserved
+column, and a pilot waits above the view until hazards already in its column have gone by. So hazards
+are routed round pilots rather than through them, the player always has the hazard-free pilot columns
+and the pilot-free hazard columns to read separately, and nothing needs a per-frame threat scan. As a
+safety net every pilot move still goes through `SpawnSpace.ResolveSteer` (the chaser's rule), which never
+lets it step into another body (another pilot, a chaser, an elite). This is self-contained in the roster
+brain files; if the elites' hazard sensor lands, `PilotAirspace.ColumnClear` and that sensor could become
+one "what is coming down this column" query.
+
+**Budget.** `PilotAirspace` caps the pilot load by speed and world (`EnemyDensity.MaxPilotLoad`: tier-1
+fighters and aliens weigh 0.5, tier-4 fighters and heavies 1.5, the rest 1) and the share of the lane
+that may be reserved, so hazards always have room. Chasers are capped separately. The spawner's threat
+ceiling already counts bodies in view each frame, so a pilot that stays 8 s is counted for 8 s.
+
+**Bounded.** Every engagement has an upper bound (`engageSeconds`, 2.5 s for a scout to 10 s for a heavy),
+and a pilot leaves early once its volleys are spent. Chasers leave after `lingerSeconds` of orbiting
+instead of staying for ever.
+
+**Boss and portal.** No pilot is admitted in the last seconds before a boss or while a portal is open,
+and live pilots are ordered to `Climb` out. The boss's existing board clear (every `ClearTarget` hazard)
+takes whatever is left, pilots included, as it always has.
+
+**Escape.** A pilot that leaves pays nothing and does not touch the kill chain, the same as any enemy
+that scrolled off the bottom before.
+
+**Tutorial.** The tutorial scene does not use this spawner; nothing changes there.
+
+### Scripts
+
+| Key | Presence | Entry | Engage | Exit |
+|---|---|---|---|---|
+| all `*_rock_*`, all `*_mine` | hazard | rides the scroll | (table above) | scrolls off |
+| `space_big` Bastion | pilot | slow Drop to 1.5 u | anchors its column, twin bolts x3, up to 10 s | slow Climb |
+| `space_fighter_1` Needle | pilot | Swoop to 2.2 u | one weaving beat, 2.5 s | Run: straight dash down |
+| `space_fighter_2` Steel Claw | pilot | Drop to 2.6 u | shadows the pilot, one pounce and recover, 5 s | Run at the pilot's column |
+| `space_fighter_3` Twin Claw | pilot | Drop to 2.0 u | wide sweep, splayed pairs x3, 7 s | Peel |
+| `space_fighter_4` Warden | pilot | Drop to 1.6 u | holds range, tracks, aimed shells x4, 9 s | Climb |
+| `space_chaser` Steel Hound | pilot | from below (as before) | pursues, then orbits 5 s | Climb |
+| `space_alien` Bile Mite | pilot | Descend 1.1 u/s in line | wiggles; spitters spit twice | marches out the bottom |
+| `frost_big` Glacier Golem | pilot | slow Drop to 1.6 u | sways, shard fans x3, 10 s | slow Climb |
+| `frost_fighter_1` Flake | pilot | Swoop to 2.4 u | snowflake drift, 3 s | Run at the pilot's column |
+| `frost_fighter_2` Icicle | pilot | Drop to 2.4 u | tracks, aimed bolts x3, 5.5 s | Peel |
+| `frost_fighter_3` Frost Kite | pilot | Drop to 2.6 u | loops, shard pairs x3, 7 s | Run |
+| `frost_fighter_4` Hailstorm | pilot | Drop to 1.5 u | holds, hail x3, 9 s | Climb |
+| `frost_chaser` Frost Lancer | pilot | from below | aim-and-dash pursuit, orbits 4 s | Climb |
+| `frost_alien` Cryo Jelly | pilot | Descend 0.9 u/s | pulses | drifts out the bottom |
+| `verdant_big` Bloom Maw | pilot | slow Drop to 1.4 u | resin lobs x3, 10 s | slow Climb |
+| `verdant_fighter_1` Gnat | pilot | Swoop to 2.6 u | jitters, 3 s | Run |
+| `verdant_fighter_2` Wasp | pilot | Drop to 2.4 u | tracks, one deep dive and recover, 5 s | Run (the deepest, fastest) |
+| `verdant_fighter_3` Mantis | pilot | Drop to 3.0 u | hovers still, slashes x3, 6.5 s | Peel |
+| `verdant_fighter_4` Hornet Queen | pilot | Drop to 1.6 u | tracks, stinger fans x4, 9 s | Climb |
+| `verdant_chaser` Dragonsting | pilot | from below | weaving pursuit, orbits 6 s | Climb |
+| `verdant_alien` Snap Sprout | pilot | Descend 1.0 u/s | marches sideways in step | marches out the bottom |
+| `ember_big` Magma Skull | pilot | slow Drop to 1.5 u | slag pairs x3, 10 s | slow Climb |
+| `ember_fighter_1` Cinder | pilot | Swoop to 2.4 u | diagonal drift, 2.5 s | Run |
+| `ember_fighter_2` Scorch | pilot | Drop to 2.2 u | lines up over the pilot, bolts x4, 5.5 s | Peel |
+| `ember_fighter_3` Brand | pilot | Drop to 2.4 u | strafes, aimed bolts x3, 7 s | Run |
+| `ember_fighter_4` Pyre | pilot | Drop to 1.5 u | rings x3, 9 s | Climb |
+| `ember_chaser` Cinder Fang | pilot | from below | short hard chase, wide orbit 7 s | Climb |
+| `ember_alien` Ember Imp | pilot | Descend 1.3 u/s | flickers | out the bottom |
+
+Tiers read as smarter by what they do with the time: tier 1 swoops, makes one pass and runs; tier 2
+shadows the pilot and commits once; tier 3 holds a pattern and fires several volleys; tier 4 holds range
+at the top, repositions and uses its whole attack. ("Retreats when hurt" needs hit points; roster
+enemies die in one hit, so tier 4 retreats on the clock instead.)
+
 ## Density (deliverable 2)
 
 Measured with `EnemyDensityProbe` (the real spawner stepped headless, every enemy on its real mover).
@@ -332,5 +432,7 @@ Listed as found; none of these blocks the feature.
       `WorldBackdropTest` (3 Verdant palette checks) and `HostileProjectileTest` (the Frost wrapper
       contrast check, and a boss-shot rim check), none of them in code this branch touches
 * [x] After table measured, `EnemyDensity` retuned once (high-speed rate 0.42 -> 0.55)
+* [ ] Follow-up: hazards and pilots (presence). Design above; implementation, re-measured table and
+      tests in progress
 * [ ] Play it. Nothing here has been played: every number is from headless simulation
 * [ ] Merge `integrate/oct04-batch` (the enemy strip re-cell) and re-run `EnemyRosterTest`
