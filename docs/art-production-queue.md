@@ -35,7 +35,7 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 18. **Installed and validated — `ember_chaser`:** rugged forge-hound chaser with contained furnace jaw, copper loopwork, and safe seven-cell motion strip.
 19. **Installed — `space_big`:** Bastion rebuilt as a rugged gunmetal armoured block with a caged magenta reactor core, copper conduit, twin antennae, and twin thrusters; seven-cell strip pixel-audited for alpha, cell margins (20 px minimum), and idle continuity, and roster-validated in the source worktree; in-engine review of the installed strip is pending, and the second tell cell and hit cell draw the hull about 9% and 5% smaller than idle.
 20. **Installed and validated — `frost_big`:** Glacier Golem rebuilt as a rugged icebreaker-steel and glacier-ice hulk with copper pressure plumbing, a cyan cryo visor, asymmetric frost damage, and a crushing ice-slam tell; seven-cell strip vetted for safe cell margins, idle continuity, and roster validation.
-21. **Queued — `verdant_big`**
+21. **Installed and validated — `verdant_big`:** Bloom Maw in the rugged raster style, re-celled 2026-10-05 from `verdant_big_rugged_v2_concept.png` with `recell.py`: seven whole poses, one scale (0.762 of the sheet), frame 0 212 px = 1.08 u, 4 px clear margin; `EnemyRosterTest` passes (size band, palette, detail floor). The spin Codex asked for in `9db82918` is not in this strip: see the repairs section.
 22. **Queued — `ember_big`**
 23. **Installed, validated — `space_rock_crater`**
 24. **Installed, validated — `space_rock_cluster`**
@@ -108,3 +108,33 @@ the listed scale of the concept sheet unless a frame is named with its own.
   wing), `ember_elite_brass_vulture` (cell 6 left side) and `ember_elite_ash_wraith` (nose in
   cells 4-6). Their source art is Codex's (`Art/Enemies/Elite`, copied over Resources by
   `EliteArtSync`) and their defs hold measured muzzle and nozzle points.
+
+## Art repairs (2026-10-05)
+
+Done with `Pause/Assets/Art/Enemies/src~/recell.py` / `audit_cells.py`; nothing redrawn. Verified by
+`EliteTest` and `EnemyRosterTest` in batch mode; not played on device.
+
+- **`verdant_big` Bloom Maw.** History: the first rugged install (`897fa461`) fitted each concept pose to its
+  cell with its own x and y scale, which squashed poses 1 and 3 flat (the "flapping"); `9db82918` replaced it
+  with a vector flower that spins 18 degrees a frame, drawn at 1.30 u with its petal tips cut by the cell in all
+  seven frames. The live strip is the rugged concept again, every pose whole and round at one scale. Still
+  owed by Codex if the spin is wanted: the concept's seven poses are all drawn at the same rotation, so a
+  spinning rugged flower needs new drawings (or a runtime rotation); the concept's idle poses also breathe
+  (the petals close about 6% on pose 1 and open about 6% on pose 2).
+- **`verdant_elite_resin_warden`.** Rebuilt from `resin_warden_final_concept.png` (the `art/verdant-elite-ships`
+  worktree). Hover cell at its old scale (0.451); parked, bank and damaged cells now share it; lift-off at
+  0.385. Hull centred on the cell (it sat 10 px left). Cell 3's sliver and cell 4's cut wing are gone. Def:
+  muzzles 44,64 / 149,63, nozzles 76,137 / 115,135.
+- **Slivers removed** (whole detached components, ships untouched): `ember_elite_cauterizer` cells 4 and 5 at
+  x 181-183 (102 px); `ember_elite_brass_vulture` cell 1 at x 8-9 and cell 5 at x 180-183 (43 px).
+  `ember_big`: the hit pose's debris chunk that straddled the cell 5/6 boundary moved 5 px right into cell 6.
+- **Elite hull radii** re-measured on the reworked art: `ember_elite_ash_wraith` 0.37 -> 0.29,
+  `ember_elite_coalrunner` 0.37 -> 0.30, `ember_elite_cauterizer` 0.48 -> 0.43, with `heartOrbit` raised to
+  keep the hearts on the orbit they had (1.08, 1.05, 0.73).
+- **Still with Codex** (art, not repairable by moving pixels):
+  - `ember_elite_coalrunner`: the action cell's (5) left muzzle flame is cut flat at x 8; its tip lies in
+    cell 4 (x 168-183) and the right flame's tail in cell 6 (x 8-11).
+  - `ember_elite_cauterizer`: the hull's left side in the hit cell (6) is cut flat at x 8 (38 px).
+  - `ember_big` Magma Skull: the skull slides left through the idle loop (6, 8, 14 px off frame 0 in frames
+    1-3, 18-20 px in 4-5); frame 0 has 2 px of margin on its right.
+  - `space_big`: 12 texels on the bottom outline of cell 5.
