@@ -41,6 +41,8 @@ public static class ShieldPickupSkinTest
 
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
     const float Dt = 1f / 60f;
+    // Managed bytes a pickup may allocate over the edit-mode Destroy baseline.
+    const long PickupAllocBound = 512;
     const int FramesBefore = 6;
     const int FramesShielded = 45;     // anticipation + zip + idle + a full plume loop
 
@@ -73,7 +75,8 @@ public static class ShieldPickupSkinTest
     {
         int builds, readbacks, paths, skinSheets;
         HashSet<int> textures, sprites, materials, meshes, objects;
-        long bytes;
+        Unity.Profiling.ProfilerRecorder alloc;
+        long allocStart;
         readonly Stopwatch sw = new Stopwatch();
 
         static HashSet<int> Ids<T>() where T : Object
@@ -106,7 +109,9 @@ public static class ShieldPickupSkinTest
             materials = Ids<Material>();
             meshes = Ids<Mesh>();
             objects = Ids<GameObject>();
-            bytes = GC.GetTotalMemory(false);
+            alloc = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1,
+                Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately);
+            allocStart = alloc.Valid ? alloc.CurrentValue : 0;
             sw.Restart();
         }
 
@@ -114,7 +119,8 @@ public static class ShieldPickupSkinTest
         {
             sw.Stop();
             var c = new Cost();
-            c.bytes = GC.GetTotalMemory(false) - bytes;
+            c.bytes = alloc.Valid ? alloc.CurrentValue - allocStart : -1;
+            alloc.Dispose();
             c.ms = sw.Elapsed.TotalMilliseconds;
             c.builds = ShieldContour.BuildCount - builds;
             c.readbacks = ShieldContour.ReadbackCount - readbacks;
@@ -425,6 +431,27 @@ public static class ShieldPickupSkinTest
         Check("no shield is built by the pickup itself (" + lateBuilds + " late builds)", lateBuilds == 0);
         StingsAreImportedPreloaded();
         Check("the shield comes up on the pickup for every ship x skin (" + notUp + " did not)", notUp == 0);
+        // Managed bytes (the "bytes" column): the profiler's GC.Alloc recorder,
+        // behind a positive control (GC.GetAllocatedBytesForCurrentThread reads
+        // 0 here whatever is allocated).
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        Check("the allocation meter passes its positive control (" + TestHarness.AllocControlCount + " small arrays read as " + control + " bytes)", meterWorks);
+        // In edit mode the pickup's Destroy(atom) is refused with a logged error
+        // (an allocation a player never pays): measured on its own.
+        var dummy = new GameObject("~destroyBaseline");
+        UnityEngine.Object.Destroy(dummy);
+        long destroyBytes = TestHarness.AllocatedBytes(() => UnityEngine.Object.Destroy(dummy));
+        UnityEngine.Object.DestroyImmediate(dummy);
+        var firstBytes = new List<long>();
+        foreach (var r in rows) firstBytes.Add(r.first.bytes);
+        firstBytes.Sort();
+        long medianBytes = firstBytes[firstBytes.Count / 2], worstBytes = firstBytes[firstBytes.Count - 1];
+        Debug.Log("[SPS] first-pickup allocation: median " + medianBytes + " bytes, worst " + worstBytes +
+                  " bytes; edit-mode Destroy() alone " + destroyBytes + " bytes");
+        Check("the first blue atom allocates next to nothing beyond edit mode's refused Destroy (median " + medianBytes +
+              " bytes, Destroy alone " + destroyBytes + ", bound +" + PickupAllocBound + ")",
+              meterWorks && medianBytes <= destroyBytes + PickupAllocBound);
         Check("every skin wears its ship's one baked contour (" + wrongContour + " do not)", wrongContour == 0);
         Check("the first blue atom builds, reads back and creates nothing, for every ship x skin (" + dirtyFirst +
               " of " + rows.Count + " did)", dirtyFirst == 0);

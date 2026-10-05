@@ -793,10 +793,17 @@ public static class BossWarningTest
         var wm = rig.wm;
         Check("alloc rig: the countdown is running", hud.Countdown.Active && hud.ChipVisible);
 
+        // (GC.GetAllocatedBytesForCurrentThread reads 0 under this Mono: the
+        // profiler's GC.Alloc recorder is the meter, checked by a positive control)
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        Check("the allocation meter passes its positive control (" + TestHarness.AllocControlCount + " small arrays read as " + control + " bytes)", meterWorks);
+
         // the warning's own frame, exactly as BossWarningHud.Update drives it
-        long before = GC.GetAllocatedBytesForCurrentThread();
         int frames = 0;
         float eta = wm.SecondsLeftInWorld;
+        long allocated = TestHarness.AllocatedBytes(() =>
+        {
         while (hud.Countdown.Active && hud.Countdown.Shown > .2f && frames < 4000)
         {
             // (the level clock itself is WorldManager's; the estimate falls in step)
@@ -807,9 +814,9 @@ public static class BossWarningTest
             if (read < -1f) break;
             frames++;
         }
-        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        });
         Check("the whole countdown, T-" + (frames * Dt + .2f).ToString("F0") + " to the boss (" + frames + " frames, every digit change, T-10, T-3): " +
-              allocated + " bytes allocated", frames > 1200 && allocated == 0);
+              allocated + " bytes allocated", meterWorks && frames > 1200 && allocated == 0);
         Drop(rig);
 
         // idle (no warning up) is free too
@@ -817,10 +824,13 @@ public static class BossWarningTest
         for (int i = 0; i < 30; i++) rig.Frame();
         hud = rig.hud;
         wm = rig.wm;
-        before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 600; i++) hud.Step(BossWarning.Read(wm), wm.SecondsLeftInWorld, Dt, Dt);
-        allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Check("600 idle frames before the warning: " + allocated + " bytes allocated", allocated == 0 && !hud.Visible);
+        var idleHud = hud;
+        var idleWm = wm;
+        allocated = TestHarness.AllocatedBytes(() =>
+        {
+            for (int i = 0; i < 600; i++) idleHud.Step(BossWarning.Read(idleWm), idleWm.SecondsLeftInWorld, Dt, Dt);
+        });
+        Check("600 idle frames before the warning: " + allocated + " bytes allocated", meterWorks && allocated == 0 && !hud.Visible);
         Drop(rig);
     }
 
