@@ -828,10 +828,9 @@ def frame_table(key):
     T.append(("retreat_0", Pose(smear=.7, phase=.1, lights=1.0), 2))
     T.append(("retreat_1", Pose(smear=1.0, phase=.6, lights=1.0, sx=.97), 2))
     T.append(("portrait", Pose(lights=1.0), 0))
-    # The Archon gets twenty additional, intentionally held drawings.  These
-    # are not tweened in game: its reactor blinks and engine nozzles cycle
-    # through an eight-frame patrol loop, while each weapon gets a four-step
-    # mechanical anticipation that the fight code plays across its tell.
+    # The first two bosses get twenty additional, intentionally held
+    # drawings. These are not tweened in game: their idle and attack states
+    # snap through hand-authored frames during the encounter.
     if key == "Space":
         for i in range(8):
             phase = i / 8.0
@@ -852,6 +851,30 @@ def frame_table(key):
                     sx=(1.025, 1.012, 1.0, .985)[stage],
                     sy=(.965, .985, 1.005, 1.025)[stage],
                     lights=(.45, .62, .85, 1.0)[stage]), 2))
+    elif key == "Frost":
+        # A weighty whale-fortress idle: fins paddle, the skull drifts and
+        # the crown's trapped aurora pulses through the ice.
+        for i in range(8):
+            phase = i / 8.0
+            T.append(("leviathan_idle_%d" % i, Pose(
+                phase=phase, bob=(0, -2, -3, -2, 0, 2, 3, 2)[i],
+                sx=(1.0, 1.008, 1.014, 1.008, 1.0, .992, .986, .992)[i],
+                sy=(1.0, .992, .986, .992, 1.0, 1.008, 1.014, 1.008)[i],
+                lights=(.58, .7, .88, 1.0, .8, .66, .74, .9)[i]), 2))
+        # Jaw: unseal, drop, illuminate, spray.  Eyes/fins: sweep apart and
+        # glare. Crown: rises through three ice-bright charge states.
+        for tell in range(3):
+            for stage in range(4):
+                o = [0.0, 0.0, 0.0]
+                c = [0.0, 0.0, 0.0]
+                o[tell] = (.18, .45, .76, 1.0)[stage]
+                c[tell] = (.05, .3, .68, 1.0)[stage]
+                T.append(("leviathan_tell%d_%d" % (tell, stage), Pose(
+                    phase=.1 + stage * .17, open=o, charge=c,
+                    bob=(2, 1, -1, -3)[stage],
+                    sx=(1.024, 1.012, 1.0, .986)[stage],
+                    sy=(.966, .986, 1.006, 1.026)[stage],
+                    lights=(.4, .6, .84, 1.0)[stage]), 2))
     else:
         # Keep every atlas the same dimensions so runtime slicing remains
         # deterministic while the other bosses await their expanded sets.

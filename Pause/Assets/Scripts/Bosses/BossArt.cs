@@ -28,9 +28,9 @@ public static class BossArt
     public const int Death0 = 12, DeathFrames = 5;
     public const int Retreat0 = 17, RetreatFrames = 2;
     public const int Portrait = 19;
-    // Space-only frames in the lower half of the atlas.  Eight are an engine
-    // and reactor patrol loop; each of its three weapons has four deliberate
-    // anticipation drawings.  The other bosses retain their shared poses.
+    // Expanded-boss frames in the lower half of the atlas. Eight are a
+    // character idle loop; each of its three weapons has four anticipation
+    // drawings. Space and Frost currently use this set.
     public const int SpaceIdle0 = 20, SpaceIdleFrames = 8, SpaceTell0 = 28, SpaceTellFrames = 4;
     public static readonly int[] SpaceIdleTicks = { 2, 2, 2, 2, 2, 2, 2, 2 };
     public static int Tell(int pose, int frame)
@@ -39,7 +39,7 @@ public static class BossArt
         frame = Mathf.Clamp(frame, 0, 1);
         return pose == 0 ? 5 + frame : pose == 1 ? 7 + frame : 10 + frame;
     }
-    public static bool HasExpandedCombat(BossDef boss) => boss != null && boss.artKey == "Space";
+    public static bool HasExpandedCombat(BossDef boss) => boss != null && (boss.artKey == "Space" || boss.artKey == "Frost");
     public static int IdleFrame(BossDef boss, float seconds)
     {
         return HasExpandedCombat(boss)
