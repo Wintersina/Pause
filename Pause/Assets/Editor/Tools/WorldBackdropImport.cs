@@ -29,7 +29,8 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsTile(string path)
     {
         string f = System.IO.Path.GetFileNameWithoutExtension(path);
-        return f == "sky" || f == "far" || f == "mid" || f == "flow";
+        return f == "sky" || f == "far" || f == "mid" || f == "flow" ||
+               f.StartsWith("forest_industrial_center_v");
     }
 
     void OnPreprocessTexture()
@@ -44,7 +45,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        ti.maxTextureSize = 1024;
+        ti.maxTextureSize = file.StartsWith("forest_industrial_center_v") ? 512 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
