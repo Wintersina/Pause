@@ -22,6 +22,7 @@ Requires resvg (brew install resvg).
 """
 import math
 import os
+import shutil
 import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -288,6 +289,13 @@ def main():
         src = os.path.join(HERE, name + ".svg")
         open(src, "w").write(text)
         subprocess.check_call(["resvg", "--zoom", str(zoom), src, os.path.join(OUT, name + ".png")])
+    # The two Pilot's Log illustrations are painted raster assets. Keep their
+    # source PNGs beside this generator and install them after the UI vectors
+    # are rendered so a routine Codex rebuild cannot restore the old glyph art.
+    for name in ("cx_blackhole", "cx_wormhole"):
+        raster = os.path.join(HERE, name + "_rugged.png")
+        if os.path.isfile(raster):
+            shutil.copyfile(raster, os.path.join(OUT, name + ".png"))
     write_palette_cs()
     with open(os.path.join(HERE, "borders.txt"), "w") as f:
         for name, (_, zoom, border) in SPRITES.items():
