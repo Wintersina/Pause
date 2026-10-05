@@ -94,6 +94,22 @@ public sealed class ShieldContour
 
     public static int CachedCount { get { return cache.Count; } }
 
+    // Contours cut from pixels fetched at runtime instead of a bake (For's
+    // cache misses, and ForShip falling back to it). The safety net: a
+    // shipped configuration never gets here for a roster ship.
+    public static int UnbakedCount { get; private set; }
+
+    // Development builds and the editor say so when it happens in play: a
+    // readback is a GPU sync, a hitch if it lands in a run.
+    [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD"),
+     System.Diagnostics.Conditional("PAUSE_DEV")]
+    static void WarnUnbaked(string what)
+    {
+        if (!Application.isPlaying) return;
+        Debug.LogWarning("ShieldContour: " + what + " has no baked silhouette; its shield outline was cut from pixels " +
+                         "read back at runtime (a frame hitch). Re-bake: Pause/Bake Shield Silhouettes + Hitboxes.");
+    }
+
     static readonly Dictionary<int, ShieldContour> byShip = new Dictionary<int, ShieldContour>();
 
     public static bool IsBuiltForShip(int id)
@@ -116,7 +132,10 @@ public sealed class ShieldContour
         if (ShieldSilhouettes.TryGet(id, r.w, r.h, out mask))
             contour = BuildMask(mask, r.w, r.h, new Vector2(r.w * .5f, r.h * .5f), r.pixelsPerUnit);
         else
+        {
+            WarnUnbaked("ship " + id + " (" + ShipId.KeyOf(id) + ", " + r.w + "x" + r.h + ")");
             contour = For(ShipHullArt.StockRest(id));
+        }
         if (contour != null) byShip[id] = contour;
         UnityEngine.Profiling.Profiler.EndSample();
         return contour;
@@ -145,6 +164,8 @@ public sealed class ShieldContour
         ShieldContour contour;
         if (cache.TryGetValue(key, out contour) && contour != null) return contour;
 
+        UnbakedCount++;
+        WarnUnbaked("sprite '" + sprite.name + "'");
         int w, h;
         Color32[] px = ReadPixels(sprite, out w, out h);
         contour = Build(px, w, h, sprite.pivot, sprite.pixelsPerUnit);

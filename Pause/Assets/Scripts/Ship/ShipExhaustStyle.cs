@@ -394,6 +394,20 @@ public static class ShipExhaustStyle
         return row[frame];
     }
 
+    // Cuts every drawing of every strip the ship has (cruise, boost, a
+    // spinner's ring and wake) now -- a ship being dressed -- so the flipbook
+    // never creates a sprite mid-flight; the boost drawings were otherwise
+    // first cut on the frames after a blue atom.
+    public static void Prewarm(int shipId)
+    {
+        if (!ShipId.IsValid(shipId)) shipId = ShipId.Starter;
+        for (int s = 0; s < strips.Length; s++)
+        {
+            if (strips[s].shipId != shipId) continue;
+            for (int f = 0; f < strips[s].frames; f++) Frame(shipId, strips[s].layer, f);
+        }
+    }
+
     // The drawing to show `ticks` (24 fps) into a ship's loop.
     public static int FrameAt(int shipId, float ticks)
     {

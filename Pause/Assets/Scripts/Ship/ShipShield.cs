@@ -72,6 +72,11 @@ public class ShipShield : MonoBehaviour
     float flickerTimer = .7f, flickerLeft;
     int flickerSeed;
 
+    // Shields whose shape or mesh had to be made by Show() itself -- on the
+    // blue-atom frame -- because the spawn-time Prewarm had not (0 in a
+    // shipped configuration; tests assert it).
+    public static int LateBuilds { get; private set; }
+
     public static ShipShield For(GameObject ship)
     {
         var shield = ship.GetComponent<ShipShield>();
@@ -226,9 +231,20 @@ public class ShipShield : MonoBehaviour
 
     public void Show()
     {
+        bool created = root == null;
         Ensure();
         root.SetActive(true);
+        bool ready = !created && contour != null && mesh != null;
         bool hasShape = EnsureContour();
+        if (!ready && hasShape)
+        {
+            LateBuilds++;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || PAUSE_DEV
+            if (Application.isPlaying)
+                Debug.LogWarning("ShipShield: " + name + "'s shield was built on the pickup frame, not when the ship " +
+                                 "spawned (collisionDetection.Start never reached ShipShield.For?).");
+#endif
+        }
         if (phase == Phase.Off)
         {
             phase = Phase.Anticipation;
