@@ -70,3 +70,41 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 - Frost alien is live and validated alongside the Space Bile Mite.
 - The four approved boss body atlases are installed and validated in game.
 - Existing rail/mines are explicitly considered an approved visual quality bar.
+
+## Cell-integrity re-cell (2026-10-04)
+
+The first rugged installs of the strips below were cut from their free-layout concept sheets at
+grid multiples and each cut was fitted to its cell on its own, so cells held slices of the
+neighbouring pose, wide poses were clipped, and the body changed size and position through the
+idle loop. Each live strip was rebuilt from its concept sheet with
+`Pause/Assets/Art/Enemies/src~/recell.py` (one whole pose per cell, 4 px clear margin, idle frames
+anchored on the body; no art redrawn) and passes `audit_cells.py` and
+`EnemyRosterTest.CellsHoldOnePoseEach`. Not yet opened in Unity or checked on device.
+
+"Frame 0" is the drawn size of the key pose on its longest side, before -> after. Frames 0-5 share
+the listed scale of the concept sheet unless a frame is named with its own.
+
+| Strip | Frame 0 | Scale | Own-scale frames | Size limited by |
+| --- | --- | --- | --- | --- |
+| `verdant_fighter_3` Mantis | 178 -> 177 px | 0.430 | hit 0.378 | nothing (size kept) |
+| `ember_fighter_3` Brand | 178 -> 169 px | 0.467 | hit 0.410 | tell frame's flame on the idle baseline |
+| `frost_fighter_3` Frost Kite | 178 -> 172 px | 0.404 | hit 0.343 | width of the beam frame (5) |
+| `frost_fighter_2` Icicle | 160 -> 160 px | 0.469 | hit 0.461 | nothing (size kept) |
+| `ember_rock_magma` | 178 -> 167 px | 0.488 | none | height of the burst frame (5) |
+| `frost_alien` Cryo Jelly | 178 -> 177 px | 0.294 | none | nothing (size kept) |
+| `frost_fighter_4` Hailstorm | 160 -> 159 px | 0.393 | burst (5) 0.345, hit 0.384 | nothing (size kept) |
+| `verdant_fighter_2` Wasp | 178 -> 174 px | 0.408 | hit 0.368 | height of idle frame 3 |
+| `verdant_fighter_4` Hornet Queen | 176 -> 168 px | 0.499 | tell (4) 0.453, strike (5) 0.424, hit 0.438 | idle wings on the shared baseline |
+| `verdant_rock_pod` | 176 -> 172 px | 0.497 | none | height of idle frame 3 |
+
+- `frost_fighter_2` and `frost_fighter_4` had already been through `df9658a1`, which only shrank
+  each cell's existing content to a 16 px margin (178 -> 160 px); the neighbour slices and cut
+  bodies stayed. They are rebuilt at that 160 px size.
+- `frost_fighter_3`: one bolt of the hit debris lies nearer the beam tip of pose 5 than its own
+  hull on the sheet and is assigned to the hit frame by hand (`--assign 1874,446:6`).
+- `verdant_rock_pod` was rebuilt from `verdant_rock_pod_rugged_v2_concept.png`, which exists only
+  uncommitted in the `rework/verdant-rock-pod-rugged` worktree, not in this repository's Staging.
+- Still cut, not rebuilt: the elites `verdant_elite_resin_warden` (cell 3 fragment, cell 4 left
+  wing), `ember_elite_brass_vulture` (cell 6 left side) and `ember_elite_ash_wraith` (nose in
+  cells 4-6). Their source art is Codex's (`Art/Enemies/Elite`, copied over Resources by
+  `EliteArtSync`) and their defs hold measured muzzle and nozzle points.
