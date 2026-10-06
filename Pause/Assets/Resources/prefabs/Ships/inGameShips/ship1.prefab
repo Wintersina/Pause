@@ -379,7 +379,6 @@ MonoBehaviour:
   shield: {fileID: 1000010432637486}
   explosionAnimation: {fileID: 167716, guid: 53918cdd0c978254fa6fa30696079297, type: 3}
   blueExp: {fileID: 173926, guid: 1aabcb07d3e32944abb966d7f5404978, type: 3}
-  redExp: {fileID: 123922, guid: 47a2c6bc441dec94593576db975d3fba, type: 3}
   boost: {fileID: 1000013270895942}
   boostSound: {fileID: 0}
   astroidExpSound: {fileID: 0}
