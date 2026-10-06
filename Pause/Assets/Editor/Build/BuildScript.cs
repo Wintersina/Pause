@@ -91,6 +91,13 @@ public static class BuildScript
         Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS"));
     }
 
+    public static void BuildIOSDev()
+    {
+        // Keep this project separate from the release build so Xcode's derived
+        // data and the two generated projects cannot be accidentally mixed.
+        Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-dev"), DevDefine);
+    }
+
     static void Run(BuildTarget target, string outputPath, params string[] extraDefines)
     {
         var scenes = Scenes;

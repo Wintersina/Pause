@@ -80,3 +80,7 @@ Pause/Assets/Art/UI/Pause/src~/*.svg
 
 # Personal question list (local only)
 QUESTIONS.md
+
+# Secrets
+.env
+.env.*

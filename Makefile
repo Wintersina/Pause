@@ -16,15 +16,18 @@ MAC_DEV_APP := $(PROJECT)/Builds/Mac/Pause-dev.app
 ANDROID_APK := $(PROJECT)/Builds/Android/Pause.apk
 ANDROID_DEV_APK := $(PROJECT)/Builds/Android/Pause-dev.apk
 IOS_XCODE_PROJECT := $(PROJECT)/Builds/iOS/Unity-iPhone.xcodeproj
+IOS_DEV_XCODE_PROJECT := $(PROJECT)/Builds/iOS-dev/Unity-iPhone.xcodeproj
 IOS_DERIVED_DATA := $(PROJECT)/Builds/iOS/DerivedData
+IOS_DEV_DERIVED_DATA := $(PROJECT)/Builds/iOS-dev/DerivedData
 IOS_APP := $(IOS_DERIVED_DATA)/Build/Products/Debug-iphoneos/Pause.app
+IOS_DEV_APP := $(IOS_DEV_DERIVED_DATA)/Build/Products/Debug-iphoneos/Pause.app
 
 ADB_DEVICE = $(ADB) $(if $(ANDROID_SERIAL),-s $(ANDROID_SERIAL))
 UNITY_CMD = "$(UNITY)" -batchmode -quit -projectPath "$(PROJECT)"
 
 .PHONY: help mac-build mac-run mac-dev-build mac-dev-run \
 	android-build android-deploy android-run android-dev-build android-dev-deploy android-log \
-	ios-build ios-deploy ios-run ios-devices
+	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices
 
 help:
 	@echo "Pause local commands:"
@@ -34,6 +37,7 @@ help:
 	@echo "  make android-dev-deploy   Same, with the PAUSE_DEV developer build"
 	@echo "  make android-log          Stream Unity logs from the Android device"
 	@echo "  make ios-deploy           Build, install, and launch on a connected iPhone"
+	@echo "  make ios-dev-deploy       Same, with the PAUSE_DEV developer build"
 	@echo "  make ios-devices          List iPhone/iPad device IDs for ios-deploy"
 	@echo ""
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
@@ -84,6 +88,19 @@ ios-deploy: ios-build
 	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
 
 ios-run:
+	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
+	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
+
+ios-dev-build:
+	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSDev
+
+ios-dev-deploy: ios-dev-build
+	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
+	xcodebuild -project "$(IOS_DEV_XCODE_PROJECT)" -scheme Unity-iPhone -configuration Debug -destination "platform=iOS,id=$(IOS_DEVICE_ID)" -derivedDataPath "$(IOS_DEV_DERIVED_DATA)" build
+	xcrun devicectl device install app --device "$(IOS_DEVICE_ID)" "$(IOS_DEV_APP)"
+	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
+
+ios-dev-run:
 	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
 	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
 

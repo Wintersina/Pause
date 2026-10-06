@@ -43,6 +43,7 @@ make android-dev-deploy   # same, using the PAUSE_DEV build
 make android-log          # stream Unity logs from the device
 make ios-devices          # list connected iPhone/iPad device IDs
 IOS_DEVICE_ID=<udid> make ios-deploy  # build, install, and launch on that device
+IOS_DEVICE_ID=<udid> make ios-dev-deploy  # same, using the PAUSE_DEV build
 ```
 
 `android-*` commands require `adb` with USB debugging enabled. If more than one

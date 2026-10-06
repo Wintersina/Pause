@@ -202,8 +202,8 @@ public class DeveloperUnlockHotkeys : MonoBehaviour
 
 public static class DeveloperUnlockBootstrap
 {
-    // A PAUSE_DEV build (BuildScript.BuildAndroidDev / BuildMacDev) comes up
-    // with the mode on; see DeveloperUnlocks.ShouldDefaultOn.
+    // A PAUSE_DEV build (BuildScript.BuildAndroidDev / BuildIOSDev /
+    // BuildMacDev) comes up with the mode on; see ShouldDefaultOn.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void ApplyBuildDefault()
     {
