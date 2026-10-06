@@ -23,12 +23,12 @@ using UnityEngine;
 //   TOP     TopShare of the way up the view (its centre), measured from the
 //           view's bottom, the same share on every phone. Why that share:
 //           docs/enemy-behaviours.md "Ship reach and boss height". In short:
-//           pilots own the top third of the view (their stations are 14% -
-//           30% below its top, a Swoop dips 9% further), hazards appear at
-//           its top edge, and the HUD band and the boss sit above that; the
-//           ship stops under all of it with about half a second to react at
-//           HUD 35. While a boss is up it also stays under the boss
-//           (BossCeilingFor).
+//           the HUD band covers the top 9% - 13%, pilots hold stations 14% -
+//           30% below the top of the view (a pilot holds higher while the
+//           ship is close under it: EnemyBrain.HoldY), hazards appear at the
+//           top edge; at 70% the ship has about 0.4 s at HUD 35 to react to
+//           what appears there. While a boss is up it stays under the boss
+//           (BossCeilingFor: 65% of the view or lower, under its muzzles).
 //   SIDES   +/-HalfWidth (unchanged: the lane and rails are fixed in x).
 //
 // The range follows the live camera and safe area every frame (a foldable
@@ -41,7 +41,7 @@ public static class ShipReach
     public static bool FitToView = true;
     public const float LegacyBottom = -4.15f, LegacyTop = 4.5f;
     // Highest the ship's centre goes: this share of the view's height, from its bottom.
-    public static float TopShare = .6f;
+    public static float TopShare = .7f;
     // Clear space between the ship's lowest drawn pixel and the safe area's bottom (world u).
     public static float BottomMargin = .15f;
     // The ship's drawing below / above its centre: the hulls are 0.58 u tall
@@ -84,32 +84,30 @@ public static class ShipReach
         return Mathf.Clamp(f.At(StartShare), BottomFor(f), TopFor(f));
     }
 
-    // While a boss is up the ship also stays BossConfig.ShipCeilingBelowFor
-    // under it: under its lowest muzzle with a clear gap, never inside its
-    // art. The ceiling follows the boss as it warps in (and as it retreats),
-    // so a ship parked high is eased down by the arriving boss, not snapped.
-    // +infinity with no boss.
+    // While a boss is up the ship's ceiling is BossConfig.ShipCeilingFor:
+    // FightCeilingShare of the view or lower, under the boss's lowest muzzle
+    // with a clear gap. The ceiling follows the boss as it warps in (and as
+    // it retreats) -- the resting ceiling moved by the boss's distance from
+    // its rest -- so a ship parked high is eased down by the arriving boss,
+    // not snapped. +infinity with no boss.
     public static float BossCeilingFor(PlayField.Frame f)
     {
         if (!FitToView) return float.PositiveInfinity;
         var enc = BossEncounter.Instance;
         var actor = enc != null ? enc.Actor : null;
         if (actor == null) return float.PositiveInfinity;
-        float y;
+        float rest = BossConfig.ShipCeilingFor(f, actor.Boss);
         switch (actor.State)
         {
             case BossActor.Mode.Fighting:
             case BossActor.Mode.Dying:
-                y = BossConfig.RestYFor(f);
-                break;
+                return rest;
             case BossActor.Mode.Arriving:
             case BossActor.Mode.Retreating:
-                y = actor.transform.position.y;
-                break;
+                return rest + (actor.transform.position.y - BossConfig.RestYFor(f));
             default:
                 return float.PositiveInfinity;
         }
-        return y - BossConfig.ShipCeilingBelowFor(f);
     }
 
     // ---- live (the main camera, the device's safe area, the boss) ----

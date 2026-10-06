@@ -51,6 +51,12 @@ public class EnemyBrain : MonoBehaviour
     public const float LungeRecoverSeconds = .55f;
     public const float ShoveReturnSpeed = 3f;     // u/s back to its line after something pushed it (a shockwave)
     public const float SidestepLookSeconds = .5f; // how far up the board (seconds of scroll) it watches for hazards beside its column
+    // A pilot holds higher than its station while the ship is close under
+    // it (HoldY): far enough above to keep its full windup clearance
+    // (MinFireDistance + HoldMargin, x view), but never higher than
+    // HoldTopDepth under the top of the view nor into the HUD band.
+    public const float HoldMargin = .1f;
+    public const float HoldTopDepth = 1.1f;
 
     // THE VIEW. A pilot's script is written for a view 10 u tall (the
     // authored camera). The game's camera shows more than that and differs by
@@ -63,6 +69,20 @@ public class EnemyBrain : MonoBehaviour
     // scaled (the lane is as wide as it was).
     public const float AuthoredViewHeight = 10f;
     public static float ViewScale => Mathf.Max(.5f, (CameraFit.ViewTop - CameraFit.ViewBottom) / AuthoredViewHeight);
+
+    // Where a pilot whose station is `stationY` holds with the ship at
+    // `shipY` (pure, for tests). The ship's ceiling (ShipReach.TopShare, 70%)
+    // is as high as the deepest stations (30% under the top), so a ship
+    // parked high would sit on a deep pilot and deny every windup (they need
+    // MinFireDistance x view, 18% of the view): instead the pilot backs up
+    // to keep that clearance, up to its ceiling (HoldTopDepth under the top,
+    // the HUD band's bottom), and returns to its station when the ship drops.
+    public static float HoldY(float stationY, float shipY, float view, float viewTop, float bandBottom)
+    {
+        float need = shipY + (MinFireDistance + HoldMargin) * view;
+        float cap = Mathf.Min(viewTop - HoldTopDepth * view, bandBottom);
+        return Mathf.Max(stationY, Mathf.Min(need, cap));
+    }
 
     // Pilots fly their engagement scripts (false: every enemy rides the
     // scroll as a hazard, the first pass's behaviour).
@@ -477,6 +497,8 @@ public class EnemyBrain : MonoBehaviour
         viewScale = view;
         float stationY = top - b.stationDepth * view;
         bool descends = b.entry == PilotEntry.Descend;
+        // the station it holds now: higher while the ship is close under it
+        float holdY = descends || t == null ? stationY : HoldY(stationY, t.position.y, view, top, PlayField.Live.bandBottom);
 
         switch (Stage)
         {
@@ -492,9 +514,9 @@ public class EnemyBrain : MonoBehaviour
             {
                 if (Ordered) { BeginExit(PilotExit.Climb); break; }
                 bool swoop = b.entry == PilotEntry.Swoop && !swoopDipped;
-                float goal = swoop ? stationY - SwoopOvershoot * view : stationY;
+                float goal = swoop ? holdY - SwoopOvershoot * view : holdY;
                 // the dip never drops its body onto a ship parked at the top of its reach
-                if (swoop) goal = Mathf.Max(goal, Mathf.Min(stationY, ShipReach.EntryFloor + halfX));
+                if (swoop) goal = Mathf.Max(goal, Mathf.Min(holdY, ShipReach.EntryFloor + halfX));
                 float speed = b.entrySpeed * view * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
                 anchor.y = Mathf.MoveTowards(anchor.y, goal, speed * dt);
                 if (Mathf.Abs(anchor.y - goal) > 1e-3f) break;
@@ -509,7 +531,9 @@ public class EnemyBrain : MonoBehaviour
                     anchor.y -= b.descendSpeed * view * dt;
                     if (anchor.y < bottom - LeaveMargin) { Depart(PilotExit.Run); return; }
                 }
-                if (State != Phase.Idle) break;   // never leaves mid-attack
+                if (State != Phase.Idle) break;   // never leaves mid-attack (nor moves its station)
+                // (not while a shove has it off its line: it flies back to the line it was pushed from)
+                if (!descends && !Displaced) anchor.y = Mathf.MoveTowards(anchor.y, holdY, b.entrySpeed * view * .6f * dt);
                 bool spent = Armed && b.maxVolleys > 0 && Volleys >= b.maxVolleys;   // nothing left to fire
                 if (Ordered) BeginExit(PilotExit.Climb);
                 else if (!descends && (engaged >= b.engageSeconds || (spent && engaged >= b.engageSeconds * EarlyLeaveShare)))

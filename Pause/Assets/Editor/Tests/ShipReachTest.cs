@@ -16,14 +16,18 @@ using Object = UnityEngine.Object;
 //             follows the safe area continuously (a fold, a gesture bar)
 //   PILOTS    every pilot against a ship parked at the top of its reach:
 //             windups only start with the authored clearance (x view), no
-//             body (entry, Swoop dip, station) on the hull
+//             body (entry, Swoop dip, station) on the hull; a pilot holds
+//             higher while the ship is close under it (EnemyBrain.HoldY), so
+//             every pilot that winds up at a 60% ceiling still does at 70%
 //   BELOW     a chaser coming up under a ship parked at the bottom of its
 //             reach takes no less time to reach it than in the authored view
 //   REACHABLE the portal's station, atoms (real-game and tutorial), the
 //             ship's start, elites' join points
 //   BOSS      at rest in the upper band on every shape: fully visible, its
 //             cell under the HUD band and the cutouts, above the ship's
-//             ceiling for the fight; every attack's time to the ship's row
+//             ceiling for the fight (65% of the view or lower: every muzzle
+//             in every drawing a clear gap above the hull); every attack's
+//             time to the ship's row
 //             within 12% of the authored view's (before / after logged);
 //             beams end on a rail or past the bottom, telegraphs and muzzles
 //             on screen, ricochets still ricochet, every pattern leaves a way
@@ -53,6 +57,7 @@ public static class ShipReachTest
         "fold-1812x2176", "ipad-9",
     };
     static readonly string[] Phones = { "and-1080x1920", "flip7-1080x2520", "and-1080x2640", "iphone-15" };
+    static readonly string[] FightPhones = { "and-1080x1920", "and-1080x2400-gesture", "flip7-1080x2520", "and-1080x2640", "iphone-15", "iphone-se" };
 
     static Camera cam;
     static HudStyler styler;
@@ -303,11 +308,14 @@ public static class ShipReachTest
 
     // ---- 2: pilots against a ship at the top of its reach --------------------------------------
 
-    static void PilotsAgainstAShipAtTheTop()
+    // Every pilot (two lanes) flown against a ship parked at the top of its
+    // reach on three phones; windups counted per pilot.
+    static void PilotFlights(out int flights, out int windups, out int closeWindups, out int bodyOnHull,
+                             out string firstClose, out string firstBody, Dictionary<string, int> perPilot)
     {
         var ship = new GameObject("~ReachShip").transform;
-        int flights = 0, windups = 0, closeWindups = 0, bodyOnHull = 0;
-        string firstClose = null, firstBody = null;
+        flights = 0; windups = 0; closeWindups = 0; bodyOnHull = 0;
+        firstClose = null; firstBody = null;
         foreach (var id in new[] { "and-1080x1920", "flip7-1080x2520", "iphone-15" })
         {
             Use(FitDevice.Find(id));
@@ -342,6 +350,7 @@ public static class ShipReachTest
                         if (brain.State == EnemyBrain.Phase.Windup && was != EnemyBrain.Phase.Windup && b.attack != EnemyAttack.Cross)
                         {
                             windups++;
+                            perPilot[def.key] = (perPilot.TryGetValue(def.key, out int n) ? n : 0) + 1;
                             float dy = p.y - ship.position.y, dist = Vector2.Distance(p, ship.position);
                             if (dy < EnemyBrain.MinFireAbove * view - 1e-3f || dist < EnemyBrain.MinFireDistance * view - 1e-3f)
                             {
@@ -367,31 +376,73 @@ public static class ShipReachTest
         Clear();
         EliteSystem.PlayerOverride = null;
         Object.DestroyImmediate(ship.gameObject);
-        Log("pilots v a ship at the ceiling: " + flights + " flights, " + windups + " windups");
+    }
+
+    static void PilotsAgainstAShipAtTheTop()
+    {
+        int flights, windups, closeWindups, bodyOnHull;
+        string firstClose, firstBody;
+        // the same flights against the 60% ceiling, for comparison
+        var at60 = new Dictionary<string, int>();
+        float share = ShipReach.TopShare;
+        ShipReach.TopShare = .6f;
+        int f60, w60, c60, b60;
+        string fc60, fb60;
+        try { PilotFlights(out f60, out w60, out c60, out b60, out fc60, out fb60, at60); }
+        finally { ShipReach.TopShare = share; }
+        var perPilot = new Dictionary<string, int>();
+        PilotFlights(out flights, out windups, out closeWindups, out bodyOnHull, out firstClose, out firstBody, perPilot);
+        string lost = "", table = "";
+        var pilots = new List<string>(at60.Keys);
+        foreach (var k in perPilot.Keys) if (!pilots.Contains(k)) pilots.Add(k);
+        pilots.Sort(StringComparer.Ordinal);
+        foreach (var k in pilots)
+        {
+            int a = at60.TryGetValue(k, out int x) ? x : 0, c = perPilot.TryGetValue(k, out int y) ? y : 0;
+            table += " " + k + " (depth " + EnemyRoster.Find(k).Behaviour.stationDepth + ") " + a + "->" + c + ";";
+            if (a > 0 && c == 0) lost += " " + k;
+        }
+        Log("pilots v a ship at the ceiling: " + flights + " flights, " + windups + " windups at " + P(share) + " (" + w60 + " at 60%, " +
+            c60 + " close, " + b60 + " body frames); per pilot 60% -> " + P(share) + ":" + table);
+        Check("every pilot that winds up at a ship on a 60% ceiling still does at " + P(share) + (lost.Length > 0 ? " (lost:" + lost + ")" : ""),
+              lost.Length == 0);
         Check("every pilot's windup starts at least " + EnemyBrain.MinFireAbove + " x view above and " + EnemyBrain.MinFireDistance +
               " x view from a ship at the ceiling (" + (windups - closeWindups) + "/" + windups + (firstClose != null ? ", first " + firstClose : "") + ")",
               closeWindups == 0 && flights > 50);
         Check("no pilot's body comes onto a ship parked at the ceiling while entering, dipping or holding station (" + bodyOnHull + " frames" +
               (firstBody != null ? ", first " + firstBody : "") + ")", bodyOnHull == 0);
 
-        // every station, on every phone: its body above the hull at the ceiling
+        // every station, on every shape: where it holds with the ship at the
+        // ceiling, its body above the hull; and from there a windup is fair
+        // (directly above) wherever the HUD band leaves the room
         bool clear = true;
-        string worst = null;
+        string worst = null, held = "";
         float least = float.MaxValue;
         foreach (var id in Shapes)
         {
             Use(FitDevice.Find(id));
-            float view = EnemyBrain.ViewScale, hull = ShipReach.Top + ShipReach.HullAbove;
+            var f = PlayField.Live;
+            float view = EnemyBrain.ViewScale, top = ShipReach.Top, hull = top + ShipReach.HullAbove;
+            int fair = 0, moved = 0, all = 0;
+            float highest = float.MinValue;
             foreach (var def in EnemyRoster.All)
             {
                 var b = def.Behaviour;
                 if (b == null || !b.IsPilot || def.role == EnemyRole.Chaser || b.entry == PilotEntry.Descend) continue;
-                float station = CameraFit.ViewTop - b.stationDepth * view - SpawnSpace.BodyHalf(def).y;
-                if (station - hull < least) { least = station - hull; worst = id + " " + def.key; }
-                clear &= station > hull;
+                float station = CameraFit.ViewTop - b.stationDepth * view;
+                float hold = EnemyBrain.HoldY(station, top, view, CameraFit.ViewTop, f.bandBottom);
+                float body = hold - SpawnSpace.BodyHalf(def).y;
+                if (body - hull < least) { least = body - hull; worst = id + " " + def.key; }
+                clear &= body > hull;
+                all++;
+                if (hold > station + 1e-3f) moved++;
+                if (hold - top >= EnemyBrain.MinFireDistance * view - 1e-3f) fair++;
+                highest = Mathf.Max(highest, hold);
             }
+            held += " " + id + " " + moved + "/" + all + " hold higher (up to " + P(f.ShareOf(highest)) + "), " + fair + " may wind up straight above;";
         }
-        Check("every pilot's station sits above the hull at the ceiling, on every shape (closest " + F(least) + " u: " + worst + ")", clear);
+        Log("stations with the ship at the ceiling:" + held);
+        Check("every pilot holds with its body above the hull at the ceiling, on every shape (closest " + F(least) + " u: " + worst + ")", clear);
     }
 
     // ---- 3: chasers coming up under a ship at the bottom of its reach -------------------------
@@ -506,14 +557,37 @@ public static class ShipReachTest
             var f = PlayField.Live;
             bool phone = d.h > 1.5f * d.w;
             float y = BossConfig.BossY, reach = BossConfig.TopReach;
-            float ceiling = y - BossConfig.ShipCeilingBelowFor(f);
+            float ceiling = float.MaxValue, highest = float.MinValue;
+            string perBoss = "";
+            bool muzzles = true, capped = true;
+            float gap = BossConfig.ShipGapFor(f);
+            foreach (var boss in BossCatalog.All)
+            {
+                float c = BossConfig.ShipCeilingFor(f, boss);
+                ceiling = Mathf.Min(ceiling, c);
+                highest = Mathf.Max(highest, c);
+                capped &= c <= f.At(BossConfig.FightCeilingShare) + 1e-3f;
+                // every muzzle in every drawing, at the bottom of the sway, and the body hitbox: a clear gap above the hull
+                float low = y - Mathf.Abs(boss.swayY) - BossConfig.BodyHitbox.y * .5f;
+                int w = BossEmitters.World(boss);
+                for (int part = 0; w >= 0 && part < BossEmitterTable.Parts[w].Length; part++)
+                    for (int frame = 0; frame < BossEmitterTable.Frames; frame++)
+                        low = Mathf.Min(low, y - Mathf.Abs(boss.swayY) + BossEmitters.Local(boss, part, frame).y);
+                muzzles &= w >= 0 && low - (c + ShipReach.HullAbove) >= gap - 1e-3f;
+                perBoss += " " + boss.artKey + " " + F(c) + " (" + P(f.ShareOf(c)) + ", lowest muzzle " + F(low) + ")";
+            }
+            // the 60% design's fight ceiling: muzzle drop 1.2 + largest sway + 1.0 x shot scale + hull
+            float was = y - (1.2f + (reach - BossConfig.BossWorldSize * .5f) + BossConfig.ShotScale + ShipReach.HullAbove);
             BossConfig.FitToView = false;
             float oldY = BossConfig.BossY;
             BossConfig.FitToView = true;
             Log(string.Format("{0}: boss rests at {1} ({2} of the view; was {3} = {4}); its cell's top at the top of its sway {5}, HUD band from {6}; " +
-                              "shots x{7}; the ship's ceiling in the fight {8} ({9}; out of a fight {10})",
+                              "shots x{7}; the ship's ceiling in the fight (gap {8} u):{9} (was {10} = {11}); out of a fight {12}",
                               id, F(y), P(f.ShareOf(y)), F(oldY), P(f.ShareOf(oldY)), F(y + reach), F(f.bandBottom), BossConfig.ShotScale.ToString("F2"),
-                              F(ceiling), P(f.ShareOf(ceiling)), P(f.ShareOf(ShipReach.TopFor(f)))));
+                              F(gap), perBoss, F(was), P(f.ShareOf(was)), P(f.ShareOf(ShipReach.TopFor(f)))));
+            Check(id + ": in a fight the ship's hull stays " + F(gap) + " u under every muzzle of every boss (every drawing, bottom of its sway) " +
+                  "and under its body; the ceiling at most " + P(BossConfig.FightCeilingShare) + " of the view (" + P(f.ShareOf(ceiling)) + ".." +
+                  P(f.ShareOf(highest)) + ")", muzzles && capped);
             Check(id + ": the boss's cell, at the top of its sway, is " + BossConfig.BossTopMargin + " u under the HUD band",
                   Mathf.Abs(y + reach + BossConfig.BossTopMargin - f.bandBottom) < 1e-3f || y <= f.At(.5f) + 1e-3f);
             Check(id + ": ... in the upper part of the screen (" + P(f.ShareOf(y)) + ") and fully visible",
@@ -528,8 +602,8 @@ public static class ShipReachTest
             }
             Check(id + ": ... under every display cutout", cut);
             Check(id + ": it warps in from above the view", BossActor.ArrivalY - BossConfig.BossWorldSize * .5f > f.top);
-            Check(id + ": the ship keeps room under it in the fight (ceiling " + P(f.ShareOf(ceiling)) + " of the view)",
-                  ceiling > ShipReach.Bottom + ShipReach.MinSpan && f.ShareOf(ceiling) > (phone ? .5f : 1f / 3f));
+            Check(id + ": the ship keeps room under the boss in the fight (lowest ceiling " + P(f.ShareOf(ceiling)) + " of the view)",
+                  ceiling > ShipReach.Bottom + ShipReach.MinSpan && f.ShareOf(ceiling) > (phone ? .58f : 1f / 3f));
         }
         UseAuthored();
         Check("in the editor's authored 10 u view (no HUD band) it rests where it always did (" + F(BossConfig.BossY) + ") and shots keep their speed",
@@ -583,9 +657,16 @@ public static class ShipReachTest
     // first moment it reaches the ship's row; NaN if it never does.
     static float TimeToRow(int world, int attack, out string how)
     {
+        float row = PlayField.Live.At(BossConfig.ShipRowShare);
+        return TimeToLine(world, attack, row, row, out how);
+    }
+
+    // The same with the ship at `shipY`, to the first moment the attack
+    // reaches `row` (the top of the hull at the fight's ceiling, say).
+    static float TimeToLine(int world, int attack, float shipY, float row, out string how)
+    {
         var f = PlayField.Live;
-        float row = f.At(BossConfig.ShipRowShare);
-        var e = Fight(world, attack, new Vector3(.6f, row, 0f));
+        var e = Fight(world, attack, new Vector3(.6f, shipY, 0f));
         var a = e.Boss.attacks[attack];
         var launched = new Dictionary<BossProjectile, float>();
         float clock = 0f, liveAt = -1f;
@@ -643,6 +724,24 @@ public static class ShipReachTest
                 }
                 Check(line + ": within 12% on every phone", ok);
                 BossEncounter.ResetRun();
+
+                // to the top of the hull at the fight's ceiling (65% of the view or lower), against the 60% design's ceiling
+                string near = boss.artKey + " " + boss.attacks[ai].name + ": to the hull at the fight's ceiling";
+                bool reaches = true;
+                foreach (var id in FightPhones)
+                {
+                    Use(FitDevice.Find(id));
+                    var f = PlayField.Live;
+                    float c = BossConfig.ShipCeilingFor(f, boss);
+                    float was = BossConfig.BossY - (1.2f + (BossConfig.TopReach - BossConfig.BossWorldSize * .5f) + BossConfig.ShotScale + ShipReach.HullAbove);
+                    float now = TimeToLine(world, ai, c, c + ShipReach.HullAbove, out how);
+                    BossEncounter.ResetRun();
+                    float then = TimeToLine(world, ai, was, was + ShipReach.HullAbove, out how);
+                    BossEncounter.ResetRun();
+                    near += "; " + id + " " + P(f.ShareOf(c)) + " " + F(now) + " s (at " + P(f.ShareOf(was)) + ": " + F(then) + " s)";
+                    reaches &= !float.IsNaN(now) && now > Dt * .5f;
+                }
+                Check(near + " (tell " + F(boss.attacks[ai].tellSeconds) + " s): never fired from inside the hull", reaches);
             }
         }
     }
@@ -740,18 +839,18 @@ public static class ShipReachTest
         float fight = ShipReach.Top;
         Check("the ship's ceiling comes down with the arriving boss, never faster than the boss moves (" + F(free) + " -> " + F(fight) +
               ", largest step " + F(worstDrop) + " u, boss " + F(worstBossStep) + " u)",
-              before && fight < free && worstDrop <= worstBossStep + 1e-3f && Mathf.Abs(fight - (BossConfig.BossY - BossConfig.ShipCeilingBelowFor(PlayField.Live))) < 1e-3f);
+              before && fight < free && worstDrop <= worstBossStep + 1e-3f && Mathf.Abs(fight - BossConfig.ShipCeilingFor(PlayField.Live, enc.Boss)) < 1e-3f);
         BossEncounter.ResetRun();
         Check("... and is back once the boss is gone (" + F(ShipReach.Top) + ")", Mathf.Approximately(ShipReach.Top, free));
     }
 
-    // BossAttackTest's dodge simulation, on two phone shapes: ship lines at
+    // BossAttackTest's dodge simulation, on three phone shapes: ship lines at
     // the authored lines' shares of the view and at the fight's ceiling.
     const float ShipRadius = .28f, MaxShipSpeed = 7f;
 
     static void BossPatternsLeaveAWayThrough()
     {
-        foreach (var id in new[] { "and-1080x1920", "flip7-1080x2520" })
+        foreach (var id in new[] { "and-1080x1920", "flip7-1080x2520", "iphone-15" })
         {
             Use(FitDevice.Find(id));
             var f = PlayField.Live;
@@ -760,54 +859,70 @@ public static class ShipReachTest
                 var boss = BossCatalog.ForWorld(world);
                 for (int ai = 0; ai < boss.attacks.Length; ai++)
                 {
-                    float ceiling = BossConfig.BossY - BossConfig.ShipCeilingBelowFor(f);
+                    float ceiling = BossConfig.ShipCeilingFor(f, boss);
                     foreach (float line in new[] { f.At(.15f), f.At(.3f), ceiling })
                     {
-                        var e = Fight(world, ai, new Vector3(0f, line, 0f));
-                        const int N = 97;
-                        var reach = new bool[N];
-                        var next = new bool[N];
-                        for (int i = 0; i < N; i++) reach[i] = true;
-                        int fewest = N;
-                        float step = 4.8f / (N - 1);
-                        int span = Mathf.Max(1, Mathf.FloorToInt(MaxShipSpeed * Dt / step));
-                        bool alive = true;
-                        for (int s = 0; s < 60 * 9 && alive && e.Actor.AttacksStarted < 3; s++)
-                        {
-                            e.Step(Dt, 1f);
-                            int count = 0;
-                            for (int i = 0; i < N; i++)
-                            {
-                                next[i] = false;
-                                if (!Safe(e, new Vector2(-2.4f + i * step, line))) continue;
-                                for (int j = Mathf.Max(0, i - span); j <= Mathf.Min(N - 1, i + span); j++)
-                                    if (reach[j]) { next[i] = true; break; }
-                                if (next[i]) count++;
-                            }
-                            fewest = Mathf.Min(fewest, count);
-                            alive = count > 0;
-                            var t = reach; reach = next; next = t;
-                        }
-                        bool through = alive && fewest * step >= .15f;
+                        float narrowest;
+                        bool through = WayThrough(world, ai, line, out narrowest);
                         if (line != ceiling)
                             Check(id + " " + boss.artKey + " " + boss.attacks[ai].name + " (ship line " + P(f.ShareOf(line)) + " of the view): a way through, narrowest " +
-                                  F(fewest * step) + " u", through);
+                                  F(narrowest) + " u", through);
+                        else if (through)
+                            Check(id + " " + boss.artKey + " " + boss.attacks[ai].name + " (at the fight's ceiling, " + P(f.ShareOf(line)) + "): a way through, narrowest " +
+                                  F(narrowest) + " u", true);
                         else
                         {
                             // right under the boss a wide fan can be a wall (it always could: the old
-                            // reach went into the boss). Then the ship must be able to drop to the
-                            // lower line within the attack's tell.
-                            float drop = (line - f.At(.3f)) / MaxShipSpeed;
-                            Check(id + " " + boss.artKey + " " + boss.attacks[ai].name + " (at the fight's ceiling, " + P(f.ShareOf(line)) + "): " +
-                                  (through ? "a way through, narrowest " + F(fewest * step) + " u"
-                                           : "no way through this close, but the ship drops clear in " + F(drop) + " s of its " + F(boss.attacks[ai].tellSeconds) + " s tell"),
-                                  through || drop <= boss.attacks[ai].tellSeconds);
+                            // reach went into the boss). Then the ship must be able to drop, within
+                            // the attack's tell, to the nearest line below that has a way through.
+                            float clearLine = float.NaN, n2;
+                            for (float y = line - .25f; y >= f.At(.3f) - 1e-3f; y -= .25f)
+                                if (WayThrough(world, ai, y, out n2)) { clearLine = y; break; }
+                            float drop = float.IsNaN(clearLine) ? float.PositiveInfinity : (line - clearLine) / MaxShipSpeed;
+                            float to30 = (line - f.At(.3f)) / MaxShipSpeed;
+                            Check(id + " " + boss.artKey + " " + boss.attacks[ai].name + " (at the fight's ceiling, " + P(f.ShareOf(line)) + "): no way through this close; " +
+                                  "the nearest line with one is " + (float.IsNaN(clearLine) ? "none above 30%" : P(f.ShareOf(clearLine))) + ", the ship drops there in " + F(drop) +
+                                  " s (to the 30% line " + F(to30) + " s) of its " + F(boss.attacks[ai].tellSeconds) + " s tell",
+                                  drop <= boss.attacks[ai].tellSeconds);
                         }
-                        BossEncounter.ResetRun();
                     }
                 }
             }
         }
+    }
+
+    // One ship line through an attack's first volleys: is there always a
+    // stretch of it the ship (MaxShipSpeed sideways) can be on?
+    static bool WayThrough(int world, int ai, float line, out float narrowest)
+    {
+        var e = Fight(world, ai, new Vector3(0f, line, 0f));
+        const int N = 97;
+        var reach = new bool[N];
+        var next = new bool[N];
+        for (int i = 0; i < N; i++) reach[i] = true;
+        int fewest = N;
+        float step = 4.8f / (N - 1);
+        int span = Mathf.Max(1, Mathf.FloorToInt(MaxShipSpeed * Dt / step));
+        bool alive = true;
+        for (int s = 0; s < 60 * 9 && alive && e.Actor.AttacksStarted < 3; s++)
+        {
+            e.Step(Dt, 1f);
+            int count = 0;
+            for (int i = 0; i < N; i++)
+            {
+                next[i] = false;
+                if (!Safe(e, new Vector2(-2.4f + i * step, line))) continue;
+                for (int j = Mathf.Max(0, i - span); j <= Mathf.Min(N - 1, i + span); j++)
+                    if (reach[j]) { next[i] = true; break; }
+                if (next[i]) count++;
+            }
+            fewest = Mathf.Min(fewest, count);
+            alive = count > 0;
+            var t = reach; reach = next; next = t;
+        }
+        BossEncounter.ResetRun();
+        narrowest = fewest * step;
+        return alive && narrowest >= .15f;
     }
 
     static bool Safe(BossEncounter e, Vector2 p)

@@ -173,18 +173,50 @@ public static class BossConfig
         return Mathf.Max(f.bandBottom - BossTopMargin - TopReach, f.At(.5f));
     }
 
-    // The ship stays this far under the boss's resting centre while it is
-    // up (ShipReach): its lowest muzzle (about 1.2 u under its centre, the
-    // Space chin cannon and the Frost jaw), the bottom of its sway, a clear
-    // gap (ShipGap in the authored view, x ShotScale: the same time for a
-    // shot to cross it on every screen) and the top of the ship's hull.
-    // Tested per boss: no muzzle ever fires from inside this gap.
-    public const float MuzzleDrop = 1.2f;
-    public static float ShipGap = 1f;
-    public static float ShipCeilingBelowFor(PlayField.Frame f)
+    // The ship's ceiling while a boss is up (ShipReach.BossCeilingFor):
+    // FightCeilingShare of the view, but never closer to the boss than its
+    // Underside (its lowest muzzle in any drawing, or its body hitbox if
+    // that hangs lower, at the bottom of its sway) + a clear gap + the top
+    // of the ship's hull. The gap is ShipGap in the authored view x
+    // ShotScale (the same time for a shot to cross it on every screen), and
+    // never less than the radius of a muzzle's charge glow, so a tell never
+    // draws onto the hull. On 16:9 phones and the iPhone the boss's own
+    // height binds (60% - 64% of the view, per boss); from 21:9 up it is
+    // 65%. Tested per boss and shape: every muzzle in every drawing stays
+    // this gap above the hull at the ceiling.
+    public static float FightCeilingShare = .65f;
+    public static float ShipGap = .3f;
+    public static float ShipGapFor(PlayField.Frame f) => Mathf.Max(ShipGap * ShotScaleFor(f), ChargeMaxSize * .5f);
+
+    // How far under its centre the boss reaches: the lowest muzzle in the
+    // generated table (every part, every drawing) or its body hitbox's
+    // bottom, whichever is lower, plus its sway. Cached per boss.
+    public static float Underside(BossDef boss)
     {
-        float sway = TopReach - BossWorldSize * .5f;
-        return MuzzleDrop + sway + ShipGap * ShotScaleFor(f) + ShipReach.HullAbove;
+        if (boss == null) return TopReach;   // unknown: its whole cell and the largest sway
+        if (boss.underside >= 0f) return boss.underside;
+        float low = BodyHitbox.y * .5f;
+        int w = BossEmitters.World(boss);
+        if (w < 0) low = BossWorldSize * .5f;   // unmeasured art: its whole cell
+        else
+            for (int part = 0; part < BossEmitterTable.Parts[w].Length; part++)
+                for (int frame = 0; frame < BossEmitterTable.Frames; frame++)
+                    low = Mathf.Max(low, -BossEmitters.Local(boss, part, frame).y);
+        boss.underside = low + Mathf.Abs(boss.swayY);
+        return boss.underside;
+    }
+
+    // How far under the boss's centre the ship's centre stays while it is up.
+    public static float ShipBelowBossFor(PlayField.Frame f, BossDef boss)
+    {
+        return Underside(boss) + ShipGapFor(f) + ShipReach.HullAbove;
+    }
+
+    // The ship's ceiling with `boss` at rest on this view (world y).
+    public static float ShipCeilingFor(PlayField.Frame f, BossDef boss)
+    {
+        if (!FitToView) return float.PositiveInfinity;
+        return Mathf.Min(f.At(FightCeilingShare), RestYFor(f) - ShipBelowBossFor(f, boss));
     }
 
     // Scales one shot to this view (see ShotScale). gravity > 0: a lob.
