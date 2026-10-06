@@ -133,11 +133,12 @@ public class collisionDetection : MonoBehaviour {
     // star dust, a lot more for an atom (blue shield and green heal atoms
     // count the same; the red pause atom cuts less -- secondsPerRedAtom).
     // No-ops outside gameS1, where there is no ShipPowerController to speed up.
-    void BoostUltimate(bool dust, bool red = false)
+    void BoostUltimate(bool dust, bool red = false, bool bright = false)
     {
         var power = ShipPowerController.Instance;
         if (power == null) return;
-        power.ReduceTimer(dust ? power.secondsPerDust
+        power.ReduceTimer(bright ? power.secondsPerBrightStar
+                        : dust ? power.secondsPerDust
                         : red ? power.secondsPerRedAtom : power.secondsPerAtom);
     }
 
@@ -327,7 +328,7 @@ public class collisionDetection : MonoBehaviour {
             {
                 awardDust(largeStarValue);
                 RunScore.OnDust(true, hit.transform.position);
-                BoostUltimate(dust: true);
+                BoostUltimate(dust: true, bright: true);
                 SecretPowerController.OnDust(large: true);
                 Destroy(hit.gameObject);
             }
