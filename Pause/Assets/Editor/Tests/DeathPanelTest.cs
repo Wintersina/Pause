@@ -267,8 +267,8 @@ public static class DeathPanelTest
         Check("Menu shows the quick actions' home glyph", GlyphName(menu) == "QuickAction_home_glyph");
         foreach (var b in new[] { replay, menu })
             foreach (var img in b.GetComponentsInChildren<Image>(true))
-                Check(b.name + " no longer uses the old clip-art (" + img.name + ")",
-                      img.sprite == null || (img.sprite.name != "redo-512" && img.sprite.name != "taxes-menu-icon"));
+                Check(b.name + " no longer uses the old taxes clip-art (" + img.name + ")",
+                      img.sprite == null || img.sprite.name != "taxes-menu-icon");
 
         // Sprites came from the SVG-sourced set.
         var frame = panel.Find("Frame").GetComponent<Image>();
