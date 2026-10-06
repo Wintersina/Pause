@@ -54,9 +54,14 @@ public class EnemyBrain : MonoBehaviour
     // A pilot holds higher than its station while the ship is close under
     // it (HoldY): far enough above to keep its full windup clearance
     // (MinFireDistance + HoldMargin, x view), but never higher than
-    // HoldTopDepth under the top of the view nor into the HUD band.
+    // HoldTopDepth under the top of the view nor into the HUD band -- unless
+    // the band hangs lower than the shallowest authored station
+    // (HoldBandFloorDepth, 14% under the top: a stacked read-out on a phone
+    // small in dp), where the pilot may still hold that high, as that
+    // station already does.
     public const float HoldMargin = .1f;
     public const float HoldTopDepth = 1.1f;
+    public const float HoldBandFloorDepth = 1.4f;
 
     // THE VIEW. A pilot's script is written for a view 10 u tall (the
     // authored camera). The game's camera shows more than that and differs by
@@ -76,11 +81,12 @@ public class EnemyBrain : MonoBehaviour
     // parked high would sit on a deep pilot and deny every windup (they need
     // MinFireDistance x view, 18% of the view): instead the pilot backs up
     // to keep that clearance, up to its ceiling (HoldTopDepth under the top,
-    // the HUD band's bottom), and returns to its station when the ship drops.
+    // the HUD band's bottom, never lower than HoldBandFloorDepth under the
+    // top), and returns to its station when the ship drops.
     public static float HoldY(float stationY, float shipY, float view, float viewTop, float bandBottom)
     {
         float need = shipY + (MinFireDistance + HoldMargin) * view;
-        float cap = Mathf.Min(viewTop - HoldTopDepth * view, bandBottom);
+        float cap = Mathf.Max(Mathf.Min(viewTop - HoldTopDepth * view, bandBottom), viewTop - HoldBandFloorDepth * view);
         return Mathf.Max(stationY, Mathf.Min(need, cap));
     }
 

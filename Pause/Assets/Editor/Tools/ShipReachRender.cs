@@ -74,7 +74,7 @@ public static class ShipReachRender
         cam.aspect = d.Aspect;
         cam.orthographicSize = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, d.w, d.h);
         ScreenInfo.ClearOverride();
-        ScreenInfo.Override(d.w, d.h, d.Safe, d.Cutouts);
+        ScreenInfo.Override(d.w, d.h, d.Safe, d.Cutouts, d.ReportedDpi, d.ios);   // the device's real density (UiScale's floor)
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
