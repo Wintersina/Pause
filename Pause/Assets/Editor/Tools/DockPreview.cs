@@ -73,7 +73,7 @@ public static class DockPreview
         EditorApplication.Exit(0);
     }
 
-    // The popup itself (DockPopup.PopupScale): an owned ship with colours and
+    // The popup itself (sized in points / dp, DockPopup.SetDensity): an owned ship with colours and
     // the weapon row, and an unbought ship with BUY, into
     // $PAUSE_DOCK_PREVIEW_DIR as <$PAUSE_DOCK_PREVIEW_PREFIX>-<case>-<w>x<h>.png.
     public static void RunPopup()

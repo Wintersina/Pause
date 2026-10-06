@@ -206,6 +206,13 @@ public static class SplashLayoutTest
         // run at the device's native size instead of a letterboxed legacy one.
         Check("iOS requires full screen", PlayerSettings.iOS.requiresFullScreen);
         Check("iOS has a launch screen (type not None)", !asset.Contains("iOSLaunchScreenType: 3"));
+        // The game is flown by dragging: a swipe that starts on the bottom
+        // edge must not take the player home mid-run on its first pass (iOS
+        // shows the indicator first, a second swipe still goes home). The
+        // home indicator itself stays visible (hideHomeButton 0).
+        Check("iOS defers system gestures on the bottom edge (deferSystemGesturesMode BottomEdge)",
+              asset.Contains("deferSystemGesturesMode: 4"));
+        Check("iOS keeps the home indicator visible (hideHomeButton 0)", asset.Contains("hideHomeButton: 0"));
         Check("spashS7 is the first scene in the build",
               EditorBuildSettings.scenes.Length > 0 && EditorBuildSettings.scenes[0].path.EndsWith("spashS7.unity"));
     }

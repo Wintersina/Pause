@@ -521,7 +521,8 @@ public static class AccountSignInTest
                 float top = layout.centerY + h * .5f + 14f * layout.scale;   // the ACCOUNT tag pokes out
                 float bottom = layout.centerY - h * .5f;
                 float halfW = (AccountOptions.CardWidth * .5f + 8f) * layout.scale;
-                float units = AccountOptions.CanvasUnitsWide / screen.x;
+                // the Options canvas's own units (not always 800 across: Expand on a tablet)
+                float units = row.UnitsPerPixel(screen) > 0f ? row.UnitsPerPixel(screen) : AccountOptions.CanvasUnitsWide / screen.x;
                 float safeHalfW = safe.width * units * .5f;
                 Check(label + ": card inside the safe area (top)", top <= layout.safeTop + .01f);
                 Check(label + ": card inside the safe area (sides)", halfW <= safeHalfW);

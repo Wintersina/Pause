@@ -781,7 +781,23 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         ComputeFit(safeUnits, blocker, out centre, out fitScale);
         panel.anchoredPosition = centre;
         if (finalApplied) panel.localScale = Vector3.one * fitScale;
+        PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
     }
+
+    // The panel scales down to fit a short canvas (ComputeFit); UiScale's
+    // floor keeps the canvas at >= 96 units per 48 dp, so the buttons'
+    // touch areas reach past their art by whatever the scale took off them.
+    public static void PadButtonTouch(RectTransform[] slots, float fitScale, float buttonHeight)
+    {
+        float pad = Mathf.Max(0f, (UiScaleFloor.SceneTapUnits / Mathf.Max(fitScale, .1f) - buttonHeight) * .5f);
+        foreach (var slot in slots)
+        {
+            var button = slot != null ? slot.GetComponentInChildren<Button>(true) : null;
+            var g = button != null ? button.targetGraphic : null;
+            if (g != null) g.raycastPadding = new Vector4(0f, -pad, 0f, -pad);
+        }
+    }
+
 
     // Pure, so it can be tested for any screen: places the panel (including
     // its glow) inside `safe` with a small margin, never above full size, and

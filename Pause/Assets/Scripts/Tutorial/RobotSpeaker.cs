@@ -129,9 +129,9 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         c.sortingOrder = 400;   // over gameplay HUD, under the skip button (500)
         var scaler = go.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = ReferenceResolution;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = MatchWidthOrHeight;
+        UiScaleFloor.Configure(scaler, ReferenceResolution, 0f, FontMin);   // its type never under UiScale.MinTextPt
 
         var speaker = go.AddComponent<RobotSpeaker>();
         speaker.canvas = c;

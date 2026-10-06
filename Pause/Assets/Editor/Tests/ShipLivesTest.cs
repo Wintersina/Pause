@@ -252,18 +252,15 @@ public static class ShipLivesTest
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, 1));
         ShipSkins.Equip(comet, ShipSkins.Stock);
 
-        // The badge shares the title row without running into the name or status.
-        var badge = (RectTransform)popup.transform.Find("Panel/Lives");
-        var title = (RectTransform)popup.transform.Find("Panel/Title");
-        Check("dock popup: the heart badge exists", badge != null && title != null);
-        if (badge != null && title != null)
-        {
-            float panelW = DockPopup.Width / DockPopup.CanvasScale;
-            float titleRight = title.anchoredPosition.x + title.sizeDelta.x;            // anchored top-left
-            float badgeLeft = panelW + badge.anchoredPosition.x - badge.sizeDelta.x;    // anchored top-right, pivot right
-            Check("dock popup: the title stops before the heart badge (" + titleRight.ToString("F0") + " <= " +
-                  badgeLeft.ToString("F0") + ")", titleRight <= badgeLeft + .5f);
-        }
+        // The name line stops before the close button; on the line under it
+        // the colour's name stops before the hearts.
+        Check("dock popup: the heart badge and title exist", popup.transform.Find("Panel/Lives") != null && popup.transform.Find("Panel/Title") != null);
+        popup.Show(comet, anchor, .3f, true, true, 0f, 1000f);
+        popup.ShowSkins(comet, 1, 1000f);
+        Check("dock popup: the title stops before the close button (" + popup.TitleRight.ToString("F0") + " <= " +
+              popup.CloseLeft.ToString("F0") + ")", popup.TitleRight <= popup.CloseLeft + .5f);
+        Check("dock popup: the colour's name stops before the heart badge (" + popup.SkinNameRight.ToString("F0") + " <= " +
+              popup.LivesLeft.ToString("F0") + ")", popup.SkinNameText.Length > 0 && popup.SkinNameRight <= popup.LivesLeft + .5f);
         Object.DestroyImmediate(popup.gameObject);
         Object.DestroyImmediate(anchor.gameObject);
     }

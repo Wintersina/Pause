@@ -39,8 +39,17 @@ public class CodexPanel : MonoBehaviour
     public const float Pad = 30f;
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
-    public const float TabsHeight = 60f;
-    public const float TabGap = 8f;
+    // Six category tabs in two rows of three: one row of six left each tab
+    // ~110 units wide and 60 tall (~32-40 dp touch targets even padded). Each
+    // tab is drawn TabRowHeight tall and its touch target reaches half of
+    // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
+    // 44 pt wherever the canvas is >= 0.5 dp per unit (UiScale's floor).
+    public const int TabsPerRow = 3, TabRows = 2;
+    public const float TabRowHeight = 84f;
+    public const float TabRowGap = 12f;
+    public const float TabsHeight = TabRows * TabRowHeight + (TabRows - 1) * TabRowGap;
+    public const float TabGap = 12f;
+    public const int TabLabelSize = 24, TabLabelMinSize = 16;
     public const float BackWidth = 288f, BackHeight = 100f;
     public const float Gap = 16f;
     public const float MinCard = 176f;
@@ -125,8 +134,17 @@ public class CodexPanel : MonoBehaviour
         l.columns = Mathf.Clamp(Mathf.FloorToInt((gridW + Gap) / (MinCard + Gap)), 2, 5);
         l.cardWidth = (gridW - Gap * (l.columns - 1)) / l.columns;
         l.cardHeight = l.cardWidth + CardNameHeight - 14f;
-        l.tabWidth = (iw - TabGap * (Tabs.Length - 1)) / Tabs.Length;
+        l.tabWidth = (iw - TabGap * (TabsPerRow - 1)) / TabsPerRow;
         return l;
+    }
+
+    // Tab `i`'s drawn rect (panel-local): row-major, two rows of three.
+    public static Rect TabRect(Layout l, int i)
+    {
+        int row = i / TabsPerRow, col = i % TabsPerRow;
+        float x = l.tabs.xMin + col * (l.tabWidth + TabGap);
+        float y = l.tabs.yMax - (row + 1) * TabRowHeight - row * TabRowGap;
+        return new Rect(x, y, l.tabWidth, TabRowHeight);
     }
 
     // ---------------------------------------------------------------------
@@ -459,21 +477,20 @@ public class CodexPanel : MonoBehaviour
             int index = i;
             var tabFrame = CodexUi.NewImage("Tab" + CategoryLabel(Tabs[i]), tabsRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
             tabFrame.raycastTarget = true;
-            // the hit area spans the gaps beside and the margin above/below
-            // the 60-unit tab art: a finger-sized target without bigger tabs
-            tabFrame.raycastPadding = new Vector4(-TabGap * .5f, -10f, -TabGap * .5f, -10f);
+            // the hit area spans half of every gap around the tab's art
+            tabFrame.raycastPadding = new Vector4(-TabGap * .5f, -TabRowGap * .5f, -TabGap * .5f, -TabRowGap * .5f);
             var button = tabFrame.gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
             button.targetGraphic = tabFrame;
             button.onClick.AddListener(() => ShowCategory(Tabs[index]));
 
-            var label = CodexUi.NewText("Label", tabFrame.rectTransform, font, CategoryLabel(Tabs[i]), 18, Color.white,
+            var label = CodexUi.NewText("Label", tabFrame.rectTransform, font, CategoryLabel(Tabs[i]), TabLabelSize, Color.white,
                                         TextAnchor.MiddleCenter);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;
             label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 11;
-            label.resizeTextMaxSize = 18;
+            label.resizeTextMinSize = TabLabelMinSize;
+            label.resizeTextMaxSize = TabLabelSize;
             var lrt = label.rectTransform;
             CodexUi.Stretch(lrt);
             lrt.offsetMin = new Vector2(6f, 0f);
@@ -758,8 +775,9 @@ public class CodexPanel : MonoBehaviour
         CodexUi.Place(tabsRoot, layout.tabs);
         for (int i = 0; i < Tabs.Length; i++)
         {
-            float x = -layout.tabs.width * .5f + layout.tabWidth * .5f + i * (layout.tabWidth + TabGap);
-            CodexUi.Place(tabFrames[i].rectTransform, CodexUi.Centered(x, 0f, layout.tabWidth, layout.tabs.height));
+            Rect t = TabRect(layout, i);   // panel-local -> the tab band's own centre-origin space
+            t.center -= layout.tabs.center;
+            CodexUi.Place(tabFrames[i].rectTransform, t);
         }
 
         gridRect = sectioned ? layout.list : layout.body;
@@ -837,11 +855,45 @@ public class CodexPanel : MonoBehaviour
         UpdateSticky();
     }
 
+    // The detail art never gives up more than this (units) for the lore.
+    public const float MinDetailArt = 140f;
+
     void LayoutDetail()
     {
         var d = layout.detail;
+        float art = Mathf.Min(d.width * .5f, d.height * .34f, 300f);
+        // On a short canvas (UiScale's floor on a phone small in points /
+        // dp) the lore may not fit even at its smallest type: the art gives
+        // up room, a step at a time, until it does (or reaches MinDetailArt).
+        float minArt = Mathf.Min(art, MinDetailArt);
+        float loreTop = PlaceDetail(art);
+        while (art > minArt && !LoreFits(loreTop + d.height * .5f))
+        {
+            art = Mathf.Max(minArt, art - 16f);
+            loreTop = PlaceDetail(art);
+        }
+    }
+
+    // Whether the lore, at its best-fit minimum size, fits a lore card this tall.
+    bool LoreFits(float cardHeight)
+    {
+        if (string.IsNullOrEmpty(detailLore.text)) return true;
+        var lrt = detailLore.rectTransform;
+        float width = layout.detail.width + lrt.offsetMax.x - lrt.offsetMin.x;
+        float room = cardHeight - lrt.offsetMin.y + lrt.offsetMax.y;
+        var settings = detailLore.GetGenerationSettings(new Vector2(width, 0f));
+        settings.resizeTextForBestFit = false;
+        settings.fontSize = detailLore.resizeTextMinSize;
+        settings.verticalOverflow = VerticalWrapMode.Overflow;
+        float ppu = Mathf.Max(detailLore.pixelsPerUnit, .0001f);
+        return detailLore.cachedTextGeneratorForLayout.GetPreferredHeight(detailLore.text, settings) / ppu <= room;
+    }
+
+    // Lays the detail out around `art` units of art; returns the lore card's top.
+    float PlaceDetail(float art)
+    {
+        var d = layout.detail;
         float w = d.width, top = d.height * .5f;
-        float art = Mathf.Min(w * .5f, d.height * .34f, 300f);
 
         // Art frame flush with the top, then name, category pill, the
         // optional subtitle, and the lore card taking whatever is left.
@@ -867,6 +919,7 @@ public class CodexPanel : MonoBehaviour
             y -= 16f;
         }
         CodexUi.Place(detailLoreCard.rectTransform, Rect.MinMaxRect(-w * .5f, -d.height * .5f, w * .5f, y - 16f));
+        return y - 16f;
     }
 
     // ---------------------------------------------------------------------

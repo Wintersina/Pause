@@ -51,6 +51,13 @@ public class HudStyler : MonoBehaviour
 
     public RectTransform HudRoot { get { return hudRoot; } }
 
+    // The read-out leaves with its scene: nothing (the home menu's codex
+    // toasts, the next run before its HUD is placed) keeps dodging it.
+    void OnDestroy()
+    {
+        StackedReadout = default(Rect);
+    }
+
     void Start()
     {
         speedText = Find("SpeedText");
@@ -134,9 +141,11 @@ public class HudStyler : MonoBehaviour
         float hudScale = HudCanvasScale(hudCanvas, hudScaler, screen);
         Vector2 position;
         float fit;
-        ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit);
+        bool stacked;
+        ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit, out stacked);
         hudRoot.anchoredPosition = position;
         hudRoot.localScale = new Vector3(fit, fit, 1f);
+        StackedReadout = stacked ? HudScreenRect(band, screen, hudScale, hudRoot.rect.size) : default(Rect);
     }
 
     // Pixels per unit of the HUD's own canvas. Computed from the scaler for the
@@ -184,18 +193,49 @@ public class HudStyler : MonoBehaviour
         ComputeHudLayout(TopBand.FrameFor(safeArea, screen), screen, hudScale, hudSize, out anchoredPosition, out fitScale);
     }
 
+    // On a phone small in points / dp (UiScale's floor makes the quick
+    // actions >= 44 pt / 48 dp, so they take more of a narrow lane) the
+    // read-out would have to shrink under TopBand.ReadoutMinScale to sit
+    // beside them: it drops to a second row instead, under the actions, with
+    // the band's whole width (BossWarningHud then puts its chip in the first
+    // row's free space, left of the actions).
     public static void ComputeHudLayout(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize,
                                         out Vector2 anchoredPosition, out float fitScale)
     {
+        bool stacked;
+        ComputeHudLayout(band, screen, hudScale, hudSize, out anchoredPosition, out fitScale, out stacked);
+    }
+
+    public static void ComputeHudLayout(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize,
+                                        out Vector2 anchoredPosition, out float fitScale, out bool stacked)
+    {
         hudScale = Mathf.Max(hudScale, 0.0001f);
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
-        float available = PauseQuickActions.ScreenRectFor(band, screen).xMin
-                          - MinGapToActions * actionScale - band.left;
+        Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+        float available = actions.xMin - MinGapToActions * actionScale - band.left;
         float width = hudSize.x * hudScale;
         fitScale = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
-
-        anchoredPosition = new Vector2(band.left / hudScale, (band.top - screen.y) / hudScale);
+        float top = band.top;
+        // only where UiScale's floor grew the actions (the trade-off it
+        // brings); elsewhere the band is exactly as it always was
+        stacked = fitScale < TopBand.ReadoutMinScale && PauseQuickActions.RaisedByFloor(screen);
+        if (stacked)
+        {
+            float full = band.right - band.left;
+            fitScale = width > 0f && full < width ? Mathf.Max(0.1f, full / width) : 1f;
+            // under the first row: the actions, and BOSS INCOMING's chip
+            // beside them (its full punch) while a boss is coming
+            float row = Mathf.Max(PauseQuickActions.ButtonSize, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch) * actionScale;
+            top = band.top - row - MinGapToActions * actionScale;
+        }
+        anchoredPosition = new Vector2(band.left / hudScale, (top - screen.y) / hudScale);
     }
+
+    // The read-out's screen rect while it is stacked under the quick actions
+    // (a small phone), else empty: what the codex toast and PORTAL DANGER's
+    // chip, which sit under the band, drop below. Set by the live HUD
+    // whenever it is placed (and by the screen-fit rig for its device).
+    public static Rect StackedReadout;
 
     // Where the read-out lands on screen, in pixels (origin bottom-left).
     public static Rect HudScreenRect(Rect safeArea, Vector2 screen, float hudScale, Vector2 hudSize)

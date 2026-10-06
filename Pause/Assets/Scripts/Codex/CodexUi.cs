@@ -153,9 +153,21 @@ public static class CodexUi
         return 1f + c3 * m * m * m + c1 * m * m;
     }
 
-    // Overlay canvas whose units are never smaller than 800x1280, so the
-    // codex keeps the same proportions as the rest of the game's UI.
+    // Overlay canvas whose units are at least 800x1280 on any screen that is
+    // big enough in points / dp, so the codex keeps the same proportions as
+    // the rest of the game's UI; on a small one (UiScale's floor: these
+    // canvases lay out touch targets of >= TapUnits and type of >= TextUnits)
+    // it has fewer units and everything built on it lays out from its size.
+    public const float TapUnits = 96f, TextUnits = 15f;
+    public static readonly Vector2 Reference = new Vector2(800f, 1280f);
+
     public static Canvas NewOverlayCanvas(string name, int sortingOrder, bool interactive)
+    {
+        return NewOverlayCanvas(name, sortingOrder, interactive, TapUnits, TextUnits);
+    }
+
+    // A canvas with no touch targets (a toast) states only its smallest type.
+    public static Canvas NewOverlayCanvas(string name, int sortingOrder, bool interactive, float tapUnits, float textUnits)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
         var canvas = go.GetComponent<Canvas>();
@@ -163,8 +175,8 @@ public static class CodexUi
         canvas.sortingOrder = sortingOrder;
         var scaler = go.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(800f, 1280f);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+        UiScaleFloor.Configure(scaler, Reference, tapUnits, textUnits);
         if (interactive) go.AddComponent<GraphicRaycaster>();
         return canvas;
     }
