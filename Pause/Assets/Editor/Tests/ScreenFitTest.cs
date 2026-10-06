@@ -34,7 +34,8 @@ public static class ScreenFitTest
     // fallback density), on the shapes where that matters most.
     static readonly string[] UnreportedDevices =
     {
-        "and-480x854", "and-720x1280", "and-1080x1920", "flip7-1080x2520", "fold-1812x2176", "tab-1600x2560", "iphone-se", "iphone-15",
+        "and-480x854", "and-720x1280", "and-1080x1920", "and-1080x1920-navbar", "and-1080x2340-waterfall", "flip7-1080x2520",
+        "fold-1812x2176", "tab-1600x2560", "iphone-se", "iphone-15",
     };
 
     public static int Execute()

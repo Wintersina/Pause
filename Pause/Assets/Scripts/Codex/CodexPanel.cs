@@ -855,11 +855,45 @@ public class CodexPanel : MonoBehaviour
         UpdateSticky();
     }
 
+    // The detail art never gives up more than this (units) for the lore.
+    public const float MinDetailArt = 140f;
+
     void LayoutDetail()
     {
         var d = layout.detail;
+        float art = Mathf.Min(d.width * .5f, d.height * .34f, 300f);
+        // On a short canvas (UiScale's floor on a phone small in points /
+        // dp) the lore may not fit even at its smallest type: the art gives
+        // up room, a step at a time, until it does (or reaches MinDetailArt).
+        float minArt = Mathf.Min(art, MinDetailArt);
+        float loreTop = PlaceDetail(art);
+        while (art > minArt && !LoreFits(loreTop + d.height * .5f))
+        {
+            art = Mathf.Max(minArt, art - 16f);
+            loreTop = PlaceDetail(art);
+        }
+    }
+
+    // Whether the lore, at its best-fit minimum size, fits a lore card this tall.
+    bool LoreFits(float cardHeight)
+    {
+        if (string.IsNullOrEmpty(detailLore.text)) return true;
+        var lrt = detailLore.rectTransform;
+        float width = layout.detail.width + lrt.offsetMax.x - lrt.offsetMin.x;
+        float room = cardHeight - lrt.offsetMin.y + lrt.offsetMax.y;
+        var settings = detailLore.GetGenerationSettings(new Vector2(width, 0f));
+        settings.resizeTextForBestFit = false;
+        settings.fontSize = detailLore.resizeTextMinSize;
+        settings.verticalOverflow = VerticalWrapMode.Overflow;
+        float ppu = Mathf.Max(detailLore.pixelsPerUnit, .0001f);
+        return detailLore.cachedTextGeneratorForLayout.GetPreferredHeight(detailLore.text, settings) / ppu <= room;
+    }
+
+    // Lays the detail out around `art` units of art; returns the lore card's top.
+    float PlaceDetail(float art)
+    {
+        var d = layout.detail;
         float w = d.width, top = d.height * .5f;
-        float art = Mathf.Min(w * .5f, d.height * .34f, 300f);
 
         // Art frame flush with the top, then name, category pill, the
         // optional subtitle, and the lore card taking whatever is left.
@@ -885,6 +919,7 @@ public class CodexPanel : MonoBehaviour
             y -= 16f;
         }
         CodexUi.Place(detailLoreCard.rectTransform, Rect.MinMaxRect(-w * .5f, -d.height * .5f, w * .5f, y - 16f));
+        return y - 16f;
     }
 
     // ---------------------------------------------------------------------

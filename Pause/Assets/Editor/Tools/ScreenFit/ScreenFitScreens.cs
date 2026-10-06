@@ -252,6 +252,8 @@ public static class ScreenFitScreens
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();   // it may change the canvas scaler
         SafeAreaClamp.AttachAll("leaderboardS3");
+        account.Relayout();   // over the column as BACK's clamp left it (AccountOptions.Update on a device)
+        rig.Sync();
         DevBadge(rig);
         if (shot == 1)
         {
