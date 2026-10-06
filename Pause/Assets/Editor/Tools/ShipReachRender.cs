@@ -18,6 +18,7 @@ using UnityEngine;
 //   <shape>-<before|after>-reach.png  the reach, a pilot holding the deepest station
 //   <shape>-<before|after>-pilot.png  a tier-4 pilot on station, the ship at its ceiling
 //   <shape>-<before|after>-boss.png   the boss at rest with an attack in flight, the ship at the fight's ceiling
+//   <shape>-<before|after>-boss-frost.png  the same for the Frost boss (its jaw is the lowest muzzle)
 public static class ShipReachRender
 {
     const float Dt = 1f / 60f;
@@ -43,7 +44,8 @@ public static class ShipReachRender
                     string tag = outDir + "/" + id + "-" + (after ? "after" : "before");
                     Reach(d, tag + "-reach.png", "verdant_fighter_3", 2);
                     Reach(d, tag + "-pilot.png", "space_fighter_4", 0);
-                    Boss(d, tag + "-boss.png");
+                    Boss(d, tag + "-boss.png", 3, 0);          // Ember fire breath: the widest fan
+                    Boss(d, tag + "-boss-frost.png", 1, 0);    // Frost: the lowest muzzle (the jaw), the lowest fight ceiling
                 }
             }
         }
@@ -185,10 +187,10 @@ public static class ShipReachRender
         PilotAirspace.Clear();
     }
 
-    static void Boss(FitDevice d, string path)
+    static void Boss(FitDevice d, string path, int world, int attack)
     {
         HudStyler styler;
-        var cam = Stage(d, 3, out styler);
+        var cam = Stage(d, world, out styler);
         var root = new GameObject("~ReachStage").transform;
         // the ship at the fight's ceiling, a little off the middle
         var ship = new GameObject("~ReachBossShip").AddComponent<movePlayer>();
@@ -198,13 +200,13 @@ public static class ShipReachRender
         float k = shopingShips.NormalizedHullScale(sr.sprite);
         ship.transform.localScale = new Vector3(k, k, 1f);
         moveBackGround.speed = .2f;
-        BossEncounter.Begin(3, null);
+        BossEncounter.Begin(world, null);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
         float ceiling = ShipReach.Top;
         ship.transform.position = new Vector3(.9f, ceiling, 0f);
-        e.Actor.ForcedAttack = 0;   // fire breath: the widest fan
+        e.Actor.ForcedAttack = attack;
         for (int i = 0; i < 60 * 6; i++)
         {
             e.Step(Dt, 1f);

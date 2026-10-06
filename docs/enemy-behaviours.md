@@ -913,31 +913,71 @@ is a teleport there. The reach used to be the constant y -4.15 .. 4.5. In the or
 the ship 1.5 u above the finger) the ship reached 15% .. 95% of the view; on phones the old constant gave 19% .. 84%
 (16:9) and 26% .. 76% (21:9): the bottom fifth to quarter was out of reach.
 
-**Chosen (all tunables in `ShipReach`, `PlayField`, `BossConfig`):**
+**Chosen (all tunables in `ShipReach`, `PlayField`, `BossConfig`, `EnemyBrain`).** Retuned on branch
+`tune/ship-ceiling-70` (the user: "closer to 70% and 65% for bosses"); the first version stopped at 60% / 53-58%.
 
 | | Rule | 1080x1920 | 1080x2520 | iPhone 15 |
 |---|---|---|---|---|
 | Ship floor | safe-area bottom + hull and flame (`HullBelow` 0.82) + `BottomMargin` 0.15 | -5.64 (7%) | -7.71 (6%) | -6.45 (10%) |
-| Ship ceiling | `TopShare` 0.60 of the view (never into the HUD band) | 1.32 (60%) | 1.74 (60%) | 1.61 (60%) |
-| HUD 35, top edge to the hull at the ceiling | | 0.48 s (was 0.17) | 0.63 s (was 0.37) | 0.59 s (was 0.31) |
+| Ship ceiling | `TopShare` 0.70 of the view (never into the HUD band) | 2.65 (70%) | 3.47 (70%) | 3.23 (70%) |
+| HUD 35, top edge to the hull at the ceiling | | 0.35 s (60%: 0.48, old: 0.17) | 0.47 s (0.63, 0.37) | 0.43 s (0.59, 0.31) |
 | Boss rest | cell top at the top of its sway `BossTopMargin` 0.2 under the HUD band (read-out + icons) | 3.38 (76%) | 4.71 (77%) | 3.78 (73%) |
 | Boss shot speed | x `ShotScale` = gap boss -> ship row (18% of the view) / authored 6.35 | x1.20 | x1.62 | x1.41 |
-| Ship ceiling in a boss fight | boss rest - (`MuzzleDrop` 1.2 + sway + `ShipGap` 1.0 x ShotScale + hull) | 0.42 (53%) | 1.33 (58%) | 0.62 (54%) |
+| Ship ceiling in a boss fight | `FightCeilingShare` 0.65 of the view, or lower: boss rest - (its lowest muzzle / body + its sway + gap + hull) | 60-64% | 65% | 60-64% |
 
-Why 60%: pilots own the top third of the view (stations 14% - 30% below its top, a Swoop dips 9% further, all
-scaled with the view), hazards appear at the top edge, the HUD band covers the top 9% - 13%. At 60% the hull stays
-under every station on every shape and the player has about half a second at HUD 35 to read what appears at the
-top. Sideways reach is unchanged (+/-2.4). The range is a pure function of the camera and the safe area, so it
-follows a fold or a gesture bar the frame it changes. `ShipReach.FitToView = false` / `BossConfig.FitToView = false`
-restore the old constants.
+The fight ceiling per boss (Space / Frost / Verdant / Ember), share of the view; gap = `ShipGap` 0.3 x ShotScale, at
+least the muzzle charge glow's radius (0.375):
 
-**Dependents.** Pilots: windups at a ship on the ceiling keep the authored clearance (x view; 138/138 in the test);
-a Swoop's dip never drops onto a ship at the ceiling (`ShipReach.EntryFloor`, guard in `EnemyBrain`). A ship parked
-at the ceiling denies the windups of the deepest-station pilots (station depth over 2.4 u), as the old reach (higher)
-did more. Chasers from below reach a ship at the floor no sooner than in the authored view (unchanged spawn). The
-portal's station (50%), pickup atoms (their soft ceiling follows the reach), the tutorial's hovering atoms (they
-were below the old floor on 20:9+ phones) and the ship's start (y -2) are inside the reach on every shape; elites
-join away from a ship at either end. While a boss is up the ship's ceiling follows the boss down as it warps in.
+| Shape | gap | Space | Frost | Verdant | Ember | was (60% design) |
+|---|---|---|---|---|---|---|
+| 1080x1920 (16:9), iPhone SE | 0.38 | 1.44 (61%) | 1.32 (60%) | 1.45 (61%) | 1.88 (64%) | 53% |
+| 1080x2400 + gesture bar (20:9) | 0.45 | 2.26 (64%) | 2.14 (63%) | 2.28 (64%) | 2.48 (65%) | 56% |
+| 1080x2520 (21:9, the user's) | 0.48 | 2.60 (65%) | 2.54 (65%) | 2.60 (65%) | 2.60 (65%) | 58% |
+| 1080x2640 (22:9) | 0.52 | 2.73 (65%) | 2.73 (65%) | 2.73 (65%) | 2.73 (65%) | 59% |
+| iPhone 15 | 0.42 | 1.80 (61%) | 1.68 (60%) | 1.81 (61%) | 2.24 (64%) | 54% |
+| Foldable inner 1812x2176 (boss at 62%) | 0.38 | -0.73 (43%) | -0.86 (41%) | -0.72 (43%) | -0.30 (47%) | 38% |
+| iPad 9 (boss at 67%) | 0.38 | -0.26 (47%) | -0.38 (46%) | -0.25 (48%) | 0.18 (52%) | 41% |
+
+65% is out of reach on 16:9 and the iPhone for three bosses: the boss rests at 73-76% and its lowest muzzle hangs
+1.0-1.2 u (7-9% of the view) under its centre (Frost jaw 1.19 + sway 0.2, Space chin 1.14 + 0.12, Verdant stinger
+0.99 + 0.26; Ember's furnace only 0.65 + 0.18), so at 65% the hull would be beside the muzzle. The ceiling there is
+the highest with the gap kept: 60-61% (64% for Ember). The muzzles are the generated table's (every part, every
+drawing); the body hitbox (0.55 u under the centre) is above every lowest muzzle. The boss's drawn fringe (Frost's
+icicles, Verdant's tendril rings, Space's pod flames) reaches 1.25-1.64 u under its centre, so at the ceiling the
+hull can touch that fringe by a few pixels; it is art, not a hitbox.
+
+Why 70%: the user asked for it. The HUD band covers the top 9% - 13%, hazards appear at the top edge (0.35 - 0.49 s
+at HUD 35 to the hull, down from 0.48 - 0.66 s), and pilots hold stations 14% - 30% below the top of the view (a Swoop
+dips 9% further): at 70% the ship reaches as high as the deepest station. Sideways reach is unchanged (+/-2.4). The
+range is a pure function of the camera and the safe area, so it follows a fold or a gesture bar the frame it changes.
+`ShipReach.FitToView = false` / `BossConfig.FitToView = false` restore the old constants.
+
+**Pilots hold higher while the ship is close under them** (`EnemyBrain.HoldY`, new with 70%). A pilot's windup needs
+the ship 1.6 x view below and 1.8 x view away (16% / 18% of the view); with the ship at 70% every station deeper than
+12% would deny it, and the deepest stations (2.6 - 3.0 u, 26-30%) would put the pilot's body on the hull. So while the
+ship is within 1.9 x view (`MinFireDistance` + `HoldMargin` 0.1) under its station, a pilot backs up to keep that
+clearance, no higher than 1.1 x view under the top (`HoldTopDepth`) nor into the HUD band, and returns to its station
+as the ship drops (at 0.6 x its entry speed; never mid-attack). Entries (Drop, Swoop dip) aim at that held station;
+the Swoop guard (`ShipReach.EntryFloor`) still applies. Windups keep their full clearance rules.
+
+Test flights (every pilot, two lanes, three phones, ship parked at the ceiling): 120 flights, 161 windups at 70%
+(138 with the first version at 60%; 234 for the hold rule at 60%), 0 started inside the clearance, 0 frames of a body
+on the hull; every pilot that winds up at 60% still does at 70% (per pilot about two thirds as often as with the hold
+rule at 60%). With the ship at the ceiling a pilot can hold directly over it and still wind up on 16:9, 20:9, 21:9,
+22:9 and the iPhone SE (held up to 89% of the view); on the iPhone 15 (band at 87%), the foldable and the iPad the
+band leaves less room, so only a pilot off to the side of the ship winds up. Chasers from below reach a ship at the
+floor no sooner than in the authored view (unchanged). The portal's station (50%), pickup atoms (their soft ceiling
+follows the reach), the tutorial's hovering atoms and the ship's start (y -2, 30-39%) are inside the reach on every
+shape; elites join 2.6 u from a ship at either end. While a boss is up the ship's ceiling follows the boss down as it
+warps in (the resting ceiling moved by the boss's distance from rest; 3.47 -> 2.60 on 21:9, never faster than the
+boss moves) and is back once it is gone.
+
+**At the fight ceiling** the first shot reaches the hull's top sooner than at the 60% design's ceiling (an aimed
+chin cannon 0.10-0.13 s instead of 0.27-0.28 s, a fan 0.28-0.38 s instead of 0.55-0.68 s, beams 0.05-0.08 s as
+before, Frost hail 1.18-1.30 s), always after the attack's 0.6-1.0 s tell and never from inside the hull. Two fans
+are a wall that close (Space core burst, Ember fire breath); the nearest line with a way through is 4-13% of the view lower, a
+drop of 0.11-0.25 s at 7 u/s within their 0.80 s / 0.70 s tells (to the 30% line: 0.58-0.87 s; 16:9 Ember fire
+breath was 0.44 s at 53%). Every other pattern leaves a way through at the ceiling.
 
 **Boss attacks** keep their time to the ship's row within 12% of the authored view on 16:9, 20:9, 21:9, 22:9 and
 iPhone 15 (before: up to 52% slower on tall phones); straight shots scale as a whole (aim and angles kept), lobs
