@@ -47,7 +47,6 @@ public class collisionDetection : MonoBehaviour {
 
     public GameObject shield;
     public GameObject explosionAnimation;
-    public GameObject blueExp;
     public GameObject boost;
     // Use this for initialization
 

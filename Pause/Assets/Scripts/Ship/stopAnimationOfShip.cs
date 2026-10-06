@@ -31,14 +31,14 @@ public class stopAnimationOfShip : MonoBehaviour {
     {
         if (show)
         {
-            if (!(player == null))
+            if (player != null && player.runtimeAnimatorController != null)
             {
                 
                 player.StartPlayback();
             }
         }
         else {
-            if (!(player == null))
+            if (player != null && player.runtimeAnimatorController != null)
             {
                 player.StopPlayback();
             }

@@ -276,7 +276,7 @@ Animator:
   m_GameObject: {fileID: 1000011733275968}
   m_Enabled: 0
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 78359ab242594d24caaa12fe232ded92, type: 2}
+  m_Controller: {fileID: 0}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -378,7 +378,6 @@ MonoBehaviour:
   boostText: {fileID: 0}
   shield: {fileID: 1000010432637486}
   explosionAnimation: {fileID: 167716, guid: 53918cdd0c978254fa6fa30696079297, type: 3}
-  blueExp: {fileID: 173926, guid: 1aabcb07d3e32944abb966d7f5404978, type: 3}
   boost: {fileID: 1000013270895942}
   boostSound: {fileID: 0}
   astroidExpSound: {fileID: 0}
