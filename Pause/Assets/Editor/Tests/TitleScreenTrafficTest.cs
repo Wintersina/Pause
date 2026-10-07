@@ -20,7 +20,7 @@ public static class TitleScreenTrafficTest
         if (!ok) fails++;
     }
 
-    const string LogoPath = "Assets/Art/pause_title_2.png";
+    const string LogoPath = "Assets/Art/UI/Title/pause_title_2.png";
     const string LogoSha256 = "fbc73021f06f4dd3a79d8d42e1bd22870723f49d8d16a2474df8896b1ab7d305";
     const string LogoMetaSha256 = "005e199d4579224cc74902d945901813061003e2979944897b6354f5f3a382a8";
     // startS4's authored menuTitle transform / renderer

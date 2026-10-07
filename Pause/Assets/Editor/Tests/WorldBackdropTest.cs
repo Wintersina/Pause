@@ -444,7 +444,7 @@ public static class WorldBackdropTest
     public static string[] WallPaths(int world)
     {
         if (string.IsNullOrEmpty(WorldManager.Worlds[world].resourceFolder))
-            return new[] { "Assets/Art/left.png", "Assets/Art/right.png" };
+            return new[] { "Assets/Art/Walls/left.png", "Assets/Art/Walls/right.png" };
         string f = "Assets/Art/Resources/Worlds/" + WorldManager.Worlds[world].resourceFolder + "/";
         return new[] { f + "wallLeft.png", f + "wallRight.png" };
     }
@@ -562,14 +562,14 @@ public static class WorldBackdropTest
     // paints its transparent pixels black over the playable lane.
     static void CheckSpaceRailMaterials()
     {
-        var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/left_1.mat");
-        var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/right_7.mat");
+        var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Walls/left_1.mat");
+        var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Walls/right_7.mat");
         Check("Space left/right rail materials exist", left != null && right != null);
         if (left == null || right == null) return;
 
         Check("Space rails bind new left/right textures",
-              AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
-              AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
+              AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/Walls/left.png" &&
+              AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/Walls/right.png");
         Check("Space rail materials share alpha-capable shader",
               left.shader != null && right.shader != null && left.shader == right.shader);
     }

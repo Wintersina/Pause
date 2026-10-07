@@ -30,7 +30,7 @@ public static class SplashLayoutTest
         TestHarness.Exit(Execute());
     }
 
-    // SHA-256 of Assets/Art/HapticGate.png on master (protected art).
+    // SHA-256 of Assets/Art/UI/Splash/HapticGate.png on master (protected art).
     const string LogoSha256 = "73531a210c4b0c8fbedc6effae9391e3f88ff1346aac642b190d5f5545225c69";
 
     struct Case
@@ -78,7 +78,7 @@ public static class SplashLayoutTest
 
     static void LogoUntouched()
     {
-        string path = Path.Combine(Application.dataPath, "Art/HapticGate.png");
+        string path = Path.Combine(Application.dataPath, "Art/UI/Splash/HapticGate.png");
         string sha;
         using (var h = SHA256.Create())
             sha = BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(path))).Replace("-", "").ToLowerInvariant();

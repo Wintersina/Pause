@@ -1,7 +1,7 @@
 """Side walls for every world, as flat cel art.
 
     python3 walls.py            -> Resources/Worlds/<World>/wallLeft.png / wallRight.png
-                                   and Space's scene walls Art/left.png / Art/right.png
+                                   and Space's scene walls Art/Walls/left.png / Art/Walls/right.png
 
 The walls are the gameS1 / tutorialS5 `leftPipe` / `rightPipe` quads
 (1.43 x ~10.8 units at x = +/-3.21). Their material repeats the texture once
@@ -231,7 +231,7 @@ WALLS = {"Space": space, "Frost": frost, "Verdant": verdant, "Ember": ember}
 def out_paths(world):
     if world == "Space":
         art = os.path.dirname(ART_WORLDS)
-        return os.path.join(art, "left.png"), os.path.join(art, "right.png")
+        return os.path.join(art, "Walls", "left.png"), os.path.join(art, "Walls", "right.png")
     d = os.path.join(RESOURCES, world)
     return os.path.join(d, "wallLeft.png"), os.path.join(d, "wallRight.png")
 

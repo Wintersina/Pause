@@ -117,7 +117,7 @@ RAIL_X = 2.35                          # RailMineMount.WorldRailX on a 2.85 half
 def wall_textures(world):
     assets = os.path.dirname(ART_WORLDS)
     if world == "Space":
-        return [os.path.join(assets, n) for n in ("left.png", "right.png")]
+        return [os.path.join(assets, "Walls", n) for n in ("left.png", "right.png")]
     return [os.path.join(RESOURCES, world, n) for n in ("wallLeft.png", "wallRight.png")]
 
 

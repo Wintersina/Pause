@@ -315,9 +315,9 @@ than anything you can collide with. These limits are checked by `pixelkit.bg_che
 
 | Asset | Path | Used by |
 |---|---|---|
-| PAUSE title logo | `Pause/Assets/Art/pause_title_2.png` (guid `a2e075ab7763def46a6d6d3587b47678`) | `Scenes/startS4.unity` |
+| PAUSE title logo | `Pause/Assets/Art/UI/Title/pause_title_2.png` (guid `a2e075ab7763def46a6d6d3587b47678`) | `Scenes/startS4.unity` |
 | PAUSE logo (README) | `docs/pause-title.png` | `README.md` |
-| HapticGate splash mark | `Pause/Assets/Art/HapticGate.png` (guid `4f7e65d7e0d48dd48a9a0f0b5c456d93`) | `Scenes/spashS7.unity` |
+| HapticGate splash mark | `Pause/Assets/Art/UI/Splash/HapticGate.png` (guid `4f7e65d7e0d48dd48a9a0f0b5c456d93`) | `Scenes/spashS7.unity` |
 
 - Don't redraw, recolour, filter or re-export these.
 - Nothing glowing may sit inside the logo's bounding box.
