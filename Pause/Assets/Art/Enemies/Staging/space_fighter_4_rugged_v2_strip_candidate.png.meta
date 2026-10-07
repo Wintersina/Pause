@@ -1,0 +1,351 @@
+fileFormatVersion: 2
+guid: 53ad53c3ca9384b7f8e29a96c3bcb79b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7203691786564878925
+    second: space_fighter_4_rugged_v2_strip_candidate_0
+  - first:
+      213: 694420998420865418
+    second: space_fighter_4_rugged_v2_strip_candidate_1
+  - first:
+      213: -6654350811375666926
+    second: space_fighter_4_rugged_v2_strip_candidate_2
+  - first:
+      213: 551224101823845264
+    second: space_fighter_4_rugged_v2_strip_candidate_3
+  - first:
+      213: 1647806736563127360
+    second: space_fighter_4_rugged_v2_strip_candidate_4
+  - first:
+      213: 801486809367532238
+    second: space_fighter_4_rugged_v2_strip_candidate_5
+  - first:
+      213: -3174736692622585912
+    second: space_fighter_4_rugged_v2_strip_candidate_6
+  - first:
+      213: 2070807740406263452
+    second: space_fighter_4_rugged_v2_strip_candidate_7
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_0
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 6
+        width: 178
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bdb666ac78570c90800000000000000
+      internalID: -7203691786564878925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_1
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 13
+        width: 178
+        height: 166
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a81a277083413a900800000000000000
+      internalID: 694420998420865418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_2
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 11
+        width: 178
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 219fe1d713ff6a3a0800000000000000
+      internalID: -6654350811375666926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_3
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 11
+        width: 178
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09318dc666756a700800000000000000
+      internalID: 551224101823845264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_4
+      rect:
+        serializedVersion: 2
+        x: 753
+        y: 57
+        width: 8
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04447571f7f2ed610800000000000000
+      internalID: 1647806736563127360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_5
+      rect:
+        serializedVersion: 2
+        x: 775
+        y: 15
+        width: 178
+        height: 163
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec25384b1047f1b00800000000000000
+      internalID: 801486809367532238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_6
+      rect:
+        serializedVersion: 2
+        x: 967
+        y: 8
+        width: 178
+        height: 176
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cf05dc6cc111f3d0800000000000000
+      internalID: -3174736692622585912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_fighter_4_rugged_v2_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 1159
+        y: 8
+        width: 178
+        height: 176
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9e6b051bacfcbc10800000000000000
+      internalID: 2070807740406263452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      space_fighter_4_rugged_v2_strip_candidate_0: -7203691786564878925
+      space_fighter_4_rugged_v2_strip_candidate_1: 694420998420865418
+      space_fighter_4_rugged_v2_strip_candidate_2: -6654350811375666926
+      space_fighter_4_rugged_v2_strip_candidate_3: 551224101823845264
+      space_fighter_4_rugged_v2_strip_candidate_4: 1647806736563127360
+      space_fighter_4_rugged_v2_strip_candidate_5: 801486809367532238
+      space_fighter_4_rugged_v2_strip_candidate_6: -3174736692622585912
+      space_fighter_4_rugged_v2_strip_candidate_7: 2070807740406263452
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

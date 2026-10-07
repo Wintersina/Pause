@@ -1,0 +1,1989 @@
+fileFormatVersion: 2
+guid: 175f52d6d4c4c4b53a1c228c3c865f20
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3515763806982800127
+    second: frost_rock_shard_rugged_v2_concept_0
+  - first:
+      213: 1977896723451012329
+    second: frost_rock_shard_rugged_v2_concept_1
+  - first:
+      213: -4476237766351493417
+    second: frost_rock_shard_rugged_v2_concept_2
+  - first:
+      213: 5584469787590891495
+    second: frost_rock_shard_rugged_v2_concept_3
+  - first:
+      213: -4749836133351885819
+    second: frost_rock_shard_rugged_v2_concept_4
+  - first:
+      213: -7527011935575743284
+    second: frost_rock_shard_rugged_v2_concept_5
+  - first:
+      213: 1761488249343728868
+    second: frost_rock_shard_rugged_v2_concept_6
+  - first:
+      213: -7253049633693999625
+    second: frost_rock_shard_rugged_v2_concept_7
+  - first:
+      213: -8708747753447027627
+    second: frost_rock_shard_rugged_v2_concept_8
+  - first:
+      213: 6522143242732847739
+    second: frost_rock_shard_rugged_v2_concept_9
+  - first:
+      213: 2597604767430435554
+    second: frost_rock_shard_rugged_v2_concept_10
+  - first:
+      213: -553617394818011424
+    second: frost_rock_shard_rugged_v2_concept_11
+  - first:
+      213: 6874164058586912441
+    second: frost_rock_shard_rugged_v2_concept_12
+  - first:
+      213: -5384713937363379756
+    second: frost_rock_shard_rugged_v2_concept_13
+  - first:
+      213: -8779798473739358750
+    second: frost_rock_shard_rugged_v2_concept_14
+  - first:
+      213: -7804190726015646256
+    second: frost_rock_shard_rugged_v2_concept_15
+  - first:
+      213: 5857040632554496982
+    second: frost_rock_shard_rugged_v2_concept_16
+  - first:
+      213: 6208731390780544235
+    second: frost_rock_shard_rugged_v2_concept_17
+  - first:
+      213: -5642105403634555366
+    second: frost_rock_shard_rugged_v2_concept_18
+  - first:
+      213: 7835933244057952156
+    second: frost_rock_shard_rugged_v2_concept_19
+  - first:
+      213: -4332628068076569516
+    second: frost_rock_shard_rugged_v2_concept_20
+  - first:
+      213: -2865825795490929819
+    second: frost_rock_shard_rugged_v2_concept_21
+  - first:
+      213: 2618861392491216351
+    second: frost_rock_shard_rugged_v2_concept_22
+  - first:
+      213: 4230756784340790250
+    second: frost_rock_shard_rugged_v2_concept_23
+  - first:
+      213: -7091767698905015220
+    second: frost_rock_shard_rugged_v2_concept_24
+  - first:
+      213: 5916731713596425229
+    second: frost_rock_shard_rugged_v2_concept_25
+  - first:
+      213: 6223151047832498957
+    second: frost_rock_shard_rugged_v2_concept_26
+  - first:
+      213: 3461963545538698175
+    second: frost_rock_shard_rugged_v2_concept_27
+  - first:
+      213: 1097614589591746877
+    second: frost_rock_shard_rugged_v2_concept_28
+  - first:
+      213: 8549880566578301983
+    second: frost_rock_shard_rugged_v2_concept_29
+  - first:
+      213: -7775298957061290042
+    second: frost_rock_shard_rugged_v2_concept_30
+  - first:
+      213: 3872173404138148405
+    second: frost_rock_shard_rugged_v2_concept_31
+  - first:
+      213: 6384502397034750228
+    second: frost_rock_shard_rugged_v2_concept_32
+  - first:
+      213: -1042287907913784704
+    second: frost_rock_shard_rugged_v2_concept_33
+  - first:
+      213: -7554102837288827303
+    second: frost_rock_shard_rugged_v2_concept_34
+  - first:
+      213: -1246867617715969338
+    second: frost_rock_shard_rugged_v2_concept_35
+  - first:
+      213: -4452016921977600788
+    second: frost_rock_shard_rugged_v2_concept_36
+  - first:
+      213: -5030763773480284339
+    second: frost_rock_shard_rugged_v2_concept_37
+  - first:
+      213: -4918747467509799813
+    second: frost_rock_shard_rugged_v2_concept_38
+  - first:
+      213: 4593548474542603316
+    second: frost_rock_shard_rugged_v2_concept_39
+  - first:
+      213: 133497643721288024
+    second: frost_rock_shard_rugged_v2_concept_40
+  - first:
+      213: -5225245907687893820
+    second: frost_rock_shard_rugged_v2_concept_41
+  - first:
+      213: 945452682538589888
+    second: frost_rock_shard_rugged_v2_concept_42
+  - first:
+      213: 5315012466623325259
+    second: frost_rock_shard_rugged_v2_concept_43
+  - first:
+      213: 8856956908539431615
+    second: frost_rock_shard_rugged_v2_concept_44
+  - first:
+      213: 5637766940275674123
+    second: frost_rock_shard_rugged_v2_concept_45
+  - first:
+      213: -1923730892708519051
+    second: frost_rock_shard_rugged_v2_concept_46
+  - first:
+      213: 3984617870656879562
+    second: frost_rock_shard_rugged_v2_concept_47
+  - first:
+      213: 4725210057125889235
+    second: frost_rock_shard_rugged_v2_concept_48
+  - first:
+      213: -96334205327337103
+    second: frost_rock_shard_rugged_v2_concept_49
+  - first:
+      213: 8333857800087024780
+    second: frost_rock_shard_rugged_v2_concept_50
+  - first:
+      213: 5181600972742460181
+    second: frost_rock_shard_rugged_v2_concept_51
+  - first:
+      213: 5464244452797129611
+    second: frost_rock_shard_rugged_v2_concept_52
+  - first:
+      213: 1027736763671020750
+    second: frost_rock_shard_rugged_v2_concept_53
+  - first:
+      213: 2006143804813041403
+    second: frost_rock_shard_rugged_v2_concept_54
+  - first:
+      213: -402898871247741797
+    second: frost_rock_shard_rugged_v2_concept_55
+  - first:
+      213: -5032797677393947604
+    second: frost_rock_shard_rugged_v2_concept_56
+  - first:
+      213: 1073558805143008066
+    second: frost_rock_shard_rugged_v2_concept_57
+  - first:
+      213: -3591739663455507786
+    second: frost_rock_shard_rugged_v2_concept_58
+  - first:
+      213: -4052566531590108747
+    second: frost_rock_shard_rugged_v2_concept_59
+  - first:
+      213: 689898703428127188
+    second: frost_rock_shard_rugged_v2_concept_60
+  - first:
+      213: 1393058636101989103
+    second: frost_rock_shard_rugged_v2_concept_61
+  - first:
+      213: 1608802278715695839
+    second: frost_rock_shard_rugged_v2_concept_62
+  - first:
+      213: -2680916586764442608
+    second: frost_rock_shard_rugged_v2_concept_63
+  - first:
+      213: 1759708397033652715
+    second: frost_rock_shard_rugged_v2_concept_64
+  - first:
+      213: -8005053831237647098
+    second: frost_rock_shard_rugged_v2_concept_65
+  - first:
+      213: -2519724188008450624
+    second: frost_rock_shard_rugged_v2_concept_66
+  - first:
+      213: -5902441071118051902
+    second: frost_rock_shard_rugged_v2_concept_67
+  - first:
+      213: -5540378609347567464
+    second: frost_rock_shard_rugged_v2_concept_68
+  - first:
+      213: 6912699056876660696
+    second: frost_rock_shard_rugged_v2_concept_69
+  - first:
+      213: 7999438216250453529
+    second: frost_rock_shard_rugged_v2_concept_70
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 574
+        width: 164
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10d7d92e17f753fc0800000000000000
+      internalID: -3515763806982800127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 610
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e4e4b33796e27b10800000000000000
+      internalID: 1977896723451012329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 237
+        y: 563
+        width: 24
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d66e66b77531e1c0800000000000000
+      internalID: -4476237766351493417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 534
+        width: 95
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e7914c1fa5008d40800000000000000
+      internalID: 5584469787590891495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 532
+        width: 146
+        height: 132
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 504fe32d331351eb0800000000000000
+      internalID: -4749836133351885819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 612
+        width: 33
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc4e1ef368eaa8790800000000000000
+      internalID: -7527011935575743284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 682
+        y: 610
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ec5822ea30127810800000000000000
+      internalID: 1761488249343728868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 570
+        width: 85
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fd546559cdf75b90800000000000000
+      internalID: -7253049633693999625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 544
+        width: 136
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55c0f452f00542780800000000000000
+      internalID: -8708747753447027627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 987
+        y: 585
+        width: 30
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b724e4539be438a50800000000000000
+      internalID: 6522143242732847739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1118
+        y: 584
+        width: 92
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e26d85f5cb8c0420800000000000000
+      internalID: 2597604767430435554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1317
+        y: 616
+        width: 54
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ee2560a9e72158f0800000000000000
+      internalID: -553617394818011424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1508
+        y: 0
+        width: 361
+        height: 660
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b694d75acfe56f50800000000000000
+      internalID: 6874164058586912441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1512
+        y: 610
+        width: 18
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d95c521437a545b0800000000000000
+      internalID: -5384713937363379756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1923
+        y: 574
+        width: 202
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2edaf353ec3e72680800000000000000
+      internalID: -8779798473739358750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 586
+        width: 36
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d5807012e1f1b390800000000000000
+      internalID: -7804190726015646256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 578
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d3a0726c63684150800000000000000
+      internalID: 5857040632554496982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 871
+        y: 578
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be49a4dfd48d92650800000000000000
+      internalID: 6208731390780544235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 578
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a16ec0f470733b1b0800000000000000
+      internalID: -5642105403634555366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1243
+        y: 37
+        width: 289
+        height: 576
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9f9fb7d4c3debc60800000000000000
+      internalID: 7835933244057952156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1780
+        y: 594
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45cb8623ab96fd3c0800000000000000
+      internalID: -4332628068076569516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 15
+        width: 264
+        height: 563
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 563ac9f6f9a8a38d0800000000000000
+      internalID: -2865825795490929819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 564
+        width: 7
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fdd7c67af80185420800000000000000
+      internalID: 2618861392491216351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 560
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aebe4bd31eaa6ba30800000000000000
+      internalID: 4230756784340790250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 670
+        y: 568
+        width: 23
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4c5d250adaf49d90800000000000000
+      internalID: -7091767698905015220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 570
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d04043435247c1250800000000000000
+      internalID: 5916731713596425229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 548
+        width: 28
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d03f7a508e21d5650800000000000000
+      internalID: 6223151047832498957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 1534
+        y: 578
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbb9f2d908d5b0030800000000000000
+      internalID: 3461963545538698175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_28
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 548
+        width: 17
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d39f6e067a28b3f00800000000000000
+      internalID: 1097614589591746877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_29
+      rect:
+        serializedVersion: 2
+        x: 989
+        y: 568
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1c4aea731747a670800000000000000
+      internalID: 8549880566578301983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_30
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 528
+        width: 32
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c785e93bc6981490800000000000000
+      internalID: -7775298957061290042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_31
+      rect:
+        serializedVersion: 2
+        x: 1866
+        y: 33
+        width: 293
+        height: 523
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5329e560239bcb530800000000000000
+      internalID: 3872173404138148405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_32
+      rect:
+        serializedVersion: 2
+        x: 2089
+        y: 544
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 411e2e28a1f4a9850800000000000000
+      internalID: 6384502397034750228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_33
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 23
+        width: 310
+        height: 502
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0822d178bac0981f0800000000000000
+      internalID: -1042287907913784704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_34
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 31
+        width: 313
+        height: 509
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95601aa2e7f6a2790800000000000000
+      internalID: -7554102837288827303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_35
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 224
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c22a14028c32bee0800000000000000
+      internalID: -1246867617715969338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_36
+      rect:
+        serializedVersion: 2
+        x: 958
+        y: 23
+        width: 262
+        height: 514
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce44f7f72324732c0800000000000000
+      internalID: -4452016921977600788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_37
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 136
+        width: 27
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4fcdcc80032f2ab0800000000000000
+      internalID: -5030763773480284339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_38
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 152
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b74e93b2d391dbbb0800000000000000
+      internalID: -4918747467509799813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_39
+      rect:
+        serializedVersion: 2
+        x: 275
+        y: 126
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43c36abffff8fbf30800000000000000
+      internalID: 4593548474542603316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_40
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 96
+        width: 39
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 859eb5056674ad100800000000000000
+      internalID: 133497643721288024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_41
+      rect:
+        serializedVersion: 2
+        x: 925
+        y: 130
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c4133018823c77b0800000000000000
+      internalID: -5225245907687893820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_42
+      rect:
+        serializedVersion: 2
+        x: 1148
+        y: 101
+        width: 50
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ce17ae943cee1d00800000000000000
+      internalID: 945452682538589888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_43
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 95
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b442bd1ada7b2c940800000000000000
+      internalID: 5315012466623325259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_44
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 97
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fba4f64d16b3aea70800000000000000
+      internalID: 8856956908539431615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_45
+      rect:
+        serializedVersion: 2
+        x: 633
+        y: 95
+        width: 14
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0c8299792f5d3e40800000000000000
+      internalID: 5637766940275674123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_46
+      rect:
+        serializedVersion: 2
+        x: 947
+        y: 95
+        width: 29
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 573e9a802f88d45e0800000000000000
+      internalID: -1923730892708519051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_47
+      rect:
+        serializedVersion: 2
+        x: 1213
+        y: 93
+        width: 35
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acb3d2a87d43c4730800000000000000
+      internalID: 3984617870656879562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_48
+      rect:
+        serializedVersion: 2
+        x: 1325
+        y: 101
+        width: 30
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d487100381539140800000000000000
+      internalID: 4725210057125889235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_49
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 81
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1799eb7fc80c9aef0800000000000000
+      internalID: -96334205327337103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_50
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 80
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c843ec6b38fc7a370800000000000000
+      internalID: 8333857800087024780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_51
+      rect:
+        serializedVersion: 2
+        x: 1178
+        y: 77
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5130224a1aeb8e740800000000000000
+      internalID: 5181600972742460181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_52
+      rect:
+        serializedVersion: 2
+        x: 1186
+        y: 83
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b832fd60165e4db40800000000000000
+      internalID: 5464244452797129611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_53
+      rect:
+        serializedVersion: 2
+        x: 1840
+        y: 64
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec488313421434e00800000000000000
+      internalID: 1027736763671020750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_54
+      rect:
+        serializedVersion: 2
+        x: 1136
+        y: 65
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfe5b36592147db10800000000000000
+      internalID: 2006143804813041403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_55
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 63
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9c5fda7c9d986af0800000000000000
+      internalID: -402898871247741797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_56
+      rect:
+        serializedVersion: 2
+        x: 1174
+        y: 71
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c24d5846d29e72ab0800000000000000
+      internalID: -5032797677393947604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_57
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 49
+        width: 23
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 243ba0a9b0c06ee00800000000000000
+      internalID: 1073558805143008066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_58
+      rect:
+        serializedVersion: 2
+        x: 1038
+        y: 47
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6baad025ec3972ec0800000000000000
+      internalID: -3591739663455507786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_59
+      rect:
+        serializedVersion: 2
+        x: 1462
+        y: 51
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b94feff53462c7c0800000000000000
+      internalID: -4052566531590108747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_60
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 47
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d906dc2733039900800000000000000
+      internalID: 689898703428127188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_61
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 31
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe23624e273255310800000000000000
+      internalID: 1393058636101989103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_62
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 37
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd220b0162d935610800000000000000
+      internalID: 1608802278715695839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_63
+      rect:
+        serializedVersion: 2
+        x: 734
+        y: 31
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 014e37581987bcad0800000000000000
+      internalID: -2680916586764442608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_64
+      rect:
+        serializedVersion: 2
+        x: 746
+        y: 30
+        width: 9
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be18679b67dbb6810800000000000000
+      internalID: 1759708397033652715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_65
+      rect:
+        serializedVersion: 2
+        x: 770
+        y: 33
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 605433df3f558e090800000000000000
+      internalID: -8005053831237647098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_66
+      rect:
+        serializedVersion: 2
+        x: 1373
+        y: 16
+        width: 28
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c5fbc97334280dd0800000000000000
+      internalID: -2519724188008450624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_67
+      rect:
+        serializedVersion: 2
+        x: 1365
+        y: 17
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c515584e11561ea0800000000000000
+      internalID: -5902441071118051902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_68
+      rect:
+        serializedVersion: 2
+        x: 1367
+        y: 25
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8906aac420f9c13b0800000000000000
+      internalID: -5540378609347567464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_69
+      rect:
+        serializedVersion: 2
+        x: 1695
+        y: 15
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d7af4cca27deef50800000000000000
+      internalID: 6912699056876660696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_shard_rugged_v2_concept_70
+      rect:
+        serializedVersion: 2
+        x: 1896
+        y: 19
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91eea42cca6b30f60800000000000000
+      internalID: 7999438216250453529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_rock_shard_rugged_v2_concept_0: -3515763806982800127
+      frost_rock_shard_rugged_v2_concept_1: 1977896723451012329
+      frost_rock_shard_rugged_v2_concept_10: 2597604767430435554
+      frost_rock_shard_rugged_v2_concept_11: -553617394818011424
+      frost_rock_shard_rugged_v2_concept_12: 6874164058586912441
+      frost_rock_shard_rugged_v2_concept_13: -5384713937363379756
+      frost_rock_shard_rugged_v2_concept_14: -8779798473739358750
+      frost_rock_shard_rugged_v2_concept_15: -7804190726015646256
+      frost_rock_shard_rugged_v2_concept_16: 5857040632554496982
+      frost_rock_shard_rugged_v2_concept_17: 6208731390780544235
+      frost_rock_shard_rugged_v2_concept_18: -5642105403634555366
+      frost_rock_shard_rugged_v2_concept_19: 7835933244057952156
+      frost_rock_shard_rugged_v2_concept_2: -4476237766351493417
+      frost_rock_shard_rugged_v2_concept_20: -4332628068076569516
+      frost_rock_shard_rugged_v2_concept_21: -2865825795490929819
+      frost_rock_shard_rugged_v2_concept_22: 2618861392491216351
+      frost_rock_shard_rugged_v2_concept_23: 4230756784340790250
+      frost_rock_shard_rugged_v2_concept_24: -7091767698905015220
+      frost_rock_shard_rugged_v2_concept_25: 5916731713596425229
+      frost_rock_shard_rugged_v2_concept_26: 6223151047832498957
+      frost_rock_shard_rugged_v2_concept_27: 3461963545538698175
+      frost_rock_shard_rugged_v2_concept_28: 1097614589591746877
+      frost_rock_shard_rugged_v2_concept_29: 8549880566578301983
+      frost_rock_shard_rugged_v2_concept_3: 5584469787590891495
+      frost_rock_shard_rugged_v2_concept_30: -7775298957061290042
+      frost_rock_shard_rugged_v2_concept_31: 3872173404138148405
+      frost_rock_shard_rugged_v2_concept_32: 6384502397034750228
+      frost_rock_shard_rugged_v2_concept_33: -1042287907913784704
+      frost_rock_shard_rugged_v2_concept_34: -7554102837288827303
+      frost_rock_shard_rugged_v2_concept_35: -1246867617715969338
+      frost_rock_shard_rugged_v2_concept_36: -4452016921977600788
+      frost_rock_shard_rugged_v2_concept_37: -5030763773480284339
+      frost_rock_shard_rugged_v2_concept_38: -4918747467509799813
+      frost_rock_shard_rugged_v2_concept_39: 4593548474542603316
+      frost_rock_shard_rugged_v2_concept_4: -4749836133351885819
+      frost_rock_shard_rugged_v2_concept_40: 133497643721288024
+      frost_rock_shard_rugged_v2_concept_41: -5225245907687893820
+      frost_rock_shard_rugged_v2_concept_42: 945452682538589888
+      frost_rock_shard_rugged_v2_concept_43: 5315012466623325259
+      frost_rock_shard_rugged_v2_concept_44: 8856956908539431615
+      frost_rock_shard_rugged_v2_concept_45: 5637766940275674123
+      frost_rock_shard_rugged_v2_concept_46: -1923730892708519051
+      frost_rock_shard_rugged_v2_concept_47: 3984617870656879562
+      frost_rock_shard_rugged_v2_concept_48: 4725210057125889235
+      frost_rock_shard_rugged_v2_concept_49: -96334205327337103
+      frost_rock_shard_rugged_v2_concept_5: -7527011935575743284
+      frost_rock_shard_rugged_v2_concept_50: 8333857800087024780
+      frost_rock_shard_rugged_v2_concept_51: 5181600972742460181
+      frost_rock_shard_rugged_v2_concept_52: 5464244452797129611
+      frost_rock_shard_rugged_v2_concept_53: 1027736763671020750
+      frost_rock_shard_rugged_v2_concept_54: 2006143804813041403
+      frost_rock_shard_rugged_v2_concept_55: -402898871247741797
+      frost_rock_shard_rugged_v2_concept_56: -5032797677393947604
+      frost_rock_shard_rugged_v2_concept_57: 1073558805143008066
+      frost_rock_shard_rugged_v2_concept_58: -3591739663455507786
+      frost_rock_shard_rugged_v2_concept_59: -4052566531590108747
+      frost_rock_shard_rugged_v2_concept_6: 1761488249343728868
+      frost_rock_shard_rugged_v2_concept_60: 689898703428127188
+      frost_rock_shard_rugged_v2_concept_61: 1393058636101989103
+      frost_rock_shard_rugged_v2_concept_62: 1608802278715695839
+      frost_rock_shard_rugged_v2_concept_63: -2680916586764442608
+      frost_rock_shard_rugged_v2_concept_64: 1759708397033652715
+      frost_rock_shard_rugged_v2_concept_65: -8005053831237647098
+      frost_rock_shard_rugged_v2_concept_66: -2519724188008450624
+      frost_rock_shard_rugged_v2_concept_67: -5902441071118051902
+      frost_rock_shard_rugged_v2_concept_68: -5540378609347567464
+      frost_rock_shard_rugged_v2_concept_69: 6912699056876660696
+      frost_rock_shard_rugged_v2_concept_7: -7253049633693999625
+      frost_rock_shard_rugged_v2_concept_70: 7999438216250453529
+      frost_rock_shard_rugged_v2_concept_8: -8708747753447027627
+      frost_rock_shard_rugged_v2_concept_9: 6522143242732847739
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,403 @@
+fileFormatVersion: 2
+guid: f0c057486e266434283093756faccd04
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1050749661756525644
+    second: verdant_fighter_4_rugged_v2_strip_candidate_0
+  - first:
+      213: -342592236747829961
+    second: verdant_fighter_4_rugged_v2_strip_candidate_1
+  - first:
+      213: 6719905341021855011
+    second: verdant_fighter_4_rugged_v2_strip_candidate_2
+  - first:
+      213: 4974694355979369093
+    second: verdant_fighter_4_rugged_v2_strip_candidate_3
+  - first:
+      213: 8019852520205477385
+    second: verdant_fighter_4_rugged_v2_strip_candidate_4
+  - first:
+      213: -1482868998504822347
+    second: verdant_fighter_4_rugged_v2_strip_candidate_5
+  - first:
+      213: -350789073255534911
+    second: verdant_fighter_4_rugged_v2_strip_candidate_6
+  - first:
+      213: 689749623113799619
+    second: verdant_fighter_4_rugged_v2_strip_candidate_7
+  - first:
+      213: 1967990245775320699
+    second: verdant_fighter_4_rugged_v2_strip_candidate_8
+  - first:
+      213: -857245095191585463
+    second: verdant_fighter_4_rugged_v2_strip_candidate_9
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_0
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 6
+        width: 158
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4c0cd01043059e00800000000000000
+      internalID: 1050749661756525644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_1
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 166
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73dc6d10d2ede3bf0800000000000000
+      internalID: -342592236747829961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_2
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 6
+        width: 152
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32d9bd7dd46e14d50800000000000000
+      internalID: 6719905341021855011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_3
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 6
+        width: 140
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58a7a42e82aa90540800000000000000
+      internalID: 4974694355979369093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_4
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 6
+        width: 146
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9066ed9406d3c4f60800000000000000
+      internalID: 8019852520205477385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_5
+      rect:
+        serializedVersion: 2
+        x: 793
+        y: 6
+        width: 141
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b94eaf908acb6be0800000000000000
+      internalID: -1482868998504822347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_6
+      rect:
+        serializedVersion: 2
+        x: 991
+        y: 6
+        width: 130
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cee389423fb12bf0800000000000000
+      internalID: -350789073255534911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 1181
+        y: 6
+        width: 133
+        height: 175
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c758a5b0ab729900800000000000000
+      internalID: 689749623113799619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 1181
+        y: 151
+        width: 11
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b762fd0a3b4bf4b10800000000000000
+      internalID: 1967990245775320699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_4_rugged_v2_strip_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1212
+        y: 169
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94dd8a7b0247a14f0800000000000000
+      internalID: -857245095191585463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_fighter_4_rugged_v2_strip_candidate_0: 1050749661756525644
+      verdant_fighter_4_rugged_v2_strip_candidate_1: -342592236747829961
+      verdant_fighter_4_rugged_v2_strip_candidate_2: 6719905341021855011
+      verdant_fighter_4_rugged_v2_strip_candidate_3: 4974694355979369093
+      verdant_fighter_4_rugged_v2_strip_candidate_4: 8019852520205477385
+      verdant_fighter_4_rugged_v2_strip_candidate_5: -1482868998504822347
+      verdant_fighter_4_rugged_v2_strip_candidate_6: -350789073255534911
+      verdant_fighter_4_rugged_v2_strip_candidate_7: 689749623113799619
+      verdant_fighter_4_rugged_v2_strip_candidate_8: 1967990245775320699
+      verdant_fighter_4_rugged_v2_strip_candidate_9: -857245095191585463
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

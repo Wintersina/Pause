@@ -1,0 +1,871 @@
+fileFormatVersion: 2
+guid: 9e4ee7f3fede948c383447a1fa090ae2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7111707076272294825
+    second: verdant_alien_rugged_v2_concept_0
+  - first:
+      213: -1079802190020191784
+    second: verdant_alien_rugged_v2_concept_1
+  - first:
+      213: 5939383714358235867
+    second: verdant_alien_rugged_v2_concept_2
+  - first:
+      213: 7963298405370726032
+    second: verdant_alien_rugged_v2_concept_3
+  - first:
+      213: -4303982584287328589
+    second: verdant_alien_rugged_v2_concept_4
+  - first:
+      213: -1829145961690835341
+    second: verdant_alien_rugged_v2_concept_5
+  - first:
+      213: -2491584879175809751
+    second: verdant_alien_rugged_v2_concept_6
+  - first:
+      213: -8918830310815163223
+    second: verdant_alien_rugged_v2_concept_7
+  - first:
+      213: 6453537860839151298
+    second: verdant_alien_rugged_v2_concept_8
+  - first:
+      213: 7527460669728900604
+    second: verdant_alien_rugged_v2_concept_9
+  - first:
+      213: 6761446978616798370
+    second: verdant_alien_rugged_v2_concept_10
+  - first:
+      213: -1673669774468665890
+    second: verdant_alien_rugged_v2_concept_11
+  - first:
+      213: 4585577522275070026
+    second: verdant_alien_rugged_v2_concept_12
+  - first:
+      213: 8919542088890476653
+    second: verdant_alien_rugged_v2_concept_13
+  - first:
+      213: 5793651791117770604
+    second: verdant_alien_rugged_v2_concept_14
+  - first:
+      213: 1705809021117683465
+    second: verdant_alien_rugged_v2_concept_15
+  - first:
+      213: -3649646343871467148
+    second: verdant_alien_rugged_v2_concept_16
+  - first:
+      213: 5845080877311574995
+    second: verdant_alien_rugged_v2_concept_17
+  - first:
+      213: 2960504898973904104
+    second: verdant_alien_rugged_v2_concept_18
+  - first:
+      213: -4293410060328364356
+    second: verdant_alien_rugged_v2_concept_19
+  - first:
+      213: -2042291734455111811
+    second: verdant_alien_rugged_v2_concept_20
+  - first:
+      213: 6642481809722525473
+    second: verdant_alien_rugged_v2_concept_21
+  - first:
+      213: -7062313130196260917
+    second: verdant_alien_rugged_v2_concept_22
+  - first:
+      213: -4895769795351757570
+    second: verdant_alien_rugged_v2_concept_23
+  - first:
+      213: -1297735754107967952
+    second: verdant_alien_rugged_v2_concept_24
+  - first:
+      213: -693582610132924226
+    second: verdant_alien_rugged_v2_concept_25
+  - first:
+      213: -6389976728071118100
+    second: verdant_alien_rugged_v2_concept_26
+  - first:
+      213: -2078126238881263878
+    second: verdant_alien_rugged_v2_concept_27
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 67
+        width: 287
+        height: 338
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ab87db08ebd1b260800000000000000
+      internalID: 7111707076272294825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_1
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 91
+        width: 21
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d9582411a5c301f0800000000000000
+      internalID: -1079802190020191784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_2
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 119
+        width: 27
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd2101f150eec6250800000000000000
+      internalID: 5939383714358235867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_3
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 23
+        width: 397
+        height: 574
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0968e8455b1538e60800000000000000
+      internalID: 7963298405370726032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_4
+      rect:
+        serializedVersion: 2
+        x: 577
+        y: 180
+        width: 288
+        height: 310
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b60610a4ae2544c0800000000000000
+      internalID: -4303982584287328589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_5
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 83
+        width: 131
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 376d31760719d96e0800000000000000
+      internalID: -1829145961690835341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_6
+      rect:
+        serializedVersion: 2
+        x: 728
+        y: 98
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 925cdfcd0cc1c6dd0800000000000000
+      internalID: -2491584879175809751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_7
+      rect:
+        serializedVersion: 2
+        x: 746
+        y: 95
+        width: 27
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ac10e71613f93480800000000000000
+      internalID: -8918830310815163223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_8
+      rect:
+        serializedVersion: 2
+        x: 772
+        y: 79
+        width: 514
+        height: 528
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c61adbfd729f8950800000000000000
+      internalID: 6453537860839151298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_9
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 97
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf54aefc899e67860800000000000000
+      internalID: 7527460669728900604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1006
+        y: 94
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aca710143c75dd50800000000000000
+      internalID: 6761446978616798370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_11
+      rect:
+        serializedVersion: 2
+        x: 1086
+        y: 130
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eddac75253ee5c8e0800000000000000
+      internalID: -1673669774468665890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_12
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 95
+        width: 17
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a40b839067e33af30800000000000000
+      internalID: 4585577522275070026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_13
+      rect:
+        serializedVersion: 2
+        x: 1208
+        y: 97
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d686677a54498cb70800000000000000
+      internalID: 8919542088890476653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_14
+      rect:
+        serializedVersion: 2
+        x: 1232
+        y: 110
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6f51e1ab9f276050800000000000000
+      internalID: 5793651791117770604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_15
+      rect:
+        serializedVersion: 2
+        x: 1276
+        y: 39
+        width: 311
+        height: 582
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 907506654404ca710800000000000000
+      internalID: 1705809021117683465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_16
+      rect:
+        serializedVersion: 2
+        x: 1286
+        y: 77
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 471fcb5acf9d95dc0800000000000000
+      internalID: -3649646343871467148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_17
+      rect:
+        serializedVersion: 2
+        x: 1320
+        y: 112
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d3c59fd616ed1150800000000000000
+      internalID: 5845080877311574995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_18
+      rect:
+        serializedVersion: 2
+        x: 1358
+        y: 100
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eca42b2583d51920800000000000000
+      internalID: 2960504898973904104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_19
+      rect:
+        serializedVersion: 2
+        x: 1480
+        y: 109
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb61a0f2c4eba64c0800000000000000
+      internalID: -4293410060328364356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1581
+        y: 63
+        width: 277
+        height: 509
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7f2610fc7258a3e0800000000000000
+      internalID: -2042291734455111811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1710
+        y: 71
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12741873306de2c50800000000000000
+      internalID: 6642481809722525473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1860
+        y: 49
+        width: 301
+        height: 652
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc7231630af9dfd90800000000000000
+      internalID: -7062313130196260917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_23
+      rect:
+        serializedVersion: 2
+        x: 1926
+        y: 97
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efcb8fd5f4bbe0cb0800000000000000
+      internalID: -4895769795351757570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_24
+      rect:
+        serializedVersion: 2
+        x: 1962
+        y: 109
+        width: 13
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 036221415348dfde0800000000000000
+      internalID: -1297735754107967952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_25
+      rect:
+        serializedVersion: 2
+        x: 1984
+        y: 95
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb883a47a46ef56f0800000000000000
+      internalID: -693582610132924226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_26
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 53
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce2ee48750e3257a0800000000000000
+      internalID: -6389976728071118100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_rugged_v2_concept_27
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 39
+        width: 27
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afe401532330923e0800000000000000
+      internalID: -2078126238881263878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_alien_rugged_v2_concept_0: 7111707076272294825
+      verdant_alien_rugged_v2_concept_1: -1079802190020191784
+      verdant_alien_rugged_v2_concept_10: 6761446978616798370
+      verdant_alien_rugged_v2_concept_11: -1673669774468665890
+      verdant_alien_rugged_v2_concept_12: 4585577522275070026
+      verdant_alien_rugged_v2_concept_13: 8919542088890476653
+      verdant_alien_rugged_v2_concept_14: 5793651791117770604
+      verdant_alien_rugged_v2_concept_15: 1705809021117683465
+      verdant_alien_rugged_v2_concept_16: -3649646343871467148
+      verdant_alien_rugged_v2_concept_17: 5845080877311574995
+      verdant_alien_rugged_v2_concept_18: 2960504898973904104
+      verdant_alien_rugged_v2_concept_19: -4293410060328364356
+      verdant_alien_rugged_v2_concept_2: 5939383714358235867
+      verdant_alien_rugged_v2_concept_20: -2042291734455111811
+      verdant_alien_rugged_v2_concept_21: 6642481809722525473
+      verdant_alien_rugged_v2_concept_22: -7062313130196260917
+      verdant_alien_rugged_v2_concept_23: -4895769795351757570
+      verdant_alien_rugged_v2_concept_24: -1297735754107967952
+      verdant_alien_rugged_v2_concept_25: -693582610132924226
+      verdant_alien_rugged_v2_concept_26: -6389976728071118100
+      verdant_alien_rugged_v2_concept_27: -2078126238881263878
+      verdant_alien_rugged_v2_concept_3: 7963298405370726032
+      verdant_alien_rugged_v2_concept_4: -4303982584287328589
+      verdant_alien_rugged_v2_concept_5: -1829145961690835341
+      verdant_alien_rugged_v2_concept_6: -2491584879175809751
+      verdant_alien_rugged_v2_concept_7: -8918830310815163223
+      verdant_alien_rugged_v2_concept_8: 6453537860839151298
+      verdant_alien_rugged_v2_concept_9: 7527460669728900604
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
