@@ -47,8 +47,8 @@ using UnityEngine;
 //
 // Domino (DeathCrashDomino.cs): a flying piece that touches an enemy, rock,
 // mine or elite on the board destroys it; it bursts into its own pieces,
-// which fly on and may hit more (a chain), and pieces ricochet off what they
-// hit. The chain runs as long as it has to (ExtraCeiling at most) and the
+// which fly on and -- DeathCombo.DeathChainChance of the time -- may hit
+// more (a chain), and pieces ricochet off what they hit. The chain runs as long as it has to (ExtraCeiling at most) and the
 // panel waits for it; every chain kill scores with a rising multiplier and
 // the total lands once as the run's DEATH COMBO.
 //
@@ -107,6 +107,7 @@ public partial class DeathCrash : MonoBehaviour
         public float t0;          // crash-clock time its current arc began (after the hit-stop)
         public Vector3 prev;      // last step's position (its heading, for ricochets)
         public int side, gen, ricochets, lastHit;
+        public bool dud;          // a chain kill's piece that lost its DeathCombo roll: breaks nothing
         public TargetExplosion.Kind blast;
     }
 
@@ -359,6 +360,7 @@ public partial class DeathCrash : MonoBehaviour
         p.angle = rotation.eulerAngles.z;
         p.emit = Random.Range(0f, .03f);
         p.gen = 0;
+        p.dud = false;
         p.ricochets = 0;
         p.lastHit = -1;
         p.prev = start;

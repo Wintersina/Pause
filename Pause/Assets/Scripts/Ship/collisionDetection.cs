@@ -114,6 +114,9 @@ public class collisionDetection : MonoBehaviour {
         RecordKillAchievement(target);
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardDust(player.enemyDustValue);
+        // ...and sometimes it sets off a DEATH COMBO (a chain victim never
+        // rolls again: DeathCombo.Resolving).
+        DeathCombo.OnPlayerKill(target);
     }
 
     // Kill 5/25/50/150/1000/3500 Aliens (##08-13), destroy 5/25/50/100/1500

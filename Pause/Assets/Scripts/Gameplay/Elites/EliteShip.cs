@@ -69,7 +69,7 @@ using UnityEngine;
 // the world while the board pours past it. Stepped by EliteSystem on the
 // world's clock -- frozen at timeScale 0 -- with no per-frame allocation.
 public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
-public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino }
+public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino, Combo }   // Combo: a DEATH COMBO link (DeathCombo), one heart, respects grace
 
 [DisallowMultipleComponent]
 public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, ISpawnShadow
@@ -974,6 +974,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         EliteRewards.Pay(this);
         if (Died != null) Died(this, cause, LastHitBy);
         EliteDeath.Play(this, cause);
+        // Brought down by the pilot: it may set off a DEATH COMBO.
+        if (cause == EliteDamage.PlayerWeapon || cause == EliteDamage.Teleport || cause == EliteDamage.ShieldRam)
+            DeathCombo.OnPlayerKill(gameObject);
         BossUtil.Kill(gameObject);
     }
 

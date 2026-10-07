@@ -229,7 +229,8 @@ public static class EnemySplit
 }
 
 // The scene's one stepper for the cosmetic and friendly-fire bits above:
-// split fragments, shot-vs-shot pops, pending mine blasts, movers crashing.
+// split fragments, shot-vs-shot pops, pending mine blasts, movers crashing,
+// and the DEATH COMBO's queued links (DeathCombo).
 // Made on demand in play mode (and on every gameplay scene load); tests
 // call Step() themselves.
 public class HazardRuntime : MonoBehaviour
@@ -302,6 +303,7 @@ public class HazardRuntime : MonoBehaviour
     {
         if (Instance == this) Instance = null;
         FriendlyFire.ClearPending();
+        DeathCombo.ClearPending();
     }
 
     void Update()
@@ -313,6 +315,7 @@ public class HazardRuntime : MonoBehaviour
     {
         EnemySplit.NewStep();
         FriendlyFire.StepBlasts(dt);
+        DeathCombo.Step(dt);
         if (dt > 0f && Application.isPlaying && TargetExplosion.WorldScrolling) FriendlyFire.StepCrashes(ShipTargets.View());
         float fall = TargetExplosion.WorldScrolling ? moveBackGround.speed * 30f : 0f;
         for (int i = 0; i < fragsBuilt; i++) StepFrag(frags[i], dt, fall);

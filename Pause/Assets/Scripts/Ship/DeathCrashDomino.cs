@@ -17,10 +17,15 @@ using UnityEngine;
 //
 // Domino. A flying piece (hull fragment, drone, the tumbling killer, or a
 // piece of something it already broke) that touches an enemy, rock, mine or
-// elite on screen destroys it: a blast, and the enemy breaks into 2-4 pieces
-// cut from its own drawing (DeathCrash's Voronoi cut, CountFor its size,
-// cached per drawing), which fly their own arcs into the rails and can hit
-// more (a chain, up to MaxGeneration deep). A piece may ricochet off what it
+// elite on screen destroys it -- the ship's own wreckage only
+// DeathCombo.DeathHitChance (40%) of the time, rolled once per enemy (a lost
+// roll glances off and spares it): a blast, and the enemy breaks into 2-4
+// pieces cut from its own drawing (DeathCrash's Voronoi cut, CountFor its
+// size, cached per drawing), which fly their own arcs into the rails. Each
+// chain kill rolls DeathCombo.DeathChainChance (40%): won, its pieces can hit
+// more (a chain, up to MaxGeneration deep); lost, they are harmless debris
+// over the board. (Before, every touch killed and every kill's pieces were
+// live, so a busy board was nearly always wiped.) A piece may ricochet off what it
 // hit (RicochetChance, at most MaxRicochets) and fly on. An elite dies
 // through its own damage API (EliteShip.TakeHit, EliteDamage.Domino): its own
 // death plays and it pays its own elite reward as well as the domino points.
@@ -98,6 +103,7 @@ public partial class DeathCrash
         public SpriteRenderer sr;
         public TargetKind kind;
         public bool alive;
+        public bool rolled, spared;   // the wreckage's DeathCombo.DeathHitChance roll, once
         public float radius, megaAt;
         public moveEnimes weave;
         public moveItemEnmInStrightLine line;
@@ -370,7 +376,14 @@ public partial class DeathCrash
             if (CanBounce(ref p)) Ricochet(i, at);
             return;
         }
-        if (!CanKill(p.gen)) return;   // past the caps: it flies on through
+        if (p.dud || !CanKill(p.gen)) return;   // a dud, or past the caps: it flies on through
+        if (p.gen == 0)
+        {
+            // The ship's own wreckage breaks it DeathHitChance of the time
+            // (rolled once); otherwise it glances off and the wreckage spares it.
+            if (!a.rolled) { a.rolled = true; a.spared = !global::DeathCombo.RollDeathHit(); if (a.spared) Sparks(p.tf.position, 4, 2f); }
+            if (a.spared) return;
+        }
         Vector3 push = p.tf.position - p.prev;
         Kill(j, p.gen + 1, push);
         if (CanBounce(ref p) && Random.value < RicochetChance) Ricochet(i, at);
@@ -418,7 +431,9 @@ public partial class DeathCrash
         if (gen > deepest) deepest = gen;
         lastKillTime = elapsed;
 
-        // its pieces, from where its drawing is now
+        // its pieces, from where its drawing is now; they carry the chain on
+        // only if this death wins its DeathCombo roll
+        bool live = global::DeathCombo.RollDeathChain();   // the class, not this event
         int made = 0;
         if (a.set != null && a.sr != null)
         {
@@ -441,6 +456,7 @@ public partial class DeathCrash
                               side, false, outward, a.sr.flipX, a.sr.flipY, blast, float.NaN);
                 if (at2 < 0) break;
                 pieces[at2].gen = gen;
+                pieces[at2].dud = !live;
                 pieces[at2].lastHit = j;
                 made++;
             }
@@ -456,6 +472,7 @@ public partial class DeathCrash
             Codex.Discover(go);
             collisionDetection.RecordKillAchievement(go);
             EnemyDeathAudio.Play(go);
+            if (!fastForward) EnemyDeathFlipbook.Spawn(go);   // its death pose, on the crash clock
             ClearTarget.Release(go);
             BossUtil.Kill(go);
         }
