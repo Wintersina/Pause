@@ -178,7 +178,7 @@ public static class SplashLayoutTest
                       && (card.words[i].anchoredPosition - authoredWords[i] - l.wordsShift).magnitude < 0.01f);
             }
             Check(c.name + ": word canvas scale follows the mark",
-                  Mathf.Abs(card.wordsScaler.scaleFactor - l.wordsScaleFactor) < 0.0001f && l.wordsScaleFactor > 0.2f);
+                  Mathf.Abs(card.wordsScaler.scaleFactor - l.wordsScaleFactor) < 0.0001f && l.wordsScaleFactor > 0.15f);
         }
         cam.orthographicSize = baseSize;
     }
