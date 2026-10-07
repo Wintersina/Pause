@@ -50,7 +50,7 @@ public static class EnemyRosterTest
         FloatingRocks();
         DetailFloor();
         CellsHoldOnePoseEach();
-        SpaceAlienSlowIdleAndDeath();
+        SpaceAlienSlowIdle();
 
         Debug.Log("[ER] failures: " + fails);
         return fails;
@@ -336,8 +336,7 @@ public static class EnemyRosterTest
             else
                 Check(d.key + " frames are " + d.FrameWorldSize + " u", Mathf.Abs(frames[0].bounds.size.x - d.FrameWorldSize) < .01f);
             Check(d.key + " idle/tell timing is on 2s-6s",
-                  // (the Space alien's deliberately slow 8-tick hover is the one exception)
-                  Array.TrueForAll(EnemyRoster.IdleTicks(d), t => t >= 2 && t <= (EnemyRoster.IsSpaceAlien(d) ? EnemyRoster.SpaceAlienIdleTicks : 6)) &&
+                  Array.TrueForAll(EnemyRoster.IdleTicks(d.role), t => t >= 2 && t <= 6) &&
                   Array.TrueForAll(EnemyRoster.TellTicks(d.role), t => t >= 2 && t <= 6));
         }
 
@@ -382,21 +381,11 @@ public static class EnemyRosterTest
             int anticipation = EnemyRoster.TellTicks(role)[0];
             for (int i = 0; i < Mathf.Max(3, anticipation); i++) fb.Advance(EnemyFlipbook.TickSeconds);
             fb.Advance(EnemyFlipbook.TickSeconds * .5f);
-            // (the Space alien's strip reserves cells 5-6 for its death: its tell holds the rearing cell 4 throughout)
-            Check(role + " tell plays anticipation then release",
-                  a == EnemyRoster.TellCell(d, false) && fb.CurrentFrame == EnemyRoster.TellCell(d, true) &&
-                  (EnemyRoster.IsSpaceAlien(d) ? a == 4 && fb.CurrentFrame == 4 : a == 4 && fb.CurrentFrame == 5));
-            int before = fb.CurrentFrame;
+            Check(role + " tell plays anticipation then release", a == 4 && fb.CurrentFrame == 5);
             fb.Flash();
-            if (EnemyRoster.HitCell(d) < 0)
-                Check(role + " has no hit flash (its last cells are the death animation)", fb.CurrentFrame == before);
-            else
-            {
-                Check(role + " hit flash shows frame 6", fb.CurrentFrame == EnemyRoster.HitFrame);
-                for (int i = 0; i < 3; i++) fb.Advance(EnemyFlipbook.TickSeconds);
-                Check(role + " returns to idle after the flash", fb.CurrentFrame < 4);
-            }
-            Check(role + " never shows its death cells while alive", !EnemyRoster.IsSpaceAlien(d) || fb.CurrentFrame < 5);
+            Check(role + " hit flash shows frame 6", fb.CurrentFrame == EnemyRoster.HitFrame);
+            for (int i = 0; i < 3; i++) fb.Advance(EnemyFlipbook.TickSeconds);
+            Check(role + " returns to idle after the flash", fb.CurrentFrame < 4);
             UnityEngine.Object.DestroyImmediate(go);
         }
 
@@ -417,85 +406,46 @@ public static class EnemyRosterTest
         UnityEngine.Object.DestroyImmediate(playerGo);
     }
 
-    // The Space alien (rugged tall v2): a calm hover loop, no live use of its
-    // last two cells, and those two cells as its death animation.
-    static void SpaceAlienSlowIdleAndDeath()
+    // The Space alien hovers on a calm ~3 fps loop of cells 0-3; every other
+    // enemy keeps its role's idle timing.
+    static void SpaceAlienSlowIdle()
     {
         var def = EnemyRoster.Find("space_alien");
         Check("the Space alien exists", def != null);
         if (def == null) return;
-        var frames = EnemyArt.Frames(def);
-        Check("its strip has 7 frames", frames != null && frames.Length == EnemyRoster.FrameCount && EnemyRoster.FrameCount == 7);
-        if (frames == null) return;
-
-        // Idle: 4 frames at 8 ticks = 3 fps (was 4,2,3,3 ~ 8 fps); the other worlds' aliens are unchanged.
         var ticks = EnemyRoster.IdleTicks(def);
         float fps = ticks.Length / (SumTicks(ticks) * EnemyFlipbook.TickSeconds);
         Check("Space alien idle runs at a calm 2.5-4 fps (" + fps.ToString("0.0") + ")", fps >= 2.5f && fps <= 4f);
-        Check("... which is slower than the alien role's generic idle",
-              fps < EnemyRoster.IdleTicks(EnemyRole.Alien).Length / (SumTicks(EnemyRoster.IdleTicks(EnemyRole.Alien)) * EnemyFlipbook.TickSeconds) * .6f);
         foreach (var other in EnemyRoster.All)
-            if (other.role == EnemyRole.Alien && other.key != "space_alien")
-                Check(other.key + " idle is unchanged", System.Linq.Enumerable.SequenceEqual(EnemyRoster.IdleTicks(other), EnemyRoster.IdleTicks(EnemyRole.Alien)) &&
-                      EnemyRoster.DeathFrames(other) == null && EnemyRoster.HitCell(other) == EnemyRoster.HitFrame);
+            if (other.key != "space_alien")
+                Check(other.key + " idle is unchanged",
+                      System.Linq.Enumerable.SequenceEqual(EnemyRoster.IdleTicks(other), EnemyRoster.IdleTicks(other.role)));
 
         var go = EnemyFactory.Create(def, new Vector3(0f, 50f, 0f), Quaternion.identity);
         var fb = go.GetComponent<EnemyFlipbook>();
-        var seen = new List<int>();
+        bool inLoop = fb != null, saw0 = false, saw3 = false;
         int last = -1;
-        float t0 = 0f, firstChange = -1f, secondChange = -1f;
-        for (int i = 0; i < 240; i++)
+        float t = 0f, firstChange = -1f, secondChange = -1f;
+        for (int i = 0; fb != null && i < 240; i++)   // 10 s at 24 ticks/s
         {
             fb.Advance(EnemyFlipbook.TickSeconds);
-            t0 += EnemyFlipbook.TickSeconds;
-            if (fb.CurrentFrame != last)
+            t += EnemyFlipbook.TickSeconds;
+            int f = fb.CurrentFrame;
+            inLoop &= f >= 0 && f <= 3;
+            saw0 |= f == 0; saw3 |= f == 3;
+            if (f != last)
             {
-                if (last >= 0) { if (firstChange < 0) firstChange = t0; else if (secondChange < 0) secondChange = t0; }
-                last = fb.CurrentFrame; seen.Add(last);
+                if (last >= 0) { if (firstChange < 0) firstChange = t; else if (secondChange < 0) secondChange = t; }
+                last = f;
             }
         }
-        bool inLoop = true;
-        foreach (var f in seen) inLoop &= f >= 0 && f <= 3;
-        Check("alone it loops only cells 0-3 over 10 s", inLoop && seen.Contains(0) && seen.Contains(3));
+        Check("alone it loops only cells 0-3 over 10 s", inLoop && saw0 && saw3);
         Check("each hover drawing holds ~0.33 s (" + (secondChange - firstChange).ToString("0.00") + ")",
-              Mathf.Abs(secondChange - firstChange - SpaceAliensTick) < .05f);
+              Mathf.Abs(secondChange - firstChange - EnemyRoster.SpaceAlienIdleTicks * EnemyFlipbook.TickSeconds) < .05f);
         UnityEngine.Object.DestroyImmediate(go);
-
-        // Death: exactly cells 5 then 6 of the strip, held ~0.17 s each, then gone.
-        Check("death frames are exactly [5, 6]", def != null && EnemyRoster.DeathFrames(def) != null &&
-              EnemyRoster.DeathFrames(def).Length == 2 && EnemyRoster.DeathFrames(def)[0] == 5 && EnemyRoster.DeathFrames(def)[1] == 6);
-        Check("the other worlds' aliens and roles have no death animation", EnemyRoster.DeathFrames(EnemyRoster.One(0, EnemyRole.Fighter)) == null);
-        int spawned = EnemyDeathFlipbook.Spawned;
-        var ghost = EnemyDeathFlipbook.Create(def, new Vector3(0f, 50f, 0f), Quaternion.identity, Vector3.one, null);
-        Check("a death ghost is made", ghost != null && EnemyDeathFlipbook.Spawned == spawned + 1);
-        if (ghost == null) return;
-        var ghostSr = ghost.GetComponent<SpriteRenderer>();
-        Check("it has no collider, brain or flipbook", ghost.GetComponent<Collider2D>() == null &&
-              ghost.GetComponent<EnemyBrain>() == null && ghost.GetComponent<EnemyFlipbook>() == null && ghost.GetComponent<ClearTarget>() == null);
-        var timeline = new List<string>();
-        timeline.Add("t=0.00 cell " + ghost.CurrentCell);
-        bool firstIs5 = ghost.CurrentCell == 5 && ghostSr.sprite == frames[5];
-        float t = 0f; int shown5 = 0, shown6 = 0;
-        float total = ghost.TotalSeconds;
-        for (int i = 0; i < 60 && !ghost.Finished; i++)
-        {
-            ghost.Advance(EnemyFlipbook.TickSeconds / 2f);
-            t += EnemyFlipbook.TickSeconds / 2f;
-            if (ghost.Finished) break;
-            timeline.Add("t=" + t.ToString("0.00") + " cell " + ghost.CurrentCell + " alpha " + ghostSr.color.a.ToString("0.00"));
-            if (ghost.CurrentCell == 5) shown5++;
-            if (ghost.CurrentCell == 6) shown6++;
-        }
-        Debug.Log("[ER] death timeline: " + string.Join(" | ", timeline));
-        Check("death plays cell 5 then cell 6 (strip sprites), then despawns",
-              firstIs5 && shown5 > 0 && shown6 > 0);
-        Check("it finishes within ~0.3-0.4 s (" + t.ToString("0.00") + " s)", t >= .3f && t <= .4f && Mathf.Abs(t - total) < .05f);
-        Check("the ghost object is destroyed afterwards", ghost == null);
-        Check("no death objects linger", GameObject.Find("~EnemyDeath_space_alien") == null);
     }
 
     static int SumTicks(int[] t) { int n = 0; foreach (var x in t) n += x; return n; }
-    const float SpaceAliensTick = EnemyRoster.SpaceAlienIdleTicks * (1f / 24f);
 
     static void NameKeysStillMatch()
     {

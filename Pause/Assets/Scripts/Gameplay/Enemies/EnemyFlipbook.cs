@@ -46,7 +46,6 @@ public class EnemyFlipbook : MonoBehaviour
     ChaserEnemy chaser;
     DrivePhase drive;
     bool driveLoops;
-    int tellCellA = EnemyRoster.TellFrame, tellCellB = EnemyRoster.TellFrame + 1, hitCell = EnemyRoster.HitFrame;
 
     // Its tell belongs to its attack: no timed / proximity tell.
     public bool BrainDriven { get; private set; }
@@ -75,9 +74,6 @@ public class EnemyFlipbook : MonoBehaviour
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         frames = EnemyArt.Frames(def);
         idleTicks = def.key == "space_chaser" ? new[] { 6, 6 } : EnemyRoster.IdleTicks(def);
-        tellCellA = EnemyRoster.TellCell(def, false);
-        tellCellB = EnemyRoster.TellCell(def, true);
-        hitCell = EnemyRoster.HitCell(def);
         tellTicks = EnemyRoster.TellTicks(def.role);
         tellMode = ModeFor(def.role);
         if (def.key == "space_chaser") tellMode = TellMode.IdleOnly;
@@ -119,10 +115,10 @@ public class EnemyFlipbook : MonoBehaviour
     // A one- to two-tick white pop; the flipbook returns to its idle after.
     public void Flash()
     {
-        if (!HasFrames || hitCell < 0) return;   // (the Space alien's last cells are its death)
+        if (!HasFrames) return;
         state = State.Hit;
         hold = EnemyRoster.HitTicks * TickSeconds;
-        Show(hitCell);
+        Show(EnemyRoster.HitFrame);
     }
 
     public static void Flash(GameObject go)
@@ -138,7 +134,7 @@ public class EnemyFlipbook : MonoBehaviour
         state = State.Tell;
         step = 0;
         hold = tellTicks[0] * TickSeconds;
-        Show(tellCellA);
+        Show(EnemyRoster.TellFrame);
     }
 
     // The brain's attack takes the drawing over: Windup shows the tell
@@ -160,12 +156,12 @@ public class EnemyFlipbook : MonoBehaviour
             case DrivePhase.Windup:
                 state = State.Tell;
                 hold = tellTicks[0] * TickSeconds;
-                Show(tellCellA);
+                Show(EnemyRoster.TellFrame);
                 break;
             case DrivePhase.Release:
                 state = State.Tell;
                 hold = tellTicks[1] * TickSeconds;
-                Show(tellCellB);
+                Show(EnemyRoster.TellFrame + 1);
                 break;
             default:
                 state = State.Idle;
@@ -193,7 +189,7 @@ public class EnemyFlipbook : MonoBehaviour
             if (hold > 0f) return;
             step = 1 - step;
             hold += tellTicks[step] * TickSeconds;
-            Show(step == 0 ? tellCellA : tellCellB);
+            Show(EnemyRoster.TellFrame + step);
             return;
         }
         untilTell -= dt;
@@ -216,7 +212,7 @@ public class EnemyFlipbook : MonoBehaviour
                         state = State.Tell;
                         step = 0;
                         hold += tellTicks[0] * TickSeconds;
-                        Show(tellCellA);
+                        Show(EnemyRoster.TellFrame);
                         break;
                     }
                     step = (step + 1) % idleTicks.Length;
@@ -228,13 +224,13 @@ public class EnemyFlipbook : MonoBehaviour
                     {
                         step = 1;
                         hold += tellTicks[1] * TickSeconds;
-                        Show(tellCellB);
+                        Show(EnemyRoster.TellFrame + 1);
                     }
                     else if (Loops() && WantsTell())
                     {
                         step = 0;
                         hold += tellTicks[0] * TickSeconds;
-                        Show(tellCellA);
+                        Show(EnemyRoster.TellFrame);
                     }
                     else
                     {

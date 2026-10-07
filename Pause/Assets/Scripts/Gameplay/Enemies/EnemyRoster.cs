@@ -70,37 +70,6 @@ public static class EnemyRoster
     public const int FrameCount = 7;                  // 0-3 idle, 4-5 tell, 6 hit flash
     public const int TellFrame = 4, HitFrame = 6;
 
-    // ---- the Space alien's own strip (rugged tall v2) -------------------------
-    // Frames 0-3 are a slow hover loop, 4 the rearing pose (its tell, held for
-    // the release too), and the LAST TWO -- 5 the eye-beam charge, 6 the burst --
-    // are its death animation (EnemyDeathFlipbook), so the live flipbook never
-    // shows them: no hit flash, no second tell frame. Every other enemy keeps
-    // the generic mapping above.
-    public const string SpaceAlienKey = "space_alien";
-    public const int SpaceAlienIdleTicks = 8;                 // 3 fps (was 4,2,3,3: ~8 fps average)
-    public static readonly int[] SpaceAlienDeathFrames = { 5, 6 };
-    public static readonly int[] SpaceAlienDeathTicks = { 4, 4 };   // ~0.17 s each, 0.33 s in all
-
-    public static bool IsSpaceAlien(EnemyDef def) => def != null && def.key == SpaceAlienKey;
-
-    // Per-enemy idle holds: the Space alien's slow loop, else the role's.
-    public static int[] IdleTicks(EnemyDef def)
-    {
-        if (def == null) return null;
-        if (IsSpaceAlien(def)) return new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks };
-        return IdleTicks(def.role);
-    }
-
-    // The two tell cells (anticipation, release) and the hit-flash cell
-    // (-1: none) -- the generic 4/5/6 unless the strip reserves them.
-    public static int TellCell(EnemyDef def, bool release) =>
-        IsSpaceAlien(def) ? TellFrame : TellFrame + (release ? 1 : 0);
-    public static int HitCell(EnemyDef def) => IsSpaceAlien(def) ? -1 : HitFrame;
-
-    // Death animation cells and holds (null: dies without one).
-    public static int[] DeathFrames(EnemyDef def) => IsSpaceAlien(def) ? SpaceAlienDeathFrames : null;
-    public static int[] DeathTicks(EnemyDef def) => IsSpaceAlien(def) ? SpaceAlienDeathTicks : null;
-
     public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember" };
 
     // ---- sizes ---------------------------------------------------------------
@@ -208,6 +177,14 @@ public static class EnemyRoster
             default: return new[] { 6, 3, 2, 3 };   // fighter, chaser
         }
     }
+
+    // Per-enemy idle holds: the Space alien hovers on a calm 3 fps loop
+    // (8 ticks a drawing); everyone else uses its role's table.
+    public const int SpaceAlienIdleTicks = 8;
+    public static int[] IdleTicks(EnemyDef def) =>
+        def != null && def.key == "space_alien"
+            ? new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks }
+            : IdleTicks(def.role);
 
     public static int[] TellTicks(EnemyRole role)
     {

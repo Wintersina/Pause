@@ -106,7 +106,7 @@ public static class CodexAnimations
         if (frames.Length >= EnemyRoster.TellFrame + 2)
         {
             var tt = EnemyRoster.TellTicks(def.role);
-            a.AddTell(new[] { frames[EnemyRoster.TellCell(def, false)], frames[EnemyRoster.TellCell(def, true)] },
+            a.AddTell(new[] { frames[EnemyRoster.TellFrame], frames[EnemyRoster.TellFrame + 1] },
                       new[] { tt[0] * EnemyFlipbook.TickSeconds, tt[Mathf.Min(1, tt.Length - 1)] * EnemyFlipbook.TickSeconds });
         }
         var mode = EnemyFlipbook.ModeFor(def.role);
