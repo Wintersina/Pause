@@ -347,17 +347,32 @@ public static class EnemyRosterTest
             Check(role + " has a flipbook" + (role == EnemyRole.Mine ? " (RailBombAnimator)" : ""),
                   fb != null && (role != EnemyRole.Mine || fb is RailBombAnimator));
             if (fb == null) { UnityEngine.Object.DestroyImmediate(go); continue; }
-            Check(role + " tell mode " + fb.tellMode, fb.tellMode == EnemyFlipbook.ModeFor(role));
+            var expectedMode = d.key == "space_chaser" ? EnemyFlipbook.TellMode.IdleOnly : EnemyFlipbook.ModeFor(role);
+            Check(role + " tell mode " + fb.tellMode, fb.tellMode == expectedMode);
             var chaser = go.GetComponent<ChaserEnemy>();
             if (chaser != null)
             {
-                Check("a fresh chaser is hunting (it loops its lunge)", chaser.IsChasing);
+                Check("a fresh chaser is hunting", chaser.IsChasing);
                 typeof(ChaserEnemy).GetField("wandering", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(chaser, true);
                 Check("a wandering chaser has stopped hunting", !chaser.IsChasing);
             }
             var seen = new HashSet<int>();
             for (int i = 0; i < 60; i++) { fb.Advance(EnemyFlipbook.TickSeconds); seen.Add(fb.CurrentFrame); }
-            Check(role + " idle cycles all four drawings", seen.Contains(0) && seen.Contains(1) && seen.Contains(2) && seen.Contains(3));
+            Check(role + " idle cycles its intended drawings",
+                  d.key == "space_chaser"
+                      ? seen.SetEquals(new[] { 0, 1 })
+                      : seen.Contains(0) && seen.Contains(1) && seen.Contains(2) && seen.Contains(3));
+            if (d.key == "space_chaser")
+            {
+                typeof(ChaserEnemy).GetField("wandering", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(chaser, false);
+                bool steadyChase = true;
+                for (int i = 0; i < 120; i++)
+                {
+                    fb.Advance(EnemyFlipbook.TickSeconds);
+                    steadyChase &= fb.CurrentFrame == 0 || fb.CurrentFrame == 1;
+                }
+                Check("Steel Hound keeps its hover poses throughout the chase", steadyChase);
+            }
             fb.Tell();
             int a = fb.CurrentFrame;
             // half a tick into the release (the anticipation holds TellTicks[0])

@@ -4,11 +4,13 @@ using UnityEngine;
 // is held for a whole number of 24 fps ticks (on 2s and 3s), never tweened.
 //
 //   idle (frames 0-3) loops: key pose hold, anticipation, snap, settle
+//     Steel Hound uses only its two steady hover poses (frames 0-1).
 //   tell (frames 4-5) is the attack/anticipation beat, triggered per role:
 //     Accent      rocks: a random glint/pulse every few seconds
 //     Periodic    fighters, big: a wind-up every few seconds
 //     NearPlayer  mines (arming), aliens (chomp): loops while the ship is close
-//     Chasing     chaser: loops its lunge while ChaserEnemy is hunting
+//     Chasing     other chasers: loop a lunge while hunting
+//     IdleOnly    Steel Hound: stays in its subtle hover loop while hunting
 //   hit (frame 6) is a flat BONE flash, shown by Flash() -- for anything that
 //   hits an enemy without destroying it on the same frame (weapons, shields).
 //
@@ -19,7 +21,7 @@ public class EnemyFlipbook : MonoBehaviour
 {
     public const float TickSeconds = 1f / 24f;
 
-    public enum TellMode { Accent, Periodic, NearPlayer, Chasing }
+    public enum TellMode { Accent, Periodic, NearPlayer, Chasing, IdleOnly }
 
     public TellMode tellMode = TellMode.Periodic;
     [Tooltip("NearPlayer: world-unit distance to the ship that triggers the tell.")]
@@ -57,9 +59,10 @@ public class EnemyFlipbook : MonoBehaviour
     {
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         frames = EnemyArt.Frames(def);
-        idleTicks = EnemyRoster.IdleTicks(def.role);
+        idleTicks = def.key == "space_chaser" ? new[] { 6, 6 } : EnemyRoster.IdleTicks(def.role);
         tellTicks = EnemyRoster.TellTicks(def.role);
         tellMode = ModeFor(def.role);
+        if (def.key == "space_chaser") tellMode = TellMode.IdleOnly;
         switch (def.role)
         {
             case EnemyRole.Rock: tellGap = new Vector2(3f, 7f); break;
@@ -185,6 +188,8 @@ public class EnemyFlipbook : MonoBehaviour
                 return p != null && (p.position - transform.position).sqrMagnitude < nearDistance * nearDistance;
             case TellMode.Chasing:
                 return chaser != null && chaser.IsChasing;
+            case TellMode.IdleOnly:
+                return false;
             default:
                 return untilTell <= 0f;
         }

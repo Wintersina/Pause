@@ -49,7 +49,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     bool initialised;
     SpawnFootprint footprint;
 
-    // True while it is still closing in (EnemyFlipbook loops its lunge then).
+    // True while it is still closing in.
     public bool IsChasing => !wandering;
 
     // What it hunts (the ship; a headless simulation can set a stand-in).
