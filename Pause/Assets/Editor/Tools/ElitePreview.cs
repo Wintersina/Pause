@@ -5,7 +5,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Renders each elite's whole life cycle over its world's real backdrop, for
-// review: parked on a landing site the backdrop reports -> engine-light
+// review: parked on a landing site the backdrop reports (of the kind its
+// def launches from, when one turns up; Space: docked inside a body) -> engine-light
 // tell -> lift-off -> join -> follow -> attack (tell, action) -> a hit ->
 // a crash that kills it (into an enemy craft dropped in its path) -> the debris.
 //
@@ -126,11 +127,20 @@ public static class ElitePreview
         int frame = 0;
         float dt = 1f / Fps;
 
-        // let the backdrop bring a landmark (volcano, glacier, ruin) into the landing band
+        // let the backdrop bring a landmark (volcano, glacier, ruin; Space: the
+        // station / planet / asteroid the elite launches from) into the landing band
         var sites = new List<LandingSite>();
-        for (int i = 0; i < 400 && LandingSites.Collect(sites) == 0; i++) WorldBackdrop.Instance.Step(dt);
+        var want = LandingSite.KindOf(def.launchFrom);
+        int pick = -1;
+        for (int i = 0; i < 900 && pick < 0; i++)
+        {
+            WorldBackdrop.Instance.Step(dt);
+            LandingSites.Collect(sites);
+            for (int k = 0; k < sites.Count && pick < 0; k++) if (want == null || sites[k].kind == want.Value) pick = k;
+            if (pick < 0 && i >= 400 && sites.Count > 0) pick = 0;
+        }
         LandingSite site;
-        if (sites.Count > 0) site = sites[0];
+        if (pick >= 0) site = sites[pick];
         else
         {
             var pad = new GameObject("~Pad").transform;

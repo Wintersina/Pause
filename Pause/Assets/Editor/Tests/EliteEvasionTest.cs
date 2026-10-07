@@ -642,7 +642,11 @@ public static class EliteEvasionTest
             var hunted = EliteSurvivalProbe.Solo(new[] { 20 }, 2, true).Total();
             Debug.Log(string.Format("[EVA] survival, {0} solo elites at HUD 20 / 30, passive pilot: board deaths within {1} s of joining {2:P0} -> {3:P0}; within {4} s {5:P0} -> {6:P0}",
                                     after.flown, EliteSurvivalProbe.EarlySeconds, before.EarlyRate, after.EarlyRate, EliteSurvivalProbe.WatchSeconds, before.DeathRate, after.DeathRate));
-            Check("without the evasion most elites die to the board soon after joining (" + before.EarlyRate.ToString("P0") + ")", before.EarlyRate > .4f);
+            // (calibration: the board really is deadly without the evasion. Since the four Space
+            // elites -- two of them armoured -- joined the solo set the 5 s rate is ~29 %, so the
+            // claim is over the whole watch, with a floor on the early rate)
+            Check("without the evasion the board kills most elites within the watch (" + before.DeathRate.ToString("P0") + "), many soon after joining (" +
+                  before.EarlyRate.ToString("P0") + ")", before.DeathRate > .5f && before.EarlyRate > .2f);
             Check("with it, board deaths soon after joining are rare (" + after.EarlyRate.ToString("P0") + " within " + EliteSurvivalProbe.EarlySeconds + " s)", after.EarlyRate <= .15f);
             Check("... and most elites outlast the whole watch (" + after.DeathRate.ToString("P0") + " lost in " + EliteSurvivalProbe.WatchSeconds + " s)", after.DeathRate <= .4f);
             Check("... still flying their own attacks (" + after.AttacksPerSurvivor.ToString("F1") + " per survivor, " + before.AttacksPerSurvivor.ToString("F1") + " before)",

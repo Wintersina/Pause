@@ -1105,17 +1105,22 @@ public static class CodexTest
         for (int i = panel.SectionStart(2); i < panel.SectionStart(2) + panel.SectionAt(2).entries.Count; i++)
             locked &= panel.CardName(i).text == Codex.LockedName && panel.CardArt(i).color.r < .1f;
         Check("locked entries in a world section stay ??? silhouettes", locked);
-        int fighters = 0;
+        int fighters = 0, rosterCount = 0;
+        bool elitesLast = true;
         var space = panel.SectionAt(0).entries;
         for (int i = 0; i < space.Count; i++)
         {
             var def = EnemyRoster.FindByCodexId(space[i].id);
+            // (the world's elite ships come after its roster enemies)
+            if (def == null) { elitesLast &= EliteCatalog.FindByCodexId(space[i].id) != null; continue; }
+            elitesLast &= rosterCount == i;
+            rosterCount++;
             if (def.role == EnemyRole.Fighter) { fighters++; if (def.tier != i + 1) fighters = -100; }
         }
-        Check("a world section lists fighters by tier first, then chaser, alien and big",
-              fighters == 4 && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
+        Check("a world section lists fighters by tier first, then chaser, alien and big, then its elite ships",
+              fighters == 4 && rosterCount >= 7 && elitesLast && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
               EnemyRoster.FindByCodexId(space[5].id).role == EnemyRole.Alien &&
-              EnemyRoster.FindByCodexId(space[space.Count - 1].id).role == EnemyRole.Big);
+              EnemyRoster.FindByCodexId(space[rosterCount - 1].id).role == EnemyRole.Big);
         Check("one jump chip per section", ActiveChips(panel) == 4 && panel.ChipLabel(3).text == "EMBER");
 
         // One boss met: the BOSSES section appears last with just that boss.
