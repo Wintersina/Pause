@@ -151,11 +151,11 @@ public static class BossArt
     public const int ShotRimCells = 4;            // bolt 0..1, shard 0..1
     public const int ShotRimTexels = 64;          // rim texels across one art cell
     public const int ShotRimPad = 12;             // clear texels around the cell (must exceed the reach)
-    public const float ShotRimReach = .17f;       // how far past the silhouette it fades to nothing, as a share of the cell
-    public const float ShotRimAlpha = .7f;        // its opacity right at the silhouette
-    public const float ShotRimFalloff = 1.8f;     // > 1: most of the light sits tight against the art
+    public const float ShotRimReach = .06f;       // how far past the silhouette the outline reaches, as a share of the cell (a thin trace, not a halo)
+    public const float ShotRimAlpha = .8f;        // its opacity right at the silhouette
+    public const float ShotRimFalloff = 1f;       // linear: a crisp outline, no soft round bloom
     public const float ShotRimCoverage = .25f;    // alpha a texel needs to count as the drawing (soft painted edges count)
-    public const float ShotRimPulseScale = .03f;  // its breathing (HostileGlow's wrapper: .07); alpha pulses as the wrapper's
+    public const float ShotRimPulseScale = 0f;    // it never swells (a swelling rim reads as a round glow); only its alpha pulses
 
     sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }
     static readonly Dictionary<string, RimSet> rims = new Dictionary<string, RimSet>();

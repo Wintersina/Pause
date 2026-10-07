@@ -28,11 +28,10 @@ public static class HostileGlow
     public const float FillAlpha = .22f, DarkAlpha = .85f, HaloAlpha = .55f;
     public const float PulseHz = 2.2f, PulseScale = .07f, PulseAlpha = .15f;
     public const int SortBehindShots = 29, SortBehindBeam = 25;
-    // A boss shot's drawn body, as a multiple of its hit radius (only the
-    // fallback now: boss shots wear BossArt.ShotRim, a rim cut from their
-    // own silhouette, and this wrapper only if that could not be built); a
-    // laser's as a share of its drawn width (half of it: the edge).
-    public const float BossShotBody = 1.35f, BeamBody = .5f;
+    // A laser's drawn body as a share of its drawn width (half of it: the
+    // edge). Boss shots wear no round wrapper: BossArt.ShotRim, a thin
+    // outline cut from their own silhouette.
+    public const float BeamBody = .5f;
     // An elite shot's drawn body: half its drawn diameter (shotSize).
     public const float EliteShotBody = .5f;
     // A landed resin pool: its flat drawing is mostly rim, so a little less.
