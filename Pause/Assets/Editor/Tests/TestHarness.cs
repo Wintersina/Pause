@@ -94,7 +94,7 @@ public static class TestHarness
 
                 // A readonly field can't be reassigned, but the collection it
                 // holds can be put back. This matters for the static sprite
-                // caches (shopingShips.runtimeSprites, OriginalShipArt.cache):
+                // caches (shopingShips.runtimeSprites, ShipHullArt's caches):
                 // the editor destroys their Sprite.Create()d entries when the
                 // next scene opens, and a stale entry is never reloaded.
                 if (field.IsInitOnly)

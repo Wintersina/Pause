@@ -161,8 +161,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
         // The extras, chaser and mine come from EnemyRoster per world (see
         // ChooseExtraDef / spawnChaser / spawnMine); the fields stay as
-        // inspector overrides. The retired mine.prefab no longer exists.
-        if (mine == null) mine = Resources.Load<GameObject>("Prefabs/mine");
+        // inspector overrides. The retired mine.prefab no longer exists, so
+        // there is no Resources fallback to load for an unset field.
 
         phase = phases[0];
         astroidSelector = 0;

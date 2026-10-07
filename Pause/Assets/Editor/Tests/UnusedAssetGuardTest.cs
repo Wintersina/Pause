@@ -110,6 +110,30 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Resources/Worlds/Verdant/wallRight.png",
         "Assets/Art/Resources/Worlds/Ember/wallLeft.png",
         "Assets/Art/Resources/Worlds/Ember/wallRight.png",
+        // The 2026-10 Assets vet: the 2016 ship prefabs nothing loads (only
+        // inGameShips/shipN are Resources-loaded, by spawnShips.PrefabPathFor),
+        // their parked sprites (ship1-7 no longer carry a 2016 rest sprite:
+        // spawnShips.ApplyHull dresses every hull from the roster), the dead
+        // OriginalShipArt / roate scripts, and Verdant's old mid tile (its mid
+        // layer draws forest_industrial_center_v1).
+        "Assets/Resources/prefabs/Ships/Ninja_0.prefab",
+        "Assets/Resources/prefabs/Ships/Saboteur_0.prefab",
+        "Assets/Resources/prefabs/Ships/UFO_0.prefab",
+        "Assets/Resources/prefabs/Ships/Turtle.prefab",
+        "Assets/Resources/prefabs/Ships/player.prefab",
+        "Assets/Resources/prefabs/Ships/Ligher_0_2_1.prefab",
+        "Assets/Resources/prefabs/Ships/Lightning_0.prefab",
+        "Assets/Resources/prefabs/Ships/Paranoid_0.prefab",
+        "Assets/Art/Ships/Legacy/Ninja.png",
+        "Assets/Art/Ships/Legacy/Saboteur.png",
+        "Assets/Art/Ships/Legacy/UFO.png",
+        "Assets/Art/Ships/Legacy/Ligher.png",
+        "Assets/Art/Ships/Legacy/Lightning.png",
+        "Assets/Art/Ships/Legacy/Paranoid.png",
+        "Assets/Art/Ships/Legacy/player.png",
+        "Assets/Scripts/Ship/OriginalShipArt.cs",
+        "Assets/Scripts/Gameplay/roate.cs",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/mid.png",
     };
 
     static void ReplacedAssetsStayDeleted()
@@ -131,7 +155,6 @@ public static class UnusedAssetGuardTest
     {
         "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
         "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
-        "Assets/Art/Ships/Legacy/",   // parked 2016 ship sprites (kept for their GUIDs)
     };
 
     static bool Exempt(string path)

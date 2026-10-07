@@ -234,7 +234,6 @@ public static class AtomFlightTest
             Check(prefab.name + " has nothing that turns it",
                   prefab.GetComponentInChildren<AtomSpin>(true) == null &&
                   prefab.GetComponentInChildren<AsteroidSpin>(true) == null &&
-                  prefab.GetComponentInChildren<roate>(true) == null &&
                   prefab.GetComponentInChildren<rotateRight>(true) == null);
             var go = Object.Instantiate(prefab, new Vector3(0f, 5.5f, 0f), Quaternion.identity);
             try
