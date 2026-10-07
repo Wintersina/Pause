@@ -189,7 +189,8 @@ public static class ShipSelectionTest
         Check(who + ": the exhaust resolves the same id", ShipExhaust.IndexFor(ship) == id);
         if (art != null)
         {
-            float expected = shopingShips.NormalizedHullScale(shopingShips.SpriteFor(id));
+            // x ShipScale: the main game (gameS1) flies the hull 1.35x (was the bare normalised size)
+            float expected = shopingShips.NormalizedHullScale(shopingShips.SpriteFor(id)) * ShipScale.ForScene(ship.scene);
             Check(who + " is sized from its own hull", Mathf.Abs(ship.transform.localScale.x - expected) < .001f);
         }
     }

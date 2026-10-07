@@ -79,7 +79,8 @@ public class lifeControler : MonoBehaviour {
         // it, since both compute the same value from the same sprite.
         if (img != null && img.Length > 0 && img[0] != null)
         {
-            float scale = shopingShips.NormalizedHullScale(img[0]);
+            // the same factor spawnShips.ApplyHull uses (ShipScale)
+            float scale = shopingShips.NormalizedHullScale(img[0]) * ShipScale.ForScene(gameObject.scene);
             transform.localScale = new Vector3(scale, scale, transform.localScale.z);
         }
     }

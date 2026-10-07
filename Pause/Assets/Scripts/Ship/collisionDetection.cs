@@ -281,6 +281,8 @@ public class collisionDetection : MonoBehaviour {
                 else
                 {
                     GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
+                    // the hit burst matches the hull it bursts on (ShipScale)
+                    if (exp != null) exp.transform.localScale *= ShipScale.Live;
                     PlayExplosion();
                     Destroy(exp, 2);
                     PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames

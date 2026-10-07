@@ -49,7 +49,9 @@ public class ShipHitbox : MonoBehaviour
     public const float ShieldMargin = .15f;
 
     // Pickups are collected within this many world units of the hull centre
-    // (the hull itself is ReferenceHullSize = 0.58 u across).
+    // (the hull itself is ReferenceHullSize = 0.58 u across), x ShipScale on
+    // a ship flown bigger (the main game: 0.3645 u), so the reach keeps its
+    // ratio to the hull (Radius).
     public const float PickupRadius = .27f;
 
     public const string ResourcePath = "Shield/hull_hitboxes";
@@ -164,6 +166,18 @@ public class ShipHitbox : MonoBehaviour
     // Paths sent to physics, ever (the pickup frame must send none).
     public static int PathWrites { get; private set; }
 
+    // This ship's pickup reach (world units): PickupRadius x its scene's
+    // ShipScale, read once (a scene's name allocates).
+    public float Radius
+    {
+        get
+        {
+            if (radius < 0f) radius = PickupRadius * ShipScale.ForScene(gameObject.scene);
+            return radius;
+        }
+    }
+    float radius = -1f;
+
     public static ShipHitbox Of(GameObject ship)
     {
         return ship != null ? ship.GetComponent<ShipHitbox>() : null;
@@ -256,7 +270,7 @@ public class ShipHitbox : MonoBehaviour
             pickupFilter = new ContactFilter2D();
             pickupFilter.useTriggers = true;
         }
-        int n = Physics2D.OverlapCircle(transform.position, PickupRadius, pickupFilter, nearby);
+        int n = Physics2D.OverlapCircle(transform.position, Radius, pickupFilter, nearby);
         int caught = 0;
         for (int i = 0; i < n; i++)
         {
