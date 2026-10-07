@@ -154,7 +154,7 @@ public static class BossArt
     public const float ShotRimReach = .17f;       // how far past the silhouette it fades to nothing, as a share of the cell
     public const float ShotRimAlpha = .7f;        // its opacity right at the silhouette
     public const float ShotRimFalloff = 1.8f;     // > 1: most of the light sits tight against the art
-    public const float ShotRimCoverage = .5f;     // alpha a texel needs to count as the drawing
+    public const float ShotRimCoverage = .25f;    // alpha a texel needs to count as the drawing (soft painted edges count)
     public const float ShotRimPulseScale = .03f;  // its breathing (HostileGlow's wrapper: .07); alpha pulses as the wrapper's
 
     sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }
