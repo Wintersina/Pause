@@ -816,8 +816,10 @@ public static class NextFeatures0907Test
         float before = (float)timerField.GetValue(controller);
         controller.ReduceTimer(controller.secondsPerDust);
         float afterDust = (float)timerField.GetValue(controller);
+        // (a float tolerance: 0.4 s off a ~45 s timer is not exact in binary,
+        // so Mathf.Approximately's ~1e-6 relative epsilon misses it)
         Check("collecting star dust shaves time off the countdown",
-              afterDust < before && Mathf.Approximately(before - afterDust, controller.secondsPerDust));
+              afterDust < before && Mathf.Abs((before - afterDust) - controller.secondsPerDust) < 1e-4f);
 
         controller.ReduceTimer(controller.secondsPerAtom);
         float afterAtom = (float)timerField.GetValue(controller);
