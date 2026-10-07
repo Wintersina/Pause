@@ -17,6 +17,11 @@ using UnityEngine;
 //            Its join point is chosen now, clear of traffic and away from
 //            the pilot, slides if traffic arrives, and it hovers just under
 //            the play layer if there is no clear spot yet (EliteEvasion).
+//            Space has no ground: its sites are INSIDE a station, a planet
+//            or a big asteroid (LandingSite.emerge). Docked there the hull
+//            is hidden -- only the engine lights blink in the launch tell --
+//            and the lift-off opens with a dock flare instead of dust, the
+//            ship flying out from half its docked size, fading in.
 //   Join     fully in the play layer: the collider, the hazard tag, the
 //            hearts and its SpawnSpace footprint switch on, and it swoops
 //            in from the side / behind to its pursuit position. Never ends
@@ -310,9 +315,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         gameObject.tag = "Untagged";
         col.enabled = false;
         float s = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
-        SetHullScale(s);
+        SetHullScale(site.emerge ? s * EmergeStartScale : s);
         hull.sortingOrder = site.order;
-        hull.color = Haze;
+        // (docked inside a Space body: hidden, only its engine lights show in the launch tell)
+        hull.color = site.emerge ? Docked : Haze;
         if (parkedFrames != null) hull.sprite = parkedFrames[0];
         else if (frames != null) hull.sprite = frames[Mathf.Min(Def.cells.Parked, frames.Length - 1)];
         SetOrders(site.order);
@@ -331,8 +337,16 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         liftAim = liftTo;
         claim = liftTo;
         liftFrom = transform.position;
-        EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
+        if (site.emerge) EliteSystem.Fx.DockFlare(liftFrom, Def.EngineColor, site.order, hullTf.localScale.x * Def.cellWorldSize);
+        else EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
     }
+
+    // Docked inside a Space body (LandingSite.emerge): the hull is not drawn.
+    public static readonly Color Docked = new Color(Haze.r, Haze.g, Haze.b, 0f);
+    // Flying out of it: the share of the lift-off over which it fades in, and
+    // how much smaller than the site's scale it starts (out of the door).
+    public const float EmergeFadeShare = .3f, EmergeStartScale = .5f;
+    public bool IsDocked => State == EliteState.Parked && site.emerge;
 
     void EnterPlay()
     {
@@ -455,8 +469,20 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (dt > 0f) velocity = (p - prev) / dt;
 
         float s0 = Mathf.Max(.05f, site.scale > 0f ? site.scale : .3f);
-        SetHullScale(Mathf.Lerp(s0, 1f, e));
-        hull.color = Color.Lerp(Haze, Color.white, e);
+        if (site.emerge)
+        {
+            // out of the hangar / surface: from smaller than the docked size, fading in
+            SetHullScale(Mathf.Lerp(s0 * EmergeStartScale, 1f, e));
+            Color c = Color.Lerp(Haze, Color.white, e);
+            float f = k / EmergeFadeShare;
+            c.a = f < 1f / 3f ? .34f : f < 2f / 3f ? .67f : 1f;   // fades in in hard steps
+            hull.color = c;
+        }
+        else
+        {
+            SetHullScale(Mathf.Lerp(s0, 1f, e));
+            hull.color = Color.Lerp(Haze, Color.white, e);
+        }
         int order = k < .45f ? site.order : k < .9f ? -1 : PlayOrder;
         if (hull.sortingOrder != order) { hull.sortingOrder = order; SetOrders(order); }
         thrust = Mathf.Lerp(.2f, 1.2f, Mathf.Clamp01(k * 2f));
@@ -1133,7 +1159,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c);
     }
 
-    // Shows the siege cannon's sight line from `from` along `deg`.
+    public bool SightShown => sight != null && sight.enabled;
+
+    // Shows the siege cannon's (or the Rift Lancer's) sight line from `from` along `deg`.
     public void ShowSight(Vector2 from, float deg, float length, bool on)
     {
         if (sight == null) return;

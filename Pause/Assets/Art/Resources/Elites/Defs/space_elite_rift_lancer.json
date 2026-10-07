@@ -1,0 +1,82 @@
+{
+  "key": "space_elite_rift_lancer",
+  "displayName": "Rift Lancer",
+  "world": "space",
+  "role": "ion lancer",
+  "codexId": "elite_space_rift_lancer",
+  "launchFrom": "station",
+  "lore": "A split-prong ion interceptor that shoots out of station hangars and takes a flank above you, nose on you. A blinking sight line tracks you, then locks and blinks faster: a rail of bolts follows it a moment later. Step off the line, then watch it dash across to your other side.",
+  "brain": "lancer",
+  "attack": "rift_rail",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.26,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "maxBank": 0,
+  "speed": 2.7,
+  "accel": 7,
+  "turnRate": 260,
+  "followDistance": 2.3,
+  "laneOffset": 1.2,
+  "aggression": 0.5,
+  "tellSeconds": 0.85,
+  "attackGap": 3.4,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "perception": 2.4,
+  "actionSeconds": 0.45,
+  "shotCount": 5,
+  "shotSpeed": 8.5,
+  "shotSpread": 0,
+  "shotInterval": 0.05,
+  "shotSize": 0.18,
+  "shotKind": "bolt",
+  "heartColor": "#9F7BFF",
+  "shotColor": "#6FF0FF",
+  "shotCore": "#E6FAFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.95,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "prong",
+      "x": 95,
+      "y": 23,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 83,
+      "y": 155,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 107,
+      "y": 156,
+      "dir": -1.0
+    }
+  ]
+}

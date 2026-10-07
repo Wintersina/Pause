@@ -1,0 +1,102 @@
+{
+  "key": "space_elite_eventide_bastion",
+  "displayName": "Eventide Bastion",
+  "world": "space",
+  "role": "shield gunship",
+  "codexId": "elite_space_eventide_bastion",
+  "launchFrom": "station",
+  "lore": "A broad shield platform that docks in the station rings and hangs high over the middle of the board. When its wing pods glow it draws a curtain of slow bolts across your row, centred on you. There is always one gap beside you, on the side toward the middle: slide into it.",
+  "brain": "bastion",
+  "attack": "ward_curtain",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.55,
+  "hullRadius": 0.34,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "armored": true,
+  "speed": 1.8,
+  "accel": 3.5,
+  "turnRate": 140,
+  "followDistance": 3.0,
+  "laneOffset": 0.9,
+  "aggression": 0.45,
+  "tellSeconds": 0.9,
+  "attackGap": 3.8,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.5,
+  "shotCount": 7,
+  "shotSpeed": 3.4,
+  "shotSpread": 0,
+  "shotInterval": 0.03,
+  "shotSize": 0.22,
+  "shotKind": "bolt",
+  "lobSpacing": 0.75,
+  "heartColor": "#5CE8FF",
+  "shotColor": "#4FD8FF",
+  "shotCore": "#E8FCFF",
+  "engineColor": "#5FD0FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lpod",
+      "x": 38,
+      "y": 96,
+      "dir": 270.0
+    },
+    {
+      "name": "rpod",
+      "x": 153,
+      "y": 96,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 58,
+      "y": 138,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 76,
+      "y": 141,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 115,
+      "y": 141,
+      "dir": -1.0
+    },
+    {
+      "name": "d",
+      "x": 134,
+      "y": 138,
+      "dir": -1.0
+    }
+  ]
+}
