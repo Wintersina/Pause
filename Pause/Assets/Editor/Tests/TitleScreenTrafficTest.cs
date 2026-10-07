@@ -51,6 +51,7 @@ public static class TitleScreenTrafficTest
         SpinnerHullsSpinLikeGameplay();
         CrashesOnlyWithinALayerAndRateLimited();
         LongRunStaysBoundedAndLively();
+        DensityIsFortyPercentUp();
         SafeAreaAndAspectRatios();
         NeverInterceptsUiRaycasts();
         NoPerFrameAllocations();
@@ -94,7 +95,7 @@ public static class TitleScreenTrafficTest
         {
             scale &= d[i].scale > d[i - 1].scale;
             speed &= d[i].speed > d[i - 1].speed;
-            sort &= d[i].sortBase > d[i - 1].sortBase + (ShipId.Count * TitleScreenTraffic.SortSlots);
+            sort &= d[i].sortBase > d[i - 1].sortBase + (TitleScreenTraffic.PoolSize * TitleScreenTraffic.SortSlots);
             fx &= d[i].fxSort > d[i - 1].fxSort;
         }
         Check("scale grows back -> mid -> front", scale);
@@ -106,7 +107,7 @@ public static class TitleScreenTrafficTest
 
         var logo = Logo();
         int logoOrder = logo != null ? logo.sortingOrder : 0;
-        int midTop = d[1].sortBase + (ShipId.Count * TitleScreenTraffic.SortSlots);
+        int midTop = d[1].sortBase + (TitleScreenTraffic.PoolSize * TitleScreenTraffic.SortSlots);
         Check("back and mid ships (and their fx) sort behind the PAUSE logo",
               midTop < logoOrder && d[1].fxSort + 4 < logoOrder && d[0].fxSort + 4 < logoOrder);
         Check("front ships sort in front of the logo (they keep off it instead)", d[2].sortBase > logoOrder);
@@ -136,7 +137,7 @@ public static class TitleScreenTrafficTest
             int L = (int)f.layer;
             sum[L] += f.tr.lossyScale.y / f.normScale;
             n[L]++;
-            int lo = d[L].sortBase, hi = d[L].sortBase + (ShipId.Count * TitleScreenTraffic.SortSlots);
+            int lo = d[L].sortBase, hi = d[L].sortBase + (TitleScreenTraffic.PoolSize * TitleScreenTraffic.SortSlots);
             bands &= f.hull.sortingOrder >= lo && f.hull.sortingOrder < hi;
             if (L == 0 && hazeShader != null) hazed &= f.hull.sharedMaterial != null && f.hull.sharedMaterial.shader == hazeShader;
             if (L != 0 && hazeShader != null) hazed &= f.hull.sharedMaterial == null || f.hull.sharedMaterial.shader != hazeShader;
@@ -168,11 +169,27 @@ public static class TitleScreenTrafficTest
     static void NoDuplicateHullsInTheAir()
     {
         var t = Make("~TT_dupes", 3);
-        Check("the pool holds exactly one ship per roster id", t.Pool.Length == ShipId.Count);
+        // x1.4 density: the roster (15) is smaller than the busiest sky (17),
+        // so the pool is one ship per roster id plus a few flagged twins that
+        // only fly once every original is already in the air.
+        Check("the pool holds one ship per roster id plus twins up to the cap (" + t.Pool.Length + ")",
+              t.Pool.Length == TitleScreenTraffic.PoolSize && t.Pool.Length >= ShipId.Count);
         var ids = new HashSet<int>();
-        bool ok = true;
-        foreach (var f in t.Pool) ok &= ids.Add(f.id) && ShipId.IsValid(f.id) && f.go.name == ShipId.ObjectName(f.id);
-        Check("pool ids are the roster ids, named like ships", ok && ids.Count == ShipId.Count);
+        bool ok = true, twinsLast = true;
+        for (int i = 0; i < t.Pool.Length; i++)
+        {
+            var f = t.Pool[i];
+            if (f.twin) { ok &= ShipId.IsValid(f.id) && f.go.name == ShipId.ObjectName(f.id) + "_twin" && !f.wind; }
+            else { ok &= ids.Add(f.id) && ShipId.IsValid(f.id) && f.go.name == ShipId.ObjectName(f.id); twinsLast &= i < ShipId.Count; }
+        }
+        Check("originals are the roster ids, named like ships; twins come after them", ok && twinsLast && ids.Count == ShipId.Count);
+        Check("sorting slots fit a layer's band (" + t.Pool.Length + " x " + TitleScreenTraffic.SortSlots + " <= 85)",
+              t.Pool.Length * TitleScreenTraffic.SortSlots <= 85);
+        // while any original is free, a launch never takes a twin
+        foreach (var f in t.Pool) if (f.active) { f.active = false; f.go.SetActive(false); }
+        bool noEarlyTwin = true;
+        for (int i = 0; i < ShipId.Count; i++) { var f = t.Launch(TitleScreenTraffic.Depth.Mid, true, false, null); noEarlyTwin &= f != null && !f.twin; }
+        Check("no twin flies before the originals are all up", noEarlyTwin);
 
         bool hullArt = true;
         foreach (var f in t.Pool)
@@ -724,8 +741,8 @@ public static class TitleScreenTrafficTest
         }
         float avgPop = steps > 0 ? popSum / (float)steps : 0f;
         Check("population never exceeds the cap (" + t.maxShips + ")", capped);
-        Check("population stays steady (avg " + avgPop.ToString("0.0") + ", min " + minPop + ")", avgPop >= 8f && minPop >= 5);
-        Check("ship pool is fixed at one per roster id", t.Pool.Length == ShipId.Count);
+        Check("population stays steady (avg " + avgPop.ToString("0.0") + ", min " + minPop + ")", avgPop >= 12f && minPop >= 8);   // x1.4 sky (was avg >= 8, min >= 5)
+        Check("ship pool is fixed (roster + twins)", t.Pool.Length == TitleScreenTraffic.PoolSize);
         Check("trail / fx tracking pools stay bounded", pools && t.Trails.Length == TitleScreenTraffic.TrailPool);
         Check("WeaponFx flipbook pool stays small (peak " + flipbookPeak + ")", flipbookPeak <= 16 && flipbookPeak <= WeaponFx.MaxFlipbooks);
 
@@ -751,6 +768,56 @@ public static class TitleScreenTrafficTest
         Check("dizzy beats happen (" + t.DizzyBeats + ")", t.DizzyBeats >= 5);
         Check("logo didn't move during the long run", logo == null || logo.transform.position == lp);
         Done(t);
+    }
+
+    // The home sky holds DensityScale (x1.4) times the ships it used to. The
+    // old defaults (cap 12, cruisers 5/4/2) are rebuilt here by hand as the
+    // baseline; the same seeds fly both, so the ratio is a fair comparison.
+    static void DensityIsFortyPercentUp()
+    {
+        var oldLayers = new[] { 5, 4, 2 };
+        float baseAvg = 0f, newAvg = 0f; int basePeak = 0, newPeak = 0;
+        const int Runs = 3;
+        for (int run = 0; run < Runs; run++)
+        {
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var t = Make("~TT_density" + pass, 500 + run, pass == 0
+                    ? (System.Action<TitleScreenTraffic>)(x => { x.maxShips = 12; x.layerTargets = (int[])oldLayers.Clone(); })
+                    : null);
+                long sum = 0; int steps = 0, peak = 0;
+                for (float s = 0f; s < 300f; s += Dt)
+                {
+                    t.Step(Dt);
+                    int n = t.ActiveCount;
+                    if (s > 10f) { sum += n; steps++; peak = Mathf.Max(peak, n); }
+                }
+                float avg = sum / (float)steps;
+                if (pass == 0) { baseAvg += avg / Runs; basePeak = Mathf.Max(basePeak, peak); }
+                else
+                {
+                    newAvg += avg / Runs; newPeak = Mathf.Max(newPeak, peak);
+                    if (run == 0)
+                    {
+                        Check("defaults are the old ones scaled by DensityScale (cap " + t.maxShips + ", cruisers " +
+                              string.Join("/", t.layerTargets) + ")",
+                              t.maxShips == TitleScreenTraffic.Scaled(12) && t.layerTargets.Length == 3 &&
+                              t.layerTargets[0] == TitleScreenTraffic.Scaled(5) && t.layerTargets[1] == TitleScreenTraffic.Scaled(4) &&
+                              t.layerTargets[2] == TitleScreenTraffic.Scaled(2));
+                        Check("the cap and the pool hold the busier sky (cap " + t.maxShips + " <= MaxCap " + TitleScreenTraffic.MaxCap +
+                              " <= pool " + t.Pool.Length + ")",
+                              t.maxShips <= TitleScreenTraffic.MaxCap && TitleScreenTraffic.MaxCap <= t.Pool.Length);
+                    }
+                }
+                Done(t);
+            }
+        }
+        float ratio = newAvg / baseAvg;
+        Debug.Log("[TT] density: old avg " + baseAvg.ToString("0.00") + " peak " + basePeak + ", new avg " + newAvg.ToString("0.00") +
+                  " peak " + newPeak + ", ratio " + ratio.ToString("0.000"));
+        Check("average concurrent ships is ~1.4x the old sky (" + baseAvg.ToString("0.0") + " -> " + newAvg.ToString("0.0") +
+              ", x" + ratio.ToString("0.00") + ", band 1.30-1.50)", ratio >= 1.30f && ratio <= 1.50f);
+        Check("peak concurrent ships rose (" + basePeak + " -> " + newPeak + ")", newPeak > basePeak);
     }
 
     static int CrashLayers(TitleScreenTraffic t, int layer)
@@ -794,7 +861,7 @@ public static class TitleScreenTrafficTest
                 sitesSafe &= safe.Contains(p);
                 offLogo &= !t.LogoRect.Contains(p);
             }
-            populated &= t.Crashes > 0 && pop / (float)samples >= 7f;
+            populated &= t.Crashes > 0 && pop / (float)samples >= 10f;
             Done(t);
         }
         Check("at every aspect ratio, crashes land inside the safe area", sitesSafe);
@@ -842,9 +909,9 @@ public static class TitleScreenTrafficTest
 
     static void NoPerFrameAllocations()
     {
-        // a full sky (14 of the 15 hulls), so at least one spinner and its
+        // a full sky (17: all 15 hulls and the twins), so at least one spinner and its
         // drift is always in the air during the measured window
-        var t = Make("~TT_alloc", 77, x => { x.maxShips = TitleScreenTraffic.MaxCap; x.layerTargets = new[] { 6, 5, 3 }; });
+        var t = Make("~TT_alloc", 77, x => { x.maxShips = TitleScreenTraffic.MaxCap; x.layerTargets = new[] { 8, 7, 4 }; });
         // warm up: every pool grown, every effect seen at least once
         for (int i = 0; i < 30 * 150; i++) t.Step(Dt);
         int spinners = 0;

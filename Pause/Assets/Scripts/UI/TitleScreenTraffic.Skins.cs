@@ -73,7 +73,7 @@ public partial class TitleScreenTraffic
         for (int k = 0; k < n; k++)
         {
             var f = pool[(start + k) % n];
-            if (f.resident == 0 && ShipSkins.CountFor(f.id) > 1) { Wear(f, RandomColourway(f.id, 0)); return; }
+            if (!f.twin && f.resident == 0 && ShipSkins.CountFor(f.id) > 1) { Wear(f, RandomColourway(f.id, 0)); return; }
         }
 
         // then: one ship on the ground swaps its colourway

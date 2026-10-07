@@ -80,14 +80,27 @@ public partial class TitleScreenTraffic : MonoBehaviour
     };
 
     public const int SortSlots = 5;            // per ship: trail x2, flame, hull, spare
-    public const int MaxCap = 14;
 
-    [Tooltip("Most ships in the air at once (10-14 reads busy but not chaotic).")]
-    [Range(1, MaxCap)] public int maxShips = 12;
+    // THE home-screen density knob: the sky holds this many times the ships it
+    // did originally (cap 12, cruisers 5/4/2 -> 17, 7/6/3). The roster has
+    // only 15 hulls and no two may share the sky until they must, so the pool
+    // adds a couple of repeat hulls ("twins", see PoolSize) to hold it. The
+    // respawn / zoom / formation / crash intervals are left alone: replacing
+    // ships as they leave keeps the cadence smooth, not bursty.
+    public const float DensityScale = 1.4f;
+    public static int Scaled(int n) { return Mathf.RoundToInt(n * DensityScale); }
+
+    // Most ships ever in the air; also the pool size when the roster is
+    // smaller (the extras are twins). 17 slots x SortSlots = 85 sorting
+    // orders, exactly what a layer's band holds below its fx sort.
+    public const int MaxCap = 17;
+
+    [Tooltip("Most ships in the air at once (about 1.4x the old 12).")]
+    [Range(1, MaxCap)] public int maxShips = Scaled(12);
 
     [Tooltip("Cruising ships kept on each layer, back to front. Zoomers and " +
              "formation wingmen come on top, up to maxShips.")]
-    public int[] layerTargets = { 5, 4, 2 };
+    public int[] layerTargets = { Scaled(5), Scaled(4), Scaled(2) };
 
     [Tooltip("Seconds between crashes.")]
     public Vector2 crashInterval = new Vector2(6f, 9f);
@@ -114,7 +127,8 @@ public partial class TitleScreenTraffic : MonoBehaviour
     public enum State { Idle, Cruise, Boost, ZipIn, ZipOut, Pursue, Formation, Dizzy, Plunge }
     public enum Trick { None, Loop, Roll }
 
-    // One pooled ship per roster id.
+    // One pooled ship per roster id, plus twins (a repeat of a hull, flown
+    // only when every original is already in the air).
     public class Flyer
     {
         public int id;
@@ -127,6 +141,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         public bool wind;                     // Ninja / UFO: spinning craft, no flame
         public ShipSpinDrift drift;           // ...their spin drift instead (gameplay's)
         public int slot;                      // pool index, for sorting
+        public bool twin;                     // a repeat hull: stock skin only, no wardrobe of its own
 
         public bool active;
         public Depth layer;
@@ -252,6 +267,8 @@ public partial class TitleScreenTraffic : MonoBehaviour
     public FlipbookFx LastExplosion { get; private set; }
     public float Now => now;
     public float NextCrashAt { get => nextCrashAt; set => nextCrashAt = value; }
+    public float NextZoomAt { get => nextZoomAt; set => nextZoomAt = value; }
+    public static int PoolSize => Mathf.Max(ShipId.Count, MaxCap);
     public Flyer[] Pool => pool;
     public Trail[] Trails => trails;
     public int ShardPoolSize => ShardPool;
@@ -340,11 +357,21 @@ public partial class TitleScreenTraffic : MonoBehaviour
 
     void BuildPool()
     {
-        pool = new Flyer[ShipId.Count];
+        pool = new Flyer[PoolSize];
         int slot = 0;
-        foreach (int id in ShipId.All)
+        int twins = pool.Length - ShipId.Count;
+        for (int n = 0; n < pool.Length; n++)
         {
-            var go = new GameObject(ShipId.ObjectName(id));
+            bool twin = n >= ShipId.Count;
+            int id = ShipId.First + n;
+            if (twin)
+            {
+                // spread over the roster, skipping the spinners (they carry
+                // a drift component and look odd twice)
+                id = ShipId.First + (n - ShipId.Count) * ShipId.Count / twins;
+                while (ShipExhaust.UsesWind(id)) id = id == ShipId.Last ? ShipId.First : id + 1;
+            }
+            var go = new GameObject(ShipId.ObjectName(id) + (twin ? "_twin" : ""));
             go.layer = 2;
             go.transform.SetParent(transform, false);
             var sr = go.AddComponent<SpriteRenderer>();
@@ -354,9 +381,9 @@ public partial class TitleScreenTraffic : MonoBehaviour
             // the hull redraw puts behind shopingShips/OriginalShipArt), its
             // normalised size and the ship's own nozzle-mounted boost flame.
             spawnShips.ApplyHull(go, id);
-            go.name = ShipId.ObjectName(id);
+            go.name = ShipId.ObjectName(id) + (twin ? "_twin" : "");
 
-            var f = new Flyer { id = id, go = go, tr = go.transform, hull = sr, slot = slot };
+            var f = new Flyer { id = id, go = go, tr = go.transform, hull = sr, slot = slot, twin = twin };
             f.wind = ShipExhaust.UsesWind(id);
             f.normScale = sr.sprite != null ? shopingShips.NormalizedHullScale(sr.sprite) : 1f;
             var boost = go.transform.Find("Boost" + id);
@@ -561,12 +588,15 @@ public partial class TitleScreenTraffic : MonoBehaviour
 
     Flyer FreeFlyer()
     {
-        int n = pool.Length, start = Random.Range(0, n);
+        // originals first (no repeat hull in the air while one is free)
+        int n = Mathf.Min(ShipId.Count, pool.Length), start = Random.Range(0, n);
         for (int k = 0; k < n; k++)
         {
             var f = pool[(start + k) % n];
             if (!f.active && f.hull.sprite != null) return f;
         }
+        for (int i = n; i < pool.Length; i++)
+            if (!pool[i].active && pool[i].hull.sprite != null) return pool[i];
         return null;
     }
 

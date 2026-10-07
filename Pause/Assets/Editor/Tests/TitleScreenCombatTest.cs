@@ -93,7 +93,7 @@ public static class TitleScreenCombatTest
     static TitleScreenTraffic.Flyer LaunchId(TitleScreenTraffic t, int id, TitleScreenTraffic.Depth layer, Vector2 at, float heading)
     {
         TitleScreenTraffic.Flyer target = null;
-        foreach (var f in t.Pool) if (f.id == id) target = f;
+        foreach (var f in t.Pool) if (f.id == id && !f.twin) target = f;   // the original hull, never its twin
         if (target == null) return null;
         if (target.active) { target.active = false; target.go.SetActive(false); }
         // Launch takes a random free hull; walk until it lands on this one
@@ -127,6 +127,7 @@ public static class TitleScreenCombatTest
         });
         t.NextCrashAt = 1e9f;
         t.NextPlungeAt = 1e9f;
+        t.NextZoomAt = 1e9f;   // Init schedules a first zoomer at 1.5-4 s whatever zoomInterval says; it would relaunch a pooled hull mid-test
         foreach (var f in t.Pool) if (f.active) { f.active = false; f.go.SetActive(false); }
         return t;
     }
@@ -574,7 +575,7 @@ public static class TitleScreenCombatTest
         var t = Make("~TC_alloc", 77, x =>
         {
             x.maxShips = TitleScreenTraffic.MaxCap;
-            x.layerTargets = new[] { 6, 5, 3 };
+            x.layerTargets = new[] { 8, 7, 4 };   // x1.4 sky: a full 17 (cap), twins flying too
             x.plungeInterval = new Vector2(8f, 12f);
         });
         // warm-up: the wardrobe decoded, every pool grown, each weapon and
