@@ -62,7 +62,7 @@ public class WorldBackdropImport : AssetPostprocessor
         AssetDatabase.ImportAsset(folder + "reference_planet.png", ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "comet_v2.png", ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "station_ring_v2.png", ImportAssetOptions.ForceUpdate);
-        foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx" })
+        foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx", "comet_frames_v1" })
             AssetDatabase.ImportAsset(folder + atlas + ".png", ImportAssetOptions.ForceUpdate);
     }
 
@@ -82,7 +82,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.npotScale = TextureImporterNPOTScale.None;
         // Verdant's central world tile is the visual anchor behind the thick
         // rails. Keep its high-resolution industrial detail on modern phones.
-        ti.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -113,7 +113,7 @@ public class WorldBackdropImport : AssetPostprocessor
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
-            defaults.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
+            defaults.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
             ti.SetPlatformTextureSettings(defaults);
         }
 
@@ -121,7 +121,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
             ps.format = TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;

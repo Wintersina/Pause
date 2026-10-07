@@ -121,6 +121,7 @@ public partial class SpaceDirector : BackdropDirector
     Sprite[] neonPlanets, referencePlanet;
     Sprite[] detailedStationFrames;
     Sprite detailedComet;
+    Sprite[] detailedCometFrames;
     Sprite[][] asteroidEffects;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
     readonly List<BackdropPool> setPieces = new List<BackdropPool>();
@@ -174,6 +175,7 @@ public partial class SpaceDirector : BackdropDirector
         Sprite reference = Resources.Load<Sprite>(spaceFolder + "reference_planet");
         referencePlanet = reference != null ? new[] { reference } : new Sprite[0];
         detailedComet = Resources.Load<Sprite>(spaceFolder + "comet_v2");
+        detailedCometFrames = set.CometFrames != null ? set.CometFrames.Frames("comet_frame") : new Sprite[0];
         Sprite detailedStation = Resources.Load<Sprite>(spaceFolder + "station_ring_v2");
         detailedStationFrames = detailedStation != null ? new[] { detailedStation } : new Sprite[0];
         asteroidEffects = new Sprite[3][];
@@ -359,6 +361,7 @@ public partial class SpaceDirector : BackdropDirector
             {
                 OrientComet(c, v);
                 Paint(c, 1f);
+                c.Animate();
             }
         foreach (var s in shooters.items)
         {
@@ -720,11 +723,18 @@ public partial class SpaceDirector : BackdropDirector
     // tier), small and dim.
     void SpawnComet(float scrollVelocity)
     {
-        if (comet.Length == 0 && detailedComet == null) return;
+        if (comet.Length == 0 && detailedComet == null && detailedCometFrames.Length == 0) return;
         var c = comets.Spawn();
         if (c == null) return;
-        SetSprite(c, detailedComet != null && (comet.Length == 0 || Chance(0.65)) ? detailedComet : Pick(comet),
-                  Rand(CometMinWidth, CometMaxWidth));
+        bool useDetailed = detailedCometFrames.Length > 0 && (comet.Length == 0 || Chance(0.65));
+        Sprite selected = useDetailed ? detailedCometFrames[0]
+            : detailedComet != null && comet.Length == 0 ? detailedComet : Pick(comet);
+        SetSprite(c, selected, Rand(CometMinWidth, CometMaxWidth));
+        if (useDetailed)
+        {
+            c.frames = detailedCometFrames;
+            c.fps = 8f;
+        }
         float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
         c.x = -dir * (HalfW + 1f);
         c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);

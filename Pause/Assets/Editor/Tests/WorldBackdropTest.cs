@@ -1156,6 +1156,8 @@ public static class WorldBackdropTest
             for (int i = 0; i < 3 && effectFrames; i++)
                 effectFrames &= wb.Current.AsteroidFx.Frames("asteroidfx" + i).Length >= 4;
             Check("Space gives every still asteroid at least four smoke/light frames", effectFrames);
+            Check("Space loads eight comet animation frames",
+                  wb.Current.CometFrames != null && wb.Current.CometFrames.Frames("comet_frame").Length == 8);
 
             var sky = wb.Current.Tiles[0];
             Check("Space sky draws through the wrap cross-fade shader",
@@ -1195,7 +1197,7 @@ public static class WorldBackdropTest
             // A long run: every sphere turns, comets stay small and dim.
             const float step = 1f / 30f;
             int spheres = 0, still = 0, comets = 0;
-            bool cometsDim = true;
+            bool cometsDim = true, animatedCometSeen = false;
             BackdropPiece watchedRock = null;
             Sprite rockImage = null, effectImage = null;
             bool rockStill = true, effectsAdvance = false;
@@ -1236,6 +1238,8 @@ public static class WorldBackdropTest
                     {
                         if (!p.active || p.sr.sprite == null || !p.sr.sprite.name.StartsWith("comet")) continue;
                         comets++;
+                        animatedCometSeen |= p.frames != null && p.frames.Length == 8 &&
+                            p.sr.sprite != p.frames[0];
                         brightest = Mathf.Max(brightest, p.sr.color.a);
                         biggest = Mathf.Max(biggest, p.size);
                         Color c = p.sr.color;
@@ -1251,6 +1255,7 @@ public static class WorldBackdropTest
             Check("Space comets stay small and dim (" + comets + " samples, alpha <= " + brightest.ToString("F2") + " <= " +
                   SpaceDirector.CometMaxAlpha + ", width <= " + biggest.ToString("F2") + " <= " + SpaceDirector.CometMaxWidth + " u)",
                   cometsDim && comets > 0);
+            Check("Space comet animation advances during flight", animatedCometSeen);
 
             for (int i = 0; i < 60; i++) wb.Step(step);
             long before0 = System.GC.GetAllocatedBytesForCurrentThread();

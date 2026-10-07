@@ -36,6 +36,7 @@ public class BackdropSet
     public BackdropAtlas Extras { get; private set; }
     public BackdropAtlas NeonFrames { get; private set; }
     public BackdropAtlas AsteroidFx { get; private set; }
+    public BackdropAtlas CometFrames { get; private set; }
     public BackdropDirector Director { get; private set; }
     public readonly List<BackdropTile> Tiles = new List<BackdropTile>();
     public readonly List<Texture> Textures = new List<Texture>();
@@ -65,6 +66,7 @@ public class BackdropSet
         if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
         if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
         if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
+        if (Spec.world == "Space") CometFrames = LoadAtlas(folder, "comet_frames_v1");
         Complete = Fx.Count > 0;
 
         foreach (var layer in Spec.layers)
@@ -150,6 +152,7 @@ public class BackdropSet
         if (Extras != null) Extras.Destroy();
         if (NeonFrames != null) NeonFrames.Destroy();
         if (AsteroidFx != null) AsteroidFx.Destroy();
+        if (CometFrames != null) CometFrames.Destroy();
         if (Root != null) BackdropAtlas.Kill(Root.gameObject);
         Textures.Clear();
     }
