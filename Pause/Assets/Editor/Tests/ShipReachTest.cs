@@ -12,7 +12,8 @@ using Object = UnityEngine.Object;
 //             CameraFit gives it): the ship's range is TopShare of the view
 //             at the top and the safe area's bottom + the hull's drawing +
 //             a margin at the bottom; the hull is fully visible there and
-//             under the HUD band at the top; sideways stays +/-2.4; the range
+//             under the HUD band at the top; sideways the hull stops on the
+//             rails' inner edge (RailInset, ShipScale); the range
 //             follows the safe area continuously (a fold, a gesture bar)
 //   PILOTS    every pilot against a ship parked at the top of its reach:
 //             windups only start with the authored clearance (x view), no
@@ -230,10 +231,16 @@ public static class ShipReachTest
                   f.hasBand && top + ShipReach.HullAbove < f.bandBottom);
             Check(id + ": movePlayer's clamp is this range", Mathf.Approximately(movePlayer.ClampPlayerY(-99f), bottom) &&
                   Mathf.Approximately(movePlayer.ClampPlayerY(99f), top) && Mathf.Approximately(movePlayer.ClampPlayerY(0f), Mathf.Clamp(0f, bottom, top)));
-            Check(id + ": sideways reach unchanged (+/-2.4)", ShipReach.ClampX(-9f) == -2.4f && ShipReach.ClampX(9f) == 2.4f && ShipReach.HalfWidth == 2.4f);
+            // (was "sideways reach unchanged (+/-2.4)": the hull's side now stops on
+            // the rails' drawn inner edge, which RailInset moves out on tall screens,
+            // with the main game's 1.35x hull -- RailsShipSizeTest checks the art)
+            float side = BossRails.DrawnInnerEdge - ShipScale.HullHalfWidth;
+            Check(id + ": sideways the hull stops on the rails' inner edge (+/-" + F(ShipReach.HalfWidth) + " = " + F(BossRails.DrawnInnerEdge) + " - " + F(ShipScale.HullHalfWidth) + ")",
+                  Mathf.Approximately(ShipReach.ClampX(-9f), -side) && Mathf.Approximately(ShipReach.ClampX(9f), side) && Mathf.Approximately(ShipReach.HalfWidth, side));
             Check(id + ": it reaches the bottom of the screen (" + P(f.ShareOf(bottom)) + " of the view; was " + P(f.ShareOf(oldB)) + "), " +
                   P(f.ShareOf(top) - f.ShareOf(bottom)) + " of the view in all (was " + P(f.ShareOf(oldT) - f.ShareOf(oldB)) + ")",
-                  f.ShareOf(bottom) <= .1f + 1e-3f && (!phone || bottom < oldB));
+                  // (+ the main game's bigger hull: its drawing below the centre grew by x ShipScale)
+                  f.ShareOf(bottom) <= .1f + (ShipReach.HullBelow - ShipReach.AuthoredHullBelow) / f.Height + 1e-3f && (!phone || bottom < oldB));
         }
         Use(FitDevice.Find("flip7-1080x2520"));
         string src = System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs") + System.IO.File.ReadAllText("Assets/Scripts/Gameplay/movePlayerInTut.cs");

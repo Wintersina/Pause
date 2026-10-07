@@ -18,15 +18,19 @@ public class AtomSpin : MonoBehaviour
         // rendered width inside the safe lane after any movement scripts run.
         var sprite = GetComponent<SpriteRenderer>();
         float halfWidth = sprite != null ? sprite.bounds.extents.x : 0.18f;
-        float limit = Mathf.Max(0f, 2.35f - halfWidth);
+        float limit = Mathf.Max(0f, RailInset.Lane(Lane) - halfWidth);
         var p = transform.position;
         p.x = Mathf.Clamp(p.x, -limit, limit);
         transform.position = p;
     }
 
+    // The atoms' lane half-width at the authored rails (RailInset widens it).
+    public const float Lane = 2.35f;
+
     public static float ClampAtomX(float x, float renderedHalfWidth)
     {
-        return Mathf.Clamp(x, -(2.35f - renderedHalfWidth), 2.35f - renderedHalfWidth);
+        float limit = RailInset.Lane(Lane) - renderedHalfWidth;
+        return Mathf.Clamp(x, -limit, limit);
     }
 
     public static GameObject AddTo(GameObject atom)

@@ -29,7 +29,10 @@ using UnityEngine;
 //           top edge; at 70% the ship has about 0.4 s at HUD 35 to react to
 //           what appears there. While a boss is up it stays under the boss
 //           (BossCeilingFor: 65% of the view or lower, under its muzzles).
-//   SIDES   +/-HalfWidth (unchanged: the lane and rails are fixed in x).
+//   SIDES   +/-HalfWidth: the hull's side (ShipScale.HullHalfWidth) just
+//           reaches the rails' drawn inner edge (BossRails.InnerEdge), never
+//           over it. The rails move out where the screen has room
+//           (RailInset), and the reach with them.
 //
 // The range follows the live camera and safe area every frame (a foldable
 // folding, a rotation): it is a pure function of them, so it changes
@@ -44,15 +47,31 @@ public static class ShipReach
     public static float TopShare = .7f;
     // Clear space between the ship's lowest drawn pixel and the safe area's bottom (world u).
     public static float BottomMargin = .15f;
-    // The ship's drawing below / above its centre: the hulls are 0.58 u tall
-    // at most; the longest nozzle flame (drawn at its full boost size) ends
-    // 0.81 u under the centre. ShipReachTest measures every hull.
-    public const float HullBelow = .82f;
-    public const float HullAbove = .3f;
+    // The ship's drawing below / above its centre at the normalised size: the
+    // hulls are 0.58 u tall at most; the longest nozzle flame (drawn at its
+    // full boost size) ends 0.81 u under the centre. ShipReachTest measures
+    // every hull. Live: x ShipScale (1.35 in the main game).
+    public const float AuthoredHullBelow = .82f;
+    public const float AuthoredHullAbove = .3f;
+    public static float HullBelow => AuthoredHullBelow * ShipScale.Live;
+    public static float HullAbove => AuthoredHullAbove * ShipScale.Live;
     // The ship's centre sits this far above the finger (HeartOrbit.ThumbBelow).
     public const float FingerOffset = 1f;
-    // Sideways: the ship's centre stays within +/- this (unchanged).
-    public const float HalfWidth = 2.4f;
+    // Sideways: the ship's centre stays within +/- this. It was the constant
+    // 2.4 (LegacyHalfWidth), which let a 0.58 u hull poke 0.08 u into the
+    // drawn rails (inner edge 2.61); now the hull's side stops on the rails'
+    // inner edge: 2.21 (16:9) .. 2.45 (19.5:9 and taller, tablets) at the
+    // main game's 1.35x ship, 2.32 .. 2.56 at the normalised size.
+    public const float LegacyHalfWidth = 2.4f;
+    public static float HalfWidthFor(float railInnerEdge, float hullHalfWidth)
+    {
+        return Mathf.Max(MinHalfWidth, railInnerEdge - hullHalfWidth - RailClearance);
+    }
+    public static float HalfWidth => HalfWidthFor(BossRails.DrawnInnerEdge, ShipScale.HullHalfWidth);
+    // Clear space between the hull's side and the rail at the clamp (world u).
+    public const float RailClearance = 0f;
+    // Never squeezed to less than this (no rails / a nonsense measurement).
+    public const float MinHalfWidth = 1.5f;
     // Never squeezed to less than this (a landscape / very short window).
     public const float MinSpan = 2f;
     // Where a run's ship starts: this share up the view (the authored y -2 of a 10 u view).

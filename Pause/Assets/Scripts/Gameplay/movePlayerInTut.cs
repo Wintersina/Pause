@@ -41,7 +41,9 @@ public class movePlayerInTut : MonoBehaviour
         //checks position of finger is in bound box
         // (vertically: the same reach as the run, ShipReach, in the view this
         // device shows; it was the constant -4.15 .. 4.5)
-        if (fingerPos.x <= 2.4 && fingerPos.x > -2.4)
+        // (sideways: ShipReach's reach too, which follows the rails)
+        float reach = ShipReach.HalfWidth;
+        if (fingerPos.x <= reach && fingerPos.x > -reach)
         {
             this.transform.position = new Vector3(fingerPos.x,
                 ShipReach.ClampY(fingerPos.y + 1.5f));
@@ -55,16 +57,10 @@ public class movePlayerInTut : MonoBehaviour
 
             //--------------------------------------------------------
         }
-        else if (fingerPos.x > 2.4)
+        else
         {
-            this.transform.position = new Vector3(2.4f,
+            this.transform.position = new Vector3(ShipReach.ClampX(fingerPos.x),
                 ShipReach.ClampY(fingerPos.y + 1.5f));
-        }
-        else if (fingerPos.x < -2.4)
-        {
-            this.transform.position = new Vector3(-2.4f,
-                ShipReach.ClampY(fingerPos.y + 1.5f));
-
         }
 
     }

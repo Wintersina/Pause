@@ -67,7 +67,7 @@ public class HealAtomSpawner : MonoBehaviour
         // already visible on 9:22+ phones), clear of the enemies' footprints
         // when there's room (SpawnSpace)
         Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
-        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-2.2f, 2.2f), CameraFit.ViewTop + SpawnAboveTop, 0f), half, -2.2f, 2.2f);
+        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + SpawnAboveTop, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
     }

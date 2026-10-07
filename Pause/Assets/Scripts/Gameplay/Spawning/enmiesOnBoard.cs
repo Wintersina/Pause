@@ -794,7 +794,7 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         // (With behaviours the line is a real line: AlienLineSpacing apart,
         // each wiggling or marching in step inside its own narrow band.)
-        float startX = Random.Range(-2.3f, 2f);
+        float startX = Random.Range(-RailInset.Lane(2.3f), RailInset.Lane(2f));
         int max = Random.Range(1, 5);
         for (int i = 0; i < max; i++)
         {
@@ -830,7 +830,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
     bool TrySpawnExtra()
     {
-        float x = Random.Range(-2.2f, 2.2f);
+        float lane = RailInset.Lane(2.2f);
+        float x = Random.Range(-lane, lane);
         if (extraEnemyPrefabs != null && extraEnemyPrefabs.Length > 0)
         {
             GameObject pick = extraEnemyPrefabs[Random.Range(0, extraEnemyPrefabs.Length)];
@@ -950,7 +951,7 @@ public class enmiesOnBoard : MonoBehaviour {
             for (int k = 0; k < ChaserDropSteps; k++)
                 for (int t = 0; t < PlaceTries; t++)
                 {
-                    var at = new Vector2(Random.Range(-2.2f, 2.2f), bottomY - k * LiftStep);
+                    var at = new Vector2(Random.Range(-RailInset.Lane(2.2f), RailInset.Lane(2.2f)), bottomY - k * LiftStep);
                     var c = new SpawnCandidate(at, half);
                     if (!SpawnSpace.ClearForSteerer(null, at, half) || !SpawnSpace.Fits(c)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
@@ -1075,8 +1076,22 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
 
 public class RailLaneScroller : MonoBehaviour
 {
+    // The rails' layout this lane was placed on (WorldPainter.AppliedInset).
+    float placedInset = float.NaN;
+
     void Update()
     {
+        // The rails moved out or back (a fold / unfold changed RailInset):
+        // put the lane, and the mines mounted on it, back on the drawn rail.
+        float inset = WorldPainter.AppliedInset;
+        if (float.IsNaN(placedInset)) placedInset = inset;
+        else if (inset != placedInset)
+        {
+            placedInset = inset;
+            var p = transform.position;
+            p.x = enmiesOnBoard.WorldRailX(p.x < 0f);
+            transform.position = p;
+        }
         // the same step the rail art takes this frame (BoardRoll), so a mine
         // on this lane stays registered to the art it is clamped to
         if (TouchInput.IsPressed || score.pauseCounter <= 0)

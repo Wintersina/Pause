@@ -46,7 +46,7 @@ public class TutorialAtomDrift : MonoBehaviour
     public const float DriftTowardShipSpeed = .6f;
 
     // The play lane, the same one AtomSpin clamps atoms into.
-    const float LaneHalfWidth = 2.2f;
+    static float LaneHalfWidth => RailInset.Lane(2.2f);
 
     float hoverY;
     bool hoverSet;

@@ -17,6 +17,46 @@ public static class WorldPainter
     static Shader cachedLeftShader, cachedRightShader;
     static float cachedLeftWidth = 1f, cachedRightWidth = 1f;
     static float cachedLeftX, cachedRightX;
+    // The world whose rail layout is on the walls (null before the first Apply).
+    static string laidOutWorld;
+    // RailInset.Shift the walls were last laid out with.
+    static float appliedInset;
+
+    // ---- dark inner edge (WorldRailRepeat's _Edge* properties) ----
+    // The lane-facing band of every reinforced rail is shaded toward
+    // near-black in stepped bands, and its cable gaps plus a thin strip past
+    // the silhouette fill with a near-black shadow: the rails read as dark,
+    // recessed walls with a dark transition into the starfield (the approved
+    // 900x1600 reference). The outer edge (against the screen border) is
+    // never touched, and saturated neon lamps keep their light (lampKeep).
+    // Tune here; per world in EdgeFor. Costs nothing per frame: a handful of
+    // ALU ops in the rail's own fragment shader, no extra draw.
+    public struct RailEdge
+    {
+        public float dark;         // shade at the very inner edge (0..1)
+        public float width;        // the band, as a share of the rail's visible width
+        public float steps;        // falloff steps across the band (pixel-art bands)
+        public float shadow;       // alpha of the near-black fill in the gaps / past the edge
+        public float shadowWidth;  // that fill past the silhouette, share of the rail width
+        public float lampKeep;     // share of the shade the neon lamps ignore
+    }
+
+    public static readonly RailEdge DefaultEdge = new RailEdge
+    {
+        dark = .55f, width = .16f, steps = 4f, shadow = .6f, shadowWidth = .05f, lampKeep = .85f
+    };
+
+    public static RailEdge EdgeFor(string world)
+    {
+        var e = DefaultEdge;
+        switch (world)
+        {
+            // Frost's pale steel is the brightest metal: a touch more shade
+            // for the same read.
+            case "Frost": e.dark = .6f; break;
+        }
+        return e;
+    }
 
     public static void Apply(WorldTheme theme)
     {
@@ -46,6 +86,7 @@ public static class WorldPainter
             if (mat == null || !mat.HasProperty("_Overlap")) continue;
             mat.SetFloat("_Overlap", 0.03f);
             mat.SetFloat("_BlackCutout", 1f);
+            ApplyEdge(mat, theme.displayName);
         }
         Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
         Paint(RightWallName, rail, theme.tint, cachedRight, true);
@@ -66,6 +107,22 @@ public static class WorldPainter
             case "Space": return "rail_space_wide_v1";
             default: return null;
         }
+    }
+
+    // Sets `world`'s dark-edge treatment on a WorldRailRepeat material.
+    public static void ApplyEdge(Material mat, string world)
+    {
+        if (mat == null || !mat.HasProperty("_EdgeDark")) return;
+        RailBounds(world, out float min, out float max);
+        var e = EdgeFor(world);
+        mat.SetFloat("_EdgeInnerU", max);
+        mat.SetFloat("_EdgeOuterU", min);
+        mat.SetFloat("_EdgeDark", e.dark);
+        mat.SetFloat("_EdgeWidth", e.width);
+        mat.SetFloat("_EdgeSteps", e.steps);
+        mat.SetFloat("_EdgeShadow", e.shadow);
+        mat.SetFloat("_EdgeShadowWidth", e.shadowWidth);
+        mat.SetFloat("_EdgeLampKeep", e.lampKeep);
     }
 
     public static float RailWidthFactor(string world)
@@ -125,23 +182,43 @@ public static class WorldPainter
         float frostCentre = (140f + 583f) / (2f * 725f) - 0.5f;
         float centre = (min + max) * 0.5f - 0.5f;
         float shift = 1.25f * frostCentre - factor * centre;
+        // Out toward the screen edges where the screen has room (RailInset).
+        float inset = RailInset.Shift;
+        laidOutWorld = world;
+        appliedInset = inset;
         var left = GameObject.Find(LeftWallName);
         var right = GameObject.Find(RightWallName);
         if (left != null)
         {
             var p = left.transform.localPosition;
-            p.x = cachedLeftX + cachedLeftWidth * shift;
+            p.x = cachedLeftX + cachedLeftWidth * shift - inset;
             left.transform.localPosition = p;
         }
         if (right != null)
         {
             var p = right.transform.localPosition;
-            p.x = cachedRightX - cachedRightWidth * shift;
+            p.x = cachedRightX - cachedRightWidth * shift + inset;
             right.transform.localPosition = p;
         }
         if (left != null) RailFit.RefreshTextureTiling(left);
         if (right != null) RailFit.RefreshTextureTiling(right);
     }
+
+    // RailFit, when the screen changes (a fold, a rotation): lay the walls
+    // out again for the screen's RailInset and re-measure the edge
+    // everything bounces off. Nothing to do before the first Apply or while
+    // the inset is unchanged.
+    public static void RefreshInset()
+    {
+        if (!cached || laidOutWorld == null) return;
+        if (GameObject.Find(LeftWallName) == null && GameObject.Find(RightWallName) == null) return;
+        if (Mathf.Approximately(appliedInset, RailInset.Shift)) return;
+        SetRailLayout(laidOutWorld);
+        BossRails.Measure();
+    }
+
+    // The RailInset.Shift the walls are laid out with (0 before any Apply).
+    public static float AppliedInset { get { return appliedInset; } }
 
     static void CacheOriginals()
     {

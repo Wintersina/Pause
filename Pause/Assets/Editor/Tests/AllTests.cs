@@ -88,6 +88,7 @@ public static class AllTests
         ("PostHitInvulnTest", PostHitInvulnTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
         ("RailsRollTest", RailsRollTest.Execute),
+        ("RailsShipSizeTest", RailsShipSizeTest.Execute),
         ("RailsVettingTest", RailsVettingTest.Execute),
         ("RamKillTest", RamKillTest.Execute),
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),

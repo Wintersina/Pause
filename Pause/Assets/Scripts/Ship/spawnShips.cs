@@ -65,7 +65,8 @@ public class spawnShips : MonoBehaviour
         if (hull != null && sprite != null)
         {
             hull.sprite = sprite;
-            float scale = shopingShips.NormalizedHullScale(sprite);
+            // x ShipScale.Main in the main game scene only (ShipScale).
+            float scale = shopingShips.NormalizedHullScale(sprite) * ShipScale.ForScene(instance.scene);
             instance.transform.localScale = new Vector3(scale, scale, 1f);
             // The tight hull polygon and the shield zone, baked per ship
             // (ShipHitbox); they replace the prefab's box. Only a hull with no

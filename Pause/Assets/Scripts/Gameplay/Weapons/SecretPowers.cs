@@ -450,12 +450,12 @@ public class SecretPowerController : MonoBehaviour
         else
             dir = at.x > 0f ? -1f : 1f;
         // don't dash into the wall: go the other way if there's no room
-        if (Mathf.Abs(at.x + dir * dashDistance) > 2.4f) dir = -dir;
+        if (Mathf.Abs(at.x + dir * dashDistance) > ShipReach.HalfWidth) dir = -dir;
         DashOffsetX = dir * dashDistance;
         dashLeft = dashSeconds;
         collisionDetection.BeginCloak(.6f);
         Burst(at, 1.4f, null);
-        transform.position = new Vector3(Mathf.Clamp(at.x + DashOffsetX, -2.4f, 2.4f), at.y, at.z);
+        transform.position = new Vector3(ShipReach.ClampX(at.x + DashOffsetX), at.y, at.z);
         Burst(transform.position, 1.2f, transform);
     }
 
@@ -470,6 +470,7 @@ public class SecretPowerController : MonoBehaviour
             float x = Mathf.Clamp(at.x + Mathf.Lerp(-1.6f, 1.6f, k), view.xMin, view.xMax);
             float y = Mathf.Min(at.y + 2.2f + Mathf.Sin(k * Mathf.PI) * 1.1f, view.yMax);
             var star = Object.Instantiate(prefab, new Vector3(x, y, 0f), Quaternion.identity);
+            PickupArt.ApplyInGameScale(star, prefab);
             // keep the arc: the star's sideways weave would collapse it
             var weave = star.GetComponent<moveEnimes>();
             if (weave != null) weave.enabled = false;
