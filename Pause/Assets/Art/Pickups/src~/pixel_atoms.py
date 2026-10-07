@@ -692,10 +692,10 @@ def write_all(preview=False):
 
     # Frame 0 doubles as the prefab's own sprite, so the prefabs keep their
     # sprite guid and a spawned atom looks right before its first Update.
-    save(shield[0][0], os.path.join(ASSETS, "Art", "Atoms", "atom3a.png"), PPU["atom"])
-    save(pause[0][0], os.path.join(ASSETS, "Art", "Atoms", "pauseAtom.png"), PPU["atom"])
-    save(dust[0][0], os.path.join(ASSETS, "Art", "Retro80s", "Pickups", "StarDustLarge.png"), PPU["dust"])
-    save(dustsm[0][0], os.path.join(ASSETS, "Art", "Retro80s", "Pickups", "StarDustSmall.png"), PPU["dustsm"])
+    save(shield[0][0], os.path.join(ASSETS, "Art", "Pickups", "atom3a.png"), PPU["atom"])
+    save(pause[0][0], os.path.join(ASSETS, "Art", "Pickups", "pauseAtom.png"), PPU["atom"])
+    save(dust[0][0], os.path.join(ASSETS, "Art", "Pickups", "StarDustLarge.png"), PPU["dust"])
+    save(dustsm[0][0], os.path.join(ASSETS, "Art", "Pickups", "StarDustSmall.png"), PPU["dustsm"])
 
     if preview:
         write_previews(written)

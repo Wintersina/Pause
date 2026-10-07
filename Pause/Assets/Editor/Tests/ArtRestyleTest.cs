@@ -194,10 +194,10 @@ public static class ArtRestyleTest
     {
         var pal = Parse(PixelAtomPalette);
         var files = new List<string>(Directory.GetFiles("Assets/Art/Resources/Pickups/Atoms", "*.png"));
-        files.Add("Assets/Art/Atoms/atom3a.png");
-        files.Add("Assets/Art/Atoms/pauseAtom.png");
-        files.Add("Assets/Art/Retro80s/Pickups/StarDustLarge.png");
-        files.Add("Assets/Art/Retro80s/Pickups/StarDustSmall.png");
+        files.Add("Assets/Art/Pickups/atom3a.png");
+        files.Add("Assets/Art/Pickups/pauseAtom.png");
+        files.Add("Assets/Art/Pickups/StarDustLarge.png");
+        files.Add("Assets/Art/Pickups/StarDustSmall.png");
         foreach (var path in files)
         {
             var px = Pixels(path);

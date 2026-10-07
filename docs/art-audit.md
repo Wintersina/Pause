@@ -127,7 +127,7 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 | PAUSE logo | `Art/UI/Title/pause_title_2.png`, `docs/pause-title.png` | protected |
 | Splash mark | `Art/UI/Splash/HapticGate.png` | protected |
 | App icon | `Art/AppIcon/GoldWarden/*` (live; the other `Art/AppIcon/<Ship>/` sets are candidates) | on HOLD (product call) |
-| Font, materials, audio | `Art/Orbitron/`, `Art/Materials/` | not art |
+| Font, materials, audio | `Art/Fonts/Orbitron/`, `Art/Walls/`, `Art/UI/Splash/Black.mat` | not art |
 
 ## Suggested order
 

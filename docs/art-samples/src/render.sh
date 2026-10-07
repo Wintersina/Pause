@@ -7,7 +7,7 @@
 set -e
 cd "$(dirname "$0")"
 OUT=../frames
-FONT=../../../Pause/Assets/Art/Orbitron/Orbitron-Bold.ttf
+FONT=../../../Pause/Assets/Art/Fonts/Orbitron/Orbitron-Bold.ttf
 mkdir -p "$OUT"
 for svg in *.svg; do
     name="${svg%.svg}"

@@ -131,7 +131,7 @@ public static class UnusedAssetGuardTest
     {
         "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
         "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
-        "Assets/Art/legacyShipSprites/",   // parked 2016 ship sprites (kept for their GUIDs)
+        "Assets/Art/Ships/Legacy/",   // parked 2016 ship sprites (kept for their GUIDs)
     };
 
     static bool Exempt(string path)

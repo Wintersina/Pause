@@ -45,7 +45,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 ART = os.path.normpath(os.path.join(HERE, ".."))
 OUT = os.path.normpath(os.path.join(HERE, "..", "..", "Resources", "Bosses"))
-FONT = os.path.normpath(os.path.join(HERE, "..", "..", "Orbitron", "Orbitron-Bold.ttf"))
+FONT = os.path.normpath(os.path.join(HERE, "..", "..", "Fonts", "Orbitron", "Orbitron-Bold.ttf"))
 
 CANVAS = 256          # boss authoring canvas (u)
 BODY_PX = 384         # exported cell (1.5x)

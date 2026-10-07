@@ -21,7 +21,7 @@ import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
-FONT = os.path.join(ASSETS, "Art", "Orbitron", "Orbitron-Bold.ttf")
+FONT = os.path.join(ASSETS, "Art", "Fonts", "Orbitron", "Orbitron-Bold.ttf")
 
 RED, RED_SH, RED_HI = "#D8232C", "#86121F", "#FF5B45"
 INK, BONE, CYAN, AMBER = "#140C14", "#F4EAD4", "#6EF2EE", "#FFB43C"

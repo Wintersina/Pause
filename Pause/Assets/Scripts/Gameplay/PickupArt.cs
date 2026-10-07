@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Frame tables for the pixel-art pickup family (Art/Atoms/src~/pixel_atoms.py
+// Frame tables for the pixel-art pickup family (Art/Pickups/src~/pixel_atoms.py
 // draws every frame; the tick tables below must match its ATOM_IDLE_TICKS,
 // DUST_IDLE, HEAL_IDLE_TICKS and BURST_TICKS). Ticks are 1/24 s, the art
 // guide's flipbook clock.

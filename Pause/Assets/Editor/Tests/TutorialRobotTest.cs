@@ -368,7 +368,7 @@ public static class TutorialRobotTest
     // emits exactly one quad per visible glyph (what the reveal relies on).
     static void LinesFitTheBubble()
     {
-        var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Orbitron/Orbitron-Bold.ttf");
+        var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Fonts/Orbitron/Orbitron-Bold.ttf");
         Check("Orbitron Bold is where the scenes expect it", font != null);
         if (font == null) return;
 

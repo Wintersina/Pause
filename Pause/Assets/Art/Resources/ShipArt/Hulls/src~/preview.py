@@ -17,7 +17,7 @@ from hullkit import REPO
 from ships import HUE_NAMES, OLD_RECTS, ORDER, SPINNERS
 
 LANE = (14, 20, 36, 255)
-FONT = os.path.join(REPO, "Pause/Assets/Art/Orbitron/Orbitron-Bold.ttf")
+FONT = os.path.join(REPO, "Pause/Assets/Art/Fonts/Orbitron/Orbitron-Bold.ttf")
 
 
 def font(size):

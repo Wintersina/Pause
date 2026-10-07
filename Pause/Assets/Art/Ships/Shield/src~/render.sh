@@ -9,7 +9,7 @@
 #                   shield_shards (256x64)  4 shatter shard shapes
 set -e
 cd "$(dirname "$0")"
-out="../../Resources/Shield"
+out="../../../Resources/Shield"
 mkdir -p "$out"
 for name in shield_atlas shield_impact shield_spark shield_shards; do
   resvg "$name.svg" "$out/$name.png"
