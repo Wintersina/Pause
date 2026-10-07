@@ -3,6 +3,13 @@
 C# table SpaceStationLights.Anchors.
 
 Usage: station_lights.py <fx.png> <fx.json> <out.cs> <debug_dir>
+       station_lights.py --standalone <sprite.png> <name> <out.cs> <debug_dir>
+
+--standalone: a station drawn as its own high-resolution sprite (Codex's
+station_ring_v2.png, 1254 px). It is analysed at atlas-cell scale (about
+240 px wide, the same thresholds as the fx cells) and the anchors are mapped
+back to the sprite's own pixels, each snapped to the nearest solid pixel
+there. Both are 100 px per unit, so the table needs no other scale.
 
 Anchors are atlas-pixel offsets from the cell's centre (x right, y up), each
 on an opaque pixel of the cell:
@@ -185,7 +192,60 @@ def analyse(cell, name, rng):
     return out
 
 
+STANDALONE_CELL_PX = 240
+
+
+def standalone(png, name, out_cs, dbg):
+    full = Image.open(png).convert("RGBA")
+    k = full.width / float(STANDALONE_CELL_PX)
+    small = full.resize((STANDALONE_CELL_PX, round(full.height / k)), Image.LANCZOS)
+    lights = analyse(small, name, random.Random(2001))
+    fpx = full.load()
+    W, H = full.size
+
+    def solid(x, y):
+        return all(0 <= x + dx < W and 0 <= y + dy < H and fpx[x + dx, y + dy][3] >= 200
+                   for dy in (-1, 0, 1) for dx in (-1, 0, 1))
+
+    out = []
+    for dx, dy, pat, col, seed, kind, x, y in lights:
+        fx_, fy_ = int((x + 0.5) * k), int((y + 0.5) * k)
+        best = None
+        for r in range(0, int(k * 2) + 2):
+            for yy in range(fy_ - r, fy_ + r + 1):
+                for xx in range(fx_ - r, fx_ + r + 1):
+                    if max(abs(xx - fx_), abs(yy - fy_)) == r and solid(xx, yy):
+                        best = (xx, yy)
+                        break
+                if best:
+                    break
+            if best:
+                break
+        if best is None:
+            continue
+        bx, by = best
+        out.append((bx + 0.5 - W / 2.0, H / 2.0 - (by + 0.5), pat, col, seed, kind, bx, by))
+    body = ", ".join("L({:.1f}f, {:.1f}f, {}, {}, {:.3f}f)".format(dx, dy, pat, col, seed)
+                     for dx, dy, pat, col, seed, *_ in out)
+    with open(out_cs, "w") as f:
+        f.write('        S("%s", new[] { %s }),\n' % (name, body))
+    from PIL import ImageDraw
+    bg = Image.new("RGBA", full.size, (12, 14, 30, 255))
+    bg.alpha_composite(full)
+    d = ImageDraw.Draw(bg)
+    colors = {"tip": (255, 255, 255), "keel": (255, 180, 0), "end": (255, 120, 0),
+              "window": (0, 255, 0), "cyan": (0, 255, 255)}
+    for *_, kind, x, y in out:
+        d.rectangle((x - 10, y - 10, x + 10, y + 10), outline=colors[kind], width=4)
+    bg.save("%s/anchors_%s.png" % (dbg, name))
+    print(name, len(out), {kd: sum(1 for l in out if l[5] == kd) for kd in
+                           ("tip", "keel", "end", "window", "cyan")})
+
+
 def main():
+    if sys.argv[1] == "--standalone":
+        standalone(*sys.argv[2:6])
+        return
     fx_png, fx_json, out_cs, dbg = sys.argv[1:5]
     im, rects = load(fx_png, fx_json)
     rng = random.Random(1988)

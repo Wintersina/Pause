@@ -32,6 +32,8 @@ public static class SpaceStationTest
         "station_00", "station_01", "station_02", "station_03",
         "ringstation_00", "ringstation_01", "ringstation_02", "ringstation_03", "moon",
     };
+    // Stations drawn as their own sprite rather than an fx cell.
+    static readonly string[] Standalone = { "station_ring_v2" };
 
     [System.Serializable] class AtlasRect { public string n; public int x, y, w, h; }
     [System.Serializable] class AtlasManifest { public AtlasRect[] sprites; }
@@ -108,7 +110,47 @@ public static class SpaceStationTest
             if (!beacon && cell != "moon") noBeacon++;
         }
         Object.DestroyImmediate(tex);
-        Check("every station cell has its lamps (" + Cells.Length + " cells, " + lamps + " lamps) " + bad,
+
+        // Codex's high-resolution ring station is its own sprite (same 100 px
+        // per unit as the atlas): its lamps are in that sprite's pixels.
+        foreach (string sprite in Standalone)
+        {
+            var list = SpaceStationLights.LampsOf(sprite);
+            var st = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (list == null || !File.Exists(Dir + sprite + ".png"))
+            {
+                missing++;
+                bad += sprite + " missing; ";
+                Object.DestroyImmediate(st);
+                continue;
+            }
+            st.LoadImage(File.ReadAllBytes(Dir + sprite + ".png"));
+            var spx = st.GetPixels32();
+            if (list.Length < 10) { missing++; bad += sprite + " has " + list.Length + " lamps; "; }
+            var patterns = new HashSet<int>();
+            bool beacon = false;
+            foreach (var l in list)
+            {
+                lamps++;
+                patterns.Add(l.pattern);
+                beacon |= l.pattern == SpaceStationLights.Beacon;
+                int x = Mathf.FloorToInt(st.width * 0.5f + l.x);
+                int y = Mathf.FloorToInt(st.height * 0.5f + l.y);
+                bool inside = x >= 0 && x < st.width && y >= 0 && y < st.height;
+                if (!inside || spx[y * st.width + x].a < 128)
+                {
+                    offArt++;
+                    if (bad.Length < 300) bad += sprite + " lamp (" + l.x + "," + l.y + ") off the art; ";
+                }
+                float h, sat, v;
+                Color.RGBToHSV(SpaceStationLights.Colors[l.color], out h, out sat, out v);
+                if ((h * 360f >= 345f || h * 360f <= 15f) && sat > 0.5f) red++;
+            }
+            if (patterns.Count < 3) fewPatterns++;
+            if (!beacon) noBeacon++;
+            Object.DestroyImmediate(st);
+        }
+        Check("every station cell has its lamps (" + (Cells.Length + Standalone.Length) + " cells, " + lamps + " lamps) " + bad,
               missing == 0);
         Check("every lamp sits on an opaque pixel of its cell (" + offArt + " off the art)", offArt == 0 && lamps > 0);
         Check("each station mixes at least three blink patterns, and every long / ring station has beacons",
@@ -291,7 +333,7 @@ public static class SpaceStationTest
 
     static Vector3 FullSize(BackdropAtlas fx, string cell)
     {
-        var s = fx.Get(cell);
+        var s = fx.Get(cell) ?? Resources.Load<Sprite>(BackdropCatalog.Folder("Space") + cell);
         return s != null ? s.bounds.size : Vector3.one;
     }
 

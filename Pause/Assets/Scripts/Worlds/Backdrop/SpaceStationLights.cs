@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Blinking lights on Space's stations: the long stations (station_00..03),
-// the ring habitats (ringstation_00..03), their pre-shrunk minis, and the
+// the ring habitats (ringstation_00..03), their pre-shrunk minis, Codex's
+// high-resolution ring station (station_ring_v2, its own sprite), and the
 // moon with a station built on it (`moon`). Stations hold still -- no spin,
 // no tilt, no flipbook (SpaceDirector.Enter) -- so the life comes from these
 // lamps instead.
@@ -26,7 +27,7 @@ public partial class SpaceDirector
 
     void BuildStationLights()
     {
-        stationLights = new SpaceStationLights(fx);
+        stationLights = new SpaceStationLights(fx, detailedStationFrames);
         stationLights.Attach(stations);
         stationLights.Attach(moons);
     }
@@ -158,6 +159,26 @@ public class SpaceStationLights
             L(1.5f, -31.5f, 3, 1, 0.976f), L(-54.5f, 59.5f, 3, 0, 0.985f), L(-50.5f, -16.5f, 0, 1, 0.078f), L(26.5f, -38.5f, 0, 0, 0.418f),
             L(-92.5f, 23.5f, 3, 0, 0.166f), L(-68.5f, 59.5f, 0, 0, 0.498f), L(78.5f, -64.5f, 2, 2, 0.342f), L(36.5f, 46.5f, 2, 2, 0.515f),
         }),
+        // Codex's high-resolution ring station (its own 1254 px sprite, not an
+        // fx cell): station_lights.py --standalone, in that sprite's pixels.
+        S("station_ring_v2", new[] {
+            L(7.5f, 582.5f, 4, 3, 0.586f),
+            L(-60.5f, 493.5f, 4, 4, 0.362f),
+            L(-357.5f, 394.5f, 4, 4, 0.053f),
+            L(18.5f, -546.5f, 0, 4, 0.651f),
+            L(-232.5f, -410.5f, 0, 4, 0.950f),
+            L(-540.5f, 13.5f, 1, 3, 0.593f),
+            L(561.5f, -54.5f, 1, 4, 0.569f),
+            L(206.5f, 216.5f, 3, 1, 0.746f),
+            L(39.5f, -54.5f, 3, 0, 0.620f),
+            L(-279.5f, 133.5f, 3, 1, 0.152f),
+            L(128.5f, -289.5f, 3, 0, 0.085f),
+            L(-86.5f, 269.5f, 3, 0, 0.481f),
+            L(-80.5f, -258.5f, 3, 0, 0.376f),
+            L(185.5f, -23.5f, 0, 1, 0.381f),
+            L(457.5f, -201.5f, 2, 2, 0.040f),
+            L(441.5f, -7.5f, 2, 2, 0.442f),
+        }),
         S("moon", new[] {
             L(-82.5f, -0.5f, 1, 3, 0.254f), L(83.5f, -0.5f, 1, 4, 0.384f), L(-39.5f, 0.5f, 3, 1, 0.879f), L(28.5f, 72.5f, 0, 0, 0.207f),
             L(42.5f, -72.5f, 3, 0, 0.842f), L(24.5f, 14.5f, 3, 1, 0.152f), L(41.5f, -24.5f, 3, 0, 0.857f), L(57.5f, 30.5f, 3, 0, 0.492f),
@@ -252,10 +273,21 @@ public class SpaceStationLights
     public Material Material { get { return material; } }
     public float Clock { get { return clock; } }
 
-    public SpaceStationLights(BackdropAtlas fx)
+    // standalone: stations drawn as their own sprites (station_ring_v2).
+    public SpaceStationLights(BackdropAtlas fx, params Sprite[] standalone)
     {
         var shader = Resources.Load<UnityEngine.Shader>(ShaderPath);
         if (shader != null) material = new Material(shader) { name = "SpaceStationLights" };
+        if (standalone != null)
+            foreach (var sprite in standalone)
+            {
+                if (sprite == null || cells.ContainsKey(sprite)) continue;
+                var lamps = LampsOf(sprite.name);
+                if (lamps == null) continue;
+                var mesh = BuildMesh(lamps, sprite.name);
+                meshes.Add(mesh);
+                cells[sprite] = new Cell { mesh = mesh, scale = Vector3.one, name = sprite.name };
+            }
         if (fx == null) return;
         foreach (var a in Anchors)
         {
