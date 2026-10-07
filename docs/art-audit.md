@@ -88,12 +88,11 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 
 ### Walls
 
-- [ ] **Frost, Verdant and Ember walls.** Files:
-  `Art/Resources/Worlds/{Frost,Verdant,Ember}/wallLeft.png`, `wallRight.png`. Loader:
-  `Scripts/Worlds/WorldPainter.cs`, which applies `theme.tint`; check that the tint doesn't
-  muddy the ramps.
+- [x] **Frost, Verdant and Ember walls.** Replaced by the reinforced rails
+  (`Art/Resources/Worlds/<World>/rail_*_wide_v1.png`, bound by `Scripts/Worlds/WorldPainter.cs`);
+  the old flat `wallLeft.png` / `wallRight.png` and their `walls.py` generator are deleted.
 - [ ] **Space walls.** Files: `Art/Walls/left.png`, `Art/Walls/right.png` (`left_1.mat`, `right_6.mat`,
-  `right_7.mat`).
+  `right_7.mat`): the scene walls gameS1 starts with and tutorialS5 keeps.
 - [ ] **Rules:** material ramps, lower 4 tones, neon at step 1 or below.
 
 ### Enemy explosions and hit FX

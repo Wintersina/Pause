@@ -434,126 +434,23 @@ public static class WorldBackdropTest
 
     // ------------------------------------------------------------- walls --
 
-    public const int WallWidth = 96, WallHeight = 448;
-    const int WallMaxColours = 32;              // flat cels: a handful of tones plus stepped light halos
-    const float WallMinMajorCover = 0.95f;      // colours with >= 0.5% coverage must cover the wall
-    const float WallMaxSoftPairs = 0.01f;       // neighbours 1..6 levels apart = gradient banding
-
-    // Space keeps the scene's own wall textures (left_1 / right_6 / right_7
-    // materials); the planets' come from Resources via WorldPainter.
-    public static string[] WallPaths(int world)
-    {
-        if (string.IsNullOrEmpty(WorldManager.Worlds[world].resourceFolder))
-            return new[] { "Assets/Art/Walls/left.png", "Assets/Art/Walls/right.png" };
-        string f = "Assets/Art/Resources/Worlds/" + WorldManager.Worlds[world].resourceFolder + "/";
-        return new[] { f + "wallLeft.png", f + "wallRight.png" };
-    }
-
+    // Every world flies between its reinforced rail (the old flat
+    // wallLeft / wallRight planet walls are deleted). Validate the art that
+    // WorldPainter actually binds at runtime.
     static void CheckWalls()
     {
         for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
         {
             string world = WorldManager.Worlds[wi].displayName;
-            // The reinforced planet rails replace the legacy flat wall pair.
-            // Validate the art that WorldPainter actually binds at runtime.
-            if (WorldPainter.RailTextureName(world) != null)
-            {
-                failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
-                continue;
-            }
-            var paths = WallPaths(wi);
-            Color32[] left = null;
-            for (int side = 0; side < 2; side++)
-            {
-                string path = paths[side];
-                if (!File.Exists(path)) { Check(path + " exists", false); continue; }
-                var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                t.LoadImage(File.ReadAllBytes(path));
-                int w = t.width, h = t.height;
-                var px = t.GetPixels32();
-                Object.DestroyImmediate(t);
-                string tag = world + " " + (side == 0 ? "left" : "right") + " wall";
-                Check(tag + " is " + WallWidth + "x" + WallHeight + " (" + w + "x" + h + ")",
-                      w == WallWidth && h == WallHeight);
-                if (w != WallWidth || h != WallHeight) continue;
-
-                var counts = new Dictionary<int, int>();
-                bool opaque = true;
-                foreach (var c in px)
-                {
-                    if (c.a < 255) opaque = false;
-                    int key = (c.r << 24) | (c.g << 16) | (c.b << 8) | c.a;
-                    int k;
-                    counts.TryGetValue(key, out k);
-                    counts[key] = k + 1;
-                }
-                int major = 0;
-                foreach (var kv in counts) if (kv.Value >= 0.005f * px.Length) major += kv.Value;
-
-                int soft = 0, pairs = 0;
-                float seam = 0f;
-                for (int y = 0; y < h; y++)
-                {
-                    int yn = (y + 1) % h;                  // the last row wraps to the first: the seam
-                    float rowDiff = 0f;
-                    for (int x = 0; x < w; x++)
-                    {
-                        Color32 a = px[y * w + x];
-                        Color32 down = px[yn * w + x];
-                        Color32 right = x + 1 < w ? px[y * w + x + 1] : a;
-                        int d1 = MaxDiff(a, down), d2 = MaxDiff(a, right);
-                        pairs += 2;
-                        if (d1 > 0 && d1 <= 6) soft++;
-                        if (d2 > 0 && d2 <= 6) soft++;
-                        rowDiff += (Mathf.Abs(a.r - down.r) + Mathf.Abs(a.g - down.g) + Mathf.Abs(a.b - down.b)) / (3f * 255f);
-                    }
-                    rowDiff /= w;
-                    if (yn == 0) seam = rowDiff;
-                }
-                // Space's rail meshes deliberately keep their transparent
-                // margins so the living backdrop shows through between the
-                // industrial brackets. Planet walls are full opaque tiles.
-                bool expectsOpaque = world != "Space";
-                Check(tag + (expectsOpaque ? " is opaque" : " preserves alpha cutouts"),
-                      expectsOpaque ? opaque : !opaque);
-                // Space uses the deliberately dense, weathered tower art:
-                // its tiny rivets, abrasion, and lamp halos need more tones
-                // than the broad flat-painted planet walls.  It still needs
-                // a bounded palette and dominant structural masses.
-                int colourCap = world == "Space" ? 12000 : WallMaxColours;
-                float majorFloor = world == "Space" ? 0.50f : WallMinMajorCover;
-                float softCap = world == "Space" ? 0.20f : WallMaxSoftPairs;
-                Check(tag + " uses appropriate palette density (" + counts.Count + " unique <= " + colourCap +
-                      ", major tones cover " + (major / (float)px.Length).ToString("F3") + " >= " + majorFloor + ")",
-                      counts.Count <= colourCap && major >= majorFloor * px.Length);
-                Check(tag + " has bounded soft gradients (" + (soft / (float)pairs).ToString("F4") + " <= " +
-                      softCap + ")", soft <= softCap * pairs);
-                // Seamless: crisp art has hard panel lines, so 'top row == bottom
-                // row' is the wrong test. Instead the wrap (last row -> first row)
-                // must be a transition the tile already contains -- the motifs
-                // repeat with a period that divides the height -- or be smooth.
-                bool repeats = false;
-                for (int y = 0; y + 1 < h && !repeats; y++)
-                {
-                    bool same = true;
-                    for (int x = 0; x < w && same; x++)
-                        same = MaxDiff(px[y * w + x], px[(h - 1) * w + x]) == 0 &&
-                               MaxDiff(px[(y + 1) * w + x], px[x]) == 0;
-                    repeats = same;
-                }
-                Check(tag + " is vertically seamless (wrap " + seam.ToString("F3") + ", repeats an inner row pair: " +
-                      repeats + ")", repeats || seam <= SeamTolerance);
-                if (side == 0) left = px;
-                else if (left != null)
-                {
-                    bool mirror = true;
-                    for (int y = 0; y < h && mirror; y++)
-                        for (int x = 0; x < w; x++)
-                            if (MaxDiff(left[y * w + x], px[y * w + (w - 1 - x)]) != 0) { mirror = false; break; }
-                    Check(world + " right wall mirrors the left (both inner edges face the playfield)", mirror);
-                }
-            }
+            bool rail = WorldPainter.RailTextureName(world) != null;
+            Check(world + " has a reinforced rail", rail);
+            if (rail) failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
         }
+        foreach (string world in new[] { "Frost", "Verdant", "Ember" })
+            foreach (string name in new[] { "wallLeft", "wallRight" })
+                Check("the legacy " + world + " " + name + " wall stays deleted",
+                      !File.Exists("Assets/Art/Resources/Worlds/" + world + "/" + name + ".png") &&
+                      Resources.Load<Texture2D>("Worlds/" + world + "/" + name) == null);
     }
 
     // The Space rails are scene meshes rather than Resources backdrop tiles.
@@ -800,10 +697,6 @@ public static class WorldBackdropTest
               near >= 0.15f * planets && near <= 0.40f * planets);
     }
 
-    static int MaxDiff(Color32 a, Color32 b)
-    {
-        return Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Max(Mathf.Abs(a.b - b.b), Mathf.Abs(a.a - b.a))));
-    }
 
     static Color[] ReadPixelsCache;
     static int ReadW, ReadH;

@@ -24,7 +24,11 @@ public static class WorldPainter
 
         CacheOriginals();
 
-        if (string.IsNullOrEmpty(theme.resourceFolder) && RailTextureName(theme.displayName) == null)
+        // Every world flies between reinforced rails. A world without one
+        // (none today; the old flat wallLeft / wallRight fallback is gone)
+        // keeps the scene's own walls.
+        string railName = RailTextureName(theme.displayName);
+        if (railName == null)
         {
             Restore();
             return;
@@ -33,30 +37,19 @@ public static class WorldPainter
         string root = "Worlds/" + (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
         // Reinforced rails share Frost's visible width and are mirrored so
         // their lamp/pipe edges face the playfield on both sides.
-        string railName = RailTextureName(theme.displayName);
-        if (railName != null)
+        var rail = Resources.Load<Texture2D>(root + railName);
+        // Preserve neon brightness and remove residual exterior mattes.
+        SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
+        foreach (var wall in new[] { LeftWallName, RightWallName })
         {
-            var rail = Resources.Load<Texture2D>(root + railName);
-            // Preserve neon brightness and remove residual exterior mattes.
-            SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
-            foreach (var wall in new[] { LeftWallName, RightWallName })
-            {
-                var mat = MaterialOf(wall);
-                if (mat == null || !mat.HasProperty("_Overlap")) continue;
-                mat.SetFloat("_Overlap", 0.03f);
-                mat.SetFloat("_BlackCutout", 1f);
-            }
-            Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
-            Paint(RightWallName, rail, theme.tint, cachedRight, true);
-            SetRailLayout(theme.displayName);
+            var mat = MaterialOf(wall);
+            if (mat == null || !mat.HasProperty("_Overlap")) continue;
+            mat.SetFloat("_Overlap", 0.03f);
+            mat.SetFloat("_BlackCutout", 1f);
         }
-        else
-        {
-            SetRailShader(null);
-            Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft, false);
-            Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight, false);
-            SetRailWidth(1f);
-        }
+        Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
+        Paint(RightWallName, rail, theme.tint, cachedRight, true);
+        SetRailLayout(theme.displayName);
     }
 
     public static string RailTextureName(string world)

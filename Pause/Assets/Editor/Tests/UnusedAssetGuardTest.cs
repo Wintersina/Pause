@@ -100,6 +100,16 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Animation/explosion.png",
         "Assets/Art/Retro80s/Ships/SourceStrips/xenon2_ship.png",
         "Assets/Scripts/UI/scrollingText.cs",
+        // The 2026-10 Art reorganisation: the legacy round shield bubble (the
+        // inactive "Shield" child's sprite; ShipShield draws the contour
+        // shield) and the flat planet walls the reinforced rails replaced.
+        "Assets/Art/transparent-bubble.png",
+        "Assets/Art/Resources/Worlds/Frost/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Frost/wallRight.png",
+        "Assets/Art/Resources/Worlds/Verdant/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Verdant/wallRight.png",
+        "Assets/Art/Resources/Worlds/Ember/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Ember/wallRight.png",
     };
 
     static void ReplacedAssetsStayDeleted()
@@ -120,7 +130,7 @@ public static class UnusedAssetGuardTest
     static readonly string[] ExemptPrefixes =
     {
         "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
-        "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/", "Assets/Art/Staging/",
+        "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
         "Assets/Art/legacyShipSprites/",   // parked 2016 ship sprites (kept for their GUIDs)
     };
 
