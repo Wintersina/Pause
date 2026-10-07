@@ -10,7 +10,7 @@ using UnityEngine;
 //
 //   * every hostile projectile wears a glow and keeps its size and hitbox:
 //     elite shots the round wrapper (HostileGlow), lasers a sheath, boss
-//     shots a light rim hugging their own silhouette (BossArt.ShotRim --
+//     shots a thin outline hugging their own silhouette (BossArt.ShotRim, never a round halo --
 //     "the glow effect on the boss projectiles is too large, it should be
 //     more like a light shadow framing the projectile art"); none is the
 //     player's red;
@@ -153,11 +153,20 @@ public static class HostileProjectileTest
                     Check("... the glow is a rim cut from its own drawing, not the round wrapper (" + (g.sprite != null ? g.sprite.name : "none") + ")",
                           g.sprite != null && g.sprite == BossArt.ShotRim(boss, cell) && g.sprite != HostileGlow.Halo &&
                           BossArt.ShotRim(boss, cell + 1) != null && BossArt.ShotRim(boss, cell + 1) != g.sprite);
-                    Check("... a light rim framing the art: gone " + reach.ToString("F3") + " wu past the silhouette, at most " +
+                    int halos = 0, kids = 0;
+                    foreach (var r in s.GetComponentsInChildren<SpriteRenderer>(true))
+                    {
+                        if (r.gameObject == s.gameObject) continue;
+                        kids++;
+                        if (r.sprite == HostileGlow.Halo || r.sprite == HostileGlow.Sheath) halos++;
+                    }
+                    Check(boss.artKey + " " + style + ": no circular glow -- its only extra renderer is the rim outline (" + kids +
+                          " extra, " + halos + " round halos)", kids == 1 && halos == 0);
+                    Check("... a thin outline framing the art, no soft halo: gone " + reach.ToString("F3") + " wu past the silhouette, at most " +
                           BossArt.ShotRimAlpha + " opaque (its sprite " + d.ToString("F2") + " wu across with its clear pad)",
-                          reach > .02f && reach <= .1f && BossArt.ShotRimAlpha >= .4f && BossArt.ShotRimAlpha <= .8f &&
+                          reach > .01f && reach <= .05f && BossArt.ShotRimAlpha >= .4f && BossArt.ShotRimAlpha <= .8f &&
                           BossArt.ShotRimPad > BossArt.ShotRimReach * BossArt.ShotRimTexels &&
-                          d > drawn && (d - drawn) * .5f <= .12f);
+                          d > drawn && (d - drawn) * .5f <= .1f);
                     string hug;
                     bool hugs = RimHugsArt(BossArt.Shot(boss, cell), g.sprite, out hug);
                     Check("... and it sits on the drawing itself, not stretched or shifted (" + hug + ")", hugs);
@@ -175,9 +184,9 @@ public static class HostileProjectileTest
                 minS = Mathf.Min(minS, p.Glow.transform.localScale.x); maxS = Mathf.Max(maxS, p.Glow.transform.localScale.x);
                 minA = Mathf.Min(minA, p.Glow.color.a); maxA = Mathf.Max(maxA, p.Glow.color.a);
             }
-            Check("the rim breathes gently (scale " + minS.ToString("F3") + ".." + maxS.ToString("F3") + ", alpha " +
+            Check("the rim only pulses in alpha, never swells into a round glow (scale " + minS.ToString("F3") + ".." + maxS.ToString("F3") + ", alpha " +
                   minA.ToString("F2") + ".." + maxA.ToString("F2") + ") while the shot keeps its size",
-                  maxS > minS * 1.02f && maxS < minS * 1.08f && maxA > minA + .08f &&
+                  Mathf.Abs(maxS - minS) < 1e-4f && maxA > minA + .08f &&
                   Mathf.Abs(p.transform.lossyScale.x - BossConfig.BoltWorldSize) < 1e-4f);
 
             // lasers: a sheath along their length
@@ -293,7 +302,7 @@ public static class HostileProjectileTest
             Color[] fg = Grab(cam, rt, tex);
 
             float worst = float.MaxValue, mean = 0f, worstLight = float.MaxValue, worstDark = float.MaxValue;
-            int wrapped = 0, rimmed = 0, fewest = int.MaxValue;
+            int wrapped = 0, rimmed = 0, fewest = int.MaxValue, bossRoundGlows = 0;
             foreach (var (shot, glow) in list)
             {
                 Vector3 c = cam.WorldToScreenPoint(glow.transform.position);
@@ -304,6 +313,7 @@ public static class HostileProjectileTest
                     float half = shot.transform.lossyScale.x * .5f * (RH / (cam.orthographicSize * 2f));
                     fewest = Mathf.Min(fewest, StandOut(fg, bg, c, half));
                     rimmed++;
+                    bossRoundGlows += glow.sprite == HostileGlow.Halo ? 1 : 0;
                     continue;
                 }
                 wrapped++;
@@ -328,6 +338,9 @@ public static class HostileProjectileTest
             // outline is what is left, so that case is only reported.
             string rimLine = "a rimmed boss shot stands out of " + name + ": at least " + fewest + " px at " + MinContrast +
                              ":1 against the backdrop behind it, over " + rimmed + " shots (need " + MinStandOutPixels + ")";
+            if (!flare)
+                Check("boss shots over " + name + " wear no circular glow: " + bossRoundGlows + " of " + rimmed + " carry the round halo",
+                      rimmed > 0 && bossRoundGlows == 0);
             if (flare) Debug.Log("[HOSTILE] INFO  " + rimLine);
             else Check(rimLine, rimmed > 0 && fewest >= MinStandOutPixels);
             cam.targetTexture = null;
