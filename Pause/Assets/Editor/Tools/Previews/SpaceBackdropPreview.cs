@@ -10,16 +10,22 @@ using UnityEngine;
 //   $BACKDROP_PREVIEW_DIR  output folder (default Builds/BackdropPreview)
 //   $BACKDROP_WORLD        world display name (default Space)
 //   $BACKDROP_SECONDS      length (default 10), captured at 15 fps
+//   $BACKDROP_PX / _PY     frame size in pixels (default 360 x 780)
+// Space also writes stations.csv next to the frames: per frame, every
+// visible station's centre and drawn size in frame pixels (top-left
+// origin), for cropping close-ups of the stations and their lamps.
 public static class SpaceBackdropPreview
 {
     const float Dt = 1f / 60f;
-    const int Px = 360, Py = 780;
+    static int Px = 360, Py = 780;
 
     public static void Run()
     {
         string dir = Env("BACKDROP_PREVIEW_DIR", "Builds/BackdropPreview");
         string world = Env("BACKDROP_WORLD", "Space");
         float seconds = float.Parse(Env("BACKDROP_SECONDS", "10"), System.Globalization.CultureInfo.InvariantCulture);
+        Px = int.Parse(Env("BACKDROP_PX", "360"));
+        Py = int.Parse(Env("BACKDROP_PY", "780"));
         Directory.CreateDirectory(dir);
         foreach (var f in Directory.GetFiles(dir, "*.png")) File.Delete(f);
 
@@ -45,13 +51,17 @@ public static class SpaceBackdropPreview
             moveBackGround.speed = 0.15f;
             wb.Show(world, false);
             int n = 0, steps = Mathf.RoundToInt(seconds / Dt);
+            var track = new System.Text.StringBuilder("frame,station,x,y,size,cell\n");
             for (int i = 0; i < steps; i++)
             {
                 // A run speeds up a little over the clip.
                 moveBackGround.speed = Mathf.Lerp(0.15f, 0.35f, i / (float)steps);
                 wb.Step(Dt);
-                if (i % 4 == 0) Shoot(cam, rt, Path.Combine(dir, "f" + (n++).ToString("0000") + ".png"));
+                if (i % 4 != 0) continue;
+                Track(wb, cam, n, track);
+                Shoot(cam, rt, Path.Combine(dir, "f" + (n++).ToString("0000") + ".png"));
             }
+            File.WriteAllText(Path.Combine(dir, "stations.csv"), track.ToString());
             Debug.Log("[BGPREVIEW] " + world + " frames " + n + " -> " + dir);
         }
         finally
@@ -63,6 +73,22 @@ public static class SpaceBackdropPreview
             Object.DestroyImmediate(camGo);
         }
         EditorApplication.Exit(0);
+    }
+
+    static void Track(WorldBackdrop wb, Camera cam, int frame, System.Text.StringBuilder into)
+    {
+        var sd = wb.Current != null ? wb.Current.Director as SpaceDirector : null;
+        if (sd == null || sd.StationLights == null) return;
+        foreach (var r in sd.StationLights.Rigs)
+        {
+            var p = r.piece;
+            if (!p.active || r.cell == null) continue;
+            Vector3 c = cam.WorldToScreenPoint(p.root.position);
+            float px = p.size / (cam.orthographicSize * 2f) * Py;
+            into.Append(frame).Append(',').Append(sd.StationLights.Rigs.IndexOf(r)).Append(',')
+                .Append(Mathf.RoundToInt(c.x)).Append(',').Append(Mathf.RoundToInt(Py - c.y)).Append(',')
+                .Append(Mathf.RoundToInt(px)).Append(',').Append(r.cell).Append('\n');
+        }
     }
 
     static string Env(string key, string fallback)

@@ -115,6 +115,7 @@ public static class AllTests
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
+        ("SpaceStationTest", SpaceStationTest.Execute),
         ("SpawnSpaceTest", SpawnSpaceTest.Execute),
         ("SpeedCapTest", SpeedCapTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),

@@ -23,7 +23,10 @@ public partial class SpaceDirector
     // Pad offsets as fractions of the drawing's bounds from its centre (x
     // right, y up). A station launches from its hub (its hangar), a planet
     // from a point on the disc toward the middle of the board, a rock from
-    // the hollow at its heart.
+    // the hollow at its heart. Stations never turn (they hold still and
+    // blink, SpaceStationLights), so a station's hub stays straight below
+    // its centre for the whole launch; the pad is in the anchor's local
+    // space all the same, so a tilted body would still be right.
     public static readonly Vector2 StationPad = new Vector2(0f, -.06f);
     public static readonly Vector2 PlanetPad = new Vector2(.2f, .12f);    // x mirrored toward the board's middle
     public static readonly Vector2 AsteroidPad = new Vector2(.06f, 0f);
