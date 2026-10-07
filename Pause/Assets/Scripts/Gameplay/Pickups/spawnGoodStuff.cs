@@ -113,7 +113,7 @@ public class spawnGoodStuff : MonoBehaviour {
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up tp 5 sm stars in a row for collecting
             max = Random.Range(4, 10);
             for (int i = 0; i < max; i++)
@@ -127,7 +127,7 @@ public class spawnGoodStuff : MonoBehaviour {
         {
 
             midStarTimer = Random.Range(10f, 14f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up to 3 mid stars for collecting
             max = Random.Range(3, 6);
             for (int i = 0; i < max; i++)
@@ -181,31 +181,31 @@ public class spawnGoodStuff : MonoBehaviour {
     // spawning on top of each other at once.
     void spawnSmStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
         Place(smStar, spawner);
     }
     void spawnMidStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
         Place(midStar, spawner);
     }
     // will make you invensiable for a few seconds.
     void spawnAtom()
     {
 
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         // spawn 3 enimies at the same time
         AtomSpin.AddTo(Place(Atom, randomStarPos));
 
     }
     void spawnRedAtom()
     {
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(redAtom, randomStarPos));
     }
     void spawnCooldownAtom()
     {
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(cooldownAtom, randomStarPos));
     }
 
@@ -215,9 +215,11 @@ public class spawnGoodStuff : MonoBehaviour {
     // off it. Soft both ways -- on a packed board it keeps its spot.
     GameObject Place(GameObject prefab, Vector3 pos)
     {
-        Vector2 half = prefab != null ? SpawnSpace.BodyHalf(prefab) : Vector2.one * .2f;
-        pos = SpawnSpace.PickupSpot(pos, half, -2.2f, 2.2f);
+        // star dust flies PickupArt.StarDustScale bigger: its footprint too
+        Vector2 half = prefab != null ? SpawnSpace.BodyHalf(prefab) * PickupArt.InGameScale(prefab) : Vector2.one * .2f;
+        pos = SpawnSpace.PickupSpot(pos, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Instantiate(prefab, pos, transform.rotation) as GameObject;
+        PickupArt.ApplyInGameScale(go, prefab);
         SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
         return go;
     }

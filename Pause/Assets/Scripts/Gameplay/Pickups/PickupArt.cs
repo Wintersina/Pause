@@ -14,6 +14,35 @@ public static class PickupArt
     public const float Tick = 1f / 24f;
     public const string Root = "Pickups/Atoms/";
 
+    // Star dust in the main game (the small Star Dust, smStar_1, and the
+    // large Bright Star, LargeStar_1) is drawn this much bigger than its
+    // prefab: the instance's scale, so its trigger box -- what the hull and
+    // ShipHitbox's pickup reach touch -- and its SpawnSpace footprint grow
+    // with the art. The prefabs themselves (shared with the tutorial, the
+    // credits and the codex icons) are untouched.
+    public const float StarDustScale = 1.25f;
+
+    public static bool IsStarDust(GameObject go)
+    {
+        return PrefabName.Is(go, "smStar1") || PrefabName.Is(go, "LargeStar1");
+    }
+
+    // StarDustScale for star dust, 1 for anything else.
+    public static float InGameScale(GameObject prefab)
+    {
+        return IsStarDust(prefab) ? StarDustScale : 1f;
+    }
+
+    // Grows a freshly spawned main-game pickup by InGameScale (x and y).
+    public static void ApplyInGameScale(GameObject instance, GameObject prefab)
+    {
+        if (instance == null) return;
+        float k = InGameScale(prefab != null ? prefab : instance);
+        if (k == 1f) return;
+        var s = instance.transform.localScale;
+        instance.transform.localScale = new Vector3(s.x * k, s.y * k, s.z);
+    }
+
     // Atom idle: rest pose, ten travelling drawings on 2s, anticipation, pop, settle.
     public static readonly int[] AtomIdleTicks = { 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 };
     // Star dust: rest, squash, stretch, spin through an edge-on smear, rest on the flip side, spin back.
