@@ -1,6 +1,6 @@
 # Frost industrial pixel-background staging (v2)
 
-This folder is review-only: none of these files are wired into `Resources/Worlds/Frost/Backdrop` yet.
+This folder is review-only: none of these files are wired into `Backgrounds/Resources/Worlds/Frost/Backdrop` yet.
 
 - `frost_sky_industrial_pixel_v2.png` — opaque polar sky layer.
 - `frost_far_industrial_pixel_v2.png` — distant icy relay mountains.

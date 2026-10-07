@@ -127,7 +127,7 @@ public static class WorldLogicTest
         for (int i = 1; i < WorldManager.Worlds.Length; i++)
         {
             var t = WorldManager.Worlds[i];
-            string p = "Assets/Art/Resources/Worlds/" + t.displayName + "/Backdrop/sky.png";
+            string p = "Assets/Art/Backgrounds/Resources/Worlds/" + t.displayName + "/Backdrop/sky.png";
             Check("art present for " + t.displayName + " (" + p + ")",
                   AssetDatabase.LoadAssetAtPath<Texture2D>(p) != null);
             Check("music present for " + t.displayName + " (" + t.musicResource + ")",

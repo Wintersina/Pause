@@ -71,7 +71,7 @@ All four need a **full redesign**: new silhouettes, not a restyle of the current
 
 ### World backgrounds
 
-Each world's parallax layers are in `Art/Resources/Worlds/<World>/Backdrop/`.
+Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Backdrop/`.
 
 - [ ] **Space.** Layers: `sky.png`, `anim.png` + `anim.json`, `fx.png` + `fx.json`.
 - [ ] **Frost.** Layers: `sky`, `far`, `mid`, `flow`, `anim`, `fx`.
