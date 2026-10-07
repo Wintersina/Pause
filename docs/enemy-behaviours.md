@@ -994,3 +994,35 @@ the unreported case explicitly.
 iPhone 15 (before: up to 52% slower on tall phones); straight shots scale as a whole (aim and angles kept), lobs
 stretch vertically (columns kept), beams grow faster by the same factor. Fans and angled beams keep their angles,
 so on a tall screen they spread wider by the ship's row and meet the rails sooner: slightly easier, not retuned.
+
+## Death combo
+
+One rule set for the domino, in play and in the death crash. Every number lives in
+`Scripts/Gameplay/Weapons/DeathCombo.cs`; tests: `DeathComboTest` (rates, chain, caps, elites, pause),
+`DeathDominoTest` (the crash's chain, rolls forced on).
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `TriggerChance` | 40% | a hazard the pilot destroys (weapon, ultimate, secret power, shielded ram, blink; an elite brought down by weapon / blink / shielded ram) sets off a combo at the wreck |
+| `ChainChance` | 40% | each other hazard within `BlastRadius` of a combo death is hit (rolled per hazard) |
+| `BlastRadius` | 1.4 u | plus half the target's radius |
+| `HopDelay` | 0.1 s | one link per hop, gameplay time: a wave, not a mass delete |
+| `MaxDepth` | 6 | hops from the pilot's kill; `MaxPending` 32 queued links |
+| `DeathHitChance` | 40% | death crash: the ship's wreckage breaks an enemy it touches (rolled once per enemy; a miss glances off) |
+| `DeathChainChance` | 40% | death crash: a chain kill's own pieces are live; otherwise harmless debris |
+
+Rules:
+* A combo **kill** is a combo death of its own (its own burst and rolls). Chain victims never roll
+  `TriggerChance` again. A kill pays like any kill (score with the kill chain, dust, codex, achievements),
+  once; a rail mine still bursts on its own friendly-fire rules.
+* An **elite** loses exactly one heart per combo hit (`EliteDamage.Combo`, respects its grace, never one-shot);
+  only its death chains on. The **boss** (body, shots, beams), elite shots, pickups and the **player** are
+  never touched.
+* Off in the tutorial and during the death crash (which clears the queue); frozen while the world is paused.
+* MEGA DOMINO keeps its own rule (`DeathCrash.MegaChance`, 12%: the whole screen).
+
+Before this rule the death crash killed everything its wreckage touched and every kill threw more killing
+pieces: a death with 6 hazards on screen chained 83% of the time (93% with 10, ~4 kills each). Measured with
+the rule (random static boards): 27% / 53% / 62% of deaths with 3 / 6 / 10 hazards. In play, chain kills per
+combo average 0.15 / 0.42 / 0.78 / 1.9 with 3 / 6 / 10 / 16 hazards on screen (about 6 / 17 / 31 / 75 extra
+kills per 100 pilot kills); the worst seen was 12 kills, 6 hops deep (the cap).
