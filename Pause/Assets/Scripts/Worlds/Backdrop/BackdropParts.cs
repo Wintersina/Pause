@@ -81,12 +81,15 @@ public class BackdropTile
     readonly Transform root;
     readonly List<SpriteRenderer> copies = new List<SpriteRenderer>();
     readonly Sprite sprite;
+    readonly bool halfTurn;
     float tileHeight, tileWidth, wobblePhase;
 
-    public BackdropTile(Transform parent, BackdropCatalog.Layer layer, Sprite sprite, int order, float z)
+    public BackdropTile(Transform parent, BackdropCatalog.Layer layer, Sprite sprite, int order, float z,
+                        bool halfTurn = false)
     {
         this.layer = layer;
         this.sprite = sprite;
+        this.halfTurn = halfTurn;
         root = new GameObject("Tile_" + layer.name).transform;
         root.SetParent(parent, false);
         root.localPosition = new Vector3(0f, 0f, z);
@@ -112,6 +115,8 @@ public class BackdropTile
         var sr = go.AddComponent<SpriteRenderer>();
         if (wrapMat != null) sr.sharedMaterial = wrapMat;
         sr.sprite = sprite;
+        sr.flipX = halfTurn;
+        sr.flipY = halfTurn;
         sr.sortingOrder = order;
         sr.color = layer.tint;
         copies.Add(sr);
@@ -144,6 +149,8 @@ public class BackdropTile
     public float TileHeight { get { return tileHeight; } }
     public float TileWidth { get { return tileWidth; } }
     public Material WrapMaterial { get { return wrapMat; } }
+    public string SpriteName { get { return sprite != null ? sprite.name : null; } }
+    public bool HalfTurn { get { return halfTurn; } }
 
     public void Destroy() { BackdropAtlas.Kill(wrapMat); wrapMat = null; }
 
@@ -177,6 +184,8 @@ public class BackdropPiece
 {
     public Transform root, body;
     public SpriteRenderer sr, blend;     // blend: next flipbook frame, faded in
+    public SpriteRenderer smoke;         // optional Space asteroid effect flipbook
+    public Sprite[] effectFrames;
     public bool active;
     public float x, y, vx, vy, age, life, size, phase, spin, rate;
     public Color color = Color.white;
@@ -213,7 +222,10 @@ public class BackdropPiece
         {
             blend.sprite = frames[(i + 1) % n];
             Color c = sr.color;
-            c.a *= loop ? f - Mathf.Floor(f) : 0f;
+            // Five visible in-between states between each pair of authored
+            // frames, followed by the next frame. Quantizing the dissolve
+            // avoids a sharp jump without allocating extra sprite textures.
+            c.a *= loop ? Mathf.Floor((f - Mathf.Floor(f)) * 6f) / 6f : 0f;
             blend.color = c;
         }
     }
@@ -277,6 +289,8 @@ public class BackdropPool
             p.spin = 0f;
             p.vx = p.vy = 0f;
             p.frames = null;
+            p.effectFrames = null;
+            if (p.smoke != null) p.smoke.enabled = false;
             p.loop = true;
             p.children = null;
             p.parent = null;

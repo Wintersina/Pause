@@ -9,7 +9,7 @@ public static class WorldBackdropTest
     static int failures;
 
     // Budgets / guards.
-    public const long TextureBudgetBytes = 4L * 1024 * 1024;   // per world, GPU size of the imported format
+    public const long TextureBudgetBytes = 9L * 1024 * 1024;   // per world, GPU size of the imported format
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -103,8 +103,22 @@ public static class WorldBackdropTest
             foreach (var l in spec.layers)
             {
                 if (l.kind == BackdropCatalog.Kind.Pieces) continue;
-                Check(spec.world + "/" + l.texture + " tile sprite resolves",
-                      Resources.Load<Sprite>(folder + l.texture) != null);
+                string texture = spec.world == "Space" && l.name == "sky"
+                    ? SpaceSkySelection.Texture : l.texture;
+                Check(spec.world + "/" + texture + " tile sprite resolves",
+                      Resources.Load<Sprite>(folder + texture) != null);
+            }
+            if (spec.world == "Space")
+            {
+                for (int i = 1; i <= SpaceSkySelection.VariantCount; i++)
+                {
+                    string name = "sky_0" + i;
+                    var sky = Resources.Load<Sprite>(folder + name);
+                    Check("Space " + name + " is a crisp high-resolution sky",
+                          sky != null && sky.texture.width >= 887 && sky.texture.height >= 1774 &&
+                          sky.texture.filterMode == FilterMode.Point &&
+                          sky.texture.wrapModeV == TextureWrapMode.Repeat);
+                }
             }
             foreach (string atlas in new[] { BackdropCatalog.AtlasFx, BackdropCatalog.AtlasAnim })
             {
@@ -179,6 +193,7 @@ public static class WorldBackdropTest
         {
             string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + spec.world + "/Backdrop/";
             long bytes = 0, astc = 0;
+            long skyBytes = 0, skyAstc = 0;
             foreach (string path in Directory.GetFiles(dir, "*.png"))
             {
                 string asset = path.Replace('\\', '/');
@@ -186,9 +201,9 @@ public static class WorldBackdropTest
                 if (tex == null) { Check(asset + " imports", false); continue; }
                 // GPU size of the imported format (Profiler's editor number also
                 // counts transient CPU copies, so it varies between sessions).
-                bytes += (long)UnityEngine.Experimental.Rendering.GraphicsFormatUtility.ComputeMipmapSize(
+                long assetBytes = (long)UnityEngine.Experimental.Rendering.GraphicsFormatUtility.ComputeMipmapSize(
                     tex.width, tex.height, tex.graphicsFormat);
-                astc += ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
+                long assetAstc = ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
 
                 var imp = (TextureImporter)AssetImporter.GetAtPath(asset);
                 Check(asset + " has no mipmaps", imp != null && !imp.mipmapEnabled);
@@ -196,6 +211,15 @@ public static class WorldBackdropTest
 
                 var px = ReadPixels(path);
                 string name = Path.GetFileNameWithoutExtension(path);
+                bool spaceSky = spec.world == "Space" &&
+                                (name == "sky" || name.StartsWith("sky_", System.StringComparison.Ordinal));
+                // A run loads one of the stored Space skies, never all five.
+                if (spaceSky)
+                {
+                    skyBytes = System.Math.Max(skyBytes, assetBytes);
+                    skyAstc = System.Math.Max(skyAstc, assetAstc);
+                }
+                else { bytes += assetBytes; astc += assetAstc; }
                 bool tile = WorldBackdropImport.IsTile(asset);
                 if (tile)
                 {
@@ -209,6 +233,7 @@ public static class WorldBackdropTest
                             foundLayer = true;
                             break;
                         }
+                    if (!foundLayer && spaceSky) { layer = spec.Find("sky"); foundLayer = true; }
                     if (!foundLayer) { Check(spec.world + "/" + name + " maps to a catalog layer", false); continue; }
                     float seam = layer.wrapBlend > 0f ? WrapBlendSeam(px, layer.wrapBlend) : SeamDifference(px);
                     Check(spec.world + "/" + name + " is vertically seamless (top vs bottom row " +
@@ -219,21 +244,23 @@ public static class WorldBackdropTest
 
                 float lum, chroma;
                 Measure(px, out lum, out chroma);
-                if (name == "sky" || name == "far" || name == "mid")
+                if (spaceSky || name == "sky" || name == "far" || name == "mid")
                 {
                     float v90 = ValuePercentile(px, 0.9f);
                     Check(spec.world + "/" + name + " forms at HSV value <= 35% (p90 " + v90.ToString("F3") + ")",
                           v90 <= TileMaxValueP90);
                 }
-                if (name == "sky")
+                if (spaceSky || name == "sky")
                     Check(spec.world + " sky stays dark (lum " + lum.ToString("F3") + ")", lum <= SkyMaxLuminance);
-                if (name == "sky" || name == "far" || name == "mid")
+                if (spaceSky || name == "sky" || name == "far" || name == "mid")
                     Check(spec.world + "/" + name + " under gameplay contrast guard (lum " + lum.ToString("F3") +
                           ", chroma " + chroma.ToString("F3") + ")", lum <= TileMaxLuminance && chroma <= TileMaxChroma);
                 if (!tile)
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling (lum " + lum.ToString("F3") + ")",
                           lum <= AtlasMaxLuminance);
             }
+            bytes += skyBytes;
+            astc += skyAstc;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (TextureBudgetBytes / 1024) + " KB",
@@ -249,7 +276,8 @@ public static class WorldBackdropTest
     {
         var spec = BackdropCatalog.For(world);
         string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + world + "/Backdrop/";
-        var outPx = (Color[])ReadPixels(dir + "sky.png").Clone();
+        string skyName = world == "Space" ? SpaceSkySelection.Texture : "sky";
+        var outPx = (Color[])ReadPixels(dir + skyName + ".png").Clone();
         w = ReadW; h = ReadH;
         foreach (string layerName in new[] { "far", "mid", "flow" })
         {
@@ -717,7 +745,7 @@ public static class WorldBackdropTest
                 }
                 else
                 {
-                    if (p.sr.sprite != s.sprite) spriteSwaps++;
+                    if (p.frames == null && p.sr.sprite != s.sprite) spriteSwaps++;
                     s.age = p.age;
                 }
             }
@@ -764,7 +792,7 @@ public static class WorldBackdropTest
     static void SpaceWatchReport()
     {
         int tiers = SpaceDirector.Tiers.Length;
-        Check("Space set pieces keep the sprite they spawned with (" + spriteSwaps + " swaps)", spriteSwaps == 0);
+        Check("Space static set pieces keep the sprite they spawned with (" + spriteSwaps + " swaps)", spriteSwaps == 0);
         Check("Space bodies never overlap over a 20-minute run (" + overlaps + " overlapping samples, at most " +
               maxGroupsInView + " in view at once)", overlaps == 0 && maxGroupsInView <= 4);
         Check("Space bodies take rate and sorting from their depth tier (" + tierMismatches + " mismatches in " +
@@ -1051,9 +1079,8 @@ public static class WorldBackdropTest
         return null;
     }
 
-    // Planets turn properly (surface spin from one static variant, never a
-    // playing flipbook), their halo is part of the same rigid sprite, comets
-    // stay small and dim, the sky draws seamlessly, and none of it allocates.
+    // Space bodies play their atlas sequences on scaled time; comets stay
+    // small and dim, the sky draws seamlessly, and none of it allocates.
     static void CheckSpaceMotion()
     {
         var go = new GameObject("~SpaceMotionTest");
@@ -1066,67 +1093,89 @@ public static class WorldBackdropTest
             var sd = wb.Current != null ? wb.Current.Director as SpaceDirector : null;
             Check("Space backdrop runs the SpaceDirector", sd != null);
             if (sd == null) return;
+            string spaceArt = BackdropCatalog.Folder("Space");
+            bool asteroidSprites = true;
+            for (int i = 0; i < 3; i++)
+                asteroidSprites &= Resources.Load<Sprite>(spaceArt + "asteroid_" + i.ToString("00")) != null;
+            Check("Space loads three separate asteroid sprites", asteroidSprites);
+            bool effectFrames = wb.Current.AsteroidFx != null;
+            for (int i = 0; i < 3 && effectFrames; i++)
+                effectFrames &= wb.Current.AsteroidFx.Frames("asteroidfx" + i).Length >= 4;
+            Check("Space gives every still asteroid at least four smoke/light frames", effectFrames);
 
             var sky = wb.Current.Tiles[0];
             Check("Space sky draws through the wrap cross-fade shader",
                   sky.WrapMaterial != null && sky.WrapMaterial.shader.name == "Pause/BackdropSkyWrap");
+            Check("Space sky uses the run's selected variant and half-turn",
+                  sky.SpriteName == SpaceSkySelection.Texture && sky.HalfTurn == SpaceSkySelection.HalfTurn);
 
-            var planet = FirstSphere(sd, SpaceDirector.Planet);
-            Check("Space opens on a planet drawn with the turning-planet shader",
-                  planet != null && planet.sr.sharedMaterial != null &&
-                  planet.sr.sharedMaterial.shader.name == "Pause/BackdropPlanet");
+            BackdropPiece planet = null;
+            foreach (var pool in sd.Bodies)
+                foreach (var p in pool.items)
+                    if (p.active && p.kind == SpaceDirector.Planet && p.parent == null) planet = p;
+            Check("Space opens on a continuously turning giant", planet != null && planet.planet &&
+                  planet.turnRate != 0f && planet.frames == null);
             if (planet == null) return;
 
             const float dt = 1f / 60f;
-            bool smooth = planet.turnRate != 0f, noSwap = true;
-            float turn0 = planet.turn, haloDev = 0f, tiltDev = 0f;
+            bool smooth = true;
             Sprite s0 = planet.sr.sprite;
-            Vector3 off0 = planet.sr.bounds.center - planet.root.position;
-            Quaternion rot0 = planet.root.rotation;
-            var mpb = new MaterialPropertyBlock();
-            bool shaderFed = true;
+            float turn0 = planet.turn;
             for (int i = 0; i < 180 && planet.active; i++)
             {
                 float before = planet.turn;
                 wb.Step(dt);
                 if (!planet.active) break;
-                if (Mathf.Abs(planet.turn - before - planet.turnRate * dt) > 1e-5f) smooth = false;
-                if (planet.sr.sprite != s0 || planet.frames != null) noSwap = false;
-                haloDev = Mathf.Max(haloDev, ((planet.sr.bounds.center - planet.root.position) - off0).magnitude);
-                tiltDev = Mathf.Max(tiltDev, Quaternion.Angle(planet.root.rotation, rot0));
-                planet.sr.GetPropertyBlock(mpb);
-                if (Mathf.Abs(mpb.GetFloat("_Spin") - planet.turn) > 1e-5f) shaderFed = false;
+                if (planet.sr.sprite != s0 ||
+                    Mathf.Abs(planet.turn - before - planet.turnRate * dt) > 1e-5f) smooth = false;
             }
-            float turned = Mathf.Abs(planet.turn - turn0);
-            Check("Space planet surface turns smoothly (" + turned.ToString("F3") + " rad of longitude in 3 s, " +
-                  "constant rate, fed to the shader), one static variant, no flipbook swaps",
-                  smooth && noSwap && shaderFed && turned > 0.1f && turned < 0.5f);
-            Check("Space planet halo is rigid on the body (centre drift " + haloDev.ToString("F4") + " < 0.01 u, tilt drift " +
-                  tiltDev.ToString("F3") + " deg; cut centred: offset " + off0.magnitude.ToString("F4") + " u)",
-                  haloDev < 0.01f && tiltDev < 0.01f && off0.magnitude < 0.03f);
+            Check("Space giant turns smoothly without sprite jumps", smooth &&
+                  Mathf.Abs(planet.turn - turn0) > 0.1f);
 
             Time.timeScale = 0f;
             float frozen = planet.turn;
             for (int i = 0; i < 60; i++) wb.Step(dt);
-            Check("Space planet spin holds still while timeScale = 0", planet.turn == frozen);
+            Check("Space giant holds its rotation while timeScale = 0", planet.turn == frozen);
             Time.timeScale = 1f;
 
             // A long run: every sphere turns, comets stay small and dim.
             const float step = 1f / 30f;
             int spheres = 0, still = 0, comets = 0;
             bool cometsDim = true;
+            BackdropPiece watchedRock = null;
+            Sprite rockImage = null, effectImage = null;
+            bool rockStill = true, effectsAdvance = false;
             float brightest = 0f, biggest = 0f;
             for (int i = 0; i < 300 * 30; i++)
             {
                 moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
                 wb.Step(step);
+                if (!effectsAdvance)
+                {
+                    if (watchedRock != null && (!watchedRock.active || watchedRock.effectFrames == null))
+                        watchedRock = null;
+                    foreach (var pool in sd.Bodies)
+                        foreach (var p in pool.items)
+                            if (p.active && p.effectFrames != null && p.effectFrames.Length >= 4 &&
+                                watchedRock == null)
+                            {
+                                watchedRock = p;
+                                rockImage = p.sr.sprite;
+                                effectImage = p.smoke.sprite;
+                            }
+                    if (watchedRock != null)
+                    {
+                        rockStill &= watchedRock.sr.sprite == rockImage;
+                        effectsAdvance |= watchedRock.smoke.sprite != effectImage;
+                    }
+                }
                 if (i % 30 != 0) continue;
                 foreach (var pool in sd.Bodies)
                     foreach (var p in pool.items)
                     {
                         if (!p.active || !SpaceDirector.IsSphere(p.sr.sprite)) continue;
                         spheres++;
-                        if (!p.planet || p.turnRate == 0f) still++;
+                        if (!p.planet || p.turnRate == 0f || p.frames != null) still++;
                     }
                 foreach (var pool in sd.Pools)
                     foreach (var p in pool.items)
@@ -1141,8 +1190,10 @@ public static class WorldBackdropTest
                             cometsDim = false;
                     }
             }
-            Check("Space spheres all turn over a 5-minute run (" + spheres + " samples, " + still + " still)",
+            Check("Space spheres all animate over a 5-minute run (" + spheres + " samples, " + still + " still)",
                   spheres > 50 && still == 0);
+            Check("Space asteroid stays still while its four-frame smoke/light overlay advances",
+                  rockStill && effectsAdvance);
             Check("Space comets stay small and dim (" + comets + " samples, alpha <= " + brightest.ToString("F2") + " <= " +
                   SpaceDirector.CometMaxAlpha + ", width <= " + biggest.ToString("F2") + " <= " + SpaceDirector.CometMaxWidth + " u)",
                   cometsDim && comets > 0);

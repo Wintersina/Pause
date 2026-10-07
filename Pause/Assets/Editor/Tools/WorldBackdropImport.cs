@@ -29,8 +29,28 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsTile(string path)
     {
         string f = System.IO.Path.GetFileNameWithoutExtension(path);
-        return f == "sky" || f == "far" || f == "mid" || f == "flow" ||
+        return f == "sky" || f.StartsWith("sky_", System.StringComparison.Ordinal) ||
+               f == "far" || f == "mid" || f == "flow" ||
                f.StartsWith("forest_industrial_center_v");
+    }
+
+    static bool IsStandaloneSprite(string file)
+    {
+        return file.StartsWith("asteroid_", System.StringComparison.Ordinal) ||
+               file == "reference_planet" || file == "comet_v2" || file == "station_ring_v2";
+    }
+
+    public static void ReimportSpaceStandaloneSprites()
+    {
+        const string folder = "Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/";
+        for (int i = 0; i < 3; i++)
+            AssetDatabase.ImportAsset(folder + "asteroid_" + i.ToString("00") + ".png",
+                                      ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(folder + "reference_planet.png", ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(folder + "comet_v2.png", ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(folder + "station_ring_v2.png", ImportAssetOptions.ForceUpdate);
+        foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx" })
+            AssetDatabase.ImportAsset(folder + atlas + ".png", ImportAssetOptions.ForceUpdate);
     }
 
     void OnPreprocessTexture()
@@ -39,32 +59,35 @@ public class WorldBackdropImport : AssetPostprocessor
         var ti = (TextureImporter)assetImporter;
         string file = System.IO.Path.GetFileNameWithoutExtension(assetPath);
         bool tile = IsTile(assetPath);
+        bool sharpSpaceSky = assetPath.Contains("/Worlds/Space/") &&
+                             file.StartsWith("sky_", System.StringComparison.Ordinal);
 
         ti.mipmapEnabled = false;
-        ti.filterMode = FilterMode.Bilinear;
+        ti.filterMode = sharpSpaceSky ? FilterMode.Point : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         // Verdant's central world tile is the visual anchor behind the thick
         // rails. Keep its high-resolution industrial detail on modern phones.
-        ti.maxTextureSize = 1024;
+        ti.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+            sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
-        if (tile)
+        if (tile || IsStandaloneSprite(file))
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            ti.spritePixelsPerUnit = TilePixelsPerUnit;
+            ti.spritePixelsPerUnit = tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
-            settings.spriteMeshType = file == "sky" ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
+            settings.spriteMeshType = file == "sky" || sharpSpaceSky ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
             settings.spriteAlignment = (int)SpriteAlignment.Center;
             settings.spriteExtrude = 1;
             settings.wrapModeU = TextureWrapMode.Clamp;
-            settings.wrapModeV = TextureWrapMode.Repeat;
+            settings.wrapModeV = tile ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             ti.SetTextureSettings(settings);
-            ti.alphaSource = file == "sky" ? TextureImporterAlphaSource.None
+            ti.alphaSource = file == "sky" || sharpSpaceSky ? TextureImporterAlphaSource.None
                                            : TextureImporterAlphaSource.FromInput;
         }
         else
@@ -74,11 +97,19 @@ public class WorldBackdropImport : AssetPostprocessor
             ti.alphaSource = TextureImporterAlphaSource.FromInput;
         }
 
+        if (!tile && assetPath.Contains("/Worlds/Space/"))
+        {
+            var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
+            defaults.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
+            ti.SetPlatformTextureSettings(defaults);
+        }
+
         foreach (string platform in new[] { "Android", "iPhone" })
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = 1024;
+            ps.maxTextureSize = file == "comet_v2" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+                sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
             ps.format = TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);

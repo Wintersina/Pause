@@ -66,6 +66,7 @@ public class WorldBackdrop : MonoBehaviour
     void Awake()
     {
         if (Instance == null) Instance = this;
+        if (Application.isPlaying) SpaceSkySelection.BeginRun();
     }
 
     void OnDestroy()

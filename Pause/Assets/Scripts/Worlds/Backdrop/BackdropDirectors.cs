@@ -12,8 +12,8 @@ using UnityEngine;
 // of them, alternating sides, with clear sky between arrivals and no body
 // ever overtaking another in its lane.
 //
-// Atlas cells are variants (twelve different giants, eight stations...), not
-// flipbook frames: a body picks one when it spawns and keeps it.
+// Spherical worlds keep a chosen high-resolution sprite while the surface
+// shader turns every rendered frame. Stations use slow blended flipbooks.
 public class SpaceDirector : BackdropDirector
 {
     public struct Tier
@@ -95,6 +95,11 @@ public class SpaceDirector : BackdropDirector
 
     BackdropPool wisps, galaxies, stars, comets, shooters, planets, stations, planetoids, moons, dust;
     Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation, comet;
+    Sprite[] haloPlanets, asteroids;
+    Sprite[] neonPlanets, referencePlanet;
+    Sprite[] detailedStationFrames;
+    Sprite detailedComet;
+    Sprite[][] asteroidEffects;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
     readonly List<BackdropPool> setPieces = new List<BackdropPool>();
     Timer galaxyTimer = new Timer(30f, 50f, 30f);
@@ -130,6 +135,21 @@ public class SpaceDirector : BackdropDirector
         miniStation = fx.Frames("mini_station");
         miniRingStation = fx.Frames("mini_ringstation");
         comet = fx.Frames("comet");
+        haloPlanets = set.Extras != null ? set.Extras.Frames("halo_planet") : new Sprite[0];
+        asteroids = new Sprite[3];
+        string spaceFolder = BackdropCatalog.Folder("Space");
+        for (int i = 0; i < asteroids.Length; i++)
+            asteroids[i] = Resources.Load<Sprite>(spaceFolder + "asteroid_" + i.ToString("00"));
+        neonPlanets = set.NeonFrames != null ? set.NeonFrames.Frames("neon_planet") : new Sprite[0];
+        Sprite reference = Resources.Load<Sprite>(spaceFolder + "reference_planet");
+        referencePlanet = reference != null ? new[] { reference } : new Sprite[0];
+        detailedComet = Resources.Load<Sprite>(spaceFolder + "comet_v2");
+        Sprite detailedStation = Resources.Load<Sprite>(spaceFolder + "station_ring_v2");
+        detailedStationFrames = detailedStation != null ? new[] { detailedStation } : new Sprite[0];
+        asteroidEffects = new Sprite[3][];
+        for (int i = 0; i < asteroidEffects.Length; i++)
+            asteroidEffects[i] = set.AsteroidFx != null
+                ? set.AsteroidFx.Frames("asteroidfx" + i) : new Sprite[0];
         var m = new List<Sprite>(rocky);
         if (fx.Has("moon")) m.Add(fx.Get("moon"));
         moonArt = m.ToArray();
@@ -141,14 +161,30 @@ public class SpaceDirector : BackdropDirector
         comets = Pool("comets", 1);
         // Bodies take their tier's sorting order when they spawn.
         string deep = Tiers[0].layer;
-        planets = Pool(deep, 3);
-        stations = Pool(deep, 4);
-        planetoids = Pool(deep, 2);
-        moons = Pool(deep, 3);
+        planets = Pool(deep, 3, true);
+        stations = Pool(deep, 4, true);
+        planetoids = Pool(deep, 2, true);
+        moons = Pool(deep, 3, true);
         dust = Pool("dust", 12);
         var sphere = Resources.Load<Shader>(PlanetShader);
         if (sphere != null) planetMat = new Material(sphere) { name = "SpacePlanet" };
         spriteMat = planets.items[0].sr.sharedMaterial;
+        foreach (var rock in planetoids.items)
+        {
+            var smokeObject = new GameObject("smoke");
+            smokeObject.transform.SetParent(rock.body, false);
+            rock.smoke = smokeObject.AddComponent<SpriteRenderer>();
+            rock.smoke.transform.localScale = new Vector3(2f, 2f, 1f);
+            rock.smoke.enabled = false;
+        }
+        foreach (var stationPiece in stations.items)
+        {
+            var smokeObject = new GameObject("distant exhaust");
+            smokeObject.transform.SetParent(stationPiece.body, false);
+            stationPiece.smoke = smokeObject.AddComponent<SpriteRenderer>();
+            stationPiece.smoke.sprite = fx.Get("wisp0");
+            stationPiece.smoke.enabled = false;
+        }
         bodies.AddRange(new[] { planets, stations, planetoids, moons });
         setPieces.AddRange(bodies);
         setPieces.AddRange(new[] { wisps, galaxies, comets });
@@ -228,7 +264,7 @@ public class SpaceDirector : BackdropDirector
         {
             Recycle(s, 0f, dt, v, 0f);
             float tw = Mathf.Sin(s.age * (1.5f + (s.phase % 1.7f)) + s.phase);
-            Paint(s, tw > 0.75f ? 1f : 0.45f + 0.15f * tw);
+            Paint(s, tw > 0.82f ? 1f : 0.20f + 0.12f * tw);
         }
 
         // Dust becomes speed lines as the run gets faster.
@@ -271,10 +307,13 @@ public class SpaceDirector : BackdropDirector
             {
                 if (!p.active || p.parent != null) continue;
                 if (!Drift(p, dt, v)) continue;
-                // phase: tilt at spawn. Only ring stations turn (spin != 0).
+                // phase: tilt at spawn. Stations turn slowly (spin != 0).
                 p.root.localRotation = Quaternion.Euler(0f, 0f, p.phase + p.age * p.spin);
                 p.turn += p.turnRate * dt;
                 Paint(p, 1f);
+                p.Animate();
+                PaintAsteroidEffects(p);
+                PaintStationSmoke(p);
                 PaintSphere(p);
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
@@ -423,16 +462,34 @@ public class SpaceDirector : BackdropDirector
         var pool = n.kind == Planet ? planets : n.kind == Station ? stations : planetoids;
         var p = pool.Spawn();
         if (p == null) return false;
-        Sprite[] art = n.kind == Planet ? giant : n.kind == Station ? StationArt(n.ring, n.size) : RockArt(n.size);
+        Sprite[] art = n.kind == Planet
+            ? (referencePlanet.Length > 0 && !opening && Chance(0.16) ? referencePlanet
+               : neonPlanets.Length > 0 && !opening && Chance(0.45) ? neonPlanets
+               : haloPlanets.Length > 0 && !opening && Chance(0.28) ? haloPlanets : giant)
+            : n.kind == Station ? StationArt(n.ring, n.size)
+            : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? asteroids : RockArt(n.size));
         if (art.Length == 0) { p.Show(false); return true; }
-        Dress(p, Pick(art), n.kind, n.tier, n.size, 0);
+        Sprite selected = art == station || art == ringStation || art == miniStation || art == miniRingStation
+            ? art[0] : Pick(art);
+        Dress(p, selected, n.kind, n.tier, n.size, 0);
+        if (n.kind == Station) AnimateBody(p, art);
+        if (p.smoke != null)
+        {
+            bool hasEffects = art == asteroids && set.AsteroidFx != null;
+            p.smoke.enabled = hasEffects || (n.kind == Station && Chance(0.55));
+            p.effectFrames = hasEffects ? asteroidEffects[System.Array.IndexOf(asteroids, selected)] : null;
+            p.smoke.sortingOrder = n.kind == Station ? p.sr.sortingOrder - 1 : p.sr.sortingOrder + 1;
+            if (n.kind == Station) p.smoke.transform.localPosition = new Vector3(0f, -0.28f, 0f);
+        }
         p.x = x;
         p.y = y;
         // A lit sphere with a fixed terminator can't turn in the picture
         // plane without looking like a spinning decal, so planets and rocks
-        // hold a tilt. Ring stations wheel slowly; the others hold theirs.
+        // hold a tilt. Stations wheel slowly; the others hold theirs.
         p.phase = n.kind == Station ? Rand(-10f, 10f) : Rand(-14f, 14f);
-        if (n.kind == Station && n.ring) p.spin = Rand(1.2f, 2.2f) * (Chance(0.5) ? 1f : -1f);
+        if (n.kind == Station) p.spin = Rand(n.ring ? 0.9f : 0.22f, n.ring ? 1.5f : 0.48f) *
+                                        (Chance(0.5) ? 1f : -1f);
+        if (art == referencePlanet) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
         p.color = Lit(n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint, tier);
         side = x < 0f ? -1 : 1;
         lastKind = n.kind;
@@ -442,7 +499,9 @@ public class SpaceDirector : BackdropDirector
         if (c == null) return true;
         art = n.companion == Moon ? MoonArt(n.companionSize) : StationArt(n.ring, n.companionSize);
         if (art.Length == 0) { c.Show(false); return true; }
-        Dress(c, Pick(art), n.companion, n.tier, n.companionSize, 2);
+        Sprite companionSprite = Pick(art);
+        Dress(c, companionSprite, n.companion, n.tier, n.companionSize, 2);
+        if (n.companion == Station) AnimateBody(c, art);
         c.parent = p;
         c.phase = Rand(0f, 6.283f);
         c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
@@ -461,8 +520,10 @@ public class SpaceDirector : BackdropDirector
         p.tier = tier;
         p.rate = set.Spec.Rate(Tiers[tier].layer);
         p.sr.sortingOrder = set.Spec.Order(Tiers[tier].layer) + orderOffset;
+        if (p.blend != null) p.blend.sortingOrder = p.sr.sortingOrder + 1;
 
-        bool sphere = planetMat != null && kind != Station && IsSphere(s);
+        bool sphere = planetMat != null && kind != Station &&
+            (IsSphere(s) || s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal));
         p.planet = sphere;
         p.sr.sharedMaterial = sphere ? planetMat : spriteMat;
         if (!sphere) { p.sr.SetPropertyBlock(null); return; }
@@ -473,6 +534,18 @@ public class SpaceDirector : BackdropDirector
         p.turnRate = (Chance(0.5) ? 1f : -1f) * Mathf.PI / seconds;
     }
 
+    void AnimateBody(BackdropPiece p, Sprite[] art)
+    {
+        if (art == null || art.Length < 2) return;
+        p.planet = false;
+        p.sr.sharedMaterial = spriteMat;
+        p.sr.SetPropertyBlock(null);
+        p.frames = art;
+        p.fps = p.kind == Planet ? 1.5f : p.kind == Station ? 0.8f : 0.7f;
+        p.age = Rand(0f, art.Length / p.fps);
+        p.Animate();
+    }
+
     // Round bodies whose surface can turn: the giants and the cratered rocks
     // (full size and pre-shrunk). The lone `moon` cell is not a disc.
     public static bool IsSphere(Sprite s)
@@ -480,6 +553,7 @@ public class SpaceDirector : BackdropDirector
         if (s == null) return false;
         string n = s.name;
         return n.StartsWith("giant_", System.StringComparison.Ordinal) ||
+               n.StartsWith("neon_planet_", System.StringComparison.Ordinal) ||
                n.StartsWith("rocky_", System.StringComparison.Ordinal) ||
                n.StartsWith("mini_rocky_", System.StringComparison.Ordinal);
     }
@@ -491,8 +565,13 @@ public class SpaceDirector : BackdropDirector
     {
         Rect r = s.textureRect;
         float tw = s.texture.width, th = s.texture.height;
+        bool inset = s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal) ||
+                     s.name.StartsWith("neon_planet_", System.StringComparison.Ordinal);
+        float radius = inset
+            ? r.width * 0.39f : r.width * 0.5f - DiscMarginPx;
         return new Vector4(r.center.x / tw, r.center.y / th,
-                           (r.width * 0.5f - DiscMarginPx) / tw, (r.height * 0.5f - DiscMarginPx) / th);
+                           radius / tw, (inset
+                               ? r.height * 0.39f : r.height * 0.5f - DiscMarginPx) / th);
     }
 
     void PaintSphere(BackdropPiece p)
@@ -503,6 +582,22 @@ public class SpaceDirector : BackdropDirector
         mpb.SetVector(IdDisc, p.disc);
         mpb.SetFloat(IdSpin, p.turn);
         p.sr.SetPropertyBlock(mpb);
+    }
+
+    void PaintAsteroidEffects(BackdropPiece p)
+    {
+        if (p.smoke == null || !p.smoke.enabled || p.effectFrames == null || p.effectFrames.Length == 0) return;
+        p.smoke.sprite = p.effectFrames[Mathf.FloorToInt(p.age * 4f) % p.effectFrames.Length];
+        p.smoke.color = new Color(1f, 1f, 1f, set.Alpha);
+    }
+
+    void PaintStationSmoke(BackdropPiece p)
+    {
+        if (p.kind != Station || p.smoke == null || !p.smoke.enabled) return;
+        float pulse = 0.5f + 0.5f * Mathf.Sin(p.age * 0.9f + p.phase);
+        float scale = 0.22f + 0.07f * pulse;
+        p.smoke.transform.localScale = new Vector3(scale, scale, 1f);
+        p.smoke.color = new Color(0.43f, 0.56f, 0.78f, (0.07f + 0.08f * pulse) * set.Alpha);
     }
 
     public override void Teardown()
@@ -516,6 +611,7 @@ public class SpaceDirector : BackdropDirector
     Sprite[] StationArt(bool ring, float size)
     {
         if (size < MiniBelow) return ring ? miniRingStation : miniStation;
+        if (ring && detailedStationFrames.Length > 0 && Chance(0.45)) return detailedStationFrames;
         return ring ? ringStation : station;
     }
 
@@ -545,6 +641,7 @@ public class SpaceDirector : BackdropDirector
         c.sr.sortingOrder = p.sr.sortingOrder + (Mathf.Sin(a) > 0f ? -2 : 2);
         c.turn += c.turnRate * dt;
         Paint(c, 1f);
+        c.Animate();
         PaintSphere(c);
     }
 
@@ -569,10 +666,11 @@ public class SpaceDirector : BackdropDirector
     // tier), small and dim.
     void SpawnComet(float scrollVelocity)
     {
-        if (comet.Length == 0) return;
+        if (comet.Length == 0 && detailedComet == null) return;
         var c = comets.Spawn();
         if (c == null) return;
-        SetSprite(c, Pick(comet), Rand(CometMinWidth, CometMaxWidth));
+        SetSprite(c, detailedComet != null && (comet.Length == 0 || Chance(0.65)) ? detailedComet : Pick(comet),
+                  Rand(CometMinWidth, CometMaxWidth));
         float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
         c.x = -dir * (HalfW + 1f);
         c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);

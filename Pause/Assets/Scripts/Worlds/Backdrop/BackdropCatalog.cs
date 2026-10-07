@@ -96,9 +96,8 @@ public static class BackdropCatalog
         // are the depth tiers its bodies (planets, stations, moons) are dealt
         // into -- see SpaceDirector.Tiers; comets pass behind all of them.
         new Spec { world = "Space", layers = new[] {
-            // Codex's sky.png doesn't wrap cleanly on its own: its last 10% is
-            // cross-faded into its first rows at render time (BackdropSkyWrap).
-            Layer.Tile("sky", 0.010f, W, Role.Sky).WrapBlended(SkyWrapBlend),
+            // Cross-fade the sky's last rows into its first at render time.
+            Layer.Tile("sky", 0.010f, new Color(0.68f, 0.68f, 0.76f), Role.Sky).WrapBlended(SkyWrapBlend),
             Layer.Pieces("wisps", 0.016f, Role.Sky),
             Layer.Pieces("galaxies", 0.022f, Role.Sky),
             Layer.Pieces("stars", 0.030f, Role.Sky),

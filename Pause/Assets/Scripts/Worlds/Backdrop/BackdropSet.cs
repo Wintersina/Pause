@@ -1,6 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// One sky and orientation per run. A half-turn keeps the portrait tile's
+// dimensions unchanged while giving each selected sky a second composition.
+public static class SpaceSkySelection
+{
+    public const int VariantCount = 4;
+    public static int Variant { get; private set; }
+    public static bool HalfTurn { get; private set; }
+
+    public static void BeginRun()
+    {
+        Variant = Random.Range(1, VariantCount + 1);
+        HalfTurn = Random.Range(0, 2) == 1;
+    }
+
+    public static string Texture
+    {
+        get
+        {
+            if (Variant == 0) BeginRun();
+            return "sky_0" + Variant;
+        }
+    }
+}
+
 // One world's complete background: its tile layers, atlases and director,
 // under a single root so it can be cross-faded and torn down as a unit.
 public class BackdropSet
@@ -9,6 +33,9 @@ public class BackdropSet
     public readonly Transform Root;
     public BackdropAtlas Fx { get; private set; }
     public BackdropAtlas Anim { get; private set; }
+    public BackdropAtlas Extras { get; private set; }
+    public BackdropAtlas NeonFrames { get; private set; }
+    public BackdropAtlas AsteroidFx { get; private set; }
     public BackdropDirector Director { get; private set; }
     public readonly List<BackdropTile> Tiles = new List<BackdropTile>();
     public readonly List<Texture> Textures = new List<Texture>();
@@ -35,15 +62,21 @@ public class BackdropSet
         string folder = BackdropCatalog.Folder(Spec.world);
         Fx = LoadAtlas(folder, BackdropCatalog.AtlasFx);
         Anim = LoadAtlas(folder, BackdropCatalog.AtlasAnim);
+        if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
+        if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
+        if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
         Complete = Fx.Count > 0;
 
         foreach (var layer in Spec.layers)
         {
             if (layer.kind == BackdropCatalog.Kind.Pieces) continue;
-            var sprite = Resources.Load<Sprite>(folder + layer.texture);
+            bool spaceSky = Spec.world == "Space" && layer.name == "sky";
+            string texture = spaceSky ? SpaceSkySelection.Texture : layer.texture;
+            var sprite = Resources.Load<Sprite>(folder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
-            Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name)));
+            Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
+                                       spaceSky && SpaceSkySelection.HalfTurn));
         }
 
         Layout(halfWidth, halfHeight);
@@ -114,6 +147,9 @@ public class BackdropSet
         foreach (var t in Tiles) t.Destroy();
         Fx.Destroy();
         Anim.Destroy();
+        if (Extras != null) Extras.Destroy();
+        if (NeonFrames != null) NeonFrames.Destroy();
+        if (AsteroidFx != null) AsteroidFx.Destroy();
         if (Root != null) BackdropAtlas.Kill(Root.gameObject);
         Textures.Clear();
     }
