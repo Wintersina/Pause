@@ -140,12 +140,13 @@ public static class SpawnSpaceTest
             bodies &= f.half.x * 2f >= EnemyRoster.TargetWidth(role) - 1e-4f &&
                       f.half.x * 2f >= def.ColliderSize.x - 1e-4f && f.half.y * 2f >= def.ColliderSize.y - 1e-4f;
             bool steering = f.Plan != null && f.Plan.SelfSteering;
-            plans &= f.Plan != null && steering == (role == EnemyRole.Chaser);
+            // pilots (fighters, heavies, aliens) hold their place in the world like the chaser
+            plans &= f.Plan != null && steering == EnemyRoster.One(0, role).Behaviour.IsPilot;
             Object.DestroyImmediate(go);
         }
         Check("every roster enemy gets a SpawnFootprint on the enemy layer", all);
         Check("every footprint body covers the drawn silhouette and the collider", bodies);
-        Check("every footprint is bound to its mover (chasers self-steer, the rest are board-locked)", plans);
+        Check("every footprint is bound to its mover (pilots and chasers self-steer, hazards are board-locked)", plans);
         Check("footprints unregister when destroyed", SpawnSpace.EnemyCount == before);
 
         // a weaving rock reserves the whole band it weaves across
@@ -225,8 +226,8 @@ public static class SpawnSpaceTest
         SpawnFootprint.Attach(wall, new Vector2(3f, 2.5f));
 
         var board = NewBoard();
-        typeof(enmiesOnBoard).GetMethod("spawnAstroid1", Inst).Invoke(board, null);
-        Check("a heavy with no room is deferred, not dropped on the wall",
+        typeof(enmiesOnBoard).GetMethod("spawnAstroid2", Inst).Invoke(board, null);   // a rock (the heavy is a pilot now)
+        Check("a rock with no room is deferred, not dropped on the wall",
               board.SpawnedCount == 0 && board.PendingCount == 1 && board.DeferredTotal == 1);
         moveBackGround.speed = .3f;
         SpawnStep.Invoke(board, new object[] { .05f });
@@ -237,7 +238,7 @@ public static class SpawnSpaceTest
         Check("the deferred spawn lands as soon as there's room", board.SpawnedCount >= 1 && board.PendingCount == 0);
 
         wall.transform.position = new Vector3(0f, 8f, 0f);
-        typeof(enmiesOnBoard).GetMethod("spawnAstroid1", Inst).Invoke(board, null);
+        typeof(enmiesOnBoard).GetMethod("spawnAstroid2", Inst).Invoke(board, null);   // a rock (the heavy is a pilot now)
         int spawned = board.SpawnedCount;
         for (int i = 0; i < 30; i++) SpawnStep.Invoke(board, new object[] { .05f });
         Check("a spawn that never finds room is let go after MaxDeferSeconds",
@@ -282,7 +283,7 @@ public static class SpawnSpaceTest
         // and an enemy prefers a spot clear of the pickups
         var board = NewBoard();
         Random.InitState(78);
-        typeof(enmiesOnBoard).GetMethod("spawnAstroid1", Inst).Invoke(board, null);
+        typeof(enmiesOnBoard).GetMethod("spawnAstroid2", Inst).Invoke(board, null);   // a rock (the heavy is a pilot now)
         int enemyOnPickup = 0;
         foreach (var e in SpawnSpace.Live(SpawnLayer.Enemy))
             foreach (var p in SpawnSpace.Live(SpawnLayer.Pickup))
@@ -339,9 +340,14 @@ public static class SpawnSpaceTest
         var rockDef = EnemyRoster.One(0, EnemyRole.Rock);
         bool sink = false;
         Rect threat;
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        Check("the allocation meter passes its positive control (" + TestHarness.AllocControlCount + " small arrays read as " + control + " bytes)", meterWorks);
         for (int warm = 0; warm < 2; warm++)
         {
-            long before = GC.GetAllocatedBytesForCurrentThread();
+            // (GC.GetAllocatedBytesForCurrentThread reads 0 under this Mono)
+            long bytes = TestHarness.AllocatedBytes(() =>
+            {
             for (int i = 0; i < 200; i++)
             {
                 float x = -2f + i * .02f;
@@ -353,9 +359,9 @@ public static class SpawnSpaceTest
                 SpawnSpace.ResolveSteer(cf, new Vector2(x, -6f), new Vector2(x + .01f, -5.9f), .2f, .07f);
                 sink ^= SpawnLane.Fits(rockDef, x, 5f);
             }
-            long bytes = GC.GetAllocatedBytesForCurrentThread() - before;
+            });
             if (warm == 1)
-                Check("the planner allocates nothing per call (Fits, steering, lane guard: " + bytes + " bytes over 1400 calls)", bytes == 0);
+                Check("the planner allocates nothing per call (Fits, steering, lane guard: " + bytes + " bytes over 1400 calls)", meterWorks && bytes == 0);
         }
         Debug.Log("[SPAWN] (sink " + sink + ")");
         ClearBoard();
@@ -395,7 +401,7 @@ public static class SpawnSpaceTest
         Check("the Destroyer stays below the visible bottom on 5 / 6.65 / 7.6 half-height views", below);
         Check("chasers spawn under the view but clear of the Destroyer", chaserClear);
         Check("the heal atom spawns just above the visible top (CameraFit.ViewTop), not a fixed y 7",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/HealAtomSpawner.cs").Contains("CameraFit.ViewTop + SpawnAboveTop"));
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Pickups/HealAtomSpawner.cs").Contains("CameraFit.ViewTop + SpawnAboveTop"));
         Object.DestroyImmediate(keeper);
         destroyer.transform.position = pos0;
         cam.orthographicSize = size0;
@@ -417,12 +423,17 @@ public static class SpawnSpaceTest
         ClearBoard();
         var wmGo = new GameObject("~SpawnSpaceRunWorlds");
         SetWorldManager(wmGo.AddComponent<WorldManager>());
-        float maxDensity = LoopRules.Density(LoopRules.MaxScaledLoops, 1e6f);
+        // The baseline's densest board: the third loop's x1.3 times the old
+        // KEEP FLYING ceiling x1.6 (both gone with the speed cap; a portal
+        // kept waiting now goes further, PortalPressure, and OpenPortalTest
+        // runs the planner there). Kept as a number so the recorded
+        // BaselineMaxLoop count still compares like for like.
+        const float maxDensity = 1.3f * 1.6f;
         float[] speeds = { 6f, 12f, 18f };
         float[] densities = { 1f, maxDensity };
         const float dt = 1f / 60f, runSeconds = 120f;
         int[] spawnedAt = new int[2];
-        int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0;
+        int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0, brainsMoved = 0;
         string firstOverlap = null;
         var target = new GameObject("~SimShip").transform;
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -470,7 +481,16 @@ public static class SpawnSpaceTest
                                 r.transform.position += Vector3.down * v * dt;
                                 if (r.transform.position.y < -12f) Object.DestroyImmediate(r.gameObject);   // RailLaneScroller
                             }
-                            // LateUpdate: mines settle on their rails, then the chasers steer
+                            // LateUpdate: the brains run their patterns (EnemyBrain), mines
+                            // settle on their rails, then the chasers steer
+                            foreach (var f in buffer)
+                            {
+                                EnemyBrain brain;
+                                if (!f.TryGetComponent(out brain) || !brain.enabled) continue;
+                                brain.TargetOverride = target;
+                                brain.Step(dt);
+                                if (brain.Behaviour != null && brain.Behaviour.Moves) brainsMoved++;
+                            }
                             foreach (var f in buffer)
                             {
                                 RailMineMount mount;
@@ -524,14 +544,20 @@ public static class SpawnSpaceTest
         Debug.Log("[SPAWN] long runs took " + sw.Elapsed.TotalSeconds.ToString("F1") + "s over " + frames + " frames");
         Check("no two live enemy bodies ever overlap, every frame of 24 two-minute runs (" + totalOverlapFrames + " frames" +
               (firstOverlap != null ? "; first: " + firstOverlap : "") + ")", totalOverlapFrames == 0);
-        Check("chasers flew in the runs (" + chasersSeen + ")", chasersSeen > 100);
+        Check("chasers flew in the runs (" + chasersSeen + "; they are capped now, EnemyDensity.MaxChasers)", chasersSeen > 40);
         Check("spawns with no room were deferred (" + deferred + ")", deferred > 0);
-        Check(string.Format("nearly every deferred spawn landed ({0} of {1} let go, <= 5% of all spawns)", dropped, deferred),
-              dropped <= (spawnedAt[0] + spawnedAt[1]) * .05f);
+        // (hazards are routed round the pilots' columns now: one that finds
+        // no free column in a second is let go rather than squeezed in)
+        Check(string.Format("most deferred spawns landed ({0} of {1} let go, <= 40%)", dropped, deferred), dropped <= deferred * .4f);
+        Check("the enemies ran their own patterns in the runs (" + brainsMoved + " brain steps)", brainsMoved > 10000);
+        // 2026-10: the spawner fields fewer, smarter enemies on purpose
+        // (EnemyDensity; EnemyDensityTest holds the cut itself), and each one
+        // reserves its whole pattern, so the counts are no longer the
+        // pre-SpawnSpace spawner's: well below it, and never above.
         float r0 = spawnedAt[0] / (float)BaselineFirstPass, r1 = spawnedAt[1] / (float)BaselineMaxLoop;
-        Check(string.Format("first-pass density unchanged: {0} spawns vs {1} before ({2:P1})", spawnedAt[0], BaselineFirstPass, r0 - 1f),
-              Mathf.Abs(r0 - 1f) <= .05f);
-        Check(string.Format("max loop density unchanged: {0} spawns vs {1} before ({2:P1})", spawnedAt[1], BaselineMaxLoop, r1 - 1f),
-              Mathf.Abs(r1 - 1f) <= .05f);
+        Check(string.Format("first-pass density is the deliberate cut, not a planner loss: {0} spawns vs {1} before ({2:P1})",
+                            spawnedAt[0], BaselineFirstPass, r0 - 1f), r0 >= .2f && r0 <= .8f);
+        Check(string.Format("max loop density likewise: {0} spawns vs {1} before ({2:P1})", spawnedAt[1], BaselineMaxLoop, r1 - 1f),
+              r1 >= .12f && r1 <= .8f);
     }
 }

@@ -53,6 +53,8 @@ public static class EliteSystem
 
     static EliteShots shots;
     public static EliteShots Shots => shots != null && shots.Alive ? shots : (shots = new EliteShots(Root));
+    // The pool if it has been built (a reader must not build it).
+    public static EliteShots ShotsIfAny => shots != null && shots.Alive ? shots : null;
 
     static EliteFx fx;
     public static EliteFx Fx => fx != null && fx.Alive ? fx : (fx = new EliteFx(Root));
@@ -66,6 +68,7 @@ public static class EliteSystem
     {
         if (dt <= 0f) return;
         Steps++;
+        EliteEvasion.Sense(dt);   // the threat picture every elite reads this step
         stepping.Clear();
         var live = EliteShip.Live;
         for (int i = 0; i < live.Count; i++) if (live[i] != null) stepping.Add(live[i]);

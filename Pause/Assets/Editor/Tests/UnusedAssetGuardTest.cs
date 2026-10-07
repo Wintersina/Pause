@@ -49,6 +49,13 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Resources/Prefabs/Enemies",
         "Assets/Art/Aestroids",
         "Assets/Legacy/Art/Aestroids",
+        // 2026-10 Assets vet: the Legacy root held only a licence (now under
+        // docs/licenses), and Art/Resources/Prefabs held no prefab at all (its
+        // Kenney particle textures live in Art/Resources/Vfx/Kenney).
+        "Assets/Legacy",
+        "Assets/Art/Resources/Prefabs",
+        "Assets/Resources/prefabs/Vfx",
+        "Assets/Art/Ships/Legacy",
     };
 
     // The deleted prefabs' guids (the scenes and the spawner referenced
@@ -100,6 +107,40 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Animation/explosion.png",
         "Assets/Art/Retro80s/Ships/SourceStrips/xenon2_ship.png",
         "Assets/Scripts/UI/scrollingText.cs",
+        // The 2026-10 Art reorganisation: the legacy round shield bubble (the
+        // inactive "Shield" child's sprite; ShipShield draws the contour
+        // shield) and the flat planet walls the reinforced rails replaced.
+        "Assets/Art/transparent-bubble.png",
+        "Assets/Art/Resources/Worlds/Frost/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Frost/wallRight.png",
+        "Assets/Art/Resources/Worlds/Verdant/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Verdant/wallRight.png",
+        "Assets/Art/Resources/Worlds/Ember/wallLeft.png",
+        "Assets/Art/Resources/Worlds/Ember/wallRight.png",
+        // The 2026-10 Assets vet: the 2016 ship prefabs nothing loads (only
+        // inGameShips/shipN are Resources-loaded, by spawnShips.PrefabPathFor),
+        // their parked sprites (ship1-7 no longer carry a 2016 rest sprite:
+        // spawnShips.ApplyHull dresses every hull from the roster), the dead
+        // OriginalShipArt / roate scripts, and Verdant's old mid tile (its mid
+        // layer draws forest_industrial_center_v1).
+        "Assets/Resources/prefabs/Ships/Ninja_0.prefab",
+        "Assets/Resources/prefabs/Ships/Saboteur_0.prefab",
+        "Assets/Resources/prefabs/Ships/UFO_0.prefab",
+        "Assets/Resources/prefabs/Ships/Turtle.prefab",
+        "Assets/Resources/prefabs/Ships/player.prefab",
+        "Assets/Resources/prefabs/Ships/Ligher_0_2_1.prefab",
+        "Assets/Resources/prefabs/Ships/Lightning_0.prefab",
+        "Assets/Resources/prefabs/Ships/Paranoid_0.prefab",
+        "Assets/Art/Ships/Legacy/Ninja.png",
+        "Assets/Art/Ships/Legacy/Saboteur.png",
+        "Assets/Art/Ships/Legacy/UFO.png",
+        "Assets/Art/Ships/Legacy/Ligher.png",
+        "Assets/Art/Ships/Legacy/Lightning.png",
+        "Assets/Art/Ships/Legacy/Paranoid.png",
+        "Assets/Art/Ships/Legacy/player.png",
+        "Assets/Scripts/Ship/OriginalShipArt.cs",
+        "Assets/Scripts/Gameplay/roate.cs",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/mid.png",
     };
 
     static void ReplacedAssetsStayDeleted()
@@ -120,8 +161,7 @@ public static class UnusedAssetGuardTest
     static readonly string[] ExemptPrefixes =
     {
         "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
-        "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/", "Assets/Art/Staging/",
-        "Assets/Art/legacyShipSprites/",   // parked 2016 ship sprites (kept for their GUIDs)
+        "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
     };
 
     static bool Exempt(string path)

@@ -81,7 +81,7 @@ public class AccountHintToast : MonoBehaviour
 
     static AccountHintToast Build()
     {
-        var c = CodexUi.NewOverlayCanvas("~AccountHintToast", 640, false);
+        var c = CodexUi.NewOverlayCanvas("~AccountHintToast", 640, false, 0f, 18f);
         var toast = c.gameObject.AddComponent<AccountHintToast>();
         toast.canvas = c;
         toast.BuildUi(CodexUi.FindFont());
@@ -134,7 +134,7 @@ public class AccountHintToast : MonoBehaviour
         else a = 1f - Mathf.Clamp01((t - Duration) / OutDuration);
         group.alpha = a;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        float safeBottom = Screen.safeArea.yMin / sf;
+        float safeBottom = ScreenInfo.SafeArea.yMin / sf;
         float slide = (1f - CodexUi.EaseOutCubic(Mathf.Clamp01(t / InDuration))) * -18f;
         box.anchoredPosition = new Vector2(0f, safeBottom + BottomMargin + slide);
     }

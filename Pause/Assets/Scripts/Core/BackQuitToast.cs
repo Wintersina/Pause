@@ -36,7 +36,7 @@ public class BackQuitToast : MonoBehaviour
 
     static BackQuitToast Build()
     {
-        var c = CodexUi.NewOverlayCanvas("~BackQuitToast", 650, false);
+        var c = CodexUi.NewOverlayCanvas("~BackQuitToast", 650, false, 0f, 18f);
         var toast = c.gameObject.AddComponent<BackQuitToast>();
         toast.canvas = c;
         toast.BuildUi(CodexUi.FindFont());
@@ -90,7 +90,7 @@ public class BackQuitToast : MonoBehaviour
         else a = 1f - Mathf.Clamp01((t - BackNavigator.QuitWindow) / OutDuration);
         group.alpha = a;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        float safeBottom = Screen.safeArea.yMin / sf;
+        float safeBottom = ScreenInfo.SafeArea.yMin / sf;
         float slide = (1f - CodexUi.EaseOutCubic(t / InDuration)) * -18f;
         box.anchoredPosition = new Vector2(0f, safeBottom + BottomMargin + slide);
     }

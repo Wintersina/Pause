@@ -77,8 +77,8 @@ public static class CooldownAtomTest
               PickupRules.CooldownAtomRate == 1f);
         Check("spawnGoodStuff reads the capacitor rules from PickupRules (no inline numbers or inspector budget)",
               typeof(spawnGoodStuff).GetField("cooldownAtomsPerWorld", Inst) == null &&
-              Source("Assets/Scripts/Gameplay/spawnGoodStuff.cs").Contains("PickupRules.CooldownAtomFirstDelay()") &&
-              Source("Assets/Scripts/Gameplay/spawnGoodStuff.cs").Contains("PickupRules.CooldownAtomRepeatDelay()"));
+              Source("Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs").Contains("PickupRules.CooldownAtomFirstDelay()") &&
+              Source("Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs").Contains("PickupRules.CooldownAtomRepeatDelay()"));
         Check("ScoreRules.CooldownAtom is an atom's worth (" + ScoreRules.CooldownAtom + ")",
               ScoreRules.CooldownAtom == ScoreRules.PauseAtom && ScoreRules.CooldownAtom > 0);
         int old = ScoreRules.CooldownAtom;
@@ -412,7 +412,7 @@ public static class CooldownAtomTest
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
         if (prefab == null) { Check("prefab for flight", false); return; }
         const float dt = 1f / 60f;
-        foreach (float speed in new[] { 0f, .15f, LoopRules.AbsoluteMaxSpeed })
+        foreach (float speed in new[] { 0f, .15f, SpeedRamp.Cap + SpeedRamp.MaxBoost })
         {
             Random.InitState(7 + (int)(speed * 100f));
             var go = AtomSpin.AddTo(Object.Instantiate(prefab, new Vector3(0f, 5.5f, 0f), Quaternion.identity));
@@ -446,7 +446,7 @@ public static class CooldownAtomTest
     {
         Check("the tutorial spawner knows nothing of the capacitor",
               !Source("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("cooldown"));
-        string guid = AssetDatabase.AssetPathToGUID("Assets/Scripts/Gameplay/spawnGoodStuff.cs");
+        string guid = AssetDatabase.AssetPathToGUID("Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs");
         string tut = Source("Assets/Scenes/tutorialS5.unity");
         Check("tutorialS5 has no real-game spawner and no capacitor",
               !string.IsNullOrEmpty(guid) && !tut.Contains(guid) &&

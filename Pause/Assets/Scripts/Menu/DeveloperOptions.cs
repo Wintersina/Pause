@@ -4,8 +4,8 @@ using UnityEngine.UI;
 // The developer section of the Options screen (leaderboardS3): a developer
 // mode switch and, while it is on, a start-world picker and the BOSS RUSH
 // switch: ON (every run's end-of-level boss arrives a few seconds in) or
-// FINAL (straight to the end of the final world's boss and its KEEP FLYING /
-// LOOP BACK choice; see BossDev).
+// FINAL (straight to the end of the final world's boss and the portal back
+// round; see BossDev).
 //
 // Built at runtime from the screen's own "Tutorial" button, so it shares the
 // screen's font, size and transparent-button look; the labels are tinted
@@ -14,6 +14,8 @@ using UnityEngine.UI;
 public class DeveloperOptions : MonoBehaviour
 {
     static readonly Color DevTint = AkiraPalette.Amber;
+
+    const float RowH = 88f;   // rows are 90 apart (47, -43, -133)
 
     Text toggleLabel, worldLabel, bossLabel;
     GameObject worldRow, bossRow;
@@ -24,8 +26,10 @@ public class DeveloperOptions : MonoBehaviour
         if (template == null) return;
         var parent = template.transform.parent;
 
+        // Rows sit RowPitch apart; their hit areas are RowH tall so they no
+        // longer overlap (they were 99 tall, 9 units into each other).
         var toggle = Clone(template, parent, "DeveloperToggle",
-                           new Vector2(0f, -133f), new Vector2(331f, 99f), ToggleMode);
+                           new Vector2(0f, -133f), new Vector2(331f, RowH), ToggleMode);
         toggleLabel = Label(toggle);
 
         worldRow = new GameObject("DeveloperStartWorld", typeof(RectTransform));
@@ -33,23 +37,23 @@ public class DeveloperOptions : MonoBehaviour
         rowRect.SetParent(parent, false);
         rowRect.anchorMin = rowRect.anchorMax = rowRect.pivot = new Vector2(0.5f, 0.5f);
         rowRect.anchoredPosition = new Vector2(0f, -43f);
-        rowRect.sizeDelta = new Vector2(520f, 99f);
+        rowRect.sizeDelta = new Vector2(520f, RowH);
 
         Label(Clone(template, worldRow.transform, "PrevWorld",
-                    new Vector2(-215f, 0f), new Vector2(80f, 99f), () => Step(-1))).text = "<";
+                    new Vector2(-215f, 0f), new Vector2(80f, RowH), () => Step(-1))).text = "<";
         Label(Clone(template, worldRow.transform, "NextWorld",
-                    new Vector2(215f, 0f), new Vector2(80f, 99f), () => Step(1))).text = ">";
+                    new Vector2(215f, 0f), new Vector2(80f, RowH), () => Step(1))).text = ">";
 
         // The name itself is also a button: tapping it steps forward too.
         worldLabel = Label(Clone(template, worldRow.transform, "WorldName",
-                                 Vector2.zero, new Vector2(350f, 99f), () => Step(1)));
+                                 Vector2.zero, new Vector2(330f, RowH), () => Step(1)));
 
         // Boss rush: every run's end-of-level boss arrives a few seconds in
         // (BossDev), for testing the encounters without flying a level.
         // Stacked above the start-world row (it used to sit at -223, on top
         // of the LeaderBoard button at -233).
         bossRow = Clone(template, parent, "DeveloperBossRush",
-                        new Vector2(0f, 47f), new Vector2(420f, 99f), ToggleBossRush);
+                        new Vector2(0f, 47f), new Vector2(420f, RowH), ToggleBossRush);
         bossLabel = Label(bossRow);
 
         Refresh();

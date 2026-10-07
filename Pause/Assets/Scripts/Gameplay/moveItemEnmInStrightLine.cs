@@ -21,6 +21,14 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
     AtomWander wander;
     bool atomChecked;
 
+    // The enemy's behaviour, when it has one: its envelope widens the sweep.
+    [System.NonSerialized] public EnemyBrain brain;
+
+    // A pilot (EnemyBrain's pilot mode) holds its place in the world: this
+    // mover stays on it -- stun, the death domino and the tests find it --
+    // but no longer scrolls it, and for SpawnSpace it is a self-steerer.
+    [System.NonSerialized] public bool station;
+
     // The atom's wander, once it has moved (null for everything else).
     public AtomWander Wander { get { return wander; } }
 
@@ -46,6 +54,7 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
             atomChecked = true;
             if (GetComponent<AtomSpin>() != null) wander = AtomWander.Roll();
         }
+        if (station) return true;
         if (wander == null)
         {
             transform.Translate(new Vector2(0, -1) * worldSpeed * dt * 30);
@@ -73,8 +82,8 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return SpawnSpace.BodyRect(center, half);
+        return station ? EnemyBrain.PilotSweep(brain, center, half, to) : EnemyBrain.Widen(brain, center, half);
     }
 
-    public bool SelfSteering => false;
+    public bool SelfSteering => station;
 }

@@ -30,6 +30,10 @@ public static class PickupRulesTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // These checks read exact spawn delays to prove the loop / boss hooks;
+        // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
+        // the same delays, so it is switched off here (the Sandbox puts it back).
+        EnemyDensity.Disabled = true;
         try
         {
             Constants();
@@ -234,7 +238,7 @@ public static class PickupRulesTest
               heal.gapSeconds == new Vector2(70f, 130f) && Mathf.Approximately(heal.chance, .6f));
         Object.DestroyImmediate(heal.gameObject);
         Check("HealAtomSpawner reads no PickupRules",
-              !File.ReadAllText("Assets/Scripts/Gameplay/HealAtomSpawner.cs").Contains("PickupRules"));
+              !File.ReadAllText("Assets/Scripts/Gameplay/Pickups/HealAtomSpawner.cs").Contains("PickupRules"));
     }
 
     // Each pickup fills the secret meter by its fixed amount, so 3x the dust

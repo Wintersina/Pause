@@ -13,14 +13,16 @@ using UnityEngine;
 //
 // High-end ships are the priciest four: Ion Lancer (3200), Jade Phantom
 // (4400), Gold Warden (5800) and Turtle (3000) -- the same tier that gets the
-// extra hearts. Every start is well under the lowest world cap (Space, HUD
-// 46), and WorldManager clamps to the world's cap regardless.
+// extra hearts. Every start is under the speed cap (SpeedRamp.Cap, HUD 35),
+// and WorldManager clamps to it regardless.
 //
-// The run ramps up from here as usual (SpeedRamp). The score's speed
-// multiplier (ScoreRules.SpeedTierHud: x1.25 from HUD 20) simply reads the
-// live speed, so a fast start reaches its tiers sooner. Worlds are a fixed
-// distance (WorldManager.BaselineWorldSeconds), so a fast start also reaches
-// the boss sooner.
+// The run ramps up from here as usual (SpeedRamp), and every world is
+// arrived in at this speed again. Since no ship can pass the cap, the start
+// speed is the lasting advantage: worlds are a fixed distance
+// (WorldManager.BaselineWorldSeconds), so a fast start reaches every boss
+// sooner -- more worlds and loops per run -- and the score's speed
+// multiplier (ScoreRules.SpeedTierHud: x1.25 from HUD 20, x2 at the cap)
+// reads the live speed, so it reaches its tiers sooner too.
 //
 // Developer mode needs nothing special: ShipSkins.Equipped already answers
 // with the developer's equipped colour. The tutorial keeps its own start.

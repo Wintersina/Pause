@@ -165,6 +165,14 @@ public class ScoreHud : MonoBehaviour
         return multiplier > 1f ? "SPD " + ScoreRules.MultiplierLabel(multiplier) : "";
     }
 
+    public const string LimitBreakWord = "LIMIT BREAK";
+
+    // The callout as a tier is reached: "SPD x2", or "LIMIT BREAK x2.5".
+    public static string SpeedCalloutLabel(float multiplier, bool limitBreak)
+    {
+        return limitBreak ? LimitBreakWord + " " + ScoreRules.MultiplierLabel(multiplier) : SpeedBadgeLabel(multiplier);
+    }
+
     public static string LoopBadgeLabel(int loopIndex)
     {
         return loopIndex > 0 ? "LOOP " + (loopIndex + 1) : "";
@@ -344,7 +352,7 @@ public class ScoreHud : MonoBehaviour
         p.text.color = colour;
         p.seconds = seconds;
         p.rise = 24f;
-        p.from = new Vector2(0f, canvasRect.rect.size.y * y);
+        p.from = KeepInSafeArea(p.text, new Vector2(0f, canvasRect.rect.size.y * y), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();
@@ -366,7 +374,9 @@ public class ScoreHud : MonoBehaviour
                 if (m > lastSpeedMultiplier && m > 1f)
                 {
                     speedPunchAt = now;
-                    ShowCallout(SpeedBadgeLabel(m), SpeedBadgeColour(m), speedBadge.rectTransform);
+                    // past the cap on the boost shield: the callout says so
+                    ShowCallout(SpeedCalloutLabel(m, ScoreRules.IsLimitBreak(moveBackGround.speed)),
+                                SpeedBadgeColour(m), speedBadge.rectTransform);
                 }
                 speedBadge.text = SpeedBadgeLabel(m);
                 lastSpeedMultiplier = m;
@@ -417,7 +427,7 @@ public class ScoreHud : MonoBehaviour
         // kept on screen.
         at.y -= 110f;
         at.x = Mathf.Clamp(at.x - 40f, -size.x * .5f + 120f, size.x * .5f - 120f);
-        p.from = at;
+        p.from = KeepInSafeArea(p.text, at, p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();
@@ -441,7 +451,7 @@ public class ScoreHud : MonoBehaviour
         p.text.color = colour;
         p.seconds = .8f;
         p.rise = 50f;
-        p.from = ToCanvas(world);
+        p.from = KeepInSafeArea(p.text, ToCanvas(world), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();
@@ -487,6 +497,8 @@ public class ScoreHud : MonoBehaviour
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
             case RunScore.Source.Elite:
                 return new PopupStyle { colour = AkiraPalette.Magenta, size = 40, seconds = 1.4f, rise = 64f, suffix = "  ELITE DOWN" };
+            case RunScore.Source.Shield:   // a hostile shot absorbed by the shield
+                return new PopupStyle { colour = AkiraPalette.Cyan, size = 28, seconds = .8f, rise = 56f, suffix = "  ABSORB" };
             case RunScore.Source.Dust:
                 return new PopupStyle { colour = AkiraPalette.Amber, size = 22, seconds = .6f, rise = 44f, suffix = "" };
             case RunScore.Source.Atom:
@@ -516,7 +528,7 @@ public class ScoreHud : MonoBehaviour
         p.text.color = style.colour;
         p.seconds = style.seconds;
         p.rise = style.rise;
-        p.from = ToCanvas(at);
+        p.from = KeepInSafeArea(p.text, ToCanvas(at), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();
@@ -558,6 +570,44 @@ public class ScoreHud : MonoBehaviour
         local.x = Mathf.Clamp(local.x, -size.x * .5f + 120f, size.x * .5f - 120f);
         local.y = Mathf.Clamp(local.y + 40f, -size.y * .5f + 60f, size.y * .5f - 200f);
         return local;
+    }
+
+    // The part of the HUD canvas popups may use: the screen's safe area, in
+    // canvas units (centre origin). Insets are taken as fractions of the
+    // screen, so this holds whatever the canvas's scale factor is.
+    Rect SafeUnits()
+    {
+        Vector2 size = canvasRect.rect.size;
+        var full = new Rect(-size.x * .5f, -size.y * .5f, size.x, size.y);
+        float w = ScreenInfo.Width, h = ScreenInfo.Height;
+        Rect safe = ScreenInfo.SafeArea;
+        if (w <= 0f || h <= 0f || safe.width <= 0f || safe.height <= 0f) return full;
+        return Rect.MinMaxRect(full.xMin + size.x * Mathf.Clamp01(safe.xMin / w), full.yMin + size.y * Mathf.Clamp01(safe.yMin / h),
+                               full.xMin + size.x * Mathf.Clamp01(safe.xMax / w), full.yMin + size.y * Mathf.Clamp01(safe.yMax / h));
+    }
+
+    // A popup's start point moved so that its whole line -- at rest and at
+    // the top of its rise -- stays inside the safe area (clear of the notch,
+    // the rounded corners' insets and the home indicator). A line wider than
+    // the safe area (a long banner on a narrow phone) is set smaller to fit.
+    // The fixed clamps in ToCanvas assumed a short "+N" and the bare screen.
+    Vector2 KeepInSafeArea(Text t, Vector2 at, float rise)
+    {
+        const float margin = 12f;
+        Rect safe = SafeUnits();
+        float room = safe.width - 2f * margin;
+        float width = t.preferredWidth;
+        if (width > room && width > 0f && room > 0f)
+        {
+            t.fontSize = Mathf.Max(12, Mathf.FloorToInt(t.fontSize * room / width));
+            width = Mathf.Min(t.preferredWidth, room);
+        }
+        float halfW = width * .5f, halfH = t.fontSize * .7f;
+        float xMin = safe.xMin + margin + halfW, xMax = safe.xMax - margin - halfW;
+        float yMin = safe.yMin + margin + halfH, yMax = safe.yMax - margin - halfH - Mathf.Max(0f, rise);
+        at.x = xMax >= xMin ? Mathf.Clamp(at.x, xMin, xMax) : safe.center.x;
+        at.y = yMax >= yMin ? Mathf.Clamp(at.y, yMin, yMax) : safe.center.y;
+        return at;
     }
 
     // Advances every live popup by `dt` of world time (0 while frozen: they

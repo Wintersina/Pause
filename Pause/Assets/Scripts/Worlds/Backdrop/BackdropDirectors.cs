@@ -6,19 +6,36 @@ using UnityEngine;
 
 // Space has no ground to give it depth, so the set pieces carry it: every
 // body (planet, station, planetoid, moon) lives in one of four depth tiers,
-// and the tier alone decides how big it is, how fast it parallaxes, how lit
-// it is and what it sorts behind. Most bodies are far away; a near planet is
-// a rare event. Bodies are composed, not sprinkled: one spawn queue for all
-// of them, alternating sides, with clear sky between arrivals and no body
-// ever overtaking another in its lane.
+// and the tier decides how big it is, how lit it is and what it sorts behind.
 //
-// Spherical worlds keep a chosen high-resolution sprite while the surface
-// shader turns every rendered frame. Stations use slow blended flipbooks.
-public class SpaceDirector : BackdropDirector
+// How fast a body parallaxes depends on how far away it is, which is NOT how
+// big it is drawn: a planet is enormous, so one that looks large is still
+// immensely farther off than a station or rock drawn the same size. Bodies
+// therefore come in two depth classes, each with its own run of catalog
+// layers: planets (with their moons / orbiting stations) on the planet_*
+// layers, which barely move and sort behind everything else, and lone
+// structures (stations, planetoids) on the much faster deep..near layers in
+// front of them. Within a class a nearer tier is bigger and a little faster.
+// (Planets used to share the structures' layers, so the biggest planet was
+// also the fastest thing in the sky and left the view in a few seconds.)
+//
+// Most bodies are far away; a near planet is a rare event. Bodies are
+// composed, not sprinkled: each class has its own spawn queue, alternating
+// sides, with clear sky between arrivals and no body ever overtaking another
+// of its class in its lane. A structure may drift across in front of a
+// planet -- that relative motion is what makes the planet read as distant.
+//
+// Spherical worlds keep their chosen high-resolution sprite while the
+// surface shader turns them. Atlas cells are variants (twelve different
+// giants, eight stations...), not flipbook frames: a body picks one when it
+// spawns and keeps it. Stations never cycle frames, spin or tilt -- they hold
+// still, upright, and blink instead (SpaceStationLights).
+public partial class SpaceDirector : BackdropDirector
 {
     public struct Tier
     {
-        public string layer;        // BackdropCatalog layer: parallax rate and sorting order
+        public string layer;        // BackdropCatalog layer of a lone station / planetoid: parallax rate and sorting order
+        public string planetLayer;  // ... of a planet and its companions: far slower, behind every structure
         public float scale;         // size multiplier on KindSize
         public float light;         // brightness
         public float clarity;       // 1 = the art's own colour, lower = hazed toward the sky
@@ -29,13 +46,15 @@ public class SpaceDirector : BackdropDirector
     // a farther body is always smaller than a nearer one.
     public static readonly Tier[] Tiers =
     {
-        new Tier { layer = "deep", scale = 0.60f, light = 0.62f, clarity = 0.60f, weight = 42 },
-        new Tier { layer = "far",  scale = 1.00f, light = 0.74f, clarity = 0.75f, weight = 31 },
-        new Tier { layer = "mid",  scale = 1.60f, light = 0.86f, clarity = 0.90f, weight = 18 },
+        new Tier { layer = "deep", planetLayer = "planet_deep", scale = 0.60f, light = 0.62f, clarity = 0.60f, weight = 42 },
+        new Tier { layer = "far",  planetLayer = "planet_far",  scale = 1.00f, light = 0.74f, clarity = 0.75f, weight = 31 },
+        new Tier { layer = "mid",  planetLayer = "planet_mid",  scale = 1.60f, light = 0.86f, clarity = 0.90f, weight = 18 },
         // A near body is a composition anchor, not just a slightly larger
         // decoration. At this scale a planet fills roughly 60% of a phone's
         // width and crops behind one rail, like the Space art direction.
-        new Tier { layer = "near", scale = 3.30f, light = 0.96f, clarity = 1.00f, weight = 9 },
+        // (Near in its own depth class: a near planet is still far slower
+        // than any station.)
+        new Tier { layer = "near", planetLayer = "planet_near", scale = 3.30f, light = 0.96f, clarity = 1.00f, weight = 9 },
     };
 
     // BackdropPiece.kind of a body.
@@ -46,7 +65,8 @@ public class SpaceDirector : BackdropDirector
     // the reference composition; most remain deep/far through tier weights.
     const int StationMaxTier = 3, PlanetoidMaxTier = 2;
 
-    const float MinSpacing = 3.5f;      // clear sky between a new body and the one before it
+    const float MinSpacing = 3.5f;      // clear sky between a new structure and the one before it
+    const float PlanetSpacing = 5f;     // ... between planets: they linger, so at most a couple share the view
     const float Clearance = 0.5f;       // gap kept between two bodies passing each other
     const float MiniBelow = 0.42f;      // narrower than this on screen: use the pre-shrunk sprite
 
@@ -67,7 +87,8 @@ public class SpaceDirector : BackdropDirector
     // Spheres (giants, planetoids, rock moons) turn: the BackdropPlanet
     // shader slides the surface of the one static variant across the disc
     // under a fixed terminator and rim, at a pace that reads as a world,
-    // not a decal. Stations hold or wheel as rigid sprites.
+    // not a decal. Stations never turn: they hold still, upright, and blink
+    // (SpaceStationLights).
     public const string PlanetShader = "BackdropShaders/BackdropPlanet";
     public const float PlanetTurnSecondsMin = 40f, PlanetTurnSecondsMax = 60f;   // per half turn
     public const float RockTurnSecondsMin = 24f, RockTurnSecondsMax = 34f;
@@ -105,16 +126,17 @@ public class SpaceDirector : BackdropDirector
     Timer galaxyTimer = new Timer(30f, 50f, 30f);
     Timer cometTimer = new Timer(16f, 26f, 7f);
     Timer shooterTimer = new Timer(5f, 11f, 2.5f);
-    // Hero bodies establish scale, but remain an occasional event so the
-    // majority of space still reads as distant high-altitude depth.
-    Timer heroTimer = new Timer(34f, 44f, 32f);
-    bool heroDue;
+    // Hero planets recur by count, not by the clock: planets cross slowly
+    // (distance parallax), so a 30-second timer would make nearly every
+    // planet a hero. One in HeroEvery keeps the far field the majority.
+    public const int HeroEvery = 4;
+    int planetsSinceHero;
 
-    // The next body waits here until the sky has room for it.
+    // The next body of each depth class waits here until the sky has room.
     struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring; }
-    Plan next;
-    float nextBody;
-    int side = 1, lastKind = -1;
+    Plan nextPlanet, nextStructure;
+    float planetWait, structureWait;
+    int planetSide = 1, structureSide = -1;
 
     public SpaceDirector() : base(1988) { }
 
@@ -124,6 +146,13 @@ public class SpaceDirector : BackdropDirector
     public IList<BackdropPool> SetPieces { get { return setPieces; } }
     // A companion (moon, orbiting station) belongs to its planet's group.
     public static BackdropPiece Group(BackdropPiece p) { return p.parent ?? p; }
+    // The planet depth class: a planet, or a moon / station in orbit round one.
+    public static bool InPlanetClass(BackdropPiece p) { return Group(p).kind == Planet; }
+    // The catalog layer (parallax rate, sorting order) of a body of that class in that tier.
+    public static string LayerOf(int tier, bool planetClass)
+    {
+        return planetClass ? Tiers[tier].planetLayer : Tiers[tier].layer;
+    }
 
     protected override void Build()
     {
@@ -160,11 +189,11 @@ public class SpaceDirector : BackdropDirector
         shooters = Pool("stars", 2, false, 1);
         comets = Pool("comets", 1);
         // Bodies take their tier's sorting order when they spawn.
-        string deep = Tiers[0].layer;
-        planets = Pool(deep, 3, true);
-        stations = Pool(deep, 4, true);
-        planetoids = Pool(deep, 2, true);
-        moons = Pool(deep, 3, true);
+        string deep = Tiers[0].layer, planetDeep = Tiers[0].planetLayer;
+        planets = Pool(planetDeep, 3);
+        stations = Pool(deep, 4);
+        planetoids = Pool(deep, 2);
+        moons = Pool(planetDeep, 3);
         dust = Pool("dust", 12);
         var sphere = Resources.Load<Shader>(PlanetShader);
         if (sphere != null) planetMat = new Material(sphere) { name = "SpacePlanet" };
@@ -188,6 +217,7 @@ public class SpaceDirector : BackdropDirector
         bodies.AddRange(new[] { planets, stations, planetoids, moons });
         setPieces.AddRange(bodies);
         setPieces.AddRange(new[] { wisps, galaxies, comets });
+        BuildStationLights();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -217,11 +247,12 @@ public class SpaceDirector : BackdropDirector
 
         // Open on a hero planet already in view. It is deliberately large,
         // off-centre and partially cropped, establishing the world's scale
-        // before the normal body queue takes over.
-        next = PlanHero();
-        Enter(HalfH * 0.3f);
-        next = PlanBody();
-        nextBody = Rand(3f, 5f);
+        // before the normal body queues take over.
+        Enter(PlanHero(), HalfH * 0.3f);
+        nextPlanet = NextPlanet();
+        planetWait = Rand(3f, 5f);
+        nextStructure = PlanStructure();
+        structureWait = Rand(2f, 4f);
         SpawnGalaxy(-HalfH * 0.45f);
 
         // Two nebula wisps are always present and simply recycle.
@@ -279,21 +310,22 @@ public class SpaceDirector : BackdropDirector
         if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy(float.NaN);
         if (cometTimer.Tick(dt, rng)) SpawnComet(v);
         if (shooterTimer.Tick(dt, rng)) SpawnShooter();
-        if (heroTimer.Tick(dt, rng) && !(next.kind == Planet && next.tier == Tiers.Length - 1))
-            heroDue = true;
 
-        // One queue for every body. A plan that doesn't fit yet is held, not
+        // One queue per depth class. A plan that doesn't fit yet is held, not
         // re-rolled, so waiting for room never skews the mix toward small.
-        nextBody -= dt;
-        if (nextBody <= 0f)
+        // Planets are paced by the sky having room (PlanetSpacing), which at
+        // their crawl is a long wait; structures mostly by the clock.
+        planetWait -= dt;
+        if (planetWait <= 0f)
         {
-            if (Enter(float.NaN))
-            {
-                next = heroDue ? PlanHero() : PlanBody();
-                heroDue = false;
-                nextBody = Rand(5f, 9f);
-            }
-            else nextBody = 0.5f;
+            if (Enter(nextPlanet, float.NaN)) { nextPlanet = NextPlanet(); planetWait = Rand(5f, 9f); }
+            else planetWait = 0.5f;
+        }
+        structureWait -= dt;
+        if (structureWait <= 0f)
+        {
+            if (Enter(nextStructure, float.NaN)) { nextStructure = PlanStructure(); structureWait = Rand(9f, 16f); }
+            else structureWait = 0.5f;
         }
 
         foreach (var g in galaxies.items)
@@ -307,7 +339,8 @@ public class SpaceDirector : BackdropDirector
             {
                 if (!p.active || p.parent != null) continue;
                 if (!Drift(p, dt, v)) continue;
-                // phase: tilt at spawn. Stations turn slowly (spin != 0).
+                // phase: tilt at spawn (planets / rocks only; stations are
+                // upright), spin 0: lone bodies never turn in the picture plane.
                 p.root.localRotation = Quaternion.Euler(0f, 0f, p.phase + p.age * p.spin);
                 p.turn += p.turnRate * dt;
                 Paint(p, 1f);
@@ -317,6 +350,7 @@ public class SpaceDirector : BackdropDirector
                 PaintSphere(p);
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
+        TickStationLights(dt);
         foreach (var c in comets.items)
             if (c.active && Drift(c, dt, v))
             {
@@ -363,12 +397,10 @@ public class SpaceDirector : BackdropDirector
         return KindSize[kind] * Tiers[tier].scale * Rand(SizeJitterLo, SizeJitterHi);
     }
 
-    Plan PlanBody()
+    // A lone station or planetoid: small, and so genuinely close.
+    Plan PlanStructure()
     {
-        int roll = rng.Next(100);
-        int kind = roll < 50 ? Planet : roll < 75 ? Station : Planetoid;
-        if (kind == lastKind && kind != Planet) kind = Planet;      // no two stations (or rocks) in a row
-        if (kind == Planet) return PlanPlanet(PickTier(Tiers.Length - 1));
+        int kind = Chance(0.5) ? Station : Planetoid;
         var p = new Plan { kind = kind, tier = PickTier(kind == Station ? StationMaxTier : PlanetoidMaxTier),
                            companion = -1, ring = Chance(0.4) };
         p.size = SizeOf(kind, p.tier);
@@ -398,6 +430,14 @@ public class SpaceDirector : BackdropDirector
     // Hero planets carry the frame alone. Ordinary planets can have orbiting
     // moons/stations; on a 60%-wide anchor those companions muddy the clean
     // silhouette and central gameplay lane.
+    // The planet queue: ordinary planets by tier weight, every HeroEvery-th
+    // one a hero.
+    Plan NextPlanet()
+    {
+        if (++planetsSinceHero >= HeroEvery) { planetsSinceHero = 0; return PlanHero(); }
+        return PlanPlanet(PickTier(Tiers.Length - 1));
+    }
+
     Plan PlanHero()
     {
         var p = PlanPlanet(Tiers.Length - 1);
@@ -420,18 +460,21 @@ public class SpaceDirector : BackdropDirector
         return p.size * (p.kind == Station ? 0.75f : 0.55f);
     }
 
-    // Would a body entering at (x, y) keep clear of everything already in
-    // the sky, for as long as both are in view? Every body moves at rate x
-    // the same scroll, so gaps change in proportion to distance scrolled and
-    // the answer doesn't depend on how the speed changes later.
-    bool Fits(float x, float y, float reach, float rate)
+    // Would a body entering at (x, y) keep clear of every body of its own
+    // depth class already in the sky, for as long as both are in view? Every
+    // body moves at rate x the same scroll, so gaps change in proportion to
+    // distance scrolled and the answer doesn't depend on how the speed
+    // changes later. The other class is at a very different depth and is
+    // free to pass in front of / behind it.
+    bool Fits(float x, float y, float reach, float rate, bool planetClass)
     {
+        float spacing = planetClass ? PlanetSpacing : MinSpacing;
         foreach (var pool in bodies)
             foreach (var e in pool.items)
             {
-                if (!e.active || e.parent != null) continue;
+                if (!e.active || e.parent != null || (e.kind == Planet) != planetClass) continue;
                 float er = Reach(e), gap = y - e.y;
-                if (gap < MinSpacing + reach + er) return false;
+                if (gap < spacing + reach + er) return false;
                 if (rate <= e.rate) continue;                                   // falls behind
                 if (Mathf.Abs(x - e.x) >= reach + er + Clearance) continue;     // passes alongside
                 float scroll = (e.y + HalfH + e.size * 0.9f + 1f) / e.rate;     // until e is recycled (see Drift)
@@ -442,21 +485,22 @@ public class SpaceDirector : BackdropDirector
 
     // Bring the planned body in at the top (or at `y`, for the opening one).
     // False if the sky has no room for it yet.
-    bool Enter(float y)
+    bool Enter(Plan n, float y)
     {
-        Plan n = next;
         Tier tier = Tiers[n.tier];
-        float rate = set.Spec.Rate(tier.layer);
+        bool planetClass = n.kind == Planet;
+        float rate = set.Spec.Rate(LayerOf(n.tier, planetClass));
+        int side = planetClass ? planetSide : structureSide;
         bool opening = !float.IsNaN(y);
         if (!opening) y = HalfH + n.reach + 0.3f;
         // Bigger bodies sit further out, half behind the walls.
         float lane = Rand(Mathf.Min(0.7f + 0.35f * n.reach, 1.6f), 1.9f);
         // Alternate sides; take the other one if this lane would overtake.
         float x = -side * lane;
-        if (!opening && !Fits(x, y, n.reach, rate))
+        if (!opening && !Fits(x, y, n.reach, rate, planetClass))
         {
             x = side * lane;
-            if (!Fits(x, y, n.reach, rate)) return false;
+            if (!Fits(x, y, n.reach, rate, planetClass)) return false;
         }
 
         var pool = n.kind == Planet ? planets : n.kind == Station ? stations : planetoids;
@@ -469,10 +513,8 @@ public class SpaceDirector : BackdropDirector
             : n.kind == Station ? StationArt(n.ring, n.size)
             : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? asteroids : RockArt(n.size));
         if (art.Length == 0) { p.Show(false); return true; }
-        Sprite selected = art == station || art == ringStation || art == miniStation || art == miniRingStation
-            ? art[0] : Pick(art);
-        Dress(p, selected, n.kind, n.tier, n.size, 0);
-        if (n.kind == Station) AnimateBody(p, art);
+        Sprite selected = Pick(art);
+        Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
         if (p.smoke != null)
         {
             bool hasEffects = art == asteroids && set.AsteroidFx != null;
@@ -485,27 +527,26 @@ public class SpaceDirector : BackdropDirector
         p.y = y;
         // A lit sphere with a fixed terminator can't turn in the picture
         // plane without looking like a spinning decal, so planets and rocks
-        // hold a tilt. Stations wheel slowly; the others hold theirs.
-        p.phase = n.kind == Station ? Rand(-10f, 10f) : Rand(-14f, 14f);
-        if (n.kind == Station) p.spin = Rand(n.ring ? 0.9f : 0.22f, n.ring ? 1.5f : 0.48f) *
-                                        (Chance(0.5) ? 1f : -1f);
+        // hold a tilt. Stations (ring habitats too) are stationary: upright,
+        // no spin -- they blink instead (SpaceStationLights). Codex's
+        // reference planet is the one body that turns slowly in the picture.
+        p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
         if (art == referencePlanet) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
         p.color = Lit(n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint, tier);
-        side = x < 0f ? -1 : 1;
-        lastKind = n.kind;
+        if (planetClass) planetSide = x < 0f ? -1 : 1;
+        else structureSide = x < 0f ? -1 : 1;
 
         if (n.companion < 0) return true;
         var c = (n.companion == Moon ? moons : stations).Spawn();
         if (c == null) return true;
         art = n.companion == Moon ? MoonArt(n.companionSize) : StationArt(n.ring, n.companionSize);
         if (art.Length == 0) { c.Show(false); return true; }
-        Sprite companionSprite = Pick(art);
-        Dress(c, companionSprite, n.companion, n.tier, n.companionSize, 2);
-        if (n.companion == Station) AnimateBody(c, art);
+        Dress(c, Pick(art), n.companion, n.tier, n.companionSize, 2, true);
         c.parent = p;
         c.phase = Rand(0f, 6.283f);
         c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
         c.root.localRotation = Quaternion.Euler(0f, 0f, n.companion == Moon ? p.phase : Rand(-10f, 10f));
+        if (stationLights != null && stationLights.Covers(c.sr.sprite)) Park(p, c);
         c.color = Lit(n.companion == Moon ? RockTint : StationTint, tier);
         p.slot[0] = c;
         p.children = p.slot;                    // no allocation per spawn
@@ -513,13 +554,15 @@ public class SpaceDirector : BackdropDirector
         return true;
     }
 
-    void Dress(BackdropPiece p, Sprite s, int kind, int tier, float size, int orderOffset)
+    // planetClass: a planet or its companion (which shares the planet's depth).
+    void Dress(BackdropPiece p, Sprite s, int kind, int tier, float size, int orderOffset, bool planetClass)
     {
         SetSprite(p, s, size);
         p.kind = kind;
         p.tier = tier;
-        p.rate = set.Spec.Rate(Tiers[tier].layer);
-        p.sr.sortingOrder = set.Spec.Order(Tiers[tier].layer) + orderOffset;
+        string layer = LayerOf(tier, planetClass);
+        p.rate = set.Spec.Rate(layer);
+        p.sr.sortingOrder = set.Spec.Order(layer) + orderOffset;
         if (p.blend != null) p.blend.sortingOrder = p.sr.sortingOrder + 1;
 
         bool sphere = planetMat != null && kind != Station &&
@@ -532,18 +575,6 @@ public class SpaceDirector : BackdropDirector
         float seconds = kind == Planet ? Rand(PlanetTurnSecondsMin, PlanetTurnSecondsMax)
                                        : Rand(RockTurnSecondsMin, RockTurnSecondsMax);
         p.turnRate = (Chance(0.5) ? 1f : -1f) * Mathf.PI / seconds;
-    }
-
-    void AnimateBody(BackdropPiece p, Sprite[] art)
-    {
-        if (art == null || art.Length < 2) return;
-        p.planet = false;
-        p.sr.sharedMaterial = spriteMat;
-        p.sr.SetPropertyBlock(null);
-        p.frames = art;
-        p.fps = p.kind == Planet ? 1.5f : p.kind == Station ? 0.8f : 0.7f;
-        p.age = Rand(0f, art.Length / p.fps);
-        p.Animate();
     }
 
     // Round bodies whose surface can turn: the giants and the cratered rocks
@@ -602,6 +633,7 @@ public class SpaceDirector : BackdropDirector
 
     public override void Teardown()
     {
+        TeardownStationLights();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
     }
@@ -625,8 +657,20 @@ public class SpaceDirector : BackdropDirector
         return o;
     }
 
+    // A station companion (an orbiting station, or the moon with a station
+    // on it) holds station over its planet instead of circling it: a fixed
+    // point on the near half of the orbit, on the side toward the middle of
+    // the board, upright. It still rides along with its planet.
+    void Park(BackdropPiece p, BackdropPiece c)
+    {
+        float lean = Rand(0.25f, 0.7f);
+        c.phase = p.x > 0f ? Mathf.PI + lean : 2f * Mathf.PI - lean;
+        c.spin = 0f;
+        c.root.localRotation = Quaternion.identity;
+    }
+
     // A companion circles its planet on an ellipse tilted with the planet,
-    // passing behind it on the far half.
+    // passing behind it on the far half (a parked station: spin 0).
     void Orbit(BackdropPiece p, BackdropPiece c, float dt)
     {
         if (c == null || !c.active) return;

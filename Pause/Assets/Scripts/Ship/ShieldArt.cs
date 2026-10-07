@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Shared art for the contour shield, rendered from SVG by
-// Art/Shield/src~/render.sh into Resources/Shield. Loaded once and sliced into
+// Art/Ships/Shield/src~/render.sh into Resources/Shield. Loaded once and sliced into
 // flipbook frames; the static references are re-created if a scene change
 // destroyed them.
 public static class ShieldArt

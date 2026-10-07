@@ -150,7 +150,7 @@ public static class AccountCloudSaveTest
 
         var m = ProgressMerge.Merge(local, cloud);
         Check("merge: bought ships are the union", string.Join(",", m.boughtShips) == "1,2,4");
-        Check("merge: HighestSpeed is the max", m.highestSpeed == 300f);
+        Check("merge: HighestSpeed (legacy field, unused by the game since the speed cap) is still the max", m.highestSpeed == 300f);
         Check("merge: highestWorld is the max", m.highestWorld == 3);
         Check("merge: counters take the max per key",
               m.CounterValue("achv_count_aliens") == 40 && m.CounterValue("achv_count_deaths") == 7 &&
@@ -210,7 +210,7 @@ public static class AccountCloudSaveTest
               PlayerPrefs.GetString("boughtship1") == "True" && PlayerPrefs.GetString("boughtship7") == "True" &&
               !PlayerPrefs.HasKey("boughtship3") && Ships() == "1,7");
         Check("round trip: spawnShip", PlayerPrefs.GetInt("spawnShip") == 7);
-        Check("round trip: HighestSpeed", PlayerPrefs.GetFloat("HighestSpeed") == 412f);
+        Check("round trip: HighestSpeed (legacy field: old saves keep it)", PlayerPrefs.GetFloat("HighestSpeed") == 412f);
         Check("round trip: currentWorld/highestWorld",
               PlayerPrefs.GetInt("currentWorld") == 2 && PlayerPrefs.GetInt("highestWorld") == 3);
         Check("round trip: HasDoneTut is \"true\"", PlayerPrefs.GetString("HasDoneTut") == "true");
@@ -313,7 +313,7 @@ public static class AccountCloudSaveTest
         Check("signed in: state is Ready", sync.Current == CloudSync.State.Ready);
         Check("signed in: ships merged into local", Ships() == "1,2,6");
         Check("signed in: newer cloud currency applied", PlayerPrefs.GetFloat("PlayerCurrecny") == 70f);
-        Check("signed in: maxes applied", PlayerPrefs.GetFloat("HighestSpeed") == 400f && PlayerPrefs.GetInt("highestWorld") == 2);
+        Check("signed in: maxes applied (legacy HighestSpeed field, highestWorld)", PlayerPrefs.GetFloat("HighestSpeed") == 400f && PlayerPrefs.GetInt("highestWorld") == 2);
         Check("signed in: tutorial flag applied", PlayerPrefs.GetString("HasDoneTut") == "true");
         Check("signed in: counter applied", PlayerPrefs.GetInt("achv_count_aliens") == 9);
         Check("signed in: account remembered", PlayerPrefs.GetString(CloudSync.LastAccountKey) == "player-A");
@@ -398,8 +398,14 @@ public static class AccountCloudSaveTest
 
         var generated = typeof(StringHolder).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(f => f.IsLiteral).Select(f => (string)f.GetValue(null)).ToList();
-        Check("ids: every StringHolder id has an iOS id",
-              generated.All(id => !string.IsNullOrEmpty(AchievementIds.Resolve(id, true))));
+        // StringHolder is generated from the Play Console and still lists the
+        // retired "Highest Speed Reached" board until it is removed there; the
+        // game no longer reports to it, so it has no iOS id on purpose.
+        Check("ids: every StringHolder id in use has an iOS id (the retired speed board excepted)",
+              generated.Where(id => id != StringHolder.leaderboard_highest_speed_reached)
+                       .All(id => !string.IsNullOrEmpty(AchievementIds.Resolve(id, true))));
+        Check("ids: the retired speed board has no iOS id (nothing is reported to it)",
+              AchievementIds.Resolve(StringHolder.leaderboard_highest_speed_reached, true) == null);
         Check("ids: Android resolves to the GPGS id itself",
               AchievementIds.Resolve(StringHolder.achievement_aliens_6, false) == StringHolder.achievement_aliens_6);
         Check("ids: iOS resolves to the Game Center id",

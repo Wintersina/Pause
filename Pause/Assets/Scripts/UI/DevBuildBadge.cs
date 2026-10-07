@@ -25,8 +25,8 @@ public class DevBuildBadge : MonoBehaviour
         canvas.sortingOrder = 32000;
         var scaler = gameObject.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(800f, 1000f);
         scaler.matchWidthOrHeight = 0.5f;
+        UiScaleFloor.Configure(scaler, new Vector2(800f, 1000f), 0f, 0f);   // developer builds only: no floor
 
         var label = new GameObject("Label", typeof(RectTransform));
         label.transform.SetParent(transform, false);
@@ -47,11 +47,17 @@ public class DevBuildBadge : MonoBehaviour
 
     void Update() { Place(); }
 
-    // Clear of the rounded corner / gesture bar on phones.
+    // Clear of the rounded corner / gesture bar on phones. Android reports no
+    // inset for a display's rounded corners (only cutouts and bars), so with
+    // no bottom inset the tag keeps CornerMargin from both edges: enough to
+    // clear the arc of the roundest phone corners (about 0.3 x the radius).
+    public const float CornerMargin = 24f;
+
     void Place()
     {
         float scale = canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
-        var safe = Screen.safeArea;
-        rect.anchoredPosition = new Vector2(safe.xMin / scale + 10f, safe.yMin / scale + 8f);
+        var safe = ScreenInfo.SafeArea;
+        float left = safe.xMin / scale, bottom = safe.yMin / scale;
+        rect.anchoredPosition = new Vector2(left + Mathf.Max(10f, CornerMargin - left), bottom + Mathf.Max(8f, CornerMargin - bottom));
     }
 }

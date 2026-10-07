@@ -25,6 +25,22 @@ public class WorldBanner : MonoBehaviour
         instance.Play(message, seconds);
     }
 
+    // The card's footprint while it is up, screen px (origin bottom-left);
+    // empty when hidden. The codex toast drops in under it rather than over
+    // it (on a short phone the toast, below a stacked read-out, reaches it).
+    public static Rect ScreenRect
+    {
+        get
+        {
+            if (instance == null || instance.card == null || !instance.card.gameObject.activeInHierarchy) return default(Rect);
+            var canvas = instance.GetComponent<Canvas>();
+            float sf = canvas != null && canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
+            Vector2 size = instance.card.sizeDelta * sf;
+            Vector2 centre = new Vector2(ScreenInfo.Width * .5f, ScreenInfo.Height * .5f) + instance.card.anchoredPosition * sf;
+            return new Rect(centre - size * .5f, size);
+        }
+    }
+
     static WorldBanner Build()
     {
         var root = new GameObject("~WorldBanner",

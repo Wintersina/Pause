@@ -188,8 +188,7 @@ public class BossActor : MonoBehaviour
         attackIndex = -1;
         // Later loops: shorter cooldowns and one more pattern in rotation
         // from the start (LoopRules).
-        // The encore pass (FinalChoicePanel timed out) fights at the next loop's.
-        loop = RunLoop.DifficultyIndex;
+        loop = RunLoop.Index;
         EnsureBodyHitbox();
     }
 
@@ -340,6 +339,7 @@ public class BossActor : MonoBehaviour
 
     void Shoot(BossProjectilePool pool, Vector3 from, Vector2 v, float gravity = 0f, float fall = 0f)
     {
+        BossConfig.FitShot(ref v, ref gravity, ref fall);   // the same time to the ship on every screen
         pool.Fire(boss, current.style, from, v, current.rail, current.bounces, gravity, fall);
     }
 
@@ -395,7 +395,8 @@ public class BossActor : MonoBehaviour
             int j = Random.Range(i, slots);
             int t = laneOrder[i]; laneOrder[i] = laneOrder[j]; laneOrder[j] = t;
         }
-        float t2 = LobFlightTime(from.y, BossConfig.LobTargetY, current.lobUp, current.gravity, current.fallSpeed);
+        float s = BossConfig.ShotScale;   // Shoot stretches the lob by this (BossConfig.FitShot)
+        float t2 = LobFlightTime(from.y, BossConfig.LobTargetY, current.lobUp * s, current.gravity * s, current.fallSpeed * s);
         for (int k = 0; k < hits; k++)
         {
             float x = LaneX(laneOrder[k]) + Random.Range(-BossConfig.LobJitter, BossConfig.LobJitter);

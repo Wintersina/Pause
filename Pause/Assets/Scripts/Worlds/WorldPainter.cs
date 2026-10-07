@@ -24,7 +24,11 @@ public static class WorldPainter
 
         CacheOriginals();
 
-        if (string.IsNullOrEmpty(theme.resourceFolder) && RailTextureName(theme.displayName) == null)
+        // Every world flies between reinforced rails. A world without one
+        // (none today; the old flat wallLeft / wallRight fallback is gone)
+        // keeps the scene's own walls.
+        string railName = RailTextureName(theme.displayName);
+        if (railName == null)
         {
             Restore();
             return;
@@ -33,30 +37,23 @@ public static class WorldPainter
         string root = "Worlds/" + (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
         // Reinforced rails share Frost's visible width and are mirrored so
         // their lamp/pipe edges face the playfield on both sides.
-        string railName = RailTextureName(theme.displayName);
-        if (railName != null)
+        var rail = Resources.Load<Texture2D>(root + railName);
+        // Preserve neon brightness and remove residual exterior mattes.
+        SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
+        foreach (var wall in new[] { LeftWallName, RightWallName })
         {
-            var rail = Resources.Load<Texture2D>(root + railName);
-            // Preserve neon brightness and remove residual exterior mattes.
-            SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
-            foreach (var wall in new[] { LeftWallName, RightWallName })
-            {
-                var mat = MaterialOf(wall);
-                if (mat == null || !mat.HasProperty("_Overlap")) continue;
-                mat.SetFloat("_Overlap", 0.03f);
-                mat.SetFloat("_BlackCutout", 1f);
-            }
-            Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
-            Paint(RightWallName, rail, theme.tint, cachedRight, true);
-            SetRailLayout(theme.displayName);
+            var mat = MaterialOf(wall);
+            if (mat == null || !mat.HasProperty("_Overlap")) continue;
+            mat.SetFloat("_Overlap", 0.03f);
+            mat.SetFloat("_BlackCutout", 1f);
         }
-        else
-        {
-            SetRailShader(null);
-            Paint(LeftWallName, Resources.Load<Texture2D>(root + "wallLeft"), theme.tint, cachedLeft, false);
-            Paint(RightWallName, Resources.Load<Texture2D>(root + "wallRight"), theme.tint, cachedRight, false);
-            SetRailWidth(1f);
-        }
+        Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
+        Paint(RightWallName, rail, theme.tint, cachedRight, true);
+        SetRailLayout(theme.displayName);
+        // the rails just changed: the edge everything bounces off, crashes
+        // into and breaks on (BossRails.InnerEdge; elites, shots) is the
+        // drawn one from now on, not only after the first boss intro
+        BossRails.Measure();
     }
 
     public static string RailTextureName(string world)
@@ -88,6 +85,34 @@ public static class WorldPainter
             case "Ember": min = 157f / 725f; max = 497f / 725f; break;
             default: min = 159f / 725f; max = 499f / 725f; break;
         }
+    }
+
+    // Where the rail a wall is showing really is: the world x (as a distance
+    // from the centre line) of the inner, gameplay-facing edge of its art
+    // and of its outer edge. The wall quad itself is no guide any more: it is
+    // padded with the texture's transparent canvas, so its renderer bounds
+    // reach well into the lane (to about 2.26 on Frost and Verdant, 1.87 on
+    // Space and Ember) while the drawn rail starts near 2.61 in every world.
+    // False if the wall is not showing one of the reinforced rails.
+    public static bool VisibleRailEdges(GameObject wall, out float inner, out float outer)
+    {
+        inner = outer = 0f;
+        var r = wall != null ? wall.GetComponent<Renderer>() : null;
+        var mat = r != null ? r.sharedMaterial : null;
+        var tex = mat != null ? mat.mainTexture : null;
+        if (tex == null) return false;
+        string world = null;
+        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember" })
+            if (RailTextureName(w) == tex.name) world = w;
+        if (world == null) return false;
+        RailBounds(world, out float min, out float max);
+        // Both walls show the art's `max` side toward the lane: the left one
+        // as drawn, the right one mirrored.
+        float width = r.bounds.size.x;
+        float quadOuter = Mathf.Abs(r.bounds.center.x) + width * 0.5f;
+        inner = quadOuter - max * width;
+        outer = quadOuter - min * width;
+        return true;
     }
 
     static void SetRailLayout(string world)

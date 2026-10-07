@@ -1,0 +1,93 @@
+{
+  "key": "space_elite_orbit_reaver",
+  "displayName": "Orbit Reaver",
+  "world": "space",
+  "role": "crescent raider",
+  "codexId": "elite_space_orbit_reaver",
+  "launchFrom": "planet",
+  "lore": "A crescent-clawed raider that swings up out of a planet and circles above you, turning back at the end of every lap. When its claws glow it races round its orbit, the claws taking turns to fire at the spot where you were. Keep moving and the shards cross on empty space.",
+  "brain": "reaver",
+  "attack": "crescent_volley",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "hullRadius": 0.3,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 6,
+  "speed": 2.9,
+  "accel": 9,
+  "turnRate": 260,
+  "circleRadius": 1.8,
+  "aggression": 0.55,
+  "tellSeconds": 0.6,
+  "attackGap": 3.2,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "perception": 2.4,
+  "actionSeconds": 1.0,
+  "shotCount": 4,
+  "shotSpeed": 4.6,
+  "shotSpread": 0,
+  "shotInterval": 0.22,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "heartColor": "#E05CFF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#6FC8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.9,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lclaw",
+      "x": 28,
+      "y": 130,
+      "dir": 270.0
+    },
+    {
+      "name": "rclaw",
+      "x": 163,
+      "y": 131,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 81,
+      "y": 153,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 95,
+      "y": 162,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 110,
+      "y": 153,
+      "dir": -1.0
+    }
+  ]
+}

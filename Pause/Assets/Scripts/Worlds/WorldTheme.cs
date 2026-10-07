@@ -10,7 +10,8 @@ using UnityEngine;
 //
 // Wall textures live at Resources/Worlds/<resourceFolder>/:
 //   rail_<theme>_wide_v1   reinforced industrial tile, mirrored on the right
-//   wallLeft / wallRight  legacy fallback for worlds without a reinforced rail
+// (WorldPainter.RailTextureName names one for every world; the scene's own
+// Art/Walls textures are what a world without one would keep.)
 // Backgrounds live at Backgrounds/Resources/Worlds/<displayName>/Backdrop/ (see
 // BackdropCatalog), generated from Assets/Art/Worlds/<displayName>/src~/.
 [System.Serializable]
@@ -39,14 +40,13 @@ public class WorldTheme
     [Tooltip("Colour of this world's portal.")]
     public Color portalColor = new Color(0.55f, 0.85f, 1f);
 
-    [Tooltip("Speed ramp for this world. Later planets can escalate faster.")]
+    [Tooltip("Speed ramp for this world. Later planets can escalate faster. " +
+             "Every world shares the one cap (SpeedRamp.Cap).")]
     public float speedRampPerSecond = 0.002f;
-
-    public float maxSpeed = 0.6f;
 
     [Tooltip("Multiplies elapsed flight time before enmiesOnBoard checks its " +
              "phase thresholds. 1 is Space's own pace; later worlds set this " +
              "higher so enemy density keeps escalating faster than earlier " +
-             "planets, independent of (and continuing past) the speed cap above.")]
+             "planets, independent of (and continuing past) the speed cap.")]
     public float enemyRampScale = 1f;
 }

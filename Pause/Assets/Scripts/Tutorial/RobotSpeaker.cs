@@ -129,9 +129,9 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         c.sortingOrder = 400;   // over gameplay HUD, under the skip button (500)
         var scaler = go.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = ReferenceResolution;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = MatchWidthOrHeight;
+        UiScaleFloor.Configure(scaler, ReferenceResolution, 0f, FontMin);   // its type never under UiScale.MinTextPt
 
         var speaker = go.AddComponent<RobotSpeaker>();
         speaker.canvas = c;
@@ -570,17 +570,17 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     void Fit(bool force)
     {
         if (canvas == null) return;
-        if (!force && Screen.width == lastScreenW && Screen.height == lastScreenH && Screen.safeArea == lastSafe
+        if (!force && ScreenInfo.Width == lastScreenW && ScreenInfo.Height == lastScreenH && ScreenInfo.SafeArea == lastSafe
             && Mathf.Approximately(canvas.scaleFactor, lastScaleFactor)) return;
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
-        lastSafe = Screen.safeArea;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
+        lastSafe = ScreenInfo.SafeArea;
         lastScaleFactor = canvas.scaleFactor;
 
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
         var rootRect = root.rect;
-        if (rootRect.width <= 0f) rootRect = new Rect(0f, 0f, Screen.width / sf, Screen.height / sf);
-        Rect safe = Screen.safeArea;
+        if (rootRect.width <= 0f) rootRect = new Rect(0f, 0f, ScreenInfo.Width / sf, ScreenInfo.Height / sf);
+        Rect safe = ScreenInfo.SafeArea;
         var safeUnits = new Rect(safe.x / sf - rootRect.width * .5f, safe.y / sf - rootRect.height * .5f,
                                  safe.width / sf, safe.height / sf);
 

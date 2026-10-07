@@ -29,6 +29,19 @@ using UnityEngine;
 //                 high arcs onto a row of marked spots across the lane
 //                 ahead of the pilot; each lands as a sticky pool that
 //                 rides the board for a few seconds
+//   ward_curtain  Eventide Bastion: a curtain of slow bolts out of both
+//                 wing pods onto a row of spots across the pilot's height,
+//                 centred on it -- with one spot beside it left out, the
+//                 gap to slip into
+//   crescent_volley Orbit Reaver: races round its orbit while the claws
+//                 take turns firing shards at the spot it locked, crossing
+//                 there from a new angle each time
+//   rift_rail     Rift Lancer: a blinking sight line at the pilot that
+//                 locks, then a rail of fast bolts straight down it and a
+//                 recoil; then it dashes to its other flank
+//   gravity_sling Singularity Hauler: flings shots sideways out of both tow
+//                 claws that its core's gravity whips round, in curves
+//                 that close on a ringed well ahead of the pilot
 public abstract class EliteAttack
 {
     protected EliteShip ship;
@@ -66,6 +79,50 @@ public abstract class EliteAttack
     // True when the action is over.
     public abstract bool StepAction(float dt);
     public virtual void End() { }
+    // Opens with a blink (the ship wants a safe spot to land on first).
+    public virtual bool Blinks => false;
+    // The wind-up was abandoned (EliteShip.BreakOff): nothing was fired.
+    public virtual void Cancel() { }
+
+    // A dash's line (DrivesMovement attacks): the way it would go and how far
+    // the ship checks it before committing -- to the pilot and a little past.
+    // `locked`: the wind-up is over, the aim is the one it locked.
+    public virtual void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        Vector2 to = (locked ? aim : seen) - ship.Position;
+        reach = to.magnitude + DashPast;
+        d = locked && dir.sqrMagnitude > 1e-4f ? dir : to.sqrMagnitude > 1e-4f ? to.normalized : Vector2.down;
+    }
+
+    public const float DashPast = .4f;
+
+    // Would its shots, fired now, cross another elite? (Checked when it wants
+    // to attack and again as the wind-up ends; it holds fire if so.)
+    public virtual bool FriendlyInLine(Vector2 seen) => false;
+
+    // Another elite in play inside the corridor `halfWidth` either side of
+    // the line from `from` along `d` (unit) for `reach`.
+    protected bool EliteOnLine(Vector2 from, Vector2 d, float reach, float halfWidth)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e == null || e == ship || !e.InPlay) continue;
+            Vector2 rel = e.Position - from;
+            float along = Vector2.Dot(rel, d);
+            if (along < 0f || along > reach) continue;
+            float off = Mathf.Abs(rel.x * d.y - rel.y * d.x);
+            if (off < halfWidth + e.Def.hullRadius + .15f) return true;
+        }
+        return false;
+    }
+
+    protected static Vector2 Unit(float deg)
+    {
+        float r = deg * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(r), Mathf.Sin(r));
+    }
 
     protected EliteShot Fire(int muzzle, float deg, float speed)
     {
@@ -81,7 +138,8 @@ public abstract class EliteAttack
 
 public static class EliteAttacks
 {
-    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar" };
+    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar",
+                                            "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling" };
 
     public static EliteAttack Create(string id)
     {
@@ -94,6 +152,10 @@ public static class EliteAttacks
             case "siege_cannon": return new SiegeCannonAttack();
             case "ice_ram": return new IceRamAttack();
             case "resin_mortar": return new ResinMortarAttack();
+            case "ward_curtain": return new WardCurtainAttack();
+            case "crescent_volley": return new CrescentVolleyAttack();
+            case "rift_rail": return new RiftRailAttack();
+            case "gravity_sling": return new GravitySlingAttack();
             default: return new LanceDashAttack();
         }
     }
@@ -155,6 +217,13 @@ public class BroadsideAttack : EliteAttack
     public BroadsideAttack() { Id = "broadside"; }
     public int Volleys => volleys;
 
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        for (int m = 0; m < def.muzzles.Length; m++)
+            if (EliteOnLine(ship.MuzzleWorld(m), Unit(ship.MuzzleDeg(m)), 6f, def.shotSize * .5f)) return true;
+        return false;
+    }
+
     public override void BeginAction()
     {
         base.BeginAction();
@@ -182,6 +251,14 @@ public class ClawDiveAttack : EliteAttack
     public ClawDiveAttack() { Id = "claw_dive"; }
     public override bool DrivesMovement => true;
     public override float? FaceDeg => Deg(dir);
+
+    // (it dives at the spot it locked, from wherever it has circled to)
+    public override void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        Vector2 to = (locked ? aim : seen) - ship.Position;
+        reach = to.magnitude + DashPast;
+        d = to.sqrMagnitude > 1e-4f ? to.normalized : Vector2.down;
+    }
 
     public override void BeginTell(Vector2 seen)
     {
@@ -228,6 +305,9 @@ public class SlagDropAttack : EliteAttack
     int dropped;
     public SlagDropAttack() { Id = "slag_drop"; }
 
+    public override bool FriendlyInLine(Vector2 seen) =>
+        EliteOnLine(ship.Position, Vector2.down, 3.5f, def.shotSize * .5f + .1f);
+
     public override void BeginAction()
     {
         base.BeginAction();
@@ -254,7 +334,15 @@ public class BlinkShardsAttack : EliteAttack
 {
     bool fired;
     public BlinkShardsAttack() { Id = "blink_shards"; }
+    public override bool Blinks => true;
     public override float? FaceDeg => Deg(ship.Seen - ship.Position);
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, dist + 2f, .35f);
+    }
 
     public override void BeginAction()
     {
@@ -285,6 +373,15 @@ public class SiegeCannonAttack : EliteAttack
     public SiegeCannonAttack() { Id = "siege_cannon"; }
     public override bool HoldsDuringTell => true;
     public override float? FaceDeg => -90f;
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        // (its lane: the muzzle swings under the hull as it turns nose-down for the shot)
+        Vector2 p = ship.Position;
+        return EliteOnLine(p, Vector2.down, p.y - EliteSystem.ViewBottom, def.shotSize * .4f);
+    }
+
+    public override void Cancel() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
 
     public override void StepTell(float dt)
     {
@@ -336,6 +433,13 @@ public class IceRamAttack : EliteAttack
     public override bool HoldsDuringTell => true;
     public override bool DrivesMovement => true;
     public override bool Ploughs => true;
+
+    // (straight down its lane, as far as the pilot's height and a little past)
+    public override void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
+    {
+        d = Vector2.down;
+        reach = Mathf.Max(1f, ship.Position.y - seen.y + DashPast);
+    }
     public float LaneX => laneX;
     public int Smashed => smashed;
 
@@ -443,5 +547,241 @@ public class ResinMortarAttack : EliteAttack
     {
         var w = ship.Brain as WardenBrain;
         if (w != null) w.Cross();
+    }
+}
+
+// Eventide Bastion: a shield curtain. The tell holds it still while its wing
+// pods charge; the action fires shotCount slow bolts, alternating pods,
+// shotInterval apart, each aimed at its own spot on a row lobSpacing apart
+// across the pilot's height, centred on where it sees the pilot -- except
+// the spot beside the pilot on the side toward the middle of the board,
+// which is left out: the gap to slip into. Standing still is a hit; one
+// short sidestep (or the open board past the curtain's ends) is safe.
+public class WardCurtainAttack : EliteAttack
+{
+    float next;
+    int slot, gap;
+    Vector2 row;
+    public WardCurtainAttack() { Id = "ward_curtain"; }
+    public override bool HoldsDuringTell => true;
+    public int Gap => gap;
+    public Vector2 Row => row;
+    public int Count => Mathf.Max(3, def.shotCount);
+    public int Centre => Count / 2;
+
+    public Vector2 Spot(int i) => new Vector2(row.x + (i - (Count - 1) * .5f) * def.lobSpacing, row.y);
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, dist + 1f, Count * def.lobSpacing * .5f);
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        next = 0f;
+        slot = 0;
+        // the row: across the pilot's height, the centre spot on the pilot
+        // (shifted so that spot lands exactly on it when the count is even)
+        row = ship.Seen + new Vector2(((Count - 1) * .5f - Centre) * def.lobSpacing, 0f);
+        gap = Centre + (ship.Seen.x > 0f ? -1 : 1);
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        int n = Count;
+        while (t >= next && slot < n)
+        {
+            if (slot != gap)
+            {
+                int m = def.muzzles.Length > 0 ? slot % def.muzzles.Length : 0;
+                Fire(m, Deg(Spot(slot) - ship.MuzzleWorld(m)), def.shotSpeed);
+            }
+            slot++;
+            next += def.shotInterval;
+        }
+        return t >= def.actionSeconds && slot >= n;
+    }
+}
+
+// Orbit Reaver: a crescent volley. The tell locks the spot where it sees
+// the pilot (no hold: it keeps circling, slower); the action races it round
+// its orbit (ReaverBrain.ActScale) while the claws take turns, shotInterval
+// apart, firing shards at that locked spot -- from a new angle each time,
+// so they cross on where the pilot WAS. Keep moving. Then it turns round.
+public class CrescentVolleyAttack : EliteAttack
+{
+    float next;
+    int fired;
+    public CrescentVolleyAttack() { Id = "crescent_volley"; }
+    public int Volley => fired;
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, dist + 1f, .3f);
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        next = 0f;
+        fired = 0;
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        int n = Mathf.Max(1, def.shotCount);
+        while (t >= next && fired < n)
+        {
+            int m = def.muzzles.Length > 0 ? fired % def.muzzles.Length : 0;
+            Fire(m, Deg(aim - ship.MuzzleWorld(m)), def.shotSpeed);
+            fired++;
+            next += def.shotInterval;
+        }
+        return t >= def.actionSeconds && fired >= n;
+    }
+
+    public override void End()
+    {
+        var r = ship.Brain as ReaverBrain;
+        if (r != null) r.Turn(true);
+    }
+}
+
+// Rift Lancer: a rift rail. The tell plants it nose-on to the pilot and
+// draws a blinking sight line from its prong along its aim, tracking the
+// pilot for the first TrackShare of the wind-up, then locked (blinking
+// faster); the action fires shotCount fast bolts one after another,
+// shotInterval apart, straight down that locked line -- a rail of light --
+// and the first one kicks it back up the line. Then it dashes across to
+// its other flank (LancerBrain.Cross).
+public class RiftRailAttack : EliteAttack
+{
+    public const float TrackShare = .6f, SightLength = 9f, Recoil = 1.8f;
+    float next;
+    int fired;
+    public RiftRailAttack() { Id = "rift_rail"; }
+    public override bool HoldsDuringTell => true;
+    public override float? FaceDeg => Deg(dir);
+    public bool Locked => t >= TellSeconds * TrackShare;
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, SightLength, def.shotSize * .5f);
+    }
+
+    public override void Cancel() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
+
+    public override void StepTell(float dt)
+    {
+        t += dt;
+        if (!Locked)
+        {
+            Vector2 d = ship.Seen - ship.Position;
+            if (d.sqrMagnitude > 1e-4f) { dir = d.normalized; aim = ship.Seen; }
+        }
+        float period = Locked ? 2f : 4f;
+        bool on = Mathf.FloorToInt(t / (period * EliteArt.Tick)) % 2 == 0;
+        ship.ShowSight(ship.MuzzleWorld(0), Deg(dir), SightLength, on);
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        next = 0f;
+        fired = 0;
+        ship.ShowSight(Vector2.zero, 0f, 0f, false);
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        int n = Mathf.Max(1, def.shotCount);
+        while (t >= next && fired < n)
+        {
+            Fire(0, Deg(dir), def.shotSpeed);
+            if (fired == 0) ship.Drive(-dir * Recoil);
+            fired++;
+            next += def.shotInterval;
+        }
+        return t >= def.actionSeconds && fired >= n;
+    }
+
+    public override void End()
+    {
+        ship.ShowSight(Vector2.zero, 0f, 0f, false);
+        var l = ship.Brain as LancerBrain;
+        if (l != null) l.Cross();
+    }
+}
+
+// Singularity Hauler: a gravity sling. The tell holds it while the core
+// charges; the action marks a well -- lobAhead in front of where it sees
+// the pilot (led by the scroll over lobSeconds), inside the rails, riding
+// the board -- and flings shotCount shots, alternating tow claws,
+// shotInterval apart, out sideways; the core's pull whips each round a
+// curve (EliteShot.Sling) that passes through the ringed well after
+// lobSeconds, then flies on along it -- pincers closing on the ring from
+// both sides and crossing there. Keep out of the ring (and off the line
+// past it). Then the tug swaps sides.
+public class GravitySlingAttack : EliteAttack
+{
+    public const float Bulge = 1.1f;    // how far out past its claw a shot swings
+    float next;
+    int fired;
+    Vector2 well;
+    public GravitySlingAttack() { Id = "gravity_sling"; }
+    public override bool HoldsDuringTell => true;
+    public Vector2 Well => well;
+
+    public override bool FriendlyInLine(Vector2 seen)
+    {
+        Vector2 to = seen + Vector2.up * def.lobAhead - ship.Position;
+        float dist = to.magnitude;
+        return dist > 1e-3f && EliteOnLine(ship.Position, to / dist, dist, .6f);
+    }
+
+    public override void BeginAction()
+    {
+        base.BeginAction();
+        next = 0f;
+        fired = 0;
+        well = ship.Seen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
+        float edge = Mathf.Max(0f, EliteSystem.RailEdge - def.shotSize - .3f);
+        well.x = Mathf.Clamp(well.x, -edge, edge);
+    }
+
+    public override bool StepAction(float dt)
+    {
+        t += dt;
+        well.y -= EliteSystem.Scroll * dt;   // the well is on the board: it rides it
+        int n = Mathf.Max(1, def.shotCount);
+        while (t >= next && fired < n)
+        {
+            int m = def.muzzles.Length > 0 ? fired % def.muzzles.Length : 0;
+            Vector2 from = ship.MuzzleWorld(m);
+            float side = from.x >= ship.Position.x ? 1f : -1f;
+            float edge = EliteSystem.RailEdge - def.shotSize - .25f;
+            Vector2 bend = new Vector2(Mathf.Clamp(from.x + side * Bulge, -edge, edge), Mathf.Lerp(from.y, well.y, .3f));
+            var shot = Fire(m, Deg(bend - from), def.shotSpeed);
+            if (shot != null) shot.Sling(bend, well, def.lobSeconds);
+            fired++;
+            next += def.shotInterval;
+        }
+        return t >= def.actionSeconds && fired >= n;
+    }
+
+    public override void End()
+    {
+        var tug = ship.Brain as TugBrain;
+        if (tug != null) tug.Swap();
     }
 }

@@ -1352,7 +1352,7 @@ public partial class TitleScreenTraffic
         if (buttonCanvas == null || buttonCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
         {
             // an overlay canvas's corners are screen pixels
-            int w = screenW > 0 ? screenW : Screen.width, h = screenH > 0 ? screenH : Screen.height;
+            int w = screenW > 0 ? screenW : ScreenInfo.Width, h = screenH > 0 ? screenH : ScreenInfo.Height;
             if (w <= 0 || h <= 0) return Rect.zero;
             a = ScreenToWorld(corners[0], w, h);
             b = ScreenToWorld(corners[2], w, h);

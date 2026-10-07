@@ -48,10 +48,10 @@ public static class ArtRestyleTest
 
     static readonly (string path, string sha)[] Protected =
     {
-        ("Assets/Art/pause_title_2.png", "fbc73021f06f4dd3a79d8d42e1bd22870723f49d8d16a2474df8896b1ab7d305"),
-        ("Assets/Art/pause_title_2.png.meta", "005e199d4579224cc74902d945901813061003e2979944897b6354f5f3a382a8"),
-        ("Assets/Art/HapticGate.png", "73531a210c4b0c8fbedc6effae9391e3f88ff1346aac642b190d5f5545225c69"),
-        ("Assets/Art/HapticGate.png.meta", "cae4da2d42f6c5bd74eb153a43d6122d851dc85a395e2aa161d472e88211dfd7"),
+        ("Assets/Art/UI/Title/pause_title_2.png", "fbc73021f06f4dd3a79d8d42e1bd22870723f49d8d16a2474df8896b1ab7d305"),
+        ("Assets/Art/UI/Title/pause_title_2.png.meta", "005e199d4579224cc74902d945901813061003e2979944897b6354f5f3a382a8"),
+        ("Assets/Art/UI/Splash/HapticGate.png", "73531a210c4b0c8fbedc6effae9391e3f88ff1346aac642b190d5f5545225c69"),
+        ("Assets/Art/UI/Splash/HapticGate.png.meta", "cae4da2d42f6c5bd74eb153a43d6122d851dc85a395e2aa161d472e88211dfd7"),
         ("../docs/pause-title.png", "40aa922dcef477e46a0545b2c867dd124f4a74fc9db61181b168a9694d249736"),
     };
 
@@ -153,7 +153,7 @@ public static class ArtRestyleTest
                                     "Assets/Art/Resources/PauseGlowFx", "Assets/Art/Resources/Tutorial" })
             if (Directory.Exists(dir))
                 foreach (var f in Directory.GetFiles(dir, "*.png")) yield return f.Replace('\\', '/');
-        yield return "Assets/Art/paused_1.png";
+        yield return "Assets/Art/UI/Pause/paused_1.png";
     }
 
     static void UiArtOnPalette()
@@ -194,10 +194,10 @@ public static class ArtRestyleTest
     {
         var pal = Parse(PixelAtomPalette);
         var files = new List<string>(Directory.GetFiles("Assets/Art/Resources/Pickups/Atoms", "*.png"));
-        files.Add("Assets/Art/Atoms/atom3a.png");
-        files.Add("Assets/Art/Atoms/pauseAtom.png");
-        files.Add("Assets/Art/Retro80s/Pickups/StarDustLarge.png");
-        files.Add("Assets/Art/Retro80s/Pickups/StarDustSmall.png");
+        files.Add("Assets/Art/Pickups/atom3a.png");
+        files.Add("Assets/Art/Pickups/pauseAtom.png");
+        files.Add("Assets/Art/Pickups/StarDustLarge.png");
+        files.Add("Assets/Art/Pickups/StarDustSmall.png");
         foreach (var path in files)
         {
             var px = Pixels(path);

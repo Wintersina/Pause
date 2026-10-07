@@ -25,7 +25,7 @@ public static class TitleScreenCombatTest
     const float Dt = 1f / 30f;
     static readonly Vector3 LogoPos = new Vector3(-0.04f, 2.72f, 0f);
     static readonly Vector3 LogoScale = new Vector3(0.4176109f, 0.46091294f, 1f);
-    const string LogoPath = "Assets/Art/pause_title_2.png";
+    const string LogoPath = "Assets/Art/UI/Title/pause_title_2.png";
 
     public static void Run() { TestHarness.Exit(Execute()); }
 

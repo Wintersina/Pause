@@ -5,26 +5,33 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// After the final world: the KEEP FLYING / LOOP BACK choice, loops, and the
-// speed score multiplier (FinalChoicePanel, LoopRules, RunLoop, ScoreRules).
+// After the final world: its portal back round, loops, and the speed score
+// multiplier (WorldManager, Portal, LoopRules, RunLoop, ScoreRules).
+// docs/speed-and-loops.md.
 //
-//   1  the choice appears after the Ember boss and freezes time, scripted
-//      (no pause spent); Back picks nothing; the countdown picks the encore
-//      (ONE MORE EMBER, THEN LOOP)
-//   2  KEEP FLYING stays in Ember: no portal, no boss, escalation, capped
-//   3  LOOP BACK portals to the run's start world, score kept, loop + 1, and
-//      the next boss / portal sequence works (also a start world of Ember)
-//   4  per-loop difficulty and bonus scaling apply and stay capped
-//   5  speed multiplier tiers, stacking with the chain, within the cap
+//   1  the Ember boss is followed by the portal, as in every world: it leads
+//      to the run's start world, freezes nothing, stops the level clock and
+//      never goes away (no KEEP FLYING / LOOP BACK choice any more)
+//   2  waiting at it: still Ember, no boss, the pressure climbs, the natural
+//      speed never passes the one cap (HUD 35)
+//   3  through it: the run's start world, score kept, loop + 1, arrival speed
+//      under the cap, and the next boss / portal sequence works (also a start
+//      world of Ember)
+//   4  per-loop difficulty (no speed: density, pilot load, threat ceiling,
+//      fighter tiers, shot budget and cadence, score) and bonus scaling apply
+//      and stay capped
+//   5  speed multiplier tiers (x2 at the cap, x2.5 only in a limit break),
+//      stacking with the chain, within the cap; loop score scale
 //   6  HUD loop and multiplier badges fit at 9:16 .. 9:24 and Fold
 //   7  the death panel shows LOOPS and the highest multiplier
 //   8  the tutorial scores nothing; developer runs never save
 //   9  the developer FINAL trigger (BOSS RUSH FINAL)
 //  10  the simulated-run breakdown (logged as [LOOP] SIM lines)
-//  11  a timed-out choice: Ember once more as a loop pass, its boss, then
-//      LOOP BACK with no second prompt; score carries over
-//  12  loops and KEEP FLYING raise the spawner's density by LoopRules'
-//      factor, and the SpawnLane gap guard holds at max density
+//  11  every loop ends the same way: the final portal again, loop 3 scaled
+//      as loop 3
+//  12  loops raise the spawner's density by LoopRules' factor, a waiting
+//      portal's pressure on top of it, and the SpawnLane gap guard holds at
+//      max loop density
 public static class LoopTest
 {
     static int fails;
@@ -46,11 +53,15 @@ public static class LoopTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // These checks read exact spawn delays to prove the loop / boss hooks;
+        // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
+        // the same delays, so it is switched off here (the Sandbox puts it back).
+        EnemyDensity.Disabled = true;
         int rush = PlayerPrefs.GetInt(BossDev.RushKey, -1);
         try
         {
-            ChoiceAppearsAndFreezes();
-            KeepFlyingEscalatesInEmber();
+            FinalPortalOpensAndWaits();
+            WaitingAtTheFinalPortal();
             LoopBackGoesToTheStartWorld();
             LoopBackFromAnEmberStart();
             LoopScalingAppliesAndCaps();
@@ -60,8 +71,7 @@ public static class LoopTest
             TutorialAndDeveloperRuns();
             DeveloperFinalTrigger();
             SimulatedRun();
-            TimeoutPlaysEmberOnceMoreThenLoops();
-            TimeoutFromAnEmberStart();
+            FinalPortalEveryLoop();
             LoopDensityRaisesSpawnRate();
             if (TestHarness.Slow("Loop: 240s max-density spawner runs")) GapGuardHoldsAtMaxDensity();
         }
@@ -69,7 +79,8 @@ public static class LoopTest
         {
             RunLoop.Reset();
             BossEncounter.ResetRun();
-            if (FinalChoicePanel.Instance != null) Object.DestroyImmediate(FinalChoicePanel.Instance.gameObject);
+            PortalPressure.Reset();
+            SpeedRamp.ResetBoost();
             BackNavigator.ResetHooks();
             buttonClicks.playerDied = false;
             if (rush < 0) PlayerPrefs.DeleteKey(BossDev.RushKey);
@@ -94,7 +105,9 @@ public static class LoopTest
         buttonClicks.playerDied = false;
         startMenu.youAreInTutorial = false;
         score.pauseCounter = 0;   // the world runs without a touch in batch mode
-        moveBackGround.speed = .37f;
+        moveBackGround.speed = .33f;   // (under the cap, HUD 35)
+        PortalPressure.Reset();
+        SpeedRamp.ResetBoost();
         ShipStartSpeed.EquippedHudOverride = () => ShipStartSpeed.StockHud;   // a stock start, whatever is equipped
         Time.timeScale = 1f;
         PlayerPrefs.SetString("HasDoneTut", "true");
@@ -120,6 +133,14 @@ public static class LoopTest
         var bg = new GameObject("bg").AddComponent<moveBackGround>();
         var enemies = new GameObject("spawner").AddComponent<enmiesOnBoard>();
         return (bg, enemies);
+    }
+
+    // WorldManager.ApplyDifficulty: the walls and the spawner get the current
+    // world's ramp, the cap and the loop's scaling.
+    static void ApplyDifficulty()
+    {
+        typeof(WorldManager).GetMethod("ApplyDifficulty", BindingFlags.NonPublic | BindingFlags.Static)
+            .Invoke(null, new object[] { WorldManager.Current });
     }
 
     static void RunWhile(BossEncounter e, BossEncounter.Phase phase, float dt = .1f, int budget = 3000)
@@ -148,9 +169,9 @@ public static class LoopTest
         catch (System.Exception ex) { Debug.LogWarning("[LOOP] Advance threw (presentation only): " + ex.Message); }
     }
 
-    // ---- 1. the choice -------------------------------------------------------
+    // ---- 1. the final portal ---------------------------------------------------
 
-    static void ChoiceAppearsAndFreezes()
+    static void FinalPortalOpensAndWaits()
     {
         FreshScene(Ember, 0);
         var (bg, _) = Board();
@@ -158,161 +179,142 @@ public static class LoopTest
         int pauses = score.pauseCounter = 3;
         wm.Tick(.1f);
         Check("Ember's level end starts its boss", BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Ember");
-        Check("no choice during the fight", !FinalChoicePanel.IsUp);
+        Check("no portal during the fight", !wm.PortalIsOpen && Portal.Live == null && wm.Stage == WorldManager.LevelStage.Boss);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         RunWhile(e, BossEncounter.Phase.Intro);
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("encounter done", e.State == BossEncounter.Phase.Done);
-        Check("the choice panel is up after the Ember boss", FinalChoicePanel.IsUp && wm.Route == WorldManager.FinalRoute.Choosing);
-        Check("... and no portal opened", !wm.PortalIsOpen && Object.FindFirstObjectByType<Portal>() == null);
+        Check("after the Ember boss the portal opens, as in every world (stage Portal, no choice)",
+              wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal && Portal.Live != null &&
+              Object.FindFirstObjectByType<Portal>() != null);
+        Check("... leading back to the run's start world (Space), wearing its colour",
+              WorldManager.PortalDestination == 0 && PortalPressure.Destination == 0 && PortalPressure.Active);
 
+        Check("no pause was spent by the boss or the portal", score.pauseCounter == pauses);
+        // (the old choice froze time as a scripted freeze; the portal freezes nothing)
+        score.pauseCounter = 0;   // no finger in batch mode: let the world run
         Time.timeScale = 1f;
         bg.SendMessage("Update");
-        Check("the choice freezes time (timeScale 0) as a scripted freeze", BossEncounter.ScriptedFreeze && Time.timeScale == 0f);
-        Check("a press on the panel is free (no pause spent)", BossEncounter.FreePress && score.pauseCounter == pauses);
-        float left = wm.SecondsLeftInWorld;
+        Check("the waiting portal freezes nothing (no scripted freeze, the world runs)",
+              !BossEncounter.ScriptedFreeze && Time.timeScale > 0f);
+        score.pauseCounter = pauses;
         wm.Tick(5f);
-        Check("the level clock stays stopped while choosing", wm.SecondsLeftInWorld == left && wm.Route == WorldManager.FinalRoute.Choosing);
+        Check("the level clock stays stopped while the portal waits; its own clock runs (" +
+              PortalPressure.Seconds.ToString("F1") + " s)",
+              wm.SecondsLeftInWorld == 0f && wm.DistanceLeft == 0f && wm.Stage == WorldManager.LevelStage.Portal &&
+              Mathf.Abs(PortalPressure.Seconds - 5f) < 1e-3f);
 
-        var panel = FinalChoicePanel.Instance;
-        Check("the panel offers KEEP FLYING and LOOP BACK", panel.KeepButton != null && panel.LoopButton != null);
-        Check("each choice says what it means in one short line ('" + panel.KeepLine.text + "' / '" + panel.LoopLine.text + "')",
-              panel.KeepLine.text == FinalChoicePanel.KeepLineFor("Ember") &&
-              panel.LoopLine.text == FinalChoicePanel.LoopLineFor("Space", 2));
-        Check("the buttons have the cartoon press", panel.KeepButton.GetComponent<CelPress>() != null &&
-              panel.LoopButton.GetComponent<CelPress>() != null);
+        // It never goes: ten minutes of flight later it is the same portal, on station.
+        var portal = Portal.Live;
+        for (int i = 0; i < 600; i++) { portal.Step(1f); wm.Tick(1f); }
+        Check("ten minutes on: the same loop portal, still open, on station and in view",
+              Portal.Live == portal && portal != null && portal.OnStation && wm.PortalIsOpen &&
+              portal.transform.position.y < CameraFit.ViewTop && portal.transform.position.y > CameraFit.ViewBottom &&
+              !BossEncounter.Running && WorldManager.CurrentIndex == Ember && RunLoop.Index == 0);
 
-        // Back / Escape: picks nothing and never leaves the run.
-        string loaded = null;
-        BackNavigator.LoadScene = s => loaded = s;
-        BackNavigator.Back();
-        Check("Back picks nothing and doesn't quit", FinalChoicePanel.IsUp && loaded == null &&
-              wm.Route == WorldManager.FinalRoute.Choosing);
-        BackNavigator.ResetHooks();
-
-        // Layout: every line fits its card, the cards fit the panel.
-        foreach (var t in panel.Panel.GetComponentsInChildren<Text>(true))
-        {
-            var r = t.rectTransform.rect;
-            bool fits = t.horizontalOverflow == HorizontalWrapMode.Wrap
-                ? t.preferredHeight <= r.height + 1f
-                : t.preferredWidth <= r.width + 1f;
-            Check("choice text '" + t.text + "' fits its rect", fits);
-        }
-        foreach (var screen in new[] { new Vector2(800, 1422), new Vector2(800, 1733), new Vector2(800, 2133),
-                                       new Vector2(800, 935), new Vector2(800, 2050), new Vector2(800, 1066) })
-        {
-            float s = FinalChoicePanel.FitScale(screen);
-            Check("the choice panel fits an 800x" + screen.y + " canvas (scale " + s.ToString("F2") + ")",
-                  (FinalChoicePanel.Width + 40f) * s <= screen.x && (FinalChoicePanel.Height + 40f) * s <= screen.y && s >= .5f);
-        }
-
-        // The countdown says what it will do, then does it by itself.
-        Check("a visible countdown that says what happens ('" + panel.Countdown.text + "')",
-              panel.Countdown.text == "AUTO IN 10: ONE MORE EMBER, THEN LOOP" &&
-              panel.Countdown.text == FinalChoicePanel.CountdownLabel("Ember", 10f));
-        Check("... and fits its line (" + panel.Countdown.preferredWidth.ToString("F0") + " <= " + FinalChoicePanel.CountdownWidth + ")",
-              panel.Countdown.preferredWidth <= FinalChoicePanel.CountdownWidth + 1f);
-        panel.Step(4.2f);
-        Check("it counts down ('" + panel.Countdown.text + "')", panel.Countdown.text == "AUTO IN 6: ONE MORE EMBER, THEN LOOP");
-        for (int i = 0; i < 70 && FinalChoicePanel.IsUp; i++) panel.Step(.1f);
-        Check("after ~10s it picks the encore (one more Ember, then loop)",
-              !FinalChoicePanel.IsUp && wm.Route == WorldManager.FinalRoute.Encore);
-        Check("the first press after the panel is still free", BossEncounter.FreePress);
-        Check("no pause was spent by the choice", score.pauseCounter == pauses);
-        Check("score.cs treats it like the boss intro (FreePress)",
-              File.ReadAllText("Assets/Scripts/Core/score.cs").Contains("if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;"));
-        Check("movePlayer ignores presses on the panel (no teleport onto a button)",
-              File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("if (FinalChoicePanel.IsUp) return;"));
+        Check("the choice is gone from the game (no FinalChoicePanel, no KEEP FLYING)",
+              !File.Exists("Assets/Scripts/Worlds/FinalChoicePanel.cs") &&
+              !File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("FinalChoicePanel") &&
+              !File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("KeepFlying") &&
+              !File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("FinalChoicePanel"));
         Time.timeScale = 1f;
+        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+        PortalPressure.Reset();
     }
 
-    // ---- 2. KEEP FLYING -------------------------------------------------------
+    // ---- 2. waiting at the final portal -----------------------------------------------
 
-    static void KeepFlyingEscalatesInEmber()
+    static void WaitingAtTheFinalPortal()
     {
         FreshScene(Ember, 0);
-        var (bg, enemies) = Board();
+        var (bg, _) = Board();
         var wm = World(-1f);
         PlayBoss(wm);
-        Check("choosing", FinalChoicePanel.IsUp);
-        FinalChoicePanel.Instance.KeepButton.onClick.Invoke();
-        Check("KEEP FLYING: the panel goes and the world runs", !FinalChoicePanel.IsUp && !BossEncounter.ScriptedFreeze &&
-              wm.Route == WorldManager.FinalRoute.KeepFlying);
+        Check("waiting: the loop portal is open", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal);
         var theme = WorldManager.Worlds[Ember];
+        ApplyDifficulty();
+        float dens0 = PortalPressure.DensityScale, loopDensity = LoopDifficulty.DensityScale;
 
-        wm.Tick(1f);
-        float max0 = bg.maxSpeed, dens0 = LoopDifficulty.DensityScale;
-        for (int i = 0; i < 60; i++) wm.Tick(1f);
-        Check("still Ember, no portal, no boss after a minute", WorldManager.CurrentIndex == Ember && !wm.PortalIsOpen &&
-              !BossEncounter.Running && Object.FindFirstObjectByType<Portal>() == null);
-        Check("speed cap creeps past Ember's (" + theme.maxSpeed + " -> " + bg.maxSpeed.ToString("F3") + ")",
-              bg.maxSpeed > theme.maxSpeed && bg.maxSpeed > max0);
-        Check("spawn density keeps climbing (" + dens0.ToString("F2") + " -> " + LoopDifficulty.DensityScale.ToString("F2") + ")",
-              LoopDifficulty.DensityScale > dens0);
-        float slow = bg.maxSpeed - theme.maxSpeed;
-        Check("slowly: at most +3 HUD speed in the first minute (+" + (slow * 100f).ToString("F1") + ")", slow <= .03f);
-        for (int i = 0; i < 1200; i++) wm.Tick(1f);
-        Check("and capped: +" + (LoopRules.EndlessSpeedCap * 100f) + " HUD at most, never past HUD " +
-              Mathf.RoundToInt(LoopRules.AbsoluteMaxSpeed * 100f) + " (" + bg.maxSpeed.ToString("F3") + ")",
-              bg.maxSpeed <= theme.maxSpeed + LoopRules.EndlessSpeedCap + 1e-4f && bg.maxSpeed <= LoopRules.AbsoluteMaxSpeed + 1e-4f &&
-              bg.maxSpeed >= theme.maxSpeed + LoopRules.EndlessSpeedCap - 1e-4f);
-        Check("density capped at x" + LoopRules.EndlessDensityCap + " (" + LoopDifficulty.DensityScale.ToString("F2") + ")",
-              Mathf.Abs(LoopDifficulty.DensityScale - LoopRules.EndlessDensityCap) < 1e-3f);
-        Check("twenty minutes on: still Ember, still no portal", WorldManager.CurrentIndex == Ember && !wm.PortalIsOpen);
-        Check("Ember's full song keeps looping (it has a loop-out point)",
+        // The speed cap holds: twenty minutes of the walls' ramp from the boss's 20.
+        int frame = 5000;
+        SpeedRamp.FrameOverride = () => frame;
+        SpeedRamp.DeltaOverride = () => 1f;
+        SpeedRamp.ResetFrameGuard();
+        moveBackGround.speed = BossConfig.FightSpeed;
+        float peak = 0f;
+        try
+        {
+            for (int i = 0; i < 1200; i++)
+            {
+                frame++;
+                bg.SendMessage("Update");
+                wm.Tick(1f);
+                peak = Mathf.Max(peak, moveBackGround.speed);
+            }
+        }
+        finally
+        {
+            SpeedRamp.FrameOverride = null;
+            SpeedRamp.DeltaOverride = null;
+            SpeedRamp.ResetFrameGuard();
+        }
+        Check("the walls ramp to the one cap, HUD " + SpeedRamp.CapHud + " (peak " + (peak * 100f).ToString("F2") + ")",
+              Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap) && peak <= SpeedRamp.Cap + 1e-6f &&
+              Mathf.Approximately(moveBackGround.speed, SpeedRamp.Cap));
+        Check("twenty minutes on: still Ember, the portal still open, no boss, the loop index unmoved",
+              WorldManager.CurrentIndex == Ember && wm.PortalIsOpen && !BossEncounter.Running && RunLoop.Index == 0 &&
+              Object.FindFirstObjectByType<Portal>() != null);
+        Check("the pressure climbs instead (spawn rate x" + dens0.ToString("F2") + " -> x" + PortalPressure.DensityScale.ToString("F2") +
+              "), the loop's own density untouched", PortalPressure.DensityScale > dens0 && PortalPressure.Pressing &&
+              LoopDifficulty.DensityScale == loopDensity);
+        Check("Ember's full song keeps looping while it waits (it has a loop-out point)",
               WorldMusic.LoopOutSeconds(WorldMusic.EmberTrack) > 0f && theme.musicResource == WorldMusic.EmberTrack && !theme.progressiveMusic);
-        Check("the loop index never moved", RunLoop.Index == 0);
-        Check("an explicit KEEP FLYING never switches to LOOP BACK by itself",
-              wm.Route == WorldManager.FinalRoute.KeepFlying && !RunLoop.EncorePass);
+        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+        PortalPressure.Reset();
+        moveBackGround.speed = 0f;
     }
 
-    // ---- 3. LOOP BACK -----------------------------------------------------------
+    // ---- 3. through the final portal -----------------------------------------------------
 
     static void LoopBackGoesToTheStartWorld()
     {
         FreshScene(Ember, 0);
         Board();
         var wm = World(-1f);
-        RunScore.Tick(30f, .4f);
+        RunScore.Tick(30f, .3f);
         PlayBoss(wm);
-        var panel = FinalChoicePanel.Instance;
-        Check("choosing", FinalChoicePanel.IsUp);
-        long before = RunScore.Total;
-        panel.LoopButton.onClick.Invoke();
-        Check("LOOP BACK: a portal opens", wm.Route == WorldManager.FinalRoute.LoopBack && wm.PortalIsOpen &&
-              Object.FindFirstObjectByType<Portal>() != null);
-        Check("the panel is gone and the world runs", !FinalChoicePanel.IsUp && !BossEncounter.ScriptedFreeze);
-        Check("choosing changed no score", RunScore.Total == before);
+        Check("the loop portal opens by itself after the boss", wm.PortalIsOpen && Portal.Live != null &&
+              WorldManager.PortalDestination == 0);
 
-        // A missed loop portal comes back.
-        typeof(WorldManager).GetMethod("OnPortalMissed", Inst).Invoke(wm, null);
-        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("missed: the clock waits about " + LoopRules.LoopPortalRetrySeconds + "s (" + wm.SecondsLeftInWorld.ToString("F2") + "s)",
-              !wm.PortalIsOpen && wm.SecondsLeftInWorld > LoopRules.LoopPortalRetrySeconds - 1f &&
-              wm.SecondsLeftInWorld <= LoopRules.LoopPortalRetrySeconds + 1e-3f &&
-              Mathf.Approximately(wm.DistanceLeft, moveBackGround.speed * LoopRules.LoopPortalRetrySeconds));
-        wm.Tick(LoopRules.LoopPortalRetrySeconds + .1f);
-        Check("... and the loop portal opens again", wm.PortalIsOpen && !BossEncounter.Running);
+        // It never expires: a minute and a half of waiting, it is still there.
+        var portal = Portal.Live;
+        for (int i = 0; i < 90; i++) { portal.Step(1f); wm.Tick(1f); }
+        Check("90 s later the same loop portal is still open (no missed portal, no lap)",
+              Portal.Live == portal && wm.PortalIsOpen && WorldManager.CurrentIndex == Ember && !BossEncounter.Running);
 
         // Fly through it.
-        before = RunScore.Total;
-        Advance(wm);
+        long before = RunScore.Total;
+        try { portal.Enter(); }
+        catch (System.Exception ex) { Debug.LogWarning("[LOOP] Enter threw (presentation only): " + ex.Message); }
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         Check("arrives in the run's start world (Space)", WorldManager.CurrentIndex == 0);
         Check("loopIndex 0 -> 1", RunLoop.Index == 1 && RunScore.Parts.loops == 1);
         Check("the score carries over: + Ember's world bonus only (" + before + " -> " + RunScore.Total + ")",
               RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
-        Check("arrival speed is the loop's (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + ")",
-              Mathf.Approximately(moveBackGround.speed, LoopRules.ArrivalSpeed(1)) && moveBackGround.speed > 0f);
+        Check("the pressure is over: neutral dials again", !PortalPressure.Active && PortalPressure.DensityScale == 1f &&
+              !PortalPressure.EarningsClosed && wm.Stage == WorldManager.LevelStage.Level);
+        Check("arrival speed is the loop's (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + "), under the cap",
+              Mathf.Approximately(moveBackGround.speed, WorldManager.ArrivalSpeed(1)) &&
+              Mathf.Approximately(WorldManager.ArrivalSpeed(1), Mathf.Max(LoopRules.ArrivalSpeed(1), ShipStartSpeed.StockHud / 100f)) &&
+              moveBackGround.speed > 0f && moveBackGround.speed <= SpeedRamp.Cap);
         Check("the level distance restarted", Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !wm.PortalIsOpen);
 
         // Space's boss again, then its portal, then Frost.
         PlayBoss(wm);
         Check("Space's boss came round again on the loop", BossEncounter.DoneInWorld(0));
-        Check("... and its portal opened", wm.PortalIsOpen);
+        Check("... and its portal opened, to Frost", wm.PortalIsOpen && WorldManager.PortalDestination == 1);
         long b2 = RunScore.Total;
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
@@ -330,25 +332,29 @@ public static class LoopTest
         Board();
         var wm = World(-1f);
         PlayBoss(wm);
-        wm.Choose(true);
+        Check("Ember start: its portal leads back to Ember", wm.PortalIsOpen && WorldManager.PortalDestination == Ember);
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("Ember start: LOOP BACK lands in Ember, loop 2", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
+        Check("Ember start: the loop portal lands in Ember, loop 2", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
         long before = RunScore.Total;
         PlayBoss(wm);
         Check("Ember's boss again on the loop, paying x1.5 (" + (RunScore.Total - before) + ")",
               BossEncounter.DoneInWorld(Ember) && RunScore.Total - before >= ScoreRules.BossPoints(false, 0f, false, 1) &&
               ScoreRules.BossPoints(false, 0f, false, 1) == 225);
-        Check("... then the choice again", FinalChoicePanel.IsUp && wm.Route == WorldManager.FinalRoute.Choosing);
-        FinalChoicePanel.Instance.Pick(false);
+        Check("... then the same loop portal again, to Ember", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
+              WorldManager.PortalDestination == Ember);
+        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+        PortalPressure.Reset();
     }
 
     // ---- 4. per-loop scaling ---------------------------------------------------
 
     static void LoopScalingAppliesAndCaps()
     {
-        Check("loop 0 is the game as it was", LoopRules.ArrivalSpeed(0) == 0f && LoopRules.RampScale(0) == 1f &&
-              LoopRules.MaxSpeedBonus(0) == 0f && LoopRules.PhaseRampScale(0) == 1f && LoopRules.DensityScale(0) == 1f &&
+        Check("loop 0 is the game as it is", LoopRules.ArrivalSpeed(0) == 0f && LoopRules.RampScale(0) == 1f &&
+              LoopRules.PhaseRampScale(0) == 1f && LoopRules.DensityScale(0) == 1f &&
+              LoopRules.PilotLoadBonus(0) == 0f && LoopRules.ThreatBonus(0) == 0f && LoopRules.TierShift(0) == 0 &&
+              LoopRules.ShotBonus(0) == 0 && LoopRules.VolleyGapScale(0) == 1f && LoopRules.ScoreScale(0) == 1f &&
               LoopRules.BossCooldownScale(0) == 1f && LoopRules.BossHeadStart(0) == 0f && LoopRules.BonusScale(0) == 1f);
         bool monotonic = true;
         for (int l = 1; l <= 12; l++)
@@ -357,24 +363,43 @@ public static class LoopTest
                          LoopRules.RampScale(l) >= LoopRules.RampScale(l - 1) &&
                          LoopRules.PhaseRampScale(l) >= LoopRules.PhaseRampScale(l - 1) &&
                          LoopRules.DensityScale(l) >= LoopRules.DensityScale(l - 1) &&
+                         LoopRules.PilotLoadBonus(l) >= LoopRules.PilotLoadBonus(l - 1) &&
+                         LoopRules.ThreatBonus(l) >= LoopRules.ThreatBonus(l - 1) &&
+                         LoopRules.TierShift(l) >= LoopRules.TierShift(l - 1) &&
+                         LoopRules.ShotBonus(l) >= LoopRules.ShotBonus(l - 1) &&
+                         LoopRules.VolleyGapScale(l) <= LoopRules.VolleyGapScale(l - 1) &&
+                         LoopRules.ScoreScale(l) >= LoopRules.ScoreScale(l - 1) &&
                          LoopRules.BossCooldownScale(l) <= LoopRules.BossCooldownScale(l - 1) &&
                          LoopRules.BonusScale(l) >= LoopRules.BonusScale(l - 1);
         }
         Check("every loop is at least as hard as the last", monotonic);
-        Check("each loop starts harder: loop 2 > loop 1", LoopRules.ArrivalSpeed(1) > 0f && LoopRules.RampScale(1) > 1f &&
-              LoopRules.PhaseRampScale(1) > 1f && LoopRules.DensityScale(1) > 1f && LoopRules.BossCooldownScale(1) < 1f);
+        Check("each loop starts harder on every axis but speed: loop 2 > loop 1",
+              LoopRules.ArrivalSpeed(1) > 0f && LoopRules.RampScale(1) > 1f &&
+              LoopRules.PhaseRampScale(1) > 1f && LoopRules.DensityScale(1) > 1f && LoopRules.BossCooldownScale(1) < 1f &&
+              LoopRules.PilotLoadBonus(1) > 0f && LoopRules.ThreatBonus(1) > 0f && LoopRules.TierShift(1) > 0 &&
+              LoopRules.ShotBonus(1) > 0 && LoopRules.VolleyGapScale(1) < 1f && LoopRules.ScoreScale(1) > 1f);
         int cap = LoopRules.MaxScaledLoops;
         Check("difficulty stops growing after " + cap + " loops", LoopRules.ArrivalSpeed(50) == LoopRules.ArrivalSpeed(cap) &&
               LoopRules.RampScale(50) == LoopRules.RampScale(cap) && LoopRules.DensityScale(50) == LoopRules.DensityScale(cap) &&
-              LoopRules.PhaseRampScale(50) == LoopRules.PhaseRampScale(cap) && LoopRules.BossCooldownScale(50) == LoopRules.BossCooldownScale(cap));
-        Check("sane caps: arrival <= HUD 12, ramp <= x1.3, density <= x1.3, boss cooldowns >= x0.7",
+              LoopRules.PhaseRampScale(50) == LoopRules.PhaseRampScale(cap) && LoopRules.BossCooldownScale(50) == LoopRules.BossCooldownScale(cap) &&
+              LoopRules.PilotLoadBonus(50) == LoopRules.PilotLoadBonus(cap) && LoopRules.ThreatBonus(50) == LoopRules.ThreatBonus(cap) &&
+              LoopRules.TierShift(50) == LoopRules.TierShift(cap) && LoopRules.ShotBonus(50) == LoopRules.ShotBonus(cap) &&
+              LoopRules.VolleyGapScale(50) == LoopRules.VolleyGapScale(cap));
+        Check("sane caps: arrival <= HUD 12, ramp <= x1.3, density <= x1.3, boss cooldowns >= x0.7, pilot load <= +1.5, " +
+              "threats <= +3, tiers <= +2, shots <= +6, volley gap >= x0.7",
               LoopRules.ArrivalSpeed(50) <= .12f + 1e-4f && LoopRules.RampScale(50) <= 1.3f + 1e-4f &&
-              LoopRules.DensityScale(50) <= 1.3f + 1e-4f && LoopRules.BossCooldownScale(50) >= .7f - 1e-4f);
-        foreach (var w in WorldManager.Worlds)
-            Check(w.displayName + ": no loop or endless time pushes the cap past HUD 72",
-                  LoopRules.MaxSpeed(w.maxSpeed, 50, 1e6f) <= LoopRules.AbsoluteMaxSpeed + 1e-5f);
+              LoopRules.DensityScale(50) <= 1.3f + 1e-4f && LoopRules.BossCooldownScale(50) >= .7f - 1e-4f &&
+              LoopRules.PilotLoadBonus(50) <= 1.5f + 1e-4f && LoopRules.ThreatBonus(50) <= 3f + 1e-4f &&
+              LoopRules.TierShift(50) <= 2 && LoopRules.ShotBonus(50) <= 6 && LoopRules.VolleyGapScale(50) >= .7f - 1e-4f);
+        // (was: no loop or endless time pushes a world's cap past HUD 50)
+        bool underCap = true;
+        for (int l = 0; l <= 50; l++) underCap &= LoopRules.ArrivalSpeed(l) <= SpeedRamp.Cap && WorldManager.ArrivalSpeed(l) <= SpeedRamp.Cap;
+        Check("no loop adds speed: every arrival is under the one cap (HUD " + SpeedRamp.CapHud + ")", underCap && SpeedRamp.CapHud == 35);
         Check("bonuses scale gently: x1, x1.5, x2 ... capped at x3",
               LoopRules.BonusScale(1) == 1.5f && LoopRules.BonusScale(2) == 2f && LoopRules.BonusScale(99) == 3f);
+        Check("flight / kill points per loop: x1.15, x1.3 ... capped at x1.6",
+              Mathf.Approximately(LoopRules.ScoreScale(1), 1.15f) && Mathf.Approximately(LoopRules.ScoreScale(2), 1.3f) &&
+              Mathf.Approximately(LoopRules.ScoreScale(99), 1.6f));
         Check("boss 300/150 -> 450/225 on loop 2, world bonus 50 x n x 1.5",
               ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 225 &&
               ScoreRules.WorldClearedPoints(3, 1) == 300 && ScoreRules.BossPoints(true, 0f, false, 0) == 300);
@@ -391,11 +416,20 @@ public static class LoopTest
         var ember = WorldManager.Worlds[Ember];
         Check("loop 2 world: ramp x" + LoopRules.RampScale(1) + " (" + bg.speedRampPerSecond.ToString("F5") + ")",
               Mathf.Approximately(bg.speedRampPerSecond, ember.speedRampPerSecond * LoopRules.RampScale(1)));
-        Check("loop 2 world: cap +" + (LoopRules.MaxSpeedBonus(1) * 100f) + " HUD",
-              Mathf.Approximately(bg.maxSpeed, ember.maxSpeed + LoopRules.MaxSpeedBonus(1)));
+        Check("loop 2 world: the cap is still HUD " + SpeedRamp.CapHud + " (" + bg.maxSpeed + ")",
+              Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap));
         Check("loop 2 world: phases x" + LoopRules.PhaseRampScale(1) + ", density x" + LoopRules.DensityScale(1),
               Mathf.Approximately(enemies.phaseRampScale, ember.enemyRampScale * LoopRules.PhaseRampScale(1)) &&
               Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
+
+        // The loop's other axes, live (measured again on a first pass below).
+        bool wasDisabled = EnemyDensity.Disabled;
+        EnemyDensity.Disabled = false;
+        float pilots1 = EnemyDensity.MaxPilotLoad(35f, Ember), threats1 = EnemyDensity.MaxThreats(35f);
+        int shots1 = EnemyThreat.ShotBudget;
+        float gap1 = EnemyThreat.Gap;
+        int maxTier1 = MaxFighterTier(Ember, 1);
+        EnemyDensity.Disabled = wasDisabled;
 
         // A boss on loop 2: shorter cooldowns, the second pattern from the start.
         BossEncounter.ResetRun();
@@ -415,6 +449,36 @@ public static class LoopTest
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("first-pass boss unchanged", e.Actor != null && e.Actor.CooldownScale == 1f && e.Actor.PatternHeadStart == 0f);
         BossEncounter.ResetRun();
+
+        EnemyDensity.Disabled = false;
+        float pilots0 = EnemyDensity.MaxPilotLoad(35f, Ember), threats0 = EnemyDensity.MaxThreats(35f);
+        int shots0 = EnemyThreat.ShotBudget;
+        float gap0 = EnemyThreat.Gap;
+        int maxTier0 = MaxFighterTier(Ember, 1);
+        EnemyDensity.Disabled = wasDisabled;
+        Check("loop 2 pilot load +" + LoopRules.PilotLoadBonus(1) + " (" + pilots0 + " -> " + pilots1 + ")",
+              Mathf.Abs(pilots1 - pilots0 - LoopRules.PilotLoadBonus(1)) < 1e-4f);
+        Check("loop 2 threat ceiling +" + LoopRules.ThreatBonus(1) + " bodies x view (" + threats0.ToString("F2") + " -> " +
+              threats1.ToString("F2") + ")", Mathf.Abs(threats1 - threats0 - LoopRules.ThreatBonus(1) * EnemyDensity.ViewScale) < 1e-3f);
+        Check("loop 2 shot budget +" + LoopRules.ShotBonus(1) + " (" + shots0 + " -> " + shots1 + ")",
+              shots0 == EnemyThreat.MaxEnemyShots && shots1 == shots0 + LoopRules.ShotBonus(1));
+        Check("loop 2 volley gap x" + LoopRules.VolleyGapScale(1) + " (" + gap0.ToString("F2") + " -> " + gap1.ToString("F2") + " s)",
+              Mathf.Approximately(gap0, EnemyThreat.VolleyGap) && Mathf.Approximately(gap1, gap0 * LoopRules.VolleyGapScale(1)));
+        Check("loop 2 fighter tiers shift up (phase 1 tops out at tier " + maxTier0 + " -> " + maxTier1 + ")",
+              maxTier0 == 1 && maxTier1 == 1 + LoopRules.TierShift(1));
+    }
+
+    // The highest fighter tier ChooseExtraDef fields in `phase` on the current loop.
+    static int MaxFighterTier(int world, int phase)
+    {
+        Random.InitState(77);
+        int max = 0;
+        for (int i = 0; i < 400; i++)
+        {
+            var d = enmiesOnBoard.ChooseExtraDef(world, phase);
+            if (d != null && d.role == EnemyRole.Fighter) max = Mathf.Max(max, d.tier);
+        }
+        return max;
     }
 
     // ---- 5. speed multiplier ----------------------------------------------------
@@ -423,10 +487,15 @@ public static class LoopTest
     {
         var expect = new (int hud, float m)[]
         {
-            (0, 1f), (19, 1f), (20, 1.25f), (34, 1.25f), (35, 1.5f), (49, 1.5f), (50, 2f), (64, 2f), (65, 2.5f), (72, 2.5f), (99, 2.5f),
+            // 2026-10, second pass: 20 / 30 / 40 / 46 -> 20 / 30 / 35 (the cap), and
+            // anything above the cap (only a limit break gets there) x2.5
+            (0, 1f), (19, 1f), (20, 1.25f), (29, 1.25f), (30, 1.5f), (34, 1.5f), (35, 2f), (36, 2.5f), (45, 2.5f), (50, 2.5f), (99, 2.5f),
         };
         foreach (var (hud, m) in expect)
             Check("HUD " + hud + " -> x" + m, Mathf.Approximately(ScoreRules.SpeedMultiplierFor(hud / 100f), m));
+        Check("the top natural tier is the cap itself; x2.5 is the limit break's",
+              ScoreRules.SpeedTierHud[ScoreRules.SpeedTierHud.Length - 1] == SpeedRamp.CapHud &&
+              ScoreRules.LimitBreakMultiplier == 2.5f && ScoreRules.IsLimitBreak(.36f) && !ScoreRules.IsLimitBreak(.35f));
         Check("x1.0 / x1.25 / x1.5 / x2 / x2.5 labels",
               ScoreRules.MultiplierLabel(1.25f) == "x1.25" && ScoreRules.MultiplierLabel(1.5f) == "x1.5" &&
               ScoreRules.MultiplierLabel(2f) == "x2" && ScoreRules.MultiplierLabel(2.5f) == "x2.5");
@@ -445,25 +514,47 @@ public static class LoopTest
         moveBackGround.speed = .10f;
         Check("slow: a rock pays 5", Kill(Enemy(rock)) == 5);
         RunScore.Tick(ScoreRules.ComboWindowSeconds + .1f, 0f);
-        moveBackGround.speed = .36f;
-        Check("HUD 36 (x1.5): a rock pays 8 (5 x 1.5, rounded)", Kill(Enemy(rock)) == 8);
+        moveBackGround.speed = .32f;
+        Check("HUD 32 (x1.5): a rock pays 8 (5 x 1.5, rounded)", Kill(Enemy(rock)) == 8);
         Check("the HUD reads the live tier", Mathf.Approximately(RunScore.SpeedMultiplier, 1.5f));
         RunScore.Tick(ScoreRules.ComboWindowSeconds + .1f, 0f);
-        moveBackGround.speed = .66f;
+        moveBackGround.speed = .45f;   // a full limit break (the cap + the most boost)
         long sum = 0, last = 0;
         for (int i = 0; i < 10; i++) { last = Kill(Enemy(rock)); sum += last; }
-        Check("HUD 66, x4 chain: the 10th rock pays 40 (5 x 8 cap, got " + last + ")", last == 40);
+        Check("HUD 45 (limit break x2.5), x4 chain: the 10th rock pays 40 (5 x 8 cap, got " + last + ")", last == 40);
         Check("a heavy at the cap pays 320 -- the most any single kill can", Kill(Enemy(heavy)) == 40 * 8);
         Check("the best multiplier is recorded (x8)", Mathf.Approximately(RunScore.Parts.bestMultiplier, 8f));
         long t = RunScore.Total;
-        RunScore.Tick(10f, .5f);
-        Check("flight at HUD 50 pays 25 x2 = 50 over 10s (" + (RunScore.Total - t) + ")",
+        RunScore.Tick(10f, .4f);
+        // (2026-10, second pass: above the cap is the limit break, x2.5)
+        Check("flight at HUD 40 (limit break) pays 20 x2.5 = 50 over 10s (" + (RunScore.Total - t) + ")",
               RunScore.Total - t == 50 || RunScore.Total - t == 49);
+        t = RunScore.Total;
+        RunScore.Tick(10f, .35f);
+        Check("flight at the cap pays 17.5 x2 = 35 over 10s (" + (RunScore.Total - t) + ")",
+              RunScore.Total - t == 35 || RunScore.Total - t == 34);
         t = RunScore.Total;
         RunScore.OnDust(true);
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("pickups and bosses are not speed-multiplied", RunScore.Total - t == 5 + 300);
         Check("the breakdown still sums to the total", RunScore.Parts.Total == RunScore.Total);
+
+        // A loop pays its flight and kill points x LoopRules.ScoreScale.
+        RunScore.EndRun(RunScore.RunId);
+        RunScore.BeginRun(true, true);
+        t = RunScore.Total;
+        RunScore.Tick(1000f, .1f);
+        long first = RunScore.Total - t;
+        RunScore.OnLoop(RunLoop.Advance());
+        t = RunScore.Total;
+        RunScore.Tick(1000f, .1f);
+        long looped = RunScore.Total - t;
+        Check("loop 2: flight pays x" + LoopRules.ScoreScale(1) + " (" + first + " -> " + looped + ")",
+              Mathf.Abs(first - 500) <= 1 && Mathf.Abs(looped - first * LoopRules.ScoreScale(1)) <= 1f);
+        moveBackGround.speed = .10f;
+        RunScore.Tick(ScoreRules.ComboWindowSeconds + .1f, 0f);
+        Check("loop 2: a rock at x1 pays 5 x " + LoopRules.ScoreScale(1) + " rounded (6)", Kill(Enemy(rock)) == Mathf.RoundToInt(5 * LoopRules.ScoreScale(1)));
+        RunLoop.Reset();
         moveBackGround.speed = 0f;
     }
 
@@ -514,9 +605,9 @@ public static class LoopTest
         Step(hud, .05f);
         Check("x1: no SPD badge; first pass: no LOOP badge", hud.SpeedBadge.text == "" && hud.LoopBadge.text == "");
 
-        moveBackGround.speed = .36f;
+        moveBackGround.speed = .32f;
         Step(hud, .01f);
-        Check("HUD 36: 'SPD x1.5' ('" + hud.SpeedBadge.text + "')", hud.SpeedBadge.text == "SPD x1.5");
+        Check("HUD 32: 'SPD x1.5' ('" + hud.SpeedBadge.text + "')", hud.SpeedBadge.text == "SPD x1.5");
         Check("... and it pops as it steps up", hud.SpeedBadge.rectTransform.localScale.x > 1.05f);
         RunLoop.Advance();
         Step(hud, .01f);
@@ -607,7 +698,7 @@ public static class LoopTest
         var view = DeathPanelView.Build(canvas.transform, best, run, dust,
             SceneUtil.FindAny("Replay").GetComponent<Button>(), SceneUtil.FindAny("MainMenu").GetComponent<Button>(),
             new DeathPanelView.Results { score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
-                                         bestSpeed = 99, runSpeed = 99, dustAtStart = 1f, dustWon = 1f });
+                                         dustAtStart = 1f, dustWon = 1f });
         view.Skip();
         Canvas.ForceUpdateCanvases();
         var row = view.Panel.Find("Card1/" + DeathPanelView.LoopsRowName);
@@ -648,7 +739,7 @@ public static class LoopTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("tutorial: no score at any speed or loop", RunScore.Total == 0 && RunScore.Parts.loops == 0);
         Check("tutorial: the HUD's speed tier reads x1", RunScore.SpeedMultiplier == 1f);
-        Check("the tutorial scene has no world manager (so no final choice)",
+        Check("the tutorial scene has no world manager (so no portal and no loop)",
               !File.ReadAllText("Assets/Scenes/" + score.TutorialScene + ".unity").Contains("WorldManager") &&
               File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("if (scene.name != \"gameS1\") return;"));
         moveBackGround.speed = 0f;
@@ -663,14 +754,13 @@ public static class LoopTest
         Board();
         var wm = World(-1f);
         PlayBoss(wm);
-        wm.Choose(true);
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         Check("developer run loops and scores", RunLoop.Index == 1 && RunScore.Total > 0 && RunScore.Scoring);
         RunScore.EndRun(RunScore.RunId);
         Check("developer run: BestScore never written", !PlayerPrefs.HasKey(RunScore.BestScoreKey));
         Check("looping back never lowers the furthest world reached", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == highest);
-        foreach (var f in new[] { "Assets/Scripts/Worlds/LoopRules.cs", "Assets/Scripts/Worlds/FinalChoicePanel.cs" })
+        foreach (var f in new[] { "Assets/Scripts/Worlds/LoopRules.cs", "Assets/Scripts/Worlds/PortalPressure.cs" })
             Check(Path.GetFileName(f) + " never writes PlayerPrefs (the loop is in-memory only)",
                   !File.ReadAllText(f).Contains("PlayerPrefs"));
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
@@ -694,11 +784,11 @@ public static class LoopTest
         Check("... with a short fight (" + e.Remaining.ToString("F1") + "s)", e.Remaining <= BossEncounter.DevShortFightSeconds + .01f);
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
-        Check("... straight to the choice", FinalChoicePanel.IsUp);
-        FinalChoicePanel.Instance.LoopButton.onClick.Invoke();
+        Check("... straight to the loop portal, back to where the run began",
+              wm.PortalIsOpen && WorldManager.PortalDestination == 0);
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("LOOP BACK still goes to where the run began (Space)", WorldManager.CurrentIndex == 0 && RunLoop.Index == 1);
+        Check("the loop portal still goes to where the run began (Space)", WorldManager.CurrentIndex == 0 && RunLoop.Index == 1);
 
         // The Options switch: OFF -> ON -> FINAL -> OFF, and the rush itself.
         Check("BOSS RUSH cycles OFF -> ON -> FINAL -> OFF",
@@ -726,7 +816,8 @@ public static class LoopTest
     //
     // A modelled run, to judge the balance (logged, plus a few sanity checks):
     // each world flown for its distance (120s at the baseline pace) from its arrival speed at its
-    // (loop-scaled) ramp to its cap; a kill every 4s worth 8 base (a mix of
+    // (loop-scaled) ramp on SpeedRamp's curve to the one cap (HUD 35); flight and kills x the
+    // loop's score scale; a kill every 4s worth 8 base (a mix of
     // rocks 5, fighters 5-20, aliens 15), chained in threes (x1, x1, x2);
     // 25 small + 5 large star dust, 4 atoms, 8 full blinks; the 36s boss fight
     // at HUD 20 with 10 shots downed, the boss destroyed; the world bonus on
@@ -740,7 +831,6 @@ public static class LoopTest
         int L = loopScaling ? loop : 0;
         float speed = LoopRules.ArrivalSpeed(L);
         float rate = theme.speedRampPerSecond * LoopRules.RampScale(L);
-        float max = LoopRules.MaxSpeed(theme.maxSpeed, L, 0f);
         var s = new Sim();
         const float dt = .05f;
         float nextKill = 4f;
@@ -748,15 +838,16 @@ public static class LoopTest
         float flown = 0f, length = WorldManager.WorldDistanceFor(world);
         for (float t = 0f; flown < length; t += dt)
         {
-            speed = Mathf.Min(max, speed + rate * dt);
+            speed = Mathf.Min(SpeedRamp.Cap, SpeedRamp.Advance(speed, rate, dt));
             flown += speed * dt;
             float sm = speedMultiplier ? ScoreRules.SpeedMultiplierFor(speed) : 1f;
-            s.distance += ScoreRules.DistancePoints(speed, dt) * sm;
+            float ls = loopScaling ? LoopRules.ScoreScale(L) : 1f;
+            s.distance += ScoreRules.DistancePoints(speed, dt) * sm * ls;
             if (t >= nextKill)
             {
                 nextKill += 4f;
                 int chain = (killNo++ % 3) == 2 ? 2 : 1;
-                s.kills += Mathf.RoundToInt(8 * (speedMultiplier ? ScoreRules.Combined(chain, sm) : chain));
+                s.kills += Mathf.RoundToInt(8 * (speedMultiplier ? ScoreRules.Combined(chain, sm) : chain) * ls);
             }
         }
         // the boss fight: 36s at HUD 20
@@ -804,27 +895,33 @@ public static class LoopTest
         var run = Add(pass[0], pass[1]);
         Debug.Log("[LOOP] SIM " + Line("first pass + one loop", run));
 
-        // KEEP FLYING instead: three more minutes in Ember after the first pass.
+        // Lingering at the final portal instead of entering it: the grace pays
+        // as usual (flight and kills), after it nothing (PortalPressure).
         var ember = WorldManager.Worlds[Ember];
         float speed = BossConfig.FightSpeed, rate = ember.speedRampPerSecond;
-        double dist = 0, kills = 0;
+        double lingerDist = 0, lingerKills = 0, earnedSeconds = 0;
         int killNo = 0;
         float nextKill = 4f;
         for (float t = 0f; t < 180f; t += .05f)
         {
-            float max = LoopRules.MaxSpeed(ember.maxSpeed, 0, t);
-            speed = Mathf.Min(max, speed + rate * .05f);
+            speed = Mathf.Min(SpeedRamp.Cap, SpeedRamp.Advance(speed, rate, .05f));
+            if (t >= PortalPressure.GraceSeconds) continue;   // earnings closed
+            earnedSeconds += .05f;
             float sm = ScoreRules.SpeedMultiplierFor(speed);
-            dist += ScoreRules.DistancePoints(speed, .05f) * sm;
-            if (t >= nextKill) { nextKill += 4f; int chain = (killNo++ % 3) == 2 ? 2 : 1; kills += Mathf.RoundToInt(8 * ScoreRules.Combined(chain, sm)); }
+            lingerDist += ScoreRules.DistancePoints(speed, .05f) * sm;
+            if (t >= nextKill) { nextKill += 4f; int chain = (killNo++ % 3) == 2 ? 2 : 1; lingerKills += Mathf.RoundToInt(8 * ScoreRules.Combined(chain, sm)); }
         }
-        var keep = pass[0];
-        keep.worlds -= ScoreRules.WorldClearedPoints(Ember, 0);   // no portal out of Ember
-        keep.distance += dist;
-        keep.kills += kills;
-        Debug.Log("[LOOP] SIM " + Line("first pass + 3 min KEEP FLYING", keep) +
-                  "  (Ember speed after 3 min: HUD " + Mathf.RoundToInt(speed * 100f) + ")");
+        var linger = pass[0];
+        linger.worlds -= ScoreRules.WorldClearedPoints(Ember, 0);   // not entered: no world bonus
+        linger.distance += lingerDist;
+        linger.kills += lingerKills;
+        Debug.Log("[LOOP] SIM " + Line("first pass + 3 min lingering", linger) +
+                  "  (earning for " + earnedSeconds.ToString("F1") + " s of it; speed after 3 min: HUD " + Mathf.RoundToInt(speed * 100f) + ")");
 
+        Check("lingering three minutes at the portal earns less than flying on (" + linger.Total.ToString("0") + " < " +
+              (pass[0].Total + SimWorld(0, 1, true, true, false).Total * .5).ToString("0") + ")",
+              linger.Total < pass[0].Total + SimWorld(0, 1, true, true, false).Total * .5 &&
+              lingerDist + lingerKills < SimWorld(0, 1, true, true, false).Total * .1);
         Check("simulated Space level + boss stays in the low thousands (" + space.Total.ToString("0") + ")",
               space.Total > 800 && space.Total < 2000);
         Check("the speed multiplier raises a pass by a fair amount, not a landslide (" +
@@ -834,102 +931,43 @@ public static class LoopTest
               pass[1].Total > pass[0].Total);
     }
 
-    // ---- 11. the choice timed out ---------------------------------------------------------
+    // ---- 11. every loop ends the same way ---------------------------------------------------
 
-    static void TimeOutChoice()
+    static void FinalPortalEveryLoop()
     {
-        var panel = FinalChoicePanel.Instance;
-        for (int i = 0; i < 200 && FinalChoicePanel.IsUp; i++) panel.Step(.1f);
-    }
-
-    static void TimeoutPlaysEmberOnceMoreThenLoops()
-    {
-        FreshScene(Ember, 0);
+        // Started in Ember: its portal leads back to Ember, every loop, the same way.
+        FreshScene(Ember, Ember);
         var (bg, enemies) = Board();
         var wm = World(-1f);
-        RunScore.Tick(30f, .4f);
+        RunScore.Tick(30f, .3f);
         PlayBoss(wm);
-        Check("timeout: choosing after the Ember boss", FinalChoicePanel.IsUp && wm.Route == WorldManager.FinalRoute.Choosing);
-        long before = RunScore.Total;
-        TimeOutChoice();
-        var ember = WorldManager.Worlds[Ember];
-        Check("timeout: the panel goes, the world runs, no portal",
-              !FinalChoicePanel.IsUp && !BossEncounter.ScriptedFreeze && !wm.PortalIsOpen &&
-              Object.FindFirstObjectByType<Portal>() == null && wm.Route == WorldManager.FinalRoute.Encore);
-        Check("timeout: still in Ember, a full level to fly (" + wm.DistanceLeft + ")",
-              WorldManager.CurrentIndex == Ember && Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance));
-        Check("timeout: the loop index has not moved yet (it moves with the portal)", RunLoop.Index == 0 && RunLoop.EncorePass);
-        Check("timeout: scaled as a loop pass (ramp x" + LoopRules.RampScale(1) + ", cap +" + LoopRules.MaxSpeedBonus(1) * 100f +
-              ", phases x" + LoopRules.PhaseRampScale(1) + ", density x" + LoopRules.DensityScale(1) + ")",
-              Mathf.Approximately(bg.speedRampPerSecond, ember.speedRampPerSecond * LoopRules.RampScale(1)) &&
-              Mathf.Approximately(bg.maxSpeed, ember.maxSpeed + LoopRules.MaxSpeedBonus(1)) &&
-              Mathf.Approximately(enemies.phaseRampScale, ember.enemyRampScale * LoopRules.PhaseRampScale(1)) &&
-              Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
-        Check("timeout: the choice itself changed no score", RunScore.Total == before);
-
-        for (int i = 0; i < 30; i++) wm.Tick(1f);
-        Check("30s in: still Ember, no boss, no portal", WorldManager.CurrentIndex == Ember && !BossEncounter.Running &&
-              !wm.PortalIsOpen && Mathf.Abs(wm.DistanceLeft - (wm.WorldDistance - 30f * moveBackGround.speed)) < 1e-3f);
-        Check("... and no endless escalation (that is KEEP FLYING's)", Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
-
-        // The level ends: the Ember boss again, at the next loop's difficulty.
-        wm.Tick(wm.WorldLength);
-        var e = BossEncounter.Instance;
-        Check("timeout: the level ends in the Ember boss again", BossEncounter.Running && e.Boss.artKey == "Ember");
-        e.Step(.1f, 1f);
-        RunWhile(e, BossEncounter.Phase.Intro);
-        Check("timeout: the encore boss fights at loop scaling (cooldowns x" + LoopRules.BossCooldownScale(1) + ")",
-              e.Actor != null && Mathf.Approximately(e.Actor.CooldownScale, LoopRules.BossCooldownScale(1)) &&
-              e.Actor.PatternHeadStart == LoopRules.BossHeadStart(1));
-        long beforeBoss = RunScore.Total;
-        RunWhile(e, BossEncounter.Phase.Fight);
-        RunWhile(e, BossEncounter.Phase.Outro);
-        Check("timeout: the encore boss pays as before (survived, this loop's bonus: " + (RunScore.Total - beforeBoss) + ")",
-              RunScore.Total - beforeBoss == ScoreRules.BossPoints(false, 0f, false, 0));
-
-        Check("timeout: no second prompt after the encore boss", !FinalChoicePanel.IsUp);
-        Check("timeout: straight into LOOP BACK -- the portal to the start world opens",
-              wm.Route == WorldManager.FinalRoute.LoopBack && wm.PortalIsOpen && Object.FindFirstObjectByType<Portal>() != null);
-
-        // Missed: it comes back, as LOOP BACK's does.
-        typeof(WorldManager).GetMethod("OnPortalMissed", Inst).Invoke(wm, null);
+        Check("loop 1 ends in the loop portal", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
+              WorldManager.PortalDestination == Ember);
+        Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        wm.Tick(LoopRules.LoopPortalRetrySeconds + .1f);
-        Check("timeout: a missed loop portal opens again", wm.PortalIsOpen && !BossEncounter.Running && !FinalChoicePanel.IsUp);
-
+        Check("LOOP 2 in Ember", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
+        PlayBoss(wm);
+        Check("the end of loop 2: the same loop portal, no prompt, no second lap",
+              wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal && WorldManager.PortalDestination == Ember &&
+              PortalPressure.Active && PortalPressure.Destination == Ember);
+        // waiting a while changes nothing about where it leads
+        for (int i = 0; i < 120; i++) wm.Tick(1f);
         long b2 = RunScore.Total;
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("timeout: arrives in the run's start world (Space), loop 2", WorldManager.CurrentIndex == 0 &&
-              RunLoop.Index == 1 && RunScore.Parts.loops == 1 && !RunLoop.EncorePass && wm.Route == WorldManager.FinalRoute.None);
-        Check("timeout: the score carries over + Ember's world bonus once (" + b2 + " -> " + RunScore.Total + ")",
-              RunScore.Total == b2 + ScoreRules.WorldClearedPoints(Ember, 0) && RunScore.Total > before);
-        Check("timeout: loop 2 is scaled as loop 2, not loop 3 (density x" + LoopDifficulty.DensityScale.ToString("F2") + ")",
-              Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)) &&
-              Mathf.Approximately(moveBackGround.speed, LoopRules.ArrivalSpeed(1)));
-    }
-
-    static void TimeoutFromAnEmberStart()
-    {
-        // Started in Ember: the timeout's LOOP BACK lands in Ember, and the
-        // next Ember boss (a real loop end) asks again.
-        FreshScene(Ember, Ember);
-        Board();
-        var wm = World(-1f);
-        PlayBoss(wm);
-        TimeOutChoice();
-        Check("Ember start, timeout: the encore", wm.Route == WorldManager.FinalRoute.Encore);
-        PlayBoss(wm);
-        Check("Ember start: after the encore boss, the loop portal (no prompt)", wm.Route == WorldManager.FinalRoute.LoopBack &&
-              wm.PortalIsOpen && !FinalChoicePanel.IsUp);
-        Advance(wm);
-        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("Ember start: LOOP 2 in Ember", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
-        PlayBoss(wm);
-        Check("Ember start: the end of loop 2 asks again", FinalChoicePanel.IsUp && wm.Route == WorldManager.FinalRoute.Choosing);
-        FinalChoicePanel.Instance.Pick(true);
-        Check("... and an explicit LOOP BACK is unchanged", wm.Route == WorldManager.FinalRoute.LoopBack && wm.PortalIsOpen);
-        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+        var ember = WorldManager.Worlds[Ember];
+        Check("LOOP 3 in Ember, + Ember's loop-2 world bonus once (" + (RunScore.Total - b2) + ")",
+              WorldManager.CurrentIndex == Ember && RunLoop.Index == 2 && RunScore.Parts.loops == 2 &&
+              RunScore.Total - b2 == ScoreRules.WorldClearedPoints(Ember, 1));
+        Check("loop 3 is scaled as loop 3 (ramp x" + LoopRules.RampScale(2) + ", phases x" + LoopRules.PhaseRampScale(2) +
+              ", density x" + LoopRules.DensityScale(2) + ", arrival HUD " + Mathf.RoundToInt(WorldManager.ArrivalSpeed(2) * 100f) + ")",
+              Mathf.Approximately(bg.speedRampPerSecond, ember.speedRampPerSecond * LoopRules.RampScale(2)) &&
+              Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap) &&
+              Mathf.Approximately(enemies.phaseRampScale, ember.enemyRampScale * LoopRules.PhaseRampScale(2)) &&
+              Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(2)) &&
+              Mathf.Approximately(moveBackGround.speed, WorldManager.ArrivalSpeed(2)));
+        Check("the pressure of the wait is gone on arrival", !PortalPressure.Active && PortalPressure.DensityScale == 1f &&
+              PortalPressure.ShipGapScale == 1f);
     }
 
     // ---- 12. loop density ------------------------------------------------------------------
@@ -958,25 +996,35 @@ public static class LoopTest
               loopDelay.ToString("F3") + "s)", Mathf.Abs(baseDelay / loopDelay - LoopRules.DensityScale(1)) < 1e-3f);
         for (int l = 2; l <= LoopRules.MaxScaledLoops + 1; l++)
         {
-            LoopDifficulty.DensityScale = LoopRules.Density(l, 0f);
+            LoopDifficulty.DensityScale = LoopRules.DensityScale(l);
             Check("loop " + (l + 1) + ": x" + LoopRules.DensityScale(l).ToString("F2"),
                   Mathf.Abs(baseDelay / RollAt(enemies, range) - LoopRules.DensityScale(l)) < 1e-3f);
         }
 
-        // KEEP FLYING: its endless climb on top of the loop's own.
+        // A waiting portal: its pressure on top of the loop's own, without a plateau.
         FreshScene(Ember, 0);
         (_, enemies) = Board();
         wm = World(-1f);
         PlayBoss(wm);
-        wm.Choose(false);
-        for (int i = 0; i < 61; i++) wm.Tick(1f);
-        float want = LoopRules.Density(0, wm.EndlessSeconds);
-        Check("KEEP FLYING a minute in: delays shrink by x" + want.ToString("F2") + " (" + (baseDelay / RollAt(enemies, range)).ToString("F2") + ")",
-              want > 1.15f && Mathf.Abs(baseDelay / RollAt(enemies, range) - want) < 1e-3f);
+        Check("the portal waits", wm.PortalIsOpen && PortalPressure.Active);
+        wm.Tick(4f);
+        Check("in the grace the board is thinner: delays x1/" + PortalPressure.GraceDensity + " (" +
+              (baseDelay / RollAt(enemies, range)).ToString("F2") + ")",
+              Mathf.Abs(baseDelay / RollAt(enemies, range) - PortalPressure.GraceDensity) < 1e-3f);
+        wm.Tick(57f);
+        float want = PortalPressure.DensityAt(61f);
+        Check("a minute in: delays shrink by x" + want.ToString("F2") + " (" + (baseDelay / RollAt(enemies, range)).ToString("F2") + ")",
+              want > 2f && Mathf.Abs(baseDelay / RollAt(enemies, range) - want) < 1e-3f);
+        float atMinute = baseDelay / RollAt(enemies, range);
         for (int i = 0; i < 600; i++) wm.Tick(1f);
-        Check("KEEP FLYING capped: x" + LoopRules.EndlessDensityCap + " (" + (baseDelay / RollAt(enemies, range)).ToString("F2") + ")",
-              Mathf.Abs(baseDelay / RollAt(enemies, range) - LoopRules.EndlessDensityCap) < 1e-3f);
-        Check("the spawner reads it (enmiesOnBoard.Roll)", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
+        float atEleven = baseDelay / RollAt(enemies, range);
+        Check("eleven minutes in: still climbing, no plateau (x" + atMinute.ToString("F2") + " -> x" + atEleven.ToString("F2") + ")",
+              atEleven > atMinute * 3f && Mathf.Abs(atEleven - PortalPressure.DensityAt(661f)) < 1e-2f);
+        foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+        PortalPressure.Reset();
+        Check("the spawner reads the pressure too", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
+              .Contains("EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale"));
+        Check("the spawner reads it (enmiesOnBoard.Roll)", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
               .Contains("/ Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)"));
         RunLoop.Reset();
         Check("a new run is back to x1", LoopDifficulty.DensityScale == 1f);
@@ -997,9 +1045,11 @@ public static class LoopTest
         }
     }
 
-    // The heaviest density the loops can reach (loop 4+, KEEP FLYING capped)
-    // on top of the spawner's own x3 final stretch, over a 240s run in every
-    // world: no row of the board is ever closed (SpawnLane.ShipGap).
+    // The heaviest density the loops can reach (loop 4+) on top of the
+    // spawner's own x3 final stretch, over a 240s run in every world: no row
+    // of the board is ever closed (SpawnLane.ShipGap). (Only a portal kept
+    // waiting deep into overdrive may shrink the gap: PortalPressure, by
+    // design, tested in OpenPortalTest.)
     static void GapGuardHoldsAtMaxDensity()
     {
         EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
@@ -1008,7 +1058,8 @@ public static class LoopTest
         var spawn = typeof(enmiesOnBoard).GetMethod("spawn", Inst, null, new[] { typeof(float) }, null);
         var select = typeof(enmiesOnBoard).GetMethod("SelectPhase", Inst);
         var elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", Inst);
-        float max = LoopRules.Density(LoopRules.MaxScaledLoops, 1e6f);
+        float max = LoopRules.DensityScale(LoopRules.MaxScaledLoops);
+        PortalPressure.Reset();
         const float dt = .1f, scroll = 3f, runSeconds = 240f;
         float gap = SpawnLane.ShipGap;
         try

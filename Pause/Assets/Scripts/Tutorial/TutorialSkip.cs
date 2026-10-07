@@ -22,6 +22,7 @@ public class TutorialSkip : MonoBehaviour
 
     [Tooltip("Button size in reference units.")]
     public Vector2 size = new Vector2(136, 52);
+    const float TouchPadY = 20f;
 
     [Tooltip("Right edge of the button is kept at this world x or further " +
              "left -- inside the player's own reach, comfortably clear of " +
@@ -40,6 +41,7 @@ public class TutorialSkip : MonoBehaviour
     int lastScreenW = -1, lastScreenH = -1;
     Rect lastSafe;
     float lastScaleFactor;
+    Rect lastReadout;
 
     public Button Button { get; private set; }
     public RectTransform ButtonRect { get { return buttonRect; } }
@@ -54,8 +56,9 @@ public class TutorialSkip : MonoBehaviour
         // Screen.width/height/safe area change on rotation, resize, or a
         // foldable changing state mid-session -- recheck cheaply and only
         // reposition on an actual change, mirroring CameraFit's own pattern.
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH || Screen.safeArea != lastSafe
-            || (canvas != null && !Mathf.Approximately(canvas.scaleFactor, lastScaleFactor)))
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH || ScreenInfo.SafeArea != lastSafe
+            || (canvas != null && !Mathf.Approximately(canvas.scaleFactor, lastScaleFactor))
+            || HudStyler.StackedReadout != lastReadout)
             Reposition();
 
         if (group != null)
@@ -88,9 +91,10 @@ public class TutorialSkip : MonoBehaviour
 
         var scaler = canvasGo.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = RobotSpeaker.ReferenceResolution;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = RobotSpeaker.MatchWidthOrHeight;
+        // the plate plus its touch padding (below): never under 44 pt / 48 dp
+        UiScaleFloor.Configure(scaler, RobotSpeaker.ReferenceResolution, size.y + 2f * TouchPadY, 22f);
         canvasRect = canvasGo.GetComponent<RectTransform>();
 
         var btnGo = new GameObject("SkipButton", typeof(Image), typeof(Button), typeof(CanvasGroup));
@@ -107,6 +111,8 @@ public class TutorialSkip : MonoBehaviour
         img.sprite = Resources.Load<Sprite>("Tutorial/tut_button");
         img.type = Image.Type.Sliced;
         img.color = TutorialPalette.Steel;
+        // a finger-sized target (the plate is ~25 dp tall) without bigger art
+        img.raycastPadding = new Vector4(-16f, -TouchPadY, -16f, -TouchPadY);
 
         // Label + chevron as one centred group, drawn inside a holder that the
         // press spring scales (the button rect itself keeps its hit area).
@@ -179,10 +185,11 @@ public class TutorialSkip : MonoBehaviour
         var cam = Camera.main;
         if (cam == null) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
-        lastSafe = Screen.safeArea;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
+        lastSafe = ScreenInfo.SafeArea;
         if (canvas != null) lastScaleFactor = canvas.scaleFactor;
+        lastReadout = HudStyler.StackedReadout;
 
         Vector3 worldClamp = new Vector3(clampWorldX, 0f, 0f);
         Vector2 screenPoint = cam.WorldToScreenPoint(worldClamp);
@@ -194,13 +201,18 @@ public class TutorialSkip : MonoBehaviour
         // the usual top-right placement on a screen wide enough that the
         // fixed margin alone would already clear the rail.
         float sf = canvas != null ? Mathf.Max(canvas.scaleFactor, .0001f) : 1f;
-        Rect safe = Screen.safeArea;
-        float safeRightInset = (Screen.width - safe.xMax) / sf;
-        float safeTopInset = (Screen.height - safe.yMax) / sf;
+        Rect safe = ScreenInfo.SafeArea;
+        float safeRightInset = (ScreenInfo.Width - safe.xMax) / sf;
+        float safeTopInset = (ScreenInfo.Height - safe.yMax) / sf;
         float rightEdgeFromFixedMargin = canvasRect.rect.xMax - safeRightInset - 18f;
         float rightEdge = Mathf.Min(rightEdgeFromFixedMargin, local.x);
 
-        buttonRect.anchoredPosition = new Vector2(rightEdge - canvasRect.rect.xMax, -(safeTopInset + topMargin));
+        float top = safeTopInset + topMargin;
+        // under the read-out when a small phone stacks it under the quick
+        // actions (HudStyler, UiScale's floor)
+        Rect readout = HudStyler.StackedReadout;
+        if (readout.height > 0f) top = Mathf.Max(top, (ScreenInfo.Height - readout.yMin) / sf + 10f);
+        buttonRect.anchoredPosition = new Vector2(rightEdge - canvasRect.rect.xMax, -top);
     }
 
     // Finish the tutorial exactly the way completing it does, then go straight

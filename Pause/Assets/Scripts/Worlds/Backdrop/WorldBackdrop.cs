@@ -170,8 +170,8 @@ public class WorldBackdrop : MonoBehaviour
         }
         else
         {
-            halfW = 2.85f;      // CameraFit's minimum half-width
-            halfH = 6.2f;       // a 9:19.5 phone at that width
+            halfW = CameraFit.GameplayHalfWidth;   // the gameplay view's minimum half-width
+            halfH = halfW * 19.5f / 9f;            // a 9:19.5 phone at that width
         }
     }
 
@@ -219,7 +219,13 @@ public static class WorldBackdropBootstrap
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == "tutorialS5")
+        {
             WorldBackdrop.Create(WorldManager.Worlds[0].displayName);
+            // No WorldManager here to paint the walls: without this the
+            // tutorial would keep the scene's legacy rail texture and layout
+            // while the game shows Space's reinforced rail.
+            WorldPainter.Apply(WorldManager.Worlds[0]);
+        }
         else if (scene.name == "gameS1")
             WorldBackdrop.Create(WorldManager.Current.displayName);
     }

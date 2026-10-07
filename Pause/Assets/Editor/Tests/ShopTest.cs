@@ -49,7 +49,8 @@ public static class ShopTest
         Check("the space dock was built", dock != null);
         if (dock == null) { Debug.Log("[ST] failures: " + fails); return fails; }
 
-        // Lay the dock out for a 9:16 phone, as CameraFit would.
+        // Lay the dock out for a 9:16 phone (420 dpi), as CameraFit would.
+        using var phone = ScreenInfo.Override(1080, 1920, new Rect(0f, 0f, 1080f, 1920f), null, 420f);
         var cam = Camera.main;
         cam.aspect = 1080f / 1920f;
         cam.orthographicSize = CameraFit.ComputeSize(5f, 2.85f, 1080, 1920);
@@ -196,12 +197,17 @@ public static class ShopTest
             Check("popup for ship" + i + " is anchored over the ship horizontally",
                   ship.x >= r.xMin && ship.x <= r.xMax);
             Check("popup for ship" + i + " floats " + (popup.Flipped ? "just below" : "just above") + " the ship",
-                  popup.Flipped ? r.yMax < ship.y && ship.y - r.yMax < .7f
-                                : r.yMin > ship.y && r.yMin - ship.y < .6f);
-            // An owned ship's popup carries the skin, weapon and START SPD
-            // rows (~1.24 world units): still a small card, not a dialog.
-            Check("popup is small (not a full-screen dialog) (" + r.height.ToString("F2") + " of " + screen.height.ToString("F2") + ")",
-                  r.width < screen.width * .6f && r.height < screen.height * .14f);
+                  // hull half-height (at most HullSize / 2) + clearance + tail
+                  popup.Flipped ? r.yMax < ship.y && ship.y - r.yMax <= DockBay.HullSize * .5f + DockPopup.PlumeClearance + popup.TailLength + .001f
+                                : r.yMin > ship.y && r.yMin - ship.y <= DockBay.HullSize * .5f + DockPopup.Gap + popup.TailLength + .001f);
+            // The card is sized in points / dp (DockPopup.SetDensity): PanelWidth
+            // units wide, its height from the layout constants -- a card beside
+            // the ship that leaves most of the rack in view, not a dialog.
+            Check("popup is a card, not a full-screen dialog (" + r.width.ToString("F2") + "x" + r.height.ToString("F2") +
+                  " of " + screen.width.ToString("F2") + "x" + screen.height.ToString("F2") + ")",
+                  Mathf.Approximately(r.width, DockPopup.PanelWidth * popup.Unit) &&
+                  Mathf.Approximately(r.height, popup.CurrentHeightUnits * popup.Unit) &&
+                  r.height < screen.height * .45f);
         }
 
         // The anchor follows the ship: move the rack and the popup moves too.
@@ -215,10 +221,21 @@ public static class ShopTest
         dock.rack.position += new Vector3(0f, .3f, 0f);
 
         bool flipped;
+        float shift;
         var view = new Rect(-2.8f, -4f, 5.6f, 8f);
-        var top = DockPopup.Place(new Vector2(-2.6f, 3.9f), .3f, .5f, new Vector2(DockPopup.Width, DockPopup.Height), view, out flipped);
-        Check("a popup with no room above flips below the ship", flipped && top.y < 3.9f);
-        Check("a popup near the left edge is pushed back on screen", top.x - DockPopup.Width * .5f >= view.xMin - .001f);
+        var card = new Vector2(DockPopup.PanelWidth, DockPopup.BaseHeight) * DockPopup.DefaultUnit;
+        float tail = DockPopup.TailUnits * DockPopup.DefaultUnit;
+        var top = DockPopup.Place(new Vector2(-2.6f, 3.9f), .3f, .5f, tail, card, view, out flipped, out shift);
+        Check("a popup with no room above flips below the ship", flipped && top.y < 3.9f && shift == 0f);
+        Check("a popup near the left edge is pushed back on screen", top.x - card.x * .5f >= view.xMin - .001f);
+        // a short view: room on neither side -> the ship is asked to move
+        // (the dock slides its rack) by just enough for the nearer side
+        var shortView = new Rect(-2.8f, -2f, 5.6f, 4f);
+        var tallCard = new Vector2(DockPopup.PanelWidth, DockPopup.OwnedHeight) * DockPopup.DefaultUnit;
+        var mid = DockPopup.Place(new Vector2(0f, -.6f), .3f, .5f, tail, tallCard, shortView, out flipped, out shift);
+        float need = -.6f + .3f + tail + tallCard.y - shortView.yMax;
+        Check("no room above or below: the ship is moved down just enough for the card above it (" + shift.ToString("F3") + ")",
+              !flipped && Mathf.Abs(shift + need) < .001f && Mathf.Abs(mid.y + tallCard.y * .5f - shortView.yMax) < .001f);
     }
 
     static void Purchases(SpaceDock dock)
@@ -402,6 +419,8 @@ public static class ShopTest
         {
             cam.aspect = size.x / (float)size.y;
             cam.orthographicSize = CameraFit.ComputeSize(5f, 2.85f, size.x, size.y);
+            // the dock (and its card, sized in dp) reads the screen through ScreenInfo
+            var screenScope = ScreenInfo.Override(size.x, size.y, new Rect(0f, 0f, size.x, size.y), null, 420f);
             dock.Relayout();
             float halfW = cam.orthographicSize * cam.aspect;
             float cx = cam.transform.position.x;
@@ -425,13 +444,14 @@ public static class ShopTest
             Check(tag + ": three columns, every berth fits the width", dock.layout.columns == 3 && fits);
             Check(tag + ": berths read cheapest first, left to right, top to bottom, without overlapping", ordered);
             PopupFits(dock, cam, tag);
+            screenScope.Dispose();
         }
         cam.aspect = aspect;
         cam.orthographicSize = ortho;
         dock.Relayout();
     }
 
-    // The popup (scaled by DockPopup.PopupScale) at its tallest - every ship
+    // The popup (sized in points / dp by DockPopup.SetDensity) at its tallest - every ship
     // owned, so each carries the skin, weapon and START SPD rows - stays
     // inside the safe view and over its ship at this screen size.
     static void PopupFits(SpaceDock dock, Camera cam, string tag)

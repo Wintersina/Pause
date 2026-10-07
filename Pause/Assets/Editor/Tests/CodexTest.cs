@@ -698,6 +698,18 @@ public static class CodexTest
             Check(name + ": at least two rows of cards visible", l.body.height >= 2f * l.cardHeight);
             Check(name + ": back button meets the 96-unit tap target", l.back.height >= 96f && l.back.width >= 96f);
             Check(name + ": tabs are >= 90 wide", l.tabWidth >= 90f);
+            // two rows of three; each tab's touch target (its art plus half of
+            // every gap around it) is 96 units square or more: 48 dp / 44 pt
+            // at UiScale's 0.5 dp-per-unit floor
+            bool tabsOk = true;
+            for (int i = 0; i < CodexPanel.Tabs.Length; i++)
+            {
+                Rect t = CodexPanel.TabRect(l, i);
+                float hitW = t.width + CodexPanel.TabGap, hitH = t.height + CodexPanel.TabRowGap;
+                tabsOk &= Contains(l.tabs, t) && hitW >= 96f && hitH >= 96f;
+                for (int j = 0; j < i; j++) tabsOk &= !CodexPanel.TabRect(l, j).Overlaps(t);
+            }
+            Check(name + ": six tabs in two rows, each a >= 96-unit touch target, inside the tab band", tabsOk);
 
             // Sectioned tabs: jump chips over the scrolling list, both in the body.
             Check(name + ": chip row and list sit in the body", Contains(l.body, l.chips) && Contains(l.body, l.list));
@@ -747,7 +759,7 @@ public static class CodexTest
         var uiRect = (RectTransform)uiPanel;
         float top = uiRect.anchoredPosition.y + uiRect.sizeDelta.y * .5f;
         float h = ((RectTransform)SceneUtil.FindAny("MainMenuCanvas").transform).rect.height;
-        float oldTop = -h * .08f + Mathf.Min(330f, h * .4f) * .5f;
+        float oldTop = -h * .08f + Mathf.Min(330f, h * .5f) * .5f;   // 330 units on any canvas of 660+ (startMenu.LayoutHome)
         Check("home menu keeps its top edge under the logo (" + top + " vs " + oldTop + ")",
               Mathf.Abs(top - oldTop) < .5f);
         var quit = (RectTransform)SceneUtil.FindAny("QuitButton").transform;
@@ -1093,17 +1105,22 @@ public static class CodexTest
         for (int i = panel.SectionStart(2); i < panel.SectionStart(2) + panel.SectionAt(2).entries.Count; i++)
             locked &= panel.CardName(i).text == Codex.LockedName && panel.CardArt(i).color.r < .1f;
         Check("locked entries in a world section stay ??? silhouettes", locked);
-        int fighters = 0;
+        int fighters = 0, rosterCount = 0;
+        bool elitesLast = true;
         var space = panel.SectionAt(0).entries;
         for (int i = 0; i < space.Count; i++)
         {
             var def = EnemyRoster.FindByCodexId(space[i].id);
+            // (the world's elite ships come after its roster enemies)
+            if (def == null) { elitesLast &= EliteCatalog.FindByCodexId(space[i].id) != null; continue; }
+            elitesLast &= rosterCount == i;
+            rosterCount++;
             if (def.role == EnemyRole.Fighter) { fighters++; if (def.tier != i + 1) fighters = -100; }
         }
-        Check("a world section lists fighters by tier first, then chaser, alien and big",
-              fighters == 4 && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
+        Check("a world section lists fighters by tier first, then chaser, alien and big, then its elite ships",
+              fighters == 4 && rosterCount >= 7 && elitesLast && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
               EnemyRoster.FindByCodexId(space[5].id).role == EnemyRole.Alien &&
-              EnemyRoster.FindByCodexId(space[space.Count - 1].id).role == EnemyRole.Big);
+              EnemyRoster.FindByCodexId(space[rosterCount - 1].id).role == EnemyRole.Big);
         Check("one jump chip per section", ActiveChips(panel) == 4 && panel.ChipLabel(3).text == "EMBER");
 
         // One boss met: the BOSSES section appears last with just that boss.

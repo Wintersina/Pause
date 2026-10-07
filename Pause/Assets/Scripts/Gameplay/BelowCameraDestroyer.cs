@@ -15,6 +15,9 @@ public class BelowCameraDestroyer : MonoBehaviour
     public const float Clearance = 3f;
 
     int lastScreenW = -1, lastScreenH = -1;
+    // CameraFit may settle the camera's size after this object's own Start /
+    // Update in the same frame; follow the view's edge, not only the screen.
+    float lastViewBottom = float.NaN;
 
     void Start()
     {
@@ -23,14 +26,16 @@ public class BelowCameraDestroyer : MonoBehaviour
 
     void Update()
     {
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH
+            || !Mathf.Approximately(CameraFit.ViewBottom, lastViewBottom))
             Reposition();
     }
 
     public void Reposition()
     {
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
+        lastViewBottom = CameraFit.ViewBottom;
         var p = transform.position;
         transform.position = new Vector3(p.x, CameraFit.ViewBottom - Clearance, p.z);
     }

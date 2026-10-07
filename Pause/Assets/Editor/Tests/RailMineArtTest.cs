@@ -374,7 +374,7 @@ public static class RailMineArtTest
               File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs").Contains("RamKill.Blast(hit.gameObject") &&
               File.ReadAllText("Assets/Scripts/Ship/RamKill.cs").Contains("TargetExplosion.Spawn(target, ship)"));
         Check("a weapon-destroyed mine bursts too (TargetExplosion.Spawn)",
-              File.ReadAllText("Assets/Scripts/Gameplay/TargetExplosion.cs").Contains("RailBombAnimator.Burst(target)"));
+              File.ReadAllText("Assets/Scripts/Gameplay/Weapons/TargetExplosion.cs").Contains("RailBombAnimator.Burst(target)"));
     }
 
     static void CodexShowsTheDormantMine()

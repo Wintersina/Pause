@@ -9,9 +9,11 @@ using UnityEngine;
 // source starts the new one.
 //
 // Two kinds of world music:
-//   - progressive (Space, Verdant): six 30-second arrangements,
-//     WorldMusic/<World>Stage01..06, stepped up by TryEscalate on the level
-//     clock.
+//   - progressive (no world uses it today; the Space/Verdant stage clips were
+//     deleted): six arrangements WorldMusic/<World>Stage01..06, stepped up by
+//     TryEscalate on the level clock. Kept for future use; a theme only opts
+//     in with progressiveMusic = true. Space and Verdant play the scene's own
+//     default track.
 //   - a full song (Frost, Ember): the theme's musicResource plays for the whole
 //     level. The songs end in a fade-out and a second or two of silence, so a
 //     plain AudioSource.loop would leave a gap. LoopOutSeconds gives each song a
@@ -100,13 +102,12 @@ public class WorldMusic : MonoBehaviour
         loopClip = next != null && measured > 0f ? next : null;
         loopOut = loopClip != null ? measured : 0f;
 
+        // The per-world BoostSounds stings were deleted: the RocketsSound
+        // source keeps the scene's own clip for every world. Whatever it is,
+        // decode it now rather than inside the blue atom's Play().
         var boostGo = GameObject.Find("RocketsSound");
         var boost = boostGo != null ? boostGo.GetComponent<AudioSource>() : null;
-        // Every world gets its own short pickup sting.  The clips are sampled
-        // from the original boosting track but shaped for a quick blue-atom
-        // payoff, so Ember does not fall back to its long upbeat loop.
-        var boostClip = Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost");
-        if (boost != null && boostClip != null) boost.clip = boostClip;
+        if (boost != null) Prewarm(boost.clip);
 
         // A missing clip leaves the current track playing rather than dropping
         // into silence -- a half-shipped planet should still have music.
@@ -116,6 +117,18 @@ public class WorldMusic : MonoBehaviour
             return;
         }
         EnsureRunner().StartCoroutine(Swap(source, next));
+    }
+
+    // Brings a one-shot's audio into memory ahead of its first Play(). A clip
+    // imported without "Preload Audio Data" is only a header after
+    // Resources.Load: the first Play() then reads and decompresses it on the
+    // main thread, on the very frame the sound is wanted (the blue atom's
+    // sting did exactly that, once per world per run). The stings are
+    // imported preloaded + load-in-background; this is the safety net for a
+    // clip that isn't (blocking then, but at world-apply / ship-spawn time).
+    public static void Prewarm(AudioClip clip)
+    {
+        if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
     }
 
     static AudioSource FindBackgroundSource()

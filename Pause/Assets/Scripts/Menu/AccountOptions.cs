@@ -80,7 +80,7 @@ public class AccountOptions : MonoBehaviour
 
     void Start()
     {
-        if (card == null) Build(new Vector2(Screen.width, Screen.height), Screen.safeArea, false);
+        if (card == null) Build(new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
     // Tests pass an explicit screen and safe area.
@@ -156,6 +156,9 @@ public class AccountOptions : MonoBehaviour
 
         action = AccountUi.MakeButton(card, "Action", font, 24f, 182f, CardWidth - 48f, 88f, "",
                                       AkiraPalette.Red, true, OnAction, 26);
+        // a finger-sized hit area (the 88-unit button is ~35 dp on a phone):
+        // up over the status line, down to the developer details row
+        if (action.targetGraphic != null) action.targetGraphic.raycastPadding = new Vector4(0f, -12f, 0f, -16f);
 
         detailsRow = AccountUi.Place(card, "Details", 24f, 282f, CardWidth - 48f, DevDetailsHeight - 6f);
         detailsText = AccountUi.Label(detailsRow, font, "", 14, AkiraPalette.Amber, TextAnchor.UpperLeft, 0f, false);
@@ -261,11 +264,13 @@ public class AccountOptions : MonoBehaviour
 
     // The card sits just above the button stack (rowsTop) and below the
     // safe area's top edge; it shrinks when that gap is too small.
-    public static CardLayout ComputeLayout(Vector2 screen, Rect safe, float rowsTop, float cardHeight)
+    // `unitsPerPixel`: the Options canvas's units per screen pixel (0: taken
+    // as CanvasUnitsWide across the screen, as the scene authors it).
+    public static CardLayout ComputeLayout(Vector2 screen, Rect safe, float rowsTop, float cardHeight, float unitsPerPixel = 0f)
     {
         if (screen.x <= 0f || screen.y <= 0f) screen = new Vector2(1080f, 1920f);
         if (safe.width <= 0f || safe.height <= 0f) safe = new Rect(0f, 0f, screen.x, screen.y);
-        float units = CanvasUnitsWide / screen.x;
+        float units = unitsPerPixel > 0f ? unitsPerPixel : CanvasUnitsWide / screen.x;
         float height = screen.y * units;
         float safeTop = height * .5f - (screen.y - safe.yMax) * units - TopMargin;
         float safeBottom = -height * .5f + safe.yMin * units;
@@ -302,11 +307,26 @@ public class AccountOptions : MonoBehaviour
         return float.IsNegativeInfinity(top) ? 0f : top;
     }
 
+    // Canvas units per screen pixel on `screen`, from the Options canvas's
+    // scaler (UiScale's floor included): not always CanvasUnitsWide across
+    // -- fewer on a phone small in points / dp, more on a tablet (Expand).
+    public float UnitsPerPixel(Vector2 screen)
+    {
+        var root = canvasRect != null ? canvasRect.GetComponentInParent<Canvas>() : null;
+        if (root == null || screen.x <= 0f) return 0f;
+        root = root.rootCanvas;
+        var scaler = root.GetComponent<CanvasScaler>();
+        if (scaler == null || scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize) return 0f;
+        // a scaler switched off (the screen-fit rig sets the scale itself)
+        float s = scaler.enabled ? HudStyler.HudCanvasScale(root, scaler, screen) : root.scaleFactor;
+        return s > 0f ? 1f / s : 0f;
+    }
+
     public void Relayout()
     {
         if (card == null) return;
         rowsTop = RowsTop();
-        var layout = ComputeLayout(screenSize, safeArea, rowsTop, Height(devShown));
+        var layout = ComputeLayout(screenSize, safeArea, rowsTop, Height(devShown), UnitsPerPixel(screenSize));
         AppliedLayout = layout;
         card.anchoredPosition = new Vector2(0f, layout.centerY);
         card.localScale = new Vector3(layout.scale, layout.scale, 1f);
@@ -315,10 +335,10 @@ public class AccountOptions : MonoBehaviour
     void Update()
     {
         bool changed = false;
-        if (!overridden && (Screen.width != screenSize.x || Screen.height != screenSize.y || Screen.safeArea != safeArea))
+        if (!overridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y || ScreenInfo.SafeArea != safeArea))
         {
-            screenSize = new Vector2(Screen.width, Screen.height);
-            safeArea = Screen.safeArea;
+            screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
+            safeArea = ScreenInfo.SafeArea;
             changed = true;
         }
         if (DeveloperUnlocks.Enabled != devShown) { Refresh(); return; }

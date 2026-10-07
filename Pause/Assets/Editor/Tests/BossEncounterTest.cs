@@ -33,7 +33,7 @@ public static class BossEncounterTest
         {
             EveryWorldHasCompleteArt();
             LevelEndStartsTheBossThenThePortal();
-            EmberHasABossButNoPortal();
+            EmberHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
             SpeedIsHeldAt20ThenReleased();
             ProjectilesFreezeAtTimeScaleZero();
@@ -158,7 +158,7 @@ public static class BossEncounterTest
         Check("the same world's boss doesn't come back for a missed portal", !BossEncounter.Begin(0, null));
     }
 
-    static void EmberHasABossButNoPortal()
+    static void EmberHasABossThenTheLoopPortal()
     {
         FreshScene(3);
         var wm = World(-1f);
@@ -170,7 +170,13 @@ public static class BossEncounterTest
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         wm.SendMessage("Update");
-        Check("no portal after the last world's boss", !wm.PortalIsOpen && !BossEncounter.Running);
+        // (Was "no portal after the last world's boss": the final choice came
+        // up instead. Now every world ends the same way, the final one with
+        // the portal back to where the run began.)
+        Check("after the last world's boss the loop portal opens, back to the run's start world",
+              wm.PortalIsOpen && !BossEncounter.Running && wm.Stage == WorldManager.LevelStage.Portal &&
+              WorldManager.PortalDestination == RunLoop.StartWorld && PortalPressure.Active &&
+              PortalPressure.Destination == RunLoop.StartWorld && Object.FindFirstObjectByType<Portal>() != null);
     }
 
     static void IntroFreezeIsScriptedAndFree()
@@ -204,9 +210,13 @@ public static class BossEncounterTest
         var bg = new GameObject("bg").AddComponent<moveBackGround>();
         bg.speedRampPerSecond = 50f; // any real ramp would show at once
         bg.maxSpeed = 5f;
+        SpeedRamp.ResetBoost();
+        SpeedRamp.AddBoost();   // a blue atom's boost on its way in when the boss arrives
         BossEncounter.Begin(0, null);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
+        Check("the boss intro cancels a boost in progress (no limit break into a boss)",
+              e.State == BossEncounter.Phase.Intro && SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
         e.Step(BossConfig.SpeedDrainSeconds * .5f, 0f);
         Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > 0f);
         e.Step(BossConfig.SpeedDrainSeconds, 0f);
@@ -218,18 +228,23 @@ public static class BossEncounterTest
         for (int i = 0; i < 40; i++)
         {
             bg.SendMessage("Update");
-            moveBackGround.speed += BossEncounter.FilterSpeedChange(.05f); // the atom's boost, filtered
+            SpeedRamp.AddBoost(); // the atom's boost, refused while the boss holds the speed
             e.Step(.1f, 1f);
             held &= moveBackGround.speed == BossConfig.FightSpeed;
         }
         Check("speed held at 0.20 through ramp and atom boosts", held);
-        Check("atom boost filtered during the fight", BossEncounter.FilterSpeedChange(.05f) == 0f);
+        Check("atom boost refused during the fight", SpeedRamp.BoostTarget == 0f && SpeedRamp.Boost == 0f);
         string collision = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
-        Check("collisionDetection guards the atom's +0.05",
-              collision.Contains("if (!BossEncounter.SpeedLocked) { moveBackGround.speed += .05f; atomCounter++; }"));
+        string ramp = File.ReadAllText("Assets/Scripts/Gameplay/SpeedRamp.cs");
+        Check("collisionDetection's atom boost goes through SpeedRamp, which the boss's speed lock guards",
+              collision.Contains("SpeedRamp.AddBoost();") && !collision.Contains("moveBackGround.speed += .05f") &&
+              ramp.Contains("if (BossEncounter.SpeedLocked) return;"));
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
-        Check("speed lock released after", !BossEncounter.SpeedLocked && BossEncounter.FilterSpeedChange(.05f) == .05f);
+        SpeedRamp.AddBoost();
+        Check("speed lock released after (an atom boosts again)",
+              !BossEncounter.SpeedLocked && Mathf.Approximately(SpeedRamp.BoostTarget, SpeedRamp.BoostPerAtom));
+        SpeedRamp.ResetBoost();
         moveBackGround.speed = BossConfig.FightSpeed;
         typeof(moveBackGround).GetMethod("speedUp", Inst).Invoke(bg, null);
         Check("the ramp runs again from 20", moveBackGround.speed >= BossConfig.FightSpeed &&
@@ -275,8 +290,8 @@ public static class BossEncounterTest
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("on-board hazards are cleared by the boss's arrival", hazard == null);
         Check("suspended during the fight", BossEncounter.SuspendsSpawning);
-        Check("enmiesOnBoard checks it", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
-              .Contains("if (flying && !BossEncounter.SuspendsSpawning) spawn();"));
+        Check("enmiesOnBoard checks it", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
+              .Contains("if (flying && !BossEncounter.SuspendsSpawning)"));
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("spawning resumes after", !BossEncounter.SuspendsSpawning);
@@ -294,7 +309,7 @@ public static class BossEncounterTest
         // which hands a BossTarget the hit instead of destroying it.
         Check("the boss body is a registered attack target (IShipAttackTarget)",
               body.GetComponent<IShipAttackTarget>() is BossTarget && body.GetComponent<ClearTarget>() != null &&
-              File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
+              File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
         Check("the boss starts with BossConfig.HitPoints (" + BossConfig.HitPoints + ")", e.HitPointsLeft == BossConfig.HitPoints);
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
         Check("... and takes one hit point (" + e.HitPointsLeft + " left)", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1);

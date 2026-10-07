@@ -90,6 +90,10 @@ public static class AccountSignInTest
         var savedAccount = PlayerAccounts.Current;
         var savedSync = CloudSync.Instance;
         var savedOpen = AccountSettingsLink.OpenOverride;
+        // The shipped table has no live board until Top Score's Play Console
+        // id is in (the Top Speed board these checks used is retired): a
+        // table with live boards, as LeaderboardTest uses.
+        LeaderboardBoards.OverrideForTests(LeaderboardTest.LiveTable());
         try
         {
             Diagnosis();
@@ -111,6 +115,7 @@ public static class AccountSignInTest
             AccountSettingsLink.OpenOverride = savedOpen;
             AccountLink.ResetSession();
             LeaderboardService.Instance = null;
+            LeaderboardBoards.OverrideForTests(null);
         }
         Debug.Log("[ASI] failures: " + failures);
         return failures;
@@ -516,7 +521,8 @@ public static class AccountSignInTest
                 float top = layout.centerY + h * .5f + 14f * layout.scale;   // the ACCOUNT tag pokes out
                 float bottom = layout.centerY - h * .5f;
                 float halfW = (AccountOptions.CardWidth * .5f + 8f) * layout.scale;
-                float units = AccountOptions.CanvasUnitsWide / screen.x;
+                // the Options canvas's own units (not always 800 across: Expand on a tablet)
+                float units = row.UnitsPerPixel(screen) > 0f ? row.UnitsPerPixel(screen) : AccountOptions.CanvasUnitsWide / screen.x;
                 float safeHalfW = safe.width * units * .5f;
                 Check(label + ": card inside the safe area (top)", top <= layout.safeTop + .01f);
                 Check(label + ": card inside the safe area (sides)", halfW <= safeHalfW);

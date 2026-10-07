@@ -24,31 +24,59 @@ public class LeaderboardPanel : MonoBehaviour
     // Share of the safe area the panel may take at most.
     public const float FillWidth = .94f, FillHeight = .95f;
 
-    const float Inner = 640f;                 // content width
+    const float SideInset = (DesignWidth - 640f) * .5f;   // frame -> content, each side
     const float RowHeight = 54f, RowStep = 61f;
     const float ListTop = 276f;               // from the panel top
     const float PlayerRowTop = 920f, PlayerRowHeight = 66f;
     const float ButtonsTop = 1036f, ButtonHeight = 100f;
+    public const float TabTop = 144f, TabHeight = 80f, TabTouchMargin = 10f;
+    // Player names: NameSize, shrinking to NameMinSize at the least for a
+    // long one, then cut short with an ellipsis -- never smaller. The rank
+    // and score columns keep their own boxes, so they stay aligned and whole.
+    public const int NameSize = 24, NameMinSize = 20;
+    public const float NameLeft = 120f, NameWidth = 290f;   // NameWidth: at the design width
+    const float ValueWidth = 200f, ValueInset = 22f;
+    // UiScale's floor: the buttons and the tab are 100-unit touch targets.
+    public const float MinTapUnits = 100f;
+    public const string Ellipsis = "...";
 
     public struct Layout
     {
         public float scale;          // canvas units -> screen pixels
         public Rect safe;            // pixels
         public Rect panelPixels;     // pixels
+        public Vector2 panelSize;    // panel units: the design size, or less on a small screen
     }
 
+    // The whole design panel fitted into the safe area -- unless that would
+    // draw it below UiScale's floor (a small phone): then it is drawn at the
+    // floor, and gets fewer units: narrower (the name column gives way, names
+    // cut sooner) and shorter (the top-10 list scrolls).
     public static Layout ComputeLayout(Vector2 screen, Rect safe)
     {
         if (safe.width <= 0f || safe.height <= 0f) safe = new Rect(0f, 0f, screen.x, screen.y);
-        float scale = Mathf.Min(safe.width * FillWidth / DesignWidth, safe.height * FillHeight / DesignHeight);
-        var size = new Vector2(DesignWidth, DesignHeight) * scale;
+        float fit = Mathf.Min(safe.width * FillWidth / DesignWidth, safe.height * FillHeight / DesignHeight);
+        float scale = UiScale.Apply(fit, MinTapUnits, 0f);
+        var units = new Vector2(Mathf.Min(DesignWidth, safe.width * FillWidth / scale),
+                                Mathf.Min(DesignHeight, safe.height * FillHeight / scale));
+        var size = units * scale;
         return new Layout
         {
             scale = scale,
             safe = safe,
             panelPixels = new Rect(safe.center - size * .5f, size),
+            panelSize = units,
         };
     }
+
+    // ---- this panel's size (panel units) and what follows from it ----
+    float panelW = DesignWidth, panelH = DesignHeight;
+    float Inner { get { return panelW - 2f * SideInset; } }
+    float Drop { get { return DesignHeight - panelH; } }   // the lower block moves up by this
+    float ListHeight { get { return PlayerRowTop - Drop - 40f - ListTop; } }
+    public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 8f; } }
+    public Vector2 PanelSize { get { return new Vector2(panelW, panelH); } }
+    public bool ListScrolls { get { return list != null && list.GetComponent<ScrollRect>().enabled; } }
 
     // ---- public surface (tests read these) ----
 
@@ -74,7 +102,7 @@ public class LeaderboardPanel : MonoBehaviour
     Font font;
     Canvas canvas;
     CanvasScaler scaler;
-    RectTransform safeRoot, panelRoot, body;
+    RectTransform safeRoot, panelRoot, body, list, rows;
     Text descriptionText;
     GameObject playerRow;
     int request;
@@ -87,7 +115,7 @@ public class LeaderboardPanel : MonoBehaviour
 
     public static LeaderboardPanel Open(LeaderboardService service = null, Font font = null)
     {
-        return Open(service, font, new Vector2(Screen.width, Screen.height), Screen.safeArea, false);
+        return Open(service, font, new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
     // Tests pass an explicit screen and safe area.
@@ -164,15 +192,21 @@ public class LeaderboardPanel : MonoBehaviour
         safeRoot = Child(transform, "SafeArea");
         panelRoot = Child(safeRoot, "Panel");
         panelRoot.anchorMin = panelRoot.anchorMax = panelRoot.pivot = new Vector2(.5f, .5f);
-        panelRoot.sizeDelta = new Vector2(DesignWidth, DesignHeight);
         ApplyLayout();
+        BuildPanel();
+    }
+
+    // Everything inside the panel, for its current size.
+    void BuildPanel()
+    {
+        panelRoot.sizeDelta = new Vector2(panelW, panelH);
 
         // Frame: chamfered night plate, thick ink, inner panel line.
         var frame = CelShape.Add(Fill(panelRoot, "Frame").gameObject, CelShape.Kind.Chamfer,
                                  AkiraPalette.WithAlpha(AkiraPalette.Night1, .97f), 5f);
         frame.cut = 30f;
         frame.raycastTarget = true;   // taps on the panel body don't fall through to the dim
-        var line = CelShape.Add(Place(panelRoot, "PanelLine", 0f, 10f, DesignWidth - 20f, DesignHeight - 20f).gameObject,
+        var line = CelShape.Add(Place(panelRoot, "PanelLine", 0f, 10f, panelW - 20f, panelH - 20f).gameObject,
                                 CelShape.Kind.Chamfer, Color.clear, 1.5f);
         line.cut = 25f;
         line.hollow = true;
@@ -181,16 +215,35 @@ public class LeaderboardPanel : MonoBehaviour
         BuildTitle();
         BuildTabs();
 
-        var desc = Place(panelRoot, "Description", 0f, 230f, Inner, 34f);
+        var desc = Place(panelRoot, "Description", 0f, TabTop + TabHeight + 8f, Inner, 34f);
         descriptionText = Label(desc, "", 20, AkiraPalette.Muted, TextAnchor.MiddleLeft, 2f);
 
-        body = Place(panelRoot, "Body", 0f, ListTop, Inner, PlayerRowTop + PlayerRowHeight - ListTop);
+        body = Place(panelRoot, "Body", 0f, ListTop, Inner, ListHeight);
 
-        playerRow = Place(panelRoot, "PlayerRow", 0f, PlayerRowTop, Inner, PlayerRowHeight).gameObject;
+        // The top-10 rows: a clipped viewport that scrolls when the panel is
+        // too short for all of them.
+        list = Place(panelRoot, "List", 0f, ListTop, Inner, ListHeight);
+        list.gameObject.AddComponent<RectMask2D>();
+        var scroll = list.gameObject.AddComponent<ScrollRect>();
+        scroll.horizontal = false;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.scrollSensitivity = 30f;
+        var hit = list.gameObject.AddComponent<Image>();   // drags anywhere on the list scroll it
+        hit.color = Color.clear;
+        rows = Child(list, "Rows");
+        rows.anchorMin = new Vector2(0f, 1f);
+        rows.anchorMax = new Vector2(1f, 1f);
+        rows.pivot = new Vector2(.5f, 1f);
+        rows.offsetMin = rows.offsetMax = Vector2.zero;
+        scroll.content = rows;
+        scroll.viewport = list;
+        scroll.enabled = false;
 
-        CloseButton = MakeButton(panelRoot, "Back", -Inner * .25f - 8f, ButtonsTop, Inner * .5f - 16f, ButtonHeight,
+        playerRow = Place(panelRoot, "PlayerRow", 0f, PlayerRowTop - Drop, Inner, PlayerRowHeight).gameObject;
+
+        CloseButton = MakeButton(panelRoot, "Back", -Inner * .25f - 8f, ButtonsTop - Drop, Inner * .5f - 16f, ButtonHeight,
                                  "BACK", AkiraPalette.Red, Close);
-        ViewAllButton = MakeButton(panelRoot, "ViewAll", Inner * .25f + 8f, ButtonsTop, Inner * .5f - 16f, ButtonHeight,
+        ViewAllButton = MakeButton(panelRoot, "ViewAll", Inner * .25f + 8f, ButtonsTop - Drop, Inner * .5f - 16f, ButtonHeight,
                                    "VIEW ALL", AkiraPalette.Cyan, ViewAll);
     }
 
@@ -218,7 +271,9 @@ public class LeaderboardPanel : MonoBehaviour
     {
         var boards = service.UsableBoards();
         if (boards.Count == 0) return;
-        const float gap = 14f, top = 150f, height = 68f;
+        // 80 tall plus 10 of touch margin above and below: a 100-unit target
+        // (>= 48 dp / 44 pt at UiScale's 0.5 dp-per-unit floor).
+        const float gap = 14f, top = TabTop, height = TabHeight;
         float w = (Inner - gap * (boards.Count - 1)) / boards.Count;
         for (int i = 0; i < boards.Count; i++)
         {
@@ -229,6 +284,7 @@ public class LeaderboardPanel : MonoBehaviour
                                 .Cuts(true, false, true, false);
             shape.cut = 14f;
             shape.raycastTarget = true;
+            shape.raycastPadding = new Vector4(0f, -TabTouchMargin, 0f, -TabTouchMargin);   // a bigger finger target, same art
             var label = Child(rt, "Label");
             Stretch(label, 10f);
             Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f);
@@ -322,12 +378,23 @@ public class LeaderboardPanel : MonoBehaviour
         service.ShowNativeUI(SelectedBoard);
     }
 
+    // The list catches drags (and blocks taps under it) only while it scrolls.
+    void SetScrolling(bool on)
+    {
+        list.GetComponent<ScrollRect>().enabled = on;
+        list.GetComponent<Image>().raycastTarget = on;
+    }
+
     // ---- states ----
 
     void Show(State state, LeaderboardBoard board = null, LeaderboardPage top = null, LeaderboardEntry? player = null)
     {
         CurrentState = state;
         Clear(body);
+        Clear(rows);
+        rows.sizeDelta = new Vector2(0f, 0f);
+        rows.anchoredPosition = Vector2.zero;
+        SetScrolling(false);
         Clear(playerRow.transform);
         loadingCells.Clear();
         ActionButton = null;
@@ -422,10 +489,13 @@ public class LeaderboardPanel : MonoBehaviour
         {
             var e = top.entries[i];
             bool mine = e.isLocalPlayer || (player.HasValue && e.rank == player.Value.rank && player.Value.rank > 0);
-            var rt = Place(body, "Row" + i, 0f, i * RowStep, Inner, RowHeight);
+            var rt = Place(rows, "Row" + i, 0f, i * RowStep, Inner, RowHeight);
             Row(rt, e, board, mine, false);
         }
         RowCount = n;
+        float content = n > 0 ? (n - 1) * RowStep + RowHeight : 0f;
+        rows.sizeDelta = new Vector2(0f, content);
+        SetScrolling(content > ListHeight + .5f);
 
         // Own row, always: the player's rank even outside the top 10.
         PlayerRowShown = true;
@@ -466,10 +536,10 @@ public class LeaderboardPanel : MonoBehaviour
         Label(rank, e.rank > 0 ? "#" + e.rank : "#--", 26, rankColor, TextAnchor.MiddleLeft, 2.5f);
 
         var name = Child(rt, "Name");
-        Anchor(name, 120f, 290f);
+        Anchor(name, NameLeft, NameColumnWidth);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        Label(name, who, 24, nameColor, TextAnchor.MiddleLeft, 2.5f);
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, NameColumnWidth - 4f);
 
         if (e.rank > 0 || e.value != 0)
         {
@@ -477,11 +547,42 @@ public class LeaderboardPanel : MonoBehaviour
             value.anchorMin = new Vector2(1f, 0f);
             value.anchorMax = new Vector2(1f, 1f);
             value.pivot = new Vector2(1f, .5f);
-            value.sizeDelta = new Vector2(200f, 0f);
-            value.anchoredPosition = new Vector2(-22f, 0f);
+            value.sizeDelta = new Vector2(ValueWidth, 0f);
+            value.anchoredPosition = new Vector2(-ValueInset, 0f);
             Label(value, board != null ? board.Format(e.value) : e.value.ToString(), 30, valueColor,
                   TextAnchor.MiddleRight, 3f);
         }
+    }
+
+    // One line at NameSize .. NameMinSize; a name too long even at the
+    // smallest keeps as many characters as fit, then "...". Measured with the
+    // font itself (wide glyphs, any script), once, when the row is built.
+    public static void FitName(Text text, string full, float width)
+    {
+        text.resizeTextForBestFit = false;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+        text.text = full;
+        for (int size = NameSize; size >= NameMinSize; size -= 2)
+        {
+            text.fontSize = size;
+            if (text.preferredWidth <= width) return;
+        }
+        text.fontSize = NameMinSize;
+        int lo = 0, hi = full.Length;   // longest prefix that fits with the ellipsis
+        while (lo < hi)
+        {
+            int mid = (lo + hi + 1) / 2;
+            text.text = Cut(full, mid);
+            if (text.preferredWidth <= width) lo = mid; else hi = mid - 1;
+        }
+        text.text = Cut(full, lo);
+    }
+
+    static string Cut(string s, int n)
+    {
+        if (n > 0 && n < s.Length && char.IsHighSurrogate(s[n - 1])) n--;   // never split a surrogate pair
+        return s.Substring(0, n).TrimEnd() + Ellipsis;
     }
 
     // ---- per-frame ----
@@ -489,11 +590,11 @@ public class LeaderboardPanel : MonoBehaviour
     void Update()
     {
         if (CurrentState == State.Loading && loadingCells.Count > 0) AnimateLoading(Time.unscaledTime);
-        if (!screenOverridden && (Screen.width != screenSize.x || Screen.height != screenSize.y
-                                  || Screen.safeArea != safeArea))
+        if (!screenOverridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y
+                                  || ScreenInfo.SafeArea != safeArea))
         {
-            screenSize = new Vector2(Screen.width, Screen.height);
-            safeArea = Screen.safeArea;
+            screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
+            safeArea = ScreenInfo.SafeArea;
             ApplyLayout();
         }
     }
@@ -502,11 +603,28 @@ public class LeaderboardPanel : MonoBehaviour
     {
         var layout = ComputeLayout(screenSize, safeArea);
         AppliedLayout = layout;
+        bool resized = panelRoot.childCount > 0 && (layout.panelSize.x != panelW || layout.panelSize.y != panelH);
+        panelW = layout.panelSize.x;
+        panelH = layout.panelSize.y;
         scaler.scaleFactor = layout.scale;
         Vector2 screen = new Vector2(Mathf.Max(1f, screenSize.x), Mathf.Max(1f, screenSize.y));
         safeRoot.anchorMin = new Vector2(layout.safe.xMin / screen.x, layout.safe.yMin / screen.y);
         safeRoot.anchorMax = new Vector2(layout.safe.xMax / screen.x, layout.safe.yMax / screen.y);
         safeRoot.offsetMin = safeRoot.offsetMax = Vector2.zero;
+        if (resized)
+        {
+            // a new size (rotation, a foldable, a window): build the panel again
+            Tabs.Clear();
+            TabBoards.Clear();
+            loadingCells.Clear();
+            for (int i = panelRoot.childCount - 1; i >= 0; i--)
+            {
+                var child = panelRoot.GetChild(i).gameObject;
+                if (Application.isPlaying) Destroy(child); else DestroyImmediate(child);
+            }
+            BuildPanel();
+            if (SelectedBoard != null) SelectBoard(SelectedBoard); else SelectFirstBoard();
+        }
     }
 
     // ---- building blocks ----

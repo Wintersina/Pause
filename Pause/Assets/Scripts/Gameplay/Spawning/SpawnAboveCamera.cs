@@ -1,0 +1,77 @@
+using UnityEngine;
+
+// Keeps a spawn point above whatever the camera currently shows.
+//
+// "Enemey_Item_Position" (the shared object enmiesOnBoard/spawnGoodStuff
+// spawn from, in both gameS1 and tutorialS5) sat at a fixed world Y -- 5.5 in
+// gameS1, tuned for the camera's default orthographicSize of 5, half a unit
+// of headroom above its visible top edge. CameraFit grows that size on
+// phones (6.6 on a 16:9 one, 8.7 on a 21:9 one, ~9.1 on 22:9), and nothing
+// repositioned the spawn point to match, so enemies and pickups started
+// appearing already inside the visible area on exactly the devices CameraFit
+// exists to support.
+//
+// Recomputes Y as the camera's current visible top edge plus the same 0.5
+// margin the original 5.5 implied, so it keeps the original off-screen feel
+// at any camera size rather than a value only correct for the default one.
+public class SpawnAboveCamera : MonoBehaviour
+{
+    [Tooltip("Clearance above the camera's actual visible top edge.")]
+    public float margin = 0.5f;
+
+    int lastScreenW = -1, lastScreenH = -1;
+    // CameraFit may settle the camera's size after this object's own Start /
+    // Update in the same frame; follow the size itself, not only the screen.
+    float lastCamSize = -1f;
+
+    void Start()
+    {
+        Reposition();
+    }
+
+    void Update()
+    {
+        var cam = Camera.main;
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH
+            || (cam != null && cam.orthographic && !Mathf.Approximately(cam.orthographicSize, lastCamSize)))
+            Reposition();
+    }
+
+    void Reposition()
+    {
+        var cam = Camera.main;
+        if (cam == null || !cam.orthographic) return;
+
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
+        lastCamSize = cam.orthographicSize;
+
+        // Camera y is not assumed to be exactly 0 -- add its own position so
+        // this is correct even if a scene's camera is not perfectly centred.
+        float visibleTop = cam.transform.position.y + cam.orthographicSize;
+        transform.position = new Vector3(transform.position.x, visibleTop + margin, transform.position.z);
+    }
+}
+
+// Attaches to the shared spawn point whenever gameS1 or tutorialS5 loads, so
+// neither scene needed hand-editing.
+public static class SpawnAboveCameraBootstrap
+{
+    [RuntimeInitializeOnLoadMethod]
+    static void Init()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
+                              UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        if (scene.name != "gameS1" && scene.name != "tutorialS5") return;
+
+        var go = SceneUtil.FindAny("Enemey_Item_Position");
+        if (go == null) return;
+        if (go.GetComponent<SpawnAboveCamera>() == null)
+            go.AddComponent<SpawnAboveCamera>();
+    }
+}

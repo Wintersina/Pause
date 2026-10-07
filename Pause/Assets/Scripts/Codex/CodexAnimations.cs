@@ -91,7 +91,7 @@ public static class CodexAnimations
         var frames = EnemyArt.Frames(def);
         if (frames == null || frames.Length == 0) return null;
 
-        var ticks = EnemyRoster.IdleTicks(def.role);
+        var ticks = EnemyRoster.IdleTicks(def);
         int n = Mathf.Min(EnemyRoster.TellFrame, frames.Length);
         var steps = new Sprite[n];
         var holds = new float[n];

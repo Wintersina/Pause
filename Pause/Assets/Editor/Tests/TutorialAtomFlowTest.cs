@@ -261,8 +261,8 @@ public static class TutorialAtomFlowTest
         }
         Object.DestroyImmediate(heal);
 
-        foreach (var file in new[] { "Assets/Scripts/Gameplay/spawnGoodStuff.cs", "Assets/Scripts/Gameplay/HealAtom.cs",
-                                     "Assets/Scripts/Gameplay/moveItemEnmInStrightLine.cs", "Assets/Scripts/Gameplay/AtomSpin.cs" })
+        foreach (var file in new[] { "Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs", "Assets/Scripts/Gameplay/Pickups/HealAtom.cs",
+                                     "Assets/Scripts/Gameplay/moveItemEnmInStrightLine.cs", "Assets/Scripts/Gameplay/Pickups/AtomSpin.cs" })
             Check(Path.GetFileName(file) + " knows nothing of the tutorial drift",
                   !File.ReadAllText(file).Contains("TutorialAtomDrift"));
 

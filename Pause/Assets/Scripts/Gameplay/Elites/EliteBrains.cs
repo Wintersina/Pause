@@ -28,6 +28,17 @@ using UnityEngine;
 //   warden       takes a station high on the side away from the pilot and
 //                holds it, bobbing; after each attack it crosses to the
 //                other side and plants again
+//   bastion      (Space) a slow shield platform: holds high over the
+//                board's middle, its lane following the pilot's at a crawl
+//                but never more than laneOffset off centre; attacks when the
+//                pilot is under its wings
+//   reaver       (Space) circles on a flattened orbit lifted wholly above
+//                the pilot and turns round at the end of every lap (and
+//                after every volley); speeds round while it fires
+//   lancer       (Space) holds high on one flank of the pilot, nose on it;
+//                after each shot it dashes across to the other flank
+//   tug          (Space) a slow armoured salvage tug: hangs ahead of the
+//                pilot a lane to one side, swapping sides after each sling
 public abstract class EliteBrain
 {
     protected EliteShip ship;
@@ -66,7 +77,8 @@ public abstract class EliteBrain
 
 public static class EliteBrains
 {
-    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden" };
+    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden",
+                                            "bastion", "reaver", "lancer", "tug" };
 
     public static EliteBrain Create(string id)
     {
@@ -79,6 +91,10 @@ public static class EliteBrains
             case "siege": return new SiegeBrain();
             case "breaker": return new BreakerBrain();
             case "warden": return new WardenBrain();
+            case "bastion": return new BastionBrain();
+            case "reaver": return new ReaverBrain();
+            case "lancer": return new LancerBrain();
+            case "tug": return new TugBrain();
             default: return new InterceptorBrain();
         }
     }
@@ -303,4 +319,176 @@ public class WardenBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen) => settled && Pos.y > seen.y + 1.5f;
     public void Cross() { side = -side; settled = false; }
     public override Vector2 JoinFrom => new Vector2(side, 1f);
+}
+
+// Eventide Bastion: a slow shield platform. Holds followDistance above the
+// pilot over the board's middle -- its lane follows the pilot's at a crawl
+// but never strays more than laneOffset off centre -- bobbing a little.
+// Attacks when the pilot is under its wings.
+public class BastionBrain : EliteBrain
+{
+    float trackX;
+    bool init;
+    public float TrackX => trackX;
+
+    public BastionBrain() { Id = "bastion"; }
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Clock += dt;
+        if (!init) { trackX = Mathf.Clamp(Pos.x, -def.laneOffset, def.laneOffset); init = true; }
+        trackX = Mathf.MoveTowards(trackX, Mathf.Clamp(seen.x, -def.laneOffset, def.laneOffset), def.speed * .45f * dt);
+        return new Vector2(trackX, seen.y + def.followDistance + Mathf.Sin(Clock * 1.1f) * .12f);
+    }
+
+    public override float SpeedScale => .8f;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + 1.4f && Mathf.Abs(Pos.x - seen.x) < 1.8f;
+    public override Vector2 JoinFrom => Vector2.up;
+}
+
+// Orbit Reaver: a fast raider on a flattened orbit (circleRadius across,
+// Squash of that up and down) centred Lift x circleRadius above the pilot,
+// so the whole orbit stays above it -- it swings to and fro over the pilot
+// and turns round at the end of every lap. Attacks after at least
+// AttackArc of a lap; it speeds round while it fires (ActScale) and turns
+// round again after the volley.
+public class ReaverBrain : EliteBrain
+{
+    public const float Squash = .7f, Lift = 1.3f, ActScale = 1.5f, AttackArc = Mathf.PI * .75f;
+    float angle, lapped, swept, spin = 1f;
+    bool started;
+    public float Lapped => lapped;
+    public float Spin => spin;
+    public int Turns { get; private set; }
+
+    public ReaverBrain() { Id = "reaver"; }
+
+    public override void OnJoin() { started = false; lapped = 0f; swept = 0f; }
+
+    public Vector2 Centre(Vector2 seen) => seen + Vector2.up * def.circleRadius * Lift;
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Vector2 c = Centre(seen);
+        if (!started)
+        {
+            Vector2 d = Pos - c;
+            angle = Mathf.Atan2(d.y / Squash, d.x);
+            started = true;
+        }
+        float w = def.speed * SpeedScale / Mathf.Max(.5f, def.circleRadius);
+        angle += spin * w * dt;
+        lapped += w * dt;
+        swept += w * dt;
+        if (swept >= Mathf.PI * 2f) Turn(false);
+        return c + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle) * Squash) * def.circleRadius;
+    }
+
+    public override float SpeedScale => ship != null && ship.Acting ? ActScale : 1f;
+    public override bool WantsAttack(Vector2 seen) => lapped >= AttackArc;
+
+    // Round the other way (after a lap, or a volley: then a new lap before the next one).
+    public void Turn(bool volley)
+    {
+        spin = -spin;
+        swept = 0f;
+        if (volley) lapped = 0f;
+        Turns++;
+    }
+
+    public override Vector2 JoinFrom => new Vector2(-1f, .6f);
+}
+
+// Rift Lancer: a flanker. Holds high on one side of the pilot (laneOffset
+// across, followDistance up), nose on it, weaving a little; after each
+// shot it dashes across to the other flank (DashScale x its speed until
+// it gets there). Attacks once it is on a flank, in range.
+public class LancerBrain : EliteBrain
+{
+    public const float DashScale = 1.8f;
+    float side = 1f;
+    bool crossing;
+    public float Side => side;
+    public bool Crossing => crossing;
+    public int Crossings { get; private set; }
+
+    public LancerBrain() { Id = "lancer"; }
+
+    public override void OnJoin()
+    {
+        var p = EliteSystem.Player;
+        side = p == null || Pos.x >= p.position.x ? 1f : -1f;
+        crossing = false;
+    }
+
+    public Vector2 Flank(Vector2 seen)
+    {
+        float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
+        // no room on this side: the other
+        if (Mathf.Abs(seen.x + side * def.laneOffset) > edge && Mathf.Abs(seen.x - side * def.laneOffset) <= edge) side = -side;
+        return new Vector2(Mathf.Clamp(seen.x + side * def.laneOffset, -edge, edge), seen.y + def.followDistance);
+    }
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Clock += dt;
+        Vector2 f = Flank(seen);
+        if (crossing && (Pos - f).sqrMagnitude < .45f * .45f) crossing = false;
+        return f + new Vector2(0f, Mathf.Sin(Clock * 1.6f) * .2f);
+    }
+
+    public override float SpeedScale => crossing ? DashScale : 1f;
+
+    public override bool WantsAttack(Vector2 seen)
+    {
+        float d = (seen - Pos).magnitude;
+        return !crossing && Pos.y > seen.y + .8f && d > 1.5f && d < 4.6f;
+    }
+
+    public override float? FaceDeg(Vector2 seen) => FaceTowards(seen);
+
+    // After a shot: across to the other flank, fast.
+    public void Cross()
+    {
+        side = -side;
+        crossing = true;
+        Crossings++;
+    }
+
+    public override Vector2 JoinFrom => new Vector2(side, 1f);
+}
+
+// Singularity Hauler: a slow, armoured salvage tug. Hangs followDistance
+// ahead of the pilot, a lane (laneOffset) to one side, that lane following
+// the pilot's at a crawl; it swaps sides after each sling.
+public class TugBrain : EliteBrain
+{
+    float laneX, side = 1f;
+    bool init;
+    public float Side => side;
+    public float LaneX => laneX;
+
+    public TugBrain() { Id = "tug"; }
+
+    public override void OnJoin()
+    {
+        var p = EliteSystem.Player;
+        side = p == null || Pos.x >= p.position.x ? 1f : -1f;
+    }
+
+    public override Vector2 Goal(Vector2 seen, float dt)
+    {
+        Clock += dt;
+        float edge = EliteSystem.RailEdge - def.hullRadius - .4f;
+        if (Mathf.Abs(seen.x + side * def.laneOffset) > edge && Mathf.Abs(seen.x - side * def.laneOffset) <= edge) side = -side;
+        float want = Mathf.Clamp(seen.x + side * def.laneOffset, -edge, edge);
+        if (!init) { laneX = Pos.x; init = true; }
+        laneX = Mathf.MoveTowards(laneX, want, def.speed * .5f * dt);
+        return new Vector2(laneX, seen.y + def.followDistance + Mathf.Sin(Clock * .9f) * .1f);
+    }
+
+    public override float SpeedScale => .75f;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + 1.2f && Mathf.Abs(Pos.x - seen.x) < def.laneOffset + .8f;
+    public void Swap() { side = -side; }
+    public override Vector2 JoinFrom => Vector2.up;
 }

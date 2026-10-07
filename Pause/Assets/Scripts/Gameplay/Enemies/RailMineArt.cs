@@ -29,6 +29,21 @@ public static class RailMineArt
     public const int Dormant = 0, Waking = 1, Charging = 2, Burst = 3;
     public const int Columns = 4;
 
+    // Where a mine sits on its rail. The frames' pivot is the body's centre;
+    // the clamp's outer face is ClampReach further toward the wall (measured
+    // on the atlas: 0.326-0.336 u in every row). A mounted mine's centre is
+    // put where that face sits ClampBite inside the DRAWN rail's inner edge
+    // (WorldPainter.VisibleRailEdges), so the clamp visibly grips the rail
+    // whatever the rail art or the camera is (enmiesOnBoard.WorldRailX).
+    public const float ClampReach = .33f, ClampBite = .16f;
+    // Without the reinforced rail art (headless tests, a plain wall): the
+    // authored lane edge the mines always used.
+    public const float FallbackRailX = 2.35f;
+
+    // A mine's centre x (as a distance from the centre line) on a rail whose
+    // drawn inner edge is at `railInnerEdge`.
+    public static float MountX(float railInnerEdge) { return railInnerEdge + ClampBite - ClampReach; }
+
     // Atlas size and per-frame rects in image pixels, top-left origin
     // (as an image viewer shows them): x, y, width, height.
     public const int AtlasSize = 1254;

@@ -58,7 +58,7 @@ public class CodexToast : MonoBehaviour
 
     public static CodexToast Build()
     {
-        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false);
+        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false, 0f, CodexUi.TextUnits);
         var toast = canvas.gameObject.AddComponent<CodexToast>();
         toast.canvas = canvas;
         toast.BuildUi(CodexUi.FindFont());
@@ -123,6 +123,7 @@ public class CodexToast : MonoBehaviour
         queueCount--;
 
         nameText.text = entry.name;
+        if (warning == null) warning = FindFirstObjectByType<BossWarningHud>();
         icon.sprite = entry.Sprite;
         icon.enabled = icon.sprite != null;
         shownAt = Time.unscaledTime;
@@ -148,12 +149,58 @@ public class CodexToast : MonoBehaviour
         // Drop in from just above, under the top of the safe area.
         float safeTop = SafeTopInset();
         float slide = (1f - CodexUi.EaseOutCubic(t / InDuration)) * 24f;
-        box.anchoredPosition = new Vector2(0f, -(safeTop + TopMargin) + slide);
+        float sf = Mathf.Max(canvas.scaleFactor, .0001f);
+        bool warn = warning != null;
+        var portal = PortalPressureHud.Instance;
+        float top = TopOffset(safeTop, ScreenInfo.Height, sf,
+            warn && warning.BannerVisible ? warning.CurrentLayout.banner : default(Rect),
+            warn && warning.ChipVisible ? warning.CurrentLayout.chip : default(Rect),
+            portal != null && portal.Showing ? portal.ChipRect : default(Rect));
+        box.anchoredPosition = new Vector2(0f, -UnderCard(top, ScreenInfo.Height, sf, WorldBanner.ScreenRect) + slide);
+    }
+
+    // A centre-screen card (WorldBanner: ENTER THE PORTAL, a world's name)
+    // that the toast at `top` would run into: the toast drops in under it.
+    public static float UnderCard(float top, float screenH, float sf, Rect card)
+    {
+        if (card.height <= 0f) return top;
+        float toastTop = screenH - top * sf, toastBottom = toastTop - Height * sf;
+        if (toastBottom >= card.yMax || toastTop <= card.yMin) return top;
+        return (screenH - card.yMin) / sf + WarningGap;
+    }
+
+    // BOSS INCOMING (BossWarningHud) hangs its banner centred under the top
+    // band for the warning's first ~2.6 s, and its countdown chip under the
+    // quick actions for the rest of it -- where this toast sits on most
+    // phones. While either is up, the toast drops in under it instead of
+    // over it. The same goes for PORTAL DANGER's chip (PortalPressureHud),
+    // centred under the band while an open portal is kept waiting.
+    public const float WarningGap = 12f;
+    BossWarningHud warning;
+
+    // The toast's top, in canvas units below the screen's top: TopMargin
+    // under the safe area, or under the visible warning pieces (screen px
+    // rects; an empty rect = not showing).
+    public static float TopOffset(float safeTopUnits, float screenH, float sf, Rect banner, Rect chip)
+    {
+        return TopOffset(safeTopUnits, screenH, sf, banner, chip, default(Rect));
+    }
+
+    public static float TopOffset(float safeTopUnits, float screenH, float sf, Rect banner, Rect chip, Rect portalChip)
+    {
+        float top = safeTopUnits + TopMargin;
+        if (banner.height > 0f) top = Mathf.Max(top, (screenH - banner.yMin) / sf + WarningGap);
+        if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
+        if (portalChip.height > 0f) top = Mathf.Max(top, (screenH - portalChip.yMin) / sf + WarningGap);
+        // the read-out, when a small phone stacks it under the quick actions
+        Rect readout = HudStyler.StackedReadout;
+        if (readout.height > 0f) top = Mathf.Max(top, (screenH - readout.yMin) / sf + WarningGap);
+        return top;
     }
 
     float SafeTopInset()
     {
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        return (Screen.height - Screen.safeArea.yMax) / sf;
+        return (ScreenInfo.Height - ScreenInfo.SafeArea.yMax) / sf;
     }
 }

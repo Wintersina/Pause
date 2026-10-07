@@ -114,11 +114,15 @@ WALL_X, WALL_W = 3.21, 1.43            # gameS1 leftPipe / rightPipe quads (cent
 RAIL_X = 2.35                          # RailMineMount.WorldRailX on a 2.85 half-width view
 
 
+# WorldPainter.RailTextureName: every world flies between its reinforced
+# rail, mirrored on the right (the old flat wallLeft / wallRight are gone).
+RAILS = {"Space": "rail_space_wide_v1", "Frost": "rail_frost_wide_v1",
+         "Verdant": "rail_forest_wide_v1", "Ember": "rail_ember_wide_v1"}
+
+
 def wall_textures(world):
-    assets = os.path.dirname(ART_WORLDS)
-    if world == "Space":
-        return [os.path.join(assets, n) for n in ("left.png", "right.png")]
-    return [os.path.join(RESOURCES, world, n) for n in ("wallLeft.png", "wallRight.png")]
+    rail = os.path.join(RESOURCES, world, RAILS[world] + ".png")
+    return [rail, rail]
 
 
 def draw_walls(img, world, scroll=0.0):
@@ -127,6 +131,8 @@ def draw_walls(img, world, scroll=0.0):
     W, H = img.size
     for side, path in zip((-1, 1), wall_textures(world)):
         tex = Image.open(path).convert("RGBA")
+        if side > 0:
+            tex = tex.transpose(Image.FLIP_LEFT_RIGHT)
         qw = int(WALL_W * PPU)
         qh = int(10.8 * PPU)
         t = tex.resize((qw, qh), Image.NEAREST)

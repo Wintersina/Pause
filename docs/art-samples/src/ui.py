@@ -1,7 +1,7 @@
 """UI samples: HUD block, quick-action icons (Replay / Home), death panel.
 
 Shapes are chamfered (cut corners), never rounded. Type is Orbitron Bold
-(already in the project at Art/Orbitron) with an ink stroke under the fill.
+(already in the project at Art/Fonts/Orbitron) with an ink stroke under the fill.
 """
 import math
 from akira import *

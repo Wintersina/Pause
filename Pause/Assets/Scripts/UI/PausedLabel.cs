@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // "paused" SpriteRenderer that moveStarsBackground shows while the finger is
 // lifted and PausedOverlayAnim flips through).
 //
-// It is lettered after the home screen's PAUSE logo (Art/pause_title_2.png,
+// It is lettered after the home screen's PAUSE logo (Art/UI/Title/pause_title_2.png,
 // which is never touched): the logo's red fill (lighter at the top, deeper at
 // the foot), its thin white contour, its solid muted-red drop shadow knocked
 // down-right, and its soft red halo. The logo face itself isn't shipped as a
@@ -38,6 +38,16 @@ public class PausedLabel : MonoBehaviour
     const int FontSize = 64;
     // Orbitron's cap height as a share of the font size.
     const float CapRatio = 0.72f;
+
+    // WorldCapHeight -- or, on a screen small in points / dp (a 480x854
+    // phone), as much more as keeps the type at UiScale.MinTextPt.
+    public static float CapHeightFor(Camera cam)
+    {
+        if (!UiScale.Active || cam == null || !cam.orthographic || ScreenInfo.Height <= 0) return WorldCapHeight;
+        float worldPerPixel = 2f * cam.orthographicSize / ScreenInfo.Height;
+        float minFont = UiScale.MinTextPt * 1.05f * UiScale.PxPerPoint * worldPerPixel;
+        return Mathf.Max(WorldCapHeight, minFont * CapRatio);
+    }
 
     // Pop-in poses (x, y scale) for the squash and stretch ticks.
     static readonly Vector2 SquashPose = new Vector2(1.18f, 0.78f);
@@ -83,7 +93,7 @@ public class PausedLabel : MonoBehaviour
         group.interactable = false;
 
         // Canvas units -> world units, whatever the icon's own scale.
-        float unitsPerCanvas = WorldCapHeight / (FontSize * CapRatio);
+        float unitsPerCanvas = CapHeightFor(Camera.main) / (FontSize * CapRatio);
         Vector3 parentScale = icon.transform.lossyScale;
         float sx = Mathf.Abs(parentScale.x) > 1e-5f ? parentScale.x : 1f;
         float sy = Mathf.Abs(parentScale.y) > 1e-5f ? parentScale.y : 1f;

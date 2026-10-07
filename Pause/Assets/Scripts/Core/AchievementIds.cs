@@ -36,8 +36,8 @@ public static class AchievementIds
 
     public static readonly Entry[] All =
     {
-        // Leaderboard
-        new Entry(StringHolder.leaderboard_highest_speed_reached, "highest_speed", "Highest Speed Reached", 0, true),
+        // (No leaderboard entry: the speed board was retired with the speed
+        // cap, and the live boards keep their ids in LeaderboardBoards.)
 
         // One-shot achievements
         new Entry(StringHolder.achievement_logged_on_successfully, "logged_on", "Logged On Successfully", 5),

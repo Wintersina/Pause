@@ -164,7 +164,7 @@ public class TutorialGuides : MonoBehaviour
             var cam = Camera.main;
             if (cam == null) return false;
             Vector3 sp = cam.WorldToScreenPoint(worldTarget.position);
-            if (sp.z < 0f || sp.y > Screen.height || sp.y < 0f) return false;
+            if (sp.z < 0f || sp.y > ScreenInfo.Height || sp.y < 0f) return false;
             screen = new Vector2(sp.x, sp.y + 28f * Mathf.Max(.0001f, ScaleFactor()));
             dir = Vector2.down;
         }

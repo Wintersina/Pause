@@ -98,6 +98,8 @@ public sealed class BossDef
     public BossAttack[] attacks;
     // Colour the hit flash and ring are tinted with (never the player's red).
     public Color flash;
+    // BossConfig.Underside's cache (-1: not measured yet).
+    [System.NonSerialized] public float underside = -1f;
 }
 
 public static class BossCatalog

@@ -24,6 +24,9 @@ using UnityEngine;
 //   glob   resin lobbed in a high arc (Lob) onto a marked spot: harmless
 //          and untouchable in the air, it lands as a sticky pool that
 //          rides the board (poolSeconds) and catches whatever touches it
+// Any kind can be slung (Sling, the Singularity Hauler's gravity_sling):
+// it curves past a bend point through a ringed spot on the board, deadly
+// all the way, then flies straight on.
 // A def's shotBounces lets its shots glance off the side rails that many
 // times (the Rimebreaker's frost shards) instead of breaking there.
 // All drawn in the elite's shotColor with a shotCore centre -- magenta /
@@ -137,8 +140,17 @@ public class EliteShot : MonoBehaviour, IHostileShot
     int pierce, bounces;
     // a lobbed glob: in the air until `landAt`, flying from `lobFrom` to `lobTo`
     bool airborne;
+    // fired by a roster enemy (EnemyVolley): never hurts other hazards, and
+    // may ride the board (`ride` x the scroll is added to its fall)
+    bool rosterShot;
+    float ride;
     float lobTime, lobTotal;
     Vector2 lobFrom, lobTo;
+    // a slung shot (gravity_sling): on a curve from `slingFrom` past `slingBend`
+    // through `slingTo` (all riding the board), dangerous all the way
+    bool slung;
+    float slingTime, slingTotal;
+    Vector2 slingFrom, slingBend, slingTo;
 
     public bool Active { get; private set; }
     public EliteShots.Kind Kind { get; private set; }
@@ -148,8 +160,17 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float Radius => radius;
     public GameObject Hitbox => hitbox;
     public bool Airborne => airborne;
+    public bool RosterShot => rosterShot;
+    public float Ride => ride;
+    public float Age => age;
     public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
     public Vector2 LobTarget => lobTo;
+    public bool Slung => Active && slung;
+    public Vector2 SlingTarget => slingTo;
+    // A glob in the air: seconds until it lands, and the pool it will be.
+    public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
+    public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
+    public float PoolSeconds => def != null ? def.poolSeconds : 0f;
     public int Bounced { get; private set; }
     public bool MarkShown => mark != null && mark.enabled;
     // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard,
@@ -220,6 +241,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         EndReason = 0;
         LaunchedAt = at;
         airborne = false;
+        slung = false;
+        rosterShot = false;
+        ride = 0f;
         bounces = Mathf.Max(0, d.shotBounces);
         Bounced = 0;
         if (mark != null) mark.enabled = false;
@@ -253,6 +277,16 @@ public class EliteShot : MonoBehaviour, IHostileShot
         gameObject.SetActive(true);
     }
 
+    // Marks a just-fired shot as a roster enemy's (EnemyVolley): `source` is
+    // its shooter (shots of one enemy's volley never clash with each other),
+    // `rideBoard` the share of the board's scroll added to its fall.
+    public void AsRosterShot(GameObject source, float rideBoard)
+    {
+        rosterShot = true;
+        ride = rideBoard;
+        ownerId = source != null ? source.GetInstanceID() : 0;
+    }
+
     // Turns a just-fired glob into a lob onto `to` (world), landing in
     // `seconds`: no hitbox until it lands, a blinking ring marks the spot.
     public void Lob(Vector2 to, float seconds)
@@ -264,6 +298,28 @@ public class EliteShot : MonoBehaviour, IHostileShot
         lobTotal = Mathf.Max(.1f, seconds);
         velocity = (to - lobFrom) / lobTotal;
         hitCol.enabled = false;
+        mark.sprite = EliteFxArt.Ring;
+        mark.enabled = true;
+        mark.transform.position = new Vector3(to.x, to.y, 0f);
+        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+        mark.color = def.ShotColor;
+    }
+
+    // Turns a just-fired shot into a slung one (gravity_sling): it curves
+    // from where it is past `bend` and through `to` (world), arriving in
+    // `seconds`, then flies on along the curve. The three points ride the
+    // board; a blinking ring marks `to` while it is on its way. Its hitbox
+    // stays on: dangerous all along the curve.
+    public void Sling(Vector2 bend, Vector2 to, float seconds)
+    {
+        slung = true;
+        slingFrom = transform.position;
+        slingBend = bend;
+        slingTo = to;
+        slingTime = 0f;
+        slingTotal = Mathf.Max(.1f, seconds);
+        velocity = 2f * (bend - slingFrom) / slingTotal;
+        Face();
         mark.sprite = EliteFxArt.Ring;
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
@@ -355,8 +411,39 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float pulse = 1f + .08f * (Mathf.FloorToInt(age * 8f) % 2);
             core.transform.localScale = Vector3.one * .5f * pulse;
         }
-        p.x += velocity.x * dt;
-        p.y += velocity.y * dt;
+        if (slung)
+        {
+            // round the curve (a quadratic through the bend), the points riding the board
+            float fall = EliteSystem.Scroll * dt;
+            slingFrom.y -= fall;
+            slingBend.y -= fall;
+            slingTo.y -= fall;
+            slingTime += dt;
+            float k = Mathf.Clamp01(slingTime / slingTotal), u = 1f - k;
+            Vector2 c = u * u * slingFrom + 2f * u * k * slingBend + k * k * slingTo;
+            velocity = (2f * u * (slingBend - slingFrom) + 2f * k * (slingTo - slingBend)) / slingTotal;
+            p.x = c.x;
+            p.y = c.y;
+            Face();
+            mark.transform.position = new Vector3(slingTo.x, slingTo.y, 0f);
+            Color mc = def.ShotColor;
+            mc.a = Mathf.FloorToInt(slingTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
+            mark.color = mc;
+            if (k >= 1f)
+            {
+                // through the well: on along the curve (its tangent there)
+                slung = false;
+                mark.enabled = false;
+                velocity.y -= EliteSystem.Scroll;   // (the curve's own speed, plus the board's it was riding)
+            }
+            else velocity.y -= EliteSystem.Scroll;
+        }
+        else
+        {
+            p.x += velocity.x * dt;
+            p.y += velocity.y * dt;
+            if (ride != 0f) p.y -= EliteSystem.Scroll * ride * dt;
+        }
         transform.position = p;
 
         // the rails
@@ -385,7 +472,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // friendly fire
         Vector2 at = p;
         var live = ClearTarget.Live;
-        for (int i = 0; i < live.Count; i++)
+        // (a roster enemy's shot passes through other hazards: no friendly fire)
+        for (int i = 0; !rosterShot && i < live.Count; i++)
         {
             var t = live[i];
             if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
@@ -396,7 +484,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
             if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
             pool.CountFriendly();
             var elite = t.GetComponent<EliteShip>();
-            if (elite != null) elite.TakeHit(EliteDamage.FriendlyFire, p);
+            if (elite != null)
+            {
+                EliteShip.HitBy = Kind == EliteShots.Kind.Glob ? (own ? "own resin pool" : "resin pool") : own ? "own shot" : "elite shot";
+                elite.TakeHit(EliteDamage.FriendlyFire, p);
+            }
             else EliteShip.FriendlyKill(t.gameObject);
             if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
             break;   // the registry may have changed
@@ -414,6 +506,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         if (!Active) return;
         Active = false;
         airborne = false;
+        slung = false;
         if (mark != null) mark.enabled = false;
         gameObject.SetActive(false);
     }

@@ -337,13 +337,9 @@ public static class HeartsPlacementTest
     // heart stays inside the safe area all round its orbit.
     static void StayOnScreenOnEveryScreen()
     {
-        // movePlayer clamps the ship to x +-2.4, y -4.15..4.5.
-        var spots = new[]
-        {
-            Vector3.zero, new Vector3(-2.4f, 0f, 0f), new Vector3(2.4f, 0f, 0f), new Vector3(0f, -4.15f, 0f),
-            new Vector3(-2.4f, -4.15f, 0f), new Vector3(2.4f, -4.15f, 0f), new Vector3(0f, 4.5f, 0f),
-            new Vector3(-2.4f, 4.5f, 0f), new Vector3(2.4f, 4.5f, 0f),
-        };
+        // movePlayer clamps the ship to x +-2.4 and to ShipReach's floor and
+        // ceiling in each screen's view (they were the constant y -4.15..4.5).
+        var spots = new Vector3[9];
         var screens = new List<(string, Rect)> { ("gameplay", Gameplay) };
         foreach (var (name, w, h) in TallScreenTest.Screens)
         {
@@ -355,6 +351,10 @@ public static class HeartsPlacementTest
         foreach (var (name, safe) in screens)
         {
             ShipUiSlots.ScreenOverride = () => safe;
+            float half = Mathf.Max(5f, Mathf.Max(-safe.yMin, safe.yMax));
+            var view = new PlayField.Frame { bottom = -half, top = half, safeBottom = safe.yMin, safeTop = safe.yMax, bandBottom = safe.yMax };
+            float floor = ShipReach.BottomFor(view), ceiling = ShipReach.TopFor(view);
+            for (int i = 0; i < 9; i++) spots[i] = new Vector3((i % 3 - 1) * 2.4f, i / 3 == 0 ? 0f : i / 3 == 1 ? floor : ceiling, 0f);
             string offAt = null;
             foreach (int id in ShipId.All)
                 foreach (int count in new[] { ShipLives.Max(id), ShipLives.Most })

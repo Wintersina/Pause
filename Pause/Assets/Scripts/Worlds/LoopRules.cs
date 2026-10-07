@@ -1,61 +1,45 @@
 using UnityEngine;
 
-// Every tunable number for what happens after the final world, in one table.
+// Every tunable number for looping, in one table.
 //
-// When the Ember boss encounter ends the pilot picks (FinalChoicePanel):
+// Every level ends the same way: its boss, then a portal that stays open
+// until the ship flies through it (WorldManager, Portal, PortalPressure).
+// After the final world that portal leads back to the world the run started
+// in: the score carries on, RunLoop.Index goes up by one and the run plays
+// every world and boss again.
 //
-//   KEEP FLYING  stay in Ember for good. No portal, no more bosses: spawns and
-//                speed keep escalating (the Endless* numbers) until game over.
-//   LOOP BACK    a portal opens to the world the run started in. The score
-//                carries on, RunLoop.Index goes up by one and the run plays
-//                every world and boss again -- each loop a little harder (the
-//                per-loop numbers), and its boss / world bonuses worth a
-//                little more.
-//   (no pick)    when the countdown runs out: ONE MORE EMBER, THEN LOOP.
-//                The pilot stays in Ember and flies it once more as a loop
-//                pass -- a full level (same length, enemies, ramp and
-//                escalation, scaled as loop Index + 1), then the Ember boss
-//                again. When that boss ends the run goes straight into LOOP
-//                BACK (portal to the start world, score kept, loop + 1),
-//                without asking a second time. Score bonuses on the encore
-//                stay at the current loop's (it is the same loop until the
-//                portal); only its difficulty is the next loop's.
-//
-// Per-loop scaling uses min(loop, MaxScaledLoops), so a fifth loop is no
-// harder than the third. Defaults (loop 0 is the first pass, always x1):
+// Speed is capped at SpeedRamp.Cap (HUD 35) on every loop, so a loop is
+// harder -- and worth more -- along other axes. Per-loop scaling uses
+// min(loop, MaxScaledLoops), so a fifth loop is no harder than the fourth
+// pass. Defaults (loop 0 is the first pass, always x1 / +0):
 //
 //                          loop 1   loop 2   loop 3+
-//   arrival speed (HUD)       4        8       12      speed after a portal (was 0)
-//   speed ramp              x1.10    x1.20    x1.30
-//   max speed (HUD)          +2       +4       +4      capped by MaxSpeedBonusCap
+//   arrival speed (HUD)       4        8       12      speed after a portal (never below the ship's start)
+//   speed ramp              x1.10    x1.20    x1.30    35 arrives sooner
 //   enemy phase ramp        x1.15    x1.30    x1.45    enmiesOnBoard.phaseRampScale
 //   spawn density           x1.10    x1.20    x1.30    LoopDifficulty.DensityScale (enmiesOnBoard.Roll)
+//   pilot load               +0.5     +1.0     +1.5    EnemyDensity.MaxPilotLoad
+//   threat ceiling            +1       +2       +3     EnemyDensity.MaxThreats (x view scale)
+//   fighter tiers             +1       +2       +2     enmiesOnBoard.ChooseExtraDef
+//   roster shots alive        +2       +4       +6     EnemyThreat.ShotBudget
+//   volley gap              x0.90    x0.80    x0.70    EnemyThreat.Gap
 //   boss cooldowns          x0.90    x0.80    x0.70
 //   boss patterns           one more pattern from the start (head start 1/3)
 //   boss / world bonus      x1.5     x2.0     x2.5     (x3.0 at loop 4+, BonusLoopCap)
-//
-// KEEP FLYING (Ember, endless), on the world's clock while flying:
-//   max speed   +1 HUD every 25s past Ember's cap, at most +8 (200s)
-//   density     +20% a minute, at most x1.6 (on top of the loop's own)
-//   and never past AbsoluteMaxSpeed (HUD 72) whatever the loop: the old 0.78
-//   cap was dropped because the board stopped being readable up there.
+//   flight / kill points    x1.15    x1.30    x1.45    (x1.60 at loop 4+, BonusLoopCap)
 public static class LoopRules
 {
-    // ---- the choice ----
-    // Seconds (real time) before the panel picks ONE MORE EMBER, THEN LOOP
-    // by itself; 0 = never.
-    public static float AutoPickSeconds = 10f;
-    // A missed loop portal comes back after this much flight.
-    public static float LoopPortalRetrySeconds = 6f;
-
     // ---- per loop ----
     public static int MaxScaledLoops = 3;
     public static float ArrivalSpeedPerLoop = .04f;
     public static float RampPerLoop = .10f;
-    public static float MaxSpeedPerLoop = .02f;
-    public static float MaxSpeedBonusCap = .04f;
     public static float PhaseRampPerLoop = .15f;
     public static float DensityPerLoop = .10f;
+    public static float PilotLoadPerLoop = .5f;
+    public static float ThreatsPerLoop = 1f;
+    public static int TierShiftPerLoop = 1, TierShiftCap = 2;
+    public static int ShotsPerLoop = 2;
+    public static float VolleyGapPerLoop = .10f, VolleyGapFloor = .70f;
     public static float BossCooldownPerLoop = .10f;
     public static float BossCooldownFloor = .70f;
     // Fight progress added for the pattern unlocks (BossCatalog.UnlockedAttacks
@@ -65,27 +49,26 @@ public static class LoopRules
     // ---- bonuses ----
     public static float BonusPerLoop = .5f;
     public static int BonusLoopCap = 4;
-
-    // ---- KEEP FLYING ----
-    public static float EndlessSpeedPerSecond = .0004f;
-    public static float EndlessSpeedCap = .08f;
-    public static float EndlessDensityPerSecond = .2f / 60f;
-    public static float EndlessDensityCap = 1.6f;
-    // Seconds of flight between re-applying the endless numbers.
-    public static float EndlessStepSeconds = 1f;
-
-    // Nothing ever ramps past this (moveBackGround.speed; HUD 72).
-    public static float AbsoluteMaxSpeed = .72f;
+    // Flight (distance) and kill points per loop: speed can no longer rise
+    // with the loops, so the loop itself is what they are worth more for.
+    public static float ScorePerLoop = .15f;
 
     // ---- per-loop values ----
 
     static int Scaled(int loop) { return Mathf.Clamp(loop, 0, MaxScaledLoops); }
 
-    public static float ArrivalSpeed(int loop) { return ArrivalSpeedPerLoop * Scaled(loop); }
+    public static float ArrivalSpeed(int loop) { return Mathf.Min(SpeedRamp.Cap, ArrivalSpeedPerLoop * Scaled(loop)); }
     public static float RampScale(int loop) { return 1f + RampPerLoop * Scaled(loop); }
-    public static float MaxSpeedBonus(int loop) { return Mathf.Min(MaxSpeedBonusCap, MaxSpeedPerLoop * Scaled(loop)); }
     public static float PhaseRampScale(int loop) { return 1f + PhaseRampPerLoop * Scaled(loop); }
     public static float DensityScale(int loop) { return 1f + DensityPerLoop * Scaled(loop); }
+    public static float PilotLoadBonus(int loop) { return PilotLoadPerLoop * Scaled(loop); }
+    public static float ThreatBonus(int loop) { return ThreatsPerLoop * Scaled(loop); }
+    public static int TierShift(int loop) { return Mathf.Min(TierShiftCap, TierShiftPerLoop * Scaled(loop)); }
+    public static int ShotBonus(int loop) { return ShotsPerLoop * Scaled(loop); }
+    public static float VolleyGapScale(int loop)
+    {
+        return Mathf.Max(VolleyGapFloor, 1f - VolleyGapPerLoop * Scaled(loop));
+    }
     public static float BossCooldownScale(int loop)
     {
         return Mathf.Max(BossCooldownFloor, 1f - BossCooldownPerLoop * Scaled(loop));
@@ -97,25 +80,17 @@ public static class LoopRules
         return 1f + BonusPerLoop * Mathf.Clamp(loop, 0, BonusLoopCap);
     }
 
-    // A world's speed cap on `loop`, `endlessSeconds` into KEEP FLYING.
-    public static float MaxSpeed(float worldMax, int loop, float endlessSeconds)
+    public static float ScoreScale(int loop)
     {
-        float endless = Mathf.Min(EndlessSpeedCap, Mathf.Max(0f, endlessSeconds) * EndlessSpeedPerSecond);
-        return Mathf.Min(AbsoluteMaxSpeed, worldMax + MaxSpeedBonus(loop) + endless);
-    }
-
-    public static float Density(int loop, float endlessSeconds)
-    {
-        float endless = Mathf.Min(EndlessDensityCap, 1f + Mathf.Max(0f, endlessSeconds) * EndlessDensityPerSecond);
-        return DensityScale(loop) * endless;
+        return 1f + ScorePerLoop * Mathf.Clamp(loop, 0, BonusLoopCap);
     }
 }
 
-// The live per-loop / KEEP FLYING spawn-density factor, read by the enemy
-// spawner (enmiesOnBoard.Roll divides every rolled delay by
-// DensityMultiplier() * DensityScale). WorldManager sets it (LoopRules.Density)
-// on every world arrival and each endless step; it is 1 on a first pass.
-// SpawnLane still guards every row, so denser never means a closed lane.
+// The live per-loop spawn-density factor, read by the enemy spawner
+// (enmiesOnBoard.Roll divides every rolled delay by DensityMultiplier() *
+// DensityScale). WorldManager sets it (LoopRules.DensityScale) on every
+// world arrival; it is 1 on a first pass. SpawnLane still guards every row,
+// so denser never means a closed lane.
 public static class LoopDifficulty
 {
     public static float DensityScale = 1f;
@@ -128,17 +103,10 @@ public static class LoopDifficulty
 // leaves nothing behind. RunScore.BeginRun resets it with the run.
 public static class RunLoop
 {
-    // 0 on the first pass; +1 each time LOOP BACK's portal is flown.
+    // 0 on the first pass; +1 each time the final world's portal is flown.
     public static int Index { get; private set; }
-    // The world this run started in (the LOOP BACK destination).
+    // The world this run started in (where the final portal leads back to).
     public static int StartWorld { get; set; }
-    // The final-choice countdown ran out: the final world is being flown
-    // once more as a loop pass before the automatic LOOP BACK.
-    public static bool EncorePass { get; set; }
-    // The loop the world's difficulty is scaled for: the encore plays at the
-    // next loop's, though Index (and the score bonuses) only move on with
-    // LOOP BACK's portal.
-    public static int DifficultyIndex { get { return Index + (EncorePass ? 1 : 0); } }
 
     // "LOOP 2" for Index 1: the pass the pilot is on, counted from one.
     public static int DisplayNumber { get { return Index + 1; } }
@@ -147,13 +115,11 @@ public static class RunLoop
     {
         Index = 0;
         StartWorld = 0;
-        EncorePass = false;
         LoopDifficulty.Reset();
     }
 
     public static int Advance()
     {
-        EncorePass = false;
         Index++;
         return Index;
     }

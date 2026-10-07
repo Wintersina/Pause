@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 //
 //   death          -> SubmitRun (the service keeps only improvements)
 //   left mid-run   -> SubmitRun only if the run beat the local best score
-//                     or best speed
 //   app backgrounded mid-run with a new best -> queued too (the app may be
 //                     killed in the background); death later re-offers and
 //                     the improvement rule drops the duplicate.
@@ -15,8 +14,6 @@ public class LeaderboardRunTracker : MonoBehaviour
 {
     public const string RunScene = "gameS1";
 
-    long peakSpeed;
-    long bestAtStart;
     long runScore;
     long bestScoreAtStart;
     int furthestWorld;
@@ -24,8 +21,6 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     void Start()
     {
-        bestAtStart = Mathf.RoundToInt(PlayerPrefs.GetFloat("HighestSpeed"));
-        peakSpeed = 0;
         bestScoreAtStart = RunScore.SavedBest;
         runScore = 0;
         furthestWorld = WorldManager.CurrentIndex;
@@ -47,21 +42,19 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     void Sample()
     {
-        peakSpeed = System.Math.Max(peakSpeed, (long)Mathf.Round(moveBackGround.speed * 100f));
         furthestWorld = Mathf.Max(furthestWorld, WorldManager.CurrentIndex);
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 
-    bool BeatLocalBest { get { return peakSpeed > bestAtStart || runScore > bestScoreAtStart; } }
+    bool BeatLocalBest { get { return runScore > bestScoreAtStart; } }
 
     public LeaderboardRunStats Stats()
     {
         return new LeaderboardRunStats
         {
             score = runScore,
-            topSpeed = peakSpeed,
             starDust = StarDustLedger.Earned,
             worldIndex = furthestWorld,
         };

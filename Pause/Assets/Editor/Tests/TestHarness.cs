@@ -34,6 +34,41 @@ public static class TestHarness
         return false;
     }
 
+    // ---- allocation meter -------------------------------------------------
+    //
+    // Managed bytes allocated while `work` runs, from the profiler's GC.Alloc
+    // recorder. (GC.GetAllocatedBytesForCurrentThread always reads 0 under
+    // this Unity's Mono, so an "allocates nothing" check built on it can
+    // never fail; EnemyBehaviourTest found the recorder to be the meter that
+    // works here.) Warm `work` up first: a first call JITs and fills caches.
+    public static long AllocatedBytes(Action work)
+    {
+        using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1,
+                   Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately))
+        {
+            if (!rec.Valid) return -1;
+            long before = rec.CurrentValue;
+            work();
+            return rec.CurrentValue - before;
+        }
+    }
+
+    public const int AllocControlCount = 100;
+    static object allocSink;
+
+    // The positive control every allocation check runs first: AllocControlCount
+    // small arrays must be seen, or the meter is blind and the check must fail
+    // rather than pass on a zero. (The recorder's reading is a lower bound --
+    // it reads ~17 bytes per 32-byte array here -- so "0" is the only reading
+    // that means "nothing", and the floor is 8 bytes per array.)
+    public static bool AllocMeterWorks(out long controlBytes)
+    {
+        Action control = () => { for (int i = 0; i < AllocControlCount; i++) allocSink = new byte[32]; };
+        control();
+        controlBytes = AllocatedBytes(control);
+        return controlBytes >= AllocControlCount * 8;
+    }
+
     // Batch entry: non-zero exit code on any failure so CI/scripts notice.
     public static void Exit(int failures)
     {
@@ -59,7 +94,7 @@ public static class TestHarness
 
                 // A readonly field can't be reassigned, but the collection it
                 // holds can be put back. This matters for the static sprite
-                // caches (shopingShips.runtimeSprites, OriginalShipArt.cache):
+                // caches (shopingShips.runtimeSprites, ShipHullArt's caches):
                 // the editor destroys their Sprite.Create()d entries when the
                 // next scene opens, and a stale entry is never reloaded.
                 if (field.IsInitOnly)

@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -40,7 +40,9 @@ public static class RunScore
         public int deathComboKills, megaDominos;
         public int killCount, dustCount, atomCount, teleportCount, bossCount, worldCount;
         public int bestChain;
-        // Times LOOP BACK's portal was flown (RunLoop.Index at the end).
+        // Hostile projectiles absorbed by a shield (their points are in `kills`).
+        public int shieldedShots;
+        // Times the final world's portal was flown (RunLoop.Index at the end).
         public int loops;
         // The highest multiplier any points were earned at: speed on flight,
         // chain x speed on kills (within ScoreRules.MaxTotalMultiplier).
@@ -63,6 +65,7 @@ public static class RunScore
     static int chain;
     static float chainLeft;
     static int teleportsThisWorld;
+    static int shieldedShotsThisShield;
 
     // Run ends banked (tests, diagnostics).
     public static int BankCount { get; private set; }
@@ -128,6 +131,7 @@ public static class RunScore
         chain = 0;
         chainLeft = 0f;
         teleportsThisWorld = 0;
+        shieldedShotsThisShield = 0;
         // The loop is part of the run: a new run is always on its first pass.
         RunLoop.Reset();
         return runId;
@@ -165,6 +169,10 @@ public static class RunScore
     }
 
     static bool Live { get { return scoring && !ended; } }
+    // Live, and not waiting at an open portal past its grace: everything
+    // the pilot does for points goes through this (PortalPressure's
+    // anti-farm rule). Boss and world bonuses only need Live.
+    static bool Earning { get { return Live && !PortalPressure.EarningsClosed; } }
 
     // ---- per frame ----
 
@@ -173,9 +181,12 @@ public static class RunScore
     public static void Tick(float dt, float speed)
     {
         if (!Live || dt <= 0f) return;
-        float m = ScoreRules.SpeedMultiplierFor(speed);
-        distance += ScoreRules.DistancePoints(speed, dt) * m;
-        if (speed > 0f) NoteMultiplier(m);
+        if (Earning)
+        {
+            float m = ScoreRules.SpeedMultiplierFor(speed);
+            distance += ScoreRules.DistancePoints(speed, dt) * m * LoopRules.ScoreScale(RunLoop.Index);
+            if (speed > 0f) NoteMultiplier(m);
+        }
         if (chainLeft > 0f)
         {
             chainLeft -= dt;
@@ -191,7 +202,7 @@ public static class RunScore
     // before the multipliers (ScoreRules.TeleportKillBonus); boss parts ignore it.
     public static int OnKill(GameObject target, int bonusPoints = 0)
     {
-        if (!Live || target == null) return 0;
+        if (!Earning || target == null) return 0;
         string name = target.name;
         if (name.StartsWith("Boss"))
         {
@@ -209,7 +220,7 @@ public static class RunScore
         float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
         NoteMultiplier(m);
-        int points = Mathf.RoundToInt(basePoints * m);
+        int points = Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index));
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -221,10 +232,50 @@ public static class RunScore
     // speed multiplier, with the "ELITE DOWN" popup at `at`.
     public static int OnElite(Vector3 at, int points)
     {
-        if (!Live || points <= 0) return 0;
+        if (!Earning || points <= 0) return 0;
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);
+        return points;
+    }
+
+    // ---- shielded projectile hits ----
+
+    // A blue atom raised (or refreshed) the shield: its absorb allowance
+    // starts again (collisionDetection).
+    public static void OnShieldRaised()
+    {
+        shieldedShotsThisShield = 0;
+    }
+
+    public static int ShieldedShotsThisShield { get { return shieldedShotsThisShield; } }
+
+    // Is `go` a hostile projectile's hitbox (roster / elite shot or pool,
+    // boss shot)? Lasers and bodies are not.
+    public static bool IsHostileShot(GameObject go)
+    {
+        if (go == null) return false;
+        if (go.TryGetComponent(out EliteShotHitbox _)) return true;
+        var parent = go.transform.parent;
+        return parent != null && parent.TryGetComponent(out BossProjectile _);
+    }
+
+    // The shield (blue atom) absorbed hostile projectile `shot` at `at`:
+    // ScoreRules.ShieldedShot, flat, for the first ShieldedShotsPerShield of
+    // this shield. Counted with the kills. A boss shot is also paid its
+    // BossShot by OnKill on the same hit, so it gets the difference here:
+    // every absorbed projectile is worth the same. Returns what this added.
+    public static int OnShieldedShot(GameObject shot, Vector3 at)
+    {
+        if (!Earning || !IsHostileShot(shot)) return 0;
+        if (shieldedShotsThisShield >= ScoreRules.ShieldedShotsPerShield) return 0;
+        shieldedShotsThisShield++;
+        bool boss = !shot.TryGetComponent(out EliteShotHitbox _);
+        int points = Mathf.Max(0, ScoreRules.ShieldedShot - (boss ? ScoreRules.BossShot : 0));
+        if (points <= 0) return 0;
+        parts.kills += points;
+        parts.shieldedShots++;
+        Raise(ScoreRules.ShieldedShot, at, Source.Shield);
         return points;
     }
 
@@ -234,7 +285,7 @@ public static class RunScore
     // it only once the crash has finished.
     public static int OnDeathCombo(int points, int kills, bool mega)
     {
-        if (!Live || points <= 0) return 0;
+        if (!Earning || points <= 0) return 0;
         parts.deathCombo += points;
         parts.deathComboKills += Mathf.Max(0, kills);
         if (mega) parts.megaDominos++;
@@ -244,6 +295,8 @@ public static class RunScore
     public static int BasePoints(GameObject target)
     {
         var def = EnemyIdentity.Of(target);
+        // a rock pays by its size (HazardSize.RockPoints: 4 small, 5, up to 7 large)
+        if (def != null && HazardSize.Varies(def)) return HazardSize.RockPoints(EnemyIdentity.ScaleOf(target));
         if (def != null) return ScoreRules.KillPoints(def.role, def.tier);
         if (target.CompareTag("Astr")) return ScoreRules.Rock;
         if (PrefabName.Is(target, EnemyRoster.AlienObjectName)) return ScoreRules.Alien;
@@ -254,7 +307,7 @@ public static class RunScore
     // `at`: where it was caught (for the HUD popup); none -> no popup.
     public static int OnDust(bool large, Vector3? at = null)
     {
-        if (!Live) return 0;
+        if (!Earning) return 0;
         int points = large ? ScoreRules.LargeDust : ScoreRules.SmallDust;
         parts.dust += points;
         parts.dustCount++;
@@ -277,7 +330,7 @@ public static class RunScore
 
     public static int OnAtom(Atom kind, Vector3? at = null)
     {
-        if (!Live) return 0;
+        if (!Earning) return 0;
         int points = AtomPoints(kind);
         parts.atoms += points;
         parts.atomCount++;
@@ -287,7 +340,7 @@ public static class RunScore
 
     public static int OnTeleport(Vector3 from, Vector3 to)
     {
-        if (!Live) return 0;
+        if (!Earning) return 0;
         if (teleportsThisWorld >= ScoreRules.TeleportsScoredPerWorld) return 0;
         int points = ScoreRules.TeleportPoints(Vector2.Distance(from, to));
         if (points <= 0) return 0;
@@ -320,7 +373,7 @@ public static class RunScore
         return points;
     }
 
-    // LOOP BACK's portal was flown: the run is now on pass `loopIndex`
+    // The final world's portal was flown: the run is now on pass `loopIndex`
     // (the death panel's LOOPS line). Like every event, only while live.
     public static void OnLoop(int loopIndex)
     {

@@ -57,6 +57,9 @@ public sealed class EnemyDef
     public Vector2 ColliderSize => EnemyRoster.ColliderSize(role);
 
     public bool IsHazard => role == EnemyRole.Rock || role == EnemyRole.Mine;
+
+    // What it does: its movement pattern and attack (EnemyBehaviours).
+    public EnemyBehaviour Behaviour => EnemyBehaviours.For(key);
 }
 
 public static class EnemyRoster
@@ -174,6 +177,14 @@ public static class EnemyRoster
             default: return new[] { 6, 3, 2, 3 };   // fighter, chaser
         }
     }
+
+    // Per-enemy idle holds: the Space alien hovers on a calm 3 fps loop
+    // (8 ticks a drawing); everyone else uses its role's table.
+    public const int SpaceAlienIdleTicks = 8;
+    public static int[] IdleTicks(EnemyDef def) =>
+        def != null && def.key == "space_alien"
+            ? new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks }
+            : IdleTicks(def.role);
 
     public static int[] TellTicks(EnemyRole role)
     {

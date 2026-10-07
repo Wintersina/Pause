@@ -294,7 +294,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     void Update()
     {
         if (startedAt < 0f) startedAt = Time.unscaledTime;
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH) Fit();
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH) Fit();
         ApplyAt(Time.unscaledTime - startedAt);
     }
 
@@ -376,15 +376,15 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void Fit()
     {
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
         var canvas = GetComponentInParent<Canvas>();
         if (canvas == null) return;
         canvas = canvas.rootCanvas;
         var rootRect = ((RectTransform)transform).rect;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
 
-        Rect safe = Screen.safeArea;
+        Rect safe = ScreenInfo.SafeArea;
         var safeUnits = new Rect(safe.x / sf - rootRect.width * .5f, safe.y / sf - rootRect.height * .5f,
                                  safe.width / sf, safe.height / sf);
 
@@ -410,6 +410,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         ComputeFit(safeUnits, blocker, out centre, out fitScale);
         panel.anchoredPosition = centre;
         if (finalApplied) panel.localScale = Vector3.one * fitScale;
+        DeathPanelView.PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
     }
 
     // Same rule as DeathPanelView.ComputeFit, for this panel's size.

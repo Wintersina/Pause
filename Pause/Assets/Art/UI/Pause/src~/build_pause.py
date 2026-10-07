@@ -6,7 +6,7 @@ rasterises them with resvg.
   python3 build_pause.py
 
 Outputs (file names and Resources paths are fixed by the game):
-  Art/paused_1.png                         scene's initial sprite (PAUSED)
+  Art/UI/Pause/paused_1.png                scene's initial sprite (PAUSED)
   Art/Resources/PauseGlow/pausedGlow_a.png variant A (moveStarsBackground
   Art/Resources/PauseGlow/pausedGlow_b.png variant B  picks one per pause)
   Art/Resources/PauseGlowFx/pausedGlow_<a|b>_<k>.png  flipbook frames that
@@ -21,7 +21,7 @@ import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
-FONT = os.path.join(ASSETS, "Art", "Orbitron", "Orbitron-Bold.ttf")
+FONT = os.path.join(ASSETS, "Art", "Fonts", "Orbitron", "Orbitron-Bold.ttf")
 
 RED, RED_SH, RED_HI = "#D8232C", "#86121F", "#FF5B45"
 INK, BONE, CYAN, AMBER = "#140C14", "#F4EAD4", "#6EF2EE", "#FFB43C"
@@ -111,7 +111,7 @@ def render(svg_text, name, out_png, w=None, h=None):
 def main():
     art = os.path.join(ASSETS, "Art")
     render(svg(wordmark(), 386, 94, "PAUSED wordmark: BONE italic Orbitron on the red title slab, INK contour and cel offset."),
-           "paused_1.svg", os.path.join(art, "paused_1.png"))
+           "paused_1.svg", os.path.join(art, "UI", "Pause", "paused_1.png"))
     fx = os.path.join(art, "Resources", "PauseGlowFx")
     # frame src SVGs are scratch: written to a temp name and kept out of git
     for v in ("a", "b"):
