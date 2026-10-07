@@ -91,6 +91,9 @@ public class EliteArtSync : AssetPostprocessor
     {
         string file = Path.GetFileName(source);
         if (!IsFinalStrip(file)) return false;
+        // Hidden source folders (Codex's src~/ masters and FX overlays) are
+        // never strips.
+        if (source.Replace('\\', '/').Contains("~/")) return false;
         string world = Path.GetFileName(Path.GetDirectoryName(source));
         string dir = TargetRoot + "/" + world;
         string target = dir + "/" + TargetName(world, file);
