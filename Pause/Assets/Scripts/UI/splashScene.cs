@@ -68,6 +68,11 @@ public class splashScene : MonoBehaviour
 
     float elapsed;
     bool leaving;
+    Transform leftGate, rightGate;
+    Transform gateRoot;
+    Sprite leftPanelSprite, rightPanelSprite, steamSprite;
+    readonly Transform[] steam = new Transform[6];
+    readonly SpriteRenderer[] steamRenderers = new SpriteRenderer[6];
 
     Camera cam;
     Vector2[] wordsAuthored;
@@ -160,6 +165,19 @@ public class splashScene : MonoBehaviour
             var t = logo.transform;
             t.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y, t.position.z);
             SetWorldScale(t, new Vector3(l.logoScale, l.logoScale, 1f));
+            logo.color = Color.white;
+        }
+
+        if (Application.isPlaying)
+        {
+            EnsureGate();
+            if (gateRoot != null)
+            {
+                gateRoot.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y,
+                                                logo != null ? logo.transform.position.z - 0.15f : 0f);
+                gateRoot.localScale = Vector3.one * l.logoSize.x;
+                AnimateGate();
+            }
         }
 
         if (words != null)
@@ -210,9 +228,99 @@ public class splashScene : MonoBehaviour
         // Unscaled: this is the first scene, and a timeScale left at 0 by a
         // previous run would otherwise stall the card indefinitely.
         elapsed += Time.unscaledDeltaTime;
+        AnimateGate();
 
         if (elapsed >= holdSeconds || (elapsed >= skipLockout && Skipped()))
             Leave();
+    }
+
+    void EnsureGate()
+    {
+        if (gateRoot != null) return;
+        var panels = Resources.Load<Texture2D>("HapticGate/industrial_gate");
+        var vapor = Resources.Load<Texture2D>("HapticGate/steam");
+        if (panels == null || vapor == null) return;
+        panels.filterMode = FilterMode.Point;
+        vapor.filterMode = FilterMode.Point;
+        gateRoot = new GameObject("Industrial gate").transform;
+        leftPanelSprite = PanelSprite(panels, 0.055f);
+        rightPanelSprite = PanelSprite(panels, 0.51f);
+        leftGate = NewPanel("Left steel door", leftPanelSprite);
+        rightGate = NewPanel("Right steel door", rightPanelSprite);
+        steamSprite = Sprite.Create(vapor, new Rect(0, 0, vapor.width, vapor.height),
+                                    new Vector2(0.5f, 0.5f), 100f);
+        for (int i = 0; i < steam.Length; i++)
+        {
+            var puff = new GameObject("Vent steam " + i);
+            puff.transform.SetParent(gateRoot, false);
+            steam[i] = puff.transform;
+            var sr = puff.AddComponent<SpriteRenderer>();
+            sr.sprite = steamSprite;
+            sr.sortingOrder = 3;
+            steamRenderers[i] = sr;
+        }
+    }
+
+    static Sprite PanelSprite(Texture2D texture, float x)
+    {
+        return Sprite.Create(texture,
+                             new Rect(texture.width * x, texture.height * 0.05f,
+                                      texture.width * 0.44f, texture.height * 0.9f),
+                             new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+    }
+
+    Transform NewPanel(string name, Sprite sprite)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(gateRoot, false);
+        go.transform.localScale = Vector3.one * (0.5f / sprite.bounds.size.x);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = sprite;
+        sr.sortingOrder = 2;
+        return go.transform;
+    }
+
+    void AnimateGate()
+    {
+        if (gateRoot == null) return;
+        // A held latch, then a smooth powered slide with a small damped stop.
+        float t = elapsed;
+        float latch = t < 0.32f ? Mathf.Sin(t * 68f) * (0.32f - t) * 0.002f : 0f;
+        float open = Mathf.Clamp01((t - 0.32f) / 1.10f);
+        float smooth = open * open * (3f - 2f * open);
+        float stop = open > 0.8f ? Mathf.Sin((open - 0.8f) * 24f) * (1f - open) * 0.009f : 0f;
+        float travel = 0.58f * smooth + stop;
+        leftGate.localPosition = new Vector3(-0.25f - travel + latch, 0f, 0f);
+        rightGate.localPosition = new Vector3(0.25f + travel - latch, 0f, 0f);
+
+        // Repeating puffs rise from both vents. Their staggered life phases
+        // keep the smoke moving smoothly between rendered frames.
+        for (int i = 0; i < steam.Length; i++)
+        {
+            float age = Mathf.Repeat(t - 0.28f - i * 0.18f, 1.08f) / 1.08f;
+            bool active = t >= 0.28f + i * 0.18f && t < 1.85f;
+            float side = i % 2 == 0 ? -1f : 1f;
+            steam[i].localPosition = new Vector3(side * (0.10f + smooth * 0.44f + age * 0.10f),
+                                                  -0.21f + age * 0.31f, -0.02f);
+            float size = 0.065f + age * 0.12f;
+            steam[i].localScale = Vector3.one * (size / steamSprite.bounds.size.x);
+            float alpha = active ? Mathf.Sin(age * Mathf.PI) * 0.56f * (1f - 0.35f * smooth) : 0f;
+            steamRenderers[i].color = new Color(0.74f, 0.85f, 0.92f, alpha);
+        }
+    }
+
+    void OnDestroy()
+    {
+        Release(leftPanelSprite);
+        Release(rightPanelSprite);
+        Release(steamSprite);
+    }
+
+    static void Release(Object asset)
+    {
+        if (asset == null) return;
+        if (Application.isPlaying) Destroy(asset);
+        else DestroyImmediate(asset);
     }
 
     static bool Skipped()
