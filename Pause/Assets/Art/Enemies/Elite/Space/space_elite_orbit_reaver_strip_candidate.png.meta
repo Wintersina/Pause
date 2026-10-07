@@ -23,6 +23,21 @@ TextureImporter:
   - first:
       213: 5386761662505089765
     second: space_elite_orbit_reaver_strip_candidate_6
+  - first:
+      213: -1997977140795587460
+    second: space_elite_orbit_reaver_strip_candidate_7
+  - first:
+      213: 2502053478260076568
+    second: space_elite_orbit_reaver_strip_candidate_8
+  - first:
+      213: -4229970514851790182
+    second: space_elite_orbit_reaver_strip_candidate_9
+  - first:
+      213: -8785241820107986920
+    second: space_elite_orbit_reaver_strip_candidate_10
+  - first:
+      213: -3656161554412151072
+    second: space_elite_orbit_reaver_strip_candidate_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +67,7 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 2048
+  maxTextureSize: 4096
   textureSettings:
     serializedVersion: 2
     filterMode: 1
@@ -90,7 +105,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -103,7 +118,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -116,7 +131,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -129,7 +144,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: iOS
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -147,19 +162,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 18
-        width: 144
-        height: 156
+        x: 0
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 840e66b76902168e0800000000000000
+      spriteID: 3c434ad5d26784839a3dc945614bc677
       internalID: -1702043353481813944
       vertices: []
       indices: 
@@ -169,19 +184,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_1
       rect:
         serializedVersion: 2
-        x: 216
-        y: 18
-        width: 144
-        height: 156
+        x: 192
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 975bcedaa7fe666d0800000000000000
+      spriteID: cca9f6ed3d3ca3134266e873e637a8f8
       internalID: -2997445191785466503
       vertices: []
       indices: 
@@ -191,19 +206,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_2
       rect:
         serializedVersion: 2
-        x: 408
-        y: 18
-        width: 144
-        height: 156
+        x: 384
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 20e7266ecb1fc6a30800000000000000
+      spriteID: a1526a90d02bbed0c4bace9f11ea3d51
       internalID: 4210005545305931266
       vertices: []
       indices: 
@@ -213,19 +228,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_3
       rect:
         serializedVersion: 2
-        x: 600
-        y: 18
-        width: 144
-        height: 156
+        x: 576
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5ea99330e77dc3580800000000000000
+      spriteID: db9fba28d38e61d272217fb0df1ca7a8
       internalID: -8845958631842538779
       vertices: []
       indices: 
@@ -235,19 +250,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_4
       rect:
         serializedVersion: 2
-        x: 794
-        y: 15
-        width: 147
-        height: 161
+        x: 768
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 95fddf31e9b83b970800000000000000
+      spriteID: ca0e2a1d9c66bd277e6eb70f994ad85c
       internalID: 8769506410476986201
       vertices: []
       indices: 
@@ -257,19 +272,19 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_5
       rect:
         serializedVersion: 2
-        x: 979
-        y: 15
-        width: 147
-        height: 161
+        x: 960
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4cba4fa32b13f1e00800000000000000
+      spriteID: 26d5ca12ecaf9a1c75b765d035164e98
       internalID: 1017586682372074436
       vertices: []
       indices: 
@@ -279,20 +294,130 @@ TextureImporter:
       name: space_elite_orbit_reaver_strip_candidate_6
       rect:
         serializedVersion: 2
-        x: 1176
-        y: 18
-        width: 144
-        height: 156
+        x: 1152
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5eafe47113f91ca40800000000000000
+      spriteID: 58d852a402c02fd1e50468cdd1632ece
       internalID: 5386761662505089765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 1344
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36cd2f793f5f1759e86b933e2e59b151
+      internalID: -1997977140795587460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_strip_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1ec86b23f6cf9305fc776a209d1528c
+      internalID: 2502053478260076568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_strip_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1728
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd29506f499f817e8a05bac93c318676
+      internalID: -4229970514851790182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_strip_candidate_10
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce82e5edcd0963c1c9e1e2f8cd00e114
+      internalID: -8785241820107986920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_strip_candidate_11
+      rect:
+        serializedVersion: 2
+        x: 2112
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73255e5bb5e52d0e24ac221665464ee9
+      internalID: -3656161554412151072
       vertices: []
       indices: 
       edges: []
@@ -318,6 +443,11 @@ TextureImporter:
       space_elite_orbit_reaver_strip_candidate_4: 8769506410476986201
       space_elite_orbit_reaver_strip_candidate_5: 1017586682372074436
       space_elite_orbit_reaver_strip_candidate_6: 5386761662505089765
+      space_elite_orbit_reaver_strip_candidate_7: -1997977140795587460
+      space_elite_orbit_reaver_strip_candidate_8: 2502053478260076568
+      space_elite_orbit_reaver_strip_candidate_9: -4229970514851790182
+      space_elite_orbit_reaver_strip_candidate_10: -8785241820107986920
+      space_elite_orbit_reaver_strip_candidate_11: -3656161554412151072
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

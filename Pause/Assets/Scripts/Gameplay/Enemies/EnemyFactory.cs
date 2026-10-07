@@ -79,6 +79,7 @@ public static class EnemyFactory
 
         var flipbook = def.role == EnemyRole.Mine ? go.AddComponent<RailBombAnimator>() : go.AddComponent<EnemyFlipbook>();
         flipbook.Init(def);
+        if (def.key == "space_alien") go.AddComponent<AlienArrivalSmoke>();
         ClearTarget.Ensure(go);
 
         if (behaviour != null && def.role != EnemyRole.Chaser)

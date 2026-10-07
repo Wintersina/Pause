@@ -23,6 +23,21 @@ TextureImporter:
   - first:
       213: 1320556000828581242
     second: space_elite_rift_lancer_strip_candidate_6
+  - first:
+      213: -490380687081926309
+    second: space_elite_rift_lancer_strip_candidate_7
+  - first:
+      213: 5080344585706643882
+    second: space_elite_rift_lancer_strip_candidate_8
+  - first:
+      213: 7986089846819773334
+    second: space_elite_rift_lancer_strip_candidate_9
+  - first:
+      213: 2300460359973034678
+    second: space_elite_rift_lancer_strip_candidate_10
+  - first:
+      213: 4186228378774255157
+    second: space_elite_rift_lancer_strip_candidate_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +67,7 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 2048
+  maxTextureSize: 4096
   textureSettings:
     serializedVersion: 2
     filterMode: 1
@@ -90,7 +105,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -103,7 +118,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -116,7 +131,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -129,7 +144,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: iOS
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -147,19 +162,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_0
       rect:
         serializedVersion: 2
-        x: 42
-        y: 18
-        width: 107
-        height: 156
+        x: 0
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 727a5eb025eb14780800000000000000
+      spriteID: d4f2121d47befd73497c7d55bdf12095
       internalID: -8700463745506891993
       vertices: []
       indices: 
@@ -169,19 +184,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_1
       rect:
         serializedVersion: 2
-        x: 234
-        y: 18
-        width: 107
-        height: 156
+        x: 192
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f37470e87b1ff2a20800000000000000
+      spriteID: 609063cd8c7f97cde5717448412b30f7
       internalID: 3039914044162524991
       vertices: []
       indices: 
@@ -191,19 +206,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_2
       rect:
         serializedVersion: 2
-        x: 426
-        y: 18
-        width: 107
-        height: 156
+        x: 384
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 809713b2d0a593130800000000000000
+      spriteID: 2deb48f1c70c8924329cfccc5aae4bcc
       internalID: 3546965194136713480
       vertices: []
       indices: 
@@ -213,19 +228,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_3
       rect:
         serializedVersion: 2
-        x: 618
-        y: 18
-        width: 107
-        height: 156
+        x: 576
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 13ebc469b85a1ad50800000000000000
+      spriteID: 196d9786f5eb1f918c40e0e2aedf8b86
       internalID: 6746855735718362673
       vertices: []
       indices: 
@@ -235,19 +250,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_4
       rect:
         serializedVersion: 2
-        x: 816
-        y: 13
-        width: 111
-        height: 161
+        x: 768
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e158992229a97e290800000000000000
+      spriteID: 683bbdb8ee56ba76cb9e562133ec8d2d
       internalID: -7861144672115522274
       vertices: []
       indices: 
@@ -257,19 +272,19 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_5
       rect:
         serializedVersion: 2
-        x: 991
-        y: 13
-        width: 112
-        height: 161
+        x: 960
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ab9da7486700f00a0800000000000000
+      spriteID: 0af982d6ac9e4a72afbb615b2324240a
       internalID: -6913306393961637446
       vertices: []
       indices: 
@@ -279,20 +294,130 @@ TextureImporter:
       name: space_elite_rift_lancer_strip_candidate_6
       rect:
         serializedVersion: 2
-        x: 1194
-        y: 18
-        width: 107
-        height: 156
+        x: 1152
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a75e567afae835210800000000000000
+      spriteID: 49edf6003f8085b5f72b2db7b35f5c70
       internalID: 1320556000828581242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 1344
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a1795df16aa9a9ba3f09f4a18f97930
+      internalID: -490380687081926309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_strip_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7a95a6185024ac5f4e5322860d1a8ad
+      internalID: 5080344585706643882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_strip_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1728
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f194da8dc3b60296a1091b2d2245a67
+      internalID: 7986089846819773334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_strip_candidate_10
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 064c5f9d0b3ee295c20b9c0b8305348a
+      internalID: 2300460359973034678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_strip_candidate_11
+      rect:
+        serializedVersion: 2
+        x: 2112
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb621d735ca7e91530291f441847e0b0
+      internalID: 4186228378774255157
       vertices: []
       indices: 
       edges: []
@@ -318,6 +443,11 @@ TextureImporter:
       space_elite_rift_lancer_strip_candidate_4: -7861144672115522274
       space_elite_rift_lancer_strip_candidate_5: -6913306393961637446
       space_elite_rift_lancer_strip_candidate_6: 1320556000828581242
+      space_elite_rift_lancer_strip_candidate_7: -490380687081926309
+      space_elite_rift_lancer_strip_candidate_8: 5080344585706643882
+      space_elite_rift_lancer_strip_candidate_9: 7986089846819773334
+      space_elite_rift_lancer_strip_candidate_10: 2300460359973034678
+      space_elite_rift_lancer_strip_candidate_11: 4186228378774255157
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -30,6 +30,7 @@ public class TitleScreenAlien : MonoBehaviour
         Flipbook = GetComponent<EnemyFlipbook>();
         if (Flipbook == null) Flipbook = gameObject.AddComponent<EnemyFlipbook>();
         Flipbook.Init(Def);
+        if (GetComponent<AlienArrivalSmoke>() == null) gameObject.AddComponent<AlienArrivalSmoke>();
         return Flipbook;
     }
 }

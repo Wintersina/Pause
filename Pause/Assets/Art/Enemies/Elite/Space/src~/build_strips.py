@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build seven-cell review strips from the four high-resolution Space concepts."""
+"""Build twelve-cell review strips from the four high-resolution Space concepts."""
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -7,12 +7,20 @@ from PIL import Image, ImageDraw
 HERE = Path(__file__).resolve().parent.parent
 CELL = 192
 NAMES = ("rift_lancer", "eventide_bastion", "orbit_reaver", "singularity_hauler")
-BOOSTERS = {
-    "rift_lancer": ((84, 156), (108, 156)),
-    "eventide_bastion": ((59, 142), (79, 142), (113, 142), (133, 142)),
-    "orbit_reaver": ((80, 153), (96, 158), (112, 153)),
-    "singularity_hauler": ((70, 148), (91, 151), (111, 151), (132, 148)),
+BOOST_SIZE = {
+    "rift_lancer": (54, 50),
+    "eventide_bastion": (105, 53),
+    "orbit_reaver": (72, 52),
+    "singularity_hauler": (90, 53),
 }
+BOOST_FX = Image.open(HERE / "src~" / "boost_fx.png").convert("RGBA")
+DEATH_FX = Image.open(HERE / "src~" / "death_fx.png").convert("RGBA")
+
+
+def effect_cell(atlas, index, count):
+    width = atlas.width // count
+    cell = atlas.crop((index * width, 0, (index + 1) * width, atlas.height))
+    return cell.crop(cell.getchannel("A").getbbox())
 
 
 def master(name):
@@ -48,20 +56,28 @@ def damaged(cell):
     return result
 
 
-def boosted(cell, name):
+def boosted(cell, name, index):
     result = Image.new("RGBA", (CELL, CELL))
-    flames = Image.new("RGBA", (CELL, CELL))
-    draw = ImageDraw.Draw(flames)
-    for x, y in BOOSTERS[name]:
-        y -= 12
-        draw.polygon(((x - 8, y), (x + 8, y), (x, min(CELL - 3, y + 42))),
-                     fill=(15, 87, 255, 175))
-        draw.polygon(((x - 5, y), (x + 5, y), (x, min(CELL - 7, y + 29))),
-                     fill=(22, 215, 255, 235))
-        draw.polygon(((x - 2, y), (x + 2, y), (x, min(CELL - 10, y + 18))),
-                     fill=(227, 255, 255, 255))
-    result.alpha_composite(flames)
-    result.alpha_composite(cell, (0, -12))
+    width, height = BOOST_SIZE[name]
+    if index == 0:
+        width, height = round(width * .82), round(height * .78)
+    plume = effect_cell(BOOST_FX, index, 2).resize((width, height), Image.Resampling.NEAREST)
+    result.alpha_composite(plume, ((CELL - width) // 2, CELL - height))
+    result.alpha_composite(cell)
+    return result
+
+
+def death_frame(cell, index):
+    result = Image.new("RGBA", (CELL, CELL))
+    if index < 2:
+        hull = damaged(cell)
+        if index == 1:
+            hull.putalpha(hull.getchannel("A").point(lambda a: round(a * .38)))
+        result.alpha_composite(hull)
+    size = (130, 177, 168)[index]
+    effect = effect_cell(DEATH_FX, index, 3).resize((size, size), Image.Resampling.NEAREST)
+    effect.putalpha(effect.getchannel("A").point(lambda a: round(a * (.82, .94, .9)[index])))
+    result.alpha_composite(effect, ((CELL - size) // 2, (CELL - size) // 2))
     return result
 
 
@@ -76,21 +92,11 @@ def build(name):
         base.rotate(-8, Image.Resampling.BICUBIC),
         damaged(engine_state(base, 0.65)),
     )
-    strip = Image.new("RGBA", (CELL * len(states), CELL))
-    for i, frame in enumerate(states):
+    frames = states + (boosted(base, name, 0), boosted(base, name, 1)) + tuple(death_frame(base, i) for i in range(3))
+    strip = Image.new("RGBA", (CELL * len(frames), CELL))
+    for i, frame in enumerate(frames):
         strip.alpha_composite(frame, (i * CELL, 0))
     strip.save(HERE / f"space_elite_{name}_strip_candidate.png")
-
-    motion = (
-        engine_state(base, 0.35),
-        base.rotate(8, Image.Resampling.BICUBIC),
-        base.rotate(-8, Image.Resampling.BICUBIC),
-        boosted(base, name),
-    )
-    motion_strip = Image.new("RGBA", (CELL * len(motion), CELL))
-    for i, frame in enumerate(motion):
-        motion_strip.alpha_composite(frame, (i * CELL, 0))
-    motion_strip.save(HERE / f"space_elite_{name}_motion_candidate.png")
 
 
 if __name__ == "__main__":

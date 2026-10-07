@@ -23,6 +23,21 @@ TextureImporter:
   - first:
       213: 3329008881862625024
     second: space_elite_singularity_hauler_strip_candidate_6
+  - first:
+      213: -6669851920236536798
+    second: space_elite_singularity_hauler_strip_candidate_7
+  - first:
+      213: 5608816350041283797
+    second: space_elite_singularity_hauler_strip_candidate_8
+  - first:
+      213: 4545569681446739030
+    second: space_elite_singularity_hauler_strip_candidate_9
+  - first:
+      213: -1943165499245725879
+    second: space_elite_singularity_hauler_strip_candidate_10
+  - first:
+      213: 2036653133181810899
+    second: space_elite_singularity_hauler_strip_candidate_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +67,7 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 2048
+  maxTextureSize: 4096
   textureSettings:
     serializedVersion: 2
     filterMode: 1
@@ -90,7 +105,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -103,7 +118,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -116,7 +131,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -129,7 +144,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: iOS
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -147,19 +162,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_0
       rect:
         serializedVersion: 2
-        x: 30
-        y: 18
-        width: 132
-        height: 156
+        x: 0
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5e950ba9ce55ae7e0800000000000000
+      spriteID: 5b293e38cf8d6acfacb4d8985b710042
       internalID: -1735480231702013467
       vertices: []
       indices: 
@@ -169,19 +184,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_1
       rect:
         serializedVersion: 2
-        x: 222
-        y: 18
-        width: 132
-        height: 156
+        x: 192
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8a9be78a7e36b1870800000000000000
+      spriteID: 289356a23948189320a54529cc0ad489
       internalID: 8654620955538012584
       vertices: []
       indices: 
@@ -191,19 +206,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_2
       rect:
         serializedVersion: 2
-        x: 414
-        y: 18
-        width: 132
-        height: 156
+        x: 384
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 91cf431e93d0e0b90800000000000000
+      spriteID: 50f08deb18a5efba2896bdcb190e611a
       internalID: -7273861805914129383
       vertices: []
       indices: 
@@ -213,19 +228,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_3
       rect:
         serializedVersion: 2
-        x: 606
-        y: 18
-        width: 132
-        height: 156
+        x: 576
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e28b99dc7d80bf2b0800000000000000
+      spriteID: c1c80a630de734f3d3336f40ab685b8e
       internalID: -5549832392843610066
       vertices: []
       indices: 
@@ -235,19 +250,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_4
       rect:
         serializedVersion: 2
-        x: 797
-        y: 18
-        width: 135
-        height: 156
+        x: 768
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6aa80509e165a19b0800000000000000
+      spriteID: cec360e0f7d93ce3ee890b006c3d6d5c
       internalID: -5108676138028201306
       vertices: []
       indices: 
@@ -257,19 +272,19 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_5
       rect:
         serializedVersion: 2
-        x: 989
-        y: 18
-        width: 133
-        height: 156
+        x: 960
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3fce7baa0592c9080800000000000000
+      spriteID: 6c2eab5090b878528a89b19b6c31b4db
       internalID: -9179416514049610509
       vertices: []
       indices: 
@@ -279,20 +294,130 @@ TextureImporter:
       name: space_elite_singularity_hauler_strip_candidate_6
       rect:
         serializedVersion: 2
-        x: 1182
-        y: 18
-        width: 132
-        height: 156
+        x: 1152
+        y: 0
+        width: 192
+        height: 192
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 007ca81b0f3033e20800000000000000
+      spriteID: 0f4a0cf4d3ef3b0910cc1fc51e6feeef
       internalID: 3329008881862625024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_strip_candidate_7
+      rect:
+        serializedVersion: 2
+        x: 1344
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a54b87607a71df530c64247c0ff14b9e
+      internalID: -6669851920236536798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_strip_candidate_8
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 008f9dc9c5c47278deac25154f33ec37
+      internalID: 5608816350041283797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_strip_candidate_9
+      rect:
+        serializedVersion: 2
+        x: 1728
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fb2b8b88faec82e218e8d577f38d310
+      internalID: 4545569681446739030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_strip_candidate_10
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f99acd7af44ebc16db2379da7b7646f6
+      internalID: -1943165499245725879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_strip_candidate_11
+      rect:
+        serializedVersion: 2
+        x: 2112
+        y: 0
+        width: 192
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: faf278459503034bf20f16aeb4e9f031
+      internalID: 2036653133181810899
       vertices: []
       indices: 
       edges: []
@@ -318,6 +443,11 @@ TextureImporter:
       space_elite_singularity_hauler_strip_candidate_4: -5108676138028201306
       space_elite_singularity_hauler_strip_candidate_5: -9179416514049610509
       space_elite_singularity_hauler_strip_candidate_6: 3329008881862625024
+      space_elite_singularity_hauler_strip_candidate_7: -6669851920236536798
+      space_elite_singularity_hauler_strip_candidate_8: 5608816350041283797
+      space_elite_singularity_hauler_strip_candidate_9: 4545569681446739030
+      space_elite_singularity_hauler_strip_candidate_10: -1943165499245725879
+      space_elite_singularity_hauler_strip_candidate_11: 2036653133181810899
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
