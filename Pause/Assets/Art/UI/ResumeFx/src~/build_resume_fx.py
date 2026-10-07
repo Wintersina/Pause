@@ -4,7 +4,7 @@
   python3 build_resume_fx.py        (needs Pillow)
 
 Outputs into Art/Resources/ResumeFx (imported point-filtered, uncompressed,
-ppu 100 by Editor/ResumeFxArtImporter.cs):
+ppu 100 by Editor/Importers/ResumeFxArtImporter.cs):
 
   resume_vignette.png  90x200 full-screen frame, stretched to the camera view.
       Transparent middle; a stepped, Bayer-dithered MAGENTA rim down the

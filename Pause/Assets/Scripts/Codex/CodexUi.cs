@@ -23,7 +23,7 @@ public static class CodexUi
 
     // "Who's that Pokemon?": undiscovered art draws through this material,
     // which paints the Graphic's colour times the sprite's alpha and nothing
-    // of the drawing itself (Art/Resources/CodexSilhouette). A plain colour
+    // of the drawing itself (Shaders/Resources/CodexSilhouette). A plain colour
     // tint would multiply the art, letting its interior detail show through.
     public const string SilhouetteShaderPath = "CodexSilhouette/CodexSilhouette";
     static Material silhouetteMaterial;

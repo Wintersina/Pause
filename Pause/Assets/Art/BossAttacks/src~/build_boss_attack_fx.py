@@ -4,7 +4,7 @@
   python3 build_boss_attack_fx.py [--preview DIR]      (needs Pillow)
 
 Output: Art/Resources/BossAttackFx/boss_attack_fx.png, imported
-point-filtered and uncompressed by Editor/BossAttackFxImporter.cs and sliced
+point-filtered and uncompressed by Editor/Importers/BossAttackFxImporter.cs and sliced
 at runtime by BossAttackFx (6 x 4 cells of 48 px; one row per boss, in
 BossCatalog order Space, Frost, Verdant, Ember):
 

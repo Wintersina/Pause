@@ -441,7 +441,7 @@ public static class PickupHitchTest
         Check("ShipShield gets roster contours from ForShip (baked), not from a hull sprite",
               shield.Contains("ShieldContour.ForShip(id)"));
         Check("ShipShield prewarms when the shield is created", shield.Contains("Prewarm();"));
-        string burst = System.IO.File.ReadAllText("Assets/Scripts/Gameplay/PickupBurst.cs");
+        string burst = System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Pickups/PickupBurst.cs");
         Check("PickupBurst reuses pooled bursts", burst.Contains("Take()") && !burst.Contains("new GameObject(\"pickupBurst\");"));
     }
 }

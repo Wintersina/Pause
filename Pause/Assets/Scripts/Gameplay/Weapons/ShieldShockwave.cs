@@ -382,7 +382,7 @@ public class ShieldShockwaveFx : MonoBehaviour
     static Sprite Load(ref Sprite cache, string file)
     {
         if (cache != null) return cache;
-        var tex = Resources.Load<Texture2D>("Prefabs/Vfx/" + file);
+        var tex = Resources.Load<Texture2D>("Vfx/Kenney/" + file);
         if (tex == null) tex = Texture2D.whiteTexture;
         cache = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         cache.name = "~" + file;

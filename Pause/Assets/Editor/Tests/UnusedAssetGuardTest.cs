@@ -49,6 +49,13 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Resources/Prefabs/Enemies",
         "Assets/Art/Aestroids",
         "Assets/Legacy/Art/Aestroids",
+        // 2026-10 Assets vet: the Legacy root held only a licence (now under
+        // docs/licenses), and Art/Resources/Prefabs held no prefab at all (its
+        // Kenney particle textures live in Art/Resources/Vfx/Kenney).
+        "Assets/Legacy",
+        "Assets/Art/Resources/Prefabs",
+        "Assets/Resources/prefabs/Vfx",
+        "Assets/Art/Ships/Legacy",
     };
 
     // The deleted prefabs' guids (the scenes and the spawner referenced

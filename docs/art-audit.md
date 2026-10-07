@@ -98,7 +98,7 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 ### Enemy explosions and hit FX
 
 - [ ] **Target explosions.** Sheet: `Art/Resources/Weapons/Explosions.png`, generator
-  `Art/Weapons/src~`. Script: `Scripts/Gameplay/TargetExplosion.cs`, `WeaponArt.cs`.
+  `Art/Weapons/src~`. Script: `Scripts/Gameplay/Weapons/TargetExplosion.cs`, `WeaponArt.cs`.
   - Convert the kind rows: Metal, Rock, Mine, Ice, Spore, Magma. Use 6–8 frames with stepped
     halos and world particles.
   - The weapon-colour flash and ring cells (row 0, columns 10–12) belong to the player's

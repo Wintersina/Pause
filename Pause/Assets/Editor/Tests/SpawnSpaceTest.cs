@@ -401,7 +401,7 @@ public static class SpawnSpaceTest
         Check("the Destroyer stays below the visible bottom on 5 / 6.65 / 7.6 half-height views", below);
         Check("chasers spawn under the view but clear of the Destroyer", chaserClear);
         Check("the heal atom spawns just above the visible top (CameraFit.ViewTop), not a fixed y 7",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/HealAtomSpawner.cs").Contains("CameraFit.ViewTop + SpawnAboveTop"));
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Pickups/HealAtomSpawner.cs").Contains("CameraFit.ViewTop + SpawnAboveTop"));
         Object.DestroyImmediate(keeper);
         destroyer.transform.position = pos0;
         cam.orthographicSize = size0;

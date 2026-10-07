@@ -1022,9 +1022,9 @@ public static class LoopTest
               atEleven > atMinute * 3f && Mathf.Abs(atEleven - PortalPressure.DensityAt(661f)) < 1e-2f);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         PortalPressure.Reset();
-        Check("the spawner reads the pressure too", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
+        Check("the spawner reads the pressure too", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
               .Contains("EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale"));
-        Check("the spawner reads it (enmiesOnBoard.Roll)", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
+        Check("the spawner reads it (enmiesOnBoard.Roll)", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
               .Contains("/ Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)"));
         RunLoop.Reset();
         Check("a new run is back to x1", LoopDifficulty.DensityScale == 1f);

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Puts a ship's skin onto its exhaust renderers without new art: the stock
-// atlas is drawn through Pause/ExhaustRemap (Resources/ShipArt/Exhaust),
+// atlas is drawn through Pause/ExhaustRemap (Shaders/Resources/ShipArt/Exhaust),
 // whose per-renderer palette shift (ExhaustRemap.cginc) moves each stock
 // colour to ExhaustColors.For(ship). A stock skin gets the default sprite
 // material and no property block, i.e. exactly what was drawn before.

@@ -238,7 +238,7 @@ public static class PickupRulesTest
               heal.gapSeconds == new Vector2(70f, 130f) && Mathf.Approximately(heal.chance, .6f));
         Object.DestroyImmediate(heal.gameObject);
         Check("HealAtomSpawner reads no PickupRules",
-              !File.ReadAllText("Assets/Scripts/Gameplay/HealAtomSpawner.cs").Contains("PickupRules"));
+              !File.ReadAllText("Assets/Scripts/Gameplay/Pickups/HealAtomSpawner.cs").Contains("PickupRules"));
     }
 
     // Each pickup fills the secret meter by its fixed amount, so 3x the dust

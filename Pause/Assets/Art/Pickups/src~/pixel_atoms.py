@@ -18,7 +18,7 @@ nearest-neighbour, so the sprites stay crisp under Point filtering.
 Cell density matches the green atom (about 47 cells across its 0.28 world
 units): a 49-cell grid, x4, at PPU 700 is exactly 0.28 u.
 
-Frame tables (hold ticks at 24 fps) must match Scripts/Gameplay/PickupArt.cs;
+Frame tables (hold ticks at 24 fps) must match Scripts/Gameplay/Pickups/PickupArt.cs;
 ArtRestyleTest checks that every frame file exists.
 """
 import math

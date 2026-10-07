@@ -22,9 +22,9 @@ The framework (Unity project root `Pause/`, code in
 | `EliteFx`, `EliteDeath`, `EliteRewards` | `EliteFx.cs` | dust / shimmer / sparks / debris; pluggable death; 50 score + 15 dust + "ELITE DOWN" |
 | `EliteDirector` | `EliteDirector.cs` | spawning rules (max 3, groups 1-3, not first 20 s / boss / tutorial / final choice) |
 | landing sites | `Scripts/Worlds/Backdrop/LandingSites.cs`, `BackdropDirector.LandingSites` | where parked elites sit, per world backdrop |
-| art copy | `Assets/Editor/EliteArtSync.cs` | copies Codex's final strips into Resources (bare `<name>.png` -> `<world>_elite_<name>.png`), fixes alpha on import |
+| art copy | `Assets/Editor/Importers/EliteArtSync.cs` | copies Codex's final strips into Resources (bare `<name>.png` -> `<world>_elite_<name>.png`), fixes alpha on import |
 | tests | `Assets/Editor/Tests/EliteTest.cs` | walks **every** def automatically |
-| previews | `Assets/Editor/Tools/ElitePreview.cs` + `scripts/make_preview_gif.py` | life-cycle GIF + contact sheet per elite |
+| previews | `Assets/Editor/Tools/Previews/ElitePreview.cs` + `scripts/make_preview_gif.py` | life-cycle GIF + contact sheet per elite |
 
 Unity: `/Applications/Unity/Hub/Editor/6000.3.23f1/Unity.app/Contents/MacOS/Unity`.
 Always pass an **absolute** `-projectPath` (the inner `Pause/` folder), run with

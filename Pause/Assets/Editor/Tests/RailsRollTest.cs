@@ -394,7 +394,7 @@ public static class RailsRollTest
     static void SourceWiring()
     {
         string walls = File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs");
-        string board = File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs");
+        string board = File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs");
         Check("the walls and the rail lanes roll by the one BoardRoll step, and the mount draws the mine on the art's pixel",
               walls.Contains("BoardRoll.Advance(speed, Time.deltaTime)") && walls.Contains("BoardRoll.RailOffset(") &&
               board.Contains("Vector3.down * BoardRoll.Advance(moveBackGround.speed, Time.deltaTime)") && board.Contains("+ BoardRoll.SnapLift"));

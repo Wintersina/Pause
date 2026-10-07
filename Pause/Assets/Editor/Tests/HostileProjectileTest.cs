@@ -563,7 +563,7 @@ public static class HostileProjectileTest
             HostileShots.ShootDownAlong(new Vector2(1.5f, -2f), new Vector2(1.5f, 3f), .15f);
             Check("... but never a laser", beam.Live);
             Check("every player projectile step runs it (AttackProjectile.Tick)",
-                  System.IO.File.ReadAllText("Assets/Scripts/Gameplay/ShipAttacks.cs").Contains("HostileShots.ShootDownAlong(from, to, radius)"));
+                  System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipAttacks.cs").Contains("HostileShots.ShootDownAlong(from, to, radius)"));
         }
         finally { pool.Dispose(); }
     }
@@ -661,7 +661,7 @@ public static class HostileProjectileTest
 
         // during a player death everything is the domino's
         Check("none of it runs during a player death (DeathCrash.Running guards)",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/FriendlyFire.cs").Contains("if (mine == null || DeathCrash.Running"));
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Enemies/FriendlyFire.cs").Contains("if (mine == null || DeathCrash.Running"));
     }
 
     // ---- 7. split into pieces -------------------------------------------------------
@@ -723,7 +723,7 @@ public static class HostileProjectileTest
 
             // not during a player death -- the domino owns that
             Check("no splitting while a player death runs (EnemySplit guards DeathCrash.Running)",
-                  System.IO.File.ReadAllText("Assets/Scripts/Gameplay/FriendlyFire.cs").Contains("if (target == null || !Enabled || DeathCrash.Running) return false;"));
+                  System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Enemies/FriendlyFire.cs").Contains("if (target == null || !Enabled || DeathCrash.Running) return false;"));
         }
         finally { EnemySplit.ForceInEditor = false; }
     }

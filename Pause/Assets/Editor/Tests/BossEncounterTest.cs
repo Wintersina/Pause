@@ -290,7 +290,7 @@ public static class BossEncounterTest
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("on-board hazards are cleared by the boss's arrival", hazard == null);
         Check("suspended during the fight", BossEncounter.SuspendsSpawning);
-        Check("enmiesOnBoard checks it", File.ReadAllText("Assets/Scripts/Gameplay/enmiesOnBoard.cs")
+        Check("enmiesOnBoard checks it", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
               .Contains("if (flying && !BossEncounter.SuspendsSpawning)"));
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
@@ -309,7 +309,7 @@ public static class BossEncounterTest
         // which hands a BossTarget the hit instead of destroying it.
         Check("the boss body is a registered attack target (IShipAttackTarget)",
               body.GetComponent<IShipAttackTarget>() is BossTarget && body.GetComponent<ClearTarget>() != null &&
-              File.ReadAllText("Assets/Scripts/Gameplay/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
+              File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
         Check("the boss starts with BossConfig.HitPoints (" + BossConfig.HitPoints + ")", e.HitPointsLeft == BossConfig.HitPoints);
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
         Check("... and takes one hit point (" + e.HitPointsLeft + " left)", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1);

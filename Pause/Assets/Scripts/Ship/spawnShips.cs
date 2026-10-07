@@ -30,7 +30,7 @@ public class spawnShips : MonoBehaviour
     public static string PrefabPathFor(int id)
     {
         int prefab = ShipId.IsRetro(id) ? id : ShipId.Starter;
-        return "Prefabs/Ships/inGameShips/ship" + prefab;
+        return "prefabs/Ships/inGameShips/ship" + prefab;
     }
 
     // Dresses a gameplay ship (spawned, or authored into a scene like the
