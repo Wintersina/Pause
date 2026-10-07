@@ -183,10 +183,14 @@ public static class SpaceEliteTest
         Check("... every one inside its body (emerge), behind the gameplay, small, in the upper view (" + samples + " samples; " + emerge + depth + inView + " " + bad + ")", samples > 0 && emerge && depth && inView);
 
         // the director, on the real backdrop: Space elites docked in its bodies, each in its own kind when free
-        for (int i = 0; i < 15 * 60; i++)
+        // Wait for a moment with three bodies offering sites -- or, after a
+        // minute, two: edge-peeking stations (about 40% of them) are never
+        // offered, so three at once can take a while.
+        for (int i = 0; i < 15 * 180; i++)
         {
             wb.Step(1f / 15f);
-            if (LandingSites.Collect(sites) >= 3) break;
+            int n = LandingSites.Collect(sites);
+            if (n >= 3 || (n >= 2 && i >= 15 * 60)) break;
         }
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         int made = dir.SpawnGroup(0, 3);

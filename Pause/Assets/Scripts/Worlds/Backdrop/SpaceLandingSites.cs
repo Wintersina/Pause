@@ -13,7 +13,8 @@ using UnityEngine;
 // plausibly hold an elite: every lone station, the planets drawn at least
 // PlanetMinSize wide, and the planetoids (rocks) drawn at least
 // AsteroidMinSize wide -- the big asteroids, not the pre-shrunk pebbles.
-// Each site says what it is (LandingKind) so an elite launches from the
+// A station is offered only while its hub is wholly on screen (an edge
+// peeker never is, SpaceStationPuffs). Each site says what it is (LandingKind) so an elite launches from the
 // kind its def names (EliteDef.launchFrom).
 //
 // Kept in its own file (a partial of SpaceDirector) so the backdrop's own
@@ -53,6 +54,14 @@ public partial class SpaceDirector
             if (p.y < -HalfH * .15f || p.y > HalfH - p.size * .3f) continue;
             if (Mathf.Abs(p.x) > HalfW - .25f) continue;
             Bounds b = p.sr.sprite.bounds;
+            if (kind == LandingKind.Station)
+            {
+                // Only a station whose hangar hub is wholly on screen: never
+                // an edge peeker cut by the frame.
+                if (p.edge) continue;
+                float hubX = p.x + (b.center.x + pad.x * b.size.x) * p.root.localScale.x;
+                if (Mathf.Abs(hubX) + HubHalfWidth * p.size > HalfW) continue;
+            }
             float fx = kind == LandingKind.Planet ? (p.x > 0f ? -pad.x : pad.x) : pad.x;
             into.Add(new LandingSite
             {

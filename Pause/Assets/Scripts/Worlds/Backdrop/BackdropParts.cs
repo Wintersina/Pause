@@ -187,6 +187,7 @@ public class BackdropPiece
     public SpriteRenderer smoke;         // optional Space asteroid effect flipbook
     public Sprite[] effectFrames;
     public bool active;
+    public bool edge;                    // Space: a station peeking in across the screen edge
     public float x, y, vx, vy, age, life, size, phase, spin, rate;
     public Color color = Color.white;
     public Sprite[] frames;
@@ -290,6 +291,7 @@ public class BackdropPool
             p.vx = p.vy = 0f;
             p.frames = null;
             p.effectFrames = null;
+            p.edge = false;
             if (p.smoke != null) p.smoke.enabled = false;
             p.loop = true;
             p.children = null;

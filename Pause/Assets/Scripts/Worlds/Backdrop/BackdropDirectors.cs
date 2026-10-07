@@ -29,7 +29,8 @@ using UnityEngine;
 // surface shader turns them. Atlas cells are variants (twelve different
 // giants, eight stations...), not flipbook frames: a body picks one when it
 // spawns and keeps it. Stations never cycle frames, spin or tilt -- they hold
-// still, upright, and blink instead (SpaceStationLights).
+// still, upright, and blink instead (SpaceStationLights); some peek in
+// across the screen edge, the rest puff steam and spark (SpaceStationPuffs).
 public partial class SpaceDirector : BackdropDirector
 {
     public struct Tier
@@ -133,7 +134,7 @@ public partial class SpaceDirector : BackdropDirector
     int planetsSinceHero;
 
     // The next body of each depth class waits here until the sky has room.
-    struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring; }
+    struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring, edge; }
     Plan nextPlanet, nextStructure;
     float planetWait, structureWait;
     int planetSide = 1, structureSide = -1;
@@ -218,6 +219,7 @@ public partial class SpaceDirector : BackdropDirector
         setPieces.AddRange(bodies);
         setPieces.AddRange(new[] { wisps, galaxies, comets });
         BuildStationLights();
+        BuildStationPuffs();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -351,6 +353,7 @@ public partial class SpaceDirector : BackdropDirector
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
         TickStationLights(dt);
+        TickStationPuffs(dt);
         foreach (var c in comets.items)
             if (c.active && Drift(c, dt, v))
             {
@@ -406,6 +409,8 @@ public partial class SpaceDirector : BackdropDirector
         p.size = SizeOf(kind, p.tier);
         // A station's rotated silhouette reaches further than half its width.
         p.reach = p.size * (kind == Station ? 0.75f : 0.55f);
+        // Some lone stations peek in across the screen edge (SpaceStationPuffs).
+        p.edge = kind == Station && Chance(PeekShare);
         return p;
     }
 
@@ -495,6 +500,9 @@ public partial class SpaceDirector : BackdropDirector
         if (!opening) y = HalfH + n.reach + 0.3f;
         // Bigger bodies sit further out, half behind the walls.
         float lane = Rand(Mathf.Min(0.7f + 0.35f * n.reach, 1.6f), 1.9f);
+        // An edge peeker is centred at or just inside the screen edge: the
+        // frame cuts away about half of it.
+        if (n.edge) lane = HalfW - Rand(0f, PeekInsetMax) * n.size;
         // Alternate sides; take the other one if this lane would overtake.
         float x = -side * lane;
         if (!opening && !Fits(x, y, n.reach, rate, planetClass))
@@ -515,10 +523,11 @@ public partial class SpaceDirector : BackdropDirector
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
+        p.edge = n.edge;
         if (p.smoke != null)
         {
             bool hasEffects = art == asteroids && set.AsteroidFx != null;
-            p.smoke.enabled = hasEffects || (n.kind == Station && Chance(0.55));
+            p.smoke.enabled = hasEffects || (n.kind == Station && !n.edge && Chance(0.55));
             p.effectFrames = hasEffects ? asteroidEffects[System.Array.IndexOf(asteroids, selected)] : null;
             p.smoke.sortingOrder = n.kind == Station ? p.sr.sortingOrder - 1 : p.sr.sortingOrder + 1;
             if (n.kind == Station) p.smoke.transform.localPosition = new Vector3(0f, -0.28f, 0f);
@@ -633,6 +642,7 @@ public partial class SpaceDirector : BackdropDirector
 
     public override void Teardown()
     {
+        TeardownStationPuffs();
         TeardownStationLights();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;

@@ -10,6 +10,12 @@ using UnityEngine;
 // paused, ride along with their station, cost nothing per frame; and the
 // Space elites' station launch sites still sit on the (now upright) hubs.
 //
+// Two presentations (SpaceStationPuffs): edge peekers -- a share of lone
+// stations centred at the screen edge, about half cut off by the frame,
+// lamps only, never offered as launch sites -- and in-frame stations, which
+// also puff steam from their tower tips and spark at a girder end (pooled,
+// allocation-free, frozen while paused). No station ever rotates.
+//
 // (Ring stations used to wheel at 1.2-2.2 deg/s and every station held a
 // random +-10 deg tilt; companions circled their planet. Now: upright, no
 // spin, a station companion parks on the near side of its planet.)
@@ -233,6 +239,10 @@ public static class SpaceStationTest
             var siteList = new List<LandingSite>();
             int stationSites = 0, siteErrors = 0;
             string siteBad = "";
+            float halfW = wb.Current.HalfWidth;
+            int lone = 0, peekers = 0, peekOrder = 0, peekPuffs = 0, animatedSamples = 0, inFrameSamples = 0;
+            float peekVisMin = 1f, peekVisMax = 0f, inFrameVisMin = 1f;
+            var puffs = sd.StationPuffs;
             for (int i = 0; i < 12 * 60 * 30; i++)        // 12 minutes of frames
             {
                 moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
@@ -251,7 +261,20 @@ public static class SpaceStationTest
                             stationsSeen++;
                             if (p.sr.sprite.name.Contains("ring")) ringsSeen++;
                             if (p.parent != null) companions++;
+                            else
+                            {
+                                lone++;
+                                float vis = VisibleShare(p, halfW);
+                                if (p.edge)
+                                {
+                                    peekers++;
+                                    peekVisMin = Mathf.Min(peekVisMin, vis);
+                                    peekVisMax = Mathf.Max(peekVisMax, vis);
+                                }
+                                else inFrameVisMin = Mathf.Min(inFrameVisMin, vis);
+                            }
                         }
+                        if (p.edge && p.sr.sortingOrder >= 0) peekOrder++;
                         w.age = p.age;
                         if (p.sr.sprite != w.sprite || p.frames != null) w.swapped = true;
                         float turn = Mathf.Max(Quaternion.Angle(p.root.rotation, Quaternion.identity),
@@ -279,6 +302,15 @@ public static class SpaceStationTest
                         Mathf.Abs(r.transform.localScale.y - want.y) > 1e-3f) wrongScale++;
                 }
 
+                if (puffs != null)
+                    foreach (var r in puffs.Rigs)
+                    {
+                        var p = r.piece;
+                        if (!p.active || !SpaceDirector.IsStationArt(p.sr.sprite)) continue;
+                        if (p.edge) { if (r.animated || puffs.LivePuffs(r) > 0 || r.spark.enabled) peekPuffs++; }
+                        else { inFrameSamples++; if (r.animated) animatedSamples++; }
+                    }
+
                 siteList.Clear();
                 sd.LandingSites(siteList);
                 foreach (var s in siteList)
@@ -296,6 +328,9 @@ public static class SpaceStationTest
                                         b.center.y + SpaceDirector.StationPad.y * b.size.y, 0f));
                         // upright: the hub is straight below the centre, scaled, no rotation
                         ok = (s.Position - want).sqrMagnitude < 1e-8f && s.anchor.rotation == Quaternion.identity;
+                        // never a peeker; the whole hub on screen
+                        float hw = SpaceDirector.HubHalfWidth * host.size;
+                        ok &= !host.edge && Mathf.Abs(s.Position.x) + hw <= halfW + 1e-4f;
                     }
                     if (!ok) { siteErrors++; if (siteBad.Length < 200) siteBad += s.id + " "; }
                 }
@@ -318,8 +353,22 @@ public static class SpaceStationTest
                   lit > 0 && unlit == 0);
             Check("lamps ride on the station's body, sort just above it, and scale with a mini (" + wrongOrder + " order, " +
                   notChild + " parent, " + wrongScale + " scale errors)", wrongOrder == 0 && notChild == 0 && wrongScale == 0);
-            Check("Space elite station sites sit on the upright stations' hubs (" + stationSites + " site samples, " +
-                  siteErrors + " wrong " + siteBad + ")", stationSites > 0 && siteErrors == 0);
+            Check("Space elite station sites sit on the upright stations' hubs, wholly on screen, never on a peeker (" +
+                  stationSites + " site samples, " + siteErrors + " wrong " + siteBad + ")", stationSites > 0 && siteErrors == 0);
+
+            float share = lone > 0 ? peekers / (float)lone : 0f;
+            Check("a mix of edge peekers and in-frame stations came by (" + lone + " lone stations, " + peekers +
+                  " peekers = " + (share * 100f).ToString("F0") + "%, intended " + (SpaceDirector.PeekShare * 100f) + "%)",
+                  peekers > 0 && lone - peekers > 0 && share >= 0.25f && share <= 0.55f);
+            Check("edge peekers are cut by the screen edge by about half (visible " + peekVisMin.ToString("F2") + ".." +
+                  peekVisMax.ToString("F2") + " of their width)", peekers > 0 && peekVisMin >= 0.4f && peekVisMax <= 0.65f);
+            Check("in-frame stations are mostly on screen (worst " + inFrameVisMin.ToString("F2") + " of their width visible)",
+                  inFrameVisMin >= 0.6f);
+            Check("peekers draw behind gameplay, rails and HUD (" + peekOrder + " samples at sorting order >= 0)", peekOrder == 0);
+            Check("in-frame stations are animated (steam / sparks) and peekers are not (" + animatedSamples + " / " +
+                  inFrameSamples + " in-frame samples animated, " + peekPuffs + " peeker samples with smoke)",
+                  peekPuffs == 0 && inFrameSamples > 0 && animatedSamples == inFrameSamples);
+            Puffs(wb, sd);
 
             BlinkAndPause(wb, sd, lights);
             ZeroAlloc(wb, sd);
@@ -329,6 +378,66 @@ public static class SpaceStationTest
             Time.timeScale = 1f;
             Object.DestroyImmediate(go);
         }
+    }
+
+    // Share of a station's drawn width inside the view horizontally.
+    static float VisibleShare(BackdropPiece p, float halfW)
+    {
+        Bounds b = p.sr.bounds;
+        float inside = Mathf.Min(b.max.x, halfW) - Mathf.Max(b.min.x, -halfW);
+        return Mathf.Clamp01(inside / Mathf.Max(1e-4f, b.size.x));
+    }
+
+    // Steam puffs: pooled, hard-edged stages, rising and growing, sparks pop,
+    // all frozen while paused.
+    static void Puffs(WorldBackdrop wb, SpaceDirector sd)
+    {
+        var puffs = sd.StationPuffs;
+        Check("in-frame stations get a pooled steam / spark rig (" + (puffs != null ? puffs.Rigs.Count : 0) + " rigs, " +
+              SpaceStationPuffs.PuffSlots + " puffs + 1 spark each, " + SpaceStationPuffs.Stages + " hard-edged stages)",
+              puffs != null && puffs.Rigs.Count == sd.Bodies[1].items.Count && puffs.StageSprites.Length >= 3 &&
+              puffs.StageSprites.Length <= 5 && puffs.StageSprites[0].texture.filterMode == FilterMode.Point);
+        if (puffs == null) return;
+        int emitted = 0, sparks = 0;
+        foreach (var r in puffs.Rigs) { emitted += r.puffsEmitted; sparks += r.sparksPopped; }
+        Check("in-frame stations puffed steam and popped sparks over the run (" + emitted + " puffs, " + sparks + " sparks)",
+              emitted > 20 && sparks > 3);
+
+        // Follow one live puff: it rises over its station, grows, and walks
+        // its stages in order; then pause: it holds still.
+        SpaceStationPuffs.Rig rig = null;
+        int slot = -1;
+        for (int i = 0; i < 180 * 30 && rig == null; i++)
+        {
+            wb.Step(1f / 30f);
+            foreach (var r in puffs.Rigs)
+                for (int k = 0; k < SpaceStationPuffs.PuffSlots && rig == null; k++)
+                    if (r.animated && r.age[k] >= 0f && r.age[k] < 0.3f) { rig = r; slot = k; }
+        }
+        Check("a station's steam puff was caught live", rig != null);
+        if (rig == null) return;
+        var sr = rig.puffs[slot];
+        float y0 = sr.transform.localPosition.y, w0 = sr.transform.localScale.x;
+        int stage = 0;
+        bool ordered = true;
+        for (int i = 0; i < 45 && rig.age[slot] >= 0f; i++)
+        {
+            wb.Step(1f / 30f);
+            int s = System.Array.IndexOf(puffs.StageSprites, sr.sprite);
+            if (s < stage) ordered = false;
+            stage = Mathf.Max(stage, s);
+        }
+        bool rose = sr.transform.localPosition.y > y0 && sr.transform.localScale.x > w0;
+        Check("a puff rises and grows through its stages in order (stage " + stage + ")", rose && ordered && stage >= 1);
+        Check("a puff stays faint, under gameplay brightness (alpha " + sr.color.a.ToString("F2") + ")",
+              sr.color.a <= SpaceStationPuffs.PuffAlpha + 1e-4f);
+
+        Time.timeScale = 0f;
+        Vector3 at = sr.transform.localPosition;
+        float age = rig.age[slot];
+        for (int i = 0; i < 60; i++) wb.Step(1f / 30f);
+        Check("while paused the steam holds still", sr.transform.localPosition == at && rig.age[slot] == age);
+        Time.timeScale = 1f;
     }
 
     static Vector3 FullSize(BackdropAtlas fx, string cell)
@@ -423,6 +532,7 @@ public static class SpaceStationTest
             wb.Step(1f / 30f);
         }
         long used = System.GC.GetAllocatedBytesForCurrentThread() - before;
-        Check("stations and their lamps allocate nothing over 2 minutes of frames and spawns (" + used + " bytes)", used == 0);
+        Check("stations, their lamps, steam and sparks allocate nothing over 2 minutes of frames and spawns (" + used +
+              " bytes)", used == 0);
     }
 }

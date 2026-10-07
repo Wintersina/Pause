@@ -13,7 +13,8 @@ using UnityEngine;
 //   $BACKDROP_PX / _PY     frame size in pixels (default 360 x 780)
 // Space also writes stations.csv next to the frames: per frame, every
 // visible station's centre and drawn size in frame pixels (top-left
-// origin), for cropping close-ups of the stations and their lamps.
+// origin), for cropping close-ups of the stations and their lamps, whether
+// it is an edge peeker or an in-frame station, and its live steam puffs.
 public static class SpaceBackdropPreview
 {
     const float Dt = 1f / 60f;
@@ -51,7 +52,7 @@ public static class SpaceBackdropPreview
             moveBackGround.speed = 0.15f;
             wb.Show(world, false);
             int n = 0, steps = Mathf.RoundToInt(seconds / Dt);
-            var track = new System.Text.StringBuilder("frame,station,x,y,size,cell\n");
+            var track = new System.Text.StringBuilder("frame,station,x,y,size,cell,kind,puffs\n");
             for (int i = 0; i < steps; i++)
             {
                 // A run speeds up a little over the clip.
@@ -87,8 +88,16 @@ public static class SpaceBackdropPreview
             float px = p.size / (cam.orthographicSize * 2f) * Py;
             into.Append(frame).Append(',').Append(sd.StationLights.Rigs.IndexOf(r)).Append(',')
                 .Append(Mathf.RoundToInt(c.x)).Append(',').Append(Mathf.RoundToInt(Py - c.y)).Append(',')
-                .Append(Mathf.RoundToInt(px)).Append(',').Append(r.cell).Append('\n');
+                .Append(Mathf.RoundToInt(px)).Append(',').Append(r.cell).Append(',')
+                .Append(p.edge ? "peeker" : "inframe").Append(',').Append(LivePuffs(sd, p)).Append('\n');
         }
+    }
+
+    static int LivePuffs(SpaceDirector sd, BackdropPiece p)
+    {
+        if (sd.StationPuffs == null) return 0;
+        foreach (var r in sd.StationPuffs.Rigs) if (r.piece == p) return sd.StationPuffs.LivePuffs(r);
+        return 0;
     }
 
     static string Env(string key, string fallback)
