@@ -91,7 +91,7 @@ public static class CodexAnimations
         var frames = EnemyArt.Frames(def);
         if (frames == null || frames.Length == 0) return null;
 
-        var ticks = EnemyRoster.IdleTicks(def.role);
+        var ticks = EnemyRoster.IdleTicks(def);
         int n = Mathf.Min(EnemyRoster.TellFrame, frames.Length);
         var steps = new Sprite[n];
         var holds = new float[n];
@@ -106,7 +106,7 @@ public static class CodexAnimations
         if (frames.Length >= EnemyRoster.TellFrame + 2)
         {
             var tt = EnemyRoster.TellTicks(def.role);
-            a.AddTell(new[] { frames[EnemyRoster.TellFrame], frames[EnemyRoster.TellFrame + 1] },
+            a.AddTell(new[] { frames[EnemyRoster.TellCell(def, false)], frames[EnemyRoster.TellCell(def, true)] },
                       new[] { tt[0] * EnemyFlipbook.TickSeconds, tt[Mathf.Min(1, tt.Length - 1)] * EnemyFlipbook.TickSeconds });
         }
         var mode = EnemyFlipbook.ModeFor(def.role);
