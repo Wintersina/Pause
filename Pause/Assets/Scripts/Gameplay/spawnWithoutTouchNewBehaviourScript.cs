@@ -40,7 +40,7 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up tp 5 sm stars in a row for collecting
             max = Random.Range(1, 2);
             for (int i = 0; i < max; i++)
@@ -54,7 +54,7 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
         {
 
             midStarTimer = Random.Range(5f, 10f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up to 2-4 mid stars for collecting
             max = Random.Range(1, 2);
             for (int i = 0; i < max; i++)
@@ -86,7 +86,7 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
     // will make you invensiable for a few seconds.
     void spawnAtom()
     {
-        Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+        Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         Instantiate(SuperStar, randomStarPos, transform.rotation);
     }
 }

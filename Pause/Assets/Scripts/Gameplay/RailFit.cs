@@ -57,6 +57,8 @@ public class RailFit : MonoBehaviour
 
         lastScreenW = ScreenInfo.Width;
         lastScreenH = ScreenInfo.Height;
+        // A new screen shape may move the rails out or back (RailInset).
+        WorldPainter.RefreshInset();
 
         float requiredWorldHeight = cam.orthographicSize * 2f * coverageMultiplier;
         var scale = transform.localScale;

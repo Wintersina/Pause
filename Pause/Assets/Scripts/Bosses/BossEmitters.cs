@@ -121,6 +121,16 @@ public static class BossRails
 
     public static float InnerEdge => measured > 0f ? measured : AuthoredInnerEdge;
 
+    // The reinforced rails' drawn inner edge as WorldPainter lays them out
+    // (every world matches Frost's: 3.15 + 1.7875 * (.5 - 583 / 725)), before
+    // RailInset moves them out.
+    public const float ReinforcedInnerEdge = 2.606f;
+
+    // The drawn rails' inner edge on this screen: the measured walls, or,
+    // with none measured (editor tools, tests), where WorldPainter would put
+    // them. What the ship's sideways reach stops at (ShipReach.HalfWidth).
+    public static float DrawnInnerEdge => measured > 0f ? measured : ReinforcedInnerEdge + RailInset.Shift;
+
     // From BossEncounter at the start of each intro (and tests).
     public static void Measure()
     {

@@ -62,7 +62,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         if(smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up tp 5 sm stars in a row for collecting
             max = Random.Range(2, 8);
             for (int i = 0; i < max; i++)
@@ -75,7 +75,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         {
 
             midStarTimer = Random.Range(10f, 14f);
-            Vector3 randomStarPos = new Vector3(Random.Range(-2.2f, 2.2f), transform.position.y, transform.rotation.z);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
             // spawn up to 2-4 mid stars for collecting
             max = Random.Range(2, 4);
             for (int i = 0; i < max; i++)
@@ -98,13 +98,13 @@ public class spawnGoodStuffTut: MonoBehaviour {
     // cluster (a straight vertical line at one x), now a fresh roll per star.
     void spawnSmStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
         Instantiate(smStar, spawner, transform.rotation);
     }
 
     void spawnMidStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-2.2f, 2.2f), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
         Instantiate(midStar, spawner, transform.rotation);
     }
 

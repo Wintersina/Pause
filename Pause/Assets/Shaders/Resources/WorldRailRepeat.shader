@@ -6,6 +6,19 @@ Shader "Pause/WorldRailRepeat"
         _Color ("Tint", Color) = (1,1,1,1)
         _Overlap ("Vertical overlap", Range(0, .1)) = .03
         _BlackCutout ("Remove black exterior matte", Range(0,1)) = 0
+        // Dark inner edge (WorldPainter.RailEdge): the band of the rail that
+        // faces the lane is shaded toward near-black so the rail reads as a
+        // recessed wall. Texture-space u of the art's inner (lane-facing)
+        // silhouette and outer silhouette; both walls sample the same u (the
+        // right one is mirrored by its UV scale), so one band serves both.
+        _EdgeInnerU ("Inner silhouette u", Range(0,1)) = 1
+        _EdgeOuterU ("Outer silhouette u", Range(0,1)) = 0
+        _EdgeDark ("Edge darkening strength", Range(0,1)) = 0
+        _EdgeWidth ("Edge band, share of rail width", Range(0,.5)) = .16
+        _EdgeSteps ("Edge falloff steps", Range(1,8)) = 4
+        _EdgeShadow ("Shadow into the gaps / lane, alpha", Range(0,1)) = 0
+        _EdgeShadowWidth ("Shadow past the silhouette, share of rail width", Range(0,.2)) = .05
+        _EdgeLampKeep ("Neon lamps keep their light", Range(0,1)) = .85
     }
     SubShader
     {
@@ -23,6 +36,8 @@ Shader "Pause/WorldRailRepeat"
             float4 _MainTex_ST;
             fixed4 _Color;
             float _Overlap, _BlackCutout;
+            float _EdgeInnerU, _EdgeOuterU, _EdgeDark, _EdgeWidth, _EdgeSteps;
+            float _EdgeShadow, _EdgeShadowWidth, _EdgeLampKeep;
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 vertex : SV_POSITION; float2 uv : TEXCOORD0; };
             v2f vert(appdata v)
@@ -48,8 +63,32 @@ Shader "Pause/WorldRailRepeat"
                     c.rgb = lerp(tail.rgb * tail.a, c.rgb * c.a, t) / max(a, .0001);
                     c.a = a;
                 }
-                float matte = smoothstep(.005, .015, max(c.r, max(c.g, c.b)));
+                float peak = max(c.r, max(c.g, c.b));
+                float matte = smoothstep(.005, .015, peak);
                 c.a *= lerp(1, matte, _BlackCutout);
+
+                // Inner-edge shade. d: how far into the rail from its inner
+                // silhouette, in rail widths (< 0 is past it, in the lane).
+                // Stepped in _EdgeSteps bands so the falloff stays pixel art.
+                float railW = max(_EdgeInnerU - _EdgeOuterU, .0001);
+                float d = (_EdgeInnerU - frac(i.uv.x)) / railW;
+                float band = saturate(1 - d / max(_EdgeWidth, .0001));
+                band = ceil(band * _EdgeSteps - .0001) / _EdgeSteps;
+                band *= step(0, d);
+                // saturated, bright pixels are the neon lamps: keep them lit
+                float sat = peak - min(c.r, min(c.g, c.b));
+                float lamp = smoothstep(.55, .8, peak) * smoothstep(.35, .6, sat);
+                float shade = _EdgeDark * band * (1 - _EdgeLampKeep * lamp);
+                c.rgb *= 1 - shade;
+                // The gaps between the edge's cables, and a thin strip past
+                // the silhouette, fill with a stepped near-black shadow: the
+                // dark transition from the wall into the starfield.
+                float past = saturate(1 + d / max(_EdgeShadowWidth, .0001));
+                past = ceil(past * _EdgeSteps - .0001) / _EdgeSteps;
+                float shadowA = _EdgeShadow * (d >= 0 ? band : past) * step(-_EdgeShadowWidth, d);
+                float a = c.a + shadowA * (1 - c.a);
+                c.rgb = (c.rgb * c.a + float3(.012, .01, .02) * shadowA * (1 - c.a)) / max(a, .0001);
+                c.a = a;
                 return c * _Color;
             }
             ENDCG

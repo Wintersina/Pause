@@ -19,11 +19,17 @@ public static class SpawnLane
     // room to spare. The damage hitbox is tighter than the art now
     // (ShipHitbox: the widest, UFO's disc, is ~0.56 u), so this still clears
     // every hull with >= 30% to spare (ShipHitboxTest).
+    // Deliberately NOT x ShipScale: the main game's 1.35x hull (widest
+    // hitbox 0.73 u) still fits this 0.754 u gap, but with ~3% to spare
+    // instead of ~39%. Growing the gap with the ship thins the board (spawn
+    // tuning), which is the user's call -- see the rails-and-ship-size notes.
     public static float ShipGap => shopingShips.ReferenceHullSize * 1.3f;
 
     // Half the lane: the rail hardware sits at +/-2.35 (enmiesOnBoard.WorldRailX),
-    // just inside the walls.
-    public const float LaneHalf = 2.35f;
+    // just inside the walls -- at the authored rails. Where the screen has
+    // room the rails move out (RailInset) and the lane with them.
+    public const float AuthoredLaneHalf = 2.35f;
+    public static float LaneHalf => RailInset.Lane(AuthoredLaneHalf);
 
     // Heavies keep their centre within +/-HeavyMaxX: half a ~1.1 u heavy
     // further out still clears a rail mine's inner edge (2.35 - 0.31).

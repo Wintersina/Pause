@@ -44,7 +44,8 @@ public class AtomWander
     public const float ShipReachAbove = .35f;       // the hull still touches this far above it
     public const float SoftBand = 1.0f;             // upward motion fades out over this band
     public const float ExitBelowBottom = 1.0f;      // destroyed this far under the view
-    public const float LaneHalfWidth = 2.17f;       // AtomSpin's lane (2.35 - an atom's half width)
+    public const float AuthoredLaneHalfWidth = 2.17f;   // AtomSpin's lane (2.35 - an atom's half width)
+    public static float LaneHalfWidth => RailInset.Lane(AuthoredLaneHalfWidth);   // wider where the rails move out
     public const float MaxSubstep = .05f;           // big frames are split (hitches stay on the path)
 
     public float phase;
