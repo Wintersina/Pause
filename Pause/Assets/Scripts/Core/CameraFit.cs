@@ -23,8 +23,13 @@ public class CameraFit : MonoBehaviour
     // Their outer silhouette sits near +/-3.7; the old 2.85 view cropped
     // almost all of that art away on phones.
     public const float GameplayHalfWidth = 3.72f;
-    [Tooltip("Minimum visible half-width, in world units. The player reaches " +
-             "+/-2.4 and the walls' inner edge sits at about +/-2.5.")]
+    // 2.85 is the menus' floor (their art is laid out for it); the two
+    // gameplay scenes are switched to GameplayHalfWidth by the bootstrap
+    // below, so the run's view is 7.44 u wide and 13.2 u (16:9) to 18.2 u
+    // (22:9) tall -- ShipReach and BossConfig place the ship's reach and the
+    // boss in shares of that, not in the authored 10 u view's numbers.
+    [Tooltip("Minimum visible half-width, in world units. The menus keep 2.85 " +
+             "(the player reaches +/-2.4); gameplay scenes use GameplayHalfWidth.")]
     public float minHalfWidth = 2.85f;
 
     Camera cam;
@@ -49,28 +54,62 @@ public class CameraFit : MonoBehaviour
         // unfolding mid-session, so this is checked continuously rather than
         // once. The check itself is two int compares; recomputing only runs
         // on an actual change.
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH)
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH)
             Apply();
     }
 
     void Apply()
     {
         if (cam == null || !cam.orthographic) return;
-        if (Screen.width <= 0 || Screen.height <= 0) return;
+        if (ScreenInfo.Width <= 0 || ScreenInfo.Height <= 0) return;
 
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
 
-        float size = ComputeSize(baseSize, minHalfWidth, Screen.width, Screen.height);
+        float size = ComputeSize(baseSize, minHalfWidth, ScreenInfo.Width, ScreenInfo.Height);
         if (!Mathf.Approximately(size, cam.orthographicSize))
             Debug.Log(string.Format("[CameraFit] {0} {1}x{2} -> orthographicSize {3:F3}",
-                gameObject.scene.name, Screen.width, Screen.height, size));
+                gameObject.scene.name, ScreenInfo.Width, ScreenInfo.Height, size));
         cam.orthographicSize = size;
+        CoverBackdrops(cam);
+    }
+
+    // The scenes' full-screen background quads ("menuBackground" on the home
+    // screen, "starsBackground" everywhere else) were sized for a phone: on
+    // anything wider than about 9:16 (a foldable's inner screen, a tablet, an
+    // iPad) the view is wider than the quad and the camera's flat background
+    // colour showed as a band down each side. Grow such a quad -- uniformly,
+    // so its art is never stretched, and never shrink it -- until it covers
+    // the whole view with a little overscan. Phones are left exactly as
+    // authored (the quad already covers them).
+    public static readonly string[] BackdropNames = { "menuBackground", "starsBackground", "starsBackground0" };
+    public const float BackdropOverscan = 1.02f;
+
+    public static void CoverBackdrops(Camera cam)
+    {
+        if (cam == null || !cam.orthographic) return;
+        float viewH = cam.orthographicSize * 2f * BackdropOverscan;
+        float viewW = cam.orthographicSize * 2f * cam.aspect * BackdropOverscan;
+        Vector3 c = cam.transform.position;
+        foreach (string name in BackdropNames)
+        {
+            var go = GameObject.Find(name);
+            var r = go != null ? go.GetComponent<Renderer>() : null;
+            if (r == null) continue;
+            Bounds b = r.bounds;
+            if (b.size.x <= 0f || b.size.y <= 0f) continue;
+            // what the quad must span to cover the view from where it sits
+            float needW = 2f * Mathf.Max(c.x + viewW * .5f - b.center.x, b.center.x - (c.x - viewW * .5f));
+            float needH = 2f * Mathf.Max(c.y + viewH * .5f - b.center.y, b.center.y - (c.y - viewH * .5f));
+            float k = Mathf.Max(needW / b.size.x, needH / b.size.y);
+            if (k <= 1.0001f) continue;
+            go.transform.localScale *= k;
+        }
     }
 
     // The main camera's visible top / bottom edge in world units, for
     // anything that must enter or leave just off screen: the view grows with
-    // the screen's height (up to ~7.6 half-height on a 9:24 phone), so a
+    // the screen's height (gameplay: 6.6 half-height at 16:9, ~9.9 at 9:24), so a
     // fixed "just above the top" Y pops into view on tall screens. Falls
     // back to the authored size-5 view without a camera.
     public static float ViewTop
@@ -89,6 +128,17 @@ public class CameraFit : MonoBehaviour
             var c = Camera.main;
             return c != null && c.orthographic ? c.transform.position.y - c.orthographicSize : -5f;
         }
+    }
+
+    // Every scene's camera is authored at this orthographic size.
+    public const float AuthoredSize = 5f;
+
+    // World units from the centre line to the screen's side edge in the
+    // gameplay scenes, for a screen of this size (what Apply arrives at).
+    public static float GameplayViewHalfWidth(Vector2 screen)
+    {
+        if (screen.x <= 0f || screen.y <= 0f) return GameplayHalfWidth;
+        return Mathf.Max(GameplayHalfWidth, AuthoredSize * screen.x / screen.y);
     }
 
     // Pure and testable without entering Play mode: never shrinks below

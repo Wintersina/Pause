@@ -31,8 +31,11 @@ public static class PickupRules
         return bossActive ? BossStarDustMultiplier : 1f;
     }
 
+    // No star clusters are released while a portal is kept waiting past its
+    // grace (PortalPressure.EarningsClosed): waiting must not pay.
     public static float StarDustRate()
     {
+        if (PortalPressure.EarningsClosed) return 0f;
         return StarDustRate(BossEncounter.Running);
     }
 

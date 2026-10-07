@@ -272,8 +272,8 @@ public class SpaceDock : MonoBehaviour
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
         needsLayout = false;
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
         lastOrtho = cam.orthographicSize;
 
         float halfH = cam.orthographicSize;
@@ -324,6 +324,11 @@ public class SpaceDock : MonoBehaviour
             gantry.transform.localPosition = new Vector3(0f, y, 0f);
         }
 
+        // The header and footer follow the safe area (notch / Dynamic Island /
+        // punch-hole above, home indicator / nav bar below) before the rack is
+        // fitted between them.
+        PlaceChrome();
+
         // The rack fills the space between the HUD header and the footer
         // buttons, and scrolls only if it cannot fit there.
         float viewTop = camPos.y + halfH, viewBottom = camPos.y - halfH;
@@ -340,7 +345,11 @@ public class SpaceDock : MonoBehaviour
         rackPlaced = true;
         rack.position = new Vector3(camPos.x, rackY, 0f);
 
-        popup.safeView = new Rect(camPos.x - halfW + .05f, bottom, halfW * 2f - .1f, top - bottom);
+        // Sideways the popup keeps inside the safe area too (waterfall edges).
+        float worldPerPixel = halfH * 2f / Mathf.Max(1, ScreenInfo.Height);
+        float left = camPos.x - halfW + ScreenInfo.SafeLeftInset * worldPerPixel + .05f;
+        float right = camPos.x + halfW - ScreenInfo.SafeRightInset * worldPerPixel - .05f;
+        popup.safeView = new Rect(left, bottom, right - left, top - bottom);
     }
 
     // World y of a screen-space-overlay element's bottom (corner 0) or top
@@ -631,7 +640,7 @@ public class SpaceDock : MonoBehaviour
             if (!dragging && (pointer - pressAt).magnitude > DragThresholdInches * dpi) dragging = true;
             if (dragging && scrollable)
             {
-                float worldPerPixel = cam.orthographicSize * 2f / Mathf.Max(1, Screen.height);
+                float worldPerPixel = cam.orthographicSize * 2f / Mathf.Max(1, ScreenInfo.Height);
                 float delta = (pointer.y - lastPointerY) * worldPerPixel;
                 SetRackY(rackY + delta);
                 if (dt > 0f) scrollVelocity = delta / dt;
@@ -658,7 +667,7 @@ public class SpaceDock : MonoBehaviour
     void LateUpdate()
     {
         if (cam == null) return;
-        if (needsLayout || Screen.width != lastScreenW || Screen.height != lastScreenH ||
+        if (needsLayout || ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH ||
             !Mathf.Approximately(cam.orthographicSize, lastOrtho))
             Relayout();
     }
@@ -708,8 +717,8 @@ public class SpaceDock : MonoBehaviour
             scaler.matchWidthOrHeight = 0.5f;
         }
         if (canvas == null) return;
-        PlaceFooter("BackButton", canvas.transform, -150);
-        PlaceFooter("PlayButton", canvas.transform, 150);
+        PlaceFooter("BackButton", canvas.transform, -1);
+        PlaceFooter("PlayButton", canvas.transform, 1);
 
         var instructionGo = SceneUtil.FindAny("~DockInstruction");
         if (instructionGo != null)
@@ -718,7 +727,7 @@ public class SpaceDock : MonoBehaviour
             instruction.text = "SPACE DOCK  ·  TAP A SHIP";
             instruction.fontSize = 19;
             instruction.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .85f);
-            instruction.rectTransform.anchoredPosition = new Vector2(0, -60);
+            instruction.rectTransform.anchoredPosition = new Vector2(0, InstructionY);
             instruction.rectTransform.sizeDelta = new Vector2(650, 30);
         }
         var dust = SceneUtil.FindAny("starDustText");
@@ -734,12 +743,23 @@ public class SpaceDock : MonoBehaviour
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.localScale = Vector3.one;
-            rt.anchoredPosition = new Vector2(0, -27);
+            rt.anchoredPosition = new Vector2(0, DustY);
             rt.sizeDelta = new Vector2(640, 40);
         }
+        PlaceChrome();
     }
 
-    static void PlaceFooter(string name, Transform parent, float x)
+    // Authored header / footer positions (canvas units, reference 720x960),
+    // measured from the safe area's edges.
+    const float DustY = -27f, InstructionY = -60f;
+    const float FooterY = 24f, FooterW = 260f, FooterH = 64f, FooterGap = 40f, FooterSide = 20f;
+    // The footer buttons' hit areas reach this far above their art (a
+    // finger-sized target on short phones without bigger art). Only upwards:
+    // below, they would reach into the display's rounded corners, which
+    // Android does not report as a safe-area inset.
+    const float FooterTapPad = 24f;
+
+    static void PlaceFooter(string name, Transform parent, int side)
     {
         var go = SceneUtil.FindAny(name);
         if (go == null) return;
@@ -747,10 +767,51 @@ public class SpaceDock : MonoBehaviour
         var rt = go.GetComponent<RectTransform>();
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0);
         rt.pivot = new Vector2(0.5f, 0);
-        rt.anchoredPosition = new Vector2(x, 24);
-        rt.sizeDelta = new Vector2(260, 64);
+        rt.anchoredPosition = new Vector2(side * (FooterGap + FooterW) * .5f, FooterY);
+        rt.sizeDelta = new Vector2(FooterW, FooterH);
         rt.localScale = Vector3.one;
         var t = go.GetComponentInChildren<Text>();
         if (t != null) { t.fontSize = 30; t.resizeTextForBestFit = false; }
+        var g = go.GetComponent<Graphic>();
+        if (g != null) g.raycastPadding = new Vector4(0f, 0f, 0f, -FooterTapPad);
+    }
+
+    // Keeps the star dust read-out and the instruction under the safe area's
+    // top, and BACK / LIFT-OFF above its bottom and inside its width: on
+    // 20:9 and taller phones the canvas (matched half width, half height) is
+    // under 600 units wide, so the 260-unit buttons ran off both sides, and
+    // they sat on the home indicator / under the 3-button bar. On a phone
+    // without insets that is wide enough this is exactly the authored layout.
+    public static void PlaceChrome()
+    {
+        Place("starDustText", DustY, true);
+        Place("~DockInstruction", InstructionY, true);
+        foreach (string name in new[] { "BackButton", "PlayButton" })
+        {
+            var go = SceneUtil.FindAny(name);
+            var rt = go != null ? go.GetComponent<RectTransform>() : null;
+            var canvas = go != null ? go.GetComponentInParent<Canvas>() : null;
+            if (rt == null || canvas == null) continue;
+            float sf = Mathf.Max(canvas.rootCanvas.scaleFactor, .0001f);
+            float canvasW = ScreenInfo.Width / sf;
+            float safeL = ScreenInfo.SafeLeftInset / sf, safeR = ScreenInfo.SafeRightInset / sf;
+            float room = canvasW - safeL - safeR - 2f * FooterSide - FooterGap;
+            float w = Mathf.Clamp(room * .5f, 0f, FooterW);
+            float side = Mathf.Sign(rt.anchoredPosition.x == 0f ? (name == "PlayButton" ? 1f : -1f) : rt.anchoredPosition.x);
+            float centre = (safeL - safeR) * .5f;
+            rt.sizeDelta = new Vector2(w, FooterH);
+            rt.anchoredPosition = new Vector2(centre + side * (FooterGap + w) * .5f, FooterY + ScreenInfo.SafeBottomInset / sf);
+        }
+    }
+
+    static void Place(string name, float y, bool fromTop)
+    {
+        var go = SceneUtil.FindAny(name);
+        var rt = go != null ? go.GetComponent<RectTransform>() : null;
+        var canvas = go != null ? go.GetComponentInParent<Canvas>() : null;
+        if (rt == null || canvas == null) return;
+        float sf = Mathf.Max(canvas.rootCanvas.scaleFactor, .0001f);
+        float inset = fromTop ? -ScreenInfo.SafeTopInset / sf : ScreenInfo.SafeBottomInset / sf;
+        rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, y + inset);
     }
 }

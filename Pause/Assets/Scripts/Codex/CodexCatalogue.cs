@@ -152,7 +152,8 @@ public static class CodexCatalogue
             new CodexEntry("atom_blue", "Blue Atom", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Shield, "prefabs/atom3a"),
                 "Pure forward momentum. Grab one and a shield snaps around your hull for about six seconds - plough " +
-                "through anything while the world speeds up around you. It also pays two star dust and cuts " +
+                "through anything while the world speeds up around you, past the speed limit if you were already " +
+                "at it. It also pays two star dust and cuts " +
                 BlueAtomCut + " off your weapon's charge.",
                 new[] { "atom3a" }),
             new CodexEntry("atom_red", "Red Atom", CodexCategory.Atoms,
@@ -175,7 +176,8 @@ public static class CodexCatalogue
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
                 "Fly long enough and the wormhole inside you tears a door in space. Dive through it to jump to " +
-                "the next world - one step closer to home. Miss it and another opens a little later.",
+                "the next world - one step closer to home. It waits for you, but the skies get meaner every " +
+                "second you keep it waiting.",
                 new[] { "~portal" }),
             new CodexEntry(WorldIds[0], "Deep Space", CodexCategory.Worlds, () => SpaceBackdrop(),
                 "Where the black hole dropped you: cold, quiet and full of things that want you gone. Every " +

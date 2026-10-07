@@ -7,7 +7,7 @@ using System.Reflection;
 // in rotation with a side-matching fix for their rail mounting, enemy
 // density (enmiesOnBoard's SpawnPhase) now driven by elapsed flight time
 // instead of moveBackGround.speed so it keeps escalating past the speed
-// cap, per-world maxSpeed lowered ~20% with a new per-world enemyRampScale
+// cap, per-world speed caps (since replaced by the one SpeedRamp.Cap) with a new per-world enemyRampScale
 // wired through WorldManager.ApplyDifficulty, and the new ChaserEnemy hazard.
 public static class DifficultyRebalanceTest
 {
@@ -33,6 +33,10 @@ public static class DifficultyRebalanceTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
+        // The detailed rail-mine checks master's rail refactor dropped; they
+        // still describe the code, so they stay next to its shorter ones.
+        MinesAlwaysMountToMatchingSideRail();
+        MineFieldLoadsAndSpawnsOntoARail();
         RailMinesRemainMounted();
         OpeningCalmWindowRespectsShipStartSpeed();
         PhaseProgressionIsTimeDrivenNotSpeedDriven();
@@ -68,6 +72,90 @@ public static class DifficultyRebalanceTest
         Object.DestroyImmediate(comp.gameObject);
         if (mine != null) Object.DestroyImmediate(mine.gameObject);
         if (rail != null) Object.DestroyImmediate(rail.gameObject);
+    }
+
+    static void MinesAlwaysMountToMatchingSideRail()
+    {
+        EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
+        var comp = NewBoard("~EnmiesOnBoardTest1");
+
+        var spawnRail = PrivM(typeof(enmiesOnBoard), "SpawnRail");
+        var nearestLiveRail = PrivM(typeof(enmiesOnBoard), "NearestLiveRail");
+
+        var rightRail = (Transform)spawnRail.Invoke(comp, new object[] { true });
+        var leftRail = (Transform)spawnRail.Invoke(comp, new object[] { false });
+        Check("SpawnRail(true) lands on the positive-x side", rightRail.position.x > 0f);
+        Check("SpawnRail(false) lands on the negative-x side", leftRail.position.x < 0f);
+        // (the mines ride the DRAWN rail now, not the old 2.35 lane edge: RailsVettingTest
+        // holds the clamp against the rail art in every world)
+        float halfW = Camera.main != null ? Camera.main.orthographicSize * Camera.main.aspect : 3.72f;
+        Check("right rail is inside what the camera shows and where enmiesOnBoard.WorldRailX says (" + rightRail.position.x.ToString("F3") + ")",
+              rightRail.position.x < halfW && Mathf.Approximately(rightRail.position.x, enmiesOnBoard.WorldRailX(false)));
+        Check("left rail mirrors it (" + leftRail.position.x.ToString("F3") + ")",
+              leftRail.position.x > -halfW && Mathf.Approximately(leftRail.position.x, -rightRail.position.x));
+
+        // Move the right rail far away in Y and leave the left one close --
+        // a search that ignored side would now prefer the (far) right rail
+        // for neither request, or worse, hand a left-side request the
+        // nearby right rail. Both must still resolve strictly by side.
+        rightRail.position += new Vector3(0f, 50f, 0f);
+
+        var pickedForLeft = (Transform)nearestLiveRail.Invoke(comp, new object[] { false });
+        var pickedForRight = (Transform)nearestLiveRail.Invoke(comp, new object[] { true });
+        Check("a left-side request never returns the right-side rail", pickedForLeft == leftRail);
+        Check("a right-side request never returns the left-side rail even when it's far away", pickedForRight == rightRail);
+
+        Object.DestroyImmediate(comp.gameObject);
+        Object.DestroyImmediate(leftRail.gameObject);
+        Object.DestroyImmediate(rightRail.gameObject);
+    }
+
+    static void MineFieldLoadsAndSpawnsOntoARail()
+    {
+        EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
+        var comp = NewBoard("~EnmiesOnBoardTest2");
+
+        Check("legacy mine prefab is intentionally absent; themed rail mine is runtime-built", comp.mine == null);
+
+        var spawnMine = PrivM(typeof(enmiesOnBoard), "spawnMine");
+        spawnMine.Invoke(comp, null);
+
+        var liveMines = Priv(typeof(enmiesOnBoard), "liveMines").GetValue(comp) as System.Collections.IList;
+        Check("spawning a mine adds it to the live-mines list", liveMines != null && liveMines.Count == 1);
+        if (liveMines == null || liveMines.Count == 0) { Object.DestroyImmediate(comp.gameObject); return; }
+
+        var mineTransform = liveMines[0] as Transform;
+        var mount = mineTransform != null ? mineTransform.GetComponent<RailMineMount>() : null;
+        Check("the spawned mine got a RailMineMount", mount != null);
+        Check("the mount references a real, live rail", mount != null && mount.rail != null);
+        if (mount != null && mount.rail != null)
+        {
+            Check("the mine spawned exactly on its rail's x", Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+        Check("the mine receives the themed rail-bomb animator",
+                  mineTransform.GetComponent<RailBombAnimator>() != null);
+            Check("the mine reports itself on its assigned rail", mount.IsOnRail());
+
+            // This is the important live-play case: the mine rides its own
+            // moving rail.  It keeps its intentional along-rail spacing,
+            // while its X and Y both follow that rail; it is not a loose
+            // straight-line enemy that merely gets snapped sideways.
+            float alongRail = mineTransform.position.y - mount.rail.position.y;
+            mount.rail.position += new Vector3(0.18f, -0.4f, 0f);
+            mineTransform.position += new Vector3(-1.5f, 0f, 0f);
+            mount.SendMessage("LateUpdate");
+            Check("a moving rail carries its mine to the new rail x", mount.IsOnRail());
+            Check("the mine's x equals the moved rail x",
+                  Mathf.Approximately(mineTransform.position.x, mount.rail.position.x));
+            Check("the mine rides down with its rail while keeping its rail spacing",
+                  Mathf.Approximately(mineTransform.position.y, mount.rail.position.y + alongRail));
+            var looseScroller = mineTransform.GetComponent<moveItemEnmInStrightLine>();
+            Check("a mounted mine disables loose straight-line scrolling",
+                  looseScroller != null && !looseScroller.enabled);
+        }
+
+        Object.DestroyImmediate(comp.gameObject);
+        if (mineTransform != null) Object.DestroyImmediate(mineTransform.gameObject);
+        if (mount != null && mount.rail != null) Object.DestroyImmediate(mount.rail.gameObject);
     }
 
     static void ObsoleteRailAndAsteroidArtIsRemoved()
@@ -139,14 +227,15 @@ public static class DifficultyRebalanceTest
 
     static void WorldSpeedCapsLoweredAndRampScaleWired()
     {
-        Check("Space's maxSpeed was lowered from the old 0.58",
-              WorldManager.Worlds[0].maxSpeed < 0.55f && WorldManager.Worlds[0].maxSpeed > 0.35f);
-        Check("Ember's maxSpeed was lowered from the old 0.78",
-              WorldManager.Worlds[3].maxSpeed < 0.70f && WorldManager.Worlds[3].maxSpeed > 0.50f);
-        Check("worlds stay ordered least to most top speed",
-              WorldManager.Worlds[0].maxSpeed < WorldManager.Worlds[1].maxSpeed &&
-              WorldManager.Worlds[1].maxSpeed < WorldManager.Worlds[2].maxSpeed &&
-              WorldManager.Worlds[2].maxSpeed < WorldManager.Worlds[3].maxSpeed);
+        // 2026-10, second pass: the per-world caps (0.58 -> 0.46 -> 0.38 for
+        // Space, 0.78 -> 0.62 -> 0.44 for Ember) are gone; every world shares
+        // SpeedRamp.Cap (HUD 35) and later worlds get there sooner.
+        Check("the one cap (HUD 35) is under every old per-world cap (Space's 0.38 the lowest)",
+              SpeedRamp.Cap <= 0.35f + 1e-6f);
+        Check("worlds stay ordered least to most hurried: later worlds ramp to the cap faster",
+              WorldManager.Worlds[0].speedRampPerSecond < WorldManager.Worlds[1].speedRampPerSecond &&
+              WorldManager.Worlds[1].speedRampPerSecond < WorldManager.Worlds[2].speedRampPerSecond &&
+              WorldManager.Worlds[2].speedRampPerSecond < WorldManager.Worlds[3].speedRampPerSecond);
         Check("later worlds ramp enemy density faster than earlier ones",
               WorldManager.Worlds[0].enemyRampScale < WorldManager.Worlds[1].enemyRampScale &&
               WorldManager.Worlds[1].enemyRampScale < WorldManager.Worlds[2].enemyRampScale &&
@@ -160,8 +249,8 @@ public static class DifficultyRebalanceTest
         var applyDifficulty = typeof(WorldManager).GetMethod("ApplyDifficulty", BindingFlags.NonPublic | BindingFlags.Static);
         applyDifficulty.Invoke(null, new object[] { WorldManager.Worlds[3] }); // Ember
 
-        Check("ApplyDifficulty sets moveBackGround.maxSpeed from the theme",
-              Mathf.Approximately(bg.maxSpeed, WorldManager.Worlds[3].maxSpeed));
+        Check("ApplyDifficulty sets moveBackGround.maxSpeed to the one cap",
+              Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap));
         Check("ApplyDifficulty sets enmiesOnBoard.phaseRampScale from the theme",
               Mathf.Approximately(enemies.phaseRampScale, WorldManager.Worlds[3].enemyRampScale));
 

@@ -34,7 +34,8 @@ public static class NextFeatures0907Test
 
         AsteroidsSpinSomeAtTieredSpeeds();
         AtomsStayInsideSideRails();
-        Check("player cannot move below the gameplay floor", movePlayer.ClampPlayerY(-99f) >= -4.15f);
+        Check("player cannot move below the gameplay floor (the hull and flame stay in view)",
+              movePlayer.ClampPlayerY(-99f) - ShipReach.HullBelow >= CameraFit.ViewBottom);   // (was >= -4.15)
         Check("the first launch touch does not spend a pause", !score.ShouldSpendPause(false, false));
         Check("a later pause-resume touch spends exactly one pause", score.ShouldSpendPause(true, false));
         Check("per-ship weapon atlases are present",
@@ -55,6 +56,7 @@ public static class NextFeatures0907Test
         PauseQuickActionsVisibility();
         QuickActionIconFiles();
         HudPinnedTopLeft();
+        TopBandInsideRailsClearOfCutouts();
         UltimatePowerAutoFiresAndSpeedsUpFromPickups();
 
         Debug.Log("[NF] failures: " + fails);
@@ -281,9 +283,10 @@ public static class NextFeatures0907Test
         }
     }
 
-    // The score read-out (SPEED / star dust / PAUSES) is pinned to the
-    // safe area's top-left corner with the quick actions' margin, top-aligned
-    // with them, and never runs into them -- on every aspect ratio and notch.
+    // The score read-out (SCORE / SPEED / PAUSES) is pinned to the left end of
+    // the top band (TopBand: inside the left rail, inside the safe area),
+    // top-aligned with the quick actions at its right end, and never runs
+    // into them -- on every aspect ratio and notch.
     static void HudPinnedTopLeft()
     {
         // Real phones/tablets, with their safe areas in pixels (origin bottom-left).
@@ -333,13 +336,19 @@ public static class NextFeatures0907Test
                 Rect actions = PauseQuickActions.ScreenRectFor(s.safe, s.size);
                 float actionScale = PauseQuickActions.CanvasScaleFor(s.size);
                 float margin = PauseQuickActions.EdgeMargin * actionScale;
+                float topMargin = PauseQuickActions.TopMargin * actionScale;
+                var frame = TopBand.FrameFor(s.safe, s.size);
                 string tag = scene + " @ " + s.name + ": ";
 
-                Check(tag + "HUD left edge sits one margin in from the safe area (" +
+                Check(tag + "HUD left edge sits at the band's left end, at least one margin in from the safe area (" +
                       (hud.xMin - s.safe.xMin).ToString("F1") + "px vs " + margin.ToString("F1") + ")",
-                      Mathf.Abs(hud.xMin - s.safe.xMin - margin) < 1f);
-                Check(tag + "HUD top edge sits one margin below the safe area's top",
-                      Mathf.Abs(s.safe.yMax - hud.yMax - margin) < 1f);
+                      Mathf.Abs(hud.xMin - frame.left) < 1f && hud.xMin - s.safe.xMin >= margin - 1f);
+                Check(tag + "quick actions end at the band's right end, at least one margin in from the safe area",
+                      Mathf.Abs(actions.xMax - frame.right) < 1f && s.safe.xMax - actions.xMax >= margin - 1f);
+                Check(tag + "HUD top edge sits one top margin below the safe area's top",
+                      Mathf.Abs(s.safe.yMax - hud.yMax - topMargin) < 1f);
+                Check(tag + "quick actions sit one top margin below the safe area's top, inside it",
+                      Mathf.Abs(s.safe.yMax - actions.yMax - topMargin) < 1f && actions.yMax < s.safe.yMax);
                 Check(tag + "HUD top aligned with the quick actions (" +
                       ((hud.yMax - actions.yMax) / actionScale).ToString("F2") + " units)",
                       Mathf.Abs(hud.yMax - actions.yMax) / actionScale < 3f);
@@ -379,9 +388,10 @@ public static class NextFeatures0907Test
             Vector2 pos; float fit;
             HudStyler.ComputeHudLayout(new Rect(0, 0, 540, 1170), new Vector2(540, 1170), 540f / 800f,
                                        new Vector2(351, 131), out pos, out fit);
-            Check("540x1170: panel top is ~16px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
+            Check("540x1170: panel top is ~3px from the top, not ~190px (" + (-pos.y * 540f / 800f).ToString("F1") + "px)",
                   -pos.y * 540f / 800f < 20f);
-            Check("540x1170: panel keeps full size", Mathf.Approximately(fit, 1f));
+            Check("540x1170: panel keeps a legible size beside the quick actions (" + fit.ToString("F2") + ")",
+                  fit >= TopBand.ReadoutMinScale && fit <= 1f);
         }
 
         // A pathologically narrow screen shrinks the panel instead of overlapping.
@@ -393,6 +403,222 @@ public static class NextFeatures0907Test
             Check("narrow screen: HUD shrinks to stay clear of the quick actions",
                   !hud.Overlaps(PauseQuickActions.ScreenRectFor(safe, size)));
         }
+    }
+
+    // ---- 3b: the top band, the rails and display cutouts ----------------------
+
+    // Screen shapes, with the points-per-pixel / density used to judge the
+    // buttons as tap targets where the device is known (0: not judged).
+    static readonly (string name, Vector2 size, float pxPerPoint, float minPoints)[] BandShapes =
+    {
+        ("Z Flip7 1080x2520",     new Vector2(1080, 2520), 2.625f, 48f),   // 420 dpi bucket, dp
+        ("1080x2400",             new Vector2(1080, 2400), 2.625f, 48f),
+        ("16:9 1080x1920",        new Vector2(1080, 1920), 0f, 0f),
+        ("iPhone 15 1179x2556",   new Vector2(1179, 2556), 3f, 44f),
+        ("iPhone 15 PM 1290x2796", new Vector2(1290, 2796), 3f, 44f),
+        ("iPhone SE 750x1334",    new Vector2(750, 1334), 0f, 0f),
+        ("Fold cover 904x2316",   new Vector2(904, 2316), 0f, 0f),
+        ("Fold open 1812x2176",   new Vector2(1812, 2176), 0f, 0f),
+        ("iPad 1536x2048",        new Vector2(1536, 2048), 0f, 0f),
+        ("720x1280",              new Vector2(720, 1280), 0f, 0f),
+    };
+
+    // Synthetic display cutouts for a w x h portrait screen, each with the
+    // safe area the platform reports for it (pixels, origin bottom-left).
+    public static (string name, Rect safe, Rect[] cutouts)[] CutoutCases(Vector2 size)
+    {
+        float w = size.x, h = size.y;
+        // iPhone notch: 54% wide, flush with the top; the safe area starts under it
+        var notch = new Rect(w * .23f, h - h * .037f, w * .54f, h * .037f);
+        // Dynamic Island: a floating pill; the safe area starts a little below it
+        var island = new Rect(w * .34f, h - h * .057f, w * .32f, h * .044f);
+        // punch-holes: a 6.5%-wide camera a little down from the top
+        float d = w * .065f;
+        var hole = new Rect(w * .5f - d * .5f, h - h * .012f - d, d, d);
+        var corner = new Rect(w * .055f, h - h * .012f - d, d, d);
+        // waterfall: both long edges curve away
+        float fall = w * .03f;
+        var fallL = new Rect(0f, 0f, fall, h);
+        var fallR = new Rect(w - fall, 0f, fall, h);
+        return new[]
+        {
+            ("no cutout", new Rect(0, 0, w, h), new Rect[0]),
+            ("centre notch", new Rect(0, h * .04f, w, notch.yMin - h * .04f), new[] { notch }),
+            ("centre island", new Rect(0, h * .04f, w, h * (1f - .069f) - h * .04f), new[] { island }),
+            ("centre punch-hole", new Rect(0, 0, w, hole.yMin), new[] { hole }),
+            ("corner punch-hole", new Rect(0, 0, w, corner.yMin), new[] { corner }),
+            ("waterfall edges", new Rect(fall, 0, w - 2f * fall, h), new[] { fallL, fallR }),
+            // a platform that reports the hole but leaves the safe area whole
+            ("centre punch-hole, safe area not inset", new Rect(0, 0, w, h), new[] { hole }),
+            ("corner punch-hole, safe area not inset", new Rect(0, 0, w, h), new[] { corner }),
+        };
+    }
+
+    static bool InsideRect(Rect outer, Rect inner)
+    {
+        return inner.xMin >= outer.xMin - .01f && inner.xMax <= outer.xMax + .01f &&
+               inner.yMin >= outer.yMin - .01f && inner.yMax <= outer.yMax + .01f;
+    }
+
+    // The read-out, the two buttons and the boss chip stay inside the rails'
+    // inner edges and the safe area, clear of every cutout and of each other,
+    // on every shape x cutout, for the painted rails and the authored wall.
+    static void TopBandInsideRailsClearOfCutouts()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+        var go = new GameObject("~TopBandTest");
+        var styler = go.AddComponent<HudStyler>();
+        styler.SendMessage("Start");
+        var root = styler.HudRoot;
+        Check("top band: the read-out exists", root != null);
+        if (root == null) { Object.DestroyImmediate(go); return; }
+        var canvas = root.parent.GetComponent<Canvas>();
+        var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+        Vector2 hudSize = root.rect.size;
+
+        // the edge gameplay uses, once a world's rails are painted
+        float authored = BossRails.AuthoredInnerEdge;
+        float painted = float.MaxValue;
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        {
+            WorldPainter.Apply(WorldManager.Worlds[w]);
+            painted = Mathf.Min(painted, BossRails.InnerEdge);
+        }
+        Check("top band: every world's painted rails start outside the authored wall edge (" + painted.ToString("F3") + " vs " +
+              authored.ToString("F3") + ")", painted > authored && painted < CameraFit.GameplayHalfWidth);
+        Check("top band: the live band follows the rails as painted",
+              TopBand.FrameFor(new Rect(0, 0, 1080, 2520), new Vector2(1080, 2520)).Same(
+                  TopBand.FrameFor(new Rect(0, 0, 1080, 2520), new Vector2(1080, 2520), BossRails.InnerEdge, null)));
+
+        float worstFit = 1f;
+        string worstAt = "";
+        foreach (var shape in BandShapes)
+        {
+            Vector2 size = shape.size;
+            float s = PauseQuickActions.CanvasScaleFor(size);
+            float hudScale = HudStyler.HudCanvasScale(canvas, scaler, size);
+            float halfW = CameraFit.GameplayViewHalfWidth(size);
+            foreach (float edge in new[] { painted, authored })
+            {
+                float railL = size.x * .5f - edge / halfW * size.x * .5f, railR = size.x - railL;
+                foreach (var c in CutoutCases(size))
+                {
+                    string tag = shape.name + ", " + c.name + (edge == painted ? "" : " (unpainted wall)") + ": ";
+                    var band = TopBand.FrameFor(c.safe, size, edge, c.cutouts);
+                    Rect read = HudStyler.HudScreenRect(band, size, hudScale, hudSize);
+                    Rect home = PauseQuickActions.ButtonScreenRect(band, size, 1);
+                    Rect replay = PauseQuickActions.ButtonScreenRect(band, size, 0);
+                    var l = BossWarningHud.ComputeLayout(c.safe, size, read, band);
+                    var pieces = new[] { ("read-out", read), ("home", home), ("replay", replay), ("boss chip", l.chip) };
+
+                    bool inRails = true, inSafe = true, clear = true, apart = true;
+                    string why = "";
+                    float gap = TopBand.CutoutClearance * s - .5f;
+                    for (int i = 0; i < pieces.Length; i++)
+                    {
+                        Rect r = pieces[i].Item2;
+                        bool a = r.xMin >= railL - .01f && r.xMax <= railR + .01f;
+                        bool b = InsideRect(c.safe, r);
+                        bool k = true;
+                        foreach (var cut in c.cutouts)
+                            k &= !r.Overlaps(new Rect(cut.x - gap, cut.y - gap, cut.width + 2f * gap, cut.height + 2f * gap));
+                        bool o = true;
+                        for (int j = i + 1; j < pieces.Length; j++) o &= !r.Overlaps(pieces[j].Item2);
+                        if (!(a && b && k && o) && why == "")
+                            why = " [" + pieces[i].Item1 + " x " + r.xMin.ToString("F0") + ".." + r.xMax.ToString("F0") + " y " +
+                                  r.yMin.ToString("F0") + ".." + r.yMax.ToString("F0") + "; rails " + railL.ToString("F0") + ".." + railR.ToString("F0") + "]";
+                        inRails &= a; inSafe &= b; clear &= k; apart &= o;
+                    }
+                    Check(tag + "read-out, buttons and chip inside the rails' inner edges" + why, inRails);
+                    Check(tag + "inside the safe area" + why, inSafe);
+                    Check(tag + "clear of every cutout by the clearance" + why, clear);
+                    Check(tag + "not overlapping each other" + why, apart);
+
+                    bool banner = InsideRect(c.safe, l.banner) && !l.banner.Overlaps(read) && !l.banner.Overlaps(home) &&
+                                  !l.banner.Overlaps(replay) && !l.banner.Overlaps(l.chip);
+                    foreach (var cut in c.cutouts) banner &= !l.banner.Overlaps(cut);
+                    Check(tag + "the boss banner is under the band, inside the safe area, clear of the cutouts", banner);
+
+                    Check(tag + "the read-out, the icons and the band share one top edge, in the top quarter",
+                          Mathf.Abs(read.yMax - band.top) < .5f && Mathf.Abs(home.yMax - band.top) < .5f &&
+                          Mathf.Abs(replay.yMax - band.top) < .5f && read.yMin > size.y * .75f);
+
+                    float fit = read.width / (hudSize.x * hudScale);
+                    if (edge == painted && fit < worstFit) { worstFit = fit; worstAt = shape.name + ", " + c.name; }
+                    // unpainted (a frame at most, before the world's rails load): never overlapping is enough
+                    if (edge == painted)
+                        Check(tag + "the read-out keeps a legible size (" + fit.ToString("F2") + " of full)", fit >= TopBand.ReadoutMinScale);
+
+                    bool full = Mathf.Abs(home.width - PauseQuickActions.ButtonSize * s) < .01f &&
+                                Mathf.Abs(replay.height - PauseQuickActions.ButtonSize * s) < .01f;
+                    Check(tag + "the buttons are never scaled down (" + home.width.ToString("F0") + " px)", full);
+                    if (shape.pxPerPoint > 0f)
+                        Check(tag + "each button is a " + (home.width / shape.pxPerPoint).ToString("F1") + " pt/dp tap target (>= " + shape.minPoints + ")",
+                              home.width / shape.pxPerPoint >= shape.minPoints && replay.width / shape.pxPerPoint >= shape.minPoints);
+                }
+            }
+
+            // what each cutout does to the band
+            var cases = CutoutCases(size);
+            var none = TopBand.FrameFor(cases[0].safe, size, painted, cases[0].cutouts);
+            var cornerOpen = TopBand.FrameFor(cases[7].safe, size, painted, cases[7].cutouts);
+            var holeOpen = TopBand.FrameFor(cases[6].safe, size, painted, cases[6].cutouts);
+            Check(shape.name + ": a corner punch-hole out over the rail leaves the band where it was", cornerOpen.Same(none));
+            Check(shape.name + ": a centre punch-hole drops the whole band below it (" + (none.top - holeOpen.top).ToString("F0") + " px), not around it",
+                  holeOpen.top < cases[6].cutouts[0].yMin && holeOpen.left == none.left && holeOpen.right == none.right);
+            var fallBand = TopBand.FrameFor(cases[5].safe, size, painted, cases[5].cutouts);
+            Check(shape.name + ": waterfall edges never push the band outside the rails", fallBand.left >= none.left && fallBand.right <= none.right);
+            // rounded corners: the band's outer top corners are further in than any corner radius (<= 10% of the width)
+            Check(shape.name + ": the band's ends are clear of rounded corners (" + (none.left / size.x).ToString("P0") + " in)",
+                  none.left >= size.x * .1f && size.x - none.right >= size.x * .1f);
+        }
+        Debug.Log("[NF] top band: the read-out's smallest scale is " + worstFit.ToString("F3") + " at " + worstAt);
+
+        // No rails (edge 0): the band spans the safe area, as it did.
+        {
+            var size = new Vector2(1080, 2520);
+            var safe = new Rect(0, 0, 1080, 2520);
+            float s = PauseQuickActions.CanvasScaleFor(size);
+            var open = TopBand.FrameFor(safe, size, 0f, null);
+            Check("no rails: the band spans the safe area less the edge margin",
+                  Mathf.Approximately(open.left, PauseQuickActions.EdgeMargin * s) &&
+                  Mathf.Approximately(open.right, 1080f - PauseQuickActions.EdgeMargin * s));
+        }
+
+        // The built buttons sit where the layout says.
+        {
+            var actionsGo = new GameObject("~PauseQuickActionsBandTest");
+            var actions = actionsGo.AddComponent<PauseQuickActions>();
+            actions.SendMessage("Start");
+            var size = new Vector2(1080, 2520);
+            var c = CutoutCases(size)[3];
+            var band = TopBand.FrameFor(c.safe, size, painted, c.cutouts);
+            actions.PlaceFor(c.safe, size, band);
+            float s = PauseQuickActions.CanvasScaleFor(size);
+            var replayGo = SceneUtil.FindAny("replayQuickAction");
+            var leaveGo = SceneUtil.FindAny("leaveQuickAction");
+            bool built = replayGo != null && leaveGo != null;
+            if (built)
+            {
+                var r0 = replayGo.GetComponent<RectTransform>();
+                var r1 = leaveGo.GetComponent<RectTransform>();
+                // anchored to the safe area's top-right corner, in canvas units
+                Rect want0 = PauseQuickActions.ButtonScreenRect(band, size, 0), want1 = PauseQuickActions.ButtonScreenRect(band, size, 1);
+                built = Mathf.Abs(c.safe.xMax + r0.anchoredPosition.x * s - want0.xMax) < .5f &&
+                        Mathf.Abs(c.safe.yMax + r0.anchoredPosition.y * s - want0.yMax) < .5f &&
+                        Mathf.Abs(c.safe.xMax + r1.anchoredPosition.x * s - want1.xMax) < .5f &&
+                        Mathf.Abs(c.safe.yMax + r1.anchoredPosition.y * s - want1.yMax) < .5f &&
+                        r0.sizeDelta == new Vector2(PauseQuickActions.ButtonSize, PauseQuickActions.ButtonSize) &&
+                        r0.pivot == Vector2.one && r1.pivot == Vector2.one;
+            }
+            Check("the built quick actions sit where the band says (tap rect = drawn rect)", built);
+            Object.DestroyImmediate(actionsGo);
+            var holder = GameObject.Find("RunActionCanvas");
+            if (holder != null) Object.DestroyImmediate(holder);
+        }
+
+        BossRails.Reset();
+        Object.DestroyImmediate(go);
     }
 
     // ---- 4: ultimate power --------------------------------------------------

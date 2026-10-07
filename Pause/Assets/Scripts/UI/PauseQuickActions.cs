@@ -24,12 +24,20 @@ public class PauseQuickActions : MonoBehaviour
     // (match 0.5). On a 390x844pt phone that is ~46pt per button, above the
     // ~44pt minimum comfortable tap target.
     public const float ButtonSize = 72f;
-    public const float ButtonGap = 14f;
-    // Inset from the safe area's top/right edges. HudStyler pins the score
-    // read-out to the top-left corner with this same margin (converted to
-    // screen pixels) and the same top edge, so the two blocks frame the top
-    // of the screen symmetrically.
+    public const float ButtonGap = 10f;
+    // The least the band keeps clear of the safe area's side edges. Where
+    // the side rails are, the band ends inside them instead (TopBand), the
+    // buttons at its right end and HudStyler's score read-out at its left,
+    // sharing one top edge.
     public const float EdgeMargin = 18f;
+    // Inset from the safe area's top edge, shared by the buttons and the
+    // score read-out: the whole top band sits 20% of a button higher than
+    // the side margin, still inside the safe area (and lower still under a
+    // display cutout: TopBand).
+    public const float TopMargin = EdgeMargin - .2f * ButtonSize;
+    // The buttons are never scaled down: on a 393x852pt phone they are
+    // ~46pt, just above the smallest comfortable tap target.
+    public const float MinTapPoints = 44f;
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = 0.5f;
 
@@ -40,6 +48,8 @@ public class PauseQuickActions : MonoBehaviour
     RectTransform safeArea;
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
+    TopBand.Frame appliedBand;
+    bool bandApplied;
 
     // Player movement runs separately from Unity UI. This geometric check is
     // deliberately independent of EventSystem timing, so the first press on
@@ -76,12 +86,24 @@ public class PauseQuickActions : MonoBehaviour
     // a given safe area and screen: what the HUD must keep clear of.
     public static Rect ScreenRectFor(Rect safeArea, Vector2 screen)
     {
+        return ScreenRectFor(TopBand.FrameFor(safeArea, screen), screen);
+    }
+
+    // The same, at the right end of a given band.
+    public static Rect ScreenRectFor(TopBand.Frame band, Vector2 screen)
+    {
         float s = CanvasScaleFor(screen);
-        float right = safeArea.xMax - EdgeMargin * s;
-        float top = safeArea.yMax - EdgeMargin * s;
         float width = (2f * ButtonSize + ButtonGap) * s;
         float height = ButtonSize * s;
-        return new Rect(right - width, top - height, width, height);
+        return new Rect(band.right - width, band.top - height, width, height);
+    }
+
+    // One button's screen-pixel rect: 0 is Replay (rightmost), 1 is Home.
+    public static Rect ButtonScreenRect(TopBand.Frame band, Vector2 screen, int slotFromRight)
+    {
+        float s = CanvasScaleFor(screen);
+        float right = band.right - slotFromRight * (ButtonSize + ButtonGap) * s;
+        return new Rect(right - ButtonSize * s, band.top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
     }
 
     void Start()
@@ -110,9 +132,8 @@ public class PauseQuickActions : MonoBehaviour
         replayClone.name = "replayQuickAction";
         leaveClone.name = "leaveQuickAction";
 
-        // Replay in the corner, Home to its left.
-        PositionTopRight(replayClone, 0);
-        PositionTopRight(leaveClone, 1);
+        // Replay at the band's right end, Home to its left.
+        PlaceButtons();
 
         var clicks = Object.FindFirstObjectByType<buttonClicks>();
         var replay = replayClone.GetComponent<Button>();
@@ -137,14 +158,53 @@ public class PauseQuickActions : MonoBehaviour
         StyleIcon(leaveClone, HomeIconPath);
     }
 
-    static void PositionTopRight(GameObject go, int slotFromRight)
+    // Re-placed whenever the band moves: screen, safe area, cutouts, or the
+    // rails' inner edge (a world's rails being painted).
+    void PlaceButtons()
     {
+        var screen = new Vector2(Screen.width, Screen.height);
+        if (screen.x <= 0f || screen.y <= 0f) return;
+        Rect safe = Screen.safeArea;
+        var band = TopBand.FrameFor(safe, screen);
+        if (bandApplied && band.Same(appliedBand)) return;
+        appliedBand = band;
+        bandApplied = true;
+        Vector2 offset = TopRightOffset(band, safe, screen);
+        PositionTopRight(replayClone, 0, offset);
+        PositionTopRight(leaveClone, 1, offset);
+    }
+
+    // For previews and tests: lay the buttons out for a given screen rather
+    // than the live one.
+    public void PlaceFor(Rect safe, Vector2 screen, TopBand.Frame band)
+    {
+        if (safeArea == null || screen.x <= 0f || screen.y <= 0f) return;
+        safeArea.anchorMin = new Vector2(safe.xMin / screen.x, safe.yMin / screen.y);
+        safeArea.anchorMax = new Vector2(safe.xMax / screen.x, safe.yMax / screen.y);
+        safeArea.offsetMin = safeArea.offsetMax = Vector2.zero;
+        appliedBand = band;
+        bandApplied = true;
+        Vector2 offset = TopRightOffset(band, safe, screen);
+        PositionTopRight(replayClone, 0, offset);
+        PositionTopRight(leaveClone, 1, offset);
+    }
+
+    // The band's top-right corner relative to the safe area's, in canvas units.
+    public static Vector2 TopRightOffset(TopBand.Frame band, Rect safe, Vector2 screen)
+    {
+        float s = Mathf.Max(CanvasScaleFor(screen), .0001f);
+        return new Vector2((band.right - safe.xMax) / s, (band.top - safe.yMax) / s);
+    }
+
+    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset)
+    {
+        if (go == null) return;
         var rt = go.GetComponent<RectTransform>();
         rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(1f, 1f);
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
-        rt.anchoredPosition = new Vector2(-EdgeMargin - slotFromRight * (ButtonSize + ButtonGap), -EdgeMargin);
+        rt.anchoredPosition = new Vector2(offset.x - slotFromRight * (ButtonSize + ButtonGap), offset.y);
     }
 
     // The icon carries its own plate, rim and glyph, so the button is just
@@ -229,6 +289,7 @@ public class PauseQuickActions : MonoBehaviour
     void Update()
     {
         ApplySafeArea();
+        PlaceButtons();
 
         // Once the pause stock is empty the run continues even with no finger
         // on screen. Leave remains available in that state as well.

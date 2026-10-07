@@ -206,7 +206,7 @@ public static class ScoreBonusTest
         var view = DeathPanelView.Build(canvas.transform, best, run, dust,
             SceneUtil.FindAny("Replay").GetComponent<Button>(), SceneUtil.FindAny("MainMenu").GetComponent<Button>(),
             new DeathPanelView.Results { score = parts.Total, bestScore = 9000, ranked = true, parts = parts,
-                                         bestSpeed = 50, runSpeed = 46, dustAtStart = 99987.65f, dustWon = 3.25f, dustBonus = 1.5f });
+                                         dustAtStart = 99987.65f, dustWon = 3.25f, dustBonus = 1.5f });
         var line = view.Panel.Find("Card2/" + DeathPanelView.ScoreBonusName);
         Check("the star dust card has a SCORE BONUS line", line != null);
         if (line == null) { Object.DestroyImmediate(view.gameObject); return; }

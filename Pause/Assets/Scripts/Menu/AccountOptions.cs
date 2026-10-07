@@ -80,7 +80,7 @@ public class AccountOptions : MonoBehaviour
 
     void Start()
     {
-        if (card == null) Build(new Vector2(Screen.width, Screen.height), Screen.safeArea, false);
+        if (card == null) Build(new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
     // Tests pass an explicit screen and safe area.
@@ -156,6 +156,9 @@ public class AccountOptions : MonoBehaviour
 
         action = AccountUi.MakeButton(card, "Action", font, 24f, 182f, CardWidth - 48f, 88f, "",
                                       AkiraPalette.Red, true, OnAction, 26);
+        // a finger-sized hit area (the 88-unit button is ~35 dp on a phone):
+        // up over the status line, down to the developer details row
+        if (action.targetGraphic != null) action.targetGraphic.raycastPadding = new Vector4(0f, -12f, 0f, -16f);
 
         detailsRow = AccountUi.Place(card, "Details", 24f, 282f, CardWidth - 48f, DevDetailsHeight - 6f);
         detailsText = AccountUi.Label(detailsRow, font, "", 14, AkiraPalette.Amber, TextAnchor.UpperLeft, 0f, false);
@@ -315,10 +318,10 @@ public class AccountOptions : MonoBehaviour
     void Update()
     {
         bool changed = false;
-        if (!overridden && (Screen.width != screenSize.x || Screen.height != screenSize.y || Screen.safeArea != safeArea))
+        if (!overridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y || ScreenInfo.SafeArea != safeArea))
         {
-            screenSize = new Vector2(Screen.width, Screen.height);
-            safeArea = Screen.safeArea;
+            screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
+            safeArea = ScreenInfo.SafeArea;
             changed = true;
         }
         if (DeveloperUnlocks.Enabled != devShown) { Refresh(); return; }

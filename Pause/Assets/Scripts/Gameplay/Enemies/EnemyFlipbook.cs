@@ -11,6 +11,9 @@ using UnityEngine;
 //     NearPlayer  mines (arming), aliens (chomp): loops while the ship is close
 //     Chasing     other chasers: loop a lunge while hunting
 //     IdleOnly    Steel Hound: stays in its subtle hover loop while hunting
+//   An enemy that attacks (EnemyBrain) is BrainDriven instead: it plays no
+//   tell of its own -- the brain holds cell 4 for the windup (a mine loops
+//   4-5, waking -> charging) and cell 5 for the release (Drive).
 //   hit (frame 6) is a flat BONE flash, shown by Flash() -- for anything that
 //   hits an enemy without destroying it on the same frame (weapons, shields).
 //
@@ -22,6 +25,7 @@ public class EnemyFlipbook : MonoBehaviour
     public const float TickSeconds = 1f / 24f;
 
     public enum TellMode { Accent, Periodic, NearPlayer, Chasing, IdleOnly }
+    public enum DrivePhase { None, Windup, Release }
 
     public TellMode tellMode = TellMode.Periodic;
     [Tooltip("NearPlayer: world-unit distance to the ship that triggers the tell.")]
@@ -40,7 +44,17 @@ public class EnemyFlipbook : MonoBehaviour
     float hold;
     float untilTell;
     ChaserEnemy chaser;
+    DrivePhase drive;
+    bool driveLoops;
 
+    // Its tell belongs to its attack: no timed / proximity tell.
+    public bool BrainDriven { get; private set; }
+
+    // The brain says whether this individual attacks at all (a Bile Mite
+    // that is not a spitter keeps its ordinary near-pilot tell).
+    public void SetBrainDriven(bool driven) { BrainDriven = driven; }
+
+    public DrivePhase Driving => drive;
     public int CurrentFrame { get; private set; }
     public bool Telling => state == State.Tell;
     public bool HasFrames => frames != null && frames.Length >= EnemyRoster.FrameCount && frames[0] != null;
@@ -71,6 +85,13 @@ public class EnemyFlipbook : MonoBehaviour
             case EnemyRole.Mine: nearDistance = 2.8f; break;
         }
         chaser = GetComponent<ChaserEnemy>();
+        // an attacker's tell belongs to its attack (EnemyBrain.Drive)
+        var behaviour = EnemyBehaviours.For(def);
+        // (a mine keeps arming near the ship as well: the same waking ->
+        // charging loop its windup plays)
+        BrainDriven = behaviour != null && behaviour.Attacks && def.role != EnemyRole.Chaser && def.role != EnemyRole.Mine;
+        driveLoops = def.role == EnemyRole.Mine;
+        drive = DrivePhase.None;
         state = State.Idle;
         // Desynchronise neighbours, except aliens: a line of invaders
         // wiggling in lockstep is the point.
@@ -116,6 +137,41 @@ public class EnemyFlipbook : MonoBehaviour
         Show(EnemyRoster.TellFrame);
     }
 
+    // The brain's attack takes the drawing over: Windup shows the tell
+    // (cell 4; a mine loops 4-5), Release the discharge (cell 5), None hands
+    // it back to the idle loop. A hit flash still shows over it.
+    public void Drive(DrivePhase phase)
+    {
+        if (!HasFrames || drive == phase) return;
+        drive = phase;
+        if (state == State.Hit) return;   // the flash finishes first
+        ShowDriven();
+    }
+
+    void ShowDriven()
+    {
+        step = 0;
+        switch (drive)
+        {
+            case DrivePhase.Windup:
+                state = State.Tell;
+                hold = tellTicks[0] * TickSeconds;
+                Show(EnemyRoster.TellFrame);
+                break;
+            case DrivePhase.Release:
+                state = State.Tell;
+                hold = tellTicks[1] * TickSeconds;
+                Show(EnemyRoster.TellFrame + 1);
+                break;
+            default:
+                state = State.Idle;
+                hold = idleTicks[0] * TickSeconds;
+                untilTell = Random.Range(tellGap.x, tellGap.y);
+                Show(0);
+                break;
+        }
+    }
+
     void Update()
     {
         Advance(Time.deltaTime);
@@ -125,6 +181,17 @@ public class EnemyFlipbook : MonoBehaviour
     public void Advance(float dt)
     {
         if (!HasFrames || dt <= 0f) return;
+        if (drive != DrivePhase.None && state != State.Hit)
+        {
+            // held by the brain; only a mine's windup animates (4 <-> 5)
+            if (drive != DrivePhase.Windup || !driveLoops) return;
+            hold -= dt;
+            if (hold > 0f) return;
+            step = 1 - step;
+            hold += tellTicks[step] * TickSeconds;
+            Show(EnemyRoster.TellFrame + step);
+            return;
+        }
         untilTell -= dt;
         hold -= dt;
         int guard = 0;
@@ -133,6 +200,7 @@ public class EnemyFlipbook : MonoBehaviour
             switch (state)
             {
                 case State.Hit:
+                    if (drive != DrivePhase.None) { ShowDriven(); return; }
                     state = State.Idle;
                     step = 0;
                     hold += idleTicks[0] * TickSeconds;
@@ -181,6 +249,7 @@ public class EnemyFlipbook : MonoBehaviour
 
     protected virtual bool WantsTell()
     {
+        if (BrainDriven) return false;
         switch (tellMode)
         {
             case TellMode.NearPlayer:

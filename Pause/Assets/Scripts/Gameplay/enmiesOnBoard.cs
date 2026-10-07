@@ -43,6 +43,8 @@ public class enmiesOnBoard : MonoBehaviour {
         public Vector2 mineInterval = new Vector2(6f, 10f);
         public Vector2 chaserInterval = new Vector2(7f, 11f);
         public Vector2 enemyInterval = new Vector2(2.5f, 5f);
+        [Tooltip("The armoured heavy's own timer: it holds a column and attacks, so it comes less often than the rocks.")]
+        public Vector2 heavyInterval = new Vector2(6f, 9f);
         public Vector2 astroidInterval = new Vector2(2.5f, 5f);
         public Vector2 alienInterval = new Vector2(2.5f, 4f);
         public Vector2 extraInterval = new Vector2(2.5f, 4.5f);
@@ -103,11 +105,56 @@ public class enmiesOnBoard : MonoBehaviour {
 
     // A new world begins with a short, scenic fly-in. A ship that already
     // launches at SPEED 10+ skips that beat and reaches the encounter pace.
+    //
+    // The window belongs to each WORLD ARRIVAL, not to the scene: it starts
+    // again when a portal brings the ship to the next world (or back round
+    // on a loop), unless the ship arrives at SPEED 10+. Nothing spawns in it
+    // -- hazards, pilots, chasers, the deferred queue -- and when it ends the
+    // slots come in one after another (StaggerAfterCalm), never as a burst.
     public const int FastArrivalHudSpeed = 10;
     public const float CalmArrivalSeconds = 8f;
     bool openingEncounterPrimed;
+    float calmEndsAt;          // elapsedFlightSeconds when this arrival's window ends
+    int arrivalKey = -1;       // world + loop the current window belongs to
+
+    public bool InCalmWindow => !openingEncounterPrimed;
+    public int CalmWindows { get; private set; }   // windows begun (tests)
+
+    static int ArrivalKey()
+    {
+        return EnemyRoster.CurrentWorld + 16 * RunLoop.Index;
+    }
+
+    // A new world (a portal, a loop): the calm arrival again, unless the
+    // ship is already fast. Whatever was queued for the old world is dropped.
+    void BeginArrival()
+    {
+        arrivalKey = ArrivalKey();
+        deferredCount = 0;
+        if (Mathf.RoundToInt(moveBackGround.speed * 100f) >= FastArrivalHudSpeed) { PrimeOpeningEncounter(); return; }
+        openingEncounterPrimed = false;
+        calmEndsAt = elapsedFlightSeconds + CalmArrivalSeconds;
+        CalmWindows++;
+    }
+
+    // The least each slot waits after a calm window ends, so the board fills
+    // one enemy at a time (the first heavy and rock: PrimeOpeningEncounter).
+    void StaggerAfterCalm()
+    {
+        railDelayTimer = Mathf.Max(railDelayTimer, .5f);
+        mineDelayTimer = Mathf.Max(mineDelayTimer, 4f);
+        midAstroidDelayTimer = Mathf.Max(midAstroidDelayTimer, 5f);
+        spawnAnimatedEnimeOneDelayTimer = Mathf.Max(spawnAnimatedEnimeOneDelayTimer, 6f);
+        smallAstroidDelayTimer = Mathf.Max(smallAstroidDelayTimer, 7f);
+        extraEnemyDelayTimer = Mathf.Max(extraEnemyDelayTimer, 8f);
+        bigAstroidDelayTimer = Mathf.Max(bigAstroidDelayTimer, 9f);
+        chaserDelayTimer = Mathf.Max(chaserDelayTimer, 10f);
+    }
 
     void Start () {
+        // rock sizes come from their own stream, seeded off this one without
+        // consuming it (HazardSize.Seed): the spawner's draws are as they were
+        HazardSize.Seed();
 
         if (phases == null || phases.Length == 0)
             phases = DefaultPhases();
@@ -133,6 +180,9 @@ public class enmiesOnBoard : MonoBehaviour {
         mineDelayTimer = 10f;
         chaserDelayTimer = 20f;
 
+        arrivalKey = ArrivalKey();
+        calmEndsAt = CalmArrivalSeconds;
+        CalmWindows = 1;
         if (ShipStartSpeed.EquippedHud() >= FastArrivalHudSpeed)
             PrimeOpeningEncounter();
     }
@@ -175,6 +225,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.6f, 0.9f),
                 mineInterval = new Vector2(7f, 10f),
                 enemyInterval = new Vector2(2.4f, 3.4f),
+                heavyInterval = new Vector2(4.5f, 6.5f),
             },
             new SpawnPhase {
                 name = "Debris", activeAfterSeconds = 20f,
@@ -182,6 +233,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.55f, 0.85f),
                 mineInterval = new Vector2(6f, 9f),
                 enemyInterval = new Vector2(1.8f, 3f),
+                heavyInterval = new Vector2(4.5f, 6.5f),
                 astroidInterval = new Vector2(2.2f, 3.5f),
             },
             new SpawnPhase {
@@ -191,6 +243,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 railInterval = new Vector2(0.5f, 0.8f),
                 mineInterval = new Vector2(5f, 8f),
                 enemyInterval = new Vector2(1.4f, 2.4f),
+                heavyInterval = new Vector2(5f, 7.5f),
                 astroidInterval = new Vector2(1.5f, 2.8f),
                 alienInterval = new Vector2(2.2f, 3.5f),
             },
@@ -202,6 +255,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 mineInterval = new Vector2(4f, 7f),
                 chaserInterval = new Vector2(7f, 10f),
                 enemyInterval = new Vector2(0.9f, 1.8f),
+                heavyInterval = new Vector2(4.5f, 7f),
                 astroidInterval = new Vector2(1.1f, 2.2f),
                 alienInterval = new Vector2(1.5f, 2.7f),
             },
@@ -213,6 +267,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 mineInterval = new Vector2(3.5f, 6f),
                 chaserInterval = new Vector2(5f, 8f),
                 enemyInterval = new Vector2(0.5f, 1.1f),
+                heavyInterval = new Vector2(4f, 6f),
                 astroidInterval = new Vector2(0.6f, 1.4f),
                 alienInterval = new Vector2(1.2f, 2f),
             },
@@ -229,8 +284,7 @@ public class enmiesOnBoard : MonoBehaviour {
         // A boss encounter clears the board and suspends normal spawning.
         if (flying && !BossEncounter.SuspendsSpawning)
         {
-            if (!openingEncounterPrimed && elapsedFlightSeconds >= CalmArrivalSeconds)
-                PrimeOpeningEncounter();
+            StepCalmArrival();
             if (openingEncounterPrimed) spawn();
         }
     }
@@ -281,11 +335,15 @@ public class enmiesOnBoard : MonoBehaviour {
 
     public enum SlotKind { Rock, Big, Alien, Extra, Mine, Chaser }
 
-    struct Deferred { public SlotKind kind; public float age; }
+    // (sizeDraw: a rock's size draw, kept while it waits; HazardSize)
+    struct Deferred { public SlotKind kind; public float age; public float x; public float sizeDraw; }
 
     public const int MaxDeferred = 24;
     public const float MaxDeferSeconds = 1f;
     const int PlaceTries = 6;
+    // Beside a pilot's column a hazard takes the widest of these shares of
+    // its lateral band that fits a free stretch of lane (two tries each).
+    static readonly float[] RoutedBandScales = { 1f, .45f, 0f };
     const int LiftSteps = 4;
     const float LiftStep = .5f;
     const int MineLiftSteps = 8;
@@ -302,17 +360,32 @@ public class enmiesOnBoard : MonoBehaviour {
     public int PendingCount => deferredCount;
 
     readonly WeavePlan weaveCandidate = new WeavePlan();
+    // a roster enemy's behaviour envelope, as a spawn candidate's pattern
+    readonly EnemyBrainPlan brainCandidate = new EnemyBrainPlan();
 
-    void Spawn(SlotKind kind)
+    // Spawns skipped because the board already held its fill of threats
+    // (EnemyDensity.MaxThreats): not queued, the timer simply comes round again.
+    public int SkippedForThreats { get; private set; }
+    // Pilots not admitted because the airspace was full (PilotAirspace).
+    public int SkippedForPilots { get; private set; }
+
+    // `x`: where it would like to be (NaN: anywhere in its lane).
+    void Spawn(SlotKind kind, float x = float.NaN)
     {
-        if (!TrySpawn(kind)) Defer(kind);
+        if (!EnemyDensity.RoomFor(EnemyDensity.Hud)) { SkippedForThreats++; return; }
+        sizeDraw = float.NaN;
+        if (!TrySpawn(kind, x)) Defer(kind, x);
     }
 
-    void Defer(SlotKind kind)
+    // The size draw of the rock being tried (HazardSize.Draw): a spawn that
+    // has to wait keeps it, so waiting never trades a big rock for a small one.
+    float sizeDraw = float.NaN;
+
+    void Defer(SlotKind kind, float x)
     {
         DeferredTotal++;
         if (deferredCount >= MaxDeferred) { DroppedTotal++; return; }
-        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f };
+        deferred[deferredCount++] = new Deferred { kind = kind, age = 0f, x = x, sizeDraw = sizeDraw };
     }
 
     void RetryDeferred(float dt)
@@ -320,7 +393,17 @@ public class enmiesOnBoard : MonoBehaviour {
         for (int i = 0; i < deferredCount; )
         {
             deferred[i].age += dt;
-            bool done = TrySpawn(deferred[i].kind);
+            // While a portal is kept waiting (PortalPressure.Active) the
+            // threat ceiling holds for a deferred spawn too: with the board
+            // full it waits (and lapses like any other). Without this the
+            // backlog the pressure's spawn rate builds landed all at once,
+            // far past the ceiling and the body cap. (Outside the wait the
+            // board is left exactly as it was tuned: there a deferred spawn
+            // only overshoots by one or two.)
+            sizeDraw = deferred[i].sizeDraw;
+            bool done = (!PortalPressure.Active || EnemyDensity.RoomFor(EnemyDensity.Hud)) &&
+                        TrySpawn(deferred[i].kind, deferred[i].x);
+            deferred[i].sizeDraw = sizeDraw;
             if (!done && deferred[i].age < MaxDeferSeconds) { i++; continue; }
             if (!done) DroppedTotal++;
             deferred[i] = deferred[--deferredCount];
@@ -329,19 +412,19 @@ public class enmiesOnBoard : MonoBehaviour {
 
     // false = no clear spot right now (defer); true = built, or nothing to
     // build (missing roster art -- EnemyRosterTest guards it).
-    bool TrySpawn(SlotKind kind)
+    bool TrySpawn(SlotKind kind, float x = float.NaN)
     {
         int world = EnemyRoster.CurrentWorld;
         switch (kind)
         {
             // "small enemy" and the three asteroid slots: one of the world's rocks
-            case SlotKind.Rock: return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Rock), 0f);
+            case SlotKind.Rock: return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Rock), float.NaN);
             // "big enemy" slot: the world's armoured heavy. At ~1.1 u it keeps
             // to the middle of the lane (SpawnLane.HeavyMaxX), clear of the
             // walls and the rail mines.
             case SlotKind.Big:
                 return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Big), Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
-            case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), 0f);
+            case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), x);
             case SlotKind.Extra: return TrySpawnExtra();
             case SlotKind.Mine: return TrySpawnMine();
             case SlotKind.Chaser: return TrySpawnChaser();
@@ -351,8 +434,10 @@ public class enmiesOnBoard : MonoBehaviour {
 
     static bool Weaves(EnemyDef def)
     {
-        // EnemyFactory gives rocks and aliens the weaving mover (moveEnimes)
-        return def.role == EnemyRole.Rock || def.role == EnemyRole.Alien;
+        // EnemyFactory gives rocks and aliens the weaving mover (moveEnimes);
+        // with a behaviour (EnemyBehaviours) it only scrolls and the brain
+        // moves them, so only an entry without one still weaves
+        return (def.role == EnemyRole.Rock || def.role == EnemyRole.Alien) && def.Behaviour == null;
     }
 
     // A clear spot on (or just above) the spawn line for a body of `half`:
@@ -362,8 +447,17 @@ public class enmiesOnBoard : MonoBehaviour {
     // (SpawnLane). The first pass also keeps clear of pickups; the second
     // only of enemies.
     bool TryPlace(Vector2 half, bool weaves, float preferredX, float maxX, EnemyDef laneDef,
-                  out Vector3 pos, out float amplitude)
+                  out Vector3 pos, out float amplitude, IMovementFootprint plan = null, float size = 1f)
     {
+        // anywhere in its lane -- but hazards are routed round the pilots: with
+        // any on station, somewhere in a stretch of lane none of them holds
+        // (and where the gaps are narrow it keeps a narrower band: RoutedBandScales)
+        var brainPlan = plan as EnemyBrainPlan;
+        float fullBand = brainPlan != null ? brainPlan.Band : 0f;
+        float fullMaxX = maxX;
+        if (brainPlan != null) brainPlan.bandScale = 1f;
+        bool routed = !weaves && PilotAirspace.Count > 0;
+        if (!routed && float.IsNaN(preferredX)) preferredX = Random.Range(-maxX, maxX);
         float clock = SpawnSpace.Clock;
         float baseY = transform.position.y;
         int passes = SpawnSpace.Live(SpawnLayer.Pickup).Count > 0 ? 2 : 1;
@@ -381,11 +475,21 @@ public class enmiesOnBoard : MonoBehaviour {
                         x = WeavePlan.X(amplitude, clock);
                         weaveCandidate.amplitude = amplitude;
                     }
-                    else x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
-                    var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : null);
+                    else if (!routed) x = t == 0 ? Mathf.Clamp(preferredX, -maxX, maxX) : Random.Range(-maxX, maxX);
+                    else
+                    {
+                        float scale = RoutedBandScales[Mathf.Min(t / 2, RoutedBandScales.Length - 1)];
+                        if (brainPlan != null) brainPlan.bandScale = scale;
+                        maxX = fullMaxX + fullBand * (1f - scale);   // a narrower band may sit nearer the rails
+                        if (!PilotAirspace.TryFreeX(half.x + fullBand * scale, maxX, out x)) continue;
+                    }
+                    var c = new SpawnCandidate(new Vector2(x, y), half, weaves ? weaveCandidate : plan);
                     if (!SpawnSpace.Fits(c)) continue;
+                    // hazards are routed round the pilots: never down a reserved column
+                    Rect reach = c.Sweep(0f, SpawnSpace.Lifetime);
+                    if (PilotAirspace.Blocks(reach.xMin, reach.xMax)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
-                    if (laneDef != null && !SpawnLane.Fits(laneDef, x, y)) continue;
+                    if (laneDef != null && !SpawnLane.Fits(laneDef, x, y, size)) continue;
                     pos = new Vector3(x, y, 0f);
                     return true;
                 }
@@ -403,9 +507,41 @@ public class enmiesOnBoard : MonoBehaviour {
         bool weaves = Weaves(def);
         Vector3 pos;
         float amplitude;
-        if (!TryPlace(SpawnSpace.BodyHalf(def), weaves, preferredX, SpawnLane.MaxX(def), def, out pos, out amplitude))
+        var behaviour = def.Behaviour;
+        // A pilot flies itself: it needs a free column (PilotAirspace), not
+        // a spot on the board, and waits above the view until it may come in.
+        if (EnemyBrain.PilotsEnabled && behaviour != null && behaviour.IsPilot && def.role != EnemyRole.Chaser)
+        {
+            int wing = def.role == EnemyRole.Fighter && def.tier == 1 ? 2 : 1;   // scouts fly in pairs when there is room
+            for (int k = 0; k < wing; k++)
+            {
+                float stationX;
+                if (!PilotAirspace.TryAdmit(def, behaviour, k == 0 ? preferredX : float.NaN, out stationX))
+                {
+                    if (k == 0) SkippedForPilots++;
+                    break;
+                }
+                EnemyFactory.Create(def, new Vector3(stationX, transform.position.y + PilotAirspace.WaitAbove, 0f), transform.rotation);
+                SpawnedCount++;
+            }
+            return true;
+        }
+        // its whole pattern (the behaviour's envelope) must fit, inside the
+        // lane, at the size it is drawn at (HazardSize: rocks vary)
+        float size = HazardSize.Draw(def, ref sizeDraw);
+        brainCandidate.behaviour = behaviour;
+        brainCandidate.reach = HazardSize.Varies(def) ? HazardSize.Reach(size) : 1f;
+        float maxX = Mathf.Max(0f, SpawnLane.MaxX(def, size) - brainCandidate.Band);
+        if (!TryPlace(SpawnSpace.BodyHalf(def, size), weaves, preferredX, maxX, def, out pos, out amplitude,
+                      behaviour != null ? brainCandidate : null, size))
             return false;
-        var go = EnemyFactory.Create(def, pos, transform.rotation);
+        var go = EnemyFactory.Create(def, pos, transform.rotation, size);
+        sizeDraw = float.NaN;
+        if (behaviour != null && brainCandidate.bandScale < 1f)
+        {
+            EnemyBrain squeezed;
+            if (go.TryGetComponent(out squeezed)) squeezed.SetBandScale(brainCandidate.bandScale);
+        }
         if (weaves)
         {
             var mover = go.GetComponent<moveEnimes>();
@@ -466,14 +602,23 @@ public class enmiesOnBoard : MonoBehaviour {
         return spawned.transform;
     }
 
-    static float WorldRailX(bool left)
+    // Where a rail mine's centre rides: clamped to the DRAWN rail. The wall
+    // quad is no guide (it carries the texture's transparent canvas well into
+    // the lane), so the x comes from the rail art's visible inner edge
+    // (WorldPainter.VisibleRailEdges) and the mine art's own clamp
+    // (RailMineArt.MountX); a wall without the rail art keeps the authored
+    // lane edge. Never outside what the camera shows.
+    public static float WorldRailX(bool left)
     {
         GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
+        float inner, outer;
+        float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
+            ? RailMineArt.MountX(inner) : RailMineArt.FallbackRailX;
         var cam = Camera.main;
         float visibleLimit = cam != null && cam.orthographic
-            ? cam.orthographicSize * cam.aspect - .30f : 2.35f;
-        float safeLimit = Mathf.Max(.65f, Mathf.Min(2.35f, visibleLimit));
+            ? cam.orthographicSize * cam.aspect - .30f : railX;
+        float safeLimit = Mathf.Max(.65f, Mathf.Min(railX, visibleLimit));
         return Mathf.Sign(wallX == 0f ? (left ? -1f : 1f) : wallX) * safeLimit;
     }
 
@@ -488,11 +633,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // at once, not just the ones a phase newly unlocks.
     //
     // Roll() also multiplies in LoopDifficulty.DensityScale: x1 on a first
-    // pass, x1.1 / x1.2 / x1.3 on later loops, and KEEP FLYING's endless
-    // climb on top (LoopRules.Density; WorldManager sets it). However dense,
-    // every spawn still goes through SpawnSpace (no enemy on top of another)
-    // and SpawnLane (each row keeps a ship-width gap): a spawn with no room
-    // waits a few frames for the board to scroll on (RetryDeferred).
+    // pass, x1.1 / x1.2 / x1.3 on later loops (LoopRules.DensityScale;
+    // WorldManager sets it), and PortalPressure.DensityScale: x1 except while
+    // a portal is open and waiting, when it climbs without limit. However
+    // dense, every spawn still goes through SpawnSpace (no enemy on top of
+    // another), the threat ceiling (EnemyDensity.MaxThreats) and SpawnLane
+    // (each row keeps a ship-width gap): a spawn with no room waits a few
+    // frames for the board to scroll on (RetryDeferred).
     const float DensityTickSeconds = 10f;
     const float DensityFirstMinute = 60f;
     const float DensityFinalStretch = 30f;
@@ -529,7 +676,21 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float Roll(Vector2 range)
     {
-        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale);
+        // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
+               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale);
+    }
+
+    // The calm window's clock (Update; tests step it): a new world starts a
+    // new window, and a window that has run out primes the first encounter.
+    void StepCalmArrival()
+    {
+        if (ArrivalKey() != arrivalKey) BeginArrival();
+        if (!openingEncounterPrimed && elapsedFlightSeconds >= calmEndsAt)
+        {
+            StaggerAfterCalm();
+            PrimeOpeningEncounter();
+        }
     }
 
     void PrimeOpeningEncounter()
@@ -583,7 +744,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (bigEnmDelayTimer <= 0)
         {
             if (phase.bigEnemy) spawnAstroid1();
-            bigEnmDelayTimer = Roll(phase.enemyInterval);
+            bigEnmDelayTimer = Roll(phase.heavyInterval);
         }
         if (smallAstroidDelayTimer <= 0)
         {
@@ -631,14 +792,18 @@ public class enmiesOnBoard : MonoBehaviour {
     // deferred -- on its own. The old in-lane filter keeps the count.)
     void spawnAnimatedEnimeOne()
     {
+        // (With behaviours the line is a real line: AlienLineSpacing apart,
+        // each wiggling or marching in step inside its own narrow band.)
         float startX = Random.Range(-2.3f, 2f);
         int max = Random.Range(1, 5);
         for (int i = 0; i < max; i++)
         {
-            float x = startX + (i + .5f);
-            if (x >= -2.4f && x <= 2.2f) Spawn(SlotKind.Alien);
+            float x = startX + (i + .5f) * AlienLineSpacing;
+            if (x >= -AlienLineMaxX && x <= AlienLineMaxX) Spawn(SlotKind.Alien, x);
         }
     }
+
+    public const float AlienLineSpacing = 1.4f, AlienLineMaxX = 1.75f;
 
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
@@ -680,11 +845,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // fields tiers 1-2; phase 3 tiers 1-3; phase 4 tiers 2-4. From phase 2 a
     // quarter of the picks are the world's rocks or its heavy instead (where
     // the Kenney meteors used to fold in).
+    // Later loops shift the window up (LoopRules.TierShift: +1, then +2), so
+    // a loop meets the nastier hulls from its first fighters on.
     public static EnemyDef ChooseExtraDef(int world, int phaseIndex)
     {
         if (phaseIndex >= 2 && Random.value < .25f)
             return EnemyRoster.Pick(world, Random.value < .7f ? EnemyRole.Rock : EnemyRole.Big);
-        int maxTier = Mathf.Clamp(phaseIndex, 1, 4);
+        int maxTier = Mathf.Clamp(phaseIndex + LoopRules.TierShift(RunLoop.Index), 1, 4);
         int minTier = Mathf.Max(1, maxTier - 2);
         return EnemyRoster.Fighter(world, Random.Range(minTier, maxTier + 1));
     }
@@ -720,7 +887,10 @@ public class enmiesOnBoard : MonoBehaviour {
             for (int k = 0; k < MineLiftSteps; k++)
             {
                 float y = transform.position.y + k * LiftStep;
-                var c = new SpawnCandidate(new Vector2(x, y), half);
+                brainCandidate.behaviour = def != null ? def.Behaviour : null;
+                brainCandidate.bandScale = 1f;
+                brainCandidate.reach = 1f;
+                var c = new SpawnCandidate(new Vector2(x, y), half, brainCandidate.behaviour != null ? brainCandidate : null);
                 if (!SpawnSpace.Fits(c)) continue;
                 if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
                 if (def != null && !SpawnLane.Fits(def, x, y)) continue;
@@ -740,6 +910,7 @@ public class enmiesOnBoard : MonoBehaviour {
                 var mount = built.GetComponent<RailMineMount>();
                 if (mount == null) mount = built.AddComponent<RailMineMount>();
                 mount.MountTo(rail);
+                mount.brain = built.GetComponent<EnemyBrain>();   // its slide's envelope (SweptBounds)
                 liveMines.Add(built.transform);
                 SpawnedCount++;
                 return true;
@@ -759,6 +930,12 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         var def = chaser == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Chaser) : null;
         if (chaser == null && (def == null || EnemyArt.Frames(def) == null)) return true;
+        // chasers stay and hunt: only so many at once, none with a boss on the way
+        if (ChaserEnemy.Alive >= EnemyDensity.MaxChasers(EnemyDensity.Hud) || PilotAirspace.AdmissionClosed)
+        {
+            SkippedForPilots++;
+            return true;
+        }
 
         var cam = Camera.main;
         float bottomY = cam != null && cam.orthographic
@@ -816,6 +993,13 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
     float railOffsetY;
     bool mounted;
 
+    // How far along its rail the mine has slid from where it was clamped
+    // (EnemyBrain: Patrol / Creep), and the brain whose envelope bounds it.
+    [System.NonSerialized] public float Slide;
+    // ... and how far a shove has slid it along the rail (EnemyShove).
+    [System.NonSerialized] public float Shove;
+    [System.NonSerialized] public EnemyBrain brain;
+
     // Kept public for the headless regression test and for quick inspection
     // while playing in the editor.
     public float AlignmentError
@@ -850,7 +1034,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
 
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
-        return SpawnSpace.BodyRect(center, half);
+        return EnemyBrain.Widen(brain, center, half);
     }
 
     public bool SelfSteering => false;
@@ -875,7 +1059,8 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         }
 
         if (rail != null)
-            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY, transform.position.z);
+            // (SnapLift: drawn on the same whole screen pixel as the rail art, under half a pixel from true)
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove + BoardRoll.SnapLift, transform.position.z);
         else
             transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }
@@ -892,8 +1077,10 @@ public class RailLaneScroller : MonoBehaviour
 {
     void Update()
     {
+        // the same step the rail art takes this frame (BoardRoll), so a mine
+        // on this lane stays registered to the art it is clamped to
         if (TouchInput.IsPressed || score.pauseCounter <= 0)
-            transform.position += Vector3.down * moveBackGround.speed * Time.deltaTime * 30f;
+            transform.position += Vector3.down * BoardRoll.Advance(moveBackGround.speed, Time.deltaTime);
         if (transform.position.y < -12f) Destroy(gameObject);
     }
 }

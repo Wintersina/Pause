@@ -128,15 +128,21 @@ public static class BossRails
         var left = GameObject.Find("leftPipe");
         var right = GameObject.Find("rightPipe");
         float edge = float.MaxValue;
+        // A reinforced rail is narrower than its quad (the quad carries the
+        // texture's transparent canvas), so the edge is the art's, not the
+        // renderer's; a plain wall is its renderer.
+        float inner, outer;
         if (left != null)
         {
             var r = left.GetComponent<Renderer>();
-            if (r != null && r.enabled) edge = Mathf.Min(edge, -r.bounds.max.x);
+            if (r != null && r.enabled)
+                edge = Mathf.Min(edge, WorldPainter.VisibleRailEdges(left, out inner, out outer) ? inner : -r.bounds.max.x);
         }
         if (right != null)
         {
             var r = right.GetComponent<Renderer>();
-            if (r != null && r.enabled) edge = Mathf.Min(edge, r.bounds.min.x);
+            if (r != null && r.enabled)
+                edge = Mathf.Min(edge, WorldPainter.VisibleRailEdges(right, out inner, out outer) ? inner : r.bounds.min.x);
         }
         // a sane wall only: the ship's own clamp (2.4) is always inside it
         if (edge != float.MaxValue && edge > 2.3f && edge < 4f) measured = edge;

@@ -197,12 +197,12 @@ public class splashScene : MonoBehaviour
         // Update) has already settled the size this frame will render with.
         var c = FindCamera();
         float size = c != null ? c.orthographicSize : 5f;
-        Rect safe = Screen.safeArea;
-        if (Screen.width == lastW && Screen.height == lastH && safe == lastSafe
+        Rect safe = ScreenInfo.SafeArea;
+        if (ScreenInfo.Width == lastW && ScreenInfo.Height == lastH && safe == lastSafe
             && Mathf.Approximately(size, lastSize))
             return;
-        lastW = Screen.width; lastH = Screen.height; lastSafe = safe; lastSize = size;
-        ApplyLayout(Screen.width, Screen.height, safe);
+        lastW = ScreenInfo.Width; lastH = ScreenInfo.Height; lastSafe = safe; lastSize = size;
+        ApplyLayout(ScreenInfo.Width, ScreenInfo.Height, safe);
     }
 
     void Update()

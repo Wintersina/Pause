@@ -9,10 +9,10 @@ using UnityEngine.SceneManagement;
 //   * at most MaxAlive elites at once (parked ones count)
 //   * groups of 1-3 (never past MaxAlive) at random times: GapSeconds
 //     between groups, a little shorter on later loops (LoopRules ->
-//     RunLoop.DifficultyIndex, GapLoopScale)
+//     RunLoop.Index, GapLoopScale)
 //   * none in the first FirstSeconds of flight in a world, none during a
 //     boss (BossEncounter.Running) or in its run-up (SecondsLeftInWorld <
-//     BossLeadSeconds), none on the final choice, none in the tutorial,
+//     BossLeadSeconds), none while a portal waits, none in the tutorial,
 //     none in a world without elite defs or landing sites
 //   * each one parks on a landing site of the world's backdrop
 //     (LandingSites), at least a few seconds, and its lift-off ends at a
@@ -83,11 +83,10 @@ public class EliteDirector : MonoBehaviour
         if (startMenu.youAreInTutorial) return "tutorial";
         if (worldIndex < 0) return "no world";
         if (BossEncounter.Running) return "boss";
-        if (FinalChoicePanel.IsUp) return "final choice";
         var wm = WorldManager.Instance;
-        if (wm != null && wm.Route == WorldManager.FinalRoute.Choosing) return "final choice";
-        if (wm != null && wm.Route != WorldManager.FinalRoute.KeepFlying && wm.DistanceLeft > 0f &&
-            wm.SecondsLeftInWorld < BossLeadSeconds) return "boss soon";
+        if (wm != null && wm.DistanceLeft > 0f && wm.SecondsLeftInWorld < BossLeadSeconds) return "boss soon";
+        // (for the whole wait, pressure or not: an elite pays dust and
+        // takes seconds to lift off; the wait must never be worth farming)
         if (wm != null && wm.PortalIsOpen) return "portal";
         if (secondsInWorld < FirstSeconds) return "too early";
         if (!EliteCatalog.WorldHasElites(worldIndex)) return "no elites";
@@ -112,7 +111,7 @@ public class EliteDirector : MonoBehaviour
 
     public static float NextGap()
     {
-        float loopScale = 1f / Mathf.Min(1.5f, 1f + GapLoopScale * Mathf.Max(0, RunLoop.DifficultyIndex));
+        float loopScale = 1f / Mathf.Min(1.5f, 1f + GapLoopScale * Mathf.Max(0, RunLoop.Index));
         return Random.Range(GapSeconds.x, GapSeconds.y) * loopScale;
     }
 
@@ -152,13 +151,19 @@ public class EliteDirector : MonoBehaviour
             var def = defs[Random.Range(0, defs.Count)];
             float park = Random.Range(ParkSeconds.x, ParkSeconds.y) + stagger;
             stagger += Random.Range(.8f, 1.6f);
-            var brain = EliteBrains.Create(def.brain);
-            EliteShip.Create(def, sites[s], park, JoinPoint(def, brain.JoinFrom, sites[s].Position));
+            Spawn(def, sites[s], park);
             made++;
-            Spawned++;
         }
         if (made > 0) Groups++;
         return made;
+    }
+
+    // One elite of `def` parked on `site` for `park` seconds.
+    public EliteShip Spawn(EliteDef def, LandingSite site, float park)
+    {
+        var brain = EliteBrains.Create(def.brain);
+        Spawned++;
+        return EliteShip.Create(def, site, park, JoinPoint(def, brain.JoinFrom, site.Position));
     }
 
     int PickSite()

@@ -5,7 +5,9 @@ using UnityEngine;
 // Assets/Art/Backgrounds/Resources/Worlds/<World>/Backdrop/, applied on every (re)import
 // so a re-render can't drift from them.
 //
-//   sky/far/mid/flow  Sprite (single). Seamless vertical tiles: wrap V =
+//   sky/far/mid/flow, and any other texture a BackdropCatalog tile layer
+//   names (Layer.WithTexture)
+//                     Sprite (single). Seamless vertical tiles: wrap V =
 //                     Repeat (bilinear at the seam samples the other edge,
 //                     which is the continuation), wrap U = Clamp. sky is
 //                     opaque (full-rect mesh); the alpha tiles use tight
@@ -29,8 +31,18 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsTile(string path)
     {
         string f = System.IO.Path.GetFileNameWithoutExtension(path);
-        return f == "sky" || f == "far" || f == "mid" || f == "flow" ||
-               f.StartsWith("forest_industrial_center_v");
+        if (f == "sky" || f == "far" || f == "mid" || f == "flow") return true;
+        // A tile layer may name its own texture. Without this it would be
+        // imported as a plain texture, the layer's Resources.Load<Sprite>
+        // would find nothing, and the whole world's backdrop would be dropped
+        // as incomplete.
+        foreach (var spec in BackdropCatalog.All)
+        {
+            if (!path.Contains("/Worlds/" + spec.world + "/Backdrop/")) continue;
+            foreach (var layer in spec.layers)
+                if (layer.kind != BackdropCatalog.Kind.Pieces && layer.texture == f) return true;
+        }
+        return false;
     }
 
     void OnPreprocessTexture()

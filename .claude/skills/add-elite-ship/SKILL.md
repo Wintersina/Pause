@@ -92,8 +92,10 @@ EOF
 The zoom is easier to read on a dark backdrop with a 16 px grid (alpha
 composite onto (30,24,60) and draw lines every 16 px) -- you can read
 seed coordinates straight off it. Note stray pixels near the cell edges
-(e.g. `resin_warden.png` cell 3 has a dark sliver at x~163): report them to
-Codex, never edit the art.
+(a slice of the neighbouring pose, left by a grid cut: `resin_warden.png` cell 3
+had one at x~163 until it was re-celled from its concept sheet on 2026-10-05;
+`Art/Enemies/src~/audit_cells.py` finds them): report them to Codex, never
+edit the art.
 
 Then Read the zoomed PNG. Decide: which way the **nose** points in the art
 (degrees, 0 right, 90 up), whether it is a hover/upright design (gunships,
@@ -196,6 +198,19 @@ ride the board (spots, pools) must move with `EliteSystem.Scroll`, and a
 lob must lead by `Scroll x flight time` or it lands behind the pilot.
 Hooks for new attacks: `Ploughs` / `OnPlough` (rock crashes while acting),
 `ship.OnFired` is automatic via `Fire`, `EliteShot.Lob(to, seconds)`.
+
+Every elite dodges the board through `EliteEvasion` (the design is in
+`docs/enemy-behaviours.md`, "Elite evasion"; all its tunables are in
+`EliteEvasion.cs`). A def's `avoidance` (0-1) is its skill there: it scales
+how far ahead it reads and how quickly it reacts. A brain needs nothing: it
+keeps returning where it wants to be and `EliteShip.Navigate` makes that
+safe. A new attack should say what it is about to do so the ship can check
+it first: override `DashLine` if it drives the ship (the line is checked for
+hazards and rails before it commits), `FriendlyInLine` if it shoots (it holds
+fire while another elite is in the line; use `EliteOnLine`), `Blinks` if it
+opens with a blink, and `Cancel` if a wind-up given up needs tidying
+(`End` is only called for an attack that ran). Run `EliteEvasionTest` and
+`EliteSurvivalProbe` after adding an elite.
 
 ### 6. Landing sites for the world
 

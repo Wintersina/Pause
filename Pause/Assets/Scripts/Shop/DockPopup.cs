@@ -17,8 +17,8 @@ public class DockPopup : MonoBehaviour
     // How big the whole popup is drawn: frame, text, chips, pips, badge,
     // button and their touch targets all scale with it. The layout below is
     // authored in canvas units at 1x; this only changes how many world units
-    // one canvas unit covers.
-    public const float PopupScale = 1.15f;
+    // one canvas unit covers. Two 15% steps up from the original 1x card.
+    public const float PopupScale = 1.15f * 1.15f;
     // World units. The canvas is scaled so 1 canvas unit = 0.01 * PopupScale
     // world units.
     public const float Width = 1.50f * PopupScale;
@@ -29,6 +29,9 @@ public class DockPopup : MonoBehaviour
     public const float StartSpeedLineHeight = .07f * PopupScale;
     public const float TailLength = .085f * PopupScale;
     public const float Gap = .04f;
+    // A popup flipped below its ship hangs this far under the hull, so the
+    // tail's tip clears the engine plume. Ship geometry: not scaled.
+    public const float PlumeClearance = .34f;
     public const float CanvasScale = .01f * PopupScale;
     const float AppearTime = .2f;
 
@@ -420,7 +423,7 @@ public class DockPopup : MonoBehaviour
         ShipIndex = index;
         target = ship;
         above = halfHeight + Gap;
-        below = halfHeight + .34f;        // clear the engine plume
+        below = halfHeight + PlumeClearance;
         gameObject.SetActive(true);
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant();
         ShowLives(index);

@@ -88,8 +88,10 @@ public static class WorldBackdropTest
         {
             var spec = BackdropCatalog.For(theme.displayName);
             Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
-            Check(theme.displayName + " has 4-10 depth layers (" + spec.layers.Length + ")",
-                  spec.layers.Length >= 4 && spec.layers.Length <= 10);
+            // Space carries two runs of body tiers (planets, structures).
+            int maxLayers = spec.world == "Space" ? 14 : 10;
+            Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
+                  spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 
             bool increasing = true;
             for (int i = 1; i < spec.layers.Length; i++)
@@ -195,8 +197,21 @@ public static class WorldBackdropTest
                 Check(asset + " is compressed", imp != null && imp.textureCompression != TextureImporterCompression.Uncompressed);
 
                 var px = ReadPixels(path);
-                string name = Path.GetFileNameWithoutExtension(path);
+                string file = Path.GetFileNameWithoutExtension(path);
                 bool tile = WorldBackdropImport.IsTile(asset);
+                // The layer this file is the art of: a tile layer may name its
+                // own texture (Verdant's mid is forest_industrial_center_v1).
+                // A tile-named file no layer uses any more (the old mid.png)
+                // is not drawn and not held to the drawn layers' rules.
+                string name = null;
+                foreach (var l in spec.layers)
+                    if (l.kind != BackdropCatalog.Kind.Pieces && l.texture == file) name = l.name;
+                if (tile && name == null)
+                {
+                    Debug.Log("[WB] NOTE  " + asset + " is a tile no " + spec.world + " layer draws any more");
+                    continue;
+                }
+                if (name == null) name = file;
                 if (tile)
                 {
                     Check(asset + " wraps vertically (Repeat)", tex.wrapModeV == TextureWrapMode.Repeat);
@@ -434,7 +449,9 @@ public static class WorldBackdropTest
 
     // ------------------------------------------------------------- walls --
 
-    public const int WallWidth = 96, WallHeight = 448;
+    // Full-cell wall tiles are 64 px wide; Space's rail cell is 96 (its art
+    // is a band inside it, see CheckSpaceRailMaterials).
+    public const int WallWidth = 64, SpaceRailWidth = 96, WallHeight = 448;
     const int WallMaxColours = 32;              // flat cels: a handful of tones plus stepped light halos
     const float WallMinMajorCover = 0.95f;      // colours with >= 0.5% coverage must cover the wall
     const float WallMaxSoftPairs = 0.01f;       // neighbours 1..6 levels apart = gradient banding
@@ -473,9 +490,10 @@ public static class WorldBackdropTest
                 var px = t.GetPixels32();
                 Object.DestroyImmediate(t);
                 string tag = world + " " + (side == 0 ? "left" : "right") + " wall";
-                Check(tag + " is " + WallWidth + "x" + WallHeight + " (" + w + "x" + h + ")",
-                      w == WallWidth && h == WallHeight);
-                if (w != WallWidth || h != WallHeight) continue;
+                int wantW = world == "Space" ? SpaceRailWidth : WallWidth;
+                Check(tag + " is " + wantW + "x" + WallHeight + " (" + w + "x" + h + ")",
+                      w == wantW && h == WallHeight);
+                if (w != wantW || h != WallHeight) continue;
 
                 var counts = new Dictionary<int, int>();
                 bool opaque = true;
@@ -556,22 +574,124 @@ public static class WorldBackdropTest
         }
     }
 
-    // The Space rails are scene meshes rather than Resources backdrop tiles.
-    // Their new textures contain alpha around brackets/pipes, so both scene
-    // materials must use the same transparent shader; an opaque left rail
-    // paints its transparent pixels black over the playable lane.
+    // The rails are scene quads (leftPipe / rightPipe) that WorldPainter
+    // dresses per world with a reinforced rail texture: a band of art inside
+    // a wider canvas with transparent margins, mirrored for the right wall.
+    // For the rail to show, in colour, three things have to hold:
+    //   - the wall shader is alpha-blended and unlit (Pause/WorldRailRepeat).
+    //     The built-in opaque Mobile/(Bumped) Diffuse the scene materials
+    //     once used draws the transparent margins as the black they are
+    //     stored as; the material assets use the rail shader too, so a wall
+    //     nothing has painted yet is never opaque;
+    //   - the art is inside the camera's view (CameraFit.GameplayHalfWidth)
+    //     and outside the ship's reach;
+    //   - its texels are square (RailFit.RefreshTextureTiling), whatever the
+    //     screen's height.
     static void CheckSpaceRailMaterials()
     {
-        var left = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/left_1.mat");
-        var right = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/right_7.mat");
-        Check("Space left/right rail materials exist", left != null && right != null);
-        if (left == null || right == null) return;
+        bool shaders = true;
+        foreach (string name in new[] { "left_1", "right_6", "right_7" })
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/" + name + ".mat");
+            if (m == null || m.shader == null || m.shader.name != "Pause/WorldRailRepeat" || m.renderQueue < 3000 ||
+                !m.HasProperty("_Color") || m.color != Color.white)
+                shaders = false;
+        }
+        Check("Wall material assets use the unlit alpha-blended Pause/WorldRailRepeat shader, untinted", shaders);
 
-        Check("Space rails bind new left/right textures",
-              AssetDatabase.GetAssetPath(left.mainTexture) == "Assets/Art/left.png" &&
-              AssetDatabase.GetAssetPath(right.mainTexture) == "Assets/Art/right.png");
-        Check("Space rail materials share alpha-capable shader",
-              left.shader != null && right.shader != null && left.shader == right.shader);
+        const float ShipReach = 2.4f;
+        EditorSceneLoader.Open("gameS1", UnityEditor.SceneManagement.OpenSceneMode.Single);
+        var cam = Camera.main;
+        var walls = new[] { GameObject.Find("leftPipe"), GameObject.Find("rightPipe") };
+        Check("gameS1 has both rail quads and a camera", cam != null && walls[0] != null && walls[1] != null);
+        if (cam == null || walls[0] == null || walls[1] == null) return;
+
+        float refInner = -1f, refOuter = -1f;
+        foreach (float aspect in new[] { 9f / 21f, 3f / 4f })
+        {
+            float ortho = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, Mathf.RoundToInt(1000 * aspect), 1000);
+            float halfW = ortho * aspect;
+            foreach (var theme in WorldManager.Worlds)
+            {
+                string railName = WorldPainter.RailTextureName(theme.displayName);
+                if (railName == null) continue;
+                string folder = string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
+
+                // Columns of the PNG that hold visible art (not transparent,
+                // not the black matte the shader cuts).
+                var src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                src.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Worlds/" + folder + "/" + railName + ".png"));
+                var px = src.GetPixels32();
+                int tw = src.width, th = src.height, first = -1, last = -1, lastAny = -1;
+                for (int x = 0; x < tw; x++)
+                {
+                    int solid = 0;
+                    for (int y = 0; y < th; y += 3)
+                    {
+                        Color32 c = px[y * tw + x];
+                        if (c.a > 127 && Mathf.Max(c.r, Mathf.Max(c.g, c.b)) > 8) solid++;
+                    }
+                    if (solid * 3 >= th / 50 && x > lastAny) lastAny = x;   // any art at all (2% of the column)
+                    if (solid * 3 < th / 2) continue;       // at least half the column is rail
+                    if (first < 0) first = x;
+                    last = x;
+                }
+                Object.DestroyImmediate(src);
+
+                WorldPainter.Apply(theme);
+                bool ok = true, squareOk = true;
+                float inner = 0f, outer = 0f, tip = 0f;
+                for (int side = 0; side < 2; side++)
+                {
+                    var wall = walls[side];
+                    var sc = wall.transform.localScale;
+                    sc.y = ortho * 2f * 1.085f;             // what RailFit sets for this screen
+                    wall.transform.localScale = sc;
+                    RailFit.RefreshTextureTiling(wall);
+                    var mat = wall.GetComponent<Renderer>().sharedMaterial;
+                    bool mirrored = mat.mainTextureScale.x < 0f;
+                    if (mat.shader.name != "Pause/WorldRailRepeat" || mat.renderQueue < 3000 || mat.mainTexture == null ||
+                        mat.mainTexture.name != railName || mat.color != theme.tint || mirrored != (side == 1))
+                        ok = false;
+                    // World x of the art's two edges on this wall. The left
+                    // wall shows the texture as drawn (gameplay edge = the
+                    // art's right side), the right wall its mirror image.
+                    float w = Mathf.Abs(wall.transform.lossyScale.x), cx = Mathf.Abs(wall.transform.position.x);
+                    float quadOuter = cx + w * 0.5f;
+                    float artInner = quadOuter - (last + 1) / (float)tw * w;
+                    if (side == 0) tip = quadOuter - (lastAny + 1) / (float)tw * w;
+                    float artOuter = quadOuter - first / (float)tw * w;
+                    if (side == 0) { inner = artInner; outer = artOuter; }
+                    else if (Mathf.Abs(artInner - inner) > 0.01f || Mathf.Abs(artOuter - outer) > 0.01f) ok = false;
+                    // Square texels: one texture repeat is as tall as its shape says.
+                    float overlap = mat.HasProperty("_Overlap") ? mat.GetFloat("_Overlap") : 0f;
+                    float tile = Mathf.Abs(wall.transform.lossyScale.y) / mat.mainTextureScale.y / (1f - overlap);
+                    if (Mathf.Abs(tile / (w * th / tw) - 1f) > 0.01f) squareOk = false;
+                }
+                string tag = theme.displayName + " rail (aspect " + aspect.ToString("F2") + ")";
+                Check(tag + " is drawn by the rail shader with its own texture, mirrored on the right wall", ok);
+                Check(tag + " art spans |x| " + inner.ToString("F3") + " .. " + outer.ToString("F3") + ": outside the ship's reach (" +
+                      ShipReach + "), inside the view (" + halfW.ToString("F2") + ")",
+                      inner > ShipReach && outer <= halfW + 0.02f && outer > inner + 0.5f);
+                Check(tag + " texels are square", squareOk);
+                // The rail edge gameplay measures (boss shots, and whatever
+                // else reads BossRails) is the drawn rail's innermost reach:
+                // not the padded quad's face, which is well inside the lane,
+                // and not the authored fallback that face used to trigger.
+                BossRails.Measure();
+                float quadFace = Mathf.Abs(walls[0].transform.position.x) - Mathf.Abs(walls[0].transform.lossyScale.x) * 0.5f;
+                Check(tag + " BossRails.InnerEdge " + BossRails.InnerEdge.ToString("F3") + " is the drawn rail's innermost art (" +
+                      tip.ToString("F3") + " measured from the PNG; solid body from " + inner.ToString("F3") +
+                      "), not the padded quad's face (" + quadFace.ToString("F3") + ")",
+                      Mathf.Abs(BossRails.InnerEdge - tip) < 0.03f && BossRails.InnerEdge > ShipReach &&
+                      BossRails.InnerEdge <= inner + 0.005f);
+                BossRails.Reset();
+                if (refInner < 0f) { refInner = inner; refOuter = outer; }
+                Check(tag + " frames the same lane as the other worlds (inner " + inner.ToString("F3") + " vs " +
+                      refInner.ToString("F3") + ", outer " + outer.ToString("F3") + " vs " + refOuter.ToString("F3") + ")",
+                      Mathf.Abs(inner - refInner) < 0.05f && Mathf.Abs(outer - refOuter) < 0.05f);
+            }
+        }
     }
 
     // -------------------------------------------------------------- space --
@@ -663,14 +783,36 @@ public static class WorldBackdropTest
             var a = tiers[i - 1];
             var b = tiers[i];
             if (!(a.scale < b.scale && a.light < b.light && a.clarity <= b.clarity &&
-                  spec.Rate(a.layer) < spec.Rate(b.layer) && spec.Order(a.layer) < spec.Order(b.layer))) mono = false;
+                  spec.Rate(a.layer) < spec.Rate(b.layer) && spec.Order(a.layer) < spec.Order(b.layer) &&
+                  spec.Rate(a.planetLayer) < spec.Rate(b.planetLayer) &&
+                  spec.Order(a.planetLayer) < spec.Order(b.planetLayer))) mono = false;
         }
         Check("Space depth tiers grow, speed up and brighten strictly far -> near", mono);
+
+        // Parallax follows distance, not drawn size: the biggest planet is
+        // still far slower than (and sorted behind) the farthest station or
+        // rock, and no faster than a crawl next to the gameplay scroll.
+        var nearest = tiers[tiers.Length - 1];
+        float planetMax = spec.Rate(nearest.planetLayer), structureMin = spec.Rate(tiers[0].layer);
+        Check("Space planets parallax slower than every station / rock (largest planet " + planetMax +
+              " <= " + BackdropCatalog.MaxPlanetRate + ", < a third of the farthest structure's " + structureMin + ")",
+              planetMax <= BackdropCatalog.MaxPlanetRate && planetMax * 3f < structureMin &&
+              spec.Order(nearest.planetLayer) < spec.Order(tiers[0].layer));
+        Check("Space planets sit in front of the sky, stars and comets",
+              spec.Rate(tiers[0].planetLayer) > spec.Rate("comets") && spec.Rate("comets") > spec.Rate("stars") &&
+              spec.Rate("stars") > spec.Rate("sky"));
+        // The biggest planet tier, on a 12.4 u tall view, at a mid-run HUD
+        // speed of 30: how long from its top edge entering to it being gone.
+        float bigPlanet = nearest.scale * 1.25f;
+        float seconds = (12.4f + bigPlanet) / (planetMax * WorldBackdrop.ScrollVelocity(0.30f));
+        Check("Space's largest planet stays in view a long time (" + seconds.ToString("F0") + " s at speed 30 >= 45 s)",
+              seconds >= 45f);
         float farShare = (tiers[0].weight + tiers[1].weight) / (float)total;
         float nearShare = tiers[tiers.Length - 1].weight / (float)total;
         Check("Space random planets remain mostly far away (two farthest tiers " + farShare.ToString("F2") +
               " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.10)", farShare >= 0.7f && nearShare <= 0.10f);
-        Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].layer));
+        Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].planetLayer) &&
+              spec.Order("comets") < spec.Order(tiers[0].layer));
         float nearRate = spec.Rate(tiers[tiers.Length - 1].layer);
         Check("Space bodies stay far behind the ship's own depth (nearest tier rate " + nearRate + " <= 0.15)",
               nearRate <= 0.15f);
@@ -683,7 +825,8 @@ public static class WorldBackdropTest
     const int SpaceKinds = 4;
     static float[,] sizeMin, sizeMax, valueMin, valueMax;
     static int[] planetsPerTier;
-    static int spriteSwaps, overlaps, tierMismatches, bodiesSeen, maxGroupsInView;
+    static int spriteSwaps, overlaps, crossings, depthErrors, tierMismatches, bodiesSeen, maxGroupsInView;
+    static float planetRateMax, structureRateMin;
 
     static void SpaceWatchReset()
     {
@@ -698,7 +841,9 @@ public static class WorldBackdropTest
                 sizeMax[k, i] = valueMax[k, i] = -1f;
             }
         planetsPerTier = new int[t];
-        spriteSwaps = overlaps = tierMismatches = bodiesSeen = maxGroupsInView = 0;
+        spriteSwaps = overlaps = crossings = depthErrors = tierMismatches = bodiesSeen = maxGroupsInView = 0;
+        planetRateMax = 0f;
+        structureRateMin = float.MaxValue;
     }
 
     static void SpaceWatch(SpaceDirector d, BackdropSet set, bool checkOverlap)
@@ -723,7 +868,9 @@ public static class WorldBackdropTest
             }
         if (!checkOverlap) return;
 
-        // No two bodies overlap, unless one is the other's own moon / station.
+        // No two bodies of one depth class overlap, unless one is the other's
+        // own moon / station. A structure crossing a planet is fine -- it is
+        // far nearer -- provided it draws in front and moves faster.
         spaceActive.Clear();
         foreach (var pool in d.Bodies)
             foreach (var p in pool.items) if (p.active) spaceActive.Add(p);
@@ -738,7 +885,13 @@ public static class WorldBackdropTest
                 var b = spaceActive[j];
                 if (SpaceDirector.Group(a) == SpaceDirector.Group(b)) continue;
                 Bounds bb = b.sr.bounds;
-                if (ba.min.x < bb.max.x && bb.min.x < ba.max.x && ba.min.y < bb.max.y && bb.min.y < ba.max.y) overlaps++;
+                if (!(ba.min.x < bb.max.x && bb.min.x < ba.max.x && ba.min.y < bb.max.y && bb.min.y < ba.max.y)) continue;
+                bool pa = SpaceDirector.InPlanetClass(a), pb = SpaceDirector.InPlanetClass(b);
+                if (pa == pb) { overlaps++; continue; }
+                var planet = pa ? a : b;
+                var structure = pa ? b : a;
+                crossings++;
+                if (!(structure.sr.sortingOrder > planet.sr.sortingOrder && structure.rate > planet.rate)) depthErrors++;
             }
         }
         maxGroupsInView = Mathf.Max(maxGroupsInView, groups);
@@ -754,9 +907,14 @@ public static class WorldBackdropTest
         float v = Value(p.color);
         valueMin[p.kind, p.tier] = Mathf.Min(valueMin[p.kind, p.tier], v);
         valueMax[p.kind, p.tier] = Mathf.Max(valueMax[p.kind, p.tier], v);
-        // Rate and sorting come from the tier; a companion shares its planet's.
-        if (!Mathf.Approximately(p.rate, spec.Rate(tier.layer))) tierMismatches++;
-        if (Mathf.Abs(p.sr.sortingOrder - spec.Order(tier.layer)) > 4) tierMismatches++;
+        // Rate and sorting come from the tier's layer for the body's depth
+        // class; a companion shares its planet's.
+        bool planetClass = SpaceDirector.InPlanetClass(p);
+        string layer = SpaceDirector.LayerOf(p.tier, planetClass);
+        if (planetClass) planetRateMax = Mathf.Max(planetRateMax, p.rate);
+        else structureRateMin = Mathf.Min(structureRateMin, p.rate);
+        if (!Mathf.Approximately(p.rate, spec.Rate(layer))) tierMismatches++;
+        if (Mathf.Abs(p.sr.sortingOrder - spec.Order(layer)) > 4) tierMismatches++;
         if (p.parent != null && (p.parent.tier != p.tier || p.parent.rate != p.rate || p.size >= p.parent.size))
             tierMismatches++;
     }
@@ -765,8 +923,13 @@ public static class WorldBackdropTest
     {
         int tiers = SpaceDirector.Tiers.Length;
         Check("Space set pieces keep the sprite they spawned with (" + spriteSwaps + " swaps)", spriteSwaps == 0);
-        Check("Space bodies never overlap over a 20-minute run (" + overlaps + " overlapping samples, at most " +
-              maxGroupsInView + " in view at once)", overlaps == 0 && maxGroupsInView <= 4);
+        Check("Space bodies of one depth class never overlap over a 20-minute run (" + overlaps +
+              " overlapping samples, at most " + maxGroupsInView + " in view at once)",
+              overlaps == 0 && maxGroupsInView <= 5);
+        Check("Space structures crossing a planet draw in front of it and move faster (" + crossings +
+              " crossing samples, " + depthErrors + " wrong)", depthErrors == 0);
+        Check("Space planets in the run all parallax slower than every station / rock (fastest planet " +
+              planetRateMax + " < slowest structure " + structureRateMin + ")", planetRateMax < structureRateMin);
         Check("Space bodies take rate and sorting from their depth tier (" + tierMismatches + " mismatches in " +
               bodiesSeen + " bodies)", tierMismatches == 0 && bodiesSeen >= 40);
 

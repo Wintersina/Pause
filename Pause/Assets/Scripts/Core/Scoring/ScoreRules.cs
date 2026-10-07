@@ -18,8 +18,11 @@ using UnityEngine;
 //   bosses      destroyed or survived, plus a time bonus under HitPoints
 //   worlds      flying through a portal: WorldClearedPerWorld x the number
 //               of the world just left (Space = 1)
-//   loops       boss and world bonuses x LoopRules.BonusScale(loop) once the
-//               run has looped back past the final world
+//   loops       boss and world bonuses x LoopRules.BonusScale(loop), flight
+//               and kill points x LoopRules.ScoreScale(loop), once the run
+//               has looped back past the final world
+//   waiting     nothing but boss and world bonuses is earned while a portal
+//               is kept waiting past its grace (PortalPressure.EarningsClosed)
 //
 // The tutorial scores nothing (the same rule as score.PaysRealDust).
 // Developer runs score as usual but never save a best or reach a leaderboard.
@@ -33,9 +36,22 @@ public static class ScoreRules
     // ---- distance ----
     // Points per second per point of HUD speed (round(speed * 100)), i.e.
     // HUD speed / 20 a second, accumulated as a fraction and shown as an
-    // integer. At the Space cap (46) that is ~2.3 a second; a whole 3-minute
-    // Space level (mean speed ~27) earns ~250.
+    // integer. At the cap (35) that is 1.75 a second before the multiplier.
     public static float DistancePerSpeedSecond = .05f;
+
+    // ---- star dust for flying ----
+    // The flight trickle: star dust per unit of distance flown
+    // (moveBackGround.speed x seconds). 1/12 is exactly what the old
+    // "0.05 a second at speed 0.6, in proportion below it" paid at every
+    // speed the game reaches: 0.029 dust a second at the cap, about 1.9 dust
+    // for a stock level.
+    public static float DustPerDistance = 1f / 12f;
+
+    public static float FlightDust(float speed, float dt)
+    {
+        if (dt <= 0f || speed <= 0f) return 0f;
+        return DustPerDistance * speed * dt;
+    }
 
     // ---- kills (before the chain multiplier) ----
     public static int Rock = 5;             // EnemyRole.Rock (asteroids, ground chunks)
@@ -51,6 +67,17 @@ public static class ScoreRules
     // own body hitbox (which respawns) and lane beams score nothing, so a
     // shielded ship can't farm the boss.
     public static int BossShot = 1;
+    // A hostile projectile -- a roster enemy's, an elite's or a boss's shot,
+    // or a landed resin pool -- absorbed by the blue-atom shield: flat, no
+    // chain or speed multiplier, an "ABSORB" popup. Only the first
+    // ShieldedShotsPerShield of each shield pay, so standing in a boss's fan
+    // is worth at most ShieldedShot x that (60) per blue atom: a bonus for
+    // flying through fire with the shield up, not something to farm. Past
+    // the cap a boss shot pays its usual BossShot, the others nothing.
+    // Cloak, Hard Shell and post-hit invulnerability are not a shield and
+    // pay nothing. Lasers and the boss's body never pay.
+    public static int ShieldedShot = 5;
+    public static int ShieldedShotsPerShield = 12;
     // A kill made by blinking onto it with the pause-teleport (TeleportFx):
     // added to the enemy's own points before the chain and speed multipliers,
     // a small reward for using a pause offensively. Not on boss parts.
@@ -132,25 +159,41 @@ public static class ScoreRules
     // "The faster they go, the higher the multiplier." Tiered by HUD speed
     // (round(speed * 100)) at the moment points are earned:
     //
-    //   below 20  x1.0    20+ x1.25    35+ x1.5    50+ x2.0    65+ x2.5
+    //   below 20  x1.0    20+ x1.25    30+ x1.5    35 (the cap) x2.0
+    //   LIMIT BREAK (above the cap, on the boost shield)  x2.5
+    //
+    // (2026-10, second pass: speed is capped at 35 in every world and on
+    // every loop -- SpeedRamp.Cap. The tiers were 20 / 30 / 40 / 46, with x2
+    // near a later world's cap and x2.5 only on a loop. Now x2 is the final
+    // speed itself, held for as long as the pilot can hold it, and x2.5 is
+    // the few seconds of a limit break. A stock ship reaches 35 only late in
+    // the later worlds or on a loop; a fast-start ship holds it for most of
+    // every level.)
     //
     // It multiplies flight (distance) and kills -- the points that come from
     // how the pilot flies. Boss and world bonuses are fixed rewards for
     // getting there (they scale with the loop instead, LoopRules.BonusScale),
     // and pickups stay flat. On kills it stacks with the chain multiplier
-    // (x4 chain at x2.5 speed = x10), capped at MaxTotalMultiplier. Ember's
-    // cap is HUD 62, so x2.5 is only reached on a loop or while KEEP FLYING.
+    // (x4 chain at x2.5 speed = x10), capped at MaxTotalMultiplier. Flight
+    // and kill points are then worth LoopRules.ScoreScale(loop) more on each
+    // loop (applied after that cap: it is the loop's reward, not a
+    // multiplier to chain).
     public static bool SpeedMultiplierEnabled = true;
-    public static readonly int[] SpeedTierHud = { 20, 35, 50, 65 };
-    public static readonly float[] SpeedTierMultiplier = { 1.25f, 1.5f, 2f, 2.5f };
+    public static readonly int[] SpeedTierHud = { 20, 30, 35 };
+    public static readonly float[] SpeedTierMultiplier = { 1.25f, 1.5f, 2f };
+    // Any HUD speed above the cap's: only a boost gets there.
+    public static float LimitBreakMultiplier = 2.5f;
     public static float MaxTotalMultiplier = 8f;
 
     public static int HudSpeed(float speed) { return Mathf.RoundToInt(speed * 100f); }
+
+    public static bool IsLimitBreak(float speed) { return HudSpeed(speed) > SpeedRamp.CapHud; }
 
     public static float SpeedMultiplierFor(float speed)
     {
         if (!SpeedMultiplierEnabled) return 1f;
         int hud = HudSpeed(speed);
+        if (hud > SpeedRamp.CapHud) return LimitBreakMultiplier;
         float m = 1f;
         for (int i = 0; i < SpeedTierHud.Length; i++)
             if (hud >= SpeedTierHud[i]) m = SpeedTierMultiplier[i];
@@ -176,7 +219,7 @@ public static class ScoreRules
     //
     // sqrt so it keeps rising but ever more slowly, and a hard cap so even a
     // huge loop run is a small top-up, never an income. A run typically earns
-    // ~1.5-3 dust (0.05/s at top speed, stars 0.5/1, kills 0.12) against
+    // ~1.5-3 dust (the flight trickle, stars 0.5/1, kills 0.12) against
     // ships at 600-5,800 and skins at 300/750:
     //
     //   score     200    400    600   1,500  3,000  5,625+

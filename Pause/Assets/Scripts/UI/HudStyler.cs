@@ -47,6 +47,7 @@ public class HudStyler : MonoBehaviour
     CanvasScaler hudScaler;
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
+    TopBand.Frame appliedBand;
 
     public RectTransform HudRoot { get { return hudRoot; } }
 
@@ -98,9 +99,11 @@ public class HudStyler : MonoBehaviour
     // the panel was only near the top on the ~9:16 screen it was laid out on:
     // on a 19.5:9 phone it hung ~130pt down and ~60pt in from the left,
     // floating mid-screen, and it ignored the notch/safe area entirely. It is
-    // now pinned to the safe area's top-left corner with the quick actions'
-    // EdgeMargin, top-aligned with them, and re-placed whenever the screen
-    // or safe area changes (rotation, foldables, window resize).
+    // now pinned to the left end of the top band (TopBand: inside the left
+    // rail's inner edge and the safe area, under any display cutout),
+    // top-aligned with the quick actions at the band's right end, and
+    // re-placed whenever the band moves (rotation, foldables, window resize,
+    // a world's rails being painted).
     // ---------------------------------------------------------------------
 
     // The direct child of the root canvas that contains `t`.
@@ -121,15 +124,17 @@ public class HudStyler : MonoBehaviour
         if (hudRoot == null) return;
         var screen = new Vector2Int(Screen.width, Screen.height);
         Rect safe = Screen.safeArea;
-        if (!force && safe == appliedSafeArea && screen == appliedScreen) return;
         if (screen.x <= 0 || screen.y <= 0) return;
+        var band = TopBand.FrameFor(safe, screen);
+        if (!force && safe == appliedSafeArea && screen == appliedScreen && band.Same(appliedBand)) return;
         appliedSafeArea = safe;
         appliedScreen = screen;
+        appliedBand = band;
 
         float hudScale = HudCanvasScale(hudCanvas, hudScaler, screen);
         Vector2 position;
         float fit;
-        ComputeHudLayout(safe, screen, hudScale, hudRoot.rect.size, out position, out fit);
+        ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit);
         hudRoot.anchoredPosition = position;
         hudRoot.localScale = new Vector3(fit, fit, 1f);
     }
@@ -164,38 +169,45 @@ public class HudStyler : MonoBehaviour
         }
     }
 
-    // Gap kept between the read-out and the quick actions if a very narrow
-    // screen ever brings them close, in quick-action canvas units.
-    public const float MinGapToActions = 14f;
+    // Gap kept between the read-out and the quick actions where the lane
+    // brings them together (every phone), in quick-action canvas units.
+    public const float MinGapToActions = 10f;
 
     // Pure, so it can be tested for any screen. `hudSize` is the panel's size
     // in its own canvas units, `hudScale` that canvas's pixels per unit.
     // Returns the anchoredPosition for a top-left anchor/pivot, and a scale
-    // (<= 1) that only shrinks the panel if it would otherwise reach the
-    // top-right quick actions.
+    // (<= 1) that shrinks the panel just enough to share the band with the
+    // quick actions (TopBand.ReadoutMinScale: how far that goes).
     public static void ComputeHudLayout(Rect safeArea, Vector2 screen, float hudScale, Vector2 hudSize,
+                                        out Vector2 anchoredPosition, out float fitScale)
+    {
+        ComputeHudLayout(TopBand.FrameFor(safeArea, screen), screen, hudScale, hudSize, out anchoredPosition, out fitScale);
+    }
+
+    public static void ComputeHudLayout(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize,
                                         out Vector2 anchoredPosition, out float fitScale)
     {
         hudScale = Mathf.Max(hudScale, 0.0001f);
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
-        float margin = PauseQuickActions.EdgeMargin * actionScale;
-        float left = safeArea.xMin + margin;
-        float top = safeArea.yMax - margin;
-
-        float available = PauseQuickActions.ScreenRectFor(safeArea, screen).xMin
-                          - MinGapToActions * actionScale - left;
+        float available = PauseQuickActions.ScreenRectFor(band, screen).xMin
+                          - MinGapToActions * actionScale - band.left;
         float width = hudSize.x * hudScale;
         fitScale = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
 
-        anchoredPosition = new Vector2(left / hudScale, (top - screen.y) / hudScale);
+        anchoredPosition = new Vector2(band.left / hudScale, (band.top - screen.y) / hudScale);
     }
 
     // Where the read-out lands on screen, in pixels (origin bottom-left).
     public static Rect HudScreenRect(Rect safeArea, Vector2 screen, float hudScale, Vector2 hudSize)
     {
+        return HudScreenRect(TopBand.FrameFor(safeArea, screen), screen, hudScale, hudSize);
+    }
+
+    public static Rect HudScreenRect(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize)
+    {
         Vector2 position;
         float fit;
-        ComputeHudLayout(safeArea, screen, hudScale, hudSize, out position, out fit);
+        ComputeHudLayout(band, screen, hudScale, hudSize, out position, out fit);
         float w = hudSize.x * hudScale * fit, h = hudSize.y * hudScale * fit;
         float left = position.x * hudScale;
         float top = screen.y + position.y * hudScale;

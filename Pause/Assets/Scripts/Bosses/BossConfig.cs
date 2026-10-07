@@ -67,7 +67,23 @@ public static class BossConfig
     public static float OutroSeconds = 1.6f;
 
     // ---- the boss ----
-    public static float BossY = 3.15f;          // resting height (camera top is +5)
+    // Resting height: derived from the view the device shows (it was the
+    // constant 3.15, written for the authored 10 u view whose top is +5; on
+    // a phone the view's top is +6.6 .. +9.1 and the boss rested mid-screen).
+    // The top of its cell, at the top of its sway, sits BossTopMargin under
+    // the HUD's top band (score read-out, home / replay icons, which already
+    // drop below any display cutout), so it is as high as it can be while
+    // fully visible: 3.38 on a 16:9 phone, 3.78 on an iPhone 15, 4.70 on a
+    // 21:9 one. With no band to measure (the editor's authored view, a
+    // landscape window) it keeps the authored share of the view
+    // (AuthoredBossShare: 3.15 in the 10 u view).
+    public static float BossY => RestYFor(PlayField.Live);
+    // false: the old constants on every screen (rest 3.15, shots at their
+    // authored speed, lobs aimed at y -3.2): for before / after comparisons.
+    public static bool FitToView = true;
+    public static float BossTopMargin = .2f;     // world u between the cell's top (top of its sway) and the band
+    public const float AuthoredBossY = 3.15f;
+    public const float AuthoredBossShare = (AuthoredBossY + 5f) / 10f;
     public static float BossWorldSize = 3.3f;   // one atlas cell, in world units
     public static Vector2 BodyHitbox = new Vector2(2.1f, 1.1f);
     // A body hitbox the player rammed (and so destroyed) comes back after this.
@@ -85,7 +101,8 @@ public static class BossConfig
     // over their column by LobTargetY (where the ship usually flies).
     public static int LaneSlots = 5;
     public static float LaneHalfWidth = 2.4f;
-    public static float LobTargetY = -3.2f;
+    // (-3.2 in the authored 10 u view: ShipRowShare of the way up any view.)
+    public static float LobTargetY => FitToView ? PlayField.Live.At(ShipRowShare) : -3.2f;
     public static float LobJitter = .15f;
 
     // ---- lasers (BossBeam) ----
@@ -110,6 +127,105 @@ public static class BossConfig
     // Size of the flash at a part the instant it fires, and of its tell's charge.
     public static float MuzzleFlashSize = .6f;
     public static float ChargeMinSize = .3f, ChargeMaxSize = .75f;
+
+    // ---- the view (every screen shape) ----
+    // Attacks were tuned in the authored 10 u view: the boss at 3.15, the
+    // ship flying round y -3.2 (LobTargetY), 6.35 u below it. On a phone
+    // that gap is 7.6 u (16:9) to 11 u (22:9), so every attack's speed is
+    // multiplied by ShotScale -- the gap on this screen over the authored
+    // gap -- and a shot, a lob or a growing beam takes the same time to
+    // reach the ship's rows on every screen (EnemyBrain.ViewScale does the
+    // same for pilots). Straight shots scale as a whole (aim and angles are
+    // kept); a lob stretches vertically (its columns stay where they are).
+    public const float ShipRowShare = .18f;            // the ship's usual row: (-3.2 + 5) / 10
+    public const float AuthoredShotGap = AuthoredBossY - (-3.2f);
+
+    public static float ShotScale => ShotScaleFor(PlayField.Live);
+
+    public static float ShotScaleFor(PlayField.Frame f)
+    {
+        if (!FitToView) return 1f;
+        return Mathf.Max(.5f, (RestYFor(f) - f.At(ShipRowShare)) / AuthoredShotGap);
+    }
+
+    // The highest the boss's art can reach above its centre: half its cell
+    // (any drawing can touch the cell's edge) plus the largest sway.
+    public static float TopReach
+    {
+        get
+        {
+            if (maxSwayY < 0f)
+            {
+                maxSwayY = 0f;
+                foreach (var b in BossCatalog.All) if (b != null) maxSwayY = Mathf.Max(maxSwayY, Mathf.Abs(b.swayY));
+            }
+            return BossWorldSize * .5f + maxSwayY;
+        }
+    }
+    static float maxSwayY = -1f;
+
+    public static float RestYFor(PlayField.Frame f)
+    {
+        if (!FitToView) return AuthoredBossY;
+        float authored = f.At(AuthoredBossShare);
+        if (!f.hasBand) return authored;
+        // never lower than the middle of the view (a squat window)
+        return Mathf.Max(f.bandBottom - BossTopMargin - TopReach, f.At(.5f));
+    }
+
+    // The ship's ceiling while a boss is up (ShipReach.BossCeilingFor):
+    // FightCeilingShare of the view, but never closer to the boss than its
+    // Underside (its lowest muzzle in any drawing, or its body hitbox if
+    // that hangs lower, at the bottom of its sway) + a clear gap + the top
+    // of the ship's hull. The gap is ShipGap in the authored view x
+    // ShotScale (the same time for a shot to cross it on every screen), and
+    // never less than the radius of a muzzle's charge glow, so a tell never
+    // draws onto the hull. On 16:9 phones and the iPhone the boss's own
+    // height binds (60% - 64% of the view, per boss); from 21:9 up it is
+    // 65%. Tested per boss and shape: every muzzle in every drawing stays
+    // this gap above the hull at the ceiling.
+    public static float FightCeilingShare = .65f;
+    public static float ShipGap = .3f;
+    public static float ShipGapFor(PlayField.Frame f) => Mathf.Max(ShipGap * ShotScaleFor(f), ChargeMaxSize * .5f);
+
+    // How far under its centre the boss reaches: the lowest muzzle in the
+    // generated table (every part, every drawing) or its body hitbox's
+    // bottom, whichever is lower, plus its sway. Cached per boss.
+    public static float Underside(BossDef boss)
+    {
+        if (boss == null) return TopReach;   // unknown: its whole cell and the largest sway
+        if (boss.underside >= 0f) return boss.underside;
+        float low = BodyHitbox.y * .5f;
+        int w = BossEmitters.World(boss);
+        if (w < 0) low = BossWorldSize * .5f;   // unmeasured art: its whole cell
+        else
+            for (int part = 0; part < BossEmitterTable.Parts[w].Length; part++)
+                for (int frame = 0; frame < BossEmitterTable.Frames; frame++)
+                    low = Mathf.Max(low, -BossEmitters.Local(boss, part, frame).y);
+        boss.underside = low + Mathf.Abs(boss.swayY);
+        return boss.underside;
+    }
+
+    // How far under the boss's centre the ship's centre stays while it is up.
+    public static float ShipBelowBossFor(PlayField.Frame f, BossDef boss)
+    {
+        return Underside(boss) + ShipGapFor(f) + ShipReach.HullAbove;
+    }
+
+    // The ship's ceiling with `boss` at rest on this view (world y).
+    public static float ShipCeilingFor(PlayField.Frame f, BossDef boss)
+    {
+        if (!FitToView) return float.PositiveInfinity;
+        return Mathf.Min(f.At(FightCeilingShare), RestYFor(f) - ShipBelowBossFor(f, boss));
+    }
+
+    // Scales one shot to this view (see ShotScale). gravity > 0: a lob.
+    public static void FitShot(ref Vector2 v, ref float gravity, ref float fall)
+    {
+        float k = ShotScale;
+        if (gravity > 0f) { v.y *= k; gravity *= k; fall *= k; }
+        else v *= k;
+    }
 
     // ---- developer ----
     // Boss rush (Options > developer): seconds of flight before the boss.

@@ -40,7 +40,7 @@ public static class SpeedRampTest
             OneTickPerFrame();
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             SameRateForOneTwoThreeWalls();
-            NeverExceedsWorldMax();
+            NeverExceedsCap();
             FrozenDoesNotRamp();
             WorldTransitionResetsSpeed();
         }
@@ -86,7 +86,7 @@ public static class SpeedRampTest
             go.GetComponent<MeshRenderer>().sharedMaterial = mat;
             var bg = go.AddComponent<moveBackGround>();
             bg.speedRampPerSecond = theme.speedRampPerSecond;
-            bg.maxSpeed = theme.maxSpeed;
+            bg.maxSpeed = SpeedRamp.Cap;
             walls.Add(bg);
         }
         return walls;
@@ -175,10 +175,13 @@ public static class SpeedRampTest
     // (world rate + the scene's 0.002/s). The retuned rates keep this pace.
     static readonly float[] FeltSecondsTo15 = { 46.0f, 43.9f, 42.0f, 39.7f };
     // The ramp's own benchmark (it predates the 120s distance-based level:
-    // WorldManager.BaselineWorldSeconds); KEEP FLYING and loops get there.
+    // WorldManager.BaselineWorldSeconds): every world eases into the one cap
+    // (SpeedRamp.Cap, HUD 35) inside it.
     const float LevelSeconds = 180f;
 
-    static void NeverExceedsWorldMax()
+    // (Was NeverExceedsWorldMax, against the per-world caps 38/40/42/44.
+    // Every world now shares SpeedRamp.Cap.)
+    static void NeverExceedsCap()
     {
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
@@ -191,19 +194,19 @@ public static class SpeedRampTest
             {
                 t += dt;
                 peak = Mathf.Max(peak, s);
-                if (reachedAt < 0f && s >= theme.maxSpeed) reachedAt = t;
+                if (reachedAt < 0f && s >= SpeedRamp.Cap) reachedAt = t;
                 if (at15 < 0f && Mathf.RoundToInt(s * 100f) >= ResumeSlowMo.MinHudSpeed) at15 = t;
             });
-            Debug.Log("[SR] " + theme.displayName + ": rate " + theme.speedRampPerSecond + "/s, max " + theme.maxSpeed +
-                      ", reaches max at " + reachedAt.ToString("F1") + "s, HUD 15 at " + at15.ToString("F1") +
-                      "s, speed at 180s " + Mathf.Min(theme.speedRampPerSecond * 180f, theme.maxSpeed).ToString("F3"));
+            Debug.Log("[SR] " + theme.displayName + ": rate " + theme.speedRampPerSecond + "/s, cap " + SpeedRamp.Cap +
+                      ", reaches the cap at " + reachedAt.ToString("F1") + "s, HUD 15 at " + at15.ToString("F1") +
+                      "s, speed at 180s " + SpeedRamp.SpeedAfter(0f, theme.speedRampPerSecond, SpeedRamp.Cap, 180f).ToString("F3"));
             Check(theme.displayName + ": HUD 15 within 2s of the pre-fix " + FeltSecondsTo15[w] + "s (" + at15.ToString("F1") + "s)",
                   at15 >= 0f && Mathf.Abs(at15 - FeltSecondsTo15[w]) <= 2f);
-            Check(theme.displayName + ": reaches maxSpeed inside " + LevelSeconds + "s of flight (" + reachedAt.ToString("F1") + "s)",
+            Check(theme.displayName + ": reaches the cap inside " + LevelSeconds + "s of flight (" + reachedAt.ToString("F1") + "s)",
                   reachedAt >= 0f && reachedAt <= LevelSeconds);
-            Check(theme.displayName + ": speed never exceeds maxSpeed " + theme.maxSpeed + " (peak " + peak.ToString("F4") + ")",
-                  peak <= theme.maxSpeed + 1e-6f);
-            Check(theme.displayName + ": speed settles exactly on maxSpeed", Mathf.Approximately(moveBackGround.speed, theme.maxSpeed));
+            Check(theme.displayName + ": speed never exceeds the cap " + SpeedRamp.Cap + " (peak " + peak.ToString("F4") + ")",
+                  peak <= SpeedRamp.Cap + 1e-6f);
+            Check(theme.displayName + ": speed settles exactly on the cap", Mathf.Approximately(moveBackGround.speed, SpeedRamp.Cap));
             Destroy(walls);
         }
     }
@@ -250,8 +253,8 @@ public static class SpeedRampTest
         var applyDifficulty = typeof(WorldManager).GetMethod("ApplyDifficulty", BindingFlags.NonPublic | BindingFlags.Static);
         applyDifficulty.Invoke(null, new object[] { WorldManager.Worlds[0] });
         bool allSpace = walls.TrueForAll(w =>
-            w.speedRampPerSecond == WorldManager.Worlds[0].speedRampPerSecond && w.maxSpeed == WorldManager.Worlds[0].maxSpeed);
-        Check("ApplyDifficulty gives every wall the world's ramp and cap", walls.Count == 2 && allSpace);
+            w.speedRampPerSecond == WorldManager.Worlds[0].speedRampPerSecond && w.maxSpeed == SpeedRamp.Cap);
+        Check("ApplyDifficulty gives every wall the world's ramp and the one cap", walls.Count == 2 && allSpace);
 
         Simulate(walls, 30f);
         Check("gameS1's two walls ramp at Space's rate",
@@ -264,8 +267,8 @@ public static class SpeedRampTest
         Check("world transition moves to Frost", WorldManager.CurrentIndex == 1);
         Check("world transition resets speed to 0", moveBackGround.speed == 0f);
         var frost = WorldManager.Worlds[1];
-        Check("every wall picks up Frost's ramp and cap",
-              walls.TrueForAll(w => w.speedRampPerSecond == frost.speedRampPerSecond && w.maxSpeed == frost.maxSpeed));
+        Check("every wall picks up Frost's ramp, the cap unchanged",
+              walls.TrueForAll(w => w.speedRampPerSecond == frost.speedRampPerSecond && w.maxSpeed == SpeedRamp.Cap));
 
         Simulate(walls, 30f);
         Check("after the transition the ramp restarts from 0 at Frost's rate",

@@ -54,7 +54,9 @@ public static class BossHitbox
 // (a spark, gone) or flies on past.
 public class BossProjectile : MonoBehaviour, IHostileShot
 {
-    SpriteRenderer sr, glow;     // glow: the visibility wrapper (HostileGlow)
+    SpriteRenderer sr, glow;     // glow: the rim framing the art (BossArt.ShotRim)
+    bool rimmed;                 // false: the rim is missing, the round wrapper (HostileGlow) stands in
+    Sprite rim0, rim1;           // the rim for each of the shot's two drawings, looked up once per launch
     float glowBase;              // its local scale before the pulse
     Color glowTint;
     GameObject hitbox;
@@ -148,9 +150,16 @@ public class BossProjectile : MonoBehaviour, IHostileShot
             var col = hitbox.GetComponent<CircleCollider2D>();
             if (col != null) col.radius = radius / size;
         }
-        // The wrapper: the body sits at its hairline; the art is drawn at
+        // The glow: a light rim hugging the drawing's silhouette (BossArt.
+        // ShotRim, in the art's own units, so scale 1). The art is drawn at
         // the size it always was (the root's scale), the hitbox unchanged.
-        glowBase = HostileGlow.DiameterFor(radius * HostileGlow.BossShotBody) / size;
+        // Only if the rim could not be built does the shot fall back to the
+        // round wrapper, its body at the hairline.
+        rim0 = BossArt.ShotRim(boss, FirstCell);
+        rim1 = BossArt.ShotRim(boss, FirstCell + 1);
+        rimmed = rim0 != null && rim1 != null;
+        glow.sprite = rimmed ? rim0 : HostileGlow.Halo;
+        glowBase = rimmed ? 1f : HostileGlow.DiameterFor(radius * HostileGlow.BossShotBody) / size;
         glowTint = HostileGlow.Tint(boss != null ? boss.flash : Color.white);
         Pulse();
         Active = true;
@@ -160,7 +169,8 @@ public class BossProjectile : MonoBehaviour, IHostileShot
 
     void Pulse()
     {
-        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age));
+        float breath = rimmed ? BossArt.ShotRimPulseScale : HostileGlow.PulseScale;
+        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age, breath));
         var c = glowTint;
         c.a = HostileGlow.PulseAlphaAt(age);
         glow.color = c;
@@ -222,6 +232,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         transform.position = p;
         int frame = BossArt.FrameAt(BossArt.ShotTicks, age, true);
         sr.sprite = BossArt.Shot(boss, FirstCell + frame);
+        if (rimmed) glow.sprite = frame == 0 ? rim0 : rim1;   // the rim follows the drawing
         Pulse();
 
         // Friendly fire: a rock, an enemy, a mine or an elite in its way
@@ -465,7 +476,8 @@ public class BossBeam : MonoBehaviour
         if (owner != null && part >= 0) origin = owner.Emitter(part);
         Vector2 dir = Heading(Angle);
         reach = ReachFrom(origin, dir, out railHit);
-        float grow = BossConfig.BeamGrowSpeed * (live ? 1f : 2f);
+        // (x ShotScale: it reaches the ship's rows as soon on every screen)
+        float grow = BossConfig.BeamGrowSpeed * BossConfig.ShotScale * (live ? 1f : 2f);
         length = Mathf.Min(reach, length + grow * dt);
         if (dt <= 0f && !live) length = Mathf.Min(length, reach);
 

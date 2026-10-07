@@ -27,13 +27,26 @@ public static class LeaderboardTest
         failures = 0;
         using var sandbox = new TestHarness.Sandbox();
 
+        // The real table (no speed board; the score board waits for its Play
+        // Console id) ...
         Registry();
-        ImprovementOnly();
-        OfflineQueue();
-        Blocked();
-        PanelStates();
-        SafeAreaFit();
-        OptionsButton();
+        RetiredSpeedBoard();
+        // ... and a table with the score and world boards switched on, so the
+        // submission rules and the panel have live boards to work on.
+        LeaderboardBoards.OverrideForTests(LiveTable());
+        try
+        {
+            ImprovementOnly();
+            OfflineQueue();
+            Blocked();
+            PanelStates();
+            SafeAreaFit();
+            OptionsButton();
+        }
+        finally
+        {
+            LeaderboardBoards.OverrideForTests(null);
+        }
 
         Debug.Log("[LB] failures: " + failures);
         return failures;
@@ -61,7 +74,28 @@ public static class LeaderboardTest
         return service;
     }
 
-    static string TopSpeedId { get { return LeaderboardBoards.Get(LeaderboardBoards.TopSpeed).PlatformId(false); } }
+    // The live boards the submission and panel checks use: Top Score and
+    // Furthest World with test ids on both stores, Star Dust still a
+    // placeholder. (With the speed board retired, the real table has no
+    // enabled board until the Play Console score id is pasted in.)
+    const string TestScoreAndroid = "CgkTestTopScore", TestWorldAndroid = "CgkTestFurthestWorld";
+    internal static LeaderboardBoard[] LiveTable()
+    {
+        return new[]
+        {
+            new LeaderboardBoard(LeaderboardBoards.TopScore, TestScoreAndroid, AchievementIds.IosPrefix + "top_score",
+                "Top Score", "Best score in a single run.", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatScore, r => r.score),
+            new LeaderboardBoard(LeaderboardBoards.RunStarDust, "", "", "Star Dust",
+                "Most star dust collected in a single run.", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0)),
+            new LeaderboardBoard(LeaderboardBoards.FurthestWorld, TestWorldAndroid, AchievementIds.IosPrefix + "furthest_world",
+                "Furthest World", "Furthest world reached in a single run.", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatWorld, r => r.worldIndex + 1),
+        };
+    }
+
+    static string TopScoreId { get { return LeaderboardBoards.Get(LeaderboardBoards.TopScore).PlatformId(false); } }
 
     // ---- registry ----
 
@@ -81,14 +115,18 @@ public static class LeaderboardTest
         Check("registry: every enabled board has both platform ids", both);
         Check("registry: every enabled board has a name and description", named);
 
-        var top = LeaderboardBoards.Get(LeaderboardBoards.TopSpeed);
-        Check("Top Speed uses the Play Games id from StringHolder",
-              top != null && top.androidId == StringHolder.leaderboard_highest_speed_reached);
-        Check("Top Speed uses me.sinaserati.Pause.highest_speed on iOS",
-              top != null && top.iosId == "me.sinaserati.Pause.highest_speed");
-        Check("Top Speed is enabled", top != null && top.Enabled);
-        Check("Top Speed agrees with AchievementIds' leaderboard entry",
-              AchievementIds.Resolve(StringHolder.leaderboard_highest_speed_reached, true) == top.iosId);
+        // Speed is capped (SpeedRamp.Cap): there is no speed board any more.
+        bool noSpeedBoard = LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null;
+        foreach (var b in LeaderboardBoards.All)
+            noSpeedBoard &= b.androidId != StringHolder.leaderboard_highest_speed_reached &&
+                            !b.iosId.EndsWith("highest_speed") && !b.displayName.ToLowerInvariant().Contains("speed");
+        Check("registry: no speed board (no top_speed id, no Highest Speed ids or name)", noSpeedBoard);
+        Check("registry: AchievementIds has no entry for the retired speed board",
+              AchievementIds.Resolve(StringHolder.leaderboard_highest_speed_reached, true) == null);
+        var score = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
+        Check("Top Score is the first (primary) board", LeaderboardBoards.All.Length > 0 && LeaderboardBoards.All[0] == score);
+        Check("Top Score uses me.sinaserati.Pause.top_score on iOS",
+              score != null && score.iosId == AchievementIds.IosPrefix + "top_score");
 
         var dust = LeaderboardBoards.Get(LeaderboardBoards.RunStarDust);
         var world = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
@@ -108,9 +146,47 @@ public static class LeaderboardTest
         Check("offer to a disabled board is skipped", !service.Offer(LeaderboardBoards.RunStarDust, 500));
         long v;
         Check("nothing queued for a disabled board", !service.HasPending(LeaderboardBoards.RunStarDust, out v));
-        int accepted = service.SubmitRun(new LeaderboardRunStats { topSpeed = 50, starDust = 3f, worldIndex = 2 });
+        int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, worldIndex = 2 });
         Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().Count);
         Check("only enabled boards appear as panel tabs", service.UsableBoards().Count == LeaderboardBoards.Enabled().Count);
+    }
+
+    // A score an older build queued for the speed board while signed out is
+    // dropped on the next flush and never sent; a run end offers score, star
+    // dust and world only.
+    static void RetiredSpeedBoard()
+    {
+        RealRunContext();
+        LeaderboardBoards.OverrideForTests(LiveTable());
+        try
+        {
+            var fake = new FakeLeaderboards { SignedIn = false };
+            var service = Service(fake);
+            var old = new LeaderboardService.ScoreTable();
+            old.Set(LeaderboardBoards.RetiredSpeedBoard, 46);
+            old.Save(LeaderboardService.PendingKey);
+            long v;
+            Check("retired speed board: an old build's queued value loads", service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v) && v == 46);
+            fake.SignedIn = true;
+            service.Flush();
+            Check("retired speed board: dropped on flush, nothing sent", fake.Submissions.Count == 0 &&
+                  !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));
+            Check("retired speed board: an offer to it is refused", !service.Offer(LeaderboardBoards.RetiredSpeedBoard, 50));
+
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 1234, starDust = 2.5f, worldIndex = 1 });
+            now = 60f;
+            service.Tick();
+            bool onlyLive = true;
+            foreach (var sub in fake.Submissions)
+                onlyLive &= sub.board == TestScoreAndroid || sub.board == TestWorldAndroid;
+            Check("a run end submits score and world (dust is a placeholder) and nothing else: " + accepted,
+                  accepted == 2 && fake.Submissions.Count == 2 && onlyLive &&
+                  fake.SubmissionsTo(TestScoreAndroid) == 1 && fake.SubmissionsTo(TestWorldAndroid) == 1);
+        }
+        finally
+        {
+            LeaderboardBoards.OverrideForTests(null);
+        }
     }
 
     // ---- submission ----
@@ -121,26 +197,26 @@ public static class LeaderboardTest
         var fake = new FakeLeaderboards();
         var service = Service(fake);
 
-        Check("first score is accepted", service.Offer(LeaderboardBoards.TopSpeed, 100));
+        Check("first score is accepted", service.Offer(LeaderboardBoards.TopScore, 100));
         service.Tick();
         Check("debounced: nothing sent straight away", fake.Submissions.Count == 0);
         now = LeaderboardService.DebounceSeconds + .01f;
         service.Tick();
-        Check("sent after the debounce", fake.SubmissionsTo(TopSpeedId) == 1 && fake.Submissions[0].score == 100);
+        Check("sent after the debounce", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 100);
         long v;
-        Check("submitted value recorded", service.HasSubmitted(LeaderboardBoards.TopSpeed, out v) && v == 100);
-        Check("queue empty after success", !service.HasPending(LeaderboardBoards.TopSpeed, out v));
+        Check("submitted value recorded", service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 100);
+        Check("queue empty after success", !service.HasPending(LeaderboardBoards.TopScore, out v));
 
-        Check("a worse score is dropped", !service.Offer(LeaderboardBoards.TopSpeed, 90));
-        Check("an equal score is dropped", !service.Offer(LeaderboardBoards.TopSpeed, 100));
+        Check("a worse score is dropped", !service.Offer(LeaderboardBoards.TopScore, 90));
+        Check("an equal score is dropped", !service.Offer(LeaderboardBoards.TopScore, 100));
         now += 10f;
         service.Tick();
         Check("nothing sent for non-improvements", fake.Submissions.Count == 1);
 
         // Two offers inside the debounce window: one submission, the better value.
-        Check("improvement accepted", service.Offer(LeaderboardBoards.TopSpeed, 110));
+        Check("improvement accepted", service.Offer(LeaderboardBoards.TopScore, 110));
         now += .5f;
-        Check("further improvement accepted", service.Offer(LeaderboardBoards.TopSpeed, 115));
+        Check("further improvement accepted", service.Offer(LeaderboardBoards.TopScore, 115));
         now += .5f;
         service.Tick();
         Check("still waiting inside the window", fake.Submissions.Count == 1);
@@ -152,12 +228,12 @@ public static class LeaderboardTest
         service.Flush();
         Check("flushing again sends nothing", fake.Submissions.Count == 2);
 
-        // The old direct report now goes through the same rule.
-        achievementAPICalls.leaderboard_highest_speed_reached(80f);
-        Check("legacy speed report below best: not queued", !service.HasPending(LeaderboardBoards.TopSpeed, out v));
-        achievementAPICalls.leaderboard_highest_speed_reached(130f);
-        Check("legacy speed report above best: queued",
-              service.HasPending(LeaderboardBoards.TopSpeed, out v) && v == 130);
+        // A run end goes through the same rule.
+        service.SubmitRun(new LeaderboardRunStats { score = 80 });
+        Check("run end below best: not queued", !service.HasPending(LeaderboardBoards.TopScore, out v));
+        service.SubmitRun(new LeaderboardRunStats { score = 130 });
+        Check("run end above best: queued",
+              service.HasPending(LeaderboardBoards.TopScore, out v) && v == 130);
     }
 
     static void OfflineQueue()
@@ -166,42 +242,42 @@ public static class LeaderboardTest
         var fake = new FakeLeaderboards { SignedIn = false };
         var service = Service(fake);
 
-        service.Offer(LeaderboardBoards.TopSpeed, 150);
-        Check("signed out: a lower score than the pending one is dropped", !service.Offer(LeaderboardBoards.TopSpeed, 140));
-        service.Offer(LeaderboardBoards.TopSpeed, 160);
+        service.Offer(LeaderboardBoards.TopScore, 150);
+        Check("signed out: a lower score than the pending one is dropped", !service.Offer(LeaderboardBoards.TopScore, 140));
+        service.Offer(LeaderboardBoards.TopScore, 160);
         now = 60f;
         service.Tick();
         Check("signed out: nothing sent", fake.Submissions.Count == 0);
 
         var table = LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey);
         int forBoard = 0;
-        foreach (var e in table.entries) if (e.board == LeaderboardBoards.TopSpeed) forBoard++;
+        foreach (var e in table.entries) if (e.board == LeaderboardBoards.TopScore) forBoard++;
         Check("queue persisted in PlayerPrefs under PendingKey", PlayerPrefs.HasKey(LeaderboardService.PendingKey));
         Check("queue holds one entry per board", forBoard == 1);
         long v;
-        Check("queue holds the best pending value", table.TryGet(LeaderboardBoards.TopSpeed, out v) && v == 160);
+        Check("queue holds the best pending value", table.TryGet(LeaderboardBoards.TopScore, out v) && v == 160);
 
         // Relaunch: a fresh service reads the same queue.
         var relaunched = Service(fake);
-        Check("queue survives a relaunch", relaunched.HasPending(LeaderboardBoards.TopSpeed, out v) && v == 160);
+        Check("queue survives a relaunch", relaunched.HasPending(LeaderboardBoards.TopScore, out v) && v == 160);
 
         // A failed send keeps it queued.
         fake.SignedIn = true;
         fake.SubmitSucceeds = false;
         relaunched.Flush();
-        Check("failed send stays queued", relaunched.HasPending(LeaderboardBoards.TopSpeed, out v) && v == 160);
+        Check("failed send stays queued", relaunched.HasPending(LeaderboardBoards.TopScore, out v) && v == 160);
         fake.SubmitSucceeds = true;
         fake.Submissions.Clear();
 
         // Sign-in success flushes, exactly once.
         LeaderboardService.Install();
         SocialBridge.NotifySignedIn();
-        Check("sign-in flushes the queue", fake.SubmissionsTo(TopSpeedId) == 1 && fake.Submissions[0].score == 160);
+        Check("sign-in flushes the queue", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 160);
         SocialBridge.NotifySignedIn();
         LeaderboardService.Install();
         SocialBridge.NotifySignedIn();
         Check("a second sign-in sends nothing more", fake.Submissions.Count == 1);
-        Check("queue cleared after the flush", !relaunched.HasPending(LeaderboardBoards.TopSpeed, out v));
+        Check("queue cleared after the flush", !relaunched.HasPending(LeaderboardBoards.TopScore, out v));
         Check("pending key removed once empty", !PlayerPrefs.HasKey(LeaderboardService.PendingKey));
     }
 
@@ -210,14 +286,14 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        var run = new LeaderboardRunStats { topSpeed = 999 };
+        var run = new LeaderboardRunStats { score = 999 };
         long v;
 
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         Check("developer mode: run not submitted", service.SubmitRun(run) == 0);
-        Check("developer mode: offer refused", !service.Offer(LeaderboardBoards.TopSpeed, 999));
-        achievementAPICalls.leaderboard_highest_speed_reached(999f);
-        Check("developer mode: nothing queued", !service.HasPending(LeaderboardBoards.TopSpeed, out v));
+        Check("developer mode: offer refused", !service.Offer(LeaderboardBoards.TopScore, 999));
+        service.SubmitRun(run);
+        Check("developer mode: nothing queued", !service.HasPending(LeaderboardBoards.TopScore, out v));
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
 
         startMenu.youAreInTutorial = true;
@@ -232,7 +308,7 @@ public static class LeaderboardTest
         service.Tick();
         service.Flush();
         Check("blocked runs never reach the store", fake.Submissions.Count == 0);
-        Check("a real run is submitted", service.SubmitRun(run) == 1);
+        Check("a real run is submitted (score and world)", service.SubmitRun(run) == LeaderboardBoards.Enabled().Count);
     }
 
     // ---- panel ----
@@ -258,7 +334,7 @@ public static class LeaderboardTest
         Check("populated: top 10 rows", panel.RowCount == 10);
         Check("populated: own rank row shown", panel.PlayerRowShown && panel.PlayerRankText == "#14");
         Check("populated: one tab per enabled board", panel.Tabs.Count == LeaderboardBoards.Enabled().Count);
-        Check("populated: first tab selected", panel.SelectedBoard == LeaderboardBoards.TopSpeed);
+        Check("populated: first tab selected", panel.SelectedBoard == LeaderboardBoards.TopScore);
         Check("populated: View all shown", panel.ViewAllButton.gameObject.activeSelf);
         var row0 = panel.PanelRoot.Find("Body/Row0");
         var shape0 = row0 != null ? row0.GetComponent<CelShape>() : null;
@@ -269,7 +345,7 @@ public static class LeaderboardTest
 
         // Player inside the top 10: their list row turns red too.
         var mine = new FakeLeaderboards();
-        mine.SetBoard(TopSpeedId, FakeLeaderboards.Entry(1, "TETSUO", 300), FakeLeaderboards.Entry(2, "KANEDA", 250, true),
+        mine.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "TETSUO", 300), FakeLeaderboards.Entry(2, "KANEDA", 250, true),
                       FakeLeaderboards.Entry(3, "KAI", 200));
         panel = OpenPanel(mine);
         var row1 = panel.PanelRoot.Find("Body/Row1");
@@ -330,11 +406,11 @@ public static class LeaderboardTest
         var stale = FakeLeaderboards.Demo();
         stale.DeferLoads = true;
         panel = OpenPanel(stale);                        // request 1: waits
-        var saved = stale.Boards[TopSpeedId];
+        var saved = stale.Boards[TopScoreId];
         stale.DeferLoads = false;
-        stale.SetBoard(TopSpeedId);
+        stale.SetBoard(TopScoreId);
         panel.Reload();                                  // request 2: answers at once, empty
-        stale.Boards[TopSpeedId] = saved;
+        stale.Boards[TopScoreId] = saved;
         stale.CompleteLoads();                           // request 1 answers late, populated
         Check("a stale answer doesn't overwrite the newer one", panel.CurrentState == LeaderboardPanel.State.Empty);
 
@@ -439,7 +515,7 @@ public static class LeaderboardTest
 
         panel.ViewAllButton.onClick.Invoke();
         Check("View all opens the native UI for the selected board",
-              fake.NativeUICalls.Count == 1 && fake.NativeUICalls[0] == TopSpeedId);
+              fake.NativeUICalls.Count == 1 && fake.NativeUICalls[0] == TopScoreId);
 
         fake.SignedIn = false;
         fake.NativeUICalls.Clear();

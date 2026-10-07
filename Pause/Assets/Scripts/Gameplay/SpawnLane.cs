@@ -32,10 +32,11 @@ public static class SpawnLane
     const int Candidates = 8;
 
     // Half extents of a hazard's collider in the world. Tumbling rocks sweep
-    // their square's diagonal, so they count at their widest.
-    public static Vector2 HalfExtents(EnemyDef def)
+    // their square's diagonal, so they count at their widest. `scale`: the
+    // body's size (HazardSize; a rock drawn small or large).
+    public static Vector2 HalfExtents(EnemyDef def, float scale = 1f)
     {
-        Vector2 half = def.ColliderSize * .5f;
+        Vector2 half = def.ColliderSize * .5f * scale;
         if (def.role == EnemyRole.Rock && !def.floating)
             half = Vector2.one * Mathf.Max(half.x, half.y) * 1.4142f;
         return half;
@@ -43,22 +44,28 @@ public static class SpawnLane
 
     static Vector2 HalfExtents(EnemyIdentity id)
     {
+        if (id.Def != null) return HalfExtents(id.Def, id.Scale);
         var box = id.GetComponent<BoxCollider2D>();
-        if (id.Def != null) return HalfExtents(id.Def);
         return box != null ? box.size * .5f : Vector2.one * .3f;
     }
 
-    // Does a hazard of def at (x, y) still leave a ship-width gap in its row?
-    // Reads SpawnSpace's live registry into a reused buffer: no scene scan,
-    // no allocation.
-    public static bool Fits(EnemyDef def, float x, float y)
+    // Does a hazard of def (at `scale`) at (x, y) still leave a ship-width
+    // gap in its row? Reads SpawnSpace's live registry into a reused buffer:
+    // no scene scan, no allocation.
+    public static bool Fits(EnemyDef def, float x, float y, float scale = 1f)
     {
-        Vector2 half = HalfExtents(def);
+        Vector2 half = HalfExtents(def, scale);
         float band = half.y + ShipGap;
         FillRowSpans(y - band, y + band, buffer);
         buffer.Add(new Vector2(x - half.x, x + half.x));
-        return WidestGap(buffer) >= ShipGap;
+        return WidestGap(buffer) >= GuaranteedGap;
     }
+
+    // The gap every row is promised: a ship's width -- shrinking to nothing
+    // once a portal has been kept waiting deep into overdrive
+    // (PortalPressure.ShipGapScale; x1 at every other time), which is what
+    // finally makes staying fatal.
+    public static float GuaranteedGap => ShipGap * PortalPressure.ShipGapScale;
 
     static readonly List<Vector2> buffer = new List<Vector2>(64);
 
@@ -77,9 +84,9 @@ public static class SpawnLane
     }
 
     // How far from the centre line def's centre may spawn.
-    public static float MaxX(EnemyDef def)
+    public static float MaxX(EnemyDef def, float scale = 1f)
     {
-        return def.role == EnemyRole.Big ? HeavyMaxX : LaneHalf - HalfExtents(def).x;
+        return def.role == EnemyRole.Big ? HeavyMaxX : LaneHalf - HalfExtents(def, scale).x;
     }
 
     // The x spans of every live hazard (chasers aside) overlapping [y0, y1].

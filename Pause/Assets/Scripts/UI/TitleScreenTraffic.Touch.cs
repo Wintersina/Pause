@@ -141,7 +141,7 @@ public partial class TitleScreenTraffic
 
     Vector2 ScreenPointToWorld(Vector2 screen)
     {
-        int w = screenW > 0 ? screenW : Screen.width, h = screenH > 0 ? screenH : Screen.height;
+        int w = screenW > 0 ? screenW : ScreenInfo.Width, h = screenH > 0 ? screenH : ScreenInfo.Height;
         if (w <= 0 || h <= 0) return view.center;
         return ScreenToWorld(screen, w, h);
     }

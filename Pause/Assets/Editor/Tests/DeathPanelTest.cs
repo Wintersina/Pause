@@ -156,7 +156,7 @@ public static class DeathPanelTest
         var view = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
         {
             score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
-            bestSpeed = 999, runSpeed = 999, dustAtStart = 99987.65f, dustWon = 12.34f,
+            dustAtStart = 99987.65f, dustWon = 12.34f,
         });
         view.Skip();
         Canvas.ForceUpdateCanvases();
@@ -169,8 +169,14 @@ public static class DeathPanelTest
 
         // Values: final numbers, formatted on separate lines for star dust.
         Check("the score headline shows its final value (got '" + best.text + "')", best.text == "9,999,999");
-        Check("the speed line shows this run's and the best speed (got '" + run.text + "')",
-              run.text == "SPEED 999  /  BEST 999");
+        // Speed is capped (SpeedRamp.Cap): it is not a result. The scene's old
+        // speed Text has no job and is switched off; nothing on the panel
+        // says SPEED.
+        Check("the scene's old speed line is switched off and left out of the panel",
+              !run.gameObject.activeSelf && !run.transform.IsChildOf(panel));
+        bool noSpeed = true;
+        foreach (var t in panel.GetComponentsInChildren<Text>(true)) noSpeed &= !t.text.ToUpperInvariant().Contains("SPEED");
+        Check("no text on the panel mentions speed", noSpeed);
         var labels = DeathPanelView.BreakdownLabels;
         var points = DeathPanelView.BreakdownPoints(parts);
         Check("the breakdown lists distance, kills, star dust, atoms, teleports, bosses, worlds, death combo",
@@ -188,7 +194,7 @@ public static class DeathPanelTest
         Check("total sits on its own line (got '" + total.text + "')", total.text == "TOTAL  99999.99" && !dust.text.Contains("\n"));
 
         var panelRect = DeathPanelView.PanelRect;
-        foreach (var t in new[] { best, run, dust })
+        foreach (var t in new[] { best, dust })
         {
             Check(t.name + " moved into the new panel", t.transform.IsChildOf(panel));
             Check(t.name + " is active", t.gameObject.activeInHierarchy || !canvas.activeInHierarchy);
@@ -219,7 +225,9 @@ public static class DeathPanelTest
             cardRects.Add(r);
             Check("Card" + i + " is where the layout puts it", Near(r, DeathPanelView.CardRects[i]));
             var label = card.Find("Label").GetComponent<Text>();
-            var value = i == 0 ? best : i == 1 ? run : dust;
+            // (the breakdown's title row has no value any more: its rows are checked below)
+            if (i == 1) continue;
+            var value = i == 0 ? best : dust;
             float labelRight = PanelSpace(panel, label.rectTransform).xMin + label.preferredWidth;
             float valueLeft = PanelSpace(panel, value.rectTransform).xMax - value.preferredWidth;
             Check("Card" + i + " label and value keep apart", labelRight + 16f <= valueLeft);

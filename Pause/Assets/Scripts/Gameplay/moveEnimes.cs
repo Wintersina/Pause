@@ -15,6 +15,25 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
     private bool alreadyMoved;
     private bool weaveSet;
     private bool started;
+    private bool straight;
+
+    // The enemy's behaviour, when it has one (EnemyBrain): it owns the
+    // sideways movement, so this mover only scrolls (Straight) and its sweep
+    // is the behaviour's envelope.
+    [System.NonSerialized] public EnemyBrain brain;
+
+    public bool Weaving => !straight;
+
+    // A pilot (EnemyBrain's pilot mode) holds its place in the world: this
+    // mover stays on it but no longer scrolls it (see moveItemEnmInStrightLine).
+    [System.NonSerialized] public bool station;
+
+    // Scroll only: no ping-pong weave (a brain moves it sideways instead).
+    public void Straight()
+    {
+        straight = true;
+        weaveSet = true;
+    }
 
     // the original roll for the weave amplitude
     public const float MinAmplitude = -1.15f, MaxAmplitude = 2.45f;
@@ -28,6 +47,7 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
     {
         randPos = WeavePlan.Safe(amplitude);
         weaveSet = true;
+        straight = false;
     }
 
     // Use this for initialization
@@ -52,6 +72,7 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
     public void Step(float dt, float clock)
     {
         if (!started) Start();
+        if (station) return;
         // Translate() defaults to local space. That was harmless while
         // nothing ever rotated this transform, but AsteroidSpin now does --
         // and a local-space "down" rotates right along with the object, so a
@@ -60,7 +81,7 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
         // spin, reading as moving backwards. World space keeps travel tied
         // to the screen, independent of whatever the sprite is doing.
         transform.Translate(new Vector2(0, -1) * moveBackGround.speed * dt * itemSpeed, Space.World);
-        if (transform.position.x <= 2.4 && transform.position.x >= -2.4 && alreadyMoved)
+        if (!straight && transform.position.x <= 2.4 && transform.position.x >= -2.4 && alreadyMoved)
         {
             transform.position = new Vector3(WeavePlan.X(randPos, clock), transform.position.y, transform.position.z);
         }
@@ -70,10 +91,12 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
     // board is paused, so the timing can't be predicted -- only the band).
     public Rect SweptBounds(Vector2 center, Vector2 half, float from, float to)
     {
+        if (station) return EnemyBrain.PilotSweep(brain, center, half, to);
+        if (straight) return EnemyBrain.Widen(brain, center, half);
         return WeavePlan.Band(randPos, center, half);
     }
 
-    public bool SelfSteering => false;
+    public bool SelfSteering => station;
 }
 
 // The weave both as a pure function (the mover uses it) and as a reusable

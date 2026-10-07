@@ -137,6 +137,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     int pierce, bounces;
     // a lobbed glob: in the air until `landAt`, flying from `lobFrom` to `lobTo`
     bool airborne;
+    // fired by a roster enemy (EnemyVolley): never hurts other hazards, and
+    // may ride the board (`ride` x the scroll is added to its fall)
+    bool rosterShot;
+    float ride;
     float lobTime, lobTotal;
     Vector2 lobFrom, lobTo;
 
@@ -148,8 +152,15 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float Radius => radius;
     public GameObject Hitbox => hitbox;
     public bool Airborne => airborne;
+    public bool RosterShot => rosterShot;
+    public float Ride => ride;
+    public float Age => age;
     public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
     public Vector2 LobTarget => lobTo;
+    // A glob in the air: seconds until it lands, and the pool it will be.
+    public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
+    public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
+    public float PoolSeconds => def != null ? def.poolSeconds : 0f;
     public int Bounced { get; private set; }
     public bool MarkShown => mark != null && mark.enabled;
     // Why it last left play: 0 none, 1 off screen / spent, 2 rail, 3 hitbox gone, 4 hit a hazard,
@@ -220,6 +231,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         EndReason = 0;
         LaunchedAt = at;
         airborne = false;
+        rosterShot = false;
+        ride = 0f;
         bounces = Mathf.Max(0, d.shotBounces);
         Bounced = 0;
         if (mark != null) mark.enabled = false;
@@ -251,6 +264,16 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Pulse();
         Active = true;
         gameObject.SetActive(true);
+    }
+
+    // Marks a just-fired shot as a roster enemy's (EnemyVolley): `source` is
+    // its shooter (shots of one enemy's volley never clash with each other),
+    // `rideBoard` the share of the board's scroll added to its fall.
+    public void AsRosterShot(GameObject source, float rideBoard)
+    {
+        rosterShot = true;
+        ride = rideBoard;
+        ownerId = source != null ? source.GetInstanceID() : 0;
     }
 
     // Turns a just-fired glob into a lob onto `to` (world), landing in
@@ -357,6 +380,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         }
         p.x += velocity.x * dt;
         p.y += velocity.y * dt;
+        if (ride != 0f) p.y -= EliteSystem.Scroll * ride * dt;
         transform.position = p;
 
         // the rails
@@ -385,7 +409,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // friendly fire
         Vector2 at = p;
         var live = ClearTarget.Live;
-        for (int i = 0; i < live.Count; i++)
+        // (a roster enemy's shot passes through other hazards: no friendly fire)
+        for (int i = 0; !rosterShot && i < live.Count; i++)
         {
             var t = live[i];
             if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
@@ -396,7 +421,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
             if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
             pool.CountFriendly();
             var elite = t.GetComponent<EliteShip>();
-            if (elite != null) elite.TakeHit(EliteDamage.FriendlyFire, p);
+            if (elite != null)
+            {
+                EliteShip.HitBy = Kind == EliteShots.Kind.Glob ? (own ? "own resin pool" : "resin pool") : own ? "own shot" : "elite shot";
+                elite.TakeHit(EliteDamage.FriendlyFire, p);
+            }
             else EliteShip.FriendlyKill(t.gameObject);
             if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
             break;   // the registry may have changed

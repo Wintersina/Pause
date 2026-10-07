@@ -39,14 +39,13 @@ public class WorldTheme
     [Tooltip("Colour of this world's portal.")]
     public Color portalColor = new Color(0.55f, 0.85f, 1f);
 
-    [Tooltip("Speed ramp for this world. Later planets can escalate faster.")]
+    [Tooltip("Speed ramp for this world. Later planets can escalate faster. " +
+             "Every world shares the one cap (SpeedRamp.Cap).")]
     public float speedRampPerSecond = 0.002f;
-
-    public float maxSpeed = 0.6f;
 
     [Tooltip("Multiplies elapsed flight time before enmiesOnBoard checks its " +
              "phase thresholds. 1 is Space's own pace; later worlds set this " +
              "higher so enemy density keeps escalating faster than earlier " +
-             "planets, independent of (and continuing past) the speed cap above.")]
+             "planets, independent of (and continuing past) the speed cap.")]
     public float enemyRampScale = 1f;
 }

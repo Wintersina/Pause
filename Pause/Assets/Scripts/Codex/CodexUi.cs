@@ -174,7 +174,7 @@ public static class CodexUi
     {
         var rect = ((RectTransform)canvas.transform).rect;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
-        Rect safe = Screen.safeArea;
+        Rect safe = ScreenInfo.SafeArea;
         return new Rect(safe.x / sf - rect.width * .5f, safe.y / sf - rect.height * .5f,
                         safe.width / sf, safe.height / sf);
     }

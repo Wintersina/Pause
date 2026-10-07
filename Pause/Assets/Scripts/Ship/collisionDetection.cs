@@ -38,7 +38,6 @@ public class collisionDetection : MonoBehaviour {
     private float boostTimer;
     public Text hypeText;
     public Text boostText;
-    private int atomCounter;
     public static int lifeCounter;
     // Atoms picked up this session, by kind. The tutorial watches these to
     // know the player caught the atom it just introduced.
@@ -152,6 +151,9 @@ public class collisionDetection : MonoBehaviour {
         boost.gameObject.SetActive(false);
         boostSound = GameObject.Find("RocketsSound").GetComponent<AudioSource>();
         astroidExpSound = GameObject.Find("AstroidExplotionSound").GetComponent<AudioSource>();
+        // The blue atom's sting, decoded before the first pickup (WorldMusic
+        // does the same when it swaps in a world's own sting).
+        WorldMusic.Prewarm(boostSound.clip);
 
         shield = ShipShield.For(gameObject).Visual;
 
@@ -167,7 +169,8 @@ public class collisionDetection : MonoBehaviour {
         PlayerInvuln.Reset();
 
         // empty out any counters
-        atomCounter = 0;
+        SpeedRamp.ResetBoost();
+        achievementAPICalls.SpeedMilestones.Reset();
         lifeCounter = 0;
     }
 	
@@ -227,6 +230,9 @@ public class collisionDetection : MonoBehaviour {
                 ShipShield.For(gameObject).Absorb(hit.transform.position);
                 // show the texts for only half of a second.
                 savedTimer = .4f;
+                // A hostile projectile absorbed by the shield itself (the blue
+                // atom's, not Cloak) pays ScoreRules.ShieldedShot (RunScore).
+                if (atomCheck) RunScore.OnShieldedShot(hit.gameObject, hit.transform.position);
                 // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
                 if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
 
@@ -263,8 +269,6 @@ public class collisionDetection : MonoBehaviour {
                     buttonClicks.playerDied = true;
                     //--------------------1st/5th/10th/50th/100th DEATH ---##01-04-----------------
                     achievementAPICalls.player_died();
-
-                    achievementAPICalls.leaderboard_highest_speed_reached(Mathf.Round(moveBackGround.speed * 100));
                     // End of the run: flush the batched achievement counters.
                     PrefsSaver.SaveNow();
                     PlayExplosion();
@@ -377,6 +381,7 @@ public class collisionDetection : MonoBehaviour {
                 // ----------------------------
 
                 ShipShield.For(gameObject).Show();
+                RunScore.OnShieldRaised();   // a fresh shield: its absorb allowance starts again
                 awardDust(blueAtomValue);
                 boostText.text = "Boost!";
                 Destroy(hit.gameObject);
@@ -384,8 +389,9 @@ public class collisionDetection : MonoBehaviour {
                 // turn off inv text after  timer runs out.
                 atomCheck = true;
                 boost.SetActive(true);
-                // A boss holds speed at 20: no +0.05 boost (BossEncounter).
-                if (!BossEncounter.SpeedLocked) { moveBackGround.speed += .05f; atomCounter++; }
+                // The boost (SpeedRamp: +5 a blue atom, the limit break past
+                // the cap). A boss holds speed at 20: none then.
+                SpeedRamp.AddBoost();
                 invTimer = 5.8f;
                 boostTimer = 1f;
             }
@@ -410,6 +416,10 @@ public class collisionDetection : MonoBehaviour {
         TickCloak(Time.deltaTime);
         PlayerInvuln.Tick(Time.deltaTime);
 
+        // Flash / Speedster / Super Sonic: the cap and the limit break of a
+        // real run (achievementAPICalls.SpeedMilestones), once each per run.
+        if (score.paysRealDust && !DeveloperUnlocks.Enabled) achievementAPICalls.SpeedMilestones.Step();
+
         // check if atom is captrured and its time to reduce it.
         if (atomCheck && invTimer <= 0)
         {
@@ -417,8 +427,8 @@ public class collisionDetection : MonoBehaviour {
             ShipShield.For(gameObject).Hide();
             boost.SetActive(false);
             atomCheck = false;
-            moveBackGround.speed -= BossEncounter.FilterSpeedChange(.05f * atomCounter);
-            atomCounter = 0;
+            // the boost eases off; speed settles back to natural (<= the cap)
+            SpeedRamp.EndBoost();
 
             // ---------------------------
             //   Music control section!

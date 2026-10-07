@@ -107,6 +107,8 @@ public class WorldMusic : MonoBehaviour
         // payoff, so Ember does not fall back to its long upbeat loop.
         var boostClip = Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost");
         if (boost != null && boostClip != null) boost.clip = boostClip;
+        // ...and it is decoded now, not inside the blue atom's Play().
+        Prewarm(boostClip);
 
         // A missing clip leaves the current track playing rather than dropping
         // into silence -- a half-shipped planet should still have music.
@@ -116,6 +118,18 @@ public class WorldMusic : MonoBehaviour
             return;
         }
         EnsureRunner().StartCoroutine(Swap(source, next));
+    }
+
+    // Brings a one-shot's audio into memory ahead of its first Play(). A clip
+    // imported without "Preload Audio Data" is only a header after
+    // Resources.Load: the first Play() then reads and decompresses it on the
+    // main thread, on the very frame the sound is wanted (the blue atom's
+    // sting did exactly that, once per world per run). The stings are
+    // imported preloaded + load-in-background; this is the safety net for a
+    // clip that isn't (blocking then, but at world-apply / ship-spawn time).
+    public static void Prewarm(AudioClip clip)
+    {
+        if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
     }
 
     static AudioSource FindBackgroundSource()

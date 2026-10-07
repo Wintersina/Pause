@@ -20,9 +20,9 @@ using UnityEngine.UI;
 // timeScale 0 while this is on screen.
 //
 // Cards, top to bottom: the run SCORE (headline, counting up, NEW BEST), the
-// breakdown of where it came from (one counting row per source, staggered,
-// with this run's top speed and the best speed in its title row), and the
-// star dust earned / new total.
+// breakdown of where it came from (one counting row per source, staggered),
+// and the star dust earned / new total. No speed is shown: speed is capped,
+// so it is not a result.
 public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 {
     public struct Results
@@ -33,8 +33,6 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         public bool ranked;         // a run that may set a best (not developer mode / practice)
         public bool practice;       // the run scored nothing (practice run)
         public RunScore.Breakdown parts;
-        public int bestSpeed;
-        public int runSpeed;
         public float dustAtStart;
         public float dustWon;       // includes dustBonus
         public float dustBonus;     // the end-of-run score bonus (ScoreRules.ScoreDustBonus)
@@ -128,7 +126,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     RectTransform[] headerSparkles = new RectTransform[2];
     RectTransform[] cards = new RectTransform[3];
     CanvasGroup[] cardGroups = new CanvasGroup[3];
-    Text scoreValue, speedLine, dustValue, dustTotal;
+    Text scoreValue, dustValue, dustTotal;
     Text[] rowValues = new Text[0];
     long[] rowPoints = new long[0];
     long[] shownRows = new long[0];
@@ -259,14 +257,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         return "BEST  " + RunScore.Format(r.bestScore);
     }
 
-    public static string SpeedLine(Results r)
-    {
-        return "SPEED " + r.runSpeed + "  /  BEST " + r.bestSpeed;
-    }
-
-    // The scene's Texts keep their jobs under new names: bestText (was best
-    // speed) is the score, runText (was this run's speed) is the speed line
-    // in the breakdown's title row, dustText the star dust.
+    // The scene's Texts keep their jobs under new names: bestText is the
+    // score, dustText the star dust. runText (the scene's old speed line) has
+    // no job any more: it is switched off and left in the old dialog.
     void BuildCards(Text bestText, Text runText, Text dustText)
     {
         cards[0] = BuildCard(0, "SCORE", results.newBest ? null : ScoreSubLabel(results), Cyan, bestText, out scoreValue);
@@ -287,7 +280,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         if (results.newBest)
         {
-            // Celebratory bloom behind the best-speed card ...
+            // Celebratory bloom behind the score card ...
             bestGlow = NewImage("NewBestGlow", panel, Load("dp_glow"), new Color(Gold.r, Gold.g, Gold.b, 0f));
             bestGlow.type = Image.Type.Sliced;
             var c = CardRects[0];
@@ -323,20 +316,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         return card;
     }
 
-    // Where the run's points came from: a title row (with the speed line on
-    // its right) and one row per source -- label, count, points.
-    RectTransform BuildBreakdown(Text speedText)
+    // Where the run's points came from: a title row and one row per source
+    // -- label, count, points.
+    RectTransform BuildBreakdown(Text unusedSceneText)
     {
+        if (unusedSceneText != null) unusedSceneText.gameObject.SetActive(false);
         var card = CardBody(1, Coral);
         var title = NewText("Label", card, "BREAKDOWN", 22, Coral, TextAnchor.MiddleLeft);
         Place(title.rectTransform, Centered(LabelLeft + 100f, BreakdownTitleY, 200f, 30f));
         AddOutline(title.gameObject, Ink, 1.5f);
-
-        AdoptSceneText(speedText, card, 20, Muted, TextAnchor.MiddleRight);
-        speedText.fontStyle = FontStyle.Bold;
-        Place(speedText.rectTransform, Centered(ValueRight - 160f, BreakdownTitleY, 320f, 30f));
-        speedText.text = SpeedLine(results);
-        speedLine = speedText;
 
         rowPoints = BreakdownPoints(results.parts);
         int[] counts = BreakdownCounts(results.parts);
@@ -558,7 +546,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         // Start the clock the first frame the panel is actually on screen.
         if (startedAt < 0f) startedAt = Time.unscaledTime;
-        if (Screen.width != lastScreenW || Screen.height != lastScreenH) Fit();
+        if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH) Fit();
         ApplyAt(Time.unscaledTime - startedAt);
     }
 
@@ -742,15 +730,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     void Fit()
     {
-        lastScreenW = Screen.width;
-        lastScreenH = Screen.height;
+        lastScreenW = ScreenInfo.Width;
+        lastScreenH = ScreenInfo.Height;
         var canvas = GetComponentInParent<Canvas>();
         if (canvas == null) return;
         canvas = canvas.rootCanvas;
         var rootRect = ((RectTransform)transform).rect;
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
 
-        Rect safe = Screen.safeArea;
+        Rect safe = ScreenInfo.SafeArea;
         var safeUnits = new Rect(safe.x / sf - rootRect.width * .5f, safe.y / sf - rootRect.height * .5f,
                                  safe.width / sf, safe.height / sf);
 

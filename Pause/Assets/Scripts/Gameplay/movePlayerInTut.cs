@@ -39,10 +39,12 @@ public class movePlayerInTut : MonoBehaviour
     {
         //gets a position of the finger on the screen
         //checks position of finger is in bound box
+        // (vertically: the same reach as the run, ShipReach, in the view this
+        // device shows; it was the constant -4.15 .. 4.5)
         if (fingerPos.x <= 2.4 && fingerPos.x > -2.4)
         {
             this.transform.position = new Vector3(fingerPos.x,
-                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
+                ShipReach.ClampY(fingerPos.y + 1.5f));
 
             // Allow text to follow player----------------------------
 
@@ -56,12 +58,12 @@ public class movePlayerInTut : MonoBehaviour
         else if (fingerPos.x > 2.4)
         {
             this.transform.position = new Vector3(2.4f,
-                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
+                ShipReach.ClampY(fingerPos.y + 1.5f));
         }
         else if (fingerPos.x < -2.4)
         {
             this.transform.position = new Vector3(-2.4f,
-                Mathf.Clamp(fingerPos.y + 1.5f, -4.15f, 4.5f));
+                ShipReach.ClampY(fingerPos.y + 1.5f));
 
         }
 

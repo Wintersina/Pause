@@ -41,6 +41,56 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     [Tooltip("How far ahead (seconds of scroll) it watches the board for something to sidestep.")]
     public float lookAheadSeconds = .45f;
 
+    // How it hunts (EnemyBehaviours; each world's chaser has its own):
+    //   Hound   steady pursuit
+    //   Lancer  stops to aim (AimSeconds), then dashes along the line it
+    //           locked (DashSeconds), again and again
+    //   Weaver  pursues on a sideways weave
+    //   Burner  the same pursuit, tuned short and hard (its numbers)
+    public ChaserStyle style = ChaserStyle.Hound;
+    public const float LancerAimSeconds = .55f, LancerDashSeconds = .7f;
+    public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
+    public const float WeaveSpeed = 1.5f, WeaveHz = .8f;
+
+    // It does not stay for ever: after lingerSeconds of orbiting (or when a
+    // boss / portal is coming) it leaves, climbing out the top.
+    public float lingerSeconds = 5f;
+    public const float LeaveSpeed = 4.5f, LeaveMargin = 1.2f;
+    public bool Leaving { get; private set; }
+    public float SecondsAlive { get; private set; }
+    float lingered, leaveTime;
+
+    // Chasers in play (the spawner caps them: EnemyDensity.MaxChasers).
+    static readonly System.Collections.Generic.List<ChaserEnemy> alive = new System.Collections.Generic.List<ChaserEnemy>(8);
+    public static int Alive
+    {
+        get
+        {
+            for (int i = alive.Count - 1; i >= 0; i--)
+                if (alive[i] == null || !alive[i].enabled) alive.RemoveAt(i);
+            return alive.Count;
+        }
+    }
+
+    float styleClock;
+    Vector3 lockedHeading = Vector3.up;
+
+    // True while a Lancer is stopped, aiming its next dash.
+    public bool Aiming => style == ChaserStyle.Lancer && !wandering && styleClock < LancerAimSeconds;
+
+    public void Configure(EnemyBehaviour b)
+    {
+        if (b == null) return;
+        style = b.chaser;
+        chaseSeconds = b.chaseSeconds;
+        chaseSpeed = b.chaseSpeed;
+        startChaseSpeed = b.chaseStart;
+        wanderSpeed = b.wanderSpeed;
+        wanderRadius = b.wanderRadius;
+        lingerSeconds = b.lingerSeconds;
+        if (!alive.Contains(this)) alive.Add(this);
+    }
+
     Transform player;
     float chaseTimer;
     float wanderAngle;
@@ -50,7 +100,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     SpawnFootprint footprint;
 
     // True while it is still closing in.
-    public bool IsChasing => !wandering;
+    public bool IsChasing => !wandering && !Leaving;
 
     // What it hunts (the ship; a headless simulation can set a stand-in).
     public Transform Target { get { return player; } set { player = value; } }
@@ -64,6 +114,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     {
         if (initialised) return;
         initialised = true;
+        if (!alive.Contains(this)) alive.Add(this);
         chaseTimer = chaseSeconds;
         wanderAngle = Random.value * Mathf.PI * 2f;
         if (player == null)
@@ -94,20 +145,50 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         Init();
         Vector3 from = transform.position;
         Vector3 wish = from;
+        SecondsAlive += dt;
 
-        if (!wandering)
+        if (!Leaving && (PilotAirspace.MustClear || (wandering && (lingered += dt) >= lingerSeconds))) Leaving = true;
+        if (Leaving)
+        {
+            // eases off, then climbs out of the view
+            leaveTime += dt;
+            wish += Vector3.up * LeaveSpeed * Mathf.Clamp01(.25f + leaveTime * 1.5f) * dt;
+            if (from.y > CameraFit.ViewTop + LeaveMargin)
+            {
+                if (Application.isPlaying) Destroy(gameObject);
+                else { transform.position = new Vector3(from.x, 60f, from.z); enabled = false; }
+                return;
+            }
+        }
+        else if (!wandering)
         {
             chaseTimer -= dt;
             if (player != null)
             {
                 float k = 1f - Mathf.Clamp01(chaseTimer / Mathf.Max(0.01f, chaseSeconds));
-                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k);
+                // (faster without limit once a portal has been kept waiting into overdrive)
+                float speed = Mathf.Lerp(startChaseSpeed, chaseSpeed, k) * PortalPressure.ChaserSpeedScale;
                 // a Flare Decoy (secret power) draws the chase off the ship
                 Vector3 goal = ShipDecoy.Active ? ShipDecoy.Position : player.position;
                 Vector3 toPlayer = goal - from;
                 toPlayer.z = 0f;
                 if (toPlayer.sqrMagnitude > 0.0001f)
-                    wish += toPlayer.normalized * speed * dt;
+                {
+                    Vector3 heading = toPlayer.normalized;
+                    styleClock += dt;
+                    if (style == ChaserStyle.Lancer)
+                    {
+                        // aim (nearly still, the heading follows), then a
+                        // straight dash along the heading it had locked
+                        float cycle = LancerAimSeconds + LancerDashSeconds;
+                        if (styleClock >= cycle) styleClock -= cycle;
+                        if (styleClock < LancerAimSeconds) { lockedHeading = heading; speed *= LancerAimSpeed; }
+                        else { heading = lockedHeading; speed *= LancerDashSpeed; }
+                    }
+                    wish += heading * speed * dt;
+                    if (style == ChaserStyle.Weaver)
+                        wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt;
+                }
             }
             else
             {

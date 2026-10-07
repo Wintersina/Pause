@@ -18,7 +18,7 @@
   "lore": "A salvage craft with hooked wings and a recovery claw. It circles you like you are already scrap, then dives claw first and flings what it tore loose. Make sure something else is under that claw.",
   "cellWorldSize": 1.55,
   "hullRadius": 0.33,
-  "noseDeg": 330,
+  "noseDeg": 270,
   "turnsToFace": true,
   "speed": 3.2,
   "accel": 7,
