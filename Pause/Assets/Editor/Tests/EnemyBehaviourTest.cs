@@ -301,7 +301,7 @@ public static class EnemyBehaviourTest
                 {
                     fired = true;
                     firedFromIdle = before != EnemyBrain.Phase.Windup;
-                    releaseCell = fb.CurrentFrame == EnemyRoster.TellFrame + 1 && brain.State == EnemyBrain.Phase.Release;
+                    releaseCell = fb.CurrentFrame == EnemyRoster.TellCell(def, true) && brain.State == EnemyBrain.Phase.Release;
                 }
             }
             float need = Mathf.Max(EnemyBrain.TellFloorSeconds, b.tell);
@@ -1100,7 +1100,7 @@ public static class EnemyBehaviourTest
                 else
                 {
                     held &= y < yAtExit;                             // then only ever down
-                    releaseCell |= fb.CurrentFrame == EnemyRoster.TellFrame + 1;
+                    releaseCell |= fb.CurrentFrame == EnemyRoster.TellCell(def, true);
                 }
             }
             bool ok = brain.Stage == EnemyBrain.PilotStage.Gone && brain.LeftBy == PilotExit.Run &&

@@ -70,6 +70,7 @@ public static class TargetExplosion
     {
         if (target == null) return;
         RailBombAnimator.Burst(target);   // a rail mine flashes its burst frame first (no-op otherwise)
+        EnemyDeathFlipbook.Spawn(target); // the Space alien plays its two death drawings (no-op otherwise)
         var size = SizeFor(target);
         // Sometimes it breaks into spinning pieces of itself instead, over a
         // blast a size smaller (EnemySplit).
