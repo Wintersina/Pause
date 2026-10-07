@@ -58,7 +58,7 @@ public static class WorldBackdropTest
             // A tile can gain its importer rule after the image was first
             // dropped in; force one normal import so that rule takes effect.
             AssetDatabase.ImportAsset(
-                "Assets/Art/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
+                "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
                 ImportAssetOptions.ForceUpdate);
             CheckCatalog();
             CheckArt();
@@ -177,7 +177,7 @@ public static class WorldBackdropTest
     {
         foreach (var spec in BackdropCatalog.All)
         {
-            string dir = "Assets/Art/Resources/Worlds/" + spec.world + "/Backdrop/";
+            string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + spec.world + "/Backdrop/";
             long bytes = 0, astc = 0;
             foreach (string path in Directory.GetFiles(dir, "*.png"))
             {
@@ -248,7 +248,7 @@ public static class WorldBackdropTest
     static Color[] Composite(string world, out int w, out int h)
     {
         var spec = BackdropCatalog.For(world);
-        string dir = "Assets/Art/Resources/Worlds/" + world + "/Backdrop/";
+        string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + world + "/Backdrop/";
         var outPx = (Color[])ReadPixels(dir + "sky.png").Clone();
         w = ReadW; h = ReadH;
         foreach (string layerName in new[] { "far", "mid", "flow" })
@@ -374,7 +374,7 @@ public static class WorldBackdropTest
         foreach (string atlas in new[] { "anim", "fx" })
         {
             int t = 0, so = 0;
-            foreach (var c in ReadPixels("Assets/Art/Resources/Worlds/Verdant/Backdrop/" + atlas + ".png"))
+            foreach (var c in ReadPixels("Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/" + atlas + ".png"))
             {
                 if (c.a < 0.9f) continue;
                 float hh, ss, vv;
@@ -585,7 +585,7 @@ public static class WorldBackdropTest
     // bright core and wisps on their mass (those two spin).
     static void CheckSpaceAtlas()
     {
-        string dir = "Assets/Art/Resources/Worlds/Space/Backdrop/";
+        string dir = "Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/";
         var rects = new Dictionary<string, string>();
         foreach (string atlas in new[] { "anim", "fx" })
         {
@@ -999,7 +999,7 @@ public static class WorldBackdropTest
     // about the wrong centre, or slide it over the rim halo.
     static void CheckSpaceDiscs()
     {
-        string dir = "Assets/Art/Resources/Worlds/Space/Backdrop/";
+        string dir = "Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/";
         float worst = 0f;
         string worstName = "-";
         int spheres = 0;

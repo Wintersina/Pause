@@ -16,7 +16,7 @@ import sys
 
 from PIL import Image, ImageChops
 
-from bgkit import RESOURCES, ART_WORLDS
+from bgkit import RESOURCES, BACKDROP_RESOURCES, ART_WORLDS
 
 PPU = 100
 SW, SH = 5.7, 12.3
@@ -24,7 +24,7 @@ SW, SH = 5.7, 12.3
 
 class Composer:
     def __init__(self, world):
-        self.root = os.path.join(RESOURCES, world, "Backdrop")
+        self.root = os.path.join(BACKDROP_RESOURCES, world, "Backdrop")
         self.cache = {}
         self.atlases = {}
 

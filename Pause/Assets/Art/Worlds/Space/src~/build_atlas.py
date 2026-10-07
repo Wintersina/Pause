@@ -4,7 +4,7 @@
     python3 build_atlas.py            (needs Pillow + numpy)
 
 Reads   ../staging/{anim,fx}_pixel_v1.png   (4x4 sheets of 256 px cells)
-Writes  ../../../Resources/Worlds/Space/Backdrop/{anim,fx}.{png,json}
+Writes  ../../../Backgrounds/Resources/Worlds/Space/Backdrop/{anim,fx}.{png,json}
 
 Every cell of a sheet is one *variant* (a different planet, station...), not
 a flipbook frame, and the painter did not centre the art in its cell. So each
@@ -39,7 +39,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STAGING = os.path.join(HERE, "..", "staging")
-OUT = os.path.join(HERE, "..", "..", "..", "Resources", "Worlds", "Space", "Backdrop")
+OUT = os.path.join(HERE, "..", "..", "..", "Backgrounds", "Resources", "Worlds", "Space", "Backdrop")
 
 CELL = 256
 PAD = 2                 # transparent border kept inside every rect

@@ -11,7 +11,7 @@ using UnityEngine;
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
-// Art lives at Resources/Worlds/<World>/Backdrop/ and is generated from the
+// Art lives at Art/Backgrounds/Resources/Worlds/<World>/Backdrop/ and is generated from the
 // SVG templates under Assets/Art/Worlds/<World>/src~/ (Space's atlases are
 // cut from pixel-art sheets instead: Space/src~/build_atlas.py).
 public static class BackdropCatalog

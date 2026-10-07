@@ -2,7 +2,7 @@
 
 Every background layer is authored as SVG by the per-world modules next to
 this file, then rasterized with resvg (brew install resvg) and packed into the
-PNGs/atlases Unity loads from Resources/Worlds/<World>/Backdrop/.
+PNGs/atlases Unity loads from Backgrounds/Resources/Worlds/<World>/Backdrop/.
 
 Conventions
   * Tiles are 512 x 1024 px and must loop vertically. Anything that crosses the
@@ -28,6 +28,7 @@ TAU = math.pi * 2.0
 HERE = os.path.dirname(os.path.abspath(__file__))
 ART_WORLDS = os.path.dirname(HERE)                               # Assets/Art/Worlds
 RESOURCES = os.path.join(os.path.dirname(ART_WORLDS), "Resources", "Worlds")
+BACKDROP_RESOURCES = os.path.join(os.path.dirname(ART_WORLDS), "Backgrounds", "Resources", "Worlds")
 
 
 # --------------------------------------------------------------------- svg ---
@@ -310,7 +311,7 @@ class World:
         self.src = os.path.join(ART_WORLDS, name, "src~")
         self.svgdir = os.path.join(self.src, "svg")
         self.tmp = os.path.join(self.src, ".build")
-        self.out = os.path.join(RESOURCES, name, "Backdrop")
+        self.out = os.path.join(BACKDROP_RESOURCES, name, "Backdrop")
         for d in (self.svgdir, self.tmp, self.out):
             os.makedirs(d, exist_ok=True)
         self.atlases = {}     # atlas name -> list of (sprite name, png path)

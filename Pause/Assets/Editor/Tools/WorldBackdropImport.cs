@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 
 // Import settings for the generated world backgrounds under
-// Assets/Art/Resources/Worlds/<World>/Backdrop/, applied on every (re)import
+// Assets/Art/Backgrounds/Resources/Worlds/<World>/Backdrop/, applied on every (re)import
 // so a re-render can't drift from them.
 //
 //   sky/far/mid/flow  Sprite (single). Seamless vertical tiles: wrap V =
@@ -22,7 +22,7 @@ public class WorldBackdropImport : AssetPostprocessor
 
     static bool IsBackdrop(string path)
     {
-        return path.StartsWith("Assets/Art/Resources/Worlds/") && path.Contains("/Backdrop/") &&
+        return path.StartsWith("Assets/Art/Backgrounds/Resources/Worlds/") && path.Contains("/Backdrop/") &&
                path.EndsWith(".png");
     }
 

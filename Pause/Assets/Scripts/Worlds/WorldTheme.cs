@@ -11,7 +11,7 @@ using UnityEngine;
 // Wall textures live at Resources/Worlds/<resourceFolder>/:
 //   rail_<theme>_wide_v1   reinforced industrial tile, mirrored on the right
 //   wallLeft / wallRight  legacy fallback for worlds without a reinforced rail
-// Backgrounds live at Resources/Worlds/<displayName>/Backdrop/ (see
+// Backgrounds live at Backgrounds/Resources/Worlds/<displayName>/Backdrop/ (see
 // BackdropCatalog), generated from Assets/Art/Worlds/<displayName>/src~/.
 [System.Serializable]
 public class WorldTheme

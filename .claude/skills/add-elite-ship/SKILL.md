@@ -223,7 +223,7 @@ Or use `PlanetDirector.LandmarkPads(pool, into, piece => pads, scale, idBase)`
 (handles the "upper part of the view" band, mirrored drawings and unique
 ids), as `FrostDirector` / `VerdantDirector` do. Pick pads on flat-ish parts
 of a landmark (shoulders, platforms, decks): crop the landmark from its
-atlas (`Resources/Worlds/<World>/Backdrop/<fx|anim>.json`; Unity rects, y
+atlas (`Art/Backgrounds/Resources/Worlds/<World>/Backdrop/<fx|anim>.json`; Unity rects, y
 from the bottom: PIL box `(x, H-y-h, x+w, H-y)`), draw a 10% grid, read
 the fractions off it (from the centre, y up). Done: Ember volcano
 shoulders, Frost glacier snout apron + lateral ridges + massif saddle,
