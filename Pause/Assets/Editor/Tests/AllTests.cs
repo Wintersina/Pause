@@ -58,6 +58,7 @@ public static class AllTests
         ("DeathCrashTest", DeathCrashTest.Execute),
         ("DustDischargeTest", DustDischargeTest.Execute),
         ("DeathDominoTest", DeathDominoTest.Execute),
+        ("DeathComboTest", DeathComboTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),

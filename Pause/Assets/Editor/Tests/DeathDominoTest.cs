@@ -54,6 +54,11 @@ public static class DeathDominoTest
         try
         {
             DeathCrash.ForceMega = false;
+            // Every touch breaks, every chain kill's pieces live: these
+            // scenarios stage the chain by hand (DeathComboTest covers the
+            // 40% rolls).
+            DeathCombo.ForceDeathHit = 1f;
+            DeathCombo.ForceDeathChain = 1f;
             SlowMotion();
             NoChain();
             ShortChain();
@@ -72,6 +77,7 @@ public static class DeathDominoTest
             DeathCrash.MegaDominoStarted -= OnMega;
             DeathCrash.DeathCombo -= OnCombo;
             DeathCrash.ForceMega = null;
+            DeathCombo.ForceDeathHit = DeathCombo.ForceDeathChain = -1f;
             RunScore.EndRun(RunScore.RunId);
             moveBackGround.speed = 0f;
             buttonClicks.playerDied = false;

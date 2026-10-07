@@ -47,14 +47,21 @@ public class EnemyDeathFlipbook : MonoBehaviour
         effect.frames = frames;
         effect.renderer = go.AddComponent<SpriteRenderer>();
         effect.renderer.sprite = frames[0];
-        effect.renderer.sortingLayerID = source.sortingLayerID;
-        effect.renderer.sortingOrder = Mathf.Max(source.sortingOrder, 67);
+        if (source != null)
+        {
+            effect.renderer.sortingLayerID = source.sortingLayerID;
+            effect.renderer.sortingOrder = Mathf.Max(source.sortingOrder, 67);
+        }
+        else effect.renderer.sortingOrder = 67;
     }
 
     void Update()
     {
         if (frames == null || renderer == null) return;
-        age += Time.deltaTime;
+        // Gameplay time, like the blast under it: frozen while the world is
+        // paused, and on the death crash's clock while that plays (timeScale
+        // is 0 then; Time.deltaTime would hold the pose on screen for good).
+        age += TargetExplosion.Delta();
         if (age < FlashSeconds) renderer.sprite = frames[0];
         else if (age < FlashSeconds + RuptureSeconds) renderer.sprite = frames[1];
         else if (age < FlashSeconds + RuptureSeconds + SmokeSeconds) renderer.sprite = frames[2];
