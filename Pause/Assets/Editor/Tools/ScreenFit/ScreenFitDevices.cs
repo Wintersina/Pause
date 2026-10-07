@@ -44,6 +44,18 @@ public class FitDevice
     public float MinTapPx { get { return (ios ? 44f : 48f) * pxPerPt; } }
     public float Pt(float points) { return points * pxPerPt; }
 
+    // What the OS reports as Screen.dpi: Android its density x 160, iOS the
+    // panel's ppi (@3x iPhones ~460, @2x iPhones 326, iPads 264).
+    public float ReportedDpi
+    {
+        get
+        {
+            if (!ios) return pxPerPt * 160f;
+            if (pxPerPt >= 3f) return 460f;
+            return Mathf.Min(w, h) >= 1500 ? 264f : 326f;
+        }
+    }
+
     // The home indicator / gesture pill, for drawing and for the "nothing
     // tappable under it" check (px, Unity bottom-left space).
     public Rect HomeBarRect

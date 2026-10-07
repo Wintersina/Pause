@@ -698,6 +698,18 @@ public static class CodexTest
             Check(name + ": at least two rows of cards visible", l.body.height >= 2f * l.cardHeight);
             Check(name + ": back button meets the 96-unit tap target", l.back.height >= 96f && l.back.width >= 96f);
             Check(name + ": tabs are >= 90 wide", l.tabWidth >= 90f);
+            // two rows of three; each tab's touch target (its art plus half of
+            // every gap around it) is 96 units square or more: 48 dp / 44 pt
+            // at UiScale's 0.5 dp-per-unit floor
+            bool tabsOk = true;
+            for (int i = 0; i < CodexPanel.Tabs.Length; i++)
+            {
+                Rect t = CodexPanel.TabRect(l, i);
+                float hitW = t.width + CodexPanel.TabGap, hitH = t.height + CodexPanel.TabRowGap;
+                tabsOk &= Contains(l.tabs, t) && hitW >= 96f && hitH >= 96f;
+                for (int j = 0; j < i; j++) tabsOk &= !CodexPanel.TabRect(l, j).Overlaps(t);
+            }
+            Check(name + ": six tabs in two rows, each a >= 96-unit touch target, inside the tab band", tabsOk);
 
             // Sectioned tabs: jump chips over the scrolling list, both in the body.
             Check(name + ": chip row and list sit in the body", Contains(l.body, l.chips) && Contains(l.body, l.list));
@@ -747,7 +759,7 @@ public static class CodexTest
         var uiRect = (RectTransform)uiPanel;
         float top = uiRect.anchoredPosition.y + uiRect.sizeDelta.y * .5f;
         float h = ((RectTransform)SceneUtil.FindAny("MainMenuCanvas").transform).rect.height;
-        float oldTop = -h * .08f + Mathf.Min(330f, h * .4f) * .5f;
+        float oldTop = -h * .08f + Mathf.Min(330f, h * .5f) * .5f;   // 330 units on any canvas of 660+ (startMenu.LayoutHome)
         Check("home menu keeps its top edge under the logo (" + top + " vs " + oldTop + ")",
               Mathf.Abs(top - oldTop) < .5f);
         var quit = (RectTransform)SceneUtil.FindAny("QuitButton").transform;

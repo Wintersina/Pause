@@ -979,6 +979,17 @@ are a wall that close (Space core burst, Ember fire breath); the nearest line wi
 drop of 0.11-0.25 s at 7 u/s within their 0.80 s / 0.70 s tells (to the 30% line: 0.58-0.87 s; 16:9 Ember fire
 breath was 0.44 s at 53%). Every other pattern leaves a way through at the ceiling.
 
+**With UiScale's floor (the minimum UI scale).** The band all of this measures is the one the device lays out: on
+a phone small in dp the quick actions grow to 44 pt / 48 dp and the score read-out stacks under them
+(`HudStyler.StackedReadout`), a taller band. With each device's real density none of the phones above stacks
+(1080x1920 at 420 dpi and the iPhone SE keep the read-out beside the actions, band from 92%), so the numbers above
+stand. A device that reports no density takes UiScale's fallback (every phone 320 dp wide) and stacks: band from
+76-78%, boss at 62-66%, fight ceiling 46-50% (16:9), 54-57% (21:9), 50-53% (iPhone 15); the boss stays clear of
+the band and the hull keeps its gap under every muzzle. A pilot's hold is capped by the band but never under the
+shallowest authored station (`EnemyBrain.HoldBandFloorDepth` 1.4, 14% under the top), so with a stacked band it
+still holds above the hull. `ShipReachTest` drives each device's real density (`FitDevice.ReportedDpi`) and checks
+the unreported case explicitly.
+
 **Boss attacks** keep their time to the ship's row within 12% of the authored view on 16:9, 20:9, 21:9, 22:9 and
 iPhone 15 (before: up to 52% slower on tall phones); straight shots scale as a whole (aim and angles kept), lobs
 stretch vertically (columns kept), beams grow faster by the same factor. Fans and angled beams keep their angles,

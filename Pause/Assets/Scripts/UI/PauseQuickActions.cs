@@ -22,7 +22,8 @@ public class PauseQuickActions : MonoBehaviour
 {
     // Reference-resolution units on an 800x1000 ScaleWithScreenSize canvas
     // (match 0.5). On a 390x844pt phone that is ~46pt per button, above the
-    // ~44pt minimum comfortable tap target.
+    // ~44pt minimum comfortable tap target; on smaller ones UiScale's floor
+    // raises the canvas so it never drops below 44 pt / 48 dp.
     public const float ButtonSize = 72f;
     public const float ButtonGap = 10f;
     // The least the band keeps clear of the safe area's side edges. Where
@@ -76,10 +77,22 @@ public class PauseQuickActions : MonoBehaviour
 
     // Screen pixels per canvas unit on RunActionCanvas for a given screen size
     // (CanvasScaler ScaleWithScreenSize, MatchWidthOrHeight).
+    // Raised to UiScale's floor for a ButtonSize target on the device's
+    // density, so a button is never under 44 pt / 48 dp (on a small phone
+    // the buttons, and the band's margins with them, grow).
     public static float CanvasScaleFor(Vector2 screen)
     {
-        return HudStyler.ScaleWithScreenSize(screen, ReferenceResolution,
+        return UiScale.Apply(HudStyler.ScaleWithScreenSize(screen, ReferenceResolution,
+            CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, MatchWidthOrHeight), ButtonSize, 0f);
+    }
+
+    // True when UiScale's floor, not the screen's pixels, sets the buttons'
+    // size on this screen (a phone small in points / dp).
+    public static bool RaisedByFloor(Vector2 screen)
+    {
+        float pixel = HudStyler.ScaleWithScreenSize(screen, ReferenceResolution,
             CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, MatchWidthOrHeight);
+        return UiScale.Floor(ButtonSize, 0f) > pixel + 1e-5f;
     }
 
     // The screen-pixel rect (origin bottom-left) covered by both buttons for
@@ -118,8 +131,10 @@ public class PauseQuickActions : MonoBehaviour
         canvas.sortingOrder = 90;
         var scaler = holder.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = ReferenceResolution;
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = MatchWidthOrHeight;
+        // never under 44 pt / 48 dp a button (UiScale's floor; CanvasScaleFor)
+        UiScaleFloor.Configure(scaler, ReferenceResolution, ButtonSize, 0f);
 
         // Notch / status-bar / rounded-corner aware container.
         var safeGo = new GameObject("SafeArea", typeof(RectTransform));

@@ -264,11 +264,13 @@ public class AccountOptions : MonoBehaviour
 
     // The card sits just above the button stack (rowsTop) and below the
     // safe area's top edge; it shrinks when that gap is too small.
-    public static CardLayout ComputeLayout(Vector2 screen, Rect safe, float rowsTop, float cardHeight)
+    // `unitsPerPixel`: the Options canvas's units per screen pixel (0: taken
+    // as CanvasUnitsWide across the screen, as the scene authors it).
+    public static CardLayout ComputeLayout(Vector2 screen, Rect safe, float rowsTop, float cardHeight, float unitsPerPixel = 0f)
     {
         if (screen.x <= 0f || screen.y <= 0f) screen = new Vector2(1080f, 1920f);
         if (safe.width <= 0f || safe.height <= 0f) safe = new Rect(0f, 0f, screen.x, screen.y);
-        float units = CanvasUnitsWide / screen.x;
+        float units = unitsPerPixel > 0f ? unitsPerPixel : CanvasUnitsWide / screen.x;
         float height = screen.y * units;
         float safeTop = height * .5f - (screen.y - safe.yMax) * units - TopMargin;
         float safeBottom = -height * .5f + safe.yMin * units;
@@ -305,11 +307,26 @@ public class AccountOptions : MonoBehaviour
         return float.IsNegativeInfinity(top) ? 0f : top;
     }
 
+    // Canvas units per screen pixel on `screen`, from the Options canvas's
+    // scaler (UiScale's floor included): not always CanvasUnitsWide across
+    // -- fewer on a phone small in points / dp, more on a tablet (Expand).
+    public float UnitsPerPixel(Vector2 screen)
+    {
+        var root = canvasRect != null ? canvasRect.GetComponentInParent<Canvas>() : null;
+        if (root == null || screen.x <= 0f) return 0f;
+        root = root.rootCanvas;
+        var scaler = root.GetComponent<CanvasScaler>();
+        if (scaler == null || scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize) return 0f;
+        // a scaler switched off (the screen-fit rig sets the scale itself)
+        float s = scaler.enabled ? HudStyler.HudCanvasScale(root, scaler, screen) : root.scaleFactor;
+        return s > 0f ? 1f / s : 0f;
+    }
+
     public void Relayout()
     {
         if (card == null) return;
         rowsTop = RowsTop();
-        var layout = ComputeLayout(screenSize, safeArea, rowsTop, Height(devShown));
+        var layout = ComputeLayout(screenSize, safeArea, rowsTop, Height(devShown), UnitsPerPixel(screenSize));
         AppliedLayout = layout;
         card.anchoredPosition = new Vector2(0f, layout.centerY);
         card.localScale = new Vector3(layout.scale, layout.scale, 1f);

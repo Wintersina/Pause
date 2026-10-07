@@ -58,7 +58,7 @@ public class CodexToast : MonoBehaviour
 
     public static CodexToast Build()
     {
-        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false);
+        var canvas = CodexUi.NewOverlayCanvas("~CodexToast", 640, false, 0f, CodexUi.TextUnits);
         var toast = canvas.gameObject.AddComponent<CodexToast>();
         toast.canvas = canvas;
         toast.BuildUi(CodexUi.FindFont());
@@ -152,10 +152,21 @@ public class CodexToast : MonoBehaviour
         float sf = Mathf.Max(canvas.scaleFactor, .0001f);
         bool warn = warning != null;
         var portal = PortalPressureHud.Instance;
-        box.anchoredPosition = new Vector2(0f, -TopOffset(safeTop, ScreenInfo.Height, sf,
+        float top = TopOffset(safeTop, ScreenInfo.Height, sf,
             warn && warning.BannerVisible ? warning.CurrentLayout.banner : default(Rect),
             warn && warning.ChipVisible ? warning.CurrentLayout.chip : default(Rect),
-            portal != null && portal.Showing ? portal.ChipRect : default(Rect)) + slide);
+            portal != null && portal.Showing ? portal.ChipRect : default(Rect));
+        box.anchoredPosition = new Vector2(0f, -UnderCard(top, ScreenInfo.Height, sf, WorldBanner.ScreenRect) + slide);
+    }
+
+    // A centre-screen card (WorldBanner: ENTER THE PORTAL, a world's name)
+    // that the toast at `top` would run into: the toast drops in under it.
+    public static float UnderCard(float top, float screenH, float sf, Rect card)
+    {
+        if (card.height <= 0f) return top;
+        float toastTop = screenH - top * sf, toastBottom = toastTop - Height * sf;
+        if (toastBottom >= card.yMax || toastTop <= card.yMin) return top;
+        return (screenH - card.yMin) / sf + WarningGap;
     }
 
     // BOSS INCOMING (BossWarningHud) hangs its banner centred under the top
@@ -181,6 +192,9 @@ public class CodexToast : MonoBehaviour
         if (banner.height > 0f) top = Mathf.Max(top, (screenH - banner.yMin) / sf + WarningGap);
         if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
         if (portalChip.height > 0f) top = Mathf.Max(top, (screenH - portalChip.yMin) / sf + WarningGap);
+        // the read-out, when a small phone stacks it under the quick actions
+        Rect readout = HudStyler.StackedReadout;
+        if (readout.height > 0f) top = Mathf.Max(top, (screenH - readout.yMin) / sf + WarningGap);
         return top;
     }
 

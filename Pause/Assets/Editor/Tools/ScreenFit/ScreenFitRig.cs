@@ -73,10 +73,16 @@ public sealed class ScreenFitRig : IDisposable
     public float HalfHeight { get { return main != null ? main.orthographicSize : 5f; } }
     public float HalfWidth { get { return HalfHeight * device.Aspect; } }
 
+    // The density the device reports to the game: its real one, none at all
+    // (UiScale's fallback), or a fixed value (a test of the rule).
+    public enum DpiMode { Reported, Unreported }
+    public static DpiMode Dpi = DpiMode.Reported;
+
     public ScreenFitRig(FitDevice device, float minHalfWidth)
     {
         this.device = device;
-        scope = ScreenInfo.Override(device.w, device.h, device.Safe, device.Cutouts);
+        scope = ScreenInfo.Override(device.w, device.h, device.Safe, device.Cutouts,
+                                    Dpi == DpiMode.Reported ? device.ReportedDpi : 0f, device.ios);
         target = new RenderTexture(device.w, device.h, 24, RenderTextureFormat.ARGB32);
         target.filterMode = FilterMode.Bilinear;
         main = Camera.main;
@@ -113,6 +119,7 @@ public sealed class ScreenFitRig : IDisposable
     // again after anything that creates a canvas or changes a scaler.
     public void Sync()
     {
+        UiScaleFloor.ApplyAll();   // UiScale's floors, for this device
         foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!canvas.isRootCanvas || canvas.renderMode == RenderMode.WorldSpace) continue;
@@ -210,6 +217,8 @@ public sealed class ScreenFitRig : IDisposable
         }
         return Rect.MinMaxRect(x0, y0, x1, y1);
     }
+
+    public Rect PixelRect(Rect worldRect) { return PixelRect(new Bounds(worldRect.center, worldRect.size)); }
 
     public Rect PixelRect(Bounds b)
     {

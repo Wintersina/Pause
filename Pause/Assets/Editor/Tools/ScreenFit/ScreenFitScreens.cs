@@ -46,35 +46,13 @@ public class FitWaiver
 
 public static class ScreenFitScreens
 {
-    const string ShortPhones = "and-480x854,and-720x1280";
-
     public static readonly FitWaiver[] Waivers =
     {
-        // Every canvas scales with the screen's PIXELS, so a phone that is
-        // short in dp (a 480x854 hdpi phone is 569 dp tall, a 720x1280 xhdpi
-        // one 640 dp) gets every target ~15-20% under 48 dp and the smallest
-        // labels under 7 dp. Fixing it is a dp-aware minimum UI scale for
-        // all screens: a design decision, reported, not guessed.
-        new FitWaiver { kind = "TAPSIZE", element = "", devices = ShortPhones,
-                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
-        new FitWaiver { kind = "SMALLTEXT", element = "", devices = ShortPhones,
-                        reason = "short-in-dp phone: pixel-scaled UI (decision: dp-aware minimum scale)" },
-        new FitWaiver { screen = "codex-grid", kind = "TAPSIZE", element = "/Tabs/Tab",
-                        reason = "six tabs share the panel's width: ~32-40 dp tall even with the hit padding (decision: taller tab row)" },
+        // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
-                        reason = "developer-only rows (DeveloperUnlocks.Available builds)" },
+                        reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
         new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
-                        reason = "developer-only sign-in details line" },
-        new FitWaiver { screen = "leaderboard", kind = "TAPSIZE", element = "/Tab_",
-                        reason = "the single board's tab (~36 dp with padding); taller tabs are a design change" },
-        new FitWaiver { screen = "leaderboard", kind = "SMALLTEXT", element = "/Name ",
-                        reason = "27-character player names best-fit down to 8 px (decision: larger floor + ellipsis)" },
-        new FitWaiver { screen = "dock-popup", kind = "TAPSIZE", element = "~DockPopup/",
-                        reason = "the ship popup's size (scale 1.3225): swatches ~19-30 dp, action button ~25-35 dp (decision: popup size)" },
-        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "Panel/Skins/",
-                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp swatch prices / weapon line (decision: popup size)" },
-        new FitWaiver { screen = "dock-popup", kind = "SMALLTEXT", element = "~DockPopup/Panel/",
-                        reason = "the ship popup's size (scale 1.3225): ~4.5 dp stats line (decision: popup size)" },
+                        reason = "DEVELOPER-ONLY sign-in details line (not shipped to players): left as is by decision" },
     };
 
     const float Dt = 1f / 60f;
@@ -274,6 +252,8 @@ public static class ScreenFitScreens
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();   // it may change the canvas scaler
         SafeAreaClamp.AttachAll("leaderboardS3");
+        account.Relayout();   // over the column as BACK's clamp left it (AccountOptions.Update on a device)
+        rig.Sync();
         DevBadge(rig);
         if (shot == 1)
         {
@@ -283,6 +263,15 @@ public static class ScreenFitScreens
         }
         else if (shot == 2)
         {
+            // The shipped table has no live store ids yet (the panel would say
+            // NO LEADERBOARDS YET): stage the one board it has, Top Score,
+            // with stand-in ids so its tab and rows are on screen.
+            var real = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
+            LeaderboardBoards.OverrideForTests(new[]
+            {
+                new LeaderboardBoard(real.id, "fit_android_top_score", "fit_ios_top_score", real.displayName, real.description,
+                                     real.sort, LeaderboardBoards.FormatScore, run => run.score),
+            });
             foreach (var b in LeaderboardBoards.All)
             {
                 var rows = new List<LeaderboardEntry>();
@@ -291,7 +280,7 @@ public static class ScreenFitScreens
                     {
                         rank = i + 1,
                         playerId = i == 3 ? fake.LocalPlayerId : "p" + i,
-                        playerName = i == 3 ? "KANEDA_THE_LONG_NAMED_PILOT" : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
+                        playerName = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
                         value = 99999999 - i * 137,
                         isLocalPlayer = i == 3,
                     });
@@ -302,7 +291,60 @@ public static class ScreenFitScreens
             rig.Sync();
             panel.SendMessage("Update");
             rig.Ignore("Canvas");
+            LeaderboardChecks(rig, panel);
         }
+    }
+
+    // Row 3 is the player's own; the rest: a 30+ character name, wide glyphs
+    // (W, CJK, a surrogate-pair emoji), a short one.
+    static readonly string[] LongNames =
+    {
+        "MAXIMILIAN_VON_STARDUST_THE_THIRD_OF_NEO_TOKYO",
+        "WWWWWWWWWWWWWWWWWWWWWWWW",
+        "\u5B87\u5B99\u306E\u30D1\u30A4\u30ED\u30C3\u30C8\u91D1\u7530\u6B63\u592A\u90CE\u3068\u5C71\u5F62\u3055\u3093",
+        "KANEDA_THE_LONG_NAMED_PILOT",
+        "ACE\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80ROCKETEER",
+        "KEI",
+    };
+
+    // Names: one line, at least LeaderboardPanel.NameMinSize, inside their
+    // box (cut with an ellipsis when too long); rank and score columns lined
+    // up row to row and never cut.
+    static void LeaderboardChecks(ScreenFitRig rig, LeaderboardPanel panel)
+    {
+        float rankX = float.NaN, valueX = float.NaN;
+        int names = 0, cut = 0;
+        foreach (var t in panel.GetComponentsInChildren<Text>())
+        {
+            var row = t.transform.parent;
+            if (row == null) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (t.name == "Name")
+            {
+                names++;
+                if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+                Rect box = rig.PixelRect(t.rectTransform);
+                if (t.fontSize < LeaderboardPanel.NameMinSize || t.resizeTextForBestFit)
+                    rig.Fail("LEADERBOARD", "name " + row.name, "drawn at " + t.fontSize + " units, under the " + LeaderboardPanel.NameMinSize + " floor", glyphs);
+                if (glyphs.xMax > box.xMax + 1f || glyphs.xMin < box.xMin - 1f)
+                    rig.Fail("LEADERBOARD", "name " + row.name + " \"" + t.text + "\"", "runs out of its column", glyphs);
+                if (glyphs.height > fontPx * 1.9f)
+                    rig.Fail("LEADERBOARD", "name " + row.name, "wraps onto a second line", glyphs);
+                if (t.text.EndsWith(LeaderboardPanel.Ellipsis)) cut++;
+            }
+            else if (t.name == "Rank" || t.name == "Value")
+            {
+                Rect box = rig.PixelRect(t.rectTransform);
+                float x = t.name == "Rank" ? box.xMin : box.xMax;
+                if (row.parent != null && row.parent.name == "PlayerRow") continue;   // the own row is inset differently
+                ref float col = ref (t.name == "Rank" ? ref rankX : ref valueX);
+                if (float.IsNaN(col)) col = x;
+                else if (Mathf.Abs(col - x) > 1f)
+                    rig.Fail("LEADERBOARD", t.name + " column", row.name + " is " + (x - col).ToString("F0") + "px out of line", box);
+            }
+        }
+        if (names < 10) rig.Fail("STAGE", "leaderboard", "only " + names + " name cells");
+        if (cut < 3) rig.Fail("LEADERBOARD", "names", "the long names were not cut with an ellipsis (" + cut + ")");
     }
 
     static void Credits(ScreenFitRig rig)
@@ -369,10 +411,70 @@ public static class ScreenFitScreens
             dock.popup.SkipAppear();
             dock.popup.SendMessage("LateUpdate");
             Canvas.ForceUpdateCanvases();
+            PopupChecks(rig, dock, selected);
         }
         for (int k = 0; k < 20; k++)
             foreach (var thruster in UnityEngine.Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None)) thruster.SendMessage("LateUpdate");
         DevBadge(rig);
+    }
+
+    // The ship card's own floors, on top of the generic ones (7 pt type,
+    // 44 pt / 48 dp targets): its stats, prices and weapon line at least
+    // PopupSmallPt, the name PopupNamePt, the action's label PopupActionPt;
+    // the action, each swatch and the close button finger-sized; the drawn
+    // swatch chips PopupChipGapPt apart; and the card itself beside its ship
+    // (not over it), its tail pointing at it.
+    public const float PopupSmallPt = 11f, PopupNamePt = 13f, PopupActionPt = 16f, PopupChipGapPt = 8f;
+
+    static void PopupChecks(ScreenFitRig rig, SpaceDock dock, int selected)
+    {
+        var popup = dock.popup;
+        float minTap = rig.device.MinTapPx;
+        foreach (var t in popup.GetComponentsInChildren<Text>())
+        {
+            if (!t.enabled || string.IsNullOrWhiteSpace(t.text)) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            float pt = fontPx / rig.device.pxPerPt;
+            float floor = t.name == "Title" && t.transform.parent.name == "Panel" ? PopupNamePt
+                        : t.transform.parent.name == "Action" ? PopupActionPt : PopupSmallPt;
+            if (pt < floor - .05f)
+                rig.Fail("POPUP", "~DockPopup/" + t.transform.parent.name + "/" + t.name + " \"" + t.text + "\"",
+                         "type " + pt.ToString("F1") + "pt is under the card's " + floor + "pt floor", glyphs);
+        }
+        var hits = new List<KeyValuePair<string, Rect>>();
+        hits.Add(new KeyValuePair<string, Rect>("action", rig.HitRect(popup.ActionButton)));
+        hits.Add(new KeyValuePair<string, Rect>("close", rig.HitRect(popup.CloseButton)));
+        var chips = new List<Rect>();
+        if (popup.SkinRowVisible)
+            foreach (var w in popup.swatches)
+                if (w.root.gameObject.activeInHierarchy)
+                {
+                    hits.Add(new KeyValuePair<string, Rect>(w.root.name, rig.HitRect(w.button)));
+                    chips.Add(rig.PixelRect(w.body.rectTransform));
+                }
+        foreach (var kv in hits)
+            if (kv.Value.width < minTap - .5f || kv.Value.height < minTap - .5f)
+                rig.Fail("POPUP", "~DockPopup/" + kv.Key, "touch target " + (kv.Value.width / rig.device.pxPerPt).ToString("F0") + "x" +
+                         (kv.Value.height / rig.device.pxPerPt).ToString("F0") + "pt is under " + (minTap / rig.device.pxPerPt).ToString("F0"), kv.Value);
+        for (int i = 1; i < chips.Count; i++)
+        {
+            float gap = (chips[i].xMin - chips[i - 1].xMax) / rig.device.pxPerPt;
+            if (gap < PopupChipGapPt)
+                rig.Fail("POPUP", "~DockPopup/swatch chips " + (i - 1) + "-" + i, "drawn chips only " + gap.ToString("F1") + "pt apart", chips[i]);
+        }
+        // beside its ship: the card does not cover the hull, and the tail
+        // points at it (the ship's x is within the card's width)
+        Rect card = rig.PixelRect(popup.WorldRect);
+        Rect hull = rig.TightPixelRect(dock.bays[selected].hull);
+        float overlapY = Mathf.Min(card.yMax, hull.yMax) - Mathf.Max(card.yMin, hull.yMin);
+        float overlapX = Mathf.Min(card.xMax, hull.xMax) - Mathf.Max(card.xMin, hull.xMin);
+        if (overlapX > 1f && overlapY > hull.height * .15f)
+            rig.Fail("POPUP", "~DockPopup/card", "covers its own ship (" + overlapY.ToString("F0") + "px of the hull's " + hull.height.ToString("F0") + ")", card);
+        float shipX = rig.Pixel(dock.bays[selected].ship.position).x;
+        if (shipX < card.xMin || shipX > card.xMax)
+            rig.Fail("POPUP", "~DockPopup/card", "is not over its ship's column", card);
+        rig.AddImportant("ship card", card);
     }
 
     // ---- gameplay scenes: the world -------------------------------------------------------
@@ -432,7 +534,7 @@ public static class ScreenFitScreens
 
     // HudStyler / PauseQuickActions read Screen.* themselves (another branch
     // owns them), so their published pure layout functions are applied here.
-    static void PlaceHudBand(ScreenFitRig rig, HudStyler styler)
+    static void PlaceHudBand(ScreenFitRig rig, HudStyler styler, bool check = true)
     {
         var screen = new Vector2(rig.W, rig.H);
         Rect safe = rig.device.Safe;
@@ -447,12 +549,67 @@ public static class ScreenFitScreens
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(styler.HudRoot);
             Vector2 hudSize = styler.HudRoot.rect.size;
-            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit);
+            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit, out bool stacked);
             styler.HudRoot.anchoredPosition = at;
             styler.HudRoot.localScale = new Vector3(fit, fit, 1f);
+            HudStyler.StackedReadout = stacked ? HudStyler.HudScreenRect(Band(rig), screen, hudScale, hudSize) : default(Rect);
             rig.Ignore(styler.HudRoot);
+            Canvas.ForceUpdateCanvases();
+            if (check) BandChecks(rig, styler, fit);
         }
         Canvas.ForceUpdateCanvases();
+    }
+
+    static bool Overlap(Rect a, Rect b)
+    {
+        return Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin) > 1f && Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin) > 1f;
+    }
+
+    // The band itself (its own suites check its arithmetic): the quick
+    // actions finger-sized, inside the band's right end; the read-out inside
+    // its left end, at no less than TopBand.ReadoutMinScale, clear of them.
+    static void BandChecks(ScreenFitRig rig, HudStyler styler, float fit)
+    {
+        var screen = new Vector2(rig.W, rig.H);
+        var band = Band(rig);
+        float minTap = rig.device.MinTapPx;
+        Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+        for (int slot = 0; slot < 2; slot++)
+        {
+            Rect b = PauseQuickActions.ButtonScreenRect(band, screen, slot);
+            if (b.width < minTap - .5f || b.height < minTap - .5f)
+                rig.Fail("BAND", "quick action " + (slot == 0 ? "replay" : "home"), "button " + (b.width / rig.device.pxPerPt).ToString("F1") +
+                         (rig.device.ios ? "pt" : "dp") + " is under " + (rig.device.ios ? "44pt" : "48dp"), b);
+            rig.AddImportant("quick action " + slot, b);
+        }
+        if (actions.xMax > band.right + 1f || actions.yMax > band.top + 1f)
+            rig.Fail("BAND", "quick actions", "outside the band: " + actions, actions);
+        Rect hud = rig.PixelRect(styler.HudRoot);
+        rig.AddImportant("HUD read-out", hud);
+        if (fit < TopBand.ReadoutMinScale - .001f)
+            rig.Fail("BAND", "HUD read-out", "shrunk to " + fit.ToString("F2") + ", under TopBand.ReadoutMinScale " + TopBand.ReadoutMinScale, hud);
+        if (hud.xMin < band.left - 1f || hud.yMax > band.top + 1f)
+            rig.Fail("BAND", "HUD read-out", "outside the band: " + hud + " band " + band.left.ToString("F0") + " top " + band.top.ToString("F0"), hud);
+        if (Overlap(hud, actions))
+            rig.Fail("BAND", "HUD read-out", "runs into the quick actions: " + hud + " vs " + actions, hud);
+        if (hud.xMax > band.right + 1f)
+            rig.Fail("BAND", "HUD read-out", "runs past the band's right end", hud);
+        // BOSS INCOMING's chip: inside the band, clear of the read-out and the actions
+        var warn = BossWarningHud.ComputeLayout(rig.device.Safe, screen, hud, band);
+        if (Overlap(warn.chip, hud) || Overlap(warn.chip, actions))
+            rig.Fail("BAND", "boss chip", "overlaps the " + (Overlap(warn.chip, hud) ? "read-out" : "quick actions") + ": " + warn.chip, warn.chip);
+        if (warn.chip.xMin < band.left - 1f || warn.chip.xMax > band.right + 1f)
+            rig.Fail("BAND", "boss chip", "outside the band: " + warn.chip, warn.chip);
+        // the read-out's type, at the size the band leaves it
+        foreach (var t in styler.HudRoot.GetComponentsInChildren<Text>())
+        {
+            if (!t.IsActive() || string.IsNullOrWhiteSpace(t.text) || t.color.a < .05f) continue;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            float pt = fontPx / rig.device.pxPerPt;
+            if (pt < ScreenFitRig.MinTextPt)
+                rig.Fail("BAND", "HUD read-out " + t.name + " \"" + t.text + "\"", "type " + pt.ToString("F1") + "pt under the " + ScreenFitRig.MinTextPt + " floor", glyphs);
+        }
     }
 
     // The top band as the device lays it out: inside the rails, under its cutouts.
@@ -785,7 +942,7 @@ public static class ScreenFitScreens
                         dustAtStart = 99987.65f, dustWon = 12.34f,
                     });
                     rig.Sync();
-                    PlaceHudBand(rig, styler);
+                    PlaceHudBand(rig, styler, false);
                     Call(viewPanel, "Fit");
                     viewPanel.Skip();
                     Call(viewPanel, "Fit");
@@ -868,6 +1025,19 @@ public static class ScreenFitScreens
                 if (r.Overlaps(chip) && Rect.MinMaxRect(Mathf.Max(r.xMin, chip.xMin), Mathf.Max(r.yMin, chip.yMin),
                                                         Mathf.Min(r.xMax, chip.xMax), Mathf.Min(r.yMax, chip.yMax)).height > 1f)
                     rig.Fail("OVERLAP", "codex toast (portal chip up)", "covers the PORTAL DANGER chip", r);
+                // nor the ENTER THE PORTAL card (WorldBanner): on a short phone
+                // the toast, dropped under a stacked read-out, reaches it
+                var bannerObj = (WorldBanner)typeof(WorldBanner).GetField("instance", PrivateStatic).GetValue(null);
+                var card = bannerObj != null ? (RectTransform)Field(bannerObj, "card") : null;
+                if (card == null || !card.gameObject.activeInHierarchy)
+                    rig.Fail("STAGE", "ENTER THE PORTAL", "the banner card is not up");
+                else
+                {
+                    Rect cardPx = rig.PixelRect(card);
+                    if (Rect.MinMaxRect(Mathf.Max(r.xMin, cardPx.xMin), Mathf.Max(r.yMin, cardPx.yMin),
+                                        Mathf.Min(r.xMax, cardPx.xMax), Mathf.Min(r.yMax, cardPx.yMax)) is Rect o && o.width > 1f && o.height > 1f)
+                        rig.Fail("OVERLAP", "codex toast (portal chip up)", "runs into the ENTER THE PORTAL card " + cardPx, r);
+                }
             }
         }
     }

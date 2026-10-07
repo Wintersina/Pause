@@ -1,38 +1,55 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// The small popup that floats just above the selected ship.
+// The ship card that floats over the dock beside the selected ship.
 //
 // It replaces the old full-screen yes/no dialog. It lives on its own
 // world-space canvas, re-anchored to the ship every frame it is visible, and
 // is clamped to the visible dock: if there is no room above the ship it
-// flips below it, pointer and all.
+// flips below it, pointer and all; if there is room on neither side (a short
+// phone) the dock slides the rack just far enough for it to fit (onNudge).
 //
 //   owned ship  -> one action, LAUNCH, plus a row of hull-skin swatches:
 //                  tap an owned one to equip it (saved at once), a locked one
 //                  to preview it on the hull -> its price and BUY
 //   locked ship -> its price and BUY; can't afford -> shake + "NEED n MORE"
+//
+// Sizes: the card is laid out in canvas units that are POINTS / DP (SetDensity:
+// one unit = one point on iOS, one dp on Android, from UiScale), so its type
+// and touch targets have the same physical size on every phone:
+//   name 17, status 13 (price 17), skin name / prices / weapon / start speed
+//   12, action label 18; the action button 48 tall, every swatch's touch
+//   slot 53 x 50 with ~15 between the drawn chips, the close button 48 x 48.
+// The card is PanelWidth (300) units wide; on a screen too narrow or short
+// for that (none of the supported phones) the unit shrinks to fit.
 public class DockPopup : MonoBehaviour
 {
-    // How big the whole popup is drawn: frame, text, chips, pips, badge,
-    // button and their touch targets all scale with it. The layout below is
-    // authored in canvas units at 1x; this only changes how many world units
-    // one canvas unit covers. Two 15% steps up from the original 1x card.
-    public const float PopupScale = 1.15f * 1.15f;
-    // World units. The canvas is scaled so 1 canvas unit = 0.01 * PopupScale
-    // world units.
-    public const float Width = 1.50f * PopupScale;
-    public const float Height = .62f * PopupScale;
-    // Extra height when the skin swatch row is shown (owned ships).
-    public const float SkinRowHeight = .27f * PopupScale;
-    // START SPEED line: under the skin row, with it.
-    public const float StartSpeedLineHeight = .07f * PopupScale;
-    public const float TailLength = .085f * PopupScale;
+    // ---- layout, canvas units (= points / dp) ----
+    public const float PanelWidth = 300f;
+    public const float Pad = 12f;
+    public const float HeaderHeight = 44f;      // name line + skin-name / hearts / status line
+    public const float ButtonHeight = 48f;
+    // A locked ship's card: header and the action button.
+    public const float BaseHeight = Pad + HeaderHeight + 10f + ButtonHeight + Pad;
+    // Added for an owned ship: the swatches (their touch slots), the weapon
+    // row and the START SPEED line.
+    public const float SkinRowHeight = 50f;
+    public const float WeaponRowHeight = 20f;
+    public const float StartSpeedLineHeight = 18f;
+    public const float OwnedHeight = BaseHeight + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight;
+    public const float TailUnits = 14f;
+    public const float CloseSize = 48f;
+    // The type sizes (units).
+    public const int TitleSize = 17, TitleMinSize = 13, StatusSize = 13, PriceSize = 17, SmallSize = 12, ButtonSize = 18;
+
+    // World units per canvas unit before the dock has measured the screen
+    // (tests without a camera): about a dp on a 1080-wide phone.
+    public const float DefaultUnit = .0132f;
+    // World units between the ship's hull and the tail's tip.
     public const float Gap = .04f;
     // A popup flipped below its ship hangs this far under the hull, so the
     // tail's tip clears the engine plume. Ship geometry: not scaled.
     public const float PlumeClearance = .34f;
-    public const float CanvasScale = .01f * PopupScale;
     const float AppearTime = .2f;
 
     public enum Mode { Launch, Buy, BuySkin }
@@ -47,17 +64,27 @@ public class DockPopup : MonoBehaviour
     public System.Action<int> onBuy;
     public System.Action<int, int> onSkin;      // (ship, skin) swatch tapped
     public System.Action<int, int> onBuySkin;   // (ship, skin) BUY on a previewed skin
+    public System.Action onClose;               // the close button
+    // Asked to move the ship by `dy` world units (the dock slides its rack)
+    // when the card fits neither above nor below it.
+    public System.Action<float> onNudge;
+
+    // World units per canvas unit (SetDensity).
+    public float Unit { get; private set; }
+    public float WorldWidth { get { return PanelWidth * Unit; } }
+    public float TailLength { get { return TailUnits * Unit; } }
 
     // The skin row: shown for owned ships. SkinShown is the swatch outlined
     // (the skin on the hull right now).
     public bool SkinRowVisible { get; private set; }
     public int SkinShown { get; private set; }
-    public float CurrentHeight { get { return SkinRowVisible ? Height + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight : Height; } }
+    public float CurrentHeightUnits { get { return SkinRowVisible ? OwnedHeight : BaseHeight; } }
+    public float CurrentHeight { get { return CurrentHeightUnits * Unit; } }
 
     public class Swatch
     {
         public RectTransform root;
-        public Image body, band, stripe, ink, ring, check, dust;
+        public Image body, band, stripe, ink, ring, check, dust, hit;
         public Text price;
         public Button button;
         public bool owned, equipped;
@@ -72,7 +99,9 @@ public class DockPopup : MonoBehaviour
     Font font;
     CanvasGroup group;
     RectTransform panel, tail, dustIcon;
-    Text title, status, message, buttonLabel;
+    Text title, skinName, status, message, buttonLabel;
+    public Button ActionButton { get; private set; }
+    public Button CloseButton { get; private set; }
     // The ship's lives (ShipLives): a heart and its count, left of the status.
     RectTransform livesBadge;
     Text livesLabel;
@@ -92,19 +121,31 @@ public class DockPopup : MonoBehaviour
         return popup;
     }
 
+    // `worldPerPoint`: world units one point / dp covers on this screen. The
+    // card keeps that size unless it would not fit the safe view.
+    public void SetDensity(float worldPerPoint)
+    {
+        float u = worldPerPoint > 0f ? worldPerPoint : DefaultUnit;
+        if (safeView.width > 0f) u = Mathf.Min(u, safeView.width / PanelWidth);
+        if (safeView.height > 0f) u = Mathf.Min(u, safeView.height / (OwnedHeight + TailUnits));
+        Unit = u;
+        if (gameObject.activeInHierarchy) Follow();
+    }
+
     void Build(Font font, Camera eventCamera)
     {
         this.font = font;
+        Unit = DefaultUnit;
         var root = (RectTransform)transform;
-        root.sizeDelta = new Vector2(Width, Height) / CanvasScale;
-        root.localScale = Vector3.one * CanvasScale;
+        root.sizeDelta = new Vector2(PanelWidth, BaseHeight);
+        root.localScale = Vector3.one * Unit;
         canvas = gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         canvas.worldCamera = eventCamera;
         canvas.overrideSorting = true;
         canvas.sortingOrder = 60;
         var scaler = gameObject.AddComponent<CanvasScaler>();
-        scaler.dynamicPixelsPerUnit = 5f;
+        scaler.dynamicPixelsPerUnit = 4f;
         scaler.referencePixelsPerUnit = 100f;
         gameObject.AddComponent<GraphicRaycaster>();
         group = gameObject.AddComponent<CanvasGroup>();
@@ -117,40 +158,54 @@ public class DockPopup : MonoBehaviour
         panelImage.raycastTarget = true;   // taps on the panel never fall through
 
         tail = Rect("Tail", panel);
-        tail.sizeDelta = new Vector2(16f, 10f);
+        tail.sizeDelta = new Vector2(TailUnits * 1.6f, TailUnits);
         var tailImage = tail.gameObject.AddComponent<Image>();
         tailImage.sprite = DockArt.Get("popup_tail");
         tailImage.raycastTarget = false;
 
-        title = Label("Title", panel, font, 10, TextAnchor.MiddleLeft, AkiraPalette.Bone);
+        // Line 1: the ship's name, and the close button in the corner.
+        title = Label("Title", panel, font, TitleSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
+        title.fontStyle = FontStyle.Bold;
         title.horizontalOverflow = HorizontalWrapMode.Wrap;
         title.verticalOverflow = VerticalWrapMode.Truncate;
         title.resizeTextForBestFit = true;
-        title.resizeTextMinSize = 6;
-        title.resizeTextMaxSize = 10;
-        Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(11f, -9f), new Vector2(84f, 16f), new Vector2(0f, 1f));
-        status = Label("Status", panel, font, 11, TextAnchor.MiddleRight, DockArt.Gold);
-        Place(status.rectTransform, new Vector2(1f, 1f), new Vector2(-11f, -9f), new Vector2(64f, 16f), new Vector2(1f, 1f));
+        title.resizeTextMinSize = TitleMinSize;
+        title.resizeTextMaxSize = TitleSize;
+        Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(Pad, -Pad), new Vector2(PanelWidth - 2f * Pad - 36f, 24f), new Vector2(0f, 1f));
+        BuildClose();
+
+        // Line 2: the colour's name on the left; hearts and status / price on the right.
+        skinName = Label("SkinName", panel, font, SmallSize + 1, TextAnchor.MiddleLeft, AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
+        skinName.horizontalOverflow = HorizontalWrapMode.Wrap;
+        skinName.verticalOverflow = VerticalWrapMode.Truncate;
+        skinName.resizeTextForBestFit = true;
+        skinName.resizeTextMinSize = SmallSize;
+        skinName.resizeTextMaxSize = SmallSize + 1;
+        Place(skinName.rectTransform, new Vector2(0f, 1f), new Vector2(Pad, -Pad - 24f), new Vector2(150f, 20f), new Vector2(0f, 1f));
+        status = Label("Status", panel, font, StatusSize, TextAnchor.MiddleRight, DockArt.Gold);
+        Place(status.rectTransform, new Vector2(1f, 1f), new Vector2(-Pad, -Pad - 24f), new Vector2(120f, 20f), new Vector2(1f, 1f));
         dustIcon = Rect("Dust", panel);
         var dust = dustIcon.gameObject.AddComponent<Image>();
         dust.sprite = DockArt.Get("icon_dust");
         dust.raycastTarget = false;
-        Place(dustIcon, new Vector2(1f, 1f), new Vector2(-60f, -10f), new Vector2(12f, 12f), new Vector2(.5f, .5f));
+        Place(dustIcon, new Vector2(1f, 1f), new Vector2(-80f, -Pad - 34f), new Vector2(15f, 15f), new Vector2(.5f, .5f));
         livesBadge = Rect("Lives", panel);
-        Place(livesBadge, new Vector2(1f, 1f), new Vector2(-80f, -17f), new Vector2(LivesIconSize + 10f, 12f), new Vector2(1f, .5f));
+        Place(livesBadge, new Vector2(1f, 1f), new Vector2(-100f, -Pad - 34f), new Vector2(LivesIconSize + 16f, 18f), new Vector2(1f, .5f));
         var heart = Rect("Heart", livesBadge);
         Place(heart, new Vector2(0f, .5f), Vector2.zero, new Vector2(LivesIconSize, LivesIconSize), new Vector2(0f, .5f));
         var heartImage = heart.gameObject.AddComponent<Image>();
         heartImage.sprite = Resources.Load<Sprite>("Vfx/lifeHeart");
         heartImage.preserveAspect = true;
         heartImage.raycastTarget = false;
-        livesLabel = Label("Count", livesBadge, font, 10, TextAnchor.MiddleLeft, AkiraPalette.Bone);
-        Place(livesLabel.rectTransform, new Vector2(0f, .5f), new Vector2(LivesIconSize + 2f, 0f), new Vector2(10f, 12f), new Vector2(0f, .5f));
-        message = Label("Message", panel, font, 9, TextAnchor.MiddleCenter, DockArt.Warn);
-        Place(message.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -9f), new Vector2(Width / CanvasScale - 16f, 16f), new Vector2(.5f, 1f));
+        livesLabel = Label("Count", livesBadge, font, StatusSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
+        Place(livesLabel.rectTransform, new Vector2(0f, .5f), new Vector2(LivesIconSize + 3f, 0f), new Vector2(14f, 18f), new Vector2(0f, .5f));
+        // NEED n MORE / ACQUIRED: over the header while it is up.
+        message = Label("Message", panel, font, 15, TextAnchor.MiddleCenter, DockArt.Warn);
+        message.fontStyle = FontStyle.Bold;
+        Place(message.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -Pad), new Vector2(PanelWidth - 2f * Pad, HeaderHeight), new Vector2(.5f, 1f));
 
         var buttonRect = Rect("Action", panel);
-        Place(buttonRect, new Vector2(.5f, 0f), new Vector2(0f, 8f), new Vector2(Width / CanvasScale - 18f, 26f), new Vector2(.5f, 0f));
+        Place(buttonRect, new Vector2(.5f, 0f), new Vector2(0f, Pad), new Vector2(PanelWidth - 2f * Pad, ButtonHeight), new Vector2(.5f, 0f));
         buttonImage = buttonRect.gameObject.AddComponent<Image>();
         buttonImage.sprite = DockArt.Get("button", 8f);
         buttonImage.type = Image.Type.Sliced;
@@ -162,8 +217,9 @@ public class DockPopup : MonoBehaviour
         colors.selectedColor = Color.white;
         button.colors = colors;
         button.onClick.AddListener(Clicked);
+        ActionButton = button;
         CelPress.AddTo(buttonRect.gameObject);   // cartoon squash-and-pop on press
-        buttonLabel = Label("Label", buttonRect, font, 12, TextAnchor.MiddleCenter, DockArt.Ink);
+        buttonLabel = Label("Label", buttonRect, font, ButtonSize, TextAnchor.MiddleCenter, DockArt.Ink);
         Stretch(buttonLabel.rectTransform);
         buttonLabel.fontStyle = FontStyle.Bold;
 
@@ -172,16 +228,43 @@ public class DockPopup : MonoBehaviour
         BuildStartSpeedLine();
     }
 
-    // ---- START SPEED line: the colour shown's start speed, one tiny line
-    // under the weapon row, above the action button.
+    // The card's corner X: closes it (as tapping anywhere off it or Back does).
+    void BuildClose()
+    {
+        var rt = Rect("Close", panel);
+        // drawn 28 x 28 in the top-right corner; its touch target 48 x 48
+        Place(rt, new Vector2(1f, 1f), new Vector2(-8f, -8f), new Vector2(28f, 28f), new Vector2(1f, 1f));
+        var hit = rt.gameObject.AddComponent<Image>();
+        hit.color = new Color(0f, 0f, 0f, 0f);
+        hit.raycastTarget = true;
+        float pad = (CloseSize - 28f) * .5f;
+        hit.raycastPadding = new Vector4(-pad, -pad, -pad, -pad);
+        var label = Label("X", rt, font, 16, TextAnchor.MiddleCenter, AkiraPalette.Muted);
+        label.fontStyle = FontStyle.Bold;
+        label.text = "X";
+        Stretch(label.rectTransform);
+        CloseButton = rt.gameObject.AddComponent<Button>();
+        CloseButton.targetGraphic = hit;
+        CloseButton.transition = Selectable.Transition.None;
+        CloseButton.onClick.AddListener(CloseClicked);
+        CelPress.AddTo(rt.gameObject);
+    }
+
+    void CloseClicked()
+    {
+        if (!Visible) return;
+        if (onClose != null) onClose();
+        else Hide();
+    }
+
+    // ---- START SPEED line: the colour shown's start speed, under the weapon
+    // row, above the action button.
     void BuildStartSpeedLine()
     {
-        startSpeed = Label("StartSpeed", panel, font, 6, TextAnchor.MiddleCenter,
-                           AkiraPalette.WithAlpha(AkiraPalette.Cyan, .85f));
-        // Skin row from -29 (24 tall), weapon row 26 below its top (10 tall):
-        // this line starts just under -65.
-        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -65.5f),
-              new Vector2(Width / CanvasScale - 22f, 7f), new Vector2(.5f, 1f));
+        startSpeed = Label("StartSpeed", panel, font, SmallSize, TextAnchor.MiddleCenter,
+                           AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
+        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -(SkinRowTop + SkinRowHeight + WeaponRowHeight) - 1f),
+              new Vector2(PanelWidth - 2f * Pad, StartSpeedLineHeight - 2f), new Vector2(.5f, 1f));
         startSpeed.gameObject.SetActive(false);
     }
 
@@ -191,41 +274,48 @@ public class DockPopup : MonoBehaviour
         startSpeed.gameObject.SetActive(true);
     }
 
-    // Five compact angular chips in each skin's own colours (base, shadow
-    // band, and a special's livery stripe), between the name and the action.
-    const float ChipW = 22f, ChipH = 14f, ChipGap = 4f;
+    // Five angular chips in each skin's own colours (base, shadow band, and a
+    // special's livery stripe), between the header and the action. Each sits
+    // in its own touch slot: the row's width split five ways (~55 units),
+    // the drawn chips ~15 apart so a finger lands on one or the other.
+    const float SkinRowTop = Pad + HeaderHeight + 6f;
+    const float ChipW = 40f, ChipH = 24f;
+    const float SlotW = (PanelWidth - 2f * Pad) / ShipSkins.PerShip;
+    const float SlotContent = ChipH + 4f + 14f;   // chip, gap, price line
 
     void BuildSkinRow()
     {
         skinRow = Rect("Skins", panel);
-        float rowW = ShipSkins.PerShip * ChipW + (ShipSkins.PerShip - 1) * ChipGap;
-        Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -29f), new Vector2(rowW, 24f), new Vector2(.5f, 1f));
+        float rowW = PanelWidth - 2f * Pad;
+        Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -SkinRowTop), new Vector2(rowW, SkinRowHeight), new Vector2(.5f, 1f));
+        float top = (SkinRowHeight - SlotContent) * .5f;   // the slot's overhang above the chip
         for (int n = 0; n < swatches.Length; n++)
         {
             var w = new Swatch();
             w.root = Rect("Swatch" + n, skinRow);
-            Place(w.root, new Vector2(0f, 1f), new Vector2(n * (ChipW + ChipGap) + ChipW * .5f, -ChipH * .5f - 1f),
+            Place(w.root, new Vector2(0f, 1f), new Vector2(n * SlotW + SlotW * .5f, -top - ChipH * .5f),
                   new Vector2(ChipW, ChipH), new Vector2(.5f, .5f));
-            // The touch target is the whole slot (chip, price and the gap),
-            // bigger than the chip itself.
-            var hit = Chip(w.root, "Hit", null, new Vector2(ChipW + ChipGap, 26f));
-            hit.rectTransform.anchoredPosition = new Vector2(0f, -4f);
-            hit.color = new Color(0f, 0f, 0f, 0f);
-            hit.raycastTarget = true;
-            w.ring = Chip(w.root, "Ring", "swatch_ring", new Vector2(ChipW + 4f, ChipH + 4f));
+            // The touch target is the whole slot (chip, price, half of each
+            // gap): 2 units narrower than the slot so neighbours never touch.
+            w.hit = Chip(w.root, "Hit", null, new Vector2(SlotW - 2f, SkinRowHeight));
+            w.hit.rectTransform.anchoredPosition = new Vector2(0f, ChipH * .5f + top - SkinRowHeight * .5f);
+            w.hit.color = new Color(0f, 0f, 0f, 0f);
+            w.hit.raycastTarget = true;
+            w.ring = Chip(w.root, "Ring", "swatch_ring", new Vector2(ChipW + 6f, ChipH + 6f));
             w.body = Chip(w.root, "Body", "swatch", new Vector2(ChipW, ChipH));
             w.band = Chip(w.root, "Band", "swatch_band", new Vector2(ChipW, ChipH));
             w.stripe = Chip(w.root, "Stripe", "swatch_stripe", new Vector2(ChipW, ChipH));
             w.ink = Chip(w.root, "Ink", "swatch_ink", new Vector2(ChipW, ChipH));
-            w.check = Chip(w.root, "Check", "swatch_check", new Vector2(7.5f, 6.7f));
-            w.check.rectTransform.anchoredPosition = new Vector2(ChipW * .5f - 3f, ChipH * .5f - 1.5f);
-            w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(5.5f, 5.5f));
-            w.price = Label("Price", w.root, font, 6, TextAnchor.MiddleLeft, DockArt.Gold);
-            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-4f, -ChipH * .5f - 5f),
-                  new Vector2(20f, 8f), new Vector2(0f, .5f));
-            w.dust.rectTransform.anchoredPosition = new Vector2(-7f, -ChipH * .5f - 5f);
+            w.check = Chip(w.root, "Check", "swatch_check", new Vector2(13f, 11.6f));
+            w.check.rectTransform.anchoredPosition = new Vector2(ChipW * .5f - 5f, ChipH * .5f - 2.5f);
+            float priceY = -ChipH * .5f - 4f - 7f;
+            w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(10f, 10f));
+            w.dust.rectTransform.anchoredPosition = new Vector2(-12f, priceY);
+            w.price = Label("Price", w.root, font, SmallSize, TextAnchor.MiddleLeft, DockArt.Gold);
+            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-6f, priceY),
+                  new Vector2(SlotW * .5f + 4f, 14f), new Vector2(0f, .5f));
             w.button = w.root.gameObject.AddComponent<Button>();
-            w.button.targetGraphic = hit;
+            w.button.targetGraphic = w.hit;
             w.button.transition = Selectable.Transition.None;
             int skin = n;
             w.button.onClick.AddListener(() => SwatchClicked(skin));
@@ -292,35 +382,46 @@ public class DockPopup : MonoBehaviour
             }
         }
         ShowWeaponRow(index, shown);   // weapon level row (ShipWeaponUpgrades)
-        // The skin's name sits on its own line under the ship's.
-        string skinName = shown == ShipSkins.Stock ? "" : "\n" + ShipSkins.Get(index, shown).DisplayName;
-        title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant() + skinName;
+        // The colour's name: line 2, under the ship's.
+        skinName.text = shown == ShipSkins.Stock ? "" : ShipSkins.Get(index, shown).DisplayName;
+        title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant();
         ShowLives(index);
         if (!ShipSkins.IsOwned(index, shown))
         {
             CurrentMode = Mode.BuySkin;
             float price = ShipSkins.PriceOf(index, shown);
             bool affordable = balance >= price;
-            status.text = Mathf.RoundToInt(price).ToString("N0");
-            status.color = affordable ? DockArt.Gold : DockArt.Warn;
-            status.fontSize = 11;
+            ShowPrice(price, affordable);
             buttonLabel.text = "BUY";
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
-            dustIcon.anchoredPosition = new Vector2(-11f - status.preferredWidth - 8f, -17f);
         }
         else
         {
             CurrentMode = Mode.Launch;
-            status.text = shown == equipped && ShipIndex == SpaceDock.EquippedIndex() ? "EQUIPPED" : "";
-            status.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
-            status.fontSize = 8;
+            ShowStatus(shown == equipped && ShipIndex == SpaceDock.EquippedIndex() ? "EQUIPPED" : "");
             buttonLabel.text = "LAUNCH";
             buttonImage.color = DockArt.Cyan;
         }
-        FitTitle();
+        FitHeader();
         SetRowVisible(messageUntil <= 0f);
         Resize();
         Follow();
+    }
+
+    void ShowPrice(float price, bool affordable)
+    {
+        status.text = Mathf.RoundToInt(price).ToString("N0");
+        status.color = affordable ? DockArt.Gold : DockArt.Warn;
+        status.fontSize = PriceSize;
+        status.fontStyle = FontStyle.Bold;
+    }
+
+    void ShowStatus(string text)
+    {
+        status.text = text;
+        status.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
+        status.fontSize = StatusSize;
+        status.fontStyle = FontStyle.Normal;
     }
 
     // ---- BEGIN weapon row (ShipWeaponUpgrades) -------------------------
@@ -329,23 +430,22 @@ public class DockPopup : MonoBehaviour
     // and what one more colour adds. A previewed (unbought) skin lights the
     // pip it would add in gold and names the upgrade; at the top level the
     // row reads MAX. Lives inside the skin row, so it shows and hides with it.
-    public const float WeaponRowHeight = .12f * PopupScale;
     RectTransform weaponRow;
     Text weaponTitle, weaponLabel;
     readonly Image[] weaponPips = new Image[ShipWeaponUpgrades.MaxLevel];
     public int WeaponLevelShown { get; private set; }
     public string WeaponLine { get { return weaponLabel != null ? weaponLabel.text : ""; } }
     public Image WeaponPip(int i) { return weaponPips[i]; }
-    const float PipSize = 5f, PipGap = 2f, PipX = 35f;
+    const float PipSize = 9f, PipGap = 4f, PipX = 66f;
 
     void BuildWeaponRow()
     {
-        float rowW = ShipSkins.PerShip * ChipW + (ShipSkins.PerShip - 1) * ChipGap;
+        float rowW = PanelWidth - 2f * Pad;
         weaponRow = Rect("Weapon", skinRow);
-        Place(weaponRow, new Vector2(.5f, 1f), new Vector2(0f, -26f), new Vector2(rowW, 10f), new Vector2(.5f, 1f));
-        weaponTitle = Label("Title", weaponRow, font, 6, TextAnchor.MiddleLeft, AkiraPalette.Muted);
+        Place(weaponRow, new Vector2(.5f, 1f), new Vector2(0f, -SkinRowHeight - 1f), new Vector2(rowW, WeaponRowHeight - 2f), new Vector2(.5f, 1f));
+        weaponTitle = Label("Title", weaponRow, font, SmallSize, TextAnchor.MiddleLeft, AkiraPalette.Muted);
         weaponTitle.text = "WEAPON";
-        Place(weaponTitle.rectTransform, new Vector2(0f, .5f), Vector2.zero, new Vector2(30f, 10f), new Vector2(0f, .5f));
+        Place(weaponTitle.rectTransform, new Vector2(0f, .5f), Vector2.zero, new Vector2(PipX - 4f, WeaponRowHeight - 2f), new Vector2(0f, .5f));
         for (int i = 0; i < weaponPips.Length; i++)
         {
             var rt = Rect("Pip" + i, weaponRow);
@@ -354,13 +454,14 @@ public class DockPopup : MonoBehaviour
             weaponPips[i] = rt.gameObject.AddComponent<Image>();
             weaponPips[i].raycastTarget = false;
         }
-        float labelX = PipX + weaponPips.Length * (PipSize + PipGap) + 2f;
-        weaponLabel = Label("Next", weaponRow, font, 6, TextAnchor.MiddleRight, DockArt.Gold);
+        float labelX = PipX + weaponPips.Length * (PipSize + PipGap) + 4f;
+        weaponLabel = Label("Next", weaponRow, font, SmallSize, TextAnchor.MiddleRight, DockArt.Gold);
         weaponLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+        weaponLabel.verticalOverflow = VerticalWrapMode.Truncate;
         weaponLabel.resizeTextForBestFit = true;
-        weaponLabel.resizeTextMinSize = 4;
-        weaponLabel.resizeTextMaxSize = 6;
-        Place(weaponLabel.rectTransform, new Vector2(1f, .5f), Vector2.zero, new Vector2(rowW - labelX, 10f), new Vector2(1f, .5f));
+        weaponLabel.resizeTextMinSize = SmallSize - 1;
+        weaponLabel.resizeTextMaxSize = SmallSize;
+        Place(weaponLabel.rectTransform, new Vector2(1f, .5f), Vector2.zero, new Vector2(rowW - labelX, WeaponRowHeight - 2f), new Vector2(1f, .5f));
     }
 
     void ShowWeaponRow(int index, int shown)
@@ -384,6 +485,7 @@ public class DockPopup : MonoBehaviour
         SkinRowVisible = false;
         if (skinRow != null) skinRow.gameObject.SetActive(false);
         if (startSpeed != null) startSpeed.gameObject.SetActive(false);
+        if (skinName != null) skinName.text = "";
         Resize();
     }
 
@@ -391,10 +493,10 @@ public class DockPopup : MonoBehaviour
 
     void Resize()
     {
-        ((RectTransform)transform).sizeDelta = new Vector2(Width, CurrentHeight) / CanvasScale;
+        ((RectTransform)transform).sizeDelta = new Vector2(PanelWidth, CurrentHeightUnits);
     }
 
-    const float LivesIconSize = 9f;
+    const float LivesIconSize = 15f;
 
     // Hearts the ship shown flies with (ShipLives.Max: the starter's goes
     // 2 -> 3 once it owns a colour).
@@ -407,14 +509,32 @@ public class DockPopup : MonoBehaviour
         livesLabel.text = LivesShown.ToString();
     }
 
-    void FitTitle()
+    // Line 2, right to left: status / price (with the dust icon before a
+    // price), the hearts, then whatever is left for the colour's name.
+    void FitHeader()
     {
-        float statusWidth = status.text.Length > 0 ? status.preferredWidth + (CurrentMode != Mode.Launch ? 16f : 0f) + 6f : 0f;
-        float livesWidth = LivesIconSize + 2f + livesLabel.preferredWidth;
-        livesBadge.sizeDelta = new Vector2(livesWidth, 12f);
-        livesBadge.anchoredPosition = new Vector2(-11f - statusWidth, -17f);
-        title.rectTransform.sizeDelta = new Vector2(Width / CanvasScale - 22f - statusWidth - livesWidth - 6f, 16f);
+        bool price = CurrentMode != Mode.Launch;
+        float statusWidth = status.text.Length > 0 ? status.preferredWidth : 0f;
+        float x = Pad + statusWidth + (statusWidth > 0f ? 6f : 0f);
+        if (price)
+        {
+            dustIcon.anchoredPosition = new Vector2(-x - 7.5f, -Pad - 34f);
+            x += 15f + 8f;
+        }
+        float livesWidth = LivesIconSize + 3f + livesLabel.preferredWidth;
+        livesBadge.sizeDelta = new Vector2(livesWidth, 18f);
+        livesBadge.anchoredPosition = new Vector2(-x, -Pad - 34f);
+        x += livesWidth + 10f;
+        skinName.rectTransform.sizeDelta = new Vector2(Mathf.Max(0f, PanelWidth - Pad - x), 20f);
     }
+
+    // The right end (panel units from its left edge) of the name line and of
+    // the colour-name line, and the left end of the hearts: for tests.
+    public float TitleRight { get { return title.rectTransform.anchoredPosition.x + title.rectTransform.sizeDelta.x; } }
+    public float SkinNameRight { get { return skinName.rectTransform.anchoredPosition.x + skinName.rectTransform.sizeDelta.x; } }
+    public float LivesLeft { get { return PanelWidth + livesBadge.anchoredPosition.x - livesBadge.sizeDelta.x; } }
+    public float CloseLeft { get { var rt = (RectTransform)CloseButton.transform; return PanelWidth + rt.anchoredPosition.x - rt.sizeDelta.x; } }
+    public string SkinNameText { get { return skinName.text; } }
 
     public void Show(int index, Transform ship, float halfHeight, bool owned, bool equipped,
                      float price, float balance)
@@ -426,15 +546,14 @@ public class DockPopup : MonoBehaviour
         below = halfHeight + PlumeClearance;
         gameObject.SetActive(true);
         title.text = (shopingShips.NameFor(index) ?? "").ToUpperInvariant();
+        skinName.text = "";
         ShowLives(index);
         messageUntil = 0f;
         if (owned)
         {
             CurrentMode = Mode.Launch;
             // LAUNCH already says it's yours; only call out the equipped one.
-            status.text = equipped ? "EQUIPPED" : "";
-            status.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
-            status.fontSize = 8;
+            ShowStatus(equipped ? "EQUIPPED" : "");
             dustIcon.gameObject.SetActive(false);
             buttonLabel.text = "LAUNCH";
             buttonImage.color = DockArt.Cyan;
@@ -443,18 +562,13 @@ public class DockPopup : MonoBehaviour
         {
             CurrentMode = Mode.Buy;
             bool affordable = balance >= price;
-            status.text = Mathf.RoundToInt(price).ToString("N0");
-            status.color = affordable ? DockArt.Gold : DockArt.Warn;
-            status.fontSize = 11;
+            ShowPrice(price, affordable);
             dustIcon.gameObject.SetActive(true);
-            dustIcon.anchoredPosition = new Vector2(-11f - status.preferredWidth - 8f, -17f);
             buttonLabel.text = "BUY";
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
-        // The name gets whatever width the status leaves, shrinking to fit
-        // long names rather than running into the price.
-        FitTitle();
         HideSkins();
+        FitHeader();
         SetRowVisible(true);
         if (!wasVisible) shownAt = Time.unscaledTime;
         Follow();
@@ -501,6 +615,7 @@ public class DockPopup : MonoBehaviour
     void SetRowVisible(bool row)
     {
         title.enabled = row;
+        skinName.enabled = row;
         status.enabled = row;
         livesBadge.gameObject.SetActive(row);
         dustIcon.gameObject.SetActive(row && CurrentMode != Mode.Launch);
@@ -518,7 +633,7 @@ public class DockPopup : MonoBehaviour
         }
         float e = Mathf.Clamp01((now - shownAt) / AppearTime);
         group.alpha = DockTween.OutCubic(e);
-        float s = Mathf.LerpUnclamped(.82f, 1f, DockTween.OutBack(e)) * CanvasScale;
+        float s = Mathf.LerpUnclamped(.82f, 1f, DockTween.OutBack(e)) * Unit;
         transform.localScale = new Vector3(s, s, 1f);
         float shake = now < shakeUntil ? Mathf.Sin(now * 70f) * 5f * ((shakeUntil - now) / .35f) : 0f;
         panel.anchoredPosition = new Vector2(shake, 0f);
@@ -528,35 +643,57 @@ public class DockPopup : MonoBehaviour
     void Follow()
     {
         if (target == null) return;
-        Vector2 ship = target.position;
         bool flipped;
-        Vector2 center = Place(ship, above, below, new Vector2(Width, CurrentHeight), safeView, out flipped);
+        float shift;
+        var size = new Vector2(WorldWidth, CurrentHeight);
+        Vector2 center = Place(target.position, above, below, TailLength, size, safeView, out flipped, out shift);
+        if (shift != 0f && onNudge != null)
+        {
+            onNudge(shift);   // the ship moves; place the card against where it is now
+            center = Place(target.position, above, below, TailLength, size, safeView, out flipped, out shift);
+        }
         Flipped = flipped;
+        Vector2 ship = target.position;
         transform.position = new Vector3(center.x, center.y, -1f);
-        float tailX = Mathf.Clamp(ship.x - center.x, -Width * .5f + .14f, Width * .5f - .14f) / CanvasScale;
-        float edge = CurrentHeight * .5f / CanvasScale;
-        tail.anchoredPosition = new Vector2(tailX, flipped ? edge + 3.5f : -edge - 3.5f);
+        float margin = 20f * Unit;
+        float tailX = Mathf.Clamp(ship.x - center.x, -WorldWidth * .5f + margin, WorldWidth * .5f - margin) / Unit;
+        float edge = CurrentHeightUnits * .5f;
+        float half = TailUnits * .5f - 1f;   // the tail tucks 1 unit under the frame
+        tail.anchoredPosition = new Vector2(tailX, flipped ? edge + half : -edge - half);
         tail.localRotation = flipped ? Quaternion.Euler(0f, 0f, 180f) : Quaternion.identity;
     }
 
     // Pure placement: centre of a popup of `size` floating above a ship at
-    // `ship`, clamped inside `view`. Falls back below the ship when there is
-    // no room above.
-    public static Vector2 Place(Vector2 ship, float above, float below, Vector2 size, Rect view, out bool flipped)
+    // `ship` (its tail `tail` long), clamped inside `view`. Falls back below
+    // the ship when there is no room above. When it fits on neither side,
+    // `shift` is how far the ship would have to move (world y; negative =
+    // down) for it to fit on the nearer one -- the card is placed as if it
+    // had (and clamped into the view).
+    public static Vector2 Place(Vector2 ship, float above, float below, float tail, Vector2 size, Rect view,
+                                out bool flipped, out float shift)
     {
         float halfW = size.x * .5f, halfH = size.y * .5f;
         float x = view.width >= size.x
             ? Mathf.Clamp(ship.x, view.xMin + halfW, view.xMax - halfW)
             : view.center.x;
-        float y = ship.y + above + TailLength + halfH;
+        float upY = ship.y + above + tail + halfH;
+        float downY = ship.y - below - tail - halfH;
+        float y = upY;
         flipped = false;
-        if (y + halfH > view.yMax)
+        shift = 0f;
+        if (upY + halfH > view.yMax)
         {
-            float belowY = ship.y - below - TailLength - halfH;
-            if (belowY - halfH >= view.yMin)
+            if (downY - halfH >= view.yMin)
             {
-                y = belowY;
+                y = downY;
                 flipped = true;
+            }
+            else
+            {
+                float needDown = upY + halfH - view.yMax;   // ship moves down by this
+                float needUp = view.yMin - (downY - halfH);  // ship moves up by this
+                if (needDown <= needUp) { shift = -needDown; y = upY - needDown; }
+                else { shift = needUp; y = downY + needUp; flipped = true; }
             }
         }
         if (view.height >= size.y) y = Mathf.Clamp(y, view.yMin + halfH, view.yMax - halfH);
@@ -569,7 +706,7 @@ public class DockPopup : MonoBehaviour
         get
         {
             Vector3 c = transform.position;
-            return new Rect(c.x - Width * .5f, c.y - CurrentHeight * .5f, Width, CurrentHeight);
+            return new Rect(c.x - WorldWidth * .5f, c.y - CurrentHeight * .5f, WorldWidth, CurrentHeight);
         }
     }
 

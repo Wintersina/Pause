@@ -396,7 +396,7 @@ public static class ShipWeaponUpgradesTest
         Rect r = popup.WorldRect;
         Check("the popup with its weapon row still fits the dock's safe view",
               r.yMin >= popup.safeView.yMin - .001f && r.yMax <= popup.safeView.yMax + .001f &&
-              popup.CurrentHeight > DockPopup.Height + DockPopup.SkinRowHeight);
+              popup.CurrentHeightUnits > DockPopup.BaseHeight + DockPopup.SkinRowHeight);
 
         popup.TapSwatch(2);
         Check("previewing a locked colour names its upgrade and lights the pip it adds in gold",

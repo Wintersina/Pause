@@ -81,7 +81,7 @@ public class AccountHintToast : MonoBehaviour
 
     static AccountHintToast Build()
     {
-        var c = CodexUi.NewOverlayCanvas("~AccountHintToast", 640, false);
+        var c = CodexUi.NewOverlayCanvas("~AccountHintToast", 640, false, 0f, 18f);
         var toast = c.gameObject.AddComponent<AccountHintToast>();
         toast.canvas = c;
         toast.BuildUi(CodexUi.FindFont());

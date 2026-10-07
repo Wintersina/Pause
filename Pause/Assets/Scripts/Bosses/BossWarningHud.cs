@@ -72,7 +72,10 @@ public class BossWarningHud : MonoBehaviour
         Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
         float top = band.top;
 
-        float left = Mathf.Max(hud.xMax, band.left) + ChipGap * s;
+        // A read-out stacked under the actions (HudStyler, a small phone)
+        // leaves the first row free left of them.
+        bool readoutBelow = hud.height > 0f && hud.yMax <= actions.yMin + 1f;
+        float left = (readoutBelow ? band.left : Mathf.Max(hud.xMax, band.left)) + ChipGap * s;
         float right = actions.xMin - ChipGap * s;
         float need = ChipW * ChipMaxPunch * s;
         float fit = Mathf.Min(1f, (right - left) / need);

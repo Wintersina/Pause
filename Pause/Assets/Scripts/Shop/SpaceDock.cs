@@ -9,9 +9,9 @@ using UnityEngine.UI;
 //
 // Every ship is parked in its own berth of a docking rack: walls, support
 // spines, gantries between rows and a launch gate at the top. Parked ships
-// are powered down. Tapping one powers it up and floats a small popup above
-// it (LAUNCH if owned, price + BUY if not); tapping anywhere else dismisses
-// it. An owned ship's popup also carries its hull-skin swatches: an owned
+// are powered down. Tapping one powers it up and floats its card above (or
+// below) it (LAUNCH if owned, price + BUY if not); its X, tapping anywhere
+// else or Back dismisses it. An owned ship's popup also carries its hull-skin swatches: an owned
 // skin equips on tap (saved at once); a locked one previews on the hull with
 // its price and BUY, and Back (or leaving the ship) puts the equipped skin
 // back. Launching undocks the ship -- clamps release, it lifts and backs out of
@@ -231,6 +231,8 @@ public class SpaceDock : MonoBehaviour
         popup.onBuy = Buy;
         popup.onSkin = TapSkin;
         popup.onBuySkin = BuySkin;
+        popup.onClose = UndoSelection;
+        popup.onNudge = Nudge;
 
         FindChrome();
         RefreshStatuses();
@@ -343,6 +345,7 @@ public class SpaceDock : MonoBehaviour
         layout.ScrollRange(top, bottom, out rackYMin, out rackYMax);
         rackY = Mathf.Clamp(rackPlaced ? rackY : rackYMin, rackYMin, rackYMax);
         rackPlaced = true;
+        nudge = 0f;
         rack.position = new Vector3(camPos.x, rackY, 0f);
 
         // Sideways the popup keeps inside the safe area too (waterfall edges).
@@ -350,6 +353,33 @@ public class SpaceDock : MonoBehaviour
         float left = camPos.x - halfW + ScreenInfo.SafeLeftInset * worldPerPixel + .05f;
         float right = camPos.x + halfW - ScreenInfo.SafeRightInset * worldPerPixel - .05f;
         popup.safeView = new Rect(left, bottom, right - left, top - bottom);
+        // The card is sized in points / dp (UiScale): world units per point.
+        popup.SetDensity(UiScale.PxPerPoint * worldPerPixel);
+    }
+
+    // The card fits neither above nor below the selected ship (a short
+    // phone): slide the rack by `dy` so it does. Undone when the selection
+    // changes or ends.
+    float nudge;
+
+    void Nudge(float dy)
+    {
+        nudge += dy;
+        PlaceRack();
+    }
+
+    void ClearNudge()
+    {
+        if (nudge == 0f) return;
+        nudge = 0f;
+        PlaceRack();
+    }
+
+    void PlaceRack()
+    {
+        if (rack == null) return;
+        var p = rack.position;
+        rack.position = new Vector3(p.x, rackY + nudge, p.z);
     }
 
     // World y of a screen-space-overlay element's bottom (corner 0) or top
@@ -444,6 +474,7 @@ public class SpaceDock : MonoBehaviour
             preSelectLastShip = shopingShips.LastShipSelected;
         }
         Selected = index;
+        ClearNudge();
         shopingShips.LastShipSelected = shopingShips.shipNumber;
         shopingShips.shipNumber = index;
         rotateRight.shipSelected = index;
@@ -459,6 +490,7 @@ public class SpaceDock : MonoBehaviour
         Selected = 0;
         rotateRight.shipSelected = 0;
         popup.Hide();
+        ClearNudge();
     }
 
     void ShowPopup(int index)
@@ -690,8 +722,7 @@ public class SpaceDock : MonoBehaviour
     void SetRackY(float y)
     {
         rackY = Mathf.Clamp(y, rackYMin, rackYMax);
-        var p = rack.position;
-        rack.position = new Vector3(p.x, rackY, p.z);
+        PlaceRack();
     }
 
     static bool PointerOverUI()
@@ -712,9 +743,10 @@ public class SpaceDock : MonoBehaviour
             var scaler = c.GetComponent<CanvasScaler>();
             if (scaler == null) continue;
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(720, 960);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
+            // BACK / LIFT-OFF: FooterH + FooterTapPad tall (UiScale's floor)
+            UiScaleFloor.Configure(scaler, new Vector2(720, 960), FooterH + FooterTapPad, UiScaleFloor.SceneTextUnits);
         }
         if (canvas == null) return;
         PlaceFooter("BackButton", canvas.transform, -1);
