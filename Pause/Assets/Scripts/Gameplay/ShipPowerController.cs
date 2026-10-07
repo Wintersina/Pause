@@ -31,8 +31,11 @@ public class ShipPowerController : MonoBehaviour
     public float extendLeadSeconds = 1.2f;
 
     [Header("Pickup timer boost")]
-    [Tooltip("Seconds shaved off the current countdown per star dust pickup collected.")]
-    public float secondsPerDust = 0.5f;
+    [Tooltip("Seconds shaved off the current countdown per Star Dust (small star) pickup collected.")]
+    public float secondsPerDust = DustCutSeconds;
+
+    [Tooltip("Seconds shaved off the current countdown per Bright Star (large star) pickup collected.")]
+    public float secondsPerBrightStar = BrightStarCutSeconds;
 
     [Tooltip("Seconds shaved off the current countdown per atom collected -- " +
              "the blue shield atom and the green heal atom count the same.")]
@@ -49,6 +52,8 @@ public class ShipPowerController : MonoBehaviour
     // The atoms' charge cuts as shipped (the fields' defaults; the controller
     // is added at runtime, so these are the values played). The codex quotes
     // them (CodexCatalogue.*Cut).
+    public const float DustCutSeconds = 0.4f;       // Star Dust (smStar1)
+    public const float BrightStarCutSeconds = 0.8f; // Bright Star (LargeStar1)
     public const float AtomCutSeconds = 7f;          // blue shield, green heal
     public const float RedAtomCutSeconds = 5f;       // red pause atom
     public const float CooldownAtomCutSeconds = 12f; // violet capacitor (up to)
@@ -231,6 +236,8 @@ public class ShipPowerController : MonoBehaviour
     // an atom -- speeds up the current countdown rather than waiting it out.
     public void ReduceTimer(float seconds)
     {
+        // Ignore non-positive cuts; an already-ready weapon (timer 0) stays at 0.
+        if (seconds <= 0f) return;
         timer = Mathf.Max(0f, timer - seconds);
     }
 
