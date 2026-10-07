@@ -73,6 +73,7 @@ public static class TargetExplosion
         // Sometimes it breaks into spinning pieces of itself instead, over a
         // blast a size smaller (EnemySplit).
         if (EnemySplit.TrySplit(target, size)) size = EnemySplit.Smaller(size);
+        EnemyDeathFlipbook.Spawn(target);
         Spawn(target.transform.position, KindFor(target), size, ship);
     }
 

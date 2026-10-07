@@ -64,6 +64,7 @@ public static class EnemyFactory
 
         var flipbook = def.role == EnemyRole.Mine ? go.AddComponent<RailBombAnimator>() : go.AddComponent<EnemyFlipbook>();
         flipbook.Init(def);
+        if (def.key == "space_alien") go.AddComponent<AlienArrivalSmoke>();
         ClearTarget.Ensure(go);
 
         // Its reserved space on the board (SpawnSpace): the body, and the

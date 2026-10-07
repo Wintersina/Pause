@@ -336,6 +336,14 @@ public static class EnemyRosterTest
             Check(d.key + " idle/tell timing is on 2s-6s",
                   Array.TrueForAll(EnemyRoster.IdleTicks(d.role), t => t >= 2 && t <= 6) &&
                   Array.TrueForAll(EnemyRoster.TellTicks(d.role), t => t >= 2 && t <= 6));
+            if (d.world == 0 && (d.role == EnemyRole.Rock || d.role == EnemyRole.Fighter ||
+                                 d.role == EnemyRole.Chaser || d.role == EnemyRole.Alien))
+            {
+                var death = EnemyDeathFlipbook.Frames(d);
+                Check(d.key + " has three full-size death drawings",
+                      death != null && death.Length == 3 && death[0] != null &&
+                      Mathf.Abs(death[0].bounds.size.x - d.FrameWorldSize) < .01f);
+            }
         }
 
         // Step one of each role through idle, tell and the hit flash.
@@ -344,6 +352,22 @@ public static class EnemyRosterTest
             var d = EnemyRoster.One(0, role);
             var go = EnemyFactory.Create(d, new Vector3(0f, 50f, 0f), Quaternion.identity);
             var fb = go.GetComponent<EnemyFlipbook>();
+            if (d.key == "space_alien")
+            {
+                var smoke = go.GetComponent<AlienArrivalSmoke>();
+                Check("Space alien has arrival smoke", smoke != null && ShipDamageFx.Frame(ShipDamageFx.RowSmoke, 0) != null);
+                if (smoke != null)
+                {
+                    smoke.Begin();
+                    smoke.Advance(.1f);
+                    bool puffVisible = false;
+                    foreach (var renderer in go.GetComponentsInChildren<SpriteRenderer>())
+                        if (renderer != go.GetComponent<SpriteRenderer>()) puffVisible |= renderer.enabled && renderer.sprite != null;
+                    Check("Space alien arrival shows smoke", puffVisible);
+                    smoke.Advance(1f);
+                    Check("Space alien arrival smoke finishes", !smoke.enabled);
+                }
+            }
             Check(role + " has a flipbook" + (role == EnemyRole.Mine ? " (RailBombAnimator)" : ""),
                   fb != null && (role != EnemyRole.Mine || fb is RailBombAnimator));
             if (fb == null) { UnityEngine.Object.DestroyImmediate(go); continue; }
@@ -839,12 +863,14 @@ public static class EnemyRosterTest
                   (!d.floating || spin.swayDegrees > 0f && spin.swayDegrees <= 15f));
             UnityEngine.Object.DestroyImmediate(go);
             if (!d.floating) continue;
-            // the drawn bob: idle frames 1-3 move against the key pose
+            // Space's Beacon Rock holds its silhouette still; its light pulses
+            // instead. Other floating world rocks keep their drawn bob.
             string strip = "Assets/Art/Resources/" + d.StripPath + ".png";
             var keyPose = Mask(strip, 0);
             bool bobs = false;
             foreach (int k in new[] { 1, 2, 3 }) bobs |= keyPose.Length > 0 && IoU(keyPose, Mask(strip, k)) < .97f;
-            Check(d.key + " draws its float bob into the idle frames", bobs);
+            Check(d.key + (d.key == "space_rock_crater" ? " keeps a steady idle silhouette" : " draws its float bob into the idle frames"),
+                  d.key == "space_rock_crater" ? !bobs : bobs);
         }
 
         // The restored Verdant Spore Rock keeps the first-pass grass-cap
