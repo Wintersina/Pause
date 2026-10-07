@@ -15,15 +15,15 @@ The framework (Unity project root `Pause/`, code in
 | `EliteCells` | `EliteDef.cs` | the def's `cells` map: which strip cell is flight / parked / lift-off / banks / tell / action / hit / damaged |
 | `EliteArt` / `EliteFxArt` | `EliteArt.cs` | slices `Resources/Elites/<World>/<key>.png`; optional `_parked/_liftoff/_death` strips; procedural placeholder FX sprites |
 | `EliteShip` | `EliteShip.cs` | life cycle Parked → LiftOff → Join → Follow → Attack → (hit) → Dead; steering, dodging, crashes, damage hooks, muzzles |
-| `EliteBrain` (+8) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `breaker` (Rimebreaker), `warden` (Resin Warden) |
-| `EliteAttack` (+8) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `ice_ram`, `resin_mortar` |
-| `EliteShots` | `EliteShots.cs` | pooled shots (`bolt`, `shard`, `slag`, `shell`, `glob` = lobbed then pools), `shotBounces` off rails, friendly fire |
+| `EliteBrain` (+12) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `breaker` (Rimebreaker), `warden` (Resin Warden), Space: `bastion`, `reaver`, `lancer`, `tug` |
+| `EliteAttack` (+12) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `ice_ram`, `resin_mortar`, Space: `ward_curtain`, `crescent_volley`, `rift_rail`, `gravity_sling` |
+| `EliteShots` | `EliteShots.cs` | pooled shots (`bolt`, `shard`, `slag`, `shell`, `glob` = lobbed then pools; any kind can be `Sling`ed on a curve through a ringed spot), `shotBounces` off rails, friendly fire |
 | `EliteHearts` | `EliteHearts.cs` | the 2 hearts (shared `HeartOrbit` with the player's `ShipLivesIndicator`) |
 | `EliteFx`, `EliteDeath`, `EliteRewards` | `EliteFx.cs` | dust / shimmer / sparks / debris; pluggable death; 50 score + 15 dust + "ELITE DOWN" |
 | `EliteDirector` | `EliteDirector.cs` | spawning rules (max 3, groups 1-3, not first 20 s / boss / tutorial / final choice) |
-| landing sites | `Scripts/Worlds/Backdrop/LandingSites.cs`, `BackdropDirector.LandingSites` | where parked elites sit, per world backdrop |
+| landing sites | `Scripts/Worlds/Backdrop/LandingSites.cs`, `BackdropDirector.LandingSites`, Space: `SpaceLandingSites.cs` | where parked elites sit, per world backdrop; a site has a `kind` (Ground / Station / Planet / Asteroid) and `emerge` (docked inside the body, hidden, flies out) |
 | art copy | `Assets/Editor/Importers/EliteArtSync.cs` | copies Codex's final strips into Resources (bare `<name>.png` -> `<world>_elite_<name>.png`), fixes alpha on import |
-| tests | `Assets/Editor/Tests/EliteTest.cs` | walks **every** def automatically |
+| tests | `Assets/Editor/Tests/EliteTest.cs` | walks **every** def automatically; Space's four (launch out of bodies, signatures): `SpaceEliteTest.cs` |
 | previews | `Assets/Editor/Tools/Previews/ElitePreview.cs` + `scripts/make_preview_gif.py` | life-cycle GIF + contact sheet per elite |
 
 Unity: `/Applications/Unity/Hub/Editor/6000.3.23f1/Unity.app/Contents/MacOS/Unity`.
@@ -182,6 +182,10 @@ Match the role in Codex's README (`Art/Enemies/Elite/<World>/README.md`):
 | siege / artillery | `siege` (holds the top) | `siege_cannon`: sight line, piercing shell down the lane |
 | icebreaker / ram | `breaker` (prowls ahead, sweeping across the lane) | `ice_ram`: locks its lane, ploughs down it through rocks, rail-bouncing shards |
 | mortar / area denial | `warden` (station high on the far side, crosses after attacking) | `resin_mortar`: ringed spots ahead of the pilot, lobbed globs land as pools riding the board |
+| shield platform | `bastion` (high over the middle, lane follows at a crawl, clamped to laneOffset) | `ward_curtain`: a row of slow bolts across the pilot's height with one gap beside it (`lobSpacing`) |
+| orbiting raider | `reaver` (orbit wholly above the pilot, turns back each lap) | `crescent_volley`: races round, alternate claws fire at the locked spot |
+| flanking lancer | `lancer` (high flank, nose on, dashes to the other flank after firing) | `rift_rail`: tracking then locked sight line, a rail of fast bolts down it |
+| gravity tug | `tug` (a lane ahead, swaps sides after each sling) | `gravity_sling`: shots out of both claws curve through a ringed well ahead (`lobAhead`, `lobSeconds`) |
 
 Each elite must feel **its own**: vary `shotKind`, `shotCount`, `shotSpread`,
 `shotSpeed`, `shotInterval`, `dashSpeed`, `actionSeconds`, `tellSeconds`,
@@ -242,8 +246,15 @@ atlas (`Art/Backgrounds/Resources/Worlds/<World>/Backdrop/<fx|anim>.json`; Unity
 from the bottom: PIL box `(x, H-y-h, x+w, H-y)`), draw a 10% grid, read
 the fractions off it (from the centre, y up). Done: Ember volcano
 shoulders, Frost glacier snout apron + lateral ridges + massif saddle,
-Verdant ruin summit + terrace ledges + waterfall canopy. Space: a backdrop
-wreck or station if one exists (else ask Codex for one). Note: as of
+Verdant ruin summit + terrace ledges + waterfall canopy. Space
+(`SpaceLandingSites.cs`, a partial of `SpaceDirector`): every lone
+station's hub, planets >= 0.9 u (a point on the disc toward the board's
+middle) and planetoids >= 0.45 u (big asteroids) -- all `emerge` sites: the
+ship is docked INSIDE the body, hidden, only its engine lights blink in
+the launch tell, then a dock flare (`EliteFx.DockFlare`) and it flies out
+from half its docked size, fading in in hard steps. A def's `launchFrom`
+(`station` / `planet` / `asteroid` / `ground`) makes the director pick a
+free site of that kind first (else any free one). Note: as of
 2026-10-04 `Ember/Backdrop/anim.json` looks out of date with its redrawn
 `anim.png` (rects match the png only top-origin) -- check the crops before
 trusting fractions.
@@ -264,8 +275,9 @@ snaps alpha >= 240 to solid; otherwise ask Codex for a chunkier silhouette.
 brain/attack ids, hearts and shots not red, muzzles/nozzles on the art, the
 original untouched, life cycle with the right tell/action drawing or the
 procedural glow / flash, shots from muzzles, codex silhouette). Update the
-counts it pins (`six Ember elites`, Frost / Verdant one each, `no elites in
-Space yet`, every elite its own brain/attack) for the new world. `CellMaps()`
+counts it pins (`six Ember elites`, Frost / Verdant one each, Space's four
+in `Data()` and `SpaceEliteTest.Expected`, every elite its own brain/attack)
+for the new world. `CellMaps()`
 checks the Ember defaults and walks a flight-layout ship through parked ->
 lift-off -> flight -> banks -> damaged; `WorldSites()` spawns from a real
 Frost / Verdant backdrop. Add a signature check for any new brain / attack

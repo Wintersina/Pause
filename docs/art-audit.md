@@ -28,6 +28,11 @@ The four worlds, Space, Frost, Verdant and Ember, are listed as `<w>`.
   - `Scripts/Gameplay/Enemies/EnemyPalette.cs`: hit and death colours, set to the v2 hexes.
   - `Art/Enemies/src~/palette.env`.
 
+- [x] **Elites (Space).** Sprites: `Art/Resources/Elites/Space/space_elite_{eventide_bastion,orbit_reaver,rift_lancer,singularity_hauler}.png`,
+  copied by `EliteArtSync` from Codex's `Art/Enemies/Elite/Space`. Frame: 192 px x 7 (flight layout).
+  Installed and in game; defs in `Art/Resources/Elites/Defs`. Still missing: optional
+  `_liftoff` / `_death` strips (see `docs/art-production-queue.md` item 49).
+
 ### Rocks
 
 - [ ] **Space rocks.** Sprites: `Art/Resources/Enemies/space_rock_{crater,cluster,dark}.png`.

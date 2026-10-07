@@ -106,8 +106,8 @@ public class EliteDef
     public string lore;
 
     // ---- personality ----
-    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | breaker | warden
-    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | ice_ram | resin_mortar
+    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | breaker | warden | bastion | reaver | lancer | tug
+    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | ice_ram | resin_mortar | ward_curtain | crescent_volley | rift_rail | gravity_sling
 
     // ---- body ----
     public float cellWorldSize = 1.4f;  // one strip cell, world units
@@ -117,6 +117,7 @@ public class EliteDef
     public float maxBank = 10f;         // upright ships: degrees of bank into a sideways move
     public bool armored;                // smashes rocks without losing a heart (mines, enemies, elites, rails still hurt)
     public EliteCells cells = new EliteCells();   // which strip cell shows what (default: the Ember layout)
+    public string launchFrom;           // the landing site it prefers (LandingSite.KindOf): "station" | "planet" | "asteroid" | "ground"; empty: any. Falls back to any free site.
 
     // ---- brain tuning (shared base) ----
     public float speed = 2.6f;          // cruise, world u/s
@@ -129,8 +130,8 @@ public class EliteDef
     public float avoidance = .8f;       // 0..1 obstacle-dodging skill
     public float lookAhead = .5f;       // seconds of closing it watches for obstacles
     public float perception = 2.4f;     // u/s its idea of where the pilot is catches up after a teleport
-    public float laneOffset = 1.5f;     // gunship / hauler: lane distance from the pilot
-    public float circleRadius = 1.9f;   // striker: circling radius
+    public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go
+    public float circleRadius = 1.9f;   // striker / reaver: circling radius
     public float keepDistance = 2.6f;   // skirmisher: preferred distance
     public float topMargin = 1.5f;      // siege: distance below the top of the view
 
@@ -145,9 +146,9 @@ public class EliteDef
     public float blinkDistance = 1.4f;  // skirmisher blink
     public string shotKind = "bolt";    // EliteShots.Kind: bolt | slag | shell | shard | glob
     public int shotBounces;             // times a shot glances off a side rail before it breaks
-    public float lobSeconds = .9f;      // resin_mortar: a glob's flight time to its landing spot
-    public float lobSpacing = .7f;      // resin_mortar: world units between the landing spots
-    public float lobAhead = 1.6f;       // resin_mortar: how far ahead of the pilot the row lands
+    public float lobSeconds = .9f;      // resin_mortar: a glob's flight time to its landing spot; gravity_sling: a shot's time round its curve to the well
+    public float lobSpacing = .7f;      // resin_mortar / ward_curtain: world units between the spots of the row
+    public float lobAhead = 1.6f;       // resin_mortar: how far ahead of the pilot the row lands; gravity_sling: the well
     public float poolSeconds = 4f;      // glob: how long the landed pool lingers
 
     // ---- colours (hex) ----

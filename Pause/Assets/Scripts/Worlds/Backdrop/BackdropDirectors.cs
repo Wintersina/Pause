@@ -27,7 +27,7 @@ using UnityEngine;
 //
 // Atlas cells are variants (twelve different giants, eight stations...), not
 // flipbook frames: a body picks one when it spawns and keeps it.
-public class SpaceDirector : BackdropDirector
+public partial class SpaceDirector : BackdropDirector
 {
     public struct Tier
     {

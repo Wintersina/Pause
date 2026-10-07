@@ -204,6 +204,25 @@ public sealed class EliteFx
         }
     }
 
+    // Lift-off out of a Space body (LandingSite.emerge): the hangar door /
+    // surface flashes open -- a ring and a glow in the ship's engine colour
+    // at the body's depth (`order`, behind the gameplay) and a few sparks
+    // thrown out with the ship. Counted for tests.
+    public int DockFlares { get; private set; }
+
+    public void DockFlare(Vector2 at, Color color, int order, float shipSize)
+    {
+        DockFlares++;
+        Emit(EliteFxArt.Ring, at, Vector2.zero, .35f, shipSize * .25f, shipSize * 1.2f, color, order);
+        Emit(EliteFxArt.Glow, at, Vector2.zero, .25f, shipSize * .9f, shipSize * .2f, color, order);
+        for (int i = 0; i < 5; i++)
+        {
+            float a = (i / 5f) * Mathf.PI * 2f + Random.Range(-.3f, .3f);
+            Emit(EliteFxArt.Spark, at, new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * Random.Range(.6f, 1.4f) * Mathf.Max(.3f, shipSize),
+                 Random.Range(.25f, .4f), shipSize * .12f, shipSize * .04f, i % 2 == 0 ? color : Color.white, order, 0f, 0f, 3f);
+        }
+    }
+
     public void BlinkBurst(Vector2 at, Color color, float size)
     {
         Emit(EliteFxArt.Ring, at, Vector2.zero, .3f, size * .3f, size * 1.1f, color, 39);

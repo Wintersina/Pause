@@ -15,7 +15,9 @@ using UnityEngine.SceneManagement;
 //     BossLeadSeconds), none while a portal waits, none in the tutorial,
 //     none in a world without elite defs or landing sites
 //   * each one parks on a landing site of the world's backdrop
-//     (LandingSites), at least a few seconds, and its lift-off ends at a
+//     (LandingSites) -- of the kind its def launches from (launchFrom:
+//     a Space elite's station / planet / big asteroid) when one is free,
+//     else any free one -- at least a few seconds, and its lift-off ends at a
 //     join point at least EliteShip.MinJoinDistance from the pilot, on the
 //     side its brain likes (JoinFrom), and inside the rails
 //   * a boss arriving clears the parked ones quietly (the ones in play are
@@ -145,10 +147,10 @@ public class EliteDirector : MonoBehaviour
         float stagger = 0f;
         for (int k = 0; k < size; k++)
         {
-            int s = PickSite();
+            var def = defs[Random.Range(0, defs.Count)];
+            int s = PickSite(LandingSite.KindOf(def.launchFrom));
             if (s < 0) break;
             usedSites.Add(sites[s].id);
-            var def = defs[Random.Range(0, defs.Count)];
             float park = Random.Range(ParkSeconds.x, ParkSeconds.y) + stagger;
             stagger += Random.Range(.8f, 1.6f);
             Spawn(def, sites[s], park);
@@ -166,16 +168,20 @@ public class EliteDirector : MonoBehaviour
         return EliteShip.Create(def, site, park, JoinPoint(def, brain.JoinFrom, site.Position));
     }
 
-    int PickSite()
+    // A free site, of the kind the elite launches from when one is free
+    // (a Space elite: its station / planet / asteroid), else any free one.
+    int PickSite(LandingKind? prefer)
     {
         int start = Random.Range(0, Mathf.Max(1, sites.Count));
+        int any = -1;
         for (int k = 0; k < sites.Count; k++)
         {
             int i = (start + k) % sites.Count;
             if (!sites[i].Valid || usedSites.Contains(sites[i].id)) continue;
-            return i;
+            if (prefer == null || sites[i].kind == prefer.Value) return i;
+            if (any < 0) any = i;
         }
-        return -1;
+        return any;
     }
 
     // Where a lift-off ends: on the brain's preferred side of the pilot,

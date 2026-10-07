@@ -7,7 +7,9 @@ using UnityEngine.UI;
 
 // The elite ships (Scripts/Gameplay/Elites): data, life cycle, the cell
 // maps (Ember layout, flight layout), the personalities and attacks (six
-// Ember, Frost's Rimebreaker, Verdant's Resin Warden), shots from muzzles,
+// Ember, Frost's Rimebreaker, Verdant's Resin Warden; the four Space elites'
+// own brains / attacks and their launches out of stations, planets and
+// asteroids are SpaceEliteTest's), shots from muzzles,
 // friendly fire, dodging and baited crashes, perception after a teleport,
 // hearts, every damage source, rewards, the director's limits, Frost and
 // Verdant landing sites, freezing, allocations and the codex silhouettes.
@@ -159,7 +161,11 @@ public static class EliteTest
         EliteCatalog.ForWorld(2, verdant);
         Check("Frost has its own elite: the Rimebreaker (" + frost.Count + ")", frost.Count == 1 && frost[0].key == "frost_elite_rimebreaker");
         Check("Verdant has its own elite: the Resin Warden (" + verdant.Count + ")", verdant.Count == 1 && verdant[0].key == "verdant_elite_resin_warden");
-        Check("no elites in Space yet", !EliteCatalog.WorldHasElites(0));
+        var space = new List<EliteDef>();
+        EliteCatalog.ForWorld(0, space);
+        bool spaceSet = space.Count == 4;
+        foreach (var d in space) spaceSet &= LandingSite.KindOf(d.launchFrom) != null;
+        Check("Space has its four elites, each launching from a station, a planet or an asteroid (" + space.Count + ")", spaceSet);
         var brains = new HashSet<string>();
         var attacks = new HashSet<string>();
         foreach (var d in ember) { brains.Add(d.brain); attacks.Add(d.attack); }
@@ -1010,7 +1016,7 @@ public static class EliteTest
         EliteSystem.Step(Dt);
         Check("a lured crash kill pays the same", e == null && EliteShip.LastKillCause == EliteDamage.Crash && RunScore.Total - total == ScoreRules.EliteDown);
 
-        foreach (string brain in new[] { "breaker", "warden" })
+        foreach (string brain in new[] { "breaker", "warden", "bastion", "reaver", "lancer", "tug" })
         {
             Fresh(.05f);
             e = InPlay(brain, new Vector2(0f, 1f));
@@ -1046,7 +1052,7 @@ public static class EliteTest
 
         Check("none in the first 20 s of a world", EliteDirector.Blocked(3, 10f) == "too early");
         Check("allowed after that", EliteDirector.Blocked(3, 25f) == null);
-        Check("none in a world without elites", EliteDirector.Blocked(0, 60f) == "no elites");
+        Check("none in a world without elites", EliteDirector.Blocked(EnemyRoster.WorldKeys.Length, 60f) == "no elites");
         startMenu.youAreInTutorial = true;
         Check("none in the tutorial", EliteDirector.Blocked(3, 60f) == "tutorial");
         startMenu.youAreInTutorial = false;
@@ -1092,7 +1098,7 @@ public static class EliteTest
             Object.DestroyImmediate(dir.gameObject);
             Object.DestroyImmediate(wb.gameObject);
         }
-        Check("Space still spawns none", EliteDirector.Blocked(0, 60f) == "no elites");
+        Check("Space allows elites too (its sites: SpaceEliteTest)", EliteDirector.Blocked(0, 60f) == null);
     }
 
     // ---- frozen, allocations ------------------------------------------------------

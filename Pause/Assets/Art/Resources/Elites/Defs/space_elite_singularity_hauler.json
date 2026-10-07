@@ -1,0 +1,103 @@
+{
+  "key": "space_elite_singularity_hauler",
+  "displayName": "Singularity Hauler",
+  "world": "space",
+  "role": "gravity tug",
+  "codexId": "elite_space_singularity_hauler",
+  "launchFrom": "asteroid",
+  "lore": "A ringed salvage tug that hollows out big asteroids and hauls their cores away. It hangs ahead of you a lane to one side, then flings bolts out of both tow claws that its singularity whips round into a ringed spot in front of you. Stay out of the ring and off the line beyond it.",
+  "brain": "tug",
+  "attack": "gravity_sling",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.55,
+  "hullRadius": 0.32,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "armored": true,
+  "speed": 1.9,
+  "accel": 3.5,
+  "turnRate": 140,
+  "followDistance": 2.6,
+  "laneOffset": 1.0,
+  "aggression": 0.45,
+  "tellSeconds": 0.8,
+  "attackGap": 3.8,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.9,
+  "shotCount": 4,
+  "shotSpeed": 3.0,
+  "shotSpread": 0,
+  "shotInterval": 0.14,
+  "shotSize": 0.24,
+  "shotKind": "bolt",
+  "lobSeconds": 0.9,
+  "lobAhead": 1.4,
+  "heartColor": "#C05CFF",
+  "shotColor": "#E04FFF",
+  "shotCore": "#9FF6FF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lclaw",
+      "x": 41,
+      "y": 100,
+      "dir": 180.0
+    },
+    {
+      "name": "rclaw",
+      "x": 152,
+      "y": 103,
+      "dir": 0.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 64,
+      "y": 132,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 75,
+      "y": 134,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 116,
+      "y": 134,
+      "dir": -1.0
+    },
+    {
+      "name": "d",
+      "x": 126,
+      "y": 132,
+      "dir": -1.0
+    }
+  ]
+}
