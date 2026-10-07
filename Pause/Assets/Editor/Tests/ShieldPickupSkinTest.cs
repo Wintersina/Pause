@@ -21,8 +21,8 @@ using Object = UnityEngine.Object;
 //   - sends a collider path to physics
 //   - creates a texture, sprite, material, mesh or GameObject
 //   - decodes a skin sheet
-//   - plays a boost sting whose audio is not in memory yet (each world has
-//     its own; an unloaded clip is read and decompressed inside Play())
+//   - plays a boost sting whose audio is not in memory yet (an unloaded
+//     clip is read and decompressed inside Play())
 // and it prints the table (builds, readbacks, objects made, ms, bytes).
 // A few ships are also flown the way a developer build flies a skin
 // (developer mode's own equip key).
@@ -339,24 +339,22 @@ public static class ShieldPickupSkinTest
         return row;
     }
 
-    // Belt and braces for the sting: its import settings, per world.
+    // Belt and braces for the sting. The per-world BoostSounds stings are
+    // deleted (every world keeps the scene's own RocketsSound clip); whatever
+    // clip that source plays must be imported preloaded, loading off the main thread.
     static void StingsAreImportedPreloaded()
     {
-        int bad = 0, seen = 0;
+        int bad = 0;
         foreach (var theme in WorldManager.Worlds)
-        {
-            var clip = Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost");
-            if (clip == null) continue;
-            seen++;
-            var importer = UnityEditor.AssetImporter.GetAtPath(UnityEditor.AssetDatabase.GetAssetPath(clip)) as UnityEditor.AudioImporter;
-            if (importer == null || !importer.defaultSampleSettings.preloadAudioData || !importer.loadInBackground)
-            {
-                bad++;
-                Check(theme.displayName + "'s boost sting is imported Preload Audio Data + Load In Background", false);
-            }
-        }
-        Check("every world's boost sting is imported preloaded, loading off the main thread (" + seen + " stings)",
-              seen > 0 && bad == 0);
+            if (Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost") != null) bad++;
+        Check("the per-world BoostSounds stings stay deleted", bad == 0);
+        var go = GameObject.Find("RocketsSound");
+        var src = go != null ? go.GetComponent<AudioSource>() : null;
+        var clip = src != null ? src.clip : null;
+        if (clip == null) return;
+        var importer = UnityEditor.AssetImporter.GetAtPath(UnityEditor.AssetDatabase.GetAssetPath(clip)) as UnityEditor.AudioImporter;
+        Check("the RocketsSound clip is imported Preload Audio Data + Load In Background",
+              importer != null && importer.defaultSampleSettings.preloadAudioData && importer.loadInBackground);
     }
 
     public static int Execute()

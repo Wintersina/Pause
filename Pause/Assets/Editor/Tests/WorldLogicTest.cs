@@ -15,8 +15,10 @@ public static class WorldLogicTest
         if (!ok) failures++;
     }
 
-    // Worlds still on the six 30-second stage arrangements.
-    static readonly string[] ProgressiveWorlds = { "Space", "Verdant" };
+    // Worlds that play the scene's own default track: the Space/Verdant stage
+    // arrangements and Verdant.wav were deleted on purpose, so these worlds
+    // request no clips and never escalate.
+    static readonly string[] SceneDefaultWorlds = { "Space", "Verdant" };
 
     // Worlds that play one of the user's songs for the whole level.
     static readonly (string world, string resource, string asset)[] FullSongs =
@@ -44,6 +46,20 @@ public static class WorldLogicTest
         ("Assets/Audio/Resources/WorldMusic/FrostStage04.wav", "bfede4a1fe974562af30f52f3caac3a6"),
         ("Assets/Audio/Resources/WorldMusic/FrostStage05.wav", "5b466f4ade134d9d9e23233a6c8311f3"),
         ("Assets/Audio/Resources/WorldMusic/FrostStage06.wav", "18e93dfb06e744b68bf34d43bfb038a6"),
+        // Deleted on purpose: Space/Verdant stage arrangements and Verdant.wav.
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage01.wav", "340bb36436b143158774bcbc2a8afa9b"),
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage02.wav", "bd5335518e7b427cb2d09f3a9a3017f1"),
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage03.wav", "cbe86c9346104ed999cd75c0c1c05426"),
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage04.wav", "f25fc21f69714529b9219a922ff04233"),
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage05.wav", "9df7d72f2e6045b2ae57a902d9dc9f3d"),
+        ("Assets/Audio/Resources/WorldMusic/SpaceStage06.wav", "27c26cda79974728b8d29198f36a7719"),
+        ("Assets/Audio/Resources/WorldMusic/Verdant.wav", "3655f9aef49504a9691c05f45c58a811"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage01.wav", "b37a2697a4524d458127e1382dc3420a"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage02.wav", "12c31113a19e48a280d86507721bd3e9"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage03.wav", "d2b346d0bafa4f18a475f9b9a7995155"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage04.wav", "e76ebd81200942cf8722a836d347ed70"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage05.wav", "8325f40ebdfa4839ab7eb7a3bf796ba7"),
+        ("Assets/Audio/Resources/WorldMusic/VerdantStage06.wav", "7748f7f11f0b41c8b121de9952e6279b"),
     };
 
     public static void Run()
@@ -82,13 +98,6 @@ public static class WorldLogicTest
         Check("turning developer flag off restores locked ship state", !PlayerPrefs.HasKey("boughtship15"));
         Check("turning developer flag off restores saved world progress",
               PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 1);
-        foreach (string world in ProgressiveWorlds)
-        {
-            for (int stage = 1; stage <= 6; stage++)
-                Check(world + " has progressive stage " + stage,
-                    AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Resources/WorldMusic/" +
-                        world + "Stage" + stage.ToString("00") + ".wav") != null);
-        }
         for (int w = 0; w < EnemyRoster.WorldKeys.Length; w++)
             Check("the " + EnemyRoster.WorldKeys[w] + " rail mine flipbook is present (neon atlas row)",
                   AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png") != null &&
@@ -105,8 +114,9 @@ public static class WorldLogicTest
                   WorldManager.CurrentIndex == i);
             Check("world " + i + " has art folder",
                   !string.IsNullOrEmpty(WorldManager.Current.resourceFolder));
-            Check("world " + i + " has music",
-                  !string.IsNullOrEmpty(WorldManager.Current.musicResource));
+            Check("world " + i + " has music (own song, or the scene track by design)",
+                  !string.IsNullOrEmpty(WorldManager.Current.musicResource) ||
+                  System.Array.IndexOf(SceneDefaultWorlds, WorldManager.Current.displayName) >= 0);
             Check("world " + i + " ramps harder than previous",
                   WorldManager.Worlds[i].speedRampPerSecond >
                   WorldManager.Worlds[i - 1].speedRampPerSecond);
@@ -130,6 +140,7 @@ public static class WorldLogicTest
             string p = "Assets/Art/Backgrounds/Resources/Worlds/" + t.displayName + "/Backdrop/sky.png";
             Check("art present for " + t.displayName + " (" + p + ")",
                   AssetDatabase.LoadAssetAtPath<Texture2D>(p) != null);
+            if (string.IsNullOrEmpty(t.musicResource)) continue; // scene-default world
             Check("music present for " + t.displayName + " (" + t.musicResource + ")",
                   Resources.Load<AudioClip>(t.musicResource) != null);
         }
@@ -152,8 +163,11 @@ public static class WorldLogicTest
 
     static void FullSongWorlds()
     {
-        foreach (var w in ProgressiveWorlds)
-            Check(w + " keeps its stage arrangements", WorldMusic.UsesStages(Theme(w)));
+        foreach (var w in SceneDefaultWorlds)
+        {
+            Check(w + " requests no stage clips", !WorldMusic.UsesStages(Theme(w)));
+            Check(w + " has no music resource", Theme(w).musicResource == "");
+        }
 
         foreach (var song in FullSongs)
         {
@@ -208,12 +222,16 @@ public static class WorldLogicTest
             }
         }
 
-        // A progressive world disarms the full-song loop.
-        var verdantStage = Resources.Load<AudioClip>("WorldMusic/VerdantStage01");
-        WorldMusic.Apply(Theme("Verdant"));
+        // A scene-default world keeps the scene's track and disarms the full-song loop.
+        var sceneTrack = AudioClip.Create("sceneTrack", 44100, 1, 44100, false);
         var music = GameObject.Find("MovingMusic").GetComponent<AudioSource>();
-        Check("Verdant goes back to its first stage", verdantStage != null && music.clip == verdantStage);
-        Check("Verdant has no full-song loop", WorldMusic.LoopClip == null);
+        music.clip = sceneTrack;
+        foreach (var w in SceneDefaultWorlds)
+        {
+            WorldMusic.Apply(Theme(w));
+            Check(w + " keeps the scene track", music.clip == sceneTrack);
+            Check(w + " has no full-song loop", WorldMusic.LoopClip == null);
+        }
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         // The replaced audio is gone and nothing points at it.
