@@ -69,6 +69,7 @@ public class WorldManager : MonoBehaviour
     {
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
+            progressiveMusic = false, // plays the scene's own track (no stage clips)
             portalColor = new Color(0.55f, 0.85f, 1f),
             speedRampPerSecond = 0.00315f, maxSpeed = 0.46f, enemyRampScale = 1.00f,
         },
@@ -80,7 +81,7 @@ public class WorldManager : MonoBehaviour
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
-            musicResource = "WorldMusic/Verdant",
+            musicResource = "", progressiveMusic = false, // plays the scene's own track
             portalColor = new Color(0.60f, 1f, 0.62f),
             speedRampPerSecond = 0.00345f, maxSpeed = 0.56f, enemyRampScale = 1.20f,
         },

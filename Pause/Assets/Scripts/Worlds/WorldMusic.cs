@@ -9,9 +9,11 @@ using UnityEngine;
 // source starts the new one.
 //
 // Two kinds of world music:
-//   - progressive (Space, Verdant): six 30-second arrangements,
-//     WorldMusic/<World>Stage01..06, stepped up by TryEscalate on the level
-//     clock.
+//   - progressive (no world uses it today; the Space/Verdant stage clips were
+//     deleted): six arrangements WorldMusic/<World>Stage01..06, stepped up by
+//     TryEscalate on the level clock. Kept for future use; a theme only opts
+//     in with progressiveMusic = true. Space and Verdant play the scene's own
+//     default track.
 //   - a full song (Frost, Ember): the theme's musicResource plays for the whole
 //     level. The songs end in a fade-out and a second or two of silence, so a
 //     plain AudioSource.loop would leave a gap. LoopOutSeconds gives each song a
@@ -100,13 +102,8 @@ public class WorldMusic : MonoBehaviour
         loopClip = next != null && measured > 0f ? next : null;
         loopOut = loopClip != null ? measured : 0f;
 
-        var boostGo = GameObject.Find("RocketsSound");
-        var boost = boostGo != null ? boostGo.GetComponent<AudioSource>() : null;
-        // Every world gets its own short pickup sting.  The clips are sampled
-        // from the original boosting track but shaped for a quick blue-atom
-        // payoff, so Ember does not fall back to its long upbeat loop.
-        var boostClip = Resources.Load<AudioClip>("BoostSounds/" + theme.displayName + "Boost");
-        if (boost != null && boostClip != null) boost.clip = boostClip;
+        // The per-world BoostSounds stings were deleted: the RocketsSound
+        // source keeps the scene's own clip for every world.
 
         // A missing clip leaves the current track playing rather than dropping
         // into silence -- a half-shipped planet should still have music.
