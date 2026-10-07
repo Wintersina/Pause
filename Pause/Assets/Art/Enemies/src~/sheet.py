@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 STRIPS = os.path.join(HERE, "..", "..", "Resources", "Enemies")
 LANES = {"space": (14, 20, 36), "frost": (10, 26, 42), "verdant": (11, 31, 28), "ember": (36, 9, 14)}
 NAMES = {}   # filled from the roster table in EnemyRoster.cs when available
-FONT_PATH = os.path.join(HERE, "..", "..", "Orbitron", "Orbitron-Bold.ttf")
+FONT_PATH = os.path.join(HERE, "..", "..", "Fonts", "Orbitron", "Orbitron-Bold.ttf")
 
 
 def font(size):

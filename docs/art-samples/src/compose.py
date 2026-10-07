@@ -20,7 +20,7 @@ OUT = os.path.dirname(HERE)
 FR = os.path.join(OUT, "frames")
 REPO = os.path.dirname(os.path.dirname(OUT))
 ASSETS = os.path.join(REPO, "Pause", "Assets")
-FONT = os.path.join(ASSETS, "Art", "Orbitron", "Orbitron-Bold.ttf")
+FONT = os.path.join(ASSETS, "Art", "Fonts", "Orbitron", "Orbitron-Bold.ttf")
 TICK_MS = 1000 / 24
 
 ANIMS = {  # name: (frame prefix, n frames, timing in 24 fps ticks)
@@ -152,7 +152,7 @@ BEFORE_AFTER = [
     ("RAIL MINE", "Art/Resources/Vfx/rail_bomb_themes_atlas.png", (0, 0, 313, 313), "enemy_mine_0"),
     ("ASTEROID", "Art/Aestroids/aestroid_brown.png", None, "asteroid"),
     ("EXPLOSION", "Art/RedExplosion/1_6.png", None, "explosion_1"),
-    ("STAR DUST", "Art/Retro80s/Pickups/StarDustSmall.png", None, "pickup_stardust_0"),
+    ("STAR DUST", "Art/Pickups/StarDustSmall.png", None, "pickup_stardust_0"),
     ("HEAL ATOM", "Art/Resources/Pickups/heal_atom_green.png", (200, 140, 1060, 1120), "pickup_heal_0"),
     ("TUTORIAL ROBOT", "Art/contra2.png", None, "robot_2"),
     ("REPLAY ICON", "Art/Resources/QuickActions/QuickAction_replay.png", None, "ui_icon_replay"),

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // "paused" SpriteRenderer that moveStarsBackground shows while the finger is
 // lifted and PausedOverlayAnim flips through).
 //
-// It is lettered after the home screen's PAUSE logo (Art/pause_title_2.png,
+// It is lettered after the home screen's PAUSE logo (Art/UI/Title/pause_title_2.png,
 // which is never touched): the logo's red fill (lighter at the top, deeper at
 // the foot), its thin white contour, its solid muted-red drop shadow knocked
 // down-right, and its soft red halo. The logo face itself isn't shipped as a

@@ -88,12 +88,11 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 
 ### Walls
 
-- [ ] **Frost, Verdant and Ember walls.** Files:
-  `Art/Resources/Worlds/{Frost,Verdant,Ember}/wallLeft.png`, `wallRight.png`. Loader:
-  `Scripts/Worlds/WorldPainter.cs`, which applies `theme.tint`; check that the tint doesn't
-  muddy the ramps.
-- [ ] **Space walls.** Files: `Art/left.png`, `Art/right.png` (`left_1.mat`, `right_6.mat`,
-  `right_7.mat`).
+- [x] **Frost, Verdant and Ember walls.** Replaced by the reinforced rails
+  (`Art/Resources/Worlds/<World>/rail_*_wide_v1.png`, bound by `Scripts/Worlds/WorldPainter.cs`);
+  the old flat `wallLeft.png` / `wallRight.png` and their `walls.py` generator are deleted.
+- [ ] **Space walls.** Files: `Art/Walls/left.png`, `Art/Walls/right.png` (`left_1.mat`, `right_6.mat`,
+  `right_7.mat`): the scene walls gameS1 starts with and tutorialS5 keeps.
 - [ ] **Rules:** material ramps, lower 4 tones, neon at step 1 or below.
 
 ### Enemy explosions and hit FX
@@ -125,10 +124,10 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 | Atoms / pickups | `Art/Resources/Pickups/heal_atom_green.png`, `Art/Resources/Pickups/Atoms/*` | already pixel art; the green atom is a benchmark |
 | Life heart | `Art/Resources/Vfx/lifeHeart.png` | player-side |
 | UI (flat cel) | `Art/Resources/{DeathPanel,Hud,QuickActions,Codex,Tutorial,PauseGlow,PauseGlowFx,Shield}/`, `Art/UI/**` | v1 cel style still governs the UI |
-| PAUSE logo | `Art/pause_title_2.png`, `docs/pause-title.png` | protected |
-| Splash mark | `Art/HapticGate.png` | protected |
+| PAUSE logo | `Art/UI/Title/pause_title_2.png`, `docs/pause-title.png` | protected |
+| Splash mark | `Art/UI/Splash/HapticGate.png` | protected |
 | App icon | `Art/AppIcon/GoldWarden/*` (live; the other `Art/AppIcon/<Ship>/` sets are candidates) | on HOLD (product call) |
-| Font, materials, audio | `Art/Orbitron/`, `Art/Materials/` | not art |
+| Font, materials, audio | `Art/Fonts/Orbitron/`, `Art/Walls/`, `Art/UI/Splash/Black.mat` | not art |
 
 ## Suggested order
 

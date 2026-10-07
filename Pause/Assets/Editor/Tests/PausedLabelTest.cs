@@ -30,9 +30,9 @@ public static class PausedLabelTest
         TestHarness.Exit(Execute());
     }
 
-    // git blob id of Assets/Art/pause_title_2.png on master.
+    // git blob id of Assets/Art/UI/Title/pause_title_2.png on master.
     const string LogoBlob = "5aa3474211729bf6f1ffc48828b6ea7573f97285";
-    const string LogoPath = "Assets/Art/pause_title_2.png";
+    const string LogoPath = "Assets/Art/UI/Title/pause_title_2.png";
 
     static readonly (string name, Vector2 size, Rect safe)[] Screens =
     {
