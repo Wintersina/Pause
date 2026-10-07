@@ -84,7 +84,8 @@ public partial class SpaceDirector : BackdropDirector
     // Spheres (giants, planetoids, rock moons) turn: the BackdropPlanet
     // shader slides the surface of the one static variant across the disc
     // under a fixed terminator and rim, at a pace that reads as a world,
-    // not a decal. Stations hold or wheel as rigid sprites.
+    // not a decal. Stations never turn: they hold still, upright, and blink
+    // (SpaceStationLights).
     public const string PlanetShader = "BackdropShaders/BackdropPlanet";
     public const float PlanetTurnSecondsMin = 40f, PlanetTurnSecondsMax = 60f;   // per half turn
     public const float RockTurnSecondsMin = 24f, RockTurnSecondsMax = 34f;
@@ -177,6 +178,7 @@ public partial class SpaceDirector : BackdropDirector
         bodies.AddRange(new[] { planets, stations, planetoids, moons });
         setPieces.AddRange(bodies);
         setPieces.AddRange(new[] { wisps, galaxies, comets });
+        BuildStationLights();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -298,13 +300,15 @@ public partial class SpaceDirector : BackdropDirector
             {
                 if (!p.active || p.parent != null) continue;
                 if (!Drift(p, dt, v)) continue;
-                // phase: tilt at spawn. Only ring stations turn (spin != 0).
+                // phase: tilt at spawn (planets / rocks only; stations are
+                // upright), spin 0: lone bodies never turn in the picture plane.
                 p.root.localRotation = Quaternion.Euler(0f, 0f, p.phase + p.age * p.spin);
                 p.turn += p.turnRate * dt;
                 Paint(p, 1f);
                 PaintSphere(p);
                 if (p.children != null) Orbit(p, p.children[0], dt);
             }
+        TickStationLights(dt);
         foreach (var c in comets.items)
             if (c.active && Drift(c, dt, v))
             {
@@ -467,9 +471,9 @@ public partial class SpaceDirector : BackdropDirector
         p.y = y;
         // A lit sphere with a fixed terminator can't turn in the picture
         // plane without looking like a spinning decal, so planets and rocks
-        // hold a tilt. Ring stations wheel slowly; the others hold theirs.
-        p.phase = n.kind == Station ? Rand(-10f, 10f) : Rand(-14f, 14f);
-        if (n.kind == Station && n.ring) p.spin = Rand(1.2f, 2.2f) * (Chance(0.5) ? 1f : -1f);
+        // hold a tilt. Stations (ring habitats too) are stationary: upright,
+        // no spin -- they blink instead (SpaceStationLights).
+        p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
         p.color = Lit(n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint, tier);
         if (planetClass) planetSide = x < 0f ? -1 : 1;
         else structureSide = x < 0f ? -1 : 1;
@@ -484,6 +488,7 @@ public partial class SpaceDirector : BackdropDirector
         c.phase = Rand(0f, 6.283f);
         c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
         c.root.localRotation = Quaternion.Euler(0f, 0f, n.companion == Moon ? p.phase : Rand(-10f, 10f));
+        if (stationLights != null && stationLights.Covers(c.sr.sprite)) Park(p, c);
         c.color = Lit(n.companion == Moon ? RockTint : StationTint, tier);
         p.slot[0] = c;
         p.children = p.slot;                    // no allocation per spawn
@@ -546,6 +551,7 @@ public partial class SpaceDirector : BackdropDirector
 
     public override void Teardown()
     {
+        TeardownStationLights();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
     }
@@ -568,8 +574,20 @@ public partial class SpaceDirector : BackdropDirector
         return o;
     }
 
+    // A station companion (an orbiting station, or the moon with a station
+    // on it) holds station over its planet instead of circling it: a fixed
+    // point on the near half of the orbit, on the side toward the middle of
+    // the board, upright. It still rides along with its planet.
+    void Park(BackdropPiece p, BackdropPiece c)
+    {
+        float lean = Rand(0.25f, 0.7f);
+        c.phase = p.x > 0f ? Mathf.PI + lean : 2f * Mathf.PI - lean;
+        c.spin = 0f;
+        c.root.localRotation = Quaternion.identity;
+    }
+
     // A companion circles its planet on an ellipse tilted with the planet,
-    // passing behind it on the far half.
+    // passing behind it on the far half (a parked station: spin 0).
     void Orbit(BackdropPiece p, BackdropPiece c, float dt)
     {
         if (c == null || !c.active) return;
