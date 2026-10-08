@@ -310,7 +310,7 @@ public static class PilotAirspace
             float c = t == 0 && !float.IsNaN(preferredX) ? Mathf.Clamp(preferredX, -limit, limit) : Random.Range(-limit, limit);
             if (Blocks(c - half, c + half)) continue;
             // never over the open portal: its column stays clear
-            if (Portal.Reserves(c - half, c + half)) continue;
+            if (Portal.Reserves(c - half, c + half) || Planetfall.Reserves(c - half, c + half)) continue;
             // an elite hovering there: somewhere else if there is anywhere
             // else (the last tries take it anyway: an elite never starves a pilot)
             if (t < Tries - 3 && EliteOver(c - half, c + half)) continue;

@@ -19,6 +19,10 @@ using UnityEngine.SceneManagement;
 //   Portal  the portal is open and STAYS open until the ship flies through
 //           it. The level clock is stopped; PortalPressure escalates the
 //           board for as long as the pilot stays (docs/speed-and-loops.md).
+//           A world with a planetfall (PlanetfallCatalog: Space -> Frost)
+//           shows its planet instead: the same stage and the same pressure
+//           until the ship touches it, then the descent (Planetfall), which
+//           calls Advance while its clouds hide the view.
 //
 // Through the portal: the next planet -- or, after the final world, back to
 // the world the run started in, one loop on (RunLoop, LoopRules). The score
@@ -319,6 +323,9 @@ public class WorldManager : MonoBehaviour
         portalOpen = true;
         int destination = PortalDestination;
         PortalPressure.Open(destination);
+        // A planet arrived at by planetfall shows itself instead (and falls
+        // back to the portal if its art is missing).
+        if (Planetfall.Spawn(PlanetfallCatalog.For(CurrentIndex, destination, !HasNext)) != null) return;
         // The portal wears its world's colour; the loop portal the colour of
         // the world it leads back to.
         Color color = HasNext ? Current.portalColor : Worlds[destination].portalColor;
@@ -326,11 +333,15 @@ public class WorldManager : MonoBehaviour
     }
 
     // Called by Portal when the player flies through.
-    public void Advance()
+    public void Advance() { Advance(true); }
+
+    // The world change itself. Planetfall passes false and shows the
+    // returned banner once its clouds have cleared. Null: nothing changed.
+    public string Advance(bool showBanner)
     {
         bool loop = !HasNext;
         // The way round again only exists as an open portal.
-        if (loop && !portalOpen) return;
+        if (loop && !portalOpen) return null;
 
         // Points for the world just cleared; the run score carries on.
         RunScore.OnWorldCleared(CurrentIndex);
@@ -364,8 +375,9 @@ public class WorldManager : MonoBehaviour
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
         WorldBackdrop.Apply(theme, true);
-        WorldBanner.Show(banner);
+        if (showBanner) WorldBanner.Show(banner);
         Codex.Discover(Codex.WorldId(CurrentIndex));
+        return banner;
     }
 
     // The world's ramp and the spawner's pace, scaled for the loop
@@ -401,6 +413,7 @@ public class WorldManager : MonoBehaviour
         portalOpen = false;
         PortalPressure.Close(false);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) BossUtil.Kill(p.gameObject);
+        if (Planetfall.Live != null) BossUtil.Kill(Planetfall.Live.gameObject);
         if (CurrentIndex == last) return;
         CurrentIndex = last;
         var theme = Current;

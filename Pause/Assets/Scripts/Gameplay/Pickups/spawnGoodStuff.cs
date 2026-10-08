@@ -57,6 +57,8 @@ public class spawnGoodStuff : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        // nothing new arrives during a planetfall's descent (Planetfall)
+        if (Planetfall.SuspendsSpawning) return;
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             spawn();

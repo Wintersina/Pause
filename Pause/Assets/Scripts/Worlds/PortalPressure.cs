@@ -64,6 +64,16 @@ public static class PortalPressure
     public const string OpenBanner = "PORTAL OPEN";
     public const string UrgeBanner = "ENTER THE PORTAL";
     public const string ChipPrefix = "PORTAL  DANGER ";
+    // What the HUD says for the gateway that is open: the portal's words,
+    // unless a planetfall set its own (SetWording) after Open.
+    public static string Urge { get; private set; } = UrgeBanner;
+    public static string Chip { get; private set; } = ChipPrefix;
+
+    public static void SetWording(string urge, string chip)
+    {
+        Urge = string.IsNullOrEmpty(urge) ? UrgeBanner : urge;
+        Chip = string.IsNullOrEmpty(chip) ? ChipPrefix : chip;
+    }
 
     public enum Signal
     {
@@ -166,6 +176,8 @@ public static class PortalPressure
         Active = true;
         Seconds = 0f;
         Destination = destination;
+        Urge = UrgeBanner;
+        Chip = ChipPrefix;
         Refresh();
         Raise(Signal.Open);
     }
@@ -197,6 +209,8 @@ public static class PortalPressure
         Active = false;
         Seconds = 0f;
         Destination = -1;
+        Urge = UrgeBanner;
+        Chip = ChipPrefix;
         Refresh();
     }
 

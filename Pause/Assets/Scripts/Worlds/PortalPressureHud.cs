@@ -85,13 +85,21 @@ public class PortalPressureHud : MonoBehaviour
         return Mathf.Min(BeatMax, BeatAtStart + BeatPerLevel * Mathf.Max(0f, level));
     }
 
-    // "PORTAL  DANGER 3", cached for the numbers anyone will see.
+    // "PORTAL  DANGER 3" (or a planetfall's own words, PortalPressure.Chip),
+    // cached for the numbers anyone will see; rebuilt only when the words change.
     static readonly string[] labels = new string[64];
+    static string labelsFor = PortalPressure.ChipPrefix;
     public static string ChipLabel(int danger)
     {
         if (danger <= 0) return "";
-        if (danger >= labels.Length) return PortalPressure.ChipPrefix + danger;
-        return labels[danger] ?? (labels[danger] = PortalPressure.ChipPrefix + danger);
+        string prefix = PortalPressure.Chip;
+        if (!ReferenceEquals(prefix, labelsFor))
+        {
+            System.Array.Clear(labels, 0, labels.Length);
+            labelsFor = prefix;
+        }
+        if (danger >= labels.Length) return prefix + danger;
+        return labels[danger] ?? (labels[danger] = prefix + danger);
     }
 
     // ---- build ----
@@ -299,7 +307,7 @@ public class PortalPressureHud : MonoBehaviour
         switch (signal)
         {
             case PortalPressure.Signal.GraceOver:
-                WorldBanner.Show(PortalPressure.UrgeBanner);
+                WorldBanner.Show(PortalPressure.Urge);
                 BossWarningAudio.Play(BossWarningBeat.Announce, 0);
                 break;
             case PortalPressure.Signal.LevelUp:

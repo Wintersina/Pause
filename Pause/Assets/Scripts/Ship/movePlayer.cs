@@ -75,6 +75,16 @@ public class movePlayer : MonoBehaviour
             if (goTimer <= 0f) startTimer.gameObject.SetActive(false);
         }
 
+        // A planetfall's descent flies the ship (Planetfall): no steering and
+        // no teleport. A touch held into the hand-back steers on from where
+        // the descent left the ship (under the finger), not as an arrival.
+        if (Planetfall.HoldsShip)
+        {
+            teleported = false;
+            teleportLockedUntilRelease = false;
+            return;
+        }
+
         if (TouchInput.IsPressed)
         {
             // A press on Replay or Menu belongs to the UI. Without this

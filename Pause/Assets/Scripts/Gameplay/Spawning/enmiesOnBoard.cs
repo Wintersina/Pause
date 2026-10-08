@@ -281,6 +281,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
         SelectPhase();
 
+        // A planetfall's descent suspends spawning (Planetfall) ...
+        if (Planetfall.SuspendsSpawning) return;
         // A boss encounter clears the board and suspends normal spawning.
         if (flying && !BossEncounter.SuspendsSpawning)
         {

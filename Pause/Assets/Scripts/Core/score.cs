@@ -103,6 +103,8 @@ public class score : MonoBehaviour {
         // The boss intro's freeze is scripted: a press during it, or the
         // first one after it, never spends a pause (BossEncounter).
         if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
+        // A planetfall's descent is scripted the same way (Planetfall.FreePress).
+        if (Planetfall.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
 
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
