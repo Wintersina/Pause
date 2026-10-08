@@ -83,6 +83,7 @@ public static class AllTests
         ("HeartsPlacementTest", HeartsPlacementTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("HazardSizeTest", HazardSizeTest.Execute),
+        ("HostileReachTest", HostileReachTest.Execute),
         ("HostileProjectileTest", HostileProjectileTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),

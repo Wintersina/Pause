@@ -58,6 +58,10 @@ public abstract class EliteBrain
     public abstract Vector2 Goal(Vector2 seen, float dt);
     public virtual float SpeedScale => 1f;
     public virtual bool WantsAttack(Vector2 seen) => true;
+    // How far above the pilot it has to be before it will attack (0: from
+    // anywhere). With the ship too close under the reach cap for that, the
+    // elite climbs back to its own goal for the attack (EliteShip.ReachGoal).
+    public virtual float MinAttackAbove => 0f;
     // Preferred facing (world degrees), or null: face the way it flies.
     public virtual float? FaceDeg(Vector2 seen) => null;
     public virtual bool DodgesByBlink => false;
@@ -204,7 +208,8 @@ public class HaulerBrain : EliteBrain
         return new Vector2(laneX, seen.y + def.followDistance);
     }
 
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + .5f && Mathf.Abs(Pos.x - seen.x) < 1.1f;
+    public override float MinAttackAbove => .5f;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Mathf.Abs(Pos.x - seen.x) < 1.1f;
     public override float SpeedScale => .8f;
     public override Vector2 JoinFrom => Vector2.up;
 }
@@ -246,7 +251,8 @@ public class SiegeBrain : EliteBrain
 
     public SiegeBrain() { Id = "siege"; }
 
-    public float Height => EliteSystem.ViewTop - def.topMargin;
+    // Near the top of the view -- no higher than the player's reach (EliteShip.ReachY).
+    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
@@ -255,7 +261,8 @@ public class SiegeBrain : EliteBrain
         return new Vector2(trackX, Height);
     }
 
-    public override bool WantsAttack(Vector2 seen) => Mathf.Abs(Pos.x - seen.x) < .7f && Pos.y > seen.y + 1.5f;
+    public override float MinAttackAbove => 1.5f;
+    public override bool WantsAttack(Vector2 seen) => Mathf.Abs(Pos.x - seen.x) < .7f && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
     public override Vector2 JoinFrom => Vector2.up;
 }
@@ -274,8 +281,9 @@ public class BreakerBrain : EliteBrain
         return new Vector2(seen.x + sweep, seen.y + def.followDistance);
     }
 
+    public override float MinAttackAbove => def.followDistance * .6f;
     public override bool WantsAttack(Vector2 seen) =>
-        Mathf.Abs(Pos.x - seen.x) < .45f && Pos.y > seen.y + def.followDistance * .6f;
+        Mathf.Abs(Pos.x - seen.x) < .45f && Pos.y > seen.y + MinAttackAbove;
 
     public override Vector2 JoinFrom => Vector2.up;
 }
@@ -303,7 +311,8 @@ public class WardenBrain : EliteBrain
         get
         {
             float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
-            return new Vector2(Mathf.Clamp(side * def.laneOffset, -edge, edge), EliteSystem.ViewTop - def.topMargin);
+            // (high up -- no higher than the player's reach: EliteShip.ReachY)
+            return new Vector2(Mathf.Clamp(side * def.laneOffset, -edge, edge), ship.ReachY(EliteSystem.ViewTop - def.topMargin));
         }
     }
 
@@ -316,7 +325,8 @@ public class WardenBrain : EliteBrain
     }
 
     public override float SpeedScale => settled ? .6f : 1f;
-    public override bool WantsAttack(Vector2 seen) => settled && Pos.y > seen.y + 1.5f;
+    public override float MinAttackAbove => 1.5f;
+    public override bool WantsAttack(Vector2 seen) => settled && Pos.y > seen.y + MinAttackAbove;
     public void Cross() { side = -side; settled = false; }
     public override Vector2 JoinFrom => new Vector2(side, 1f);
 }
@@ -342,7 +352,8 @@ public class BastionBrain : EliteBrain
     }
 
     public override float SpeedScale => .8f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + 1.4f && Mathf.Abs(Pos.x - seen.x) < 1.8f;
+    public override float MinAttackAbove => 1.4f;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Mathf.Abs(Pos.x - seen.x) < 1.8f;
     public override Vector2 JoinFrom => Vector2.up;
 }
 
@@ -426,7 +437,8 @@ public class LancerBrain : EliteBrain
         float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
         // no room on this side: the other
         if (Mathf.Abs(seen.x + side * def.laneOffset) > edge && Mathf.Abs(seen.x - side * def.laneOffset) <= edge) side = -side;
-        return new Vector2(Mathf.Clamp(seen.x + side * def.laneOffset, -edge, edge), seen.y + def.followDistance);
+        // (no higher than the player's reach: EliteShip.ReachY -- the flank it arrives at is the one it holds)
+        return new Vector2(Mathf.Clamp(seen.x + side * def.laneOffset, -edge, edge), ship.ReachY(seen.y + def.followDistance));
     }
 
     public override Vector2 Goal(Vector2 seen, float dt)
@@ -438,6 +450,8 @@ public class LancerBrain : EliteBrain
     }
 
     public override float SpeedScale => crossing ? DashScale : 1f;
+    // (above by .8, and 1.5 away from its flank laneOffset across)
+    public override float MinAttackAbove => Mathf.Max(.8f, Mathf.Sqrt(Mathf.Max(0f, 1.6f * 1.6f - def.laneOffset * def.laneOffset)));
 
     public override bool WantsAttack(Vector2 seen)
     {
@@ -488,7 +502,8 @@ public class TugBrain : EliteBrain
     }
 
     public override float SpeedScale => .75f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + 1.2f && Mathf.Abs(Pos.x - seen.x) < def.laneOffset + .8f;
+    public override float MinAttackAbove => 1.2f;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Mathf.Abs(Pos.x - seen.x) < def.laneOffset + .8f;
     public void Swap() { side = -side; }
     public override Vector2 JoinFrom => Vector2.up;
 }

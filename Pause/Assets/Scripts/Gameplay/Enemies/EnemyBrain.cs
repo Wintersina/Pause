@@ -51,8 +51,14 @@ public class EnemyBrain : MonoBehaviour
     public const float LungeRecoverSeconds = .55f;
     public const float ShoveReturnSpeed = 3f;     // u/s back to its line after something pushed it (a shockwave)
     public const float SidestepLookSeconds = .5f; // how far up the board (seconds of scroll) it watches for hazards beside its column
-    // A pilot holds higher than its station while the ship is close under
-    // it (HoldY): far enough above to keep its full windup clearance
+    // A pilot holds in the player's reach (ReachHoldY, HostileReach): its
+    // station, but never above the reach ceiling and never closer above the
+    // ship than the standoff. Only when the ship is so close under it that
+    // no windup would be fair from there does it climb to its firing height
+    // (HoldY) for the attack, and drop back after it.
+    //
+    // HoldY, the firing height: higher than its station while the ship is
+    // close under it, far enough above to keep its full windup clearance
     // (MinFireDistance + HoldMargin, x view), but never higher than
     // HoldTopDepth under the top of the view nor into the HUD band -- unless
     // the band hangs lower than the shallowest authored station
@@ -85,10 +91,37 @@ public class EnemyBrain : MonoBehaviour
     // top), and returns to its station when the ship drops.
     public static float HoldY(float stationY, float shipY, float view, float viewTop, float bandBottom)
     {
-        float need = shipY + (MinFireDistance + HoldMargin) * view;
+        float need = FireNeed(shipY, view);
         float cap = Mathf.Max(Mathf.Min(viewTop - HoldTopDepth * view, bandBottom), viewTop - HoldBandFloorDepth * view);
         return Mathf.Max(stationY, Mathf.Min(need, cap));
     }
+
+    // The lowest a pilot can hold straight above a ship at `shipY` and still
+    // start a fair windup (MinFireDistance + HoldMargin, x view).
+    public static float FireNeed(float shipY, float view) => shipY + (MinFireDistance + HoldMargin) * view;
+
+    // Where a pilot whose station is `stationY` holds in the player's reach
+    // (pure, for tests): its station, no higher than the reach ceiling
+    // (HostileReach: its collider, `colliderBelow` under its centre, in
+    // contact range of a ship at the top of its reach) and no closer above
+    // the ship at `shipY` than the standoff (its drawing `drawnBelow` under
+    // its centre clear of the hull). `up` / `down`: how far its own pattern
+    // carries it above / below its anchor.
+    public static float ReachHoldY(float stationY, float shipY, float shipTop, float colliderBelow, float drawnBelow, float up, float down)
+    {
+        float ceiling = HostileReach.CeilingFor(shipTop, colliderBelow) - up;
+        float floor = shipY + HostileReach.StandoffFor(drawnBelow) + down;
+        return Mathf.Max(Mathf.Min(stationY, ceiling), floor);
+    }
+
+    // How far a pilot's own pattern carries it above / below its anchor
+    // (a Brake hover is its station: nothing).
+    public static float PatternUp(EnemyBehaviour b) => b == null || b.vertical == EnemyVertical.Brake ? 0f : b.rise;
+    public static float PatternDown(EnemyBehaviour b) => b == null || b.vertical == EnemyVertical.Brake ? 0f : b.sink;
+
+    // Climbing to its firing height for an attack (HostileReach RISE).
+    public bool Rising => rising;
+    public float RisenSeconds => risenFor;
 
     // Pilots fly their engagement scripts (false: every enemy rides the
     // scroll as a hazard, the first pass's behaviour).
@@ -112,7 +145,12 @@ public class EnemyBrain : MonoBehaviour
         Size = size > 0f ? size : 1f;
         reach = reachScale > 0f ? reachScale : 1f;
         pace = paceScale > 0f ? paceScale : 1f;
-        if (Def != null) halfX = Def.ColliderSize.x * .5f * Size;
+        if (Def != null)
+        {
+            halfX = Def.ColliderSize.x * .5f * Size;
+            halfY = Def.ColliderSize.y * .5f * Size;
+            drawnHalfY = SpawnSpace.BodyHalf(Def, Size).y;
+        }
     }
 
     public bool IsPilot { get; private set; }
@@ -188,7 +226,9 @@ public class EnemyBrain : MonoBehaviour
     float lungeFromX, lungeFromY, lungeToX, lungeToY;
     Vector2 aim = Vector2.down;
     Vector2 lobTarget;
-    float halfX;
+    float halfX, halfY, drawnHalfY;   // collider half-width / half-height, drawn half-height
+    bool rising;
+    float risenFor;
     // pilot state
     Vector2 anchor;                 // world: where its pattern is centred
     float columnHalf, stageTime, engaged, waited, peelDir, runToX, runFromX;
@@ -213,6 +253,8 @@ public class EnemyBrain : MonoBehaviour
         else hostMover = null;
         onRail = def.role == EnemyRole.Mine;
         halfX = def.ColliderSize.x * .5f * Size;
+        halfY = def.ColliderSize.y * .5f * Size;
+        drawnHalfY = SpawnSpace.BodyHalf(def, Size).y;
         Armed = behaviour.Attacks && (behaviour.armedChance >= 1f || Random.value < behaviour.armedChance);
         // neighbours out of step, except the invader lines: wiggling and
         // marching in lockstep is the point
@@ -503,8 +545,27 @@ public class EnemyBrain : MonoBehaviour
         viewScale = view;
         float stationY = top - b.stationDepth * view;
         bool descends = b.entry == PilotEntry.Descend;
-        // the station it holds now: higher while the ship is close under it
-        float holdY = descends || t == null ? stationY : HoldY(stationY, t.position.y, view, top, PlayField.Live.bandBottom);
+        // the station it holds now: in the player's reach, climbing to its
+        // firing height only for an attack while the ship is close under it
+        float holdY = stationY;
+        if (!descends && t != null)
+        {
+            float fireHold = HoldY(stationY, t.position.y, view, top, PlayField.Live.bandBottom);
+            if (!HostileReach.Enabled) holdY = fireHold;
+            else
+            {
+                float reachHold = ReachHoldY(stationY, t.position.y, ShipReach.Top, halfY, drawnHalfY, PatternUp(b), PatternDown(b));
+                // too close above the ship for a fair windup straight above it: it
+                // climbs toward the lowest fair height (HoldY from the reach hold,
+                // capped under the HUD band as ever) -- only if a windup would be
+                // fair from there (MayAttack's clearances, where it is across)
+                float riseHold = HoldY(reachHold, t.position.y, view, top, PlayField.Live.bandBottom);
+                float rdy = riseHold - t.position.y, rdx = p.x - t.position.x;
+                bool fairUp = rdy >= MinFireAbove * view && rdx * rdx + rdy * rdy >= MinFireDistance * view * MinFireDistance * view;
+                StepRise(dt, b, Stage == PilotStage.Engaging && riseHold > reachHold + HostileReach.MinRise && fairUp);
+                holdY = rising ? riseHold : reachHold;
+            }
+        }
 
         switch (Stage)
         {
@@ -521,8 +582,14 @@ public class EnemyBrain : MonoBehaviour
                 if (Ordered) { BeginExit(PilotExit.Climb); break; }
                 bool swoop = b.entry == PilotEntry.Swoop && !swoopDipped;
                 float goal = swoop ? holdY - SwoopOvershoot * view : holdY;
-                // the dip never drops its body onto a ship parked at the top of its reach
-                if (swoop) goal = Mathf.Max(goal, Mathf.Min(holdY, ShipReach.EntryFloor + halfX));
+                // the dip never drops its body onto the ship (one parked at the top of its reach, or wherever it is)
+                if (swoop)
+                {
+                    float floor = HostileReach.Enabled && t != null
+                        ? t.position.y + HostileReach.StandoffFor(drawnHalfY) + PatternDown(b)
+                        : ShipReach.EntryFloor + halfX;
+                    goal = Mathf.Max(goal, Mathf.Min(holdY, floor));
+                }
                 float speed = b.entrySpeed * view * (b.entry == PilotEntry.Swoop ? (swoop ? 1.5f : .6f) : 1f);
                 anchor.y = Mathf.MoveTowards(anchor.y, goal, speed * dt);
                 if (Mathf.Abs(anchor.y - goal) > 1e-3f) break;
@@ -539,7 +606,11 @@ public class EnemyBrain : MonoBehaviour
                 }
                 if (State != Phase.Idle) break;   // never leaves mid-attack (nor moves its station)
                 // (not while a shove has it off its line: it flies back to the line it was pushed from)
-                if (!descends && !Displaced) anchor.y = Mathf.MoveTowards(anchor.y, holdY, b.entrySpeed * view * .6f * dt);
+                if (!descends && !Displaced)
+                {
+                    float holdSpeed = HostileReach.Enabled ? Mathf.Max(b.entrySpeed * .6f, HostileReach.PilotRiseSpeed) : b.entrySpeed * .6f;
+                    anchor.y = Mathf.MoveTowards(anchor.y, holdY, holdSpeed * view * dt);
+                }
                 bool spent = Armed && b.maxVolleys > 0 && Volleys >= b.maxVolleys;   // nothing left to fire
                 if (Ordered) BeginExit(PilotExit.Climb);
                 else if (!descends && (engaged >= b.engageSeconds || (spent && engaged >= b.engageSeconds * EarlyLeaveShare)))
@@ -584,6 +655,28 @@ public class EnemyBrain : MonoBehaviour
         transform.position = new Vector3(wish.x, wish.y, p.z);
         lastSet = transform.position;
         hasLastSet = true;
+    }
+
+    // RISE: with the ship too close under its reach hold for a fair windup,
+    // an armed pilot with volleys left climbs to its firing height from
+    // RiseLead before its next windup may start; it holds there through
+    // the attack (the anchor never moves mid-attack) and drops back once it
+    // is recovering its cooldown -- or after RiseMaxSeconds if the attack
+    // never started (the shot budget), with half a cooldown to wait.
+    void StepRise(float dt, EnemyBehaviour b, bool closeUnder)
+    {
+        if (State != Phase.Idle) return;   // mid-attack: it stays where it is
+        bool wants = closeUnder && Armed && b.Attacks && b.attack != EnemyAttack.Cross && Volleys < b.maxVolleys &&
+                     cooldown <= HostileReach.RiseLead && !Ordered;
+        if (wants && risenFor < HostileReach.RiseMaxSeconds)
+        {
+            rising = true;
+            risenFor += dt;
+            return;
+        }
+        if (rising && risenFor >= HostileReach.RiseMaxSeconds) cooldown = Mathf.Max(cooldown, b.cooldown * .5f);
+        rising = false;
+        risenFor = 0f;
     }
 
     void BeginExit(PilotExit how)
