@@ -20,7 +20,11 @@ using UnityEngine;
 public static class BossArt
 {
     public const string Folder = "Bosses/";
+    // Body atlases are BodyColumns square cells across; the row count is read
+    // from each texture (Frost/Verdant/Ember: 4 rows = 20 frames, Space: 7 rows
+    // = 35 frames). BodyRows / BodyFrames are the largest sheet (Space's).
     public const int BodyColumns = 5, BodyRows = 7, BodyFrames = BodyColumns * BodyRows;
+    public const int BaseBodyFrames = 20;   // frames 0..19, painted on every boss
     public const int ShotColumns = 8;
 
     // Flat body frame indices.
@@ -176,11 +180,22 @@ public static class BossArt
     static readonly Dictionary<string, Sprite[]> shots = new Dictionary<string, Sprite[]>();
     static readonly Dictionary<string, Sprite> singles = new Dictionary<string, Sprite>();
 
-    static Sprite[] Slice(Texture2D tex, int cols, int rows)
+    // squareCell > 0: cells are squareCell px both ways, rows counted from the
+    // top of the texture (any leftover strip at the bottom is ignored).
+    static Sprite[] Slice(Texture2D tex, int cols, int rows, int squareCell = 0)
     {
         var result = new Sprite[cols * rows];
         if (tex == null) return result;
         float w = tex.width / (float)cols, h = tex.height / (float)rows;
+        if (squareCell > 0)
+        {
+            w = h = squareCell;
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols; c++)
+                    result[r * cols + c] = Sprite.Create(tex, new Rect(c * w, tex.height - (r + 1) * h, w, h),
+                                                         new Vector2(.5f, .5f), w);
+            return result;
+        }
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
                 result[r * cols + c] = Sprite.Create(tex, new Rect(c * w, (rows - 1 - r) * h, w, h),
@@ -199,11 +214,32 @@ public static class BossArt
         return sheet;
     }
 
+    // A body sheet: square cells, BodyColumns across, as many rows as fit.
+    static Sprite[] BodySheet(BossDef boss)
+    {
+        string path = Folder + boss.artKey;
+        Sprite[] sheet;
+        if (bodies.TryGetValue(path, out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null) return sheet;
+        var tex = Resources.Load<Texture2D>(path);
+        int rows = BodyRows;
+        if (tex != null)
+        {
+            int cell = Mathf.Max(1, tex.width / BodyColumns);
+            rows = Mathf.Clamp(tex.height / cell, 1, BodyRows);
+        }
+        sheet = Slice(tex, BodyColumns, rows, tex == null ? 0 : tex.width / BodyColumns);
+        bodies[path] = sheet;
+        return sheet;
+    }
+
+    // How many body frames the boss's atlas holds (Space 35, the others 20).
+    public static int BodyFrameCount(BossDef boss) => boss == null ? 0 : BodySheet(boss).Length;
+
     public static Sprite Body(BossDef boss, int frame)
     {
         if (boss == null) return null;
-        var sheet = Sheet(bodies, Folder + boss.artKey, BodyColumns, BodyRows);
-        return sheet[Mathf.Clamp(frame, 0, BodyFrames - 1)];
+        var sheet = BodySheet(boss);
+        return sheet[Mathf.Clamp(frame, 0, sheet.Length - 1)];
     }
 
     public static Sprite DamageBody(BossDef boss, int cell)
@@ -387,7 +423,8 @@ public static class BossArt
     // Every sprite a boss needs, for the art-completeness test.
     public static IEnumerable<Sprite> AllSprites(BossDef boss)
     {
-        for (int i = 0; i < BodyFrames; i++) yield return Body(boss, i);
+        int bodyFrames = BodyFrameCount(boss);
+        for (int i = 0; i < bodyFrames; i++) yield return Body(boss, i);
         for (int i = 0; i < ShotColumns; i++) yield return Shot(boss, i);
         yield return Card(boss);
         if (HasDamageArt(boss))

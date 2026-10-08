@@ -120,6 +120,13 @@ public static class BossEncounterTest
             Check(boss.artKey + " art resolves (" + (n - missing) + "/" + n + ")", missing == 0);
             var idle = BossArt.Body(boss, BossArt.Idle0);
             Check(boss.artKey + " body cells are square", idle != null && Mathf.Approximately(idle.rect.width, idle.rect.height));
+            Check(boss.artKey + " body sprite is 1 x 1 world unit",
+                  idle != null && Mathf.Abs(idle.bounds.size.x - 1f) < .001f && Mathf.Abs(idle.bounds.size.y - 1f) < .001f);
+            int expectFrames = BossArt.HasExpandedCombat(boss) ? BossArt.BodyFrames : BossArt.BaseBodyFrames;
+            Check(boss.artKey + " body atlas yields " + expectFrames + " frames (got " + BossArt.BodyFrameCount(boss) + ")",
+                  BossArt.BodyFrameCount(boss) == expectFrames);
+            Check(boss.artKey + " body frames past the atlas clamp to its last cell",
+                  BossArt.Body(boss, 999) == BossArt.Body(boss, BossArt.BodyFrameCount(boss) - 1));
             Check(boss.artKey + " idle and death differ",
                   idle != null && BossArt.Body(boss, BossArt.Death(2)) != null && idle != BossArt.Body(boss, BossArt.Death(2)));
         }
