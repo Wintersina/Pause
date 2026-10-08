@@ -609,7 +609,8 @@ public class Planetfall : MonoBehaviour
     }
 
     // The limb's width share: LimbWidthShare, or wider on tall screens.
-    float LimbShare()
+    // Static so the lift-off draws the very same horizon (Liftoff passes its own half sizes).
+    internal static float LimbShare(PlanetfallDef def, PlanetfallArt art, float halfW, float halfH)
     {
         float arcShare = def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width;   // horizon radius per limb width
         float need = MinHorizonRadiusInHalfHeights * halfH / Mathf.Max(.01f, 2f * halfW * arcShare);
@@ -617,23 +618,23 @@ public class Planetfall : MonoBehaviour
     }
 
     // The planet's horizon radius at the horizon view, world units.
-    float ArcRadius() { return ArcRadius(def, art, halfW); }
+    float ArcRadius() { return ArcRadius(def, art, halfW, halfH); }
 
-    internal static float ArcRadius(PlanetfallDef def, PlanetfallArt art, float halfW)
+    internal static float ArcRadius(PlanetfallDef def, PlanetfallArt art, float halfW, float halfH)
     {
-        float limbW = 2f * halfW * LimbShare();
+        float limbW = 2f * halfW * LimbShare(def, art, halfW, halfH);
         return def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width * limbW;
     }
 
     // Places the surface: `apex` is the top of the disc (and of the limb's
     // horizon), `scale` 1 is the horizon view. Disc and limb share the one
     // circle, so the cross-fade between them never jumps.
-    void SetGroup(Vector3 apex, float scale) { PlaceSurface(group, planet, rim, limb, def, art, halfW, apex, scale); }
+    void SetGroup(Vector3 apex, float scale) { PlaceSurface(group, planet, rim, limb, def, art, halfW, halfH, apex, scale); }
 
     internal static void PlaceSurface(Transform group, SpriteRenderer planet, SpriteRenderer rim, SpriteRenderer limb,
-                                      PlanetfallDef def, PlanetfallArt art, float halfW, Vector3 apex, float scale)
+                                      PlanetfallDef def, PlanetfallArt art, float halfW, float halfH, Vector3 apex, float scale)
     {
-        float limbW = 2f * halfW * LimbShare();
+        float limbW = 2f * halfW * LimbShare(def, art, halfW, halfH);
         float ra = def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width * limbW;
         group.position = apex;
         group.localScale = Vector3.one * scale;
