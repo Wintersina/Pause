@@ -2,14 +2,17 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: the Space boss shows its battle damage as it loses hearts.
+// Feature: a boss with damage art (BossDef.damageKey: Space, Frost) shows its
+// battle damage as it loses hearts; Verdant and Ember have none yet.
 //
 // Stage = hearts lost (0 pristine .. 4 one heart left). From stage 1 its idle
-// drawing is the matching damaged hull (Space_damage.png, a 2-frame loop);
+// drawing is the matching damaged hull (<Key>_damage.png, a 2-frame loop over
+// its own idle's period);
 // tell / fire / hit / death / retreat keep their own drawings. Over every
 // pose while it fights: smoke (stage 2 faint, 3 heavier, 4 full) and
 // electrical arcs (stage 3 dim intermittent bursts, 4 constant and erratic),
-// from Space_damage_fx.png. Gone on death / retreat. Only Space has it.
+// from <Key>_damage_fx.png (smoke scaled by BossDef.smokeStrength). Gone on
+// death / retreat.
 //
 // Drives BossEncounter frame by frame (Step(realDt, timeScale)) in edit mode.
 public static class BossDamageTest
@@ -30,11 +33,15 @@ public static class BossDamageTest
         try
         {
             StageFollowsHeartsLost();
-            ArtSlicesIntoItsCells();
-            OnlySpaceHasDamage();
-            SpaceFightShowsTheDamage();
+            ArtSlicesIntoItsCells(0);
+            ArtSlicesIntoItsCells(1);
+            OnlyKeyedBossesHaveDamage();
+            SmokeStrengthIsTunable();
+            FightShowsTheDamage(0);
+            FightShowsTheDamage(1);
             OtherBossesUnchangedInAFight();
-            OverlayGoesWithTheBoss();
+            OverlayGoesWithTheBoss(0);
+            OverlayGoesWithTheBoss(1);
         }
         finally
         {
@@ -125,14 +132,15 @@ public static class BossDamageTest
         Check("... and jump between all their frames (" + cells4.Count + " seen)", cells4.Count == BossArt.DamageFxColumns);
     }
 
-    static void ArtSlicesIntoItsCells()
+    static void ArtSlicesIntoItsCells(int world)
     {
-        var space = BossCatalog.ForWorld(0);
-        var hull = Resources.Load<Texture2D>(BossArt.Folder + "Space_damage");
-        var fx = Resources.Load<Texture2D>(BossArt.Folder + "Space_damage_fx");
-        Check("Space_damage imports unscaled at 768x1536 (" + (hull ? hull.width + "x" + hull.height : "missing") + ")",
+        var space = BossCatalog.ForWorld(world);
+        string key = space.damageKey, tag = space.artKey + ": ";
+        var hull = Resources.Load<Texture2D>(BossArt.Folder + key + "_damage");
+        var fx = Resources.Load<Texture2D>(BossArt.Folder + key + "_damage_fx");
+        Check(key + "_damage imports unscaled at 768x1536 (" + (hull ? hull.width + "x" + hull.height : "missing") + ")",
               hull != null && hull.width == 768 && hull.height == 1536);
-        Check("Space_damage_fx imports unscaled at 2304x768 (" + (fx ? fx.width + "x" + fx.height : "missing") + ")",
+        Check(key + "_damage_fx imports unscaled at 2304x768 (" + (fx ? fx.width + "x" + fx.height : "missing") + ")",
               fx != null && fx.width == 2304 && fx.height == 768);
 
         var seen = new HashSet<Sprite>();
@@ -147,30 +155,34 @@ public static class BossDamageTest
             var s = BossArt.DamageFx(space, i);
             if (s != null && s.rect.width == 384f && s.rect.height == 384f && seen.Add(s)) fxOk++;
         }
-        Check("8 distinct 384px hull cells (" + hullOk + ")", BossArt.DamageCells == 8 && hullOk == 8);
-        Check("12 distinct 384px fx cells (" + fxOk + ")", BossArt.DamageFxCells == 12 && fxOk == 12);
-        var idle = BossArt.Body(space, BossArt.SpaceIdle0);
+        Check(tag + "8 distinct 384px hull cells (" + hullOk + ")", BossArt.DamageCells == 8 && hullOk == 8);
+        Check(tag + "12 distinct 384px fx cells (" + fxOk + ")", BossArt.DamageFxCells == 12 && fxOk == 12);
+        var idle = BossArt.Body(space, BossArt.IdleFrame(space, 0f));
         var d0 = BossArt.DamageBody(space, 0);
-        Check("hull cells are the size of the body cells (1 world unit at scale 1)",
+        // (Height only for Space: the body slicer cuts 7 rows from every
+        // atlas, and Frost's is 4 rows -- BossEncounterTest's known
+        // "body cells are square" failure. The damage sheets are cut by
+        // their own 2 x 4 / 6 x 2 grids, square either way.)
+        Check(tag + "hull cells are 1 world unit across like the body cells" + (world == 0 ? " and as tall" : ", and square"),
               idle != null && d0 != null && Mathf.Abs(idle.bounds.size.x - d0.bounds.size.x) < 1e-4f &&
-              Mathf.Abs(idle.bounds.size.y - d0.bounds.size.y) < 1e-4f);
+              (world == 0 ? Mathf.Abs(idle.bounds.size.y - d0.bounds.size.y) < 1e-4f : Mathf.Abs(d0.bounds.size.y - 1f) < 1e-4f));
         // row 0 of the strip is the top of the texture: stage 1, frame A
-        Check("hull cell 0 is the top-left of the strip (stage 1, frame A)",
+        Check(tag + "hull cell 0 is the top-left of the strip (stage 1, frame A)",
               d0 != null && d0.rect.x == 0f && d0.rect.y == 1152f);
         var s0 = BossArt.DamageFx(space, BossArt.Smoke0);
         var a0 = BossArt.DamageFx(space, BossArt.Arc0);
-        Check("smoke row is the top fx row, arcs the bottom",
+        Check(tag + "smoke row is the top fx row, arcs the bottom",
               s0 != null && a0 != null && s0.rect.y == 384f && a0.rect.y == 0f);
     }
 
-    static void OnlySpaceHasDamage()
+    static void OnlyKeyedBossesHaveDamage()
     {
         var all = BossCatalog.All;
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space";
-            ok &= BossArt.HasDamageArt(b) == space;
+            bool space = b.artKey == "Space" || b.artKey == "Frost";
+            ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
             {
@@ -179,7 +191,18 @@ public static class BossDamageTest
             }
             if (!space) ok &= BossArt.DamageBody(b, 0) == null && BossArt.DamageFx(b, 0) == null;
         }
-        Check("damaged idle frames resolve only for Space; Frost / Verdant / Ember get none", ok);
+        Check("damaged idle frames resolve for Space and Frost (by damageKey); Verdant / Ember get none", ok);
+
+        // Frost's idle is the 4-frame Idle0 loop: the damaged loop spans it
+        var fr = BossCatalog.ForWorld(1);
+        var floop = new HashSet<int>();
+        bool fposes = true;
+        for (int i = 0; i < 30; i++) floop.Add(BossArt.DamageIdleCell(fr, BossArt.Idle0 + i % BossArt.IdleFrames, 2, i * BossArt.Tick));
+        foreach (int f in new[] { BossArt.Hit, BossArt.Fire, BossArt.Death(0), BossArt.Retreat0, BossArt.Tell(1, 1), BossArt.Portrait })
+            fposes &= BossArt.DamageIdleCell(fr, f, 4, 0f) == -1;
+        Check("Frost: every Idle0 frame shows the damaged loop (A, B) over the idle's 0.625 s; other poses keep theirs",
+              floop.Count == 2 && floop.Contains(2) && floop.Contains(3) && fposes &&
+              Mathf.Abs(BossArt.Seconds(BossArt.DamageIdleTicksFor(fr)) - BossArt.Seconds(BossArt.IdleTicks)) < 1e-4f);
 
         var sp = BossCatalog.ForWorld(0);
         bool poses = true;
@@ -194,9 +217,26 @@ public static class BossDamageTest
               Mathf.Abs(BossArt.Seconds(BossArt.DamageIdleTicks) - BossArt.Seconds(BossArt.SpaceIdleTicks)) < 1e-4f);
     }
 
-    static void SpaceFightShowsTheDamage()
+    static void SmokeStrengthIsTunable()
     {
-        var e = StartFight(0);
+        var fr = BossCatalog.ForWorld(1);
+        float saved = fr.smokeStrength;
+        bool shared = true;
+        foreach (var b in BossCatalog.All) shared &= b.smokeStrength == 1f;
+        for (int st = 0; st <= 4; st++) shared &= BossArt.SmokeAlpha(fr, st) == BossArt.SmokeAlpha(st);
+        fr.smokeStrength = .5f;
+        bool half = Mathf.Abs(BossArt.SmokeAlpha(fr, 4) - .5f) < 1e-4f && Mathf.Abs(BossArt.SmokeAlpha(fr, 2) - .175f) < 1e-4f &&
+                    BossArt.SmokeAlpha(BossCatalog.ForWorld(0), 4) == 1f;
+        fr.smokeStrength = 3f;
+        bool capped = BossArt.SmokeAlpha(fr, 4) == 1f;
+        fr.smokeStrength = saved;
+        Check("smoke: every boss on the shared schedule today; smokeStrength scales one boss's smoke (capped at 1)",
+              shared && half && capped);
+    }
+
+    static void FightShowsTheDamage(int world)
+    {
+        var e = StartFight(world);
         var a = e.Actor;
         var body = Body(a);
         for (int i = 0; i < 10; i++) e.Step(Dt, 1f);
@@ -213,7 +253,7 @@ public static class BossDamageTest
         {
             LoseTo(e, left);
             int stage = MaxHearts - left;
-            Check(left + " hearts left -> stage " + stage + " (" + a.DamageStage + ")", a.DamageStage == stage);
+            Check(a.Boss.artKey + ": " + left + " hearts left -> stage " + stage + " (" + a.DamageStage + ")", a.DamageStage == stage);
 
             int idleSeen = 0, idleDamaged = 0, poseSeen = 0, posePristine = 0, smokeOn = 0, arcOn = 0, frames = 0;
             float smokeA = 0f, arcA = 0f;
@@ -235,12 +275,12 @@ public static class BossDamageTest
                 if (a.DamageSmoke.enabled) { smokeOn++; smokeA = a.DamageSmoke.color.a; }
                 if (a.DamageArcs.enabled) { arcOn++; arcA = a.DamageArcs.color.a; }
             }
-            Check("stage " + stage + ": idle shows its damaged hull (" + idleDamaged + "/" + idleSeen + ")",
+            Check(a.Boss.artKey + ": stage " + stage + ": idle shows its damaged hull (" + idleDamaged + "/" + idleSeen + ")",
                   idleSeen > 0 && idleDamaged == idleSeen);
-            Check("stage " + stage + ": other poses keep their drawings (" + posePristine + "/" + poseSeen + ")",
+            Check(a.Boss.artKey + ": stage " + stage + ": other poses keep their drawings (" + posePristine + "/" + poseSeen + ")",
                   posePristine == poseSeen);
-            float wantSmoke = BossArt.SmokeAlpha(stage);
-            Check("stage " + stage + ": smoke " + (wantSmoke > 0f ? "at " + wantSmoke : "off") + " (" + smokeOn + "/" + frames + ")",
+            float wantSmoke = BossArt.SmokeAlpha(a.Boss, stage);
+            Check(a.Boss.artKey + ": stage " + stage + ": smoke " + (wantSmoke > 0f ? "at " + wantSmoke : "off") + " (" + smokeOn + "/" + frames + ")",
                   wantSmoke > 0f ? smokeOn == frames && Mathf.Abs(smokeA - wantSmoke) < .01f : smokeOn == 0);
             if (stage < 3) Check("stage " + stage + ": no arcs", arcOn == 0);
             else if (stage == 3) Check("stage 3: arcs flicker, dim (" + arcOn + "/" + frames + ")", arcOn > 0 && arcOn < frames && Mathf.Abs(arcA - .4f) < .01f);
@@ -252,13 +292,14 @@ public static class BossDamageTest
         var arcBefore = a.DamageArcs.sprite;
         bool frozen = true;
         for (int i = 0; i < 40; i++) { e.Step(Dt, 0f); frozen &= a.DamageSmoke.sprite == smokeBefore && a.DamageArcs.sprite == arcBefore; }
-        Check("time scale 0 freezes smoke and arcs", frozen);
+        Check(a.Boss.artKey + ": time scale 0 freezes smoke and arcs", frozen);
     }
 
     static void OtherBossesUnchangedInAFight()
     {
-        for (int w = 1; w < BossCatalog.All.Length; w++)
+        for (int w = 0; w < BossCatalog.All.Length; w++)
         {
+            if (BossArt.HasDamageArt(BossCatalog.All[w])) continue;
             var e = StartFight(w);
             var a = e.Actor;
             var body = Body(a);
@@ -275,14 +316,14 @@ public static class BossDamageTest
         }
     }
 
-    static void OverlayGoesWithTheBoss()
+    static void OverlayGoesWithTheBoss(int world)
     {
         // destroyed
-        var e = StartFight(0);
+        var e = StartFight(world);
         var a = e.Actor;
         LoseTo(e, 1);
         e.Step(Dt, 1f);
-        Check("one heart left: smoke and arcs on", a.DamageSmoke.enabled && a.DamageArcs.enabled);
+        Check(a.Boss.artKey + ": one heart left: smoke and arcs on", a.DamageSmoke.enabled && a.DamageArcs.enabled);
         for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
         bool destroyed = e.Destroyed && e.State == BossEncounter.Phase.Outro;
         bool gone = true;
@@ -294,11 +335,11 @@ public static class BossDamageTest
             if (a.State == BossActor.Mode.Dying) { dyingFrames++; gone &= Body(a).sprite == BossArt.Body(a.Boss, a.BodyFrame); }
             e.Step(Dt, 1f);
         }
-        Check("destroyed: overlay gone through the death blasts, death frames pristine (" + dyingFrames + " frames)",
+        Check(a.Boss.artKey + ": destroyed: overlay gone through the death blasts, death frames pristine (" + dyingFrames + " frames)",
               destroyed && gone && dyingFrames > 0);
 
         // retreat (the clock ran out)
-        e = StartFight(0);
+        e = StartFight(world);
         a = e.Actor;
         LoseTo(e, 1);
         e.Step(Dt, 1f);
@@ -310,6 +351,6 @@ public static class BossDamageTest
             a.StepOutro(Dt, 0);
             left &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled && body.sprite == BossArt.Body(a.Boss, a.BodyFrame);
         }
-        Check("retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
+        Check(a.Boss.artKey + ": retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
     }
 }

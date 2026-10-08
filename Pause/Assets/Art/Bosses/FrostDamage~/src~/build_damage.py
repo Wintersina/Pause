@@ -13,6 +13,8 @@ from PIL import Image, ImageChops, ImageDraw
 
 
 ROOT = Path(__file__).resolve().parent.parent
+# the runtime sheets live where BossArt loads them (Resources/Bosses)
+RUNTIME = ROOT.parent.parent / "Resources" / "Bosses"
 SRC = Path(__file__).resolve().parent / "candidates"
 CELL = 384
 INK = (11, 11, 26, 255)
@@ -192,7 +194,7 @@ def main() -> None:
     for row, image in enumerate(body):
         damage.alpha_composite(image, (0, row * CELL))
         damage.alpha_composite(idle_b(image, row), (CELL, row * CELL))
-    damage.save(ROOT / "Frost_damage.png")
+    damage.save(RUNTIME / "Frost_damage.png")
 
     smokes = [src(name) for name in SMOKES]
     electric_sources = [src(name) for name in ELECTRIC]
@@ -202,7 +204,7 @@ def main() -> None:
     for i in range(6):
         fx.alpha_composite(smoke[i], (i * CELL, 0))
         fx.alpha_composite(electricity[i], (i * CELL, CELL))
-    fx.save(ROOT / "Frost_damage_fx.png")
+    fx.save(RUNTIME / "Frost_damage_fx.png")
     preview(body, smoke, electricity)
 
 

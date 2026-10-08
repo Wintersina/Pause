@@ -101,6 +101,12 @@ public sealed class BossDef
     // Its hearts (BossHearts), tinting the white elite heart: a colour of
     // its own world, never the player's red.
     public Color heartColor = new Color(.8f, .4f, 1f);
+    // Battle damage art (BossArt): Resources/Bosses/<damageKey>_damage.png
+    // and _damage_fx.png. Null: no damage art, it fights pristine.
+    public string damageKey;
+    // Its damage smoke's strength: BossArt.SmokeAlpha's schedule times this
+    // (clamped to 1). Tune per boss, as each one's smoke art is drawn.
+    public float smokeStrength = 1f;
     // BossConfig.Underside's cache (-1: not measured yet).
     [System.NonSerialized] public float underside = -1f;
 }
@@ -148,7 +154,7 @@ public static class BossCatalog
             // two engine pods hanging off its shoulders.
             new BossDef
             {
-                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space",
+                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space",
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
@@ -181,7 +187,7 @@ public static class BossCatalog
             // blowhole crown on top.
             new BossDef
             {
-                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost",
+                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost", damageKey = "Frost",
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
                        "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
