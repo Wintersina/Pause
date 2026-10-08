@@ -87,6 +87,9 @@ public static class OpenPortalTest
         BossEncounter.ResetRun();
         RunLoop.Reset();
         PortalPressure.Reset();
+        // This suite is the portal's: Space's planetfall (PlanetfallTest)
+        // stands aside so world 0 opens a portal as every world once did.
+        PlanetfallCatalog.Enabled = false;
         var camGo = new GameObject("Main Camera", typeof(Camera));
         camGo.tag = "MainCamera";
         var cam = camGo.GetComponent<Camera>();
