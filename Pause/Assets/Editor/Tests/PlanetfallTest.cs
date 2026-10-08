@@ -119,6 +119,7 @@ public static class PlanetfallTest
 
     static void Gone()
     {
+        if (Liftoff.Live != null) Object.DestroyImmediate(Liftoff.Live.gameObject);
         if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
     }
@@ -161,10 +162,15 @@ public static class PlanetfallTest
             FinishLevel(wm);
             bool fall = world == 0;
             string name = WorldManager.Worlds[world].displayName;
-            Check(name + "'s end: " + (fall ? "the planetfall, no portal" : "the portal, no planetfall") +
-                  " (stage Portal, pressure on)",
-                  wm.Stage == WorldManager.LevelStage.Portal && PortalPressure.Active &&
-                  (fall ? Planetfall.Live != null && Portal.Live == null : Planetfall.Live == null && Portal.Live != null));
+            if (LiftoffCatalog.For(world, WorldManager.PortalDestination, !WorldManager.HasNext) != null)
+                // Frost lifts off first (LiftoffTest); its gateway is the portal
+                Check(name + "'s end: the lift-off, no planetfall (stage Portal)",
+                      wm.Stage == WorldManager.LevelStage.Portal && Liftoff.Live != null && Planetfall.Live == null);
+            else
+                Check(name + "'s end: " + (fall ? "the planetfall, no portal" : "the portal, no planetfall") +
+                      " (stage Portal, pressure on)",
+                      wm.Stage == WorldManager.LevelStage.Portal && PortalPressure.Active &&
+                      (fall ? Planetfall.Live != null && Portal.Live == null : Planetfall.Live == null && Portal.Live != null));
             if (fall)
                 Check("... the planetfall's own words for the pressure (" + PortalPressure.Urge + " / " + PortalPressure.Chip.Trim() + ")",
                       PortalPressure.Urge == PlanetfallCatalog.Frost.urgeBanner && PortalPressure.Chip == PlanetfallCatalog.Frost.chipPrefix &&

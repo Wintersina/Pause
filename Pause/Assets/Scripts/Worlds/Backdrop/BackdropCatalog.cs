@@ -11,7 +11,8 @@ using UnityEngine;
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
-// Art lives at Art/Backgrounds/Resources/Worlds/<World>/Backdrop/ and is generated from the
+// Art lives at Art/Backgrounds/Resources/Worlds/<World>/Backdrop/ (Frost:
+// Backdrop3/, see Spec.folder) and is generated from the
 // SVG templates under Assets/Art/Worlds/<World>/src~/ (Space's atlases are
 // cut from pixel-art sheets instead: Space/src~/build_atlas.py).
 public static class BackdropCatalog
@@ -67,6 +68,23 @@ public static class BackdropCatalog
     {
         public string world;
         public Layer[] layers;      // far -> near
+        // Where the art lives under Resources (null: Worlds/<world>/Backdrop/).
+        public string folder;
+        // The atlas whose presence makes the set complete (null: fx).
+        public string keyAtlas;
+        // > 0: the tile layers come from one of these many variant folders
+        // (<folder>v1/ .. vN/), one picked per entry into the world.
+        public int variantSets;
+
+        public bool Has(string name)
+        {
+            foreach (var l in layers) if (l.name == name) return true;
+            return false;
+        }
+
+        // A layer's tint, the per-layer brightness / colour hook pieces share
+        // with tiles.
+        public Color Tint(string name) { return Find(name).tint; }
 
         public Layer Find(string name)
         {
@@ -126,17 +144,30 @@ public static class BackdropCatalog
         }},
         // Planet worlds, seen from atmosphere level: ground and landmarks
         // creep by far below; clouds, haze and particles pass close.
-        new Spec { world = "Frost", layers = new[] {
+        // Frost (FrostDirector, docs in FrostBackdrop.cs): flown at atmosphere
+        // level just under the cloud ceiling, looking down on a frozen ocean,
+        // coast and ice-bound industry. The four ground tiles come from one of
+        // up to four variant sets per landing (FrostBackdropSelection,
+        // Backdrop3/v1..v4); landmarks, launch sites, weather and the ambient
+        // loops are shared atlases. Tints are the brightness hook (white = the
+        // art as painted).
+        new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = FrostBackdropSelection.MaxVariants, layers = new[] {
             Layer.Tile("sky", 0.006f, W),
             Layer.Tile("far", 0.014f, W),
             Layer.Tile("mid", 0.024f, W),
             Layer.Strip("flow", 0.025f, 0.35f, 0f, W),
-            Layer.Pieces("geysers", 0.026f, Role.Landmark),
-            Layer.Pieces("glaciers", 0.034f, Role.Landmark),
-            Layer.Pieces("aurora", 0.060f, Role.Atmosphere),
-            Layer.Pieces("haze", 0.120f, Role.Cloud),
-            Layer.Pieces("clouds", 0.300f, Role.Cloud),
-            Layer.Pieces("snow", 0.500f, Role.Atmosphere),
+            Layer.Pieces("aurora", 0.027f, Role.Atmosphere),
+            // Rigs, refineries, icebreakers ... and the elite launch sites
+            // (one ground plane: they never slide over each other).
+            Layer.Pieces("landmarks", 0.030f, Role.Landmark),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud),
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("snow_far", 0.200f, Role.Atmosphere),
+            Layer.Pieces("blizzard", 0.350f, Role.Atmosphere),
+            Layer.Pieces("snow_mid", 0.450f, Role.Atmosphere),
+            Layer.Pieces("snow_near", 0.700f, Role.Atmosphere),
         }},
         new Spec { world = "Verdant", layers = new[] {
             Layer.Tile("sky", 0.006f, W),
@@ -179,6 +210,23 @@ public static class BackdropCatalog
 
     public static string Folder(string world)
     {
+        var spec = Exact(world);
+        if (spec != null && !string.IsNullOrEmpty(spec.folder)) return spec.folder;
         return "Worlds/" + world + "/Backdrop/";
+    }
+
+    // The folder a world's tile layers load from: its variant's sub-folder
+    // when it has variant sets (variant 1..N), else its art folder.
+    public static string TileFolder(string world, int variant)
+    {
+        var spec = Exact(world);
+        if (spec != null && spec.variantSets > 0 && variant > 0) return Folder(world) + "v" + variant + "/";
+        return Folder(world);
+    }
+
+    static Spec Exact(string world)
+    {
+        foreach (var s in specs) if (s.world == world) return s;
+        return null;
     }
 }

@@ -33,8 +33,16 @@ public class WorldBackdrop : MonoBehaviour
 
     public static WorldBackdrop Instance { get; private set; }
     // Multiplies the scroll: a planetfall's swell streaks the stars
-    // (Planetfall.BackdropBoost); 1 otherwise.
-    public static float ScrollBoost { get { return Planetfall.Live != null ? Planetfall.Live.BackdropBoost : 1f; } }
+    // (Planetfall.BackdropBoost), a lift-off's climb rushes the ground away
+    // (Liftoff.BackdropBoost); 1 otherwise.
+    public static float ScrollBoost
+    {
+        get
+        {
+            if (Planetfall.Live != null) return Planetfall.Live.BackdropBoost;
+            return Liftoff.Live != null ? Liftoff.Live.BackdropBoost : 1f;
+        }
+    }
 
     public BackdropSet Current { get; private set; }
     BackdropSet outgoing;

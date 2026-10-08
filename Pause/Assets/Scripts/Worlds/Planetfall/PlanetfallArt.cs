@@ -14,7 +14,7 @@ public class PlanetfallArt
     public Texture2D PlanetTex, LimbTex, DeckTex, DeckDarkTex, EntryTex, BurstTex, StreaksTex;
     public Sprite Planet, Limb, Deck, DeckDark, Streaks;
     public Sprite[] Entry, Burst;
-    public Sprite White, Ring, Reticle, Vignette;
+    public Sprite White, Ring, Reticle, Vignette, Plume;
     // Where the ring and reticle textures draw their circle, as a share of
     // the sprite's half width.
     public const float RingRadius = .78f, ReticleRadius = .9f;
@@ -22,7 +22,7 @@ public class PlanetfallArt
     // Every file loaded at the expected layout.
     public bool Complete { get; private set; }
 
-    Texture2D whiteTex, ringTex, reticleTex, vignetteTex;
+    Texture2D whiteTex, ringTex, reticleTex, vignetteTex, plumeTex;
 
     PlanetfallArt(PlanetfallDef def) { Def = def; }
 
@@ -90,6 +90,16 @@ public class PlanetfallArt
             return Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.55f, 1.15f, d));
         });
         Vignette = Whole(vignetteTex, new Vector2(.5f, .5f));
+        // A thruster plume for the lift-off (Liftoff): hot and wide at the
+        // nozzles (the top, its pivot), narrowing and fading downward.
+        plumeTex = Procedural(64, 128, (x, y) =>
+        {
+            float along = (1f - y) * .5f;                     // 0 at the nozzles, 1 at the tip
+            float half = Mathf.Lerp(.95f, .12f, Mathf.Pow(along, .7f));
+            float across = Mathf.Exp(-3f * (x / half) * (x / half));
+            return across * (1f - PlanetfallTimeline.Ramp(along, .15f, 1f)) * PlanetfallTimeline.Ramp(along, 0f, .06f);
+        });
+        Plume = Whole(plumeTex, new Vector2(.5f, 1f));
     }
 
     static Sprite Whole(Texture2D tex, Vector2 pivot)
@@ -140,14 +150,14 @@ public class PlanetfallArt
     public void Release()
     {
         Kill(Planet); Kill(Limb); Kill(Deck); Kill(DeckDark); Kill(Streaks);
-        Kill(White); Kill(Ring); Kill(Reticle); Kill(Vignette);
+        Kill(White); Kill(Ring); Kill(Reticle); Kill(Vignette); Kill(Plume);
         if (Entry != null) foreach (var s in Entry) Kill(s);
         if (Burst != null) foreach (var s in Burst) Kill(s);
-        Kill(whiteTex); Kill(ringTex); Kill(reticleTex); Kill(vignetteTex);
+        Kill(whiteTex); Kill(ringTex); Kill(reticleTex); Kill(vignetteTex); Kill(plumeTex);
         foreach (var t in new[] { PlanetTex, LimbTex, DeckTex, DeckDarkTex, EntryTex, BurstTex, StreaksTex })
             if (t != null) Resources.UnloadAsset(t);
         Entry = Burst = null;
-        Planet = Limb = Deck = DeckDark = Streaks = White = Ring = Reticle = Vignette = null;
+        Planet = Limb = Deck = DeckDark = Streaks = White = Ring = Reticle = Vignette = Plume = null;
         PlanetTex = LimbTex = DeckTex = DeckDarkTex = EntryTex = BurstTex = StreaksTex = null;
         Complete = false;
     }

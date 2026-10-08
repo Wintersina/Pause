@@ -293,8 +293,9 @@ public class SpaceAsteroidDrift
             PuffOwner[i] = -1;
         }
 
-        // The field is already there when the world opens.
-        for (int i = 0; i < SpaceDirector.AsteroidDensity; i++) Spawn(false);
+        // The field is already there when the world opens (not in a
+        // lift-off's calm interlude: SpaceDirector.Quiet).
+        if (!SpaceDirector.Quiet) for (int i = 0; i < SpaceDirector.AsteroidDensity; i++) Spawn(false);
         spawnIn = Rand(SpaceDirector.AsteroidSpawnGapMin, SpaceDirector.AsteroidSpawnGapMax);
     }
 
@@ -559,7 +560,7 @@ public class SpaceAsteroidDrift
         }
         TickPuffs(dt, v);
 
-        if (dt > 0f)
+        if (dt > 0f && !SpaceDirector.Quiet)
         {
             spawnIn -= dt;
             if (spawnIn <= 0f)

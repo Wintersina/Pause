@@ -151,7 +151,9 @@ public partial class SpaceDirector : BackdropDirector
     public SpaceDirector() : base(1988) { }
 
     // Planetfall: hold back new planets and stations while its planet is up.
-    public static bool Quiet { get { return Planetfall.Live != null; } }
+    // Lift-off: the interlude is calm space with the planet left behind (no
+    // hero planet, no rocks).
+    public static bool Quiet { get { return Planetfall.Live != null || Liftoff.Live != null; } }
 
     // Planets, stations, planetoids and moons: what the depth model governs.
     public IList<BackdropPool> Bodies { get { return bodies; } }
@@ -264,7 +266,7 @@ public partial class SpaceDirector : BackdropDirector
         // Open on a hero planet already in view. It is deliberately large,
         // off-centre and partially cropped, establishing the world's scale
         // before the normal body queues take over.
-        Enter(PlanHero(), HalfH * 0.3f);
+        if (!Quiet) Enter(PlanHero(), HalfH * 0.3f);
         nextPlanet = NextPlanet();
         planetWait = Rand(3f, 5f);
         nextStructure = PlanStructure();
@@ -934,110 +936,7 @@ public abstract class PlanetDirector : BackdropDirector
     }
 }
 
-public class FrostDirector : PlanetDirector
-{
-    BackdropPool glaciers, geysers, aurora, snow;
-    Sprite[] auroraFrames, geyserFrames, glacierFrames;
-    Timer glacierTimer = new Timer(9f, 15f, 6f);
-    Timer geyserTimer = new Timer(5f, 9f, 2f);
-    Timer auroraTimer = new Timer(9f, 15f, 1.5f);
-
-    public FrostDirector() : base(1989) { }
-
-    // Elite landing pads (Rimebreaker): on a valley glacier, the lit ice
-    // apron at its snout and the two lateral ridges either side of the
-    // ice tongue; on an ice massif, the saddle between its left and middle
-    // peaks. Far below the play area: parked ships are drawn small.
-    public static readonly Vector2[] GlacierPads = { new Vector2(0f, -.37f), new Vector2(-.33f, .06f), new Vector2(.32f, 0f) };
-    public static readonly Vector2[] MassifPads = { new Vector2(-.1f, -.14f) };
-    public const float ParkedScale = .36f;
-
-    public override void LandingSites(List<LandingSite> into)
-    {
-        LandmarkPads(glaciers, into, p => p.frames != null ? GlacierPads : MassifPads, ParkedScale, 0);
-    }
-
-    protected override void Build()
-    {
-        auroraFrames = anim.Frames("aurora");
-        geyserFrames = fx.Frames("geyser");
-        glacierFrames = fx.Frames("glacier");
-        geysers = LandmarkPool("geysers", 2);
-        glaciers = LandmarkPool("glaciers", 2);
-        aurora = Pool("aurora", 2);
-        BuildAir();
-        snow = Pool("snow", 30);
-        Scatter(snow, fx.Get("dot"), 0.05f, 0.11f, new[] { new Color(0.8f, 0.9f, 1f, 0.5f),
-            new Color(0.7f, 0.85f, 1f, 0.35f) }, set.Spec.Rate("snow"));
-        SpawnGlacier(Rand(-HalfH * 0.1f, HalfH * 0.5f));
-    }
-
-    protected override void Step(float dt, float v)
-    {
-        if (glacierTimer.Tick(dt, rng)) SpawnGlacier(float.NaN);
-        if (geyserTimer.Tick(dt, rng)) SpawnGeyser();
-        if (auroraTimer.Tick(dt, rng)) SpawnAurora();
-        StepLandmarks(glaciers, dt, v);
-        StepLandmarks(geysers, dt, v);
-        foreach (var a in aurora.items)
-        {
-            if (!a.active || !Drift(a, dt, v)) continue;
-            a.Animate();
-            float flare = a.kind == 1 ? Mathf.Max(0f, Mathf.Sin(a.age * 1.3f)) : 0f;
-            Paint(a, 0.7f + 0.45f * flare * flare);
-        }
-        StepAir(dt, v);
-        foreach (var s in snow.items)
-        {
-            Recycle(s, -0.6f, dt, v, 0.5f);
-            Paint(s, 1f);
-        }
-    }
-
-    void SpawnGlacier(float y)
-    {
-        // Two landmark kinds: a valley glacier (animated meltwater) or a
-        // small ice massif.
-        if (Chance(0.6) && glacierFrames.Length > 0)
-        {
-            var g = SpawnLandmark(glaciers, glacierFrames[0], Rand(1.3f, 1.7f), "glaciers", y);
-            if (g != null) { g.frames = glacierFrames; g.fps = 4f; g.body.localScale = Vector3.one; }
-        }
-        else
-        {
-            SpawnLandmark(glaciers, fx.Get(Chance(0.5) ? "massif0" : "massif1"), Rand(1.1f, 1.5f), "glaciers", y);
-        }
-    }
-
-    void SpawnGeyser()
-    {
-        if (geyserFrames.Length == 0) return;
-        var g = SpawnLandmark(geysers, geyserFrames[0], Rand(0.26f, 0.36f), "geysers", Rand(-HalfH * 0.4f, HalfH * 0.7f));
-        if (g == null) return;
-        g.frames = geyserFrames;
-        g.fps = 9f;
-        g.loop = false;
-        g.body.localScale = Vector3.one;
-        g.color = new Color(0.75f, 0.88f, 1f, 0.8f);
-    }
-
-    void SpawnAurora()
-    {
-        if (auroraFrames.Length == 0) return;
-        var a = aurora.Spawn();
-        if (a == null) return;
-        a.frames = auroraFrames;
-        a.fps = 8f;
-        SetSprite(a, auroraFrames[0], HalfW * 2f * Rand(1.0f, 1.25f));
-        a.x = Rand(-0.6f, 0.6f);
-        a.y = SpawnY(2f);
-        a.rate = set.Spec.Rate("aurora");
-        a.kind = Chance(0.45) ? 1 : 0;
-        a.root.localRotation = Quaternion.Euler(0, 0, Rand(-12f, 12f));
-        if (Chance(0.5)) a.body.localScale = new Vector3(-1f, 1f, 1f);
-        a.color = new Color(0.75f, 0.9f, 0.9f, 0.5f);
-    }
-}
+// FrostDirector lives in FrostBackdrop.cs.
 
 public class VerdantDirector : PlanetDirector
 {

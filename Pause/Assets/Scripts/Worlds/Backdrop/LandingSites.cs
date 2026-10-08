@@ -19,7 +19,11 @@ using UnityEngine;
 // surface, an asteroid's hollow): hidden while parked -- only its engine
 // lights blink at the dock in the launch tell -- it flies out with a flare
 // and fades in as it rises (EliteShip).
-public enum LandingKind { Ground, Station, Planet, Asteroid }
+//
+// Frost's ground sites (FrostDirector) are emerge sites too, each its own
+// kind: an ice-shelf hangar, a rig's lift bay, a relay pad ring, a crawler
+// garage, a silo hatch -- drawn shut until the launch tell opens them.
+public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch }
 
 public struct LandingSite
 {
@@ -34,17 +38,47 @@ public struct LandingSite
     public bool Valid => anchor != null && anchor.gameObject.activeInHierarchy;
     public Vector3 Position => anchor != null ? anchor.TransformPoint(local) : Vector3.zero;
 
-    // "station" / "planet" / "asteroid" / "ground" (EliteDef.launchFrom); anything else: null (any pad).
+    // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
+    // "padring" / "crawlerbay" / "hatch" (EliteDef.launchFrom); anything else:
+    // null (any pad). A launchFrom may list several, comma separated
+    // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
     {
+        if (s != null && s.IndexOf(',') >= 0) s = s.Substring(0, s.IndexOf(',')).Trim();
         switch (s)
         {
+            case "hangar": return LandingKind.Hangar;
+            case "rigbay": return LandingKind.RigBay;
+            case "padring": return LandingKind.PadRing;
+            case "crawlerbay": return LandingKind.CrawlerBay;
+            case "hatch": return LandingKind.Hatch;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;
             case "ground": return LandingKind.Ground;
             default: return null;
         }
+    }
+
+    // Does an elite that launches from `launchFrom` want a site of `kind`?
+    // (Empty / unknown: it takes any.) Allocates only for a listed launchFrom.
+    public static bool Accepts(string launchFrom, LandingKind kind)
+    {
+        if (string.IsNullOrEmpty(launchFrom)) return true;
+        if (launchFrom.IndexOf(',') < 0)
+        {
+            var k = KindOf(launchFrom);
+            return k == null || k.Value == kind;
+        }
+        bool known = false;
+        foreach (string part in launchFrom.Split(','))
+        {
+            var k = KindOf(part.Trim());
+            if (k == null) continue;
+            known = true;
+            if (k.Value == kind) return true;
+        }
+        return !known;
     }
 }
 

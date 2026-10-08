@@ -148,7 +148,7 @@ public class EliteDirector : MonoBehaviour
         for (int k = 0; k < size; k++)
         {
             var def = defs[Random.Range(0, defs.Count)];
-            int s = PickSite(LandingSite.KindOf(def.launchFrom));
+            int s = PickSite(def.launchFrom);
             if (s < 0) break;
             usedSites.Add(sites[s].id);
             float park = Random.Range(ParkSeconds.x, ParkSeconds.y) + stagger;
@@ -170,15 +170,16 @@ public class EliteDirector : MonoBehaviour
 
     // A free site, of the kind the elite launches from when one is free
     // (a Space elite: its station / planet / asteroid), else any free one.
-    int PickSite(LandingKind? prefer)
+    int PickSite(string launchFrom)
     {
+        bool prefer = !string.IsNullOrEmpty(launchFrom) && LandingSite.KindOf(launchFrom) != null;
         int start = Random.Range(0, Mathf.Max(1, sites.Count));
         int any = -1;
         for (int k = 0; k < sites.Count; k++)
         {
             int i = (start + k) % sites.Count;
             if (!sites[i].Valid || usedSites.Contains(sites[i].id)) continue;
-            if (prefer == null || sites[i].kind == prefer.Value) return i;
+            if (!prefer || LandingSite.Accepts(launchFrom, sites[i].kind)) return i;
             if (any < 0) any = i;
         }
         return any;

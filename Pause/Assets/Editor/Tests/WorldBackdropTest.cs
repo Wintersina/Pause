@@ -10,6 +10,9 @@ public static class WorldBackdropTest
 
     // Budgets / guards.
     public const long TextureBudgetBytes = 9L * 1024 * 1024;   // per world, GPU size of the imported format
+    // Frost carries eight shared 1024 atlases (landmarks, sites, weather and
+    // five ambient-loop sheets) besides one 4-tile variant set.
+    public const long FrostTextureBudgetBytes = 12L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -41,12 +44,30 @@ public static class WorldBackdropTest
                            "ringstation_00", "ringstation_03", "mini_station_00", "mini_ringstation_00",
                            "mini_rocky_00", "comet_00", "comet_01", "galaxy0", "galaxy1", "wisp0", "wisp1",
                            "moon", "star", "dot", "streak" } },
-        { "Frost", new[] { "aurora_00", "glacier_00", "massif0", "massif1", "geyser_00",
-                           "cloud0", "cloud1", "haze", "dot" } },
+        // Frost's v3 backdrop has no fx / anim atlases: its own (FrostAtlases).
         { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "cloud0", "cloud1", "haze", "dot",
                              "firefly_00", "spore_00" } },
         { "Ember", new[] { "volcano_00", "burst_00", "cloud0", "cloud1", "haze", "dot" } },
     };
+
+    // Frost's shared atlases and the drawings the director relies on.
+    static readonly Dictionary<string, string[]> FrostAtlases = new Dictionary<string, string[]>
+    {
+        { "landmarks", new[] { "rig_00", "rig_01", "platform_00", "platform_01", "platform_02", "refinery_00", "refinery_01",
+                               "relay_00", "relay_01", "causeway_00", "icebreaker_00", "icebreaker_01", "cliff_00",
+                               "cliff_01", "derrick_00", "convoy_00" } },
+        { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "mist_00", "blizzard_00", "blizzard_02",
+                             "snow_00", "snow_01" } },
+        { "sites", new[] { "hangar_closed", "hangar_open", "rigbay_closed", "rigbay_open", "padring_idle", "padring_active",
+                           "crawlerbay_closed", "crawlerbay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
+        { "smoke", new[] { "smoke_a_00", "smoke_a_07", "smoke_b_00" } },
+        { "steam", new[] { "steam_vent_00", "geyser_07" } },
+        { "fire_lights", new[] { "flare_00", "searchlight_07" } },
+        { "beacons", new[] { "beacon_magenta_03", "beacon_cyan_00", "strobe_white_00", "window_lights_03" } },
+        { "aurora", new[] { "aurora_00", "aurora_15" } },
+    };
+
+    static string ArtDir(string world) { return "Assets/Art/Backgrounds/Resources/" + BackdropCatalog.Folder(world); }
 
     public static int Execute()
     {
@@ -60,6 +81,12 @@ public static class WorldBackdropTest
             AssetDatabase.ImportAsset(
                 "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
                 ImportAssetOptions.ForceUpdate);
+            // Same for Frost's v3 sheets imported before their rule settled.
+            foreach (string png in Directory.GetFiles(ArtDir("Frost"), "*.png", SearchOption.AllDirectories))
+            {
+                var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
+                if (imp != null && imp.mipmapEnabled) AssetDatabase.ImportAsset(png.Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
+            }
             CheckCatalog();
             CheckArt();
             CheckSpaceAtlas();
@@ -90,7 +117,9 @@ public static class WorldBackdropTest
             var spec = BackdropCatalog.For(theme.displayName);
             Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).
-            int maxLayers = spec.world == "Space" ? 14 : 10;
+            // Space carries two runs of body tiers (planets, structures);
+            // Frost its weather at several depths.
+            int maxLayers = spec.world == "Space" || spec.world == "Frost" ? 14 : 10;
             Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
                   spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 
@@ -103,13 +132,29 @@ public static class WorldBackdropTest
             if (spec.world != "Space") CheckDepthModel(spec);
 
             string folder = BackdropCatalog.Folder(spec.world);
-            foreach (var l in spec.layers)
+            int sets = Mathf.Max(1, spec.variantSets);
+            for (int v = 1; v <= sets; v++)
             {
-                if (l.kind == BackdropCatalog.Kind.Pieces) continue;
-                string texture = spec.world == "Space" && l.name == "sky"
-                    ? SpaceSkySelection.Texture : l.texture;
-                Check(spec.world + "/" + texture + " tile sprite resolves",
-                      Resources.Load<Sprite>(folder + texture) != null);
+                string tiles = spec.variantSets > 0 ? BackdropCatalog.TileFolder(spec.world, v) : folder;
+                foreach (var l in spec.layers)
+                {
+                    if (l.kind == BackdropCatalog.Kind.Pieces) continue;
+                    string texture = spec.world == "Space" && l.name == "sky"
+                        ? SpaceSkySelection.Texture : l.texture;
+                    Check(spec.world + "/" + (spec.variantSets > 0 ? "v" + v + "/" : "") + texture + " tile sprite resolves",
+                          Resources.Load<Sprite>(tiles + texture) != null);
+                }
+            }
+            if (spec.world == "Frost")
+            {
+                foreach (var kv in FrostAtlases)
+                {
+                    var atlas = new BackdropAtlas(Resources.Load<Texture2D>(folder + kv.Key), Resources.Load<TextAsset>(folder + kv.Key));
+                    Check("Frost atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
+                    foreach (string n in kv.Value) Check("Frost " + kv.Key + " sprite " + n + " present", atlas.Has(n));
+                    atlas.Destroy();
+                }
+                continue;
             }
             if (spec.world == "Space")
             {
@@ -194,10 +239,14 @@ public static class WorldBackdropTest
     {
         foreach (var spec in BackdropCatalog.All)
         {
-            string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + spec.world + "/Backdrop/";
+            string dir = ArtDir(spec.world);
             long bytes = 0, astc = 0;
             long skyBytes = 0, skyAstc = 0;
-            foreach (string path in Directory.GetFiles(dir, "*.png"))
+            // Frost: one variant tile set per landing, so only one set counts.
+            var variantBytes = new long[FrostBackdropSelection.MaxVariants + 1];
+            var variantAstc = new long[FrostBackdropSelection.MaxVariants + 1];
+            foreach (string path in Directory.GetFiles(dir, "*.png",
+                         spec.variantSets > 0 ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 string asset = path.Replace('\\', '/');
                 var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(asset);
@@ -240,6 +289,11 @@ public static class WorldBackdropTest
                     skyBytes = System.Math.Max(skyBytes, assetBytes);
                     skyAstc = System.Math.Max(skyAstc, assetAstc);
                 }
+                else if (spec.variantSets > 0 && VariantOf(path) > 0)
+                {
+                    variantBytes[VariantOf(path)] += assetBytes;
+                    variantAstc[VariantOf(path)] += assetAstc;
+                }
                 else { bytes += assetBytes; astc += assetAstc; }
                 bool tile = WorldBackdropImport.IsTile(asset);
                 // The layer this file is the art of: a tile layer may name its
@@ -271,7 +325,7 @@ public static class WorldBackdropTest
                     if (!foundLayer && spaceSky) { layer = spec.Find("sky"); foundLayer = true; }
                     if (!foundLayer) { Check(spec.world + "/" + name + " maps to a catalog layer", false); continue; }
                     float seam = layer.wrapBlend > 0f ? WrapBlendSeam(px, layer.wrapBlend) : SeamDifference(px);
-                    Check(spec.world + "/" + name + " is vertically seamless (top vs bottom row " +
+                    Check(spec.world + "/" + VariantTag(path) + name + " is vertically seamless (top vs bottom row " +
                           seam.ToString("F4") + " <= " + SeamTolerance +
                           (layer.wrapBlend > 0f ? ", as rendered with a " + layer.wrapBlend + " wrap cross-fade; raw art " +
                                                   SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamTolerance);
@@ -282,24 +336,41 @@ public static class WorldBackdropTest
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
                 {
                     float v90 = ValuePercentile(px, 0.9f);
-                    Check(spec.world + "/" + name + " forms at HSV value <= 35% (p90 " + v90.ToString("F3") + ")",
+                    Check(spec.world + "/" + VariantTag(path) + name + " forms at HSV value <= 35% (p90 " + v90.ToString("F3") + ")",
                           v90 <= TileMaxValueP90);
                 }
                 if (spaceSky || name == "sky")
-                    Check(spec.world + " sky stays dark (lum " + lum.ToString("F3") + ")", lum <= SkyMaxLuminance);
+                    Check(spec.world + " " + VariantTag(path) + "sky stays dark (lum " + lum.ToString("F3") + ")", lum <= SkyMaxLuminance);
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
-                    Check(spec.world + "/" + name + " under gameplay contrast guard (lum " + lum.ToString("F3") +
+                    Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard (lum " + lum.ToString("F3") +
                           ", chroma " + chroma.ToString("F3") + ")", lum <= TileMaxLuminance && chroma <= TileMaxChroma);
-                if (!tile)
+                if (!tile && spec.world == "Frost")
+                {
+                    // Frost's v3 sheets are drawn at their loops' draw alpha
+                    // (FrostAmbientCatalog) and the weather carries its
+                    // translucency in the art: held to the ceiling as drawn.
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * FrostDrawAlpha(file));
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (lum " + lum.ToString("F3") +
+                          " x opacity " + Mathf.Min(1f, maxA * FrostDrawAlpha(file)).ToString("F2") + " = " + drawn.ToString("F3") + ")",
+                          drawn <= AtlasMaxLuminance);
+                }
+                else if (!tile)
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling (lum " + lum.ToString("F3") + ")",
                           lum <= AtlasMaxLuminance);
             }
             bytes += skyBytes;
             astc += skyAstc;
+            long maxSet = 0, maxSetAstc = 0;
+            for (int v = 1; v < variantBytes.Length; v++) { maxSet = System.Math.Max(maxSet, variantBytes[v]); maxSetAstc = System.Math.Max(maxSetAstc, variantAstc[v]); }
+            bytes += maxSet;
+            astc += maxSetAstc;
+            long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
-            Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (TextureBudgetBytes / 1024) + " KB",
-                  bytes <= TextureBudgetBytes);
+            Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",
+                  bytes <= budget);
         }
     }
 
@@ -307,10 +378,11 @@ public static class WorldBackdropTest
 
     // The ground layers stacked the way the game draws them at rest: the
     // opaque sky, then far and mid (alpha over), then the river strip centred.
-    static Color[] Composite(string world, out int w, out int h)
+    static Color[] Composite(string world, out int w, out int h, int variant = 1)
     {
         var spec = BackdropCatalog.For(world);
-        string dir = "Assets/Art/Backgrounds/Resources/Worlds/" + world + "/Backdrop/";
+        string dir = "Assets/Art/Backgrounds/Resources/" + (spec.variantSets > 0
+            ? BackdropCatalog.TileFolder(world, variant) : BackdropCatalog.Folder(world));
         string skyName = world == "Space" ? SpaceSkySelection.Texture : "sky";
         var outPx = (Color[])ReadPixels(dir + skyName + ".png").Clone();
         w = ReadW; h = ReadH;
@@ -343,6 +415,27 @@ public static class WorldBackdropTest
         }
         return outPx;
     }
+
+    // 1..4 for a file in a Frost variant folder (".../v3/mid.png"), else 0.
+    static int VariantOf(string path)
+    {
+        string d = Path.GetFileName(Path.GetDirectoryName(path.Replace('\\', '/')));
+        if (d != null && d.Length == 2 && d[0] == 'v' && char.IsDigit(d[1])) return d[1] - '0';
+        return 0;
+    }
+
+    // The highest draw alpha a Frost atlas is drawn at: its loops' alpha
+    // (the world aurora's per-variant alpha for aurora), 1 for the rest
+    // (landmarks, sites, weather).
+    static float FrostDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        if (atlas == "aurora") { foreach (float v in FrostAmbientCatalog.AuroraAlpha) a = Mathf.Max(a, v); return a; }
+        foreach (var l in FrostAmbientCatalog.Loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha);
+        return a > 0f ? a : 1f;
+    }
+
+    static string VariantTag(string path) { int v = VariantOf(path); return v > 0 ? "v" + v + "/" : ""; }
 
     static float Chroma(Color c) { return Mathf.Max(c.r, Mathf.Max(c.g, c.b)) - Mathf.Min(c.r, Mathf.Min(c.g, c.b)); }
     static float Value(Color c) { return Mathf.Max(c.r, Mathf.Max(c.g, c.b)); }
@@ -456,11 +549,13 @@ public static class WorldBackdropTest
     static void CheckReadability()
     {
         for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        for (int variant = 1; variant <= Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets); variant++)
         {
-            string world = BackdropCatalog.For(WorldManager.Worlds[wi].displayName).world;
+            var wspec = BackdropCatalog.For(WorldManager.Worlds[wi].displayName);
+            string world = wspec.world + (wspec.variantSets > 0 ? " v" + variant : "");
             var theme = EnemyPalette.ThemeFor(wi);
             int w, h;
-            var px = Composite(world, out w, out h);
+            var px = Composite(wspec.world, out w, out h, variant);
             var lum = new List<float>();
             var val = new List<float>();
             double chroma = 0;

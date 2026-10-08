@@ -22,7 +22,10 @@ using UnityEngine.SceneManagement;
 //           A world with a planetfall (PlanetfallCatalog: Space -> Frost)
 //           shows its planet instead: the same stage and the same pressure
 //           until the ship touches it, then the descent (Planetfall), which
-//           calls Advance while its clouds hide the view.
+//           calls Advance while its clouds hide the view. A world left by
+//           lift-off (LiftoffCatalog: Frost) climbs to space first (Liftoff):
+//           the same stage, no pressure, nothing spawning, until its calm
+//           interlude ends and it opens the gateway (OpenGateway).
 //
 // Through the portal: the next planet -- or, after the final world, back to
 // the world the run started in, one loop on (RunLoop, LoopRules). The score
@@ -321,6 +324,21 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
+        // Leaving a planet that lifts off (LiftoffCatalog: Frost): the climb
+        // to space and a calm interlude first, then Liftoff opens the gateway
+        // itself (no pressure until then). Missing art: the gateway now.
+        if (Liftoff.Spawn(LiftoffCatalog.For(CurrentIndex, PortalDestination, !HasNext)) != null) return;
+        OpenGateway();
+    }
+
+    // The way on from the open stage: the next planet's planetfall if it has
+    // one, else the portal; either way the pressure starts. The lift-off
+    // calls it when its interlude is over. A Verdant planetfall needs only
+    // its art and a PlanetfallCatalog entry: Frost's lift-off then ends on
+    // its approach.
+    public void OpenGateway()
+    {
+        if (!portalOpen) return;
         int destination = PortalDestination;
         PortalPressure.Open(destination);
         // A planet arrived at by planetfall shows itself instead (and falls
@@ -414,6 +432,7 @@ public class WorldManager : MonoBehaviour
         PortalPressure.Close(false);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) BossUtil.Kill(p.gameObject);
         if (Planetfall.Live != null) BossUtil.Kill(Planetfall.Live.gameObject);
+        if (Liftoff.Live != null) BossUtil.Kill(Liftoff.Live.gameObject);
         if (CurrentIndex == last) return;
         CurrentIndex = last;
         var theme = Current;
