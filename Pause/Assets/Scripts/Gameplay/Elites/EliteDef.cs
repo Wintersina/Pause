@@ -117,7 +117,7 @@ public class EliteDef
     public float maxBank = 10f;         // upright ships: degrees of bank into a sideways move
     public bool armored;                // smashes rocks without losing a heart (mines, enemies, elites, rails still hurt)
     public EliteCells cells = new EliteCells();   // which strip cell shows what (default: the Ember layout)
-    public string launchFrom;           // the landing site it prefers (LandingSite.KindOf): "station" | "planet" | "asteroid" | "ground"; empty: any. Falls back to any free site.
+    public string launchFrom;           // the landing site(s) it prefers (LandingSite.KindOf / Accepts): "station" | "planet" | "asteroid" | "ground" | Frost's "hangar" | "rigbay" | "padring" | "crawlerbay" | "hatch", or several comma separated; empty: any. Falls back to any free site.
 
     // ---- brain tuning (shared base) ----
     public float speed = 2.6f;          // cruise, world u/s

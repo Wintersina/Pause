@@ -38,6 +38,9 @@ public class BackdropSet
     public BackdropAtlas AsteroidFx { get; private set; }
     public BackdropAtlas CometFrames { get; private set; }
     public BackdropDirector Director { get; private set; }
+    // The variant set the tile layers came from (Spec.variantSets; 0 = none).
+    public int Variant { get; private set; }
+    readonly Dictionary<string, BackdropAtlas> atlases = new Dictionary<string, BackdropAtlas>();
     public readonly List<BackdropTile> Tiles = new List<BackdropTile>();
     public readonly List<Texture> Textures = new List<Texture>();
 
@@ -68,14 +71,22 @@ public class BackdropSet
         if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
         if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
         if (Spec.world == "Space") CometFrames = LoadAtlas(folder, "comet_frames_v1");
-        Complete = Fx.Count > 0;
+        Complete = string.IsNullOrEmpty(Spec.keyAtlas) ? Fx.Count > 0 : Atlas(Spec.keyAtlas).Count > 0;
+
+        // A world with variant sets: one per entry, among those installed.
+        string tileFolder = folder;
+        if (Spec.variantSets > 0)
+        {
+            Variant = FrostBackdropSelection.Pick(Spec.world, Spec.variantSets);
+            tileFolder = BackdropCatalog.TileFolder(Spec.world, Variant);
+        }
 
         foreach (var layer in Spec.layers)
         {
             if (layer.kind == BackdropCatalog.Kind.Pieces) continue;
             bool spaceSky = Spec.world == "Space" && layer.name == "sky";
             string texture = spaceSky ? SpaceSkySelection.Texture : layer.texture;
-            var sprite = Resources.Load<Sprite>(folder + texture);
+            var sprite = Resources.Load<Sprite>(tileFolder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
             Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
@@ -85,6 +96,18 @@ public class BackdropSet
         Layout(halfWidth, halfHeight);
         Director = CreateDirector(Spec.world);
         if (Director != null && Complete) Director.Init(this);
+    }
+
+    // A named atlas from the world's folder, loaded once and kept for the
+    // set's life. A missing atlas is an empty one (Count 0, every Get null),
+    // so art that has not landed yet just spawns nothing.
+    public BackdropAtlas Atlas(string name)
+    {
+        BackdropAtlas a;
+        if (atlases.TryGetValue(name, out a)) return a;
+        a = LoadAtlas(BackdropCatalog.Folder(Spec.world), name);
+        atlases[name] = a;
+        return a;
     }
 
     BackdropAtlas LoadAtlas(string folder, string name)
@@ -170,6 +193,8 @@ public class BackdropSet
         if (NeonFrames != null) NeonFrames.Destroy();
         if (AsteroidFx != null) AsteroidFx.Destroy();
         if (CometFrames != null) CometFrames.Destroy();
+        foreach (var a in atlases.Values) a.Destroy();
+        atlases.Clear();
         if (Root != null) BackdropAtlas.Kill(Root.gameObject);
         Textures.Clear();
     }

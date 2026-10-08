@@ -151,6 +151,7 @@ public static class AllTests
         ("UnusedAssetGuardTest", UnusedAssetGuardTest.Execute),
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
+        ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
     };

@@ -7,6 +7,7 @@
   "lore": "A compact icebreaker in rime-steel plate that clears shipping lanes by ramming them. It sweeps back and forth ahead of you, squats when it is over your lane, then ploughs straight down it, breaking rocks without a scratch. Its frost shards glance off the rails, so watch both walls.",
   "brain": "breaker",
   "attack": "ice_ram",
+  "launchFrom": "hangar,crawlerbay",
   "cells": {
     "flight": [
       3
