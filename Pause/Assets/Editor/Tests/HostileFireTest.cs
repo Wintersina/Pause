@@ -491,6 +491,28 @@ public static class HostileFireTest
         FireElite(null, EliteShots.Kind.Bolt, new Vector2(0f, .6f), Vector2.down * 3f);
         StepShots(.6f);
         Check("... and on again in a game scene", Gone(rock));
+
+        // The tutorial's alien (TutorialEnemy: a real roster alien, brain off)
+        // is never hostile fire's target there, yet stays an ordinary target
+        // for the ship (a ram, a teleport strike, the weapon).
+        startMenu.youAreInTutorial = true;
+        FriendlyFire.OnSceneLoaded(score.TutorialScene);
+        var alien = TutorialEnemy.Spawn(0f);
+        Check("the tutorial alien spawns", alien != null);
+        if (alien != null)
+        {
+            alien.transform.position = new Vector3(0f, -1f, 0f);
+            var t = ClearTarget.Ensure(alien.gameObject);
+            FriendlyFire.Settle(alien.gameObject);
+            var hits = new FriendlyFire.BeamHits();
+            int landed = FriendlyFire.HostileBeam(hits, new Vector2(-3f, -1f), Vector2.right, 6f, .3f, null, "test laser");
+            Check("tutorial: a hostile beam across the alien lands nothing (" + landed + ") and the alien lives",
+                  landed == 0 && !Gone(alien.gameObject) && !FriendlyFire.HostileFireCanHit(t, null));
+            Check("... while the alien stays an ordinary target for the ship", FriendlyFire.CanHit(t));
+            TutorialEnemy.Clear();
+        }
+        startMenu.youAreInTutorial = false;
+        FriendlyFire.OnSceneLoaded("gameS1");
     }
 
     // ---- 10. allocation -----------------------------------------------------------------

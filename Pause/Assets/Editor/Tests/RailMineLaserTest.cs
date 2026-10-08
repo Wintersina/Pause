@@ -84,6 +84,7 @@ public static class RailMineLaserTest
         BossRails.Reset();
         ScreenInfo.ClearOverride();
         FriendlyFire.ResetCounters();
+        FriendlyFire.OnSceneLoaded("gameS1");   // not the tutorial scene (a previous suite may have left that note)
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         startMenu.youAreInTutorial = false;
@@ -374,7 +375,8 @@ public static class RailMineLaserTest
     static void FriendlyFireOnce()
     {
         // ALL hostile fire is friendly fire: the beam hurts what it crosses
-        foreach (bool on in new[] { true })
+        // on: a game scene; off: the tutorial (hostile fire never runs there)
+        foreach (bool on in new[] { true, false })
         {
             Fresh();
             Check("the mine laser is friendly fire (RailMineLaser.HurtsOtherEnemies)", RailMineLaser.HurtsOtherEnemies);
@@ -395,6 +397,7 @@ public static class RailMineLaserTest
             FriendlyFire.Settle(rock);
             FriendlyFire.Settle(fighter);
             FriendlyFire.Settle(far);
+            startMenu.youAreInTutorial = !on;   // the laser is already live: only the burn is gated
             int kills = FriendlyFire.Kills;
             for (int i = 0; i < 30 && l != null && l.State == RailMineLaser.Phase.Beam; i++) { FriendlyFire.HostileStep(); Step(brain); }
             kills = FriendlyFire.Kills;
@@ -404,14 +407,20 @@ public static class RailMineLaserTest
                       ", beam y " + (l != null ? F(l.Y) : "-") + "): a rock and an enemy fighter in the beam's row each take the hostile-fire hit, once (" + kills +
                       " kills, " + (l != null ? l.HitsThisPulse : -1) + " hits this pulse); a rock off the row and its own mine do not",
                       kills == 2 && far != null && brain != null && l != null && l.HitsThisPulse == 2);
+            else
+                Check("off in the tutorial: the beam burns no hazard (" + kills + " kills)",
+                      l != null && kills == 0 && !Gone(rock) && !Gone(fighter));
             if (rock != null) Object.DestroyImmediate(rock);
             if (fighter != null) Object.DestroyImmediate(fighter);
             if (far != null) Object.DestroyImmediate(far);
             if (brain != null) Object.DestroyImmediate(brain.gameObject);
             Object.DestroyImmediate(rail);
         }
+        startMenu.youAreInTutorial = false;
         RailMineLaser.HurtsOtherEnemies = true;
     }
+
+    static bool Gone(GameObject go) => go == null || !go.TryGetComponent(out ClearTarget t) || !t.enabled;
 
     // ---- 5. dodge room -------------------------------------------------------
 
