@@ -174,6 +174,9 @@ public static class HostileFireTest
                 var b = d.Behaviour;
                 if (b != null && b.attack == attack) { def = d; break; }
             }
+            // Cross was the rail mines' attack; they fire a laser now (RailMineLaser,
+            // covered in Lasers below and RailMineLaserTest), so the roster may have none.
+            if (def == null && attack == EnemyAttack.Cross) { Check("no roster enemy fires Cross now (the mines fire a laser)", true); continue; }
             if (def == null) { Check("the roster has an enemy that fires " + attack, false); continue; }
             var shooterGo = EnemyFactory.Create(def, new Vector3(def.role == EnemyRole.Mine ? 2.2f : 0f, 1.5f, 0f), Quaternion.identity);
             ClearTarget.Ensure(shooterGo);
@@ -614,11 +617,17 @@ public static class HostileFireTest
 
         // every roster attack that fires goes through EnemyVolley -> EliteShot, marked with its shooter
         string volley = classes.ContainsKey("EnemyVolley") ? classes["EnemyVolley"] : "";
-        var firing = System.Enum.GetValues(typeof(EnemyAttack)).Cast<EnemyAttack>().Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge).ToList();
+        // (Laser is a rail mine's beam, RailMineLaser, not a volley of shots: checked just below)
+        var firing = System.Enum.GetValues(typeof(EnemyAttack)).Cast<EnemyAttack>()
+            .Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge && a != EnemyAttack.Laser).ToList();
         bool cased = firing.All(a => volley.Contains("case EnemyAttack." + a + ":"));
         int fires = Regex.Matches(volley, @"pool\.Fire\(").Count, marks = Regex.Matches(volley, @"AsRosterShot\(source").Count;
         Check("every firing roster attack (" + string.Join(", ", firing) + ") goes through EnemyVolley's pool, each shot marked with its shooter (" +
               fires + " launches, " + marks + " marked)", cased && fires > 0 && fires == marks);
+
+        string laser = classes.ContainsKey("RailMineLaser") ? classes["RailMineLaser"] : "";
+        Check("the rail mine laser (EnemyAttack.Laser) burns through hostile fire (FriendlyFire.HostileFireCanHit + HostileHit)",
+              laser.Contains("FriendlyFire.HostileFireCanHit(") && laser.Contains("FriendlyFire.HostileHit("));
 
         // mine blasts hook every burst
         Check("every rail-mine burst blasts its neighbours (RailBombAnimator -> FriendlyFire.MineBlast)",

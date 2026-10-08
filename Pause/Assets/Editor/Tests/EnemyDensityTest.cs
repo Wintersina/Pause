@@ -141,7 +141,9 @@ public static class EnemyDensityTest
         Debug.Log("[DENSITY] HUD | level s | before: spawns/s, on screen | after: spawns/s, on screen, shots, threats | cut");
         for (int i = 0; i < points.Length; i++)
         {
-            var s = EnemyDensityProbe.Pinned(points[i], EnemyDensityProbe.LevelSecondFor(points[i]), 3);
+            // 8 seeds: the shots-in-flight average at one HUD point swings
+            // about +/-0.07 between 3-seed samples, more than its 0.25 floor's margin
+            var s = EnemyDensityProbe.Pinned(points[i], EnemyDensityProbe.LevelSecondFor(points[i]), 8);
             cut[i] = 1f - s.Threats / BeforeOnScreen[i];
             peakThreats = Mathf.Max(peakThreats, s.peakOnScreen);
             Debug.Log(string.Format("[DENSITY] TABLE hud {0,2} | t {1,5:F1} | before {2,5:F2}/s {3,5:F2} | after {4,5:F2}/s {5,5:F2} + {6:F2} shots = {7,5:F2} | cut {8:P0} | pilots in view {9:F2}, left {10:F0}, engaged {11:F1}s, in view {12:F1}s",
