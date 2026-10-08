@@ -514,7 +514,8 @@ public static class CodexCatalogue
     // layer of its animated WorldBackdrop set; see BackdropCatalog).
     static Sprite Backdrop(string folder)
     {
-        return SquareOf(Resources.Load<Texture2D>(BackdropCatalog.Folder(folder) + "sky"));
+        // Worlds with variant ground sets (Frost) keep their sky in Backdrop3/v1..vN: show variant 1.
+        return SquareOf(Resources.Load<Texture2D>(BackdropCatalog.TileFolder(folder, 1) + "sky"));
     }
 
     // Space keeps the scene's own authored backdrop (WorldTheme leaves its
