@@ -68,9 +68,21 @@ public class Planetfall : MonoBehaviour
     public static float DiveScale = 2.8f;
     // The ship's dive spot: this share of the view's height, from the bottom.
     public static float DiveHeight = .34f;
-    // The shroud's and the burst's cell widths, world units.
+    // The shroud's and the burst's cell widths, world units. ShroudWidth is
+    // the fallback; the shroud is normally sized to the ship (HoleFit).
     public static float ShroudWidth = 2.6f, BurstWidth = 7.5f;
     public static float ShroudFps = 14f;
+    // The shroud's opening is this many times the hull sprite's width (its
+    // bounds carry a little clear margin, so the plasma licks the wing tips),
+    // within these cell widths. The opening is taller than wide (146 x 165
+    // px): its centre sits HoleDrop hull widths below the hull's middle, so
+    // the rim wraps the nose and the engines' plumes fill the lower gap.
+    public static float HoleFit = 1f, HoleDrop = .1f, ShroudMin = 1.6f, ShroudMax = 5f;
+    // Life on top of the 6-cell loop: a scale and twist flicker, a brightness
+    // pulse, and the plasma flaring (bigger, hotter) as the dive deepens.
+    public static float ShroudFlicker = .035f, ShroudTwist = 2.5f, ShroudPulse = .12f, ShroudFlare = .05f;
+    // An additive copy one cell behind, slightly larger and jittered.
+    public static float GlowScale = 1.07f, GlowFrom = .22f, GlowTo = .55f;
     // Clouds: world units per art pixel (deeper deck: finer), tiles a second.
     public static float DeckPixels = 1f / 70f, DarkDeckPixels = 1f / 110f;
     public static float DeckFlow = .55f, DarkDeckFlow = .28f;
@@ -146,8 +158,12 @@ public class Planetfall : MonoBehaviour
 
     // renderers
     Transform stage, group;
-    SpriteRenderer planet, rim, limb, reticle, dark, deck, streakL, streakR, tint, vignette, flash, shroud, burst;
-    Material limbMat, darkMat, deckMat, streakLMat, streakRMat;
+    SpriteRenderer planet, rim, limb, reticle, dark, deck, streakL, streakR, tint, vignette, flash, shroud, shroudGlow, burst;
+    Material limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat;
+    // The hull at the commit: its width and its middle's offset from the
+    // ship's position, world units (the shroud is fitted to it).
+    float shipSpan, shroudScale;
+    Vector3 shipMid;
     readonly List<Renderer> lifted = new List<Renderer>(32);
 
     static readonly int UvId = Shader.PropertyToID("_UV");
@@ -177,6 +193,11 @@ public class Planetfall : MonoBehaviour
     public SpriteRenderer DarkDeckRenderer { get { return dark; } }
     public SpriteRenderer DeckRenderer { get { return deck; } }
     public SpriteRenderer ShroudRenderer { get { return shroud; } }
+    public SpriteRenderer ShroudGlowRenderer { get { return shroudGlow; } }
+    // The shroud's base cell width (world units) and the hull it was fitted to.
+    public float ShroudScale { get { return shroudScale; } }
+    public float ShipSpan { get { return shipSpan; } }
+    public Vector3 ShipMid { get { return shipMid; } }
     public SpriteRenderer BurstRenderer { get { return burst; } }
     public SpriteRenderer FlashRenderer { get { return flash; } }
 
@@ -245,6 +266,8 @@ public class Planetfall : MonoBehaviour
         tint = Part("Tint", stage, art.White, TintOrder, null);
         vignette = Part("Vignette", stage, art.Vignette, VignetteOrder, null);
         shroud = Part("Shroud", stage, art.Entry[0], 0, null);
+        glowMat = Layer(shader, true);
+        shroudGlow = Part("ShroudGlow", stage, art.Entry[0], 0, glowMat);
         burst = Part("Burst", stage, art.Burst[0], BurstOrder, null);
         flash = Part("Flash", stage, art.White, FlashOrder, null);
     }
@@ -397,6 +420,7 @@ public class Planetfall : MonoBehaviour
         commitScale = group.localScale.x;
         reticleScale = reticle.transform.localScale;
         hull = ship.GetComponent<SpriteRenderer>();
+        FitShroud();
         zone.enabled = false;
         // the waiting is over: the pressure stops (the world bonus is paid
         // on arrival, by WorldManager.Advance)
@@ -503,15 +527,40 @@ public class Planetfall : MonoBehaviour
         if (ship != null) ship.position = pos;
 
         // ---- the entry ----
+        // The 6-cell loop steps at ShroudFps on the descent clock (it
+        // freezes with the world); each cell's pivot is its opening's
+        // centre, so the ship stays in the hole while the plasma churns.
         float sa = PlanetfallTimeline.ShroudAlpha(tl);
         shroud.enabled = sa > .002f;
+        shroudGlow.enabled = shroud.enabled;
         if (shroud.enabled)
         {
-            shroud.sprite = art.Entry[Mathf.FloorToInt(tl * ShroudFps) % art.Entry.Length];
-            shroud.sortingOrder = HullOrder() - 2;
-            shroud.transform.position = pos + new Vector3(.025f * Mathf.Sin(tl * 37f), 0f, 0f);
-            shroud.transform.localScale = new Vector3(ShroudWidth, ShroudWidth * (1f + .035f * Mathf.Sin(tl * 23f)), 1f);
-            shroud.color = new Color(1f, 1f, 1f, sa);
+            int n = art.Entry.Length;
+            int cell = Mathf.FloorToInt(tl * ShroudFps) % n;
+            float deep = PlanetfallTimeline.Ramp(tl, PlanetfallTimeline.ShroudInTo, PlanetfallTimeline.BreakAt);
+            float flick = ShroudFlicker * (.6f * Mathf.Sin(tl * 31f) + .4f * Mathf.Sin(tl * 53f + 1.3f));
+            float size = shroudScale * (1f + ShroudFlare * deep + flick);
+            float pulse = 1f - ShroudPulse * (.5f + .5f * Mathf.Sin(tl * 19f + 2f * Mathf.Sin(tl * 7f)));
+            Vector3 at = pos + shipMid + new Vector3(.012f * size * Mathf.Sin(tl * 37f), -HoleDrop * shipSpan, 0f);
+
+            shroud.sprite = art.Entry[cell];
+            shroud.sortingOrder = HullOrder() - 3;
+            shroud.transform.position = at;
+            shroud.transform.localRotation = Quaternion.Euler(0f, 0f, ShroudTwist * Mathf.Sin(tl * 17f + 1f));
+            shroud.transform.localScale = new Vector3(size, size * (1f + .025f * Mathf.Sin(tl * 23f)), 1f);
+            shroud.color = new Color(pulse, pulse, pulse, sa);
+
+            // The hot copy: a cell behind, a touch bigger, wobbling the other
+            // way, hotter as the dive deepens.
+            float glowSize = size * GlowScale * (1f + .03f * Mathf.Sin(tl * 41f));
+            shroudGlow.sprite = art.Entry[(cell + n - 1) % n];
+            shroudGlow.sortingOrder = HullOrder() - 2;
+            shroudGlow.transform.position = at + new Vector3(.01f * size * Mathf.Sin(tl * 29f + 2f), .006f * size * Mathf.Sin(tl * 43f), 0f);
+            shroudGlow.transform.localRotation = Quaternion.Euler(0f, 0f, -ShroudTwist * Mathf.Sin(tl * 13f));
+            shroudGlow.transform.localScale = new Vector3(glowSize, glowSize, 1f);
+            Color g = Color.Lerp(def.heat, Color.white, .35f);
+            g.a = sa * Mathf.Lerp(GlowFrom, GlowTo, deep) * (.8f + 1.6f * (1f - pulse));
+            shroudGlow.color = g;
         }
 
         float qw = 2f * halfW * Overscan, qh = 2f * halfH * Overscan;
@@ -641,6 +690,25 @@ public class Planetfall : MonoBehaviour
         sr.color = c;
     }
 
+    // Sizes the shroud so its opening is HoleFit times the hull's width,
+    // centred on the hull's middle (measured once, at the commit, from the
+    // hull sprite's own bounds: the drawn ship, not its transform).
+    void FitShroud()
+    {
+        shipSpan = 0f;
+        shipMid = Vector3.zero;
+        shroudScale = ShroudWidth;
+        if (hull == null || hull.sprite == null) return;
+        Bounds b = hull.sprite.bounds;
+        Vector3 s = hull.transform.lossyScale;
+        shipSpan = Mathf.Abs(b.size.x * s.x);
+        shipMid = hull.transform.position - ship.position +
+                  hull.transform.rotation * new Vector3(b.center.x * s.x, b.center.y * s.y, 0f);
+        float holeShare = art.EntryCellPx > 0f ? def.entryHolePx / art.EntryCellPx : 0f;
+        if (holeShare > 0f && shipSpan > 0f)
+            shroudScale = Mathf.Clamp(HoleFit * shipSpan / holeShare, ShroudMin, ShroudMax);
+    }
+
     int HullOrder()
     {
         return hull != null ? hull.sortingOrder : Raise;
@@ -690,8 +758,8 @@ public class Planetfall : MonoBehaviour
         backdropBoost = 1f;
         if (stage != null) BossUtil.Kill(stage.gameObject);
         stage = null;
-        foreach (var m in new[] { limbMat, darkMat, deckMat, streakLMat, streakRMat }) if (m != null) BossUtil.Kill(m);
-        limbMat = darkMat = deckMat = streakLMat = streakRMat = null;
+        foreach (var m in new[] { limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat }) if (m != null) BossUtil.Kill(m);
+        limbMat = darkMat = deckMat = streakLMat = streakRMat = glowMat = null;
         if (art != null) art.Release();
         art = null;
     }

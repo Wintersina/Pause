@@ -31,7 +31,9 @@ public class PlanetfallDef
     public float limbApexPx;        // the horizon's top, at the image's centre column
     public float limbEdgePx;        // the horizon's height at the image's side edges
     public int entryFrames;         // cells in entryFx, laid out in one row
-    public Vector2 entryShipPx;     // where the ship sits in an entryFx cell
+    public Vector2 entryShipPx;     // where the ship sits in an entryFx cell: the opening's centre
+    public float entryHolePx;       // the opening's width (0: the shroud is drawn ShroudWidth wide)
+    public float[] entryHoleX;      // per cell, the opening's centre x (it wanders); null: entryShipPx.x
     public int burstFrames;         // cells in burst, one row; the burst's centre is the cell's
 
     // ---- colours ----
@@ -82,7 +84,13 @@ public static class PlanetfallCatalog
         limbApexPx = 355f,
         limbEdgePx = 722f,
         entryFrames = 6,
-        entryShipPx = new Vector2(256f, 300f),
+        // The opening, measured per cell (flood fill of the clear pixels
+        // round the ship): 146 px wide, 165 tall, centre y 338.5; its centre
+        // x wanders 251 .. 268 through the loop. The manifest's 256, 300 is
+        // the opening's upper part, which put the ship's nose out of it.
+        entryShipPx = new Vector2(256f, 338.5f),
+        entryHolePx = 146f,
+        entryHoleX = new[] { 251f, 251.5f, 259.5f, 268f, 267.5f, 258.5f },
         burstFrames = 5,
         cue = new Color(0.45f, 0.92f, 1f),
         heat = new Color(0.95f, 0.30f, 0.80f),
