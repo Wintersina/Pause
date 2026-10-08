@@ -68,6 +68,7 @@ public static class WorldBackdropTest
             CheckReadability();
             CheckWalls();
             CheckSpaceRailMaterials();
+            CheckRailBrightness();
             CheckRuntime();
             CheckSpaceDiscs();
             CheckSpaceMotion();
@@ -592,7 +593,7 @@ public static class WorldBackdropTest
                     var mat = wall.GetComponent<Renderer>().sharedMaterial;
                     bool mirrored = mat.mainTextureScale.x < 0f;
                     if (mat.shader.name != "Pause/WorldRailRepeat" || mat.renderQueue < 3000 || mat.mainTexture == null ||
-                        mat.mainTexture.name != railName || mat.color != theme.tint || mirrored != (side == 1))
+                        mat.mainTexture.name != railName || mat.color != WorldPainter.RailTint(theme) || mirrored != (side == 1))
                         ok = false;
                     // World x of the art's two edges on this wall. The left
                     // wall shows the texture as drawn (gameplay edge = the
@@ -633,6 +634,69 @@ public static class WorldBackdropTest
                       Mathf.Abs(inner - refInner) < 0.05f && Mathf.Abs(outer - refOuter) < 0.05f);
             }
         }
+    }
+
+    // Frost's rails are dimmed (WorldPainter.RailBrightness) so they recede
+    // behind the lane: rendered alone through the game camera, their light
+    // is 50..70% of the undimmed rail's, and every other world draws its
+    // rail exactly as painted. Run after CheckSpaceRailMaterials (gameS1 open).
+    static void CheckRailBrightness()
+    {
+        var cam = Camera.main;
+        var walls = new[] { GameObject.Find("leftPipe"), GameObject.Find("rightPipe") };
+        if (cam == null || walls[0] == null || walls[1] == null) { Check("rail brightness: gameS1 has its rails and camera", false); return; }
+        var hidden = new List<Renderer>();
+        foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            if (r.enabled && r.gameObject != walls[0] && r.gameObject != walls[1]) { r.enabled = false; hidden.Add(r); }
+        float saved = WorldPainter.FrostRailBrightness;
+        var flags = cam.clearFlags; var bg = cam.backgroundColor;
+        cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
+        try
+        {
+            foreach (var theme in WorldManager.Worlds)
+            {
+                if (WorldPainter.RailTextureName(theme.displayName) == null) continue;
+                WorldPainter.FrostRailBrightness = 1f;
+                WorldPainter.Apply(theme);
+                float before = RenderedValue(cam);
+                WorldPainter.FrostRailBrightness = saved;
+                WorldPainter.Apply(theme);
+                float after = RenderedValue(cam);
+                float ratio = after / Mathf.Max(1e-4f, before);
+                var mat = walls[0].GetComponent<Renderer>().sharedMaterial;
+                if (theme.displayName == "Frost")
+                    Check("Frost rails render dimmed to " + (ratio * 100f).ToString("F0") + "% of the painted rail (50..70%)",
+                          before > 1f && ratio >= .5f && ratio <= .7f);
+                else
+                    Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint untouched)",
+                          before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == theme.tint);
+            }
+        }
+        finally
+        {
+            WorldPainter.FrostRailBrightness = saved;
+            cam.clearFlags = flags; cam.backgroundColor = bg;
+            foreach (var r in hidden) if (r != null) r.enabled = true;
+        }
+    }
+
+    // The summed HSV value of everything the camera draws (a 9:21 frame).
+    static float RenderedValue(Camera cam)
+    {
+        const int w = 270, h = 630;
+        var rt = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGB32);
+        var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        var prevTarget = cam.targetTexture; var prevActive = RenderTexture.active;
+        cam.targetTexture = rt;
+        cam.Render();
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+        cam.targetTexture = prevTarget; RenderTexture.active = prevActive;
+        RenderTexture.ReleaseTemporary(rt);
+        float sum = 0f;
+        foreach (var c in tex.GetPixels32()) sum += Mathf.Max(c.r, Mathf.Max(c.g, c.b)) / 255f;
+        Object.DestroyImmediate(tex);
+        return sum;
     }
 
     // -------------------------------------------------------------- space --

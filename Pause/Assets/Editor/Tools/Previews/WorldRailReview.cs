@@ -89,6 +89,16 @@ public static class WorldRailReview
                 if (r.gameObject != left && r.gameObject != right && r.GetComponentInParent<WorldBackdrop>() == null) r.enabled = false;
             foreach (var canvas in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None)) canvas.enabled = false;
             Capture(cam, theme.displayName, captureWidth, captureHeight);
+            if (WorldPainter.RailBrightness(theme.displayName) != 1f)
+            {
+                // the same frame with the rail as painted, for comparison
+                float k = WorldPainter.FrostRailBrightness;
+                WorldPainter.FrostRailBrightness = 1f;
+                WorldPainter.Apply(theme);
+                Capture(cam, theme.displayName + "-undimmed", captureWidth, captureHeight);
+                WorldPainter.FrostRailBrightness = k;
+                WorldPainter.Apply(theme);
+            }
         }
         WorldPainter.Apply(WorldManager.Worlds[0]);
         Verify("Space restores its high-resolution rail at the common Frost width",
@@ -197,9 +207,11 @@ public static class WorldRailReview
         RenderTexture.active = old;
         if (neon >= 0)
         {
-            Color32 expected = pixels[neon];
+            // as painted, times the world's rail brightness (Frost is dimmed)
+            Color32 expected = (Color)pixels[neon] * WorldPainter.RailBrightness(world);
+            expected.a = 255;
             Color32 actual = rendered.GetPixel(neon % source.width, neon / source.width);
-            Verify(world + " neon retains source brightness and hue (" + expected + " -> " + actual + ")",
+            Verify(world + " neon retains source hue at the world's rail brightness (" + expected + " -> " + actual + ")",
                 Mathf.Abs(expected.r - actual.r) <= 12 && Mathf.Abs(expected.g - actual.g) <= 12 &&
                 Mathf.Abs(expected.b - actual.b) <= 12, ref failures);
         }
@@ -221,7 +233,8 @@ public static class WorldRailReview
 
     static void Capture(Camera cam, string world, int width, int height)
     {
-        string dir = "Builds/RailPreview";
+        string dir = System.Environment.GetEnvironmentVariable("RAIL_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "Builds/RailPreview";
         Directory.CreateDirectory(dir);
         var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
         var previous = cam.targetTexture;
