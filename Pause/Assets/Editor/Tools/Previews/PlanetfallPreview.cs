@@ -9,6 +9,9 @@ using UnityEngine;
 //   moment-NN-<name>.png   ten full-size frames: planet far, planet near +
 //                          cue, commit, limb, entry heat, deep cloud, flash,
 //                          burst, clouds clearing, the Frost level's start
+//   entry/eNN.png          the entry shroud round the ship, full size at
+//                          30 fps from 2.0 s to 2.5 s and 4.2 s to 4.5 s
+//                          (its animation and fit)
 //   frames/fNNN.png        the whole descent at 12 fps, quarter size (a GIF
 //                          or contact sheet is assembled from them outside
 //                          Unity)
@@ -48,6 +51,7 @@ public static class PlanetfallPreview
                     if (d == null) { Debug.LogError("[PLANETFALL-PREVIEW] no device " + id); failures++; continue; }
                     string sub = Path.Combine(dir, d.id);
                     Directory.CreateDirectory(Path.Combine(sub, "frames"));
+                    Directory.CreateDirectory(Path.Combine(sub, "entry"));
                     Render(d, sub);
                 }
             }
@@ -141,7 +145,7 @@ public static class PlanetfallPreview
         ship.transform.position = fall.transform.position + new Vector3(.2f, -fall.ZoneRadius * .8f, 0f);
         if (!fall.Commit(ship.transform)) throw new System.Exception("commit refused");
         float t = 0f;
-        int n = Moments.Length;
+        int n = Moments.Length, entryShot = 0;
         bool advanced = false;
         foreach (var m in Descent)
         {
@@ -157,6 +161,8 @@ public static class PlanetfallPreview
                 }
                 t += Dt;
                 if (fall == null || fall.State == Planetfall.Stage.Done) fall = null;
+                if (fall != null && frame % 2 == 0 && ((t >= 2f && t < 2.5f) || (t >= 4.2f && t < 4.5f)))
+                    Capture(cam, d.w, d.h, Path.Combine(dir, "entry", "e" + entryShot++.ToString("00") + ".png"));
                 if (frame++ % 5 == 0) Capture(cam, d.w / 4, d.h / 4, Path.Combine(dir, "frames", "f" + shot++.ToString("000") + ".png"));
             }
             n++;
@@ -182,6 +188,11 @@ public static class PlanetfallPreview
         Debug.Log(string.Format("[PLANETFALL-PREVIEW] {0}: {1} {2:F2}s radius {3:F2} cover {4:F2} shake {5:F3} world {6} reticle {7} {8} {9} order {10} planet {11}",
                                 name, fall.State, fall.Seconds, fall.Radius, PlanetfallTimeline.Cover(fall.Seconds), fall.ShakeNow,
                                 WorldManager.Current.displayName, r.enabled, r.color, r.bounds, r.sortingOrder, fall.PlanetRenderer.bounds));
+        var sh = fall.ShroudRenderer;
+        if (sh.enabled)
+            Debug.Log(string.Format("[PLANETFALL-PREVIEW] {0}: shroud {1} scale {2:F3} (ship span {3:F3}, mid {4}) at {5} glow {6}",
+                                    name, sh.sprite.name, fall.ShroudScale, fall.ShipSpan, fall.ShipMid, sh.transform.position,
+                                    fall.ShroudGlowRenderer.color));
     }
 
     static void Capture(Camera cam, int width, int height, string file)

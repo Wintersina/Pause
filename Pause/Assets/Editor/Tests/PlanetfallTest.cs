@@ -45,6 +45,7 @@ public static class PlanetfallTest
             WhichTransitions();
             Approach();
             DescentFlow();
+            ShroudFits();
             NoAllocations();
             ArtLoads();
         }
@@ -398,6 +399,80 @@ public static class PlanetfallTest
 
     // ---- 6. the art --------------------------------------------------------------------
 
+    // Clear (alpha < 40) pixels from (x, y) stepping (dx, dy), at most 200.
+    static int Clear(Color32[] px, int w, int x, int y, int dx, int dy)
+    {
+        int h = px.Length / w, n = 0;
+        while (n < 200)
+        {
+            int nx = x + dx * (n + 1), ny = y + dy * (n + 1);
+            if (nx < 0 || ny < 0 || nx >= w || ny >= h || px[ny * w + nx].a >= 40) break;
+            n++;
+        }
+        return n;
+    }
+
+    // ---- the entry shroud fits the ship and lives ---------------------------
+    // The hull here is a known 0.8 x 1.0 unit drawing whose middle sits 0.1
+    // above the ship's position: the shroud's opening must be HoleFit times
+    // its width and centred on that middle; the loop steps through all six
+    // cells at about ShroudFps and wraps 5 -> 0; the additive copy rides
+    // between the shroud and the hull, one cell behind.
+    static void ShroudFits()
+    {
+        FreshScene(0);
+        RunScore.BeginRun(true, true);
+        var wm = World();
+        FinishLevel(wm);
+        var p = Planetfall.Live;
+        for (int i = 0; i < 300; i++) Fly(wm, p);
+        var ship = Ship();
+        var hull = ship.GetComponent<SpriteRenderer>();
+        var tex = new Texture2D(80, 100, TextureFormat.RGBA32, false);
+        hull.sprite = Sprite.Create(tex, new Rect(0, 0, 80, 100), new Vector2(.5f, .4f), 100f, 0, SpriteMeshType.FullRect);
+        collisionDetection.lifeCounter = 1;
+        Check("shroud fit: the commit is taken", p.Commit(ship));
+        while (p.State == Planetfall.Stage.Descent && p.Seconds < PlanetfallTimeline.ShroudInTo + .05f) Fly(wm, p);
+
+        var art = p.Art;
+        float hole = p.ShroudScale * p.Def.entryHolePx / art.EntryCellPx;
+        Check("the shroud is fitted to the hull: opening " + hole.ToString("F3") + " = " + Planetfall.HoleFit +
+              " x hull width " + p.ShipSpan.ToString("F3") + ", middle " + p.ShipMid.ToString("F3"),
+              Mathf.Abs(p.ShipSpan - .8f) < .001f && Mathf.Abs(hole - Planetfall.HoleFit * .8f) < .01f &&
+              Mathf.Abs(p.ShipMid.y - .1f) < .001f && Mathf.Abs(p.ShipMid.x) < .001f);
+
+        var sh = p.ShroudRenderer;
+        var glow = p.ShroudGlowRenderer;
+        float off = (sh.transform.position - (ship.position + p.ShipMid + Vector3.down * Planetfall.HoleDrop * p.ShipSpan)).magnitude;
+        Check("... it rides on the hull's middle (" + off.ToString("F3") + " off), the hot copy between it and the hull",
+              sh.enabled && glow.enabled && off < .06f &&
+              sh.sortingOrder < glow.sortingOrder && glow.sortingOrder < hull.sortingOrder && glow.sortingOrder < hull.sortingOrder - 1);
+
+        int changes = 0, wraps = 0, seen = 0, behind = 0, frames = 0;
+        float minScale = 99f, maxScale = 0f;
+        Sprite last = sh.sprite;
+        float from = p.Seconds;
+        while (p.State == Planetfall.Stage.Descent && p.Seconds < from + 1f)
+        {
+            Fly(wm, p);
+            frames++;
+            int a = System.Array.IndexOf(art.Entry, sh.sprite), b = System.Array.IndexOf(art.Entry, last);
+            if (sh.sprite != last) { changes++; if (b == art.Entry.Length - 1 && a == 0) wraps++; }
+            seen |= 1 << a;
+            if (System.Array.IndexOf(art.Entry, glow.sprite) == (a + art.Entry.Length - 1) % art.Entry.Length) behind++;
+            minScale = Mathf.Min(minScale, sh.transform.localScale.x);
+            maxScale = Mathf.Max(maxScale, sh.transform.localScale.x);
+            last = sh.sprite;
+        }
+        Check("... the loop animates: " + changes + " cell steps in 1 s (12..16), all six cells, wraps 5 -> 0 (" + wraps + ")",
+              changes >= 12 && changes <= 16 && seen == 63 && wraps >= 2);
+        Check("... the hot copy runs a cell behind every frame (" + behind + "/" + frames + "), the size flickers (" +
+              minScale.ToString("F3") + " .. " + maxScale.ToString("F3") + ")",
+              behind == frames && maxScale - minScale > .02f * p.ShroudScale);
+        Object.DestroyImmediate(tex);
+        Gone();
+    }
+
     static void ArtLoads()
     {
         var def = PlanetfallCatalog.Frost;
@@ -416,8 +491,27 @@ public static class PlanetfallTest
         Check("the strips cut into cells: " + art.Entry.Length + " entry (512x1024), " + art.Burst.Length + " burst (1024x1024)",
               art.Entry.Length == 6 && art.Burst.Length == 5 && art.Entry[5].rect.width == 512f && art.Entry[0].rect.height == 1024f &&
               art.Burst[4].rect.width == 1024f && art.Burst[4].rect.x == 4096f);
-        Check("the entry cell's pivot is the ship's socket (256, 300 from the top)",
-              Mathf.Abs(art.Entry[0].pivot.x - 256f) < .5f && Mathf.Abs(art.Entry[0].pivot.y - (1024f - 300f)) < .5f);
+        // Each cell's pivot is its own opening's centre (the hole wanders
+        // 251 .. 268 px through the loop): measured from the PNG, the clear
+        // run from the pivot reaches the plasma about equally far each way.
+        bool pivots = art.Entry.Length == def.entryHoleX.Length, centred = pivots;
+        var png = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        png.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Frost/Planetfall/" + def.entryFx + ".png"));
+        var px = png.GetPixels32();
+        string spans = "";
+        for (int i = 0; pivots && i < art.Entry.Length; i++)
+        {
+            Vector2 pv = art.Entry[i].pivot;
+            pivots &= Mathf.Abs(pv.x - def.entryHoleX[i]) < .5f && Mathf.Abs(pv.y - (1024f - def.entryShipPx.y)) < .5f;
+            int cx = i * 512 + Mathf.RoundToInt(pv.x), cy = Mathf.RoundToInt(pv.y);   // texture rows are y up
+            int l = Clear(px, png.width, cx, cy, -1, 0), r = Clear(px, png.width, cx, cy, 1, 0);
+            int u = Clear(px, png.width, cx, cy, 0, 1), d = Clear(px, png.width, cx, cy, 0, -1);
+            spans += " " + l + "/" + r + "," + u + "/" + d;
+            centred &= Mathf.Abs(l - r) <= 12 && Mathf.Abs(l + r - def.entryHolePx) <= 14 && Mathf.Abs(u - d) <= 14;
+        }
+        Object.DestroyImmediate(png);
+        Check("each entry cell's pivot is the centre of its opening (clear px left/right, up/down:" + spans + ")",
+              pivots && centred);
         Check("the limb's horizon circle: radius " + def.LimbArcPx(2048f).ToString("F0") + " px (apex 355, edges 722)",
               Mathf.Abs(def.LimbArcPx(2048f) - 1612f) < 2f);
         bool importer = true;

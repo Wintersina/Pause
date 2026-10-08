@@ -53,7 +53,7 @@ public class PlanetfallArt
         Deck = Whole(DeckTex, new Vector2(.5f, .5f));
         DeckDark = Whole(DeckDarkTex, new Vector2(.5f, .5f));
         Streaks = Whole(StreaksTex, new Vector2(.5f, .5f));
-        Entry = Cells(EntryTex, Def.entryFrames, new Vector2(Def.entryShipPx.x, Def.entryShipPx.y));
+        Entry = Cells(EntryTex, Def.entryFrames, new Vector2(Def.entryShipPx.x, Def.entryShipPx.y), Def.entryHoleX);
         Burst = Cells(BurstTex, Def.burstFrames, new Vector2(-1f, -1f));
 
         whiteTex = Procedural(4, 4, (x, y) => 1f);
@@ -99,15 +99,20 @@ public class PlanetfallArt
         return s;
     }
 
+    // The width of one entryFx cell, in pixels (its sprites are 1 unit wide).
+    public float EntryCellPx { get { return EntryTex != null && Def.entryFrames > 0 ? EntryTex.width / (float)Def.entryFrames : 0f; } }
+
     // One row of `count` cells. `shipPx` is the pivot in a cell's own pixels
-    // (y down); negative: the cell's centre.
-    static Sprite[] Cells(Texture2D tex, int count, Vector2 shipPx)
+    // (y down); negative: the cell's centre. `cellX`, if given, overrides
+    // the pivot's x per cell (the shroud's opening wanders; the ship doesn't).
+    static Sprite[] Cells(Texture2D tex, int count, Vector2 shipPx, float[] cellX = null)
     {
         var cells = new Sprite[count];
         float w = tex.width / (float)count, h = tex.height;
-        Vector2 pivot = shipPx.x < 0f ? new Vector2(.5f, .5f) : new Vector2(shipPx.x / w, 1f - shipPx.y / h);
         for (int i = 0; i < count; i++)
         {
+            float px = cellX != null && i < cellX.Length ? cellX[i] : shipPx.x;
+            Vector2 pivot = shipPx.x < 0f ? new Vector2(.5f, .5f) : new Vector2(px / w, 1f - shipPx.y / h);
             cells[i] = Sprite.Create(tex, new Rect(i * w, 0, w, h), pivot, w, 0, SpriteMeshType.FullRect);
             cells[i].name = tex.name + "_" + i;
         }
