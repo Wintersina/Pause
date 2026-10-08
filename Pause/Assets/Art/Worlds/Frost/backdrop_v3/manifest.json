@@ -1,0 +1,72 @@
+{
+  "world": "Frost",
+  "view": "Orthographic directly overhead frozen ocean, coast and inland industry beneath clouds",
+  "build": "python3 src~/build.py",
+  "files": [
+    {
+      "file": "sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Deepest frozen-ocean ground plane beneath blue-violet atmospheric haze",
+      "intended_parallax_depth": 0.0,
+      "notes": {
+        "source_candidate": "src~/sky_a.png",
+        "scroll": "vertical; repeat in both axes",
+        "palette_colors_max": 22,
+        "alpha": "opaque foundation"
+      }
+    },
+    {
+      "file": "far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Distant ice sheets, open-water leads, coastal shelf and tiny industrial beacons",
+      "intended_parallax_depth": 0.25,
+      "notes": {
+        "source_candidate": "src~/far_a.png",
+        "scroll": "vertical; repeat in both axes",
+        "palette_colors_max": 26,
+        "alpha": "dark water opaque; ice and industry translucent for parallax compositing"
+      }
+    },
+    {
+      "file": "mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Nearer ocean and industrial coast with rigs, refineries, rail lines and ridges",
+      "intended_parallax_depth": 0.6,
+      "notes": {
+        "source_candidate": "src~/mid_b.png",
+        "scroll": "vertical; repeat in both axes",
+        "palette_colors_max": 30,
+        "alpha": "dark water opaque; ice and industry translucent for parallax compositing"
+      }
+    },
+    {
+      "file": "flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Transparent drifting ice floes, water leads and current streaks",
+      "intended_parallax_depth": 1.0,
+      "notes": {
+        "source_candidate": "src~/flow_b.png",
+        "scroll": "vertical; repeat in both axes",
+        "palette_colors_max": 22,
+        "alpha": "stepped translucent floes and transparent water"
+      }
+    }
+  ],
+  "preview": "preview_a.png"
+}
