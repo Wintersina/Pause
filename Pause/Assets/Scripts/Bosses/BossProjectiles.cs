@@ -256,13 +256,13 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
-            float R = radius + t.Radius * .8f;
+            if (t == null || !t.isActiveAndEnabled) continue;
+            float R = radius + t.Radius * FriendlyFire.HostileFireReach;
             Vector3 d = t.transform.position - p;
             if (d.x * d.x + d.y * d.y > R * R) continue;
-            if (FriendlyFire.Immune(t.gameObject)) continue;
-            FriendlyFire.Hit(t.gameObject, p);
-            return true;
+            // (the boss itself is Immune; a target just come in is protected)
+            if (!FriendlyFire.HostileFireCanHit(t, null)) continue;
+            if (FriendlyFire.HostileHit(t, p, "boss shot")) return true;   // else the frame's kill cap: next frame
         }
         return false;
     }
@@ -453,6 +453,7 @@ public class BossBeam : MonoBehaviour
 
     void Ignite()
     {
+        burned.NewPulse();
         live = true;
         age = 0f;
         length = 0f;
@@ -537,26 +538,15 @@ public class BossBeam : MonoBehaviour
     }
 
     // Friendly fire: everything the live beam crosses -- rocks, enemies,
-    // mines -- is destroyed (unpaid), an elite loses a heart. One a frame
-    // (the registry changes under a kill).
+    // mines -- is destroyed (unpaid), an elite loses a heart: each target
+    // once per pulse (one ignition), the frame's kill cap permitting
+    // (FriendlyFire.HostileBeam).
+    readonly FriendlyFire.BeamHits burned = new FriendlyFire.BeamHits();
+
     void BurnHazards()
     {
         if (DeathCrash.Running || length <= 0f) return;
-        var live = ClearTarget.Live;
-        Vector2 o = origin, d = Direction;
-        float half = width * BossConfig.BeamHitFraction * .5f;
-        for (int i = 0; i < live.Count; i++)
-        {
-            var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
-            Vector2 p = t.transform.position;
-            float along = Mathf.Clamp(Vector2.Dot(p - o, d), 0f, length);
-            float R = half + t.Radius * .8f;
-            if ((o + d * along - p).sqrMagnitude > R * R) continue;
-            if (FriendlyFire.Immune(t.gameObject)) continue;
-            FriendlyFire.Hit(t.gameObject, o + d * along);
-            return;
-        }
+        FriendlyFire.HostileBeam(burned, origin, Direction, length, width * BossConfig.BeamHitFraction * .5f, null, "boss laser");
     }
 
     static void Span(Transform t, float w, float len)
@@ -725,6 +715,7 @@ public sealed class BossProjectilePool
 
     public void Step(float dt)
     {
+        if (dt > 0f) FriendlyFire.HostileStep();
         for (int i = 0; i < shots.Count; i++) if (shots[i] != null) shots[i].Step(dt);
         for (int i = 0; i < beams.Count; i++) if (beams[i] != null) beams[i].Step(dt);
         for (int i = 0; i < sparks.Count; i++) if (sparks[i] != null) sparks[i].Step(dt);

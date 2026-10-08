@@ -17,8 +17,51 @@ using UnityEngine;
 // reward (EliteRewards, the elite rules). The boss itself is never hurt by
 // friendly fire, and nothing here runs during a player death (the domino
 // chain, DeathCrashDomino, owns the board then).
+//
+// HOSTILE FIRE (the weapon half of the above, one rule for every hostile
+// projectile and beam -- roster enemies' shots, elite shots and pools, boss
+// shots and lasers, any future beam such as the rail-mine laser):
+//   * a shot that touches another hazard hits it as a player shot would be
+//     treated by that target -- rocks, enemies of every kind, mines (which
+//     then burst and blast), rail mines -- and is spent (a siege shell
+//     pierces two); a beam hits every target along its length once per
+//     pulse (HostileBeam, BeamHits) and burns on;
+//   * an elite loses ONE heart (EliteDamage.FriendlyFire, its grace
+//     respected: never more than a heart a hit);
+//   * never touched: its own shooter (an elite's own shots, a roster enemy's
+//     own volley), the boss (Immune), elite shot hitboxes, pickups / atoms /
+//     star dust (not hazards), the player (its own rules, unchanged);
+//   * spawn-in protection: a target is only fair game once it has been
+//     inside the playfield -- the camera view, between the rails
+//     (BossRails.DrawnInnerEdge, which follows RailInset) -- for
+//     HostileFireSpawnInProtectionSeconds (TrackPlayfield, gameplay time:
+//     frozen while paused);
+//   * at most HostileFireMaxKillsPerFrame kills a frame (a shot that would
+//     kill past the cap is not spent and tries again next frame);
+//   * pays the pilot nothing (DamageSource.HostileFire: no score, dust,
+//     codex, kill chain or DEATH COMBO); an elite it brings down still pays
+//     its fixed reward like every elite death (EliteRewards, the elite rules);
+//   * off in the tutorial and during a player death.
+public enum DamageSource { Player, HostileFire }
+
 public static class FriendlyFire
 {
+    // ---- HOSTILE FIRE tuning: the one place ----
+    public static bool HostileFireEnabled = true;                     // static (not const): previews / tests may switch it
+    public static readonly bool HostileFireElitesLoseOneHeart = true;  // false: elites ignore hostile fire
+    public static readonly bool HostileFireAwardsPlayerCredit = false; // true: a hostile-fire kill pays like a weapon kill
+    public const int HostileFireMaxKillsPerFrame = 2;
+    public const float HostileFireSpawnInProtectionSeconds = 1f;
+    public const float HostileFireReach = .8f;                         // x a target's radius (the shots' hit tests)
+    public const float HostileFirePopupGap = 1.5f;                     // seconds between two "FRIENDLY FIRE" words
+    public const int MaxBeamTargets = 24;                              // per beam pulse
+
+    // What the kill in progress comes from (reward code reads it).
+    public static DamageSource Source { get; private set; } = DamageSource.Player;
+    public static bool HostileKillInProgress => Source == DamageSource.HostileFire;
+    // Counters (tests, the probe).
+    public static int HostileKills, HostileEliteHits, HostileCapped;
+
     public const float MineBlastRadius = 1.05f;
     public const float MineBlastDelay = .1f;
     public const int MaxPendingBlasts = 16;
@@ -55,6 +98,161 @@ public static class FriendlyFire
         }
         Kills++;
         EliteShip.FriendlyKill(go);
+    }
+
+    // ---- hostile fire ----
+
+    static bool tutorialScene;
+    static int frameKey = int.MinValue, killsThisFrame, editStep;
+    static float lastPopup = -999f, clock;
+
+    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = 0; killsThisFrame = 0; frameKey = int.MinValue; }
+
+    // The scene loader's note (HazardRuntime.Boot): Scene.name allocates, so it is read once a load.
+    public static void OnSceneLoaded(string sceneName) { tutorialScene = sceneName == score.TutorialScene; }
+
+    public static bool HostileFireAllowed =>
+        HostileFireEnabled && !startMenu.youAreInTutorial && !tutorialScene && !DeathCrash.Running && !buttonClicks.playerDied;
+
+    // Once a step (HazardRuntime): how long each hazard has been inside the
+    // playfield -- the view, between the rails. Gameplay time, no allocation.
+    public static void TrackPlayfield(float dt, Rect view)
+    {
+        if (dt <= 0f) return;
+        clock += dt;
+        float edge = BossRails.DrawnInnerEdge;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null) continue;
+            Vector2 p = t.transform.position;
+            if (view.Contains(p) && Mathf.Abs(p.x) <= edge) t.PlayfieldSeconds += dt;
+            else t.PlayfieldSeconds = 0f;
+        }
+    }
+
+    // Past its spawn-in protection (tests, fixtures: a target that has been on the board a while).
+    public static void Settle(GameObject go)
+    {
+        if (go != null && go.TryGetComponent(out ClearTarget t)) t.PlayfieldSeconds = HostileFireSpawnInProtectionSeconds + 1f;
+    }
+
+    public static bool SpawnProtected(ClearTarget t) => t.PlayfieldSeconds < HostileFireSpawnInProtectionSeconds;
+
+    // May a hostile shot fired by `shooter` (null: the boss, a test) hit `t`?
+    public static bool HostileFireCanHit(ClearTarget t, GameObject shooter)
+    {
+        if (!CanHit(t) || !HostileFireAllowed) return false;
+        var go = t.gameObject;
+        if (go == shooter || t.IsShotHitbox || !t.enabled) return false;
+        // An elite's own gate is joining the play (parked / lifting off it
+        // has no collider for anyone) and its grace after a heart.
+        var elite = t.Elite;
+        if (elite != null || go.TryGetComponent(out elite))
+            return HostileFireElitesLoseOneHeart && elite.InPlay;
+        return !SpawnProtected(t);
+    }
+
+    // The kill cap's "frame": Time.frameCount in play; in edit mode (tests
+    // stepping by hand) every pool / runtime step counts as one.
+    public static void HostileStep() { editStep++; }
+
+    static bool KillBudget()
+    {
+        int key = Application.isPlaying ? Time.frameCount : editStep;
+        if (key != frameKey) { frameKey = key; killsThisFrame = 0; }
+        return killsThisFrame < HostileFireMaxKillsPerFrame;
+    }
+
+    // A hostile weapon hits `t` (HostileFireCanHit said yes): an elite loses
+    // a heart, anything else is destroyed with its blast, unpaid. False when
+    // the frame's kill cap held it back (the shot is not spent).
+    public static bool HostileHit(ClearTarget t, Vector3 at, string by)
+    {
+        var go = t.gameObject;
+        var elite = t.Elite;
+        if (elite != null || go.TryGetComponent(out elite))
+        {
+            HostileEliteHits++;
+            EliteHits++;
+            EliteShip.HitBy = by;
+            Source = DamageSource.HostileFire;
+            try { elite.TakeHit(EliteDamage.FriendlyFire, at); }
+            finally { Source = DamageSource.Player; EliteShip.HitBy = null; }
+            return true;
+        }
+        if (!KillBudget()) { HostileCapped++; return false; }
+        killsThisFrame++;
+        HostileKills++;
+        Kills++;
+        Popup(go.transform.position);
+        Source = DamageSource.HostileFire;
+        try
+        {
+            if (HostileFireAwardsPlayerCredit) collisionDetection.AwardDestroyedTarget(go);
+            EliteShip.FriendlyKill(go);
+        }
+        finally { Source = DamageSource.Player; }
+        return true;
+    }
+
+    static void Popup(Vector3 at)
+    {
+        if (!Application.isPlaying || clock - lastPopup < HostileFirePopupGap) return;
+        lastPopup = clock;
+        var hud = ScoreHud.Current;
+        if (hud != null) hud.ShowWord("FRIENDLY FIRE", at, DeathCombo.FlashColour, 22);
+    }
+
+    // A beam's targets this pulse: each is hit once.
+    public sealed class BeamHits
+    {
+        readonly int[] ids = new int[MaxBeamTargets];
+        int n;
+        public int Count => n;
+        public void NewPulse() { n = 0; }
+        public bool Has(int id) { for (int i = 0; i < n; i++) if (ids[i] == id) return true; return false; }
+        public void Add(int id) { if (n < ids.Length) ids[n++] = id; }
+    }
+
+    static readonly List<ClearTarget> beamScratch = new List<ClearTarget>(32);
+    static readonly Vector2[] beamAt = new Vector2[MaxBeamTargets];
+
+    // A live beam from `o` along unit `d`, `length` long, `half` wide each
+    // side: every eligible target it crosses that this pulse has not hit yet
+    // is hit (the cap permitting). Returns the hits landed this call.
+    public static int HostileBeam(BeamHits hits, Vector2 o, Vector2 d, float length, float half, GameObject shooter,
+                                  string by = "laser")
+    {
+        if (hits == null || length <= 0f || !HostileFireAllowed) return 0;
+        beamScratch.Clear();
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count && beamScratch.Count < MaxBeamTargets; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled) continue;
+            Vector2 p = t.transform.position;
+            float along = Mathf.Clamp(Vector2.Dot(p - o, d), 0f, length);
+            float R = half + t.Radius * HostileFireReach;
+            Vector2 q = o + d * along;
+            if ((q - p).sqrMagnitude > R * R) continue;
+            if (!HostileFireCanHit(t, shooter) || hits.Has(t.GetInstanceID())) continue;
+            beamAt[beamScratch.Count] = q;
+            beamScratch.Add(t);
+        }
+        int landed = 0;
+        for (int i = 0; i < beamScratch.Count; i++)
+        {
+            var t = beamScratch[i];
+            if (t == null || !t.isActiveAndEnabled) continue;
+            int id = t.GetInstanceID();
+            if (!HostileHit(t, beamAt[i], by)) continue;   // capped: next frame
+            hits.Add(id);
+            landed++;
+        }
+        beamScratch.Clear();
+        return landed;
     }
 
     // ---- rail mine blasts ----
@@ -295,7 +493,12 @@ public class HazardRuntime : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Boot()
     {
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => { if (Application.isPlaying) Ensure(); };
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) =>
+        {
+            FriendlyFire.OnSceneLoaded(s.name);
+            if (Application.isPlaying) Ensure();
+        };
+        FriendlyFire.OnSceneLoaded(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         Ensure();
     }
 
@@ -314,6 +517,8 @@ public class HazardRuntime : MonoBehaviour
     public void Step(float dt)
     {
         EnemySplit.NewStep();
+        FriendlyFire.HostileStep();
+        FriendlyFire.TrackPlayfield(dt, ShipTargets.View());   // hostile fire's spawn-in protection
         FriendlyFire.StepBlasts(dt);
         DeathCombo.Step(dt);
         if (dt > 0f && Application.isPlaying && TargetExplosion.WorldScrolling) FriendlyFire.StepCrashes(ShipTargets.View());

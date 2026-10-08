@@ -85,6 +85,7 @@ public static class AllTests
         ("HazardSizeTest", HazardSizeTest.Execute),
         ("HostileReachTest", HostileReachTest.Execute),
         ("HostileProjectileTest", HostileProjectileTest.Execute),
+        ("HostileFireTest", HostileFireTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
         ("LoopTest", LoopTest.Execute),

@@ -121,6 +121,7 @@ public static class HostileProjectileTest
     {
         var go = EnemyFactory.Create(EnemyRoster.One(world, role), at, Quaternion.identity);
         ClearTarget.Ensure(go);
+        FriendlyFire.Settle(go);   // on the board a while: past hostile fire's spawn-in protection (HostileFireTest covers it)
         return go;
     }
 
@@ -670,7 +671,7 @@ public static class HostileProjectileTest
         Check("a chaser running into a rock breaks, and the rock with it (free mover: " + hasChaser + ")",
               hasChaser && chaser == null && rock2 == null && bystander != null && RunScore.Total == 0);
         Check("elite shots' friendly fire is kept (EliteShot)",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShots.cs").Contains("EliteShip.FriendlyKill(t.gameObject)"));
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShots.cs").Contains("FriendlyFire.HostileHit(t, p, by)"));
 
         // during a player death everything is the domino's
         Check("none of it runs during a player death (DeathCrash.Running guards)",

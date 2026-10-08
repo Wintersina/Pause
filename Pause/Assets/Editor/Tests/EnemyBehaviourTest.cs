@@ -15,7 +15,7 @@ using UnityEngine;
 //   - nothing advances while the world is paused
 //   - every enemy stays inside its envelope and the lane; a mine stays on
 //     its rail
-//   - shots are roster shots (no friendly fire), never the player's red,
+//   - shots are roster shots (friendly fire on: HostileFireTest), never the player's red,
 //     and the shot budget holds
 //   - the four chasers hunt differently, and leave after their linger
 //   - PRESENCE: every key is a hazard or a pilot; hazards ride the scroll;
@@ -381,11 +381,19 @@ public static class EnemyBehaviourTest
         Check("... inside its aim cone (" + deg.ToString("F1") + " <= " + brain.Behaviour.aimCone + " degrees)", deg <= brain.Behaviour.aimCone + .5f);
         Check("a pilot's shell flies in world space (it does not ride the board) and is a roster shot", shot.RosterShot && shot.Ride == 0f);
 
-        // a rock in the shell's path is untouched: no friendly fire
-        var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position, Quaternion.identity);
+        // (changed with hostile fire: roster shots used to pass through every
+        // hazard; now they hit one that has been on the board past its
+        // spawn-in protection, and never their own shooter -- HostileFireTest)
+        var fresh = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position, Quaternion.identity);
+        for (int i = 0; i < 2; i++) EliteSystem.Step(Dt);
+        Check("a rock that has just come in is spared by the shell (spawn-in protection)", fresh != null && fresh.GetComponent<ClearTarget>().enabled);
+        if (fresh != null) Object.DestroyImmediate(fresh);
+        var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position + (Vector3)(shot.Velocity.normalized * .4f), Quaternion.identity);
+        FriendlyFire.Settle(rock);
         for (int i = 0; i < 20; i++) EliteSystem.Step(Dt);
-        Check("a rock sitting on the shell's path is not destroyed by it", rock != null && rock.GetComponent<ClearTarget>().enabled);
-        Object.DestroyImmediate(rock);
+        Check("a rock that has been on the board a while is destroyed by the shell (hostile fire)", rock == null || !rock.GetComponent<ClearTarget>().enabled);
+        Check("... and the Warden that fired it is untouched", brain != null && brain.gameObject.activeInHierarchy);
+        if (rock != null) Object.DestroyImmediate(rock);
         Object.DestroyImmediate(brain.gameObject);
     }
 

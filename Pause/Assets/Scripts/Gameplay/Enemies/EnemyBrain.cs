@@ -1033,8 +1033,8 @@ public static class EnemyThreat
 }
 
 // Fires a behaviour's projectiles through the elites' pooled shots
-// (EliteSystem.Shots), marked as roster shots: no friendly fire, riding the
-// board. Returns how many left the muzzle (0 when the pool is spent).
+// (EliteSystem.Shots), marked as roster shots: riding the board, friendly
+// fire on (FriendlyFire hostile fire; never the shooter itself). Returns how many left the muzzle (0 when the pool is spent).
 public static class EnemyVolley
 {
     public static int Fired, Volleys;   // tests, the probe

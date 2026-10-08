@@ -107,6 +107,8 @@ public class collisionDetection : MonoBehaviour {
     public static void AwardDestroyedTarget(GameObject target, int bonusPoints = 0)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        // An enemy's weapon did it (FriendlyFire hostile fire): the pilot is paid nothing.
+        if (FriendlyFire.HostileKillInProgress && !FriendlyFire.HostileFireAwardsPlayerCredit) return;
         // Score first: nothing below (a codex toast, the meter) may cost points.
         RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         Codex.Discover(target);   // ultimate kills count as meeting it too

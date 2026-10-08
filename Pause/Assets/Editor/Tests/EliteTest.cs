@@ -744,6 +744,8 @@ public static class EliteTest
         var rock = Rock(new Vector2(-1.5f, 0f));
         var fighter = Enemy(EnemyRole.Fighter, new Vector2(0f, 0f));
         var mine = Enemy(EnemyRole.Mine, new Vector2(1.5f, 0f));
+        // (past their spawn-in protection: hostile fire spares a target for its first second on the board)
+        global::FriendlyFire.Settle(rock); global::FriendlyFire.Settle(fighter); global::FriendlyFire.Settle(mine);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(-1.5f, 1f), Vector2.down * 6f);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(0f, 1f), Vector2.down * 6f);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(1.5f, 1f), Vector2.down * 6f);
