@@ -58,6 +58,28 @@ public static class WorldPainter
         return e;
     }
 
+    // ---- rail brightness ----
+    // The rail art's colour is multiplied by this (rgb only: hue, alpha and
+    // the drawn silhouette, which BossRails and the rail mines clamp to, stay
+    // as they are). Frost's pale steel and cyan lamps out-shone the lane, so
+    // its rails are dimmed to recede behind the playfield; every other world
+    // draws its rail as painted.
+    public static float FrostRailBrightness = .6f;
+
+    public static float RailBrightness(string world)
+    {
+        return world == "Frost" ? FrostRailBrightness : 1f;
+    }
+
+    // The colour the rail material is tinted with for `theme`.
+    public static Color RailTint(WorldTheme theme)
+    {
+        if (theme == null) return Color.white;
+        Color c = theme.tint;
+        float k = RailBrightness(theme.displayName);
+        return new Color(c.r * k, c.g * k, c.b * k, c.a);
+    }
+
     public static void Apply(WorldTheme theme)
     {
         if (theme == null) return;
@@ -88,8 +110,9 @@ public static class WorldPainter
             mat.SetFloat("_BlackCutout", 1f);
             ApplyEdge(mat, theme.displayName);
         }
-        Paint(LeftWallName, rail, theme.tint, cachedLeft, false);
-        Paint(RightWallName, rail, theme.tint, cachedRight, true);
+        Color railTint = RailTint(theme);
+        Paint(LeftWallName, rail, railTint, cachedLeft, false);
+        Paint(RightWallName, rail, railTint, cachedRight, true);
         SetRailLayout(theme.displayName);
         // the rails just changed: the edge everything bounces off, crashes
         // into and breaks on (BossRails.InnerEdge; elites, shots) is the
