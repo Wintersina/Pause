@@ -115,8 +115,12 @@ public static class FrostAmbientCatalog
         public Emitter[] emitters;
     }
 
-    // Everything ambient is multiplied by this (the brightness pass's knob).
+    // Every loop's opacity is multiplied by this. (The world's brightness
+    // knob is FrostTuning.Brightness; of the loops only the smoke and steam
+    // plumes are lifted by it, FrostTuning.PlumeShare: the lights, flames
+    // and beacons are bright already.)
     public static float Brightness = 1f;
+    public static bool Lifted(string atlas) { return atlas == "smoke" || atlas == "steam"; }
     // Emitters a single landmark may carry (pooled renderers per piece).
     public const int MaxPerPiece = 4;
 
@@ -215,10 +219,15 @@ public class AmbientEmitters
     readonly Sprite[][] frames;
     readonly List<BackdropPool> pools = new List<BackdropPool>();
     readonly List<Slot[][]> slots = new List<Slot[][]>();
+    // Smoke and steam draw lifted (BackdropGrade); the lights as painted.
+    Material plumeMat, plainMat;
+    public Material PlumeMaterial { get { return plumeMat; } }
 
     public AmbientEmitters(BackdropSet set)
     {
         this.set = set;
+        float lift = BackdropGrade.Lift(set.Spec, FrostTuning.PlumeShare);
+        plumeMat = BackdropGrade.Create("plumes", lift, BackdropGrade.Saturation(set.Spec, lift));
         var loops = FrostAmbientCatalog.Loops;
         frames = new Sprite[loops.Length][];
         for (int i = 0; i < loops.Length; i++) frames[i] = set.Atlas(loops[i].atlas).Frames(loops[i].name);
@@ -247,6 +256,7 @@ public class AmbientEmitters
                 var go = new GameObject("ambient" + k);
                 go.transform.SetParent(p.body, false);
                 var sr = go.AddComponent<SpriteRenderer>();
+                if (plainMat == null) plainMat = sr.sharedMaterial;
                 sr.sortingOrder = p.sr.sortingOrder + orderOffset;
                 sr.enabled = false;
                 table[i][k] = new Slot { sr = sr };
@@ -293,6 +303,8 @@ public class AmbientEmitters
             slot.alpha = loop.alpha * e.alpha;
             slot.phase = (float)rng.NextDouble() * slot.frames.Length / Mathf.Max(.01f, slot.fps);
             slot.sr.sprite = slot.frames[0];
+            Material m = plumeMat != null && FrostAmbientCatalog.Lifted(loop.atlas) ? plumeMat : plainMat;
+            if (m != null && slot.sr.sharedMaterial != m) slot.sr.sharedMaterial = m;
             slot.on = true;
             n++;
         }
@@ -314,6 +326,8 @@ public class AmbientEmitters
             return n;
         }
     }
+
+    public void Destroy() { BackdropAtlas.Kill(plumeMat); plumeMat = null; }
 
     public void Step(float fade)
     {

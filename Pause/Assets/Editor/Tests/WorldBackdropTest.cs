@@ -27,6 +27,52 @@ public static class WorldBackdropTest
     const float TileMaxValueP90 = 0.35f;
     const float AtlasMaxLuminance = 0.66f;      // set-piece art (lights included) before its dimming runtime tint
 
+    // FROST IS BRIGHTER, DELIBERATELY (user, 2026-10-08: "the backgrounds
+    // are too dark, can you make it be more bright?"). Its art is still
+    // painted to the rules above (value <= .33); FrostTuning.Brightness
+    // lifts it at draw time (BackdropGrade), and Frost is held to these
+    // limits AS DRAWN (the checks grade the pixels the way the shader does).
+    // The real gameplay guard stays the same for every world: enemy bodies
+    // >= 2.5:1 and the brightest tone >= 7:1 against the lane, and the lane
+    // darker than the enemy hull (CheckReadability). With Brightness 1.7 the
+    // drawn tiles reach value p90 ~.49, luminance ~.20, chroma ~.23.
+    const float FrostTileMaxValueP90 = 0.55f;
+    const float FrostSkyMaxLuminance = 0.18f;
+    const float FrostTileMaxLuminance = 0.24f;
+    const float FrostTileMaxChroma = 0.26f;
+    // The weather atlas is the cloud ceiling: drawn thick and bright on
+    // purpose, to continue the planetfall's cloud deck (mean value ~.86).
+    const float FrostCloudMaxLuminance = 0.80f;
+
+    static bool Frost(BackdropCatalog.Spec spec) { return spec.world == "Frost"; }
+    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : TileMaxValueP90; }
+    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : TileMaxChroma; }
+
+    // A tile layer's pixels as drawn (BackdropGrade; the art itself when the
+    // layer is not lifted).
+    static Color[] AsDrawn(BackdropCatalog.Spec spec, BackdropCatalog.Layer layer, Color[] px)
+    {
+        float lift = BackdropGrade.Lift(spec, layer);
+        return BackdropGrade.Apply(px, lift, BackdropGrade.Saturation(spec, lift));
+    }
+
+    // A Frost atlas's pixels as drawn: the strongest lift any of its users
+    // draws it with (the weather at the cloud ceiling's thickening).
+    static Color[] FrostAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
+    {
+        float lift = 1f, alphaLift = 1f, satScale = 1f;
+        if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("landmarks"));
+        else if (atlas == "aurora") lift = BackdropGrade.Lift(spec, spec.Find("aurora"));
+        else if (FrostAmbientCatalog.Lifted(atlas)) lift = BackdropGrade.Lift(spec, FrostTuning.PlumeShare);
+        else if (atlas == "weather")
+        {
+            lift = BackdropGrade.Lift(spec, spec.Find("ceiling"));
+            alphaLift = FrostTuning.CeilingThicken;
+            satScale = FrostTuning.CeilingSaturation;
+        }
+        return BackdropGrade.Apply(px, lift, BackdropGrade.Saturation(spec, lift) * satScale, alphaLift);
+    }
+
     static void Check(string what, bool ok)
     {
         Debug.Log((ok ? "[WB] PASS  " : "[WB] FAIL  ") + what);
@@ -331,19 +377,28 @@ public static class WorldBackdropTest
                                                   SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamTolerance);
                 }
 
+                // Frost is measured as drawn (lifted by FrostTuning.Brightness).
+                if (Frost(spec))
+                {
+                    if (tile) px = AsDrawn(spec, spec.Find(name), px);
+                    else px = FrostAtlasAsDrawn(spec, file, px);
+                }
+                string drawnTag = Frost(spec) ? " as drawn" : "";
                 float lum, chroma;
                 Measure(px, out lum, out chroma);
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
                 {
                     float v90 = ValuePercentile(px, 0.9f);
-                    Check(spec.world + "/" + VariantTag(path) + name + " forms at HSV value <= 35% (p90 " + v90.ToString("F3") + ")",
-                          v90 <= TileMaxValueP90);
+                    Check(spec.world + "/" + VariantTag(path) + name + " forms at HSV value <= " + (ValueCap(spec) * 100f).ToString("F0") +
+                          "%" + drawnTag + " (p90 " + v90.ToString("F3") + ")", v90 <= ValueCap(spec));
                 }
                 if (spaceSky || name == "sky")
-                    Check(spec.world + " " + VariantTag(path) + "sky stays dark (lum " + lum.ToString("F3") + ")", lum <= SkyMaxLuminance);
+                    Check(spec.world + " " + VariantTag(path) + "sky stays dark" + drawnTag + " (lum " + lum.ToString("F3") + ")",
+                          lum <= (Frost(spec) ? FrostSkyMaxLuminance : SkyMaxLuminance));
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
-                    Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard (lum " + lum.ToString("F3") +
-                          ", chroma " + chroma.ToString("F3") + ")", lum <= TileMaxLuminance && chroma <= TileMaxChroma);
+                    Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard" + drawnTag + " (lum " + lum.ToString("F3") +
+                          ", chroma " + chroma.ToString("F3") + ")",
+                          lum <= (Frost(spec) ? FrostTileMaxLuminance : TileMaxLuminance) && chroma <= ChromaCap(spec));
                 if (!tile && spec.world == "Frost")
                 {
                     // Frost's v3 sheets are drawn at their loops' draw alpha
@@ -352,9 +407,10 @@ public static class WorldBackdropTest
                     float maxA = 0f;
                     foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
                     float drawn = lum * Mathf.Min(1f, maxA * FrostDrawAlpha(file));
+                    float cap = file == "weather" ? FrostCloudMaxLuminance : AtlasMaxLuminance;
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (lum " + lum.ToString("F3") +
-                          " x opacity " + Mathf.Min(1f, maxA * FrostDrawAlpha(file)).ToString("F2") + " = " + drawn.ToString("F3") + ")",
-                          drawn <= AtlasMaxLuminance);
+                          " x opacity " + Mathf.Min(1f, maxA * FrostDrawAlpha(file)).ToString("F2") + " = " + drawn.ToString("F3") +
+                          " <= " + cap + ")", drawn <= cap);
                 }
                 else if (!tile)
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling (lum " + lum.ToString("F3") + ")",
@@ -384,7 +440,7 @@ public static class WorldBackdropTest
         string dir = "Assets/Art/Backgrounds/Resources/" + (spec.variantSets > 0
             ? BackdropCatalog.TileFolder(world, variant) : BackdropCatalog.Folder(world));
         string skyName = world == "Space" ? SpaceSkySelection.Texture : "sky";
-        var outPx = (Color[])ReadPixels(dir + skyName + ".png").Clone();
+        var outPx = (Color[])AsDrawn(spec, spec.Find("sky"), ReadPixels(dir + skyName + ".png")).Clone();
         w = ReadW; h = ReadH;
         foreach (string layerName in new[] { "far", "mid", "flow" })
         {
@@ -395,7 +451,7 @@ public static class WorldBackdropTest
             var layer = spec.Find(layerName);
             string path = dir + layer.texture + ".png";
             if (!File.Exists(path)) continue;
-            var px = ReadPixels(path);
+            var px = AsDrawn(spec, layer, ReadPixels(path));
             int lw = ReadW, lh = ReadH;
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
@@ -579,13 +635,13 @@ public static class WorldBackdropTest
             Check(world + " lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " +
                   kick.ToString("F2") + ":1 >= 7", body >= 2.5f && kick >= 7f);
             Check(world + " lane stays darker than enemy bodies (lane value p90 " + laneV90.ToString("F2") +
-                  " <= " + TileMaxValueP90 + " and < hull " + Value(theme.hull).ToString("F2") + ")",
-                  laneV90 <= TileMaxValueP90 && laneV90 < Value(theme.hull));
+                  " <= " + ValueCap(wspec) + " and < hull " + Value(theme.hull).ToString("F2") + ")",
+                  laneV90 <= ValueCap(wspec) && laneV90 < Value(theme.hull));
             // Ember's enemies are deliberately grey char on a warm sky, so
             // there only the guide's chroma ceiling applies; the green worlds
             // must also stay greyer than their (green) enemies.
-            bool greyer = laneChroma <= TileMaxChroma && (world != "Verdant" || laneChroma < Chroma(theme.hull));
-            Check(world + " lane chroma " + laneChroma.ToString("F2") + " <= " + TileMaxChroma +
+            bool greyer = laneChroma <= ChromaCap(wspec) && (world != "Verdant" || laneChroma < Chroma(theme.hull));
+            Check(world + " lane chroma " + laneChroma.ToString("F2") + " <= " + ChromaCap(wspec) +
                   (world == "Verdant" ? " and < enemy hull " + Chroma(theme.hull).ToString("F2") : ""), greyer);
         }
     }
