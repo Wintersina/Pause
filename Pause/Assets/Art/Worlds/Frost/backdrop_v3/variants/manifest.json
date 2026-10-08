@@ -1,0 +1,171 @@
+{
+  "world": "Frost",
+  "view": "Orthographic atmosphere-level surface beneath clouds",
+  "build": "python3 src~/build.py",
+  "verify": "python3 src~/verify.py",
+  "preview": "preview_variants.png",
+  "variants": [
+    {
+      "id": "v1",
+      "name": "Frozen ocean",
+      "path": "../",
+      "description": "Original run A: scattered ocean ice, dark leads, pressure ridges and offshore industry.",
+      "files": [
+        "../sky.png",
+        "../far.png",
+        "../mid.png",
+        "../flow.png"
+      ]
+    },
+    {
+      "id": "v2",
+      "name": "Coastline and harbour",
+      "path": "v2/",
+      "description": "Ice-cliff headlands frame a working harbour with breakwaters, docks, cranes, tanks and moored icebreakers.",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "scroll": "repeat in both axes",
+      "tiles": [
+        {
+          "file": "v2/sky.png",
+          "layer": "sky",
+          "role": "A blue-violet hazy continental coast and bay",
+          "intended_parallax_depth": 0.0,
+          "source_candidate": "src~/v2_sky_a.png",
+          "palette_colors_max": 22,
+          "alpha": "opaque foundation"
+        },
+        {
+          "file": "v2/far.png",
+          "layer": "far",
+          "role": "Distant enclosed harbour, breakwaters and shoreline",
+          "intended_parallax_depth": 0.25,
+          "source_candidate": "src~/v2_far_b.png",
+          "palette_colors_max": 26,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v2/mid.png",
+          "layer": "mid",
+          "role": "Working docks, cranes, tank farms, icebreakers and cliff shore",
+          "intended_parallax_depth": 0.6,
+          "source_candidate": "src~/v2_mid_b.png",
+          "palette_colors_max": 30,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v2/flow.png",
+          "layer": "flow",
+          "role": "Sparse harbour floes and dark water-current contours",
+          "intended_parallax_depth": 1.0,
+          "source_candidate": "src~/v2_flow_b.png",
+          "palette_colors_max": 22,
+          "alpha": "stepped transparency revealing lower layers"
+        }
+      ]
+    },
+    {
+      "id": "v3",
+      "name": "Inland frozen industrial tundra",
+      "path": "v3/",
+      "description": "An inland refinery plain: diagonal rail lines, pipeline corridors, tank farms, towers, frozen lakes and snowdrifts.",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "scroll": "repeat in both axes",
+      "tiles": [
+        {
+          "file": "v3/sky.png",
+          "layer": "sky",
+          "role": "Faint tundra ridges, frozen lakes and roads under mist",
+          "intended_parallax_depth": 0.0,
+          "source_candidate": "src~/v3_sky_a.png",
+          "palette_colors_max": 22,
+          "alpha": "opaque foundation"
+        },
+        {
+          "file": "v3/far.png",
+          "layer": "far",
+          "role": "Remote pipeline routes, relay sites and lake basins",
+          "intended_parallax_depth": 0.25,
+          "source_candidate": "src~/v3_far_b.png",
+          "palette_colors_max": 26,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v3/mid.png",
+          "layer": "mid",
+          "role": "Rail sidings, refinery blocks, tanks and snowy ridges",
+          "intended_parallax_depth": 0.6,
+          "source_candidate": "src~/v3_mid_b.png",
+          "palette_colors_max": 30,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v3/flow.png",
+          "layer": "flow",
+          "role": "Thin separated wind-sculpted snowdrift ribbons",
+          "intended_parallax_depth": 1.0,
+          "source_candidate": "src~/v3_flow_b.png",
+          "palette_colors_max": 22,
+          "alpha": "stepped transparency revealing lower layers"
+        }
+      ]
+    },
+    {
+      "id": "v4",
+      "name": "Night glacier and crevasses",
+      "path": "v4/",
+      "description": "Long deep crevasses cut broken glacier slabs; faint cyan fissure glow and muted aurora reflections surround survey platforms.",
+      "size": [
+        512,
+        1024
+      ],
+      "mode": "RGBA",
+      "scroll": "repeat in both axes",
+      "tiles": [
+        {
+          "file": "v4/sky.png",
+          "layer": "sky",
+          "role": "Distant fractured glacier under blue-violet haze",
+          "intended_parallax_depth": 0.0,
+          "source_candidate": "src~/v4_sky_a.png",
+          "palette_colors_max": 22,
+          "alpha": "opaque foundation"
+        },
+        {
+          "file": "v4/far.png",
+          "layer": "far",
+          "role": "Long branched fissure and dim blue-green ice",
+          "intended_parallax_depth": 0.25,
+          "source_candidate": "src~/v4_far_b.png",
+          "palette_colors_max": 26,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v4/mid.png",
+          "layer": "mid",
+          "role": "Deep ice walls, ladders, bridges and small survey rigs",
+          "intended_parallax_depth": 0.6,
+          "source_candidate": "src~/v4_mid_a.png",
+          "palette_colors_max": 30,
+          "alpha": "opaque deep regions, translucent ice and industry"
+        },
+        {
+          "file": "v4/flow.png",
+          "layer": "flow",
+          "role": "Creep cracks, angular shards and low fissure mist",
+          "intended_parallax_depth": 1.0,
+          "source_candidate": "src~/v4_flow_a.png",
+          "palette_colors_max": 22,
+          "alpha": "stepped transparency revealing lower layers"
+        }
+      ]
+    }
+  ]
+}
