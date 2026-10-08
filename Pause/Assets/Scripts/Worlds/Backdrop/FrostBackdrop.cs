@@ -78,28 +78,34 @@ public static class FrostTuning
     public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
     public const int SiteIdBase = 500;
 
+    // The weather atlas bakes its translucency into the art (cloud banks
+    // peak at alpha ~.28, blizzard sheets ~.19, snow ~.35), so the draw
+    // alphas below multiply that: 1 draws the art as painted.
     // ---- the cloud ceiling ----
     public static float CeilingHold = 5f;          // seconds at full thickness
     public static float CeilingClearAt = 30f;      // seconds: gone
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f;
-    public static float CeilingAlpha = .9f;
+    public static float CeilingAlpha = 1f;
     public static float CeilingGap = 1.5f;         // scrolled distance between new banks while it lasts
     public static float CeilingLowShare = .3f;     // alpha share left at the bottom of the view (the ceiling is above)
     // ---- air ----
-    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .18f, WispAlphaMax = .28f;
-    public static float MistAlphaMin = .14f, MistAlphaMax = .22f;
+    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .7f, WispAlphaMax = .95f;
+    public static float MistAlphaMin = .6f, MistAlphaMax = .85f;
     // snow fields at three depths: size, alpha, count, fall speed
-    public static readonly float[] SnowSize = { 2.0f, 2.8f, 3.8f };
-    public static readonly float[] SnowAlpha = { .22f, .26f, .16f };
+    public static readonly float[] SnowSize = { 2.0f, 2.6f, 3.2f };
+    public static readonly float[] SnowAlpha = { .6f, .65f, .45f };
     public static readonly int[] SnowCount = { 7, 5, 4 };
     public static readonly float[] SnowFall = { .25f, .45f, .8f };
     // ---- blizzard gusts ----
     public static float BlizzardFirst = 11f, BlizzardEveryMin = 13f, BlizzardEveryMax = 21f;
-    public static int BlizzardSheets = 3;
+    public static int BlizzardSheets = 4;
     public static float BlizzardStagger = .45f;
     public static float BlizzardSpeed = 4.8f;
-    public static float BlizzardMaxAlpha = .34f;
-    public static float BlizzardMin = 4.4f, BlizzardMax = 5.8f;
+    public static float BlizzardMaxAlpha = 1f;
+    // Optional: gust sheets add light (BackdropAdditive) instead of
+    // alpha-blending (off: the brightness pass decides).
+    public static bool BlizzardAdditive = false;
+    public static float BlizzardMin = 5f, BlizzardMax = 7f;
     public static float BlizzardWind = 1.6f;       // sideways push given to the snow while a gust blows
 }
 
@@ -125,6 +131,13 @@ public class FrostDirector : PlanetDirector
     readonly Timer gustTimer = new Timer(FrostTuning.BlizzardEveryMin, FrostTuning.BlizzardEveryMax, FrostTuning.BlizzardFirst);
     int sheetsLeft;
     float sheetIn, wind;
+    Material additive;
+
+    public override void Teardown()
+    {
+        BackdropAtlas.Kill(additive);
+        additive = null;
+    }
 
     public FrostDirector() : base(1989) { }
 
@@ -215,7 +228,7 @@ public class FrostDirector : PlanetDirector
         }
         mist = Pool("mist", 3);
         wisps = Pool("wisps", 4);
-        ceiling = Pool("ceiling", 14);
+        ceiling = Pool("ceiling", 20);
         string[] snowLayers = { "snow_far", "snow_mid", "snow_near" };
         for (int d = 0; d < 3; d++)
         {
@@ -223,6 +236,15 @@ public class FrostDirector : PlanetDirector
             tintSnow[d] = spec.Tint(snowLayers[d]);
         }
         blizzard = Pool("blizzard", FrostTuning.BlizzardSheets + 1);
+        if (FrostTuning.BlizzardAdditive)
+        {
+            var shader = Resources.Load<Shader>(SpaceAsteroidDrift.AdditiveShader);
+            if (shader != null)
+            {
+                additive = new Material(shader) { name = "FrostGust" };
+                foreach (var g in blizzard.items) g.sr.sharedMaterial = additive;
+            }
+        }
 
         // the opening view: ground already in place, under a thick ceiling
         groundGap = Rand(FrostTuning.GapMin, FrostTuning.GapMax);
@@ -508,7 +530,7 @@ public class FrostDirector : PlanetDirector
         if (banks.Length == 0) return;
         // three staggered rows over the upper two thirds of the view, a
         // thinner one lower down: the deck the planetfall has just dropped through
-        float[] rows = { 1.0f, .62f, .25f, -.15f };
+        float[] rows = { 1.05f, .75f, .45f, .15f, -.2f };
         for (int r = 0; r < rows.Length; r++)
             for (int c = 0; c < 3; c++)
                 SpawnBank(HalfW * (-.62f + .62f * c + Rand(-.12f, .12f) + (r % 2 == 0 ? 0f : .2f)), HalfH * rows[r] + Rand(-.3f, .3f));
@@ -591,10 +613,10 @@ public class FrostDirector : PlanetDirector
         if (g == null) return;
         SetSprite(g, Pick(gustArt), Rand(FrostTuning.BlizzardMin, FrostTuning.BlizzardMax));
         g.x = HalfW + g.size * .25f;
-        g.y = Rand(-HalfH * .1f, HalfH * .75f);
+        g.y = Rand(HalfH * .2f, HalfH * 1.0f);
         float speed = FrostTuning.BlizzardSpeed * Rand(.85f, 1.15f);
         g.vx = -speed;
-        g.vy = -speed * .8f;
+        g.vy = -speed * .55f;
         g.life = (2f * HalfW + g.size * .6f) / speed;
         g.rate = set.Spec.Rate("blizzard");
         Place(g);

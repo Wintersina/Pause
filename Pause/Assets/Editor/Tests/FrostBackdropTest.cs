@@ -204,6 +204,21 @@ public static class FrostBackdropTest
               " in 150 s)", gusts >= 6 && gusts <= 12 && sheetFrames > 0);
         Check("... and stay translucent (peak alpha " + maxAlpha.ToString("F2") + " <= " + FrostTuning.BlizzardMaxAlpha + ")",
               maxAlpha > .05f && maxAlpha <= FrostTuning.BlizzardMaxAlpha + 1e-3f);
+        // the sheets' own pixels are translucent (draw alpha x art alpha)
+        float artMax = 0f;
+        var png = new Texture2D(2, 2);
+        png.LoadImage(System.IO.File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Frost/Backdrop3/weather.png"));
+        var weather = new BackdropAtlas(Resources.Load<Texture2D>("Worlds/Frost/Backdrop3/weather"), Resources.Load<TextAsset>("Worlds/Frost/Backdrop3/weather"));
+        foreach (var sp in weather.Frames("blizzard"))
+        {
+            var r = sp.rect;
+            var px = png.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height);
+            foreach (var c in px) artMax = Mathf.Max(artMax, c.a);
+        }
+        weather.Destroy();
+        Object.DestroyImmediate(png);
+        Check("... the gust never covers more than " + (maxAlpha * artMax * 100f).ToString("F0") + "% of what is under it (<= 30%)",
+              artMax > 0f && maxAlpha * artMax <= .3f);
         Check("every Frost backdrop renderer sorts behind gameplay (" + renderers.Length + ")", behind);
         int landmarks = d.Ground.ActiveCount;
         Check("landmarks keep scrolling by (" + landmarks + " in view)", landmarks >= 2);

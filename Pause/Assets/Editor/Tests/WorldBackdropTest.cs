@@ -81,6 +81,12 @@ public static class WorldBackdropTest
             AssetDatabase.ImportAsset(
                 "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
                 ImportAssetOptions.ForceUpdate);
+            // Same for Frost's v3 sheets imported before their rule settled.
+            foreach (string png in Directory.GetFiles(ArtDir("Frost"), "*.png", SearchOption.AllDirectories))
+            {
+                var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
+                if (imp != null && imp.mipmapEnabled) AssetDatabase.ImportAsset(png.Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
+            }
             CheckCatalog();
             CheckArt();
             CheckSpaceAtlas();
@@ -338,7 +344,19 @@ public static class WorldBackdropTest
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
                     Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard (lum " + lum.ToString("F3") +
                           ", chroma " + chroma.ToString("F3") + ")", lum <= TileMaxLuminance && chroma <= TileMaxChroma);
-                if (!tile)
+                if (!tile && spec.world == "Frost")
+                {
+                    // Frost's v3 sheets are drawn at their loops' draw alpha
+                    // (FrostAmbientCatalog) and the weather carries its
+                    // translucency in the art: held to the ceiling as drawn.
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * FrostDrawAlpha(file));
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (lum " + lum.ToString("F3") +
+                          " x opacity " + Mathf.Min(1f, maxA * FrostDrawAlpha(file)).ToString("F2") + " = " + drawn.ToString("F3") + ")",
+                          drawn <= AtlasMaxLuminance);
+                }
+                else if (!tile)
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling (lum " + lum.ToString("F3") + ")",
                           lum <= AtlasMaxLuminance);
             }
@@ -404,6 +422,17 @@ public static class WorldBackdropTest
         string d = Path.GetFileName(Path.GetDirectoryName(path.Replace('\\', '/')));
         if (d != null && d.Length == 2 && d[0] == 'v' && char.IsDigit(d[1])) return d[1] - '0';
         return 0;
+    }
+
+    // The highest draw alpha a Frost atlas is drawn at: its loops' alpha
+    // (the world aurora's per-variant alpha for aurora), 1 for the rest
+    // (landmarks, sites, weather).
+    static float FrostDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        if (atlas == "aurora") { foreach (float v in FrostAmbientCatalog.AuroraAlpha) a = Mathf.Max(a, v); return a; }
+        foreach (var l in FrostAmbientCatalog.Loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha);
+        return a > 0f ? a : 1f;
     }
 
     static string VariantTag(string path) { int v = VariantOf(path); return v > 0 ? "v" + v + "/" : ""; }

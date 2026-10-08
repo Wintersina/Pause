@@ -145,6 +145,9 @@ public class WorldBackdropImport : AssetPostprocessor
             ti.alphaSource = TextureImporterAlphaSource.FromInput;
         }
 
+        // (switching the texture type can turn mipmaps back on for a fresh import)
+        ti.mipmapEnabled = planetSheet;
+
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");

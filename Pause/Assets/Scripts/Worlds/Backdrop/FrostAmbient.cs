@@ -123,7 +123,7 @@ public static class FrostAmbientCatalog
     public const string AuroraLoop = "aurora";
     // The faint world aurora per variant (index = variant; 0 = no variant):
     // strong only over the glacier night (v4).
-    public static readonly float[] AuroraAlpha = { .12f, .12f, .08f, .12f, .46f };
+    public static readonly float[] AuroraAlpha = { .3f, .3f, .2f, .3f, 1f };
 
     // fps / anchor / alpha from the run C manifest (backdrop_v3/src~/manifest.json).
     public static readonly Loop[] Loops =
