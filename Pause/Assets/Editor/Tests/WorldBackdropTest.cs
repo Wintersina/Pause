@@ -208,7 +208,25 @@ public static class WorldBackdropTest
                 long assetAstc = ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
 
                 var imp = (TextureImporter)AssetImporter.GetAtPath(asset);
-                Check(asset + " has no mipmaps", imp != null && !imp.mipmapEnabled);
+                // Space's planet sheet is drawn from ~0.4x to ~2.8x and keeps
+                // a trilinear mip chain (WorldBackdropImport.IsPlanetSheet;
+                // SpacePlanetSheetTest); a run loads anim_hires instead of
+                // anim when it is installed, so only one counts.
+                bool planetSheet = WorldBackdropImport.IsPlanetSheet(asset);
+                if (planetSheet && Path.GetFileNameWithoutExtension(path) == BackdropCatalog.AtlasAnim &&
+                    File.Exists(dir + BackdropCatalog.AtlasAnimHires + ".png"))
+                    assetBytes = assetAstc = 0;
+                else if (planetSheet)
+                {
+                    // Mip chain (+1/3); ASTC 4x4 on phones, not 6x6.
+                    assetBytes = assetBytes * 4 / 3;
+                    assetAstc = ((tex.width + 3) / 4) * ((tex.height + 3) / 4) * 16L * 4 / 3;
+                }
+                if (planetSheet)
+                    Check(asset + " is mipmapped and trilinear (planet sheet)",
+                          imp != null && imp.mipmapEnabled && imp.filterMode == FilterMode.Trilinear);
+                else
+                    Check(asset + " has no mipmaps", imp != null && !imp.mipmapEnabled);
                 Check(asset + " is compressed", imp != null && imp.textureCompression != TextureImporterCompression.Uncompressed);
 
                 var px = ReadPixels(path);

@@ -39,8 +39,12 @@ public static class SpaceBackdropPreview
         camGo.tag = "MainCamera";
         var cam = camGo.GetComponent<Camera>();
         cam.orthographic = true;
-        cam.orthographicSize = 6.2f;
         cam.aspect = Px / (float)Py;
+        // $BACKDROP_FIT=gameplay frames the run's view (CameraFit.GameplayHalfWidth,
+        // 7.44 u wide at any aspect) instead of orthographic size 6.2, so a
+        // body's drawn size in pixels is what a phone shows.
+        cam.orthographicSize = Env("BACKDROP_FIT", "") == "gameplay"
+            ? CameraFit.GameplayHalfWidth / cam.aspect : 6.2f;
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
         cam.transform.position = new Vector3(0f, 0f, -10f);

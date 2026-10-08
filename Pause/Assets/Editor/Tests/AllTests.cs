@@ -127,6 +127,7 @@ public static class AllTests
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
         ("SpaceStationTest", SpaceStationTest.Execute),
+        ("SpacePlanetSheetTest", SpacePlanetSheetTest.Execute),
         ("SpawnSpaceTest", SpawnSpaceTest.Execute),
         ("SpeedCapTest", SpeedCapTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),

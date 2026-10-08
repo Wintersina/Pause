@@ -139,3 +139,72 @@ Done with `Pause/Assets/Art/Enemies/src~/recell.py` / `audit_cells.py`; nothing 
   - `ember_big` Magma Skull: the skull slides left through the idle loop (6, 8, 14 px off frame 0 in frames
     1-3, 18-20 px in 4-5); frame 0 has 2 px of margin on its right.
   - `space_big`: 12 texels on the bottom outline of cell 5.
+
+## Space giant planets + moon rotation frames at high resolution (requested 2026-10-07)
+
+**Owner: Codex. Status: requested; the code is ready for the drop-in.**
+
+Why: the turning planets in Space (`anim.png` cells `giant_00`…`giant_11` and `rocky_00`…`rocky_03`)
+are drawn much bigger than they were painted. On a 1170 px wide phone (the run's view is 7.44 u wide,
+157 px/u) a near/hero giant is 2.97–4.13 u = 467–649 px across, from a 232–236 px cell: **2.0–2.8x
+upscale**. Mid giants are 226–315 px (1.0–1.35x). The BackdropPlanet shader then slides the surface
+across the disc, which stretches the art sideways again (1.3x on average now; it was 1.7x and up to 3.8x
+before 2026-10-07). Rocky moons / planetoids are only drawn up to 157 px, so they are not upscaled; they
+should still be re-rendered so the set matches. Nothing in the repo has these planets at a higher
+resolution (`staging/anim_pixel_v1.png` is the same 1024 sheet; `reference_planet.png` is a different
+planet), so this is new art.
+
+Deliver:
+
+- `Pause/Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/anim_hires.png`: **2048 × 2048** RGBA,
+  transparent background, 4 × 4 grid of **512 px cells** (better: 4096 × 4096 with 1024 px cells, but see
+  the memory note), same cell order as `anim.png`: rows 1–3 are `giant_00`…`giant_11` left to right, row
+  4 is `rocky_00`…`rocky_03`. Do not replace or edit `anim.png` / `anim.json`.
+- `anim_hires.json` next to it, the same format as `anim.json` plus three fields:
+  ```json
+  { "pixelScale": 2, "sheetW": 2048, "sheetH": 2048,
+    "sprites": [ {"n":"giant_00","x":20,"y":1568,"w":472,"h":448}, ... 16 entries ... ] }
+  ```
+  `pixelScale` = sheet pixels per pixel of the old 1x art (2 for 2048, 4 for 4096). Rects use Unity's
+  **bottom-left** origin like `anim.json`, are **centred on the disc**, and are the disc's bounding box plus
+  `2.5 × pixelScale` px of clear border all round (`build_atlas.py` does this for the 1x sheet).
+  Order and names must be exactly `anim.json`'s.
+- Each cell is the same planet as now, in the same neon pixel style: the same banded blue/violet gas
+  giant with its station girder belt and lamps, the same cratered grey moons with their station, the same
+  cyan rim glow on the lit (right) limb. Repaint it with real detail at the new size; do not upscale.
+  Width/height ratio of each disc as in the 1x cell (about 1.05:1 for giants).
+- The shader turns each cell by sliding its middle ±69° of longitude (`_Band` 1.2 rad) across the globe,
+  and keeps the outer 14% of the radius (`_Rim` 0.86: limb glow and halo) as painted. So: put the detail
+  in the middle band, keep the limb glow inside the outer 14%, and keep the lighting baked as now (light
+  from upper right, ambient about 0.38). The shader cross-fades where the band wraps, so the band's left
+  and right ends do not have to match.
+- At runtime every cell is a separate **variant** (each planet picks one cell and turns it with the
+  shader). The 12 giants do not play as a flipbook. If they are painted as a rotation sequence, close the
+  loop (giant_11 → giant_00, rocky_03 → rocky_00) anyway, but this is optional.
+
+Install (no code changes):
+
+1. Copy both files into `Pause/Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/` and open Unity
+   (or reimport them). `WorldBackdropImport` gives `anim_hires` the planet sheet settings: mipmaps,
+   trilinear, max size 4096, ASTC 4x4 on Android/iOS.
+2. `BackdropSet.LoadAnimAtlas` picks `anim_hires` over `anim` when both files are there. Bodies keep their
+   world size (`SpaceDirector.KindWidth` × tier scale). The sheet's pixel size changes only sharpness.
+3. Check: `AllTests.RunSuites -suites SpacePlanetSheetTest,WorldBackdropTest` must pass.
+   `SpacePlanetSheetTest.CheckHires` checks the same 16 names and order, `pixelScale >= 2`, cells equal to
+   anim's × pixelScale (±4 px of 1x art), discs filling their centred cuts (±2 px of 1x art), and that the
+   runtime loads anim_hires. `WorldBackdropTest` checks the per-world texture budget (9 MB). It counts
+   anim_hires in place of anim.
+4. Review: `Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod SpacePlanetPreview.Run`
+   writes each cell at hero size on a 1170 px phone to `Builds/PlanetPreview`. `SpaceBackdropPreview.Run`
+   with `BACKDROP_PX=1170 BACKDROP_PY=2532 BACKDROP_FIT=gameplay` renders the whole backdrop.
+
+Memory (phone, ASTC 4x4 with mips; desktop DXT5 is the same size): 1024² 1.3 MB (now), **2048² 5.3 MB**,
+4096×2048 10.7 MB, 4096² 21 MB. RGBA32 would be 4× that. A 2048 sheet keeps Space at 9058 KB of its
+9216 KB budget. A 4096 sheet needs the budget raised in `WorldBackdropTest.TextureBudgetBytes`, with a
+note. Prefer 2048. (Checked 2026-10-08 with a temporary 2048 sheet: 9058 KB. The asteroid drift sheets on
+`feature/space-asteroids-drift`, a 1024² `asteroid_drift.png` plus `asteroid_drift_fx.png`, add roughly
+0.5 MB more, so once both are on master a 2048 `anim_hires` needs the budget raised a little too.)
+
+Interim option, not installed: `Pause/Assets/Art/Worlds/Space/src~/build_anim_hires_interim.py` writes
+a Lanczos 2x + unsharp copy of `anim.png` as `anim_hires.*`. Side-by-side renders showed it is only
+slightly crisper than the 1x sheet, for +4 MB, so it was not shipped. Delete it once the real sheet is in.

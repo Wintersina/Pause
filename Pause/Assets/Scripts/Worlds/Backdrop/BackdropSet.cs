@@ -62,7 +62,8 @@ public class BackdropSet
 
         string folder = BackdropCatalog.Folder(Spec.world);
         Fx = LoadAtlas(folder, BackdropCatalog.AtlasFx);
-        Anim = LoadAtlas(folder, BackdropCatalog.AtlasAnim);
+        Anim = LoadAnimAtlas(folder);
+        if (Anim.texture != null) Textures.Add(Anim.texture);
         if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
         if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
         if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
@@ -91,6 +92,22 @@ public class BackdropSet
         var tex = Resources.Load<Texture2D>(folder + name);
         var json = Resources.Load<TextAsset>(folder + name);
         if (tex != null) Textures.Add(tex);
+        return new BackdropAtlas(tex, json);
+    }
+
+    // The world's anim atlas: the high-resolution re-render (anim_hires) when
+    // one is installed, else anim. Both carry the same cells under the same
+    // names; a body's world size comes from its director (SetSprite), never
+    // from the cell's pixel size, so the swap changes sharpness only.
+    public static BackdropAtlas LoadAnimAtlas(string folder)
+    {
+        var tex = Resources.Load<Texture2D>(folder + BackdropCatalog.AtlasAnimHires);
+        var json = tex != null ? Resources.Load<TextAsset>(folder + BackdropCatalog.AtlasAnimHires) : null;
+        if (tex == null || json == null)
+        {
+            tex = Resources.Load<Texture2D>(folder + BackdropCatalog.AtlasAnim);
+            json = Resources.Load<TextAsset>(folder + BackdropCatalog.AtlasAnim);
+        }
         return new BackdropAtlas(tex, json);
     }
 
