@@ -12,6 +12,9 @@ using UnityEngine;
 //                     which is the continuation), wrap U = Clamp. sky is
 //                     opaque (full-rect mesh); the alpha tiles use tight
 //                     meshes so transparent areas aren't drawn (overdraw).
+//   Frost/Backdrop3/  the same rules for its v1..v4 tile sets and its atlases
+//                     (landmarks, sites, weather and the ambient loops),
+//                     point-sampled except the soft atlases (IsSoftAtlas).
 //   fx/anim atlases   Default texture; WorldBackdrop cuts sprites at
 //                     runtime from the JSON manifest beside each atlas.
 //
@@ -40,8 +43,21 @@ public class WorldBackdropImport : AssetPostprocessor
 
     static bool IsBackdrop(string path)
     {
-        return path.StartsWith("Assets/Art/Backgrounds/Resources/Worlds/") && path.Contains("/Backdrop/") &&
-               path.EndsWith(".png");
+        return path.StartsWith("Assets/Art/Backgrounds/Resources/Worlds/") &&
+               (path.Contains("/Backdrop/") || IsBackdrop3(path)) && path.EndsWith(".png");
+    }
+
+    // Frost's v3 backdrop (BackdropCatalog Spec.folder "Worlds/Frost/Backdrop3/"):
+    // variant tile sets in v1..v4/, shared atlases beside them.
+    public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
+
+    // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
+    // or ~2x (tiles): point-sampled so it stays crisp. Its soft atlases
+    // (clouds, mist, snow sheets, smoke, steam, aurora) are drawn several
+    // times their pixel size and keep bilinear filtering.
+    public static bool IsSoftAtlas(string file)
+    {
+        return file == "weather" || file == "smoke" || file == "steam" || file == "aurora";
     }
 
     public static bool IsTile(string path)
@@ -94,7 +110,8 @@ public class WorldBackdropImport : AssetPostprocessor
         bool planetSheet = IsPlanetSheet(assetPath);
         ti.mipmapEnabled = planetSheet;
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
-        ti.filterMode = sharpSpaceSky ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
+        bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && !IsSoftAtlas(file));
+        ti.filterMode = crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
