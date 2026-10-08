@@ -45,6 +45,7 @@ public static class AllTests
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
+        ("BossDamageTest", BossDamageTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),

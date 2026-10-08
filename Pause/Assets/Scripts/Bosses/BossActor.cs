@@ -24,6 +24,8 @@ public class BossActor : MonoBehaviour
 
     BossDef boss;
     SpriteRenderer body;
+    SpriteRenderer smoke, arcs;   // battle damage over the body (BossArt damage fx)
+    int damageStage;              // hearts lost, 0..BossArt.DamageStages
     readonly SpriteRenderer[] charges = new SpriteRenderer[MaxParts];
     readonly SpriteRenderer[] rings = new SpriteRenderer[MaxParts];
     GameObject bodyHit;
@@ -61,7 +63,12 @@ public class BossActor : MonoBehaviour
     public GameObject BodyHitbox => bodyHit;
     // Its health, spinning round it (null until the fight starts).
     public BossHearts Hearts => hearts;
+    // The body frame index on screen (emitters are measured on it); with
+    // battle damage the idle drawing shown is a damaged hull instead.
     public int BodyFrame { get; private set; }
+    public int DamageStage => damageStage;
+    public SpriteRenderer DamageSmoke => smoke;
+    public SpriteRenderer DamageArcs => arcs;
     public int AttacksStarted { get; private set; }
     public int VolleysFired => volleysFired;
 
@@ -85,6 +92,11 @@ public class BossActor : MonoBehaviour
         bodyGo.transform.localScale = Vector3.one * BossConfig.BossWorldSize;
         body = bodyGo.AddComponent<SpriteRenderer>();
         body.sortingOrder = -3;
+        if (BossArt.HasDamageArt(def))
+        {
+            smoke = Overlay("DamageSmoke", -2);
+            arcs = Overlay("DamageArcs", -1);
+        }
 
         for (int i = 0; i < MaxParts; i++)
         {
@@ -108,10 +120,55 @@ public class BossActor : MonoBehaviour
         return sr;
     }
 
+    // Smoke / arcs: same scale and registration as the body.
+    SpriteRenderer Overlay(string name, int order)
+    {
+        var sr = Glow(name, order);
+        sr.transform.localScale = Vector3.one * BossConfig.BossWorldSize;
+        return sr;
+    }
+
     void SetFrame(int frame)
     {
         BodyFrame = frame;
-        if (body != null) body.sprite = BossArt.Body(boss, frame);
+        if (body == null) return;
+        int cell = BossArt.DamageIdleCell(boss, frame, damageStage, animClock);
+        body.sprite = cell >= 0 ? BossArt.DamageBody(boss, cell) : BossArt.Body(boss, frame);
+    }
+
+    // ---- battle damage -------------------------------------------------
+
+    void SetDamage(int heartsLeft)
+    {
+        damageStage = BossArt.DamageStage(Mathf.Max(1, BossConfig.Hearts), heartsLeft);
+    }
+
+    // Smoke and arcs on the world clock (they freeze with the fight); only
+    // while it is fighting.
+    void RefreshDamage()
+    {
+        if (smoke == null) return;
+        bool alive = mode == Mode.Fighting && body.enabled;
+        float sa = alive ? BossArt.SmokeAlpha(damageStage) : 0f;
+        float aa = alive ? BossArt.ArcAlpha(damageStage, animClock) : 0f;
+        smoke.enabled = sa > 0f;
+        arcs.enabled = aa > 0f;
+        if (smoke.enabled)
+        {
+            smoke.sprite = BossArt.DamageFx(boss, BossArt.SmokeCell(animClock));
+            smoke.color = new Color(1f, 1f, 1f, sa);
+        }
+        if (arcs.enabled)
+        {
+            arcs.sprite = BossArt.DamageFx(boss, BossArt.ArcCell(damageStage, animClock));
+            arcs.color = new Color(1f, 1f, 1f, aa);
+        }
+    }
+
+    void HideDamage()
+    {
+        if (smoke != null) smoke.enabled = false;
+        if (arcs != null) arcs.enabled = false;
     }
 
     // ---- where attacks come from ---------------------------------------
@@ -195,12 +252,15 @@ public class BossActor : MonoBehaviour
         EnsureBodyHitbox();
         // Its hearts pop in round it now it has landed.
         if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
+        SetDamage(hearts != null ? hearts.Left : BossConfig.Hearts);   // a fresh fight starts pristine
     }
 
     // BossEncounter: `left` hearts are left after a hit at `at`.
     public void SetHearts(int left, Vector3 at)
     {
         if (hearts != null) hearts.SetLeft(left, at);
+        SetDamage(left);
+        if (mode == Mode.Fighting) RefreshFrame();
     }
 
     int loop;
@@ -489,6 +549,7 @@ public class BossActor : MonoBehaviour
             SetFrame(BossArt.TellFrame(boss, current.tell, 1f));
         else SetFrame(BossArt.IdleFrame(boss, animClock));
         RefreshGlows();
+        RefreshDamage();
     }
 
     // The tell's charge gathering at each part about to fire (a ring closing
@@ -557,6 +618,7 @@ public class BossActor : MonoBehaviour
         explosionsFired = 0;
         retreatVy = 0f;
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
+        HideDamage();
         flashLeft = 0f;
         if (bodyHit != null) { BossUtil.Kill(bodyHit); bodyHit = null; }
         // Retreating: its hearts go with it at once. Dying: the last one's
