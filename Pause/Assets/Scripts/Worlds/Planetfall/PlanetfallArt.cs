@@ -97,7 +97,7 @@ public class PlanetfallArt
             float along = (1f - y) * .5f;                     // 0 at the nozzles, 1 at the tip
             float half = Mathf.Lerp(.95f, .12f, Mathf.Pow(along, .7f));
             float across = Mathf.Exp(-3f * (x / half) * (x / half));
-            return across * (1f - Mathf.SmoothStep(.15f, 1f, along)) * Mathf.SmoothStep(0f, .06f, along);
+            return across * (1f - PlanetfallTimeline.Ramp(along, .15f, 1f)) * PlanetfallTimeline.Ramp(along, 0f, .06f);
         });
         Plume = Whole(plumeTex, new Vector2(.5f, 1f));
     }
