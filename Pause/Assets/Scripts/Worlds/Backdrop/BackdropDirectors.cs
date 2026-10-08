@@ -142,6 +142,9 @@ public partial class SpaceDirector : BackdropDirector
 
     public SpaceDirector() : base(1988) { }
 
+    // Planetfall: hold back new planets and stations while its planet is up.
+    public static bool Quiet { get { return Planetfall.Live != null; } }
+
     // Planets, stations, planetoids and moons: what the depth model governs.
     public IList<BackdropPool> Bodies { get { return bodies; } }
     // Everything that picks an atlas variant at spawn.
@@ -319,6 +322,9 @@ public partial class SpaceDirector : BackdropDirector
         // re-rolled, so waiting for room never skews the mix toward small.
         // Planets are paced by the sky having room (PlanetSpacing), which at
         // their crawl is a long wait; structures mostly by the clock.
+        // A planetfall's planet is coming (Planetfall): no new body competes
+        // with it; the ones already in the sky drift on out.
+        if (Quiet) { planetWait = Mathf.Max(planetWait, 1f); structureWait = Mathf.Max(structureWait, 1f); }
         planetWait -= dt;
         if (planetWait <= 0f)
         {

@@ -32,6 +32,9 @@ public class WorldBackdrop : MonoBehaviour
     static readonly string[] Walls = { "leftPipe", "rightPipe" };
 
     public static WorldBackdrop Instance { get; private set; }
+    // Multiplies the scroll: a planetfall's swell streaks the stars
+    // (Planetfall.BackdropBoost); 1 otherwise.
+    public static float ScrollBoost { get { return Planetfall.Live != null ? Planetfall.Live.BackdropBoost : 1f; } }
 
     public BackdropSet Current { get; private set; }
     BackdropSet outgoing;
@@ -128,7 +131,7 @@ public class WorldBackdrop : MonoBehaviour
     {
         float dt = Mathf.Min(unscaledDt, Time.maximumDeltaTime) * Time.timeScale;
         FollowCamera();
-        float v = ScrollVelocity(moveBackGround.speed);
+        float v = ScrollVelocity(moveBackGround.speed) * ScrollBoost;
 
         if (outgoing != null)
         {
