@@ -60,6 +60,14 @@ public class Planetfall : MonoBehaviour
     // flatter horizon (and puts the planet's equatorial ring city below the
     // view for the dive).
     public static float LimbWidthShare = 2.2f;
+    // On tall screens the share grows so the horizon circle's radius stays
+    // at least this many half-heights: the equator (and its ring city) then
+    // stays below the view's bottom edge through the limb and the dive.
+    public static float MinHorizonRadiusInHalfHeights = 2.05f;
+    // The disc is clipped to its horizon circle (plus this margin) as the
+    // limb fades in, so the polar aurora and ring tips never poke above it.
+    public static float SwellEaseFrom = .7f, SwellEaseTo = 1.2f;
+    public static float DiscClipMargin = 1.012f;
     // The horizon view: the horizon's top this share of the half-height
     // above the view's centre; the dive scales about a point this share
     // below it.
@@ -159,7 +167,7 @@ public class Planetfall : MonoBehaviour
     // renderers
     Transform stage, group;
     SpriteRenderer planet, rim, limb, reticle, dark, deck, streakL, streakR, tint, vignette, flash, shroud, shroudGlow, burst;
-    Material limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat;
+    Material planetMat, limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat;
     // The hull at the commit: its width and its middle's offset from the
     // ship's position, world units (the shroud is fitted to it).
     float shipSpan, shroudScale;
@@ -167,6 +175,7 @@ public class Planetfall : MonoBehaviour
     readonly List<Renderer> lifted = new List<Renderer>(32);
 
     static readonly int UvId = Shader.PropertyToID("_UV");
+    static readonly int ClipId = Shader.PropertyToID("_Clip");
     static readonly int FadeId = Shader.PropertyToID("_Fade");
     static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
     public const string ShaderPath = "Planetfall/PlanetfallLayer";
@@ -248,7 +257,8 @@ public class Planetfall : MonoBehaviour
         group = new GameObject("Surface").transform;
         group.SetParent(stage, false);
 
-        planet = Part("Planet", group, art.Planet, PlanetOrder, null);
+        planetMat = Layer(shader, false);
+        planet = Part("Planet", group, art.Planet, PlanetOrder, planetMat);
         rim = Part("Rim", group, art.Ring, RimOrder, null);
         limbMat = Layer(shader, false);
         limb = Part("Limb", group, art.Limb, LimbOrder, limbMat);
@@ -490,6 +500,8 @@ public class Planetfall : MonoBehaviour
         if (tl <= PlanetfallTimeline.SwellSeconds)
         {
             float f = PlanetfallTimeline.Swell01(tl);
+            // the swell finishes early, so the equatorial ring city has left the view before the limb shows
+            f += (1f - f) * PlanetfallTimeline.Ramp(tl, SwellEaseFrom, SwellEaseTo);
             float s = Mathf.Exp(Mathf.Lerp(Mathf.Log(Mathf.Max(1e-3f, commitScale)), 0f, f));
             SetGroup(Vector3.Lerp(commitApex, apexView, f), s);
         }
@@ -501,6 +513,13 @@ public class Planetfall : MonoBehaviour
             SetGroup(pivot + (apexView - pivot) * s, s);
         }
         Show(planet, PlanetfallTimeline.PlanetAlpha(tl));
+        {
+            float k = PlanetfallTimeline.Ramp(tl, PlanetfallTimeline.LimbInFrom - .25f, PlanetfallTimeline.LimbInFrom + .1f);
+            float ra = ArcRadius();
+            float r = ra * group.localScale.x * Mathf.Lerp(1.5f, DiscClipMargin, k);
+            Vector3 c = planet.transform.position;
+            planetMat.SetVector(ClipId, k <= 0f ? Vector4.zero : new Vector4(c.x, c.y, r, .03f * group.localScale.x));
+        }
         Color rc = Color.Lerp(def.cue, Color.white, .5f * PlanetfallTimeline.RimGlow(tl));
         rc.a = Mathf.Max(.8f * (1f - PlanetfallTimeline.Ramp(tl, 0f, .5f)), PlanetfallTimeline.RimGlow(tl));
         rim.color = rc;
@@ -617,10 +636,18 @@ public class Planetfall : MonoBehaviour
         if (tl >= PlanetfallTimeline.Seconds) Finish();
     }
 
+    // The limb's width share: LimbWidthShare, or wider on tall screens.
+    float LimbShare()
+    {
+        float arcShare = def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width;   // horizon radius per limb width
+        float need = MinHorizonRadiusInHalfHeights * halfH / Mathf.Max(.01f, 2f * halfW * arcShare);
+        return Mathf.Max(LimbWidthShare, need);
+    }
+
     // The planet's horizon radius at the horizon view, world units.
     float ArcRadius()
     {
-        float limbW = 2f * halfW * LimbWidthShare;
+        float limbW = 2f * halfW * LimbShare();
         return def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width * limbW;
     }
 
@@ -629,7 +656,7 @@ public class Planetfall : MonoBehaviour
     // circle, so the cross-fade between them never jumps.
     void SetGroup(Vector3 apex, float scale)
     {
-        float limbW = 2f * halfW * LimbWidthShare;
+        float limbW = 2f * halfW * LimbShare();
         float ra = def.LimbArcPx(art.LimbTex.width) / art.LimbTex.width * limbW;
         group.position = apex;
         group.localScale = Vector3.one * scale;
@@ -758,8 +785,8 @@ public class Planetfall : MonoBehaviour
         backdropBoost = 1f;
         if (stage != null) BossUtil.Kill(stage.gameObject);
         stage = null;
-        foreach (var m in new[] { limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat }) if (m != null) BossUtil.Kill(m);
-        limbMat = darkMat = deckMat = streakLMat = streakRMat = glowMat = null;
+        foreach (var m in new[] { planetMat, limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat }) if (m != null) BossUtil.Kill(m);
+        planetMat = limbMat = darkMat = deckMat = streakLMat = streakRMat = glowMat = null;
         if (art != null) art.Release();
         art = null;
     }
