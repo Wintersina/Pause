@@ -534,5 +534,243 @@
         "notes": "Pad marker lamps; paired unlit/lit state."
       }
     ]
+  },
+  "run_c": {
+    "build": "python3 src~/build_c.py",
+    "preview": "preview_c.png",
+    "animated_preview": "preview_c.gif",
+    "atlas_grid": "4x4 256x256 cells; Unity rect y measured from image bottom",
+    "source_key_paintings": [
+      "src~/smoke_keys.png",
+      "src~/steam_keys.png",
+      "src~/fire_lights_keys.png",
+      "src~/beacons_keys.png",
+      "src~/aurora_keys.png"
+    ],
+    "loops": [
+      {
+        "name": "smoke_a",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_a_00",
+          "smoke_a_01",
+          "smoke_a_02",
+          "smoke_a_03",
+          "smoke_a_04",
+          "smoke_a_05",
+          "smoke_a_06",
+          "smoke_a_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery and industrial stacks",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "smoke_b",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_b_00",
+          "smoke_b_01",
+          "smoke_b_02",
+          "smoke_b_03",
+          "smoke_b_04",
+          "smoke_b_05",
+          "smoke_b_06",
+          "smoke_b_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery and platform chimneys",
+        "recommended_draw_alpha": 0.72
+      },
+      {
+        "name": "steam_vent",
+        "atlas": "steam.png",
+        "frames": [
+          "steam_vent_00",
+          "steam_vent_01",
+          "steam_vent_02",
+          "steam_vent_03",
+          "steam_vent_04",
+          "steam_vent_05",
+          "steam_vent_06",
+          "steam_vent_07"
+        ],
+        "recommended_fps": 10,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "ice vents and coastal shelves",
+        "recommended_draw_alpha": 0.75
+      },
+      {
+        "name": "geyser",
+        "atlas": "steam.png",
+        "frames": [
+          "geyser_00",
+          "geyser_01",
+          "geyser_02",
+          "geyser_03",
+          "geyser_04",
+          "geyser_05",
+          "geyser_06",
+          "geyser_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "ice shelves and cryo vents",
+        "recommended_draw_alpha": 0.7
+      },
+      {
+        "name": "flare",
+        "atlas": "fire_lights.png",
+        "frames": [
+          "flare_00",
+          "flare_01",
+          "flare_02",
+          "flare_03",
+          "flare_04",
+          "flare_05",
+          "flare_06",
+          "flare_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "offshore rigs and derricks",
+        "recommended_draw_alpha": 0.78
+      },
+      {
+        "name": "searchlight",
+        "atlas": "fire_lights.png",
+        "frames": [
+          "searchlight_00",
+          "searchlight_01",
+          "searchlight_02",
+          "searchlight_03",
+          "searchlight_04",
+          "searchlight_05",
+          "searchlight_06",
+          "searchlight_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "platforms and hangars",
+        "recommended_draw_alpha": 0.52
+      },
+      {
+        "name": "beacon_magenta",
+        "atlas": "beacons.png",
+        "frames": [
+          "beacon_magenta_00",
+          "beacon_magenta_01",
+          "beacon_magenta_02",
+          "beacon_magenta_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "rigs and causeways",
+        "recommended_draw_alpha": 0.7
+      },
+      {
+        "name": "beacon_cyan",
+        "atlas": "beacons.png",
+        "frames": [
+          "beacon_cyan_00",
+          "beacon_cyan_01",
+          "beacon_cyan_02",
+          "beacon_cyan_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "relays and causeways",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "strobe_white",
+        "atlas": "beacons.png",
+        "frames": [
+          "strobe_white_00",
+          "strobe_white_01",
+          "strobe_white_02",
+          "strobe_white_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "rigs and relay towers",
+        "recommended_draw_alpha": 0.55
+      },
+      {
+        "name": "window_lights",
+        "atlas": "beacons.png",
+        "frames": [
+          "window_lights_00",
+          "window_lights_01",
+          "window_lights_02",
+          "window_lights_03"
+        ],
+        "recommended_fps": 5,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery compounds and platforms",
+        "recommended_draw_alpha": 0.6
+      },
+      {
+        "name": "aurora",
+        "atlas": "aurora.png",
+        "frames": [
+          "aurora_00",
+          "aurora_01",
+          "aurora_02",
+          "aurora_03",
+          "aurora_04",
+          "aurora_05",
+          "aurora_06",
+          "aurora_07",
+          "aurora_08",
+          "aurora_09",
+          "aurora_10",
+          "aurora_11",
+          "aurora_12",
+          "aurora_13",
+          "aurora_14",
+          "aurora_15"
+        ],
+        "recommended_fps": 3,
+        "anchor_px_from_top": [
+          128,
+          128
+        ],
+        "intended_use": "night variants behind ground activity",
+        "recommended_draw_alpha": 0.46
+      }
+    ]
   }
 }
