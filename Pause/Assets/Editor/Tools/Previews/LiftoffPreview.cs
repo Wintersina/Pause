@@ -101,7 +101,9 @@ public static class LiftoffPreview
         BossRails.Measure();
         var wb = WorldBackdrop.Create(theme.displayName);
         wb.Show(theme.displayName, false);
-        for (int i = 0; i < 240; i++) wb.Step(Dt);
+        // the lift-off comes after the boss: the level's opening cloud ceiling
+        // (FrostTuning.CeilingClearAt) is long gone by then
+        for (int i = 0; i < (int)((FrostTuning.CeilingClearAt + 4f) / Dt); i++) wb.Step(Dt);
 
         var ship = new GameObject("~LoSpawner").AddComponent<spawnShips>().Spawn(ShipId.Starter);
         ship.transform.position = new Vector3(.9f, ShipReach.StartY + .6f, 0f);
