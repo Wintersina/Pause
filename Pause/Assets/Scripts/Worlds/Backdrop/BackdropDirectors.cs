@@ -222,6 +222,7 @@ public partial class SpaceDirector : BackdropDirector
         setPieces.AddRange(new[] { wisps, galaxies, comets });
         BuildStationLights();
         BuildStationPuffs();
+        BuildAsteroidDrift();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -356,6 +357,7 @@ public partial class SpaceDirector : BackdropDirector
             }
         TickStationLights(dt);
         TickStationPuffs(dt);
+        TickAsteroidDrift(dt, v);
         foreach (var c in comets.items)
             if (c.active && Drift(c, dt, v))
             {
@@ -522,7 +524,11 @@ public partial class SpaceDirector : BackdropDirector
                : neonPlanets.Length > 0 && !opening && Chance(0.45) ? neonPlanets
                : haloPlanets.Length > 0 && !opening && Chance(0.28) ? haloPlanets : giant)
             : n.kind == Station ? StationArt(n.ring, n.size)
-            : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? asteroids : RockArt(n.size));
+            // Codex's asteroids drift on their own now (SpaceAsteroidDrift); the
+            // coin that used to pick them is still tossed (and ignored) so the
+            // director's seeded stream -- the station / planet sequence -- is
+            // unchanged.
+            : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? RockArt(n.size) : RockArt(n.size));
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
@@ -647,6 +653,7 @@ public partial class SpaceDirector : BackdropDirector
     {
         TeardownStationPuffs();
         TeardownStationLights();
+        TeardownAsteroidDrift();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
     }

@@ -1,0 +1,1968 @@
+fileFormatVersion: 2
+guid: 55a2b69192f124c029466a07f833d844
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5968944046396971185
+    second: asteroid_drift_0
+  - first:
+      213: 6531694722448781875
+    second: asteroid_drift_1
+  - first:
+      213: -7179385241116206057
+    second: asteroid_drift_2
+  - first:
+      213: 8300189366787089411
+    second: asteroid_drift_3
+  - first:
+      213: 3448874669856040423
+    second: asteroid_drift_4
+  - first:
+      213: -3545365037714336785
+    second: asteroid_drift_5
+  - first:
+      213: 7300910139313511206
+    second: asteroid_drift_6
+  - first:
+      213: 8377043951348124356
+    second: asteroid_drift_7
+  - first:
+      213: 4253420064151820905
+    second: asteroid_drift_8
+  - first:
+      213: 7513618782186601721
+    second: asteroid_drift_9
+  - first:
+      213: 4406420314649896672
+    second: asteroid_drift_10
+  - first:
+      213: -2002522798929057283
+    second: asteroid_drift_11
+  - first:
+      213: 4097715396775254716
+    second: asteroid_drift_12
+  - first:
+      213: -7800472776568769025
+    second: asteroid_drift_13
+  - first:
+      213: -3179500489085627082
+    second: asteroid_drift_14
+  - first:
+      213: -69329270313129932
+    second: asteroid_drift_15
+  - first:
+      213: 5374603721869193783
+    second: asteroid_drift_16
+  - first:
+      213: 5861686962270410466
+    second: asteroid_drift_17
+  - first:
+      213: 711815092192410238
+    second: asteroid_drift_18
+  - first:
+      213: 3632274024194946364
+    second: asteroid_drift_19
+  - first:
+      213: 9624714852775152
+    second: asteroid_drift_20
+  - first:
+      213: -7802483756004696829
+    second: asteroid_drift_21
+  - first:
+      213: -9065156543888220404
+    second: asteroid_drift_22
+  - first:
+      213: -6056026132114990396
+    second: asteroid_drift_23
+  - first:
+      213: 130882510715901422
+    second: asteroid_drift_24
+  - first:
+      213: 6640484872759546594
+    second: asteroid_drift_25
+  - first:
+      213: -7470013009020853290
+    second: asteroid_drift_26
+  - first:
+      213: -277556811968339440
+    second: asteroid_drift_27
+  - first:
+      213: -5379469265823057997
+    second: asteroid_drift_28
+  - first:
+      213: -7187346071617272904
+    second: asteroid_drift_29
+  - first:
+      213: 8000806960793534626
+    second: asteroid_drift_30
+  - first:
+      213: 3025239263222741144
+    second: asteroid_drift_31
+  - first:
+      213: 4631958642517973597
+    second: asteroid_drift_32
+  - first:
+      213: -5750144491255254799
+    second: asteroid_drift_33
+  - first:
+      213: -4537930219699444238
+    second: asteroid_drift_34
+  - first:
+      213: -3341357746207347039
+    second: asteroid_drift_35
+  - first:
+      213: -5437052421235584521
+    second: asteroid_drift_36
+  - first:
+      213: -3682692994614546743
+    second: asteroid_drift_37
+  - first:
+      213: 2888171768861038767
+    second: asteroid_drift_38
+  - first:
+      213: -6626964460071140742
+    second: asteroid_drift_39
+  - first:
+      213: -7757280955417774562
+    second: asteroid_drift_40
+  - first:
+      213: -4939959119210964949
+    second: asteroid_drift_41
+  - first:
+      213: -3190927727728060128
+    second: asteroid_drift_42
+  - first:
+      213: 4873360771728452898
+    second: asteroid_drift_43
+  - first:
+      213: -5167346080368950401
+    second: asteroid_drift_44
+  - first:
+      213: -5177413207064044887
+    second: asteroid_drift_45
+  - first:
+      213: -6550692145299721027
+    second: asteroid_drift_46
+  - first:
+      213: -965887395146550210
+    second: asteroid_drift_47
+  - first:
+      213: -7072118042612316550
+    second: asteroid_drift_48
+  - first:
+      213: 2698731187053428388
+    second: asteroid_drift_49
+  - first:
+      213: -6083184082887691576
+    second: asteroid_drift_50
+  - first:
+      213: -7554697077459266341
+    second: asteroid_drift_51
+  - first:
+      213: -7009881034759093863
+    second: asteroid_drift_52
+  - first:
+      213: -6740282976315941209
+    second: asteroid_drift_53
+  - first:
+      213: 1626770015912858521
+    second: asteroid_drift_54
+  - first:
+      213: 6986793175336095802
+    second: asteroid_drift_55
+  - first:
+      213: -6877321070766452697
+    second: asteroid_drift_56
+  - first:
+      213: -8971255946193426849
+    second: asteroid_drift_57
+  - first:
+      213: -7426418099063027140
+    second: asteroid_drift_58
+  - first:
+      213: 1051270514870300414
+    second: asteroid_drift_59
+  - first:
+      213: -8883447275297944236
+    second: asteroid_drift_60
+  - first:
+      213: -3590897901441734019
+    second: asteroid_drift_61
+  - first:
+      213: 1875660688494081759
+    second: asteroid_drift_62
+  - first:
+      213: -7664714465783382900
+    second: asteroid_drift_63
+  - first:
+      213: -618514817394145838
+    second: asteroid_drift_64
+  - first:
+      213: 1861514840839357929
+    second: asteroid_drift_65
+  - first:
+      213: -5950526892538196684
+    second: asteroid_drift_66
+  - first:
+      213: -6611610514663293740
+    second: asteroid_drift_67
+  - first:
+      213: -260135307276452171
+    second: asteroid_drift_68
+  - first:
+      213: -2494658314254976547
+    second: asteroid_drift_69
+  - first:
+      213: -4377856963030661671
+    second: asteroid_drift_70
+  - first:
+      213: -2609627940683674905
+    second: asteroid_drift_71
+  - first:
+      213: 218446029803737571
+    second: asteroid_drift_72
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: asteroid_drift_0
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 935
+        width: 38
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b89ca14cf2f5d250800000000000000
+      internalID: 5968944046396971185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_1
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 970
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3327ad06ebd35aa50800000000000000
+      internalID: 6531694722448781875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_2
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 947
+        width: 39
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71c16954923bd5c90800000000000000
+      internalID: -7179385241116206057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_3
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 908
+        width: 20
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 304a1d7b042303370800000000000000
+      internalID: 8300189366787089411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_4
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 921
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e5ac934d3ddcdf20800000000000000
+      internalID: 3448874669856040423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_5
+      rect:
+        serializedVersion: 2
+        x: 114
+        y: 865
+        width: 39
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe392f748455ccec0800000000000000
+      internalID: -3545365037714336785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_6
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 861
+        width: 42
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62b54def61b025560800000000000000
+      internalID: 7300910139313511206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_7
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 859
+        width: 32
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ca80fb171d314470800000000000000
+      internalID: 8377043951348124356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_8
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 919
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96ad944430f270b30800000000000000
+      internalID: 4253420064151820905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_9
+      rect:
+        serializedVersion: 2
+        x: 605
+        y: 911
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fc7fe9397cb54860800000000000000
+      internalID: 7513618782186601721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_10
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 923
+        width: 18
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e6a5c11eefb62d30800000000000000
+      internalID: 4406420314649896672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_11
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 881
+        width: 36
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df9663bcf1c9534e0800000000000000
+      internalID: -2002522798929057283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_12
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 914
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cba107751720ed830800000000000000
+      internalID: 4097715396775254716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_13
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 897
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff57380a6572fb390800000000000000
+      internalID: -7800472776568769025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_14
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 890
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 635ded0a62520e3d0800000000000000
+      internalID: -3179500489085627082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_15
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 896
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 438e27e5561b90ff0800000000000000
+      internalID: -69329270313129932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_16
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 832
+        width: 30
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7327182fb9d669a40800000000000000
+      internalID: 5374603721869193783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_17
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 873
+        width: 26
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e69aa25c35e85150800000000000000
+      internalID: 5861686962270410466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_18
+      rect:
+        serializedVersion: 2
+        x: 670
+        y: 897
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7af3e31e00e0e900800000000000000
+      internalID: 711815092192410238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_19
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 873
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c35b40bfafd686230800000000000000
+      internalID: 3632274024194946364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_20
+      rect:
+        serializedVersion: 2
+        x: 305
+        y: 859
+        width: 25
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f43ddd80a1322000800000000000000
+      internalID: 9624714852775152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_21
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 847
+        width: 27
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30d959dfc5208b390800000000000000
+      internalID: -7802483756004696829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_22
+      rect:
+        serializedVersion: 2
+        x: 613
+        y: 872
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0f1c301728123280800000000000000
+      internalID: -9065156543888220404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_23
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 866
+        width: 34
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ca9dcca15ca4fba0800000000000000
+      internalID: -6056026132114990396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_24
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 822
+        width: 51
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee5588633fcf0d100800000000000000
+      internalID: 130882510715901422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_25
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 844
+        width: 13
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e210391fcdb72c50800000000000000
+      internalID: 6640484872759546594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_26
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 847
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d3e3c10fbe255890800000000000000
+      internalID: -7470013009020853290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_27
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 819
+        width: 21
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01223a1dc8be52cf0800000000000000
+      internalID: -277556811968339440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_28
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 849
+        width: 25
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b73c7254394855b0800000000000000
+      internalID: -5379469265823057997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_29
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 840
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b3047bf3da614c90800000000000000
+      internalID: -7187346071617272904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_30
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 849
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a0429e6a83980f60800000000000000
+      internalID: 8000806960793534626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_31
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 855
+        width: 29
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 898b4fcd41fcbf920800000000000000
+      internalID: 3025239263222741144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_32
+      rect:
+        serializedVersion: 2
+        x: 689
+        y: 838
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5a959d18d5084040800000000000000
+      internalID: 4631958642517973597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_33
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 819
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f0bf8ffc026330b0800000000000000
+      internalID: -5750144491255254799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_34
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 823
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f5ed4712880601c0800000000000000
+      internalID: -4537930219699444238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_35
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 807
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aeafc545dc11a1d0800000000000000
+      internalID: -3341357746207347039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_36
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 536
+        width: 221
+        height: 205
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f1531f21a5bb84b0800000000000000
+      internalID: -5437052421235584521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_37
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 531
+        width: 221
+        height: 206
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ce2e2fab3274ecc0800000000000000
+      internalID: -3682692994614546743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_38
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 536
+        width: 212
+        height: 202
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa8164debe8d41820800000000000000
+      internalID: 2888171768861038767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_39
+      rect:
+        serializedVersion: 2
+        x: 824
+        y: 704
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a72425a4fea4804a0800000000000000
+      internalID: -6626964460071140742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_40
+      rect:
+        serializedVersion: 2
+        x: 843
+        y: 675
+        width: 27
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e16bb65221a985490800000000000000
+      internalID: -7757280955417774562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_41
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 697
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b289a76aa5db17bb0800000000000000
+      internalID: -4939959119210964949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_42
+      rect:
+        serializedVersion: 2
+        x: 813
+        y: 686
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02913dc432c87b3d0800000000000000
+      internalID: -3190927727728060128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_43
+      rect:
+        serializedVersion: 2
+        x: 869
+        y: 653
+        width: 26
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22da23d3dc7a1a340800000000000000
+      internalID: 4873360771728452898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_44
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 455
+        width: 20
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f730a102e16e948b0800000000000000
+      internalID: -5167346080368950401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_45
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 444
+        width: 38
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aa18898e122628b0800000000000000
+      internalID: -5177413207064044887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_46
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 386
+        width: 112
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db4f77e63344715a0800000000000000
+      internalID: -6550692145299721027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_47
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 384
+        width: 112
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e343347188a7892f0800000000000000
+      internalID: -965887395146550210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_48
+      rect:
+        serializedVersion: 2
+        x: 545
+        y: 386
+        width: 107
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7646742c1acadd90800000000000000
+      internalID: -7072118042612316550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_49
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 462
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ae769457b1d37520800000000000000
+      internalID: 2698731187053428388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_50
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 445
+        width: 24
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c23b248e40349ba0800000000000000
+      internalID: -6083184082887691576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_51
+      rect:
+        serializedVersion: 2
+        x: 752
+        y: 477
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd4db58d803582790800000000000000
+      internalID: -7554697077459266341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_52
+      rect:
+        serializedVersion: 2
+        x: 763
+        y: 448
+        width: 13
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 991cf6db656e7be90800000000000000
+      internalID: -7009881034759093863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_53
+      rect:
+        serializedVersion: 2
+        x: 776
+        y: 465
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ae53173854b572a0800000000000000
+      internalID: -6740282976315941209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_54
+      rect:
+        serializedVersion: 2
+        x: 830
+        y: 471
+        width: 10
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9931eb1e5b2739610800000000000000
+      internalID: 1626770015912858521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_55
+      rect:
+        serializedVersion: 2
+        x: 840
+        y: 453
+        width: 14
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a301807106316f060800000000000000
+      internalID: 6986793175336095802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_56
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 443
+        width: 57
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72018aa7ce8de80a0800000000000000
+      internalID: -6877321070766452697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_57
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 442
+        width: 57
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f56a70aaf32bf7380800000000000000
+      internalID: -8971255946193426849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_58
+      rect:
+        serializedVersion: 2
+        x: 750
+        y: 456
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3a01d3f51010f890800000000000000
+      internalID: -7426418099063027140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_59
+      rect:
+        serializedVersion: 2
+        x: 778
+        y: 453
+        width: 18
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efeafa1a6fcd69e00800000000000000
+      internalID: 1051270514870300414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_60
+      rect:
+        serializedVersion: 2
+        x: 830
+        y: 455
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45d44f605c7a7b480800000000000000
+      internalID: -8883447275297944236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_61
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 420
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7aaedf42619a2ec0800000000000000
+      internalID: -3590897901441734019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_62
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 416
+        width: 15
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd6bad0657fa70a10800000000000000
+      internalID: 1875660688494081759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_63
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 424
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8cfe228dc671a590800000000000000
+      internalID: -7664714465783382900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_64
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 408
+        width: 23
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d508e4fc089a67f0800000000000000
+      internalID: -618514817394145838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_65
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 411
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e5095092ed65d910800000000000000
+      internalID: 1861514840839357929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_66
+      rect:
+        serializedVersion: 2
+        x: 194
+        y: 426
+        width: 41
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43d0ad7815b7b6da0800000000000000
+      internalID: -5950526892538196684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_67
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 415
+        width: 18
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dcb1484447de34a0800000000000000
+      internalID: -6611610514663293740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_68
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 411
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5beff38f050d36cf0800000000000000
+      internalID: -260135307276452171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_69
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 397
+        width: 22
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd97bdefa71316dd0800000000000000
+      internalID: -2494658314254976547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_70
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 412
+        width: 14
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d54619794abe33c0800000000000000
+      internalID: -4377856963030661671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_71
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 406
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ea8d9fd63db8cbd0800000000000000
+      internalID: -2609627940683674905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: asteroid_drift_72
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 309
+        width: 54
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e1db09b183180300800000000000000
+      internalID: 218446029803737571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

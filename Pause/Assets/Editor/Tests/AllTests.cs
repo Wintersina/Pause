@@ -47,6 +47,7 @@ public static class AllTests
         ("AchievementTiersTest", AchievementTiersTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
+        ("AsteroidDriftTest", AsteroidDriftTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),

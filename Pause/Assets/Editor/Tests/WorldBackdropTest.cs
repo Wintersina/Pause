@@ -1201,29 +1201,25 @@ public static class WorldBackdropTest
             BackdropPiece watchedRock = null;
             Sprite rockImage = null, effectImage = null;
             bool rockStill = true, effectsAdvance = false;
+            float rockAge = 0f;
             float brightest = 0f, biggest = 0f;
             for (int i = 0; i < 300 * 30; i++)
             {
                 moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
                 wb.Step(step);
-                if (!effectsAdvance)
+                if (!effectsAdvance && sd.AsteroidDrift != null)
                 {
-                    if (watchedRock != null && (!watchedRock.active || watchedRock.effectFrames == null))
-                        watchedRock = null;
-                    foreach (var pool in sd.Bodies)
-                        foreach (var p in pool.items)
-                            if (p.active && p.effectFrames != null && p.effectFrames.Length >= 4 &&
-                                watchedRock == null)
-                            {
-                                watchedRock = p;
-                                rockImage = p.sr.sprite;
-                                effectImage = p.smoke.sprite;
-                            }
-                    if (watchedRock != null)
-                    {
-                        rockStill &= watchedRock.sr.sprite == rockImage;
-                        effectsAdvance |= watchedRock.smoke.sprite != effectImage;
-                    }
+                    // Codex's asteroids drift on their own (SpaceAsteroidDrift): a
+                    // rock keeps its sprite for life while its smoke puffs walk
+                    // their stages (AsteroidDriftTest covers the rest).
+                    var drift = sd.AsteroidDrift;
+                    var rock = drift.Rocks[0].piece;
+                    if (watchedRock == null || !rock.active || rock.age < rockAge) { watchedRock = rock; rockImage = rock.sr.sprite; }
+                    else rockStill &= rock.sr.sprite == rockImage;
+                    rockAge = rock.age;
+                    if (drift.PuffOwner[0] < 0) effectImage = null;
+                    else if (effectImage == null) effectImage = drift.Puffs[0].sprite;
+                    else effectsAdvance |= drift.Puffs[0].sprite != effectImage;
                 }
                 if (i % 30 != 0) continue;
                 foreach (var pool in sd.Bodies)
@@ -1250,7 +1246,7 @@ public static class WorldBackdropTest
             }
             Check("Space spheres all animate over a 5-minute run (" + spheres + " samples, " + still + " still)",
                   spheres > 50 && still == 0);
-            Check("Space asteroid stays still while its four-frame smoke/light overlay advances",
+            Check("Space drifting asteroid keeps its sprite while its smoke puffs advance through their stages",
                   rockStill && effectsAdvance);
             Check("Space comets stay small and dim (" + comets + " samples, alpha <= " + brightest.ToString("F2") + " <= " +
                   SpaceDirector.CometMaxAlpha + ", width <= " + biggest.ToString("F2") + " <= " + SpaceDirector.CometMaxWidth + " u)",
