@@ -92,6 +92,7 @@ public static class AllTests
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("OpenPortalTest", OpenPortalTest.Execute),
+        ("PlanetfallTest", PlanetfallTest.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
         ("PausedLabelTest", PausedLabelTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),
