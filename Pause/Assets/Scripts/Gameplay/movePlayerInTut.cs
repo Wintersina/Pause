@@ -20,19 +20,37 @@ public class movePlayerInTut : MonoBehaviour
 
     }
 
+    // True from a press until the finger lifts: the first frame of a press is
+    // an arrival (a pause-jump), every later one is steering.
+    bool held;
+
     // Update is called once per frame
     void Update()
     {
-            if (TouchInput.IsPressed)
-            {
-                fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
-                textPos = Camera.main.WorldToScreenPoint(transform.position);
-            }
-            if (TouchInput.IsPressed)
-                moveLeft_Right(fingerPos);
-        }
+        if (TouchInput.IsPressed)
+        {
+            fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
+            textPos = Camera.main.WorldToScreenPoint(transform.position);
 
-    
+            Vector3 before = transform.position;
+            moveLeft_Right(fingerPos);
+            if (!held) Arrive(before, transform.position);
+            held = true;
+        }
+        else held = false;
+    }
+
+    // The pause-jump, as in a run (movePlayer): the portal opens where the
+    // ship left and where it lands, and the landing erases what it lands on
+    // (the tutorial alien too). TeleportFx ignores nudges shorter than
+    // TeleportFx.MinimumJump. The tutorial has no teleport cooldown.
+    public static bool Arrive(Vector3 from, Vector3 to)
+    {
+        if (Vector3.Distance(from, to) < TeleportFx.MinimumJump) return false;
+        TeleportFx.Play(from, to);
+        return true;
+    }
+
 
     // will move the player left and right baised on touch positions.
     void moveLeft_Right(Vector3 fingerPos)

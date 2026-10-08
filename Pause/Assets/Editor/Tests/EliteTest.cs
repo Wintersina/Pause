@@ -439,8 +439,11 @@ public static class EliteTest
         pilot.position = new Vector3(.5f, -2.5f, 0f);
         var e = InPlay("siege", new Vector2(-1f, 0f));
         Step(6f);
-        float want = EliteSystem.ViewTop - e.Def.topMargin;
-        Check("siege holds near the top (" + e.Position.y.ToString("0.0") + " vs " + want.ToString("0.0") + ")", Mathf.Abs(e.Position.y - want) < .45f);
+        // (near the top, no higher than the player's reach: HostileReach, EliteShip.ReachY)
+        float want = ((SiegeBrain)e.Brain).Height;
+        Check("siege holds high, as high as the player's reach lets it (" + e.Position.y.ToString("0.0") + " vs " + want.ToString("0.0") + ", top of view less margin " +
+              (EliteSystem.ViewTop - e.Def.topMargin).ToString("0.0") + ")",
+              Mathf.Abs(e.Position.y - want) < .45f && want <= EliteSystem.ViewTop - e.Def.topMargin + 1e-3f && e.Position.y > pilot.position.y + 1.5f);
         Check("siege tracks the pilot's lane", Mathf.Abs(e.Position.x - pilot.position.x) < .6f);
         Check("siege faces down", Mathf.Abs(Mathf.DeltaAngle(e.Facing, -90f)) < 10f);
         e.ForceAttack();
@@ -628,7 +631,8 @@ public static class EliteTest
         var brain = (WardenBrain)e.Brain;
         Step(4f);
         Check("warden takes a station high on the side away from the pilot (" + e.Position + ")",
-              brain.Side < 0f && e.Position.x < -.5f && Mathf.Abs(e.Position.y - (EliteSystem.ViewTop - def.topMargin)) < .4f && brain.Settled);
+              brain.Side < 0f && e.Position.x < -.5f && Mathf.Abs(e.Position.y - brain.Station.y) < .4f &&
+              brain.Station.y <= EliteSystem.ViewTop - def.topMargin + 1e-3f && brain.Settled);
         Check("warden wants to attack once planted", brain.WantsAttack(pilot.position));
         e.ForceAttack();
         var mortar = (ResinMortarAttack)e.Attack;
@@ -740,6 +744,8 @@ public static class EliteTest
         var rock = Rock(new Vector2(-1.5f, 0f));
         var fighter = Enemy(EnemyRole.Fighter, new Vector2(0f, 0f));
         var mine = Enemy(EnemyRole.Mine, new Vector2(1.5f, 0f));
+        // (past their spawn-in protection: hostile fire spares a target for its first second on the board)
+        global::FriendlyFire.Settle(rock); global::FriendlyFire.Settle(fighter); global::FriendlyFire.Settle(mine);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(-1.5f, 1f), Vector2.down * 6f);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(0f, 1f), Vector2.down * 6f);
         shots.Fire(e, def, EliteShots.Kind.Bolt, new Vector2(1.5f, 1f), Vector2.down * 6f);
@@ -898,9 +904,11 @@ public static class EliteTest
 
         Fresh(.05f);
         e = InPlay("gunship", new Vector2(0f, 1f));
+        int killsBefore = EliteShip.Kills;
         TeleportFx.Strike(new Vector3(.3f, 1f, 0f));
-        Check("a blink landing on it (TeleportFx.Strike) takes one heart", e != null && e.Hearts == 1 && e.LastHitCause == EliteDamage.Teleport);
-        Check("... and flings it clear of the landing", Vector2.Distance(e.Position, new Vector2(.3f, 1f)) > TeleportFx.BlastRadius);
+        // (was one heart; the user: "when pause teleport on them it does 2 heart damage" -- HostileReachTest has every elite)
+        Check("a pause jump landing on it (TeleportFx.Strike) takes both hearts: a kill",
+              (e == null || (e.Hearts == 0 && e.State == EliteState.Dead)) && EliteShip.Kills == killsBefore + 1 && EliteShip.LastKillCause == EliteDamage.Teleport);
 
         Fresh(.05f);
         e = InPlay("gunship", new Vector2(0f, 1f));

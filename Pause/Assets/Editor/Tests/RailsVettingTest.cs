@@ -284,6 +284,15 @@ public static class RailsVettingTest
                     EliteSystem.Step(Dt);
                     worstX = Mathf.Max(worstX, Mathf.Abs(go.transform.position.x - x));
                     worstSlide = Mathf.Max(worstSlide, Mathf.Max(mount.Slide - b.Up, -mount.Slide - b.Down));
+                    var laser = brain.Laser;
+                    if (laser != null && laser.State == RailMineLaser.Phase.Beam && !sawShot)
+                    {
+                        // a laser mine: the beam leaves its own rail's face at the mine's row and crosses the lane
+                        sawShot = true;
+                        shotOk &= Mathf.Abs(laser.Y - go.transform.position.y) < .05f &&
+                                  Mathf.Abs(Mathf.Abs(laser.From.x) - BossRails.DrawnInnerEdge) < .01f &&
+                                  Mathf.Sign(laser.From.x) == Mathf.Sign(x) && Mathf.Sign(laser.To.x) == -Mathf.Sign(x);
+                    }
                     if (EliteSystem.Shots.Launched > launched && !sawShot)
                     {
                         sawShot = true;
@@ -445,9 +454,13 @@ public static class RailsVettingTest
     {
         cam.aspect = Shapes[0].x / (float)Shapes[0].y;
         float tall = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, 1080, 2520), mid = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, 1080, 1920);
-        var a = FlyWarden(5f);
-        var b = FlyWarden(mid);
-        var c = FlyWarden(tall);
+        // (the authored station: HostileReach pulls a pilot down into the ship's
+        // reach, which follows the ship, not the camera -- HostileReachTest flies
+        // that on every aspect; here only the view's scaling is vetted)
+        Flight a, b, c;
+        HostileReach.Enabled = false;
+        try { a = FlyWarden(5f); b = FlyWarden(mid); c = FlyWarden(tall); }
+        finally { HostileReach.Enabled = true; }
         Debug.Log(string.Format("[RAILS] Warden in a 10 / {0:F1} / {1:F1} u view: station {2:P0} / {3:P0} / {4:P0} down the screen; in view {5:F1} / {6:F1} / {7:F1} s; " +
                                 "shell {8:F1} / {9:F1} / {10:F1} u/s, reaching the ship's row in {11:F2} / {12:F2} / {13:F2} s",
                                 2f * mid, 2f * tall, a.stationFraction, b.stationFraction, c.stationFraction, a.inView, b.inView, c.inView,

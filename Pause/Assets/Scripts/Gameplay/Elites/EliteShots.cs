@@ -11,10 +11,11 @@ using UnityEngine;
 // shoots it down (no score), and a blink landing on it erases it
 // (EliteShip.TeleportStrike).
 //
-// FRIENDLY FIRE: a shot also hits every other hazard on the board -- rocks,
-// enemies, rail mines, other elites (and its own ship once it has cleared
-// the muzzle). A hazard it hits is destroyed with its blast but pays the
-// pilot nothing (EliteShip.FriendlyKill); an elite it hits loses a heart.
+// FRIENDLY FIRE (hostile fire, FriendlyFire.HostileHit): a shot -- an
+// elite's or a roster enemy's -- also hits every other hazard on the board:
+// rocks, enemies, rail mines, other elites; never its own shooter, never a
+// target still inside its spawn-in protection. A hazard it hits is destroyed
+// with its blast but pays the pilot nothing; an elite it hits loses a heart.
 //
 // Kinds (EliteDef.shotKind):
 //   bolt   a fast neon capsule
@@ -94,6 +95,7 @@ public sealed class EliteShots
 
     public void Step(float dt)
     {
+        if (dt > 0f) FriendlyFire.HostileStep();   // the kill cap's step in edit mode
         for (int i = 0; i < shots.Count; i++) if (shots[i] != null && shots[i].Active) shots[i].Step(dt);
         if (dt > 0f) HostileShots.Resolve();   // shot vs shot (HostileShots)
     }
@@ -127,8 +129,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
 {
     EliteShots pool;
     SpriteRenderer body, core, mark;
-    SpriteRenderer glow;      // the visibility wrapper (HostileGlow)
-    float glowBase;           // its local scale before the pulse
+    SpriteRenderer glow;      // the visibility outline (ShotOutline): hugs the drawing, never a round halo
     Color glowTint;
     int ownerId;
     GameObject hitbox;
@@ -140,9 +141,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     int pierce, bounces;
     // a lobbed glob: in the air until `landAt`, flying from `lobFrom` to `lobTo`
     bool airborne;
-    // fired by a roster enemy (EnemyVolley): never hurts other hazards, and
-    // may ride the board (`ride` x the scroll is added to its fall)
+    // fired by a roster enemy (EnemyVolley): may ride the board (`ride` x
+    // the scroll is added to its fall); `shooter` is never hurt by it
     bool rosterShot;
+    GameObject shooter;
     float ride;
     float lobTime, lobTotal;
     Vector2 lobFrom, lobTo;
@@ -161,6 +163,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public GameObject Hitbox => hitbox;
     public bool Airborne => airborne;
     public bool RosterShot => rosterShot;
+    public GameObject Shooter => shooter;
     public float Ride => ride;
     public float Age => age;
     public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
@@ -199,9 +202,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
 
     void OnDestroy() { HostileShots.Unregister(this); }
 
+    // Only the outline's alpha breathes; it never swells (a swelling outline
+    // reads as a round glow).
     void Pulse()
     {
-        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age));
         var c = glowTint;
         c.a = HostileGlow.PulseAlphaAt(age);
         glow.color = c;
@@ -219,7 +223,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         c.transform.SetParent(go.transform, false);
         s.core = c.AddComponent<SpriteRenderer>();
         s.core.sortingOrder = 31;
-        s.glow = HostileGlow.Attach(go.transform, HostileGlow.SortBehindShots);
+        s.glow = new GameObject("Outline").AddComponent<SpriteRenderer>();
+        s.glow.transform.SetParent(go.transform, false);
+        s.glow.sortingOrder = HostileGlow.SortBehindShots;
         HostileShots.Register(s);
         var m = new GameObject("Mark");
         m.transform.SetParent(root, false);
@@ -243,6 +249,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         airborne = false;
         slung = false;
         rosterShot = false;
+        shooter = from != null ? from.gameObject : null;
         ride = 0f;
         bounces = Mathf.Max(0, d.shotBounces);
         Bounced = 0;
@@ -271,7 +278,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         hitCol.enabled = true;
         ownerId = from != null ? from.GetInstanceID() : 0;
         glowTint = HostileGlow.Tint(d.ShotColor);
-        glowBase = HostileGlow.DiameterFor(size * HostileGlow.EliteShotBody) / k;
+        Outline(sprite, k);
         Pulse();
         Active = true;
         gameObject.SetActive(true);
@@ -283,6 +290,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public void AsRosterShot(GameObject source, float rideBoard)
     {
         rosterShot = true;
+        shooter = source;
         ride = rideBoard;
         ownerId = source != null ? source.GetInstanceID() : 0;
     }
@@ -342,13 +350,23 @@ public class EliteShot : MonoBehaviour, IHostileShot
         radius = size * .42f;
         hitCol.radius = radius / k;
         hitCol.enabled = true;
-        glowBase = HostileGlow.DiameterFor(size * HostileGlow.PoolBody) / k;
+        Outline(EliteFxArt.Pool, k);
         Pulse();
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, def.ShotColor, 5);
         Physics2D.SyncTransforms();
+    }
+
+    // The outline traced from `art`, drawn at the shot's scale `k` (cached
+    // per drawing and size: nothing is built per shot after the first).
+    void Outline(Sprite art, float k)
+    {
+        var rim = ShotOutline.For(art, art.bounds.size.y * k);
+        glow.sprite = rim;
+        glow.enabled = rim != null;
+        glow.transform.localScale = Vector3.one;
     }
 
     void EnsureHitbox()
@@ -469,27 +487,19 @@ public class EliteShot : MonoBehaviour, IHostileShot
             }
         }
 
-        // friendly fire
+        // friendly fire (hostile fire: FriendlyFire.HostileHit)
         Vector2 at = p;
         var live = ClearTarget.Live;
-        // (a roster enemy's shot passes through other hazards: no friendly fire)
-        for (int i = 0; !rosterShot && i < live.Count; i++)
+        for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || !ClearTarget.IsHazard(t.gameObject)) continue;
-            if (FriendlyFire.Immune(t.gameObject)) continue;   // the boss is never hurt by friendly fire
-            bool own = owner != null && t.gameObject == owner.gameObject;
-            if (own && age < .35f) continue;
-            float R = radius + t.Radius * .8f;
+            if (t == null || !t.isActiveAndEnabled) continue;
+            float R = radius + t.Radius * FriendlyFire.HostileFireReach;
             if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
+            if (!FriendlyFire.HostileFireCanHit(t, shooter)) continue;   // its shooter, the boss, a target just come in
+            string by = Kind == EliteShots.Kind.Glob ? "resin pool" : rosterShot ? "enemy shot" : "elite shot";
+            if (!FriendlyFire.HostileHit(t, p, by)) continue;   // the frame's kill cap: not spent, next frame
             pool.CountFriendly();
-            var elite = t.GetComponent<EliteShip>();
-            if (elite != null)
-            {
-                EliteShip.HitBy = Kind == EliteShots.Kind.Glob ? (own ? "own resin pool" : "resin pool") : own ? "own shot" : "elite shot";
-                elite.TakeHit(EliteDamage.FriendlyFire, p);
-            }
-            else EliteShip.FriendlyKill(t.gameObject);
             if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
             break;   // the registry may have changed
         }
@@ -507,6 +517,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Active = false;
         airborne = false;
         slung = false;
+        shooter = null;
         if (mark != null) mark.enabled = false;
         gameObject.SetActive(false);
     }

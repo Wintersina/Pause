@@ -82,11 +82,12 @@ public static class TitleScreenCombatTest
         return t;
     }
 
-    static void Done(TitleScreenTraffic t) { t.Shutdown(); Object.DestroyImmediate(t.gameObject); }
+    static void Done(TitleScreenTraffic t) { t.Shutdown(); Object.DestroyImmediate(t.gameObject); TestHarness.FlushGpu(); }
 
     static void Run(TitleScreenTraffic t, float seconds)
     {
-        for (float s = 0f; s < seconds; s += Dt) t.Step(Dt);
+        int n = 0;
+        for (float s = 0f; s < seconds; s += Dt) { t.Step(Dt); if (++n % TestHarness.FlushEvery == 0) TestHarness.FlushGpu(); }
     }
 
     // Launches ship `id` on `layer` at `at`, cruising along `heading`.
@@ -141,9 +142,11 @@ public static class TitleScreenCombatTest
         bool ultCap = true, wreckCap = true, boltCap = true, timeScale = true;
         float ts = Time.timeScale;
         const float Seconds = 900f;
+        int frames = 0;
         for (float s = 0f; s < Seconds; s += Dt)
         {
             t.Step(Dt);
+            if (++frames % TestHarness.FlushEvery == 0) TestHarness.FlushGpu();
             ultCap &= t.ActiveUlts <= TitleScreenTraffic.MaxUlts;
             wreckCap &= t.ActiveWrecks <= TitleScreenTraffic.MaxWrecks;
             boltCap &= t.ActiveBolts <= TitleScreenTraffic.BoltPool;

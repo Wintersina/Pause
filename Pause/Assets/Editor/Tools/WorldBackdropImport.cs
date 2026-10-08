@@ -17,10 +17,26 @@ using UnityEngine;
 //
 // All: no mipmaps (fixed ortho scale), bilinear, alpha-is-transparency
 // (dilates colour under transparent pixels so soft edges don't fringe dark),
-// compressed. Mobile: ASTC 6x6 (~0.9 bpp); desktop: DXT1/DXT5 automatic.
+// compressed. Mobile: ASTC 6x6 (3.56 bpp); desktop: DXT1/DXT5 automatic.
+//
+// Except Space's planet sheet (anim, or its high-resolution re-render
+// anim_hires, IsPlanetSheet): its cells are drawn from ~0.4x (deep giants)
+// to ~2.8x (hero giants) and their surface slides under the BackdropPlanet
+// shader, so it keeps mipmaps with trilinear filtering (no shimmer when
+// small; the shader picks the level) and ASTC 4x4 on phones: 6x6 visibly
+// drops the station's lamp pixels (PSNR 33 vs 39 dB on anim.png).
+// anim_hires may be up to PlanetSheetMaxSize.
 public class WorldBackdropImport : AssetPostprocessor
 {
     public const float TilePixelsPerUnit = 512f / 6f;   // a tile is 6 units wide
+    public const int PlanetSheetMaxSize = 4096;
+
+    public static bool IsPlanetSheet(string path)
+    {
+        if (!path.Contains("/Worlds/Space/Backdrop/")) return false;
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return f == BackdropCatalog.AtlasAnim || f == BackdropCatalog.AtlasAnimHires;
+    }
 
     static bool IsBackdrop(string path)
     {
@@ -75,14 +91,16 @@ public class WorldBackdropImport : AssetPostprocessor
         bool sharpSpaceSky = assetPath.Contains("/Worlds/Space/") &&
                              file.StartsWith("sky_", System.StringComparison.Ordinal);
 
-        ti.mipmapEnabled = false;
-        ti.filterMode = sharpSpaceSky ? FilterMode.Point : FilterMode.Bilinear;
+        bool planetSheet = IsPlanetSheet(assetPath);
+        ti.mipmapEnabled = planetSheet;
+        if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
+        ti.filterMode = sharpSpaceSky ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         // Verdant's central world tile is the visual anchor behind the thick
         // rails. Keep its high-resolution industrial detail on modern phones.
-        ti.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -113,7 +131,7 @@ public class WorldBackdropImport : AssetPostprocessor
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
-            defaults.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
+            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
             ti.SetPlatformTextureSettings(defaults);
         }
 
@@ -121,9 +139,9 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
-            ps.format = TextureImporterFormat.ASTC_6x6;
+            ps.format = planetSheet ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }

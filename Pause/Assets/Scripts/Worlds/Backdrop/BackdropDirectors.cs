@@ -60,7 +60,12 @@ public partial class SpaceDirector : BackdropDirector
 
     // BackdropPiece.kind of a body.
     public const int Planet = 0, Station = 1, Planetoid = 2, Moon = 3;
-    static readonly float[] KindSize = { 1.0f, 0.65f, 0.5f, 0.16f };   // width in units at scale 1
+    // A body's drawn width in world units at tier scale 1, by kind. This --
+    // not the cell's pixel size -- sets how big a body is: SetSprite scales
+    // every sprite to its width in units, so a higher-resolution sheet
+    // (anim_hires) draws each body the same size, only sharper.
+    static readonly float[] KindSize = { 1.0f, 0.65f, 0.5f, 0.16f };
+    public static float KindWidth(int kind) { return KindSize[kind]; }
     const float SizeJitterLo = 0.9f, SizeJitterHi = 1.25f;
     // A rare near station reads as the derelict megastructure silhouette in
     // the reference composition; most remain deep/far through tier weights.
@@ -93,7 +98,10 @@ public partial class SpaceDirector : BackdropDirector
     public const string PlanetShader = "BackdropShaders/BackdropPlanet";
     public const float PlanetTurnSecondsMin = 40f, PlanetTurnSecondsMax = 60f;   // per half turn
     public const float RockTurnSecondsMin = 24f, RockTurnSecondsMax = 34f;
-    const float DiscMarginPx = 2.5f;    // cuts are centred with this much clear border round the disc
+    // Cuts are centred with this much clear border round the disc, in pixels
+    // of the 1x art (a 2x re-render's border is 5 sheet pixels: DiscOf scales
+    // it by the sprite's pixels per unit).
+    const float DiscMarginPx = 2.5f;
     static readonly int IdMainTex = Shader.PropertyToID("_MainTex");
     static readonly int IdDisc = Shader.PropertyToID("_Disc");
     static readonly int IdSpin = Shader.PropertyToID("_Spin");
@@ -225,6 +233,7 @@ public partial class SpaceDirector : BackdropDirector
         setPieces.AddRange(new[] { wisps, galaxies, comets });
         BuildStationLights();
         BuildStationPuffs();
+        BuildAsteroidDrift();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -362,6 +371,7 @@ public partial class SpaceDirector : BackdropDirector
             }
         TickStationLights(dt);
         TickStationPuffs(dt);
+        TickAsteroidDrift(dt, v);
         foreach (var c in comets.items)
             if (c.active && Drift(c, dt, v))
             {
@@ -528,7 +538,11 @@ public partial class SpaceDirector : BackdropDirector
                : neonPlanets.Length > 0 && !opening && Chance(0.45) ? neonPlanets
                : haloPlanets.Length > 0 && !opening && Chance(0.28) ? haloPlanets : giant)
             : n.kind == Station ? StationArt(n.ring, n.size)
-            : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? asteroids : RockArt(n.size));
+            // Codex's asteroids drift on their own now (SpaceAsteroidDrift); the
+            // coin that used to pick them is still tossed (and ignored) so the
+            // director's seeded stream -- the station / planet sequence -- is
+            // unchanged.
+            : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? RockArt(n.size) : RockArt(n.size));
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
@@ -616,11 +630,12 @@ public partial class SpaceDirector : BackdropDirector
         float tw = s.texture.width, th = s.texture.height;
         bool inset = s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal) ||
                      s.name.StartsWith("neon_planet_", System.StringComparison.Ordinal);
+        float margin = DiscMarginPx * s.pixelsPerUnit / BackdropAtlas.PixelsPerUnit;
         float radius = inset
-            ? r.width * 0.39f : r.width * 0.5f - DiscMarginPx;
+            ? r.width * 0.39f : r.width * 0.5f - margin;
         return new Vector4(r.center.x / tw, r.center.y / th,
                            radius / tw, (inset
-                               ? r.height * 0.39f : r.height * 0.5f - DiscMarginPx) / th);
+                               ? r.height * 0.39f : r.height * 0.5f - margin) / th);
     }
 
     void PaintSphere(BackdropPiece p)
@@ -653,6 +668,7 @@ public partial class SpaceDirector : BackdropDirector
     {
         TeardownStationPuffs();
         TeardownStationLights();
+        TeardownAsteroidDrift();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
     }

@@ -161,7 +161,7 @@ public static class SkinDamageGameplayTest
         var life = go.GetComponent<lifeControler>();
         var sr = go.GetComponent<SpriteRenderer>();
         int max = collisionDetection.MAXLIFE;
-        Check(who + ": flies with its ShipLives max (" + max + ")", max == ShipLives.Max(id) && max >= 2 && max <= 5);
+        Check(who + ": flies with its ShipLives max (" + max + ")", max == ShipLives.Max(id) && max >= 2 && max <= ShipLives.Most);
         var animator = go.GetComponent<Animator>();
         Quiet(who + ": the prefab's 2016 animator can't overwrite the hull", animator == null || !animator.enabled);
         string sheet = skin == ShipSkins.Stock ? ShipId.KeyOf(id) : ShipSkins.SheetName(id, skin);

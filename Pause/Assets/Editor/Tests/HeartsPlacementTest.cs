@@ -86,7 +86,7 @@ public static class HeartsPlacementTest
 
     // A flying hull as gameS1 spawns it (roster art, normalised scale), its
     // ultimate (gun + charge indicator) and its hearts.
-    // `hearts` 0 is the ship's own lives (ShipLives.Max), else 2..5.
+    // `hearts` 0 is the ship's own lives (ShipLives.Max), else 2..ShipLives.Most (9).
     public static Rig Build(int id, Vector3 at, bool withPower = true, int hearts = 0)
     {
         collisionDetection.MAXLIFE = hearts > 0 ? hearts : ShipLives.Max(id);

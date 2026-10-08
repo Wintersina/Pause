@@ -71,6 +71,7 @@ Rebuild all enemies, across Space, Frost, Verdant, and Ember, in the agreed pixe
 - Rail system is approved and should remain industrial, readable, and integrated with the worlds.
 - Rail mines must mount to and travel down actual rails; their behavior must align with the rail’s position and scrolling rather than using a fixed screen position.
 - Space backdrop was installed as the approved live Space background set. Frost world assets are staged for review; Verdant and Ember worlds remain queued.
+- Space's turning planets look low resolution on phones (hero giants are drawn 2.0–2.8x their 236 px cells). Codex is asked for a 2048 `anim_hires` re-render; see "Space giant planets + moon rotation frames at high resolution" in `docs/art-production-queue.md`.
 
 ## Engineering / workflow constraints
 

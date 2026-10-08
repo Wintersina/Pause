@@ -23,14 +23,18 @@ IOS_APP := $(IOS_DERIVED_DATA)/Build/Products/Debug-iphoneos/Pause.app
 IOS_DEV_APP := $(IOS_DEV_DERIVED_DATA)/Build/Products/Debug-iphoneos/Pause.app
 
 ADB_DEVICE = $(ADB) $(if $(ANDROID_SERIAL),-s $(ANDROID_SERIAL))
-UNITY_CMD = "$(UNITY)" -batchmode -quit -projectPath "$(PROJECT)"
+# Through scripts/unity-batch.sh: one Unity batch process at a time
+# machine-wide (a queue), helpers cleaned up, a unique log per run.
+UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 
-.PHONY: help mac-build mac-run mac-dev-build mac-dev-run \
+.PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
 	android-build android-deploy android-run android-dev-build android-dev-deploy android-log \
 	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices
 
 help:
 	@echo "Pause local commands:"
+	@echo "  make test                 Run every editor test suite (AllTests.RunAll)"
+	@echo "  make test-fast            Same minus the slow checks (SUITES=A,B to pick suites)"
 	@echo "  make mac-run              Build and launch the Mac app"
 	@echo "  make mac-dev-run          Build and launch the developer Mac app"
 	@echo "  make android-deploy       Build, install, and launch on an Android device"
@@ -42,6 +46,12 @@ help:
 	@echo ""
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
 	@echo "          UNITY=<path> overrides Unity."
+
+test:
+	$(UNITY_CMD) -executeMethod AllTests.RunAll
+
+test-fast:
+	$(UNITY_CMD) -executeMethod AllTests.RunFast $(if $(SUITES),-suites $(SUITES))
 
 mac-build:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildMac

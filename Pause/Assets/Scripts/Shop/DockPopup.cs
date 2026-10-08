@@ -94,6 +94,11 @@ public class DockPopup : MonoBehaviour
     // ---- START SPEED line (ShipStartSpeed) ----
     Text startSpeed;
     public string StartSpeedText { get { return startSpeed != null && startSpeed.gameObject.activeSelf ? startSpeed.text : ""; } }
+    // ...and on the same line, right: the hearts and where they come from
+    // (SkinHearts.HeartsLine), or what a previewed colour would add (gold).
+    Text heartsLine;
+    public string HeartsLineText { get { return heartsLine != null && heartsLine.gameObject.activeSelf ? heartsLine.text : ""; } }
+    public const float StartSpeedWidth = 96f;
 
     Canvas canvas;
     Font font;
@@ -261,17 +266,34 @@ public class DockPopup : MonoBehaviour
     // row, above the action button.
     void BuildStartSpeedLine()
     {
-        startSpeed = Label("StartSpeed", panel, font, SmallSize, TextAnchor.MiddleCenter,
+        float y = -(SkinRowTop + SkinRowHeight + WeaponRowHeight) - 1f;
+        startSpeed = Label("StartSpeed", panel, font, SmallSize, TextAnchor.MiddleLeft,
                            AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
-        Place(startSpeed.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -(SkinRowTop + SkinRowHeight + WeaponRowHeight) - 1f),
-              new Vector2(PanelWidth - 2f * Pad, StartSpeedLineHeight - 2f), new Vector2(.5f, 1f));
+        Place(startSpeed.rectTransform, new Vector2(0f, 1f), new Vector2(Pad, y),
+              new Vector2(StartSpeedWidth, StartSpeedLineHeight - 2f), new Vector2(0f, 1f));
         startSpeed.gameObject.SetActive(false);
+
+        heartsLine = Label("Hearts", panel, font, SmallSize, TextAnchor.MiddleRight,
+                           AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
+        heartsLine.horizontalOverflow = HorizontalWrapMode.Wrap;
+        heartsLine.verticalOverflow = VerticalWrapMode.Truncate;
+        heartsLine.resizeTextForBestFit = true;
+        heartsLine.resizeTextMinSize = SmallSize - 2;
+        heartsLine.resizeTextMaxSize = SmallSize;
+        Place(heartsLine.rectTransform, new Vector2(1f, 1f), new Vector2(-Pad, y),
+              new Vector2(PanelWidth - 2f * Pad - StartSpeedWidth - 4f, StartSpeedLineHeight - 2f), new Vector2(1f, 1f));
+        heartsLine.gameObject.SetActive(false);
     }
 
     void ShowStartSpeed(int index, int skin)
     {
         startSpeed.text = ShipStartSpeed.Label(ShipStartSpeed.HudFor(index, skin));
         startSpeed.gameObject.SetActive(true);
+        // An unbought colour previewed: what buying it adds to the hearts.
+        string buy = ShipSkins.IsOwned(index, skin) ? "" : SkinHearts.BuyLine(index, skin);
+        heartsLine.text = buy.Length > 0 ? buy : SkinHearts.HeartsLine(index);
+        heartsLine.color = buy.Length > 0 ? DockArt.Gold : AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
+        heartsLine.gameObject.SetActive(true);
     }
 
     // Five angular chips in each skin's own colours (base, shadow band, and a
@@ -485,6 +507,7 @@ public class DockPopup : MonoBehaviour
         SkinRowVisible = false;
         if (skinRow != null) skinRow.gameObject.SetActive(false);
         if (startSpeed != null) startSpeed.gameObject.SetActive(false);
+        if (heartsLine != null) heartsLine.gameObject.SetActive(false);
         if (skinName != null) skinName.text = "";
         Resize();
     }
@@ -498,15 +521,22 @@ public class DockPopup : MonoBehaviour
 
     const float LivesIconSize = 15f;
 
-    // Hearts the ship shown flies with (ShipLives.Max: the starter's goes
-    // 2 -> 3 once it owns a colour).
+    // Hearts the ship shown flies with (ShipLives.Max: its hull plus what its
+    // colours add, SkinHearts). While an unbought colour that would add
+    // hearts is previewed the badge reads e.g. "3+1", the gain in gold.
     public int LivesShown { get; private set; }
+    public int LivesGainShown { get; private set; }
+    public string LivesBadgeText { get { return livesLabel != null ? livesLabel.text : ""; } }
     public bool LivesBadgeVisible { get { return livesBadge != null && livesBadge.gameObject.activeSelf; } }
 
     void ShowLives(int index)
     {
         LivesShown = ShipLives.Max(index);
-        livesLabel.text = LivesShown.ToString();
+        LivesGainShown = SkinRowVisible && index == ShipIndex && !ShipSkins.IsOwned(index, SkinShown)
+            ? SkinHearts.GainIfBought(index, SkinShown) : 0;
+        livesLabel.text = LivesGainShown > 0
+            ? LivesShown + "<color=#" + ColorUtility.ToHtmlStringRGB(DockArt.Gold) + ">+" + LivesGainShown + "</color>"
+            : LivesShown.ToString();
     }
 
     // Line 2, right to left: status / price (with the dust icon before a
@@ -521,6 +551,8 @@ public class DockPopup : MonoBehaviour
             dustIcon.anchoredPosition = new Vector2(-x - 7.5f, -Pad - 34f);
             x += 15f + 8f;
         }
+        // ("3+1" while a colour that adds a heart is previewed: wider)
+        livesLabel.rectTransform.sizeDelta = new Vector2(Mathf.Max(14f, livesLabel.preferredWidth + 1f), 18f);
         float livesWidth = LivesIconSize + 3f + livesLabel.preferredWidth;
         livesBadge.sizeDelta = new Vector2(livesWidth, 18f);
         livesBadge.anchoredPosition = new Vector2(-x, -Pad - 34f);

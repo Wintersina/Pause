@@ -15,7 +15,7 @@ using UnityEngine;
 //   - nothing advances while the world is paused
 //   - every enemy stays inside its envelope and the lane; a mine stays on
 //     its rail
-//   - shots are roster shots (no friendly fire), never the player's red,
+//   - shots are roster shots (friendly fire on: HostileFireTest), never the player's red,
 //     and the shot budget holds
 //   - the four chasers hunt differently, and leave after their linger
 //   - PRESENCE: every key is a hazard or a pilot; hazards ride the scroll;
@@ -297,7 +297,8 @@ public static class EnemyBehaviourTest
                         ? f == EnemyRoster.TellFrame || f == EnemyRoster.TellFrame + 1
                         : f == EnemyRoster.TellFrame;
                 }
-                if (EliteSystem.Shots.Launched > launched)
+                // (a mine's laser leaves no shot in the pool: its brain counts it)
+                if (EliteSystem.Shots.Launched > launched || brain.ShotsFired > 0)
                 {
                     fired = true;
                     firedFromIdle = before != EnemyBrain.Phase.Windup;
@@ -381,11 +382,19 @@ public static class EnemyBehaviourTest
         Check("... inside its aim cone (" + deg.ToString("F1") + " <= " + brain.Behaviour.aimCone + " degrees)", deg <= brain.Behaviour.aimCone + .5f);
         Check("a pilot's shell flies in world space (it does not ride the board) and is a roster shot", shot.RosterShot && shot.Ride == 0f);
 
-        // a rock in the shell's path is untouched: no friendly fire
-        var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position, Quaternion.identity);
+        // (changed with hostile fire: roster shots used to pass through every
+        // hazard; now they hit one that has been on the board past its
+        // spawn-in protection, and never their own shooter -- HostileFireTest)
+        var fresh = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position, Quaternion.identity);
+        for (int i = 0; i < 2; i++) EliteSystem.Step(Dt);
+        Check("a rock that has just come in is spared by the shell (spawn-in protection)", fresh != null && fresh.GetComponent<ClearTarget>().enabled);
+        if (fresh != null) Object.DestroyImmediate(fresh);
+        var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), shot.transform.position + (Vector3)(shot.Velocity.normalized * .4f), Quaternion.identity);
+        FriendlyFire.Settle(rock);
         for (int i = 0; i < 20; i++) EliteSystem.Step(Dt);
-        Check("a rock sitting on the shell's path is not destroyed by it", rock != null && rock.GetComponent<ClearTarget>().enabled);
-        Object.DestroyImmediate(rock);
+        Check("a rock that has been on the board a while is destroyed by the shell (hostile fire)", rock == null || !rock.GetComponent<ClearTarget>().enabled);
+        Check("... and the Warden that fired it is untouched", brain != null && brain.gameObject.activeInHierarchy);
+        if (rock != null) Object.DestroyImmediate(rock);
         Object.DestroyImmediate(brain.gameObject);
     }
 
@@ -824,7 +833,12 @@ public static class EnemyBehaviourTest
                 PilotAirspace.Blocks(-1f, 1f);
             }
         };
-        frames();   // warm: pools built, statics initialised, first shots fired
+        // warm: pools built, statics initialised, first shots fired. Two passes:
+        // pilots now hold in the player's reach (HostileReach) and fire on a
+        // different rhythm, so the shot pool reaches its peak in the second
+        // (a one-off growth of the pool, not a per-frame allocation)
+        frames();
+        frames();
         int shotsBefore = EliteSystem.Shots.Launched;
         long bytes = Measure(meter, frames);
         long again = Measure(meter, frames);
@@ -1033,7 +1047,7 @@ public static class EnemyBehaviourTest
             bool expectDown = b.entry == PilotEntry.Descend || b.exit == PilotExit.Run;
             exitOk &= (slow.leftBy == PilotExit.Run) == expectDown;
             if (b.Shoots && b.armedChance >= 1f) { shooters++; if (fast.shots > 0) shootersThatFiredFast++; }
-            if (!exitOk || spread > .25f || slow.inView < 1.5f || slow.inView > 13f)
+            if (!exitOk || spread > .25f || slow.inView < 1.5f || slow.inView > 14f)
                 bad.Add(def.key + "(slow " + slow.inView.ToString("F1") + "s fast " + fast.inView.ToString("F1") + "s gone " + slow.gone + "/" + fast.gone +
                         " top " + slow.enteredFromTop + " col " + fast.worstColumn.ToString("F2") + " lane " + fast.worstLane.ToString("F2") +
                         " unfair " + (slow.unfairWindup || fast.unfairWindup) + " last " + fast.lastY.ToString("F1") + ")");
@@ -1043,7 +1057,9 @@ public static class EnemyBehaviourTest
               bad.Count == 0 && flown == 24);
         Check("a pilot's time on screen does not depend on the scroll speed (worst difference HUD 5 vs 40: " + worstSpread.ToString("F2") + " s)",
               worstSpread <= .25f);
-        Check("... and is bounded: " + shortest.ToString("F1") + " s to " + longest.ToString("F1") + " s in view", shortest >= 1.5f && longest <= 13f);
+        // (13 s before HostileReach: a heavy holding in the player's reach climbs
+        // ~1.3 u further out of the view at its slow exit speed -- frost_big 13.3 s)
+        Check("... and is bounded: " + shortest.ToString("F1") + " s to " + longest.ToString("F1") + " s in view", shortest >= 1.5f && longest <= 14f);
         Check("at HUD 40 every shooting pilot gets its shots off (" + shootersThatFiredFast + " of " + shooters + ")",
               shooters >= 12 && shootersThatFiredFast == shooters);
 
@@ -1143,17 +1159,31 @@ public static class EnemyBehaviourTest
         for (int i = 0; i < 120; i++) Step(sweeper);
         float bandX = sweeper.Behaviour.bandX, reachFree = 0f, reachBeside = 0f;
         for (int i = 0; i < 240; i++) { Step(sweeper); reachFree = Mathf.Max(reachFree, sweeper.transform.position.x - sweeper.Anchor.x); }
-        var beside = EnemyFactory.Create(rockDef, new Vector3(sweeper.ColumnHalf + SpawnSpace.BodyHalf(rockDef).x + .15f, top - 1.6f, 0f), Quaternion.identity);
+        // (beside it, just above where it holds -- in the player's reach now, HostileReach --
+        // and clear of its body however its pattern carries it: not dropped onto it)
+        float besideY = sweeper.Anchor.y + Mathf.Max(.4f, EnemyBrain.PatternUp(sweeper.Behaviour) + SpawnSpace.BodyHalf(sweeper.Def).y + SpawnSpace.BodyHalf(rockDef).y + .05f);
+        var beside = EnemyFactory.Create(rockDef, new Vector3(sweeper.ColumnHalf + SpawnSpace.BodyHalf(rockDef).x + .15f, besideY, 0f), Quaternion.identity);
         bool overlap = false;
+        int besideFrames = 0;
+        string firstOverlap = "";
         for (int i = 0; i < 240; i++)
         {
             Step(sweeper);
-            reachBeside = Mathf.Max(reachBeside, sweeper.transform.position.x - sweeper.Anchor.x);
-            overlap |= sweeper.GetComponent<SpawnFootprint>().Body.Overlaps(beside.GetComponent<SpawnFootprint>().Body);
+            // (the sidestep is judged while it holds beside the hazard, after half a
+            // second to step back: once its stay is over it climbs out past the
+            // rock -- the rock behind it now -- and sweeps freely again)
+            if (i >= 30 && sweeper.Stage == EnemyBrain.PilotStage.Engaging)
+            {
+                besideFrames++;
+                reachBeside = Mathf.Max(reachBeside, sweeper.transform.position.x - sweeper.Anchor.x);
+            }
+            bool o = sweeper.GetComponent<SpawnFootprint>().Body.Overlaps(beside.GetComponent<SpawnFootprint>().Body);
+            if (o && !overlap) firstOverlap = " (touched at frame " + i + ", " + sweeper.Stage + " at " + sweeper.transform.position + ", anchor " + sweeper.Anchor + ", rock " + beside.transform.position + ")";
+            overlap |= o;
         }
         Check("a pilot uses its whole band when the lane beside it is empty (" + reachFree.ToString("F2") + " of " + bandX + " u) and sidesteps " +
-              "back toward its column while a hazard passes there (" + reachBeside.ToString("F2") + " u), never touching it",
-              reachFree > bandX * .9f && reachBeside < .3f && !overlap);
+              "back toward its column while a hazard passes there (" + reachBeside.ToString("F2") + " u over " + besideFrames + " frames), never touching it" + firstOverlap,
+              reachFree > bandX * .9f && besideFrames >= 20 && reachBeside < .3f && !overlap);
         Object.DestroyImmediate(beside);
         Object.DestroyImmediate(sweeper.gameObject);
 

@@ -107,6 +107,8 @@ public class collisionDetection : MonoBehaviour {
     public static void AwardDestroyedTarget(GameObject target, int bonusPoints = 0)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
+        // An enemy's weapon did it (FriendlyFire hostile fire): the pilot is paid nothing.
+        if (FriendlyFire.HostileKillInProgress && !FriendlyFire.HostileFireAwardsPlayerCredit) return;
         // Score first: nothing below (a codex toast, the meter) may cost points.
         RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         Codex.Discover(target);   // ultimate kills count as meeting it too
@@ -144,8 +146,11 @@ public class collisionDetection : MonoBehaviour {
 
 	void Start () {
 
-        // This ship's own lives (ShipLives: 2 to 5 by price tier).
-        MAXLIFE = ShipLives.Max(ShipId.Of(gameObject, ShipId.Equipped()));
+        // This ship's own lives (ShipLives: its hull's 2 to 5 by price tier,
+        // plus the hearts its colours add -- SkinHearts). The tutorial
+        // teaches on the bare hull.
+        int flown = ShipId.Of(gameObject, ShipId.Equipped());
+        MAXLIFE = gameObject.scene.name == score.TutorialScene ? ShipLives.TutorialMax(flown) : ShipLives.Max(flown);
         // Fills the needed componets for this player.
         hypeText = GameObject.Find("hypeText").GetComponent<Text>();
         boostText = GameObject.Find("boostText").GetComponent<Text>();

@@ -9,14 +9,17 @@ using UnityEngine;
 // or break they can split into pieces sometimes."
 //
 //   * every hostile projectile wears a glow and keeps its size and hitbox:
-//     elite shots the round wrapper (HostileGlow), lasers a sheath, boss
-//     shots a thin outline hugging their own silhouette (BossArt.ShotRim, never a round halo --
-//     "the glow effect on the boss projectiles is too large, it should be
-//     more like a light shadow framing the projectile art"); none is the
-//     player's red;
-//   * the wrapper reads over every world's backdrop (and a bright flare):
-//     a contrast ratio, from real renders, above MinContrast; a rimmed boss
-//     shot stands out of every world's backdrop too;
+//     lasers a sheath, boss shots a thin outline hugging their own
+//     silhouette (BossArt.ShotRim, never a round halo -- "the glow effect on
+//     the boss projectiles is too large, it should be more like a light
+//     shadow framing the projectile art"), elite and ordinary enemy shots
+//     the same kind of outline (ShotOutline; they used to wear HostileGlow's
+//     round wrapper -- "the weapon shots have 2 large circles ... visible
+//     but not by having a massive circle halo"); none is the player's red;
+//   * every shot stands out of every world's backdrop: from real renders,
+//     at least MinStandOutPixels of its pixels MinContrast clear of the
+//     backdrop behind it (this replaced the round wrapper's ring contrast,
+//     which only a round wrapper has);
 //   * shots of different owners (or volleys) break each other; a laser
 //     burns shots crossing it; a heavy shell survives a bolt; a resin pool
 //     swallows shots; player shots shoot hostile shots down;
@@ -121,6 +124,7 @@ public static class HostileProjectileTest
     {
         var go = EnemyFactory.Create(EnemyRoster.One(world, role), at, Quaternion.identity);
         ClearTarget.Ensure(go);
+        FriendlyFire.Settle(go);   // on the board a while: past hostile fire's spawn-in protection (HostileFireTest covers it)
         return go;
     }
 
@@ -205,35 +209,70 @@ public static class HostileProjectileTest
         }
         finally { pool.Dispose(); }
 
-        // the elites' shots, every kind (frost shards, resin globs and pools)
+        // the elites' shots, every kind (frost shards, resin globs and pools),
+        // and every ordinary enemy's shot: a thin outline, no round halo
         var shots = EliteSystem.Shots;
-        foreach (var d in EliteCatalog.All)
+        var styles = new List<(string key, EliteDef def, EliteShots.Kind kind)>();
+        foreach (var d in EliteCatalog.All) styles.Add((d.key, d, EliteShots.KindOf(d.shotKind)));
+        foreach (var def in EnemyRoster.All)
         {
-            var kind = EliteShots.KindOf(d.shotKind);
+            var b = EnemyBehaviours.For(def.key);
+            if (b != null && (b.attack == EnemyAttack.Shot || b.attack == EnemyAttack.Ring || b.attack == EnemyAttack.Cross || b.attack == EnemyAttack.Lob))
+                styles.Add((def.key, b.ShotStyle, b.shotKind));
+        }
+        int roundHalos = 0, outlined = 0;
+        foreach (var (key, d, kind) in styles)
+        {
             var s = shots.Fire(null, d, kind, new Vector2(0f, 1f), Vector2.down * 2f);
-            if (s == null) { Check(d.key + ": could fire", false); continue; }
+            if (s == null) { Check(key + ": could fire", false); continue; }
             var col = s.Hitbox.GetComponent<CircleCollider2D>();
             var g = s.Glow;
-            float drawn = s.GetComponent<SpriteRenderer>().bounds.size.y;
-            float across = g.bounds.size.x;
-            Check(d.key + " " + kind + ": wears the glow behind it, drawn at its shotSize " + d.shotSize + " (" + drawn.ToString("F2") +
-                  "), hitbox " + WorldRadius(col).ToString("F3") + " (" + s.Radius.ToString("F3") + ")",
-                  g != null && g.enabled && g.sprite == HostileGlow.Halo && g.sortingOrder < 30 && g.GetComponent<Collider2D>() == null &&
-                  Mathf.Abs(drawn - d.shotSize) < .02f && Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f);
-            Check("... reaching only a little past the art (" + ((across - drawn) * .5f).ToString("F3") + " wu each side), tinted " +
-                  Hex(g.color) + " (" + HueGap(g.color, PlayerRed).ToString("F0") + " deg off the player's red)",
-                  across > drawn && (across - drawn) * .5f <= Mathf.Max(.12f, .42f * drawn) && HueGap(g.color, PlayerRed) >= 20f);
+            var art = s.GetComponent<SpriteRenderer>();
+            float drawn = art.bounds.size.y;
+            foreach (var r in s.GetComponentsInChildren<SpriteRenderer>(true))
+                if (r.sprite == HostileGlow.Halo || r.sprite == HostileGlow.Sheath) roundHalos++;
+            float past = Mathf.Max(g.bounds.size.x - art.bounds.size.x, g.bounds.size.y - art.bounds.size.y) * .5f;
+            string hug;
+            bool hugs = OutlineHugsArt(art.sprite, g.sprite, out hug);
+            bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn) &&
+                      g.sortingOrder < 30 && g.GetComponent<Collider2D>() == null &&
+                      g.transform.localScale == Vector3.one && Mathf.Abs(drawn - d.shotSize) < .02f &&
+                      Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f && past <= .06f && hugs &&
+                      HueGap(g.color, PlayerRed) >= 20f && !HostileGlow.IsPlayerRed(g.color);
+            if (ok) outlined++;
+            else Check(key + " " + kind + ": a thin outline traced from its drawing (" + (g.sprite != null ? g.sprite.name : "none") +
+                       ", sprite " + past.ToString("F3") + " wu past the art incl. its clear pad; " + hug + "), drawn at its shotSize " +
+                       d.shotSize + " (" + drawn.ToString("F2") + "), hitbox " + WorldRadius(col).ToString("F3") + " (" +
+                       s.Radius.ToString("F3") + "), tinted " + Hex(g.color), false);
             if (kind == EliteShots.Kind.Glob)
             {
                 s.Lob(new Vector2(0f, -1f), .3f);
                 bool glowedInAir = true;
                 for (int i = 0; i < 30 && s.Airborne; i++) { shots.Step(1f / 30f); glowedInAir &= g.enabled; }
-                float poolAcross = g.bounds.size.x, poolDrawn = s.GetComponent<SpriteRenderer>().bounds.size.x;
-                Check(d.key + ": the glob glows in the air and as a pool (" + poolAcross.ToString("F2") + " over a " +
-                      poolDrawn.ToString("F2") + " pool; hitbox " + WorldRadius(col).ToString("F3") + ")",
-                      glowedInAir && s.Pooled && g.enabled && poolAcross > poolDrawn * .9f &&
-                      (poolAcross - poolDrawn) * .5f <= .2f && Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f);
+                var poolArt = s.GetComponent<SpriteRenderer>();
+                Check(key + ": the glob is outlined in the air and as a pool (" + (g.sprite != null ? g.sprite.name : "none") +
+                      "; hitbox " + WorldRadius(col).ToString("F3") + ")",
+                      glowedInAir && s.Pooled && g.enabled && g.sprite == ShotOutline.For(EliteFxArt.Pool, poolArt.bounds.size.y) &&
+                      Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f);
             }
+            s.Recycle();
+        }
+        Check("every elite and enemy shot (" + styles.Count + " styles) wears a thin outline hugging its drawing: " + outlined +
+              " outlined, " + roundHalos + " round halos", outlined == styles.Count && roundHalos == 0);
+        Check("... reaching " + ShotOutline.OutlineReach + " wu past the silhouette like a boss shot's rim (" +
+              (BossArt.ShotRimReach * BossConfig.BoltWorldSize).ToString("F3") + "), never swelling",
+              ShotOutline.OutlineReach <= .05f && ShotOutline.OutlineReach >= .015f && ShotOutline.PulseScale == 0f);
+        {
+            var s = shots.Fire(null, Def("gunship"), EliteShots.Kind.Bolt, new Vector2(0f, 0f), Vector2.down * .01f);
+            float minS = 9f, maxS = 0f, minA = 9f, maxA = 0f;
+            for (int i = 0; i < 40; i++)
+            {
+                shots.Step(Dt);
+                minS = Mathf.Min(minS, s.Glow.transform.localScale.x); maxS = Mathf.Max(maxS, s.Glow.transform.localScale.x);
+                minA = Mathf.Min(minA, s.Glow.color.a); maxA = Mathf.Max(maxA, s.Glow.color.a);
+            }
+            Check("an elite shot's outline only pulses in alpha (scale " + minS.ToString("F3") + ".." + maxS.ToString("F3") + ", alpha " +
+                  minA.ToString("F2") + ".." + maxA.ToString("F2") + ")", Mathf.Abs(maxS - minS) < 1e-4f && maxA > minA + .08f);
             s.Recycle();
         }
         Check("the tint keeps the player's red out (a pure red source turns to " + Hex(HostileGlow.Tint(Color.red)) + ")",
@@ -274,6 +313,12 @@ public static class HostileProjectileTest
             var pool = new BossProjectilePool(40, 1);
             var boss = BossCatalog.ForWorld(flare ? 3 : w);
             var eliteDef = Def("gunship");
+            EnemyBehaviour roster = null;
+            foreach (var def in EnemyRoster.All)
+            {
+                var rb = EnemyBehaviours.For(def.key);
+                if (roster == null && def.world == (flare ? 3 : w) && rb != null && rb.attack == EnemyAttack.Shot) roster = rb;
+            }
             var list = new List<(Component shot, SpriteRenderer glow)>();
             for (int gx = 0; gx < 4; gx++)
                 for (int gy = 0; gy < 6; gy++)
@@ -284,9 +329,16 @@ public static class HostileProjectileTest
                         var s = pool.Fire(boss, gy % 3 == 0 ? BossShotStyle.Shard : BossShotStyle.Bolt, at, Vector2.zero);
                         list.Add((s, s.Glow));
                     }
+                    else if (gy % 2 == 1 || roster == null)
+                    {
+                        var s = EliteSystem.Shots.Fire(null, eliteDef, (EliteShots.Kind)(gx % 4), at, Vector2.zero);
+                        list.Add((s, s.Glow));
+                    }
                     else
                     {
-                        var s = EliteSystem.Shots.Fire(null, eliteDef, EliteShots.Kind.Bolt, at, Vector2.zero);
+                        // this world's ordinary enemy shot
+                        var s = EliteSystem.Shots.Fire(null, roster.ShotStyle, roster.shotKind, at, Vector2.zero);
+                        s.AsRosterShot(null, 0f);
                         list.Add((s, s.Glow));
                     }
                 }
@@ -301,8 +353,8 @@ public static class HostileProjectileTest
             SetShots(list, true);
             Color[] fg = Grab(cam, rt, tex);
 
-            float worst = float.MaxValue, mean = 0f, worstLight = float.MaxValue, worstDark = float.MaxValue;
-            int wrapped = 0, rimmed = 0, fewest = int.MaxValue, bossRoundGlows = 0;
+            int rimmed = 0, fewest = int.MaxValue, bossRoundGlows = 0;
+            int outlined = 0, fewestSmall = int.MaxValue, smallRoundGlows = 0;
             foreach (var (shot, glow) in list)
             {
                 Vector3 c = cam.WorldToScreenPoint(glow.transform.position);
@@ -316,23 +368,19 @@ public static class HostileProjectileTest
                     bossRoundGlows += glow.sprite == HostileGlow.Halo ? 1 : 0;
                     continue;
                 }
-                wrapped++;
-                float R = glow.bounds.extents.x * (RH / (cam.orthographicSize * 2f));   // pixels
-                float lightRim = Ring(fg, c, R * HostileGlow.DarkEdge, R * HostileGlow.LightEdge);
-                float darkRim = Ring(fg, c, R * HostileGlow.BodyEdge, R * HostileGlow.DarkEdge);
-                float behind = Ring(bg, c, R * HostileGlow.BodyEdge, R * HostileGlow.LightEdge);
-                float cl = Ratio(lightRim, behind), cd = Ratio(darkRim, behind);
-                float score = Mathf.Max(cl, cd);
-                worst = Mathf.Min(worst, score);
-                worstLight = Mathf.Min(worstLight, cl);
-                worstDark = Mathf.Min(worstDark, cd);
-                mean += score;
+                // an outlined elite / enemy shot: the same measure over the
+                // square its outline covers
+                float h2 = Mathf.Max(glow.bounds.extents.x, glow.bounds.extents.y) * (RH / (cam.orthographicSize * 2f));
+                fewestSmall = Mathf.Min(fewestSmall, StandOut(fg, bg, c, h2));
+                outlined++;
+                smallRoundGlows += glow.sprite == HostileGlow.Halo ? 1 : 0;
             }
-            mean /= Mathf.Max(1, wrapped);
             string name = flare ? "a bright flare" : worlds[w];
-            Check("the wrapper reads over " + name + ": worst contrast " + worst.ToString("F1") + ":1 (mean " + mean.ToString("F1") +
-                  ":1; light rim worst " + worstLight.ToString("F1") + ", dark rim worst " + worstDark.ToString("F1") + ") over " +
-                  wrapped + " shots, need " + MinContrast + ":1", wrapped > 0 && worst >= MinContrast);
+            string smallLine = "an outlined elite / enemy shot stands out of " + name + ": at least " + fewestSmall + " px at " + MinContrast +
+                               ":1 against the backdrop behind it, over " + outlined + " shots (need " + MinStandOutPixels + ")";
+            Check("elite and enemy shots over " + name + " wear no circular glow: " + smallRoundGlows + " of " + outlined + " carry the round halo",
+                  outlined > 0 && smallRoundGlows == 0);
+            Check(smallLine, outlined > 0 && fewestSmall >= MinStandOutPixels);
             // The rim is a light one, made for the worlds' dark backdrops;
             // over a full-screen flare (no world has one) the art's own dark
             // outline is what is left, so that case is only reported.
@@ -424,6 +472,47 @@ public static class HostileProjectileTest
         return clearEdges && lit > 0 && lit < px.Length / 2 && Mathf.Abs(most - 255f * BossArt.ShotRimAlpha) <= 2f && off <= RimFit;
     }
 
+    // An elite / enemy shot's outline (ShotOutline) against its drawing:
+    // clear at its sprite's edges, the light trace's full strength exactly
+    // over the drawing's own opaque pixels (to one art pixel), a dark
+    // hairline outside it, nothing round about it.
+    static bool OutlineHugsArt(Sprite art, Sprite rim, out string what)
+    {
+        what = "no art or outline";
+        if (art == null || rim == null) return false;
+        var rt = rim.texture;
+        var at = art.texture;
+        what = "outline or art not readable";
+        if (rt == null || at == null || !rt.isReadable || !at.isReadable) return false;
+        int W = Mathf.RoundToInt(rim.rect.width), H = Mathf.RoundToInt(rim.rect.height);
+        int aw = Mathf.RoundToInt(art.rect.width), ah = Mathf.RoundToInt(art.rect.height);
+        var px = rt.GetPixels32();
+        var all = at.GetPixels32();
+        var src = new Color32[aw * ah];
+        for (int y = 0; y < ah; y++)
+            for (int x = 0; x < aw; x++)
+                src[y * aw + x] = all[(Mathf.RoundToInt(art.rect.y) + y) * at.width + Mathf.RoundToInt(art.rect.x) + x];
+        int k = ShotOutline.Upsample, pad = (W - aw * k) / 2;
+        bool clearEdges = true;
+        for (int x = 0; x < W; x++) clearEdges &= px[x].a == 0 && px[(H - 1) * W + x].a == 0;
+        for (int y = 0; y < H; y++) clearEdges &= px[y * W].a == 0 && px[y * W + W - 1].a == 0;
+        int most = 0, dark = 0;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (px[i].r > 128) most = Mathf.Max(most, px[i].a);
+            else if (px[i].a > 8) dark++;
+        }
+        var core = new Color32[px.Length];
+        for (int i = 0; i < px.Length; i++) core[i] = px[i].r > 128 && px[i].a >= most - 2 ? px[i] : new Color32(0, 0, 0, 0);
+        Vector4 c = Bounds(core, W, H, 1, -pad, k);
+        Vector4 solid = Bounds(src, aw, ah, Mathf.RoundToInt(ShotOutline.Coverage * 255f), 0f, 1f);
+        float off = Mathf.Max(Mathf.Max(Mathf.Abs(c.x - solid.x), Mathf.Abs(c.y - solid.y)),
+                              Mathf.Max(Mathf.Abs(c.z - solid.z), Mathf.Abs(c.w - solid.w)));
+        what = "peak " + most + ", " + dark + " dark hairline texels, edges " + (clearEdges ? "clear" : "NOT clear") +
+               ", core off the art's solid pixels by " + off.ToString("F2") + " art px";
+        return clearEdges && Mathf.Abs(most - 255f * ShotOutline.Alpha) <= 2f && dark > 0 && off <= 1f;
+    }
+
     // (xMin, yMin, xMax, yMax) of the pixels with alpha >= `atLeast`, each
     // (index + shift) / per: a share of the cell.
     static Vector4 Bounds(Color32[] px, int w, int h, int atLeast, float shift, float per)
@@ -436,24 +525,6 @@ public static class HostileProjectileTest
                 x0 = Mathf.Min(x0, x); y0 = Mathf.Min(y0, y); x1 = Mathf.Max(x1, x); y1 = Mathf.Max(y1, y);
             }
         return new Vector4((x0 + shift) / per, (y0 + shift) / per, (x1 + 1 + shift) / per, (y1 + 1 + shift) / per);
-    }
-
-    // Mean relative luminance of the pixels between radii a and b.
-    static float Ring(Color[] px, Vector3 c, float a, float b)
-    {
-        float sum = 0f;
-        int n = 0;
-        int r = Mathf.CeilToInt(b) + 1;
-        for (int y = (int)c.y - r; y <= (int)c.y + r; y++)
-            for (int x = (int)c.x - r; x <= (int)c.x + r; x++)
-            {
-                if (x < 0 || y < 0 || x >= RW || y >= RH) continue;
-                float d = Vector2.Distance(new Vector2(x + .5f, y + .5f), c);
-                if (d < a + .5f || d > b - .5f) continue;
-                sum += Luminance(px[y * RW + x]);
-                n++;
-            }
-        return n > 0 ? sum / n : 0f;
     }
 
     static float Lin(float v) => v <= .04045f ? v / 12.92f : Mathf.Pow((v + .055f) / 1.055f, 2.4f);
@@ -670,7 +741,7 @@ public static class HostileProjectileTest
         Check("a chaser running into a rock breaks, and the rock with it (free mover: " + hasChaser + ")",
               hasChaser && chaser == null && rock2 == null && bystander != null && RunScore.Total == 0);
         Check("elite shots' friendly fire is kept (EliteShot)",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShots.cs").Contains("EliteShip.FriendlyKill(t.gameObject)"));
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShots.cs").Contains("FriendlyFire.HostileHit(t, p, by)"));
 
         // during a player death everything is the domino's
         Check("none of it runs during a player death (DeathCrash.Running guards)",

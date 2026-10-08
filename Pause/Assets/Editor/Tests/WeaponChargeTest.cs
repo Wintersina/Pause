@@ -256,6 +256,7 @@ public static class WeaponChargeTest
         var c = Ship(6);
         var sr = c.GetComponent<SpriteRenderer>();
         bool ok = true;
+        var made = new System.Collections.Generic.List<Object>();
         foreach (int px in new[] { 32, 96 })
         {
             var tex = new Texture2D(px, px * 2);
@@ -264,9 +265,12 @@ public static class WeaponChargeTest
             float nose = sr.bounds.max.y;
             float bottom = c.Indicator.View.position.y - ChargeIndicator.WorldSize * .5f;
             ok &= bottom >= nose - .01f && bottom <= nose + .05f;
+            made.Add(sr.sprite);
+            made.Add(tex);
         }
         Check("the indicator sits just above the nose for any hull size", ok);
         Teardown(c);
+        foreach (var o in made) Object.DestroyImmediate(o);
     }
 
     static void FireReleasesTheIndicator()

@@ -11,9 +11,19 @@ using UnityEngine;
 public class BackdropAtlas
 {
     [System.Serializable] class Rect { public string n; public int x, y, w, h; }
-    [System.Serializable] class Manifest { public Rect[] sprites; }
+    // Optional, for re-renders at more pixels per cell (anim_hires):
+    //   pixelScale  sheet pixels per pixel of the original 1x art (2 for a
+    //               2x re-render). Sprites keep the 1x art's bounds, so the
+    //               re-render is drawn the same size, only sharper.
+    //   sheetW/H    the sheet's authored size, which the rects are measured
+    //               in. If the importer delivers a smaller texture (a
+    //               platform's max size), the rects are scaled to it.
+    [System.Serializable] class Manifest { public Rect[] sprites; public float pixelScale; public int sheetW, sheetH; }
 
     public const float PixelsPerUnit = 100f;
+
+    // Texture pixels per pixel of the original 1x art (see Manifest).
+    public float PixelScale { get; private set; }
 
     public readonly Texture2D texture;
     readonly Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
@@ -21,13 +31,17 @@ public class BackdropAtlas
     public BackdropAtlas(Texture2D texture, TextAsset manifest)
     {
         this.texture = texture;
+        PixelScale = 1f;
         if (texture == null || manifest == null) return;
         var m = JsonUtility.FromJson<Manifest>(manifest.text);
         if (m == null || m.sprites == null) return;
+        float fx = m.sheetW > 0 ? texture.width / (float)m.sheetW : 1f;
+        float fy = m.sheetH > 0 ? texture.height / (float)m.sheetH : 1f;
+        PixelScale = (m.pixelScale > 0f ? m.pixelScale : 1f) * fx;
         foreach (var r in m.sprites)
         {
-            var s = Sprite.Create(texture, new UnityEngine.Rect(r.x, r.y, r.w, r.h), new Vector2(0.5f, 0.5f),
-                                  PixelsPerUnit, 0, SpriteMeshType.FullRect);
+            var s = Sprite.Create(texture, new UnityEngine.Rect(r.x * fx, r.y * fy, r.w * fx, r.h * fy),
+                                  new Vector2(0.5f, 0.5f), PixelsPerUnit * PixelScale, 0, SpriteMeshType.FullRect);
             s.name = r.n;
             sprites[r.n] = s;
         }

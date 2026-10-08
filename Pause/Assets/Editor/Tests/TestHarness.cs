@@ -69,6 +69,19 @@ public static class TestHarness
         return controlBytes >= AllocControlCount * 8;
     }
 
+    // ---- GPU memory --------------------------------------------------------
+    //
+    // A batch -executeMethod never ends an editor frame, and on Metal the
+    // GPU side of every texture / buffer the game makes and destroys is only
+    // given back once the commands that used it are submitted. Without that,
+    // a suite that builds and drops art in a loop grows the editor's
+    // IOAccelerator memory without bound (TitleScreenTrafficTest: 6.7 GB by
+    // its end, all of it outside Unity's own allocators). GL.Flush() submits
+    // them; it is cheap. Call it between cases and every FlushEvery steps of
+    // a long simulation; the harness calls it on scene opens and suite ends.
+    public const int FlushEvery = 600;
+    public static void FlushGpu() { GL.Flush(); }
+
     // Batch entry: non-zero exit code on any failure so CI/scripts notice.
     public static void Exit(int failures)
     {
@@ -187,6 +200,14 @@ public static class TestHarness
                 else PlayerPrefs.SetFloat(pair.Key, (float)pair.Value);
             }
             PlayerPrefs.Save();
+
+            // Free what the suite made. Released art is only unloadable, not
+            // unloaded: left alive it was re-kept by the next suite's first
+            // scene swap and so on to the end of the run (RunAll grew to
+            // 5-8 GB, ScreenFitTest alone kept 12k+ textures). Now that the
+            // suite's statics are put back, nothing of it is referenced.
+            if (keepDepth == 0) EditorUtility.UnloadUnusedAssetsImmediate(true);
+            FlushGpu();
         }
     }
 
@@ -274,12 +295,15 @@ public static class TestHarness
             {
                 EditorSceneManager.sceneClosing += OnSceneClosing;
                 EditorSceneManager.sceneOpening += OnSceneOpening;
+                EditorSceneManager.sceneOpened += OnSceneOpened;
+                opensSincePrune = 0;
             }
             return;
         }
         if (keepDepth == 0 || --keepDepth > 0) return;
         EditorSceneManager.sceneClosing -= OnSceneClosing;
         EditorSceneManager.sceneOpening -= OnSceneOpening;
+        EditorSceneManager.sceneOpened -= OnSceneOpened;
         foreach (var o in kept)
             if (o != null) o.hideFlags &= ~HideFlags.DontSave;
         kept.Clear();
@@ -314,6 +338,28 @@ public static class TestHarness
 
     static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing) { KeepNow(); }
     static void OnSceneOpening(string path, OpenSceneMode mode) { KeepNow(); }
+
+    // KeepNow keeps everything runtime-made, also the art that only the
+    // closing scene's objects used (a Portal's ring, a label's texture, ...),
+    // so a suite that opens a scene per case piles up a copy per case
+    // (ScreenFitTest: ~75 textures, ~40 MB, per scene). Every few opens, once
+    // the old scene is gone, let go of all of it and unload what nothing
+    // references -- managed references count as roots, so the statics'
+    // caches survive -- then keep the survivors again.
+    const int PruneEvery = 4;
+    static int opensSincePrune;
+
+    static void OnSceneOpened(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
+    {
+        FlushGpu();
+        if (++opensSincePrune < PruneEvery) return;
+        opensSincePrune = 0;
+        foreach (var o in kept)
+            if (o != null) o.hideFlags &= ~HideFlags.DontSave;
+        kept.Clear();
+        EditorUtility.UnloadUnusedAssetsImmediate(true);
+        KeepNow();
+    }
 
     static void KeepNow()
     {

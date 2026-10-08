@@ -3,14 +3,18 @@ using UnityEngine.UI;
 
 // Runs the tutorial: walks TutorialScript.Steps in order, has the robot say
 // each line, sets up whatever the step needs (a touch hint, an arrow, stars,
-// a red atom), and moves on when the player has actually done the thing --
+// an atom, the one alien, the weapon's charge), and moves on when the player has actually done the thing --
 // not on a timer. After the last step the ship lifts off and the Tutorial
 // Complete card comes up.
 //
 // It used to type eleven long lines into a Text box, one character per
 // frame, and only while a finger was down, with fixed holds between lines;
-// most of what it said was not needed to play. The script is now seven short
+// most of what it said was not needed to play. The script is now a few short
 // lines in one table (TutorialScript.cs), spoken by RobotSpeaker.
+//
+// The ship carries the real weapon (ShipPowerController), held -- no
+// countdown, no firing, no red-atom free shot -- until the power step arms
+// it for TutorialScript.PowerAtoms atoms, so the player sees it go off once.
 //
 // Everything here runs on unscaled time: the world sits at timeScale 0 every
 // time the player lifts their finger, and that is exactly when the robot has
@@ -53,7 +57,9 @@ public class Hints : MonoBehaviour {
     TutorialSignals signals, stepStart;
     bool sampling;
     bool lastPressed;
-    int lastPauseCounter, lastDustPickups, lastHeal, lastShield, lastRed;
+    int lastPauseCounter, lastDustPickups, lastHeal, lastShield, lastRed, lastFired;
+    bool enemyOut;
+    ShipPowerController power;
     float startedAt;
     float endedAt = -1f;
     bool panelShown;
@@ -67,6 +73,12 @@ public class Hints : MonoBehaviour {
         ship = GameObject.Find("ship1");
         if (ship != null) script = ship.GetComponent<movePlayerInTut>();
         pausedIcon = GameObject.Find("paused");
+        if (ship != null)
+        {
+            power = ship.GetComponent<ShipPowerController>();
+            if (power == null) power = ship.AddComponent<ShipPowerController>();
+            power.chargeMode = ShipPowerController.ChargeMode.Held;
+        }
 
         reachedTheEndOfTut = false;
 
@@ -112,6 +124,7 @@ public class Hints : MonoBehaviour {
 
         var current = TutorialScript.Steps[step];
         if (AtomFor(current.cue) != TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
+        else if (current.cue == TutorialCue.SpawnEnemy) guides.PointAt(TutorialEnemy.Live);
 
         if (speaker.LineFinished && speaker.SinceLineFinished >= readSeconds
             && TutorialScript.IsMet(current, stepStart, signals))
@@ -137,6 +150,7 @@ public class Hints : MonoBehaviour {
             lastRed = collisionDetection.pauseAtomPickups;
             lastDustPickups = score.dustPickups;
             lastPressed = TouchInput.IsPressed;
+            lastFired = power != null ? power.UltimatesFired : 0;
         }
 
         bool pressed = TouchInput.IsPressed && !buttonClicks.playerDied;
@@ -155,6 +169,15 @@ public class Hints : MonoBehaviour {
         signals.greenAtomsCollected += Count(collisionDetection.healAtomPickups, ref lastHeal);
         signals.blueAtomsCollected += Count(collisionDetection.shieldAtomPickups, ref lastShield);
         signals.redAtomsCollected += Count(collisionDetection.pauseAtomPickups, ref lastRed);
+
+        // The tutorial alien is gone once it is destroyed (rammed, teleported
+        // onto, shot) or has left past the bottom edge.
+        if (enemyOut && TutorialEnemy.Live == null)
+        {
+            enemyOut = false;
+            signals.enemiesGone++;
+        }
+        if (power != null) signals.powersFired += Count(power.UltimatesFired, ref lastFired);
 
         if (score.dustPickups != lastDustPickups)
         {
@@ -192,6 +215,17 @@ public class Hints : MonoBehaviour {
             case TutorialCue.SpawnRedAtom:
                 spawnGoodStuffTut.keepAtomComing = AtomFor(s.cue);
                 break;
+            case TutorialCue.SpawnEnemy:
+                // straight down at where the ship is: dodge it or blink onto it
+                enemyOut = TutorialEnemy.Spawn(ship != null ? ship.transform.position.x : 0f) != null;
+                if (!enemyOut) signals.enemiesGone++;   // no alien to show: never stall here
+                break;
+            case TutorialCue.SpawnChargeAtoms:
+                // an empty charge that PowerAtoms green / blue atoms fill
+                if (power != null) power.Arm(TutorialScript.PowerAtoms * power.secondsPerAtom);
+                else signals.powersFired++;   // no weapon to charge: never stall here
+                spawnGoodStuffTut.keepAtomComing = AtomFor(s.cue);
+                break;
         }
     }
 
@@ -209,6 +243,7 @@ public class Hints : MonoBehaviour {
             case TutorialCue.SpawnGreenAtom: return TutorialAtom.Green;
             case TutorialCue.SpawnBlueAtom: return TutorialAtom.Blue;
             case TutorialCue.SpawnRedAtom: return TutorialAtom.Red;
+            case TutorialCue.SpawnChargeAtoms: return TutorialAtom.Charge;
             default: return TutorialAtom.None;
         }
     }
@@ -229,6 +264,9 @@ public class Hints : MonoBehaviour {
         speaker.HideAll();
         guides.Clear();
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+        if (power != null) power.chargeMode = ShipPowerController.ChargeMode.Held;
+        TutorialEnemy.Clear();   // a Skip mid-step leaves nothing to fly into
+        enemyOut = false;
         if (skip != null) skip.SetVisible(false);
         if (script != null) script.enabled = false;
 

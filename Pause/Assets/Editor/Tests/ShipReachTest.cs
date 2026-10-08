@@ -366,7 +366,7 @@ public static class ShipReachTest
                         EliteSystem.Step(Dt);
                         if (brain.Stage == EnemyBrain.PilotStage.Gone) break;
                         Vector3 p = go.transform.position;
-                        if (brain.State == EnemyBrain.Phase.Windup && was != EnemyBrain.Phase.Windup && b.attack != EnemyAttack.Cross)
+                        if (brain.State == EnemyBrain.Phase.Windup && was != EnemyBrain.Phase.Windup && b.attack != EnemyAttack.Cross && b.attack != EnemyAttack.Laser)
                         {
                             windups++;
                             perPilot[def.key] = (perPilot.TryGetValue(def.key, out int n) ? n : 0) + 1;

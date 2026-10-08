@@ -1,6 +1,8 @@
 using UnityEngine;
 
-// The "wrapper" every hostile projectile wears so it reads on any backdrop:
+// The "wrapper" hostile projectiles used to wear so they read on any
+// backdrop (today: the boss laser's sheath; shots wear thin outlines
+// instead, see BeamBody below):
 // a soft bright halo with a thin dark hairline just outside the shot's body
 // and a light rim outside that. The light rim and halo carry it over the
 // dark nebulae; the dark hairline carries it over a bright flare (an
@@ -29,13 +31,12 @@ public static class HostileGlow
     public const float PulseHz = 2.2f, PulseScale = .07f, PulseAlpha = .15f;
     public const int SortBehindShots = 29, SortBehindBeam = 25;
     // A laser's drawn body as a share of its drawn width (half of it: the
-    // edge). Boss shots wear no round wrapper: BossArt.ShotRim, a thin
-    // outline cut from their own silhouette.
+    // edge). No SHOT wears the round wrapper any more: boss shots carry
+    // BossArt.ShotRim and elite / enemy shots ShotOutline, thin outlines
+    // traced from their own silhouettes ("the weapon shots have 2 large
+    // circles"). The round Halo sprite is left to the shot-vs-shot pop
+    // (FriendlyFire) and the profile to the boss laser's sheath.
     public const float BeamBody = .5f;
-    // An elite shot's drawn body: half its drawn diameter (shotSize).
-    public const float EliteShotBody = .5f;
-    // A landed resin pool: its flat drawing is mostly rim, so a little less.
-    public const float PoolBody = .36f;
     // The sheath sprite's height at scale 1 (4 texels of 32 per unit).
     public const float SheathHeight = 4f / Texels;
 

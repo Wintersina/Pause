@@ -22,7 +22,9 @@ public class TeleportFx : MonoBehaviour
 
     public static void Play(Vector3 from, Vector3 to)
     {
-        if (Vector3.Distance(from, to) < MinimumJump) return;
+        // a nudge is not a jump -- but a pause jump aimed at an elite always
+        // connects, however short (EliteShip.TeleportStrike)
+        if (Vector3.Distance(from, to) < MinimumJump) { StrikeElites(to); return; }
 
         Ensure();
         PlaySound();
@@ -104,6 +106,24 @@ public class TeleportFx : MonoBehaviour
         }
         System.Array.Clear(landedOn, 0, n);
         return kills;
+    }
+
+    // Only the elites in the landing zone (a jump too short to flash).
+    public static int StrikeElites(Vector3 at)
+    {
+        Physics2D.SyncTransforms();
+        int n = Physics2D.OverlapCircle(at, BlastRadius, everything, landedOn);
+        int hits = 0;
+        for (int i = 0; i < n; i++)
+        {
+            var col = landedOn[i];
+            if (col == null || SeenBefore(col.gameObject, i)) continue;
+            var elite = col.GetComponent<EliteShip>();
+            if (elite == null || !elite.InPlay) continue;
+            if (EliteShip.TeleportStrike(col.gameObject, at)) hits++;
+        }
+        System.Array.Clear(landedOn, 0, n);
+        return hits;
     }
 
     // One hazard with two colliders is still one kill (Destroy is deferred).

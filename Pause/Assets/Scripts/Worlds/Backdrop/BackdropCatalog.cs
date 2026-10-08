@@ -90,6 +90,10 @@ public static class BackdropCatalog
 
     public const string AtlasFx = "fx";
     public const string AtlasAnim = "anim";
+    // Optional high-resolution re-render of AtlasAnim: same cells, same names,
+    // more pixels per cell (docs/art-production-queue.md). Loaded instead of
+    // AtlasAnim when present (BackdropSet.LoadAnimAtlas).
+    public const string AtlasAnimHires = "anim_hires";
 
     static readonly Color W = Color.white;
 

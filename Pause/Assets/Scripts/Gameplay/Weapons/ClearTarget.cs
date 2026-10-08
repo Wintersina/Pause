@@ -39,6 +39,9 @@ public class ClearTarget : MonoBehaviour
     [System.NonSerialized] public int SensedStep = -1;
     [System.NonSerialized] public bool SensedMeasured;   // false: first sight, SensedVelocity is a guess
     [System.NonSerialized] public EliteShip Elite;   // set by the elite itself when it joins the play
+    // Seconds it has been inside the playfield (view, between the rails):
+    // hostile fire's spawn-in protection (FriendlyFire.TrackPlayfield).
+    [System.NonSerialized] public float PlayfieldSeconds;
     EnemyBrain brain;
     bool classified, shotHitbox;
 
@@ -127,6 +130,7 @@ public class ClearTarget : MonoBehaviour
 
     void OnEnable()
     {
+        PlayfieldSeconds = 0f;
         if (!live.Contains(this)) live.Add(this);
     }
 

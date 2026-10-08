@@ -17,7 +17,7 @@ using UnityEngine;
 //     hit it, a landed resin pool, and the marked spot a lobbed glob is
 //     about to land on;
 //   * the pilot's own shots, only if PlayerShotAwareness is raised above 0.
-// Roster enemies' shots are left out: they cannot hurt an elite.
+// Roster enemies' shots count too (hostile fire: they cost an elite a heart).
 // Other elites, the rails and the pilot are read per ship in Plan.
 //
 // PLAN, per elite, every ReactionSeconds (its reaction delay; EliteShip.
@@ -243,7 +243,7 @@ public static class EliteEvasion
             for (int i = 0; i < shots.Count; i++)
             {
                 var s = shots[i];
-                if (s == null || !s.Active || s.RosterShot) continue;
+                if (s == null || !s.Active) continue;
                 if (s.Airborne)
                 {
                     // harmless in the air: the pool it lands as, on its marked spot
@@ -253,8 +253,11 @@ public static class EliteEvasion
                 }
                 Vector2 p = s.transform.position;
                 if (p.y > top || p.y < bottom) continue;
-                // (its own ship is safe from it for the first .35 s: EliteShot.Step)
-                Add(s.Pooled ? Kind.Pool : Kind.Shot, p, s.Velocity, s.Radius, 0f, Forever, s.Owner, Mathf.Max(0f, .35f - s.Age), 1f);
+                // (its own ship is never hit by it: EliteShot.Step; a roster
+                // shot riding the board falls that much faster)
+                Vector2 v = s.Velocity;
+                v.y -= scroll * s.Ride;
+                Add(s.Pooled ? Kind.Pool : Kind.Shot, p, v, s.Radius, 0f, Forever, s.Owner, Forever, 1f);
             }
         }
 

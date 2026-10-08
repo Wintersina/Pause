@@ -58,10 +58,11 @@ using UnityEngine;
 //
 // DAMAGE (one heart each, then half a second of grace): a player weapon,
 // the ultimate, the red atom's free shot or a secret power
-// (ShipAttackHits -> TakeShipAttack), a blink landing on it (TeleportFx ->
-// TeleportStrike), touching the pilot (collisionDetection -> Rammed; the
-// pilot loses a heart too unless shielded), a crash, a rail, another elite,
-// friendly fire. A shielded ram (blue atom / Cloak) takes both hearts.
+// (ShipAttackHits -> TakeShipAttack), touching the pilot
+// (collisionDetection -> Rammed; the pilot loses a heart too unless
+// shielded), a crash, a rail, another elite, friendly fire. A shielded ram
+// (blue atom / Cloak) and a pause jump landing on it (TeleportFx ->
+// TeleportStrike) take every heart, grace or not.
 // Every kill, crash or lure included, pays ScoreRules.EliteDown +
 // EliteDownDust with an "ELITE DOWN" popup.
 //
@@ -578,13 +579,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         bool driven = false;
         if (State == EliteState.Join)
         {
-            Vector2 goal = Brain.Goal(seen, dt);
+            Vector2 goal = ReachGoal(Brain.Goal(seen, dt));
             Steer(Navigate(goal, 1.35f, dt), 1.35f, dt);
             if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
         }
         else if (State == EliteState.Follow)
         {
-            Vector2 goal = Brain.Goal(seen, dt);
+            StepReachRise(dt);
+            Vector2 goal = ReachGoal(Brain.Goal(seen, dt));
             Steer(Navigate(goal, Brain.SpeedScale, dt), Brain.SpeedScale, dt);
             if (Brain.DodgesByBlink && blinkCooldown <= 0f && (ThreatSeverity() > .55f || Cornered))
             {
@@ -605,7 +607,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             {
                 Attack.StepTell(dt);
                 if (Attack.HoldsDuringTell) HoldTell(dt);
-                else Steer(Navigate(Brain.Goal(seen, dt), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
+                else Steer(Navigate(ReachGoal(Brain.Goal(seen, dt)), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
                 if (State == EliteState.Attack && attackClock >= Attack.TellSeconds)
                 {
                     if (!MayCommit(true)) BreakOff();
@@ -616,7 +618,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             {
                 bool done = Attack.StepAction(dt);
                 driven = Attack.DrivesMovement;
-                if (!driven) Steer(Navigate(Brain.Goal(seen, dt), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                if (!driven) Steer(Navigate(ReachGoal(Brain.Goal(seen, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
                 else claim = transform.position;
                 if (done) EndAttack();
             }
@@ -649,6 +651,55 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         forcedAttack = false;
         sight.enabled = false;
         cooldown = Def.attackGap * Mathf.Lerp(1.25f, .6f, Mathf.Clamp01(Def.aggression)) * Random.Range(.8f, 1.2f);
+    }
+
+    // ---- the player's reach (HostileReach) --------------------------------------
+
+    // While it is not about to attack it holds no higher than the cap: the
+    // reach ceiling (a pause jump lands on it, a shielded ship flies into
+    // it), or the standoff above where it thinks the pilot is when that is
+    // higher. Only when the pilot is so close under the cap that its brain
+    // could not attack from there (MinAttackAbove) does it climb -- just to
+    // its brain's own attack height plus EliteRiseMargin, RiseLead before
+    // it is ready, at most RiseMaxSeconds if the attack never starts -- and
+    // drop back after the attack.
+    bool reachRise;
+    float reachRisen;
+    public bool ReachRising => reachRise;
+
+    // The highest it holds now.
+    public float ReachCap
+    {
+        get
+        {
+            if (!HostileReach.Enabled || !havePlayer) return float.PositiveInfinity;
+            float cap = HostileReach.Cap(seen.y, Def.hullRadius, Def.hullRadius);
+            if (reachRise) cap = Mathf.Max(cap, seen.y + Brain.MinAttackAbove + HostileReach.EliteRiseMargin);
+            return cap;
+        }
+    }
+
+    public float ReachY(float y) => Mathf.Min(y, ReachCap);
+    public Vector2 ReachGoal(Vector2 g) { g.y = ReachY(g.y); return g; }
+
+    void StepReachRise(float dt)
+    {
+        bool wants = false;
+        if (HostileReach.Enabled && havePlayer && Brain.MinAttackAbove > 0f)
+        {
+            float cap = HostileReach.Cap(seen.y, Def.hullRadius, Def.hullRadius);
+            wants = cap - seen.y < Brain.MinAttackAbove + .05f &&
+                    cooldown <= HostileReach.RiseLead && escapeLeft <= HostileReach.RiseLead;
+        }
+        if (wants && reachRisen < HostileReach.RiseMaxSeconds)
+        {
+            reachRise = true;
+            reachRisen += dt;
+            return;
+        }
+        if (reachRise && reachRisen >= HostileReach.RiseMaxSeconds) cooldown = Mathf.Max(cooldown, Def.attackGap * .5f);
+        reachRise = false;
+        reachRisen = 0f;
     }
 
     // Where it thinks the pilot is. It follows every ordinary move, but a
@@ -936,7 +987,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         string by = HitBy;
         HitBy = null;
         if (State == EliteState.Dead || !InPlay) return false;
-        if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino) return false;   // Domino: the death crash's wreckage (DeathCrash)
+        // (Domino: the death crash's wreckage, DeathCrash; Teleport: a pause jump aimed at it always connects)
+        if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
         Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
         LastHitCause = cause;
         LastHitBy = by;
@@ -992,9 +1044,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- hooks for the pilot's side ----------------------------------------
 
-    // TeleportFx.Strike: a blink landed on it -- a heart, and it is flung
-    // out of the landing blast so the ship doesn't sit inside it. A blink
-    // onto an elite's shot erases the shot. True when handled.
+    // TeleportFx.Strike: a pause jump landed on it -- every heart it has
+    // left, like a shielded ram: a guaranteed kill. It resolves on the
+    // landing frame, while the world is still frozen (the elite has not
+    // moved since the pilot aimed), and its grace window does not refuse
+    // it. (Were it ever to survive, it is flung out of the landing blast
+    // so the ship doesn't sit inside it.) A jump onto an elite's shot
+    // erases the shot. True when handled.
     public static bool TeleportStrike(GameObject go, Vector3 at)
     {
         if (go == null) return false;
@@ -1002,11 +1058,12 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (elite != null)
         {
             if (!elite.InPlay) return true;
-            elite.TakeHit(EliteDamage.Teleport, at);
+            elite.TakeHit(EliteDamage.Teleport, at, elite.Hearts);
             if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
             return true;
         }
-        return EliteShots.EraseHitbox(go);
+        // (a rail mine's laser is erased the same way: RailMineLaser)
+        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
     }
 
     // collisionDetection, shielded (blue atom / Cloak): the ram takes both
@@ -1020,7 +1077,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             elite.TakeHit(EliteDamage.ShieldRam, shipAt, elite.Hearts);
             return true;
         }
-        return EliteShots.EraseHitbox(go);
+        // (a rail mine's laser is absorbed the same way: RailMineLaser)
+        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
     }
 
     // collisionDetection, unshielded: the pilot pays a heart as for any

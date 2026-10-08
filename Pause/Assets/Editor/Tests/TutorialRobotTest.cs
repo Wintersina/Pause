@@ -41,6 +41,8 @@ public static class TutorialRobotTest
         LinesFitTheBubble();
         SkipFinishesTheTutorial();
         CompletionMarksTutorialDone();
+        WeaponIsHeldThenFiresOnce();
+        PauseJumpOpensThePortal();
         SpeakerTapCompletesLine();
         CompletePanel();
         ArtIsFlatAndParametric();
@@ -78,8 +80,18 @@ public static class TutorialRobotTest
             atomAt = IndexOf(TutorialAdvance.CollectRedAtom);
         Check("pauses are limited, before star dust, before the power-up",
               pausesAt > 1 && dustAt > pausesAt && atomAt > dustAt);
-        Check("enemies are covered after the pickups",
-              System.Array.FindIndex(steps, s => s.id == "enemies") is int e && e > dustAt);
+        int enemyAt = System.Array.FindIndex(steps, s => s.id == "enemies");
+        Check("enemies are covered after the pickups", enemyAt > dustAt);
+        Check("the enemy step sends one alien (SpawnEnemy) and waits until it is gone",
+              enemyAt >= 0 && steps[enemyAt].cue == TutorialCue.SpawnEnemy
+              && steps[enemyAt].advance == TutorialAdvance.EnemyGone && steps[enemyAt].amount == 1f);
+        int powerAt = IndexOf(TutorialAdvance.FirePower);
+        Check("a power step comes after the atoms are taught", powerAt > atomAt
+              && powerAt > IndexOf(TutorialAdvance.CollectGreenAtom) && powerAt > IndexOf(TutorialAdvance.CollectBlueAtom));
+        Check("it keeps charge atoms coming and waits for the weapon to go off once",
+              powerAt >= 0 && steps[powerAt].cue == TutorialCue.SpawnChargeAtoms && steps[powerAt].amount == 1f);
+        Check("its charge takes a few atoms (" + TutorialScript.PowerAtoms + ")",
+              TutorialScript.PowerAtoms >= 2 && TutorialScript.PowerAtoms <= 4);
     }
 
     static int IndexOf(TutorialAdvance a)
@@ -222,6 +234,10 @@ public static class TutorialRobotTest
                 now.blueAtomsCollected += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectRedAtom:
                 now.redAtomsCollected += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.EnemyGone:
+                now.enemiesGone += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.FirePower:
+                now.powersFired += Mathf.CeilToInt(s.amount); break;
         }
         return now;
     }
@@ -463,9 +479,93 @@ public static class TutorialRobotTest
         Check("finishing the last step sets HasDoneTut", PlayerPrefs.GetString("HasDoneTut") == "true");
         Check("and marks the end of the tutorial", Hints.reachedTheEndOfTut);
         Check("and no atom keeps coming", spawnGoodStuffTut.keepAtomComing == TutorialAtom.None);
+        Check("and no tutorial alien is left flying", TutorialEnemy.Live == null);
+        var heldPower = Object.FindFirstObjectByType<movePlayerInTut>()?.GetComponent<ShipPowerController>();
+        Check("and the weapon is held again", heldPower != null && heldPower.chargeMode == ShipPowerController.ChargeMode.Held);
 
         foreach (var s in Object.FindObjectsByType<RobotSpeaker>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Object.DestroyImmediate(s.gameObject);
+    }
+
+    // ---- The power step: the weapon is held, then armed for a few atoms ----
+
+    static void WeaponIsHeldThenFiresOnce()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
+        buttonClicks.playerDied = false;
+        var hints = Object.FindFirstObjectByType<Hints>();
+        var ship = Object.FindFirstObjectByType<movePlayerInTut>();
+        if (hints == null || ship == null) { Check("tutorialS5 has Hints and the ship", false); return; }
+        hints.SendMessage("Start");
+        var power = ship.GetComponent<ShipPowerController>();
+        Check("the tutorial ship carries the real weapon (ShipPowerController)", power != null);
+        if (power == null) return;
+        power.SendMessage("Awake");
+        power.SendMessage("Start");
+        var gun = ship.GetComponentInChildren<UltimateGun>();
+        if (gun != null) gun.SendMessage("Awake");   // edit mode: Awake doesn't run on its own
+        score.pauseCounter = 0;   // the world runs with no finger down
+        try
+        {
+            Check("it is held from the start", power.chargeMode == ShipPowerController.ChargeMode.Held);
+            float left = power.SecondsLeft;
+            for (int i = 0; i < 600; i++) power.SendMessage("Update");
+            power.ReduceTimer(1000f);
+            power.FreeShot();
+            Check("held: no countdown, pickups don't cut it, no free shot, never fires",
+                  Mathf.Approximately(power.SecondsLeft, left) && power.UltimatesFired == 0 && power.FreeShotsFired == 0
+                  && power.PendingFreeShots == 0);
+
+            int powerAt = System.Array.FindIndex(TutorialScript.Steps, s => s.advance == TutorialAdvance.FirePower);
+            typeof(Hints).GetMethod("BeginStep", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(hints, new object[] { powerAt });
+            Check("the power step arms it: only pickups fill it",
+                  power.chargeMode == ShipPowerController.ChargeMode.PickupsOnly && power.Charge01 < .01f);
+            Check("the power step keeps charge atoms coming", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Charge);
+            for (int i = 0; i < 600; i++) power.SendMessage("Update");
+            Check("armed: time alone never fires it", power.UltimatesFired == 0);
+
+            for (int i = 0; i < TutorialScript.PowerAtoms; i++)
+            {
+                Check("atom " + (i + 1) + " of " + TutorialScript.PowerAtoms + ": not fired yet", power.UltimatesFired == 0);
+                power.ReduceTimer(power.secondsPerAtom);
+                power.SendMessage("Update");
+            }
+            Check("after exactly " + TutorialScript.PowerAtoms + " atoms the weapon goes off once (" + power.UltimatesFired + ")",
+                  power.UltimatesFired == 1);
+        }
+        finally
+        {
+            spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+            power.SendMessage("OnDestroy");
+            if (power.Runner != null) power.Runner.SendMessage("OnDestroy");
+            if (power.Secret != null) power.Secret.SendMessage("OnDestroy");
+            AttackPool.StopAll();
+            typeof(ShipPowerController).GetMethod("FinishCinematic", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            score.pauseCounter = 50;
+        }
+        foreach (var s in Object.FindObjectsByType<RobotSpeaker>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            Object.DestroyImmediate(s.gameObject);
+    }
+
+    // ---- The pause-jump shows the portal, as in a run ----
+
+    static void PauseJumpOpensThePortal()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        int Vortices() => System.Array.FindAll(Object.FindObjectsByType<Transform>(FindObjectsSortMode.None),
+                                               t => t.name == "~TeleportVortex").Length;
+        int before = Vortices();
+        bool nudge = movePlayerInTut.Arrive(Vector3.zero, new Vector3(TeleportFx.MinimumJump * .5f, 0f, 0f));
+        Check("a nudge is steering, not a jump: no portal", !nudge && Vortices() == before);
+        bool jump = movePlayerInTut.Arrive(new Vector3(-1.5f, -3f, 0f), new Vector3(1.5f, 1f, 0f));
+        Check("a pause-jump opens the portal where it left and where it lands (" + (Vortices() - before) + ")",
+              jump && Vortices() - before == 2);
+
+        string src = File.ReadAllText("Assets/Scripts/Gameplay/movePlayerInTut.cs");
+        Check("the tutorial ship's first frame of a press is the arrival (Arrive)",
+              src.Contains("if (!held) Arrive(before, transform.position)"));
+        foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+            if (t != null && t.parent == null && (t.name == "~TeleportVortex" || t.name == "~TeleportFx")) Object.DestroyImmediate(t.gameObject);
     }
 
     static void SpeakerTapCompletesLine()

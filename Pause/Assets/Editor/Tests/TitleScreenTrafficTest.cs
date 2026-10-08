@@ -76,6 +76,7 @@ public static class TitleScreenTrafficTest
     {
         t.Shutdown();
         Object.DestroyImmediate(t.gameObject);
+        TestHarness.FlushGpu();
     }
 
     static SpriteRenderer Logo()
@@ -730,9 +731,11 @@ public static class TitleScreenTrafficTest
         int minPop = int.MaxValue; long popSum = 0; int steps = 0;
         int flipbookPeak = 0;
         const float Seconds = 600f;
+        int frames = 0;
         for (float s = 0f; s < Seconds; s += Dt)
         {
             t.Step(Dt);
+            if (++frames % TestHarness.FlushEvery == 0) TestHarness.FlushGpu();
             int n = t.ActiveCount;
             capped &= n <= t.maxShips && n <= TitleScreenTraffic.MaxCap;
             pools &= t.TrackedFx <= TitleScreenTraffic.FxTrack;
@@ -786,9 +789,11 @@ public static class TitleScreenTrafficTest
                     ? (System.Action<TitleScreenTraffic>)(x => { x.maxShips = 12; x.layerTargets = (int[])oldLayers.Clone(); })
                     : null);
                 long sum = 0; int steps = 0, peak = 0;
+                int frames = 0;
                 for (float s = 0f; s < 300f; s += Dt)
                 {
                     t.Step(Dt);
+                    if (++frames % TestHarness.FlushEvery == 0) TestHarness.FlushGpu();
                     int n = t.ActiveCount;
                     if (s > 10f) { sum += n; steps++; peak = Mathf.Max(peak, n); }
                 }

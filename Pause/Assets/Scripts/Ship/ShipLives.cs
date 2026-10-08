@@ -3,14 +3,14 @@ using UnityEngine;
 // How many lives (hearts) each ship flies with -- the one table, and the one
 // accessor everything reads.
 //
-// Tiers follow the dock price (shopingShips.Prices):
-//   Neon Comet (the free starter)                  2, or 3 once it wears any
-//                                                     colour of its own (a
-//                                                     bought skin; developer
-//                                                     mode owns them all)
+// The hull's own lives (Base) follow the dock price (shopingShips.Prices):
+//   Neon Comet (the free starter)                  2
 //   the cheap ships, under 3000 (Volt Viper..Dove)  3
 //   Turtle, Ion Lancer, Jade Phantom (3000-4400)    4
 //   Gold Warden (the most expensive)                5
+// and the colours bought add to them (SkinHearts: +1 with the ship's first
+// colour, +2 with its third, +2 more on every ship once every skin of every
+// ship is owned) -- Max. The tutorial flies the bare hull (TutorialMax).
 //
 // A run's numbers: collisionDetection.MAXLIFE is the flown ship's Max(),
 // set when the ship spawns (collisionDetection.Start); lifeCounter counts the
@@ -19,43 +19,36 @@ using UnityEngine;
 public static class ShipLives
 {
     public const int Fewest = 2;
-    public const int Most = 5;
+    // The most hearts any hull has of its own (Gold Warden).
+    public const int MostBase = 5;
+    // The most any ship can fly with: the dearest hull with every colour and
+    // the complete set (the heart orbit is built for this many).
+    public static int Most { get { return MostBase + SkinHearts.MostFromColours + SkinHearts.AllSkinsBonus; } }
 
-    // The starter's lives before / after it gets a new colour.
+    // The starter's own lives.
     public const int StarterLives = 2;
-    public const int StarterColourBonus = 1;
 
     // Price bands (star dust) above the starter.
     public const float FourHeartsFrom = 3000f;
 
-    // Lives by ship id, before the starter's colour bonus.
+    // The hull's own lives by ship id, before any colour (SkinHearts).
     public static int Base(int id)
     {
         if (!ShipId.IsValid(id)) return 3;
         if (id == ShipId.Starter) return StarterLives;
-        if (id == MostExpensive) return Most;
+        if (id == MostExpensive) return MostBase;
         return shopingShips.CostFor(id) >= FourHeartsFrom ? 4 : 3;
     }
 
-    // The starter wears any colour besides its stock one (bought, or
-    // developer mode). Which skin is equipped doesn't matter.
-    public static bool StarterHasColour
-    {
-        get
-        {
-            for (int skin = 1; skin < ShipSkins.CountFor(ShipId.Starter); skin++)
-                if (ShipSkins.IsOwned(ShipId.Starter, skin)) return true;
-            return false;
-        }
-    }
-
-    // What ship `id` flies with right now.
+    // What ship `id` flies with right now: its hull plus what the colours
+    // owned add (SkinHearts). Which skin is equipped doesn't matter.
     public static int Max(int id)
     {
-        int lives = Base(id);
-        if (id == ShipId.Starter && StarterHasColour) lives += StarterColourBonus;
-        return Mathf.Clamp(lives, 1, Most);
+        return Mathf.Clamp(Base(id) + SkinHearts.Bonus(id), 1, Most);
     }
+
+    // The tutorial teaches on the bare hull: no colour hearts.
+    public static int TutorialMax(int id) { return Base(id); }
 
     // The flown ship's maximum this run (falls back to the equipped ship's
     // before collisionDetection has set it).
