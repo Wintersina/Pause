@@ -33,9 +33,11 @@ using UnityEngine;
 // blink (EliteShip.TeleportStrike). A hit that destroys the hitbox ends the
 // beam. Other hazards: TARGETS ARE DECIDED IN ONE PLACE, Burn(): when
 // HurtsOtherEnemies is on, every ClearTarget hazard the live beam's rect
-// touches (FriendlyFire.CanHit: not the boss, not shot hitboxes; never its
-// own mine) takes FriendlyFire.Hit -- the standard hostile hit, a kill or an
-// elite's heart -- at most once per pulse.
+// touches (FriendlyFire.HostileFireCanHit: not the boss, not shot hitboxes,
+// not a target still in its spawn-in protection, never its own mine; off in
+// the tutorial and during a player death) takes FriendlyFire.HostileHit --
+// the hostile-fire hit, a kill or an elite's heart, unpaid, within the
+// frame's kill cap -- at most once per pulse.
 //
 // PAUSE / 60 FPS. Timers only advance through Step(dt), which the brain
 // calls on running frames, so a frozen world freezes the laser. Pooled
@@ -295,26 +297,28 @@ public class RailMineLaser : MonoBehaviour
 
     // FRIENDLY FIRE: the one place the beam picks its targets (besides the
     // pilot's hitbox). Every hazard whose body the live beam's rect touches,
-    // once per pulse, never its own mine, through the standard hostile hit.
+    // once per pulse, never its own mine, through the hostile-fire hit
+    // (FriendlyFire.HostileHit: unpaid, the frame's kill cap, off in the
+    // tutorial / during a death).
     void Burn()
     {
-        if (!HurtsOtherEnemies || DeathCrash.Running || length <= 0f) return;
+        if (!HurtsOtherEnemies || length <= 0f || !FriendlyFire.HostileFireAllowed) return;
         var live = ClearTarget.Live;
+        var shooter = owner != null ? owner.gameObject : null;
         float lo = Mathf.Min(from.x, to.x), hi = Mathf.Max(from.x, to.x), half = HitThickness * .5f;
         for (int i = 0; i < live.Count; i++)
         {
             var c = live[i];
-            if (!FriendlyFire.CanHit(c)) continue;
+            if (c == null || !FriendlyFire.HostileFireCanHit(c, shooter)) continue;
             var go = c.gameObject;
-            if (owner != null && go == owner.gameObject) continue;
             int id = go.GetInstanceID();
             if (AlreadyHit(id)) continue;
             Vector2 p = c.transform.position;
             float r = c.Radius * .8f;
             if (Mathf.Abs(p.y - y) > half + r || p.x + r < lo || p.x - r > hi) continue;
+            // capped this frame: not spent, the beam tries again next frame
+            if (!FriendlyFire.HostileHit(c, new Vector3(p.x, y, 0f), "mine laser")) return;
             if (hitCount < hit.Length) hit[hitCount++] = id;
-            EliteShip.HitBy = "mine laser";
-            FriendlyFire.Hit(go, new Vector3(p.x, y, 0f));
             return;   // one a frame: the registry changes under a kill
         }
     }

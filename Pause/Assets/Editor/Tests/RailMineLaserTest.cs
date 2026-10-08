@@ -391,13 +391,17 @@ public static class RailMineLaserTest
             if (fb != null) fb.enabled = false;   // held in the row
             var far = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), new Vector3(0f, row + 2f, 0f), Quaternion.identity);
             ClearTarget.Ensure(far);
+            // past hostile fire's spawn-in protection (they have been on the board a while)
+            FriendlyFire.Settle(rock);
+            FriendlyFire.Settle(fighter);
+            FriendlyFire.Settle(far);
             int kills = FriendlyFire.Kills;
-            for (int i = 0; i < 30 && l != null && l.State == RailMineLaser.Phase.Beam; i++) Step(brain);
+            for (int i = 0; i < 30 && l != null && l.State == RailMineLaser.Phase.Beam; i++) { FriendlyFire.HostileStep(); Step(brain); }
             kills = FriendlyFire.Kills;
             if (on)
                 Check("friendly fire (rock " + (rock == null ? "gone" : FriendlyFire.CanHit(rock.GetComponent<ClearTarget>()) + " at " + rock.transform.position) +
                       ", fighter " + (fighter == null ? "gone" : FriendlyFire.CanHit(fighter.GetComponent<ClearTarget>()) + " at " + fighter.transform.position + " r " + fighter.GetComponent<ClearTarget>().Radius) +
-                      ", beam y " + (l != null ? F(l.Y) : "-") + "): a rock and an enemy fighter in the beam's row each take the standard hostile hit, once (" + kills +
+                      ", beam y " + (l != null ? F(l.Y) : "-") + "): a rock and an enemy fighter in the beam's row each take the hostile-fire hit, once (" + kills +
                       " kills, " + (l != null ? l.HitsThisPulse : -1) + " hits this pulse); a rock off the row and its own mine do not",
                       kills == 2 && far != null && brain != null && l != null && l.HitsThisPulse == 2);
             if (rock != null) Object.DestroyImmediate(rock);
