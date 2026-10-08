@@ -650,7 +650,10 @@ public static class WorldBackdropTest
             if (r.enabled && r.gameObject != walls[0] && r.gameObject != walls[1]) { r.enabled = false; hidden.Add(r); }
         float saved = WorldPainter.FrostRailBrightness;
         var flags = cam.clearFlags; var bg = cam.backgroundColor;
+        float size = cam.orthographicSize, aspect = cam.aspect;
         cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
+        cam.aspect = 9f / 21f;
+        cam.orthographicSize = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, 900, 2100);
         try
         {
             foreach (var theme in WorldManager.Worlds)
@@ -663,6 +666,7 @@ public static class WorldBackdropTest
                 WorldPainter.Apply(theme);
                 float after = RenderedValue(cam);
                 float ratio = after / Mathf.Max(1e-4f, before);
+                Debug.Log("[WB] rail light " + theme.displayName + ": painted " + before.ToString("F0") + ", drawn " + after.ToString("F0"));
                 var mat = walls[0].GetComponent<Renderer>().sharedMaterial;
                 if (theme.displayName == "Frost")
                     Check("Frost rails render dimmed to " + (ratio * 100f).ToString("F0") + "% of the painted rail (50..70%)",
@@ -676,6 +680,7 @@ public static class WorldBackdropTest
         {
             WorldPainter.FrostRailBrightness = saved;
             cam.clearFlags = flags; cam.backgroundColor = bg;
+            cam.orthographicSize = size; cam.aspect = aspect;
             foreach (var r in hidden) if (r != null) r.enabled = true;
         }
     }
@@ -684,7 +689,7 @@ public static class WorldBackdropTest
     static float RenderedValue(Camera cam)
     {
         const int w = 270, h = 630;
-        var rt = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGB32);
+        var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
         var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
         var prevTarget = cam.targetTexture; var prevActive = RenderTexture.active;
         cam.targetTexture = rt;
@@ -692,7 +697,7 @@ public static class WorldBackdropTest
         RenderTexture.active = rt;
         tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
         cam.targetTexture = prevTarget; RenderTexture.active = prevActive;
-        RenderTexture.ReleaseTemporary(rt);
+        Object.DestroyImmediate(rt);
         float sum = 0f;
         foreach (var c in tex.GetPixels32()) sum += Mathf.Max(c.r, Mathf.Max(c.g, c.b)) / 255f;
         Object.DestroyImmediate(tex);
