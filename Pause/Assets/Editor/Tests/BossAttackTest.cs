@@ -55,6 +55,7 @@ public static class BossAttackTest
         {
             BossEncounter.ResetRun();
             BossRails.Reset();
+            ReleaseAtlases();
         }
         Debug.Log("[BOSSATK] failures: " + fails);
         return fails;
@@ -66,7 +67,7 @@ public static class BossAttackTest
     {
         fails = 0;
         try { EveryPatternLeavesAWayThrough(); }
-        finally { BossEncounter.ResetRun(); BossRails.Reset(); }
+        finally { BossEncounter.ResetRun(); BossRails.Reset(); ReleaseAtlases(); }
         return fails;
     }
 
@@ -110,10 +111,18 @@ public static class BossAttackTest
     {
         Texture2D t;
         if (atlases.TryGetValue(boss.artKey, out t) && t != null) return t;
-        t = new Texture2D(2, 2);
+        t = new Texture2D(2, 2, TextureFormat.RGBA32, false);   // read at mip 0 only
         t.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Bosses/" + boss.artKey + ".png"));
         atlases[boss.artKey] = t;
         return t;
+    }
+
+    // The decoded atlases are 12-20 MB each; a static cache outlives the
+    // suite (and the whole RunAll) unless it is emptied.
+    static void ReleaseAtlases()
+    {
+        foreach (var t in atlases.Values) if (t != null) Object.DestroyImmediate(t);
+        atlases.Clear();
     }
 
     // Alpha of the boss's drawing `frame` at cell pixel (x right, y down).

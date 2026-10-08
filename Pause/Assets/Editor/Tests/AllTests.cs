@@ -7,23 +7,28 @@ using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-// Runs the *Test suites in a single editor launch. Recommended command line
-// (working directory Pause/ -- EnemyRosterTest & co. read Assets/... relative
-// paths -- and an ABSOLUTE -projectPath):
+// Runs the *Test suites in a single editor launch. Run it through the
+// wrapper, which queues on a machine-wide lock so only one Unity batch
+// process is resident at a time (several at once crash an 18 GB Mac), runs
+// from Pause/ with an absolute -projectPath, picks a unique log and cleans up
+// Unity's helper processes:
 //
-//   cd Pause && Unity -batchmode -quit -projectPath "$PWD" -executeMethod AllTests.RunAll -logFile tests.log
+//   scripts/unity-batch.sh -executeMethod AllTests.RunAll          (or: make test)
+//   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites ShopTest,CodexTest
 //
 //   AllTests.RunAll     every suite, every check (what verification uses)
 //   AllTests.RunSuites  only the suites named by -suites A,B,C (required)
 //   AllTests.RunFast    every suite (or -suites A,B) minus the checks wrapped
 //                       in TestHarness.Slow(...) -- quick iteration, not a sign-off
 //
-// Keep graphics on (no -nographics): CodexTest, ShopTest, HomePauseTest and
-// SplashLayoutTest read pixels back from Camera.Render(). Startup is the
+// Keep graphics on (no -nographics): CodexTest, ShopTest, HomePauseTest,
+// SplashLayoutTest, ScreenFitTest, HostileProjectileTest, Rails*Test and more
+// read pixels back from Camera.Render() / Graphics.Blit. Startup is the
 // editor's own launch plus its asset refresh / script compile, which is only
 // long after a pull or branch switch touched assets or scripts.
 //
-// Output: "[ALL] <suite>: PASS (1.2s)" or "FAIL (n) (1.2s)" per suite, then
+// Output: "[ALL] <suite>: PASS (1.2s, 2400 MB)" or "FAIL (n) (1.2s, 2400 MB)"
+// per suite (MB = the editor's resident memory after it), then
 //   [ALL] N suites, M failures, tests 123.4s (startup 30.1s)
 //   [ALL] RESULT: PASS|FAIL failures=M failed=A,B
 // A suite's failure count is the larger of what Execute() returned and the
@@ -250,6 +255,7 @@ public static class AllTests
                     returned = 1;
                 }
                 suiteClock.Stop();
+                TestHarness.FlushGpu();   // hand back the GPU memory of what the suite destroyed
                 double seconds = suiteClock.Elapsed.TotalSeconds;
                 int failures = Math.Max(returned, loggedFails);
                 if (returned != loggedFails)
@@ -257,8 +263,10 @@ public static class AllTests
                                      loggedFails + " FAIL lines; counting " + failures);
                 if (failures > 0) { failed += failures; failedNames.Add(suite.name); }
                 times.Add((suite.name, seconds));
+                long rss = ResidentMB();
+                peakRss = Math.Max(peakRss, rss);
                 Debug.Log("[ALL] " + suite.name + ": " + (failures == 0 ? "PASS" : "FAIL (" + failures + ")") +
-                          " (" + seconds.ToString("F1") + "s)");
+                          " (" + seconds.ToString("F1") + "s, " + rss + " MB)");
                 if (seconds >= 2)
                     foreach (var g in gaps.OrderByDescending(g => g.gap).Take(3))
                         Debug.Log("[ALL]     " + g.gap.ToString("F1") + "s before: " + g.after);
@@ -275,11 +283,21 @@ public static class AllTests
         Debug.Log("[ALL] slowest: " + string.Join(", ", times.OrderByDescending(t => t.seconds).Take(15)
                                                        .Select(t => t.name + " " + t.seconds.ToString("F1") + "s")));
         Debug.Log("[ALL] " + selected.Count + " suites, " + failed + " failures, tests " +
-                  all.Elapsed.TotalSeconds.ToString("F1") + "s (startup " + startup.TotalSeconds.ToString("F1") + "s)");
+                  all.Elapsed.TotalSeconds.ToString("F1") + "s (startup " + startup.TotalSeconds.ToString("F1") + "s), " +
+                  "resident memory after a suite peaked at " + peakRss + " MB");
         if (fast) Debug.Log("[ALL] RunFast skipped " + TestHarness.SkippedSlow + " slow checks (RunAll runs them)");
         Debug.Log("[ALL] RESULT: " + (failed == 0 ? "PASS" : "FAIL") + " failures=" + failed +
                   " failed=" + string.Join(",", failedNames));
         EditorApplication.Exit(failed == 0 ? 0 : 1);
+    }
+
+    // The editor's resident memory (what the Mac has to find RAM for); each
+    // suite's PASS/FAIL line carries it, so a leaking suite shows as a step.
+    static long peakRss;
+    static long ResidentMB()
+    {
+        try { return Process.GetCurrentProcess().WorkingSet64 >> 20; }
+        catch (Exception) { return -1; }
     }
 
     static readonly LogType[] QuietTypes = { LogType.Log, LogType.Warning, LogType.Assert };
