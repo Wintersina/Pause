@@ -69,6 +69,9 @@ public static class TutorialAtomFlowTest
         DriftsTowardTheShip(spawner, ship);
         WorldSpeedNeverSlowsItBelowTheFloor(spawner);
         KeepsComingUntilCaught(spawner);
+        ChargeAtomsTakeTurns(spawner);
+        TheAlienDropsThroughTheShipsLane(ship);
+        TeleportingOntoTheAlienErasesIt(ship);
         RealGameAtomsUnchanged();
 
         return Done();
@@ -230,6 +233,98 @@ public static class TutorialAtomFlowTest
               && second.GetComponent<TutorialAtomDrift>() != null);
         if (second != null) Object.DestroyImmediate(second.gameObject);
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+    }
+
+    // The power step keeps green and blue atoms coming in turn, quicker after
+    // each catch than a single-atom step, until the weapon goes off.
+    static void ChargeAtomsTakeTurns(spawnGoodStuffTut spawner)
+    {
+        var spawn = typeof(spawnGoodStuffTut).GetMethod("spawn", BindingFlags.Instance | BindingFlags.NonPublic);
+        var delay = typeof(spawnGoodStuffTut).GetField("atomDelay", BindingFlags.Static | BindingFlags.NonPublic);
+        spawnGoodStuffTut.smStarTimer = 1000f;
+        spawnGoodStuffTut.midStarTimer = 1000f;
+        spawnGoodStuffTut.keepAtomComing = Hints.AtomFor(TutorialCue.SpawnChargeAtoms);
+        Check("the power step's cue asks for charge atoms", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Charge);
+
+        int green = 0, blue = 0, other = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            delay.SetValue(null, 0f);
+            spawn.Invoke(spawner, null);
+            var live = spawnGoodStuffTut.LiveAtom;
+            if (live == null) { other++; continue; }
+            if (PrefabName.Is(live.gameObject, HealAtom.ObjectName)) green++;
+            else if (PrefabName.Is(live.gameObject, "atom3a")) blue++;
+            else other++;
+            Check("charge atom " + (i + 1) + " flows down to the ship (TutorialAtomDrift)", live.GetComponent<TutorialAtomDrift>() != null);
+            Check("the next charge atom follows the catch after " + spawnGoodStuffTut.ChargeRespawnSeconds + " s",
+                  Mathf.Approximately((float)delay.GetValue(null), spawnGoodStuffTut.ChargeRespawnSeconds));
+            Object.DestroyImmediate(live.gameObject);   // caught
+        }
+        Check("charge atoms alternate green and blue (" + green + " green, " + blue + " blue, " + other + " other)",
+              green == 2 && blue == 2 && other == 0);
+        spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+    }
+
+    // The tutorial's one alien: a real enemy, dropping slowly from above the
+    // view through the ship's lane while the world moves, frozen while it
+    // doesn't, gone once it has left past the bottom edge.
+    static void TheAlienDropsThroughTheShipsLane(movePlayerInTut ship)
+    {
+        moveBackGround.speed = 0f;
+        float shipY = ship != null ? ship.transform.position.y : -3f;
+        float shipX = ship != null ? ship.transform.position.x : 0f;
+        float bottom, top;
+        TutorialAtomDrift.View(out bottom, out top);
+
+        var enemy = TutorialEnemy.Spawn(shipX);
+        Check("the tutorial alien spawns", enemy != null && TutorialEnemy.Live == enemy.transform);
+        if (enemy == null) return;
+        var go = enemy.gameObject;
+        Check("it is a real hazard (tagged Enimey)", go.CompareTag("Enimey") && ClearTarget.IsHazard(go));
+        Check("it starts just out of view, above the top edge", go.transform.position.y > top);
+        Check("it drops at the ship's x", Mathf.Abs(go.transform.position.x - Mathf.Clamp(shipX, -3f, 3f)) < 1f);
+        var brain = go.GetComponent<EnemyBrain>();
+        Check("its brain is off: no weave, windup or shots", brain == null || !brain.enabled);
+        var weaver = go.GetComponent<moveEnimes>();
+        Check("its world mover is off (it moves itself)", weaver == null || !weaver.enabled);
+
+        Vector3 p0 = go.transform.position;
+        for (int i = 0; i < 60; i++) enemy.Step(Dt, false);
+        Check("it does not move while the world is frozen", go.transform.position == p0);
+
+        bool reachedLane = false, onScreenInLane = false;
+        float t = 0f, laneT = -1f;
+        bool alive = true;
+        while (alive && t < 30f)
+        {
+            alive = enemy.Step(Dt, true);
+            t += Dt;
+            if (!alive) break;
+            float y = enemy.transform.position.y;
+            if (y < top && y > bottom) onScreenInLane |= Mathf.Abs(enemy.transform.position.x - enemy.BaseX) <= TutorialEnemy.SwayAmplitude + .01f;
+            if (!reachedLane && y <= shipY) { reachedLane = true; laneT = t; Debug.Log("[TAF] alien reaches the ship's lane after " + t.ToString("0.0") + " s"); }
+        }
+        Check("it reaches the ship's lane within 8 s, not in a flash (" + laneT.ToString("0.0") + " s)",
+              reachedLane && laneT > 1f && laneT <= 8f);
+        Check("it sways gently around its drop line while on screen", onScreenInLane);
+        Check("dodged, it leaves past the bottom edge and is gone", !alive && TutorialEnemy.Live == null);
+        if (go != null) Object.DestroyImmediate(go);
+    }
+
+    // The pause-jump onto the alien erases it, as in a run (TeleportFx.Strike).
+    static void TeleportingOntoTheAlienErasesIt(movePlayerInTut ship)
+    {
+        score.paysRealDust = false;
+        var enemy = TutorialEnemy.Spawn(0f);
+        if (enemy == null) { Check("the tutorial alien spawns", false); return; }
+        enemy.transform.position = new Vector3(0f, 0f, 0f);
+        int kills = TeleportFx.Strike(new Vector3(.2f, -.1f, 0f));
+        Check("teleporting onto the alien erases it (kills " + kills + ")", kills == 1 && TutorialEnemy.Live == null);
+
+        var again = TutorialEnemy.Spawn(0f);
+        TutorialEnemy.Clear();
+        Check("Clear removes a leftover alien (Skip / the ending)", again == null && TutorialEnemy.Live == null);
     }
 
     static void RealGameAtomsUnchanged()
