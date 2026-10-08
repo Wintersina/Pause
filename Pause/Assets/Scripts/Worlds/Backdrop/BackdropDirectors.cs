@@ -151,7 +151,9 @@ public partial class SpaceDirector : BackdropDirector
     public SpaceDirector() : base(1988) { }
 
     // Planetfall: hold back new planets and stations while its planet is up.
-    public static bool Quiet { get { return Planetfall.Live != null; } }
+    // Lift-off: the interlude is calm space with the planet left behind (no
+    // hero planet, no rocks).
+    public static bool Quiet { get { return Planetfall.Live != null || Liftoff.Live != null; } }
 
     // Planets, stations, planetoids and moons: what the depth model governs.
     public IList<BackdropPool> Bodies { get { return bodies; } }
@@ -264,7 +266,7 @@ public partial class SpaceDirector : BackdropDirector
         // Open on a hero planet already in view. It is deliberately large,
         // off-centre and partially cropped, establishing the world's scale
         // before the normal body queues take over.
-        Enter(PlanHero(), HalfH * 0.3f);
+        if (!Quiet) Enter(PlanHero(), HalfH * 0.3f);
         nextPlanet = NextPlanet();
         planetWait = Rand(3f, 5f);
         nextStructure = PlanStructure();

@@ -102,7 +102,9 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
-    public static readonly PlanetfallDef[] Defs = { Frost };
+    // Every planet arrived at by planetfall. A new planet (Verdant: after
+    // Frost's lift-off) is one more entry here; the tests swap the list.
+    public static PlanetfallDef[] Defs = { Frost };
 
     // The planetfall for leaving `from` for `to`, or null for a portal.
     // A loop (the way back round after the final world) is always a portal.

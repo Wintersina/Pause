@@ -88,6 +88,7 @@ public static class AllTests
         ("HostileFireTest", HostileFireTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
+        ("LiftoffTest", LiftoffTest.Execute),
         ("LoopTest", LoopTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),

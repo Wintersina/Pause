@@ -105,6 +105,8 @@ public class score : MonoBehaviour {
         if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
         // A planetfall's descent is scripted the same way (Planetfall.FreePress).
         if (Planetfall.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
+        // ... and a lift-off's rise (Liftoff.FreePress).
+        if (Liftoff.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
 
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
