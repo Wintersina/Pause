@@ -152,7 +152,9 @@ public static class BossEncounterTest
         Check("a survived fight ends in the outro", e.State == BossEncounter.Phase.Outro);
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("encounter done", e.State == BossEncounter.Phase.Done && !BossEncounter.Running);
-        Check("the portal opens after the encounter", wm.PortalIsOpen && Object.FindFirstObjectByType<Portal>() != null);
+        // (Space's way on is the planetfall, Planetfall: the same open stage)
+        Check("the portal opens after the encounter", wm.PortalIsOpen &&
+              (Object.FindFirstObjectByType<Portal>() != null || Planetfall.Live != null));
         Check("the boss and its shots are gone", Object.FindFirstObjectByType<BossActor>() == null &&
               GameObject.Find("~BossProjectiles") == null);
         Check("the same world's boss doesn't come back for a missed portal", !BossEncounter.Begin(0, null));
