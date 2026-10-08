@@ -149,7 +149,7 @@ public class BossActor : MonoBehaviour
     {
         if (smoke == null) return;
         bool alive = mode == Mode.Fighting && body.enabled;
-        float sa = alive ? BossArt.SmokeAlpha(damageStage) : 0f;
+        float sa = alive ? BossArt.SmokeAlpha(boss, damageStage) : 0f;
         float aa = alive ? BossArt.ArcAlpha(damageStage, animClock) : 0f;
         smoke.enabled = sa > 0f;
         arcs.enabled = aa > 0f;

@@ -6,6 +6,8 @@ from PIL import Image, ImageChops, ImageStat
 
 
 ROOT = Path(__file__).resolve().parent.parent
+# the runtime sheets live where BossArt loads them (Resources/Bosses)
+RUNTIME = ROOT.parent.parent / "Resources" / "Bosses"
 CELL = 384
 
 
@@ -23,8 +25,8 @@ def clear_edge(image: Image.Image) -> bool:
 
 def main():
     ref = Image.open(ROOT / "ref_idle_cell.png").convert("RGBA")
-    damage = Image.open(ROOT / "Frost_damage.png")
-    fx = Image.open(ROOT / "Frost_damage_fx.png")
+    damage = Image.open(RUNTIME / "Frost_damage.png")
+    fx = Image.open(RUNTIME / "Frost_damage_fx.png")
     preview = Image.open(ROOT / "preview.png")
     assert (damage.size, damage.mode) == ((768, 1536), "RGBA")
     assert (fx.size, fx.mode) == ((2304, 768), "RGBA")

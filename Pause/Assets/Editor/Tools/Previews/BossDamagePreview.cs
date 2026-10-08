@@ -3,9 +3,10 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders the Space boss over its backdrop at 5, 4, 3, 2 and 1 hearts left
+// Renders each boss with damage art (Space, Frost) over its backdrop at 5,
+// 4, 3, 2 and 1 hearts left
 // (pristine, then battle damage stages 1..4: hull, smoke, arcs) side by side
-// in one PNG strip, for review.
+// in one PNG strip per boss (bossdamage-<key>-strip.png), for review.
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod BossDamagePreview.Run
 //   (writes to $BOSSDAMAGE_PREVIEW_DIR, else Builds/BossDamagePreview)
@@ -22,13 +23,18 @@ public static class BossDamagePreview
         Directory.CreateDirectory(dir);
         using (new TestHarness.Sandbox())
         {
-            try { Render(Path.Combine(dir, "bossdamage-space-strip.png")); }
+            try
+            {
+                for (int w = 0; w < BossCatalog.All.Length; w++)
+                    if (BossArt.HasDamageArt(BossCatalog.All[w]))
+                        Render(w, Path.Combine(dir, "bossdamage-" + BossCatalog.All[w].damageKey.ToLowerInvariant() + "-strip.png"));
+            }
             finally { BossEncounter.ResetRun(); }
         }
         EditorApplication.Exit(0);
     }
 
-    static void Render(string path)
+    static void Render(int world, string path)
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         BossEncounter.ResetRun();
@@ -46,13 +52,13 @@ public static class BossDamagePreview
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         Time.timeScale = 1f;
-        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
 
         var backdrop = new GameObject("~Backdrop").AddComponent<WorldBackdrop>();
-        backdrop.Show("Space", false);
+        backdrop.Show(WorldManager.Worlds[world].displayName, false);
         for (int i = 0; i < 600; i++) backdrop.Step(Dt);
 
-        BossEncounter.Begin(0, null);
+        BossEncounter.Begin(world, null);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
@@ -86,7 +92,7 @@ public static class BossDamagePreview
             int x0 = Mathf.Clamp((int)c.x - side / 2, 0, Width - side);
             int y0 = Mathf.Clamp((int)c.y - side / 2, 0, Height - side);
             strip.SetPixels(t * side, 0, side, side, shot.GetPixels(x0, y0, side, side));
-            Debug.Log("[BOSSDAMAGE-PREVIEW] hearts " + left + " stage " + e.Actor.DamageStage +
+            Debug.Log("[BOSSDAMAGE-PREVIEW] " + e.Actor.Boss.artKey + " hearts " + left + " stage " + e.Actor.DamageStage +
                       " frame " + e.Actor.BodyFrame + " smoke " + e.Actor.DamageSmoke.enabled + " arcs " + e.Actor.DamageArcs.enabled);
         }
         strip.Apply();

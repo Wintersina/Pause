@@ -61,11 +61,12 @@ public static class BossArt
     // flat index is simply Death0 + i.
     public static int Death(int i) => Death0 + Mathf.Clamp(i, 0, DeathFrames - 1);
 
-    // ---- battle damage (Space only) ------------------------------------
+    // ---- battle damage (bosses with a BossDef.damageKey: Space, Frost) ---
     //
     //   Resources/Bosses/<Key>_damage.png     2 x 4 cells: row r = damage
     //     stage r + 1 (4 .. 1 hearts left), cols = a 2-frame idle loop A,B;
-    //     every cell registered to the pristine idle (SpaceIdle0)
+    //     every cell registered to the pristine idle (Space: SpaceIdle0,
+    //     the others: Idle0)
     //   Resources/Bosses/<Key>_damage_fx.png  6 x 2 cells, an overlay drawn
     //     over any body frame at the same registration: row 0 smoke loop,
     //     row 1 electrical arcs loop
@@ -76,28 +77,36 @@ public static class BossArt
     public const int DamageStages = 4, DamageColumns = 2, DamageCells = DamageStages * DamageColumns;
     public const int DamageFxColumns = 6, DamageFxRows = 2, DamageFxCells = DamageFxColumns * DamageFxRows;
     public const int Smoke0 = 0, Arc0 = DamageFxColumns;
-    // A and B each held half the pristine idle loop: the damaged loop runs
-    // at the same 0.5 s period.
+    // A and B each hold half the pristine idle loop, so the damaged loop
+    // runs at the same period: Space's 6-frame engine idle is 0.5 s, the
+    // 4-frame Idle0 loop (Frost) 0.625 s.
     public static readonly int[] DamageIdleTicks = { 6, 6 };
+    public static readonly int[] PlainDamageIdleTicks = { 8, 7 };
+    public static int[] DamageIdleTicksFor(BossDef boss) => HasExpandedCombat(boss) ? DamageIdleTicks : PlainDamageIdleTicks;
     public static readonly int[] SmokeTicks = { 3, 3, 3, 3, 3, 3 };
     public static readonly int[] ArcTicks = { 2, 2, 2, 2, 2, 2 };
     public const int ArcBurstTicks = 5;        // stage 3: arcs flicker on / off in slots this long
     public const float ArcBurstChance = .4f;   // ... this share of slots lit
 
-    public static bool HasDamageArt(BossDef boss) => HasExpandedCombat(boss);
+    public static bool HasDamageArt(BossDef boss) => boss != null && !string.IsNullOrEmpty(boss.damageKey);
     public static int DamageStage(int maxHearts, int heartsLeft) => Mathf.Clamp(maxHearts - heartsLeft, 0, DamageStages);
     public static bool IsIdleFrame(int frame) =>
         (frame >= SpaceIdle0 && frame < SpaceIdle0 + SpaceIdleFrames) || (frame >= Idle0 && frame < Idle0 + IdleFrames);
 
     // The damaged hull cell standing in for body `frame`, or -1 (keep the
-    // body frame): only Space, only the idle pose, only once damaged.
+    // body frame): only a boss with damage art, only the idle pose, only
+    // once damaged.
     public static int DamageIdleCell(BossDef boss, int frame, int stage, float seconds)
     {
         if (!HasDamageArt(boss) || stage <= 0 || !IsIdleFrame(frame)) return -1;
-        return (Mathf.Min(stage, DamageStages) - 1) * DamageColumns + FrameAt(DamageIdleTicks, seconds, true);
+        return (Mathf.Min(stage, DamageStages) - 1) * DamageColumns + FrameAt(DamageIdleTicksFor(boss), seconds, true);
     }
 
+    // The shared smoke schedule; SmokeAlpha(boss, stage) scales it by the
+    // boss's smokeStrength.
     public static float SmokeAlpha(int stage) => stage >= 4 ? 1f : stage == 3 ? .7f : stage == 2 ? .35f : 0f;
+    public static float SmokeAlpha(BossDef boss, int stage) =>
+        Mathf.Clamp01(SmokeAlpha(stage) * (boss != null ? boss.smokeStrength : 1f));
     public static int SmokeCell(float seconds) => Smoke0 + FrameAt(SmokeTicks, seconds, true);
 
     // Arcs: none before stage 3; at 3 dim, intermittent bursts; at 4 always
@@ -200,14 +209,14 @@ public static class BossArt
     public static Sprite DamageBody(BossDef boss, int cell)
     {
         if (!HasDamageArt(boss) || cell < 0) return null;
-        var sheet = Sheet(bodies, Folder + boss.artKey + "_damage", DamageColumns, DamageStages);
+        var sheet = Sheet(bodies, Folder + boss.damageKey + "_damage", DamageColumns, DamageStages);
         return sheet[Mathf.Clamp(cell, 0, DamageCells - 1)];
     }
 
     public static Sprite DamageFx(BossDef boss, int cell)
     {
         if (!HasDamageArt(boss) || cell < 0) return null;
-        var sheet = Sheet(bodies, Folder + boss.artKey + "_damage_fx", DamageFxColumns, DamageFxRows);
+        var sheet = Sheet(bodies, Folder + boss.damageKey + "_damage_fx", DamageFxColumns, DamageFxRows);
         return sheet[Mathf.Clamp(cell, 0, DamageFxCells - 1)];
     }
 
