@@ -27,10 +27,16 @@ public static class TutorialScript
         new TutorialStep("heal",     "*Green* fixes your hull.",                      TutorialAdvance.CollectGreenAtom, 1f, TutorialCue.SpawnGreenAtom),
         new TutorialStep("shield",   "*Blue* wraps you in a shield.",                 TutorialAdvance.CollectBlueAtom, 1f,  TutorialCue.SpawnBlueAtom),
         new TutorialStep("refill",   "*Red* refills pauses. Zero means no freezing!", TutorialAdvance.CollectRedAtom, 1f,   TutorialCue.SpawnRedAtom),
-        new TutorialStep("enemies",  "Dodge aliens and asteroids, or *blast* them!",  TutorialAdvance.FlySeconds, 2.5f,     TutorialCue.None),
+        new TutorialStep("enemies",  "An *alien*! Dodge it, or teleport onto it!",    TutorialAdvance.EnemyGone, 1f,        TutorialCue.SpawnEnemy),
+        new TutorialStep("power",    "Atoms charge your *weapon*. Grab them!",        TutorialAdvance.FirePower, 1f,        TutorialCue.SpawnChargeAtoms),
     };
 
-    public const int MaxSteps = 8;
+    public const int MaxSteps = 9;
+
+    // The power step's charge, in atoms: Hints arms the ship's weapon so that
+    // this many green / blue atoms (ShipPowerController.AtomCutSeconds each)
+    // fill it, and it goes off once.
+    public const int PowerAtoms = 3;
     public const int MaxLineLength = 60;
 
     // The single rule every advance condition goes through. `start` is the
@@ -56,6 +62,10 @@ public static class TutorialScript
                 return now.blueAtomsCollected - start.blueAtomsCollected >= step.amount;
             case TutorialAdvance.CollectRedAtom:
                 return now.redAtomsCollected - start.redAtomsCollected >= step.amount;
+            case TutorialAdvance.EnemyGone:
+                return now.enemiesGone - start.enemiesGone >= step.amount;
+            case TutorialAdvance.FirePower:
+                return now.powersFired - start.powersFired >= step.amount;
         }
         return false;
     }
@@ -236,6 +246,8 @@ public enum TutorialAdvance
     CollectGreenAtom, // pick up `amount` green (heal) atoms
     CollectBlueAtom, // pick up `amount` blue (shield) atoms
     CollectRedAtom,  // pick up `amount` red (pause) atoms
+    EnemyGone,       // `amount` tutorial enemies gone: blasted, rammed or dodged off the bottom
+    FirePower,       // the ship's weapon (the ultimate) goes off `amount` times
 }
 
 public enum TutorialCue
@@ -247,6 +259,8 @@ public enum TutorialCue
     SpawnGreenAtom,  // keep a green (heal) atom coming until one is caught, arrow on it
     SpawnBlueAtom,   // same for the blue (shield) atom
     SpawnRedAtom,    // same for the red (pause) atom
+    SpawnEnemy,      // one alien drops slowly through the ship's lane (TutorialEnemy), arrow on it
+    SpawnChargeAtoms, // arm the weapon for PowerAtoms atoms and keep green / blue atoms coming
 }
 
 public struct TutorialStep
@@ -280,6 +294,8 @@ public struct TutorialSignals
     public int greenAtomsCollected;
     public int blueAtomsCollected;
     public int redAtomsCollected;
+    public int enemiesGone;
+    public int powersFired;
 }
 
 // A line, pre-chewed for the speaker so nothing is computed while talking.

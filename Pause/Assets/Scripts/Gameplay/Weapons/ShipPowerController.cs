@@ -67,6 +67,20 @@ public class ShipPowerController : MonoBehaviour
              "full speed when it ends, instead of snapping.")]
     public float cinematicEaseOutSeconds = 0.2f;
 
+    // How the countdown runs. A real run is Timed. The tutorial (Hints)
+    // holds the charge while it teaches the rest, then arms it so that a
+    // few atoms -- and only pickups -- fill it, and the player sees the
+    // power go off once.
+    //   Timed        counts down on its own (running world time) and on pickups
+    //   Held         frozen: no ticking, pickups don't cut it, it never fires,
+    //                and red-atom free shots are dropped
+    //   PickupsOnly  only pickup cuts move it; it fires at zero as usual
+    public enum ChargeMode { Timed, Held, PickupsOnly }
+    [System.NonSerialized] public ChargeMode chargeMode = ChargeMode.Timed;
+
+    // Times the ultimate has gone off (the tutorial's power step waits on it).
+    public int UltimatesFired { get; private set; }
+
     public static ShipPowerController Instance { get; private set; }
     // True from the moment the ultimate fires until the world is fully back
     // to normal speed -- including the short ease-out at the end.
@@ -101,6 +115,7 @@ public class ShipPowerController : MonoBehaviour
     SecretPowerController secret;
     float timer;
     float cooldown;
+    bool armed;   // Arm set the countdown before Start ran: keep it
     UltimateGun gun;
     ChargeIndicator indicator;
     // Cinematic clear bookkeeping (see BeginCinematic / TickCinematic).
@@ -133,8 +148,11 @@ public class ShipPowerController : MonoBehaviour
         // (which flies the starter) can't hand the starter another's power.
         shipIndex = ShipId.Of(gameObject, ShipId.Equipped());
         loadout = ShipLoadoutTable.For(shipIndex);
-        cooldown = RollCooldown();
-        timer = cooldown;
+        if (!armed)
+        {
+            cooldown = RollCooldown();
+            timer = cooldown;
+        }
         gun = UltimateGun.Attach(gameObject);
         indicator = ChargeIndicator.Attach(this);
         runner = ShipAttackRunner.Attach(gameObject, shipIndex);
@@ -148,14 +166,14 @@ public class ShipPowerController : MonoBehaviour
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
 
-        if (running && timer > 0f) timer -= Time.deltaTime;
+        if (running && timer > 0f && chargeMode == ChargeMode.Timed) timer -= Time.deltaTime;
 
         float extendTarget = timer <= extendLeadSeconds
             ? 1f - Mathf.Clamp01(timer / Mathf.Max(0.01f, extendLeadSeconds))
             : 0f;
         if (gun != null) gun.Tick(extendTarget);
 
-        if (running && timer <= 0f)
+        if (running && timer <= 0f && chargeMode != ChargeMode.Held)
         {
             Fire();
             cooldown = RollCooldown();
@@ -201,7 +219,7 @@ public class ShipPowerController : MonoBehaviour
     // while the world moves, so it fires straight away unless blocked.
     public void FreeShot()
     {
-        if (buttonClicks.playerDied) return;
+        if (buttonClicks.playerDied || chargeMode == ChargeMode.Held) return;
         pendingFree = Mathf.Min(pendingFree + 1, MaxPendingFreeShots);
         ServiceFreeShots(Time.timeScale > 0f);
     }
@@ -237,8 +255,19 @@ public class ShipPowerController : MonoBehaviour
     public void ReduceTimer(float seconds)
     {
         // Ignore non-positive cuts; an already-ready weapon (timer 0) stays at 0.
-        if (seconds <= 0f) return;
+        if (seconds <= 0f || chargeMode == ChargeMode.Held) return;
         timer = Mathf.Max(0f, timer - seconds);
+    }
+
+    // The tutorial's power step: a fresh, empty charge of `seconds` that
+    // only pickups fill (ChargeMode.PickupsOnly), so it goes off after
+    // exactly the atoms it was sized for.
+    public void Arm(float seconds)
+    {
+        cooldown = Mathf.Max(.01f, seconds);
+        timer = cooldown;
+        armed = true;
+        chargeMode = ChargeMode.PickupsOnly;
     }
 
     // Violet capacitor atom: a stronger, dedicated cut to the weapon charge.
@@ -289,6 +318,7 @@ public class ShipPowerController : MonoBehaviour
     // limited weapon at normal speed (ShipAttackRunner).
     void Fire()
     {
+        UltimatesFired++;
         if (gun != null) gun.Fire();
         if (indicator != null) indicator.Release();
         UltimateShotSound.Play(shipIndex);

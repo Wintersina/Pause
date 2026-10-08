@@ -3,9 +3,11 @@ using UnityEngine;
 // Spawns the tutorial's pickups when the script (Hints) asks for them: star
 // clusters once the star-dust step starts, then each atom -- green (heal),
 // blue (shield), red (pauses) -- the moment its line is spoken, coming back
-// until the player catches one. Like the real spawner it only runs while the
-// world is moving.
-public enum TutorialAtom { None, Green, Blue, Red }
+// until the player catches one. For the power step (Charge) it keeps green
+// and blue atoms coming in turn, sooner after each catch, until the weapon
+// they charge goes off. Like the real spawner it only runs while the world
+// is moving.
+public enum TutorialAtom { None, Green, Blue, Red, Charge }
 
 public class spawnGoodStuffTut: MonoBehaviour {
 
@@ -21,8 +23,12 @@ public class spawnGoodStuffTut: MonoBehaviour {
     public static TutorialAtom keepAtomComing;
     public static Transform LiveAtom { get; private set; }
     static float atomDelay;
+    static int chargeAtomsSpawned;
 
     const float AtomRespawnSeconds = 1.2f;
+    // The power step needs several atoms in a row: the next one follows
+    // the last catch quicker.
+    public const float ChargeRespawnSeconds = .5f;
     const float Never = 1000f;
 
     // used for random int for generating stars
@@ -34,6 +40,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         keepAtomComing = TutorialAtom.None;
         LiveAtom = null;
         atomDelay = .6f;
+        chargeAtomsSpawned = 0;
 	}
 
     // Starts the star clusters (they then repeat on their own timers).
@@ -89,7 +96,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
             atomDelay -= Time.deltaTime;
             if (atomDelay <= 0f)
             {
-                atomDelay = AtomRespawnSeconds;
+                atomDelay = keepAtomComing == TutorialAtom.Charge ? ChargeRespawnSeconds : AtomRespawnSeconds;
                 spawnAtom(keepAtomComing);
             }
         }
@@ -114,6 +121,10 @@ public class spawnGoodStuffTut: MonoBehaviour {
     // moves at the tutorial's near-zero speed.
     void spawnAtom(TutorialAtom kind)
     {
+        // Charge atoms take turns: green, blue, green ... (both cut the
+        // weapon's charge by the same ShipPowerController.AtomCutSeconds).
+        if (kind == TutorialAtom.Charge)
+            kind = chargeAtomsSpawned++ % 2 == 0 ? TutorialAtom.Green : TutorialAtom.Blue;
         float x = Random.Range(-1.6f, 1.6f);
         Vector3 pos = new Vector3(x, transform.position.y, transform.rotation.z);
         GameObject atom;
