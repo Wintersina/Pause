@@ -5,11 +5,12 @@ import json
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1]
-manifest = json.loads((ROOT / 'manifest.json').read_text())
+SRC = Path(__file__).resolve().parent
+ROOT = SRC.parents[3] / 'Backgrounds' / 'Resources' / 'Worlds' / 'Frost' / 'Planetfall'
+manifest = json.loads((SRC / 'manifest.json').read_text())
 
 for name, spec in manifest['files'].items():
-    image = Image.open(ROOT / name)
+    image = Image.open((SRC if name.startswith('preview') else ROOT) / name)
     assert list(image.size) == spec['size'], (name, image.size, spec['size'])
     if name.endswith('.png'):
         assert image.mode == 'RGBA', (name, image.mode)

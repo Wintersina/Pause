@@ -11,8 +11,10 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw
 
-ROOT = Path(__file__).resolve().parents[1]
+# Runtime PNGs go straight to the Resources folder Planetfall loads them from;
+# the review sheet, GIF and manifest stay here beside the sources.
 SRC = Path(__file__).resolve().parent
+ROOT = SRC.parents[3] / 'Backgrounds' / 'Resources' / 'Worlds' / 'Frost' / 'Planetfall'
 NEAREST = Image.Resampling.NEAREST
 INK = (5, 11, 28)
 CYAN = (91, 231, 255)
@@ -262,13 +264,13 @@ def preview(planet_art, limb_art, cloud_art, dark_art, entry_frames, burst_frame
         thumb = art.copy()
         thumb.thumbnail((x1 - x0, y1 - y0), NEAREST)
         canvas.alpha_composite(thumb, (x0 + (x1 - x0 - thumb.width) // 2, y0))
-    canvas.save(ROOT / 'preview.png', optimize=True)
+    canvas.save(SRC / 'preview.png', optimize=True)
     gif = []
     for frame in entry_frames:
         bg = Image.new('RGB', frame.size, '#07101f')
         bg.paste(frame, (0, 0), frame)
         gif.append(bg.resize((256, 512), NEAREST))
-    gif[0].save(ROOT / 'preview.gif', save_all=True, append_images=gif[1:], duration=85, loop=0, optimize=False)
+    gif[0].save(SRC / 'preview.gif', save_all=True, append_images=gif[1:], duration=85, loop=0, optimize=False)
 
 
 def main():
@@ -280,7 +282,7 @@ def main():
     b = breakthrough()
     s = streaks()
     preview(p, l, c, cd, e, b, s)
-    manifest_path = ROOT / 'manifest.json'
+    manifest_path = SRC / 'manifest.json'
     manifest = json.loads(manifest_path.read_text())
     manifest['palette'] = 'Frost icebreaker steel and ice-white/cyan glaciers; indigo-violet shadow, magenta and copper relay lights'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
