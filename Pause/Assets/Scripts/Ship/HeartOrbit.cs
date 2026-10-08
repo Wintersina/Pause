@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Hearts that orbit a hull and shield it: the shared engine behind the
-// player's lives (ShipLivesIndicator) and the elite ships' two hearts
-// (EliteHearts).
+// player's lives (ShipLivesIndicator), the elite ships' two hearts
+// (EliteHearts) and the bosses' five (BossHearts: one flat, evenly spaced
+// ring round the body, over it and its shots).
 //
 // The hearts circle the hull slowly and continuously on tilted orbits drawn
 // as 3D: a heart swinging round the back draws behind the hull (under it,
@@ -30,7 +31,9 @@ using UnityEngine;
 //
 // Subclass hooks: RemainingHearts (how many are left), TakeImpact (the hit
 // point the next lost heart shields against), HullBounds, HeartSprite,
-// HeartTint, ClampRect, AvoidThumb, FindGun, ResolveStyle.
+// HeartTint, ClampRect, AvoidThumb, FindGun, ResolveStyle; and the orbit's
+// shape and feel: SortOrders, OrbitRadiiFor, CrowdGrowth, WarpOrbit,
+// KeepGain / KeepMax.
 [DefaultExecutionOrder(50)]
 public abstract class HeartOrbit : MonoBehaviour
 {
@@ -84,6 +87,8 @@ public abstract class HeartOrbit : MonoBehaviour
 
     protected Transform[] hearts;
     protected SpriteRenderer[] renderers;
+    // Outlined: each heart's outline (a child drawn just under it); null otherwise.
+    protected SpriteRenderer[] outlines;
     int lastShown = -1;
     float seed, clock;
     // Seed for the per-heart jitter (the player's ship id).
@@ -144,6 +149,9 @@ public abstract class HeartOrbit : MonoBehaviour
     static Vector2[] shardHome;       // each shard's centre in the heart, unit heart size
 
     public HeartStyle Style { get { return style; } }
+    // Heart i's outline (Outlined owners), else null.
+    public SpriteRenderer HeartOutlineRenderer(int i) { return outlines != null && i >= 0 && i < outlines.Length ? outlines[i] : null; }
+    public bool HasOutlines { get { return outlines != null; } }
     public OrbitStyle OrbitParams { get { return orbit; } }
     public Transform[] Hearts { get { return hearts; } }
     public bool Orbiting { get { return true; } }
@@ -211,6 +219,37 @@ public abstract class HeartOrbit : MonoBehaviour
     protected virtual int MaxHearts { get { return 8; } }
     // The hull drawing the hearts sort round (front over it, back under it).
     protected virtual SpriteRenderer HullRenderer() { return GetComponent<SpriteRenderer>(); }
+    // The sorting orders a heart draws at round the front / back of its
+    // orbit (the shield and the shards draw just over the front).
+    protected virtual void SortOrders(int hullOrder, out int front, out int back)
+    {
+        front = hullOrder + 2;   // over the hull, its damage FX and the gun
+        back = hullOrder - 1;    // under the hull (with its exhaust)
+    }
+    // The orbit's half-sizes round the hull's bounds (before the crowd and
+    // any squash at a screen edge).
+    protected virtual Vector2 OrbitRadiiFor(Bounds hull)
+    {
+        float ex = hull.extents.x, ey = hull.extents.y;
+        // a skinny hull still gets a roundish orbit
+        float rx = Mathf.Max(ex, ey * .8f) * orbit.radius + heartSize * OrbitReach;
+        float ry = Mathf.Max(ey, ex * .8f) * orbit.radius + heartSize * OrbitReach;
+        return new Vector2(rx, ry);
+    }
+    // How much wider (share) the orbit flies per heart over three.
+    protected virtual float CrowdGrowth { get { return CrowdGrow; } }
+    // Hurry through the orbit's bottom (Warped); false: an even pace all round.
+    protected virtual bool WarpOrbit { get { return true; } }
+    // One orbit: how hard (per radian off its place, and at most, radians a
+    // second) a heart closes on its even spacing behind the one ahead.
+    protected virtual float KeepGain { get { return .9f; } }
+    protected virtual float KeepMax { get { return .8f; } }
+    // Every heart (and its shield dart and crumble) wears HeartOutline's
+    // thin two-tone trace: the elites' and the bosses' hearts.
+    protected virtual bool Outlined { get { return false; } }
+    // A heart's pop-in runs on unscaled time (it shows even while the world
+    // is frozen) instead of gameplay time.
+    protected virtual bool PopOnRealTime { get { return false; } }
 
     public void BuildHearts(int count)
     {
@@ -224,6 +263,8 @@ public abstract class HeartOrbit : MonoBehaviour
         count = Mathf.Clamp(count, 1, MaxHearts);
         hearts = new Transform[count];
         renderers = new SpriteRenderer[count];
+        var outlineSprite = Outlined ? HeartOutline.For(sprite) : null;
+        outlines = outlineSprite != null ? new SpriteRenderer[count] : null;
         theta = new float[count];
         dir = new float[count];
         dirTarget = new float[count];
@@ -245,8 +286,7 @@ public abstract class HeartOrbit : MonoBehaviour
         float parentScale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y), 0.0001f);
         float localSize = heartSize / parentScale;
         int hullOrder = hull != null ? hull.sortingOrder : 0;
-        frontOrder = hullOrder + 2;   // over the hull, its damage FX and the gun
-        backOrder = hullOrder - 1;    // under the hull (with its exhaust)
+        SortOrders(hullOrder, out frontOrder, out backOrder);
         baseScale = localSize / Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
 
         int key = styleKey * 131 + Mathf.FloorToInt(seed * 977f);
@@ -261,6 +301,7 @@ public abstract class HeartOrbit : MonoBehaviour
             go.transform.localScale = Vector3.one * baseScale;
             hearts[i] = go.transform;
             renderers[i] = sr;
+            if (outlines != null) outlines[i] = OutlineOf(go.transform, outlineSprite, frontOrder - 1);
             tiltOwn[i] = (Hash01(key + i * 17) * 2f - 1f) * orbit.tiltJitter;
             rollOwn[i] = (Hash01(key + i * 17 + 5) * 2f - 1f) * orbit.rollJitter;
             float way = orbit.alternate && i % 2 == 1 ? -1f : 1f;
@@ -350,13 +391,52 @@ public abstract class HeartOrbit : MonoBehaviour
         shardVelocity = new Vector2[MaxBreaks * Shards];
         shardSpin = new float[MaxBreaks * Shards];
         var burstFrames = ShieldArt.Impact;
+        // Outlined: the dart and the crumble keep their trace (the pieces one
+        // up, their outlines between them and the shield burst).
+        Sprite ghostLine = outlines != null ? HeartOutline.For(heart) : null;
+        Sprite[] shardLines = outlines != null ? HeartOutline.ForShards(heart, ShardCols, ShardRows) : null;
+        bool lined = ghostLine != null && shardLines != null;
+        int pieceOrder = lined ? order + 2 : order + 1;
+        ghostOutlines = lined ? new SpriteRenderer[MaxBreaks] : null;
+        shardOutlines = lined ? new SpriteRenderer[MaxBreaks * Shards] : null;
         for (int b = 0; b < MaxBreaks; b++)
         {
             bursts[b] = NewPiece(root, "Burst" + b, burstFrames[1], order);
-            ghosts[b] = NewPiece(root, "Ghost" + b, heart, order + 1);
+            ghosts[b] = NewPiece(root, "Ghost" + b, heart, pieceOrder);
+            if (lined) { ghostOutlines[b] = OutlineOf(ghosts[b].transform, ghostLine, order + 1); ghostOutlines[b].enabled = false; }
             for (int s = 0; s < Shards; s++)
-                shards[b * Shards + s] = NewPiece(root, "Shard" + b + "_" + s, shardSprites[s], order + 1);
+            {
+                var piece = NewPiece(root, "Shard" + b + "_" + s, shardSprites[s], pieceOrder);
+                shards[b * Shards + s] = piece;
+                if (lined)
+                {
+                    shardOutlines[b * Shards + s] = OutlineOf(piece.transform, shardLines[s], order + 1);
+                    shardOutlines[b * Shards + s].enabled = false;
+                }
+            }
         }
+    }
+    SpriteRenderer[] ghostOutlines, shardOutlines;
+
+    // A heart's (or a piece's) outline: a child drawn just under it, its
+    // scale and turn the heart's own.
+    static SpriteRenderer OutlineOf(Transform heart, Sprite outline, int order)
+    {
+        var go = new GameObject("Outline");
+        go.transform.SetParent(heart, false);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = outline;
+        sr.sortingOrder = order;
+        return sr;
+    }
+
+    // The outlines follow their piece: shown with it, at its alpha.
+    void SyncOutline(SpriteRenderer line, SpriteRenderer piece, float pulse)
+    {
+        if (line == null) return;
+        bool on = piece.enabled;
+        if (line.enabled != on) line.enabled = on;
+        if (on) line.color = new Color(1f, 1f, 1f, piece.color.a * pulse);
     }
 
     static SpriteRenderer NewPiece(Transform root, string name, Sprite sprite, int order)
@@ -521,6 +601,15 @@ public abstract class HeartOrbit : MonoBehaviour
             }
             breaks[b] = br;
         }
+        if (ghostOutlines != null)
+        {
+            float pulse = HeartOutline.Pulse(clock);
+            for (int b = 0; b < breaks.Length; b++)
+            {
+                SyncOutline(ghostOutlines[b], ghosts[b], pulse);
+                for (int s = 0; s < Shards; s++) SyncOutline(shardOutlines[b * Shards + s], shards[b * Shards + s], pulse);
+            }
+        }
     }
 
     static float BurstSpan(Sprite s)
@@ -638,8 +727,16 @@ public abstract class HeartOrbit : MonoBehaviour
         Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b);
         Sw(popLeft, a, b); Sw(depth, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
         Sw(pos, a, b); Sw(tangent, a, b);
+        if (outlines != null) Sw(outlines, a, b);
     }
     static void Sw<T>(T[] arr, int a, int b) { T t = arr[a]; arr[a] = arr[b]; arr[b] = t; }
+
+    // Every heart pops in where it is (an owner's hearts arriving at once).
+    protected void PopInAll()
+    {
+        if (popLeft == null) return;
+        for (int i = 0; i < popLeft.Length; i++) popLeft[i] = PopSeconds;
+    }
 
     // Heart i comes back: it pops in at a free spot on its orbit.
     void Healed(int i, int shownAfter)
@@ -716,11 +813,7 @@ public abstract class HeartOrbit : MonoBehaviour
         Bounds hb = HullBounds();
         centre = (Vector2)(hb.center - p);
         hullExtents = hb.extents;
-        float ex = hb.extents.x, ey = hb.extents.y;
-        // a skinny hull still gets a roundish orbit
-        float rx = Mathf.Max(ex, ey * .8f) * orbit.radius + heartSize * OrbitReach;
-        float ry = Mathf.Max(ey, ex * .8f) * orbit.radius + heartSize * OrbitReach;
-        radii = new Vector2(rx, ry);
+        radii = OrbitRadiiFor(hb);
         gun = FindGun();
     }
 
@@ -760,6 +853,11 @@ public abstract class HeartOrbit : MonoBehaviour
     // through the orbit's lowest point (where the thumb is) and lingering
     // over the top. (The bottom of a plane tilted `tiltDeg`, headed
     // `rollDeg`: where its projected height is least.)
+    float WarpedHere(float u, float tiltDeg, float rollDeg)
+    {
+        return WarpOrbit ? Warped(u, tiltDeg, rollDeg) : u;
+    }
+
     public static float Warped(float u, float tiltDeg, float rollDeg)
     {
         float r = rollDeg * Mathf.Deg2Rad;
@@ -776,7 +874,8 @@ public abstract class HeartOrbit : MonoBehaviour
         if (hearts == null) return;
         float dt = Mathf.Max(0f, scaledDt);
         clock += dt;
-        for (int i = 0; i < popLeft.Length; i++) if (popLeft[i] > 0f) popLeft[i] = Mathf.Max(0f, popLeft[i] - dt);
+        float popDt = PopOnRealTime ? Mathf.Max(0f, unscaledDt) : dt;
+        for (int i = 0; i < popLeft.Length; i++) if (popLeft[i] > 0f) popLeft[i] = Mathf.Max(0f, popLeft[i] - popDt);
         remeasureIn -= unscaledDt;
         if (!measured || remeasureIn <= 0f) Measure();
 
@@ -812,7 +911,7 @@ public abstract class HeartOrbit : MonoBehaviour
         if (n == 0) return;
 
         // A crowd of hearts flies a little wider (eased as hearts come and go).
-        float wantCrowd = 1f + CrowdGrow * Mathf.Max(0, n - 3);
+        float wantCrowd = 1f + CrowdGrowth * Mathf.Max(0, n - 3);
         crowd = crowd <= 0f ? wantCrowd : Mathf.Lerp(crowd, wantCrowd, 1f - Mathf.Exp(-2f * dt));
         Vector2 r = radii * crowd;
         rxR = Mathf.Clamp(screen.xMax - half - c.x, .02f, r.x);
@@ -841,7 +940,7 @@ public abstract class HeartOrbit : MonoBehaviour
 
             float tilt = Tilt(i), roll = Roll(i);
             Vector2 unit; float z;
-            Project(i, Warped(theta[i], tilt, roll), tilt, roll, out unit, out z);
+            Project(i, WarpedHere(theta[i], tilt, roll), tilt, roll, out unit, out z);
             Vector2 at = c + Scale(unit);
 
             // quick past the gun's resting spot (the warp already hurries
@@ -874,11 +973,11 @@ public abstract class HeartOrbit : MonoBehaviour
                 }
             }
 
-            Project(i, Warped(theta[i], tilt, roll), tilt, roll, out unit, out z);
+            Project(i, WarpedHere(theta[i], tilt, roll), tilt, roll, out unit, out z);
             at = c + Scale(unit);
             // the screen direction it's travelling
             Vector2 unit2; float z2;
-            Project(i, Warped(theta[i] + .02f * way, tilt, roll), tilt, roll, out unit2, out z2);
+            Project(i, WarpedHere(theta[i] + .02f * way, tilt, roll), tilt, roll, out unit2, out z2);
             Vector2 tan = Scale(unit2) - Scale(unit);
             tangent[i] = tan.sqrMagnitude > 1e-10f ? tan.normalized : Vector2.right;
 
@@ -922,6 +1021,13 @@ public abstract class HeartOrbit : MonoBehaviour
                 float lit = front ? 1f : 1f - DimBack * -z;
                 Color tint = HeartTint;
                 sr.color = new Color(lit * tint.r, lit * tint.g, lit * tint.b, tint.a);
+                var line = outlines != null ? outlines[i] : null;
+                if (line != null)
+                {
+                    if (line.sortingOrder != order - 1) line.sortingOrder = order - 1;
+                    if (!line.enabled) line.enabled = true;
+                    line.color = new Color(lit, lit, lit, tint.a * HeartOutline.Pulse(clock));
+                }
             }
         }
     }
@@ -1028,6 +1134,6 @@ public abstract class HeartOrbit : MonoBehaviour
         if (Mathf.Sign(dirTarget[i]) != way) return;
         float want = theta[ahead] - way * gap;
         float err = Mathf.DeltaAngle(theta[i] * Mathf.Rad2Deg, want * Mathf.Rad2Deg) * Mathf.Deg2Rad;
-        push[i] += Mathf.Clamp(.9f * err * way, -.8f, .8f);
+        push[i] += Mathf.Clamp(KeepGain * err * way, -KeepMax, KeepMax);
     }
 }

@@ -268,7 +268,8 @@ public static class CodexCatalogue
         foreach (var a in boss.attacks)
             lines.Add(a.name.ToUpperInvariant() + "  " + AttackWhat(a) + " from " + PartsOf(a));
         lines.Add("PHASES  one attack, then two, then all " + boss.attacks.Length + " faster");
-        lines.Add("ENDS  land " + BossConfig.HitPoints + " weapon hits (+" + ScoreRules.BossDestroyed +
+        lines.Add("HEARTS  " + BossConfig.Hearts + " spin round it, all gone in " + BossConfig.HitPoints + " weapon hits");
+        lines.Add("ENDS  break every heart (+" + ScoreRules.BossDestroyed +
                   ") or outlast it for " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (+" + ScoreRules.BossSurvived + ")");
         return string.Join("\n", lines);
     }

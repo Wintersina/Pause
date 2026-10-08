@@ -46,6 +46,7 @@ public static class AllTests
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
+        ("BossHeartsTest", BossHeartsTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
         ("BossWarningTest", BossWarningTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),

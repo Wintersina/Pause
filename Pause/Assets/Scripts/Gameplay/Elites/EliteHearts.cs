@@ -5,18 +5,22 @@ using UnityEngine;
 // colour (EliteDef.heartColor: magenta / violet / cyan -- never the
 // player's red), drawn from the white heart Vfx/eliteHeart tinted.
 // Built when the elite joins the play; a heart lost darts to the hit and
-// crumbles exactly like the player's.
+// crumbles exactly like the player's. Each heart (and its dart and crumble)
+// wears HeartOutline's thin light-and-dark trace so it reads over every
+// world and over the elite's own art, drawn OutlineGrow larger than
+// EliteDef.heartSize for the same reason (still under the player's 0.22).
 [DefaultExecutionOrder(50)]
 public class EliteHearts : HeartOrbit
 {
     public const string SpritePath = "Vfx/eliteHeart";
+    public const float OutlineGrow = 1.1f;
 
     EliteShip ship;
 
     public void Bind(EliteShip s)
     {
         ship = s;
-        heartSize = s.Def.heartSize;
+        heartSize = s.Def.heartSize * OutlineGrow;
         personalSpace = 1.3f;
         BuildHearts();
         Update();   // settles the shown count, so the first heart lost shields
@@ -40,6 +44,8 @@ public class EliteHearts : HeartOrbit
         at = transform.position;
         return false;
     }
+
+    protected override bool Outlined { get { return true; } }
 
     protected override Sprite HeartSprite() { return Resources.Load<Sprite>(SpritePath); }
 

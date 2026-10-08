@@ -98,6 +98,9 @@ public sealed class BossDef
     public BossAttack[] attacks;
     // Colour the hit flash and ring are tinted with (never the player's red).
     public Color flash;
+    // Its hearts (BossHearts), tinting the white elite heart: a colour of
+    // its own world, never the player's red.
+    public Color heartColor = new Color(.8f, .4f, 1f);
     // BossConfig.Underside's cache (-1: not measured yet).
     [System.NonSerialized] public float underside = -1f;
 }
@@ -132,6 +135,9 @@ public static class BossCatalog
     static readonly Color Magenta = new Color(1f, .18f, .53f);
     static readonly Color Ice = new Color(.62f, .91f, .94f);
     static readonly Color BileLight = new Color(.78f, 1f, .23f);
+    // Heart colours: Space violet, Frost ice, Verdant bile, Ember amber.
+    static readonly Color HeartViolet = new Color(.78f, .38f, 1f);
+    static readonly Color HeartAmber = new Color(1f, .74f, .16f);
 
     static BossDef[] Build()
     {
@@ -146,7 +152,7 @@ public static class BossCatalog
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
-                swayX = 1.15f, swayY = .12f, freqX = .32f, freqY = .64f, flash = Magenta,
+                swayX = 1.15f, swayY = .12f, freqX = .32f, freqY = .64f, flash = Magenta, heartColor = HeartViolet,
                 attacks = new[]
                 {
                     // The chin cannon glows, then snaps three bolts at the ship;
@@ -179,7 +185,7 @@ public static class BossCatalog
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
                        "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
-                swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice,
+                swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice, heartColor = Ice,
                 attacks = new[]
                 {
                     // The jaw fills with cold light and sprays icicles that
@@ -213,7 +219,7 @@ public static class BossCatalog
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
                        "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",
-                swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight,
+                swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight, heartColor = BileLight,
                 attacks = new[]
                 {
                     // The stinger swells and spits four thorns at the ship;
@@ -247,7 +253,7 @@ public static class BossCatalog
                 lore = "A basalt dragon that swims through magma the way the pilot swims through stars. " +
                        "It guards the last gate before home, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",
-                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = Magenta,
+                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = Magenta, heartColor = HeartAmber,
                 attacks = new[]
                 {
                     // It rears and breathes two wide fans of fireballs from

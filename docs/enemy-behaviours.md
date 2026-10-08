@@ -1026,3 +1026,42 @@ pieces: a death with 6 hazards on screen chained 83% of the time (93% with 10, ~
 the rule (random static boards): 27% / 53% / 62% of deaths with 3 / 6 / 10 hazards. In play, chain kills per
 combo average 0.15 / 0.42 / 0.78 / 1.9 with 3 / 6 / 10 / 16 hazards on screen (about 6 / 17 / 31 / 75 extra
 kills per 100 pilot kills); the worst seen was 12 kills, 6 hops deep (the cap).
+
+## Boss hearts
+
+Branch `feature/boss-hearts`. The user: "The bosses should have 5 spinning hearts around them", and "make the
+enemy elite hearts more clear: give them an outline glow". Tested by `BossHeartsTest`; renders from
+`BossHeartsPreview`.
+
+**Health.** A boss still has `BossConfig.HitPoints` = 3 (full-weight ship-attack hits: a rail slug, a fireball, one
+homing shot of the volley = 1; a gatling shell 1/14, a beam or cone tick 0.2, ...). It now wears them as
+`BossConfig.Hearts` = 5 hearts, each an equal share (`HeartWeight` = 0.6 hit) of the same pool: a heart goes the
+moment its share is spent, the fifth exactly with the last hit point. So the fight is exactly as long and as hard as
+before -- three full hits still destroy it (hearts 5 -> 4 -> 2 -> 0), and an untouched boss still retreats when the
+36 s clock runs out. The rules round it are unchanged: hits count only in the Fight phase (nothing while it warps in
+or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
+
+**Phases.** The attack escalation (one attack, two, then all three faster) goes by
+`BossEncounter.PhaseProgress01`: the clock's progress or the share of hearts lost, whichever is further on, at the
+same thirds. 5-4 hearts is phase 1, 3-2 phase 2, the last heart phase 3 (or later, by the clock).
+
+**The ring** (`BossHearts`, on the shared `HeartOrbit` engine with the player's lives and the elites' hearts): one
+flat ellipse in the screen plane, five hearts evenly spaced, a revolution every 5 s, no warp or flourish. Its radii
+are the ellipse round each boss's idle silhouette (`BossHearts.Body`, measured from the atlases and re-measured by
+the test) plus a 0.06 gap and half the drawn heart: Space 1.93 x 1.84, Frost 2.09 x 1.95, Verdant 1.87 x 1.82,
+Ember 1.97 x 1.70. At rest it clears the body and stays inside the rails (|x| <= 2.09 against 2.43) and under the
+HUD band on 9:16, 9:19.5, 9:21 and 3:4. Where it would cross a rail (the boss swayed to a side: its own body reaches
+past the rail there) or the band, it flattens against that side, so a heart may pass over the body's edge but never
+under a rail or the HUD. Hearts are 0.29 (the player's 0.22 x 1.3), the white elite heart in the boss's own colour
+(Space violet, Frost ice, Verdant bile, Ember amber; never the player's red), sorting order 40: over the boss,
+its charges and shots, under the HUD. No colliders. They pop in when the fight starts (on real time, so even with the
+world frozen), turn on world time (pause freezes them), and a lost heart darts to the hit, flashes and crumbles like
+an elite's while the rest close up evenly in about 0.3 s. Retreating, they go at once; destroyed, the last one's
+crumble plays over the blasts and they go with the wreck. Pooled; nothing allocates a frame.
+
+**Outline** (`HeartOutline`, elites' and bosses' hearts, their dart and their shards): a thin two-tone trace built
+once from the heart sprite's opaque pixels (a chamfer distance, the boss-shot rim technique): a light amber-white
+core line 2.5 texels wide right at the silhouette, then a 2-texel dark keyline whose outer half fades out -- 0.07 of
+the heart's cell in all, never a round halo; constant scale, only its alpha pulses (0.78..1). Elite hearts are drawn
+10% larger (0.198, still under the player's 0.22). Over all four worlds every outlined heart has outline pixels
+3:1 clear of what is behind it.

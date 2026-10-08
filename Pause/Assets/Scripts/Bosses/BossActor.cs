@@ -27,6 +27,7 @@ public class BossActor : MonoBehaviour
     readonly SpriteRenderer[] charges = new SpriteRenderer[MaxParts];
     readonly SpriteRenderer[] rings = new SpriteRenderer[MaxParts];
     GameObject bodyHit;
+    BossHearts hearts;
     Mode mode = Mode.Hidden;
 
     // animation
@@ -58,6 +59,8 @@ public class BossActor : MonoBehaviour
     public BossAttack CurrentAttack => phase == AttackPhase.Cooldown ? null : current;
     public bool Telegraphing => phase == AttackPhase.Tell;
     public GameObject BodyHitbox => bodyHit;
+    // Its health, spinning round it (null until the fight starts).
+    public BossHearts Hearts => hearts;
     public int BodyFrame { get; private set; }
     public int AttacksStarted { get; private set; }
     public int VolleysFired => volleysFired;
@@ -190,6 +193,14 @@ public class BossActor : MonoBehaviour
         // from the start (LoopRules).
         loop = RunLoop.Index;
         EnsureBodyHitbox();
+        // Its hearts pop in round it now it has landed.
+        if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
+    }
+
+    // BossEncounter: `left` hearts are left after a hit at `at`.
+    public void SetHearts(int left, Vector3 at)
+    {
+        if (hearts != null) hearts.SetLeft(left, at);
     }
 
     int loop;
@@ -210,7 +221,7 @@ public class BossActor : MonoBehaviour
     {
         if (mode != Mode.Fighting) return;
         TickFlash(realDt);
-        if (dt <= 0f) { RefreshFrame(); return; }
+        if (dt <= 0f) { RefreshFrame(); if (hearts != null) hearts.Step(realDt, 0f); return; }
 
         animClock += dt;
         // It all but holds still while it aims and while its lasers burn,
@@ -231,6 +242,7 @@ public class BossActor : MonoBehaviour
         if (fireLeft > 0f) fireLeft -= dt;
         StepAttacks(dt, player, progress01, pool);
         RefreshFrame();
+        if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }
 
     void StepAttacks(float dt, Vector3 player, float progress01, BossProjectilePool pool)
@@ -547,6 +559,9 @@ public class BossActor : MonoBehaviour
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
         flashLeft = 0f;
         if (bodyHit != null) { BossUtil.Kill(bodyHit); bodyHit = null; }
+        // Retreating: its hearts go with it at once. Dying: the last one's
+        // crumble plays out over the blasts (StepOutro), then all of it goes.
+        if (hearts != null && !explode) hearts.Hide();
     }
 
     public void StepOutro(float dt, int ship)
@@ -554,11 +569,12 @@ public class BossActor : MonoBehaviour
         if (mode != Mode.Dying && mode != Mode.Retreating) return;
         if (dt <= 0f) return;
         outroClock += dt;
+        if (hearts != null && mode == Mode.Dying) hearts.Step(dt, dt);
 
         if (mode == Mode.Dying)
         {
             int f = BossArt.FrameAt(BossArt.DeathTicks, outroClock, false);
-            if (f >= BossArt.DeathFrames) { body.enabled = false; mode = Mode.Gone; return; }
+            if (f >= BossArt.DeathFrames) { body.enabled = false; mode = Mode.Gone; if (hearts != null) hearts.Hide(); return; }
             SetFrame(BossArt.Death(f));
             // Cartoon blasts on the hull as it breaks up.
             var at = BlastTimes;
@@ -619,7 +635,7 @@ public class BossTarget : MonoBehaviour, IShipAttackTarget
         TargetExplosion.Spawn(transform.position + Vector3.down * .35f, TargetExplosion.Kind.Metal,
                               weight >= .5f ? TargetExplosion.Size.Medium : TargetExplosion.Size.Small, ship);
         collisionDetection.PlayExplosion();
-        if (encounter != null) encounter.OnShipAttackHit(weight);
+        if (encounter != null) encounter.OnShipAttackHit(weight, at);
     }
 }
 

@@ -63,6 +63,32 @@ public static class BossConfig
     // fight clock runs out (weighted hits add up).
     public static int HitPoints = 3;
 
+    // ---- hearts (BossHearts) ----
+    // The boss wears its health as Hearts hearts spinning round it. They
+    // split the same HitPoints pool into equal segments: each heart is
+    // HeartWeight full hits (3 / 5 = 0.6), and goes the moment its segment
+    // is spent -- so the fight is exactly as long and as hard as before,
+    // the last heart going with the last hit point. (A full-weight hit
+    // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)
+    // The attack phases follow the hearts as well as the clock: the fight's
+    // progress is the further on of the two (BossEncounter.PhaseProgress01),
+    // so 5-4 hearts is phase 1, 3-2 phase 2 and the last heart phase 3, at
+    // the same thirds as the clock's.
+    public static int Hearts = 5;
+    public static float HeartWeight => HitPoints / (float)Mathf.Max(1, Hearts);
+    // Each heart's world size: the player's (ShipLivesIndicator, 0.22) x 1.3.
+    public static float HeartSize = .29f;
+    // One revolution of the ring, in seconds of world time.
+    public static float HeartRevolutionSeconds = 5f;
+    // The ring's gap outside the body's drawn silhouette (BossHearts.Body),
+    // between the silhouette and the heart's edge.
+    public static float HeartClearance = .06f;
+    // Kept this far inside the rails and under the HUD band.
+    public static float HeartScreenMargin = .05f;
+    // Over the boss (-3), its charges (28/29) and its shots (30-32), under
+    // the HUD (screen-space canvases).
+    public const int HeartSortingOrder = 40;
+
     // ---- outro ----
     public static float OutroSeconds = 1.6f;
 

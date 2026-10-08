@@ -18,6 +18,10 @@ using UnityEngine.SceneManagement;
 //            blue atom's +0.05 is filtered (SpeedLocked). Normal enemy
 //            spawning is off (SuspendsSpawning). Pausing, teleporting and
 //            damage all work as usual.
+//            Its health shows as BossConfig.Hearts hearts spinning round it
+//            (BossHearts): each one an equal share (HeartWeight) of its hit
+//            points, gone when that share is spent; the attack phases follow
+//            the hearts as well as the clock (PhaseProgress01).
 //   Outro    the boss explodes (its hit points ran out) or retreats (the
 //            fight clock ran out first) -- whichever came first (BossEndRule).
 //   Done     everything above is released and the portal opens.
@@ -44,6 +48,8 @@ public class BossEncounter : MonoBehaviour
     bool warned, arrived, carded;
     float remaining, fightClock;
     int hits, hp;
+    float damage;       // every hit's weight, summed (the hearts are read off it)
+    int heartsLeft;
     bool freePress;
     float outroClock;
     float rushClock;
@@ -86,6 +92,9 @@ public class BossEncounter : MonoBehaviour
     public float Remaining => remaining;
     public int Hits => hits;
     public int HitPointsLeft => hp;
+    // Hearts left (BossConfig.Hearts at the start; 0 exactly when destroyed).
+    public int HeartsLeft => heartsLeft;
+    public float Damage => damage;
     // The boss's hit points ran out (DESTROYED), as opposed to the fight
     // clock (SURVIVED). Meaningful from the outro on.
     public bool Destroyed => hp <= 0;
@@ -93,6 +102,15 @@ public class BossEncounter : MonoBehaviour
                              state == Phase.Fight || state == Phase.Outro;
     public float Progress01 => BossConfig.FightSeconds <= 0f ? 1f
         : Mathf.Clamp01(1f - remaining / BossConfig.FightSeconds);
+    // The hearts' share of the fight: the share of them lost.
+    public float HeartProgress01 => BossConfig.Hearts <= 0 ? 0f
+        : Mathf.Clamp01((BossConfig.Hearts - heartsLeft) / (float)BossConfig.Hearts);
+    // What the attack phases go by (BossCatalog.UnlockedAttacks, FinalPhase:
+    // thirds): the clock or the hearts, whichever is further on. 5-4 hearts
+    // phase 1, 3-2 phase 2, the last one phase 3 -- or later, by the clock.
+    public float PhaseProgress01 => Mathf.Max(Progress01, HeartProgress01);
+    // 1, 2 or 3 (before any later loop's head start, LoopRules).
+    public int FightPhase => PhaseProgress01 >= 2f / 3f ? 3 : PhaseProgress01 >= 1f / 3f ? 2 : 1;
 
     // Starts the world's boss. False when there is nothing to start: it was
     // already beaten (or survived) on this visit, or one is running.
@@ -136,6 +154,8 @@ public class BossEncounter : MonoBehaviour
         hits = 0;
         hp = BossConfig.HitPoints;
         hitBank = 0f;
+        damage = 0f;
+        heartsLeft = Mathf.Max(1, BossConfig.Hearts);
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
         freePress = false;
@@ -262,7 +282,7 @@ public class BossEncounter : MonoBehaviour
         moveBackGround.speed = BossConfig.FightSpeed;
         remaining -= dt;
         fightClock += dt;
-        actor.StepFight(dt, realDt, PlayerPosition(), Progress01, pool);
+        actor.StepFight(dt, realDt, PlayerPosition(), PhaseProgress01, pool);
 
         // Whichever comes first: hit points (DESTROYED) or the clock
         // (SURVIVED). Both on the same frame: BeginOutro sees hp <= 0 and
@@ -287,15 +307,39 @@ public class BossEncounter : MonoBehaviour
     // share of one full ultimate hit (one firing never totals more than 1).
     // Weights bank up and the boss loses a hit point per whole hit; the
     // fight clock is left alone (BossEndRule).
+    // Each heart is HeartWeight of it (0.6): a heart goes the moment its
+    // share is spent, the last with the last hit point.
     float hitBank;
     public void OnShipAttackHit(float weight)
+    {
+        OnShipAttackHit(weight, actor != null ? actor.transform.position + Vector3.down : Vector3.zero);
+    }
+
+    public void OnShipAttackHit(float weight, Vector3 at)
     {
         if (state != Phase.Fight || weight <= 0f) return;
         hits++;
         hitBank += weight;
+        damage += weight;
         while (hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
-        if (actor != null) actor.Flash();
+        int was = heartsLeft;
+        heartsLeft = HeartsFor(damage, hp);
+        if (actor != null)
+        {
+            if (heartsLeft != was) actor.SetHearts(heartsLeft, at);
+            actor.Flash();
+        }
         if (ui != null) ui.HitFlash(boss.flash);
+    }
+
+    // The hearts left after `damage` (weighted hits) with `hpLeft` hit
+    // points: none once the hit points are gone, else at least one.
+    public static int HeartsFor(float damage, int hpLeft)
+    {
+        int n = Mathf.Max(1, BossConfig.Hearts);
+        if (hpLeft <= 0) return 0;
+        int lost = Mathf.FloorToInt(damage / Mathf.Max(1e-4f, BossConfig.HeartWeight) + 1e-4f);
+        return Mathf.Clamp(n - lost, 1, n);
     }
 
     // ---- outro ------------------------------------------------------------
