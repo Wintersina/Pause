@@ -68,5 +68,471 @@
       }
     }
   ],
-  "preview": "preview_a.png"
+  "preview": "preview_a.png",
+  "run_b": {
+    "build": "python3 src~/build_b.py",
+    "preview": "preview_b.png",
+    "atlas_grid": "4x4 cells, 256x256; JSON y is measured from image bottom",
+    "source_candidates": {
+      "landmarks": [
+        "src~/landmarks_a.png",
+        "src~/landmarks_b.png"
+      ],
+      "weather": [
+        "src~/weather_a.png",
+        "src~/weather_b.png"
+      ],
+      "sites": [
+        "src~/sites_a.png",
+        "src~/sites_b.png"
+      ]
+    },
+    "selected_sources": {
+      "landmarks": "src~/landmarks_a.png",
+      "weather": "src~/weather_a.png",
+      "sites": "src~/sites_a.png"
+    },
+    "pieces": [
+      {
+        "atlas": "landmarks.png",
+        "name": "rig_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Offshore ice-leg rig; flare, crane and helipad; slow distant scroll."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "rig_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Offshore ice-leg rig; flare, crane and helipad; slow distant scroll."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "platform_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Ice-locked tank and walkway platform with small beacons."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "platform_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Ice-locked tank and walkway platform with small beacons."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Coastal pipe and tank compound; no baked smoke."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Coastal pipe and tank compound; no baked smoke."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "relay_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Antenna relay array and cable runs."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "relay_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Antenna relay array and cable runs."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "causeway_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Rail bridge across broken ice; rotatable segment."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "icebreaker_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Overhead icebreaker with fractured ice channel wake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "icebreaker_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Overhead icebreaker with fractured ice channel wake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "cliff_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          120,
+          220
+        ],
+        "notes": "Coastal ice cliff headland with shoreline rubble."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "cliff_01",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          120,
+          220
+        ],
+        "notes": "Coastal ice cliff headland with shoreline rubble."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "derrick_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Drilling derrick on an ice pad."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "convoy_00",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Tracked crawler convoy in a line."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "platform_02",
+        "layer_role": "Landmark",
+        "on_screen_size_px": [
+          75,
+          155
+        ],
+        "notes": "Ice-locked tank and walkway platform with small beacons."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_00",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          420,
+          750
+        ],
+        "notes": "Translucent cloud ceiling mass for the arrival; thin coverage downward."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_01",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          420,
+          750
+        ],
+        "notes": "Translucent cloud ceiling mass for the arrival; thin coverage downward."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_02",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          420,
+          750
+        ],
+        "notes": "Translucent cloud ceiling mass for the arrival; thin coverage downward."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_03",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          420,
+          750
+        ],
+        "notes": "Translucent cloud ceiling mass for the arrival; thin coverage downward."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_00",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Light pixel-clustered cloud wisp; keep behind combat."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_01",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Light pixel-clustered cloud wisp; keep behind combat."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_02",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Light pixel-clustered cloud wisp; keep behind combat."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_03",
+        "layer_role": "Cloud",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Light pixel-clustered cloud wisp; keep behind combat."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_00",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Low horizontal drifting mist band."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_01",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Low horizontal drifting mist band."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_02",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Low horizontal drifting mist band."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "blizzard_00",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Sparse diagonal wind-driven snow sheet."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "blizzard_01",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Sparse diagonal wind-driven snow sheet."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "blizzard_02",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Sparse diagonal wind-driven snow sheet."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "snow_00",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Distinct small flakes for a particle field."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "snow_01",
+        "layer_role": "Atmosphere",
+        "on_screen_size_px": [
+          210,
+          470
+        ],
+        "notes": "Distinct small flakes for a particle field."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hangar_closed",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hangar_open",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "rigbay_closed",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "rigbay_open",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "padring_idle",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "padring_active",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "crawlerbay_closed",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "crawlerbay_open",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_closed",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_open",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          95,
+          180
+        ],
+        "notes": "Centered ground emergence point; paired closed/active state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_off",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Pad marker lamps; paired unlit/lit state."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_on",
+        "layer_role": "Site",
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Pad marker lamps; paired unlit/lit state."
+      }
+    ]
+  }
 }
