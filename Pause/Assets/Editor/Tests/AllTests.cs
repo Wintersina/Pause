@@ -121,6 +121,7 @@ public static class AllTests
         ("ShipSkinsTest", ShipSkinsTest.Execute),
         ("SkinDamageGameplayTest", SkinDamageGameplayTest.Execute),
         ("ShipWeaponUpgradesTest", ShipWeaponUpgradesTest.Execute),
+        ("SkinHeartsTest", SkinHeartsTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),

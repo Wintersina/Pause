@@ -2,9 +2,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // The ship's lives as small hearts orbiting it, on every hull: one heart per
-// life the ship flies with (ShipLives -- 2 on the starter, 3 once it has a
-// colour of its own and on the cheap ships, 4 on the dear ones, 5 on Gold
-// Warden).
+// life the ship flies with (ShipLives -- the hull's 2 on the starter, 3 on
+// the cheap ships, 4 on the dear ones, 5 on Gold Warden, plus up to +2 from
+// its colours and +2 for owning every skin: SkinHearts; up to ShipLives.Most,
+// 9). A crowd flies a wider orbit (HeartOrbit.CrowdGrow).
 //
 // The orbit, the shield-dart and the crumble are HeartOrbit's (shared with
 // the elite ships' hearts, EliteHearts). This is the player's side of it:

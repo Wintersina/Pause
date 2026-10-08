@@ -102,7 +102,8 @@ public static class ShipDamageTable
         return maxLives - hitsTaken <= 1 ? States - 1 : 1;
     }
 
-    public static int StateFor(int hitsTaken) { return StateFor(hitsTaken, MaxLives()); }
+    // (Full health needs no maximum: the dock's ships ask every frame.)
+    public static int StateFor(int hitsTaken) { return hitsTaken <= 0 ? 0 : StateFor(hitsTaken, MaxLives()); }
 
     public static bool Has(int id) { return id > 0 && id < table.Length; }
 

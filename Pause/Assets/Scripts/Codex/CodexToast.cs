@@ -24,13 +24,22 @@ public class CodexToast : MonoBehaviour
     Text heading, nameText;
     Canvas canvas;
 
-    readonly CodexEntry[] queue = new CodexEntry[QueueSize];
+    // A queued toast: a codex entry, or an announcement (Announce).
+    struct Item
+    {
+        public string heading, name;
+        public Sprite sprite;
+        public CodexEntry entry;
+    }
+    public const string EntryHeading = "NEW CODEX ENTRY";
+    readonly Item[] queue = new Item[QueueSize];
     int queueHead, queueCount;
     float shownAt = -1f;
 
     public static CodexToast Current { get { return instance; } }
     public bool Showing { get { return shownAt >= 0f; } }
     public string ShowingName { get { return nameText != null ? nameText.text : null; } }
+    public string ShowingHeading { get { return heading != null ? heading.text : null; } }
 
     [RuntimeInitializeOnLoadMethod]
     static void Init()
@@ -88,7 +97,7 @@ public class CodexToast : MonoBehaviour
 
         float left = -Width * .5f + 34f + iconSize + 14f;
         float textWidth = Width * .5f - 24f - left;
-        heading = CodexUi.NewText("Heading", box, font, "NEW CODEX ENTRY", 15, CodexUi.Accent, TextAnchor.MiddleLeft);
+        heading = CodexUi.NewText("Heading", box, font, EntryHeading, 15, CodexUi.Accent, TextAnchor.MiddleLeft);
         CodexUi.Place(heading.rectTransform, new Rect(left, 2f, textWidth, 24f));
         nameText = CodexUi.NewText("Name", box, font, "", 24, CodexUi.Title, TextAnchor.MiddleLeft);
         nameText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -100,10 +109,24 @@ public class CodexToast : MonoBehaviour
         CodexUi.Place(nameText.rectTransform, new Rect(left, -30f, textWidth, 32f));
     }
 
+    // A one-off announcement in the toast's style, in any scene (the dock's
+    // ALL SKINS: +2 HEARTS): `heading` over `name`, with `icon`.
+    public static void Announce(string heading, string name, Sprite icon)
+    {
+        if (instance == null) instance = Build();
+        instance.Push(new Item { heading = heading, name = name, sprite = icon });
+    }
+
     public void Enqueue(CodexEntry entry)
     {
+        if (entry == null) return;
+        Push(new Item { heading = EntryHeading, entry = entry });
+    }
+
+    void Push(Item item)
+    {
         if (queueCount >= QueueSize) return;   // a flood of firsts: the rest are in the codex anyway
-        queue[(queueHead + queueCount) % QueueSize] = entry;
+        queue[(queueHead + queueCount) % QueueSize] = item;
         queueCount++;
         if (!gameObject.activeSelf) gameObject.SetActive(true);
         if (shownAt < 0f) Next();
@@ -117,14 +140,15 @@ public class CodexToast : MonoBehaviour
             gameObject.SetActive(false);
             return;
         }
-        var entry = queue[queueHead];
-        queue[queueHead] = null;
+        var item = queue[queueHead];
+        queue[queueHead] = default(Item);
         queueHead = (queueHead + 1) % QueueSize;
         queueCount--;
 
-        nameText.text = entry.name;
+        heading.text = item.heading;
+        nameText.text = item.entry != null ? item.entry.name : item.name;
         if (warning == null) warning = FindFirstObjectByType<BossWarningHud>();
-        icon.sprite = entry.Sprite;
+        icon.sprite = item.entry != null ? item.entry.Sprite : item.sprite;
         icon.enabled = icon.sprite != null;
         shownAt = Time.unscaledTime;
         ApplyAt(0f);

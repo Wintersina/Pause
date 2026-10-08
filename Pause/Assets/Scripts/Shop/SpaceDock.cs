@@ -120,6 +120,9 @@ public class SpaceDock : MonoBehaviour
 
     public bool PreviewingSkin { get { return Selected > 0 && ShipSkins.IsPreviewing(Selected); } }
 
+    // The popup's line after the last skin bought ("ACQUIRED  +1 HEART"): tests.
+    public string LastPurchaseMessage { get; private set; }
+
     // A swatch was tapped in the popup of owned ship `index`.
     public void TapSkin(int index, int skin)
     {
@@ -138,13 +141,20 @@ public class SpaceDock : MonoBehaviour
     public void BuySkin(int index, int skin)
     {
         if (Launching || index < 1 || index >= bays.Length) return;
+        // What the colour adds to the hearts (SkinHearts), read before it's owned.
+        bool completesSet;
+        int gain = SkinHearts.GainIfBought(index, skin, out completesSet);
         var result = ShipSkins.TryPurchase(index, skin);
         if (result == ShipSkins.PurchaseResult.Bought)
         {
             if (shop != null) shop.RefreshStarDust();
             ShowBaySkin(index);
             ShowPopup(index);
-            popup.ShowMessage("ACQUIRED", DockArt.Cyan, 1.2f);
+            LastPurchaseMessage = SkinHearts.PurchaseMessage(gain);
+            popup.ShowMessage(LastPurchaseMessage, DockArt.Cyan, gain > 0 ? 1.6f : 1.2f);
+            // The last skin of the set: every ship gets its +2, said once.
+            if (completesSet) CodexToast.Announce(SkinHearts.AllSkinsHeading, SkinHearts.AllSkinsTitle,
+                                                  Resources.Load<Sprite>("Vfx/lifeHeart"));
         }
         else if (result == ShipSkins.PurchaseResult.CantAfford)
         {

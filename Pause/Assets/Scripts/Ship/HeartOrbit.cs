@@ -57,6 +57,14 @@ public abstract class HeartOrbit : MonoBehaviour
     public const float OrbitReach = 1.05f;
     // ...and this much wider (share) per heart over three.
     public const float CrowdGrow = .07f;
+    // ...and this much more per heart over CalmAbove (the colours' extra
+    // hearts need the room to pass each other).
+    public const float BigCrowdGrow = .06f;
+    // More hearts than this (the colours' extra hearts, SkinHearts) fly
+    // calmer: all one way round, no turn-backs, steadier planes, fewer
+    // loops, and a train never longer
+    // than the orbit -- so a crowd passes, never piles up head-on.
+    public const int CalmAbove = 5;
     // Easing apart may slow a heart to this share of its speed, never turn it.
     public const float MinSpeed = .35f;
     // A loop-de-loop flourish.
@@ -261,6 +269,15 @@ public abstract class HeartOrbit : MonoBehaviour
         DestroyBuilt();
         lastShown = -1;
         count = Mathf.Clamp(count, 1, MaxHearts);
+        if (count > CalmAbove)
+        {
+            orbit.alternate = false;
+            orbit.turnBackChance = 0f;
+            orbit.tiltJitter *= .5f;
+            orbit.rollJitter *= .5f;
+            orbit.flourishEvery *= 1.5f;
+            if (orbit.gap > 0f) orbit.gap = Mathf.Min(orbit.gap, 2f * Mathf.PI / (count + 1));
+        }
         hearts = new Transform[count];
         renderers = new SpriteRenderer[count];
         var outlineSprite = Outlined ? HeartOutline.For(sprite) : null;
@@ -911,7 +928,7 @@ public abstract class HeartOrbit : MonoBehaviour
         if (n == 0) return;
 
         // A crowd of hearts flies a little wider (eased as hearts come and go).
-        float wantCrowd = 1f + CrowdGrowth * Mathf.Max(0, n - 3);
+        float wantCrowd = 1f + CrowdGrowth * Mathf.Max(0, n - 3) + BigCrowdGrow * Mathf.Max(0, n - CalmAbove);
         crowd = crowd <= 0f ? wantCrowd : Mathf.Lerp(crowd, wantCrowd, 1f - Mathf.Exp(-2f * dt));
         Vector2 r = radii * crowd;
         rxR = Mathf.Clamp(screen.xMax - half - c.x, .02f, r.x);

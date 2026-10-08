@@ -3,9 +3,11 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Per-ship lives (ShipLives): the starter flies with 2 hearts (3 once it owns
-// a colour of its own), the cheap ships 3, the dear ones 4 and Gold Warden 5.
-// Covers the table, the starter's colour bonus (bought or developer mode),
+// Per-ship lives (ShipLives): the hull's own -- the starter 2, the cheap
+// ships 3, the dear ones 4 and Gold Warden 5 -- plus what its colours add
+// (SkinHearts: +1 with the first, +2 with the third; SkinHeartsTest covers
+// the whole table and the all-skins bonus).
+// Covers the table, the first colour's heart (bought or developer mode),
 // a run's hits and heals against the ship's own maximum, the damage state,
 // the dock-to-run carry-over and the dock popup's heart count.
 //
@@ -38,7 +40,7 @@ public static class ShipLivesTest
         for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, n));
 
         TiersByPrice();
-        StarterColourBonus();
+        FirstColourAddsAHeart();
         HitsAndHealsAgainstTheShipsOwnMax();
         DamageStates();
         CarryOverResetsToFull();
@@ -65,7 +67,7 @@ public static class ShipLivesTest
             Check(key + " is in the lives table", expected.TryGetValue(key, out want));
             Check(key + " (" + shopingShips.CostFor(id) + " dust) flies with " + want + " hearts (" + ShipLives.Max(id) + ")",
                   ShipLives.Max(id) == want && ShipLives.Base(id) == want);
-            Check(key + ": within 2..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= ShipLives.Most);
+            Check(key + ": within 2..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= ShipLives.MostBase);
         }
         Check("Gold Warden is the most expensive ship", ShipLives.MostExpensive == ShipId.FromKey("GoldWarden"));
         // A pricier ship never has fewer hearts than a cheaper one.
@@ -76,11 +78,14 @@ public static class ShipLivesTest
         Check("hearts never go down as the price goes up", monotonic);
     }
 
-    static void StarterColourBonus()
+    // (Was the starter's own "3 once it wears a colour" rule; SkinHearts made
+    // it every ship's, so Volt Viper's colour now lifts Volt Viper too, and
+    // developer mode -- every skin owned -- flies the full bonus.)
+    static void FirstColourAddsAHeart()
     {
         int comet = ShipId.Starter;
         for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, n));
-        Check("the stock starter has 2 hearts", ShipLives.Max(comet) == 2 && !ShipLives.StarterHasColour);
+        Check("the stock starter has 2 hearts", ShipLives.Max(comet) == 2);
 
         for (int n = 1; n < ShipSkins.PerShip; n++)
         {
@@ -93,7 +98,7 @@ public static class ShipLivesTest
         }
         Check("a colour for another ship doesn't count", ShipLives.Max(comet) == 2);
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(2, 1), 1);
-        Check("  (Volt Viper's Night: still 2; Volt Viper itself stays 3)", ShipLives.Max(comet) == 2 && ShipLives.Max(2) == 3);
+        Check("  (Volt Viper's Night: the starter still 2; Volt Viper itself 3 -> 4)", ShipLives.Max(comet) == 2 && ShipLives.Max(2) == 4);
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(2, 1));
 
         // Buying one through the shop rules.
@@ -103,18 +108,18 @@ public static class ShipLivesTest
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, 1));
         ShipSkins.Equip(comet, ShipSkins.Stock);
 
-        // Developer mode owns every colour, so the starter shows 3 -- and
-        // goes back to 2 when it is switched off.
+        // Developer mode owns every colour of every ship: hull +2 +2 (the
+        // starter 6, Gold Warden 9) -- and back to 2 when switched off.
         DeveloperUnlocks.SetEnabled(true);
-        Check("developer mode: the starter has 3 (it owns every colour)", ShipLives.Max(comet) == 3);
-        Check("developer mode leaves the other tiers alone", ShipLives.Max(7) == 5 && ShipLives.Max(2) == 3);
+        Check("developer mode: the starter has 6 (every colour, every skin)", ShipLives.Max(comet) == 6);
+        Check("developer mode: Gold Warden 9, Volt Viper 7", ShipLives.Max(7) == 9 && ShipLives.Max(2) == 7);
         DeveloperUnlocks.SetEnabled(false);
         Check("developer mode off: back to 2", ShipLives.Max(comet) == 2);
     }
 
     // ---------------------------------------------------------------- run
 
-    sealed class Rig
+    internal sealed class Rig
     {
         public GameObject ship;
         public collisionDetection cd;
@@ -244,7 +249,8 @@ public static class ShipLivesTest
 
         popup.Show(comet, anchor, .3f, true, true, 0f, 1000f);
         popup.ShowSkins(comet, 1, 1000f);   // previewing an unbought colour: still 2
-        Check("dock popup: previewing a colour isn't owning it (2)", popup.LivesShown == 2);
+        Check("dock popup: previewing a colour isn't owning it (2, and +1 promised: " + popup.LivesBadgeText + ")",
+              popup.LivesShown == 2 && popup.LivesGainShown == 1);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1000f);
         ShipSkins.TryPurchase(comet, 1);
         popup.ShowSkins(comet, 1, PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey));
