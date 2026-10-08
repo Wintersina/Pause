@@ -191,7 +191,7 @@ public partial class DeathCrash : MonoBehaviour
     {
         if (hit == null) return KillerKind.None;
         string n = hit.name;
-        if (n == "BossShotHit" || n == "BossBeamHit") return KillerKind.Projectile;
+        if (n == "BossShotHit" || n == "BossBeamHit" || n == RailMineLaser.HitboxName) return KillerKind.Projectile;
         if (n == "BossBody") return KillerKind.BossBody;
         if (hit.GetComponentInParent<BossProjectile>() != null || hit.GetComponentInParent<BossBeam>() != null)
             return KillerKind.Projectile;

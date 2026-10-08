@@ -7,7 +7,7 @@ using UnityEngine;
 //
 //   lateral   None / Drift / Glide / Sway / Orbit / Track / March
 //   vertical  None / Bob / Pulse / Brake / Sink / Patrol / Creep
-//   attack    None / Lunge / Shot / Ring / Cross / Lob
+//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser
 //
 // Everything a brain adds is an OFFSET in board space on top of the enemy's
 // mover, bounded by the behaviour's envelope (bandX either side, Up above,
@@ -15,7 +15,7 @@ using UnityEngine;
 // patterns can never meet.
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
-public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob }
+public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser }
 public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
@@ -95,7 +95,7 @@ public sealed class EnemyBehaviour
     public float chaseSeconds = 3.5f, chaseSpeed = 2.4f, chaseStart = .9f, wanderSpeed = 1.1f, wanderRadius = .7f;
 
     public bool Shoots => attack == EnemyAttack.Shot || attack == EnemyAttack.Ring ||
-                          attack == EnemyAttack.Cross || attack == EnemyAttack.Lob;
+                          attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser;
     public bool Attacks => attack != EnemyAttack.None;
 
     // The envelope: how far the brain's offset can ever reach.
@@ -175,6 +175,12 @@ public sealed class EnemyBehaviour
         attack = EnemyAttack.Cross; shotKind = kind; shotCount = count; shotSpread = spread; shotSpeed = speed;
         shotSize = size;
         if (kind == EliteShots.Kind.Slag) ride = 0f;
+        return this;
+    }
+    // A rail mine's laser across the lane (RailMineLaser): one beam a volley.
+    public EnemyBehaviour Laser()
+    {
+        attack = EnemyAttack.Laser; shotCount = 1;
         return this;
     }
     public EnemyBehaviour Lob(float size, float pool)
@@ -269,8 +275,8 @@ public static class EnemyBehaviours
         B("space_rock_dark", "coal wedge: quick tumble on one slanted line")
             .Glide(.9f, .55f).Spin(45f, 85f)
             .Sizes(.78f, .98f, 1.32f);
-        B("space_mine", "rail mine: slides up and down its rail")
-            .Patrol(.8f, 2.6f);
+        B("space_mine", "rail mine: slides up and down its rail, a laser across the lane")
+            .Patrol(.8f, 2.6f).Laser().Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
         B("space_big", "Bastion: holds its column, twin cannon bolts straight down")
             .Brake(1.2f, .5f).Shot(Bolt, 2, 0f, 2.6f, .2f).Twin(.42f).Muzzle(.5f).Timing(.8f, 2.6f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -303,8 +309,8 @@ public static class EnemyBehaviours
         B("frost_rock_rime", "rime star: even snowflake spin in a slow circle")
             .Orbit(.45f, 3.4f).Spin(38f, 44f)
             .Sizes(.76f, 1f, 1.3f);
-        B("frost_mine", "geode mine: creeps down its rail, fires a shard across the lane")
-            .Creep(1.4f, .7f).Cross(Shard, 1, 0f, 3f, .22f).Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
+        B("frost_mine", "geode mine: creeps down its rail, a laser across the lane")
+            .Creep(1.4f, .7f).Laser().Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
         B("frost_big", "Glacier Golem: slow sway, a fan of three frost shards")
             .Sway(.3f, 4.5f).Shot(Shard, 3, 22f, 2.4f, .22f).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -340,8 +346,8 @@ public static class EnemyBehaviours
         B("verdant_rock_vine", "vine rock: swings like a pendulum")
             .Sway(.55f, 2.6f).Tilt(14f, 2.6f)
             .Sizes(.78f, .98f, 1.32f);
-        B("verdant_mine", "burr mine: swings on its rail, scatters three thorns once")
-            .Patrol(.7f, 1.9f).Cross(Shard, 3, 20f, 2.8f, .18f).Muzzle(.5f).Timing(1f, 3.5f, 1, .15f);
+        B("verdant_mine", "burr mine: swings on its rail, one laser across the lane")
+            .Patrol(.7f, 1.9f).Laser().Muzzle(.5f).Timing(1f, 3.5f, 1, .15f);
         B("verdant_big", "Bloom Maw: lobs a resin glob onto the pilot's spot")
             .Lob(.3f, 2.5f).Muzzle(.2f).Timing(.9f, 3.5f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.4f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -377,8 +383,8 @@ public static class EnemyBehaviours
         B("ember_rock_islet", "lava islet: wide slow sway and bob")
             .Sway(.7f, 4.2f).Bob(.14f, 3f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
             .Sizes(.8f, .92f, 1.48f);
-        B("ember_mine", "crucible mine: boils over, a slow slag blob into the lane")
-            .Cross(Slag, 1, 0f, 1.6f, .3f).Muzzle(.5f).Timing(1.1f, 4f, 2, .15f);
+        B("ember_mine", "crucible mine: boils over, a laser across the lane")
+            .Laser().Muzzle(.5f).Timing(1.1f, 4f, 2, .15f);
         B("ember_big", "Magma Skull: jaw drops, two slag blobs angled out")
             .Shot(Slag, 2, 56f, 1.5f, .32f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);

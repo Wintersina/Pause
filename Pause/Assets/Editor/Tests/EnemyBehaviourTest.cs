@@ -297,7 +297,8 @@ public static class EnemyBehaviourTest
                         ? f == EnemyRoster.TellFrame || f == EnemyRoster.TellFrame + 1
                         : f == EnemyRoster.TellFrame;
                 }
-                if (EliteSystem.Shots.Launched > launched)
+                // (a mine's laser leaves no shot in the pool: its brain counts it)
+                if (EliteSystem.Shots.Launched > launched || brain.ShotsFired > 0)
                 {
                     fired = true;
                     firedFromIdle = before != EnemyBrain.Phase.Windup;

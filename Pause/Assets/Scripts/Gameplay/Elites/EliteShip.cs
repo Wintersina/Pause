@@ -1062,7 +1062,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
             return true;
         }
-        return EliteShots.EraseHitbox(go);
+        // (a rail mine's laser is erased the same way: RailMineLaser)
+        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
     }
 
     // collisionDetection, shielded (blue atom / Cloak): the ram takes both
@@ -1076,7 +1077,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             elite.TakeHit(EliteDamage.ShieldRam, shipAt, elite.Hearts);
             return true;
         }
-        return EliteShots.EraseHitbox(go);
+        // (a rail mine's laser is absorbed the same way: RailMineLaser)
+        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
     }
 
     // collisionDetection, unshielded: the pilot pays a heart as for any

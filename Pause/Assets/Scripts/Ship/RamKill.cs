@@ -30,7 +30,8 @@ public static class RamKill
     // not hazards that blow up when hit.
     public static bool NotAHazardBody(GameObject go)
     {
-        if (go.TryGetComponent(out EliteShotHitbox _) || go.TryGetComponent(out BossTarget _)) return true;
+        if (go.TryGetComponent(out EliteShotHitbox _) || go.TryGetComponent(out BossTarget _) ||
+            go.TryGetComponent(out RailMineLaserHitbox _)) return true;
         var parent = go.transform.parent;
         return parent != null && (parent.TryGetComponent(out BossProjectile _) || parent.TryGetComponent(out BossBeam _));
     }

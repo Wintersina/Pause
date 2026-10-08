@@ -284,6 +284,15 @@ public static class RailsVettingTest
                     EliteSystem.Step(Dt);
                     worstX = Mathf.Max(worstX, Mathf.Abs(go.transform.position.x - x));
                     worstSlide = Mathf.Max(worstSlide, Mathf.Max(mount.Slide - b.Up, -mount.Slide - b.Down));
+                    var laser = brain.Laser;
+                    if (laser != null && laser.State == RailMineLaser.Phase.Beam && !sawShot)
+                    {
+                        // a laser mine: the beam leaves its own rail's face at the mine's row and crosses the lane
+                        sawShot = true;
+                        shotOk &= Mathf.Abs(laser.Y - go.transform.position.y) < .05f &&
+                                  Mathf.Abs(Mathf.Abs(laser.From.x) - BossRails.DrawnInnerEdge) < .01f &&
+                                  Mathf.Sign(laser.From.x) == Mathf.Sign(x) && Mathf.Sign(laser.To.x) == -Mathf.Sign(x);
+                    }
                     if (EliteSystem.Shots.Launched > launched && !sawShot)
                     {
                         sawShot = true;

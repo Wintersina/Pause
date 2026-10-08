@@ -187,7 +187,8 @@ public static class EnemyDensityProbe
         foreach (var f in buffer)
         {
             RailMineMount mount;
-            if (!f.TryGetComponent(out mount)) continue;
+            // (a mine's laser may have burnt it during the brains' step)
+            if (f == null || !f.TryGetComponent(out mount)) continue;
             if (mount.rail == null) Object.DestroyImmediate(f.gameObject);
             else mount.SendMessage("LateUpdate");
         }

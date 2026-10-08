@@ -239,6 +239,10 @@ public class EnemyBrain : MonoBehaviour
     moveEnimes weaverMover;
     moveItemEnmInStrightLine scrollMover;
     int reserved;                   // shots held in EnemyThreat's budget during a windup
+    RailMineLaser laser;            // a mine's laser, from its windup until it has cooled (EnemyAttack.Laser)
+
+    // The mine's laser while it aims, burns or cools (tests); null otherwise.
+    public RailMineLaser Laser => laser != null && laser.Owner == transform ? laser : null;
 
     public void Init(EnemyDef def, EnemyBehaviour behaviour)
     {
@@ -267,6 +271,9 @@ public class EnemyBrain : MonoBehaviour
         State = Phase.Idle;
         if (flipbook != null && !onRail) flipbook.SetBrainDriven(Armed);
         if (behaviour.Shoots && Armed) BuildChargeLight();
+        // a laser mine: its world's beam art and the laser pool, ready before
+        // it ever fires (at spawn, so firing never builds anything)
+        if (behaviour.attack == EnemyAttack.Laser && Armed) { MineLaserArt.For(def.world); RailMineLasers.Prewarm(); }
 
         IsPilot = PilotsEnabled && behaviour.IsPilot && def.role != EnemyRole.Chaser && !onRail && hostMover != null;
         Stage = PilotStage.None;
@@ -301,7 +308,7 @@ public class EnemyBrain : MonoBehaviour
 
     Vector3 MuzzleLocal()
     {
-        if (Behaviour.attack == EnemyAttack.Cross)
+        if (Behaviour.attack == EnemyAttack.Cross || Behaviour.attack == EnemyAttack.Laser)
             return new Vector3(transform.position.x > 0f ? -Behaviour.muzzle : Behaviour.muzzle, 0f, 0f);
         return new Vector3(0f, -Behaviour.muzzle, 0f);
     }
@@ -363,6 +370,15 @@ public class EnemyBrain : MonoBehaviour
             float dx = total - beforeX, dy = totalY - beforeY;
             if (dx != 0f || dy != 0f) transform.position = new Vector3(p.x + dx, p.y + dy, p.z);
         }
+
+        // the mine's laser runs on the same running frames (frozen with the world)
+        var l = Laser;
+        if (l != null)
+        {
+            l.Step(dt);
+            if (!l.Active) laser = null;
+        }
+        else laser = null;
     }
 
     // ---- movement ----------------------------------------------------------
@@ -487,6 +503,13 @@ public class EnemyBrain : MonoBehaviour
                     ly = Mathf.Lerp(lungeFromY, lungeToY, e);
                     if (k < 1f) return;
                 }
+                else if (b.attack == EnemyAttack.Laser)
+                {
+                    // the mine holds still while its beam burns
+                    var l = Laser;
+                    if (l != null && l.State == RailMineLaser.Phase.Beam && stateTime < RailMineLaser.BeamSeconds) return;
+                    if (stateTime < ReleaseSeconds) return;
+                }
                 else if (stateTime < ReleaseSeconds) return;
                 Enter(Phase.Recover);
                 if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.None);
@@ -518,6 +541,9 @@ public class EnemyBrain : MonoBehaviour
     void OnDisable()
     {
         ReleaseReservation();
+        var l = Laser;
+        if (l != null) l.Cancel();
+        laser = null;
         if (IsPilot) PilotAirspace.Unregister(this);
     }
 
@@ -756,7 +782,7 @@ public class EnemyBrain : MonoBehaviour
         if (Behaviour.Shoots && !EnemyThreat.ShootingAllowed) return false;
         if (Behaviour.attack == EnemyAttack.Lunge && EliteInLungePath(p)) return false;
         Vector3 s = t.position;
-        if (Behaviour.attack == EnemyAttack.Cross)
+        if (Behaviour.attack == EnemyAttack.Cross || Behaviour.attack == EnemyAttack.Laser)
             return Mathf.Abs(p.y - s.y) < 6f && p.y > s.y - .5f;   // its row matters, not its height
         if (p.y - s.y < MinFireAbove * viewScale) return false;
         float clear = MinFireDistance * viewScale;
@@ -865,6 +891,14 @@ public class EnemyBrain : MonoBehaviour
         }
         if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.Windup);
         if (charge != null) { charge.enabled = true; PulseCharge(); }
+        if (b.attack == EnemyAttack.Laser)
+        {
+            // the aim line shows the row the beam will burn, through the tell's end
+            var old = Laser;
+            if (old != null) old.Cancel();
+            laser = RailMineLasers.Take();
+            if (laser != null) laser.Arm(transform, Def.world, Mathf.Max(TellFloorSeconds, b.tell));
+        }
     }
 
     void PulseCharge()
@@ -893,6 +927,18 @@ public class EnemyBrain : MonoBehaviour
             return;
         }
         ReleaseReservation();
+        if (b.attack == EnemyAttack.Laser)
+        {
+            var l = Laser;
+            if (l != null && l.State == RailMineLaser.Phase.Aim)
+            {
+                l.Fire();
+                ShotsFired++;
+                EnemyVolley.Volleys++;
+                EnemyVolley.Fired++;
+            }
+            return;
+        }
         ShotsFired += EnemyVolley.Fire(this, b, (Vector2)p + (Vector2)MuzzleLocal(), aim, lobTarget);
     }
 
@@ -1013,7 +1059,7 @@ public static class EnemyThreat
             int n = 0;
             for (int i = 0; i < all.Count; i++)
                 if (all[i] != null && all[i].Active && all[i].RosterShot) n++;
-            return n;
+            return n + RailMineLasers.LiveBeams;   // a burning mine laser counts as a shot
         }
     }
 

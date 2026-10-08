@@ -129,8 +129,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
 {
     EliteShots pool;
     SpriteRenderer body, core, mark;
-    SpriteRenderer glow;      // the visibility wrapper (HostileGlow)
-    float glowBase;           // its local scale before the pulse
+    SpriteRenderer glow;      // the visibility outline (ShotOutline): hugs the drawing, never a round halo
     Color glowTint;
     int ownerId;
     GameObject hitbox;
@@ -203,9 +202,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
 
     void OnDestroy() { HostileShots.Unregister(this); }
 
+    // Only the outline's alpha breathes; it never swells (a swelling outline
+    // reads as a round glow).
     void Pulse()
     {
-        glow.transform.localScale = Vector3.one * (glowBase * HostileGlow.PulseScaleAt(age));
         var c = glowTint;
         c.a = HostileGlow.PulseAlphaAt(age);
         glow.color = c;
@@ -223,7 +223,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         c.transform.SetParent(go.transform, false);
         s.core = c.AddComponent<SpriteRenderer>();
         s.core.sortingOrder = 31;
-        s.glow = HostileGlow.Attach(go.transform, HostileGlow.SortBehindShots);
+        s.glow = new GameObject("Outline").AddComponent<SpriteRenderer>();
+        s.glow.transform.SetParent(go.transform, false);
+        s.glow.sortingOrder = HostileGlow.SortBehindShots;
         HostileShots.Register(s);
         var m = new GameObject("Mark");
         m.transform.SetParent(root, false);
@@ -276,7 +278,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         hitCol.enabled = true;
         ownerId = from != null ? from.GetInstanceID() : 0;
         glowTint = HostileGlow.Tint(d.ShotColor);
-        glowBase = HostileGlow.DiameterFor(size * HostileGlow.EliteShotBody) / k;
+        Outline(sprite, k);
         Pulse();
         Active = true;
         gameObject.SetActive(true);
@@ -348,13 +350,23 @@ public class EliteShot : MonoBehaviour, IHostileShot
         radius = size * .42f;
         hitCol.radius = radius / k;
         hitCol.enabled = true;
-        glowBase = HostileGlow.DiameterFor(size * HostileGlow.PoolBody) / k;
+        Outline(EliteFxArt.Pool, k);
         Pulse();
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, def.ShotColor, 5);
         Physics2D.SyncTransforms();
+    }
+
+    // The outline traced from `art`, drawn at the shot's scale `k` (cached
+    // per drawing and size: nothing is built per shot after the first).
+    void Outline(Sprite art, float k)
+    {
+        var rim = ShotOutline.For(art, art.bounds.size.y * k);
+        glow.sprite = rim;
+        glow.enabled = rim != null;
+        glow.transform.localScale = Vector3.one;
     }
 
     void EnsureHitbox()
