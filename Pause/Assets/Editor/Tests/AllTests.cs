@@ -165,6 +165,7 @@ public static class AllTests
         ("ExplosionV2Test", ExplosionV2Test.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("MenuBackdropTest", MenuBackdropTest.Execute),
+        ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
