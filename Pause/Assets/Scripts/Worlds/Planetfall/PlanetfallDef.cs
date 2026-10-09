@@ -188,11 +188,59 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
+    // Tide: after Ember's lift-off (only once WorldManager.TideEnabled), the
+    // ocean world: a blue-green marble under white storm bands, girdled by a
+    // ring of rig platforms (Art/Worlds/Tide/descent~/manifest.json,
+    // re-measured on the pixels with verify_planetfall_art.py).
+    public static readonly PlanetfallDef Tide = new PlanetfallDef
+    {
+        world = 4,
+        folder = "Worlds/Tide/Planetfall/",
+        planet = "tide_planet",
+        limb = "tide_planet_limb",
+        deck = "tide_cloud_deck",
+        deckDark = "tide_cloud_deck_dark",
+        entryFx = "tide_entry_fx",
+        burst = "tide_breakthrough",
+        streaks = "tide_entry_streaks",
+        // 360 rays from the manifest's centre, circle fitted to the globe's
+        // outer edge (tether platforms and plumes rejected, 355 of 360 rays
+        // used): centre 512.3, 515.2, edge 422.2 (the manifest's 423.5). The
+        // radius is 8 px inside the edge, in the glow of the rim band (as
+        // Ember's 396 inside its 404), where the limb's horizon sits too.
+        // The limb's horizon is a hard edge: nothing above row 355 at the
+        // centre column, 720 at both side columns (no soft glow band above it
+        // as Ember's, so apex = the first opaque row).
+        planetCentrePx = new Vector2(512.5f, 514.5f),
+        planetDiscPx = 414f,
+        limbApexPx = 355f,
+        limbEdgePx = 720f,
+        entryFrames = 6,
+        // The opening, measured per cell (flood fill of the clear pixels at
+        // y 338): 145 .. 149 px wide, 165 .. 169 tall, centre y 338, centre x
+        // wandering 254 .. 259 (manifest hole_center_px_per_frame). White-hot
+        // core, mint-white and blue edge flames, wide (not a ribbon).
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 147f,
+        entryHoleX = new[] { 256f, 258f, 254f, 259f, 255f, 257f },
+        burstFrames = 5,
+        cue = new Color(0.49f, 0.95f, 0.75f),       // bioluminescent mint #7CF2C0 (hue ~158 deg)
+        heat = new Color(0.55f, 0.90f, 0.85f),      // mint-white plasma (core 0.83 .97 .91)
+        cold = new Color(0.20f, 0.45f, 0.48f),      // the slate grey-teal storm cloud under the plasma
+        flash = new Color(0.90f, 1f, 0.96f),        // white-mint spray
+        shade = new Color(0.02f, 0.07f, 0.08f),     // abyssal blue-green black
+        openBanner = "LAND ON TIDE",
+        urgeBanner = "DIVE INTO TIDE",
+        chipPrefix = "ORBIT  DANGER ",
+    };
+
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
-    // Frost's lift-off, Ember after Verdant's). A new planet is one more
-    // entry here; the tests swap the list. Space, the loop's way back round,
-    // has none: the loop keeps the portal.
-    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember };
+    // Frost's lift-off, Ember after Verdant's, Tide after Ember's -- the last
+    // only while WorldManager.TideEnabled: until then Ember is the last live
+    // world, PlanetfallCatalog.For never gets asked for Tide). A new planet
+    // is one more entry here; the tests swap the list. Space, the loop's way
+    // back round, has none: the loop keeps the portal.
+    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide };
     public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.

@@ -303,8 +303,13 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
+    // Tide has no ground backdrop yet (add-world phase 11): its level flies over
+    // Ember's, so a Tide run is playable in dev. Removed with the real Spec.
+    public const string TideStandIn = "Ember";
+
     public static Spec For(string displayName)
     {
+        if (displayName == "Tide") displayName = TideStandIn;
         foreach (var s in specs) if (s.world == displayName) return s;
         return specs[0];
     }

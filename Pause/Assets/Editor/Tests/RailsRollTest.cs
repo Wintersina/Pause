@@ -139,7 +139,7 @@ public static class RailsRollTest
     {
         bool bounded = true, inPhase = true, continuous = true;
         float worstJump = 0f;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Stage(w);
             var r = walls[0].GetComponent<Renderer>();
@@ -203,7 +203,7 @@ public static class RailsRollTest
     static void MinesStayRegistered()
     {
         string bad = "";
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             foreach (bool right in new[] { false, true })
             {
                 Stage(w);
@@ -297,7 +297,7 @@ public static class RailsRollTest
         {
             bool rigid = true, crawls = false;
             string detail = "";
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 Stage(w);
                 float step = .2f * 30f * Dt;              // HUD 20: 14.52 px a frame
@@ -349,7 +349,7 @@ public static class RailsRollTest
         Fresh();
         BoardRoll.SetDistance(888.8);
         bool ok = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Stage(w);   // a portal: new texture, new tile height
             float left = OffsetOf(walls[0]), right = OffsetOf(walls[1]);

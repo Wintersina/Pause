@@ -559,7 +559,7 @@ public static class BossHeartsTest
               HeartOutline.BoldReachShare(64).ToString("F3") + " (<= 0.08)",
               HeartOutline.ReachShare(64) <= .08f && HeartOutline.BoldReachShare(64) <= .08f);
         int savedWorld = PlayerPrefs.GetInt(WorldManager.PrefsCurrentWorld, 0);
-        var bold = new bool[WorldManager.Worlds.Length];
+        var bold = new bool[WorldManager.LiveWorldCount];
         for (int wi = 0; wi < bold.Length; wi++) { PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, wi); bold[wi] = HeartOutline.UseBold; }
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, savedWorld);
         // Verdant's v3 jungle is painted bright (Spec.brightArt), so it wears the bold one too

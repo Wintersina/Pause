@@ -561,7 +561,7 @@ public static class EnemyBehaviourTest
     static void ShotsAreFairAndBudgeted()
     {
         bool colours = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Color c = EnemyBehaviours.ShotColor(w);
             colours &= !HostileGlow.IsPlayerRed(c) && !HostileGlow.IsPlayerRed(HostileGlow.Tint(c));
@@ -635,7 +635,7 @@ public static class EnemyBehaviourTest
         var styles = new HashSet<ChaserStyle>();
         var paths = new List<float>();
         bool lancerAims = false, weaverWeaves = false;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Fresh();
             ship.position = new Vector3(0f, 2f, 0f);
@@ -665,7 +665,7 @@ public static class EnemyBehaviourTest
         // they do not stay for ever: chase, linger, then climb out the top
         bool allLeft = true;
         float longest = 0f;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Fresh();
             ship.position = new Vector3(0f, -1f, 0f);
@@ -812,7 +812,7 @@ public static class EnemyBehaviourTest
             n++;
         }
         var chasers = new List<ChaserEnemy>();
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var c = EnemyFactory.Create(EnemyRoster.One(w, EnemyRole.Chaser), new Vector3(-1.5f + w, -5.5f, 0f), Quaternion.identity).GetComponent<ChaserEnemy>();
             c.Target = ship;
@@ -1065,7 +1065,7 @@ public static class EnemyBehaviourTest
 
         // tiers: the higher the tier, the longer it stays and the more it does
         bool tiers = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var t1 = EnemyRoster.Fighter(w, 1).Behaviour; var t2 = EnemyRoster.Fighter(w, 2).Behaviour;
             var t3 = EnemyRoster.Fighter(w, 3).Behaviour; var t4 = EnemyRoster.Fighter(w, 4).Behaviour;
@@ -1238,7 +1238,7 @@ public static class EnemyBehaviourTest
         float worstLoad = 0f, worstShare = 0f;
         int most = 0;
         foreach (float hud in new[] { 5f, 20f, 35f, 44f })
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 Fresh();
                 moveBackGround.speed = hud / 100f;

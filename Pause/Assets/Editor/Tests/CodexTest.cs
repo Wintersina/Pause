@@ -312,7 +312,7 @@ public static class CodexTest
             Check("ship " + ShipId.KeyOf(ship) + " entry uses its roster name and id",
                   e != null && e.name == ShipId.NameOf(ship) && CodexCatalogue.ShipIndex(e.id) == ship);
         }
-        Check("every world has an entry", CountIn(CodexCategory.Worlds) == WorldManager.Worlds.Length + 1);
+        Check("every world has an entry", CountIn(CodexCategory.Worlds) == WorldManager.LiveWorldCount + 1);
         {
             var space = Codex.Find(Codex.WorldId(0));
             var sky = CodexCatalogue.SpaceSkyTexture();
@@ -347,7 +347,7 @@ public static class CodexTest
         // it, in all four worlds (aliens and mines share their legacy object
         // names, so the per-world entry comes from EnemyIdentity).
         var built = new List<GameObject>();
-        for (int world = 0; world < WorldManager.Worlds.Length; world++)
+        for (int world = 0; world < WorldManager.LiveWorldCount; world++)
         {
             int roles = 0;
             foreach (EnemyRole role in Enum.GetValues(typeof(EnemyRole)))
@@ -657,7 +657,7 @@ public static class CodexTest
         }
 
         // ---- worlds and the portal ----
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Check("inventory: world " + WorldManager.Worlds[w].displayName, Codex.Find(Codex.WorldId(w)) != null);
             accounted.Add(Codex.WorldId(w));
@@ -768,7 +768,7 @@ public static class CodexTest
                 Hook(b.id, "meeting the boss (BossEncounter)", () => Codex.Discover(b.id), toasts);
                 Check(b.id + " is listed once met", Codex.IsListed(e));
             }
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 int world = w;
                 Hook(Codex.WorldId(w), "entering the world (WorldManager)", () => Codex.Discover(Codex.WorldId(world)), toasts);
@@ -937,8 +937,12 @@ public static class CodexTest
             // Sectioned tabs: jump chips over the scrolling list, both in the body.
             Check(name + ": chip row and list sit in the body", Contains(l.body, l.chips) && Contains(l.body, l.list));
             Check(name + ": chip row clear of the list and the tabs", !l.chips.Overlaps(l.list) && !l.chips.Overlaps(l.tabs));
-            Check(name + ": chips are >= 90 wide (5 sections)",
-                  (l.chips.width - CodexPanel.ChipGap * (CodexPanel.MaxSections - 1)) / CodexPanel.MaxSections >= 90f);
+            // the chips the panel really shows: the live worlds + BOSSES (MaxSections is only
+            // the allocation cap, 7 = six worlds + bosses); Tide adds a chip when its switch flips
+            int shownSections = WorldManager.LiveWorldCount + 1;
+            Check(name + ": chips are >= 90 wide (" + shownSections + " sections)",
+                  shownSections <= CodexPanel.MaxSections &&
+                  (l.chips.width - CodexPanel.ChipGap * (shownSections - 1)) / shownSections >= 90f);
             Check(name + ": chips meet a 48-unit tap height", l.chips.height >= 48f);
             Check(name + ": a section header and two card rows fit the list",
                   l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);

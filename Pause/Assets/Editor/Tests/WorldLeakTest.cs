@@ -40,7 +40,7 @@ public static class WorldLeakTest
     static readonly MethodInfo SpawnStep = typeof(enmiesOnBoard).GetMethod("spawn", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(float) }, null);
     static readonly MethodInfo Select = typeof(enmiesOnBoard).GetMethod("SelectPhase", BindingFlags.NonPublic | BindingFlags.Instance);
     static readonly FieldInfo Elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", BindingFlags.NonPublic | BindingFlags.Instance);
-    static int Worlds => WorldManager.Worlds.Length;
+    static int Worlds => WorldManager.LiveWorldCount;
     static string W(int w) => WorldManager.Worlds[w].displayName;
 
     // The shared types: live objects that belong to no single world. No

@@ -148,7 +148,7 @@ public static class SpeedRampTest
 
     static void SameRateForOneTwoThreeWalls()
     {
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var theme = WorldManager.Worlds[w];
             const float T = 60f;
@@ -183,7 +183,7 @@ public static class SpeedRampTest
     // Every world now shares SpeedRamp.Cap.)
     static void NeverExceedsCap()
     {
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var theme = WorldManager.Worlds[w];
             Fresh();

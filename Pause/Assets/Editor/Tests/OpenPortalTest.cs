@@ -331,7 +331,7 @@ public static class OpenPortalTest
         bool all = true;
         var lines = new List<string>();
         foreach (float wait in new[] { .2f, 1f, 5f, 8.5f, 30f, 120f, 900f })
-            for (int world = 0; world < WorldManager.Worlds.Length - 1; world++)
+            for (int world = 0; world < WorldManager.LastLiveWorld; world++)
             {
                 FreshScene(world);
                 var wm = World();
@@ -368,7 +368,7 @@ public static class OpenPortalTest
 
     static void FinalPortalLoopsBack()
     {
-        int last = WorldManager.Worlds.Length - 1;
+        int last = WorldManager.LastLiveWorld;
         foreach (int start in new[] { 0, 2 })
         {
             FreshScene(last);
@@ -599,7 +599,7 @@ public static class OpenPortalTest
                   Source("Worlds/PortalPressureHud.cs").Contains("BossWarningAudio.Play(BossWarningBeat.Second"));
 
             bool notRed = true, warming = true;
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 float prevAlpha = -1f;
                 for (float level = 0f; level <= 60f; level += .25f)

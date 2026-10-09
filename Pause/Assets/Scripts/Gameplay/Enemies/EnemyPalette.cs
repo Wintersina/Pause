@@ -57,7 +57,9 @@ public static class EnemyPalette
             case 2: return new Theme { world = "verdant", hull = Bile, hullShadow = BileSh, hullHighlight = BileHi,
                                        accent = Bruise, light = BileLight, lightDim = BileSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Spore };
-            case 3: return new Theme { world = "ember", hull = Char, hullShadow = CharSh, hullHighlight = CharHi,
+            case 3:
+            case 4: // Tide: Ember's cast until its own palette (add-world phase 12)
+                return new Theme { world = "ember", hull = Char, hullShadow = CharSh, hullHighlight = CharHi,
                                        accent = Gun, light = Sodium, lightDim = SodiumSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Magma };
             default: return new Theme { world = "space", hull = Steel, hullShadow = SteelSh, hullHighlight = SteelHi,

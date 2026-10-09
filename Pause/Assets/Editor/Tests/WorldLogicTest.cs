@@ -76,7 +76,9 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsCurrentWorld);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
 
-        Check("four worlds defined", WorldManager.Worlds.Length == 4);
+        Check("five worlds defined (Space, Frost, Verdant, Ember, Tide)", WorldManager.Worlds.Length == 5);
+        Check("the release switch is off in the shipped code: Ember is the last live world, Tide is gated (WorldManager.TideEnabled)",
+              !WorldManager.TideEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
         Check("world 0 is Space", WorldManager.Worlds[0].displayName == "Space");
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
         Check("space keeps authored music", WorldManager.Worlds[0].musicResource == "");
@@ -93,7 +95,7 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         DeveloperUnlocks.SetEnabled(true);
         Check("developer flag unlocks every ship", PlayerPrefs.GetString("boughtship15") == "True");
-        Check("developer flag unlocks every world", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 3);
+        Check("developer flag unlocks every world (Tide included, for the picker)", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == WorldManager.Worlds.Length - 1);
         DeveloperUnlocks.SetEnabled(false);
         Check("turning developer flag off restores locked ship state", !PlayerPrefs.HasKey("boughtship15"));
         Check("turning developer flag off restores saved world progress",
@@ -106,8 +108,8 @@ public static class WorldLogicTest
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
         Check("has a next world", WorldManager.HasNext);
 
-        // walk the whole progression
-        for (int i = 1; i < WorldManager.Worlds.Length; i++)
+        // walk the whole progression (the live worlds: Tide joins when its switch flips)
+        for (int i = 1; i < WorldManager.LiveWorldCount; i++)
         {
             WorldManager.CurrentIndex = i;
             Check("index " + i + " -> " + WorldManager.Worlds[i].displayName,
@@ -122,8 +124,9 @@ public static class WorldLogicTest
                   WorldManager.Worlds[i - 1].speedRampPerSecond);
         }
 
-        Check("last world has no next", !WorldManager.HasNext);
-        Check("highest recorded", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == 3);
+        Check("last live world has no next", !WorldManager.HasNext);
+        Check("highest recorded", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == WorldManager.LastLiveWorld);
+        TideWorld();
 
         // clamping
         WorldManager.CurrentIndex = 99;
@@ -131,10 +134,10 @@ public static class WorldLogicTest
         WorldManager.CurrentIndex = -5;
         Check("clamps below range", WorldManager.CurrentIndex == 0);
         Check("highest is not lowered by going back",
-              PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == 3);
+              PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == WorldManager.Worlds.Length - 1);
 
-        // the assets the themes point at must actually resolve
-        for (int i = 1; i < WorldManager.Worlds.Length; i++)
+        // the assets the themes point at must actually resolve (live worlds)
+        for (int i = 1; i < WorldManager.LiveWorldCount; i++)
         {
             var t = WorldManager.Worlds[i];
             string skyName = t.displayName == "Space" ? SpaceSkySelection.Texture : "sky";
@@ -154,6 +157,40 @@ public static class WorldLogicTest
 
         Debug.Log("[WT] failures: " + failures);
         return failures;
+    }
+
+    // World 5, Tide: in the list, behind the release switch, with its planet art
+    // but (until the backdrop / roster / boss phases) Ember's stand-ins.
+    static void TideWorld()
+    {
+        const int Ember = 3, Tide = 4;
+        var t = WorldManager.Worlds[Tide];
+        Check("Tide is world 4 (the fifth), named Tide, ramping harder than Ember",
+              t.displayName == "Tide" && t.speedRampPerSecond > WorldManager.Worlds[Ember].speedRampPerSecond &&
+              t.enemyRampScale > WorldManager.Worlds[Ember].enemyRampScale);
+        Check("... its portal wears the bioluminescent mint, not the player's red nor a pickup's cyan",
+              t.portalColor.g > .85f && t.portalColor.r < .6f && t.portalColor.b > .6f && t.portalColor.b < .85f);
+        Check("... the stand-ins are explicit: Ember's rails folder, Ember's backdrop spec",
+              t.resourceFolder == "Ember" && BackdropCatalog.For("Tide") == BackdropCatalog.For("Ember"));
+        DeveloperUnlocks.SelectWorld(99);
+        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Tide);
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
+        bool was = WorldManager.TideEnabled;
+        try
+        {
+            WorldManager.TideEnabled = true;
+            Check("switch ON: Tide is the last live world (5 live)", WorldManager.LastLiveWorld == Tide && WorldManager.LiveWorldCount == 5);
+            WorldManager.CurrentIndex = Ember;
+            Check("switch ON: Ember has a next, and it is Tide", WorldManager.HasNext && WorldManager.PortalDestination == Tide);
+            WorldManager.CurrentIndex = Tide;
+            Check("switch ON: Tide has no next", !WorldManager.HasNext);
+            WorldManager.TideEnabled = false;
+            Check("switch OFF: Tide (a developer run) has no next either, and Ember is last",
+                  !WorldManager.HasNext && WorldManager.LastLiveWorld == Ember);
+            WorldManager.CurrentIndex = Ember;
+            Check("switch OFF: Ember has no next (the loop)", !WorldManager.HasNext);
+        }
+        finally { WorldManager.TideEnabled = was; }
     }
 
     static WorldTheme Theme(string name)

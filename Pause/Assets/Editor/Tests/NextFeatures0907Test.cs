@@ -511,7 +511,7 @@ public static class NextFeatures0907Test
         Vector2 hudSize = root.rect.size;
 
         float painted = float.MaxValue;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             WorldPainter.Apply(WorldManager.Worlds[w]);
             painted = Mathf.Min(painted, BossRails.InnerEdge);
@@ -642,7 +642,7 @@ public static class NextFeatures0907Test
         // the edge gameplay uses, once a world's rails are painted
         float authored = BossRails.AuthoredInnerEdge;
         float painted = float.MaxValue;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             WorldPainter.Apply(WorldManager.Worlds[w]);
             painted = Mathf.Min(painted, BossRails.InnerEdge);

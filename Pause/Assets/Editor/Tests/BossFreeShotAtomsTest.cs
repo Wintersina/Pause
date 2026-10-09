@@ -34,7 +34,7 @@ public static class BossFreeShotAtomsTest
         {
             RollIsRandomSpacedAndInsideTheWindow();
             ShortWindowsFitFewer();
-            for (int w = 0; w < WorldManager.Worlds.Length; w++) EveryWorldGetsExactlyThree(w);
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryWorldGetsExactlyThree(w);
             LoopFightGetsThreeAgain();
             EarlyKillLeavesNoStray();
             DeterministicPerSeed();
@@ -237,7 +237,7 @@ public static class BossFreeShotAtomsTest
 
     static void LoopFightGetsThreeAgain()
     {
-        int last = WorldManager.Worlds.Length - 1;
+        int last = WorldManager.LastLiveWorld;
         var r = NewRig(7);
         var first = Fight(r, last);
         BossEncounter.ForgetDone();

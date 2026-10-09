@@ -196,6 +196,7 @@ public class DeveloperUnlockHotkeys : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F2)) DeveloperUnlocks.SelectWorld(1);
         if (Input.GetKeyDown(KeyCode.F3)) DeveloperUnlocks.SelectWorld(2);
         if (Input.GetKeyDown(KeyCode.F4)) DeveloperUnlocks.SelectWorld(3);
+        if (Input.GetKeyDown(KeyCode.F5)) DeveloperUnlocks.SelectWorld(4);   // Tide (dev picker only until WorldManager.TideEnabled)
 #endif
     }
 }

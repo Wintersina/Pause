@@ -52,7 +52,7 @@ public static class WorldPainter
     public static RailEdge EdgeFor(string world)
     {
         var e = DefaultEdge;
-        switch (world)
+        switch (RailArtWorld(world))
         {
             // Frost's pale steel is the brightest metal: a touch more shade
             // for the same read.
@@ -124,9 +124,13 @@ public static class WorldPainter
         BossRails.Measure();
     }
 
+    // Tide has no rails of its own yet (add-world phase 5): it flies between
+    // Ember's, texture, bounds and edge alike. Dropped with the real art.
+    static string RailArtWorld(string world) { return world == "Tide" ? "Ember" : world; }
+
     public static string RailTextureName(string world)
     {
-        switch (world)
+        switch (RailArtWorld(world))
         {
             case "Verdant": return "rail_forest_wide_v1";
             case "Frost": return "rail_frost_wide_v1";
@@ -164,7 +168,7 @@ public static class WorldPainter
 
     static void RailBounds(string world, out float min, out float max)
     {
-        switch (world)
+        switch (RailArtWorld(world))
         {
             case "Frost": min = 140f / 725f; max = 583f / 725f; break;
             case "Verdant": min = 139f / 725f; max = 580f / 725f; break;

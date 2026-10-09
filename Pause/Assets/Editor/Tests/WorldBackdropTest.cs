@@ -840,7 +840,7 @@ public static class WorldBackdropTest
     // and the brightest tone 7:1 against the lane (its median luminance).
     static void CheckReadability()
     {
-        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        for (int wi = 0; wi < WorldManager.LiveWorldCount; wi++)
         for (int variant = 1; variant <= Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets); variant++)
         {
             var wspec = BackdropCatalog.For(WorldManager.Worlds[wi].displayName);
@@ -889,7 +889,7 @@ public static class WorldBackdropTest
     // WorldPainter actually binds at runtime.
     static void CheckWalls()
     {
-        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        for (int wi = 0; wi < WorldManager.LiveWorldCount; wi++)
         {
             string world = WorldManager.Worlds[wi].displayName;
             bool rail = WorldPainter.RailTextureName(world) != null;

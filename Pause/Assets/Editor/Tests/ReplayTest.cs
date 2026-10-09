@@ -262,7 +262,7 @@ public static class ReplayTest
     // they are all buttonClicks.replay -> PrepareReplay), then the menu.
     static void DeveloperMatrix()
     {
-        int worlds = WorldManager.Worlds.Length;
+        int worlds = WorldManager.LiveWorldCount;
         for (int pick = 0; pick < worlds; pick++)
         {
             for (int highest = 0; highest < worlds; highest++)

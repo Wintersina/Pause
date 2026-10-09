@@ -118,7 +118,7 @@ public static class EnemyDensityTest
         // The speed cap: anything above HUD 35 is a limit break (the boost, at
         // most 45). It fields exactly what 35 fields.
         bool flat = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             foreach (float hud in new[] { 36f, 40f, 45f, 46f })
                 flat &= Mathf.Approximately(EnemyDensity.RateScale(hud), EnemyDensity.RateScale(35f)) &&
                         Mathf.Approximately(EnemyDensity.MaxThreats(hud), EnemyDensity.MaxThreats(35f)) &&

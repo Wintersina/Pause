@@ -58,10 +58,19 @@ public static class PlanetfallTest
             ArtLoads(PlanetfallCatalog.Frost, 1024f - 536f, 1612f);
             ArtLoads(PlanetfallCatalog.Verdant, 1024f - 512.5f, 1612f);
             ArtLoads(PlanetfallCatalog.Ember, 1024f - 513f, 1619f);
+            ArtLoads(PlanetfallCatalog.Tide, 1024f - 514.5f, 1619f);
+            // Tide's planetfall is only flown with the release switch on (Ember -> Tide)
+            WorldManager.TideEnabled = true;
+            TideTransitions();
+            DescentFlow(3);
+            ShroudFits(3);
+            NoAllocations(3);
+            WorldManager.TideEnabled = false;
         }
         finally
         {
             if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
+            WorldManager.TideEnabled = false;
             LiftoffCatalog.Enabled = true;
             PlanetfallCatalog.Enabled = true;
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
@@ -168,7 +177,7 @@ public static class PlanetfallTest
               PlanetfallCatalog.For(2, 3, false) == PlanetfallCatalog.Ember && PlanetfallCatalog.For(3, 0, true) == null &&
               PlanetfallCatalog.For(3, 1, true) == null);
 
-        for (int world = 0; world < WorldManager.Worlds.Length; world++)
+        for (int world = 0; world < WorldManager.LiveWorldCount; world++)
         {
             FreshScene(world);
             var wm = World();
@@ -248,6 +257,42 @@ public static class PlanetfallTest
         Gone();
         Object.DestroyImmediate(w2.gameObject);
         PlanetfallCatalog.Enabled = true;
+    }
+
+    // Tide (switch on): Ember's end flies Tide's planet, not the loop; Tide's end is the loop portal.
+    static void TideTransitions()
+    {
+        var tide = PlanetfallCatalog.Tide;
+        Check("Tide's def: world 4, its folder and seven files, the measured numbers and the words",
+              tide.world == 4 && tide.folder == "Worlds/Tide/Planetfall/" && tide.planet == "tide_planet" && tide.limb == "tide_planet_limb" &&
+              tide.deck == "tide_cloud_deck" && tide.deckDark == "tide_cloud_deck_dark" && tide.entryFx == "tide_entry_fx" &&
+              tide.burst == "tide_breakthrough" && tide.streaks == "tide_entry_streaks" && tide.entryFrames == 6 && tide.burstFrames == 5 &&
+              tide.entryHoleX.Length == 6 && tide.openBanner == "LAND ON TIDE" && tide.urgeBanner == "DIVE INTO TIDE" &&
+              Mathf.Abs(tide.entryHolePx - 147f) < 3f && Mathf.Abs(tide.entryShipPx.y - 338f) < 1f);
+        Check("Tide's art is installed in Resources (not left staged): all seven files, the staging copies gone",
+              System.Array.TrueForAll(new[] { tide.planet, tide.limb, tide.deck, tide.deckDark, tide.entryFx, tide.burst, tide.streaks },
+                  f => File.Exists("Assets/Art/Backgrounds/Resources/" + tide.folder + f + ".png") && !File.Exists("Assets/Art/Worlds/Tide/descent~/" + f + ".png")));
+        Check("the catalogue (switch on): Verdant -> Ember and Ember -> Tide are planetfalls; Tide -> Space (the loop) is not",
+              PlanetfallCatalog.For(2, 3, false) == PlanetfallCatalog.Ember && PlanetfallCatalog.For(3, 4, false) == tide &&
+              PlanetfallCatalog.For(4, 0, true) == null && PlanetfallCatalog.For(4, 1, true) == null && PlanetfallCatalog.For(2, 4, false) == null);
+        LiftoffCatalog.Enabled = false;
+        FreshScene(3);
+        var we = World();
+        FinishLevel(we);
+        Check("Ember's gateway (switch on, lift-off skipped): Tide's planet, no portal, its words (" + PortalPressure.Urge + " / " +
+              PortalPressure.Chip.Trim() + ")",
+              Planetfall.Live != null && Planetfall.Live.Def == tide && Portal.Live == null && PortalPressure.Active &&
+              PortalPressure.Destination == 4 && PortalPressure.Urge == tide.urgeBanner && PortalPressure.Chip == tide.chipPrefix);
+        Gone();
+        Object.DestroyImmediate(we.gameObject);
+        FreshScene(4);
+        var wt = World();
+        FinishLevel(wt);
+        Check("Tide's end (switch on, lift-off skipped): the loop portal back round, no planetfall",
+              Planetfall.Live == null && Portal.Live != null && PortalPressure.Active && PortalPressure.Destination == RunLoop.StartWorld);
+        Gone();
+        Object.DestroyImmediate(wt.gameObject);
+        LiftoffCatalog.Enabled = true;
     }
 
     // ---- 2. the approach ----------------------------------------------------------

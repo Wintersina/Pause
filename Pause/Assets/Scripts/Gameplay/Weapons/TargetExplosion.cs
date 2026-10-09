@@ -65,6 +65,7 @@ public static class TargetExplosion
             case "frost": return Kind.Ice;
             case "verdant": return Kind.Spore;
             case "ember": return Kind.Magma;
+            case "tide": return Kind.Ice;   // stand-in until Tide's own Water row (add-world phase 12)
             default: return Kind.Metal;
         }
     }

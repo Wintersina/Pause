@@ -183,7 +183,7 @@ public static class RailsVettingTest
         float colliderHalf = EnemyRoster.ColliderSize(EnemyRole.Mine).x * .5f;
         float lowest = 9f, highest = 0f;
         foreach (var shape in Shapes)
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 Stage(w, shape);
                 float halfW = cam.orthographicSize * cam.aspect;
@@ -250,7 +250,7 @@ public static class RailsVettingTest
     {
         var bad = new List<string>();
         var ship = new GameObject("~RailsShip").transform;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             Stage(w, Shapes[0]);
             var def = EnemyRoster.One(w, EnemyRole.Mine);
@@ -389,7 +389,7 @@ public static class RailsVettingTest
         bool matches = true, wasSlow = true;
         string detail = "";
         foreach (var shape in Shapes)
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 Stage(w, shape);
                 foreach (var wall in walls)
@@ -420,7 +420,7 @@ public static class RailsVettingTest
     {
         bool ok = true;
         float seen = 0f;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             BossRails.Reset();
             Stage(w, Shapes[0]);   // WorldPainter.Apply: what WorldManager.Start and a portal do
