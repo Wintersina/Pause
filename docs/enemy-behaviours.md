@@ -69,7 +69,7 @@ stack and never need per-frame neighbour checks; the lateral band is also clampe
 | `Shot` | `count` projectiles in a fan of `spread` degrees around the aim |
 | `Ring` | `count` projectiles all the way round |
 | `Cross` | fires across the lane from its rail; the shot rides the board so it stays level with the mine's row (no longer used by the mines) |
-| `Laser` | rail mine: a laser across the whole lane, rail face to rail face, at the mine's row (`RailMineLaser`; see "Rail-mine laser" below) |
+| `Laser` | rail mine: a laser across the whole lane, rail face to rail face, from the mine's row at a random angle (within +/-35 deg) each shot (`RailMineLaser`; see "Rail-mine laser" below) |
 | `Lob` | one glob lobbed onto the pilot's position at tell time; lands as a pool for a few seconds |
 
 **The attack state machine** is `Idle -> Windup -> Release -> Recover -> Idle`, advanced only by the dt
@@ -114,7 +114,7 @@ Shot speeds are relative to the board, in world units per second.
 | `space_rock_crater` | Beacon Rock | floating regolith chunk, blinking survey beacon | upright; slow heave (`Bob`) and a lazy sway | no | beacon flares (cosmetic) | steady and predictable: go round |
 | `space_rock_cluster` | Cluster Rock | three strapped boulders, magenta seam | heavy slow tumble; slow `Drift` bouncing in a narrow band | no | seam flares (cosmetic) | wide: give it room |
 | `space_rock_dark` | Coal Rock | dark slanted wedge, one buried eye | quick tumble; one slanted `Glide`, never turns | no | eye blinks (cosmetic) | read the slant early, it never changes |
-| `space_mine` | Rail Mine | clamp + sphere on the rail | `Patrol`: slides up and down its rail; freezes while armed | **yes**: a laser across the lane (`Laser`), twice | arming loop 0.9 s, aim line its last 0.7 s | be above or below its row when the line blinks |
+| `space_mine` | Rail Mine | clamp + sphere on the rail | `Patrol`: slides up and down its rail; freezes while armed | **yes**: a laser across the lane at a random angle (`Laser`), twice | arming loop 0.9 s, aim line its last 0.7 s | be off the line when it blinks |
 | `space_big` | Bastion | octagonal pod, twin cannon prongs, reactor eye | holds its column; short `Brake` hover | **yes**: twin parallel bolts straight down | eye flares for 0.8 s, then fires | leave the column under it when the eye flares |
 | `space_fighter_1` | Needle | slim dart, one ram prong | fast narrow `Sway` | no (`Lunge`: straight dash down) | thrusters flare, then the dash | it only goes straight: step off its line |
 | `space_fighter_2` | Steel Claw | twin pinching claws | `Track`s the pilot slowly, `Brake`s | no (`Lunge`: pounces sideways-and-down at the pilot's x) | claws pinch, then snap | sidestep once the claws pinch; it commits |
@@ -130,7 +130,7 @@ Shot speeds are relative to the board, in world units per second.
 | `frost_rock_shard` | Ice Shard | crystal splinters round a core | tumble; light, skittish `Drift` bouncing across a wide band | no | core flashes (cosmetic) | watch the bounce |
 | `frost_rock_chunk` | Frozen Chunk | floating bedrock, snow cap, icicles | upright; heavy slow heave (`Bob`), no sideways | no | crystal glints (cosmetic) | it stays in its column |
 | `frost_rock_rime` | Rime Star | six-point ice star | even snowflake spin; slow `Orbit` circle | no | glint (cosmetic) | the circle is small and regular |
-| `frost_mine` | Geode Mine | crystal sphere on the rail | `Creep`s down its rail and stops | **yes**: a laser across the lane (`Laser`) | charging loop 0.9 s, aim line its last 0.7 s | be above or below its row when the crystals grow |
+| `frost_mine` | Geode Mine | crystal sphere on the rail | `Creep`s down its rail and stops | **yes**: a laser across the lane at a random angle (`Laser`) | charging loop 0.9 s, aim line its last 0.7 s | be off the aim line when the crystals grow |
 | `frost_big` | Glacier Golem | iceberg hulk, visor, ice maw | holds; slow small `Sway` | **yes**: a fan of three frost shards downward | maw cracks open 0.9 s | get outside the fan or tight between two shards |
 | `frost_fighter_1` | Flake | orb drone with an icicle lance | snowflake `Sway` drift | no (`Lunge`: lance dash at the pilot's x) | lance swirls, then the dash | it drifts until it decides: move when it does |
 | `frost_fighter_2` | Icicle | four blades, long lance | `Track` | **yes**: one aimed lance bolt | blades pinch 0.55 s | sidestep after the pinch |
@@ -147,7 +147,7 @@ Shot speeds are relative to the board, in world units per second.
 | `verdant_rock_spore` | Spore Rock | floating mossy rock, spore vents | upright; each puff lifts it (`Pulse`), slow `Drift` | no | vents puff (cosmetic) | it hops up, never down |
 | `verdant_rock_knot` | Bramble Knot | spinning thorn ball | fast spin; rolls across a wide band (`Drift`) | no | bud glows (cosmetic) | it crosses lanes: don't sit beside it |
 | `verdant_rock_vine` | Vine Rock | floating earth, dangling vines | upright; swings like a pendulum (`Sway`, bigger tilt) | no | buds light, vines whip (cosmetic) | pass at the end of a swing |
-| `verdant_mine` | Burr Mine | vine-wrapped burr on the rail | `Patrol`: swings up and down its rail | **yes**, once: a laser across the lane (`Laser`) | husk splits, charging loop 1.0 s, aim line its last 0.7 s | its row is the danger: leave it |
+| `verdant_mine` | Burr Mine | vine-wrapped burr on the rail | `Patrol`: swings up and down its rail | **yes**, once: a laser across the lane at a random angle (`Laser`) | husk splits, charging loop 1.0 s, aim line its last 0.7 s | its aim line is the danger: leave it |
 | `verdant_big` | Bloom Maw | five-petal carnivorous bud | holds its column | **yes**: lobs a resin glob onto where the pilot is; it lands as a sticky pool | petals snap open 0.9 s; a ring marks the landing spot | leave the marked spot; the pool dries in ~2.5 s |
 | `verdant_fighter_1` | Gnat | small buzzing bug | fast jittery `Sway` + `Bob` | no | buzz when near (cosmetic) | small and erratic: keep a body's width |
 | `verdant_fighter_2` | Wasp | striped abdomen, stinger | `Track`, `Brake` | no (`Lunge`: a deep fast dive at the pilot's x) | wings blur, then the dive | deepest dive in the roster: sidestep late |
@@ -164,7 +164,7 @@ Shot speeds are relative to the board, in world units per second.
 | `ember_rock_cinder` | Cinder Chunk | blocky cinder, furnace split | steady slow spin; `Sink`s down the board (heavy) | no | split glows (cosmetic) | arrives a little sooner than it looks |
 | `ember_rock_obsidian` | Obsidian Shard | tall glass blade | barely turns; fast slanted `Glide` | no | vein flashes (cosmetic) | it slices one way only |
 | `ember_rock_islet` | Lava Islet | floating slab dripping lava | upright; wide slow `Sway`, `Bob` | no | seams flare (cosmetic) | wide but slow |
-| `ember_mine` | Crucible Mine | magma pot on the rail | stays put | **yes**: boils over, a laser across the lane (`Laser`) | charging loop 1.1 s, aim line its last 0.7 s | its row burns twice: be off it when the line blinks |
+| `ember_mine` | Crucible Mine | magma pot on the rail | stays put | **yes**: boils over, a laser across the lane at a random angle (`Laser`) | charging loop 1.1 s, aim line its last 0.7 s | it burns twice, each at its own angle: be off the line when it blinks |
 | `ember_big` | Magma Skull | horned skull, furnace jaw | holds its column | **yes**: jaw drops, two slag blobs angled out below it | grille brightens 1.0 s | slag lingers under it: don't follow it down |
 | `ember_fighter_1` | Cinder | charred arrowhead | diagonal `Drift` | no (`Lunge`: straight dash down) | vents flare, then the dash | the dash never tracks |
 | `ember_fighter_2` | Scorch | forked claw with a mortar | `Track`s to line up over the pilot | **yes**: quick bolts straight down, up to three | vents go white 0.5 s | it must be over you to hit: keep moving |
@@ -736,13 +736,23 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
 | Phase | Length | What shows | Harmful |
 |---|---|---|---|
 | Windup | the mine's tell, unchanged (Space 0.9, Frost 0.9, Verdant 1.0, Ember 1.1 s) | waking -> charging loop, the charge light | no |
-| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact row, rail to rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
+| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, rail to rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
 | Beam | `BeamSeconds` 0.4 s | the beam, 0.4 u drawn (the world boss's beam cells, flickering on twos), a muzzle flash at the mine, a spark on the far rail | **yes** |
 | Cool | `CoolSeconds` 0.2 s | the beam flickers and thins out | no |
 
-* **Geometry.** At the mine's current y every frame (it rides the board with the mine), from its own rail's drawn
-  inner face to the opposite one's: `BossRails.DrawnInnerEdge` (the measured rails, RailInset included), so it is
-  exactly rail to rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every world). Blocked by nothing but the rails.
+* **Geometry.** From its own rail's drawn inner face at the mine's current y every frame (it rides the board with
+  the mine), across the lane at this shot's angle to the opposite rail's face: `BossRails.DrawnInnerEdge` (the
+  measured rails, RailInset included), so it is exactly rail to rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every
+  world); `Length` = 2 edge / cos(angle). Blocked by nothing but the rails.
+* **Angle.** "Make the lasers from the rail mines be shot at different angles too, randomly." Each shot draws its
+  angle when the windup starts (`RailMineLaser.Arm` -> `NextAngle`), so the aim line already shows the exact line:
+  uniform within +/-`MaxAngleDeg` 35 deg off horizontal (positive rises toward the far rail; left and right rails
+  mirror), never within `MinAngleChangeDeg` 8 deg of the previous shot. Its own xorshift stream, seeded from
+  `UnityEngine.Random`'s state without drawing from it (as `HazardSize`), so every other seeded stream is
+  unchanged; `RailMineLaser.Seed` / `AngleOverride` for tests and previews. At 35 deg the beam rises or falls
+  ~3.65 u across the lane and is 0.34 u tall where it crosses a column. The sprites, the hitbox (a BoxCollider2D
+  on the rotated beam), `Touches` (an oriented-rect test), the burn (`Burn`: distance to the segment) and a blink
+  (`LandsOn`) all use the one rotated segment `From` -> `To`.
 * **Look.** The world boss's own laser art (`BossArt` telegraph and beam cells, `BossAttackFx` flash and spark):
   the hard-edged magenta beam with a white core in Space, Frost and Ember, Verdant's lime. No player red.
 * **Damage.** A trigger box tagged `Enimey` (`RailMineLaser.HitboxName`), `HitThickness` 0.28 u across the beam,
@@ -764,9 +774,9 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
 * **Budget.** One volley = one beam; it reserves one shot in `EnemyThreat` during the windup and counts as a live
   shot while it burns (`RailMineLasers.LiveBeams` in `EnemyThreat.LiveShots`), so `MaxEnemyShots`, `VolleyGap`,
   the tells, cooldowns and volley counts (Space 2, Frost 2, Verdant 1, Ember 2) and the spawn rate are as they were.
-* **Dodge room.** The ship's centre must leave a band of 0.28 u + its hitbox height (1.35x ship: about 0.66 u) =
-  ~0.94 u, i.e. at most ~0.47 u up or down from the row's centre, with the 0.7 s aim line (plus the rest of the
-  tell) to do it in -- about 7% of the smallest (13.2 u) view. The mine holds still from its windup until the beam
+* **Dodge room.** The ship's centre must leave a band of the beam's height where it crosses (0.28 u level, 0.34 u
+  at 35 deg) + its hitbox height (1.35x ship: about 0.66 u) = ~0.94-1.0 u, i.e. at most ~0.5 u up or down from the
+  line, with the 0.7 s aim line (plus the rest of the tell) to do it in -- under 8% of the smallest (13.2 u) view. The mine holds still from its windup until the beam
   is out.
 * **Pause, 60 fps, tutorial.** Timers advance only through the brain's `Step` (running frames), so a frozen world
   freezes the beam; pooled (`RailMineLasers`, at most 6), sprites looked up once per fire, no per-frame
