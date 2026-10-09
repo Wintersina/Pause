@@ -71,6 +71,78 @@ public static class CodexPreview
         EditorApplication.Exit(code);
     }
 
+    // The triple-tap death of some detail entries as a strip of frames (one
+    // row per entry, one column per moment):
+    //   PAUSE_CODEX_DEATH_IDS=id1,id2  PAUSE_CODEX_PREVIEW_DIR=<dir>
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunDeath
+    static readonly float[] DeathMoments = { 0f, .05f, .1f, .2f, .35f, .55f, .8f, 1.1f, 1.45f, 1.7f, 2.0f };
+
+    public static void RunDeath()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        string ids = Environment.GetEnvironmentVariable("PAUSE_CODEX_DEATH_IDS");
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(true);
+                Codex.Reload();
+                var panel = CodexPanel.Open(null);
+                panel.Refresh();
+                panel.SkipAnimations();
+                var list = new System.Collections.Generic.List<CodexEntry>();
+                foreach (string id in (ids ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var e = Codex.Find(id.Trim());
+                    if (e != null) list.Add(e); else Debug.LogWarning("[CODEX-PREVIEW] no entry " + id);
+                }
+                int tw = Width / 2, th = DetailHeight / 2;
+                // the art frame sits in the top half of the detail view
+                int cropY = th * 11 / 100, cropH = th * 46 / 100;
+                var sheet = new Texture2D(DeathMoments.Length * tw, list.Count * cropH, TextureFormat.RGBA32, false);
+                for (int r = 0; r < list.Count; r++)
+                {
+                    var e = list[r];
+                    for (int c = 0; c < DeathMoments.Length; c++)
+                    {
+                        float moment = DeathMoments[c];
+                        var tile = Capture(panel, Width, DetailHeight, () =>
+                        {
+                            panel.ShowGrid(); panel.SkipAnimations();
+                            panel.ShowDetail(e); panel.SkipAnimations();
+                            for (int k = 0; k < 6; k++) panel.TickAnimations(1f / 30f);
+                            float now = 1000f + r * 100f + c * 10f;
+                            panel.TapDetailArt(now); panel.TapDetailArt(now + .1f);
+                            Debug.Log("[CODEX-PREVIEW] " + e.id + " died: " + panel.TapDetailArt(now + .2f) + " kind=" + panel.LastDeathKind);
+                            float left = moment;
+                            while (left > 0f) { float dt = Mathf.Min(1f / 60f, left); panel.TickAnimations(dt); left -= dt; }
+                        }, 2);
+                        var px = tile.GetPixels(0, th - cropY - cropH, tw, cropH);
+                        sheet.SetPixels(c * tw, (list.Count - 1 - r) * cropH, tw, cropH, px);
+                        UnityEngine.Object.DestroyImmediate(tile);
+                    }
+                }
+                sheet.Apply();
+                string path = Path.Combine(dir, "codex_death_strip.png");
+                File.WriteAllBytes(path, sheet.EncodeToPNG());
+                Debug.Log("[CODEX-PREVIEW] " + path);
+                panel.Close();
+                panel.SkipAnimations();
+                DeveloperUnlocks.SetEnabled(false);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            code = 1;
+        }
+        EditorApplication.Exit(code);
+    }
+
     // The whole list of a tab in one image: the panel laid out just tall
     // enough for every card row to sit inside the list unscrolled.
     static void TabSheet(CodexPanel panel, CodexCategory tab, string path)

@@ -198,6 +198,8 @@ public class CodexAnimator : MonoBehaviour
         { .08f, .11f, .2f };   // EnemyDeathFlipbook's Flash / Rupture / Smoke
     public const float DeathGap = .35f, DeathFadeIn = .4f;
     Sprite[] deathFrames;
+    float[] stripHolds;
+    CodexBurst burst;
     DeathPhase death;
     float deathClock;
     public DeathPhase Death { get { return death; } }
@@ -235,6 +237,7 @@ public class CodexAnimator : MonoBehaviour
         anim = a != null && a.HasArt ? a : null;
         death = DeathPhase.None;
         deathFrames = null;
+        if (burst != null) { burst.Hide(); burst = null; }
         this.detail = detail;
         telling = false;
         tellVariant = tellStep = tellLoop = 0;
@@ -310,12 +313,18 @@ public class CodexAnimator : MonoBehaviour
 
     // Plays the death strip once over the idle (no-op while one is running or
     // with nothing bound). The frames share the idle's box and scale.
-    public bool PlayDeath(Sprite[] frames)
+    public bool PlayDeath(Sprite[] frames) { return PlayDeath(frames, DeathHolds); }
+
+    // Any strip with a hold (seconds) per drawing: an elite's own death
+    // strip, a boss' six cells.
+    public bool PlayDeath(Sprite[] frames, float[] holds)
     {
-        if (anim == null || anim.under != null || frames == null || frames.Length != DeathHolds.Length) return false;
+        if (anim == null || anim.under != null || frames == null || holds == null || frames.Length == 0 || frames.Length != holds.Length) return false;
         if (death != DeathPhase.None) return false;
         for (int i = 0; i < frames.Length; i++) if (frames[i] == null) return false;
         deathFrames = frames;
+        stripHolds = holds;
+        burst = null;
         death = DeathPhase.Strip;
         deathClock = 0f;
         telling = false;
@@ -325,6 +334,36 @@ public class CodexAnimator : MonoBehaviour
         return true;
     }
 
+    // The composed elite death (no strip of its own): the hit drawing, then
+    // the generic debris / sparks / ring (CodexBurst) over the art box.
+    // `unit`: how many pixels one world unit of the art is (see UnitScale).
+    public bool PlayBurst(CodexBurst b, Sprite flash)
+    {
+        if (anim == null || anim.under != null || b == null || flash == null) return false;
+        if (death != DeathPhase.None) return false;
+        burst = b;
+        deathFrames = null;
+        stripHolds = null;
+        death = DeathPhase.Strip;
+        deathClock = 0f;
+        telling = false;
+        tellStep = tellLoop = 0;
+        Show(flash, true);
+        image.enabled = true;
+        b.Begin(image.rectTransform.anchoredPosition);
+        return true;
+    }
+
+    // Pixels per world unit of the idle art as the box lays it out.
+    public float UnitScale()
+    {
+        if (anim == null || box == null) return 0f;
+        var u = anim.union;
+        return Side() / Mathf.Max(.0001f, Mathf.Max(u.size.x, u.size.y));
+    }
+
+    public RectTransform Box { get { return box; } }
+
     void AdvanceDeath(float dt)
     {
         deathClock += dt;
@@ -332,8 +371,26 @@ public class CodexAnimator : MonoBehaviour
         {
             case DeathPhase.Strip:
                 float t = deathClock;
-                int f = t < DeathHolds[0] ? 0 : t < DeathHolds[0] + DeathHolds[1] ? 1 : 2;
-                if (t >= DeathHolds[0] + DeathHolds[1] + DeathHolds[2])
+                if (burst != null)
+                {
+                    if (t >= CodexBurst.Duration)
+                    {
+                        burst.Hide();
+                        death = DeathPhase.Gap;
+                        deathClock = 0f;
+                        image.enabled = false;
+                    }
+                    else
+                    {
+                        if (t >= CodexBurst.FlashSeconds) image.enabled = false;
+                        burst.Step(t);
+                    }
+                    break;
+                }
+                int f = 0;
+                float end = 0f;
+                for (int i = 0; i < stripHolds.Length; i++) { end += stripHolds[i]; if (t >= end && i < stripHolds.Length - 1) f = i + 1; }
+                if (t >= end)
                 {
                     death = DeathPhase.Gap;
                     deathClock = 0f;
@@ -358,7 +415,7 @@ public class CodexAnimator : MonoBehaviour
             case DeathPhase.FadeIn:
                 float k = Mathf.Clamp01(deathClock / DeathFadeIn);
                 CodexUi.SetAlpha(image, k);
-                if (k >= 1f) { death = DeathPhase.None; deathFrames = null; }
+                if (k >= 1f) { death = DeathPhase.None; deathFrames = null; burst = null; }
                 break;
         }
     }

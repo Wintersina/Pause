@@ -1082,16 +1082,71 @@ public class CodexPanel : MonoBehaviour
         detailArtBox.localScale = new Vector3(1f + q * .5f, 1f - q, 1f);
     }
 
-    // Plain enemies with a death strip only. Elites, bosses and mines (no
-    // strip, or a different one) do nothing special rather than risk a
-    // mismatched pose; strips are found by key.
+    // Enemies play EnemyDeathFlipbook's three drawings; elites their own
+    // `_death` strip when they ship one (none do yet), else the composed
+    // break-up (hit drawing, then shards / sparks / ring: CodexBurst); bosses
+    // their 6-cell death strip where one exists (Ember), else nothing. Mines
+    // and anything else without a strip do nothing rather than risk a
+    // mismatched pose.
+    static readonly float[] BossDeathHolds = MakeHolds(BossArt.DeathStripCells, BossArt.DeathStripCellSeconds);
+    public const float EliteStripFps = 12f;   // EliteDeath: Flipbook(death, 12f, ...)
+    CodexBurst burst;
+
+    static float[] MakeHolds(int n, float each)
+    {
+        var h = new float[n];
+        for (int i = 0; i < n; i++) h[i] = each;
+        return h;
+    }
+
+    // What the last triple tap played: "enemy", "elite-strip", "elite-burst", "boss-strip" or "" (tests, previews).
+    public string LastDeathKind { get; private set; }
+
     bool PlayDetailDeath()
     {
-        var def = EnemyRoster.FindByCodexId(detailEntry.id);
-        if (def == null || BossCatalog.Find(detailEntry.id) != null || EliteCatalog.FindByCodexId(detailEntry.id) != null) return false;
-        var frames = EnemyDeathFlipbook.Frames(def);
-        if (frames == null || !detailAnim.PlayDeath(frames)) return false;
+        LastDeathKind = "";
+        string id = detailEntry.id;
+        var boss = BossCatalog.Find(id);
+        if (boss != null)
+        {
+            if (!BossArt.HasDeathArt(boss)) return false;
+            var frames = new Sprite[BossArt.DeathStripCells];
+            for (int i = 0; i < frames.Length; i++) frames[i] = BossArt.DeathStrip(boss, i);
+            if (!detailAnim.PlayDeath(frames, BossDeathHolds)) return false;
+            LastDeathKind = "boss-strip";
+            return true;
+        }
+        var elite = EliteCatalog.FindByCodexId(id);
+        if (elite != null) return PlayEliteDeath(elite);
+        var def = EnemyRoster.FindByCodexId(id);
+        if (def == null) return false;
+        var enemy = EnemyDeathFlipbook.Frames(def);
+        if (enemy == null || !detailAnim.PlayDeath(enemy)) return false;
         EnemyDeathAudio.PlayKey(def.key, def.role, true);
+        LastDeathKind = "enemy";
+        return true;
+    }
+
+    bool PlayEliteDeath(EliteDef def)
+    {
+        var strip = EliteArt.ExtraFrames(def, EliteArt.Extra.Death);
+        if (strip != null)
+        {
+            if (!detailAnim.PlayDeath(strip, MakeHolds(strip.Length, 1f / EliteStripFps))) return false;
+            LastDeathKind = "elite-strip";
+        }
+        else
+        {
+            var frames = EliteArt.Frames(def);
+            if (frames == null || detailAnim.Box == null) return false;
+            if (burst == null || !burst.Alive) burst = new CodexBurst(detailAnim.Box);
+            burst.Fit(detailAnim.Box);
+            if (!burst.Prepare(def, detailAnim.UnitScale())) return false;
+            var flash = frames[Mathf.Clamp(def.cells.hit >= 0 ? def.cells.hit : def.cells.Flight0, 0, frames.Length - 1)];
+            if (!detailAnim.PlayBurst(burst, flash)) return false;
+            LastDeathKind = "elite-burst";
+        }
+        EnemyDeathAudio.PlayElite(def.key, true);
         return true;
     }
 

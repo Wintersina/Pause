@@ -117,10 +117,10 @@ public static class EnemyDeathAudio
 
     // An elite going down (EliteDeath): its authored cue (its generic
     // explosion plays regardless).
-    public static bool PlayElite(string eliteKey)
+    public static bool PlayElite(string eliteKey, bool forceScream = false)
     {
         if (!(Application.isPlaying || Simulate)) return false;
-        bool ok = PlayAuthored(eliteKey, EliteVolume);
+        bool ok = PlayAuthored(eliteKey, EliteVolume, forceScream);
         if (!ok) WarnMissing(eliteKey);
         return ok;
     }

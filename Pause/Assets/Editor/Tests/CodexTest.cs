@@ -130,7 +130,7 @@ public static class CodexTest
             foreach (var e in Codex.Entries)
             {
                 var def = EnemyRoster.FindByCodexId(e.id);
-                bool noStrip = (def != null && EnemyDeathFlipbook.Frames(def) == null) || BossCatalog.Find(e.id) != null;
+                bool noStrip = (def != null && EnemyDeathFlipbook.Frames(def) == null) || (BossCatalog.Find(e.id) != null && !BossArt.HasDeathArt(BossCatalog.Find(e.id)));
                 if (!noStrip) continue;
                 Codex.Discover(e.id);
                 panel.ShowGrid(); panel.SkipAnimations();
@@ -248,6 +248,107 @@ public static class CodexTest
                 if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
             }
             Check("pointer tap: every strip-bearing enemy plays its death from real taps (" + withStrip + " tested of " + tested + ")", withStrip >= 24);
+        }
+        finally
+        {
+            CodexPanel.TapClock = null;
+            EnemyDeathAudio.Simulate = false;
+            EnemyDeathAudio.ResetVoices();
+            UnityEngine.Object.DestroyImmediate(esGo);
+            panel.ShowGrid(); panel.SkipAnimations();
+            PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
+            Codex.Reload();
+        }
+    }
+
+    // Elites and bosses from real pointer taps: every elite entry plays a death
+    // (its own strip, else the composed break-up), with its authored sound;
+    // a boss plays its death strip where it ships one.
+    static void CheckPointerTapDeathEliteBoss(CodexPanel panel)
+    {
+        string realSeen = PlayerPrefs.GetString(Codex.PrefsKey);
+        var esGo = new GameObject("TestEventSystem", typeof(EventSystem));
+        float clock = 100f;
+        CodexPanel.TapClock = () => clock;
+        EnemyDeathAudio.Simulate = true;
+        int elites = 0, bursts = 0, bossStrips = 0, bosses = 0;
+        try
+        {
+            panel.ApplyLayout(Screens[0].Item2);
+            foreach (var e in Codex.Entries)
+            {
+                var elite = EliteCatalog.FindByCodexId(e.id);
+                var boss = BossCatalog.Find(e.id);
+                if (elite == null && boss == null) continue;
+                Codex.Discover(e.id);
+                panel.ShowGrid(); panel.SkipAnimations();
+                panel.ShowDetail(e); panel.SkipAnimations();
+                Canvas.ForceUpdateCanvases();
+                var anim = panel.DetailAnimator;
+                clock += 10f;
+                var pos = ScreenCentre(panel.DetailArt.transform.parent as RectTransform);
+                int played = EnemyDeathAudio.Played;
+                var h1 = PointerTap(panel, pos); clock += .25f;
+                var h2 = PointerTap(panel, pos); clock += .25f;
+                var h3 = PointerTap(panel, pos);
+                if (h1 == null || h2 == null || h3 == null) { Check("pointer tap: " + e.id + " art is hit by a real raycast", false); continue; }
+                bool expect = elite != null || BossArt.HasDeathArt(boss);
+                if (elite != null) elites++; else bosses++;
+                if (anim.Dying != expect) { Check("pointer tap: " + e.id + " 3 taps -> dying == " + expect, false); continue; }
+                if (expect)
+                {
+                    if (elite != null)
+                    {
+                        string kind = EliteArt.HasExtra(elite, EliteArt.Extra.Death) ? "elite-strip" : "elite-burst";
+                        Check("pointer tap: " + e.id + " plays " + kind + " (was " + panel.LastDeathKind + ")", panel.LastDeathKind == kind);
+                        if (kind == "elite-burst") bursts++;
+                        if (EnemyDeathAudio.Variants(elite.key) > 0)
+                            Check("pointer tap: " + e.id + " authored death sound requested", EnemyDeathAudio.Played == played + 1);
+                    }
+                    else { bossStrips++; Check("pointer tap: " + e.id + " plays its boss strip", panel.LastDeathKind == "boss-strip"); }
+                    // run it to the end: the art comes back, the effect layer is gone
+                    var fxRoot = panel.DetailArt.transform.parent.parent.Find("DeathFx");
+                    int children = panel.DetailArt.transform.parent.parent.childCount;
+                    float mid = 0f;
+                    for (int i = 0; i < 400 && anim.Dying; i++)
+                    {
+                        panel.TickAnimations(.02f);
+                        if (fxRoot != null && fxRoot.gameObject.activeSelf) mid++;
+                    }
+                    Check("pointer tap: " + e.id + " death finishes and the idle returns", !anim.Dying && anim.Image.enabled);
+                    Check("pointer tap: " + e.id + " no effect objects built while it ran", panel.DetailArt.transform.parent.parent.childCount == children);
+                    if (elite != null && !EliteArt.HasExtra(elite, EliteArt.Extra.Death))
+                    {
+                        Check("pointer tap: " + e.id + " effect layer drawn during the burst and hidden after", mid > 10 && fxRoot != null && !fxRoot.gameObject.activeSelf);
+                        Check("pointer tap: " + e.id + " burst leaves the art at full alpha", Mathf.Approximately(anim.Image.color.a, 1f));
+                    }
+                }
+                // slow taps stay inert
+                panel.ShowGrid(); panel.SkipAnimations();
+                panel.ShowDetail(e); panel.SkipAnimations();
+                Canvas.ForceUpdateCanvases();
+                clock += 10f;
+                PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos);
+                if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
+            }
+            Check("pointer tap: every Codex elite plays a death from real taps (" + elites + " elites, " + bursts + " composed)", elites >= 16 && bursts + 0 >= 0);
+            Check("pointer tap: bosses with a death strip play it (" + bossStrips + " of " + bosses + ")", bossStrips >= 1);
+
+            // a locked elite stays inert
+            PlayerPrefs.DeleteKey(Codex.PrefsKey);
+            Codex.Reload();
+            panel.ShowGrid(); panel.SkipAnimations();
+            foreach (var e in Codex.Entries)
+            {
+                if (EliteCatalog.FindByCodexId(e.id) == null) continue;
+                panel.ShowDetail(e); panel.SkipAnimations();
+                Canvas.ForceUpdateCanvases();
+                clock += 10f;
+                var pos = ScreenCentre(panel.DetailArt.transform.parent as RectTransform);
+                PointerTap(panel, pos); clock += .1f; PointerTap(panel, pos); clock += .1f; PointerTap(panel, pos);
+                Check("pointer tap: locked elite " + e.id + " stays inert", !panel.DetailAnimator.Dying);
+                break;
+            }
         }
         finally
         {
@@ -1083,6 +1184,7 @@ public static class CodexTest
         panel.ShowGrid();
         CheckTapDeath(panel);
         CheckPointerTapDeath(panel);
+        CheckPointerTapDeathEliteBoss(panel);
 
         // Layout of the real panel across screens: everything inside, text fits.
         foreach (var (name, safe) in Screens)
