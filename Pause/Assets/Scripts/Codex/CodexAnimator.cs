@@ -191,6 +191,18 @@ public class CodexAnimator : MonoBehaviour
     int changes;
     Sprite shown;
 
+    // One-shot death (detail view): the game's three-drawing strip, then a
+    // short empty beat and a fade back into the idle loop.
+    public enum DeathPhase { None, Strip, Gap, FadeIn }
+    public static readonly float[] DeathHolds =
+        { .08f, .11f, .2f };   // EnemyDeathFlipbook's Flash / Rupture / Smoke
+    public const float DeathGap = .35f, DeathFadeIn = .4f;
+    Sprite[] deathFrames;
+    DeathPhase death;
+    float deathClock;
+    public DeathPhase Death { get { return death; } }
+    public bool Dying { get { return death != DeathPhase.None; } }
+
     // Set by the panel each tick: is this animator being advanced?
     public bool Ticking { get; set; }
     public CodexAnimation Animation { get { return anim; } }
@@ -221,6 +233,8 @@ public class CodexAnimator : MonoBehaviour
     public void Bind(CodexAnimation a, bool locked, bool detail, float phase = 0f)
     {
         anim = a != null && a.HasArt ? a : null;
+        death = DeathPhase.None;
+        deathFrames = null;
         this.detail = detail;
         telling = false;
         tellVariant = tellStep = tellLoop = 0;
@@ -285,11 +299,68 @@ public class CodexAnimator : MonoBehaviour
     // dt seconds of unscaled time.
     public void Advance(float dt)
     {
-        if (anim == null || dt <= 0f || !anim.Animates) return;
+        if (anim == null || dt <= 0f) return;
         if (dt > MaxStep) dt = MaxStep;
+        if (death != DeathPhase.None) { AdvanceDeath(dt); if (death == DeathPhase.Strip || death == DeathPhase.Gap) return; }
+        if (!anim.Animates) return;
         clock += dt;
         Run(dt, detail && anim.HasTell);
         Motion();
+    }
+
+    // Plays the death strip once over the idle (no-op while one is running or
+    // with nothing bound). The frames share the idle's box and scale.
+    public bool PlayDeath(Sprite[] frames)
+    {
+        if (anim == null || anim.under != null || frames == null || frames.Length != DeathHolds.Length) return false;
+        if (death != DeathPhase.None) return false;
+        for (int i = 0; i < frames.Length; i++) if (frames[i] == null) return false;
+        deathFrames = frames;
+        death = DeathPhase.Strip;
+        deathClock = 0f;
+        telling = false;
+        tellStep = tellLoop = 0;
+        Show(frames[0], true);
+        image.enabled = true;
+        return true;
+    }
+
+    void AdvanceDeath(float dt)
+    {
+        deathClock += dt;
+        switch (death)
+        {
+            case DeathPhase.Strip:
+                float t = deathClock;
+                int f = t < DeathHolds[0] ? 0 : t < DeathHolds[0] + DeathHolds[1] ? 1 : 2;
+                if (t >= DeathHolds[0] + DeathHolds[1] + DeathHolds[2])
+                {
+                    death = DeathPhase.Gap;
+                    deathClock = 0f;
+                    image.enabled = false;
+                }
+                else if (image.sprite != deathFrames[f]) Show(deathFrames[f], true);
+                break;
+            case DeathPhase.Gap:
+                if (deathClock >= DeathGap)
+                {
+                    death = DeathPhase.FadeIn;
+                    deathClock = 0f;
+                    step = 0;
+                    hold = anim.idleHold[0];
+                    untilTell = anim.tellGap.x;
+                    Show(anim.idle[0], true);
+                    CodexUi.SetAlpha(image, 0f);
+                    image.enabled = true;
+                    Motion();
+                }
+                break;
+            case DeathPhase.FadeIn:
+                float k = Mathf.Clamp01(deathClock / DeathFadeIn);
+                CodexUi.SetAlpha(image, k);
+                if (k >= 1f) { death = DeathPhase.None; deathFrames = null; }
+                break;
+        }
     }
 
     void Run(float dt, bool canTell)

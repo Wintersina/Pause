@@ -104,7 +104,14 @@ public static class EnemyDeathAudio
         string key = def != null ? def.key : target.name;
         if (string.IsNullOrEmpty(key)) key = "unknown_target";
         EnemyRole role = def != null ? def.role : GuessRole(target);
-        if (PlayAuthored(key, Volume(role))) return;
+        PlayKey(key, role, false);
+    }
+
+    // The same cue without a target object (the codex's tapped enemy).
+    public static void PlayKey(string key, EnemyRole role, bool forceScream)
+    {
+        if (!(Application.isPlaying || Simulate) || string.IsNullOrEmpty(key)) return;
+        if (PlayAuthored(key, Volume(role), forceScream)) return;
         if (!Application.isPlaying) return;
         var clip = Clip(key, role);
         var src = Source();

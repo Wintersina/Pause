@@ -49,6 +49,108 @@ public static class CodexTest
         return fails;
     }
 
+    // ---- Triple tap on the detail art plays the enemy's death ----
+
+    static void CheckTapDeath(CodexPanel panel)
+    {
+        string realSeen = PlayerPrefs.GetString(Codex.PrefsKey);
+        string withStrip = "enemy_space_fighter_1";
+        Codex.Discover(withStrip);
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.Simulate = true;
+        try
+        {
+            panel.ShowDetail(Codex.Find(withStrip));
+            panel.SkipAnimations();
+            var anim = panel.DetailAnimator;
+            float t = Time.unscaledTime + 10f;
+            Check("tap death: strip exists for the space fighter", EnemyDeathFlipbook.Frames(EnemyRoster.FindByCodexId(withStrip)) != null);
+            Check("tap death: the art box takes taps", panel.DetailArt.transform.parent.GetComponent<CodexArtTap>() != null);
+
+            // Slow taps (each beyond the window) never trigger.
+            bool any = panel.TapDetailArt(t) | panel.TapDetailArt(t + 1f) | panel.TapDetailArt(t + 2f) | panel.TapDetailArt(t + 3f);
+            Check("tap death: slow taps do nothing", !any && !anim.Dying);
+            // Two quick then a slow one does not either.
+            t += 10f;
+            any = panel.TapDetailArt(t) | panel.TapDetailArt(t + .2f) | panel.TapDetailArt(t + .9f);
+            Check("tap death: 2 quick + 1 late does nothing", !any && !anim.Dying);
+
+            t += 10f;
+            int played = EnemyDeathAudio.Played;
+            panel.TapDetailArt(t);
+            panel.TapDetailArt(t + .3f);
+            bool fired = panel.TapDetailArt(t + .55f);
+            Check("tap death: 3 quick taps fire", fired && anim.Dying && anim.Death == CodexAnimator.DeathPhase.Strip);
+            Check("tap death: first death drawing shown", anim.Image.sprite != null && anim.Image.sprite.name.EndsWith("_death_0"));
+            Check("tap death: death sound requested", EnemyDeathAudio.Played == played + 1 || EnemyDeathAudio.Variants(withStrip) == 0);
+            Check("tap death: further taps ignored while it plays", !panel.TapDetailArt(t + .6f) && !panel.TapDetailArt(t + .65f) && !panel.TapDetailArt(t + .7f));
+
+            panel.TickAnimations(.09f);
+            Check("tap death: second drawing", anim.Image.sprite.name.EndsWith("_death_1"));
+            panel.TickAnimations(.11f);
+            Check("tap death: third drawing", anim.Image.sprite.name.EndsWith("_death_2"));
+            panel.TickAnimations(.1f);
+            panel.TickAnimations(.1f);
+            panel.TickAnimations(.05f);
+            Check("tap death: empty beat after the strip", anim.Death == CodexAnimator.DeathPhase.Gap && !anim.Image.enabled);
+            for (int i = 0; i < 4; i++) panel.TickAnimations(.1f);   // (a tick is clamped to MaxStep)
+            Check("tap death: fades back in on the idle", anim.Death == CodexAnimator.DeathPhase.FadeIn && anim.Image.enabled && anim.Image.color.a < 1f);
+            for (int i = 0; i < 20; i++) panel.TickAnimations(.05f);
+            Check("tap death: back to idle, opaque", !anim.Dying && Mathf.Approximately(anim.Image.color.a, 1f) && anim.Image.sprite != null &&
+                  !anim.Image.sprite.name.Contains("_death_"));
+
+            // Repeatable.
+            t += 20f;
+            panel.TapDetailArt(t); panel.TapDetailArt(t + .1f);
+            Check("tap death: plays again", panel.TapDetailArt(t + .2f) && anim.Dying);
+            panel.ShowGrid(); panel.SkipAnimations();
+            panel.ShowDetail(Codex.Find(withStrip)); panel.SkipAnimations();
+            Check("tap death: reopening the entry resets it", !panel.DetailAnimator.Dying && panel.DetailAnimator.Image.color.a == 1f);
+
+            // Not during the open/close transition.
+            panel.ShowGrid(); panel.SkipAnimations();
+            panel.ShowDetail(Codex.Find(withStrip));
+            float n = Time.unscaledTime;
+            Check("tap death: not mid-transition", !(panel.TapDetailArt(n) | panel.TapDetailArt(n + .01f) | panel.TapDetailArt(n + .02f)));
+            panel.SkipAnimations();
+
+            // Locked entries do nothing.
+            PlayerPrefs.SetString(Codex.PrefsKey, "");
+            Codex.Reload();
+            panel.ShowGrid(); panel.SkipAnimations();
+            panel.ShowDetail(Codex.Find(withStrip)); panel.SkipAnimations();
+            t += 20f;
+            Check("tap death: locked entry does nothing", !(panel.TapDetailArt(t) | panel.TapDetailArt(t + .1f) | panel.TapDetailArt(t + .2f)) && !panel.DetailAnimator.Dying);
+
+            // Keys without a strip (a mine; a boss) are handled quietly.
+            PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
+            Codex.Reload();
+            int checkedNoStrip = 0;
+            foreach (var e in Codex.Entries)
+            {
+                var def = EnemyRoster.FindByCodexId(e.id);
+                bool noStrip = (def != null && EnemyDeathFlipbook.Frames(def) == null) || BossCatalog.Find(e.id) != null;
+                if (!noStrip) continue;
+                Codex.Discover(e.id);
+                panel.ShowGrid(); panel.SkipAnimations();
+                panel.ShowDetail(e); panel.SkipAnimations();
+                t += 20f;
+                bool r = panel.TapDetailArt(t) | panel.TapDetailArt(t + .1f) | panel.TapDetailArt(t + .2f);
+                if (r || panel.DetailAnimator.Dying) Check("tap death: no-strip entry " + e.id + " must do nothing", false);
+                checkedNoStrip++;
+            }
+            Check("tap death: entries without a strip are inert (" + checkedNoStrip + ")", checkedNoStrip > 0);
+        }
+        finally
+        {
+            EnemyDeathAudio.Simulate = false;
+            EnemyDeathAudio.ResetVoices();
+            panel.ShowGrid(); panel.SkipAnimations();
+            PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
+            Codex.Reload();
+        }
+    }
+
     // ---- The table itself ----
 
     static void CheckCatalogue()
@@ -856,6 +958,7 @@ public static class CodexTest
         Check("discovered detail shows the name", panel.DetailName.text == "Needle");
         Check("discovered detail shows the lore", panel.DetailLore.text == Codex.Find("enemy_space_fighter_1").lore);
         panel.ShowGrid();
+        CheckTapDeath(panel);
 
         // Layout of the real panel across screens: everything inside, text fits.
         foreach (var (name, safe) in Screens)
