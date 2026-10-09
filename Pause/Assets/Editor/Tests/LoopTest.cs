@@ -57,6 +57,10 @@ public static class LoopTest
         // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
         // the same delays, so it is switched off here (the Sandbox puts it back).
         EnemyDensity.Disabled = true;
+        // This suite is the loop portal's: Ember's lift-off (LiftoffTest, which
+        // also flies it to this same portal) stands aside so the boss's end
+        // opens the portal at once.
+        LiftoffCatalog.Enabled = false;
         int rush = PlayerPrefs.GetInt(BossDev.RushKey, -1);
         try
         {
@@ -77,6 +81,7 @@ public static class LoopTest
         }
         finally
         {
+            LiftoffCatalog.Enabled = true;
             RunLoop.Reset();
             BossEncounter.ResetRun();
             PortalPressure.Reset();

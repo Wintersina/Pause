@@ -169,6 +169,15 @@ public static class BossEncounterTest
 
     static void EmberHasABossThenTheLoopPortal()
     {
+        // Ember's lift-off (LiftoffTest) stands aside: its end opens the loop
+        // portal at once (the lift-off flies to the same portal afterwards).
+        LiftoffCatalog.Enabled = false;
+        try { EmberBossToLoopPortal(); }
+        finally { LiftoffCatalog.Enabled = true; }
+    }
+
+    static void EmberBossToLoopPortal()
+    {
         FreshScene(3);
         var wm = World(-1f);
         wm.SendMessage("Update");
