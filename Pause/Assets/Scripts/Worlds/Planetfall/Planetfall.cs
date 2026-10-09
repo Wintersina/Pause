@@ -446,7 +446,7 @@ public class Planetfall : MonoBehaviour
     // burst, the rest vanish, hostile shots pop.
     static readonly List<ClearTarget> clearing = new List<ClearTarget>(64);
 
-    internal static void ClearBoard(Camera cam)
+    public static void ClearBoard(Camera cam)
     {
         clearing.Clear();
         clearing.AddRange(ClearTarget.Live);
