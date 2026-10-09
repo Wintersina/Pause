@@ -85,8 +85,13 @@ While the blue atom's shield is up the ship boosts, as today: +5 HUD per blue at
 
 Unchanged table (`ShipStartSpeed`): regular ships 0 / 5 / 10 / 15 / 20 by colour, high-end 10 - 30. A
 world is a distance (what a start of 0 covers in 120 s on the world's curve), so a faster start meets the
-boss sooner, and arrives in every later world at its start speed again (or the loop's arrival speed,
-whichever is higher). With the cap at 35 nobody can out-ramp a fast start: time to the boss by start
+boss sooner, and arrives in every later world at its start speed again. **Every new world resets the speed**
+(`WorldManager.Advance`: portal, planetfall, the loop lift-off and the loop portal) to exactly what a
+fresh run starts at (`WorldManager.RunStartSpeed`: the selected ship and colour's START SPD), a limit-break
+boost in progress included; the ramp then climbs again at the new world's rate. Loops no longer arrive
+faster (`LoopRules.ArrivalSpeed` is not used any more): their difficulty is the ramp rate, density and
+enemies. Score, distance, hearts and charge carry over; nothing resets mid-world or mid-boss
+(`WorldSpeedResetTest`). With the cap at 35 nobody can out-ramp a fast start: time to the boss by start
 speed *(measured, `SpeedCapTest` "TABLE time to the boss")*, seconds old / new:
 
 | World (distance old / new) | 0 | 5 | 10 | 15 | 20 | 25 | 30 |

@@ -311,10 +311,10 @@ public static class LoopTest
               RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
         Check("the pressure is over: neutral dials again", !PortalPressure.Active && PortalPressure.DensityScale == 1f &&
               !PortalPressure.EarningsClosed && wm.Stage == WorldManager.LevelStage.Level);
-        Check("arrival speed is the loop's (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + "), under the cap",
+        Check("arrival speed is the ship's fresh-run start (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + "), under the cap",
               Mathf.Approximately(moveBackGround.speed, WorldManager.ArrivalSpeed(1)) &&
-              Mathf.Approximately(WorldManager.ArrivalSpeed(1), Mathf.Max(LoopRules.ArrivalSpeed(1), ShipStartSpeed.StockHud / 100f)) &&
-              moveBackGround.speed > 0f && moveBackGround.speed <= SpeedRamp.Cap);
+              Mathf.Approximately(WorldManager.ArrivalSpeed(1), WorldManager.RunStartSpeed(0f)) &&
+              moveBackGround.speed <= SpeedRamp.Cap);
         Check("the level distance restarted", Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !wm.PortalIsOpen);
 
         // Space's boss again, then its portal, then Frost.

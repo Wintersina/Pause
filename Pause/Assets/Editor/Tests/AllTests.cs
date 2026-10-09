@@ -147,6 +147,7 @@ public static class AllTests
         ("SpawnSpaceTest", SpawnSpaceTest.Execute),
         ("SpeedCapTest", SpeedCapTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),
+        ("WorldSpeedResetTest", WorldSpeedResetTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
         ("SplashLayoutTest", SplashLayoutTest.Execute),
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),

@@ -57,6 +57,8 @@ public static class LoopRules
 
     static int Scaled(int loop) { return Mathf.Clamp(loop, 0, MaxScaledLoops); }
 
+    // No longer the arrival speed: every world, loops included, is entered at the
+    // ship's start speed (WorldManager.ArrivalSpeed). Kept as a loop-difficulty reference.
     public static float ArrivalSpeed(int loop) { return Mathf.Min(SpeedRamp.Cap, ArrivalSpeedPerLoop * Scaled(loop)); }
     public static float RampScale(int loop) { return 1f + RampPerLoop * Scaled(loop); }
     public static float PhaseRampScale(int loop) { return 1f + PhaseRampPerLoop * Scaled(loop); }

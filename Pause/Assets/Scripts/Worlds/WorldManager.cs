@@ -231,11 +231,16 @@ public class WorldManager : MonoBehaviour
         return Mathf.Min(s, SpeedRamp.Cap);
     }
 
-    // The natural speed a portal arrival starts at on `loop`: the loop's
-    // arrival speed or the ship and colour's start, whichever is higher.
+    // The natural speed every new world is entered at: exactly what a fresh
+    // run starts with (RunStartSpeed: the selected ship and colour's start,
+    // the scene's own start as a floor, never past the cap). `loop` is
+    // accepted for the callers' sake and does not matter: a loop is a new
+    // world like any other and the loop's difficulty lives in the ramp rate,
+    // density and enemies (LoopRules), not in a higher arrival speed.
     public static float ArrivalSpeed(int loop)
     {
-        return Mathf.Min(SpeedRamp.Cap, Mathf.Max(LoopRules.ArrivalSpeed(loop), ShipStartSpeed.EquippedSpeed()));
+        var wall = Object.FindFirstObjectByType<moveBackGround>();
+        return RunStartSpeed(wall != null ? wall.startSpeed : 0f);
     }
 
     void Awake()
@@ -481,9 +486,12 @@ public class WorldManager : MonoBehaviour
             banner = Current.displayName;
         }
 
-        // Speed resets on arrival (a little higher on each loop, never below
-        // the ship and colour's start speed, never past the cap); pauses and
-        // star dust deliberately carry over. A boost in progress rides on.
+        // Speed resets on arrival to the selected ship's start speed, the same
+        // value a fresh run starts with (ArrivalSpeed); a limit-break boost
+        // in progress does not carry over either. Score, distance, pauses and
+        // star dust deliberately carry over. The ramp then climbs again
+        // from there at the new world's rate.
+        SpeedRamp.ResetBoost();
         SpeedRamp.SetNatural(ArrivalSpeed(RunLoop.Index));
         portalOpen = false;
         distanceLeft = WorldDistance;

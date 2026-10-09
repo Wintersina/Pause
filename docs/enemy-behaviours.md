@@ -418,7 +418,7 @@ Thresholds keyed to speed, checked one by one:
 | Boss fight speed (`BossConfig.FightSpeed`) | 20 | unchanged | below every cap |
 | Resume slow-motion (`ResumeSlowMo.MinHudSpeed`) | 15 | unchanged | below every cap |
 | Ship start speeds (`ShipStartSpeed`) | 0-30 | unchanged | the fastest (30) starts at the knee, under the lowest cap (38) |
-| Loop arrival speed | 4 / 8 / 12 | unchanged | below the knee |
+| Loop arrival speed | 4 / 8 / 12 | removed: every world starts at the ship's START SPD | n/a |
 | Top Speed leaderboard (`docs/leaderboards.md`) | best-ever value | unchanged code | see note |
 | `achievement_speedster` | never triggered by code | unchanged | not keyed to a speed in code |
 | `score.topSpeed` (dust trickle, scene value 0.6) | 0.6 | unchanged | under 1% of income; left so the economy does not move |
