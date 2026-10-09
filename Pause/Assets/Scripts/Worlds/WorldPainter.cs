@@ -61,10 +61,11 @@ public static class WorldPainter
     // ---- rail brightness ----
     // The rail art's colour is multiplied by this (rgb only: hue, alpha and
     // the drawn silhouette, which BossRails and the rail mines clamp to, stay
-    // as they are). Frost's pale steel and cyan lamps out-shone the lane, so
-    // its rails are dimmed to recede behind the playfield; every other world
-    // draws its rail as painted.
-    public static float FrostRailBrightness = .6f;
+    // as they are). A per-world dial; every world draws its rail as painted.
+    // Frost was dimmed to .6 ("so the lane leads") but, measured against its
+    // pale sky, that made its rails twice as heavy as Space's against the black
+    // (RailMatchTest: rail-vs-lane contrast .27 vs .13); as painted it is .15.
+    public static float FrostRailBrightness = 1f;
 
     public static float RailBrightness(string world)
     {

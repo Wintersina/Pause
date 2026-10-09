@@ -910,8 +910,8 @@ public static class WorldBackdropTest
                 Debug.Log("[WB] rail light " + theme.displayName + ": painted " + before.ToString("F0") + ", drawn " + after.ToString("F0"));
                 var mat = walls[0].GetComponent<Renderer>().sharedMaterial;
                 if (theme.displayName == "Frost")
-                    Check("Frost rails render dimmed to " + (ratio * 100f).ToString("F0") + "% of the painted rail (50..70%)",
-                          before > 1f && ratio >= .5f && ratio <= .7f);
+                    Check("Frost rails render at its rail dial (" + (ratio * 100f).ToString("F0") + "% of the painted rail, dial " +
+                          (saved * 100f).ToString("F0") + "%)", before > 1f && Mathf.Abs(ratio - saved) < .02f);
                 else
                     Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint untouched)",
                           before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == theme.tint);
