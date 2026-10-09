@@ -79,6 +79,13 @@ public static class TitleScreenTrafficTest
         TestHarness.FlushGpu();
     }
 
+    // The elite's snipe run clears the sky on purpose; population checks
+    // skip it and the few seconds the traffic takes to refill.
+    static bool EliteWindow(TitleScreenTraffic t)
+    {
+        return t.EliteBusy || (t.LastEliteReturnAt >= 0f && t.Now - t.LastEliteReturnAt < 4f);
+    }
+
     static SpriteRenderer Logo()
     {
         var go = GameObject.Find("menuTitle");
@@ -128,6 +135,7 @@ public static class TitleScreenTrafficTest
         Check("the menu starfield draws behind even the back layer", skyBehind);
 
         var t = Make("~TT_depth", 11);
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         float[] sum = new float[3]; int[] n = new int[3];
         bool bands = true;
         var hazeShader = Resources.Load<Shader>("TitleTraffic/TitleTrafficHaze");
@@ -170,6 +178,7 @@ public static class TitleScreenTrafficTest
     static void NoDuplicateHullsInTheAir()
     {
         var t = Make("~TT_dupes", 3);
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         // x1.4 density: the roster (15) is smaller than the busiest sky (17),
         // so the pool is one ship per roster id plus a few flagged twins that
         // only fly once every original is already in the air.
@@ -205,6 +214,7 @@ public static class TitleScreenTrafficTest
     static void BoostsUseTheShipsOwnBoostFlame()
     {
         var t = Make("~TT_boost", 5, x => x.layerTargets = new[] { 0, 2, 0 });
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextCrashAt = 1e9f;
         TitleScreenTraffic.Flyer f = null;
         foreach (var c in t.Pool) if (c.active && !c.wind) { f = c; break; }
@@ -306,6 +316,7 @@ public static class TitleScreenTrafficTest
               SpaceDock.LaunchDuration == DockLaunch.Duration && DockLaunch.FlightTime > 0f);
 
         var t = Make("~TT_zip", 9, x => { x.layerTargets = new[] { 0, 1, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextCrashAt = 1e9f;
         TitleScreenTraffic.Flyer f = null;
         foreach (var c in t.Pool) if (c.active && !c.wind) { f = c; break; }
@@ -376,6 +387,7 @@ public static class TitleScreenTrafficTest
     static void SpinnersFlyTheirSpinDrift()
     {
         var t = Make("~TT_drift", 13, x => { x.layerTargets = new[] { 0, 0, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextCrashAt = 1e9f;
         int spinners = 0;
         string why = null;
@@ -478,6 +490,7 @@ public static class TitleScreenTrafficTest
     static void SpinnerHullsSpinLikeGameplay()
     {
         var t = Make("~TT_spin", 21, x => { x.layerTargets = new[] { 0, 0, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextCrashAt = 1e9f;
         var refGo = new GameObject("~TT_spinref");
         float gameplay = refGo.AddComponent<ShipSpinDrift>().degreesPerSecond;
@@ -648,6 +661,7 @@ public static class TitleScreenTrafficTest
     static void CrashesOnlyWithinALayerAndRateLimited()
     {
         var t = Make("~TT_crash", 7, x => { x.layerTargets = new[] { 0, 0, 0 }; x.zoomInterval = new Vector2(1e6f, 1e6f); });
+        t.NextEliteAt = 1e9f;   // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextCrashAt = 0f;
         Vector2 site = new Vector2(t.Safe.center.x + .6f, t.Safe.yMin + 1.6f);
 
@@ -740,8 +754,9 @@ public static class TitleScreenTrafficTest
             capped &= n <= t.maxShips && n <= TitleScreenTraffic.MaxCap;
             pools &= t.TrackedFx <= TitleScreenTraffic.FxTrack;
             flipbookPeak = Mathf.Max(flipbookPeak, WeaponFx.FlipbookPoolSize);
-            if (s > 10f) { minPop = Mathf.Min(minPop, n); popSum += n; steps++; }
+            if (s > 10f && !EliteWindow(t)) { minPop = Mathf.Min(minPop, n); popSum += n; steps++; }
         }
+        Check("the elite snipe runs went off (" + t.EliteEvents + " runs, " + t.EliteSnipes + " sniped)", t.EliteEvents >= 10);
         float avgPop = steps > 0 ? popSum / (float)steps : 0f;
         Check("population never exceeds the cap (" + t.maxShips + ")", capped);
         Check("population stays steady (avg " + avgPop.ToString("0.0") + ", min " + minPop + ")", avgPop >= 12f && minPop >= 8);   // x1.4 sky (was avg >= 8, min >= 5)
@@ -769,7 +784,8 @@ public static class TitleScreenTrafficTest
         Check("formation fly-bys happen (" + t.Formations + ")", t.Formations >= 10);
         Check("loops and barrel rolls happen (" + t.Loops + " / " + t.Rolls + ")", t.Loops >= 10 && t.Rolls >= 10);
         Check("dizzy beats happen (" + t.DizzyBeats + ")", t.DizzyBeats >= 5);
-        Check("logo didn't move during the long run", logo == null || logo.transform.position == lp);
+        for (int i = 0; i < 30 && t.LogoShaking; i++) t.Step(Dt);
+        Check("logo back exactly where it was after the long run (it only shakes on a crash)", logo == null || logo.transform.position == lp);
         Done(t);
     }
 
@@ -795,7 +811,7 @@ public static class TitleScreenTrafficTest
                     t.Step(Dt);
                     if (++frames % TestHarness.FlushEvery == 0) TestHarness.FlushGpu();
                     int n = t.ActiveCount;
-                    if (s > 10f) { sum += n; steps++; peak = Mathf.Max(peak, n); }
+                    if (s > 10f && !EliteWindow(t)) { sum += n; steps++; peak = Mathf.Max(peak, n); }
                 }
                 float avg = sum / (float)steps;
                 if (pass == 0) { baseAvg += avg / Runs; basePeak = Mathf.Max(basePeak, peak); }
@@ -857,7 +873,7 @@ public static class TitleScreenTrafficTest
             for (int i = 0; i < 30 * 120; i++)
             {
                 t.Step(Dt);
-                if (i % 30 == 0) { pop += t.ActiveCount; samples++; }
+                if (i % 30 == 0 && !EliteWindow(t)) { pop += t.ActiveCount; samples++; }
             }
             int logged = Mathf.Min(t.Crashes, TitleScreenTraffic.CrashLog);
             for (int i = t.Crashes - logged; i < t.Crashes; i++)

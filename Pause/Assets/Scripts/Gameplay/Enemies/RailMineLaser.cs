@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// A rail mine's laser ("have the rail mines shoot a laser"): a straight,
-// horizontal beam from the mine's rail across the whole lane to the
-// opposite rail. Driven by the mine's EnemyBrain (EnemyAttack.Laser):
+// A rail mine's laser ("have the rail mines shoot a laser"): a straight
+// beam from the mine's rail across the whole lane to the opposite rail, at a
+// random angle off horizontal each shot ("shot at different angles too,
+// randomly"). Driven by the mine's EnemyBrain (EnemyAttack.Laser):
 //
 //   Aim    the brain's windup (the mine's waking -> charging loop and charge
 //          light, as before); for its last AimSeconds a thin blinking aim
@@ -21,17 +22,33 @@ using UnityEngine;
 // per world (MineLaserArt), never per fire or per frame.
 //
 // GEOMETRY. Every frame (LateUpdate, after RailMineMount places the mine)
-// the beam is laid at the mine's current y, from its own rail's drawn inner
-// face to the opposite rail's (BossRails.DrawnInnerEdge: the measured rails,
-// or where WorldPainter puts them on this screen, RailInset included). It
-// rides the board with the mine and is blocked by nothing but the rails.
+// the beam is laid from its own rail's drawn inner face at the mine's
+// current y, across the lane at this shot's Angle, to the opposite rail's
+// face (BossRails.DrawnInnerEdge: the measured rails, or where WorldPainter
+// puts them on this screen, RailInset included): Length = 2 edge / cos
+// Angle. It rides the board with the mine and is blocked by nothing but the
+// rails.
+//
+// ANGLE. Drawn when the windup starts (Arm), so the blinking aim line shows
+// exactly the line the beam will burn: uniform in +/-MaxAngleDeg off
+// horizontal (positive: rising toward the far rail), never within
+// MinAngleChangeDeg of the previous shot's. From the laser's own xorshift
+// stream (NextAngle), seeded from UnityEngine.Random's state without
+// drawing from it (the HazardSize approach), so every other seeded stream is
+// consumed exactly as before. Mirrored left / right: the direction is
+// (-side cos A, sin A), side +1 for the right rail. Everything -- the
+// sprites, the hitbox, Touches, Burn, a blink's LandsOn -- follows the one
+// rotated segment From -> To.
 //
 // DAMAGE. The pilot: a trigger BoxCollider2D tagged "Enimey" on a child
 // (HitboxName), HitThickness across the beam, enabled in the Beam phase
-// only -- collisionDetection's normal hostile hit: a heart, or, shielded,
-// absorbed (EliteShip.ShieldRam -> EraseHitbox ends the beam), erased by a
-// blink (EliteShip.TeleportStrike). A hit that destroys the hitbox ends the
-// beam. Other hazards: TARGETS ARE DECIDED IN ONE PLACE, Burn(): when
+// only -- collisionDetection's normal hostile hit: a heart (the beam is not
+// spent on the hull: it burns on and the heart's i-frames carry the ship
+// through), or, shielded, absorbed (EliteShip.ShieldRam -> EraseHitbox ends
+// the beam); a blink erases it only when the hull lands ON it (BlinkStrike:
+// not anywhere in the jump's 0.95 u blast circle). The fatal hit destroys
+// the hitbox and ends the beam. Nothing else near the ship touches it.
+// Other hazards: TARGETS ARE DECIDED IN ONE PLACE, Burn(): when
 // HurtsOtherEnemies is on, every ClearTarget hazard the live beam's rect
 // touches (FriendlyFire.HostileFireCanHit: not the boss, not shot hitboxes,
 // not a target still in its spawn-in protection, never its own mine; off in
@@ -63,6 +80,11 @@ public class RailMineLaser : MonoBehaviour
     // mines, elites)? The one switch for the beam's target filter.
     public static bool HurtsOtherEnemies = true;
     public const int MaxHitsPerPulse = 16;
+    // The random tilt of each shot.
+    public const float MaxAngleDeg = 35f;       // either way off horizontal
+    public const float MinAngleChangeDeg = 8f;  // consecutive shots differ by at least this
+    // Tests / previews: every shot at this angle (degrees) instead of a draw.
+    public static float? AngleOverride;
 
     SpriteRenderer sight, beam, flash, impact;
     GameObject hitbox;
@@ -74,8 +96,8 @@ public class RailMineLaser : MonoBehaviour
     readonly Sprite[] sparkSprites = new Sprite[2];
     readonly int[] hit = new int[MaxHitsPerPulse];
     int hitCount;
-    float t, age, aimDelay, length, side, y;
-    Vector2 from, to;
+    float t, age, aimDelay, length, side, y, angle;
+    Vector2 from, to, dir = Vector2.left;
 
     public Phase State { get; private set; }
     public bool Active => State != Phase.Off;
@@ -85,7 +107,9 @@ public class RailMineLaser : MonoBehaviour
     public GameObject Hitbox => hitbox;
     public Transform Owner => owner;
     public Vector2 From => from;            // its own rail's inner face, at the mine's y
-    public Vector2 To => to;                // the opposite rail's inner face
+    public Vector2 To => to;                // the opposite rail's inner face, along Angle
+    public Vector2 Direction => dir;        // unit, From -> To
+    public float Angle => angle;            // degrees off horizontal (+: rising toward the far rail)
     public float Length => length;
     public float Y => y;
     public float PhaseTime => t;
@@ -102,13 +126,85 @@ public class RailMineLaser : MonoBehaviour
         toX = -s * edge;
     }
 
-    // Does a body at p (half-height halfH, half-width halfW) overlap the
-    // live beam's hit rect? (The same rect as the hitbox.)
+    // The beam's direction from a rail (side +1: the right one) at `deg`.
+    public static Vector2 DirectionFor(float side, float deg)
+    {
+        float r = deg * Mathf.Deg2Rad;
+        return new Vector2(-side * Mathf.Cos(r), Mathf.Sin(r));
+    }
+
+    // Does a body at p (half-width halfW, half-height halfH: an upright box)
+    // overlap the live beam's hit rect -- the hitbox, HitThickness across the
+    // rotated segment From -> To? (Separating axes: the beam's two, the
+    // box's two.)
     public bool Touches(Vector2 p, float halfW, float halfH)
     {
         if (!Live) return false;
-        float lo = Mathf.Min(from.x, to.x), hi = Mathf.Max(from.x, to.x);
-        return Mathf.Abs(p.y - y) < HitThickness * .5f + halfH && p.x + halfW > lo && p.x - halfW < hi;
+        return RectOverlaps(from, dir, length, HitThickness * .5f, p, halfW, halfH);
+    }
+
+    public static bool RectOverlaps(Vector2 from, Vector2 dir, float length, float halfThick, Vector2 p, float halfW, float halfH)
+    {
+        Vector2 n = new Vector2(-dir.y, dir.x);
+        Vector2 d = p - (from + dir * (length * .5f));
+        float ax = Mathf.Abs(dir.x), ay = Mathf.Abs(dir.y);
+        // the box's axes
+        if (Mathf.Abs(d.x) >= halfW + length * .5f * ax + halfThick * ay) return false;
+        if (Mathf.Abs(d.y) >= halfH + length * .5f * ay + halfThick * ax) return false;
+        // the beam's axes
+        if (Mathf.Abs(Vector2.Dot(d, dir)) >= length * .5f + halfW * ax + halfH * ay) return false;
+        if (Mathf.Abs(Vector2.Dot(d, n)) >= halfThick + halfW * ay + halfH * ax) return false;
+        return true;
+    }
+
+    // Distance from p to the beam's centre line (the segment From -> To).
+    public float DistanceTo(Vector2 p) => Mathf.Sqrt(HostileShots.SegmentDistanceSq(from, to, p));
+
+    // ---- the angle stream ----
+    static uint rng;
+    static float lastAngle = float.NaN;
+
+    public static void Seed(uint seed)
+    {
+        rng = seed == 0u ? 0x9E3779B9u : seed;
+        lastAngle = float.NaN;
+        for (int i = 0; i < 4; i++) Next01();   // stir
+    }
+
+    // From UnityEngine.Random's current state, without drawing from it.
+    static void SeedFromUnity()
+    {
+        var st = Random.state;
+        var w = Unity.Collections.LowLevel.Unsafe.UnsafeUtility.As<Random.State, Words>(ref st);
+        uint h = 2166136261u;
+        h = (h ^ w.a) * 16777619u; h = (h ^ w.b) * 16777619u;
+        h = (h ^ w.c) * 16777619u; h = (h ^ w.d) * 16777619u;
+        Seed(h ^ 0x5bd1e995u);
+    }
+
+    struct Words { public uint a, b, c, d; }
+
+    static float Next01()
+    {
+        rng ^= rng << 13; rng ^= rng >> 17; rng ^= rng << 5;
+        return (rng & 0xFFFFFF) / 16777216f;
+    }
+
+    // The next shot's angle: uniform in +/-MaxAngleDeg, at least
+    // MinAngleChangeDeg from the previous one.
+    public static float NextAngle()
+    {
+        if (AngleOverride.HasValue) return Mathf.Clamp(AngleOverride.Value, -MaxAngleDeg, MaxAngleDeg);
+        if (rng == 0u) SeedFromUnity();
+        float a = Mathf.Lerp(-MaxAngleDeg, MaxAngleDeg, Next01());
+        if (!float.IsNaN(lastAngle) && Mathf.Abs(a - lastAngle) < MinAngleChangeDeg)
+        {
+            // pushed clear of the last one, toward the side with room
+            float up = lastAngle + MinAngleChangeDeg, down = lastAngle - MinAngleChangeDeg;
+            a = a >= lastAngle ? (up <= MaxAngleDeg ? up : down) : (down >= -MaxAngleDeg ? down : up);
+        }
+        lastAngle = a;
+        return a;
     }
 
     public static RailMineLaser Create(Transform root)
@@ -162,6 +258,7 @@ public class RailMineLaser : MonoBehaviour
         sparkSprites[1] = art.spark[1];
         sight.sprite = sightSprite;
         beam.sprite = beamSprites[0];
+        angle = NextAngle();   // the aim line shows this exact line
         aimDelay = Mathf.Max(0f, tellSeconds - AimSeconds);
         t = age = 0f;
         hitCount = 0;
@@ -237,12 +334,14 @@ public class RailMineLaser : MonoBehaviour
         float fx, tx;
         SpanFor(m.x, out fx, out tx);
         side = m.x >= 0f ? 1f : -1f;
+        dir = DirectionFor(side, angle);
         from = new Vector2(fx, y);
-        to = new Vector2(tx, y);
-        length = Mathf.Abs(tx - fx);
+        // rail face to rail face across the lane, at the angle
+        length = Mathf.Abs(tx - fx) / Mathf.Max(.05f, Mathf.Abs(dir.x));
+        to = from + dir * length;
         transform.position = new Vector3(fx, y, 0f);
         // local +y runs along the beam, toward the far rail
-        transform.rotation = Quaternion.Euler(0f, 0f, side > 0f ? 90f : -90f);
+        transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f);
         transform.localScale = Vector3.one;
 
         float tick = BossArt.Tick;
@@ -277,7 +376,7 @@ public class RailMineLaser : MonoBehaviour
                     // beam (where a shield shows the absorb, a heart darts to)
                     var p = EliteSystem.Player;
                     float along = length * .5f;
-                    if (p != null) along = Mathf.Clamp((p.position.x - fx) * -side, 0f, length);
+                    if (p != null) along = Mathf.Clamp(Vector2.Dot((Vector2)p.position - from, dir), 0f, length);
                     hitbox.transform.localPosition = new Vector3(0f, along, 0f);
                     box.size = new Vector2(HitThickness, Mathf.Max(.01f, length));
                     box.offset = new Vector2(0f, length * .5f - along);
@@ -305,7 +404,7 @@ public class RailMineLaser : MonoBehaviour
         if (!HurtsOtherEnemies || length <= 0f || !FriendlyFire.HostileFireAllowed) return;
         var live = ClearTarget.Live;
         var shooter = owner != null ? owner.gameObject : null;
-        float lo = Mathf.Min(from.x, to.x), hi = Mathf.Max(from.x, to.x), half = HitThickness * .5f;
+        float half = HitThickness * .5f;
         for (int i = 0; i < live.Count; i++)
         {
             var c = live[i];
@@ -315,9 +414,13 @@ public class RailMineLaser : MonoBehaviour
             if (AlreadyHit(id)) continue;
             Vector2 p = c.transform.position;
             float r = c.Radius * .8f;
-            if (Mathf.Abs(p.y - y) > half + r || p.x + r < lo || p.x - r > hi) continue;
+            float reach = half + r;
+            if (HostileShots.SegmentDistanceSq(from, to, p) > reach * reach) continue;
+            // where it is struck: its foot on the beam
+            float along = Mathf.Clamp(Vector2.Dot(p - from, dir), 0f, length);
+            Vector2 at = from + dir * along;
             // capped this frame: not spent, the beam tries again next frame
-            if (!FriendlyFire.HostileHit(c, new Vector3(p.x, y, 0f), "mine laser")) return;
+            if (!FriendlyFire.HostileHit(c, new Vector3(at.x, at.y, 0f), "mine laser")) return;
             if (hitCount < hit.Length) hit[hitCount++] = id;
             return;   // one a frame: the registry changes under a kill
         }
@@ -344,14 +447,49 @@ public class RailMineLaser : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // collisionDetection's shielded path (EliteShip.ShieldRam) and a blink
-    // (EliteShip.TeleportStrike): a mine laser's hitbox is absorbed /
-    // erased, the beam ends. False if `go` is not one.
+    // collisionDetection's shielded path (EliteShip.ShieldRam): a mine
+    // laser's hitbox is absorbed, the beam ends. False if `go` is not one.
     public static bool EraseHitbox(GameObject go)
     {
         if (go == null || !go.TryGetComponent(out RailMineLaserHitbox hb)) return false;
         if (hb.laser != null) hb.laser.Erase();
         return true;
+    }
+
+    public static bool IsHitbox(GameObject go) => go != null && go.TryGetComponent(out RailMineLaserHitbox _);
+
+    // A pause jump (TeleportFx.Strike -> EliteShip.TeleportStrike) found
+    // this hitbox inside its BlastRadius (0.95 u). That blast is sized for a
+    // body; the beam is one long thin hitbox crossing the whole lane, so the
+    // circle used to catch it from a landing well clear of it -- the beam
+    // vanished whenever a jump landed near its row. It is erased only when
+    // the landed hull itself is on the beam (LandsOn). True: it was a mine
+    // laser's hitbox (handled, erased or not).
+    public static bool BlinkStrike(GameObject go, Vector3 at)
+    {
+        if (go == null || !go.TryGetComponent(out RailMineLaserHitbox hb)) return false;
+        if (hb.laser != null && hb.laser.LandsOn(at)) hb.laser.Erase();
+        return true;
+    }
+
+    // Half the hull's extent across the beam when the pilot has no hit zone
+    // to ask (the 1.35x hull's hitbox is ~0.66 u tall).
+    public const float BlinkHullReach = .33f;
+
+    // Does a hull landed at `at` lie on the live beam? The pilot's own hit
+    // zone (ShipHitbox) when it is the one standing there, else its reach.
+    public bool LandsOn(Vector2 at)
+    {
+        if (!Live) return false;
+        var p = EliteSystem.Player;
+        var zone = p != null ? ShipHitbox.Of(p.gameObject) : null;
+        var col = zone != null ? zone.Active : null;
+        if (col != null && col.enabled && box != null && ((Vector2)p.position - at).sqrMagnitude < 1e-4f)
+        {
+            Physics2D.SyncTransforms();
+            return Physics2D.Distance(col, box).isOverlapped;
+        }
+        return DistanceTo(at) <= HitThickness * .5f + BlinkHullReach;
     }
 }
 

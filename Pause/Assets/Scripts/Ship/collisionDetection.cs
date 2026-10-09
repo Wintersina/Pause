@@ -303,8 +303,11 @@ public class collisionDetection : MonoBehaviour {
                 // tumbles into the rail, so it goes like any other. Anything
                 // else rammed on a non-fatal hit dies like any kill -- its
                 // own blast, a mine's burst, sometimes spinning pieces --
-                // unpaid (RamKill).
+                // unpaid (RamKill). A rail mine's laser is not spent on the
+                // hull: the beam burns on across the lane and the heart's
+                // i-frames carry the ship through it (RailMineLaser).
                 if (fatal) Destroy(hit.gameObject);
+                else if (RailMineLaser.IsHitbox(hit.gameObject)) { }
                 else if (!EliteShip.Rammed(hit.gameObject, shipPos))
                 {
                     RamKill.Blast(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));

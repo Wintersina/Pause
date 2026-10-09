@@ -1062,8 +1062,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
             return true;
         }
-        // (a rail mine's laser is erased the same way: RailMineLaser)
-        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
+        // (a rail mine's laser only where the hull lands on it: RailMineLaser.BlinkStrike)
+        return EliteShots.EraseHitbox(go) || RailMineLaser.BlinkStrike(go, at);
     }
 
     // collisionDetection, shielded (blue atom / Cloak): the ram takes both

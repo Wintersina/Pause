@@ -25,6 +25,14 @@ using UnityEngine;
 //   PAUSE     a frozen world freezes the aim line, the beam and its timers
 //   60 FPS    a full fire (aim, beam, flicker) allocates nothing
 //   SPRITES   the boss laser art: no player red
+//   CLOSE     the ship coming close never makes the beam vanish (both rails):
+//             a pause jump beside it leaves it, one onto it erases it; an
+//             unshielded touch costs a heart and the beam burns on
+//   ANGLES    every shot a random angle within +/-MaxAngleDeg (a varied,
+//             deterministic stream that leaves UnityEngine.Random alone); the
+//             aim line, beam, hitbox, Touches, blink and burn all follow the
+//             rotated segment rail face to rail face; left / right mirror
+//             (the geometry checks above pin AngleOverride = 0)
 public static class RailMineLaserTest
 {
     static int fails;
@@ -47,8 +55,10 @@ public static class RailMineLaserTest
         try
         {
             Timing();
+            Angles();
             Follows();
             Damage();
+            StaysWhenClose();
             FriendlyFireOnce();
             Fairness();
             PauseFreezes();
@@ -60,6 +70,7 @@ public static class RailMineLaserTest
             EnemyThreat.ForceShooting = false;
             EnemyThreat.Reset();
             RailMineLaser.HurtsOtherEnemies = true;
+            RailMineLaser.AngleOverride = null;
             SpawnSpace.ClockOverride = null;
             EliteSystem.Clear();
             EliteSystem.PlayerOverride = null;
@@ -81,6 +92,8 @@ public static class RailMineLaserTest
         EliteSystem.Clear();
         EnemyThreat.Reset();
         EnemyThreat.ForceShooting = true;
+        // level beams for the row-based checks; Angles() draws real ones
+        RailMineLaser.AngleOverride = 0f;
         BossRails.Reset();
         ScreenInfo.ClearOverride();
         FriendlyFire.ResetCounters();
@@ -210,6 +223,205 @@ public static class RailMineLaserTest
               RailMineLaser.CoolSeconds + " s (asked: 0.6-0.8, 0.35-0.5, brief)",
               RailMineLaser.AimSeconds >= .6f && RailMineLaser.AimSeconds <= .8f &&
               RailMineLaser.BeamSeconds >= .35f && RailMineLaser.BeamSeconds <= .5f && RailMineLaser.CoolSeconds <= .3f);
+    }
+
+
+    // ---- 1b. random angles ----------------------------------------------------
+
+    static void Angles()
+    {
+        float max = RailMineLaser.MaxAngleDeg;
+        // the stream: varied, in range, never the same twice running, deterministic,
+        // and UnityEngine.Random's state untouched
+        RailMineLaser.AngleOverride = null;
+        Random.InitState(4242);
+        var before = Random.state;
+        RailMineLaser.Seed(77u);
+        var a = new float[400];
+        for (int i = 0; i < a.Length; i++) a[i] = RailMineLaser.NextAngle();
+        var after = Random.state;
+        RailMineLaser.Seed(77u);
+        bool same = true;
+        for (int i = 0; i < a.Length; i++) same &= RailMineLaser.NextAngle() == a[i];
+        float lo = float.MaxValue, hi = float.MinValue, minStep = float.MaxValue;
+        var bins = new int[5];
+        for (int i = 0; i < a.Length; i++)
+        {
+            lo = Mathf.Min(lo, a[i]); hi = Mathf.Max(hi, a[i]);
+            if (i > 0) minStep = Mathf.Min(minStep, Mathf.Abs(a[i] - a[i - 1]));
+            bins[Mathf.Clamp(Mathf.FloorToInt((a[i] + max) / (2f * max) * bins.Length), 0, bins.Length - 1)]++;
+        }
+        int fewest = int.MaxValue;
+        foreach (int b in bins) fewest = Mathf.Min(fewest, b);
+        Check("shot angles: " + a.Length + " draws in " + F(lo) + " .. " + F(hi) + " deg (+/-" + max + "), every fifth of the range used (fewest " +
+              fewest + "), consecutive shots at least " + F(minStep) + " deg apart (" + RailMineLaser.MinAngleChangeDeg + ")",
+              lo >= -max - 1e-3f && hi <= max + 1e-3f && lo < -.8f * max && hi > .8f * max && fewest >= a.Length / 10 &&
+              minStep >= RailMineLaser.MinAngleChangeDeg - 1e-3f);
+        Check("... the same seed gives the same angles, and drawing them leaves UnityEngine.Random's stream alone",
+              same && before.Equals(after));
+
+        // live mines: each fire gets its own angle (unpinned)
+        RailMineLaser.Seed(9u);
+        var seen = new List<float>();
+        for (int k = 0; k < 6; k++)
+        {
+            Fresh();
+            RailMineLaser.AngleOverride = null;
+            var brain = Mine(0, k % 2 == 0, 1f, out var rail);
+            ship.position = new Vector3(0f, 1f, 0f);
+            var l = LiveLaser(brain);
+            if (l != null) seen.Add(l.Angle);
+            Object.DestroyImmediate(brain.gameObject);
+            Object.DestroyImmediate(rail);
+        }
+        var distinct = new HashSet<int>();
+        foreach (float v in seen) distinct.Add(Mathf.RoundToInt(v * 10f));
+        Check("six live fires, six angles (" + string.Join(", ", seen.ConvertAll(v => F(v))) + ")", seen.Count == 6 && distinct.Count == 6);
+
+        // the geometry at pinned angles, both rails
+        float edge = BossRails.DrawnInnerEdge;
+        GameObject probe = null;
+        var bad = new List<string>();
+        var mirror = new Dictionary<float, Vector2>();
+        try
+        {
+            foreach (float deg in new[] { -max, -20f, 0f, 12f, max })
+                foreach (bool right in new[] { true, false })
+                {
+                    Fresh();
+                    RailMineLaser.AngleOverride = deg;
+                    string tag = (right ? "R " : "L ") + F(deg) + ": ";
+                    float s = right ? 1f : -1f;
+                    // (a new scene each case: the probe body with it)
+                    probe = new GameObject("~LaserProbe", typeof(BoxCollider2D));
+                    probe.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+                    var pb = probe.GetComponent<BoxCollider2D>();
+                    pb.isTrigger = true;
+                    pb.size = new Vector2(.1f, .1f);
+                    var brain = Mine(1, right, 0f, out var rail);
+                    ship.position = new Vector3(0f, 0f, 0f);
+                    // the aim line: already on the exact line it will burn
+                    RailMineLaser l = null;
+                    bool aimOk = false, aimSeen = false;
+                    for (int i = 0; i < 600; i++)
+                    {
+                        Step(brain);
+                        l = brain.Laser;
+                        if (l == null) continue;
+                        if (l.State == RailMineLaser.Phase.Aim && l.SightShown && !aimSeen)
+                        {
+                            aimSeen = true;
+                            var sb = l.SightRenderer.bounds;
+                            Vector2 up = l.SightRenderer.transform.up;
+                            aimOk = Mathf.Abs(l.Angle - deg) < 1e-3f && Vector2.Dot(up, l.Direction) > .9999f &&
+                                    Mathf.Abs(sb.center.x) < .02f && Mathf.Abs(sb.center.y - (l.From.y + l.To.y) * .5f) < .02f;
+                        }
+                        if (l.State == RailMineLaser.Phase.Beam) break;
+                    }
+                    if (l == null || l.State != RailMineLaser.Phase.Beam) { bad.Add(tag + "no beam"); Cleanup(brain, rail); continue; }
+                    if (!aimOk) bad.Add(tag + "aim line not on the beam's line");
+                    float y0 = l.From.y, rise = 2f * edge * Mathf.Tan(deg * Mathf.Deg2Rad);
+                    // rail face to rail face, at the angle, mirrored
+                    if (Mathf.Abs(l.From.x - s * edge) > 1e-3f || Mathf.Abs(y0 - brain.transform.position.y) > 1e-3f ||
+                        Mathf.Abs(l.To.x + s * edge) > 1e-3f || Mathf.Abs(l.To.y - (y0 + rise)) > 1e-3f ||
+                        Mathf.Abs(l.Length - 2f * edge / Mathf.Cos(deg * Mathf.Deg2Rad)) > 1e-3f || Mathf.Sign(l.Direction.x) != -s)
+                        bad.Add(tag + "span " + l.From + " -> " + l.To + " (" + F(l.Length) + ")");
+                    if (right) mirror[deg] = l.To - l.From;
+                    else if (mirror.TryGetValue(deg, out var rv))
+                    {
+                        Vector2 lv = l.To - l.From;
+                        if (Mathf.Abs(rv.x + lv.x) > 1e-3f || Mathf.Abs(rv.y - lv.y) > 1e-3f) bad.Add(tag + "not the right rail's mirror (" + rv + " vs " + lv + ")");
+                    }
+                    // drawn along it
+                    var br = l.BeamRenderer.bounds;
+                    float yLo = Mathf.Min(y0, y0 + rise), yHi = Mathf.Max(y0, y0 + rise), pad = RailMineLaser.DrawWidth * .5f + .02f;
+                    if (!l.BeamShown || br.min.x > -edge + .02f || br.max.x < edge - .02f || br.min.y > yLo + .02f || br.max.y < yHi - .02f ||
+                        br.min.x < -edge - pad || br.max.x > edge + pad || br.min.y < yLo - pad || br.max.y > yHi + pad)
+                        bad.Add(tag + "drawn " + br.min + ".." + br.max);
+                    // the hitbox follows the rotated segment: hit on it, miss beside it
+                    var box = l.Hitbox.GetComponent<BoxCollider2D>();
+                    var n = new Vector2(-l.Direction.y, l.Direction.x);
+                    foreach (float u in new[] { .1f, .5f, .9f })
+                    {
+                        Vector2 on = l.From + l.Direction * (l.Length * u);
+                        Vector2 off = on + n * (RailMineLaser.HitThickness * .5f + .1f);
+                        bool hitOn = Overlap(probe, box, on), hitOff = Overlap(probe, box, off);
+                        bool tOn = l.Touches(on, .05f, .05f), tOff = l.Touches(off, .05f, .05f);
+                        if (!hitOn || hitOff || !tOn || tOff) bad.Add(tag + "at " + F(u) + " hitbox " + hitOn + "/" + hitOff + " Touches " + tOn + "/" + tOff);
+                    }
+                    // the mine's own row, mid-lane, is clear of a steep beam
+                    if (Mathf.Abs(deg) >= 20f)
+                    {
+                        Vector2 row = new Vector2(0f, y0);
+                        if (Overlap(probe, box, row) || l.Touches(row, .3f, .33f)) bad.Add(tag + "still hits its own row mid-lane");
+                    }
+                    Debug.Log("[MINELASER] INFO  " + tag + "beam " + l.From + " -> " + l.To + ", " + F(l.Length) + " u");
+                    Cleanup(brain, rail);
+                }
+        }
+        finally { if (probe != null) Object.DestroyImmediate(probe); }
+        Check("pinned at -" + max + ", -20, 0, 12 and " + max + " deg on both rails: the aim line on the exact line, the beam from its own " +
+              "rail's face at the mine's row to the opposite face (rising for + angles on either side: left and right mirror), drawn " +
+              "along it, its hitbox and Touches hit on the rotated segment and miss beside it (" + (bad.Count == 0 ? "all" : string.Join("; ", bad)) + ")",
+              bad.Count == 0);
+
+        // blink, burn and the death crash use the rotated segment
+        foreach (bool right in new[] { true, false })
+        {
+            string side = right ? "right" : "left";
+            Fresh();
+            RailMineLaser.AngleOverride = 30f;
+            var brain = Mine(3, right, 0f, out var rail);
+            ship.position = new Vector3(0f, 0f, 0f);
+            var l = LiveLaser(brain);
+            if (l == null) { Check(side + ": a 30 deg beam", false); Cleanup(brain, rail); continue; }
+            Vector2 mid = (l.From + l.To) * .5f, row = new Vector2(0f, l.From.y);
+            ship.position = row;
+            TeleportFx.Strike(row);
+            bool kept = l.State == RailMineLaser.Phase.Beam;
+            ship.position = mid;
+            TeleportFx.Strike(mid);
+            bool erased = l.State == RailMineLaser.Phase.Cool;
+            Check(side + " rail, 30 deg: a pause jump onto the mine's row mid-lane (clear of the tilted beam) leaves it, one onto the tilted " +
+                  "beam erases it; it is still a projectile to the death crash", kept && erased && DeathCrash.Classify(l.Hitbox) == DeathCrash.KillerKind.Projectile);
+            Cleanup(brain, rail);
+
+            Fresh();
+            RailMineLaser.AngleOverride = 30f;
+            brain = Mine(3, right, 0f, out rail);
+            ship.position = new Vector3(0f, 0f, 0f);
+            l = LiveLaser(brain);
+            if (l == null) { Check(side + ": a 30 deg beam to burn with", false); Cleanup(brain, rail); continue; }
+            // on the beam a little past mid-lane, and on the mine's row under / over that spot
+            Vector2 p1 = l.From + l.Direction * (l.Length * .5f + .6f);
+            var onBeam = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), new Vector3(p1.x, p1.y, 0f), Quaternion.identity);
+            var onRow = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), new Vector3(p1.x, l.From.y, 0f), Quaternion.identity);
+            ClearTarget.Ensure(onBeam);
+            ClearTarget.Ensure(onRow);
+            FriendlyFire.Settle(onBeam);
+            FriendlyFire.Settle(onRow);
+            for (int i = 0; i < 30 && l.State == RailMineLaser.Phase.Beam; i++) { FriendlyFire.HostileStep(); Step(brain); }
+            Check(side + " rail, 30 deg: the beam burns a rock on the tilted beam and not one on the mine's row below it (" +
+                  l.HitsThisPulse + " hit, on-beam " + (Gone(onBeam) ? "gone" : "there") + ", on-row " + (Gone(onRow) ? "gone" : "there") + ")",
+                  Gone(onBeam) && !Gone(onRow) && l.HitsThisPulse == 1);
+            if (onBeam != null) Object.DestroyImmediate(onBeam);
+            if (onRow != null) Object.DestroyImmediate(onRow);
+            Cleanup(brain, rail);
+        }
+        RailMineLaser.AngleOverride = 0f;
+    }
+
+    static bool Overlap(GameObject probe, Collider2D box, Vector2 at)
+    {
+        probe.transform.position = at;
+        Physics2D.SyncTransforms();
+        return Physics2D.Distance(probe.GetComponent<Collider2D>(), box).isOverlapped;
+    }
+
+    static void Cleanup(EnemyBrain brain, GameObject rail)
+    {
+        if (brain != null) Object.DestroyImmediate(brain.gameObject);
+        if (rail != null) Object.DestroyImmediate(rail);
     }
 
     // ---- 2. it lies on the mine's row and follows it -------------------------
@@ -370,6 +582,129 @@ public static class RailMineLaserTest
 
     static int FirstShip { get { foreach (int id in ShipId.All) return id; return 0; } }
 
+    // ---- 3b. the ship coming close never makes the beam vanish -------------
+    //
+    // "The lasers randomly disappear when the ship gets close." On both rails,
+    // with the ship at several places along the beam: a pause jump landing
+    // NEAR the beam (the hull clear of it) leaves it burning its full
+    // BeamSeconds, drawn rail to rail; one landing ON it erases it (a blink);
+    // an unshielded touch costs a heart and the beam burns on.
+
+    // Runs the rest of a live beam; how long it stayed in the Beam phase,
+    // and whether it was drawn rail face to rail face every frame of it.
+    static float BurnsOn(EnemyBrain brain, RailMineLaser l, float already, out bool drawn)
+    {
+        float burned = already;
+        drawn = true;
+        float edge = BossRails.DrawnInnerEdge;
+        for (int i = 0; i < 120 && l.Active && brain != null; i++)
+        {
+            if (l.State == RailMineLaser.Phase.Beam)
+            {
+                var b = l.BeamRenderer.bounds;
+                drawn &= l.BeamShown && b.min.x < -edge + .05f && b.max.x > edge - .05f;
+            }
+            Step(brain);
+            if (l.State == RailMineLaser.Phase.Beam) burned += Dt;
+        }
+        return burned;
+    }
+
+    // How many times `hit` had collisionDetection Destroy() what the hull
+    // touched (Object.Destroy(Object); the hit explosion's timed
+    // Destroy(Object, float) is not counted).
+    static int HullDestroys(System.Action hit)
+    {
+        int n = 0;
+        Application.LogCallback cb = (msg, stack, type) =>
+        {
+            if (msg.StartsWith("Destroy may not be called") && stack != null && stack.Contains("Object:Destroy (UnityEngine.Object)")) n++;
+        };
+        Application.logMessageReceived += cb;
+        try { hit(); }
+        finally { Application.logMessageReceived -= cb; }
+        return n;
+    }
+
+    static void StaysWhenClose()
+    {
+        float full = RailMineLaser.BeamSeconds - 2.5f * Dt;
+        foreach (bool right in new[] { true, false })
+        {
+            string side = right ? "right" : "left";
+            // pause jumps landing beside the beam (the hull's half height at the
+            // game's 1.35x is ~0.33 u: 0.6 u off the line is well clear) and on it
+            var near = new List<string>();
+            var on = new List<string>();
+            // (x within +/-1: the jump's blast never reaches the mine itself, which
+            // a landing next to it rightly erases, beam and all)
+            foreach (float x in new[] { -1f, 0f, 1f })
+                foreach (float off in new[] { -1f, -.6f, 0f, .2f, .6f, 1f })
+                {
+                    Fresh();
+                    var brain = Mine(2, right, 1f, out var rail);
+                    var l = LiveLaser(brain);
+                    if (l == null) { near.Add("no beam"); Object.DestroyImmediate(brain.gameObject); Object.DestroyImmediate(rail); continue; }
+                    var at = new Vector3(x, l.Y + off, 0f);
+                    ship.position = at;
+                    TeleportFx.Strike(at);
+                    float burned = BurnsOn(brain, l, Dt, out bool drawn);
+                    bool landedOn = Mathf.Abs(off) <= RailMineLaser.HitThickness * .5f + .3f;
+                    string tag = F(x) + "/" + F(off) + " " + F(burned) + " s" + (drawn ? "" : " (not drawn)");
+                    if (landedOn) { if (burned > .1f) on.Add(tag); }
+                    else if (burned < full || !drawn) near.Add(tag);
+                    Object.DestroyImmediate(brain.gameObject);
+                    Object.DestroyImmediate(rail);
+                }
+            Check(side + " rail: a pause jump landing beside the beam, the hull clear of it, leaves it burning its full " +
+                  RailMineLaser.BeamSeconds + " s, drawn rail to rail (" + (near.Count == 0 ? "all" : "vanished: " + string.Join(", ", near)) + ")",
+                  near.Count == 0);
+            Check(side + " rail: a pause jump landing on the beam erases it (" + (on.Count == 0 ? "all" : "survived: " + string.Join(", ", on)) + ")",
+                  on.Count == 0);
+        }
+
+        // an unshielded touch: a heart, and the beam burns on (the i-frames carry the ship through)
+        Fresh();
+        Object.DestroyImmediate(ship.gameObject);
+        var rig = new DeathCrashTest.Rig(FirstShip);
+        try
+        {
+            ship = rig.ship.transform;
+            EliteSystem.PlayerOverride = ship;
+            foreach (bool right in new[] { true, false })
+            {
+                var bad = new List<string>();
+                foreach (float x in new[] { -1.8f, 0f, 1.8f })
+                {
+                    collisionDetection.lifeCounter = 0;
+                    PlayerInvuln.Reset();
+                    ship.position = new Vector3(x, 1f, 0f);
+                    var brain = Mine(1, right, 1f, out var rail);
+                    var l = LiveLaser(brain);
+                    if (l == null) { bad.Add("no beam"); Object.DestroyImmediate(brain.gameObject); Object.DestroyImmediate(rail); continue; }
+                    ship.position = new Vector3(x, l.Y, 0f);
+                    // (an edit-mode Destroy only logs: in play it would take the
+                    // hitbox, and the beam with it, at the end of the frame)
+                    int destroys = HullDestroys(() => rig.Hit(l.Hitbox));
+                    int hearts = collisionDetection.lifeCounter;
+                    float burned = BurnsOn(brain, l, Dt, out bool drawn);
+                    if (hearts != 1 || destroys > 0 || burned < full || !drawn)
+                        bad.Add(F(x) + ": " + hearts + " heart, " + (destroys > 0 ? "hitbox destroyed, " : "") + F(burned) + " s" + (drawn ? "" : ", not drawn"));
+                    Object.DestroyImmediate(brain.gameObject);
+                    Object.DestroyImmediate(rail);
+                }
+                Check((right ? "right" : "left") + " rail: the ship touching the beam unshielded loses one heart, the hull does not destroy the beam's hitbox, and the beam burns its full " +
+                      RailMineLaser.BeamSeconds + " s (" + (bad.Count == 0 ? "at -1.8, 0, 1.8" : string.Join("; ", bad)) + ")", bad.Count == 0);
+            }
+        }
+        finally
+        {
+            rig.Dispose();
+            collisionDetection.lifeCounter = 0;
+            PlayerInvuln.Reset();
+        }
+    }
+
     // ---- 4. friendly fire ----------------------------------------------------
 
     static void FriendlyFireOnce()
@@ -434,15 +769,17 @@ public static class RailMineLaserTest
         // (outside gameS1 the hull is the normalised size; in the game it is ShipScale's 1.35x)
         if (hb != null && hb.Hull != null) { Physics2D.SyncTransforms(); tall = hb.Hull.bounds.size.y * 1.35f; }
         Object.DestroyImmediate(shipGo);
-        float band = RailMineLaser.HitThickness + tall;          // the ship's centre must leave this band
+        // (a tilted beam is HitThickness / cos(angle) tall: the worst, at MaxAngleDeg)
+        float beamTall = RailMineLaser.HitThickness / Mathf.Cos(RailMineLaser.MaxAngleDeg * Mathf.Deg2Rad);
+        float band = beamTall + tall;                             // the ship's centre must leave this band
         float move = band * .5f;                                  // from the worst spot (dead centre of the row)
         float view = 13.2f;                                       // a 1080x1920 view, the smallest
         Debug.Log("[MINELASER] INFO  dodge room: beam " + RailMineLaser.HitThickness + " u + ship hitbox " + F(tall) + " u = a " + F(band) +
                   " u band the ship's centre must clear (" + (100f * band / view).ToString("F1") + "% of a 13.2 u view); from the row's centre " +
                   F(move) + " u up or down, with " + RailMineLaser.AimSeconds + " s of aim line (at least " +
                   F(move / RailMineLaser.AimSeconds) + " u/s) plus the rest of the mine's tell");
-        Check("the beam is " + RailMineLaser.HitThickness + " u thick (asked 0.25-0.35) and the band to clear (" + F(band) +
-              " u) is under a tenth of the smallest view",
+        Check("the beam is " + RailMineLaser.HitThickness + " u thick (asked 0.25-0.35), " + F(beamTall) + " u tall at its steepest (" +
+              RailMineLaser.MaxAngleDeg + " deg), and the band to clear (" + F(band) + " u) is under a tenth of the smallest view",
               RailMineLaser.HitThickness >= .25f && RailMineLaser.HitThickness <= .35f && band < view * .1f &&
               Mathf.Abs(RailMineLaser.HitThickness - RailMineLaser.DrawWidth * BossConfig.BeamHitFraction) < 1e-4f);
         // the budget: a burning laser counts as a shot
