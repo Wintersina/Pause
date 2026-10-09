@@ -1,9 +1,11 @@
-# Chasm breakout
+# Orbital Rail
 
-GoldWarden Regent rises through the game's existing red PAUSE title in a narrow asteroid corridor. The hull, exhaust, and menu wordmark are composited from their original assets; the title pixels and colors are unchanged. A few suspended chips and the blue rim lit rocks give the launch a frozen moment without adding another red focal point.
+The user chose **Orbital Rail** after viewing the first icon preview. The icon keeps the original gold GoldWarden Regent hull, its exhaust sprite, and the exact red PAUSE title from the main menu. The title artwork is resized with nearest-neighbour sampling; its lettering and colors are never recreated.
 
-Five generated backgrounds were compared with the same ship and logo. The impact tunnel was too busy at 48 px; the orbital rail fought the ship's horizontal silhouette; the time vortex made a second focal point; the eclipse pulled attention upward. The chasm kept the ship outline clear, and its center was refined to leave a darker launch lane. The four rejected compositions appear in `preview.png`.
+The earlier rail concept had a bright horizontal station bridge behind the ship, which competed with its wide wings. This version removes that bridge. Two mirrored crops of the game's `rail_space_wide_v1.png` frame the outer edges at their original 1:1 pixel scale, with their brightness and saturation lowered. The center is a dark launch lane. A small off-centre planet and violet nebula preserve the chosen concept's setting while keeping the ship the focal point and the wordmark the only large red element.
 
-`build_icon.py` recreates the deliverables from the included `concept_*.png` backgrounds and the repository's title, Regent hull, and exhaust atlas. It uses nearest-neighbour resizing and hard stepped glow only. Android's foreground is laid out separately for its 264 px safe circle, so its wordmark is necessarily smaller than the full icon. The source artwork is still visually legible at 96 px; at 48 px the ship silhouette and red sign are the primary cues.
+Three generated nebula backgrounds were inspected. `concept_rail_refined_base.png` is the selected background source; `concept_rail_planet_source.png` supplies the small planet. Both sources are included so `build_icon.py` can rebuild the deliverables. The adaptive background is a complete, opaque rail-and-space scene with no ship or title. It is composed separately so it reads on its own when a launcher omits the foreground. The adaptive foreground uses only the hull, exhaust, and title overlay, with their artwork fully inside the 132 px safe circle.
 
-Run `python3 build_icon.py && python3 verify_icon.py` from this directory. No Unity settings or existing assets were changed.
+`preview.png` shows circle, squircle, and square treatments at 192, 96, and 48 px on dark and light tiles, for the master and adaptive compositions. Its bottom row compares the prior Chasm Breakout icon with Orbital Rail and shows the adaptive background alone.
+
+Run `python3 build_icon.py && python3 verify_icon.py` from this directory. The build uses nearest-neighbour resizing for all art. At 48 px, the ship and red title remain recognizable, though the small planet and rail detail become subtle.

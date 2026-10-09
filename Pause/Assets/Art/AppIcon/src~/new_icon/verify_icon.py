@@ -60,8 +60,8 @@ def main():
     if max_radius > 132:
         failures.append("adaptive foreground exceeds safe circle")
 
-    _, _, logo_master = scene(1024, "chasm")
-    _, _, logo_adaptive = scene(432, "chasm", adaptive=True)
+    _, _, logo_master = scene(1024, "rail")
+    _, _, logo_adaptive = scene(432, "rail", adaptive=True)
     def bbox_height(layer, crop=None):
         if crop:
             layer = layer.crop(crop)
@@ -74,6 +74,12 @@ def main():
     print(f"logo bbox at 96 px: master {w}x{h} px; adaptive viewport {aw}x{ah} px")
     if h < 25 or ah < 20:
         failures.append("logo is too small at 96 px")
+    logo_alpha = np.asarray(logo_adaptive.getchannel("A")) > 40
+    logo_y, logo_x = np.nonzero(logo_alpha)
+    logo_radius = np.hypot(logo_x + .5 - 216, logo_y + .5 - 216).max()
+    print(f"unclipped adaptive title max radius: {logo_radius:.2f} px / 132 px")
+    if logo_radius > 132:
+        failures.append("adaptive title artwork is clipped by safe circle")
 
     red = red_band(master)
     logo_mask = np.asarray(logo_master.getchannel("A")) > 40

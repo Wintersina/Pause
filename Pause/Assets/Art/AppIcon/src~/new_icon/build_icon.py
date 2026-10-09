@@ -1,11 +1,7 @@
-"""Compose the approved Pause icon from the game's unmodified sprites.
-
-The five concept backgrounds were generated separately. This script uses only
-nearest-neighbour resizing for the logo, hull, exhaust, and painted backgrounds.
-"""
+"""Compose Orbital Rail from the game's unmodified title, ship, and rail art."""
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 
 HERE = Path(__file__).resolve().parent
@@ -46,9 +42,65 @@ def hard_glow(sprite, color, sizes):
     return result
 
 
+def planet(width):
+    source = Image.open(HERE / "concept_rail_planet_source.png").convert("RGBA")
+    source = source.crop((80, 760, 390, 1070))
+    disk = Image.new("L", source.size)
+    ImageDraw.Draw(disk).ellipse((4, 4, 305, 305), fill=255)
+    source.putalpha(disk)
+    return ImageEnhance.Brightness(source).enhance(.72).resize((width, width), NEAREST)
+
+
+def muted_rail(crop):
+    rail = Image.open(ROOT / "Pause/Assets/Art/Resources/Worlds/Space/rail_space_wide_v1.png").convert("RGBA")
+    rail = rail.crop(crop)
+    rail = ImageEnhance.Color(rail).enhance(.58)
+    rail = ImageEnhance.Brightness(rail).enhance(.37)
+    rail.putalpha(rail.getchannel("A").point(lambda a: round(a * .68)))
+    return rail
+
+
+def rail_background():
+    """Keep real station metal at the outer edges of a quiet painted lane."""
+    space = Image.open(HERE / "concept_rail_refined_base.png").convert("RGBA")
+    bg = space.resize((1024, 1024), NEAREST)
+    bg.alpha_composite(planet(132), (275, 62))
+    # A 1:1 pixel crop is intentionally used; the game's actual rail texture
+    # stays recognizable while most of its width falls outside the icon.
+    rail = muted_rail((145, 180, 465, 1204))
+    left = Image.new("RGBA", bg.size)
+    left.alpha_composite(rail, (-139, 0))
+    right = ImageOps.mirror(left)
+    bg = Image.alpha_composite(bg, left)
+    bg = Image.alpha_composite(bg, right)
+    bg.putalpha(255)
+    return bg
+
+
+def adaptive_background():
+    space = Image.open(HERE / "concept_rail_refined_base.png").convert("RGBA")
+    bg = space.resize((432, 432), NEAREST)
+    bg.alpha_composite(planet(54), (100, 105))
+    # On Android the launcher may show any crop of the 432 px canvas. Keep the
+    # rails within its central 288 px viewport without tiling the background.
+    rail = muted_rail((340, 180, 460, 612))
+    side = Image.new("RGBA", bg.size)
+    side.alpha_composite(rail, (0, 0))
+    bg = Image.alpha_composite(bg, side)
+    bg = Image.alpha_composite(bg, ImageOps.mirror(side))
+    bg.putalpha(255)
+    return bg
+
+
+def background(size, bg_name):
+    if bg_name == "rail":
+        return rail_background().resize((size, size), NEAREST)
+    return Image.open(HERE / f"concept_{bg_name}.png").convert("RGBA").resize((size, size), NEAREST)
+
+
 def scene(size, bg_name, adaptive=False):
     logo_src, hull_src, flame_src = source_art()
-    bg = Image.open(HERE / f"concept_{bg_name}.png").convert("RGBA").resize((size, size), NEAREST)
+    bg = background(size, bg_name)
     fg = Image.new("RGBA", (size, size))
     logo_layer = Image.new("RGBA", (size, size))
     hull_layer = Image.new("RGBA", (size, size))
@@ -57,10 +109,10 @@ def scene(size, bg_name, adaptive=False):
     if adaptive:
         # The launcher shows the middle 288 of 432 px. Both source artworks fit
         # the 132 px safe circle as distinct silhouettes with a slight overlap.
-        logo = scaled(logo_src, 216)
+        logo = scaled(logo_src, 204)
         hull = scaled(hull_src, 142)
         flame = scaled(flame_src, 33)
-        paste(logo_layer, logo, (216 - logo.width / 2, 239))
+        paste(logo_layer, logo, (216 - logo.width / 2, 232))
         paste(hull_layer, hull, (216 - hull.width / 2, 88))
         paste(flame_layer, flame, (216 - flame.width / 2, 207))
         glow_sizes = ((19, 20), (9, 38), (3, 60))
@@ -80,19 +132,20 @@ def scene(size, bg_name, adaptive=False):
     fg = Image.alpha_composite(fg, hull_layer)
     fg = Image.alpha_composite(fg, logo_layer)
 
-    # A few frozen pieces hang beside the takeoff. They do not cover a letter.
-    chips = Image.new("RGBA", (size, size))
-    d = ImageDraw.Draw(chips)
-    if adaptive:
-        specs = [(111, 183, 3, "#6fe7ee"), (318, 173, 2, "#ffd36a"),
-                 (119, 226, 2, "#ffe4a0"), (311, 217, 2, "#6fe7ee")]
-    else:
-        specs = [(107, 360, 10, "#6fe7ee"), (918, 373, 7, "#ffd36a"),
-                 (155, 531, 8, "#ffe4a0"), (872, 545, 6, "#6fe7ee"),
-                 (85, 602, 4, "#ffd36a"), (936, 607, 4, "#6fe7ee")]
-    for x, y, r, col in specs:
-        d.polygon(((x, y-r), (x+r, y), (x, y+r), (x-r, y)), fill=col)
-    fg = Image.alpha_composite(fg, chips)
+    if bg_name == "chasm":
+        # Reproduce the previous icon for the before/after preview.
+        chips = Image.new("RGBA", (size, size))
+        d = ImageDraw.Draw(chips)
+        if adaptive:
+            specs = [(111, 183, 3, "#6fe7ee"), (318, 173, 2, "#ffd36a"),
+                     (119, 226, 2, "#ffe4a0"), (311, 217, 2, "#6fe7ee")]
+        else:
+            specs = [(107, 360, 10, "#6fe7ee"), (918, 373, 7, "#ffd36a"),
+                     (155, 531, 8, "#ffe4a0"), (872, 545, 6, "#6fe7ee"),
+                     (85, 602, 4, "#ffd36a"), (936, 607, 4, "#6fe7ee")]
+        for x, y, r, col in specs:
+            d.polygon(((x, y-r), (x+r, y), (x, y+r), (x-r, y)), fill=col)
+        fg = Image.alpha_composite(fg, chips)
     if adaptive:
         safe = Image.new("L", (size, size))
         ImageDraw.Draw(safe).ellipse((85, 85, 347, 347), fill=255)
@@ -135,7 +188,7 @@ def preview(master, afg, abg):
     W, H = 1720, 2180
     sheet = Image.new("RGB", (W, H), "#0b1028")
     d = ImageDraw.Draw(sheet)
-    label(d, (40, 25), "PAUSE  /  CHASM BREAKOUT", 34)
+    label(d, (40, 25), "PAUSE  /  ORBITAL RAIL", 34)
     label(d, (40, 75), "Exact menu wordmark + GoldWarden Regent hull", 20, "#a9badd")
     adaptive = Image.alpha_composite(abg, afg).crop((72, 72, 360, 360))
     tiles = [("DARK WALLPAPER / MASTER", master, (15, 19, 49), 112),
@@ -156,35 +209,30 @@ def preview(master, afg, abg):
                 label(d, (x + [0, 228, 355][j], top+320), str(s) + " px", 18,
                       "#cfd9f1" if light_ink else "#273149")
 
-    label(d, (40, 1800), "FOUR REJECTED GENERATED CONCEPTS", 22)
-    rejected = [("Impact tunnel", "impact"), ("Orbital rail", "rail"),
-                ("Time vortex", "vortex"), ("Eclipse", "eclipse")]
-    for i, (title, key) in enumerate(rejected):
-        bg, fg, _ = scene(1024, key)
-        icon = Image.alpha_composite(bg, fg).resize((290, 290), NEAREST)
-        x = 40 + i*420
+    label(d, (40, 1800), "BEFORE / AFTER  +  BACKGROUND ALONE", 22)
+    old_bg, old_fg, _ = scene(1024, "chasm")
+    examples = [("Before: Chasm breakout", Image.alpha_composite(old_bg, old_fg)),
+                ("After: Orbital Rail", master),
+                ("Adaptive background only", abg.crop((72, 72, 360, 360)))]
+    for i, (title, source) in enumerate(examples):
+        x = 160 + i*510
+        icon = source.resize((290, 290), NEAREST)
         sheet.paste(icon.convert("RGB"), (x, 1840))
         label(d, (x, 2135), title, 20)
     sheet.convert("RGBA").save(HERE / "preview.png")
 
 
 def main():
-    bg, fg, logo = scene(1024, "chasm")
+    bg, fg, logo = scene(1024, "rail")
     master = Image.alpha_composite(bg, fg)
     master.putalpha(255)
     master.save(HERE / "master_1024.png")
     master.convert("RGB").save(HERE / "ios_1024.png")
     for shape, name in (("squircle", "legacy_192.png"), ("circle", "round_192.png")):
         masked(master.resize((192, 192), NEAREST), shape).save(HERE / name)
-    # Background fills all 108dp; its middle 72dp reproduces the full master.
-    small = Image.open(HERE / "concept_chasm.png").convert("RGBA").resize((288, 288), NEAREST)
-    abg = Image.new("RGBA", (432, 432))
-    edge = Image.open(HERE / "concept_chasm.png").convert("RGBA").resize((432, 432), NEAREST)
-    abg.alpha_composite(edge)
-    abg.paste(small, (72, 72))
-    abg.putalpha(255)
+    abg = adaptive_background()
     abg.save(HERE / "adaptive_bg_432.png")
-    _, afg, _ = scene(432, "chasm", adaptive=True)
+    _, afg, _ = scene(432, "rail", adaptive=True)
     afg.save(HERE / "adaptive_fg_432.png")
     preview(master, afg, abg)
 
