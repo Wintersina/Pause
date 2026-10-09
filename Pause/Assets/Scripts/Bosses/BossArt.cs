@@ -281,6 +281,17 @@ public static class BossArt
     public const float ShotRimAlpha = .8f;        // its opacity right at the silhouette
     public const float ShotRimFalloff = 1f;       // linear: a crisp outline, no soft round bloom
     public const float ShotRimCoverage = .25f;    // alpha a texel needs to count as the drawing (soft painted edges count)
+    // BOLD rim, for a bright world (BackdropCatalog.Spec.Bright, as the
+    // hearts' and the elite / enemy shots' bold outlines): a solid light rim
+    // in the usual hostile-pink trace (not paled: AtomClarityTest reads the
+    // boss shots' pink edge as their cue against pickups), then a solid
+    // dark keyline and a short dark under-glow, so a boss shot holds 3:1 over
+    // pale cloud and mid-dark jungle alike. Shares of the cell, like the reach.
+    public const float ShotRimBoldLight = .045f, ShotRimBoldSolid = .085f, ShotRimBoldReach = .1f;
+    public static readonly Color32 ShotRimBoldKey = new Color32(10, 8, 26, 255);
+    // Bold rims for the current world? (Tests may force it: ShotRimBold.)
+    public static bool? ShotRimBold;
+    public static bool ShotRimUseBold => ShotRimBold.HasValue ? ShotRimBold.Value : BackdropCatalog.CurrentIsBright;
     public const float ShotRimPulseScale = 0f;    // it never swells (a swelling rim reads as a round glow); only its alpha pulses
 
     sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }
@@ -290,10 +301,12 @@ public static class BossArt
     // scale: its sprite spans the cell plus the pad, one cell = one unit.
     // Null when the art is missing or could not be read (the caller falls
     // back to the round wrapper).
-    public static Sprite ShotRim(BossDef boss, int cell)
+    public static Sprite ShotRim(BossDef boss, int cell) { return ShotRim(boss, cell, ShotRimUseBold); }
+
+    public static Sprite ShotRim(BossDef boss, int cell, bool bold)
     {
         if (boss == null || cell < 0 || cell >= ShotRimCells) return null;
-        string path = Folder + boss.artKey + "_shots";
+        string path = Folder + boss.artKey + "_shots" + (bold ? "#bold" : "");
         var first = Shot(boss, 0);
         var source = first != null ? first.texture : null;
         RimSet set;
@@ -302,20 +315,21 @@ public static class BossArt
         if (!fresh)
         {
             set = new RimSet { source = source, sprites = new Sprite[ShotRimCells] };
-            set.built = source != null && BuildShotRims(boss, set.sprites);
+            set.built = source != null && BuildShotRims(boss, set.sprites, bold);
             rims[path] = set;
         }
         return set.built ? set.sprites[cell] : null;
     }
 
-    static bool BuildShotRims(BossDef boss, Sprite[] into)
+    static bool BuildShotRims(BossDef boss, Sprite[] into, bool bold)
     {
         int n = ShotRimTexels, pad = ShotRimPad, side = n + 2 * pad;
         var px = new Color32[side * ShotRimCells * side];
         for (int i = 0; i < px.Length; i++) px[i] = new Color32(255, 255, 255, 0);
         var dist = new int[side * side];
         const int Far = 1 << 20;
-        float reach = Mathf.Max(1f, ShotRimReach * n);   // texels
+        float reach = Mathf.Max(1f, (bold ? ShotRimBoldReach : ShotRimReach) * n);   // texels
+        float boldLight = ShotRimBoldLight * n, boldSolid = ShotRimBoldSolid * n;
 
         // The cells' pixels, read back once as one strip. By each cell's own
         // rect, never a shot sprite's textureRect: that is trimmed to the
@@ -383,6 +397,18 @@ public static class BossArt
             for (int y = 0; y < side; y++)
                 for (int x = 0; x < side; x++)
                 {
+                    if (bold)
+                    {
+                        // light rim to boldLight, then a solid dark keyline, then a short dark fade
+                        float d = dist[y * side + x] / 3f;
+                        if (d > reach) continue;
+                        int at = y * side * ShotRimCells + cell * side + x;
+                        if (d <= boldLight) { px[at].a = (byte)Mathf.RoundToInt(255f * ShotRimAlpha); continue; }
+                        float a = d <= boldSolid ? 1f : 1f - (d - boldSolid) / Mathf.Max(.01f, reach - boldSolid);
+                        var key = ShotRimBoldKey;
+                        px[at] = new Color32(key.r, key.g, key.b, (byte)Mathf.RoundToInt(255f * Mathf.Clamp01(a)));
+                        continue;
+                    }
                     float k = Mathf.Clamp01(1f - dist[y * side + x] / 3f / reach);
                     if (k <= 0f) continue;
                     px[y * side * ShotRimCells + cell * side + x].a =
@@ -391,7 +417,7 @@ public static class BossArt
         }
 
         var tex = new Texture2D(side * ShotRimCells, side, TextureFormat.RGBA32, false);
-        tex.name = boss.artKey + "ShotRim";
+        tex.name = boss.artKey + (bold ? "ShotRimBold" : "ShotRim");
         tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode = TextureWrapMode.Clamp;
         tex.hideFlags = HideFlags.HideAndDontSave;

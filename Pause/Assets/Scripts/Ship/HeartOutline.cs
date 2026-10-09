@@ -48,7 +48,7 @@ public static class HeartOutline
     public static readonly Color32 BoldKey = new Color32(10, 8, 26, 255);
     public static float BoldReachShare(int cellTexels) => (BoldCoreTexels + BoldKeyTexels) / Mathf.Max(1, cellTexels);
     // A world's backdrop counts as bright when it is lifted by this much.
-    public const float BrightLift = 1.2f;
+    public const float BrightLift = BackdropCatalog.Spec.BrightLift;
 
     // Bold outlines for the current world? (Tests may force it: Bold.)
     public static bool? Bold;
@@ -57,8 +57,7 @@ public static class HeartOutline
         get
         {
             if (Bold.HasValue) return Bold.Value;
-            var spec = BackdropCatalog.For(WorldManager.Current.displayName);
-            return spec != null && (spec.brightArt || spec.brightness != null && spec.brightness() >= BrightLift);
+            return BackdropCatalog.CurrentIsBright;
         }
     }
 

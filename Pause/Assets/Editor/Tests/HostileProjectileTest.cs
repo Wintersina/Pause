@@ -51,6 +51,8 @@ public static class HostileProjectileTest
         {
             GlowOnEveryProjectile();
             ContrastOverEveryWorld();
+            BoldOnBrightWorlds();
+            ContrastOverEveryVariant();
             ShotVersusShot();
             LaserBurnsCrossingShots();
             PlayerShotsShootDown();
@@ -66,6 +68,10 @@ public static class HostileProjectileTest
         finally
         {
             EnemySplit.ForceInEditor = false;
+            ShotOutline.Bold = null;
+            BossArt.ShotRimBold = null;
+            BackdropVariants.For("Frost").Reset();
+            BackdropVariants.For("Verdant").Reset();
             FriendlyFire.ClearPending();
             EliteSystem.Clear();
             EliteSystem.PlayerOverride = null;
@@ -397,6 +403,215 @@ public static class HostileProjectileTest
             pool.Dispose();
             Object.DestroyImmediate(backdrop);
         }
+    }
+
+    // ---- 2b. the bold outline on bright worlds ---------------------------------
+    //
+    // The bright backdrops (BackdropCatalog.Spec.Bright: Frost's lifted ice
+    // and cloud ceiling, Verdant's lit jungle) switch the hostile shots'
+    // outline and the boss shots' rim to the bold style -- a solid dark
+    // keyline -- by the same predicate as the hearts (HeartOutline.UseBold);
+    // Space and Ember keep the standard trace.
+    static void BoldOnBrightWorlds()
+    {
+        string[] worlds = { "Space", "Frost", "Verdant", "Ember" };
+        for (int w = 0; w < worlds.Length; w++)
+        {
+            Fresh(w);
+            bool bright = BackdropCatalog.For(worlds[w]).Bright;
+            Check(worlds[w] + ": the shots' outline and the boss rims are " + (bright ? "BOLD" : "standard") +
+                  " by the hearts' own predicate (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
+                  ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == bright);
+            if (w == 0 || w == 3) Check(worlds[w] + " is not brightened: its shots keep the standard look", !bright);
+            if (w == 1 || w == 2) Check(worlds[w] + " is brightened: its shots wear the bold keyline", bright);
+        }
+        // the bold outline: the same light trace at the drawing, a wider dark keyline, within the reach rule
+        var art = EliteFxArt.Bolt;
+        float drawn = .22f;
+        var std = ShotOutline.For(art, drawn, false);
+        var bold = ShotOutline.For(art, drawn, true);
+        int stdDark = DarkTexels(std), boldDark = DarkTexels(bold);
+        string hug;
+        bool hugs = OutlineHugsArt(art, bold, out hug);
+        Check("the bold shot outline keeps the light trace on the drawing and widens the dark keyline (" + boldDark + " dark texels vs " + stdDark +
+              "; " + hug + "), reaching " + ShotOutline.BoldReach + " wu (<= .05)",
+              std != bold && boldDark > stdDark * 3 / 2 && hugs && ShotOutline.BoldReach <= .05f && ShotOutline.BoldSolidTo < ShotOutline.BoldReach);
+        var boss = BossCatalog.ForWorld(1);
+        var rim = BossArt.ShotRim(boss, BossArt.Bolt0, false);
+        var boldRim = BossArt.ShotRim(boss, BossArt.Bolt0, true);
+        Check("the bold boss rim is its own sprite with a dark keyline (" + DarkTexels(boldRim) + " dark texels, standard " + DarkTexels(rim) +
+              "), reaching " + (BossArt.ShotRimBoldReach * BossConfig.BoltWorldSize).ToString("F3") + " wu (<= .05)",
+              rim != null && boldRim != null && rim != boldRim && DarkTexels(boldRim) > 0 && DarkTexels(rim) == 0 &&
+              BossArt.ShotRimBoldReach * BossConfig.BoltWorldSize <= .05f && BossArt.ShotRimBoldReach * BossArt.ShotRimTexels < BossArt.ShotRimPad);
+    }
+
+    static int DarkTexels(Sprite s)
+    {
+        if (s == null || s.texture == null || !s.texture.isReadable) return -1;
+        var r = s.textureRect;
+        var px = s.texture.GetPixels32();
+        int n = 0;
+        for (int y = (int)r.y; y < (int)(r.y + r.height); y++)
+            for (int x = (int)r.x; x < (int)(r.x + r.width); x++)
+            {
+                var c = px[y * s.texture.width + x];
+                if (c.a > 128 && c.r < 64) n++;
+            }
+        return n;
+    }
+
+    // ---- 2c. every variant of the bright worlds, at several moments ---------------
+    //
+    // Frost and Verdant, each installed backdrop variant, at 2 s (the
+    // opening cloud ceiling at its thickest: CloudCover holds it ~4 s), 5 s
+    // (clearing), 12 s and 40 s: every hostile shot this world
+    // fires -- its roster enemies' shots, its elites' shots, every elite
+    // shot kind (incl. Frost's slab and orb), and its boss's bolt and shard
+    // -- stands MinStandOutPixels at MinContrast out of the backdrop behind
+    // it, wherever on the screen it is.
+    static readonly float[] VariantMoments = { 2f, 5f, 12f, 40f };
+
+    static void ContrastOverEveryVariant()
+    {
+        foreach (int w in new[] { 1, 2 })
+        {
+            string world = w == 1 ? "Frost" : "Verdant";
+            var spec = BackdropCatalog.For(world);
+            var picker = BackdropVariants.For(world);
+            int variants = 0;
+            for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+            {
+                if (spec.variantSets > 0 && !picker.Installed(v)) continue;
+                variants++;
+                var cam = Fresh(w);
+                cam.aspect = RW / (float)RH;
+                picker.Force = spec.variantSets > 0 ? v : 0;
+                var backdrop = new GameObject("~Backdrop");
+                var wb = backdrop.AddComponent<WorldBackdrop>();
+                wb.Show(world, false);
+                var pool = new BossProjectilePool(40, 1);
+                var styles = ShotStyles(w);
+                var rt = new RenderTexture(RW, RH, 24);
+                cam.targetTexture = rt;
+                var tex = new Texture2D(RW, RH, TextureFormat.RGB24, false);
+                float clock = 0f;
+                foreach (float at in VariantMoments)
+                {
+                    while (clock < at) { wb.Step(1f / 60f); clock += 1f / 60f; }
+                    int fewestSmall = int.MaxValue, fewestBoss = int.MaxValue, smalls = 0, bosses = 0;
+                    string worstSmall = "-", worstBoss = "-";
+                    for (int pass = 0; pass < 3; pass++)
+                    {
+                        var list = new List<(Component shot, SpriteRenderer glow, string name)>();
+                        int cell = 0;
+                        for (int gx = 0; gx < 4; gx++)
+                            for (int gy = 0; gy < 6; gy++, cell++)
+                            {
+                                var p = new Vector3(-2.1f + gx * 1.4f, -4f + gy * 1.6f, 0f);
+                                var st = styles[(cell + pass * 7) % styles.Count];
+                                if (st.boss != null)
+                                {
+                                    var b = pool.Fire(st.boss, st.bossStyle, p, Vector2.zero);
+                                    if (b != null) list.Add((b, b.Glow, st.name));
+                                    continue;
+                                }
+                                var s = EliteSystem.Shots.Fire(null, st.def, st.kind, p, Vector2.zero);
+                                if (s == null) continue;
+                                if (st.roster) s.AsRosterShot(null, 0f);
+                                list.Add((s, s.Glow, st.name));
+                            }
+                        pool.Root.SetActive(false);
+                        foreach (var e in list) if (e.shot is EliteShot) e.shot.gameObject.SetActive(false);
+                        Color[] bg = Grab(cam, rt, tex);
+                        pool.Root.SetActive(true);
+                        foreach (var e in list) if (e.shot is EliteShot) e.shot.gameObject.SetActive(true);
+                        Color[] fg = Grab(cam, rt, tex);
+                        foreach (var (shot, glow, name) in list)
+                        {
+                            Vector3 c = cam.WorldToScreenPoint(glow.transform.position);
+                            float half = shot is BossProjectile
+                                ? shot.transform.lossyScale.x * .5f * (RH / (cam.orthographicSize * 2f))
+                                : Mathf.Max(glow.bounds.extents.x, glow.bounds.extents.y) * (RH / (cam.orthographicSize * 2f));
+                            int n = StandOut(fg, bg, c, half);
+                            if (shot is BossProjectile) { bosses++; if (n < fewestBoss) { fewestBoss = n; worstBoss = name; } }
+                            else { smalls++; if (n < fewestSmall) { fewestSmall = n; worstSmall = name; } }
+                            if (n < MinStandOutPixels) DumpCrop(world + "-v" + v + "-" + at + "-" + name.Replace(' ', '_') + "-" + n, fg, bg, c, half);   // (HOSTILE_DUMP=dir: crops of a shot that fails, with / without it)
+                        }
+                        foreach (var e in list)
+                        {
+                            if (e.shot is EliteShot es) es.Recycle();
+                            else if (e.shot is BossProjectile bp) bp.Recycle();
+                        }
+                    }
+                    string where = world + " v" + v + " at " + at + " s";
+                    Check("every elite / enemy shot stands out of " + where + ": at least " + fewestSmall + " px at " + MinContrast +
+                          ":1 (worst " + worstSmall + "), over " + smalls + " shots of " + styles.Count + " styles (need " + MinStandOutPixels + ")",
+                          smalls > 0 && fewestSmall >= MinStandOutPixels);
+                    Check("every boss shot stands out of " + where + ": at least " + fewestBoss + " px at " + MinContrast +
+                          ":1 (worst " + worstBoss + "), over " + bosses + " shots (need " + MinStandOutPixels + ")",
+                          bosses > 0 && fewestBoss >= MinStandOutPixels);
+                }
+                cam.targetTexture = null;
+                Object.DestroyImmediate(rt);
+                Object.DestroyImmediate(tex);
+                pool.Dispose();
+                Object.DestroyImmediate(backdrop);
+                picker.Force = 0;
+            }
+            Check(world + ": its backdrop variants were all covered (" + variants + ")", variants > 0);
+        }
+    }
+
+    static void DumpCrop(string tag, Color[] fg, Color[] bg, Vector3 c, float half)
+    {
+        string dir = System.Environment.GetEnvironmentVariable("HOSTILE_DUMP");
+        if (string.IsNullOrEmpty(dir)) return;
+        System.IO.Directory.CreateDirectory(dir);
+        int r = Mathf.CeilToInt(half) + 4, S = 2 * r + 1, k = 6;
+        var t = new Texture2D(S * k * 2 + 4, S * k, TextureFormat.RGB24, false);
+        for (int y = 0; y < S * k; y++)
+            for (int x = 0; x < S * k * 2 + 4; x++)
+            {
+                bool right = x >= S * k + 4;
+                if (!right && x >= S * k) { t.SetPixel(x, y, Color.red); continue; }
+                int sx = (int)c.x - r + (right ? x - S * k - 4 : x) / k, sy = (int)c.y - r + y / k;
+                Color col = sx < 0 || sy < 0 || sx >= RW || sy >= RH ? Color.magenta : (right ? bg : fg)[sy * RW + sx];
+                t.SetPixel(x, y, col);
+            }
+        t.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, tag + ".png"), t.EncodeToPNG());
+        Object.DestroyImmediate(t);
+    }
+
+    struct ShotStyleEntry
+    {
+        public string name;
+        public EliteDef def; public EliteShots.Kind kind; public bool roster;
+        public BossDef boss; public BossShotStyle bossStyle;
+    }
+
+    // Every hostile shot world `w` fires: its roster shooters', its elites',
+    // every elite shot kind (on a gunship), and its boss's bolt and shard.
+    static List<ShotStyleEntry> ShotStyles(int w)
+    {
+        var list = new List<ShotStyleEntry>();
+        foreach (var def in EnemyRoster.All)
+        {
+            if (def.world != w) continue;
+            var b = EnemyBehaviours.For(def.key);
+            if (b != null && (b.attack == EnemyAttack.Shot || b.attack == EnemyAttack.Ring || b.attack == EnemyAttack.Cross || b.attack == EnemyAttack.Lob))
+                list.Add(new ShotStyleEntry { name = def.key + " " + b.shotKind, def = b.ShotStyle, kind = b.shotKind, roster = true });
+        }
+        string wk = EnemyRoster.WorldKeys[w];
+        foreach (var d in EliteCatalog.All)
+            if (d.world == wk) list.Add(new ShotStyleEntry { name = "elite " + d.key + " " + d.shotKind, def = d, kind = EliteShots.KindOf(d.shotKind) });
+        var gun = Def("gunship");
+        foreach (EliteShots.Kind k in System.Enum.GetValues(typeof(EliteShots.Kind)))
+            list.Add(new ShotStyleEntry { name = "gunship " + k, def = gun, kind = k });
+        var boss = BossCatalog.ForWorld(w);
+        list.Add(new ShotStyleEntry { name = boss.artKey + " bolt", boss = boss, bossStyle = BossShotStyle.Bolt });
+        list.Add(new ShotStyleEntry { name = boss.artKey + " shard", boss = boss, bossStyle = BossShotStyle.Shard });
+        return list;
     }
 
     static void SetShots(List<(Component shot, SpriteRenderer glow)> list, bool on)

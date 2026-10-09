@@ -325,7 +325,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // the outline's light trace: the hostile pink only a little paled
         // (HostileShotPalette.TraceWhite), so even a thin bolt over a blue
         // planet reads hot pink, never lilac
-        glowTint = HostileShotPalette.Trace(tint);
+        // (bold, on a bright world: paled further, ShotOutline.BoldTrace, so the
+        // light ring reads over the mid-dark patches the dark keyline can't)
+        glowTint = ShotOutline.UseBold ? ShotOutline.BoldTrace(HostileShotPalette.Trace(tint)) : HostileShotPalette.Trace(tint);
         Outline(sprite, k);
         Pulse();
         Active = true;
