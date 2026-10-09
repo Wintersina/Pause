@@ -15,11 +15,13 @@ using UnityEngine.UI;
 //                           (and wins over this choice anyway)
 //
 // It sits in the slot just above LeaderBoard (y -133), or one row higher
-// (-43, the developer picker's slot) in builds that offer developer mode, whose
+// (-33, just under the developer picker's slot) in builds that offer developer mode, whose
 // switch lives at -133.
 public class StartWorldOptions : MonoBehaviour
 {
     const float RowH = 88f;
+    const float ArrowW = 100f;   // finger-sized: >= 96 units wide and (with the hit padding) tall
+    const float HitPad = 6f;
 
     public const string RowName = "PlayerStartWorld";
     public const string PrevName = "PlayerPrevWorld", NextName = "PlayerNextWorld", NameName = "PlayerWorldName";
@@ -43,7 +45,7 @@ public class StartWorldOptions : MonoBehaviour
             new GameObject("~StartWorldOptions").AddComponent<StartWorldOptions>();
     }
 
-    public static float RowY { get { return DeveloperUnlocks.Available ? -43f : -133f; } }
+    public static float RowY { get { return DeveloperUnlocks.Available ? -33f : -133f; } }
 
     void Start()
     {
@@ -56,12 +58,12 @@ public class StartWorldOptions : MonoBehaviour
         rowRect.SetParent(parent, false);
         rowRect.anchorMin = rowRect.anchorMax = rowRect.pivot = new Vector2(0.5f, 0.5f);
         rowRect.anchoredPosition = new Vector2(0f, RowY);
-        rowRect.sizeDelta = new Vector2(520f, RowH);
+        rowRect.sizeDelta = new Vector2(550f, RowH);
 
         Style(DeveloperOptions.Clone(template, row.transform, PrevName,
-                    new Vector2(-215f, 0f), new Vector2(80f, RowH), () => Step(-1))).text = "<";
+                    new Vector2(-225f, 0f), new Vector2(ArrowW, RowH), () => Step(-1))).text = "<";
         Style(DeveloperOptions.Clone(template, row.transform, NextName,
-                    new Vector2(215f, 0f), new Vector2(80f, RowH), () => Step(1))).text = ">";
+                    new Vector2(225f, 0f), new Vector2(ArrowW, RowH), () => Step(1))).text = ">";
         nameLabel = Style(DeveloperOptions.Clone(template, row.transform, NameName,
                     Vector2.zero, new Vector2(330f, RowH), () => Step(1)));
 
@@ -97,6 +99,10 @@ public class StartWorldOptions : MonoBehaviour
     {
         var text = button.GetComponentInChildren<Text>(true);
         if (text == null) return null;
+        // 88 units tall is under a 48 dp finger on a small phone: grow the hit area.
+        var button0 = button.GetComponent<Button>();
+        if (button0 != null && button0.targetGraphic != null)
+            button0.targetGraphic.raycastPadding = new Vector4(0f, -HitPad, 0f, -HitPad);
         text.resizeTextForBestFit = true;
         text.resizeTextMinSize = 18;
         text.resizeTextMaxSize = 34;

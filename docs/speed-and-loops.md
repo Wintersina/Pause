@@ -168,6 +168,28 @@ read or written by the game), the Top Speed leaderboard (table row, submission, 
   "Highest Speed Reached" leaderboard in Play Console and App Store Connect; re-word the Speedster
   achievement.
 
+## Where a run starts
+
+`WorldManager.RunStartWorld` picks the world a run begins on, first match wins (the log line
+`[WorldManager] run start: ... source ...` names which):
+
+1. **replay pin** (`replay pin`): REPLAY restarts the world the run began in (`RunLoop.StartWorld`).
+2. **developer pick** (`developer pick`): developer mode on and a start world picked in the developer panel.
+3. **player start world** (`player start world`): the player's START WORLD choice in Options
+   (`PlayerStartWorld`, PlayerPrefs `playerStartWorld`). Ignored while developer mode is on.
+4. **furthest planet** (`furthest planet`): a later run starts on the furthest planet reached
+   (`highestWorld`), the default. With `startAtHighestUnlocked` off every run starts in Space (`journey (Space)`).
+
+START WORLD (Options, `StartWorldOptions`): the row is a dimmed, untappable "START WORLD LOCKED" (hint "BEAT A
+WORLD'S BOSS TO UNLOCK") until the player has finished a level, i.e. `highestWorld >= 1` (a world's portal or
+planetfall only opens after its boss). After that it is `<  START <WORLD>  >`, cycling (wrapping) through every
+world with index <= `highestWorld`; the name also steps forward. Picking the furthest world clears the key, so
+the setting then follows new unlocks; picking an earlier world saves it. A saved value above `highestWorld`
+(progress restore, cloud sync) is clamped on read. Starting early never lowers `highestWorld`: `CurrentIndex`
+only raises it. The choice is part of the cloud snapshot (`ProgressSnapshot.startWorld` = world + 1, 0 = never
+chosen; merged from the newer side like `spawnShip`). The row sits above LeaderBoard (one slot higher, y -33, in builds
+with developer mode, whose switch uses that slot) and is hidden while developer mode is on.
+
 ## 3. The portal stays open
 
 ### State machine
