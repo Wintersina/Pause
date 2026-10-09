@@ -27,7 +27,8 @@ using UnityEngine;
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
-public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay }
+public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay,
+                         FoundryHangar, MagmaBay, SlagPad, FurnaceBay }
 
 public struct LandingSite
 {
@@ -44,7 +45,7 @@ public struct LandingSite
 
     // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
     // "padring" / "crawlerbay" / "hatch" / "roothangar" / "riverbay" / "podpad" /
-    // "towerbay" (EliteDef.launchFrom); anything else:
+    // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" (EliteDef.launchFrom); anything else:
     // null (any pad). A launchFrom may list several, comma separated
     // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
@@ -61,6 +62,10 @@ public struct LandingSite
             case "riverbay": return LandingKind.RiverBay;
             case "podpad": return LandingKind.PodPad;
             case "towerbay": return LandingKind.TowerBay;
+            case "foundryhangar": return LandingKind.FoundryHangar;
+            case "magmabay": return LandingKind.MagmaBay;
+            case "slagpad": return LandingKind.SlagPad;
+            case "furnacebay": return LandingKind.FurnaceBay;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;
