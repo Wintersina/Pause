@@ -203,6 +203,15 @@ public static class CodexTest
                   e != null && e.name == ShipId.NameOf(ship) && CodexCatalogue.ShipIndex(e.id) == ship);
         }
         Check("every world has an entry", CountIn(CodexCategory.Worlds) == WorldManager.Worlds.Length + 1);
+        {
+            var space = Codex.Find(Codex.WorldId(0));
+            var sky = CodexCatalogue.SpaceSkyTexture();
+            Check("the Space world entry shows the new Space sky tile (sky_01), not the old scene backdrop",
+                  sky != null && sky.name == "sky_01" && space != null && space.Sprite != null && space.Sprite.texture == sky);
+            var anim = CodexAnimations.World(0);
+            Check("the animated Space codex backdrop uses the same sky tile",
+                  anim != null && anim.idle != null && anim.idle.Length > 0 && anim.idle[0].texture == sky);
+        }
         Check("the portal is an entry", Codex.Find(CodexCatalogue.PortalId) != null);
         Check("Pilot's Log lore tells the premise",
               Codex.Find("log_pilot").lore.Contains("black hole") && Codex.Find("log_pilot").lore.Contains("wormhole") &&

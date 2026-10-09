@@ -518,13 +518,16 @@ public static class CodexCatalogue
         return SquareOf(Resources.Load<Texture2D>(BackdropCatalog.TileFolder(folder, 1) + "sky"));
     }
 
-    // Space keeps the scene's own authored backdrop (WorldTheme leaves its
-    // resourceFolder empty), which isn't under Resources; CodexArtRefs holds a
-    // reference to that same texture so the codex can show it.
+    // Space shows the same sky tile the game's Space world and the menu
+    // backdrop draw (Codex's sky_01 of sky_01..04, SpaceSkySelection).
+    public static Texture2D SpaceSkyTexture()
+    {
+        return Resources.Load<Texture2D>(BackdropCatalog.Folder("Space") + SpaceSkySelection.TextureFor(1));
+    }
+
     static Sprite SpaceBackdrop()
     {
-        var refs = Resources.Load<CodexArtRefs>("Codex/CodexArtRefs");
-        return SquareOf(refs != null ? refs.spaceBackdrop : null);
+        return SquareOf(SpaceSkyTexture());
     }
 
     static Sprite SquareOf(Texture2D tex)
