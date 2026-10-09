@@ -47,6 +47,10 @@ public static class RailMinePacingTest
                         Ride(w, right, speed, false);
             Ride(0, true, .35f, true);
             Ride(1, false, .2f, true);
+            for (int w = 0; w < 4; w++)
+                foreach (bool right in new[] { false, true })
+                    foreach (float speed in Speeds)
+                        Lock(w, right, speed);
             Freeze();
             foreach (float speed in Speeds) Room(speed);
         }
@@ -132,7 +136,7 @@ public static class RailMinePacingTest
             {
                 everRode = true;
                 framesRiding++;
-                float dev = Mathf.Abs(y - mount.HoldRow(ship));
+                float dev = Mathf.Abs(y - mount.TargetRow(ship));   // (the frozen row once its first laser begins: AimLocked)
                 worstBand = Mathf.Max(worstBand, dev);
                 if (dev > RailMineMount.HoldBand) inBand = false;
                 if (framesRiding > 1) worstRel = Mathf.Max(worstRel, Mathf.Abs((y - prevY) / Dt));
@@ -160,6 +164,92 @@ public static class RailMinePacingTest
               brain.ShotsFired == RailMineLaser.ShotsPerRide && beamsInBand);
         Check(tag + "then released and carried down past the view (monotonic " + fallsMonotonic + "), still on its rail, lane alive, never vanished",
               endedBelowView && fallsMonotonic && onRail && laneAlive && !goneEarly && !float.IsNaN(releasedY));
+        if (go != null) Object.DestroyImmediate(go);
+        if (rail != null) Object.DestroyImmediate(rail);
+    }
+
+    // AIM LOCK: until its first laser starts the mine follows the ship's row; from that
+    // windup to the last beam's end its target row, its beam angle and its beam origin
+    // stop following the ship (a ship swinging across the lane changes none of them), yet it
+    // keeps riding the rail (along-rail Ride still advances with the board), the beam stays
+    // on its body, and then it is released and the lock clears.
+    static void Lock(int world, bool right, float speed)
+    {
+        Fresh(speed);
+        var def = EnemyRoster.One(world, EnemyRole.Mine);
+        float x = enmiesOnBoard.WorldRailX(!right);
+        var rail = new GameObject("RailMineLane");
+        rail.transform.position = new Vector3(x, 6f, 0f);
+        var scroller = rail.AddComponent<RailLaneScroller>();
+        var go = EnemyFactory.Create(def, new Vector3(x, 6f, 0f), Quaternion.identity);
+        var brain = go.GetComponent<EnemyBrain>();
+        var mount = go.AddComponent<RailMineMount>();
+        mount.MountTo(rail.transform);
+        mount.brain = brain;
+        brain.TargetOverride = ship;
+        float scroll = speed * BoardRoll.BoardScroll;
+        string tag = "lock " + EnemyRoster.WorldKeys[world] + (right ? " right" : " left") + " @" + speed.ToString("F2") + ": ";
+        bool followedBefore = true, lockedRowSteady = true, angleSteady = true, beamOnBody = true, lockedOnce = false, clearedAfter = false;
+        int lockedFrames = 0;
+        float lockedRow = float.NaN, rideAtLock = 0f, rideEnd = 0f, lastShipY = ship.position.y, shipTravel = 0f;
+        float shotAngle = float.NaN, worstOffRow = 0f;
+        RailMineLaser lastLaser = null;
+        float t = 0f;
+        for (int i = 0; i < 60 * 40; i++)
+        {
+            t += Dt;
+            clock += Dt;
+            SpawnSpace.ClockOverride = clock;
+            // the ship sweeps the whole lane, fast, the entire time
+            ship.position = new Vector3(0f, -3f + 2.2f * Mathf.Sin(t * 2.4f), 0f);
+            shipTravel += Mathf.Abs(ship.position.y - lastShipY);
+            lastShipY = ship.position.y;
+            rail.transform.position += Vector3.down * (scroll * Dt);
+            if (scroller != null) TestHarness.Send(scroller, "Update");
+            if (go == null) break;
+            brain.Step(Dt);
+            TestHarness.Send(mount, "LateUpdate");
+            var l = brain.Laser;
+            if (l != null) l.Place();
+            if (rail == null) break;
+
+            if (mount.RideState == RailMineMount.RidePhase.Holding)
+            {
+                if (!mount.AimLocked)
+                {
+                    // before the first laser: the target is the ship's row
+                    followedBefore &= Mathf.Abs(mount.TargetRow(ship) - mount.HoldRow(ship)) < 1e-4f;
+                }
+                else
+                {
+                    if (!lockedOnce) { lockedOnce = true; lockedRow = mount.LockedRow; rideAtLock = mount.Ride; }
+                    lockedFrames++;
+                    lockedRowSteady &= Mathf.Abs(mount.TargetRow(ship) - lockedRow) < 1e-4f;
+                    worstOffRow = Mathf.Max(worstOffRow, Mathf.Abs(go.transform.position.y - lockedRow));
+                    rideEnd = mount.Ride;
+                    if (l != null && l.Active)
+                    {
+                        if (l != lastLaser || float.IsNaN(shotAngle) || l.State == RailMineLaser.Phase.Aim && l.PhaseTime < Dt * 1.5f) { lastLaser = l; shotAngle = l.Angle; }
+                        angleSteady &= Mathf.Abs(l.Angle - shotAngle) < 1e-4f;
+                        beamOnBody &= Vector2.Distance(l.From, RailMineLaser.MuzzleOf(go.transform, world)) < .01f;
+                    }
+                }
+            }
+            if (mount.RideState == RailMineMount.RidePhase.Released)
+            {
+                clearedAfter = !mount.AimLocked;
+                if (go.transform.position.y < CameraFit.ViewBottom - 1f) break;
+            }
+        }
+        float rodeAlong = rideEnd - rideAtLock;
+        Check(tag + "before its first laser the target row is the ship's row", followedBefore && lockedOnce);
+        Check(tag + "from the windup on the target row stays " + lockedRow.ToString("F2") + " while the ship travels " + shipTravel.ToString("F0") +
+              " u (" + lockedFrames + " frames locked), the mine within " + worstOffRow.ToString("F2") + " u of it", lockedRowSteady && lockedFrames > 60 && worstOffRow < RailMineMount.HoldBand);
+        Check(tag + "each beam keeps its angle and stays on the mine's body", angleSteady && beamOnBody);
+        Check(tag + "it still rides the rail: along-rail position advanced " + rodeAlong.ToString("F2") + " u in " + (lockedFrames * Dt).ToString("F1") +
+              " s (board " + (scroll * lockedFrames * Dt).ToString("F2") + " u)",
+              lockedFrames > 60 && (scroll < .01f || rodeAlong > scroll * lockedFrames * Dt * .5f));
+        Check(tag + "after the lasers the lock clears and it is released", clearedAfter && mount.RideState == RailMineMount.RidePhase.Released);
         if (go != null) Object.DestroyImmediate(go);
         if (rail != null) Object.DestroyImmediate(rail);
     }
