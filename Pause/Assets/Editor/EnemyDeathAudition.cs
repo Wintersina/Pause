@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 
 // Dev audition: in Play mode, "Pause/Audition Enemy Death Sounds" plays every
-// authored (Space, Verdant, Ember) death cue in turn through the game's own EnemyDeathAudio path (pool,
+// authored (Space, Frost, Verdant, Ember) death cue in turn through the game's own EnemyDeathAudio path (pool,
 // jitter, volume), each with its scream layer forced on where it has one, so
 // they can be judged in context over the music. Run it again to stop.
 public static class EnemyDeathAudition
