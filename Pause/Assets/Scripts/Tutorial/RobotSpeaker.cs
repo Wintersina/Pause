@@ -58,6 +58,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
 
     const string SpriteRoot = "Tutorial/";
     const int RingCount = 3;
+    const float RingAlpha = .55f;   // the painted ring is a thick cream octagon; keep the pulse a hint
 
     // Mouth frames, by index.
     const int MouthRest = 0, MouthE = 1, MouthA = 2, MouthO = 3, MouthBig = 4;
@@ -444,7 +445,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
             if (!on) continue;
             float s = k == 0 ? 1f : k == 1 ? 1.2f : 1.4f;
             SetScale(ring.rectTransform, s, s);
-            SetAlpha(ring, k == 0 ? 1f : k == 1 ? .65f : .3f);
+            SetAlpha(ring, RingAlpha * (k == 0 ? 1f : k == 1 ? .65f : .3f));
         }
     }
 

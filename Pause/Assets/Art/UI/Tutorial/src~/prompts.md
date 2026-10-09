@@ -37,3 +37,8 @@ The saved candidates are the unmodified tool outputs. `build_kit.py` selects
 
 The final open eye is softened into a rounded display in `build_kit.py` for a
 friendlier expression; small painted clusters from the eye candidate remain.
+
+Note: build_kit.py/verify_kit.py were removed after the kit shipped: they
+read the previous kit's sprites as geometry templates, which the swap replaced,
+so they cannot run any more. The sprites in Art/Resources/Tutorial are the source of truth;
+TutorialRobotTest pins their sizes and visor registration.

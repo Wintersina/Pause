@@ -9,12 +9,13 @@ using UnityEngine.UI;
 // Space world backdrop (as the runtime bootstrap sets it up), the robot and
 // its brass bubble speaking a few of the script's lines, and the pickups the
 // steps teach. One PNG per step into $TUTORIAL_PREVIEW_DIR (else
-// Builds/TutorialPreview), 1080x2340, plus a 2x crop of the robot and bubble.
+// Builds/TutorialPreview), 1080x2340, plus a crop of the robot and bubble.
 //
 //   scripts/unity-batch.sh -projectPath <abs>/Pause -executeMethod TutorialPreview.Run
 public static class TutorialPreview
 {
     const int Width = 1080, Height = 2340;
+    const float Sf = 1.777f;   // canvas scale a 1080x2340 phone gets from the 800x1000 / 0.5 scaler
     static readonly string[] Shots = { "hold", "freeze", "dust", "heal", "refill", "enemies" };
 
     public static void Run()
@@ -23,7 +24,10 @@ public static class TutorialPreview
         if (string.IsNullOrEmpty(dir)) dir = "Builds/TutorialPreview";
         Directory.CreateDirectory(dir);
         using (new TestHarness.Sandbox())
-        using (ScreenInfo.Override(Width, Height, new Rect(0f, 90f, Width, Height - 90f - 130f)))
+        // The overlay canvas is laid out in world space here (batch mode has no
+        // 1080x2340 screen), so canvas units stand for screen pixels / Sf.
+        using (ScreenInfo.Override(Mathf.RoundToInt(Width / Sf), Mathf.RoundToInt(Height / Sf),
+               new Rect(0f, 90f / Sf, Width / Sf, (Height - 90f - 130f) / Sf)))
         {
             for (int i = 0; i < Shots.Length; i++) Step(dir, i);
         }
@@ -75,11 +79,21 @@ public static class TutorialPreview
             if (step.id == "dust") AtomClarityPreview.SpawnPickup(5, new Vector3(1.6f, -2.2f, 0f));
         }
 
+        var paused = GameObject.Find("paused");
+        if (paused != null) paused.SetActive(false);   // the scene's template PAUSED glow, not part of this shot
+        // The canvas scales from the camera's target, so give it one first.
+        var rt = new RenderTexture(Width, Height, 24);
+        cam.targetTexture = rt;
         var speaker = RobotSpeaker.Create(null);
         var canvas = speaker.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.renderMode = RenderMode.WorldSpace;
         canvas.worldCamera = cam;
-        canvas.planeDistance = 1f;
+        canvas.scaleFactor = 1f;
+        var crt = (RectTransform)canvas.transform;
+        crt.sizeDelta = new Vector2(Width / Sf, Height / Sf);
+        crt.position = new Vector3(0f, 0f, -1f);
+        crt.localScale = Vector3.one * Sf * (2f * CameraFit.GameplayHalfWidth / Width);
+        Call(speaker, "Fit", true);
         var guides = TutorialGuides.Create(speaker.Root);
         if (step.id == "hold") guides.ShowTouch(true);
 
@@ -105,17 +119,41 @@ public static class TutorialPreview
         Call(speaker, "Update");
         Canvas.ForceUpdateCanvases();
 
-        var png = AtomClarityPreview.Shoot(cam, Width, Height);
+        cam.Render();
+        var old = RenderTexture.active;
+        RenderTexture.active = rt;
+        var png = new Texture2D(Width, Height, TextureFormat.RGB24, false);
+        png.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+        png.Apply();
+        RenderTexture.active = old;
+        cam.targetTexture = null;
+        Object.DestroyImmediate(rt);
         string stem = Path.Combine(dir, (index + 1) + "-" + step.id);
         File.WriteAllBytes(stem + ".png", png.EncodeToPNG());
 
-        // 2x crop of the robot and bubble, found from the laid-out rects.
-        var corners = new Vector3[4];
-        speaker.Root.GetWorldCorners(corners);
-        int cropH = 560;
-        var crop = png.GetPixels(0, Height - 90 - cropH - 40, Width, cropH);
-        var zoom = new Texture2D(Width, cropH, TextureFormat.RGB24, false);
-        zoom.SetPixels(crop);
+        Debug.Log("[TUTORIAL-PREVIEW] canvas sf=" + canvas.scaleFactor + " robot=" + speaker.Robot.position + " scale=" + speaker.Robot.localScale
+                  + " bubble=" + speaker.Bubble.position + " root=" + speaker.Root.rect + " cam=" + cam.pixelWidth + "x" + cam.pixelHeight
+                  + " canvasPos=" + canvas.transform.position + " layer=" + canvas.gameObject.layer);
+        // Crop around the robot and bubble, from their laid-out rects.
+        var rc = new Vector3[4];
+        float x0 = Width, x1 = 0f, y0 = Height, y1 = 0f;
+        foreach (var rect in new[] { speaker.Robot, speaker.Bubble })
+        {
+            rect.GetWorldCorners(rc);
+            foreach (var c in rc)
+            {
+                // camera pixel size is the batch window's, not the shot's: map by hand
+                float unit = Width / (2f * CameraFit.GameplayHalfWidth);
+                var p = new Vector3(Width * .5f + (c.x - cam.transform.position.x) * unit, Height * .5f + (c.y - cam.transform.position.y) * unit);
+                x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x);
+                y0 = Mathf.Min(y0, p.y); y1 = Mathf.Max(y1, p.y);
+            }
+        }
+        const int pad = 40;
+        int cx = Mathf.Clamp(Mathf.FloorToInt(x0) - pad, 0, Width - 1), cy = Mathf.Clamp(Mathf.FloorToInt(y0) - pad, 0, Height - 1);
+        int cw = Mathf.Clamp(Mathf.CeilToInt(x1 - x0) + 2 * pad, 1, Width - cx), ch = Mathf.Clamp(Mathf.CeilToInt(y1 - y0) + 2 * pad, 1, Height - cy);
+        var zoom = new Texture2D(cw, ch, TextureFormat.RGB24, false);
+        zoom.SetPixels(png.GetPixels(cx, cy, cw, ch));
         zoom.Apply();
         File.WriteAllBytes(stem + "-robot.png", zoom.EncodeToPNG());
         Object.DestroyImmediate(zoom);
