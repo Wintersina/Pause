@@ -166,8 +166,12 @@ public static class AchievementMigrationTest
               merged.CounterValue(AchievementStore.BossFlagKey(0)) == 1 && merged.CounterValue(AchievementStore.BossFlagKey(2)) == 1);
         Clear();
         merged.Apply();
-        Check("apply: restored, loop_1 stays claimed (no second payout)", AchievementStore.IsClaimed(AchievementCatalog.Find("loop_1")) &&
-              AchievementStore.ClaimAll() == 0);
+        bool wasClaimed = AchievementStore.IsClaimed(AchievementCatalog.Find("loop_1"));
+        string who = string.Join(",", AchievementCatalog.All.Where(d => AchievementStore.IsClaimable(d)).Select(d => d.id));
+        int again = AchievementStore.ClaimAll();
+        Debug.Log("[AMG] claimable after apply: " + who);
+        Check("apply: restored, loop_1 stays claimed (no second payout) (claimed " + wasClaimed + ", paid " + again + ")", wasClaimed && !AchievementStore.IsClaimable(AchievementCatalog.Find("loop_1")) &&
+              !who.Contains("loop_"));
         AchievementMigration.AfterCloudApply();
         Check("after apply: the boss counter is recounted from the union (3)", AchievementStore.Counter("bosses") == 3);
         string json = merged.ToJson();

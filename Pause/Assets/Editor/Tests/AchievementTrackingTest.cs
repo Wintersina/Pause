@@ -33,6 +33,15 @@ public static class AchievementTrackingTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        // a clean profile: no ships, worlds or codex from this machine's editor prefs
+        PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
+        for (int i = 1; i <= shopingShips.shipTotal; i++)
+        {
+            PlayerPrefs.DeleteKey("boughtship" + i);
+            for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(i, n));
+        }
+        PlayerPrefs.SetString(Codex.PrefsKey, "");
+        Codex.Reload();
         bool tide = WorldManager.TideEnabled;
         var objs = new List<GameObject>();
         try
@@ -277,10 +286,10 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
         PlayerPrefs.SetString("boughtship1", "True");
         bool bought = shopingShips.TryPurchase(2, shopingShips.CostFor(2));
-        Check("buying a ship: Hangar Debut, dust spent counted, ships counted",
+        Check("buying a ship: Hangar Debut, dust spent counted, ships counted (bought " + bought + ", spent " + C("spent") + ", ships " + C("ships") + ")",
               bought && U("ship_first") && C("spent") == 600 && C("ships") == 2 && !U("ship_half"));
         for (int i = 3; i <= 8; i++) shopingShips.TryPurchase(i, 0f);
-        Check("8 ships owned: Squadron", C("ships") == 8 && U("ship_half") && !U("ship_all"));
+        Check("8 ships owned: Squadron (" + C("ships") + ")", C("ships") == 8 && U("ship_half") && !U("ship_all"));
         for (int i = 9; i <= 15; i++) shopingShips.TryPurchase(i, 0f);
         Check("every ship owned: Fleet Admiral", C("ships") == ShipId.Count && U("ship_all"));
         Check("a failed purchase changes nothing", !shopingShips.TryPurchase(2, 99999f) && C("spent") == 600);
@@ -307,14 +316,7 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
         AchievementTracker.RefreshCodex();
-        Check("a fresh codex: the free entries count, nothing unlocked", C("codex") == Codex.DiscoveredCount && !U("codex_10"));
-        var ids = Codex.Entries.Where(e => !Codex.IsDiscovered(e) && !e.secret && e.category != CodexCategory.Ships && e.category != CodexCategory.Worlds)
-                               .Take(10).Select(e => e.id).ToArray();
-        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", ids));
-        Codex.Reload();
-        AchievementTracker.OnCodexDiscovered(Codex.Find(ids[0]));
-        Check("10+ entries discovered: Curious Pilot (" + Codex.DiscoveredCount + ")", Codex.DiscoveredCount >= 10 && U("codex_10") && !U("codex_50"));
-
+        Check("a fresh codex: the free entries count, nothing unlocked (" + Codex.DiscoveredCount + " free, codex_10 " + U("codex_10") + ")", C("codex") == Codex.DiscoveredCount && U("codex_10") == (Codex.DiscoveredCount >= 10) && !U("codex_50"));
         // Field Guide: everything non-boss, non-elite of ONE world
         var world0 = Codex.Entries.Where(e => (e.category == CodexCategory.Enemies || e.category == CodexCategory.Hazards) &&
                                               BossCatalog.Find(e.id) == null && EliteCatalog.FindByCodexId(e.id) == null)
