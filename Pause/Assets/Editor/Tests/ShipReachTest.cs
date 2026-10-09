@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 // tall phones" (docs/enemy-behaviours.md "Ship reach and boss height").
 //
 //   REACH     on every phone / tablet shape (ScreenInfo + the camera
-//             CameraFit gives it): the ship's range is TopShare of the view
+//             CameraFit gives it): the ship's range is up to the HUD band
 //             at the top and the safe area's bottom + the hull's drawing +
 //             a margin at the bottom; the hull is fully visible there and
 //             under the HUD band at the top; sideways the hull stops on the
@@ -222,8 +222,8 @@ public static class ShipReachTest
                               F(bottom), F(top), P(f.ShareOf(bottom)), P(f.ShareOf(top)), F(oldB), F(oldT), P(f.ShareOf(oldB)), P(f.ShareOf(oldT)),
                               F(finger), F((f.top - top - ShipReach.HullAbove) / Hud35), F(Mathf.Max(0f, f.top - oldT - ShipReach.HullAbove) / Hud35)));
             bool phone = d.h > 1.5f * d.w;
-            Check(id + ": the ceiling is " + P(ShipReach.TopShare) + " of the view (" + P(f.ShareOf(top)) + ")" + (phone ? "" : " or under the HUD band"),
-                  Mathf.Abs(f.ShareOf(top) - ShipReach.TopShare) < .001f || (!phone && top + ShipReach.HullAbove <= f.bandBottom - ShipReach.BottomMargin + 1e-3f));
+            Check(id + ": the ship's top edge sits " + F(ShipReach.TopGap) + " u under the HUD band's bottom (" + F(top + ShipReach.HullAbove) + " vs " + F(f.bandBottom) + ", " + P(f.ShareOf(top)) + " of the view)",
+                  Mathf.Abs(top + ShipReach.HullAbove + ShipReach.TopGap - f.bandBottom) < .001f);
             Check(id + ": at the floor the whole ship (hull and flame, " + F(ShipReach.HullBelow) + " u under its centre) is " + F(ShipReach.BottomMargin) +
                   " u above the safe area's bottom (" + F(bottom - ShipReach.HullBelow) + " vs " + F(f.safeBottom) + ")",
                   Mathf.Abs(bottom - ShipReach.HullBelow - ShipReach.BottomMargin - Mathf.Max(f.bottom, f.safeBottom)) < 1e-3f);
@@ -320,9 +320,9 @@ public static class ShipReachTest
         {
             Use(s);
             var f = PlayField.Live;
-            same &= Mathf.Abs(f.ShareOf(ShipReach.Top) - ShipReach.TopShare) < .001f && ShipReach.Bottom > f.safeBottom;
+            same &= Mathf.Abs(ShipReach.Top + ShipReach.HullAbove + ShipReach.TopGap - f.bandBottom) < .001f && ShipReach.Bottom > f.safeBottom;
         }
-        Check("folding and unfolding: the range is recomputed for the new screen at once (the same share of each view)", same);
+        Check("folding and unfolding: the range is recomputed for the new screen at once (under each screen's HUD band)", same);
     }
 
     // ---- 2: pilots against a ship at the top of its reach --------------------------------------
@@ -401,30 +401,13 @@ public static class ShipReachTest
     {
         int flights, windups, closeWindups, bodyOnHull;
         string firstClose, firstBody;
-        // the same flights against the 60% ceiling, for comparison
-        var at60 = new Dictionary<string, int>();
-        float share = ShipReach.TopShare;
-        ShipReach.TopShare = .6f;
-        int f60, w60, c60, b60;
-        string fc60, fb60;
-        try { PilotFlights(out f60, out w60, out c60, out b60, out fc60, out fb60, at60); }
-        finally { ShipReach.TopShare = share; }
         var perPilot = new Dictionary<string, int>();
         PilotFlights(out flights, out windups, out closeWindups, out bodyOnHull, out firstClose, out firstBody, perPilot);
-        string lost = "", table = "";
-        var pilots = new List<string>(at60.Keys);
-        foreach (var k in perPilot.Keys) if (!pilots.Contains(k)) pilots.Add(k);
+        string table = "";
+        var pilots = new List<string>(perPilot.Keys);
         pilots.Sort(StringComparer.Ordinal);
-        foreach (var k in pilots)
-        {
-            int a = at60.TryGetValue(k, out int x) ? x : 0, c = perPilot.TryGetValue(k, out int y) ? y : 0;
-            table += " " + k + " (depth " + EnemyRoster.Find(k).Behaviour.stationDepth + ") " + a + "->" + c + ";";
-            if (a > 0 && c == 0) lost += " " + k;
-        }
-        Log("pilots v a ship at the ceiling: " + flights + " flights, " + windups + " windups at " + P(share) + " (" + w60 + " at 60%, " +
-            c60 + " close, " + b60 + " body frames); per pilot 60% -> " + P(share) + ":" + table);
-        Check("every pilot that winds up at a ship on a 60% ceiling still does at " + P(share) + (lost.Length > 0 ? " (lost:" + lost + ")" : ""),
-              lost.Length == 0);
+        foreach (var k in pilots) table += " " + k + " (depth " + EnemyRoster.Find(k).Behaviour.stationDepth + ") " + perPilot[k] + ";";
+        Log("pilots v a ship at the ceiling (right under the HUD band): " + flights + " flights, " + windups + " windups; per pilot:" + table);
         Check("every pilot's windup starts at least " + EnemyBrain.MinFireAbove + " x view above and " + EnemyBrain.MinFireDistance +
               " x view from a ship at the ceiling (" + (windups - closeWindups) + "/" + windups + (firstClose != null ? ", first " + firstClose : "") + ")",
               closeWindups == 0 && flights > 50);
@@ -449,7 +432,9 @@ public static class ShipReachTest
                 var b = def.Behaviour;
                 if (b == null || !b.IsPilot || def.role == EnemyRole.Chaser || b.entry == PilotEntry.Descend) continue;
                 float station = CameraFit.ViewTop - b.stationDepth * view;
-                float hold = EnemyBrain.HoldY(station, top, view, CameraFit.ViewTop, f.bandBottom);
+                // as the game holds it (HostileReach on: the reach hold, never on a parked hull)
+                float hold = EnemyBrain.ReachHoldY(station, top, top, def.ColliderSize.y * .5f, SpawnSpace.BodyHalf(def).y,
+                                                   EnemyBrain.PatternUp(b), EnemyBrain.PatternDown(b));
                 float body = hold - SpawnSpace.BodyHalf(def).y;
                 if (body - hull < least) { least = body - hull; worst = id + " " + def.key; }
                 clear &= body > hull;

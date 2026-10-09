@@ -491,6 +491,8 @@ public class enmiesOnBoard : MonoBehaviour {
                     // hazards are routed round the pilots: never down a reserved column
                     Rect reach = c.Sweep(0f, SpawnSpace.Lifetime);
                     if (PilotAirspace.Blocks(reach.xMin, reach.xMax)) continue;
+                    // ...and never over a ship parked up under the score board with no time to see it
+                    if (TopGuard.BlocksLive(x - half.x, x + half.x, y, half.y)) continue;
                     if (pass == 0 && passes > 1 && !SpawnSpace.Fits(c, SpawnLayer.Pickup)) continue;
                     if (laneDef != null && !SpawnLane.Fits(laneDef, x, y, size)) continue;
                     pos = new Vector3(x, y, 0f);

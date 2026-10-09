@@ -90,7 +90,7 @@ public class AtomWander
     // camera) whose top is `viewTop` (ShipReach: a share of the view).
     public static float ShipTopFor(float viewTop)
     {
-        return ShipReach.TopFor(PlayField.For(-viewTop, 2f * viewTop, Vector2.zero, default(Rect), -1f));
+        return ShipReach.PickupTopFor(PlayField.For(-viewTop, 2f * viewTop, Vector2.zero, default(Rect), -1f));
     }
 
     public static bool Gone(float y, float viewBottom)

@@ -269,6 +269,8 @@ public class collisionDetection : MonoBehaviour {
                 if (atomCheck) RunScore.OnShieldedShot(hit.gameObject, hit.transform.position);
                 // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
                 if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
+                // A boss's body: a hit on the boss, not a kill (BossRam).
+                if (BossRam.Ram(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()), hit.transform.position)) return;
 
                 // The player destroyed it: the pooled cartoon target
                 // explosion (metal / rock / mine), flashed in this ship's

@@ -1066,6 +1066,15 @@ and collider guides, and a smallest / typical / largest sheet per rock at 1080x2
 
 ## Ship reach and boss height
 
+> **Superseded at the top (branch `feature/player-zone-to-scoreboard`).** The ship's ceiling is no longer 70% of the
+> view: its top edge now sits `ShipReach.TopGap` (0.03 u) under the HUD band's bottom (`PlayField.Frame.bandBottom`:
+> score read-out + home/replay icons, measured per screen and safe area), i.e. 82-89% of the view (old: 70%): +2.2 to
+> +3.2 u (+14 to +20% of the view) on phones, +1.2 to +1.4 u on tablets. Unshielded, a boss still holds the ship under
+> its muzzles; a shielded ship (blue atom / Cloak with more than 1 s left) may fly all the way up and ram it
+> (`BossRam`: one hit of 0.3, 1.2 s of shield, 1 s cooldown, body stays; an unshielded touch still costs a heart).
+> Scrolling hazards are not born over a ship parked up there with under 0.5 s to see them (`TopGuard`). Atoms still
+> float to the old 70% (`PickupTopShare`). The table below describes the old 70% design.
+
 Branch `fix/ship-reach-and-boss-height`. Verified by simulation, tests (`ShipReachTest`) and editor renders
 (`ShipReachRender`); not played on a device.
 

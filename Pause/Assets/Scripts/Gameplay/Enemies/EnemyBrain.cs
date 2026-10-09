@@ -82,7 +82,7 @@ public class EnemyBrain : MonoBehaviour
     public static float ViewScale => Mathf.Max(.5f, (CameraFit.ViewTop - CameraFit.ViewBottom) / AuthoredViewHeight);
 
     // Where a pilot whose station is `stationY` holds with the ship at
-    // `shipY` (pure, for tests). The ship's ceiling (ShipReach.TopShare, 70%)
+    // `shipY` (pure, for tests). The ship's ceiling (ShipReach.TopFor: right under the HUD band)
     // is as high as the deepest stations (30% under the top), so a ship
     // parked high would sit on a deep pilot and deny every windup (they need
     // MinFireDistance x view, 18% of the view): instead the pilot backs up

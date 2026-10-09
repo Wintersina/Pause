@@ -129,6 +129,7 @@ public static class AllTests
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ScreenFitTest", ScreenFitTest.Execute),
+        ("PlayerZoneTopTest", PlayerZoneTopTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
         ("ShipReachTest", ShipReachTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),

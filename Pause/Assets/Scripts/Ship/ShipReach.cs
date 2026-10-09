@@ -20,15 +20,20 @@ using UnityEngine;
 //           finger can't usually go lower than the screen's edge anyway:
 //           that puts the ship FingerOffset up, which is higher on phones
 //           with no bottom inset.)
-//   TOP     TopShare of the way up the view (its centre), measured from the
-//           view's bottom, the same share on every phone. Why that share:
-//           docs/enemy-behaviours.md "Ship reach and boss height". In short:
-//           the HUD band covers the top 9% - 13%, pilots hold stations 14% -
-//           30% below the top of the view (a pilot holds higher while the
-//           ship is close under it: EnemyBrain.HoldY), hazards appear at the
-//           top edge; at 70% the ship has about 0.4 s at HUD 35 to react to
-//           what appears there. While a boss is up it stays under the boss
-//           (BossCeilingFor: 65% of the view or lower, under its muzzles).
+//   TOP     the ship's top edge (its centre + HullAbove) sits TopGap under
+//           the HUD top band's lowest edge (PlayField.Frame.bandBottom: the
+//           score read-out, the home / replay icons, already below any
+//           cutout / status bar) -- right under the score board, on every
+//           screen shape. It used to stop TopShare (70%) of the way up the
+//           view, which left the top 17% - 21% of a phone's play area (the
+//           band and the strip under it) unreachable. The ship may overlap
+//           the HUD's pieces never; it draws under them (HUD canvases sort
+//           above the world) and taps on them still win (movePlayer).
+//           While a boss is up, an UNSHIELDED ship stays under the boss
+//           (BossCeilingFor: 65% of the view or lower, under its muzzles);
+//           a shielded one (blue atom / Cloak) may fly all the way up and
+//           ram it (BossRam), and is eased back down as the shield ends
+//           (BossOpenFallSpeed).
 //   SIDES   +/-HalfWidth: the hull's side (ShipScale.HullHalfWidth) just
 //           reaches the rails' drawn inner edge (BossRails.InnerEdge), never
 //           over it. The rails move out where the screen has room
@@ -43,8 +48,11 @@ public static class ShipReach
     // false: the old constant reach (LegacyBottom .. LegacyTop) on every screen.
     public static bool FitToView = true;
     public const float LegacyBottom = -4.15f, LegacyTop = 4.5f;
-    // Highest the ship's centre goes: this share of the view's height, from its bottom.
-    public static float TopShare = .7f;
+    // The ship's top edge stops this far under the HUD band's bottom (world u).
+    public static float TopGap = .03f;
+    // The share of the view atoms may float up to (AtomWander): they stay
+    // clear of the HUD band though the ship now reaches it.
+    public static float PickupTopShare = .7f;
     // Clear space between the ship's lowest drawn pixel and the safe area's bottom (world u).
     public static float BottomMargin = .15f;
     // The ship's drawing below / above its centre at the normalised size: the
@@ -87,10 +95,16 @@ public static class ShipReach
     public static float TopFor(PlayField.Frame f)
     {
         if (!FitToView) return LegacyTop;
-        float top = f.At(TopShare);
-        // never into the HUD band (only ever binds on a squat screen)
-        top = Mathf.Min(top, f.bandBottom - HullAbove - BottomMargin);
+        // the hull's top edge right under the HUD band (bandBottom = the safe
+        // area's top where no band is laid out)
+        float top = f.bandBottom - HullAbove - TopGap;
         return Mathf.Max(top, BottomFor(f) + MinSpan);
+    }
+
+    // The highest an atom floats (the old reach: PickupTopShare of the view).
+    public static float PickupTopFor(PlayField.Frame f)
+    {
+        return Mathf.Max(f.At(PickupTopShare), BottomFor(f) + MinSpan);
     }
 
     public static float ClampY(PlayField.Frame f, float y)
@@ -137,9 +151,44 @@ public static class ShipReach
         {
             var f = PlayField.Live;
             if (!FitToView) return LegacyTop;
-            return Mathf.Max(BottomFor(f) + MinSpan, Mathf.Min(TopFor(f), BossCeilingFor(f)));
+            float zone = TopFor(f);
+            return Mathf.Max(BottomFor(f) + MinSpan, Mathf.Min(zone, BossCeilingFor(f) + OpenExtra(f, zone)));
         }
     }
+
+    // ---- a shielded ship rams the boss (BossRam) ----
+    // The boss ceiling is lifted while a blue-atom shield or Cloak has more
+    // than BossOpenLead seconds left, and comes back at BossOpenFallSpeed
+    // (u/s) once it has less, so a ship rammed up into the boss is out of
+    // its body before the shield is gone.
+    public const float BossOpenLead = 1f;
+    public const float BossOpenFallSpeed = 8f;
+
+    // Does the ship's shield hold the boss ceiling open right now?
+    public static bool ShieldOpensCeiling =>
+        (collisionDetection.atomCheck && collisionDetection.invTimer > BossOpenLead) ||
+        collisionDetection.cloakTimer > BossOpenLead;
+
+    static float openExtra;
+    static int openFrame = -1;
+
+    // How far above the boss ceiling the ship may fly (0 .. zone - ceiling).
+    static float OpenExtra(PlayField.Frame f, float zone)
+    {
+        float ceiling = BossCeilingFor(f);
+        if (float.IsInfinity(ceiling)) { openExtra = 0f; return 0f; }
+        float full = Mathf.Max(0f, zone - ceiling);
+        if (!Application.isPlaying) return ShieldOpensCeiling ? full : 0f;
+        if (openFrame != Time.frameCount)
+        {
+            openFrame = Time.frameCount;
+            openExtra = ShieldOpensCeiling ? full : Mathf.Max(0f, openExtra - BossOpenFallSpeed * Time.deltaTime);
+        }
+        return Mathf.Min(openExtra, full);
+    }
+
+    public static void ResetOpen() { openExtra = 0f; openFrame = -1; }
+
     public static float ClampY(float y) => Mathf.Clamp(y, Bottom, Top);
     public static float ClampX(float x) => Mathf.Clamp(x, -HalfWidth, HalfWidth);
     public static float StartY => StartYFor(PlayField.Live);
