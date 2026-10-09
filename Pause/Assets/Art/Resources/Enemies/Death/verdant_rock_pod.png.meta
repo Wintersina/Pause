@@ -1,0 +1,1573 @@
+fileFormatVersion: 2
+guid: 1916fe4aace9a45f085f6d5f1b2e3a5c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1067786699914804246
+    second: verdant_rock_pod_0
+  - first:
+      213: 8681749985672500227
+    second: verdant_rock_pod_1
+  - first:
+      213: -1077004153868567239
+    second: verdant_rock_pod_2
+  - first:
+      213: 925387779229759320
+    second: verdant_rock_pod_3
+  - first:
+      213: -2202250018128970653
+    second: verdant_rock_pod_4
+  - first:
+      213: -7149467191786843130
+    second: verdant_rock_pod_5
+  - first:
+      213: 575095435279561904
+    second: verdant_rock_pod_6
+  - first:
+      213: 2684919441524142392
+    second: verdant_rock_pod_7
+  - first:
+      213: 4257308146472988875
+    second: verdant_rock_pod_8
+  - first:
+      213: -5160873619763242119
+    second: verdant_rock_pod_9
+  - first:
+      213: -8487220391430948886
+    second: verdant_rock_pod_10
+  - first:
+      213: -5590060030165273494
+    second: verdant_rock_pod_11
+  - first:
+      213: 1594167404934082458
+    second: verdant_rock_pod_12
+  - first:
+      213: -1766737017476846644
+    second: verdant_rock_pod_13
+  - first:
+      213: 8030920940235370578
+    second: verdant_rock_pod_14
+  - first:
+      213: -6014775222485424591
+    second: verdant_rock_pod_15
+  - first:
+      213: -8801421516246577603
+    second: verdant_rock_pod_16
+  - first:
+      213: 1981972219828584924
+    second: verdant_rock_pod_17
+  - first:
+      213: -5938769737143491988
+    second: verdant_rock_pod_18
+  - first:
+      213: -1850128195151894763
+    second: verdant_rock_pod_19
+  - first:
+      213: 2477446247112127703
+    second: verdant_rock_pod_20
+  - first:
+      213: -2469185978306471710
+    second: verdant_rock_pod_21
+  - first:
+      213: -5560663338242903490
+    second: verdant_rock_pod_22
+  - first:
+      213: 5630164997239574860
+    second: verdant_rock_pod_23
+  - first:
+      213: 1355469778717619275
+    second: verdant_rock_pod_24
+  - first:
+      213: 8757165741994069895
+    second: verdant_rock_pod_25
+  - first:
+      213: -7912851823583981761
+    second: verdant_rock_pod_26
+  - first:
+      213: -309141057727632368
+    second: verdant_rock_pod_27
+  - first:
+      213: 538517730185859924
+    second: verdant_rock_pod_28
+  - first:
+      213: -3286184200863403658
+    second: verdant_rock_pod_29
+  - first:
+      213: 8795169815545685267
+    second: verdant_rock_pod_30
+  - first:
+      213: -1611350989510921777
+    second: verdant_rock_pod_31
+  - first:
+      213: 1330697277047004356
+    second: verdant_rock_pod_32
+  - first:
+      213: -8168177711875121785
+    second: verdant_rock_pod_33
+  - first:
+      213: 4394208887847878783
+    second: verdant_rock_pod_34
+  - first:
+      213: -2813893385559240824
+    second: verdant_rock_pod_35
+  - first:
+      213: -3591622918530215040
+    second: verdant_rock_pod_36
+  - first:
+      213: -6266875239606829652
+    second: verdant_rock_pod_37
+  - first:
+      213: 6310884064417163846
+    second: verdant_rock_pod_38
+  - first:
+      213: 6345109162311074953
+    second: verdant_rock_pod_39
+  - first:
+      213: -8724128717716430445
+    second: verdant_rock_pod_40
+  - first:
+      213: 8062290292588816466
+    second: verdant_rock_pod_41
+  - first:
+      213: 2619778330627241264
+    second: verdant_rock_pod_42
+  - first:
+      213: 784321790926854400
+    second: verdant_rock_pod_43
+  - first:
+      213: -4232969388183488313
+    second: verdant_rock_pod_44
+  - first:
+      213: -2358356026445121589
+    second: verdant_rock_pod_45
+  - first:
+      213: 4032572445815595182
+    second: verdant_rock_pod_46
+  - first:
+      213: -8230709666705606104
+    second: verdant_rock_pod_47
+  - first:
+      213: -8342796999889403332
+    second: verdant_rock_pod_48
+  - first:
+      213: 3072124995318198864
+    second: verdant_rock_pod_49
+  - first:
+      213: -6938598190611815712
+    second: verdant_rock_pod_50
+  - first:
+      213: 7451465150174592739
+    second: verdant_rock_pod_51
+  - first:
+      213: -6627290574263215059
+    second: verdant_rock_pod_52
+  - first:
+      213: -1967091108208723469
+    second: verdant_rock_pod_53
+  - first:
+      213: 8573717665489334552
+    second: verdant_rock_pod_54
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_rock_pod_0
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 4
+        width: 141
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61cfe40a85a81de00800000000000000
+      internalID: 1067786699914804246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_1
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 175
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30413c43d95cb7870800000000000000
+      internalID: 8681749985672500227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_2
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 11
+        width: 150
+        height: 166
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93d3b03ad66bd01f0800000000000000
+      internalID: -1077004153868567239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_3
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 155
+        width: 23
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8573a744843a7dc00800000000000000
+      internalID: 925387779229759320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_4
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 139
+        width: 33
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36c33dac6490071e0800000000000000
+      internalID: -2202250018128970653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_5
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 153
+        width: 39
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6045c34f77df7cc90800000000000000
+      internalID: -7149467191786843130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_6
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 159
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b479cb50462bf700800000000000000
+      internalID: 575095435279561904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_7
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 141
+        width: 13
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 831369ab100c24520800000000000000
+      internalID: 2684919441524142392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_8
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 121
+        width: 23
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc036e9f33ff41b30800000000000000
+      internalID: 4257308146472988875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_9
+      rect:
+        serializedVersion: 2
+        x: 406
+        y: 125
+        width: 24
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97bd35b49c4e068b0800000000000000
+      internalID: -5160873619763242119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_10
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 134
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae77e4e6506573a80800000000000000
+      internalID: -8487220391430948886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_11
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 148
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a64b3ec150e1c62b0800000000000000
+      internalID: -5590060030165273494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_12
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 144
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9f2a9bfece9f1610800000000000000
+      internalID: 1594167404934082458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_13
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 134
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccb62cd0b0a4b77e0800000000000000
+      internalID: -1766737017476846644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_14
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 100
+        width: 33
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 250b9f5ab00937f60800000000000000
+      internalID: 8030920940235370578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_15
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 109
+        width: 28
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1366fe38dc9378ca0800000000000000
+      internalID: -6014775222485424591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_16
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 122
+        width: 18
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3e84ad43c11bd580800000000000000
+      internalID: -8801421516246577603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_17
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 119
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd14395ab31618b10800000000000000
+      internalID: 1981972219828584924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_18
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 103
+        width: 14
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c62e8b69360459da0800000000000000
+      internalID: -5938769737143491988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_19
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 110
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 517690b75360356e0800000000000000
+      internalID: -1850128195151894763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_20
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 83
+        width: 25
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d43e355c38a16220800000000000000
+      internalID: 2477446247112127703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_21
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 79
+        width: 36
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e8daae5f60bbbdd0800000000000000
+      internalID: -2469185978306471710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_22
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 95
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e327e70d72e84d2b0800000000000000
+      internalID: -5560663338242903490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_23
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 104
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c419d4f2c3d522e40800000000000000
+      internalID: 5630164997239574860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_24
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 82
+        width: 22
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b44bd3805989fc210800000000000000
+      internalID: 1355469778717619275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_25
+      rect:
+        serializedVersion: 2
+        x: 469
+        y: 74
+        width: 19
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78fc6ca48d3b78970800000000000000
+      internalID: 8757165741994069895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_26
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 107
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3f89f6c037ef2290800000000000000
+      internalID: -7912851823583981761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_27
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 65
+        width: 30
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ce7ac88d5b5bbf0800000000000000
+      internalID: -309141057727632368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_28
+      rect:
+        serializedVersion: 2
+        x: 520
+        y: 100
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4535afcb503397700800000000000000
+      internalID: 538517730185859924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_29
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 60
+        width: 21
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 671390951e02562d0800000000000000
+      internalID: -3286184200863403658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_30
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 64
+        width: 24
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 315a6d23958be0a70800000000000000
+      internalID: 8795169815545685267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_31
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 90
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc13ab5ffc453a9e0800000000000000
+      internalID: -1611350989510921777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_32
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 88
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4cc57f58f16977210800000000000000
+      internalID: 1330697277047004356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_33
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 47
+        width: 22
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78d9b6dd5adc4ae80800000000000000
+      internalID: -8168177711875121785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_34
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 64
+        width: 17
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f708905b3bd5bfc30800000000000000
+      internalID: 4394208887847878783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_35
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 77
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88f8beddfda03f8d0800000000000000
+      internalID: -2813893385559240824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_36
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 53
+        width: 26
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 083dadd1cfdf72ec0800000000000000
+      internalID: -3591622918530215040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_37
+      rect:
+        serializedVersion: 2
+        x: 541
+        y: 70
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cad3b834c269709a0800000000000000
+      internalID: -6266875239606829652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_38
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 66
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64a224ebe93c49750800000000000000
+      internalID: 6310884064417163846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_39
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 63
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 984c0a05a2b5e0850800000000000000
+      internalID: 6345109162311074953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_40
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 38
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3916ab5572bade680800000000000000
+      internalID: -8724128717716430445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_41
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 49
+        width: 14
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25826d52e4203ef60800000000000000
+      internalID: 8062290292588816466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_42
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 33
+        width: 14
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0357d43f2825b5420800000000000000
+      internalID: 2619778330627241264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_43
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 29
+        width: 42
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0091bc9638872ea00800000000000000
+      internalID: 784321790926854400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_44
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 28
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c87838c4c87145c0800000000000000
+      internalID: -4232969388183488313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_45
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 43
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc736d560bf654fd0800000000000000
+      internalID: -2358356026445121589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_46
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 26
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea0edd3264396f730800000000000000
+      internalID: 4032572445815595182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_47
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 21
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82a73a29a25a6cd80800000000000000
+      internalID: -8230709666705606104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_48
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 31
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c32c564a45e683c80800000000000000
+      internalID: -8342796999889403332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_49
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 24
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0523a8b086162aa20800000000000000
+      internalID: 3072124995318198864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_50
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 23
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e22a6935b525bf90800000000000000
+      internalID: -6938598190611815712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_51
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 19
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3eefb54131ce86760800000000000000
+      internalID: 7451465150174592739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_52
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 10
+        width: 25
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2c1fb9e5522704a0800000000000000
+      internalID: -6627290574263215059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_53
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 20
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f9b3662f0d73b4e0800000000000000
+      internalID: -1967091108208723469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_pod_54
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 12
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 811bbff8ac6fbf670800000000000000
+      internalID: 8573717665489334552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_rock_pod_0: 1067786699914804246
+      verdant_rock_pod_1: 8681749985672500227
+      verdant_rock_pod_10: -8487220391430948886
+      verdant_rock_pod_11: -5590060030165273494
+      verdant_rock_pod_12: 1594167404934082458
+      verdant_rock_pod_13: -1766737017476846644
+      verdant_rock_pod_14: 8030920940235370578
+      verdant_rock_pod_15: -6014775222485424591
+      verdant_rock_pod_16: -8801421516246577603
+      verdant_rock_pod_17: 1981972219828584924
+      verdant_rock_pod_18: -5938769737143491988
+      verdant_rock_pod_19: -1850128195151894763
+      verdant_rock_pod_2: -1077004153868567239
+      verdant_rock_pod_20: 2477446247112127703
+      verdant_rock_pod_21: -2469185978306471710
+      verdant_rock_pod_22: -5560663338242903490
+      verdant_rock_pod_23: 5630164997239574860
+      verdant_rock_pod_24: 1355469778717619275
+      verdant_rock_pod_25: 8757165741994069895
+      verdant_rock_pod_26: -7912851823583981761
+      verdant_rock_pod_27: -309141057727632368
+      verdant_rock_pod_28: 538517730185859924
+      verdant_rock_pod_29: -3286184200863403658
+      verdant_rock_pod_3: 925387779229759320
+      verdant_rock_pod_30: 8795169815545685267
+      verdant_rock_pod_31: -1611350989510921777
+      verdant_rock_pod_32: 1330697277047004356
+      verdant_rock_pod_33: -8168177711875121785
+      verdant_rock_pod_34: 4394208887847878783
+      verdant_rock_pod_35: -2813893385559240824
+      verdant_rock_pod_36: -3591622918530215040
+      verdant_rock_pod_37: -6266875239606829652
+      verdant_rock_pod_38: 6310884064417163846
+      verdant_rock_pod_39: 6345109162311074953
+      verdant_rock_pod_4: -2202250018128970653
+      verdant_rock_pod_40: -8724128717716430445
+      verdant_rock_pod_41: 8062290292588816466
+      verdant_rock_pod_42: 2619778330627241264
+      verdant_rock_pod_43: 784321790926854400
+      verdant_rock_pod_44: -4232969388183488313
+      verdant_rock_pod_45: -2358356026445121589
+      verdant_rock_pod_46: 4032572445815595182
+      verdant_rock_pod_47: -8230709666705606104
+      verdant_rock_pod_48: -8342796999889403332
+      verdant_rock_pod_49: 3072124995318198864
+      verdant_rock_pod_5: -7149467191786843130
+      verdant_rock_pod_50: -6938598190611815712
+      verdant_rock_pod_51: 7451465150174592739
+      verdant_rock_pod_52: -6627290574263215059
+      verdant_rock_pod_53: -1967091108208723469
+      verdant_rock_pod_54: 8573717665489334552
+      verdant_rock_pod_6: 575095435279561904
+      verdant_rock_pod_7: 2684919441524142392
+      verdant_rock_pod_8: 4257308146472988875
+      verdant_rock_pod_9: -5160873619763242119
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

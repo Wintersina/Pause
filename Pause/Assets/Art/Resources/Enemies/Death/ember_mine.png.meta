@@ -1,0 +1,1937 @@
+fileFormatVersion: 2
+guid: 6329892d212fd41a09563ae00439c46e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2099883379080032854
+    second: ember_mine_0
+  - first:
+      213: 8213258883581078004
+    second: ember_mine_1
+  - first:
+      213: -2898727193275776748
+    second: ember_mine_2
+  - first:
+      213: 486346611132477541
+    second: ember_mine_3
+  - first:
+      213: -3212697640122189478
+    second: ember_mine_4
+  - first:
+      213: 2874124959717454847
+    second: ember_mine_5
+  - first:
+      213: 6551508140442117239
+    second: ember_mine_6
+  - first:
+      213: -6062511968632925773
+    second: ember_mine_7
+  - first:
+      213: -1962078710669879424
+    second: ember_mine_8
+  - first:
+      213: 4603968535051974453
+    second: ember_mine_9
+  - first:
+      213: -5893017594883800483
+    second: ember_mine_10
+  - first:
+      213: 8892621118432825990
+    second: ember_mine_11
+  - first:
+      213: -5567275147257708640
+    second: ember_mine_12
+  - first:
+      213: -6579992261359300978
+    second: ember_mine_13
+  - first:
+      213: 3235310701073306235
+    second: ember_mine_14
+  - first:
+      213: 843911102853725876
+    second: ember_mine_15
+  - first:
+      213: -9104462694452906894
+    second: ember_mine_16
+  - first:
+      213: 2053276975099498206
+    second: ember_mine_17
+  - first:
+      213: 6125502503541518501
+    second: ember_mine_18
+  - first:
+      213: -632086359070209069
+    second: ember_mine_19
+  - first:
+      213: -8955681188120147220
+    second: ember_mine_20
+  - first:
+      213: 6330658548719767605
+    second: ember_mine_21
+  - first:
+      213: 2923282171156350206
+    second: ember_mine_22
+  - first:
+      213: -2352890777823430980
+    second: ember_mine_23
+  - first:
+      213: 6697212716744840199
+    second: ember_mine_24
+  - first:
+      213: -4262235189247453215
+    second: ember_mine_25
+  - first:
+      213: -108949575109478834
+    second: ember_mine_26
+  - first:
+      213: 3452554510973902197
+    second: ember_mine_27
+  - first:
+      213: -6588587928029438891
+    second: ember_mine_28
+  - first:
+      213: 695202934294632093
+    second: ember_mine_29
+  - first:
+      213: -1464061000525215562
+    second: ember_mine_30
+  - first:
+      213: -1451330137571397966
+    second: ember_mine_31
+  - first:
+      213: -4795595662554982753
+    second: ember_mine_32
+  - first:
+      213: -893558312505507865
+    second: ember_mine_33
+  - first:
+      213: 763855010571703551
+    second: ember_mine_34
+  - first:
+      213: 5355377237532456053
+    second: ember_mine_35
+  - first:
+      213: -8979117432937724318
+    second: ember_mine_36
+  - first:
+      213: 2382063222534144441
+    second: ember_mine_37
+  - first:
+      213: -975262638317938234
+    second: ember_mine_38
+  - first:
+      213: 8015457353559162091
+    second: ember_mine_39
+  - first:
+      213: -8594920444915154736
+    second: ember_mine_40
+  - first:
+      213: -6290313525207597595
+    second: ember_mine_41
+  - first:
+      213: -8230956710821581422
+    second: ember_mine_42
+  - first:
+      213: 5397193557850835927
+    second: ember_mine_43
+  - first:
+      213: 7387769602684933412
+    second: ember_mine_44
+  - first:
+      213: 5638289239625424148
+    second: ember_mine_45
+  - first:
+      213: 1457439987122764185
+    second: ember_mine_46
+  - first:
+      213: 6611134731038418514
+    second: ember_mine_47
+  - first:
+      213: -1009282443160068172
+    second: ember_mine_48
+  - first:
+      213: -2737794690778031243
+    second: ember_mine_49
+  - first:
+      213: -7979425097387932400
+    second: ember_mine_50
+  - first:
+      213: -4917563679207327639
+    second: ember_mine_51
+  - first:
+      213: 1556044063080900063
+    second: ember_mine_52
+  - first:
+      213: -2966553601609840967
+    second: ember_mine_53
+  - first:
+      213: -7986415014656239147
+    second: ember_mine_54
+  - first:
+      213: -1694294235098270658
+    second: ember_mine_55
+  - first:
+      213: -2254289820819281091
+    second: ember_mine_56
+  - first:
+      213: 859367209734175931
+    second: ember_mine_57
+  - first:
+      213: -6635025039701529517
+    second: ember_mine_58
+  - first:
+      213: -4432005373718159647
+    second: ember_mine_59
+  - first:
+      213: 6693143660502633275
+    second: ember_mine_60
+  - first:
+      213: 1757516442260530268
+    second: ember_mine_61
+  - first:
+      213: 3699881294665997960
+    second: ember_mine_62
+  - first:
+      213: 6313003374757857584
+    second: ember_mine_63
+  - first:
+      213: 41423521230745405
+    second: ember_mine_64
+  - first:
+      213: -678056048680791287
+    second: ember_mine_65
+  - first:
+      213: 1127587580302191241
+    second: ember_mine_66
+  - first:
+      213: -8887139175349804984
+    second: ember_mine_67
+  - first:
+      213: -1306763626412599856
+    second: ember_mine_68
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_mine_0
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 9
+        width: 168
+        height: 174
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aad00304137bbd2e0800000000000000
+      internalID: -2099883379080032854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_1
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 163
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f9eb2c507b5bf170800000000000000
+      internalID: 8213258883581078004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_2
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 176
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4114800d9f6a5c7d0800000000000000
+      internalID: -2898727193275776748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_3
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 20
+        width: 162
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56034428aa9dfb600800000000000000
+      internalID: 486346611132477541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_4
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 121
+        width: 34
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a59f7c594843a63d0800000000000000
+      internalID: -3212697640122189478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_5
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 140
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff3fa005c61f2e720800000000000000
+      internalID: 2874124959717454847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_6
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 166
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 774e12e31f1abea50800000000000000
+      internalID: 6551508140442117239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_7
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 158
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b1941f2c71addba0800000000000000
+      internalID: -6062511968632925773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_8
+      rect:
+        serializedVersion: 2
+        x: 401
+        y: 146
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0875a25eecb45c4e0800000000000000
+      internalID: -1962078710669879424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_9
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 148
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53739d06df494ef30800000000000000
+      internalID: 4603968535051974453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_10
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 144
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5203d158bbc73ea0800000000000000
+      internalID: -5893017594883800483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_11
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 144
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6825356cacfe86b70800000000000000
+      internalID: 8892621118432825990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_12
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 132
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0aff7d010c01db2b0800000000000000
+      internalID: -5567275147257708640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_13
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 131
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8e0cdc86eb2fa4a0800000000000000
+      internalID: -6579992261359300978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_14
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 129
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b729e73f0f126ec20800000000000000
+      internalID: 3235310701073306235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_15
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 118
+        width: 13
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4beba934dac26bb00800000000000000
+      internalID: 843911102853725876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_16
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 123
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 274b65aba6376a180800000000000000
+      internalID: -9104462694452906894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_17
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 99
+        width: 31
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ede4b46b784be7c10800000000000000
+      internalID: 2053276975099498206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_18
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 105
+        width: 18
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a0bb5a9218220550800000000000000
+      internalID: 6125502503541518501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_19
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 95
+        width: 40
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3db004c2ec06a37f0800000000000000
+      internalID: -632086359070209069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_20
+      rect:
+        serializedVersion: 2
+        x: 459
+        y: 120
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cea437c986707b380800000000000000
+      internalID: -8955681188120147220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_21
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 96
+        width: 16
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5305bb6a8640bd750800000000000000
+      internalID: 6330658548719767605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_22
+      rect:
+        serializedVersion: 2
+        x: 545
+        y: 121
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef4c10e75a5919820800000000000000
+      internalID: 2923282171156350206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_23
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 98
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb6ba80cd4ad85fd0800000000000000
+      internalID: -2352890777823430980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_24
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 103
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7041ec68b7741fc50800000000000000
+      internalID: 6697212716744840199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_25
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 89
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e75cbb7daf79d4c0800000000000000
+      internalID: -4262235189247453215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_26
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 96
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e467b2d40feec7ef0800000000000000
+      internalID: -108949575109478834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_27
+      rect:
+        serializedVersion: 2
+        x: 558
+        y: 107
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57d954a0900f9ef20800000000000000
+      internalID: 3452554510973902197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_28
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 92
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55cd062ff22a094a0800000000000000
+      internalID: -6588587928029438891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_29
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 84
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d96d079a26bd5a900800000000000000
+      internalID: 695202934294632093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_30
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 84
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b80136e64c9eabe0800000000000000
+      internalID: -1464061000525215562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_31
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 92
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2beec3aede6dbdbe0800000000000000
+      internalID: -1451330137571397966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_32
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 91
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f96910f272f927db0800000000000000
+      internalID: -4795595662554982753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_33
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 83
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eff205f2717993f0800000000000000
+      internalID: -893558312505507865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_34
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 77
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff45705c512c99a00800000000000000
+      internalID: 763855010571703551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_35
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 43
+        width: 40
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 574b559393f125a40800000000000000
+      internalID: 5355377237532456053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_36
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 90
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 266ca35a444c36380800000000000000
+      internalID: -8979117432937724318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_37
+      rect:
+        serializedVersion: 2
+        x: 555
+        y: 85
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b18ba351e9ce0120800000000000000
+      internalID: 2382063222534144441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_38
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 68
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c959503ccb2772f0800000000000000
+      internalID: -975262638317938234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_39
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 72
+        width: 21
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: becbf2fceff9c3f60800000000000000
+      internalID: 8015457353559162091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_40
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 73
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d00718a465b8b880800000000000000
+      internalID: -8594920444915154736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_41
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 72
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ed7a242d2154b8a0800000000000000
+      internalID: -6290313525207597595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_42
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 68
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29dacd12b74c5cd80800000000000000
+      internalID: -8230956710821581422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_43
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 77
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dbc9bff1fea6ea40800000000000000
+      internalID: 5397193557850835927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_44
+      rect:
+        serializedVersion: 2
+        x: 541
+        y: 80
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 425d672cf41a68660800000000000000
+      internalID: 7387769602684933412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_45
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 63
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41dd7c4c03a3f3e40800000000000000
+      internalID: 5638289239625424148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_46
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 28
+        width: 34
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 999f6e942fdd93410800000000000000
+      internalID: 1457439987122764185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_47
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 65
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 256eac5b2087fbb50800000000000000
+      internalID: 6611134731038418514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_48
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 56
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bfd76127fe4ef1f0800000000000000
+      internalID: -1009282443160068172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_49
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 40
+        width: 12
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57b9934fb36610ad0800000000000000
+      internalID: -2737794690778031243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_50
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 62
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0150b569623634190800000000000000
+      internalID: -7979425097387932400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_51
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 61
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 968fb7c53ed41cbb0800000000000000
+      internalID: -4917563679207327639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_52
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 56
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd5eac2c4dd289510800000000000000
+      internalID: 1556044063080900063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_53
+      rect:
+        serializedVersion: 2
+        x: 368
+        y: 53
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6c3e0873fa4d6d0800000000000000
+      internalID: -2966553601609840967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_54
+      rect:
+        serializedVersion: 2
+        x: 406
+        y: 51
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d99196abdd8a2190800000000000000
+      internalID: -7986415014656239147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_55
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 49
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e34b9f3be58ac78e0800000000000000
+      internalID: -1694294235098270658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_56
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 37
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3ba9490a5727b0e0800000000000000
+      internalID: -2254289820819281091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_57
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 44
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbcf2d39ce51deb00800000000000000
+      internalID: 859367209734175931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_58
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 26
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35ca4c851e7abe3a0800000000000000
+      internalID: -6635025039701529517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_59
+      rect:
+        serializedVersion: 2
+        x: 501
+        y: 30
+        width: 16
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ee18e8289a5e72c0800000000000000
+      internalID: -4432005373718159647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_60
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 44
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3bcaea82b2d2ec50800000000000000
+      internalID: 6693143660502633275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_61
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 32
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c54e8db74e3f36810800000000000000
+      internalID: 1757516442260530268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_62
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 32
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88edda74f6e985330800000000000000
+      internalID: 3699881294665997960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_63
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 13
+        width: 22
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 039c8422f1b4c9750800000000000000
+      internalID: 6313003374757857584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_64
+      rect:
+        serializedVersion: 2
+        x: 531
+        y: 25
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3fed4c197a239000800000000000000
+      internalID: 41423521230745405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_65
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 19
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9039390cd9f0796f0800000000000000
+      internalID: -678056048680791287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_66
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 14
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98aed091eeef5af00800000000000000
+      internalID: 1127587580302191241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_67
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 7
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84021df810a8aa480800000000000000
+      internalID: -8887139175349804984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_mine_68
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 7
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d59642c7617ddde0800000000000000
+      internalID: -1306763626412599856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_mine_0: -2099883379080032854
+      ember_mine_1: 8213258883581078004
+      ember_mine_10: -5893017594883800483
+      ember_mine_11: 8892621118432825990
+      ember_mine_12: -5567275147257708640
+      ember_mine_13: -6579992261359300978
+      ember_mine_14: 3235310701073306235
+      ember_mine_15: 843911102853725876
+      ember_mine_16: -9104462694452906894
+      ember_mine_17: 2053276975099498206
+      ember_mine_18: 6125502503541518501
+      ember_mine_19: -632086359070209069
+      ember_mine_2: -2898727193275776748
+      ember_mine_20: -8955681188120147220
+      ember_mine_21: 6330658548719767605
+      ember_mine_22: 2923282171156350206
+      ember_mine_23: -2352890777823430980
+      ember_mine_24: 6697212716744840199
+      ember_mine_25: -4262235189247453215
+      ember_mine_26: -108949575109478834
+      ember_mine_27: 3452554510973902197
+      ember_mine_28: -6588587928029438891
+      ember_mine_29: 695202934294632093
+      ember_mine_3: 486346611132477541
+      ember_mine_30: -1464061000525215562
+      ember_mine_31: -1451330137571397966
+      ember_mine_32: -4795595662554982753
+      ember_mine_33: -893558312505507865
+      ember_mine_34: 763855010571703551
+      ember_mine_35: 5355377237532456053
+      ember_mine_36: -8979117432937724318
+      ember_mine_37: 2382063222534144441
+      ember_mine_38: -975262638317938234
+      ember_mine_39: 8015457353559162091
+      ember_mine_4: -3212697640122189478
+      ember_mine_40: -8594920444915154736
+      ember_mine_41: -6290313525207597595
+      ember_mine_42: -8230956710821581422
+      ember_mine_43: 5397193557850835927
+      ember_mine_44: 7387769602684933412
+      ember_mine_45: 5638289239625424148
+      ember_mine_46: 1457439987122764185
+      ember_mine_47: 6611134731038418514
+      ember_mine_48: -1009282443160068172
+      ember_mine_49: -2737794690778031243
+      ember_mine_5: 2874124959717454847
+      ember_mine_50: -7979425097387932400
+      ember_mine_51: -4917563679207327639
+      ember_mine_52: 1556044063080900063
+      ember_mine_53: -2966553601609840967
+      ember_mine_54: -7986415014656239147
+      ember_mine_55: -1694294235098270658
+      ember_mine_56: -2254289820819281091
+      ember_mine_57: 859367209734175931
+      ember_mine_58: -6635025039701529517
+      ember_mine_59: -4432005373718159647
+      ember_mine_6: 6551508140442117239
+      ember_mine_60: 6693143660502633275
+      ember_mine_61: 1757516442260530268
+      ember_mine_62: 3699881294665997960
+      ember_mine_63: 6313003374757857584
+      ember_mine_64: 41423521230745405
+      ember_mine_65: -678056048680791287
+      ember_mine_66: 1127587580302191241
+      ember_mine_67: -8887139175349804984
+      ember_mine_68: -1306763626412599856
+      ember_mine_7: -6062511968632925773
+      ember_mine_8: -1962078710669879424
+      ember_mine_9: 4603968535051974453
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

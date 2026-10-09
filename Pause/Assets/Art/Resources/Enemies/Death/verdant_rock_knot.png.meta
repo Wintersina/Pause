@@ -1,0 +1,1521 @@
+fileFormatVersion: 2
+guid: a9bbe50aa52be45eca2fe14b0d7f8cb4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8684683919747971386
+    second: verdant_rock_knot_0
+  - first:
+      213: 9089546428309811573
+    second: verdant_rock_knot_1
+  - first:
+      213: 1171899709843300397
+    second: verdant_rock_knot_2
+  - first:
+      213: -4289420505493733961
+    second: verdant_rock_knot_3
+  - first:
+      213: 4792405941044580991
+    second: verdant_rock_knot_4
+  - first:
+      213: -3154992789148974684
+    second: verdant_rock_knot_5
+  - first:
+      213: -568045511178613156
+    second: verdant_rock_knot_6
+  - first:
+      213: -5329748496161792204
+    second: verdant_rock_knot_7
+  - first:
+      213: -926472249043841932
+    second: verdant_rock_knot_8
+  - first:
+      213: -6019613072990815897
+    second: verdant_rock_knot_9
+  - first:
+      213: -4314871437930334788
+    second: verdant_rock_knot_10
+  - first:
+      213: 7090654919662742000
+    second: verdant_rock_knot_11
+  - first:
+      213: 2741955415276615913
+    second: verdant_rock_knot_12
+  - first:
+      213: -4054226081214512327
+    second: verdant_rock_knot_13
+  - first:
+      213: 3290720672660617542
+    second: verdant_rock_knot_14
+  - first:
+      213: -3902897191604058534
+    second: verdant_rock_knot_15
+  - first:
+      213: 8732588751093321926
+    second: verdant_rock_knot_16
+  - first:
+      213: -8141271408071207490
+    second: verdant_rock_knot_17
+  - first:
+      213: -5127926024794971384
+    second: verdant_rock_knot_18
+  - first:
+      213: -7347809283430313979
+    second: verdant_rock_knot_19
+  - first:
+      213: -92228792332771390
+    second: verdant_rock_knot_20
+  - first:
+      213: -3942336166406036777
+    second: verdant_rock_knot_21
+  - first:
+      213: -1017286601394608806
+    second: verdant_rock_knot_22
+  - first:
+      213: -7888014739124554861
+    second: verdant_rock_knot_23
+  - first:
+      213: -156609320675249337
+    second: verdant_rock_knot_24
+  - first:
+      213: 3530568736101522853
+    second: verdant_rock_knot_25
+  - first:
+      213: 2417242207469052324
+    second: verdant_rock_knot_26
+  - first:
+      213: 7039352983958859754
+    second: verdant_rock_knot_27
+  - first:
+      213: -2951154256642805526
+    second: verdant_rock_knot_28
+  - first:
+      213: -5502614435367715950
+    second: verdant_rock_knot_29
+  - first:
+      213: -27375843014898096
+    second: verdant_rock_knot_30
+  - first:
+      213: 5751021257912512998
+    second: verdant_rock_knot_31
+  - first:
+      213: 2518512822121262823
+    second: verdant_rock_knot_32
+  - first:
+      213: -1229998428640445730
+    second: verdant_rock_knot_33
+  - first:
+      213: -4049438538246799440
+    second: verdant_rock_knot_34
+  - first:
+      213: 2667746451468911577
+    second: verdant_rock_knot_35
+  - first:
+      213: 5278552573679225807
+    second: verdant_rock_knot_36
+  - first:
+      213: -3009823454798951024
+    second: verdant_rock_knot_37
+  - first:
+      213: -1382669824780665776
+    second: verdant_rock_knot_38
+  - first:
+      213: -2057638218059101839
+    second: verdant_rock_knot_39
+  - first:
+      213: -79836063845982143
+    second: verdant_rock_knot_40
+  - first:
+      213: -889612101816729351
+    second: verdant_rock_knot_41
+  - first:
+      213: -5333131535197795845
+    second: verdant_rock_knot_42
+  - first:
+      213: 4939129454276075159
+    second: verdant_rock_knot_43
+  - first:
+      213: -6821382698865220233
+    second: verdant_rock_knot_44
+  - first:
+      213: -7225037441893422647
+    second: verdant_rock_knot_45
+  - first:
+      213: 1198906746920737025
+    second: verdant_rock_knot_46
+  - first:
+      213: 5898543746181991327
+    second: verdant_rock_knot_47
+  - first:
+      213: -4073353137212748812
+    second: verdant_rock_knot_48
+  - first:
+      213: 762111848908143918
+    second: verdant_rock_knot_49
+  - first:
+      213: 3850377337901157732
+    second: verdant_rock_knot_50
+  - first:
+      213: 9086760467266751818
+    second: verdant_rock_knot_51
+  - first:
+      213: 887795022445407919
+    second: verdant_rock_knot_52
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_rock_knot_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 14
+        width: 162
+        height: 163
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c600e80dfdc97780800000000000000
+      internalID: -8684683919747971386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_1
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 8
+        width: 177
+        height: 175
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 571b3dc615e842e70800000000000000
+      internalID: 9089546428309811573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_2
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 134
+        width: 27
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d20e79db39c634010800000000000000
+      internalID: 1171899709843300397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_3
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 167
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bdf4cdc6cae874c0800000000000000
+      internalID: -4289420505493733961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_4
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 152
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f721f67efcb028240800000000000000
+      internalID: 4792405941044580991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_5
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 133
+        width: 44
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a14bdd26c63734d0800000000000000
+      internalID: -3154992789148974684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_6
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 146
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5e81f10e95ed18f0800000000000000
+      internalID: -568045511178613156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_7
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 164
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43f9a102bfde806b0800000000000000
+      internalID: -5329748496161792204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_8
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 132
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47c0c7de5628423f0800000000000000
+      internalID: -926472249043841932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_9
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 140
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 769b51badc9067ca0800000000000000
+      internalID: -6019613072990815897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_10
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 98
+        width: 40
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb5fea2d94f7e14c0800000000000000
+      internalID: -4314871437930334788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_11
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 140
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f9af5fd411176260800000000000000
+      internalID: 7090654919662742000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_12
+      rect:
+        serializedVersion: 2
+        x: 531
+        y: 132
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e875853ce16d0620800000000000000
+      internalID: 2741955415276615913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_13
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 132
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 933c51efbde7cb7c0800000000000000
+      internalID: -4054226081214512327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_14
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 118
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64978fc440dfaad20800000000000000
+      internalID: 3290720672660617542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_15
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 58
+        width: 88
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a560293ceaf16d9c0800000000000000
+      internalID: -3902897191604058534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_16
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 128
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c05d7ea333603970800000000000000
+      internalID: 8732588751093321926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_17
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 128
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb51fd5e9c4640f80800000000000000
+      internalID: -8141271408071207490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_18
+      rect:
+        serializedVersion: 2
+        x: 453
+        y: 123
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8036d990372f5d8b0800000000000000
+      internalID: -5127926024794971384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_19
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 116
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50091d71366570a90800000000000000
+      internalID: -7347809283430313979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_20
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 103
+        width: 20
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cf11fae66658bef0800000000000000
+      internalID: -92228792332771390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_21
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 94
+        width: 19
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d26130e4220a49c0800000000000000
+      internalID: -3942336166406036777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_22
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 93
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a552c11d93fd1e1f0800000000000000
+      internalID: -1017286601394608806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_23
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 106
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3937f632364288290800000000000000
+      internalID: -7888014739124554861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_24
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 85
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 743f2a017ac93ddf0800000000000000
+      internalID: -156609320675249337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_25
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 71
+        width: 28
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ad5e6a4f891ff030800000000000000
+      internalID: 3530568736101522853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_26
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 95
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a126480bf4cb8120800000000000000
+      internalID: 2417242207469052324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_27
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 99
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aef24792e3ec0b160800000000000000
+      internalID: 7039352983958859754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_28
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 78
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae07c67e6d46b07d0800000000000000
+      internalID: -2951154256642805526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_29
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 88
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29b78fb3359c2a3b0800000000000000
+      internalID: -5502614435367715950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_30
+      rect:
+        serializedVersion: 2
+        x: 556
+        y: 78
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05e8ba9d0ddbe9ff0800000000000000
+      internalID: -27375843014898096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_31
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 69
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e178952d5bbfcf40800000000000000
+      internalID: 5751021257912512998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_32
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 66
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eeedcc611e83f220800000000000000
+      internalID: 2518512822121262823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_33
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 74
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edaf89a22fa2eeee0800000000000000
+      internalID: -1229998428640445730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_34
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 38
+        width: 23
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bfb504ba118dc7c0800000000000000
+      internalID: -4049438538246799440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_35
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 68
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d30d96634db50520800000000000000
+      internalID: 2667746451468911577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_36
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 55
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcbcf5a499f214940800000000000000
+      internalID: 5278552573679225807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_37
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 14
+        width: 49
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09dc11cb385fa36d0800000000000000
+      internalID: -3009823454798951024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_38
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 53
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05cfb4cbe15cfcce0800000000000000
+      internalID: -1382669824780665776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_39
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 48
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 179c15841fcc173e0800000000000000
+      internalID: -2057638218059101839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_40
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 32
+        width: 32
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 140e13ed58d54eef0800000000000000
+      internalID: -79836063845982143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_41
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 58
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f0435bb18677a3f0800000000000000
+      internalID: -889612101816729351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_42
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 31
+        width: 16
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf90a18ff19ecf5b0800000000000000
+      internalID: -5333131535197795845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_43
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 34
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79e5bcde1105b8440800000000000000
+      internalID: 4939129454276075159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_44
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 41
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 775a42d93949551a0800000000000000
+      internalID: -6821382698865220233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_45
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 9
+        width: 28
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c9ab0bf9b28bbb90800000000000000
+      internalID: -7225037441893422647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_46
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 44
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1099701955f53a010800000000000000
+      internalID: 1198906746920737025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_47
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 9
+        width: 18
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9b874b0946dbd150800000000000000
+      internalID: 5898543746181991327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_48
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 19
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4fb06bb37ea8877c0800000000000000
+      internalID: -4073353137212748812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_49
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 14
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2d394150b0939a00800000000000000
+      internalID: 762111848908143918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_50
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 22
+        width: 25
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46d00d4e9c94f6530800000000000000
+      internalID: 3850377337901157732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_51
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 12
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4d4f725088aa1e70800000000000000
+      internalID: 9086760467266751818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_knot_52
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 7
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: faee7328ed4125c00800000000000000
+      internalID: 887795022445407919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_rock_knot_0: -8684683919747971386
+      verdant_rock_knot_1: 9089546428309811573
+      verdant_rock_knot_10: -4314871437930334788
+      verdant_rock_knot_11: 7090654919662742000
+      verdant_rock_knot_12: 2741955415276615913
+      verdant_rock_knot_13: -4054226081214512327
+      verdant_rock_knot_14: 3290720672660617542
+      verdant_rock_knot_15: -3902897191604058534
+      verdant_rock_knot_16: 8732588751093321926
+      verdant_rock_knot_17: -8141271408071207490
+      verdant_rock_knot_18: -5127926024794971384
+      verdant_rock_knot_19: -7347809283430313979
+      verdant_rock_knot_2: 1171899709843300397
+      verdant_rock_knot_20: -92228792332771390
+      verdant_rock_knot_21: -3942336166406036777
+      verdant_rock_knot_22: -1017286601394608806
+      verdant_rock_knot_23: -7888014739124554861
+      verdant_rock_knot_24: -156609320675249337
+      verdant_rock_knot_25: 3530568736101522853
+      verdant_rock_knot_26: 2417242207469052324
+      verdant_rock_knot_27: 7039352983958859754
+      verdant_rock_knot_28: -2951154256642805526
+      verdant_rock_knot_29: -5502614435367715950
+      verdant_rock_knot_3: -4289420505493733961
+      verdant_rock_knot_30: -27375843014898096
+      verdant_rock_knot_31: 5751021257912512998
+      verdant_rock_knot_32: 2518512822121262823
+      verdant_rock_knot_33: -1229998428640445730
+      verdant_rock_knot_34: -4049438538246799440
+      verdant_rock_knot_35: 2667746451468911577
+      verdant_rock_knot_36: 5278552573679225807
+      verdant_rock_knot_37: -3009823454798951024
+      verdant_rock_knot_38: -1382669824780665776
+      verdant_rock_knot_39: -2057638218059101839
+      verdant_rock_knot_4: 4792405941044580991
+      verdant_rock_knot_40: -79836063845982143
+      verdant_rock_knot_41: -889612101816729351
+      verdant_rock_knot_42: -5333131535197795845
+      verdant_rock_knot_43: 4939129454276075159
+      verdant_rock_knot_44: -6821382698865220233
+      verdant_rock_knot_45: -7225037441893422647
+      verdant_rock_knot_46: 1198906746920737025
+      verdant_rock_knot_47: 5898543746181991327
+      verdant_rock_knot_48: -4073353137212748812
+      verdant_rock_knot_49: 762111848908143918
+      verdant_rock_knot_5: -3154992789148974684
+      verdant_rock_knot_50: 3850377337901157732
+      verdant_rock_knot_51: 9086760467266751818
+      verdant_rock_knot_52: 887795022445407919
+      verdant_rock_knot_6: -568045511178613156
+      verdant_rock_knot_7: -5329748496161792204
+      verdant_rock_knot_8: -926472249043841932
+      verdant_rock_knot_9: -6019613072990815897
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

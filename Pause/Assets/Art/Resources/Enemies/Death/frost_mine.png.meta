@@ -1,0 +1,793 @@
+fileFormatVersion: 2
+guid: f5039c6b41bab4632ae2e7d114383dc7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8001712599630310996
+    second: frost_mine_0
+  - first:
+      213: 89120960432772211
+    second: frost_mine_1
+  - first:
+      213: 2220190823188650744
+    second: frost_mine_2
+  - first:
+      213: -1884919518826321454
+    second: frost_mine_3
+  - first:
+      213: 3147843160682457132
+    second: frost_mine_4
+  - first:
+      213: 2838058783211940324
+    second: frost_mine_5
+  - first:
+      213: 7180381707164069669
+    second: frost_mine_6
+  - first:
+      213: 876667791201725242
+    second: frost_mine_7
+  - first:
+      213: -4587571217029889411
+    second: frost_mine_8
+  - first:
+      213: -1027133778757294499
+    second: frost_mine_9
+  - first:
+      213: 7431785652909349931
+    second: frost_mine_10
+  - first:
+      213: 908640671290740385
+    second: frost_mine_11
+  - first:
+      213: -5353357157356571047
+    second: frost_mine_12
+  - first:
+      213: 6333994616927394618
+    second: frost_mine_13
+  - first:
+      213: -8347580085491063756
+    second: frost_mine_14
+  - first:
+      213: -4703226783166481598
+    second: frost_mine_15
+  - first:
+      213: -5893297200492307640
+    second: frost_mine_16
+  - first:
+      213: -13332889580497107
+    second: frost_mine_17
+  - first:
+      213: -6995075095411206473
+    second: frost_mine_18
+  - first:
+      213: 493888299388239904
+    second: frost_mine_19
+  - first:
+      213: -5242108048085259164
+    second: frost_mine_20
+  - first:
+      213: -3637174228593487745
+    second: frost_mine_21
+  - first:
+      213: 2790426417485844457
+    second: frost_mine_22
+  - first:
+      213: -270125191712458725
+    second: frost_mine_23
+  - first:
+      213: 5232602834229780636
+    second: frost_mine_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_mine_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 20
+        width: 162
+        height: 152
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45e6bb7e63bcb0f60800000000000000
+      internalID: 8001712599630310996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_1
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 158
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37413a49a0f9c3100800000000000000
+      internalID: 89120960432772211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_2
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 136
+        width: 36
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8faddb56ac3bfce10800000000000000
+      internalID: 2220190823188650744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_3
+      rect:
+        serializedVersion: 2
+        x: 453
+        y: 152
+        width: 29
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d928223fab67d5e0800000000000000
+      internalID: -1884919518826321454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_4
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 165
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c28ee193da26fab20800000000000000
+      internalID: 3147843160682457132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_5
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 116
+        width: 47
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e966093d6fc26720800000000000000
+      internalID: 2838058783211940324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_6
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 16
+        width: 175
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52f2a3f8e17d5a360800000000000000
+      internalID: 7180381707164069669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_7
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 146
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3bea9816bc8a2c00800000000000000
+      internalID: 876667791201725242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_8
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 21
+        width: 155
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d72802bb84ca550c0800000000000000
+      internalID: -4587571217029889411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_9
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 137
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d56ed5c2543eeb1f0800000000000000
+      internalID: -1027133778757294499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_10
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 135
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2c91801da1032760800000000000000
+      internalID: 7431785652909349931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_11
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 115
+        width: 15
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aec1c850e32c9c00800000000000000
+      internalID: 908640671290740385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_12
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 88
+        width: 32
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95677f7570e05b5b0800000000000000
+      internalID: -5353357157356571047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_13
+      rect:
+        serializedVersion: 2
+        x: 557
+        y: 122
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3b913f8b8ed6e750800000000000000
+      internalID: 6333994616927394618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_14
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 104
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4342e2eb320772c80800000000000000
+      internalID: -8347580085491063756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_15
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 100
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24b3243d828cabeb0800000000000000
+      internalID: -4703226783166481598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_16
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 104
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84b1ad09b6dc63ea0800000000000000
+      internalID: -5893297200492307640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_17
+      rect:
+        serializedVersion: 2
+        x: 369
+        y: 89
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2799bcbec1a0dff0800000000000000
+      internalID: -13332889580497107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_18
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 88
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b655d023408cee90800000000000000
+      internalID: -6995075095411206473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_19
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 78
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02002c3aac4aad600800000000000000
+      internalID: 493888299388239904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_20
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 72
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46c69af018a4047b0800000000000000
+      internalID: -5242108048085259164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_21
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 57
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f70da764f49268dc0800000000000000
+      internalID: -3637174228593487745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_22
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 61
+        width: 22
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ef0c1ada0699b620800000000000000
+      internalID: 2790426417485844457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_23
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 14
+        width: 71
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b18381fb192504cf0800000000000000
+      internalID: -270125191712458725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_mine_24
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 19
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c90e7f0ed80fd9840800000000000000
+      internalID: 5232602834229780636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_mine_0: 8001712599630310996
+      frost_mine_1: 89120960432772211
+      frost_mine_10: 7431785652909349931
+      frost_mine_11: 908640671290740385
+      frost_mine_12: -5353357157356571047
+      frost_mine_13: 6333994616927394618
+      frost_mine_14: -8347580085491063756
+      frost_mine_15: -4703226783166481598
+      frost_mine_16: -5893297200492307640
+      frost_mine_17: -13332889580497107
+      frost_mine_18: -6995075095411206473
+      frost_mine_19: 493888299388239904
+      frost_mine_2: 2220190823188650744
+      frost_mine_20: -5242108048085259164
+      frost_mine_21: -3637174228593487745
+      frost_mine_22: 2790426417485844457
+      frost_mine_23: -270125191712458725
+      frost_mine_24: 5232602834229780636
+      frost_mine_3: -1884919518826321454
+      frost_mine_4: 3147843160682457132
+      frost_mine_5: 2838058783211940324
+      frost_mine_6: 7180381707164069669
+      frost_mine_7: 876667791201725242
+      frost_mine_8: -4587571217029889411
+      frost_mine_9: -1027133778757294499
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,1313 @@
+fileFormatVersion: 2
+guid: 61199012e904a47cd9f9beeb266196c6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4930578668525688523
+    second: verdant_fighter_2_0
+  - first:
+      213: -4833878239243120511
+    second: verdant_fighter_2_1
+  - first:
+      213: -4251928318438331357
+    second: verdant_fighter_2_2
+  - first:
+      213: 1392352282036520047
+    second: verdant_fighter_2_3
+  - first:
+      213: -5762217409592203040
+    second: verdant_fighter_2_4
+  - first:
+      213: -5119032661721448673
+    second: verdant_fighter_2_5
+  - first:
+      213: -8045623606486154473
+    second: verdant_fighter_2_6
+  - first:
+      213: 9146393191185612680
+    second: verdant_fighter_2_7
+  - first:
+      213: 3041720091626408683
+    second: verdant_fighter_2_8
+  - first:
+      213: -6957741423717133756
+    second: verdant_fighter_2_9
+  - first:
+      213: 5588199925223748865
+    second: verdant_fighter_2_10
+  - first:
+      213: 4274602987445424341
+    second: verdant_fighter_2_11
+  - first:
+      213: 1579166510360550988
+    second: verdant_fighter_2_12
+  - first:
+      213: -1115371759707822793
+    second: verdant_fighter_2_13
+  - first:
+      213: -1299334882312237103
+    second: verdant_fighter_2_14
+  - first:
+      213: 8957073324431410771
+    second: verdant_fighter_2_15
+  - first:
+      213: -7453854011424655735
+    second: verdant_fighter_2_16
+  - first:
+      213: -470500676874630680
+    second: verdant_fighter_2_17
+  - first:
+      213: -7759217593071833563
+    second: verdant_fighter_2_18
+  - first:
+      213: 452859643588709147
+    second: verdant_fighter_2_19
+  - first:
+      213: -5232965018123405410
+    second: verdant_fighter_2_20
+  - first:
+      213: 7500902716636396170
+    second: verdant_fighter_2_21
+  - first:
+      213: 3492873036449254175
+    second: verdant_fighter_2_22
+  - first:
+      213: 1666696233582449144
+    second: verdant_fighter_2_23
+  - first:
+      213: -963538698444847913
+    second: verdant_fighter_2_24
+  - first:
+      213: 6679286584214282450
+    second: verdant_fighter_2_25
+  - first:
+      213: -5751064628577221306
+    second: verdant_fighter_2_26
+  - first:
+      213: -1228062032180756992
+    second: verdant_fighter_2_27
+  - first:
+      213: 5008465275283474754
+    second: verdant_fighter_2_28
+  - first:
+      213: -7998269963255941457
+    second: verdant_fighter_2_29
+  - first:
+      213: 4592867313935590555
+    second: verdant_fighter_2_30
+  - first:
+      213: 796594242117583695
+    second: verdant_fighter_2_31
+  - first:
+      213: -1596917871786925272
+    second: verdant_fighter_2_32
+  - first:
+      213: -3139149553357486276
+    second: verdant_fighter_2_33
+  - first:
+      213: 2973846656464937330
+    second: verdant_fighter_2_34
+  - first:
+      213: 594918710050389882
+    second: verdant_fighter_2_35
+  - first:
+      213: -420261914424552806
+    second: verdant_fighter_2_36
+  - first:
+      213: -7633745971083830332
+    second: verdant_fighter_2_37
+  - first:
+      213: -8206155081725903270
+    second: verdant_fighter_2_38
+  - first:
+      213: -1981651509710836176
+    second: verdant_fighter_2_39
+  - first:
+      213: 3816945782376406676
+    second: verdant_fighter_2_40
+  - first:
+      213: 5749149220923509528
+    second: verdant_fighter_2_41
+  - first:
+      213: 8236689689154166369
+    second: verdant_fighter_2_42
+  - first:
+      213: -3503885689151107745
+    second: verdant_fighter_2_43
+  - first:
+      213: 4883821444567081523
+    second: verdant_fighter_2_44
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_fighter_2_0
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 10
+        width: 92
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc6979afc2fec6440800000000000000
+      internalID: 4930578668525688523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_1
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 109
+        width: 33
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1805c663a5d9aecb0800000000000000
+      internalID: -4833878239243120511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_2
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 119
+        width: 29
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32c2f09d8bd1ef4c0800000000000000
+      internalID: -4251928318438331357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_3
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 141
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f64cdf40601a25310800000000000000
+      internalID: 1392352282036520047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_4
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 115
+        width: 31
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e86fa6abcd7800b0800000000000000
+      internalID: -5762217409592203040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_5
+      rect:
+        serializedVersion: 2
+        x: 237
+        y: 45
+        width: 102
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1f787c7aea85f8b0800000000000000
+      internalID: -5119032661721448673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_6
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 131
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71345ea15f3385090800000000000000
+      internalID: -8045623606486154473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_7
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 111
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88f7ba0d5248eee70800000000000000
+      internalID: 9146393191185612680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_8
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 113
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bea8f8fbe4c563a20800000000000000
+      internalID: 3041720091626408683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_9
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 128
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 442d150f903217f90800000000000000
+      internalID: -6957741423717133756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_10
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 89
+        width: 23
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10573d479364d8d40800000000000000
+      internalID: 5588199925223748865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_11
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 111
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d0128ee4c0725b30800000000000000
+      internalID: 4274602987445424341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_12
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 107
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4edb3b03935ae510800000000000000
+      internalID: 1579166510360550988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_13
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 100
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 735ec164b476580f0800000000000000
+      internalID: -1115371759707822793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_14
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 114
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1df41870fc5d7fde0800000000000000
+      internalID: -1299334882312237103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_15
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 104
+        width: 26
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3568cd16bbaed4c70800000000000000
+      internalID: 8957073324431410771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_16
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 94
+        width: 23
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 986b961d4479e8890800000000000000
+      internalID: -7453854011424655735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_17
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 103
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e98e4090227879f0800000000000000
+      internalID: -470500676874630680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_18
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 106
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52eedfd85b8b15490800000000000000
+      internalID: -7759217593071833563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_19
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 81
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1b073d4271e84600800000000000000
+      internalID: 452859643588709147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_20
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 91
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9775bc9a06c067b0800000000000000
+      internalID: -5232965018123405410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_21
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 94
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8affdf774f881860800000000000000
+      internalID: 7500902716636396170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_22
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 78
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1b0917458d297030800000000000000
+      internalID: 3492873036449254175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_23
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 98
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f1d927d46b412710800000000000000
+      internalID: 1666696233582449144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_24
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 92
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d44ad7a8a2d0a2f0800000000000000
+      internalID: -963538698444847913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_25
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 81
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d0ef1d82c791bc50800000000000000
+      internalID: 6679286584214282450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_26
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 88
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6454755d03d1030b0800000000000000
+      internalID: -5751064628577221306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_27
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 73
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00eb8b9961c05fee0800000000000000
+      internalID: -1228062032180756992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_28
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 66
+        width: 25
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2498623c1a4a18540800000000000000
+      internalID: 5008465275283474754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_29
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 76
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa6f37658df600190800000000000000
+      internalID: -7998269963255941457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_30
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 70
+        width: 16
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9422abec742dbf30800000000000000
+      internalID: 4592867313935590555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_31
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 62
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f434a8f1e321e0b00800000000000000
+      internalID: 796594242117583695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_32
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 67
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 823eaac08ab96d9e0800000000000000
+      internalID: -1596917871786925272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_33
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 73
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c370d47fc108f64d0800000000000000
+      internalID: -3139149553357486276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_34
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 69
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 271631727c9354920800000000000000
+      internalID: 2973846656464937330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_35
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 68
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7f79ce2a63914800800000000000000
+      internalID: 594918710050389882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_36
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 68
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a925916f30eea2af0800000000000000
+      internalID: -420261914424552806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_37
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 55
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4cb9aff0c7c7f0690800000000000000
+      internalID: -7633745971083830332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_38
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 48
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5ef5f56e61ed1e80800000000000000
+      internalID: -8206155081725903270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_39
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 52
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03ea11f7372cf74e0800000000000000
+      internalID: -1981651509710836176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_40
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 61
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49e987d47f388f430800000000000000
+      internalID: 3816945782376406676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_41
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 49
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81b0cd191c419cf40800000000000000
+      internalID: 5749149220923509528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_42
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 51
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16e1827e1a99e4270800000000000000
+      internalID: 8236689689154166369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_43
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 48
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5dc294b782bf5fc0800000000000000
+      internalID: -3503885689151107745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_fighter_2_44
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 43
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3322bdd6ab1d6c340800000000000000
+      internalID: 4883821444567081523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_fighter_2_0: 4930578668525688523
+      verdant_fighter_2_1: -4833878239243120511
+      verdant_fighter_2_10: 5588199925223748865
+      verdant_fighter_2_11: 4274602987445424341
+      verdant_fighter_2_12: 1579166510360550988
+      verdant_fighter_2_13: -1115371759707822793
+      verdant_fighter_2_14: -1299334882312237103
+      verdant_fighter_2_15: 8957073324431410771
+      verdant_fighter_2_16: -7453854011424655735
+      verdant_fighter_2_17: -470500676874630680
+      verdant_fighter_2_18: -7759217593071833563
+      verdant_fighter_2_19: 452859643588709147
+      verdant_fighter_2_2: -4251928318438331357
+      verdant_fighter_2_20: -5232965018123405410
+      verdant_fighter_2_21: 7500902716636396170
+      verdant_fighter_2_22: 3492873036449254175
+      verdant_fighter_2_23: 1666696233582449144
+      verdant_fighter_2_24: -963538698444847913
+      verdant_fighter_2_25: 6679286584214282450
+      verdant_fighter_2_26: -5751064628577221306
+      verdant_fighter_2_27: -1228062032180756992
+      verdant_fighter_2_28: 5008465275283474754
+      verdant_fighter_2_29: -7998269963255941457
+      verdant_fighter_2_3: 1392352282036520047
+      verdant_fighter_2_30: 4592867313935590555
+      verdant_fighter_2_31: 796594242117583695
+      verdant_fighter_2_32: -1596917871786925272
+      verdant_fighter_2_33: -3139149553357486276
+      verdant_fighter_2_34: 2973846656464937330
+      verdant_fighter_2_35: 594918710050389882
+      verdant_fighter_2_36: -420261914424552806
+      verdant_fighter_2_37: -7633745971083830332
+      verdant_fighter_2_38: -8206155081725903270
+      verdant_fighter_2_39: -1981651509710836176
+      verdant_fighter_2_4: -5762217409592203040
+      verdant_fighter_2_40: 3816945782376406676
+      verdant_fighter_2_41: 5749149220923509528
+      verdant_fighter_2_42: 8236689689154166369
+      verdant_fighter_2_43: -3503885689151107745
+      verdant_fighter_2_44: 4883821444567081523
+      verdant_fighter_2_5: -5119032661721448673
+      verdant_fighter_2_6: -8045623606486154473
+      verdant_fighter_2_7: 9146393191185612680
+      verdant_fighter_2_8: 3041720091626408683
+      verdant_fighter_2_9: -6957741423717133756
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

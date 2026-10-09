@@ -1,0 +1,1417 @@
+fileFormatVersion: 2
+guid: a7f81c1797682445bbbe7c740448cea9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -9082259038721752446
+    second: verdant_chaser_0
+  - first:
+      213: 1705602256096527160
+    second: verdant_chaser_1
+  - first:
+      213: 7381730918029094218
+    second: verdant_chaser_2
+  - first:
+      213: 8187807954221624936
+    second: verdant_chaser_3
+  - first:
+      213: 2139384234398031568
+    second: verdant_chaser_4
+  - first:
+      213: 6997844195900670873
+    second: verdant_chaser_5
+  - first:
+      213: -589622384961834312
+    second: verdant_chaser_6
+  - first:
+      213: 2659930829721308521
+    second: verdant_chaser_7
+  - first:
+      213: 6043882548709949165
+    second: verdant_chaser_8
+  - first:
+      213: -1750500333389120788
+    second: verdant_chaser_9
+  - first:
+      213: 1646262400104405140
+    second: verdant_chaser_10
+  - first:
+      213: 3103492987391402217
+    second: verdant_chaser_11
+  - first:
+      213: 2307603934472044469
+    second: verdant_chaser_12
+  - first:
+      213: -7620921139164069605
+    second: verdant_chaser_13
+  - first:
+      213: -8387521485828653440
+    second: verdant_chaser_14
+  - first:
+      213: 2532095102072090341
+    second: verdant_chaser_15
+  - first:
+      213: -8823374997678041975
+    second: verdant_chaser_16
+  - first:
+      213: 9148117453038162524
+    second: verdant_chaser_17
+  - first:
+      213: -5491448905377717694
+    second: verdant_chaser_18
+  - first:
+      213: -8268564401458766449
+    second: verdant_chaser_19
+  - first:
+      213: -3052138129739415804
+    second: verdant_chaser_20
+  - first:
+      213: 1947708590616117021
+    second: verdant_chaser_21
+  - first:
+      213: 2547283277896933839
+    second: verdant_chaser_22
+  - first:
+      213: -1984908196938024193
+    second: verdant_chaser_23
+  - first:
+      213: 1306564543256403192
+    second: verdant_chaser_24
+  - first:
+      213: -4274658913502907829
+    second: verdant_chaser_25
+  - first:
+      213: 3698099823325476690
+    second: verdant_chaser_26
+  - first:
+      213: -1926091078626043009
+    second: verdant_chaser_27
+  - first:
+      213: -8258706537251334073
+    second: verdant_chaser_28
+  - first:
+      213: -8923436458005648372
+    second: verdant_chaser_29
+  - first:
+      213: 6891000794935416141
+    second: verdant_chaser_30
+  - first:
+      213: -54775657956782704
+    second: verdant_chaser_31
+  - first:
+      213: 4581741277804485798
+    second: verdant_chaser_32
+  - first:
+      213: -8461986364886595831
+    second: verdant_chaser_33
+  - first:
+      213: -7445634765728718586
+    second: verdant_chaser_34
+  - first:
+      213: -2638963592317315344
+    second: verdant_chaser_35
+  - first:
+      213: 4691001512099074444
+    second: verdant_chaser_36
+  - first:
+      213: -5711626989233860082
+    second: verdant_chaser_37
+  - first:
+      213: 1300204899569443167
+    second: verdant_chaser_38
+  - first:
+      213: 7880147038644355457
+    second: verdant_chaser_39
+  - first:
+      213: -1056916619394615327
+    second: verdant_chaser_40
+  - first:
+      213: 1938141930313306410
+    second: verdant_chaser_41
+  - first:
+      213: 2620614016686762304
+    second: verdant_chaser_42
+  - first:
+      213: -7230261372020147592
+    second: verdant_chaser_43
+  - first:
+      213: -5433949575340266699
+    second: verdant_chaser_44
+  - first:
+      213: 3629174142984396327
+    second: verdant_chaser_45
+  - first:
+      213: -482501160205361751
+    second: verdant_chaser_46
+  - first:
+      213: -8954311299990404010
+    second: verdant_chaser_47
+  - first:
+      213: 7211940759679135982
+    second: verdant_chaser_48
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_chaser_0
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 15
+        width: 81
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 282c8ee268555f180800000000000000
+      internalID: -9082259038721752446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_1
+      rect:
+        serializedVersion: 2
+        x: 241
+        y: 51
+        width: 78
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8330dba17348ba710800000000000000
+      internalID: 1705602256096527160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_2
+      rect:
+        serializedVersion: 2
+        x: 301
+        y: 106
+        width: 32
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4d64ace82d217660800000000000000
+      internalID: 7381730918029094218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_3
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 127
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86e6f7814ffe0a170800000000000000
+      internalID: 8187807954221624936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_4
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 103
+        width: 20
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0de9d5150ae90bd10800000000000000
+      internalID: 2139384234398031568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_5
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 133
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 993403258365d1160800000000000000
+      internalID: 6997844195900670873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_6
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 117
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b23bb8909d31d7f0800000000000000
+      internalID: -589622384961834312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_7
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 104
+        width: 41
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96d06a82ff8f9e420800000000000000
+      internalID: 2659930829721308521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_8
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 118
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deef90cf72f20e350800000000000000
+      internalID: 6043882548709949165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_9
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 113
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cea7329a839f4b7e0800000000000000
+      internalID: -1750500333389120788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_10
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 111
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4981e4d3ee2b8d610800000000000000
+      internalID: 1646262400104405140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_11
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 118
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e06164dd62d11b20800000000000000
+      internalID: 3103492987391402217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_12
+      rect:
+        serializedVersion: 2
+        x: 315
+        y: 94
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bfff7c5d81460020800000000000000
+      internalID: 2307603934472044469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_13
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 95
+        width: 17
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b114cdee99c0d3690800000000000000
+      internalID: -7620921139164069605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_14
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 103
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08ef93bc5a9899b80800000000000000
+      internalID: -8387521485828653440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_15
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 109
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ee6388641fc32320800000000000000
+      internalID: 2532095102072090341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_16
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 102
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 984565710331d8580800000000000000
+      internalID: -8823374997678041975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_17
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 101
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5214efca54a4fe70800000000000000
+      internalID: 9148117453038162524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_18
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 92
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 242e0c4c0547ac3b0800000000000000
+      internalID: -5491448905377717694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_19
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 93
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8d1c905c78204d80800000000000000
+      internalID: -8268564401458766449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_20
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 96
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40ff47bba80a4a5d0800000000000000
+      internalID: -3052138129739415804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_21
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 99
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1f76adc4a6a70b10800000000000000
+      internalID: 1947708590616117021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_22
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 94
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc1e65925a4c95320800000000000000
+      internalID: 2547283277896933839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_23
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 89
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffa7fb9e2803474e0800000000000000
+      internalID: -1984908196938024193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_24
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 78
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fc1be49789d12210800000000000000
+      internalID: 1306564543256403192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_25
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 66
+        width: 25
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b42b3b4cd5c5da4c0800000000000000
+      internalID: -4274658913502907829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_26
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 84
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 257ff39223a425330800000000000000
+      internalID: 3698099823325476690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_27
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 89
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7b127d6e562545e0800000000000000
+      internalID: -1926091078626043009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_28
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 76
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74810fe292e236d80800000000000000
+      internalID: -8258706537251334073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_29
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 90
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0cadc0e1d5992480800000000000000
+      internalID: -8923436458005648372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_30
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 83
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d455f0186b0c1af50800000000000000
+      internalID: 6891000794935416141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_31
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 87
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09dc52d44d56d3ff0800000000000000
+      internalID: -54775657956782704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_32
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 64
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6acd744ca6d959f30800000000000000
+      internalID: 4581741277804485798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_33
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 74
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9074cb21c3cf09a80800000000000000
+      internalID: -8461986364886595831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_34
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 74
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 601e07511aacba890800000000000000
+      internalID: -7445634765728718586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_35
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 80
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f6dcb83894806bd0800000000000000
+      internalID: -2638963592317315344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_36
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 69
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c815c717509c91140800000000000000
+      internalID: 4691001512099074444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_37
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 78
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e029e29c3893cb0b0800000000000000
+      internalID: -5711626989233860082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_38
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 60
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f512f06a7714b0210800000000000000
+      internalID: 1300204899569443167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_39
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 69
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1814e381bf7eb5d60800000000000000
+      internalID: 7880147038644355457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_40
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 59
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e7f6c73fe31551f0800000000000000
+      internalID: -1056916619394615327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_41
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 73
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a215d9021d9a5ea10800000000000000
+      internalID: 1938141930313306410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_42
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 61
+        width: 10
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0492606409a4e5420800000000000000
+      internalID: 2620614016686762304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_43
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 52
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87ab287f693f8ab90800000000000000
+      internalID: -7230261372020147592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_44
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 66
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53b657ac6abb694b0800000000000000
+      internalID: -5433949575340266699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_45
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 49
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72e1e94a7aa6d5230800000000000000
+      internalID: 3629174142984396327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_46
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 59
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9adde3e40cfcd49f0800000000000000
+      internalID: -482501160205361751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_47
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 54
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6544ecb8055ebb380800000000000000
+      internalID: -8954311299990404010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_chaser_48
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 55
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee0f5d119e5f51460800000000000000
+      internalID: 7211940759679135982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_chaser_0: -9082259038721752446
+      verdant_chaser_1: 1705602256096527160
+      verdant_chaser_10: 1646262400104405140
+      verdant_chaser_11: 3103492987391402217
+      verdant_chaser_12: 2307603934472044469
+      verdant_chaser_13: -7620921139164069605
+      verdant_chaser_14: -8387521485828653440
+      verdant_chaser_15: 2532095102072090341
+      verdant_chaser_16: -8823374997678041975
+      verdant_chaser_17: 9148117453038162524
+      verdant_chaser_18: -5491448905377717694
+      verdant_chaser_19: -8268564401458766449
+      verdant_chaser_2: 7381730918029094218
+      verdant_chaser_20: -3052138129739415804
+      verdant_chaser_21: 1947708590616117021
+      verdant_chaser_22: 2547283277896933839
+      verdant_chaser_23: -1984908196938024193
+      verdant_chaser_24: 1306564543256403192
+      verdant_chaser_25: -4274658913502907829
+      verdant_chaser_26: 3698099823325476690
+      verdant_chaser_27: -1926091078626043009
+      verdant_chaser_28: -8258706537251334073
+      verdant_chaser_29: -8923436458005648372
+      verdant_chaser_3: 8187807954221624936
+      verdant_chaser_30: 6891000794935416141
+      verdant_chaser_31: -54775657956782704
+      verdant_chaser_32: 4581741277804485798
+      verdant_chaser_33: -8461986364886595831
+      verdant_chaser_34: -7445634765728718586
+      verdant_chaser_35: -2638963592317315344
+      verdant_chaser_36: 4691001512099074444
+      verdant_chaser_37: -5711626989233860082
+      verdant_chaser_38: 1300204899569443167
+      verdant_chaser_39: 7880147038644355457
+      verdant_chaser_4: 2139384234398031568
+      verdant_chaser_40: -1056916619394615327
+      verdant_chaser_41: 1938141930313306410
+      verdant_chaser_42: 2620614016686762304
+      verdant_chaser_43: -7230261372020147592
+      verdant_chaser_44: -5433949575340266699
+      verdant_chaser_45: 3629174142984396327
+      verdant_chaser_46: -482501160205361751
+      verdant_chaser_47: -8954311299990404010
+      verdant_chaser_48: 7211940759679135982
+      verdant_chaser_5: 6997844195900670873
+      verdant_chaser_6: -589622384961834312
+      verdant_chaser_7: 2659930829721308521
+      verdant_chaser_8: 6043882548709949165
+      verdant_chaser_9: -1750500333389120788
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

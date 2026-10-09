@@ -1,0 +1,1209 @@
+fileFormatVersion: 2
+guid: d02f8a1b2112c42f5ab630dcbe89e165
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3931278170136323410
+    second: verdant_rock_vine_0
+  - first:
+      213: -4226869780561273750
+    second: verdant_rock_vine_1
+  - first:
+      213: -3463519535798241623
+    second: verdant_rock_vine_2
+  - first:
+      213: 20753286911476434
+    second: verdant_rock_vine_3
+  - first:
+      213: -5378572111736516647
+    second: verdant_rock_vine_4
+  - first:
+      213: -6615244917652170494
+    second: verdant_rock_vine_5
+  - first:
+      213: 6301715779240576824
+    second: verdant_rock_vine_6
+  - first:
+      213: -7272988519802824286
+    second: verdant_rock_vine_7
+  - first:
+      213: 5760208661715344557
+    second: verdant_rock_vine_8
+  - first:
+      213: -1942550805170125710
+    second: verdant_rock_vine_9
+  - first:
+      213: -6279212485366863896
+    second: verdant_rock_vine_10
+  - first:
+      213: -5492455408447061934
+    second: verdant_rock_vine_11
+  - first:
+      213: -3812297987916539444
+    second: verdant_rock_vine_12
+  - first:
+      213: -6218359838328408710
+    second: verdant_rock_vine_13
+  - first:
+      213: 8004844067997963022
+    second: verdant_rock_vine_14
+  - first:
+      213: 2490336737442410282
+    second: verdant_rock_vine_15
+  - first:
+      213: 1628290767756841891
+    second: verdant_rock_vine_16
+  - first:
+      213: -3464897020078326376
+    second: verdant_rock_vine_17
+  - first:
+      213: -6123492121466993286
+    second: verdant_rock_vine_18
+  - first:
+      213: -1501912012472707655
+    second: verdant_rock_vine_19
+  - first:
+      213: -365186957999468252
+    second: verdant_rock_vine_20
+  - first:
+      213: -2385547262924699665
+    second: verdant_rock_vine_21
+  - first:
+      213: 6626406374933690296
+    second: verdant_rock_vine_22
+  - first:
+      213: 946485755666883921
+    second: verdant_rock_vine_23
+  - first:
+      213: -1648985302287402349
+    second: verdant_rock_vine_24
+  - first:
+      213: 8773342515102977091
+    second: verdant_rock_vine_25
+  - first:
+      213: -1472934788968096834
+    second: verdant_rock_vine_26
+  - first:
+      213: 2071864391806554100
+    second: verdant_rock_vine_27
+  - first:
+      213: -2385448487341978393
+    second: verdant_rock_vine_28
+  - first:
+      213: 3308524646802798875
+    second: verdant_rock_vine_29
+  - first:
+      213: -3693800021556527581
+    second: verdant_rock_vine_30
+  - first:
+      213: 2689913798809290777
+    second: verdant_rock_vine_31
+  - first:
+      213: 7092163873978266416
+    second: verdant_rock_vine_32
+  - first:
+      213: 462673446773024219
+    second: verdant_rock_vine_33
+  - first:
+      213: 3718675911335320974
+    second: verdant_rock_vine_34
+  - first:
+      213: 8792852327225356644
+    second: verdant_rock_vine_35
+  - first:
+      213: 1643670891956313895
+    second: verdant_rock_vine_36
+  - first:
+      213: -644355069750479584
+    second: verdant_rock_vine_37
+  - first:
+      213: -2013692875997667102
+    second: verdant_rock_vine_38
+  - first:
+      213: 8084239682194456614
+    second: verdant_rock_vine_39
+  - first:
+      213: 7883162669719666166
+    second: verdant_rock_vine_40
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_rock_vine_0
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 6
+        width: 126
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 255293cbaa4be8630800000000000000
+      internalID: 3931278170136323410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_1
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 30
+        width: 129
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6cdfc954542755c0800000000000000
+      internalID: -4226869780561273750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_2
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 144
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a6be1c255b1fefc0800000000000000
+      internalID: -3463519535798241623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_3
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 154
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d2c746210bb94000800000000000000
+      internalID: 20753286911476434
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_4
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 124
+        width: 24
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df4f1949297b55b0800000000000000
+      internalID: -5378572111736516647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_5
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 154
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2095225ebcde134a0800000000000000
+      internalID: -6615244917652170494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_6
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 136
+        width: 35
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 837cb110d11347750800000000000000
+      internalID: 6301715779240576824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_7
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a998a5a977211b90800000000000000
+      internalID: -7272988519802824286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_8
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 140
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dacdba9424f50ff40800000000000000
+      internalID: 5760208661715344557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_9
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 145
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2748fa3b55caa05e0800000000000000
+      internalID: -1942550805170125710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_10
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 145
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e7a2846381cbd8a0800000000000000
+      internalID: -6279212485366863896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_11
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 109
+        width: 22
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25007d208e0e6c3b0800000000000000
+      internalID: -5492455408447061934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_12
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 122
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc95c4cad2ff71bc0800000000000000
+      internalID: -3812297987916539444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_13
+      rect:
+        serializedVersion: 2
+        x: 425
+        y: 101
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7531ee5ca2f3b9a0800000000000000
+      internalID: -6218359838328408710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_14
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 132
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e035963b44be61f60800000000000000
+      internalID: 8004844067997963022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_15
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 123
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2f2c5e71147f8220800000000000000
+      internalID: 2490336737442410282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_16
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 133
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a3d13383d9d89610800000000000000
+      internalID: 1628290767756841891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_17
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 105
+        width: 27
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89dfbee94863aefc0800000000000000
+      internalID: -3464897020078326376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_18
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 127
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a758e03fb5cf40ba0800000000000000
+      internalID: -6123492121466993286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_19
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 33
+        width: 88
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b51cac6bf2282be0800000000000000
+      internalID: -1501912012472707655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_20
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 114
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42116d385689eeaf0800000000000000
+      internalID: -365186957999468252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_21
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 115
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe7c77e4765d4eed0800000000000000
+      internalID: -2385547262924699665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_22
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 95
+        width: 24
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b77e436d79b5fb50800000000000000
+      internalID: 6626406374933690296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_23
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 115
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 155ed73b7c7922d00800000000000000
+      internalID: 946485755666883921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_24
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 81
+        width: 37
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39ab151ba90ad19e0800000000000000
+      internalID: -1648985302287402349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_25
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 104
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34c8b89c88c21c970800000000000000
+      internalID: 8773342515102977091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_26
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 100
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebbdd360d951f8be0800000000000000
+      internalID: -1472934788968096834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_27
+      rect:
+        serializedVersion: 2
+        x: 339
+        y: 71
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ff0968efadb0cc10800000000000000
+      internalID: 2071864391806554100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_28
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 55
+        width: 28
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ec0df94d3f25eed0800000000000000
+      internalID: -2385448487341978393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_29
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 79
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b193e4f03ad3aed20800000000000000
+      internalID: 3308524646802798875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_30
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 45
+        width: 32
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32efac3737cfcbcc0800000000000000
+      internalID: -3693800021556527581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_31
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 65
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9180376295e745520800000000000000
+      internalID: 2689913798809290777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_32
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 30
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 033355da77d6c6260800000000000000
+      internalID: 7092163873978266416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_33
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 41
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd569e96c0fbb6600800000000000000
+      internalID: 462673446773024219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_34
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 36
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8d91f9f9046b9330800000000000000
+      internalID: 3718675911335320974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_35
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 38
+        width: 22
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 461fbb6ea9c760a70800000000000000
+      internalID: 8792852327225356644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_36
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 32
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72f94bab7fd7fc610800000000000000
+      internalID: 1643670891956313895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_37
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 36
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 025fc4e5a7ace07f0800000000000000
+      internalID: -644355069750479584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_38
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 30
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e0ac6f8ffced04e0800000000000000
+      internalID: -2013692875997667102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_39
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 28
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6204158a82df03070800000000000000
+      internalID: 8084239682194456614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_vine_40
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 28
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fdb24b6eae966d60800000000000000
+      internalID: 7883162669719666166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_rock_vine_0: 3931278170136323410
+      verdant_rock_vine_1: -4226869780561273750
+      verdant_rock_vine_10: -6279212485366863896
+      verdant_rock_vine_11: -5492455408447061934
+      verdant_rock_vine_12: -3812297987916539444
+      verdant_rock_vine_13: -6218359838328408710
+      verdant_rock_vine_14: 8004844067997963022
+      verdant_rock_vine_15: 2490336737442410282
+      verdant_rock_vine_16: 1628290767756841891
+      verdant_rock_vine_17: -3464897020078326376
+      verdant_rock_vine_18: -6123492121466993286
+      verdant_rock_vine_19: -1501912012472707655
+      verdant_rock_vine_2: -3463519535798241623
+      verdant_rock_vine_20: -365186957999468252
+      verdant_rock_vine_21: -2385547262924699665
+      verdant_rock_vine_22: 6626406374933690296
+      verdant_rock_vine_23: 946485755666883921
+      verdant_rock_vine_24: -1648985302287402349
+      verdant_rock_vine_25: 8773342515102977091
+      verdant_rock_vine_26: -1472934788968096834
+      verdant_rock_vine_27: 2071864391806554100
+      verdant_rock_vine_28: -2385448487341978393
+      verdant_rock_vine_29: 3308524646802798875
+      verdant_rock_vine_3: 20753286911476434
+      verdant_rock_vine_30: -3693800021556527581
+      verdant_rock_vine_31: 2689913798809290777
+      verdant_rock_vine_32: 7092163873978266416
+      verdant_rock_vine_33: 462673446773024219
+      verdant_rock_vine_34: 3718675911335320974
+      verdant_rock_vine_35: 8792852327225356644
+      verdant_rock_vine_36: 1643670891956313895
+      verdant_rock_vine_37: -644355069750479584
+      verdant_rock_vine_38: -2013692875997667102
+      verdant_rock_vine_39: 8084239682194456614
+      verdant_rock_vine_4: -5378572111736516647
+      verdant_rock_vine_40: 7883162669719666166
+      verdant_rock_vine_5: -6615244917652170494
+      verdant_rock_vine_6: 6301715779240576824
+      verdant_rock_vine_7: -7272988519802824286
+      verdant_rock_vine_8: 5760208661715344557
+      verdant_rock_vine_9: -1942550805170125710
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

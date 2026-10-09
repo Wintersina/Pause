@@ -1,0 +1,1625 @@
+fileFormatVersion: 2
+guid: 340a62f3884b9493b90f7d34ef79f8d1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6649093102426013575
+    second: verdant_alien_0
+  - first:
+      213: -6416294526515754109
+    second: verdant_alien_1
+  - first:
+      213: 3859740726643562662
+    second: verdant_alien_2
+  - first:
+      213: -2081700267942418844
+    second: verdant_alien_3
+  - first:
+      213: -4117138706224922566
+    second: verdant_alien_4
+  - first:
+      213: -6083192258178667164
+    second: verdant_alien_5
+  - first:
+      213: 1682973389775713031
+    second: verdant_alien_6
+  - first:
+      213: 8997749997140119426
+    second: verdant_alien_7
+  - first:
+      213: -3130920100550058635
+    second: verdant_alien_8
+  - first:
+      213: -1537455221336380895
+    second: verdant_alien_9
+  - first:
+      213: -4668324246061834571
+    second: verdant_alien_10
+  - first:
+      213: -8930270598162667355
+    second: verdant_alien_11
+  - first:
+      213: 5402404081676213322
+    second: verdant_alien_12
+  - first:
+      213: -6437699329469026799
+    second: verdant_alien_13
+  - first:
+      213: -4683333394626982137
+    second: verdant_alien_14
+  - first:
+      213: -812770652602389182
+    second: verdant_alien_15
+  - first:
+      213: 3671242342893742365
+    second: verdant_alien_16
+  - first:
+      213: -7840623618069628502
+    second: verdant_alien_17
+  - first:
+      213: 1961195582761446539
+    second: verdant_alien_18
+  - first:
+      213: 4087362361425389949
+    second: verdant_alien_19
+  - first:
+      213: -3392406167997149801
+    second: verdant_alien_20
+  - first:
+      213: 1223300195775131731
+    second: verdant_alien_21
+  - first:
+      213: 6248175162184570785
+    second: verdant_alien_22
+  - first:
+      213: -2011496541006354729
+    second: verdant_alien_23
+  - first:
+      213: -3004760174420545545
+    second: verdant_alien_24
+  - first:
+      213: 7250448219560200413
+    second: verdant_alien_25
+  - first:
+      213: 2551219215959408398
+    second: verdant_alien_26
+  - first:
+      213: -539359542531113516
+    second: verdant_alien_27
+  - first:
+      213: 2122622907171813970
+    second: verdant_alien_28
+  - first:
+      213: -2547620006021408527
+    second: verdant_alien_29
+  - first:
+      213: 9044445487138975245
+    second: verdant_alien_30
+  - first:
+      213: 1186352264608417015
+    second: verdant_alien_31
+  - first:
+      213: -8875654816609026765
+    second: verdant_alien_32
+  - first:
+      213: -4679463751072065544
+    second: verdant_alien_33
+  - first:
+      213: -6171314224344321500
+    second: verdant_alien_34
+  - first:
+      213: 5016315651374889559
+    second: verdant_alien_35
+  - first:
+      213: 1333482652822460874
+    second: verdant_alien_36
+  - first:
+      213: -7230712956651564541
+    second: verdant_alien_37
+  - first:
+      213: 3764717308437004369
+    second: verdant_alien_38
+  - first:
+      213: 1978758283234291910
+    second: verdant_alien_39
+  - first:
+      213: -2614969088910328652
+    second: verdant_alien_40
+  - first:
+      213: 9106057103995784311
+    second: verdant_alien_41
+  - first:
+      213: 8296995708861549388
+    second: verdant_alien_42
+  - first:
+      213: 1730200013765831755
+    second: verdant_alien_43
+  - first:
+      213: 3979742937301884771
+    second: verdant_alien_44
+  - first:
+      213: 8945296681145175265
+    second: verdant_alien_45
+  - first:
+      213: 7822349780873669105
+    second: verdant_alien_46
+  - first:
+      213: 4642850588250990828
+    second: verdant_alien_47
+  - first:
+      213: -38429025095279359
+    second: verdant_alien_48
+  - first:
+      213: 2389311464704451179
+    second: verdant_alien_49
+  - first:
+      213: 3913364143505288496
+    second: verdant_alien_50
+  - first:
+      213: -5816150150090194670
+    second: verdant_alien_51
+  - first:
+      213: -8973742201754873587
+    second: verdant_alien_52
+  - first:
+      213: 6397545779515648023
+    second: verdant_alien_53
+  - first:
+      213: 8703763687237592039
+    second: verdant_alien_54
+  - first:
+      213: -3557290556386392583
+    second: verdant_alien_55
+  - first:
+      213: -5536187465519912700
+    second: verdant_alien_56
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_alien_0
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 15
+        width: 161
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 970c56f3d0da9b3a0800000000000000
+      internalID: -6649093102426013575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_1
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 115
+        width: 56
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38bceb48f1eb4f6a0800000000000000
+      internalID: -6416294526515754109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_2
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 128
+        width: 30
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a892b8bdbd809530800000000000000
+      internalID: 3859740726643562662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_3
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 171
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 466e478b2a05c13e0800000000000000
+      internalID: -2081700267942418844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_4
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 141
+        width: 15
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a30c374092cfcd6c0800000000000000
+      internalID: -4117138706224922566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_5
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 156
+        width: 14
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46daade0fd8249ba0800000000000000
+      internalID: -6083192258178667164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_6
+      rect:
+        serializedVersion: 2
+        x: 520
+        y: 170
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7033408916f1b5710800000000000000
+      internalID: 1682973389775713031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_7
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 25
+        width: 162
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28f0f4543fd6edc70800000000000000
+      internalID: 8997749997140119426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_8
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 160
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57d5592c1ccbc84d0800000000000000
+      internalID: -3130920100550058635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_9
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 151
+        width: 24
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12aec2a3f9cd9aae0800000000000000
+      internalID: -1537455221336380895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_10
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 124
+        width: 25
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5be142105d7c63fb0800000000000000
+      internalID: -4668324246061834571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_11
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 119
+        width: 20
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a82660a43e411480800000000000000
+      internalID: -8930270598162667355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_12
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 85
+        width: 54
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4c5e6d93e139fa40800000000000000
+      internalID: 5402404081676213322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_13
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 119
+        width: 26
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11e6a387192b8a6a0800000000000000
+      internalID: -6437699329469026799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_14
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 142
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70fc8884715710fb0800000000000000
+      internalID: -4683333394626982137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_15
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 111
+        width: 25
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24da5cfc56578b4f0800000000000000
+      internalID: -812770652602389182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_16
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 104
+        width: 18
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d19ed84b57fd2f230800000000000000
+      internalID: 3671242342893742365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_17
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 131
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa9fb6b5c52803390800000000000000
+      internalID: -7840623618069628502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_18
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 110
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8caf8dddf0973b10800000000000000
+      internalID: 1961195582761446539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_19
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 109
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d79ef05796a39b830800000000000000
+      internalID: 4087362361425389949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_20
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 85
+        width: 25
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79d8fae5090cbe0d0800000000000000
+      internalID: -3392406167997149801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_21
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 117
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 350b7d6fb090af010800000000000000
+      internalID: 1223300195775131731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_22
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 106
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a71e6ca43af5b650800000000000000
+      internalID: 6248175162184570785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_23
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 100
+        width: 16
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d6a366ad8ab514e0800000000000000
+      internalID: -2011496541006354729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_24
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 58
+        width: 43
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ff2c609a82fc46d0800000000000000
+      internalID: -3004760174420545545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_25
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 92
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd8cf3dbd34ce9460800000000000000
+      internalID: 7250448219560200413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_26
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 95
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0f39672c50c76320800000000000000
+      internalID: 2551219215959408398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_27
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 83
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dd373d8a5fc388f0800000000000000
+      internalID: -539359542531113516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_28
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 76
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25a3516b942157d10800000000000000
+      internalID: 2122622907171813970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_29
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 82
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f85a663a1905acd0800000000000000
+      internalID: -2547620006021408527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_30
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 65
+        width: 23
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0ead434043548d70800000000000000
+      internalID: 9044445487138975245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_31
+      rect:
+        serializedVersion: 2
+        x: 446
+        y: 78
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f4077e5915c67010800000000000000
+      internalID: 1186352264608417015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_32
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 79
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33db80338f653d480800000000000000
+      internalID: -8875654816609026765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_33
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 76
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f75802e2843f0fb0800000000000000
+      internalID: -4679463751072065544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_34
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 74
+        width: 21
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42234a4f8661b5aa0800000000000000
+      internalID: -6171314224344321500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_35
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 83
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75abe61e1888d9540800000000000000
+      internalID: 5016315651374889559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_36
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 83
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac9d0ab586b718210800000000000000
+      internalID: 1333482652822460874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_37
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 34
+        width: 32
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30218f930e857ab90800000000000000
+      internalID: -7230712956651564541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_38
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 61
+        width: 19
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15007291276fe3430800000000000000
+      internalID: 3764717308437004369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_39
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 33
+        width: 23
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c0ba88bc26f57b10800000000000000
+      internalID: 1978758283234291910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_40
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 69
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bc7fd4e773c5bbd0800000000000000
+      internalID: -2614969088910328652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_41
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 72
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77c471ca0b63f5e70800000000000000
+      internalID: 9106057103995784311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_42
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 49
+        width: 34
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4b02a943a9d42370800000000000000
+      internalID: 8296995708861549388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_43
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 69
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4c63eadeb7e20810800000000000000
+      internalID: 1730200013765831755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_44
+      rect:
+        serializedVersion: 2
+        x: 425
+        y: 44
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36f9f3bad13ea3730800000000000000
+      internalID: 3979742937301884771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_45
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 52
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec8322ffe3142c70800000000000000
+      internalID: 8945296681145175265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_46
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 17
+        width: 16
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f964dd5ea19e8c60800000000000000
+      internalID: 7822349780873669105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_47
+      rect:
+        serializedVersion: 2
+        x: 548
+        y: 54
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce8e9e9d208be6040800000000000000
+      internalID: 4642850588250990828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_48
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 43
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10d912a5109777ff0800000000000000
+      internalID: -38429025095279359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_49
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 34
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b622a773e1a882120800000000000000
+      internalID: 2389311464704451179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_50
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 17
+        width: 15
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03d226264ff0f4630800000000000000
+      internalID: 3913364143505288496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_51
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 44
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2110a87f042e84fa0800000000000000
+      internalID: -5816150150090194670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_52
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 18
+        width: 28
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d01187e230dd67380800000000000000
+      internalID: -8973742201754873587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_53
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 14
+        width: 36
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7186456adf5a8c850800000000000000
+      internalID: 6397545779515648023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_54
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 31
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e3adb285faf9c870800000000000000
+      internalID: 8703763687237592039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_55
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 16
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f5ccb71617f1aec0800000000000000
+      internalID: -3557290556386392583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_alien_56
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 13
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40927b305d28b23b0800000000000000
+      internalID: -5536187465519912700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_alien_0: -6649093102426013575
+      verdant_alien_1: -6416294526515754109
+      verdant_alien_10: -4668324246061834571
+      verdant_alien_11: -8930270598162667355
+      verdant_alien_12: 5402404081676213322
+      verdant_alien_13: -6437699329469026799
+      verdant_alien_14: -4683333394626982137
+      verdant_alien_15: -812770652602389182
+      verdant_alien_16: 3671242342893742365
+      verdant_alien_17: -7840623618069628502
+      verdant_alien_18: 1961195582761446539
+      verdant_alien_19: 4087362361425389949
+      verdant_alien_2: 3859740726643562662
+      verdant_alien_20: -3392406167997149801
+      verdant_alien_21: 1223300195775131731
+      verdant_alien_22: 6248175162184570785
+      verdant_alien_23: -2011496541006354729
+      verdant_alien_24: -3004760174420545545
+      verdant_alien_25: 7250448219560200413
+      verdant_alien_26: 2551219215959408398
+      verdant_alien_27: -539359542531113516
+      verdant_alien_28: 2122622907171813970
+      verdant_alien_29: -2547620006021408527
+      verdant_alien_3: -2081700267942418844
+      verdant_alien_30: 9044445487138975245
+      verdant_alien_31: 1186352264608417015
+      verdant_alien_32: -8875654816609026765
+      verdant_alien_33: -4679463751072065544
+      verdant_alien_34: -6171314224344321500
+      verdant_alien_35: 5016315651374889559
+      verdant_alien_36: 1333482652822460874
+      verdant_alien_37: -7230712956651564541
+      verdant_alien_38: 3764717308437004369
+      verdant_alien_39: 1978758283234291910
+      verdant_alien_4: -4117138706224922566
+      verdant_alien_40: -2614969088910328652
+      verdant_alien_41: 9106057103995784311
+      verdant_alien_42: 8296995708861549388
+      verdant_alien_43: 1730200013765831755
+      verdant_alien_44: 3979742937301884771
+      verdant_alien_45: 8945296681145175265
+      verdant_alien_46: 7822349780873669105
+      verdant_alien_47: 4642850588250990828
+      verdant_alien_48: -38429025095279359
+      verdant_alien_49: 2389311464704451179
+      verdant_alien_5: -6083192258178667164
+      verdant_alien_50: 3913364143505288496
+      verdant_alien_51: -5816150150090194670
+      verdant_alien_52: -8973742201754873587
+      verdant_alien_53: 6397545779515648023
+      verdant_alien_54: 8703763687237592039
+      verdant_alien_55: -3557290556386392583
+      verdant_alien_56: -5536187465519912700
+      verdant_alien_6: 1682973389775713031
+      verdant_alien_7: 8997749997140119426
+      verdant_alien_8: -3130920100550058635
+      verdant_alien_9: -1537455221336380895
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

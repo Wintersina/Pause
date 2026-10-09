@@ -1,0 +1,1079 @@
+fileFormatVersion: 2
+guid: f072af371573b48fe9c6fee500bcca16
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 691858838176538309
+    second: verdant_rock_spore_0
+  - first:
+      213: 6588113589477215114
+    second: verdant_rock_spore_1
+  - first:
+      213: 8432813724140697333
+    second: verdant_rock_spore_2
+  - first:
+      213: 7448366637481457671
+    second: verdant_rock_spore_3
+  - first:
+      213: 2866022014568079050
+    second: verdant_rock_spore_4
+  - first:
+      213: 1533158773111618002
+    second: verdant_rock_spore_5
+  - first:
+      213: 1388617261560733496
+    second: verdant_rock_spore_6
+  - first:
+      213: -1008607153117089162
+    second: verdant_rock_spore_7
+  - first:
+      213: -3342212588067499206
+    second: verdant_rock_spore_8
+  - first:
+      213: -2712571817171822727
+    second: verdant_rock_spore_9
+  - first:
+      213: 6319778478016089896
+    second: verdant_rock_spore_10
+  - first:
+      213: 3353090726034174778
+    second: verdant_rock_spore_11
+  - first:
+      213: 2758115648600817126
+    second: verdant_rock_spore_12
+  - first:
+      213: 4080523022024297020
+    second: verdant_rock_spore_13
+  - first:
+      213: 7482115427915097117
+    second: verdant_rock_spore_14
+  - first:
+      213: -2911266396637342439
+    second: verdant_rock_spore_15
+  - first:
+      213: 934981836172810915
+    second: verdant_rock_spore_16
+  - first:
+      213: 7603945743151825431
+    second: verdant_rock_spore_17
+  - first:
+      213: 890760690332011150
+    second: verdant_rock_spore_18
+  - first:
+      213: 8724714079921205715
+    second: verdant_rock_spore_19
+  - first:
+      213: 1876879613437134847
+    second: verdant_rock_spore_20
+  - first:
+      213: -3654945162649403362
+    second: verdant_rock_spore_21
+  - first:
+      213: -2305216318836380338
+    second: verdant_rock_spore_22
+  - first:
+      213: -530873886654491017
+    second: verdant_rock_spore_23
+  - first:
+      213: -4730701089900771079
+    second: verdant_rock_spore_24
+  - first:
+      213: 2526419472668163742
+    second: verdant_rock_spore_25
+  - first:
+      213: -2326119942774111122
+    second: verdant_rock_spore_26
+  - first:
+      213: -9025238926113665197
+    second: verdant_rock_spore_27
+  - first:
+      213: -5513483158669982625
+    second: verdant_rock_spore_28
+  - first:
+      213: 7144490695302277154
+    second: verdant_rock_spore_29
+  - first:
+      213: -4662360708640454796
+    second: verdant_rock_spore_30
+  - first:
+      213: -2348331335341016772
+    second: verdant_rock_spore_31
+  - first:
+      213: -1770136895151022337
+    second: verdant_rock_spore_32
+  - first:
+      213: -8936095524728914906
+    second: verdant_rock_spore_33
+  - first:
+      213: -9135517303031558146
+    second: verdant_rock_spore_34
+  - first:
+      213: 4936010146808751486
+    second: verdant_rock_spore_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_rock_spore_0
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 6
+        width: 157
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ce1a3c92f9f99900800000000000000
+      internalID: 691858838176538309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_1
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 10
+        width: 159
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8b86b0876ead6b50800000000000000
+      internalID: 6588113589477215114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_2
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 31
+        width: 157
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f6f174376f570570800000000000000
+      internalID: 8432813724140697333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_3
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 149
+        width: 20
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 708f3ff5ef9ed5760800000000000000
+      internalID: 7448366637481457671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_4
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 162
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ace97c066d726c720800000000000000
+      internalID: 2866022014568079050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_5
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 171
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d97797f7cfd64510800000000000000
+      internalID: 1533158773111618002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_6
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 166
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83f9d4cca0c554310800000000000000
+      internalID: 1388617261560733496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_7
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 152
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 672b9885325b002f0800000000000000
+      internalID: -1008607153117089162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_8
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 164
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a33d564eb531e91d0800000000000000
+      internalID: -3342212588067499206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_9
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 132
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 977dcb9dd420b5ad0800000000000000
+      internalID: -2712571817171822727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_10
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 94
+        width: 10
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82fce49ca0d54b750800000000000000
+      internalID: 6319778478016089896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_11
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 105
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a337ce8ff32988e20800000000000000
+      internalID: 3353090726034174778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_12
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 115
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ed3c4cb19bc64620800000000000000
+      internalID: 2758115648600817126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_13
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 93
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3acf89a11ee0a830800000000000000
+      internalID: 4080523022024297020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_14
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 91
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d146959f650d5d760800000000000000
+      internalID: 7482115427915097117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_15
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 91
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91556e503aa1997d0800000000000000
+      internalID: -2911266396637342439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_16
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 91
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3aad588b609b9fc00800000000000000
+      internalID: 934981836172810915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_17
+      rect:
+        serializedVersion: 2
+        x: 558
+        y: 88
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71288efad54a68960800000000000000
+      internalID: 7603945743151825431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_18
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 83
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8a0f1fd02e9c5c00800000000000000
+      internalID: 890760690332011150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_19
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 83
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d17d8cea39641970800000000000000
+      internalID: 8724714079921205715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_20
+      rect:
+        serializedVersion: 2
+        x: 561
+        y: 74
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff7c71570140c0a10800000000000000
+      internalID: 1876879613437134847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_21
+      rect:
+        serializedVersion: 2
+        x: 357
+        y: 74
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1000c24db6074dc0800000000000000
+      internalID: -3654945162649403362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_22
+      rect:
+        serializedVersion: 2
+        x: 368
+        y: 70
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4de259b8f93200e0800000000000000
+      internalID: -2305216318836380338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_23
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 40
+        width: 23
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7769d654305f1a8f0800000000000000
+      internalID: -530873886654491017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_24
+      rect:
+        serializedVersion: 2
+        x: 555
+        y: 60
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f849ed4c6c295eb0800000000000000
+      internalID: -4730701089900771079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_25
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 52
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9ef306ff15af0320800000000000000
+      internalID: 2526419472668163742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_26
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 30
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e644ff18c36f7bfd0800000000000000
+      internalID: -2326119942774111122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_27
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 18
+        width: 20
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35f87f3b309efb280800000000000000
+      internalID: -9025238926113665197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_28
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 11
+        width: 24
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f548064674c2c73b0800000000000000
+      internalID: -5513483158669982625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_29
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 16
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 228639a2f64562360800000000000000
+      internalID: 7144490695302277154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_30
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 33
+        width: 23
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4774fb243a7fb4fb0800000000000000
+      internalID: -4662360708640454796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_31
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 22
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c39741ea71d096fd0800000000000000
+      internalID: -2348331335341016772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_32
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 26
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffed5b85fd53f67e0800000000000000
+      internalID: -1770136895151022337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_33
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 22
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62c3399377c9cf380800000000000000
+      internalID: -8936095524728914906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_34
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 11
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eff8e593a6f183180800000000000000
+      internalID: -9135517303031558146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_rock_spore_35
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 17
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e756240931b308440800000000000000
+      internalID: 4936010146808751486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_rock_spore_0: 691858838176538309
+      verdant_rock_spore_1: 6588113589477215114
+      verdant_rock_spore_10: 6319778478016089896
+      verdant_rock_spore_11: 3353090726034174778
+      verdant_rock_spore_12: 2758115648600817126
+      verdant_rock_spore_13: 4080523022024297020
+      verdant_rock_spore_14: 7482115427915097117
+      verdant_rock_spore_15: -2911266396637342439
+      verdant_rock_spore_16: 934981836172810915
+      verdant_rock_spore_17: 7603945743151825431
+      verdant_rock_spore_18: 890760690332011150
+      verdant_rock_spore_19: 8724714079921205715
+      verdant_rock_spore_2: 8432813724140697333
+      verdant_rock_spore_20: 1876879613437134847
+      verdant_rock_spore_21: -3654945162649403362
+      verdant_rock_spore_22: -2305216318836380338
+      verdant_rock_spore_23: -530873886654491017
+      verdant_rock_spore_24: -4730701089900771079
+      verdant_rock_spore_25: 2526419472668163742
+      verdant_rock_spore_26: -2326119942774111122
+      verdant_rock_spore_27: -9025238926113665197
+      verdant_rock_spore_28: -5513483158669982625
+      verdant_rock_spore_29: 7144490695302277154
+      verdant_rock_spore_3: 7448366637481457671
+      verdant_rock_spore_30: -4662360708640454796
+      verdant_rock_spore_31: -2348331335341016772
+      verdant_rock_spore_32: -1770136895151022337
+      verdant_rock_spore_33: -8936095524728914906
+      verdant_rock_spore_34: -9135517303031558146
+      verdant_rock_spore_35: 4936010146808751486
+      verdant_rock_spore_4: 2866022014568079050
+      verdant_rock_spore_5: 1533158773111618002
+      verdant_rock_spore_6: 1388617261560733496
+      verdant_rock_spore_7: -1008607153117089162
+      verdant_rock_spore_8: -3342212588067499206
+      verdant_rock_spore_9: -2712571817171822727
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

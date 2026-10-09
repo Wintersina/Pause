@@ -1,0 +1,1755 @@
+fileFormatVersion: 2
+guid: 07ff3000b00e84de08eb16ada62fa844
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2212455375284122211
+    second: verdant_big_0
+  - first:
+      213: 1709247521072938430
+    second: verdant_big_1
+  - first:
+      213: 2554337245038170678
+    second: verdant_big_2
+  - first:
+      213: 4164170160035960503
+    second: verdant_big_3
+  - first:
+      213: 2129400621302775415
+    second: verdant_big_4
+  - first:
+      213: -3778213047723598519
+    second: verdant_big_5
+  - first:
+      213: -6956609302635399003
+    second: verdant_big_6
+  - first:
+      213: -9053050405515285133
+    second: verdant_big_7
+  - first:
+      213: 2981844599056735506
+    second: verdant_big_8
+  - first:
+      213: -8334107004269116327
+    second: verdant_big_9
+  - first:
+      213: 4262980306857289804
+    second: verdant_big_10
+  - first:
+      213: -7240014797250333765
+    second: verdant_big_11
+  - first:
+      213: -7519313798407788723
+    second: verdant_big_12
+  - first:
+      213: -5015882033086989685
+    second: verdant_big_13
+  - first:
+      213: -7022123802850435569
+    second: verdant_big_14
+  - first:
+      213: 6926700549373064615
+    second: verdant_big_15
+  - first:
+      213: 1371877067947993286
+    second: verdant_big_16
+  - first:
+      213: 132682391620638724
+    second: verdant_big_17
+  - first:
+      213: 194404745275621490
+    second: verdant_big_18
+  - first:
+      213: 1439684300827624113
+    second: verdant_big_19
+  - first:
+      213: -8199827110332662004
+    second: verdant_big_20
+  - first:
+      213: -8295456465328819392
+    second: verdant_big_21
+  - first:
+      213: -1351427663942616002
+    second: verdant_big_22
+  - first:
+      213: -2170253036016879506
+    second: verdant_big_23
+  - first:
+      213: -6339226469442862015
+    second: verdant_big_24
+  - first:
+      213: -5843152114016531156
+    second: verdant_big_25
+  - first:
+      213: -2840248828383200313
+    second: verdant_big_26
+  - first:
+      213: 6997558829907104250
+    second: verdant_big_27
+  - first:
+      213: 5017535150021054448
+    second: verdant_big_28
+  - first:
+      213: -7850967706467604453
+    second: verdant_big_29
+  - first:
+      213: -2174117690607038999
+    second: verdant_big_30
+  - first:
+      213: -4196759086242128067
+    second: verdant_big_31
+  - first:
+      213: -7399271609685567245
+    second: verdant_big_32
+  - first:
+      213: 4038289766477934593
+    second: verdant_big_33
+  - first:
+      213: 7611701655908020613
+    second: verdant_big_34
+  - first:
+      213: -6105111990268332350
+    second: verdant_big_35
+  - first:
+      213: -7347629585027821469
+    second: verdant_big_36
+  - first:
+      213: 2619697235934415414
+    second: verdant_big_37
+  - first:
+      213: -326657980532693697
+    second: verdant_big_38
+  - first:
+      213: -5256251126981645613
+    second: verdant_big_39
+  - first:
+      213: -8023102672311644669
+    second: verdant_big_40
+  - first:
+      213: -6733191019514318032
+    second: verdant_big_41
+  - first:
+      213: -8924739735754716646
+    second: verdant_big_42
+  - first:
+      213: 6398032409598866594
+    second: verdant_big_43
+  - first:
+      213: 783058332618146459
+    second: verdant_big_44
+  - first:
+      213: 7275593759858898734
+    second: verdant_big_45
+  - first:
+      213: -2856118688954599992
+    second: verdant_big_46
+  - first:
+      213: 1697924914263712090
+    second: verdant_big_47
+  - first:
+      213: 8428543967353007578
+    second: verdant_big_48
+  - first:
+      213: -8303976168404403038
+    second: verdant_big_49
+  - first:
+      213: -4536660610690506449
+    second: verdant_big_50
+  - first:
+      213: 9137801960419509046
+    second: verdant_big_51
+  - first:
+      213: 7270219168474100931
+    second: verdant_big_52
+  - first:
+      213: 8822789097804023406
+    second: verdant_big_53
+  - first:
+      213: -7984382474711390596
+    second: verdant_big_54
+  - first:
+      213: 4584258003556355191
+    second: verdant_big_55
+  - first:
+      213: 517834542982794008
+    second: verdant_big_56
+  - first:
+      213: -2697479536160758896
+    second: verdant_big_57
+  - first:
+      213: 5079256008002575858
+    second: verdant_big_58
+  - first:
+      213: -5143467666411735074
+    second: verdant_big_59
+  - first:
+      213: -3273157682797418140
+    second: verdant_big_60
+  - first:
+      213: -1459846318692410234
+    second: verdant_big_61
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_big_0
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 19
+        width: 210
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9d49caee87cb41e0800000000000000
+      internalID: -2212455375284122211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_1
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 14
+        width: 237
+        height: 227
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebdf4ce709778b710800000000000000
+      internalID: 1709247521072938430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_2
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 220
+        width: 23
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 632dc0fd034d27320800000000000000
+      internalID: 2554337245038170678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_3
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 224
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b69935a2ba1ac930800000000000000
+      internalID: 4164170160035960503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_4
+      rect:
+        serializedVersion: 2
+        x: 649
+        y: 187
+        width: 48
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77e7f3145962d8d10800000000000000
+      internalID: 2129400621302775415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_5
+      rect:
+        serializedVersion: 2
+        x: 678
+        y: 179
+        width: 58
+        height: 69
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94d50bc3047119bc0800000000000000
+      internalID: -3778213047723598519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_6
+      rect:
+        serializedVersion: 2
+        x: 541
+        y: 151
+        width: 82
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a83d3b62b8257f90800000000000000
+      internalID: -6956609302635399003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_7
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 211
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37d2e8d0f9a1d5280800000000000000
+      internalID: -9053050405515285133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_8
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 204
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21d91364dd3a16920800000000000000
+      internalID: 2981844599056735506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_9
+      rect:
+        serializedVersion: 2
+        x: 741
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 954c17ae5dd475c80800000000000000
+      internalID: -8334107004269116327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_10
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 190
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c48e6bab006292b30800000000000000
+      internalID: 4262980306857289804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_11
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 140
+        width: 34
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb37251b6ec468b90800000000000000
+      internalID: -7240014797250333765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_12
+      rect:
+        serializedVersion: 2
+        x: 703
+        y: 157
+        width: 30
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d47e53b70f706a790800000000000000
+      internalID: -7519313798407788723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_13
+      rect:
+        serializedVersion: 2
+        x: 731
+        y: 194
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8af59ebdd1046ab0800000000000000
+      internalID: -5015882033086989685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_14
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 139
+        width: 65
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0ed84a2b976c8e90800000000000000
+      internalID: -7022123802850435569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_15
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 165
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a572ee4375902060800000000000000
+      internalID: 6926700549373064615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_16
+      rect:
+        serializedVersion: 2
+        x: 650
+        y: 130
+        width: 48
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c86b8ebce2e90310800000000000000
+      internalID: 1371877067947993286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_17
+      rect:
+        serializedVersion: 2
+        x: 657
+        y: 174
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4085f74aee167d100800000000000000
+      internalID: 132682391620638724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_18
+      rect:
+        serializedVersion: 2
+        x: 667
+        y: 176
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 270cdc8f51aa2b200800000000000000
+      internalID: 194404745275621490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_19
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 171
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b2898b6e39caf310800000000000000
+      internalID: 1439684300827624113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_20
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 125
+        width: 58
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0ff00d00bc543e80800000000000000
+      internalID: -8199827110332662004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_21
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 148
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 043bb56cb4e90ec80800000000000000
+      internalID: -8295456465328819392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_22
+      rect:
+        serializedVersion: 2
+        x: 597
+        y: 147
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3c701723b3ce3de0800000000000000
+      internalID: -1351427663942616002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_23
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 120
+        width: 26
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e68308bbc56b1e1e0800000000000000
+      internalID: -2170253036016879506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_24
+      rect:
+        serializedVersion: 2
+        x: 645
+        y: 142
+        width: 13
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 144ca1adc1b8608a0800000000000000
+      internalID: -6339226469442862015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_25
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 131
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2dc8735c14f8eea0800000000000000
+      internalID: -5843152114016531156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_26
+      rect:
+        serializedVersion: 2
+        x: 556
+        y: 108
+        width: 26
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cbff762db86598d0800000000000000
+      internalID: -2840248828383200313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_27
+      rect:
+        serializedVersion: 2
+        x: 588
+        y: 133
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af1d28f5ea25c1160800000000000000
+      internalID: 6997558829907104250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_28
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 108
+        width: 30
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ff8a0982add1a540800000000000000
+      internalID: 5017535150021054448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_29
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 136
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b186fe89772cb0390800000000000000
+      internalID: -7850967706467604453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_30
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 110
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ed8977ba7bf3d1e0800000000000000
+      internalID: -2174117690607038999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_31
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 120
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3f15a0b8dd12c5c0800000000000000
+      internalID: -4196759086242128067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_32
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 117
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f81f0c8ca1805990800000000000000
+      internalID: -7399271609685567245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_33
+      rect:
+        serializedVersion: 2
+        x: 592
+        y: 95
+        width: 28
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10033079523ea0830800000000000000
+      internalID: 4038289766477934593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_34
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 98
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58176a8d35232a960800000000000000
+      internalID: 7611701655908020613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_35
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 105
+        width: 23
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c6f31abdf8464ba0800000000000000
+      internalID: -6105111990268332350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_36
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 39
+        width: 62
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 360144362d9f70a90800000000000000
+      internalID: -7347629585027821469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_37
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 105
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63a81fe91c80b5420800000000000000
+      internalID: 2619697235934415414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_38
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 105
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f356d432c4a777bf0800000000000000
+      internalID: -326657980532693697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_39
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 99
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3da2306e27b0e07b0800000000000000
+      internalID: -5256251126981645613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_40
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 86
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30e8064b0a638a090800000000000000
+      internalID: -8023102672311644669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_41
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 82
+        width: 27
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 033bff41176ee82a0800000000000000
+      internalID: -6733191019514318032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_42
+      rect:
+        serializedVersion: 2
+        x: 704
+        y: 104
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1ac681ee74f42480800000000000000
+      internalID: -8924739735754716646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_43
+      rect:
+        serializedVersion: 2
+        x: 717
+        y: 103
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a4b39b04906ac850800000000000000
+      internalID: 6398032409598866594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_44
+      rect:
+        serializedVersion: 2
+        x: 589
+        y: 72
+        width: 31
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b924d1a976bfdda00800000000000000
+      internalID: 783058332618146459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_45
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 23
+        width: 54
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2730721af918f460800000000000000
+      internalID: 7275593759858898734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_46
+      rect:
+        serializedVersion: 2
+        x: 695
+        y: 34
+        width: 63
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c5b18c4f270d58d0800000000000000
+      internalID: -2856118688954599992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_47
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 96
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5169f9a6bd309710800000000000000
+      internalID: 1697924914263712090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_48
+      rect:
+        serializedVersion: 2
+        x: 743
+        y: 88
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: add66dbf41438f470800000000000000
+      internalID: 8428543967353007578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_49
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 7
+        width: 55
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ac32f2dba952cc80800000000000000
+      internalID: -8303976168404403038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_50
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 80
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f212949f53b8a01c0800000000000000
+      internalID: -4536660610690506449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_51
+      rect:
+        serializedVersion: 2
+        x: 752
+        y: 76
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6334ca6087effce70800000000000000
+      internalID: 9137801960419509046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_52
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 63
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c4722080d105e460800000000000000
+      internalID: 7270219168474100931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_53
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 12
+        width: 52
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e664cc670f7d07a70800000000000000
+      internalID: 8822789097804023406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_54
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 38
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7629fb3176c13190800000000000000
+      internalID: -7984382474711390596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_55
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 14
+        width: 36
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77cc7b4ad5e8e9f30800000000000000
+      internalID: 4584258003556355191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_56
+      rect:
+        serializedVersion: 2
+        x: 709
+        y: 29
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81b8ae2f5c7bf2700800000000000000
+      internalID: 517834542982794008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_57
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 22
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 093a04a57a0a09ad0800000000000000
+      internalID: -2697479536160758896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_58
+      rect:
+        serializedVersion: 2
+        x: 630
+        y: 15
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd1340ad642d7640800000000000000
+      internalID: 5079256008002575858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_59
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 13
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed732dd986bbe98b0800000000000000
+      internalID: -5143467666411735074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_60
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 18
+        width: 16
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 469e40fed686392d0800000000000000
+      internalID: -3273157682797418140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_big_61
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 8
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68c5dabf1859dbbe0800000000000000
+      internalID: -1459846318692410234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      verdant_big_0: -2212455375284122211
+      verdant_big_1: 1709247521072938430
+      verdant_big_10: 4262980306857289804
+      verdant_big_11: -7240014797250333765
+      verdant_big_12: -7519313798407788723
+      verdant_big_13: -5015882033086989685
+      verdant_big_14: -7022123802850435569
+      verdant_big_15: 6926700549373064615
+      verdant_big_16: 1371877067947993286
+      verdant_big_17: 132682391620638724
+      verdant_big_18: 194404745275621490
+      verdant_big_19: 1439684300827624113
+      verdant_big_2: 2554337245038170678
+      verdant_big_20: -8199827110332662004
+      verdant_big_21: -8295456465328819392
+      verdant_big_22: -1351427663942616002
+      verdant_big_23: -2170253036016879506
+      verdant_big_24: -6339226469442862015
+      verdant_big_25: -5843152114016531156
+      verdant_big_26: -2840248828383200313
+      verdant_big_27: 6997558829907104250
+      verdant_big_28: 5017535150021054448
+      verdant_big_29: -7850967706467604453
+      verdant_big_3: 4164170160035960503
+      verdant_big_30: -2174117690607038999
+      verdant_big_31: -4196759086242128067
+      verdant_big_32: -7399271609685567245
+      verdant_big_33: 4038289766477934593
+      verdant_big_34: 7611701655908020613
+      verdant_big_35: -6105111990268332350
+      verdant_big_36: -7347629585027821469
+      verdant_big_37: 2619697235934415414
+      verdant_big_38: -326657980532693697
+      verdant_big_39: -5256251126981645613
+      verdant_big_4: 2129400621302775415
+      verdant_big_40: -8023102672311644669
+      verdant_big_41: -6733191019514318032
+      verdant_big_42: -8924739735754716646
+      verdant_big_43: 6398032409598866594
+      verdant_big_44: 783058332618146459
+      verdant_big_45: 7275593759858898734
+      verdant_big_46: -2856118688954599992
+      verdant_big_47: 1697924914263712090
+      verdant_big_48: 8428543967353007578
+      verdant_big_49: -8303976168404403038
+      verdant_big_5: -3778213047723598519
+      verdant_big_50: -4536660610690506449
+      verdant_big_51: 9137801960419509046
+      verdant_big_52: 7270219168474100931
+      verdant_big_53: 8822789097804023406
+      verdant_big_54: -7984382474711390596
+      verdant_big_55: 4584258003556355191
+      verdant_big_56: 517834542982794008
+      verdant_big_57: -2697479536160758896
+      verdant_big_58: 5079256008002575858
+      verdant_big_59: -5143467666411735074
+      verdant_big_6: -6956609302635399003
+      verdant_big_60: -3273157682797418140
+      verdant_big_61: -1459846318692410234
+      verdant_big_7: -9053050405515285133
+      verdant_big_8: 2981844599056735506
+      verdant_big_9: -8334107004269116327
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
