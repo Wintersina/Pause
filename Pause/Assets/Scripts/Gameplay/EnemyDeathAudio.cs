@@ -11,11 +11,10 @@ using UnityEngine;
 // a death combo cannot stack into a wall of sound. A key that also has
 // <key>_scream_0, ... sometimes (ScreamChance) layers a quiet radio cry /
 // creature screech a few tens of milliseconds after the death cue.
-// Today only the Space world has authored clips; Frost needs nothing but
+// Space, Verdant and Ember have authored clips; Frost needs nothing but
 // <frost key>_N.wav files dropped into the same folder.
 //
-// PROCEDURAL FALLBACK: a key with no authored clip (Frost, Verdant, Ember
-// today) -- or every key when AuthoredEnabled is off -- deterministically
+// PROCEDURAL FALLBACK: a key with no authored clip (Frost today) -- or every key when AuthoredEnabled is off -- deterministically
 // synthesizes its own clip exactly as before: hostile craft whine into a
 // metal failure, rocks crack, mines alarm-pop.
 //
@@ -61,6 +60,17 @@ public static class EnemyDeathAudio
     // Identical keys repeating within DuckWindow seconds get quieter:
     // volume x DuckFactor per recent repeat, never below DuckFloor.
     public static float DuckWindow = .3f, DuckFactor = .8f, DuckFloor = .5f;
+
+    // Scream reuse: a key without scream clips of its own may borrow a donor
+    // key's screams at a pitch (e.g. a small unit voiced by a bigger one's
+    // cry, pitched up). Empty by default. A borrowed scream plays at
+    // BorrowVolume x the normal scream volume and is subject to the same
+    // ScreamChance / voice cap. Keys that own screams never borrow.
+    public struct Borrow { public string donor; public float pitch; public Borrow(string donor, float pitch) { this.donor = donor; this.pitch = pitch; } }
+    public static readonly Dictionary<string, Borrow> ScreamBorrow = new Dictionary<string, Borrow>();
+    public static float BorrowVolume = .7f;
+    public static float LastScreamPitch { get; private set; }
+    public static float LastScreamVolume { get; private set; }
 
     // ---- test / dev hooks -----------------------------------------------------
 
@@ -145,17 +155,31 @@ public static class EnemyDeathAudio
         Played++;
         LastClip = clip; LastVolume = volume; LastKey = key;
 
-        if (k.screams.Length > 0 && (forceScream || Next01() < ScreamChance))
+        var sk = k;
+        float screamPitch = 1f, screamGain = 1f;
+        if (k.screams.Length == 0 && ScreamBorrow.Count > 0)
+        {
+            Borrow b;
+            if (ScreamBorrow.TryGetValue(key, out b) && b.donor != key)
+            {
+                var d = Clips(b.donor);
+                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = BorrowVolume; }
+            }
+        }
+        if (sk.screams.Length > 0 && (forceScream || Next01() < ScreamChance))
         {
             int s = FreeSlot(screamVoices, now);
             if (s >= 0)
             {
-                int sv = PickVariant(k.screams.Length, k.lastScream);
-                k.lastScream = sv;
+                int sv = PickVariant(sk.screams.Length, sk.lastScream);
+                sk.lastScream = sv;
                 float delay = Range(ScreamDelayMin, ScreamDelayMax);
-                Start(ref screamVoices[s], k.screams[sv], now, delay, volume * ScreamVolume, 1f + Range(-PitchJitter, PitchJitter));
+                float sVol = volume * ScreamVolume * screamGain;
+                float sPitch = screamPitch * (1f + Range(-PitchJitter, PitchJitter));
+                Start(ref screamVoices[s], sk.screams[sv], now, delay, sVol, sPitch);
                 Screams++;
-                LastScream = k.screams[sv]; LastScreamDelay = delay;
+                LastScream = sk.screams[sv]; LastScreamDelay = delay;
+                LastScreamPitch = sPitch; LastScreamVolume = sVol;
             }
         }
         return true;

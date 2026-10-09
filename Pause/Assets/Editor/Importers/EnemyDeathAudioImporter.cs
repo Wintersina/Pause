@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Import settings for the authored enemy death cues and scream layers
 // (Audio/Resources/Audio/EnemyDeath, read by EnemyDeathAudio): short mono
-// clips (~0.2-1.1 s, ~72 files, ~3 MB as PCM), so uncompressed PCM,
+// clips (~0.2-1.1 s, ~210 files as PCM), so uncompressed PCM,
 // decompressed on load and preloaded -- the first kill of a run must not
 // stall on a decode, and a burst of kills costs no CPU decoding.
 // Sample rate preserved (authored at 44.1 kHz).
