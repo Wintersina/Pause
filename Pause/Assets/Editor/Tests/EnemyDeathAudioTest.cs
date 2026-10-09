@@ -3,9 +3,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Authored enemy death cues (EnemyDeathAudio + EnemyDeathAudioImporter):
-// the 15 Space keys resolve three variants each, the nine living-occupant
-// keys resolve screams (the rest none), Frost / Verdant / Ember keep their
-// procedural clip, variants never repeat back to back, the scream chance and
+// every Space / Verdant / Ember roster enemy and elite resolves three
+// variants, the living-occupant keys resolve screams (mines, chasers, bigs,
+// rocks and a few elites none), Frost keeps its procedural clip, variants never repeat back to back, the scream chance and
 // delay, the polyphony cap / per-key interval under a death burst, zero
 // per-play allocation, the import settings, and an elite's death playing
 // its authored cue.
@@ -34,6 +34,41 @@ public static class EnemyDeathAudioTest
         "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_rift_lancer", "space_elite_singularity_hauler",
     };
 
+    public static readonly string[] VerdantKeys =
+    {
+        "verdant_fighter_1", "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4", "verdant_chaser", "verdant_alien",
+        "verdant_big", "verdant_mine", "verdant_rock_pod", "verdant_rock_spore", "verdant_rock_knot", "verdant_rock_vine",
+        "verdant_elite_resin_warden",
+    };
+    public static readonly string[] EmberKeys =
+    {
+        "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_chaser", "ember_alien",
+        "ember_big", "ember_mine", "ember_rock_magma", "ember_rock_cinder", "ember_rock_obsidian", "ember_rock_islet",
+        "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_cauterizer", "ember_elite_coalrunner",
+        "ember_elite_kilnback", "ember_elite_sunstoke",
+    };
+    // Authored keys that must have screams; every other authored key must not.
+    public static readonly string[] ScreamingNew =
+    {
+        "verdant_fighter_1", "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4", "verdant_alien", "verdant_elite_resin_warden",
+        "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_alien",
+        "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_coalrunner", "ember_elite_sunstoke",
+    };
+    static string[] allKeys;
+    public static string[] AllKeys
+    {
+        get
+        {
+            if (allKeys == null)
+            {
+                var l = new System.Collections.Generic.List<string>(SpaceKeys);
+                l.AddRange(VerdantKeys); l.AddRange(EmberKeys);
+                allKeys = l.ToArray();
+            }
+            return allKeys;
+        }
+    }
+
     static double clock;
 
     public static int Execute()
@@ -51,6 +86,8 @@ public static class EnemyDeathAudioTest
             EnemyDeathAudio.Clock = () => clock;
             EnemyDeathAudio.ClearCache();
             Resolution();
+            NewWorlds();
+            Borrow();
             OtherWorlds();
             NoRepeats();
             ScreamOdds();
@@ -95,19 +132,127 @@ public static class EnemyDeathAudioTest
         bool none = true, procedural = true;
         foreach (var d in EnemyRoster.All)
         {
-            if (d.key.StartsWith("space_")) continue;
+            if (!d.key.StartsWith("frost_")) continue;
             checkedKeys++;
             none &= EnemyDeathAudio.Variants(d.key) == 0 && EnemyDeathAudio.ScreamVariants(d.key) == 0;
             none &= !EnemyDeathAudio.PlayAuthored(d.key, 1f);
             procedural &= EnemyDeathAudio.ProceduralClip(d.key, d.role) != null;
         }
-        Check("Frost/Verdant/Ember roster keys (" + checkedKeys + ") have no authored clips", checkedKeys >= 30 && none);
+        Check("Frost roster keys (" + checkedKeys + ") have no authored clips", checkedKeys >= 10 && none);
         Check("... and still synthesize their procedural clip", procedural);
         Check("frost_fighter_1 explicitly: no authored, procedural non-null",
               EnemyDeathAudio.Variants("frost_fighter_1") == 0 && EnemyDeathAudio.ProceduralClip("frost_fighter_1", EnemyRole.Fighter) != null);
         foreach (var e in EliteCatalog.All)
-            if (!e.key.StartsWith("space_") && EnemyDeathAudio.Variants(e.key) != 0)
-                Check("non-Space elite " + e.key + " has no authored clip", false);
+            if (e.key.StartsWith("frost_") && EnemyDeathAudio.Variants(e.key) != 0)
+                Check("Frost elite " + e.key + " has no authored clip", false);
+    }
+
+    static void NewWorlds()
+    {
+        var all = new System.Collections.Generic.List<string>(VerdantKeys);
+        all.AddRange(EmberKeys);
+        foreach (var key in all)
+        {
+            bool clips = EnemyDeathAudio.Variants(key) == 3;
+            for (int n = 0; n < 3 && clips; n++) clips &= EnemyDeathAudio.AuthoredClip(key, n) != null && EnemyDeathAudio.AuthoredClip(key, n).length > .05f;
+            Check(key + " resolves 3 authored variants (" + EnemyDeathAudio.Variants(key) + ")", clips);
+            bool wantScream = System.Array.IndexOf(ScreamingNew, key) >= 0;
+            int want = wantScream ? 3 : 0;
+            Check(key + " has " + want + " screams (" + EnemyDeathAudio.ScreamVariants(key) + ")", EnemyDeathAudio.ScreamVariants(key) == want);
+            bool unit = key.EndsWith("_mine") || key.EndsWith("_chaser") || key.EndsWith("_big") || key.Contains("_rock_");
+            if (unit) Check(key + " (mine/chaser/big/rock) has no screams", EnemyDeathAudio.ScreamVariants(key) == 0);
+        }
+        int rosterChecked = 0;
+        foreach (var d in EnemyRoster.All)
+            if (d.key.StartsWith("verdant_") || d.key.StartsWith("ember_"))
+            {
+                rosterChecked++;
+                Check("roster key " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) == 3);
+            }
+        Check("all 24 Verdant+Ember roster enemies covered (" + rosterChecked + ")", rosterChecked == 24);
+        int elites = 0;
+        foreach (var e in EliteCatalog.All)
+            if (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_"))
+            {
+                elites++;
+                EnemyDeathAudio.ResetVoices();
+                clock += 2.0;
+                bool ok = EnemyDeathAudio.PlayElite(e.key);
+                Check("elite " + e.key + " PlayElite resolves its clip (" + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "none") + ")",
+                      ok && EnemyDeathAudio.LastKey == e.key && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name.StartsWith(e.key + "_"));
+            }
+        Check("7 Verdant+Ember elites in the catalog (" + elites + ")", elites == 7);
+
+        // Clip-level sanity: no sample-clipping, voice caps hold with the new keys.
+        bool clipped = false;
+        string clippedName = "";
+        foreach (var key in all)
+        {
+            for (int pass = 0; pass < 2; pass++)
+                for (int n = 0; n < 3; n++)
+                {
+                    var c = pass == 0 ? EnemyDeathAudio.AuthoredClip(key, n) : EnemyDeathAudio.ScreamClip(key, n);
+                    if (c == null) continue;
+                    var data = new float[c.samples * c.channels];
+                    c.GetData(data, 0);
+                    int hot = 0;
+                    for (int i = 0; i < data.Length; i++) if (Mathf.Abs(data[i]) >= .9995f) hot++;
+                    if (hot > 2) { clipped = true; clippedName = c.name; }
+                }
+        }
+        Check("no new clip hard-clips (>2 samples at full scale)" + (clipped ? " (" + clippedName + ")" : ""), !clipped);
+
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.ScreamChance = 1f;
+        clock += 5.0;
+        int maxV = 0, maxS = 0;
+        var keys = all.ToArray();
+        for (int i = 0; i < 60; i++)
+        {
+            clock += .01;
+            EnemyDeathAudio.PlayAuthored(keys[(i / 2) % keys.Length], .68f);
+            maxV = Mathf.Max(maxV, EnemyDeathAudio.ActiveVoices());
+            maxS = Mathf.Max(maxS, EnemyDeathAudio.ActiveScreams());
+        }
+        Check("Verdant/Ember burst: voices <= " + EnemyDeathAudio.MaxVoices + " (" + maxV + "), screams <= " + EnemyDeathAudio.MaxScreamVoices + " (" + maxS + ")",
+              maxV <= EnemyDeathAudio.MaxVoices && maxS <= EnemyDeathAudio.MaxScreamVoices && maxV > 1);
+        EnemyDeathAudio.ScreamChance = .65f;
+    }
+
+    static void Borrow()
+    {
+        EnemyDeathAudio.ScreamBorrow.Clear();
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.ScreamChance = 1f;
+        clock += 5.0;
+        Check("ScreamBorrow is empty by default", EnemyDeathAudio.ScreamBorrow.Count == 0);
+        EnemyDeathAudio.PlayAuthored("ember_mine", .68f);
+        Check("unborrowed mine: no scream", EnemyDeathAudio.Screams == 0);
+        try
+        {
+            EnemyDeathAudio.ScreamBorrow["ember_mine"] = new EnemyDeathAudio.Borrow("ember_fighter_1", 1.4f);
+            clock += 2.0;
+            EnemyDeathAudio.PlayAuthored("ember_mine", .68f);
+            var s = EnemyDeathAudio.LastScream;
+            Check("borrowing mine plays the donor's scream (" + (s != null ? s.name : "none") + ")",
+                  EnemyDeathAudio.Screams == 1 && s != null && s.name.StartsWith("ember_fighter_1_scream_"));
+            Check("... at the borrowed pitch (" + EnemyDeathAudio.LastScreamPitch + ")", Mathf.Abs(EnemyDeathAudio.LastScreamPitch - 1.4f) <= 1.4f * EnemyDeathAudio.PitchJitter + 1e-4f);
+            float expected = EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume * EnemyDeathAudio.BorrowVolume;
+            Check("... at lower volume than a native scream (" + EnemyDeathAudio.LastScreamVolume + ")",
+                  Mathf.Abs(EnemyDeathAudio.LastScreamVolume - expected) < 1e-4f && EnemyDeathAudio.LastScreamVolume < EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume);
+            // a native screamer never borrows
+            EnemyDeathAudio.ScreamBorrow["ember_fighter_2"] = new EnemyDeathAudio.Borrow("ember_fighter_1", 2f);
+            clock += 2.0;
+            EnemyDeathAudio.PlayAuthored("ember_fighter_2", .68f);
+            Check("a key with its own screams ignores its borrow entry", EnemyDeathAudio.LastScream.name.StartsWith("ember_fighter_2_scream_"));
+            // donor without screams: silent
+            EnemyDeathAudio.ScreamBorrow["ember_mine"] = new EnemyDeathAudio.Borrow("ember_big", 1.4f);
+            int s0 = EnemyDeathAudio.Screams;
+            clock += 2.0;
+            EnemyDeathAudio.PlayAuthored("ember_mine", .68f);
+            Check("a donor with no screams yields none", EnemyDeathAudio.Screams == s0);
+        }
+        finally { EnemyDeathAudio.ScreamBorrow.Clear(); EnemyDeathAudio.ScreamChance = .65f; }
     }
 
     static void NoRepeats()
@@ -199,12 +344,12 @@ public static class EnemyDeathAudioTest
     static void Allocations()
     {
         EnemyDeathAudio.ResetVoices();
-        foreach (var k in SpaceKeys) { clock += 2.0; EnemyDeathAudio.PlayAuthored(k, .68f); }   // warm up
+        foreach (var k in AllKeys) { clock += 2.0; EnemyDeathAudio.PlayAuthored(k, .68f); }   // warm up
         long before = System.GC.GetAllocatedBytesForCurrentThread();
         for (int i = 0; i < 300; i++)
         {
             clock += .02;
-            EnemyDeathAudio.PlayAuthored(SpaceKeys[i % SpaceKeys.Length], .68f);
+            EnemyDeathAudio.PlayAuthored(AllKeys[i % AllKeys.Length], .68f);
         }
         long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
         Check("zero allocations over 300 authored plays after warm-up (" + allocated + " bytes)", allocated == 0);
@@ -223,7 +368,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length >= 72;
+        bool ok = guids.Length >= 210;
         string bad = "";
         foreach (var g in guids)
         {
