@@ -381,7 +381,7 @@ public class Liftoff : MonoBehaviour
             planet.enabled = limb.enabled = rim.enabled = false;
             return;
         }
-        float ra = Planetfall.ArcRadius(pdef, art, halfW);
+        float ra = Planetfall.ArcRadius(pdef, art, halfW, halfH);
         float scale, apexY;
         if (tl < LiftoffTimeline.RecedeTo)
         {
@@ -397,7 +397,7 @@ public class Liftoff : MonoBehaviour
             float endApex = centre.y + halfH * GlobeCentre + GlobeRadius;
             apexY = Mathf.Lerp(centre.y + halfH * HorizonApex, endApex, g);
         }
-        Planetfall.PlaceSurface(group, planet, rim, limb, pdef, art, halfW, new Vector3(centre.x, apexY, 0f), scale);
+        Planetfall.PlaceSurface(group, planet, rim, limb, pdef, art, halfW, halfH, new Vector3(centre.x, apexY, 0f), scale);
         Planetfall.Show(planet, alpha);
         Planetfall.Show(limb, LiftoffTimeline.LimbAlpha(tl));
         Color rc = pdef.cue;

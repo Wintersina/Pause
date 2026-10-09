@@ -37,6 +37,7 @@ public static class FrostBackdropTest
             Catalog();
             Selection();
             Weather();
+            Brightness();
             Ambient();
             Sites();
             Allocation();
@@ -174,14 +175,17 @@ public static class FrostBackdropTest
         Check("Frost builds its director on the v3 art", d != null && wb.Current.Complete);
         if (d == null) return;
         Run(wb, .5f);
-        float c0 = d.CeilingCover;
+        float c0 = d.CeilingCover, a0 = d.CeilingBankAlpha;
         Run(wb, 14.5f);
-        float c15 = d.CeilingCover;
+        float c15 = d.CeilingCover, a15 = d.CeilingBankAlpha;
         Run(wb, 20f);
         float c35 = d.CeilingCover;
         int live35 = d.Ceiling.ActiveCount;
         Check("the cloud ceiling is thick at the start (" + c0.ToString("F2") + " of the view >= .35)", c0 >= .35f);
-        Check("... thinning by 15 s (" + c15.ToString("F2") + ")", c15 < c0 * .8f);
+        // (the start's ceiling covers the whole view, so the cover alone
+        // saturates: thinning shows in the banks' alpha too)
+        Check("... thinning by 15 s (cover " + c15.ToString("F2") + ", bank alpha " + a0.ToString("F2") + " -> " + a15.ToString("F2") + ")",
+              c15 < c0 * .8f || a15 < a0 * .8f);
         Check("... and gone by 35 s (" + c35.ToString("F3") + ", " + live35 + " banks)", c35 < .02f && live35 == 0);
         Check("ceiling density: 1 at the start, 0 by " + FrostTuning.CeilingClearAt + " s",
               FrostDirector.CeilingDensity(0f) == 1f && FrostDirector.CeilingDensity(FrostTuning.CeilingClearAt) == 0f &&
@@ -244,6 +248,112 @@ public static class FrostBackdropTest
         });
         Check("ground pieces never stack on each other (worst overlap " + worst.ToString("F2") + " of the art's core)", worst < .2f);
     }
+
+    // ---- brightness (FrostTuning.Brightness, BackdropGrade) ----------------------------
+
+    // The level is drawn brighter than its art is painted (user, 2026-10-08:
+    // "the backgrounds are too dark"), the arrival continues the planetfall's
+    // bright cloud deck, and the gameplay lane stays readable.
+    public const float CeilingDeckTolerance = .30f;   // ceiling's mean value >= deck's x (1 - this), <= deck + .05
+    public const float MinGroundLift = 1.3f, MaxGroundLift = 1.9f;   // rendered ground median value, lifted / as painted
+
+    static void Brightness()
+    {
+        float saved = FrostTuning.Brightness;
+        try
+        {
+            // the ceiling right after the planetfall vs its cloud deck
+            var wb = Fresh(1);
+            Run(wb, .3f);
+            var top = Rendered(.5f, 1f);
+            Object.DestroyImmediate(wb.gameObject);
+            var deckTex = new Texture2D(2, 2);
+            deckTex.LoadImage(System.IO.File.ReadAllBytes("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Frost.folder +
+                                                          PlanetfallCatalog.Frost.deck + ".png"));
+            double dsum = 0;
+            var dpx = deckTex.GetPixels32();
+            for (int i = 0; i < dpx.Length; i += 7) dsum += Mathf.Max(dpx[i].r, Mathf.Max(dpx[i].g, dpx[i].b)) / 255f;
+            float deck = (float)(dsum / ((dpx.Length + 6) / 7));
+            Object.DestroyImmediate(deckTex);
+            Check("the cloud ceiling at the start reads as the planetfall's cloud deck (upper view mean value " + top.mean.ToString("F2") +
+                  " within " + (CeilingDeckTolerance * 100f).ToString("F0") + "% of the deck's " + deck.ToString("F2") + ")",
+                  top.mean >= deck * (1f - CeilingDeckTolerance) && top.mean <= deck + .05f);
+
+            // the ground, ceiling gone: lifted vs as painted (same seed, same picture)
+            FrostTuning.Brightness = 1f;
+            wb = Fresh(1);
+            Run(wb, 40f);
+            var plain = Rendered(0f, 1f);
+            Object.DestroyImmediate(wb.gameObject);
+            FrostTuning.Brightness = saved;
+            wb = Fresh(1);
+            Run(wb, 40f);
+            var lifted = Rendered(0f, 1f);
+            var tile = wb.Current.Tiles.Find(t => t.layer.name == "mid");
+            bool graded = tile != null && tile.GradeMaterial != null && tile.GradeMaterial.shader.name == "Pause/BackdropGrade" &&
+                          Mathf.Approximately(tile.GradeMaterial.GetFloat("_Lift"), BackdropGrade.Lift(wb.Current.Spec, tile.layer));
+            Object.DestroyImmediate(wb.gameObject);
+            float ratio = lifted.median / Mathf.Max(.001f, plain.median);
+            Check("the ground tiles draw through BackdropGrade at FrostTuning.Brightness " + saved, graded);
+            Check("the ground renders brighter than painted (median value " + plain.median.ToString("F3") + " -> " +
+                  lifted.median.ToString("F3") + ", x" + ratio.ToString("F2") + " in " + MinGroundLift + ".." + MaxGroundLift + ")",
+                  ratio >= MinGroundLift && ratio <= MaxGroundLift);
+
+            // lane readability as rendered: enemy bodies 2.5:1, bright tones
+            // (bullets, pickups, highlights) 7:1, lane darker than the hull
+            var theme = EnemyPalette.ThemeFor(1);
+            float body = Contrast(RelLum(theme.hull), lifted.laneLum);
+            float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
+            float kick = Contrast(bright, lifted.laneLum);
+            float hullV = Mathf.Max(theme.hull.r, Mathf.Max(theme.hull.g, theme.hull.b));
+            Check("rendered lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " + kick.ToString("F2") +
+                  ":1 >= 7, lane value p90 " + lifted.p90.ToString("F2") + " < hull " + hullV.ToString("F2"),
+                  body >= 2.5f && kick >= 7f && lifted.p90 < hullV);
+        }
+        finally { FrostTuning.Brightness = saved; }
+    }
+
+    struct Shot { public float mean, median, p90, laneLum; }
+
+    // Renders the main camera (black behind) and measures the central lane
+    // (20..80% of the width) between heights y0..y1 (0 = bottom).
+    static Shot Rendered(float y0, float y1)
+    {
+        var cam = Camera.main;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        const int w = 270, h = 600;
+        var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+        var prevTarget = cam.targetTexture; var prevActive = RenderTexture.active;
+        cam.targetTexture = rt;
+        cam.Render();
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+        cam.targetTexture = prevTarget; RenderTexture.active = prevActive;
+        var px = tex.GetPixels();
+        Object.DestroyImmediate(tex);
+        Object.DestroyImmediate(rt);
+        var vals = new List<float>();
+        var lums = new List<float>();
+        for (int y = (int)(h * y0); y < (int)(h * y1); y++)
+            for (int x = (int)(w * .2f); x < (int)(w * .8f); x++)
+            {
+                Color c = px[y * w + x];
+                vals.Add(Mathf.Max(c.r, Mathf.Max(c.g, c.b)));
+                lums.Add(RelLum(c));
+            }
+        float sum = 0f;
+        foreach (float v in vals) sum += v;
+        vals.Sort();
+        lums.Sort();
+        return new Shot { mean = sum / vals.Count, median = vals[vals.Count / 2], p90 = vals[(int)(vals.Count * .9f)],
+                          laneLum = lums[lums.Count / 2] };
+    }
+
+    static float Linear(float v) { return v <= 0.03928f ? v / 12.92f : Mathf.Pow((v + 0.055f) / 1.055f, 2.4f); }
+    static float RelLum(Color c) { return 0.2126f * Linear(c.r) + 0.7152f * Linear(c.g) + 0.0722f * Linear(c.b); }
+    static float Contrast(float a, float b) { return (Mathf.Max(a, b) + 0.05f) / (Mathf.Min(a, b) + 0.05f); }
 
     // ---- ambient loops -----------------------------------------------------------------
 

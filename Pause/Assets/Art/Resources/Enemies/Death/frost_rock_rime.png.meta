@@ -1,0 +1,975 @@
+fileFormatVersion: 2
+guid: bb688b70dfd8f45f4a9d044d465a0d6c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1619594634830638682
+    second: frost_rock_rime_0
+  - first:
+      213: 5623529524214707194
+    second: frost_rock_rime_1
+  - first:
+      213: -2069401382495706615
+    second: frost_rock_rime_2
+  - first:
+      213: -7210575762199575868
+    second: frost_rock_rime_3
+  - first:
+      213: -7624440647753853455
+    second: frost_rock_rime_4
+  - first:
+      213: -3240911825795021067
+    second: frost_rock_rime_5
+  - first:
+      213: -3670018341667363470
+    second: frost_rock_rime_6
+  - first:
+      213: 1250794452839806482
+    second: frost_rock_rime_7
+  - first:
+      213: -5119667116960794665
+    second: frost_rock_rime_8
+  - first:
+      213: 3313847567365580521
+    second: frost_rock_rime_9
+  - first:
+      213: 1725706318908527690
+    second: frost_rock_rime_10
+  - first:
+      213: 1824712829335324026
+    second: frost_rock_rime_11
+  - first:
+      213: -3654574158799481322
+    second: frost_rock_rime_12
+  - first:
+      213: -667549608269057482
+    second: frost_rock_rime_13
+  - first:
+      213: -6546329041505345082
+    second: frost_rock_rime_14
+  - first:
+      213: -5782860539543014596
+    second: frost_rock_rime_15
+  - first:
+      213: 3541249696765218855
+    second: frost_rock_rime_16
+  - first:
+      213: 5183051372818935821
+    second: frost_rock_rime_17
+  - first:
+      213: 3390033948711471902
+    second: frost_rock_rime_18
+  - first:
+      213: 8803719259395535660
+    second: frost_rock_rime_19
+  - first:
+      213: -8399317429377411068
+    second: frost_rock_rime_20
+  - first:
+      213: -7428862580196268942
+    second: frost_rock_rime_21
+  - first:
+      213: 7337934180492139233
+    second: frost_rock_rime_22
+  - first:
+      213: -3013672249245655189
+    second: frost_rock_rime_23
+  - first:
+      213: -7838815670132119884
+    second: frost_rock_rime_24
+  - first:
+      213: -549657378693936667
+    second: frost_rock_rime_25
+  - first:
+      213: 6107848665209622086
+    second: frost_rock_rime_26
+  - first:
+      213: -6895358578523834251
+    second: frost_rock_rime_27
+  - first:
+      213: -4026735809882271519
+    second: frost_rock_rime_28
+  - first:
+      213: 7244203958080815696
+    second: frost_rock_rime_29
+  - first:
+      213: 9089035737629332075
+    second: frost_rock_rime_30
+  - first:
+      213: -4251777176422929175
+    second: frost_rock_rime_31
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_rock_rime_0
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 7
+        width: 140
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5e65394db4f97610800000000000000
+      internalID: 1619594634830638682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_1
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 119
+        width: 30
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af33dbabe4aca0e40800000000000000
+      internalID: 5623529524214707194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_2
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 163
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90224a228620843e0800000000000000
+      internalID: -2069401382495706615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_3
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 139
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c28d0c2c83eeeb90800000000000000
+      internalID: -7210575762199575868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_4
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 149
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f5159b70ab803690800000000000000
+      internalID: -7624440647753853455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_5
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 136
+        width: 10
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f600239dd7f503d0800000000000000
+      internalID: -3240911825795021067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_6
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 139
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 275afb943c9711dc0800000000000000
+      internalID: -3670018341667363470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_7
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 145
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 216bb888de6bb5110800000000000000
+      internalID: 1250794452839806482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_8
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 12
+        width: 115
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d7bd4dd1e943f8b0800000000000000
+      internalID: -5119667116960794665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_9
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 133
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e62e941ec62dfd20800000000000000
+      internalID: 3313847567365580521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_10
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 121
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a44903df0c0f2f710800000000000000
+      internalID: 1725706318908527690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_11
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 138
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7541a986aea25910800000000000000
+      internalID: 1824712829335324026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_12
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 130
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6165f635a28584dc0800000000000000
+      internalID: -3654574158799481322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_13
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 96
+        width: 54
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 632fb290b236cb6f0800000000000000
+      internalID: -667549608269057482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_14
+      rect:
+        serializedVersion: 2
+        x: 425
+        y: 49
+        width: 108
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c12042bb64c625a0800000000000000
+      internalID: -6546329041505345082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_15
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 119
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c333aea6af62fbfa0800000000000000
+      internalID: -5782860539543014596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_16
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 94
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72096ac36db052130800000000000000
+      internalID: 3541249696765218855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_17
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 103
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d00397933c5ede740800000000000000
+      internalID: 5183051372818935821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_18
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 87
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1b46794ae1db0f20800000000000000
+      internalID: 3390033948711471902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_19
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 92
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c233986b5081d2a70800000000000000
+      internalID: 8803719259395535660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_20
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 84
+        width: 17
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 408563aac41af6b80800000000000000
+      internalID: -8399317429377411068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_21
+      rect:
+        serializedVersion: 2
+        x: 346
+        y: 92
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 274a536d7d067e890800000000000000
+      internalID: -7428862580196268942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_22
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 83
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ea5e65524495d560800000000000000
+      internalID: 7337934180492139233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_23
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 46
+        width: 59
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6f92427e094d26d0800000000000000
+      internalID: -3013672249245655189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_24
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 79
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b6620a0eaee63390800000000000000
+      internalID: -7838815670132119884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_25
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 71
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e986cab6893f58f0800000000000000
+      internalID: -549657378693936667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_26
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 60
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64ec9af000073c450800000000000000
+      internalID: 6107848665209622086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_27
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 37
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 578f420f7e3ce40a0800000000000000
+      internalID: -6895358578523834251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_28
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 45
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e05f9f8d192e18c0800000000000000
+      internalID: -4026735809882271519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_29
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 43
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 052c2e15e15988460800000000000000
+      internalID: 7244203958080815696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_30
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 43
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b621a3cf8ddb22e70800000000000000
+      internalID: 9089035737629332075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_rime_31
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 27
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9eca2375f27aef4c0800000000000000
+      internalID: -4251777176422929175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_rock_rime_0: 1619594634830638682
+      frost_rock_rime_1: 5623529524214707194
+      frost_rock_rime_10: 1725706318908527690
+      frost_rock_rime_11: 1824712829335324026
+      frost_rock_rime_12: -3654574158799481322
+      frost_rock_rime_13: -667549608269057482
+      frost_rock_rime_14: -6546329041505345082
+      frost_rock_rime_15: -5782860539543014596
+      frost_rock_rime_16: 3541249696765218855
+      frost_rock_rime_17: 5183051372818935821
+      frost_rock_rime_18: 3390033948711471902
+      frost_rock_rime_19: 8803719259395535660
+      frost_rock_rime_2: -2069401382495706615
+      frost_rock_rime_20: -8399317429377411068
+      frost_rock_rime_21: -7428862580196268942
+      frost_rock_rime_22: 7337934180492139233
+      frost_rock_rime_23: -3013672249245655189
+      frost_rock_rime_24: -7838815670132119884
+      frost_rock_rime_25: -549657378693936667
+      frost_rock_rime_26: 6107848665209622086
+      frost_rock_rime_27: -6895358578523834251
+      frost_rock_rime_28: -4026735809882271519
+      frost_rock_rime_29: 7244203958080815696
+      frost_rock_rime_3: -7210575762199575868
+      frost_rock_rime_30: 9089035737629332075
+      frost_rock_rime_31: -4251777176422929175
+      frost_rock_rime_4: -7624440647753853455
+      frost_rock_rime_5: -3240911825795021067
+      frost_rock_rime_6: -3670018341667363470
+      frost_rock_rime_7: 1250794452839806482
+      frost_rock_rime_8: -5119667116960794665
+      frost_rock_rime_9: 3313847567365580521
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

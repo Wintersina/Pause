@@ -43,6 +43,9 @@ public static class BackdropCatalog
         public float wobble;        // Strip: heat-shimmer sway, units
         public Color tint;
         public float wrapBlend;     // Tile: fraction of the art cross-faded into its start (seamless whatever the art's wrap)
+        public float grade;         // share of the world's brightness lift drawn on this layer (BackdropGrade; 0 = as painted)
+
+        public Layer Graded(float share) { var l = this; l.grade = share; return l; }
 
         public Layer WrapBlended(float fraction) { var l = this; l.wrapBlend = fraction; return l; }
         public Layer WithTexture(string resourceName) { var l = this; l.texture = resourceName; return l; }
@@ -75,6 +78,10 @@ public static class BackdropCatalog
         // > 0: the tile layers come from one of these many variant folders
         // (<folder>v1/ .. vN/), one picked per entry into the world.
         public int variantSets;
+        // Draw-time brightening (BackdropGrade): the world's lift (null or 1
+        // = the art as painted) and its saturation nudge; each layer takes
+        // Layer.grade of the lift. Read when a set is built.
+        public System.Func<float> brightness, saturation;
 
         public bool Has(string name)
         {
@@ -149,23 +156,28 @@ public static class BackdropCatalog
         // coast and ice-bound industry. The four ground tiles come from one of
         // up to four variant sets per landing (FrostBackdropSelection,
         // Backdrop3/v1..v4); landmarks, launch sites, weather and the ambient
-        // loops are shared atlases. Tints are the brightness hook (white = the
-        // art as painted).
+        // loops are shared atlases. BRIGHTNESS: the art is painted dark and
+        // lifted at draw time by FrostTuning.Brightness (BackdropGrade); the
+        // .Graded(share) below is how much of that lift each layer takes --
+        // the ground and landmarks all of it, the far layers less so the
+        // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = FrostBackdropSelection.MaxVariants, layers = new[] {
-            Layer.Tile("sky", 0.006f, W),
-            Layer.Tile("far", 0.014f, W),
-            Layer.Tile("mid", 0.024f, W),
-            Layer.Strip("flow", 0.025f, 0.35f, 0f, W),
-            Layer.Pieces("aurora", 0.027f, Role.Atmosphere),
+                   variantSets = FrostBackdropSelection.MaxVariants,
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.55f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.35f, 0f, W).Graded(1f),
+            Layer.Pieces("aurora", 0.027f, Role.Atmosphere).Graded(.3f),
             // Rigs, refineries, icebreakers ... and the elite launch sites
             // (one ground plane: they never slide over each other).
-            Layer.Pieces("landmarks", 0.030f, Role.Landmark),
-            Layer.Pieces("mist", 0.060f, Role.Atmosphere),
-            Layer.Pieces("wisps", 0.090f, Role.Cloud),
-            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("landmarks", 0.030f, Role.Landmark).Graded(1f),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.5f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.5f),
+            // The ceiling's banks are also thickened (FrostTuning.CeilingThicken).
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud).Graded(1f),
             Layer.Pieces("snow_far", 0.200f, Role.Atmosphere),
-            Layer.Pieces("blizzard", 0.350f, Role.Atmosphere),
+            Layer.Pieces("blizzard", 0.350f, Role.Atmosphere).Graded(.5f),
             Layer.Pieces("snow_mid", 0.450f, Role.Atmosphere),
             Layer.Pieces("snow_near", 0.700f, Role.Atmosphere),
         }},

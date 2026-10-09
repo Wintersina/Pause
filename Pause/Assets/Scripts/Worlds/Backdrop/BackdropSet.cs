@@ -89,8 +89,9 @@ public class BackdropSet
             var sprite = Resources.Load<Sprite>(tileFolder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
+            float lift = BackdropGrade.Lift(Spec, layer);
             Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
-                                       spaceSky && SpaceSkySelection.HalfTurn));
+                                       spaceSky && SpaceSkySelection.HalfTurn, lift, BackdropGrade.Saturation(Spec, lift)));
         }
 
         Layout(halfWidth, halfHeight);

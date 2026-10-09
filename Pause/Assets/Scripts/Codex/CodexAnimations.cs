@@ -316,7 +316,7 @@ public static class CodexAnimations
         }
         var specs = BackdropCatalog.All;
         if (index >= specs.Length) return null;
-        return Resources.Load<Texture2D>(BackdropCatalog.Folder(specs[index].world) + "sky");
+        return Resources.Load<Texture2D>(BackdropCatalog.TileFolder(specs[index].world, 1) + "sky");   // variant 1 for worlds with variant sets
     }
 
     // ---- The portal: its authored frames, as Portal plays them ----

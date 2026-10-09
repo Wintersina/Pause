@@ -31,6 +31,25 @@ using UnityEngine;
 // allocates nothing.
 public static class FrostTuning
 {
+    // ---- brightness: THE knob -------------------------------------------
+    // The art is painted dark (backdrop forms at HSV value <= .33); it is
+    // lifted at draw time (BackdropGrade.shader) so the level reads brighter
+    // without regrading a PNG. 1 = as painted; 1.7 lifts the ground's
+    // midtones by ~+50% (shadows x1.7, highlights rolling off below white,
+    // hue kept). The sky / far layers, mist, wisps, aurora and plumes take a
+    // share of it (BackdropCatalog's .Graded); lights are never lifted.
+    // "A bit brighter / darker" = change this one number (1.5 .. 2.0).
+    public static float Brightness = 1.7f;
+    public static float Saturation = 1.05f;        // nudge on the lifted tones so the ice stays blue-cyan
+    public static float PlumeShare = .6f;          // smoke / steam loops' share of the lift
+    // The cloud ceiling's banks are painted translucent (alpha ~.28 at their
+    // core); this thickens them (alpha a drawn as 1 - (1 - a)^k) so the
+    // arrival reads as just having dropped out of the planetfall's bright
+    // cloud deck (FrostBackdropTest holds it to the deck's brightness).
+    public static float CeilingThicken = 7f;
+    // ... and pales them toward the deck's white-blue (saturation x this).
+    public static float CeilingSaturation = .7f;
+
     // ---- ground plane ----
     public static float LandmarkMin = 1.45f, LandmarkMax = 1.75f;     // world units (a 256 cell, ~1:1 on a phone)
     public static float GapMin = .5f, GapMax = 1.6f;                   // scrolled ground distance between spawns
@@ -87,7 +106,7 @@ public static class FrostTuning
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f;
     public static float CeilingAlpha = 1f;
     public static float CeilingGap = 1.5f;         // scrolled distance between new banks while it lasts
-    public static float CeilingLowShare = .3f;     // alpha share left at the bottom of the view (the ceiling is above)
+    public static float CeilingLowShare = .55f;    // alpha share left at the bottom of the view (the ceiling is above)
     // ---- air ----
     public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .7f, WispAlphaMax = .95f;
     public static float MistAlphaMin = .6f, MistAlphaMax = .85f;
@@ -132,12 +151,34 @@ public class FrostDirector : PlanetDirector
     int sheetsLeft;
     float sheetIn, wind;
     Material additive;
+    readonly List<Material> grades = new List<Material>();
 
     public override void Teardown()
     {
         BackdropAtlas.Kill(additive);
         additive = null;
+        foreach (var m in grades) BackdropAtlas.Kill(m);
+        grades.Clear();
+        if (ambient != null) ambient.Destroy();
     }
+
+    // Draws `pool` brightened by its layer's share of FrostTuning.Brightness
+    // (BackdropGrade), its alpha thickened by `alphaLift`.
+    Material Grade(BackdropPool pool, string layer, float alphaLift = 1f, float satScale = 1f)
+    {
+        float lift = BackdropGrade.Lift(set.Spec, set.Spec.Find(layer));
+        var m = BackdropGrade.Create(pool.name, lift, BackdropGrade.Saturation(set.Spec, lift) * satScale, alphaLift);
+        if (m == null) return null;
+        grades.Add(m);
+        foreach (var p in pool.items)
+        {
+            p.sr.sharedMaterial = m;
+            if (p.blend != null) p.blend.sharedMaterial = m;
+        }
+        return m;
+    }
+
+    public Material CeilingMaterial { get; private set; }
 
     public FrostDirector() : base(1989) { }
 
@@ -176,6 +217,19 @@ public class FrostDirector : PlanetDirector
                 sum += w * h * p.sr.color.a;
             }
             return Mathf.Clamp01(sum / (4f * HalfW * HalfH));
+        }
+    }
+
+    // The mean draw alpha of the banks in view (the thick ceiling covers
+    // the whole view, so CeilingCover saturates at 1 until it thins).
+    public float CeilingBankAlpha
+    {
+        get
+        {
+            float sum = 0f; int n = 0;
+            foreach (var p in ceiling.items)
+                if (p.active && p.sr.enabled && Mathf.Abs(p.y) < HalfH + p.size * .5f) { sum += p.sr.color.a; n++; }
+            return n > 0 ? sum / n : 0f;
         }
     }
 
@@ -228,7 +282,7 @@ public class FrostDirector : PlanetDirector
         }
         mist = Pool("mist", 3);
         wisps = Pool("wisps", 4);
-        ceiling = Pool("ceiling", 20);
+        ceiling = Pool("ceiling", 26);
         string[] snowLayers = { "snow_far", "snow_mid", "snow_near" };
         for (int d = 0; d < 3; d++)
         {
@@ -236,6 +290,13 @@ public class FrostDirector : PlanetDirector
             tintSnow[d] = spec.Tint(snowLayers[d]);
         }
         blizzard = Pool("blizzard", FrostTuning.BlizzardSheets + 1);
+        Grade(auroraPool, "aurora");
+        Grade(ground, "landmarks");
+        Grade(sites, "landmarks");
+        Grade(mist, "mist");
+        Grade(wisps, "wisps");
+        CeilingMaterial = Grade(ceiling, "ceiling", FrostTuning.CeilingThicken, FrostTuning.CeilingSaturation);
+        if (!FrostTuning.BlizzardAdditive) Grade(blizzard, "blizzard");
         if (FrostTuning.BlizzardAdditive)
         {
             var shader = Resources.Load<Shader>(SpaceAsteroidDrift.AdditiveShader);
@@ -528,9 +589,9 @@ public class FrostDirector : PlanetDirector
     void BuildCeiling()
     {
         if (banks.Length == 0) return;
-        // three staggered rows over the upper two thirds of the view, a
-        // thinner one lower down: the deck the planetfall has just dropped through
-        float[] rows = { 1.05f, .75f, .45f, .15f, -.2f };
+        // staggered rows over the whole view (thinner low down,
+        // CeilingLowShare): the deck the planetfall has just dropped through
+        float[] rows = { 1.05f, .8f, .55f, .3f, .05f, -.25f, -.55f };
         for (int r = 0; r < rows.Length; r++)
             for (int c = 0; c < 3; c++)
                 SpawnBank(HalfW * (-.62f + .62f * c + Rand(-.12f, .12f) + (r % 2 == 0 ? 0f : .2f)), HalfH * rows[r] + Rand(-.3f, .3f));
