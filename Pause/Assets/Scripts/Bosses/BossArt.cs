@@ -283,7 +283,8 @@ public static class BossArt
     public const float ShotRimCoverage = .25f;    // alpha a texel needs to count as the drawing (soft painted edges count)
     // BOLD rim, for a bright world (BackdropCatalog.Spec.Bright, as the
     // hearts' and the elite / enemy shots' bold outlines): a solid light rim
-    // (its tint paled: ShotOutline.BoldTrace, BossProjectile), then a solid
+    // in the usual hostile-pink trace (not paled: AtomClarityTest reads the
+    // boss shots' pink edge as their cue against pickups), then a solid
     // dark keyline and a short dark under-glow, so a boss shot holds 3:1 over
     // pale cloud and mid-dark jungle alike. Shares of the cell, like the reach.
     public const float ShotRimBoldLight = .045f, ShotRimBoldSolid = .085f, ShotRimBoldReach = .1f;
