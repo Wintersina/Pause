@@ -227,5 +227,1070 @@
       "wrap_edge_difference": 0.0,
       "opaque_fraction": 0.0357
     }
-  ]
+  ],
+  "run_b": {
+    "source": "Built-in image generation; two inspected painted candidates per atlas, selected and nearest-neighbour pixel-cleaned",
+    "point_space": "Cell-local pixels, top-left origin; atlas JSON rect y is measured from bottom",
+    "pieces": [
+      {
+        "atlas": "landmarks",
+        "name": "oilrig_00",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "smoke",
+            "x": 110,
+            "y": 28
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "oilrig_01",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "smoke",
+            "x": 189,
+            "y": 36
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "oilrig_02",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "smoke",
+            "x": 100,
+            "y": 28
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "refineryrig_00",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "smoke",
+            "x": 82,
+            "y": 23
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "refineryrig_01",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "smoke",
+            "x": 79,
+            "y": 33
+          },
+          {
+            "kind": "smoke",
+            "x": 110,
+            "y": 41
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "crane_gantry_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "tanker_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "trawlerbarge_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "trawlerbarge_01",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "lighthouse_00",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "beacon",
+            "x": 102,
+            "y": 33
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "sunken_city_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "sunken_city_01",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "pump_platform_00",
+        "role": "Landmark",
+        "emit": [
+          {
+            "kind": "beacon",
+            "x": 110,
+            "y": 31
+          }
+        ],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "wind_turbine_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "mooring_buoys_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "landmarks",
+        "name": "bridge_section_00",
+        "role": "Landmark",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_straight_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 109
+          },
+          {
+            "x": 236,
+            "y": 109
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_straight_01",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 128,
+            "y": 20
+          },
+          {
+            "x": 128,
+            "y": 236
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_bend_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 28,
+            "y": 52
+          },
+          {
+            "x": 166,
+            "y": 220
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_bend_01",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 75,
+            "y": 24
+          },
+          {
+            "x": 215,
+            "y": 128
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_tee_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 113
+          },
+          {
+            "x": 236,
+            "y": 113
+          },
+          {
+            "x": 130,
+            "y": 50
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_cross_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 113
+          },
+          {
+            "x": 236,
+            "y": 113
+          },
+          {
+            "x": 130,
+            "y": 27
+          },
+          {
+            "x": 130,
+            "y": 220
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "manifold_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 108
+          },
+          {
+            "x": 236,
+            "y": 108
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "manifold_01",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 128
+          },
+          {
+            "x": 236,
+            "y": 128
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipebridge_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 20,
+            "y": 100
+          },
+          {
+            "x": 236,
+            "y": 100
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipebridge_01",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 40,
+            "y": 38
+          },
+          {
+            "x": 216,
+            "y": 166
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pumphouse_00",
+        "role": "Pipe",
+        "emit": [
+          {
+            "kind": "steam",
+            "x": 92,
+            "y": 46
+          }
+        ],
+        "ends": [
+          {
+            "x": 21,
+            "y": 151
+          },
+          {
+            "x": 220,
+            "y": 154
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_leak_00",
+        "role": "Pipe",
+        "emit": [
+          {
+            "kind": "bubbles",
+            "x": 131,
+            "y": 95
+          }
+        ],
+        "ends": [
+          {
+            "x": 20,
+            "y": 124
+          },
+          {
+            "x": 236,
+            "y": 124
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_leak_01",
+        "role": "Pipe",
+        "emit": [
+          {
+            "kind": "bubbles",
+            "x": 143,
+            "y": 95
+          }
+        ],
+        "ends": [
+          {
+            "x": 66,
+            "y": 29
+          },
+          {
+            "x": 143,
+            "y": 95
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "barnacled_intake_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 80,
+            "y": 165
+          },
+          {
+            "x": 215,
+            "y": 55
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_tangle_00",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 22,
+            "y": 150
+          },
+          {
+            "x": 220,
+            "y": 142
+          },
+          {
+            "x": 125,
+            "y": 25
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "pipes",
+        "name": "pipe_tangle_01",
+        "role": "Pipe",
+        "emit": [],
+        "ends": [
+          {
+            "x": 22,
+            "y": 168
+          },
+          {
+            "x": 228,
+            "y": 151
+          },
+          {
+            "x": 80,
+            "y": 29
+          }
+        ],
+        "size_hint": "medium",
+        "notes": "Connector coordinates are nominal placement guides",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "whirlpool_00",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "whirlpool_01",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "oil_slick_00",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "fires",
+        "name": "oil_slick_01",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "fires",
+        "name": "reef_head_00",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "reef_head_01",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "wreck_hull_00",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "fires",
+        "name": "wreck_hull_01",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "fires",
+        "name": "wreck_hull_02",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "fires",
+        "name": "bubbling_vent_00",
+        "role": "Feature",
+        "emit": [
+          {
+            "kind": "bubbles",
+            "x": 131,
+            "y": 131
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "bubbling_vent_01",
+        "role": "Feature",
+        "emit": [
+          {
+            "kind": "bubbles",
+            "x": 131,
+            "y": 131
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "flare_stack_00",
+        "role": "Feature",
+        "emit": [
+          {
+            "kind": "cool_flare",
+            "x": 95,
+            "y": 23
+          },
+          {
+            "kind": "smoke",
+            "x": 95,
+            "y": 23
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "flare_stack_01",
+        "role": "Feature",
+        "emit": [
+          {
+            "kind": "cool_flare",
+            "x": 120,
+            "y": 23
+          },
+          {
+            "kind": "smoke",
+            "x": 120,
+            "y": 23
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "plankton_bloom_00",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "plankton_bloom_01",
+        "role": "Feature",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "fires",
+        "name": "salvage_crawler_00",
+        "role": "Feature",
+        "emit": [
+          {
+            "kind": "bubbles",
+            "x": 136,
+            "y": 131
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Small foam fringe at contact points",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_bank_00",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Storm ceiling; low-alpha overlay",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_bank_01",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Storm ceiling; low-alpha overlay",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_bank_02",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Storm ceiling; low-alpha overlay",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_bank_03",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "large",
+        "notes": "Storm ceiling; low-alpha overlay",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_wisp_00",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_wisp_01",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_wisp_02",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "cloud_wisp_03",
+        "role": "Cloud",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "mist_00",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "mist_01",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "mist_02",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "gust_00",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "gust_01",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "gust_02",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "weather",
+        "name": "pall_00",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "weather",
+        "name": "rain_00",
+        "role": "Atmosphere",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Transparent overlay; keep bullets visible",
+        "painted_candidate": "a"
+      },
+      {
+        "atlas": "sites",
+        "name": "trench_hatch_closed",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "trench_hatch_open",
+        "role": "Site",
+        "emit": [
+          {
+            "kind": "elite_emergence",
+            "x": 128,
+            "y": 128
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "rig_bay_closed",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "rig_bay_open",
+        "role": "Site",
+        "emit": [
+          {
+            "kind": "elite_emergence",
+            "x": 128,
+            "y": 128
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "reef_dock_closed",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "reef_dock_open",
+        "role": "Site",
+        "emit": [
+          {
+            "kind": "elite_emergence",
+            "x": 128,
+            "y": 128
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "vent_stack_closed",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "vent_stack_open",
+        "role": "Site",
+        "emit": [
+          {
+            "kind": "elite_emergence",
+            "x": 128,
+            "y": 128
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "wreck_bay_closed",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "wreck_bay_open",
+        "role": "Site",
+        "emit": [
+          {
+            "kind": "elite_emergence",
+            "x": 128,
+            "y": 128
+          }
+        ],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "lights_off",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      },
+      {
+        "atlas": "sites",
+        "name": "lights_on",
+        "role": "Site",
+        "emit": [],
+        "ends": [],
+        "size_hint": "medium",
+        "notes": "Elite emerges at cell centre",
+        "painted_candidate": "b"
+      }
+    ]
+  }
 }
