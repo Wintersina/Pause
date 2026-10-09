@@ -118,7 +118,7 @@ public static class EliteArt
 // The procedural placeholder drawings, built once (never per frame).
 public static class EliteFxArt
 {
-    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool;
+    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate;
 
     // A soft-looking dot drawn in four hard steps (white: tint it).
     public static Sprite Glow => glow != null ? glow : (glow = Disc("EliteGlow", 16, new[] { 1f, .78f, .45f, .2f }));
@@ -137,6 +137,44 @@ public static class EliteFxArt
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
     // The siege cannon's blinking sight line: a 1 x 8 bar.
     public static Sprite Sight => sight != null ? sight : (sight = Bar("EliteSight"));
+
+    // floe_cast's ice slab: Frost's own floating chunk of ice (frost_rock_chunk's
+    // first cell), the slag blob if that is missing.
+    public static Sprite Slab
+    {
+        get
+        {
+            if (slab != null) return slab;
+            var d = EnemyRoster.Find(SlabArtKey);
+            slab = d != null ? EnemyArt.Frame(d, 0) : null;
+            if (slab == null) slab = Slag;
+            return slab;
+        }
+    }
+    public const string SlabArtKey = "frost_rock_chunk";
+    // frost_bloom's cryo orb: a hard-stepped disc with a bright rim.
+    public static Sprite Orb => orb != null ? orb : (orb = Disc("EliteOrb", 14, new[] { 1f, 1f, .7f, .95f }));
+    // armour_shatter's ice plate rim: a chevron, apex at the top (its pivot).
+    public static Sprite Plate => plate != null ? plate : (plate = Chevron("ElitePlate", 72, 44));
+
+    static Sprite Chevron(string name, int w, int h)
+    {
+        var t = NewTex(w, h, name);
+        float cx = (w - 1) * .5f, slope = (w * .5f - 2f) / (h - 1f);
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int r = h - 1 - y;                       // rows down from the apex
+                float d = Mathf.Abs(Mathf.Abs(x - cx) - r * slope);
+                float a = d < 1.2f ? 1f : d < 2.4f ? .55f : 0f;
+                t.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+            }
+        t.Apply(false, false);
+        var s = Sprite.Create(t, new Rect(0, 0, w, h), new Vector2(.5f, 1f), w, 0, SpriteMeshType.FullRect);
+        s.name = name;
+        s.hideFlags = HideFlags.DontSave;
+        return s;
+    }
 
     static Texture2D NewTex(int w, int h, string name)
     {

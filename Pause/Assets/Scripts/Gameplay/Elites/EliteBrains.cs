@@ -39,6 +39,15 @@ using UnityEngine;
 //                after each shot it dashes across to the other flank
 //   tug          (Space) a slow armoured salvage tug: hangs ahead of the
 //                pilot a lane to one side, swapping sides after each sling
+//   herder       (Frost) Floe Harrower: holds a steady height ahead of the
+//                pilot and drifts, patiently, into the lane it is moving toward
+//   kiter        (Frost) Cryo Siren: keeps a fixed range above the pilot,
+//                backpedals in stutter steps when crowded, nervous
+//   tender       (Frost) Glacier Tender: hovers high and hangs back over the
+//                middle; flees sideways when the pilot comes close
+//   ironclad     (Frost) Whiteout Sentinel: straight legs at the pilot at a
+//                slow, steady pace, never dodging, its plates turned on it
+// (the Frost four: FrostElites.cs)
 public abstract class EliteBrain
 {
     protected EliteShip ship;
@@ -65,6 +74,8 @@ public abstract class EliteBrain
     // Preferred facing (world degrees), or null: face the way it flies.
     public virtual float? FaceDeg(Vector2 seen) => null;
     public virtual bool DodgesByBlink => false;
+    // Never dodges the board (EliteShip.Navigate flies the wish straight): the ironclad.
+    public virtual bool Steadfast => false;
     // Where the lift-off would best end, relative to the pilot (direction).
     public virtual Vector2 JoinFrom => Vector2.down;
 
@@ -82,7 +93,7 @@ public abstract class EliteBrain
 public static class EliteBrains
 {
     public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden",
-                                            "bastion", "reaver", "lancer", "tug" };
+                                            "bastion", "reaver", "lancer", "tug", "herder", "kiter", "tender", "ironclad" };
 
     public static EliteBrain Create(string id)
     {
@@ -99,6 +110,10 @@ public static class EliteBrains
             case "reaver": return new ReaverBrain();
             case "lancer": return new LancerBrain();
             case "tug": return new TugBrain();
+            case "herder": return new HerderBrain();
+            case "kiter": return new KiterBrain();
+            case "tender": return new TenderBrain();
+            case "ironclad": return new IroncladBrain();
             default: return new InterceptorBrain();
         }
     }

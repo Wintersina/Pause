@@ -684,6 +684,51 @@ this Unity Mono; `EliteTest`'s two older allocation checks still use it and prov
 * [ ] An exact predictor for weaving bodies (ask `EnemyBrain` where its pattern will be instead of extrapolating a
       straight line) would let elites thread alien lines; today they give weavers extra room instead
 
+## Frost elites
+
+Branch `feature/frost-elites-wired`. Frost had one elite (the Rimebreaker, `breaker` / `ice_ram`); Codex drew four more
+(`Art/Enemies/Elite/Frost/manifest_new_elites.md`: 7-cell flight strips, landed .. damaged) and each got its own brain
+and attack (`Scripts/Gameplay/Elites/FrostElites.cs`), all launching from the Frost backdrop's ground sites. Like
+the others they keep 2 hearts, cruise at 1.4-2.9 u/s, wait 3-5 s between attacks and tell every attack for at
+least 0.6 s. Everything below is from headless simulation, tests and preview frames; none of it has been played.
+
+| Elite | Launches from | Brain | Attack |
+|---|---|---|---|
+| Floe Harrower (wide ice barge) | `hangar`, `crawlerbay` | `herder`: holds `followDistance` (2.7) ahead of the pilot; its lane drifts (70% of its speed) toward where the pilot is heading, `Lead` 1.1 s of the pilot's drift ahead, at most `laneOffset` (1.2) | `floe_cast`: tell 0.8 s planted, chutes glowing; then `shotCount` (4) ice slabs glide out of alternate chutes (`hazardSeconds` 0.7) onto a staggered row across the whole board, led by the scroll so it is `lobAhead` (2.0) ahead of the pilot when the lance comes -- 5 slots, one left open beside the pilot toward the middle; the slabs ride the board drifting `hazardSpeed` (0.18 u/s), glance off the rails, block shots (`hazardArmour` 3 hits) and hurt on touch. When they settle a sight line blinks 0.55 s from the keel through the gap, then one lance (bolt, 7 u/s) goes down it |
+| Cryo Siren (spine hull, coolant dish) | `rigbay` | `kiter`: keeps `keepDistance` (3.0) on a bearing within 40 deg of straight above the pilot, jittering; crowded (under 75% of that) it backpedals in stutter steps (0.22 s bursts straight away at x1.5, 0.22 s pauses) until back at 95% of its range, holding fire. `avoidance` 1.0: it flees whatever comes at it | `frost_bloom`: tell 0.6 s (the dish charges); a slow cryo orb (2.4 u/s) out of the forward outlet on a fuse ring that blinks faster as it runs down; after `hazardSeconds` (0.8) it bursts into a ring of `hazardCount` (8) shards at `hazardSpeed` (3.0). Shot first, it pops. Every third attack is a beam instead: a 0.96 s tell in which the sight line swings across the arc (16 deg either side of the pilot) then locks on its start, then a 0.55 s sweep of fast bolts (8 u/s, every 35 ms) across it |
+| Glacier Tender (boxy tug, 4 drone pods) | `crawlerbay` | `tender`: hovers `topMargin` (1.3) under the top, its lane crawling toward halfway between the pilot's and the middle; the pilot within `keepDistance` (1.9): it flees sideways at x1.7 until 1.4x that away. Armoured | `drone_deploy`: tell 0.8 s (pods glow); releases 2-3 drones -- Frost's Flake fighter (`frost_fighter_1`) at `hazardSize` (0.7) scale, its own movers off -- out of its pods, never more than `hazardCount` (3) alive, each on a blinking cyan tether, fanned 38 deg apart `lobAhead` (1.8) below it, never lower than 1.1 u above the pilot. While 2+ live it is shield-linked (a blinking ring): only a pause jump, a shielded ram or a rail costs it a heart. Its drones never crash into or worry it; killing it scuttles them. Drones killed by the pilot pay as Flakes |
+| Whiteout Sentinel (shield wedge, ice plates) | `padring`, `hatch` | `ironclad`: straight legs -- every 1.6 s it fixes a point `followDistance` (1.8) above the pilot and flies there at 60% of its 1.4 u/s -- never dodging (`Steadfast`: no evasion at all), its prow turned on the pilot (`turnsToFace`). Armoured | `armour_shatter`: `hazardCount` (3) plate rims on its prow soak every hit but a pause jump, a shielded ram or a rail, outermost first (0.3 s plate grace); each broken plate blinks a cone from its eye for 0.4 s, then sprays `shotCount` (5) shards along it (12 deg apart). Plated, its own attack is a shard from each side emitter at the pilot. Stripped (the damaged cell), it charges: a 0.9 s tell with a sight line tracking then locked, a 0.7 s dash at `dashSpeed` (6), then 1.6 s limping at 30% |
+
+Framework hooks added for them (`EliteAttack`): `Passive` (every play step), `Absorbs` (a hit soaked, no heart),
+`OnDeath` (tidy up before `End`), `ShowsDamaged`, `Shoots`; `EliteBrain.Steadfast`; new shot kinds `slab` (glide,
+drift, armour) and `orb` (fuse, burst) in `EliteShots`; `ClearTarget.Mother` (a drone's elite: it neither crashes
+into it nor dodges it). New def fields: `hazardSize`, `hazardSeconds`, `hazardCount`, `hazardSpeed`,
+`hazardArmour`.
+
+Rules kept: friendly fire (slabs, orb rings and sprays hit every other hazard; slabs are `Fixed` mass so other
+shots break on them), rails (slabs glance off, ring shards break), the pause jump and the shielded ram always get
+through shield link and plates, `PilotAirspace` / spawn space (drones carry a self-steering `SpawnFootprint`),
+lift-off joins away from the pilot as for every elite.
+
+### Tests
+
+`FrostEliteTest` (in `AllTests`): the roster, strips and cell maps, muzzles / nozzles on solid hull pixels,
+hearts, codex entries; the director launching each from its own site kinds and any free one otherwise; each
+one's life cycle off a pad, attack, and death taking its slabs / orb / drones with it; the herder cutting off the
+lane both ways at a steady height; the slab row (count, stagger, gap beside the pilot toward the middle, no
+overlaps, sight then lance after settling, the lance through the gap, drift, armour); the kiter's range,
+backpedal and stutter, the orb's fuse and ring, the beam's painted tell and sweep, an orb popping with its Siren;
+the tender's hover, drones from the pods, tethers, fan, floor, shield link on / off, cap, flight; the ironclad's
+straight legs, no evasion, ploughing a rock, facing; plates in order with grace, the telegraphed spray, the
+stripped drawing, the charge and the limp; zero allocations (profiler meter). `EliteTest` counts Frost's five.
+Preview: `FrostElitePreview` (attack-moment frames over the Frost backdrop at phone portrait).
+
+### Progress
+
+* [x] Art installed, points measured, defs, brains, attacks, tests, preview
+* [ ] Play it on a phone: slab row readability at speed, whether the lance feels fair, the Siren's beam arc
+      width, drone count / Tender shield frustration, the Sentinel's spray cone and charge
+
 ## Rails and view
 
 Branch `fix/rails-vetting` (from `integrate/oct05-full-master`). The roster vetted against the reinforced rails

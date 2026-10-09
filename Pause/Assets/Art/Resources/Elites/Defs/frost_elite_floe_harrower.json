@@ -1,0 +1,98 @@
+{
+  "key": "frost_elite_floe_harrower",
+  "displayName": "Floe Harrower",
+  "world": "frost",
+  "role": "ice-barge herder",
+  "codexId": "elite_frost_floe_harrower",
+  "lore": "A wide ice barge that herds you like a floe in a lead: it drifts into whichever lane you were heading for. When its chutes glow it lays a staggered row of floating slabs across the board with one gap, then sights a single lance down that gap. Let the lance pass, then slip through.",
+  "brain": "herder",
+  "attack": "floe_cast",
+  "launchFrom": "hangar,crawlerbay",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "hullRadius": 0.38,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.9,
+  "accel": 4,
+  "turnRate": 120,
+  "aggression": 0.45,
+  "tellSeconds": 0.8,
+  "attackGap": 4.2,
+  "avoidance": 0.6,
+  "lookAhead": 0.45,
+  "perception": 2.0,
+  "actionSeconds": 1.4,
+  "shotCount": 4,
+  "shotSpeed": 7,
+  "shotSpread": 0,
+  "shotSize": 0.2,
+  "shotKind": "bolt",
+  "heartColor": "#5CE8FF",
+  "shotColor": "#7FDCFF",
+  "shotCore": "#F2FCFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.8,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "chuteL",
+      "x": 84,
+      "y": 116,
+      "dir": 270.0
+    },
+    {
+      "name": "chuteR",
+      "x": 108,
+      "y": 116,
+      "dir": 270.0
+    },
+    {
+      "name": "keel",
+      "x": 96,
+      "y": 129,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 83,
+      "y": 146,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 109,
+      "y": 146,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.7,
+  "laneOffset": 1.2,
+  "lobAhead": 2.0,
+  "hazardSize": 0.78,
+  "hazardSeconds": 0.7,
+  "hazardSpeed": 0.18,
+  "hazardArmour": 3
+}

@@ -504,7 +504,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 Navigate(Vector2 goal, float speedScale, float dt)
     {
         goal = ClampGoal(goal);
-        if (!EliteEvasion.Enabled) { evading = false; hitIn = -1f; claim = goal; return goal; }
+        if (!EliteEvasion.Enabled || Brain.Steadfast) { evading = false; hitIn = -1f; claim = goal; return goal; }
         planIn -= dt;
         if (planIn <= 0f)
         {
@@ -629,6 +629,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Face(dt);
         KeepInView(dt);
         Collide();
+        if (State != EliteState.Dead) Attack.Passive(dt);
         thrust = Mathf.Lerp(thrust, Mathf.Clamp01(velocity.magnitude / Mathf.Max(.1f, Def.speed)) * .8f + .25f, 1f - Mathf.Exp(-6f * dt));
     }
 
@@ -809,7 +810,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || t.Mother == this || !ClearTarget.IsHazard(t.gameObject)) continue;
             Vector2 hp = t.transform.position;
             // (what it was measured doing this step, when the sensor has it: a body that holds a
             // station in the world does not ride the scroll)
@@ -904,7 +905,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || !ClearTarget.IsHazard(t.gameObject)) continue;
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == gameObject || t.Mother == this || !ClearTarget.IsHazard(t.gameObject)) continue;
             Vector2 hp = t.transform.position;
             float R = Def.hullRadius * .85f + t.Radius * .8f;
             if ((hp - pos).sqrMagnitude > R * R) continue;
@@ -989,6 +990,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (State == EliteState.Dead || !InPlay) return false;
         // (Domino: the death crash's wreckage, DeathCrash; Teleport: a pause jump aimed at it always connects)
         if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
+        // (a shield link or an armour plate soaks it: no heart)
+        if (Attack != null && Attack.Absorbs(cause, at)) return false;
         Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
         LastHitCause = cause;
         LastHitBy = by;
@@ -1022,7 +1025,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         col.enabled = false;
         if (target != null) ClearTarget.Release(gameObject);
         if (footprint != null) footprint.enabled = false;
-        if (Attack != null) Attack.End();
+        if (Attack != null) { Attack.OnDeath(); Attack.End(); }
         EliteRewards.Pay(this);
         if (Died != null) Died(this, cause, LastHitBy);
         EliteDeath.Play(this, cause);
@@ -1223,14 +1226,17 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool SightShown => sight != null && sight.enabled;
 
     // Shows the siege cannon's (or the Rift Lancer's) sight line from `from` along `deg`.
-    public void ShowSight(Vector2 from, float deg, float length, bool on)
+    public void ShowSight(Vector2 from, float deg, float length, bool on) { ShowSight(from, deg, length, on, .06f); }
+
+    // ... `width` world units wide (the Frost elites' bolder sights).
+    public void ShowSight(Vector2 from, float deg, float length, bool on, float width)
     {
         if (sight == null) return;
         sight.enabled = on;
         if (!on) return;
         sight.transform.position = new Vector3(from.x, from.y, 0f);
         sight.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
-        sight.transform.localScale = new Vector3(.06f, length, 1f);
+        sight.transform.localScale = new Vector3(width, length, 1f);
         Color c = Def.ShotColor;
         c.a = .7f;
         sight.color = c;
@@ -1298,7 +1304,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     public const float BankEnter = .35f, BankExit = .2f;
     // Lost a heart and has a damaged drawing: shown from then on.
-    public bool Damaged => Def.cells.damaged >= 0 && Hearts < Def.hearts && InPlay;
+    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.hearts || Attack.ShowsDamaged) && InPlay;
     public int BankCell => bankCell;
 
     void SetSprite(Sprite s)

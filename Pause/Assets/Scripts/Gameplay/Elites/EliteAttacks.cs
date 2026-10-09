@@ -39,6 +39,14 @@ using UnityEngine;
 //   rift_rail     Rift Lancer: a blinking sight line at the pilot that
 //                 locks, then a rail of fast bolts straight down it and a
 //                 recoil; then it dashes to its other flank
+//   floe_cast     Floe Harrower: a staggered row of drifting ice slabs
+//                 across the board with one gap, then a lance down the gap
+//   frost_bloom   Cryo Siren: a slow cryo orb that bursts into a ring of
+//                 shards; every third attack a telegraphed beam sweep
+//   drone_deploy  Glacier Tender: tethered ice drones; shielded while two live
+//   armour_shatter Whiteout Sentinel: ice plates soak hits and spray shards;
+//                 stripped, it charges
+// (the Frost four: FrostElites.cs)
 //   gravity_sling Singularity Hauler: flings shots sideways out of both tow
 //                 claws that its core's gravity whips round, in curves
 //                 that close on a ringed well ahead of the pilot
@@ -56,7 +64,21 @@ public abstract class EliteAttack
     public Vector2 Dir => dir;
     public int Fired { get; protected set; }
 
-    public void Bind(EliteShip s) { ship = s; def = s.Def; }
+    public void Bind(EliteShip s) { ship = s; def = s.Def; OnBind(); }
+    protected virtual void OnBind() { }
+
+    // ---- hooks for attacks that own things on the board (the Frost four) ----
+    // Every play step, attacking or not (after the ship moved).
+    public virtual void Passive(float dt) { }
+    // A hit it soaks (a shield, an armour plate): no heart lost. Asked
+    // before the heart goes, grace or not aside.
+    public virtual bool Absorbs(EliteDamage cause, Vector3 at) => false;
+    // The ship died: tidy what it left on the board (before End).
+    public virtual void OnDeath() { }
+    // Shows the damaged drawing even with every heart (stripped armour).
+    public virtual bool ShowsDamaged => false;
+    // Its action fires shots out of its muzzles (drone_deploy releases drones instead).
+    public virtual bool Shoots => true;
 
     public virtual float TellSeconds => def.tellSeconds;
     public virtual bool HoldsDuringTell => false;
@@ -133,13 +155,24 @@ public abstract class EliteAttack
         return EliteSystem.Shots.Fire(ship, def, EliteShots.KindOf(def.shotKind), at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
     }
 
+    // A shot of a given kind (not the def's shotKind): slabs, orbs.
+    protected EliteShot Fire(int muzzle, float deg, float speed, EliteShots.Kind kind)
+    {
+        Vector2 at = ship.MuzzleWorld(muzzle);
+        float r = deg * Mathf.Deg2Rad;
+        Fired++;
+        ship.OnFired(muzzle, deg);
+        return EliteSystem.Shots.Fire(ship, def, kind, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
+    }
+
     protected static float Deg(Vector2 v) => Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
 }
 
 public static class EliteAttacks
 {
     public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar",
-                                            "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling" };
+                                            "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling",
+                                            "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter" };
 
     public static EliteAttack Create(string id)
     {
@@ -156,6 +189,10 @@ public static class EliteAttacks
             case "crescent_volley": return new CrescentVolleyAttack();
             case "rift_rail": return new RiftRailAttack();
             case "gravity_sling": return new GravitySlingAttack();
+            case "floe_cast": return new FloeCastAttack();
+            case "frost_bloom": return new FrostBloomAttack();
+            case "drone_deploy": return new DroneDeployAttack();
+            case "armour_shatter": return new ArmourShatterAttack();
             default: return new LanceDashAttack();
         }
     }

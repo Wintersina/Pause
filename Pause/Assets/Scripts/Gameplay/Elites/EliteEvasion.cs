@@ -223,7 +223,8 @@ public static class EliteEvasion
             float r = t.Radius * BodyShare;
             var brain = t.Brain;
             float stray = PredictionSlack + (brain != null ? Mathf.Min(MaxWeavePace, brain.LateralPace) * WeaveSlack : 0f);
-            Add(rock ? Kind.Rock : Kind.Body, p, v, r, 0f, Forever, null, 0f, 1f, stray);
+            // (a Glacier Tender's own drones never threaten it: ClearTarget.Mother)
+            Add(rock ? Kind.Rock : Kind.Body, p, v, r, 0f, Forever, t.Mother, t.Mother != null ? Forever : 0f, 1f, stray);
 
             // a telegraphed body dash: the board it is about to cross
             Vector2 reach;
