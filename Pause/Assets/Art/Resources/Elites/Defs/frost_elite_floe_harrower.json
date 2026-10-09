@@ -36,7 +36,7 @@
   "avoidance": 0.6,
   "lookAhead": 0.45,
   "perception": 2.0,
-  "actionSeconds": 1.4,
+  "actionSeconds": 0.7,
   "shotCount": 4,
   "shotSpeed": 7,
   "shotSpread": 0,
@@ -92,7 +92,7 @@
   "laneOffset": 1.2,
   "lobAhead": 2.0,
   "hazardSize": 0.78,
-  "hazardSeconds": 0.7,
+  "hazardSeconds": 0.45,
   "hazardSpeed": 0.18,
   "hazardArmour": 3
 }

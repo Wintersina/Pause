@@ -168,6 +168,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     float glideTime, glideTotal, drift;
     Vector2 glideFrom, glideTo;
     int armour;
+    bool afloat;   // a slab out of its glide: it rides the board
     // an orb's fuse (frost_bloom): seconds left, and the whole of it
     float fuse, fuseTotal;
 
@@ -276,6 +277,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         fuse = 0f;
         drift = 0f;
         armour = 1;
+        afloat = false;
         rosterShot = false;
         shooter = from != null ? from.gameObject : null;
         ride = 0f;
@@ -534,9 +536,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float k = Mathf.Clamp01(glideTime / glideTotal), e = 1f - (1f - k) * (1f - k);
             Vector2 g = Vector2.Lerp(glideFrom, glideTo, e);
             velocity = (g - (Vector2)p) / dt;
-            if (k >= 1f) { gliding = false; velocity = new Vector2(drift, -EliteSystem.Scroll); }
+            if (k >= 1f) { gliding = false; afloat = true; velocity = new Vector2(drift, -EliteSystem.Scroll); }
         }
-        else if (Kind == EliteShots.Kind.Slab)
+        else if (Kind == EliteShots.Kind.Slab && afloat)
         {
             // afloat: rides the board, drifting (a rail turns the drift round)
             velocity.y = -EliteSystem.Scroll;

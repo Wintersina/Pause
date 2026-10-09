@@ -60,7 +60,11 @@ public class KiterBrain : EliteBrain
 {
     public const float Arc = 40f, Crowded = .75f, Stutter = .44f, Burst = 1.5f, Pause = .35f;
     bool backing;
+    float range;
     public bool Backing => backing;
+    // The range it keeps: keepDistance, or less when the player's reach caps how high it may
+    // hold (HostileReach: a pilot parked at the top) -- it never flees out of reach for good.
+    public float Range => range > 0f ? range : def.keepDistance;
     public int Backpedals { get; private set; }
 
     public KiterBrain() { Id = "kiter"; }
@@ -72,8 +76,11 @@ public class KiterBrain : EliteBrain
         float dist = d.magnitude;
         d = dist > 1e-3f ? d / dist : Vector2.up;
         float bearing = Mathf.Clamp(Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg, 90f - Arc, 90f + Arc) * Mathf.Deg2Rad;
+        float room = ship.ReachCap - seen.y;
+        // (the cap only limits its height: on the slant of its arc it can still keep most of its range)
+        range = Mathf.Clamp(room / Mathf.Sin((90f - Arc) * Mathf.Deg2Rad), MinAttackAbove + .4f, def.keepDistance);
         bool was = backing;
-        backing = dist < def.keepDistance * (was ? .95f : Crowded);
+        backing = dist < range * (was ? .95f : Crowded);
         if (backing && !was) Backpedals++;
         if (backing)
         {
@@ -81,7 +88,7 @@ public class KiterBrain : EliteBrain
             if (Mathf.Repeat(Clock, Stutter) >= Stutter * .5f) return Pos;
             return Pos + new Vector2(Mathf.Cos(bearing), Mathf.Sin(bearing)) * 1.6f;
         }
-        return seen + new Vector2(Mathf.Cos(bearing), Mathf.Sin(bearing)) * def.keepDistance +new Vector2(Mathf.Sin(Clock * 4.7f) * .12f, Mathf.Sin(Clock * 3.1f) * .06f);
+        return seen + new Vector2(Mathf.Cos(bearing), Mathf.Sin(bearing)) * range + new Vector2(Mathf.Sin(Clock * 4.7f) * .12f, Mathf.Sin(Clock * 3.1f) * .06f);
     }
 
     // the stutter step: a burst, then a pause
@@ -91,7 +98,7 @@ public class KiterBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen)
     {
         float d = (seen - Pos).magnitude;
-        return !backing && Pos.y > seen.y + MinAttackAbove && d > def.keepDistance * .7f && d < def.keepDistance * 1.5f;
+        return !backing && Pos.y > seen.y + MinAttackAbove && d > Range * .7f && d < Range * 1.5f;
     }
 
     public override Vector2 JoinFrom => new Vector2(.5f, 1f);
@@ -205,13 +212,14 @@ public class IroncladBrain : EliteBrain
 // slots between the rails, one left open: the gap, the slot beside the
 // pilot's toward the middle. The slabs ride the board, drifting hazardSpeed
 // sideways together, block shots (hazardArmour hits) and hurt on touch.
-// As they settle, a sight line blinks from its keel down the gap's lane to
-// the pilot's height and LanceDelay later one fast lance (a bolt) goes down
-// it: keep out of the gap's lane until the lance has passed, then slip
-// into it before the row arrives.
+// The gap is chosen at the tell, and from SightFrom of it a sight line
+// blinks from its keel down the gap's lane to the pilot's height; right
+// after the last slab (LanceDelay) one fast lance (a bolt) goes down it:
+// keep out of the gap's lane until the lance has passed, then slip into it
+// before the row arrives (under a second at the top scroll speeds).
 public class FloeCastAttack : EliteAttack
 {
-    public const float SightWidth = .12f, SlabGap = .12f, Stagger = .2f, SightLead = .55f, LanceDelay = .3f, SightLength = 9f;
+    public const float SightWidth = .18f, SlabGap = .06f, Stagger = .2f, SightFrom = .4f, LanceDelay = .15f, SightLength = 9f;
     public const int Keel = 2;   // muzzle: the lance; 0 / 1: the chutes
     readonly EliteShot[] slabs = new EliteShot[6];
     float next, slot, sideways, settleAt;
@@ -226,7 +234,9 @@ public class FloeCastAttack : EliteAttack
     public Vector2 Row => row;
     public float SlotWidth => slot;
     public bool Lanced => lanced;
-    public float LanceAt => settleAt + LanceDelay;
+    // (the lance comes right after the last slab: at the top scroll speeds the row is on the pilot within a second)
+    public float LanceAt => (Count - 1) * SlabGap + LanceDelay;
+    public float SettleAt => settleAt;
     public int Cast => cast;
     public EliteShot Slab(int i) => slabs[i];
 
@@ -248,6 +258,31 @@ public class FloeCastAttack : EliteAttack
 
     public override void Cancel() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
 
+    // The plan is made at the tell (the gap: the slot beside the pilot's, toward the middle) ...
+    public override void BeginTell(Vector2 seen)
+    {
+        base.BeginTell(seen);
+        float edge = EliteSystem.RailEdge;
+        int n = Count;
+        slot = 2f * edge / (n + 1);
+        row = new Vector2(0f, seen.y + def.lobAhead);
+        sideways = 0f;
+        settleAt = 0f;
+        int mine = Mathf.Clamp(Mathf.FloorToInt((seen.x + edge) / slot), 0, n);
+        gap = Mathf.Clamp(mine + (seen.x > 0f ? -1 : 1), 0, n);
+        if (gap == mine) gap = mine == 0 ? 1 : mine - 1;
+    }
+
+    // ... and shown: from SightFrom of the wind-up a sight blinks down the gap's lane
+    public override void StepTell(float dt)
+    {
+        t += dt;
+        if (t < TellSeconds * SightFrom) return;
+        Vector2 keel = ship.MuzzleWorld(Keel);
+        bool on = Mathf.FloorToInt(t / (4f * EliteArt.Tick)) % 2 == 0;
+        ship.ShowSight(keel, Deg(LanceAim - keel), SightLength, on, SightWidth);
+    }
+
     public override void BeginAction()
     {
         base.BeginAction();
@@ -256,15 +291,10 @@ public class FloeCastAttack : EliteAttack
         slotsDone = 0;
         lanced = false;
         for (int i = 0; i < slabs.Length; i++) slabs[i] = null;
-        float edge = EliteSystem.RailEdge;
         int n = Count;
-        slot = 2f * edge / (n + 1);
         settleAt = (n - 1) * SlabGap + def.hazardSeconds;
-        // the row: lobAhead in front of the pilot when the lance comes (it rides the board meanwhile)
-        row = new Vector2(0f, Mathf.Min(ship.Seen.y + def.lobAhead + EliteSystem.Scroll * (settleAt + LanceDelay), EliteSystem.ViewTop - .6f));
-        int mine = Mathf.Clamp(Mathf.FloorToInt((ship.Seen.x + edge) / slot), 0, n);
-        gap = Mathf.Clamp(mine + (ship.Seen.x > 0f ? -1 : 1), 0, n);
-        if (gap == mine) gap = mine == 0 ? 1 : mine - 1;
+        // the row: lobAhead in front of the pilot once the slabs are out (it rides the board meanwhile)
+        row.y = Mathf.Min(ship.Seen.y + def.lobAhead + EliteSystem.Scroll * settleAt, EliteSystem.ViewTop - .6f);
         // they all drift the same way: toward the middle from the gap's side
         sideways = (Spot(gap).x > 0f ? -1f : 1f) * def.hazardSpeed;
     }
@@ -289,11 +319,10 @@ public class FloeCastAttack : EliteAttack
         }
         Vector2 keel = ship.MuzzleWorld(Keel);
         float deg = Deg(LanceAim - keel);
-        if (!lanced && t >= LanceAt - SightLead)
+        if (!lanced)
         {
-            // the sight through the gap, blinking faster just before the lance
-            float k = (t - (LanceAt - SightLead)) / SightLead;
-            bool on = Mathf.FloorToInt(t / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0;
+            // the sight down the gap's lane, blinking fast now: the lance is coming
+            bool on = Mathf.FloorToInt(t / (2f * EliteArt.Tick)) % 2 == 0;
             ship.ShowSight(keel, deg, SightLength, on, SightWidth);
         }
         if (!lanced && t >= LanceAt)
@@ -332,7 +361,7 @@ public class FloeCastAttack : EliteAttack
 public class FrostBloomAttack : EliteAttack
 {
     public const int BeamEvery = 3;
-    public const float SightWidth = .13f, OrbShare = .3f, BeamArc = 16f, BeamTell = 1.6f, BeamInterval = .035f, BeamLength = 9f, LockShare = .7f;
+    public const float SightWidth = .2f, OrbShare = .3f, BeamArc = 16f, BeamTell = 1.6f, BeamInterval = .035f, BeamLength = 9f, LockShare = .7f;
     bool beam;
     int casts, beamShots;
     float a0, a1, next;
@@ -383,7 +412,8 @@ public class FrostBloomAttack : EliteAttack
             float k = Mathf.PingPong(t * 2f / (TellSeconds * LockShare), 1f);
             deg = Mathf.Lerp(a0, a1, k);
         }
-        bool on = Mathf.FloorToInt(t / ((Locked ? 2f : 4f) * EliteArt.Tick)) % 2 == 0;
+        // (painting: steady; locked: blinking fast)
+        bool on = !Locked || Mathf.FloorToInt(t / (2f * EliteArt.Tick)) % 2 == 0;
         ship.ShowSight(ship.MuzzleWorld(0), deg, BeamLength, on, SightWidth);
     }
 
@@ -609,7 +639,7 @@ public class DroneDeployAttack : EliteAttack
         {
             var go = drones[i];
             drones[i] = null;
-            if (Alive(go)) EliteShip.FriendlyKill(go);
+            if (Alive(go)) EliteDrone.Scuttle(go);
         }
         if (tethers != null) foreach (var l in tethers) if (l != null) l.enabled = false;
         if (shield != null) shield.enabled = false;
@@ -630,6 +660,9 @@ public class EliteDrone : MonoBehaviour, IMovementFootprint
     }
 
     public bool SelfSteering => true;
+
+    // Its Tender went down: the drone goes too (a blast, nothing paid -- not a shot, a body).
+    public static void Scuttle(GameObject go) { EliteShip.FriendlyKill(go); }
 }
 
 // Whiteout Sentinel: armour shatter. hazardCount ice plates (rims drawn on
@@ -650,6 +683,12 @@ public class ArmourShatterAttack : EliteAttack
     SpriteRenderer[] plateArt;
     SpriteRenderer coneL, coneR;
     public int Plates => plates;
+    // Every plate gone at once (tests: the hearts underneath).
+    public void Strip()
+    {
+        plates = 0;
+        if (plateArt != null) foreach (var p in plateArt) p.enabled = false;
+    }
     public bool Stripped => plates <= 0;
     public bool Recovering => recover > 0f;
     public int Shattered { get; private set; }

@@ -320,12 +320,13 @@ public static class FrostEliteTest
         var cast = (FloeCastAttack)e.Attack;
         bool glow = false;
         float tellSpeed = 0f;
-        float tell = Tell(e, () => { glow |= e.ChargeGlowOn; tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); });
+        bool sightTell = false;
+        float tell = Tell(e, () => { glow |= e.ChargeGlowOn; sightTell |= e.SightShown; tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); });
         Check("floe_cast tell: planted while its chutes glow (" + tell.ToString("0.00") + " s, " + tellSpeed.ToString("0.0") + " u/s)",
               glow && Mathf.Abs(tell - def.tellSeconds) < .1f && tellSpeed < 1.2f);
         bool sightBefore = false, sightAtLance = false;
         int lanceShots = 0;
-        float lanceT = -1f, settled = (cast.Count - 1) * FloeCastAttack.SlabGap + def.hazardSeconds;
+        float lanceT = -1f;
         float t0 = 0f;
         EliteShot lance = null;
         int guard = 0;
@@ -364,8 +365,8 @@ public static class FrostEliteTest
         Check("... the gap one slot beside the pilot, toward the middle (gap " + gap.x.ToString("0.00") + ", pilot " + pilot.position.x.ToString("0.00") + ")",
               gap.x < pilot.position.x && pilot.position.x - gap.x < cast.SlotWidth * 1.6f);
         Check("... slabs never overlap each other (closest pair " + minPair.ToString("0.00") + " u, radius " + radius.ToString("0.00") + ")", minPair > radius * 1.6f);
-        Check("... a blinking sight through the gap, then one lance once the slabs have settled (" + lanceT.ToString("0.00") + " s, settled " + settled.ToString("0.00") + ")",
-              sightBefore && lanceShots == 1 && lanceT >= settled && lanceT < settled + .6f);
+        Check("... a sight down the gap's lane from the wind-up, then one lance right after the last slab (" + lanceT.ToString("0.00") + " s, cast by " + ((cast.Count - 1) * FloeCastAttack.SlabGap).ToString("0.00") + ")",
+              sightTell && sightBefore && lanceShots == 1 && lanceT >= (cast.Count - 1) * FloeCastAttack.SlabGap && lanceT < .6f);
         bool through = false;
         if (lance != null)
         {

@@ -1238,7 +1238,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         sight.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
         sight.transform.localScale = new Vector3(width, length, 1f);
         Color c = Def.ShotColor;
-        c.a = .7f;
+        c.a = width > .1f ? 1f : .7f;   // (the bolder sights read over Frost's bright cloud decks)
         sight.color = c;
     }
 
