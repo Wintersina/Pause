@@ -22,6 +22,8 @@ public static class RamKillTest
     const BindingFlags Inst = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     static readonly MethodInfo Trigger = typeof(collisionDetection).GetMethod("OnTriggerEnter2D", Inst);
 
+    const int SpareHearts = 3;
+    static int savedMax;
     static int FirstShip { get { foreach (int id in ShipId.All) return id; return 0; } }
 
     static void Check(string what, bool ok)
@@ -38,6 +40,7 @@ public static class RamKillTest
         using var sandbox = new TestHarness.Sandbox();
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
         EnemySplit.ForceInEditor = true;
+        savedMax = collisionDetection.MAXLIFE;
         try
         {
             ExplodesUnpaid();
@@ -57,6 +60,7 @@ public static class RamKillTest
             EliteSystem.PlayerOverride = null;
             PlayerInvuln.Reset();
             collisionDetection.lifeCounter = 0;
+            collisionDetection.MAXLIFE = savedMax;
             collisionDetection.atomCheck = false;
             buttonClicks.playerDied = false;
         }
@@ -77,6 +81,10 @@ public static class RamKillTest
     // plain non-fatal unshielded hit.
     static void Fresh()
     {
+        // Hulls now fly with their dock row's hearts (ShipLives), so the first
+        // ship has ONE and every unshielded ram is fatal: these tests are about
+        // the non-fatal ram, so they fly a hull with spare hearts.
+        collisionDetection.MAXLIFE = SpareHearts;
         collisionDetection.lifeCounter = 0;
         collisionDetection.atomCheck = false;
         collisionDetection.cloakTimer = 0f;
