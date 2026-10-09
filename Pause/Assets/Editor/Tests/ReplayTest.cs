@@ -49,6 +49,7 @@ public static class ReplayTest
             AfterPortal();
             AfterLoop();
             DeveloperPick();
+            DeveloperMatrix();
             MenuDropsThePin();
             QuickActionsFireOnce();
         }
@@ -86,7 +87,7 @@ public static class ReplayTest
 
     // A run's scene loading: the old scene gone, score.Awake, then
     // WorldManager.Start. Returns the live manager.
-    static WorldManager Load()
+    static WorldManager Load(bool startAtHighest = true)
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         BossEncounter.ResetRun();
@@ -105,6 +106,7 @@ public static class ReplayTest
         RunScore.BeginRun(true, true);
 
         var wm = new GameObject("~WorldManager").AddComponent<WorldManager>();
+        wm.startAtHighestUnlocked = startAtHighest;
         wm.SendMessage("Awake");
         // Start picks the world and the run's start first, then dresses the
         // scene (backdrop, music, banner); only the former matters here.
@@ -240,6 +242,62 @@ public static class ReplayTest
         wm = Load();
         Check("developer pick: Replay is Frost again", WorldManager.CurrentIndex == Frost);
         Clean("developer replay", wm);
+    }
+
+
+    // ---- developer start-world pick, every world, every way of (re)starting ----
+
+    static string Backdrop()
+    {
+        var wb = WorldBackdrop.Instance;
+        return wb != null && wb.Current != null ? wb.Current.Spec.world : "(none)";
+    }
+
+    static string Name(int w) { return WorldManager.Worlds[w].displayName; }
+
+    // The real sequence of calls, in the order Unity runs them, for a
+    // developer pick on every world, with the furthest planet reached
+    // anywhere from Space to Ember and either start rule: the first run, then
+    // Replay after Replay (from the death panel / quick action / pause menu
+    // they are all buttonClicks.replay -> PrepareReplay), then the menu.
+    static void DeveloperMatrix()
+    {
+        int worlds = WorldManager.Worlds.Length;
+        for (int pick = 0; pick < worlds; pick++)
+        {
+            for (int highest = 0; highest < worlds; highest++)
+            {
+                foreach (bool startAtHighest in new[] { true, false })
+                {
+                    string tag = "dev pick " + Name(pick) + ", furthest " + Name(highest) +
+                                 (startAtHighest ? "" : ", journey") + ": ";
+                    Prefs(highest, developer: true, pick: pick);
+                    // Stale state from the session before (the app restart: the
+                    // pin and the loop are in memory only, prefs persist).
+                    var wm = Load(startAtHighest);
+                    Check(tag + "first run starts in the pick (loop " + RunLoop.Index + ", backdrop " + Backdrop() + ")",
+                          WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick && RunLoop.Index == 0 &&
+                          (Backdrop() == "(none)" || Backdrop() == Name(pick)));
+
+                    // Fly into the next world (planetfall / portal / lift-off) and replay.
+                    for (int replay = 1; replay <= 3; replay++)
+                    {
+                        if (replay != 2) Through(wm);
+                        DieAndReplay();
+                        wm = Load(startAtHighest);
+                        Check(tag + "replay " + replay + " starts in the pick, not " + Name(WorldManager.CurrentIndex) +
+                              " (backdrop " + Backdrop() + ")",
+                              WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick && RunLoop.Index == 0 &&
+                              (Backdrop() == "(none)" || Backdrop() == Name(pick)));
+                    }
+
+                    // Out to the menu and PLAY again: the pick still rules.
+                    GameStateReset.Clear();
+                    wm = Load(startAtHighest);
+                    Check(tag + "menu PLAY starts in the pick", WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick);
+                }
+            }
+        }
     }
 
     // ---- 2 --------------------------------------------------------------------
