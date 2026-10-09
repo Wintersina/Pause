@@ -5,8 +5,8 @@ using UnityEngine.UI;
 // The end-of-tutorial card. Same layout grammar as the Flight Complete panel
 // (DeathPanelView): header, divider, accent stat cards and two equal-width
 // buttons, built on its own root and fitted to the safe area below the
-// quick actions. Drawn in the tutorial's painted brass style (steampunk
-// palette, ink outlines, chamfered panels, TutorialPalette) with limited
+// quick actions. Drawn in the tutorial's low-res cyberpunk pixel style (navy
+// panels with cyan edges and corner brackets, ink outlines, TutorialPalette) with limited
 // animation: held poses that snap on whole steps.
 //
 // It replaces the scene's grey "End of tutorial" dialog (Model Panel, which
@@ -175,7 +175,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     {
         Text pausesValue;
         cards[0] = BuildCard(0, "STAR DUST", "PRACTICE, NOT SAVED", TutorialPalette.Orange, out dustValue);
-        cards[1] = BuildCard(1, "PAUSES", "PER REAL RUN", TutorialPalette.Teal, out pausesValue);
+        cards[1] = BuildCard(1, "PAUSES", "PER REAL RUN", TutorialPalette.Cyan, out pausesValue);
         pausesValue.text = realRunPauses.ToString();
 
         var footerText = NewText("Footer", panel, "Replay this anytime from the leaderboard.", 20, TutorialPalette.Muted, TextAnchor.MiddleCenter);
@@ -191,7 +191,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         Place(card, CardRects[index]);
         cardGroups[index] = go.GetComponent<CanvasGroup>();
 
-        var bg = NewImage("Background", card, Load("tut_card"), Color.white);   // painted brass card, accent is the label
+        var bg = NewImage("Background", card, Load("tut_card"), Color.white);   // pixel HUD card, accent is the label
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
 
@@ -209,9 +209,9 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void BuildButtons(Button play, Button menu)
     {
-        // PLAY is the hero action: Kaneda red. MENU is secondary steel.
-        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", TutorialPalette.Red, PlayRect);
-        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", TutorialPalette.Steel, MenuRect);
+        // PLAY is the hero action: amber label. MENU is secondary: paper label.
+        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", TutorialPalette.Orange, PlayRect);
+        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", TutorialPalette.Paper, MenuRect);
     }
 
     RectTransform BuildButton(int index, Button button, Sprite glyph, string label, Color accent, Rect rect)
@@ -243,7 +243,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
             frame.sprite = Load("tut_button");
             frame.type = Image.Type.Sliced;
             frame.preserveAspect = false;
-            frame.color = Color.white;   // painted brass plate; the label carries the colour
+            frame.color = Color.white;   // pixel plate; the label carries the colour
             frame.raycastTarget = true;
             button.targetGraphic = frame;
             // The scene buttons used a colour-tint transition whose normal
@@ -258,7 +258,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         text.font = font;
         text.fontSize = 28;
         text.fontStyle = FontStyle.Bold;
-        text.color = TutorialPalette.Paper;
+        text.color = accent;   // the plates are identical: PLAY reads amber, MENU paper
         text.alignment = TextAnchor.MiddleLeft;
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;

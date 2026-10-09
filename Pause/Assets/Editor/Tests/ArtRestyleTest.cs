@@ -150,7 +150,7 @@ public static class ArtRestyleTest
         foreach (var dir in new[] { "Assets/Art/Resources/QuickActions", "Assets/Art/Resources/QuickActions/Shine",
                                     "Assets/Art/Resources/DeathPanel", "Assets/Art/Resources/Hud",
                                     "Assets/Art/UI/Dock/Resources/Dock", "Assets/Art/Resources/PauseGlow",
-                                    "Assets/Art/Resources/PauseGlowFx" })   // Tutorial is painted brass now, off the Akira palette
+                                    "Assets/Art/Resources/PauseGlowFx" })   // Tutorial is its own cyberpunk pixel kit, off the Akira palette
             if (Directory.Exists(dir))
                 foreach (var f in Directory.GetFiles(dir, "*.png")) yield return f.Replace('\\', '/');
         yield return "Assets/Art/UI/Pause/paused_1.png";

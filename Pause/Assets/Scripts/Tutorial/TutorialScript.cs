@@ -74,7 +74,7 @@ public static class TutorialScript
     // Turning a line into something the robot can speak
     // ---------------------------------------------------------------------
 
-    // Brass amber (TutorialPalette.Orange); a const so the rich text is
+    // Amber (TutorialPalette.Orange); a const so the rich text is
     // built without allocation per line. TutorialRobotTest checks it matches.
     public const string HighlightColor = "#FFB83D";
 

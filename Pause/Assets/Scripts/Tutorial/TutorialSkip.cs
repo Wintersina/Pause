@@ -8,8 +8,8 @@ using UnityEngine.UI;
 // it cannot be knocked loose by scene edits and needs no wiring. Drop this
 // component on any object in the tutorial scene (or let it be added by code).
 //
-// Styled as a brass plate in the tutorial's steampunk palette (tut_button,
-// painted, ink outline, an orange chevron, Orbitron) instead of the old
+// Styled as a dark pixel HUD plate in the tutorial's cyberpunk palette (tut_button,
+// pixel art, ink outline, a cyan chevron, Orbitron) instead of the old
 // flat grey box, and parked
 // just under the top-right quick actions (PauseQuickActions) -- it used to
 // sit exactly where they appear whenever the player lifts their finger. It
@@ -110,7 +110,7 @@ public class TutorialSkip : MonoBehaviour
         var img = btnGo.GetComponent<Image>();
         img.sprite = Resources.Load<Sprite>("Tutorial/tut_button");
         img.type = Image.Type.Sliced;
-        img.color = Color.white;   // brass plate is painted, not tinted
+        img.color = Color.white;   // pixel plate is drawn, not tinted
         // a finger-sized target (the plate is ~25 dp tall) without bigger art
         img.raycastPadding = new Vector4(-16f, -TouchPadY, -16f, -TouchPadY);
 

@@ -45,7 +45,7 @@ public static class TutorialRobotTest
         PauseJumpOpensThePortal();
         SpeakerTapCompletesLine();
         CompletePanel();
-        ArtIsThePaintedKit();
+        ArtIsThePixelKit();
         TutorialBackdropIsSpace();
 
         Debug.Log("[TR] failures: " + fails);
@@ -645,7 +645,7 @@ public static class TutorialRobotTest
         Check("no leftover CONTINUE TO GAME overlay", GameObject.Find("TutorialFinishCanvas") == null);
     }
 
-    // ---- Art direction: the painted rustic steampunk kit ----
+    // ---- Art direction: the low-res cyberpunk pixel kit ----
 
     // Every sprite of the kit and its size in pixels (the layout code places
     // parts in these units, so a redraw must keep them).
@@ -679,7 +679,7 @@ public static class TutorialRobotTest
         return t.LoadImage(File.ReadAllBytes(path)) ? t : null;
     }
 
-    static void ArtIsThePaintedKit()
+    static void ArtIsThePixelKit()
     {
         foreach (var k in Kit)
         {
@@ -694,7 +694,7 @@ public static class TutorialRobotTest
               !File.Exists("Assets/Art/UI/Tutorial/src~/palette.env") && !File.Exists("Assets/Art/UI/Tutorial/src~/render.sh"));
         Check("the staging folder is gone", !Directory.Exists("Assets/Art/Resources/Tutorial_new~"));
 
-        // The bubble: a nine-slice whose border clears the brass frame, and a
+        // The bubble: a nine-slice whose border clears the panel's corner brackets, and a
         // text area inside the panel's navy fill.
         var bubble = Resources.Load<Sprite>("Tutorial/tut_bubble");
         var tex = ReadPng("Tutorial/tut_bubble");
@@ -711,7 +711,7 @@ public static class TutorialRobotTest
               Contrast(TutorialPalette.Paper, TutorialPalette.Panel) >= 7f);
         Check("the amber highlight reads on the panel (" + Contrast(TutorialPalette.Orange, TutorialPalette.Panel).ToString("0.0") + ":1)",
               Contrast(TutorialPalette.Orange, TutorialPalette.Panel) >= 7f);
-        Check("the bubble highlight is the palette's brass amber",
+        Check("the bubble highlight is the palette's amber",
               TutorialScript.HighlightColor == TutorialPalette.Html(TutorialPalette.Orange));
         Check("highlight and body text are told apart", Contrast(TutorialPalette.Orange, TutorialPalette.Paper) >= 1.1f
               && Vector3.Distance(new Vector3(TutorialPalette.Orange.r, TutorialPalette.Orange.g, TutorialPalette.Orange.b),
@@ -725,10 +725,45 @@ public static class TutorialRobotTest
         string card = File.ReadAllText("Assets/Scripts/Tutorial/TutorialCompletePanel.cs");
         Check("the skip plate is not tinted", skip.Contains("img.color = Color.white"));
         Check("the end card's plates are not tinted", card.Contains("Load(\"tut_card\"), Color.white") && card.Contains("frame.color = Color.white"));
-        Check("the old hand-tinted flat-octagon teal pulse is amber now",
-              File.ReadAllText("Assets/Scripts/Tutorial/RobotSpeaker.cs").Contains("Load(\"tut_ring\"), TutorialPalette.Orange"));
+        Check("the voice pulse tints the white ring cyan",
+              File.ReadAllText("Assets/Scripts/Tutorial/RobotSpeaker.cs").Contains("Load(\"tut_ring\"), TutorialPalette.Cyan"));
+        Check("PLAY and MENU labels are told apart (amber vs paper) on identical plates",
+              card.Contains("\"PLAY\", TutorialPalette.Orange") && card.Contains("\"MENU\", TutorialPalette.Paper")
+              && card.Contains("text.color = accent"));
+        Check("the palette is the kit's: cyan 0BD0F6, panel 0C1725, ink 05060C",
+              TutorialPalette.Html(TutorialPalette.Cyan) == "#0BD0F6" && TutorialPalette.Html(TutorialPalette.Panel) == "#0C1725"
+              && TutorialPalette.Html(TutorialPalette.Ink) == "#05060C");
+        Check("magenta is a pixel accent only: not used for body text (" + Contrast(TutorialPalette.Magenta, TutorialPalette.Panel).ToString("0.0") + ":1)",
+              !File.ReadAllText("Assets/Scripts/Tutorial/RobotSpeaker.cs").Contains("TutorialPalette.Magenta"));
+        Check("cyan labels read on the panel (" + Contrast(TutorialPalette.Cyan, TutorialPalette.Panel).ToString("0.0") + ":1)",
+              Contrast(TutorialPalette.Cyan, TutorialPalette.Panel) >= 7f);
 
-        // The robot's face parts line up with the painted visor (tut_robot is
+        // True pixel art: crisp import settings, and every sprite is an exact
+        // 4x nearest-neighbour upscale of a small native grid with few colours.
+        foreach (var k in Kit)
+        {
+            var imp = AssetImporter.GetAtPath("Assets/Art/Resources/Tutorial/" + k.name + ".png") as TextureImporter;
+            Check(k.name + " imports crisp: point filter, no mipmaps, uncompressed",
+                  imp != null && imp.filterMode == FilterMode.Point && !imp.mipmapEnabled
+                  && imp.textureCompression == TextureImporterCompression.Uncompressed);
+            var px = ReadPng("Tutorial/" + k.name);
+            if (px == null) continue;
+            bool blocks = px.width % 4 == 0 && px.height % 4 == 0;
+            var colours = new System.Collections.Generic.HashSet<Color32>();
+            for (int by = 0; blocks && by < px.height; by += 4)
+                for (int bx = 0; blocks && bx < px.width; bx += 4)
+                {
+                    var c0 = px.GetPixel(bx, by);
+                    colours.Add(c0);
+                    for (int dy = 0; blocks && dy < 4; dy++)
+                        for (int dx = 0; dx < 4; dx++)
+                            if (px.GetPixel(bx + dx, by + dy) != c0) { blocks = false; break; }
+                }
+            Check(k.name + " is an exact 4x upscale (every 4x4 block is one colour)", blocks);
+            Check(k.name + " keeps a small palette (" + colours.Count + " colours)", colours.Count <= 32);
+        }
+
+        // The robot's face parts line up with the visor (tut_robot is
         // 256 px = 128 art units; the visor's dark screen spans x 29..99,
         // y 43..87 units).
         var robot = Resources.Load<Sprite>("Tutorial/tut_robot");
@@ -743,6 +778,11 @@ public static class TutorialRobotTest
                 ok &= Mathf.Abs(c.r - screen.r) + Mathf.Abs(c.g - screen.g) + Mathf.Abs(c.b - screen.b) < .05f;
             }
             Check("the eyes and mouth sit on the visor's dark screen", ok);
+            bool within = true;
+            foreach (var r in new[] { new Rect(47f - 13f, 57f - 10f, 26f, 20f), new Rect(81f - 13f, 57f - 10f, 26f, 20f), new Rect(64f - 18f, 79f - 10f, 36f, 20f) })
+                foreach (var c in new[] { new Vector2(r.xMin, r.yMin), new Vector2(r.xMax - .5f, r.yMin), new Vector2(r.xMin, r.yMax - .5f), new Vector2(r.xMax - .5f, r.yMax - .5f) })
+                    within &= rt.GetPixel(Mathf.RoundToInt(c.x * 2f), 256 - Mathf.RoundToInt(c.y * 2f) - 1).a > .99f;
+            Check("the eye and mouth rects lie wholly on the opaque shell", within);
         }
         foreach (var frame in new[] { "tut_mouth_rest", "tut_mouth_a", "tut_mouth_e", "tut_mouth_o", "tut_mouth_big",
                                       "tut_eye_open", "tut_eye_half", "tut_eye_shut", "tut_eye_happy", "tut_jet_a", "tut_jet_b" })
