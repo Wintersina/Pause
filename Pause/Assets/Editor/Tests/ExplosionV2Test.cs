@@ -10,7 +10,7 @@ using UnityEngine;
 //     settings; no burst frame is dominated by the player's red (#FF3E4E,
 //     hue within 28 degrees); every burst stays compact (opaque bounds <= 70%
 //     of its cell); the flash / ring overlay cells are white so tinting works
-//   * Intensity 1: sizes .61 / .90 / 1.30 u, .65-.80 s, kick <= .03, overlay
+//   * Intensity 1: cells .85 / 1.25 / 1.8 u (visible ~60%), .65-.80 s, kick <= .03, overlay
 //     alpha .7; Intensity .5 and 2 scale them; the body fades out cleanly
 //   * at most MaxConcurrentBursts bursts play at full strength: the rest are
 //     fainter and flashless
@@ -173,8 +173,8 @@ public static class ExplosionV2Test
         float s = TargetExplosion.WorldSizeFor(TargetExplosion.Size.Small, M);
         float m = TargetExplosion.WorldSizeFor(TargetExplosion.Size.Medium, M);
         float l = TargetExplosion.WorldSizeFor(TargetExplosion.Size.Large, M);
-        Check("Intensity 1 sizes ~ .62 / .90 / 1.30 u (" + s.ToString("0.00") + " / " + m.ToString("0.00") + " / " + l.ToString("0.00") + ")",
-              Near(s, .62f, .02f) && Near(m, .9f, .02f) && Near(l, 1.3f, .02f));
+        Check("Intensity 1 cells .85 / 1.25 / 1.8 u (" + s.ToString("0.00") + " / " + m.ToString("0.00") + " / " + l.ToString("0.00") + ")",
+              Near(s, .85f, .01f) && Near(m, 1.25f, .01f) && Near(l, 1.8f, .01f));
         Check("big targets still burst bigger (mines 15% up)", s < m && m < l &&
               Near(TargetExplosion.WorldSizeFor(TargetExplosion.Size.Medium, TargetExplosion.Kind.Mine), m * 1.15f, .001f));
         float hs = TargetExplosion.SecondsFor(TargetExplosion.Size.Small), hl = TargetExplosion.SecondsFor(TargetExplosion.Size.Large);

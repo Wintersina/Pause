@@ -30,15 +30,20 @@ public static class TargetExplosion
     public enum Size { Small, Medium, Large }
 
     // ---- loudness -------------------------------------------------------
-    // Master explosion loudness. 1 = the tuned default (compact: ~0.72x the
-    // v1 sizes, ~0.65-0.8 s, half the old kick, overlays at 0.7 alpha).
+    // Master explosion loudness. 1 = the tuned default: the v1 draw sizes
+    // (.85 / 1.25 / 1.8 u cells), but the v2 art fills only ~55-63% of its
+    // cell (v1 ~90%), so the visible burst is ~0.6x v1's diameter (~1/3 the
+    // area); ~0.65-0.8 s; half the old kick; overlays at 0.7 alpha. (Drawn
+    // at 0.72x as first proposed, the bursts came out smaller than the
+    // enemies they replace and vanished on the bright Frost clouds:
+    // ExplosionPreview.) Intensity .72 gives that smaller look.
     // < 1 shrinks everything proportionally, > 1 grows it: world size,
     // camera kick and flash/ring alpha scale linearly, the hold by
     // sqrt(Intensity) (so a quiet blast still reads, a loud one doesn't hang).
     // Clamped to [0.25, 3].
     public static float Intensity = 1f;
 
-    public const float SizeK = .72f;          // world size vs the v1 tuning (.85/1.25/1.8)
+    public const float SizeK = 1f;            // world size vs the v1 tuning (.85/1.25/1.8)
     public const float KickK = .5f;           // camera kick vs the v1 tuning (.028/.055)
     public const float MaxKick = .03f;        // kick ceiling at Intensity 1
     public const float OverlayAlpha = .7f;    // flash star + shockwave ring alpha at Intensity 1
@@ -101,8 +106,9 @@ public static class TargetExplosion
         return SizeFor(Mathf.Max(s.x, s.y));
     }
 
-    // Small / Medium / Large = .61 / .90 / 1.30 world units at Intensity 1
-    // (mines 15% bigger); proportional to the target, so big ones read bigger.
+    // Small / Medium / Large = .85 / 1.25 / 1.8 world-unit cells at Intensity
+    // 1 (mines 15% bigger; the visible burst is ~60% of that); proportional
+    // to the target, so big ones read bigger.
     public static float WorldSizeFor(Size size, Kind kind)
     {
         float s = size == Size.Small ? .85f : size == Size.Medium ? 1.25f : 1.8f;
