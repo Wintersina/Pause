@@ -1808,11 +1808,11 @@ public static class CodexTest
             }
             Check("stepping precision covered the animated entries (" + checkedAnims + ")", checkedAnims > 30);
 
-            // The Steel Hound only hovers between its two steady poses, as in game.
+            // The Steel Hound loops all four idle cells like the rest of the roster, but has no telegraph, as in game.
             var hound = EnemyRoster.All[0];
             foreach (var d in EnemyRoster.All) if (d.key == "space_chaser") hound = d;
             var ha = CodexAnimations.Enemy(hound);
-            Check("the Steel Hound loops its two hover poses and never tells", ha != null && ha.idle.Length == 2 && !ha.HasTell);
+            Check("the Steel Hound loops its four idle cells and never tells", ha != null && ha.idle.Length == 4 && !ha.HasTell);
         }
         finally
         {

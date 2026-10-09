@@ -385,9 +385,7 @@ public static class EnemyRosterTest
             var seen = new HashSet<int>();
             for (int i = 0; i < 60; i++) { fb.Advance(EnemyFlipbook.TickSeconds); seen.Add(fb.CurrentFrame); }
             Check(role + " idle cycles its intended drawings",
-                  d.key == "space_chaser"
-                      ? seen.SetEquals(new[] { 0, 1 })
-                      : seen.Contains(0) && seen.Contains(1) && seen.Contains(2) && seen.Contains(3));
+                  seen.Contains(0) && seen.Contains(1) && seen.Contains(2) && seen.Contains(3));
             if (d.key == "space_chaser")
             {
                 typeof(ChaserEnemy).GetField("wandering", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(chaser, false);
@@ -395,9 +393,9 @@ public static class EnemyRosterTest
                 for (int i = 0; i < 120; i++)
                 {
                     fb.Advance(EnemyFlipbook.TickSeconds);
-                    steadyChase &= fb.CurrentFrame == 0 || fb.CurrentFrame == 1;
+                    steadyChase &= fb.CurrentFrame < EnemyRoster.TellFrame;
                 }
-                Check("Steel Hound keeps its hover poses throughout the chase", steadyChase);
+                Check("Steel Hound never plays a tell cell throughout the chase (idle cells only)", steadyChase);
             }
             fb.Tell();
             int a = fb.CurrentFrame;
