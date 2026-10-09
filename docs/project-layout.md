@@ -30,3 +30,13 @@ Licences for bundled third-party art are in `docs/licenses/`.
 
 `Pause/Library` is Unity's generated import cache (git-ignored). Deleting it is
 safe but costs a full reimport on the next editor launch.
+
+## Sound setting
+
+Options has a `SOUND: ON / SOUND: OFF` row (`Menu/SoundOptions.cs`, y -33, or 147 on top of the developer stack in
+developer builds). It drives `Audio/SoundSettings`, the one central switch: muted means `AudioListener.volume = 0`
+(every source, including later/one-shot ones, goes silent while still playing, so nothing that waits on audio is
+affected and un-muting resumes mid-track). PlayerPrefs int `soundMuted` (absent = on), applied before the first scene
+and re-applied on scene load and focus change. Device-local: not in the cloud snapshot. Haptics are a separate matter
+and unaffected (there is no haptics option). Un-muting plays a short confirmation click. Tests: `SoundMuteTest`,
+ScreenFit screens `options-mute-on` / `options-mute-off`.
