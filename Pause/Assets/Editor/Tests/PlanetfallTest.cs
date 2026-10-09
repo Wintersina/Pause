@@ -4,11 +4,13 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The planetfall (Planetfall): the Space -> Frost descent that replaces the
-// portal there.
+// The planetfall (Planetfall): the Space -> Frost and Frost -> Verdant
+// descents that replace the portal there (Frost's after its lift-off,
+// LiftoffTest; here the lift-off is switched off so Frost's gateway opens
+// straight away).
 //
-//   1  which world changes are planetfalls: Space -> Frost only; Frost ->
-//      Verdant, Verdant -> Ember and the loop back keep the portal; missing
+//   1  which world changes are planetfalls: Space -> Frost and Frost ->
+//      Verdant; Verdant -> Ember and the loop back keep the portal; missing
 //      art falls back to the portal
 //   2  the approach is the open portal's stage: pressure, a reserved column,
 //      in the ship's reach, frozen by a pause
@@ -44,14 +46,21 @@ public static class PlanetfallTest
         {
             WhichTransitions();
             Approach();
-            DescentFlow();
-            ShroudFits();
-            NoAllocations();
-            ArtLoads();
+            DescentFlow(0);
+            DescentFlow(1);
+            ShroudFits(0);
+            ShroudFits(1);
+            NoAllocations(0);
+            NoAllocations(1);
+            ArtLoads(PlanetfallCatalog.Frost, 1024f - 536f);
+            ArtLoads(PlanetfallCatalog.Verdant, 1024f - 512.5f);
         }
         finally
         {
             if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
+            LiftoffCatalog.Enabled = true;
+            PlanetfallCatalog.Enabled = true;
+            PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             PortalPressure.Reset();
             ShipStartSpeed.EquippedHudOverride = null;
             SpeedRamp.FrameOverride = null;
@@ -150,8 +159,8 @@ public static class PlanetfallTest
 
     static void WhichTransitions()
     {
-        Check("the catalogue: Space -> Frost is a planetfall; Frost -> Verdant, Verdant -> Ember and the loop are not",
-              PlanetfallCatalog.For(0, 1, false) == PlanetfallCatalog.Frost && PlanetfallCatalog.For(1, 2, false) == null &&
+        Check("the catalogue: Space -> Frost and Frost -> Verdant are planetfalls; Verdant -> Ember and the loop are not",
+              PlanetfallCatalog.For(0, 1, false) == PlanetfallCatalog.Frost && PlanetfallCatalog.For(1, 2, false) == PlanetfallCatalog.Verdant &&
               PlanetfallCatalog.For(2, 3, false) == null && PlanetfallCatalog.For(3, 0, true) == null &&
               PlanetfallCatalog.For(3, 1, true) == null);
 
@@ -163,7 +172,7 @@ public static class PlanetfallTest
             bool fall = world == 0;
             string name = WorldManager.Worlds[world].displayName;
             if (LiftoffCatalog.For(world, WorldManager.PortalDestination, !WorldManager.HasNext) != null)
-                // Frost lifts off first (LiftoffTest); its gateway is the portal
+                // Frost and Verdant lift off first (LiftoffTest), then their gateway
                 Check(name + "'s end: the lift-off, no planetfall (stage Portal)",
                       wm.Stage == WorldManager.LevelStage.Portal && Liftoff.Live != null && Planetfall.Live == null);
             else
@@ -180,6 +189,20 @@ public static class PlanetfallTest
         }
         Check("with the portal back, the HUD's words are the portal's again",
               PortalPressureHud.ChipLabel(2) == PortalPressure.ChipPrefix + 2 || PortalPressure.Chip == PortalPressure.ChipPrefix);
+        LiftoffCatalog.Enabled = false;
+        FreshScene(1);
+        var wv = World();
+        FinishLevel(wv);
+        var verdant = PlanetfallCatalog.Verdant;
+        Check("Frost's gateway (lift-off skipped): Verdant's planet, no portal, its words (" + PortalPressure.Urge + " / " +
+              PortalPressure.Chip.Trim() + ")",
+              Planetfall.Live != null && Planetfall.Live.Def == verdant && Portal.Live == null && PortalPressure.Active &&
+              PortalPressure.Destination == 2 && PortalPressure.Urge == verdant.urgeBanner && PortalPressure.Chip == verdant.chipPrefix &&
+              verdant.openBanner == "LAND ON VERDANT");
+        Gone();
+        Object.DestroyImmediate(wv.gameObject);
+        LiftoffCatalog.Enabled = true;
+
 
         // missing art: the portal, as before
         string folder = PlanetfallCatalog.Frost.folder;
@@ -259,9 +282,13 @@ public static class PlanetfallTest
 
     // ---- 3, 4. the commit and the descent ------------------------------------------
 
-    static void DescentFlow()
+    // `from`: Space (onto Frost) or Frost (onto Verdant; its lift-off skipped).
+    static void DescentFlow(int from)
     {
-        FreshScene(0);
+        int to = from + 1;
+        string onto = WorldManager.Worlds[to].displayName;
+        LiftoffCatalog.Enabled = false;
+        FreshScene(from);
         RunScore.BeginRun(true, true);
         RunScore.Tick(10f, .3f);
         var wm = World();
@@ -274,7 +301,7 @@ public static class PlanetfallTest
         collisionDetection.lifeCounter = 1;
         long before = RunScore.Total;
 
-        Check("the commit is taken", p.Commit(ship));
+        Check(onto + ": the commit is taken", p != null && p.Def.world == to && p.Commit(ship));
         Check("... the ship is held and shielded, nothing spawns, a press is free",
               Planetfall.HoldsShip && Planetfall.ShieldsShip && Planetfall.SuspendsSpawning && Planetfall.FreePress);
         Check("... the pressure is over, the stage still Portal until the switch, the column released",
@@ -319,8 +346,8 @@ public static class PlanetfallTest
                 moved |= (ship.position - shipWas).sqrMagnitude > 1e-6f;
             }
         }
-        Check("the world switched exactly once, to Frost (" + switches + ", at " + switchedAt.ToString("F2") + " s)",
-              switches == 1 && WorldManager.CurrentIndex == 1);
+        Check("the world switched exactly once, to " + onto + " (" + switches + ", at " + switchedAt.ToString("F2") + " s)",
+              switches == 1 && WorldManager.CurrentIndex == to);
         Check("... while the clouds covered the whole view (cover " + coverAt.ToString("F3") + ", deep deck alpha " +
               darkAlphaAt.ToString("F3") + ")", coverAt >= .999f && darkOnAt && darkAlphaAt >= .999f &&
               switchedAt >= PlanetfallTimeline.SwitchAt && switchedAt < PlanetfallTimeline.SwitchAt + .05f);
@@ -330,11 +357,11 @@ public static class PlanetfallTest
         Check("a lifted finger mid-descent froze it (clock, ship)", pausedHeld);
         Check("the ship was flown by the descent the whole time", shipHeld && moved);
         Check("score carried through, plus the world bonus (" + before + " -> " + RunScore.Total + "); hearts untouched",
-              RunScore.Total == before + ScoreRules.WorldClearedPoints(0) && collisionDetection.lifeCounter == 1);
-        Check("Frost's level begins: stage Level, a full world ahead, the arrival speed",
+              RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
+        Check(onto + "'s level begins: stage Level, a full world ahead, the arrival speed",
               wm.Stage == WorldManager.LevelStage.Level && !wm.PortalIsOpen &&
-              Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(1)) &&
-              Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(0)));
+              Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)) &&
+              Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(RunLoop.Index)));
         Check("control returns: the planetfall is gone and every hook is off",
               Planetfall.Live == null && !Planetfall.HoldsShip && !Planetfall.ShieldsShip && !Planetfall.SuspendsSpawning &&
               !Planetfall.FreePress && WorldBackdrop.ScrollBoost == 1f);
@@ -356,16 +383,18 @@ public static class PlanetfallTest
               File.ReadAllText("Assets/Scripts/Core/score.cs").Contains("Planetfall.FreePress"));
         Object.DestroyImmediate(ship.gameObject);
         Object.DestroyImmediate(wm.gameObject);
+        LiftoffCatalog.Enabled = true;
     }
 
     // ---- 5. no per-frame allocation ---------------------------------------------------
 
-    static void NoAllocations()
+    static void NoAllocations(int from)
     {
+        LiftoffCatalog.Enabled = false;
         // warm-up: one whole planetfall (JIT, caches), then measure a second
         for (int pass = 0; pass < 2; pass++)
         {
-            FreshScene(0);
+            FreshScene(from);
             var wm = World();
             FinishLevel(wm);
             var p = Planetfall.Live;
@@ -392,7 +421,7 @@ public static class PlanetfallTest
                 // editor allocation in an otherwise clean window.
                 const long Margin = 512;
                 Check("the allocation meter works (" + control + " bytes for the control)", meter);
-                Check("no allocation per frame: 120 approach frames " + approach + " B, " + toSwitch + " descent frames " + early +
+                Check(WorldManager.Worlds[from + 1].displayName + ": no allocation per frame: 120 approach frames " + approach + " B, " + toSwitch + " descent frames " + early +
                       " B, " + toBanner + " cloud / break frames " + late + " B (margin " + Margin + ")",
                       meter && approach >= 0 && approach <= Margin && early >= 0 && early <= Margin && late >= 0 && late <= Margin);
             }
@@ -401,6 +430,7 @@ public static class PlanetfallTest
             Object.DestroyImmediate(ship.gameObject);
             Object.DestroyImmediate(wm.gameObject);
         }
+        LiftoffCatalog.Enabled = true;
     }
 
     // ---- 6. the art --------------------------------------------------------------------
@@ -424,9 +454,10 @@ public static class PlanetfallTest
     // its width and centred on that middle; the loop steps through all six
     // cells at about ShroudFps and wraps 5 -> 0; the additive copy rides
     // between the shroud and the hull, one cell behind.
-    static void ShroudFits()
+    static void ShroudFits(int fromWorld)
     {
-        FreshScene(0);
+        LiftoffCatalog.Enabled = false;
+        FreshScene(fromWorld);
         RunScore.BeginRun(true, true);
         var wm = World();
         FinishLevel(wm);
@@ -437,7 +468,7 @@ public static class PlanetfallTest
         var tex = new Texture2D(80, 100, TextureFormat.RGBA32, false);
         hull.sprite = Sprite.Create(tex, new Rect(0, 0, 80, 100), new Vector2(.5f, .4f), 100f, 0, SpriteMeshType.FullRect);
         collisionDetection.lifeCounter = 1;
-        Check("shroud fit: the commit is taken", p.Commit(ship));
+        Check(WorldManager.Worlds[fromWorld + 1].displayName + " shroud fit: the commit is taken", p != null && p.Def.world == fromWorld + 1 && p.Commit(ship));
         while (p.State == Planetfall.Stage.Descent && p.Seconds < PlanetfallTimeline.ShroudInTo + .05f) Fly(wm, p);
 
         var art = p.Art;
@@ -477,18 +508,22 @@ public static class PlanetfallTest
               behind == frames && maxScale - minScale > .02f * p.ShroudScale);
         Object.DestroyImmediate(tex);
         Gone();
+        LiftoffCatalog.Enabled = true;
     }
 
-    static void ArtLoads()
+    // `planetPivotY`: the globe's centre, texture rows up from the bottom.
+    static void ArtLoads(PlanetfallDef def, float planetPivotY)
     {
-        var def = PlanetfallCatalog.Frost;
+        string name = WorldManager.Worlds[def.world].displayName;
         var art = PlanetfallArt.Load(def);
-        Check("Frost's planetfall art loads complete", art.Complete);
+        Check(name + "'s planetfall art loads complete", art.Complete);
         if (!art.Complete) return;
         bool sizes = Size(art.PlanetTex, 1024, 1024) & Size(art.LimbTex, 2048, 1024) & Size(art.DeckTex, 2048, 1024) &
                      Size(art.DeckDarkTex, 2048, 1024) & Size(art.EntryTex, 3072, 1024) & Size(art.BurstTex, 5120, 1024) &
                      Size(art.StreaksTex, 1024, 2048);
-        Check("every texture at its full size, no mipmaps", sizes);
+        Check("... every texture at its full size, no mipmaps", sizes);
+        Check("... the globe's pivot on its measured centre (" + art.Planet.pivot + ")",
+              Mathf.Abs(art.Planet.pivot.x - def.planetCentrePx.x) < .5f && Mathf.Abs(art.Planet.pivot.y - planetPivotY) < .5f);
         Check("wrap: Repeat for the decks and streaks, Clamp for the rest",
               art.DeckTex.wrapMode == TextureWrapMode.Repeat && art.DeckDarkTex.wrapMode == TextureWrapMode.Repeat &&
               art.StreaksTex.wrapMode == TextureWrapMode.Repeat && art.PlanetTex.wrapMode == TextureWrapMode.Clamp &&
@@ -502,7 +537,7 @@ public static class PlanetfallTest
         // run from the pivot reaches the plasma about equally far each way.
         bool pivots = art.Entry.Length == def.entryHoleX.Length, centred = pivots;
         var png = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        png.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Frost/Planetfall/" + def.entryFx + ".png"));
+        png.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/" + def.folder + def.entryFx + ".png"));
         var px = png.GetPixels32();
         string spans = "";
         for (int i = 0; pivots && i < art.Entry.Length; i++)
@@ -531,8 +566,11 @@ public static class PlanetfallTest
         Check("the importer: no mipmaps, never NPOT-scaled, no size cap under the art, bilinear (PlanetfallArtImporter)", importer);
         Check("the layer shader loads", Resources.Load<Shader>(Planetfall.ShaderPath) != null);
         Check("the sources stay out of the build (src~)",
-              Directory.Exists("Assets/Art/Worlds/Frost/descent/src~") && !Directory.Exists("Assets/Art/Backgrounds/Resources/" + def.folder + "src~"));
+              Directory.Exists("Assets/Art/Worlds/" + name + "/descent/src~") && !Directory.Exists("Assets/Art/Backgrounds/Resources/" + def.folder + "src~") &&
+              Directory.GetFiles("Assets/Art/Worlds/" + name + "/descent", "*.png").Length == 0);
         art.Release();
+        Check("... and released after: no textures or sprites held, no longer complete",
+              !art.Complete && art.PlanetTex == null && art.EntryTex == null && art.Entry == null && art.Planet == null);
     }
 
     static bool Size(Texture2D t, int w, int h)
