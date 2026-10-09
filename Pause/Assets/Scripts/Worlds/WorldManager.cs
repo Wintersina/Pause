@@ -34,7 +34,8 @@ using UnityEngine.SceneManagement;
 //
 // On arrival: speed resets to the ship's start speed (or the loop's arrival
 // speed), pauses and star dust carry over. Progress is remembered, so a later
-// run starts on the furthest planet reached.
+// run starts on the furthest planet reached -- except REPLAY, which flies the
+// same run again from the world it began in (RunStartWorld).
 public class WorldManager : MonoBehaviour
 {
     public const string PrefsCurrentWorld = "currentWorld";
@@ -230,12 +231,42 @@ public class WorldManager : MonoBehaviour
         if (Instance == this) PortalPressure.Reset();
     }
 
+    // REPLAY (buttonClicks.replay) flies the run just played again, from the
+    // world it began in -- not from the furthest planet that run reached.
+    // Without this, a run started in Space that planetfell into Frost (which
+    // raises highestWorld) replayed in Frost, the next one in Verdant, and so
+    // on: Replay seemed to pick a world at random. Menu PLAY keeps the
+    // furthest-planet rule. Kept across the reload of gameS1 (in memory
+    // only); leaving for any non-gameplay scene drops it (GameStateReset).
+    static int replayWorld = -1;
+
+    // Called by Replay while the old run is still live: RunLoop.StartWorld is
+    // where it began (a loop goes back there too, so it is the run's world).
+    public static void PinReplayWorld()
+    {
+        replayWorld = Instance != null ? Mathf.Clamp(RunLoop.StartWorld, 0, Worlds.Length - 1) : -1;
+    }
+
+    public static void ClearReplayWorld() { replayWorld = -1; }
+
+    // -1: none (the next run uses the normal start rule).
+    public static int PinnedReplayWorld { get { return replayWorld; } }
+
+    // The world a run begins on: a replay's pinned world, else the
+    // progression rule (furthest planet reached, or the developer's pick).
+    public static int RunStartWorld(bool startAtHighestUnlocked)
+    {
+        if (replayWorld >= 0) return Mathf.Clamp(replayWorld, 0, Worlds.Length - 1);
+        return DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
+    }
+
     void Start()
     {
         // Unlocks are permanent: once a planet has been reached, later runs
         // start there rather than replaying the earlier worlds. Developer mode
-        // can pin a start world from Options instead.
-        CurrentIndex = DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
+        // can pin a start world from Options instead. Replay restarts the
+        // world the replayed run began in (RunStartWorld).
+        CurrentIndex = RunStartWorld(startAtHighestUnlocked);
         // The final world's portal returns here (usually Space, or the developer's pick).
         RunLoop.StartWorld = CurrentIndex;
 

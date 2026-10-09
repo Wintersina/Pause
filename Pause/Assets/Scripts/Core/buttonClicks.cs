@@ -31,13 +31,29 @@ public class buttonClicks : MonoBehaviour {
             AdMob.hide();
         // Back/Escape is BackNavigator's: in gameS1 it does mainMenuButton.
     }
+    // The frame a replay was last asked for: a second request in the same
+    // frame (two listeners on one tap) would queue a second load of gameS1
+    // right behind the first -- the scene restarting twice over.
+    static int replayFrame = -1;
+
     public void replay()
     {
+        if (replayFrame == Time.frameCount) return;
+        replayFrame = Time.frameCount;
+        PrepareReplay();
+        SceneManager.LoadScene(gameS1);
+    }
+
+    // Everything Replay does before reloading gameS1 (tests call it): a clean
+    // run state, and the run's own start world pinned for the next
+    // WorldManager.Start (WorldManager.RunStartWorld).
+    public static void PrepareReplay()
+    {
         GameStateReset.Clear();
+        WorldManager.PinReplayWorld();
         startMenu.youAreInTutorial = false;
         moveBackGround.speed = 0f;
         score.totalCurrency = 0;
-        SceneManager.LoadScene(gameS1);
     }
     public void quit()
     {
