@@ -12,6 +12,7 @@ public static class AchievementArt
     public const int Size = 128;
 
     static readonly Dictionary<string, Sprite> loaded = new Dictionary<string, Sprite>();
+    static readonly HashSet<string> missing = new HashSet<string>();
     static readonly Sprite[] placeholders = new Sprite[4];
 
     // Whether painted art exists for the id.
@@ -34,9 +35,15 @@ public static class AchievementArt
     static Sprite For(string id, AchievementTier tier)
     {
         Sprite s;
-        if (loaded.TryGetValue(id, out s) && s != null) return s;
+        if (loaded.TryGetValue(id, out s))
+        {
+            if (s != null) return s;
+            if (missing.Contains(id)) return Placeholder(tier);   // looked once: no art yet, do not hit Resources again
+        }
         s = Resources.Load<Sprite>(Folder + id);
         if (s != null) { loaded[id] = s; return s; }
+        loaded[id] = null;
+        missing.Add(id);
         return Placeholder(tier);
     }
 
@@ -44,6 +51,7 @@ public static class AchievementArt
     public static void Reload()
     {
         loaded.Clear();
+        missing.Clear();
         for (int i = 0; i < placeholders.Length; i++) placeholders[i] = null;
     }
 

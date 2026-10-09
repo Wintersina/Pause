@@ -514,8 +514,8 @@ public sealed class CodexAchievementsView
         float btnW = Mathf.Min(CollectAllWidth, w * .42f), btnH = 72f;
         CodexUi.Place(collectAll.rt, CodexUi.Centered(w * .5f - pad - btnW * .5f, 0f, btnW, btnH));
         float textW = w - btnW - pad * 3f;
-        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + pad, 4f, textW, StripHeight * .5f - 4f));
-        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + pad, -StripHeight * .5f + 8f, textW, StripHeight * .5f - 8f));
+        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + pad + 8f, 2f, textW - 8f, StripHeight * .5f - 12f));
+        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + pad + 8f, -StripHeight * .5f + 10f, textW - 8f, StripHeight * .5f - 14f));
 
         CodexUi.Place(chipsRoot, chipsRect);
         CodexUi.Place(grid, listRect);
