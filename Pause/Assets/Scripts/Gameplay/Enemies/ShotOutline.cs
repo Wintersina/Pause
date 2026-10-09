@@ -21,7 +21,7 @@ using UnityEngine;
 // rings, like the hearts' bold trace -- the light trace (BoldLightTo wide,
 // its tint paled further by the shot: BoldTrace) carries the shot over a
 // mid-dark patch, and a solid dark keyline outside it (to BoldSolidTo, then
-// a short dark under-glow fading out to BoldReach) carries it over pale
+// a crisp anti-aliased edge to BoldReach) carries it over pale
 // cloud. Same hue, same art, same hitbox; the dark worlds keep the hairline
 // look untouched.
 //
@@ -42,9 +42,10 @@ public static class ShotOutline
     // The bold style (bright backdrops), in world units past the silhouette.
     // The light trace keeps (a touch more than) its standard width -- over a
     // mid-dark patch it is what reads -- and the dark band sits outside it.
-    public const float BoldLightTo = .02f;    // the light trace, as wide as the standard one's
-    public const float BoldSolidTo = .042f;   // the dark keyline, solid from BoldLightTo to here (~2.4 px on a 1080 px phone)
-    public const float BoldReach = .05f;      // ... then a short dark under-glow fading out to here
+    public const float BoldLightTo = .022f;   // the light trace, a touch wider than the standard one
+    public const float BoldSolidTo = .038f;   // the dark keyline, solid from BoldLightTo to here (~1.5 px on a 1080 px phone: no wider, or over
+                                              // the bright worlds' dark patches it is a broad dark smudge -- AtomClarityTest's hard edge)
+    public const float BoldReach = .042f;     // ... then only an anti-aliasing fade to here (a shot stays hard-edged: AtomClarityTest)
     public static readonly Color32 BoldKey = new Color32(2, 2, 8, 255);   // near black: 3:1 over a mid-dark patch too
 
     // The bold light ring's tint: the shot's own trace colour paled further
@@ -162,7 +163,7 @@ public static class ShotOutline
             if (d > reach) { px[i] = new Color32(255, 255, 255, 0); continue; }
             if (bold && d > lightEnd)
             {
-                // the bold keyline: solid, then a short dark under-glow fading out
+                // the bold keyline: solid, then an anti-aliased edge
                 float a = d <= solidEnd ? 1f : 1f - (d - solidEnd) / Mathf.Max(.01f, reach - solidEnd);
                 px[i] = new Color32(BoldKey.r, BoldKey.g, BoldKey.b, (byte)Mathf.RoundToInt(255f * Mathf.Clamp01(a)));
                 continue;

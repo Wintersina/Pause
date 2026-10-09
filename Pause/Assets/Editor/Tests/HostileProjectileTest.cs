@@ -435,7 +435,7 @@ public static class HostileProjectileTest
         bool hugs = OutlineHugsArt(art, bold, out hug);
         Check("the bold shot outline keeps the light trace on the drawing and widens the dark keyline (" + boldDark + " dark texels vs " + stdDark +
               "; " + hug + "), reaching " + ShotOutline.BoldReach + " wu (<= .05)",
-              std != bold && boldDark > stdDark * 2 && hugs && ShotOutline.BoldReach <= .05f && ShotOutline.BoldSolidTo < ShotOutline.BoldReach);
+              std != bold && boldDark > stdDark * 3 / 2 && hugs && ShotOutline.BoldReach <= .05f && ShotOutline.BoldSolidTo < ShotOutline.BoldReach);
         var boss = BossCatalog.ForWorld(1);
         var rim = BossArt.ShotRim(boss, BossArt.Bolt0, false);
         var boldRim = BossArt.ShotRim(boss, BossArt.Bolt0, true);
