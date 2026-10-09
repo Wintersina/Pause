@@ -106,7 +106,7 @@ public class TenderBrain : EliteBrain
 {
     public const float FleeScale = 1.7f, Release = 1.4f;
     bool fleeing, init;
-    float trackX;
+    float trackX, fleeSide = 1f;
     public bool Fleeing => fleeing;
     public int Flights { get; private set; }
 
@@ -122,13 +122,16 @@ public class TenderBrain : EliteBrain
         float dist = (Pos - seen).magnitude;
         bool was = fleeing;
         fleeing = dist < def.keepDistance * (was ? Release : 1f);
-        if (fleeing && !was) Flights++;
+        if (fleeing && !was)
+        {
+            Flights++;
+            // away from the pilot, mostly sideways (the top of the view is close); a rail that way: the other
+            fleeSide = Pos.x >= seen.x ? 1f : -1f;
+            if (edge - fleeSide * Pos.x < .8f) fleeSide = -fleeSide;
+        }
         if (fleeing)
         {
-            // away from the pilot, mostly sideways (the top of the view is close)
-            float side = Pos.x >= seen.x ? 1f : -1f;
-            if (Mathf.Abs(Pos.x + side * 1.6f) > edge) side = -side;   // a rail that way: the other
-            trackX = Mathf.Clamp(Pos.x + side * 1.6f, -edge, edge);
+            trackX = Mathf.Clamp(Pos.x + fleeSide * 1.6f, -edge, edge);
             return new Vector2(trackX, Mathf.Max(Pos.y, seen.y + def.keepDistance) + .4f);
         }
         trackX = Mathf.MoveTowards(trackX, Mathf.Clamp(seen.x * .5f, -edge, edge), def.speed * .35f * dt);
@@ -202,9 +205,10 @@ public class IroncladBrain : EliteBrain
 // slots between the rails, one left open: the gap, the slot beside the
 // pilot's toward the middle. The slabs ride the board, drifting hazardSpeed
 // sideways together, block shots (hazardArmour hits) and hurt on touch.
-// Once they settle, a sight line blinks from its keel through the gap and
-// LanceDelay later one fast lance (a bolt) goes down it: wait for the lance,
-// then slip through.
+// As they settle, a sight line blinks from its keel down the gap's lane to
+// the pilot's height and LanceDelay later one fast lance (a bolt) goes down
+// it: keep out of the gap's lane until the lance has passed, then slip
+// into it before the row arrives.
 public class FloeCastAttack : EliteAttack
 {
     public const float SightWidth = .12f, SlabGap = .12f, Stagger = .2f, SightLead = .55f, LanceDelay = .3f, SightLength = 9f;
@@ -236,6 +240,9 @@ public class FloeCastAttack : EliteAttack
     // Where the gap is now: its spot, drifted with the slabs since they settled.
     public Vector2 GapNow => Spot(gap) + Vector2.right * sideways * Mathf.Max(0f, t - settleAt);
 
+    // Where the lance goes: down the gap's lane, at the pilot's height (wherever the row is).
+    public Vector2 LanceAim => new Vector2(GapNow.x, Mathf.Min(ship.Seen.y, ship.Position.y - 1f));
+
     public override bool FriendlyInLine(Vector2 seen) =>
         EliteOnLine(ship.Position, Vector2.down, Mathf.Max(1f, ship.Position.y - seen.y), 1f);
 
@@ -254,7 +261,7 @@ public class FloeCastAttack : EliteAttack
         slot = 2f * edge / (n + 1);
         settleAt = (n - 1) * SlabGap + def.hazardSeconds;
         // the row: lobAhead in front of the pilot when the lance comes (it rides the board meanwhile)
-        row = new Vector2(0f, ship.Seen.y + def.lobAhead + EliteSystem.Scroll * (settleAt + LanceDelay));
+        row = new Vector2(0f, Mathf.Min(ship.Seen.y + def.lobAhead + EliteSystem.Scroll * (settleAt + LanceDelay), EliteSystem.ViewTop - .6f));
         int mine = Mathf.Clamp(Mathf.FloorToInt((ship.Seen.x + edge) / slot), 0, n);
         gap = Mathf.Clamp(mine + (ship.Seen.x > 0f ? -1 : 1), 0, n);
         if (gap == mine) gap = mine == 0 ? 1 : mine - 1;
@@ -281,7 +288,7 @@ public class FloeCastAttack : EliteAttack
             slotsDone++;
         }
         Vector2 keel = ship.MuzzleWorld(Keel);
-        float deg = Deg(GapNow - keel);
+        float deg = Deg(LanceAim - keel);
         if (!lanced && t >= LanceAt - SightLead)
         {
             // the sight through the gap, blinking faster just before the lance

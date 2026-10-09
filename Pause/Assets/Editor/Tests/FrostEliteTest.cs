@@ -369,18 +369,12 @@ public static class FrostEliteTest
         bool through = false;
         if (lance != null)
         {
-            for (int i = 0; i < 40 && lance.Active; i++)
-            {
-                Vector2 g = cast.GapNow;
-                Vector2 p0 = lance.transform.position;
-                EliteSystem.Step(Dt);
-                if (!lance.Active) break;
-                Vector2 p1 = lance.transform.position;
-                g = cast.Row;   // (the row's height)
-                if ((p0.y - cast.Row.y) * (p1.y - cast.Row.y) <= 0f) through |= Mathf.Abs(Mathf.Lerp(p0.x, p1.x, Mathf.InverseLerp(p0.y, p1.y, cast.Row.y)) - cast.GapNow.x) < .3f;
-            }
+            // straight down its line: it reaches the pilot's height in the gap's lane
+            Vector2 a = lance.LaunchedAt, v = lance.Velocity;
+            float k = v.y < -.01f ? (pilot.position.y - a.y) / v.y : -1f;
+            through = k > 0f && Mathf.Abs(a.x + v.x * k - cast.GapNow.x) < .3f;
         }
-        Check("... the lance goes down the gap", through);
+        Check("... the lance goes down the gap's lane to the pilot's height", through);
         // the slabs drift and soak shots
         var slab = cast.Slab(0);
         Vector2 s0 = slab != null ? (Vector2)slab.transform.position : Vector2.zero;
