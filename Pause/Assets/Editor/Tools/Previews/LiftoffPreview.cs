@@ -106,8 +106,8 @@ public static class LiftoffPreview
         var wb = WorldBackdrop.Create(theme.displayName);
         wb.Show(theme.displayName, false);
         // the lift-off comes after the boss: the level's opening cloud ceiling
-        // (FrostTuning.CeilingClearAt) is long gone by then
-        for (int i = 0; i < (int)((FrostTuning.CeilingClearAt + 4f) / Dt); i++) wb.Step(Dt);
+        // (FrostTuning.CeilingClearSeconds) is long gone by then
+        for (int i = 0; i < (int)((FrostTuning.CeilingClearSeconds + 4f) / Dt); i++) wb.Step(Dt);
 
         var ship = new GameObject("~LoSpawner").AddComponent<spawnShips>().Spawn(ShipId.Starter);
         ship.transform.position = new Vector3(.9f, ShipReach.StartY + .6f, 0f);

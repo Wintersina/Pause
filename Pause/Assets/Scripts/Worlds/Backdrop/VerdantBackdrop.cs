@@ -27,8 +27,10 @@ using UnityEngine;
 //              hangar, river bay, pod pad, tower bay, hatch), shut until the
 //              launch tell opens them.
 //   WEATHER    the CEILING of spore cloud, thick at the start (continuing
-//              the planetfall's cloud break) and gone by CeilingClearAt;
-//              wisps, low mist, POLLEN GUSTS sweeping across now and then,
+//              the planetfall's cloud break), held CeilingHold s, then
+//              clearing fast, gone by CeilingClearSeconds (CloudCover); then
+//              only a light scattering of wisps and low mist drifting with the
+//              wind (VerdantTuning.CloudDensity), POLLEN GUSTS sweeping across now and then,
 //              drifting spores, and fireflies (many on the night side).
 //
 // Everything sits far below gameplay (BackdropCatalog.BaseOrder); the pools
@@ -120,15 +122,24 @@ public static class VerdantTuning
     public const int SiteIdBase = 600;
 
     // ---- weather (the atlas bakes its translucency in: banks <= 80/255) ----
-    public static float CeilingHold = 5f, CeilingClearAt = 30f;
+    // CLOUD COVER: the knobs (CloudCover documents the timeline). How much
+    // cloud drifts over the ground once the ceiling has cleared: 1 = a
+    // light scattering (default), 2 = about twice as much, 0 = none.
+    public static float CloudDensity = CloudCover.Density;
+    public static float CeilingHold = CloudCover.CeilingHold;                   // s at full thickness after landing
+    public static float CeilingClearSeconds = CloudCover.CeilingClearSeconds;   // s: the ceiling is gone
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f, CeilingGap = 1.5f, CeilingLowShare = .55f;
     public static float CeilingThicken = 6f;
     // ... and paled toward the planetfall's lime-white cloud break
     public static float CeilingLift = 2.1f, CeilingSaturation = .6f;
     // the banks are painted teal-green: tinted toward the deck's lime-white
     public static Color CeilingTint = new Color(1f, 1f, .78f, 1f);
-    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .7f, WispAlphaMax = .95f;
-    public static float MistAlphaMin = .6f, MistAlphaMax = .85f;
+    // wisps and mist at CloudDensity 1 (density divides the gaps, lifts the alpha);
+    // they drift downwind (Wind)
+    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .35f, WispAlphaMax = .55f;
+    public static float WispEveryMin = 6f, WispEveryMax = 10f, WispDrift = .18f;
+    public static float MistAlphaMin = .35f, MistAlphaMax = .5f;
+    public static float MistEveryMin = 14f, MistEveryMax = 22f, MistDrift = .08f;
     public static float PollenFirst = 12f, PollenEveryMin = 14f, PollenEveryMax = 22f;
     public static int PollenSheets = 3;
     public static float PollenStagger = .6f, PollenSpeed = 3.4f, PollenMin = 4.5f, PollenMax = 6f, PollenMaxAlpha = 1f;
@@ -151,8 +162,7 @@ public class VerdantDirector : PlanetDirector
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
     int lastCluster = -1, lastLone = -1;
     bool night;
-    readonly Timer mistTimer = new Timer(8f, 14f, 2.5f);
-    readonly Timer wispTimer = new Timer(4.5f, 8f, 6f);
+    float mistIn = 2.5f, wispIn = 6f;
     readonly Timer gustTimer = new Timer(VerdantTuning.PollenEveryMin, VerdantTuning.PollenEveryMax, VerdantTuning.PollenFirst);
     int sheetsLeft;
     float sheetIn;
@@ -288,13 +298,8 @@ public class VerdantDirector : PlanetDirector
         return s;
     }
 
-    // 1 while the ceiling is thick, falling smoothly to 0 at CeilingClearAt.
-    public static float CeilingDensity(float t)
-    {
-        if (t <= VerdantTuning.CeilingHold) return 1f;
-        float x = Mathf.Clamp01((t - VerdantTuning.CeilingHold) / Mathf.Max(.01f, VerdantTuning.CeilingClearAt - VerdantTuning.CeilingHold));
-        return 1f - x * x * (3f - 2f * x);
-    }
+    // 1 while the ceiling is thick, falling fast to 0 at CeilingClearSeconds (CloudCover.Ceiling).
+    public static float CeilingDensity(float t) { return BackdropCatalog.For("Verdant").CeilingDensity(t); }
 
     public float CeilingCover
     {
@@ -341,14 +346,15 @@ public class VerdantDirector : PlanetDirector
             else groundGap = groundTravel + .25f;     // nothing fitted: look again a little further on
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
-        float density = CeilingDensity(clock);
-        if (ceilingTravel >= VerdantTuning.CeilingGap && density > .05f)
+        float density = set.Spec.CeilingDensity(clock);
+        if (ceilingTravel >= VerdantTuning.CeilingGap && density > CloudCover.BankSpawnFloor)
         {
             ceilingTravel = 0f;
             SpawnBank(Rand(-HalfW * .8f, HalfW * .8f), float.NaN);
         }
-        if (mistTimer.Tick(dt, rng)) SpawnMist(float.NaN);
-        if (wispTimer.Tick(dt, rng)) SpawnWisp();
+        float air = set.Spec.CloudDensity();
+        if (CloudCover.Tick(ref mistIn, dt, air, VerdantTuning.MistEveryMin, VerdantTuning.MistEveryMax, rng)) SpawnMist(float.NaN);
+        if (CloudCover.Tick(ref wispIn, dt, air, VerdantTuning.WispEveryMin, VerdantTuning.WispEveryMax, rng)) SpawnWisp();
         if (gustTimer.Tick(dt, rng)) ForceGust();
         if (sheetsLeft > 0)
         {
@@ -372,6 +378,7 @@ public class VerdantDirector : PlanetDirector
         {
             if (!b.active) continue;
             if (density <= 0f) { Despawn(b); continue; }
+            b.x += Mathf.Sign(b.x == 0f ? 1f : b.x) * CloudCover.PartSpeed * (1f - density) * dt;    // parting from the middle
             if (!Drift(b, dt, v)) continue;
             float y01 = Mathf.Clamp01((b.y / HalfH + 1f) * .5f);
             float low = Mathf.Lerp(VerdantTuning.CeilingLowShare, 1f, y01 * y01 * (3f - 2f * y01));
@@ -859,9 +866,9 @@ public class VerdantDirector : PlanetDirector
         if (Chance(.5)) w.body.localScale = new Vector3(-1f, 1f, 1f);
         w.x = Rand(-HalfW * .7f, HalfW * .7f);
         w.y = SpawnY(w.size);
-        w.vx = Rand(-.15f, .15f);
+        w.vx = VerdantTuning.Wind * VerdantTuning.WispDrift * Rand(.7f, 1.3f);
         w.rate = set.Spec.Rate("wisps");
-        w.phase = Rand(VerdantTuning.WispAlphaMin, VerdantTuning.WispAlphaMax);
+        w.phase = Rand(VerdantTuning.WispAlphaMin, VerdantTuning.WispAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
         Place(w);
         Tinted(w, 0f);
     }
@@ -875,9 +882,9 @@ public class VerdantDirector : PlanetDirector
         if (Chance(.5)) m.body.localScale = new Vector3(-1f, 1f, 1f);
         m.x = Rand(-HalfW * .3f, HalfW * .3f);
         m.y = float.IsNaN(y) ? SpawnY(m.size * .5f) : y;
-        m.vx = Rand(-.1f, .1f);
+        m.vx = VerdantTuning.Wind * VerdantTuning.MistDrift * Rand(.6f, 1.4f);
         m.rate = set.Spec.Rate("mist");
-        m.phase = Rand(VerdantTuning.MistAlphaMin, VerdantTuning.MistAlphaMax);
+        m.phase = Rand(VerdantTuning.MistAlphaMin, VerdantTuning.MistAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
         Place(m);
         Tinted(m, 0f);
     }
