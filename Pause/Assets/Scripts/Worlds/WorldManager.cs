@@ -36,8 +36,9 @@ using UnityEngine.SceneManagement;
 //
 // On arrival: speed resets to the ship's start speed (or the loop's arrival
 // speed), pauses and star dust carry over. Progress is remembered, so a later
-// run starts on the furthest planet reached -- except REPLAY, which flies the
-// same run again from the world it began in (RunStartWorld).
+// run starts on the furthest planet reached (or the world the player chose in
+// Options, PlayerStartWorld) -- except REPLAY, which flies the same run again
+// from the world it began in (RunStartWorld).
 public class WorldManager : MonoBehaviour
 {
     public const string PrefsCurrentWorld = "currentWorld";
@@ -292,7 +293,17 @@ public class WorldManager : MonoBehaviour
     public static int RunStartWorld(bool startAtHighestUnlocked)
     {
         if (replayWorld >= 0) return Mathf.Clamp(replayWorld, 0, Worlds.Length - 1);
+        if (UsesPlayerStartWorld(startAtHighestUnlocked)) return PlayerStartWorld.Chosen();
         return DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
+    }
+
+    // The player's own START WORLD choice (Options) decides the run, below the
+    // replay pin and the developer pick.
+    static bool UsesPlayerStartWorld(bool startAtHighestUnlocked)
+    {
+        if (!startAtHighestUnlocked) return false;
+        if (DeveloperUnlocks.Enabled) return false;   // developer runs start by the developer's rule
+        return PlayerStartWorld.Chosen() >= 0;
     }
 
     // Where RunStartWorld got its answer, for the run-start log line.
@@ -300,6 +311,7 @@ public class WorldManager : MonoBehaviour
     {
         if (replayWorld >= 0) return "replay pin";
         if (DeveloperUnlocks.Enabled && DeveloperUnlocks.HasSelectedWorld) return "developer pick";
+        if (UsesPlayerStartWorld(startAtHighestUnlocked)) return "player start world";
         return startAtHighestUnlocked ? "furthest planet" : "journey (Space)";
     }
 
@@ -314,6 +326,7 @@ public class WorldManager : MonoBehaviour
         Debug.Log("[WorldManager] run start: " + Current.displayName + " (index " + CurrentIndex + ", source " + source +
                   "; saved highest " + PlayerPrefs.GetInt(PrefsHighestWorld, 0) + ", dev " + DeveloperUnlocks.Enabled +
                   ", dev pick " + (DeveloperUnlocks.HasSelectedWorld ? PlayerPrefs.GetInt(DeveloperUnlocks.SelectedWorldKey).ToString() : "none") +
+                  ", player pick " + (PlayerStartWorld.HasChoice ? PlayerPrefs.GetInt(PlayerStartWorld.Key).ToString() : "none") +
                   ", boss rush " + BossDev.RushMode + ", loop " + RunLoop.Index + ")");
         // The final world's portal returns here (usually Space, or the developer's pick).
         RunLoop.StartWorld = CurrentIndex;

@@ -387,7 +387,7 @@ public static class TestHarness
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed", RunScore.BestScoreKey,
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
-            DeveloperUnlocks.ChoiceBuildKey,
+            DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key,
             Codex.PrefsKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);

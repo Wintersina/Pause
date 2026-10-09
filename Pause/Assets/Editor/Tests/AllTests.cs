@@ -76,6 +76,7 @@ public static class AllTests
         ("DeveloperUiStartTest", DeveloperUiStartTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("DifficultyRetuneTest", DifficultyRetuneTest.Execute),
+        ("PlayerStartWorldTest", PlayerStartWorldTest.Execute),
         ("EliteTest", EliteTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),

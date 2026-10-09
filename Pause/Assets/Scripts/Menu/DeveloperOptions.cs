@@ -66,7 +66,7 @@ public class DeveloperOptions : MonoBehaviour
         Refresh();
     }
 
-    static GameObject Clone(GameObject template, Transform parent, string name,
+    internal static GameObject Clone(GameObject template, Transform parent, string name,
                             Vector2 position, Vector2 size, UnityEngine.Events.UnityAction onClick)
     {
         var go = Instantiate(template, parent, false);

@@ -29,6 +29,7 @@ public class ProgressSnapshot
     public const string CurrentWorldKey = "currentWorld";
     public const string HighestWorldKey = "highestWorld";
     public const string TutorialKey = "HasDoneTut";
+    public const string StartWorldKey = PlayerStartWorld.Key;
 
     [Serializable]
     public struct Counter
@@ -48,6 +49,10 @@ public class ProgressSnapshot
     public int bestScore;
     public int currentWorld;
     public int highestWorld;
+    // The player's START WORLD choice (PlayerStartWorld), stored as world + 1
+    // so 0 is "never chosen" (older saves lack it). Clamped to highestWorld
+    // when read, so a merge can't strand a run on an unreached world.
+    public int startWorld;
     public bool hasDoneTut;
     public Counter[] counters = new Counter[0];
     // Hull skins (ShipSkins). Owned: id * SkinCode + skin, for each bought
@@ -92,6 +97,7 @@ public class ProgressSnapshot
         s.spawnShip = PlayerPrefs.GetInt(SpawnShipKey, 0);
         s.currentWorld = RealInt(CurrentWorldKey);
         s.highestWorld = RealInt(HighestWorldKey);
+        s.startWorld = PlayerPrefs.HasKey(StartWorldKey) ? PlayerPrefs.GetInt(StartWorldKey, 0) + 1 : 0;
         s.hasDoneTut = RealString(TutorialKey) == "true";
 
         var ships = new List<int>();
@@ -149,6 +155,8 @@ public class ProgressSnapshot
         SetOrDelete(SpawnShipKey, spawnShip);
         WriteRealInt(CurrentWorldKey, currentWorld, currentWorld != 0);
         WriteRealInt(HighestWorldKey, highestWorld, highestWorld != 0);
+        if (startWorld > 0) PlayerPrefs.SetInt(StartWorldKey, startWorld - 1);
+        else PlayerPrefs.DeleteKey(StartWorldKey);
         WriteRealString(TutorialKey, "true", hasDoneTut);
 
         var owned = new HashSet<int>(boughtShips ?? new int[0]);

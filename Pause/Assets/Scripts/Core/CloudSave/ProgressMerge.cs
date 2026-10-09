@@ -11,7 +11,8 @@ using System.Collections.Generic;
 //   HasDoneTut                       true if either side has it
 //   owned hull skins                 union
 //   currency, spawnShip,             from whichever side has the newer
-//   currentWorld, equipped skins     savedAtUtc (local wins a tie)
+//   currentWorld, startWorld,        savedAtUtc (local wins a tie)
+//   equipped skins
 //
 // The result is stamped with the newer of the two timestamps.
 public static class ProgressMerge
@@ -49,6 +50,7 @@ public static class ProgressMerge
             currency = newer.currency,
             spawnShip = newer.spawnShip,
             currentWorld = Math.Min(newer.currentWorld, highestWorld),
+            startWorld = newer.startWorld,
             boughtShips = new List<int>(ships).ToArray(),
             highestSpeed = Math.Max(local.highestSpeed, cloud.highestSpeed),
             bestScore = Math.Max(local.bestScore, cloud.bestScore),
