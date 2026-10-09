@@ -761,9 +761,10 @@ public static class HazardSizeTest
                             {
                                 overlapFrames++;
                                 if (firstOverlap == null)
-                                    firstOverlap = string.Format("world {0} scroll {1} t={2:F2}: {3} ({4:F2}x) at {5} and {6} ({7:F2}x) at {8}", w, v, t,
+                                    firstOverlap = string.Format("world {0} scroll {1} t={2:F2}: {3} ({4:F2}x) at {5} and {6} ({7:F2}x) at {8}{9}", w, v, t,
                                                                  a.name, EnemyIdentity.ScaleOf(a.gameObject), (Vector2)a.transform.position,
-                                                                 b.name, EnemyIdentity.ScaleOf(b.gameObject), (Vector2)b.transform.position);
+                                                                 b.name, EnemyIdentity.ScaleOf(b.gameObject), (Vector2)b.transform.position,
+                                                                 Describe(a) + Describe(b));
                             }
                         }
                         Debug.Log(string.Format("[HAZARD-SIZE] run world {0} scroll {1} density {2:F2}: spawned {3}, deferred {4}, dropped {5}",
@@ -791,6 +792,14 @@ public static class HazardSizeTest
               rowsChecked > 1000 && rowsShort == 0);
         Check("no rock's collider ever crosses the lane edge into the rails (" + railFrames + " frames" +
               (firstRail != null ? "; first: " + firstRail : "") + ")", railFrames == 0);
+    }
+
+    // (a rail mine's ride, for a failure line)
+    static string Describe(SpawnFootprint f)
+    {
+        RailMineMount m;
+        if (f == null || !f.TryGetComponent(out m)) return "";
+        return string.Format(" [{0} ride {1} {2:F2} slide {3:F2} shove {4:F2}]", f.name, m.RideState, m.Ride, m.Slide, m.Shove);
     }
 
     // ---- 9: the threat table ------------------------------------------------------------

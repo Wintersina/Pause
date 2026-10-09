@@ -17,6 +17,8 @@ using UnityEngine;
 //             down each frame, out of the view, no third beam, never gone
 //             early (no vanishing)
 //   FREEZE    a world that is not stepping (pause, a transition) leaves it put
+//   ROOM      a riding mine moves against the board only into free room: a rock
+//             the board brings down beside its rail never ends up inside it
 public static class RailMinePacingTest
 {
     static int fails;
@@ -46,6 +48,7 @@ public static class RailMinePacingTest
             Ride(0, true, .35f, true);
             Ride(1, false, .2f, true);
             Freeze();
+            foreach (float speed in Speeds) Room(speed);
         }
         finally
         {
@@ -189,5 +192,49 @@ public static class RailMinePacingTest
               mount.RideState == RailMineMount.RidePhase.Holding && go.transform.position == before && mount.Ride == rideBefore);
         Object.DestroyImmediate(go);
         Object.DestroyImmediate(rail);
+    }
+
+    // A rock coming down the lane beside a riding mine's rail: the mine holds
+    // against the board, the rock does not, so the mine must give way (go with
+    // the board) rather than let the rock through its body.
+    static void Room(float speed)
+    {
+        Fresh(speed);
+        var def = EnemyRoster.One(0, EnemyRole.Mine);
+        var rockDef = EnemyRoster.One(0, EnemyRole.Rock);
+        float x = enmiesOnBoard.WorldRailX(false);
+        float scroll = speed * BoardRoll.BoardScroll;
+        var rail = new GameObject("RailMineLane");
+        rail.transform.position = new Vector3(x, 6f, 0f);
+        var scroller = rail.AddComponent<RailLaneScroller>();
+        var go = EnemyFactory.Create(def, new Vector3(x, 6f, 0f), Quaternion.identity);
+        var brain = go.GetComponent<EnemyBrain>();
+        var mount = go.AddComponent<RailMineMount>();
+        mount.MountTo(rail.transform);
+        mount.brain = brain;
+        brain.TargetOverride = ship;
+        // a rock that will meet the mine at its hold row (flush against the rail)
+        var rock = EnemyFactory.Create(rockDef, new Vector3(x + .55f, 6f + 3f, 0f), Quaternion.identity);
+        var rockFoot = rock.GetComponent<SpawnFootprint>();
+        int overlaps = 0, ridden = 0;
+        for (int i = 0; i < 60 * 25 && go != null; i++)
+        {
+            clock += Dt;
+            SpawnSpace.ClockOverride = clock;
+            rail.transform.position += Vector3.down * (scroll * Dt);
+            rock.transform.position += Vector3.down * (scroll * Dt);   // an ordinary hazard: it goes with the board
+            if (scroller != null) TestHarness.Send(scroller, "Update");
+            brain.Step(Dt);
+            TestHarness.Send(mount, "LateUpdate");
+            SpawnFootprint a, b;
+            if (SpawnSpace.AnyBodiesOverlap(out a, out b)) overlaps++;
+            if (mount.RideState == RailMineMount.RidePhase.Holding) ridden++;
+            if (go.transform.position.y < CameraFit.ViewBottom - 1f) break;
+        }
+        Check("a rock beside the rail @" + speed.ToString("F2") + " (" + scroll.ToString("F1") + " u/s): the riding mine never overlaps it (" +
+              overlaps + " frames overlapping; rode " + (ridden * Dt).ToString("F1") + " s)", rockFoot != null && overlaps == 0);
+        if (go != null) Object.DestroyImmediate(go);
+        if (rock != null) Object.DestroyImmediate(rock);
+        if (rail != null) Object.DestroyImmediate(rail);
     }
 }

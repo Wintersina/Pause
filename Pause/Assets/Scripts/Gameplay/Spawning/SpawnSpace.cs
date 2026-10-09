@@ -300,7 +300,38 @@ public static class SpawnSpace
         }
         if (ClearForSteerer(self, carried, half)) return carried;
         if (ClearForSteerer(self, from, half)) return from;
+        // Boxed in: every envelope-clear spot is gone. Still never into a body:
+        // the nearest spot that touches none -- where it wishes, or carried
+        // down with the board / holding its place, each as it is or a few
+        // dodge steps sideways (away from the wish's side first).
+        if (ClearOfBodies(self, wish, half)) return wish;
+        if (ClearOfBodies(self, sideways, half)) return sideways;
+        bool right1 = wish.x >= from.x;
+        for (int s = 0; s <= 6; s++)
+            for (int h = 0; h < 2; h++)
+            {
+                float y = h == 0 ? carried.y : from.y;
+                float step = dodgeStep * s;
+                Vector2 first = new Vector2(Mathf.Clamp(from.x + (right1 ? step : -step), -laneLimit, laneLimit), y);
+                Vector2 second = new Vector2(Mathf.Clamp(from.x + (right1 ? -step : step), -laneLimit, laneLimit), y);
+                if (ClearOfBodies(self, first, half)) return first;
+                if (s > 0 && ClearOfBodies(self, second, half)) return second;
+            }
         return carried;
+    }
+
+    // Touching no other enemy's body at this instant (a hair of margin, so
+    // resting against one never reads as overlap through rounding)?
+    static bool ClearOfBodies(SpawnFootprint self, Vector2 at, Vector2 half)
+    {
+        Rect body = BodyRect(at, half);
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var f = enemies[i];
+            if (f == null || f == self) continue;
+            if (Overlaps(body, f.Body, .01f)) return false;
+        }
+        return true;
     }
 
     // Clear of every other enemy's steering envelope at this instant?
@@ -312,6 +343,19 @@ public static class SpawnSpace
             var f = enemies[i];
             if (f == null || f == self) continue;
             if (Overlaps(body, f.Envelope(), Margin)) return false;
+        }
+        return true;
+    }
+
+    // Clear of every other enemy's envelope, for a sweep (a rail mine's whole
+    // slide, riding against the board)?
+    public static bool ClearForSweep(SpawnFootprint self, Rect sweep)
+    {
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var f = enemies[i];
+            if (f == null || f == self) continue;
+            if (Overlaps(sweep, f.Envelope(), Margin)) return false;
         }
         return true;
     }

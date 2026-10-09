@@ -1061,18 +1061,38 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
                     break;
                 }
                 float cap = RideSpeedCap * dt;
-                Ride += Mathf.Min(scroll, cap);            // keep pace with the board ...
-                float err = HoldRow(ship) - (BodyY + Slide + Shove + Ride);   // (its slide included: the whole mine stays in the band)
+                float move = Mathf.Min(scroll, cap);       // keep pace with the board ...
+                float err = HoldRow(ship) - (BodyY + Slide + Shove + Ride + move);   // (its slide included: the whole mine stays in the band)
                 float step = err * (1f - Mathf.Exp(-RideEase * dt));
-                Ride += Mathf.Clamp(step, -cap, cap);      // ... and settle on the ship's row
+                move += Mathf.Clamp(step, -cap, cap);      // ... and settle on the ship's row
+                Ride += Slip(move, scroll);
                 break;
             }
             case RidePhase.Released:
                 fallV += FallAccel * dt;
-                Ride -= fallV * dt;
+                Ride += Slip(-fallV * dt, scroll);
                 break;
         }
     }
+
+    // The mine moves against the board only into room that is free. Every
+    // other body scrolls with the board, so a mine that holds (or hurries off)
+    // sweeps through whatever the board brings, and its slide (Patrol / Creep)
+    // was only ever cleared where it was spawned. It may move `move` against
+    // the board only where its whole slide envelope, a step further the same
+    // way (and the board's step beyond), stays clear of every other enemy's
+    // envelope (SpawnSpace's own rule). Otherwise it goes with the board for
+    // the frame, as an ordinary hazard does, and tries again the next.
+    float Slip(float move, float scroll)
+    {
+        if (Mathf.Abs(move) < 1e-5f) return 0f;
+        if (foot == null && !TryGetComponent(out foot)) return move;
+        float look = move + Mathf.Sign(move) * Mathf.Max(scroll, .05f);
+        var at = new Vector2(transform.position.x, BodyY + Slide + Shove + Ride + look);
+        Rect swept = EnemyBrain.Widen(brain, at, foot.half);
+        return SpawnSpace.ClearForSweep(foot, swept) ? move : 0f;
+    }
+    SpawnFootprint foot;
 
     // How far along its rail the mine has slid from where it was clamped
     // (EnemyBrain: Patrol / Creep), and the brain whose envelope bounds it.
