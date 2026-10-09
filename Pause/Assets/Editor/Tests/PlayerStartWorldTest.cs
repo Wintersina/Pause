@@ -145,7 +145,7 @@ public static class PlayerStartWorldTest
         Check(tag + "highestWorld not lowered (" + Highest + " >= " + highestBefore + ")", Highest == highestBefore);
         var bd = WorldBackdrop.Instance;
         if (bd != null && bd.Current != null)
-            Check(tag + "backdrop is " + Name(expect), bd.Current.Spec.world == Name(expect));
+            Check(tag + "backdrop is " + Name(expect), bd.Current.Spec.world == BackdropCatalog.For(Name(expect)).world);   // (Tide: Ember's until its own)
         End(wm);
     }
 

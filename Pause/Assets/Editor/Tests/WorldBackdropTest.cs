@@ -304,8 +304,9 @@ public static class WorldBackdropTest
     // Every world resolves to its own complete set; rates rise far -> near.
     static void CheckCatalog()
     {
-        foreach (var theme in WorldManager.Worlds)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)   // Tide joins when its release switch flips (it flies Ember's until then)
         {
+            var theme = WorldManager.Worlds[w];
             var spec = BackdropCatalog.For(theme.displayName);
             Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).

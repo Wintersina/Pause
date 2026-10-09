@@ -1038,8 +1038,9 @@ public static class RailMineLaserTest
         foreach (var id in Aspects)
         {
             var d = FitDevice.Find(id);
-            foreach (var theme in WorldManager.Worlds)
+            for (int liveWorld = 0; liveWorld < WorldManager.LiveWorldCount; liveWorld++)   // Tide has no mine row of its own yet
             {
+                var theme = WorldManager.Worlds[liveWorld];
                 ScreenInfo.ClearOverride();
                 ScreenInfo.Override(d.w, d.h, d.Safe, d.Cutouts, d.ReportedDpi, d.ios);
                 var cam = Camera.main;
