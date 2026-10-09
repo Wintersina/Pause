@@ -601,7 +601,7 @@ public static class BossHeartsTest
         // its brightened ground once the ceiling has cleared.
         string[] worlds = { "Space", "Frost", "Verdant", "Ember", "Frost" };
         int[] index = { 0, 1, 2, 3, 1 };
-        float[] seconds = { 10f, 10f, 10f, 10f, FrostTuning.CeilingClearAt + 5f };
+        float[] seconds = { 10f, 10f, 10f, 10f, FrostTuning.CeilingClearSeconds + 5f };
         for (int pass = 0; pass < worlds.Length; pass++)
         {
             int w = index[pass];

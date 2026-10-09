@@ -5,7 +5,8 @@ using UnityEngine;
 // The Frost v3 backdrop (FrostDirector, FrostBackdropSelection,
 // FrostAmbientCatalog / AmbientEmitters): one of four ground sets per
 // landing, never the same twice running; the cloud ceiling thick at the
-// start and gone by ~35 s; blizzard gusts that come round and stay
+// start, clearing fast and gone by ~15 s (then a light scattering of cloud:
+// CloudCoverMeter); blizzard gusts that come round and stay
 // translucent; every layer behind gameplay; the ambient loops riding their
 // landmarks (and nothing, without an error, when their atlas is missing);
 // the elites' launch sites -- offered in the upper view, opening for the
@@ -37,6 +38,7 @@ public static class FrostBackdropTest
             Catalog();
             Selection();
             Weather();
+            Clouds();
             Brightness();
             Ambient();
             Sites();
@@ -174,22 +176,31 @@ public static class FrostBackdropTest
         var d = Director(wb);
         Check("Frost builds its director on the v3 art", d != null && wb.Current.Complete);
         if (d == null) return;
+        // the ceiling's timeline (CloudCover): thick through the hold, <= 10%
+        // of the view covered by 10 s, gone by {clear} s
         Run(wb, .5f);
-        float c0 = d.CeilingCover, a0 = d.CeilingBankAlpha;
-        Run(wb, 14.5f);
-        float c15 = d.CeilingCover, a15 = d.CeilingBankAlpha;
-        Run(wb, 20f);
-        float c35 = d.CeilingCover;
-        int live35 = d.Ceiling.ActiveCount;
+        float c0 = d.CeilingCover;
+        Run(wb, 3.5f);
+        float c4 = d.CeilingCover;
+        var cover4 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
+        Run(wb, 6f);
+        var cover10 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
+        var spec = BackdropCatalog.For("Frost");
+        float clear = spec.CeilingClearSeconds();
+        Run(wb, clear + 1f - 10f);
+        float cGone = d.CeilingCover;
+        int liveGone = d.Ceiling.ActiveCount;
         Check("the cloud ceiling is thick at the start (" + c0.ToString("F2") + " of the view >= .35)", c0 >= .35f);
-        // (the start's ceiling covers the whole view, so the cover alone
-        // saturates: thinning shows in the banks' alpha too)
-        Check("... thinning by 15 s (cover " + c15.ToString("F2") + ", bank alpha " + a0.ToString("F2") + " -> " + a15.ToString("F2") + ")",
-              c15 < c0 * .8f || a15 < a0 * .8f);
-        Check("... and gone by 35 s (" + c35.ToString("F3") + ", " + live35 + " banks)", c35 < .02f && live35 == 0);
-        Check("ceiling density: 1 at the start, 0 by " + FrostTuning.CeilingClearAt + " s",
-              FrostDirector.CeilingDensity(0f) == 1f && FrostDirector.CeilingDensity(FrostTuning.CeilingClearAt) == 0f &&
-              FrostDirector.CeilingDensity(18f) > 0f && FrostDirector.CeilingDensity(18f) < 1f);
+        Check("... and still thick at 4 s (" + c4.ToString("F2") + ", " + cover4.covered.ToString("F2") + " of the view under cloud >= .5)",
+              c4 >= .35f && cover4.covered >= .5f);
+        Check("... clearing fast: <= .10 of the view under the ceiling at 10 s (" + cover10.covered.ToString("F3") + ")", cover10.covered <= .10f);
+        Check("... and gone by " + (clear + 1f).ToString("F0") + " s (" + cGone.ToString("F3") + ", " + liveGone + " banks)",
+              cGone < .02f && liveGone == 0 && clear <= 16f);
+        Check("ceiling density: 1 through the " + spec.CeilingHold() + " s hold, 0 at " + clear + " s",
+              FrostDirector.CeilingDensity(0f) == 1f && FrostDirector.CeilingDensity(spec.CeilingHold()) == 1f &&
+              FrostDirector.CeilingDensity(clear) == 0f && FrostDirector.CeilingDensity(10f) < .2f && FrostDirector.CeilingDensity(6f) > .3f);
+        Check("Ember (no knobs yet) inherits the shared cloud defaults",
+              BackdropCatalog.For("Ember").CloudDensity() == CloudCover.Density && BackdropCatalog.For("Ember").CeilingClearSeconds() == CloudCover.CeilingClearSeconds);
 
         // blizzard gusts: periodic, translucent, behind gameplay
         int g0 = d.Gusts;
@@ -247,6 +258,58 @@ public static class FrostBackdropTest
                 }
         });
         Check("ground pieces never stack on each other (worst overlap " + worst.ToString("F2") + " of the art's core)", worst < .2f);
+    }
+
+    // ---- cloud cover after the ceiling (CloudCover, FrostTuning.CloudDensity) ----------
+
+    // User, 2026-10-08: "too many clouds covering the backdrop; lower the
+    // amount of clouds after the first 10 seconds". Every variant, three
+    // seeds: the share of the view under cloud (CloudCoverMeter: ceiling,
+    // wisps, mist at opacity >= .1) at 12 / 20 / 40 / 70 s averages <= 15%,
+    // and no cloud parks over the centre lane for more than ~2 s.
+    public const float MaxCloudCover = .15f, MaxLaneSeconds = 2.5f;
+
+    static void Clouds()
+    {
+        float worstMean = 0f, worstLane = 0f, sum = 0f;
+        int runs = 0;
+        string detail = "";
+        for (int v = 1; v <= 4; v++)
+            for (int seed = 1; seed <= 3; seed++)
+            {
+                var wb = Fresh(v);
+                var d = Director(wb);
+                if (d == null) { Check("Frost director", false); return; }
+                CloudCoverMeter.Reseed(d, 9100 + 17 * seed + v);
+                var st = CloudCoverMeter.Run(wb, Dt);
+                worstMean = Mathf.Max(worstMean, st.covered);
+                worstLane = Mathf.Max(worstLane, st.laneRun);
+                sum += st.covered; runs++;
+                detail += " v" + v + ":" + st.covered.ToString("F2");
+            }
+        Debug.Log("[FBD] cloud cover after the ceiling (12/20/40/70 s, mean of runs " + (sum / runs).ToString("F3") + "):" + detail);
+        Check("after the ceiling, clouds cover <= " + MaxCloudCover + " of the view on average in every variant (worst run " +
+              worstMean.ToString("F3") + ", mean " + (sum / runs).ToString("F3") + ")", worstMean <= MaxCloudCover);
+        Check("... and never park over the centre lane (longest cover " + worstLane.ToString("F1") + " s <= " + MaxLaneSeconds + ")",
+              worstLane <= MaxLaneSeconds);
+
+        // the knob: more density = more cloud, 0 = none after the ceiling
+        float saved = FrostTuning.CloudDensity;
+        try
+        {
+            float[] at = new float[3];
+            float[] knob = { 0f, 1f, 2.5f };
+            for (int k = 0; k < 3; k++)
+            {
+                FrostTuning.CloudDensity = knob[k];
+                var wb = Fresh(1);
+                CloudCoverMeter.Reseed(Director(wb), 4242);
+                at[k] = CloudCoverMeter.Run(wb, Dt).covered;
+            }
+            Check("FrostTuning.CloudDensity is the knob (0 / 1 / 2.5 -> " + at[0].ToString("F3") + " / " + at[1].ToString("F3") + " / " + at[2].ToString("F3") + ")",
+                  at[0] < .01f && at[2] > at[1]);
+        }
+        finally { FrostTuning.CloudDensity = saved; }
     }
 
     // ---- brightness (FrostTuning.Brightness, BackdropGrade) ----------------------------

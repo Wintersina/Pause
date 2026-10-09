@@ -392,7 +392,7 @@ public static class OpenPortalTest
             Check("... with loop 2's density (x" + LoopDifficulty.DensityScale + ")", Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
 
             // and round again: the final world's portal on loop 2 is the same
-            PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, last);
+            WorldManager.CurrentIndex = last;   // (the run's world is held by its manager, not read from the prefs)
             Apply();
             FinishLevel(wm);
             for (int i = 0; i < (int)(30f / Dt); i++) Fly(wm, null);

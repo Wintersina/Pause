@@ -19,10 +19,12 @@ using UnityEngine;
 //              crawler garage, silo hatch. Drawn shut; the launch tell opens
 //              them (open drawing, lamp row blinking) while the elite
 //              emerges; they close again behind it.
-//   WEATHER    the CLOUD CEILING (cloud banks thick over the upper view at
-//              the start -- the planetfall drops through it -- thinning to
-//              nothing by FrostTuning.CeilingClearAt), cloud wisps, low mist
-//              bands, snow fields at three depths, and BLIZZARD gusts:
+//   WEATHER    the CLOUD CEILING (cloud banks thick over the view at the
+//              start -- the planetfall drops through it -- held for
+//              FrostTuning.CeilingHold s, then clearing fast, gone by
+//              CeilingClearSeconds; see CloudCover), then only a light
+//              scattering of cloud wisps and low mist drifting with the wind
+//              (FrostTuning.CloudDensity), snow fields at three depths, and BLIZZARD gusts:
 //              translucent diagonal sheets sweeping across every so often.
 //   AURORA     a faint animated overlay; strong only over the glacier night.
 //
@@ -100,16 +102,24 @@ public static class FrostTuning
     // The weather atlas bakes its translucency into the art (cloud banks
     // peak at alpha ~.28, blizzard sheets ~.19, snow ~.35), so the draw
     // alphas below multiply that: 1 draws the art as painted.
+    // ---- CLOUD COVER: the knobs (CloudCover documents the timeline) ----
+    // How much cloud drifts over the ground once the ceiling has cleared:
+    // 1 = a light scattering (default), 2 = about twice as much, 0 = none.
+    public static float CloudDensity = CloudCover.Density;
+    public static float CeilingHold = CloudCover.CeilingHold;                   // s at full thickness after landing
+    public static float CeilingClearSeconds = CloudCover.CeilingClearSeconds;   // s: the ceiling is gone
+    public static float Wind = -1f;                // the level wind: -1 blows toward the left, with the blizzard
     // ---- the cloud ceiling ----
-    public static float CeilingHold = 5f;          // seconds at full thickness
-    public static float CeilingClearAt = 30f;      // seconds: gone
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f;
     public static float CeilingAlpha = 1f;
     public static float CeilingGap = 1.5f;         // scrolled distance between new banks while it lasts
     public static float CeilingLowShare = .55f;    // alpha share left at the bottom of the view (the ceiling is above)
     // ---- air ----
-    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .7f, WispAlphaMax = .95f;
-    public static float MistAlphaMin = .6f, MistAlphaMax = .85f;
+    // wisps and mist at CloudDensity 1 (density divides the gaps, lifts the alpha)
+    public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .45f, WispAlphaMax = .65f;
+    public static float WispEveryMin = 6f, WispEveryMax = 10f, WispDrift = .18f;
+    public static float MistAlphaMin = .35f, MistAlphaMax = .5f;
+    public static float MistEveryMin = 14f, MistEveryMax = 22f, MistDrift = .08f;
     // snow fields at three depths: size, alpha, count, fall speed
     public static readonly float[] SnowSize = { 2.0f, 2.6f, 3.2f };
     public static readonly float[] SnowAlpha = { .6f, .65f, .45f };
@@ -144,8 +154,7 @@ public class FrostDirector : PlanetDirector
 
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
     int lastFamily = -1, lastLane;
-    readonly Timer mistTimer = new Timer(8f, 14f, 2.5f);
-    readonly Timer wispTimer = new Timer(4.5f, 8f, 6f);
+    float mistIn = 2.5f, wispIn = 6f;
     readonly Timer auroraTimer = new Timer(10f, 18f, 1.5f);
     readonly Timer gustTimer = new Timer(FrostTuning.BlizzardEveryMin, FrostTuning.BlizzardEveryMax, FrostTuning.BlizzardFirst);
     int sheetsLeft;
@@ -192,13 +201,8 @@ public class FrostDirector : PlanetDirector
     public BackdropPool Blizzard => blizzard;
     public BackdropPool Aurora => auroraPool;
 
-    // 1 while the ceiling is thick, falling smoothly to 0 at CeilingClearAt.
-    public static float CeilingDensity(float t)
-    {
-        if (t <= FrostTuning.CeilingHold) return 1f;
-        float x = Mathf.Clamp01((t - FrostTuning.CeilingHold) / Mathf.Max(.01f, FrostTuning.CeilingClearAt - FrostTuning.CeilingHold));
-        return 1f - x * x * (3f - 2f * x);
-    }
+    // 1 while the ceiling is thick, falling fast to 0 at CeilingClearSeconds (CloudCover.Ceiling).
+    public static float CeilingDensity(float t) { return BackdropCatalog.For("Frost").CeilingDensity(t); }
 
     // The share of the view the ceiling's banks cover, alpha-weighted (0..1).
     public float CeilingCover
@@ -337,14 +341,15 @@ public class FrostDirector : PlanetDirector
             groundGap = Rand(FrostTuning.GapMin, FrostTuning.GapMax);
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
-        float density = CeilingDensity(clock);
-        if (ceilingTravel >= FrostTuning.CeilingGap && density > .05f)
+        float density = set.Spec.CeilingDensity(clock);
+        if (ceilingTravel >= FrostTuning.CeilingGap && density > CloudCover.BankSpawnFloor)
         {
             ceilingTravel = 0f;
             SpawnBank(Rand(-HalfW * .8f, HalfW * .8f), float.NaN);
         }
-        if (mistTimer.Tick(dt, rng)) SpawnMist(float.NaN);
-        if (wispTimer.Tick(dt, rng)) SpawnWisp();
+        float air = set.Spec.CloudDensity();
+        if (CloudCover.Tick(ref mistIn, dt, air, FrostTuning.MistEveryMin, FrostTuning.MistEveryMax, rng)) SpawnMist(float.NaN);
+        if (CloudCover.Tick(ref wispIn, dt, air, FrostTuning.WispEveryMin, FrostTuning.WispEveryMax, rng)) SpawnWisp();
         if (auroraTimer.Tick(dt, rng)) SpawnAurora();
         if (gustTimer.Tick(dt, rng)) { sheetsLeft = FrostTuning.BlizzardSheets; sheetIn = 0f; Gusts++; }
         if (sheetsLeft > 0)
@@ -375,6 +380,7 @@ public class FrostDirector : PlanetDirector
         {
             if (!b.active) continue;
             if (density <= 0f) { Despawn(b); continue; }
+            b.x += Mathf.Sign(b.x == 0f ? 1f : b.x) * CloudCover.PartSpeed * (1f - density) * dt;    // parting from the middle
             if (!Drift(b, dt, v)) continue;
             float y01 = Mathf.Clamp01((b.y / HalfH + 1f) * .5f);
             float low = Mathf.Lerp(FrostTuning.CeilingLowShare, 1f, y01 * y01 * (3f - 2f * y01));
@@ -410,8 +416,28 @@ public class FrostDirector : PlanetDirector
         foreach (var p in pool.items)
         {
             if (!p.active || !Drift(p, dt, v)) continue;
+            if (p.vx != 0f || p.vy != 0f) HoldStation(p);
             Tinted(p, tintGround, 1f);
         }
+    }
+
+    // A ship under way (icebreaker, convoy) stops before it sails into the
+    // piece ahead of it: the ground plane never stacks.
+    void HoldStation(BackdropPiece p)
+    {
+        for (int k = 0; k < 2; k++)
+            foreach (var q in (k == 0 ? ground : sites).items)
+            {
+                if (!q.active || q == p) continue;
+                float r = (p.size + q.size) * .5f;
+                if (Mathf.Abs(p.x - q.x) < r * .8f && Mathf.Abs(p.y - q.y) < r * .8f + .15f &&
+                    (p.vy * (q.y - p.y) > 0f || p.vx * (q.x - p.x) > 0f))
+                {
+                    p.vx = 0f;
+                    p.vy = 0f;
+                    return;
+                }
+            }
     }
 
     // ------------------------------------------------------------ ground --
@@ -624,9 +650,9 @@ public class FrostDirector : PlanetDirector
         if (Chance(.5)) w.body.localScale = new Vector3(-1f, 1f, 1f);
         w.x = Rand(-HalfW * .7f, HalfW * .7f);
         w.y = SpawnY(w.size);
-        w.vx = Rand(-.15f, .15f);
+        w.vx = FrostTuning.Wind * FrostTuning.WispDrift * Rand(.7f, 1.3f);
         w.rate = set.Spec.Rate("wisps");
-        w.phase = Rand(FrostTuning.WispAlphaMin, FrostTuning.WispAlphaMax);
+        w.phase = Rand(FrostTuning.WispAlphaMin, FrostTuning.WispAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
         Place(w);
         Tinted(w, tintWisps, 0f);
     }
@@ -640,9 +666,9 @@ public class FrostDirector : PlanetDirector
         if (Chance(.5)) m.body.localScale = new Vector3(-1f, 1f, 1f);
         m.x = Rand(-HalfW * .3f, HalfW * .3f);
         m.y = float.IsNaN(y) ? SpawnY(m.size * .5f) : y;
-        m.vx = Rand(-.1f, .1f);
+        m.vx = FrostTuning.Wind * FrostTuning.MistDrift * Rand(.6f, 1.4f);
         m.rate = set.Spec.Rate("mist");
-        m.phase = Rand(FrostTuning.MistAlphaMin, FrostTuning.MistAlphaMax);
+        m.phase = Rand(FrostTuning.MistAlphaMin, FrostTuning.MistAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
         Place(m);
         Tinted(m, tintMist, 0f);
     }

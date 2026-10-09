@@ -109,6 +109,20 @@ public static class BackdropCatalog
         public const float BrightLift = 1.2f;
         public bool Bright => brightArt || brightness != null && brightness() >= BrightLift;
 
+        // CLOUD COVER (CloudCover): this world's knobs, read when a set is
+        // built and every frame. Null: the shared defaults (CloudCover.*), so
+        // a world wired later (Ember) opens and clears like Frost / Verdant.
+        public System.Func<float> cloudDensity, ceilingHold, ceilingClearSeconds;
+
+        public float CloudDensity() { return cloudDensity != null ? Mathf.Max(0f, cloudDensity()) : CloudCover.Density; }
+        public float CeilingHold() { return ceilingHold != null ? ceilingHold() : CloudCover.CeilingHold; }
+        public float CeilingClearSeconds()
+        {
+            return Mathf.Max(CeilingHold() + .5f, ceilingClearSeconds != null ? ceilingClearSeconds() : CloudCover.CeilingClearSeconds);
+        }
+        // The ceiling's draw density at level second t (CloudCover.Ceiling).
+        public float CeilingDensity(float t) { return CloudCover.Ceiling(t, CeilingHold(), CeilingClearSeconds()); }
+
         public bool Night(int variant) { return variantNight != null && variant >= 0 && variant < variantNight.Length && variantNight[variant]; }
         public float VariantBrightness(int variant)
         {
@@ -195,7 +209,9 @@ public static class BackdropCatalog
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants,
-                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, layers = new[] {
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation,
+                   cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
+                   ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.55f),
             Layer.Tile("far", 0.014f, W).Graded(.8f),
             Layer.Tile("mid", 0.024f, W).Graded(1f),
@@ -226,7 +242,9 @@ public static class BackdropCatalog
         new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants,
                    brightness = () => VerdantTuning.Brightness, saturation = () => 1f,
-                   variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, brightArt = true, layers = new[] {
+                   variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, brightArt = true,
+                   cloudDensity = () => VerdantTuning.CloudDensity, ceilingHold = () => VerdantTuning.CeilingHold,
+                   ceilingClearSeconds = () => VerdantTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.6f),
             Layer.Tile("far", 0.014f, W).Graded(.8f),
             Layer.Tile("mid", 0.024f, W).Graded(1f),
@@ -293,5 +311,65 @@ public static class BackdropCatalog
     {
         foreach (var s in specs) if (s.world == world) return s;
         return null;
+    }
+}
+
+// How much cloud a planet world shows (user, 2026-10-08: "both ice and
+// verdant have too many clouds covering the backdrop; lower the amount of
+// clouds after the first 10 seconds or so"). Shared by every planet
+// director; each world exposes the knobs in its tuning class (FrostTuning /
+// VerdantTuning .CloudDensity, .CeilingHold, .CeilingClearSeconds) through
+// its Spec, and a world without them gets these defaults.
+//
+//   THE CEILING  the thick cloud deck the planetfall drops through: held at
+//                full thickness for CeilingHold s (the arrival reads as
+//                "we came out of the clouds"), then eased out fast -- the
+//                banks fade and part from the middle, no new ones roll in
+//                below BankSpawnFloor -- <= ~10% of the view covered by
+//                ~10 s, gone at CeilingClearSeconds.
+//   THE AIR      after it, a light scattering of wisps and low mist drifting
+//                with the world's wind, so the ground art stays in view:
+//                <= ~12% of the view veiled on average (CloudCoverMeter,
+//                FrostBackdropTest / VerdantBackdropTest).
+//   CloudDensity scales the air: 1 = that thin look (default), 2 = about
+//                twice the pieces, a little stronger; .5 = half; 0 = none.
+//                "A bit more / less cloud" = change this one number.
+//
+// Weather particles (snow, blizzard / pollen gusts, spores) and wildfire
+// smoke are not clouds and keep their own tuning.
+public static class CloudCover
+{
+    public const float Density = 1f;
+    public const float CeilingHold = 4f;
+    public const float CeilingClearSeconds = 14f;
+    // new banks keep rolling in at the top only while the ceiling is this thick
+    public const float BankSpawnFloor = .6f;
+    // how fast the banks part sideways (units/s) once the ceiling has thinned out
+    public const float PartSpeed = .5f;
+
+    // 1 through the hold, then eased out fast to 0 at `clear`: (1 - smoothstep)^2
+    // (~.12 left 60% of the way through).
+    public static float Ceiling(float t, float hold, float clear)
+    {
+        if (t <= hold) return 1f;
+        float x = Mathf.Clamp01((t - hold) / Mathf.Max(.01f, clear - hold));
+        float k = 1f - x * x * (3f - 2f * x);
+        return k * k;
+    }
+
+    // The air at density d: seconds between pieces are divided by Every(d)
+    // (more pieces), their alpha multiplied by Alpha(d) (a little stronger).
+    public static float Every(float d) { return Mathf.Max(0f, d); }
+    public static float Alpha(float d) { return Mathf.Clamp(Mathf.Sqrt(Mathf.Max(0f, d)), 0f, 1.6f); }
+
+    // The countdown to the next air piece: false while density is 0.
+    public static bool Tick(ref float left, float dt, float d, float min, float max, System.Random rng)
+    {
+        float k = Every(d);
+        if (k <= 0f) return false;
+        left -= dt;
+        if (left > 0f) return false;
+        left = (min + (float)rng.NextDouble() * (max - min)) / k;
+        return true;
     }
 }
