@@ -1619,5 +1619,285 @@
         ]
       }
     ]
+  },
+  "run_c": {
+    "build": "python3 src~/build_c.py",
+    "verify": "python3 src~/verify_c.py",
+    "preview": "preview_c.png",
+    "animated_preview": "preview_c.gif",
+    "source_key_paintings": [
+      "src~/smoke_keys.png",
+      "src~/lavafire_keys.png",
+      "src~/eruption_keys.png",
+      "src~/leaks_keys.png",
+      "src~/lights_keys.png"
+    ],
+    "atlas_grid": "Each 1024x1024 RGBA atlas has a 4x4 grid of 256x256 cells; JSON y is from image bottom.",
+    "emitter_anchor": "Every ground-attached loop anchors at local (128,236) pixels from cell top; place on the corresponding run B emitter point.",
+    "art_method": "Built-in image generation painted 2x2 transparent key sheets; inspected keys were palette cleaned with nearest-neighbor sampling and cyclic deformation/blending.",
+    "loops": [
+      {
+        "name": "smoke_a",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_a_00",
+          "smoke_a_01",
+          "smoke_a_02",
+          "smoke_a_03",
+          "smoke_a_04",
+          "smoke_a_05",
+          "smoke_a_06",
+          "smoke_a_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refineries, forge towers, and stack mouths",
+        "recommended_draw_alpha": 0.56
+      },
+      {
+        "name": "smoke_b",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_b_00",
+          "smoke_b_01",
+          "smoke_b_02",
+          "smoke_b_03",
+          "smoke_b_04",
+          "smoke_b_05",
+          "smoke_b_06",
+          "smoke_b_07"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "cooling towers and refinery auxiliary stacks",
+        "recommended_draw_alpha": 0.57
+      },
+      {
+        "name": "flare",
+        "atlas": "lavafire.png",
+        "frames": [
+          "flare_00",
+          "flare_01",
+          "flare_02",
+          "flare_03",
+          "flare_04",
+          "flare_05",
+          "flare_06",
+          "flare_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "flarestack_* flame emitters",
+        "recommended_draw_alpha": 0.83
+      },
+      {
+        "name": "fountain",
+        "atlas": "lavafire.png",
+        "frames": [
+          "fountain_00",
+          "fountain_01",
+          "fountain_02",
+          "fountain_03",
+          "fountain_04",
+          "fountain_05",
+          "fountain_06",
+          "fountain_07"
+        ],
+        "recommended_fps": 11,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "lavafountain_* and eruptionscar_* molten vents",
+        "recommended_draw_alpha": 0.78
+      },
+      {
+        "name": "eruptsmoke_a",
+        "atlas": "eruption.png",
+        "frames": [
+          "eruptsmoke_a_00",
+          "eruptsmoke_a_01",
+          "eruptsmoke_a_02",
+          "eruptsmoke_a_03",
+          "eruptsmoke_a_04",
+          "eruptsmoke_a_05",
+          "eruptsmoke_a_06",
+          "eruptsmoke_a_07"
+        ],
+        "recommended_fps": 7,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "lavafountain_* and eruptionscar_*; behind play objects",
+        "recommended_draw_alpha": 0.48
+      },
+      {
+        "name": "eruptsmoke_b",
+        "atlas": "eruption.png",
+        "frames": [
+          "eruptsmoke_b_00",
+          "eruptsmoke_b_01",
+          "eruptsmoke_b_02",
+          "eruptsmoke_b_03",
+          "eruptsmoke_b_04",
+          "eruptsmoke_b_05",
+          "eruptsmoke_b_06",
+          "eruptsmoke_b_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "coalbed_* and scorched_* ground",
+        "recommended_draw_alpha": 0.54
+      },
+      {
+        "name": "steam_vent",
+        "atlas": "leaks.png",
+        "frames": [
+          "steam_vent_00",
+          "steam_vent_01",
+          "steam_vent_02",
+          "steam_vent_03"
+        ],
+        "recommended_fps": 10,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipe flanges, pumphouse, and coolingtower",
+        "recommended_draw_alpha": 0.65
+      },
+      {
+        "name": "pipe_drip",
+        "atlas": "leaks.png",
+        "frames": [
+          "pipe_drip_00",
+          "pipe_drip_01",
+          "pipe_drip_02",
+          "pipe_drip_03"
+        ],
+        "recommended_fps": 10,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipe_leak_* and pipe_lava_* rupture mouths",
+        "recommended_draw_alpha": 0.82
+      },
+      {
+        "name": "ember_rain",
+        "atlas": "leaks.png",
+        "frames": [
+          "ember_rain_00",
+          "ember_rain_01",
+          "ember_rain_02",
+          "ember_rain_03"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "all lava grounds, sparse rising overlay",
+        "recommended_draw_alpha": 0.83
+      },
+      {
+        "name": "lava_bubble",
+        "atlas": "leaks.png",
+        "frames": [
+          "lava_bubble_00",
+          "lava_bubble_01",
+          "lava_bubble_02",
+          "lava_bubble_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "lavapool_* and coalbed_* surfaces",
+        "recommended_draw_alpha": 0.74
+      },
+      {
+        "name": "beacon_amber",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_amber_00",
+          "beacon_amber_01",
+          "beacon_amber_02",
+          "beacon_amber_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "forge towers, derricks, and viaduct",
+        "recommended_draw_alpha": 0.88
+      },
+      {
+        "name": "beacon_magenta",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_magenta_00",
+          "beacon_magenta_01",
+          "beacon_magenta_02",
+          "beacon_magenta_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "forge towers, derricks, and viaduct",
+        "recommended_draw_alpha": 0.85
+      },
+      {
+        "name": "window_lights",
+        "atlas": "lights.png",
+        "frames": [
+          "window_lights_00",
+          "window_lights_01",
+          "window_lights_02",
+          "window_lights_03"
+        ],
+        "recommended_fps": 5,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "foundries and refineries",
+        "recommended_draw_alpha": 0.82
+      },
+      {
+        "name": "strobe_white",
+        "atlas": "lights.png",
+        "frames": [
+          "strobe_white_00",
+          "strobe_white_01",
+          "strobe_white_02",
+          "strobe_white_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "tower warning lights",
+        "recommended_draw_alpha": 0.8
+      }
+    ]
   }
 }
