@@ -109,7 +109,7 @@ public partial class TitleScreenTraffic
     public EliteDef EliteDefNow => eliteDef;
     public EliteDef NextEliteDef => nextEliteDef;
     public Vector2 ElitePosition => elitePos;
-    public bool EliteVisible => eliteHull != null && eliteHull.enabled;
+    public bool EliteVisible => eliteRoot != null && eliteRoot.gameObject.activeSelf && eliteHull.enabled;
     public bool EliteSightShown => eliteSight != null && eliteSight.enabled;
     public float NextEliteAt { get => nextEliteAt; set => nextEliteAt = value; }
     public int EliteDefCount => eliteDefs.Length;
