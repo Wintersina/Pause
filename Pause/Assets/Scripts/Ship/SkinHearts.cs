@@ -19,11 +19,12 @@ using UnityEngine;
 // AllSkinsBonus more hearts on top. The dock announces it once, on the
 // purchase that completes the set (SpaceDock.BuySkin -> CodexToast).
 //
-//   ship tier (base)        stock  1-2 colours  3-4 colours  + all skins
-//   Neon Comet       (2)      2        3            4             6
-//   cheap ships      (3)      3        4            5             7
-//   Turtle/Ion/Jade  (4)      4        5            6             8
-//   Gold Warden      (5)      5        6            7             9
+//   dock row (base)   stock  1-2 colours  3-4 colours  + all skins
+//   1 (3 ships)         1        2            3             5
+//   2                   2        3            4             6
+//   3                   3        4            5             7
+//   4                   4        5            6             8
+//   5                   5        6            7             9
 //
 // Nothing is saved for it: the bonus is worked out from the owned-skin keys
 // every time, so old saves, cloud restores and restored purchases all get it

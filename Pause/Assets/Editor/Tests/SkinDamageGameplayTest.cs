@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 // The damage art as the REAL gameplay ship shows it, for every ship in every
 // skin (15 x 5): gameS1, the ship spawned by spawnShips (its real prefab,
 // every component started), the skin equipped through ShipSkins, the lives
-// set by collisionDetection.Start (ShipLives: 2-5), hits and heals through
+// set by collisionDetection.Start (ShipLives: 1-9), hits and heals through
 // collisionDetection's own trigger. After every hit and heal, over the idle
 // loop, both bank poses (or a full turn of a spinner) and the hit flash:
 //   - the hull shows that skin's sheet, in the row ShipDamageTable.StateFor
@@ -161,7 +161,7 @@ public static class SkinDamageGameplayTest
         var life = go.GetComponent<lifeControler>();
         var sr = go.GetComponent<SpriteRenderer>();
         int max = collisionDetection.MAXLIFE;
-        Check(who + ": flies with its ShipLives max (" + max + ")", max == ShipLives.Max(id) && max >= 2 && max <= ShipLives.Most);
+        Check(who + ": flies with its ShipLives max (" + max + ")", max == ShipLives.Max(id) && max >= 1 && max <= ShipLives.Most);
         var animator = go.GetComponent<Animator>();
         Quiet(who + ": the prefab's 2016 animator can't overwrite the hull", animator == null || !animator.enabled);
         string sheet = skin == ShipSkins.Stock ? ShipId.KeyOf(id) : ShipSkins.SheetName(id, skin);
@@ -178,8 +178,9 @@ public static class SkinDamageGameplayTest
             Flight(who + " hits " + hits, go, life, sr, id, skin, state, sheet);
         }
         bool wantsDamaged = max >= 3;
-        Check(who + ": " + max + " lives show " + (wantsDamaged ? "intact, damaged and critical" : "intact and critical"),
-              seenStates.Contains(0) && seenStates.Contains(2) && seenStates.Contains(1) == wantsDamaged);
+        bool wantsCritical = max >= 2;   // a 1-life ship dies on its first hit: only ever intact
+        Check(who + ": " + max + " lives show " + (wantsDamaged ? "intact, damaged and critical" : wantsCritical ? "intact and critical" : "intact only"),
+              seenStates.Contains(0) && seenStates.Contains(2) == wantsCritical && seenStates.Contains(1) == wantsDamaged);
 
         // heal back down
         for (int hits = max - 2; hits >= 0 && go != null; hits--)
@@ -330,7 +331,7 @@ public static class SkinDamageGameplayTest
                     if (go == null) continue;
                     go.transform.position = new Vector3(500f, 500f, 0f);
                     int max = collisionDetection.MAXLIFE;
-                    int[] hitsFor = { 0, max >= 3 ? 1 : -1, max - 1 };
+                    int[] hitsFor = { 0, max >= 3 ? 1 : -1, max >= 2 ? max - 1 : -1 };   // a 1-life ship dies on its first hit
                     for (int state = 0; state < 3; state++)
                     {
                         int x = (skin * 3 + state) * Tile, y = (ids.Count - 1 - row) * Tile;

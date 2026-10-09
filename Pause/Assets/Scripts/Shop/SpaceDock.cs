@@ -434,6 +434,22 @@ public class SpaceDock : MonoBehaviour
         return System.Array.IndexOf(BayOrder, id);
     }
 
+    // The ship's row (1 = top) and column (1 = left) in the grid as the
+    // player sees it, from its berth slot: the one source for the hull's base
+    // hearts (= row, ShipLives) and base start speed (by column,
+    // ShipStartSpeed). 0 for an unknown ship.
+    public static int RowOf(int id)
+    {
+        int slot = ShipId.IsValid(id) ? SlotOf(id) : -1;
+        return slot < 0 ? 0 : slot / DockLayout.MaxColumns + 1;
+    }
+
+    public static int ColumnOf(int id)
+    {
+        int slot = ShipId.IsValid(id) ? SlotOf(id) : -1;
+        return slot < 0 ? 0 : slot % DockLayout.MaxColumns + 1;
+    }
+
     // The ship parked in berth `slot`, or ShipId.None.
     public static int ShipAt(int slot)
     {

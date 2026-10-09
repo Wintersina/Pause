@@ -7,7 +7,7 @@ Buying hull colours (skins) for a ship already improves its weapon
 
 ## Rule
 
-Max hearts for a run = hull base (`ShipLives.Base`, by price tier)
+Max hearts for a run = hull base (`ShipLives.Base` = the ship's ROW in the dock grid, 1 at the top .. 5)
 + colour hearts (per ship, same tier as the weapon)
 + all-skins bonus (every ship, once every skin of every ship is owned).
 
@@ -19,12 +19,19 @@ All-skins bonus (`AllSkinsBonus`): +2 on every ship once all 60 non-stock
 skins (15 ships x 4) are owned. This is the "final skin for all ships is
 unlocked" condition.
 
-| hull (base) | stock | 1-2 colours | 3-4 colours | + all skins |
-|---|---|---|---|---|
-| Neon Comet (2) | 2 | 3 | 4 | 6 |
-| Volt Viper, Solar Fang, Crimson Halo, Lightning, Ligher, Paranoid, Ninja, Saboteur, UFO, Dove (3) | 3 | 4 | 5 | 7 |
-| Turtle, Ion Lancer, Jade Phantom (4) | 4 | 5 | 6 | 8 |
-| Gold Warden (5) | 5 | 6 | 7 | 9 |
+| dock row (base) | ships (price order, 3 per row) | stock | 1-2 colours | 3-4 colours | + all skins |
+|---|---|---|---|---|---|
+| 1 | Neon Comet, Volt Viper, Lightning | 1 | 2 | 3 | 5 |
+| 2 | Ligher, Paranoid, Solar Fang | 2 | 3 | 4 | 6 |
+| 3 | Ninja, Saboteur, UFO | 3 | 4 | 5 | 7 |
+| 4 | Crimson Halo, Dove, Turtle | 4 | 5 | 6 | 8 |
+| 5 | Ion Lancer, Jade Phantom, Gold Warden | 5 | 6 | 7 | 9 |
+
+The row is derived, never listed: `SpaceDock.RowOf(id)` = berth slot / 3 + 1
+(berths are laid out cheapest first, `DockLayout`, 3 columns). Moving a
+ship's price moves its row and so its hearts. Start speed uses the same
+grid: `ShipStartSpeed.BaseHud` = 0 / 5 / 10 for columns 1 / 2 / 3, +5 per
+colour on top.
 
 `ShipLives.Most` (9) is the most hearts any ship can have, and the heart
 orbit is sized for it.
@@ -60,4 +67,4 @@ orbit is sized for it.
 Edit `ByColoursOwned` (one entry per colour count 0..4, never decreasing)
 and `AllSkinsBonus` in `SkinHearts.cs`. `ShipLives.Most`, the dock text and
 the codex all update from them. `SkinHeartsTest` pins the current numbers
-(the per-tier rows and the 9-heart maximum), so update it to match.
+(the per-row numbers and the 9-heart maximum), so update it to match.

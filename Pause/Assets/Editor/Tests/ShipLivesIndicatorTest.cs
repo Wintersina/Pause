@@ -103,7 +103,7 @@ public static class ShipLivesIndicatorTest
         return fails;
     }
 
-    // Neon Comet: 2 hearts, 3 once it owns a colour; a run rebuilds them.
+    // Neon Comet: 1 heart, 2 once it owns a colour; a run rebuilds them.
     static void StarterHeartsFollowItsColour()
     {
         PlayerPrefs.SetInt("spawnShip", ShipId.Starter);
@@ -112,20 +112,20 @@ public static class ShipLivesIndicatorTest
         var ship = new GameObject(ShipId.ObjectName(ShipId.Starter), typeof(SpriteRenderer));
         var hearts = ship.AddComponent<ShipLivesIndicator>();
         hearts.SendMessage("Start");
-        Check("the starter floats 2 hearts", hearts.Hearts != null && hearts.Hearts.Length == 2);
-        collisionDetection.lifeCounter = 1;
-        hearts.SendMessage("Update");
-        int shown = 0;
-        foreach (var h in hearts.Hearts) if (h.gameObject.activeSelf) shown++;
-        Check("one hit leaves the starter its last heart (" + shown + ")", shown == 1);
-        collisionDetection.lifeCounter = 0;
+        Check("the starter floats 1 heart (a single heart orbits too)", hearts.Hearts != null && hearts.Hearts.Length == 1 && hearts.Hearts[0].gameObject.activeSelf);
 
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 2), 1);
         hearts.BuildHearts();
         int built = 0;
         foreach (Transform c in ship.transform) if (c.name.StartsWith("Heart")) built++;
-        Check("with a colour of its own the starter floats 3 (" + hearts.Hearts.Length + ", " + built + " built)",
-              hearts.Hearts.Length == 3 && built == 3);
+        Check("with a colour of its own the starter floats 2 (" + hearts.Hearts.Length + ", " + built + " built)",
+              hearts.Hearts.Length == 2 && built == 2);
+        collisionDetection.lifeCounter = 1;
+        hearts.SendMessage("Update");
+        int shown = 0;
+        foreach (var h in hearts.Hearts) if (h.gameObject.activeSelf) shown++;
+        Check("one hit leaves the coloured starter its last heart (" + shown + ")", shown == 1);
+        collisionDetection.lifeCounter = 0;
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, 2));
         Object.DestroyImmediate(ship);
         PlayerPrefs.DeleteKey("spawnShip");

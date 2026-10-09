@@ -163,7 +163,7 @@ public class collisionDetection : MonoBehaviour {
 
 	void Start () {
 
-        // This ship's own lives (ShipLives: its hull's 2 to 5 by price tier,
+        // This ship's own lives (ShipLives: its hull's 1 to 5 by dock row,
         // plus the hearts its colours add -- SkinHearts). The tutorial
         // teaches on the bare hull.
         int flown = ShipId.Of(gameObject, ShipId.Equipped());

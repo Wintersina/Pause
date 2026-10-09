@@ -3,8 +3,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Per-ship lives (ShipLives): the hull's own -- the starter 2, the cheap
-// ships 3, the dear ones 4 and Gold Warden 5 -- plus what its colours add
+// Per-ship lives (ShipLives): the hull's own -- its row in the dock grid,
+// 1 (top row, with the starter) to 5 -- plus what its colours add
 // (SkinHearts: +1 with the first, +2 with the third; SkinHeartsTest covers
 // the whole table and the all-skins bonus).
 // Covers the table, the first colour's heart (bought or developer mode),
@@ -56,9 +56,11 @@ public static class ShipLivesTest
     {
         var expected = new System.Collections.Generic.Dictionary<string, int>
         {
-            { "NeonComet", 2 }, { "VoltViper", 3 }, { "Lightning", 3 }, { "Ligher", 3 }, { "Paranoid", 3 },
-            { "SolarFang", 3 }, { "Ninja", 3 }, { "Saboteur", 3 }, { "UFO", 3 }, { "CrimsonHalo", 3 },
-            { "Dove", 3 }, { "Turtle", 4 }, { "IonLancer", 4 }, { "JadePhantom", 4 }, { "GoldWarden", 5 },
+            { "NeonComet", 1 }, { "VoltViper", 1 }, { "Lightning", 1 },
+            { "Ligher", 2 }, { "Paranoid", 2 }, { "SolarFang", 2 },
+            { "Ninja", 3 }, { "Saboteur", 3 }, { "UFO", 3 },
+            { "CrimsonHalo", 4 }, { "Dove", 4 }, { "Turtle", 4 },
+            { "IonLancer", 5 }, { "JadePhantom", 5 }, { "GoldWarden", 5 },
         };
         foreach (int id in ShipId.All)
         {
@@ -67,9 +69,8 @@ public static class ShipLivesTest
             Check(key + " is in the lives table", expected.TryGetValue(key, out want));
             Check(key + " (" + shopingShips.CostFor(id) + " dust) flies with " + want + " hearts (" + ShipLives.Max(id) + ")",
                   ShipLives.Max(id) == want && ShipLives.Base(id) == want);
-            Check(key + ": within 2..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= ShipLives.MostBase);
+            Check(key + ": within 1..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= ShipLives.MostBase);
         }
-        Check("Gold Warden is the most expensive ship", ShipLives.MostExpensive == ShipId.FromKey("GoldWarden"));
         // A pricier ship never has fewer hearts than a cheaper one.
         bool monotonic = true;
         foreach (int a in ShipId.All)
@@ -85,36 +86,36 @@ public static class ShipLivesTest
     {
         int comet = ShipId.Starter;
         for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, n));
-        Check("the stock starter has 2 hearts", ShipLives.Max(comet) == 2);
+        Check("the stock starter has 1 heart", ShipLives.Max(comet) == 1);
 
         for (int n = 1; n < ShipSkins.PerShip; n++)
         {
             PlayerPrefs.SetInt(ShipSkins.OwnedKey(comet, n), 1);
-            Check("owning " + ShipSkins.Get(comet, n).name + " gives it 3", ShipLives.Max(comet) == 3);
+            Check("owning " + ShipSkins.Get(comet, n).name + " gives it 2", ShipLives.Max(comet) == 2);
             // whichever skin is on: the stock one still counts
             ShipSkins.Equip(comet, ShipSkins.Stock);
-            Check("  even flown in its stock colour", ShipLives.Max(comet) == 3);
+            Check("  even flown in its stock colour", ShipLives.Max(comet) == 2);
             PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, n));
         }
-        Check("a colour for another ship doesn't count", ShipLives.Max(comet) == 2);
+        Check("a colour for another ship doesn't count", ShipLives.Max(comet) == 1);
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(2, 1), 1);
-        Check("  (Volt Viper's Night: the starter still 2; Volt Viper itself 3 -> 4)", ShipLives.Max(comet) == 2 && ShipLives.Max(2) == 4);
+        Check("  (Volt Viper's Night: the starter still 1; Volt Viper itself 1 -> 2)", ShipLives.Max(comet) == 1 && ShipLives.Max(2) == 2);
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(2, 1));
 
         // Buying one through the shop rules.
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
         var result = ShipSkins.TryPurchase(comet, 1);
-        Check("buying a Neon Comet colour takes it from 2 to 3 hearts", result == ShipSkins.PurchaseResult.Bought && ShipLives.Max(comet) == 3);
+        Check("buying a Neon Comet colour takes it from 1 to 2 hearts", result == ShipSkins.PurchaseResult.Bought && ShipLives.Max(comet) == 2);
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, 1));
         ShipSkins.Equip(comet, ShipSkins.Stock);
 
         // Developer mode owns every colour of every ship: hull +2 +2 (the
-        // starter 6, Gold Warden 9) -- and back to 2 when switched off.
+        // starter 5, Gold Warden 9) -- and back to 1 when switched off.
         DeveloperUnlocks.SetEnabled(true);
-        Check("developer mode: the starter has 6 (every colour, every skin)", ShipLives.Max(comet) == 6);
-        Check("developer mode: Gold Warden 9, Volt Viper 7", ShipLives.Max(7) == 9 && ShipLives.Max(2) == 7);
+        Check("developer mode: the starter has 5 (every colour, every skin)", ShipLives.Max(comet) == 5);
+        Check("developer mode: Gold Warden 9, Volt Viper 5", ShipLives.Max(7) == 9 && ShipLives.Max(2) == 5);
         DeveloperUnlocks.SetEnabled(false);
-        Check("developer mode off: back to 2", ShipLives.Max(comet) == 2);
+        Check("developer mode off: back to 1", ShipLives.Max(comet) == 1);
     }
 
     // ---------------------------------------------------------------- run
@@ -178,7 +179,7 @@ public static class ShipLivesTest
 
     static void HitsAndHealsAgainstTheShipsOwnMax()
     {
-        foreach (int id in new[] { ShipId.Starter, 2, 15, 7 })
+        foreach (int id in new[] { ShipId.Starter, 3, 15, 7 })
         {
             string name = ShipId.KeyOf(id);
             var r = new Rig(id);
@@ -196,8 +197,9 @@ public static class ShipLivesTest
                   ShipLives.Left == 1 && !buttonClicks.playerDied);
 
             // A heal gives one back, a second (if hurt) another; never past max.
+            // (A one-heart ship has none to repair: it stays at its single heart.)
             r.Heal();
-            Check(name + ": a green atom gives one back (" + ShipLives.Left + ")", ShipLives.Left == 2);
+            Check(name + ": a green atom gives one back (" + ShipLives.Left + ")", ShipLives.Left == (max > 1 ? 2 : 1));
             for (int i = 0; i < max + 2; i++) r.Heal();
             Check(name + ": heals stop at its own max (" + ShipLives.Left + "/" + max + ")",
                   ShipLives.Left == max && collisionDetection.lifeCounter == 0);
@@ -208,6 +210,7 @@ public static class ShipLivesTest
     static void DamageStates()
     {
         Check("full health reads intact", ShipLives.DamageState(0, 2) == 0 && ShipLives.DamageState(0, 5) == 0);
+        Check("1 heart: the first hit is the last life", ShipLives.DamageState(0, 1) == 0 && ShipLives.DamageState(1, 1) == 2);
         Check("2 hearts: one hit is the last life (critical)", ShipLives.DamageState(1, 2) == 2);
         Check("3 hearts: damaged, then critical", ShipLives.DamageState(1, 3) == 1 && ShipLives.DamageState(2, 3) == 2);
         Check("5 hearts: damaged through 2 left, critical at 1",
@@ -226,10 +229,10 @@ public static class ShipLivesTest
             r.Dispose();
         }
         // The next run's ship sets its own maximum: a 5-heart Gold Warden run
-        // then a starter run gives the starter 2, not 5.
+        // then a starter run gives the starter 1, not 5.
         new Rig(7).Dispose();
         var starter = new Rig(ShipId.Starter);
-        Check("the next ship's own maximum replaces the last one's", collisionDetection.MAXLIFE == 2);
+        Check("the next ship's own maximum replaces the last one's", collisionDetection.MAXLIFE == 1);
         starter.Dispose();
     }
 
@@ -241,20 +244,22 @@ public static class ShipLivesTest
         int comet = ShipId.Starter;
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, 1));
         popup.Show(comet, anchor, .3f, true, true, 0f, 0f);
-        Check("dock popup: Neon Comet shows 2 hearts", popup.LivesShown == 2 && popup.LivesBadgeVisible);
+        Check("dock popup: Neon Comet shows 1 heart", popup.LivesShown == 1 && popup.LivesBadgeVisible);
         popup.Show(7, anchor, .3f, false, false, 5800f, 0f);
         Check("dock popup: Gold Warden (unbought) shows 5", popup.LivesShown == 5 && popup.LivesBadgeVisible);
         popup.Show(15, anchor, .3f, false, false, 3000f, 0f);
         Check("dock popup: Turtle shows 4", popup.LivesShown == 4);
+        popup.Show(2, anchor, .3f, false, false, 600f, 0f);
+        Check("dock popup: Volt Viper (row 1) shows 1", popup.LivesShown == 1);
 
         popup.Show(comet, anchor, .3f, true, true, 0f, 1000f);
-        popup.ShowSkins(comet, 1, 1000f);   // previewing an unbought colour: still 2
-        Check("dock popup: previewing a colour isn't owning it (2, and +1 promised: " + popup.LivesBadgeText + ")",
-              popup.LivesShown == 2 && popup.LivesGainShown == 1);
+        popup.ShowSkins(comet, 1, 1000f);   // previewing an unbought colour: still 1
+        Check("dock popup: previewing a colour isn't owning it (1, and +1 promised: " + popup.LivesBadgeText + ")",
+              popup.LivesShown == 1 && popup.LivesGainShown == 1);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1000f);
         ShipSkins.TryPurchase(comet, 1);
         popup.ShowSkins(comet, 1, PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey));
-        Check("dock popup: buying a Neon Comet colour turns 2 hearts into 3", popup.LivesShown == 3);
+        Check("dock popup: buying a Neon Comet colour turns 1 heart into 2", popup.LivesShown == 2);
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(comet, 1));
         ShipSkins.Equip(comet, ShipSkins.Stock);
 

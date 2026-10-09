@@ -657,7 +657,9 @@ public static class ShipDamageTest
     // again on the next hit; frozen at timeScale 0; no garbage.
     static void Floatie(int id)
     {
-        int max = ShipLives.Max(id);
+        // (a 1-heart ship dies on its first hit, so the drone has nothing to
+        // react to: fly every hull with at least 3 lives here)
+        int max = Mathf.Max(3, ShipLives.Max(id));
         collisionDetection.MAXLIFE = max;
         string who = Label(id) + " (" + max + " lives)";
         ShipDamageFx fx; lifeControler life;

@@ -120,20 +120,20 @@ public static class SkinHeartsTest
         Check("hearts never go down as colours are bought", monotonic);
         Check("the colours alone never add more than +2", capped);
 
-        // The four tiers' numbers.
+        // The five rows' numbers.
         int gw = ShipId.FromKey("GoldWarden"), viper = ShipId.FromKey("VoltViper"), turtle = ShipId.FromKey("Turtle");
         int[] Row(int id) { var r = new int[5]; for (int n = 0; n < 5; n++) { Own(id, n); r[n] = ShipLives.Max(id); } Own(id, 0); return r; }
-        Check("Neon Comet 2,3,3,4,4", string.Join(",", Row(ShipId.Starter)) == "2,3,3,4,4");
-        Check("Volt Viper 3,4,4,5,5", string.Join(",", Row(viper)) == "3,4,4,5,5");
+        Check("Neon Comet 1,2,2,3,3", string.Join(",", Row(ShipId.Starter)) == "1,2,2,3,3");
+        Check("Volt Viper 1,2,2,3,3", string.Join(",", Row(viper)) == "1,2,2,3,3");
         Check("Turtle 4,5,5,6,6", string.Join(",", Row(turtle)) == "4,5,5,6,6");
         Check("Gold Warden 5,6,6,7,7", string.Join(",", Row(gw)) == "5,6,6,7,7");
 
         // Per ship: another ship's colours don't count; which is equipped doesn't matter.
         Own(viper, 4);
-        Check("Volt Viper's colours don't touch the starter (2) or Gold Warden (5)",
-              ShipLives.Max(ShipId.Starter) == 2 && ShipLives.Max(gw) == 5);
+        Check("Volt Viper's colours don't touch the starter (1) or Gold Warden (5)",
+              ShipLives.Max(ShipId.Starter) == 1 && ShipLives.Max(gw) == 5);
         ShipSkins.Equip(viper, ShipSkins.Stock);
-        Check("flown in its stock colour it still has its 5", ShipLives.Max(viper) == 5);
+        Check("flown in its stock colour it still has its 3", ShipLives.Max(viper) == 3);
         Own(viper, 0);
     }
 
@@ -145,8 +145,8 @@ public static class SkinHeartsTest
         bool every = true;
         foreach (int id in ShipId.All)
             every &= ShipLives.Max(id) == ShipLives.Base(id) + SkinHearts.MostFromColours + 2;
-        Check("every ship flies with hull + 2 + 2 (starter 6, Gold Warden 9)", every &&
-              ShipLives.Max(ShipId.Starter) == 6 && ShipLives.Max(ShipId.FromKey("GoldWarden")) == 9);
+        Check("every ship flies with hull + 2 + 2 (starter 5, Gold Warden 9)", every &&
+              ShipLives.Max(ShipId.Starter) == 5 && ShipLives.Max(ShipId.FromKey("GoldWarden")) == 9);
 
         // Any one skin missing: no set bonus anywhere.
         bool none = true;
@@ -180,10 +180,10 @@ public static class SkinHeartsTest
         // Developer mode owns them all; off again: back to the saved ones.
         ClearSkins();
         DeveloperUnlocks.SetEnabled(true);
-        Check("developer mode: the full bonus (Gold Warden 9, starter 6)",
-              ShipLives.Max(gw) == 9 && ShipLives.Max(ShipId.Starter) == 6);
+        Check("developer mode: the full bonus (Gold Warden 9, starter 5)",
+              ShipLives.Max(gw) == 9 && ShipLives.Max(ShipId.Starter) == 5);
         DeveloperUnlocks.SetEnabled(false);
-        Check("developer mode off: the bare hulls again", ShipLives.Max(gw) == 5 && ShipLives.Max(ShipId.Starter) == 2);
+        Check("developer mode off: the bare hulls again", ShipLives.Max(gw) == 5 && ShipLives.Max(ShipId.Starter) == 1);
         ShipSkins.Equip(gw, ShipSkins.Stock);
     }
 
@@ -194,11 +194,11 @@ public static class SkinHeartsTest
         // Written raw, as a cloud restore (ProgressSnapshot) or a restored
         // purchase does: the bonus follows with nothing else saved.
         Own(viper, 3);
-        Check("owned-skin keys alone give the bonus (Volt Viper 3 colours: 5)", ShipLives.Max(viper) == 5);
+        Check("owned-skin keys alone give the bonus (Volt Viper 3 colours: 3)", ShipLives.Max(viper) == 3);
         OwnEverything();
-        Check("...and the set's (Volt Viper 7)", ShipLives.Max(viper) == 7);
+        Check("...and the set's (Volt Viper 5)", ShipLives.Max(viper) == 5);
         ClearSkins();
-        Check("removing the keys takes it all away (nothing else remembers it)", ShipLives.Max(viper) == 3);
+        Check("removing the keys takes it all away (nothing else remembers it)", ShipLives.Max(viper) == 1);
         Check("no save key of its own", !PlayerPrefs.HasKey("skinHearts") && !PlayerPrefs.HasKey("allSkinsBonus"));
     }
 
@@ -232,12 +232,12 @@ public static class SkinHeartsTest
         ClearSkins();
         Own(ShipId.Starter, 4);
         PlayerPrefs.SetInt("spawnShip", ShipId.Starter);
-        Check("the starter with every colour: 4 hearts in a run", ShipLives.Max(ShipId.Starter) == 4);
+        Check("the starter with every colour: 3 hearts in a run", ShipLives.Max(ShipId.Starter) == 3);
         EditorSceneManager.OpenScene("Assets/Scenes/" + score.TutorialScene + ".unity", OpenSceneMode.Single);
         var r = new ShipLivesTest.Rig(ShipId.Starter);
-        Check("the tutorial flies its bare hull: 2 (" + collisionDetection.MAXLIFE + ")",
+        Check("the tutorial flies its bare hull: 1 (" + collisionDetection.MAXLIFE + ")",
               r.ship.scene.name == score.TutorialScene && collisionDetection.MAXLIFE == ShipLives.Base(ShipId.Starter) &&
-              ShipLives.TutorialMax(ShipId.Starter) == 2);
+              ShipLives.TutorialMax(ShipId.Starter) == 1);
         r.Dispose();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         ClearSkins();
@@ -365,12 +365,12 @@ public static class SkinHeartsTest
 
         popup.Show(viper, anchor, .3f, true, false, 0f, 5000f);
         popup.ShowSkins(viper, ShipSkins.Stock, 5000f);
-        Check("dock: Volt Viper stock shows 3 hearts (" + popup.LivesBadgeText + ", " + popup.HeartsLineText + ")",
-              popup.LivesShown == 3 && popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 3");
+        Check("dock: Volt Viper stock shows 1 heart (" + popup.LivesBadgeText + ", " + popup.HeartsLineText + ")",
+              popup.LivesShown == 1 && popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 1");
 
         popup.ShowSkins(viper, 1, 5000f);   // previewing an unbought colour that adds a heart
-        Check("dock: previewing its first colour: badge 3+1 (" + popup.LivesBadgeText + ")",
-              popup.LivesShown == 3 && popup.LivesGainShown == 1 && popup.LivesBadgeText.Contains("+1"));
+        Check("dock: previewing its first colour: badge 1+1 (" + popup.LivesBadgeText + ")",
+              popup.LivesShown == 1 && popup.LivesGainShown == 1 && popup.LivesBadgeText.Contains("+1"));
         Check("dock: the hearts line says what buying adds (" + popup.HeartsLineText + ")", popup.HeartsLineText == "BUY: +1 HEART");
         Check("dock: the start speed line is unchanged (" + popup.StartSpeedText + ")", popup.StartSpeedText.StartsWith("START SPD "));
         Check("dock: the colour's name still stops before the heart badge",
@@ -378,16 +378,16 @@ public static class SkinHeartsTest
 
         Own(viper, 1);
         popup.ShowSkins(viper, 1, 5000f);
-        Check("dock: owned, it reads 4 = 3 +1 (" + popup.HeartsLineText + ")",
-              popup.LivesShown == 4 && popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 4: 3 +1 COLOURS");
+        Check("dock: owned, it reads 2 = 1 +1 (" + popup.HeartsLineText + ")",
+              popup.LivesShown == 2 && popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 2: 1 +1 COLOURS");
         popup.ShowSkins(viper, 2, 5000f);
         Check("dock: a colour that adds no heart shows none (" + popup.HeartsLineText + ")",
-              popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 4: 3 +1 COLOURS");
+              popup.LivesGainShown == 0 && popup.HeartsLineText == "HEARTS 2: 1 +1 COLOURS");
 
         OwnEverything();
         popup.ShowSkins(viper, 1, 5000f);
-        Check("dock: every skin: 7 = 3 +2 COLOURS +2 SET (" + popup.HeartsLineText + ")",
-              popup.LivesShown == 7 && popup.HeartsLineText == "HEARTS 7: 3 +2 COLOURS +2 SET");
+        Check("dock: every skin: 5 = 1 +2 COLOURS +2 SET (" + popup.HeartsLineText + ")",
+              popup.LivesShown == 5 && popup.HeartsLineText == "HEARTS 5: 1 +2 COLOURS +2 SET");
 
         // The last skin missing, previewed: the set's +2 too.
         PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(viper, 4));
@@ -429,14 +429,14 @@ public static class SkinHeartsTest
         popup.TapSwatch(1);
         popup.Press();
         Check("dock: buying Solar Fang's first colour: " + dock.LastPurchaseMessage + ", hearts " + popup.LivesShown,
-              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 4 && ShipSkins.IsOwned(fang, 1));
+              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 3 && ShipSkins.IsOwned(fang, 1));
         popup.TapSwatch(2);
         popup.Press();
-        Check("dock: its second adds no heart: " + dock.LastPurchaseMessage, dock.LastPurchaseMessage == "ACQUIRED" && popup.LivesShown == 4);
+        Check("dock: its second adds no heart: " + dock.LastPurchaseMessage, dock.LastPurchaseMessage == "ACQUIRED" && popup.LivesShown == 3);
         popup.TapSwatch(3);
         popup.Press();
         Check("dock: its third: " + dock.LastPurchaseMessage + ", hearts " + popup.LivesShown,
-              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 5);
+              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 4);
 
         // Everything else owned: Solar Fang's special is the last skin.
         foreach (int id in ShipId.All) if (id != fang) Own(id, ShipSkins.PerShip - 1);
@@ -448,7 +448,7 @@ public static class SkinHeartsTest
         popup.Press();
         var toast = CodexToast.Current;
         Check("dock: the last skin: " + dock.LastPurchaseMessage + ", hearts " + popup.LivesShown,
-              dock.LastPurchaseMessage == "ACQUIRED  +2 HEARTS" && popup.LivesShown == 7 && SkinHearts.AllSkinsOwned);
+              dock.LastPurchaseMessage == "ACQUIRED  +2 HEARTS" && popup.LivesShown == 6 && SkinHearts.AllSkinsOwned);
         Check("dock: and the one-time ALL SKINS: +2 HEARTS toast",
               toast != null && toast.Showing && toast.ShowingName == SkinHearts.AllSkinsTitle);
         if (toast != null) Object.DestroyImmediate(toast.gameObject);

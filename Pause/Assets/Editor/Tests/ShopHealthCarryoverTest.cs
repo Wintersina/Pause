@@ -100,23 +100,28 @@ public static class ShopHealthCarryoverTest
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
 
         // Pin the ship, its skin and its lives instead of reading whatever
-        // the machine's prefs hold (a stock Neon Comet has 2 lives, so one
-        // hit is already its last life -- critical, not damaged). The
+        // the machine's prefs hold (a stock Neon Comet has 1 life). The
         // sandbox puts the prefs back afterwards.
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(ShipId.Starter, n));
         PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(ShipId.Starter));
         ShipId.Equip(ShipId.Starter);
 
-        // stock starter, 2 lives: the first hit is the last life
+        // stock starter, 1 life: no hit survives, so there is no damaged look
         collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Starter);
-        Check("the stock starter flies with 2 lives", collisionDetection.MAXLIFE == 2);
-        ShowsAfterOneHit(ShipDamageTable.StateFor(1, collisionDetection.MAXLIFE), "critical (frame 2, 2-life ship)");
+        Check("the stock starter flies with 1 life", collisionDetection.MAXLIFE == 1);
 
-        // any colour of its own: 3 lives, so one hit is damaged
+        // one colour: 2 lives, so one hit is already the last life
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 1), 1);
         collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Starter);
-        Check("the coloured starter flies with 3 lives", collisionDetection.MAXLIFE == 3);
+        Check("the starter with a colour flies with 2 lives", collisionDetection.MAXLIFE == 2);
+        ShowsAfterOneHit(ShipDamageTable.StateFor(1, collisionDetection.MAXLIFE), "critical (frame 2, 2-life ship)");
+
+        // three colours: 3 lives, so one hit is damaged
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 2), 1);
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(ShipId.Starter, 3), 1);
+        collisionDetection.MAXLIFE = ShipLives.Max(ShipId.Starter);
+        Check("the starter with three colours flies with 3 lives", collisionDetection.MAXLIFE == 3);
         ShowsAfterOneHit(1, "damaged (frame 1, 3-life ship)");
 
         collisionDetection.MAXLIFE = 0;

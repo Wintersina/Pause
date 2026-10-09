@@ -341,7 +341,9 @@ public static class PostHitInvulnTest
         foreach (int id in ShipId.All)
         {
             n++;
-            int max = ShipLives.Max(id);
+            // (the window needs hearts to spare: a ship's real 1 or 2 hearts are covered
+            // by the FatalHitUnchanged / one-heart cases, so every ship is tried with 3)
+            int max = Mathf.Max(3, ShipLives.Max(id));
             var r = new Rig(id, max);
             r.Hit("rock");
             bool started = collisionDetection.lifeCounter == 1 && PlayerInvuln.Active;

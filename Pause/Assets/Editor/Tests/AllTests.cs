@@ -177,6 +177,8 @@ public static class AllTests
         ("WorldLeakTest", WorldLeakTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
+        ("RowHeartsTest", RowHeartsTest.Execute),
+        ("DockPopupScaleTest", DockPopupScaleTest.Execute),
     };
 
     public static void RunAll() { Run(null, fast: false); }

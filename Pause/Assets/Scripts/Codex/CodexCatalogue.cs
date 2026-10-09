@@ -229,13 +229,13 @@ public static class CodexCatalogue
     // What the ship fights with, from ShipLoadoutTable: its attack (fires when
     // the charge meter fills) and its secret power (its own meter, fills from
     // star dust and kills, fires itself at the right moment).
-    // How many hearts the hull flies with (ShipLives, by price tier) and
+    // How many hearts the hull flies with (ShipLives: its row in the dock grid) and
     // what its colours add (SkinHearts).
     public static string LivesLore(int ship)
     {
         int lives = ShipLives.Base(ship);
         int most = lives + SkinHearts.MostFromColours;
-        return "HULL  " + lives + " HEARTS (up to " + most + " with its colours, " +
+        return "HULL  " + lives + " " + SkinHearts.HeartsWord(lives) + " (up to " + most + " with its colours, " +
                (most + SkinHearts.AllSkinsBonus) + " with every skin)\n" + SkinHearts.LoreLine();
     }
 
