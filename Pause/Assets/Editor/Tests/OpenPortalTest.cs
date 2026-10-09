@@ -522,7 +522,7 @@ public static class OpenPortalTest
         EnemyThreat.ForceShooting = true;
         EnemyDensityProbe.SetAuthoredView();
         var rows = new List<string>();
-        float prevSpawns = -1f;
+        float prevSpawns = -1f, prevOnScreen = -1f, prevCeiling = -1f;
         bool rising = true, underCeiling = true, underCap = true;
         foreach (float waited in new[] { -1f, 30f, 120f, 600f })
         {
@@ -532,8 +532,20 @@ public static class OpenPortalTest
             var s = EnemyDensityProbe.Pinned(35, 110f, 2);
             rows.Add(string.Format("{0}: spawns/s {1:F2}, on screen {2:F2} (peak {3:F0}, ceiling {4:F1}), shots {5:F2}, pilots {6:F2}",
                                    waited < 0f ? "no portal" : waited + " s", s.spawnsPerSecond, s.onScreen, s.peakOnScreen, ceiling, s.shots, s.pilots));
-            rising &= s.spawnsPerSecond >= prevSpawns * .95f;
+            // More pressure fields more: a higher spawn rate -- or, once the
+            // ceiling has stopped rising (PortalPressure has hit the body cap:
+            // 120 s and 600 s both hold the board at it), at least as many
+            // bodies on the board. At a pinned ceiling spawns/s is only the
+            // board's TURNOVER, and that falls as bodies linger in view: rail
+            // mines ride up their rail beside the ship to fire both lasers
+            // (RailMineMount.StepRide, dd2d1573) and the long wait adds pilots,
+            // so 600 s spawned ~6% fewer than 120 s with as full a board.
+            // (Measured: with the ride switched off the two rates match.)
+            bool pinned = prevCeiling > 0f && ceiling <= prevCeiling + .01f;
+            rising &= s.spawnsPerSecond >= prevSpawns * .95f || (pinned && s.onScreen >= prevOnScreen * .95f);
             prevSpawns = s.spawnsPerSecond;
+            prevOnScreen = s.onScreen;
+            prevCeiling = ceiling;
             // The ceiling is checked as a spawn is placed, above the view;
             // bodies already on their way in are counted only once they
             // reach the counted band, so a faster spawn rate overshoots it a
