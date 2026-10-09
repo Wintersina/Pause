@@ -462,13 +462,14 @@ public static class HostileProjectileTest
 
     // ---- 2c. every variant of the bright worlds, at several moments ---------------
     //
-    // Frost and Verdant, each installed backdrop variant, at 5 s (the
-    // opening cloud ceiling), 12 s and 40 s: every hostile shot this world
+    // Frost and Verdant, each installed backdrop variant, at 2 s (the
+    // opening cloud ceiling at its thickest: CloudCover holds it ~4 s), 5 s
+    // (clearing), 12 s and 40 s: every hostile shot this world
     // fires -- its roster enemies' shots, its elites' shots, every elite
     // shot kind (incl. Frost's slab and orb), and its boss's bolt and shard
     // -- stands MinStandOutPixels at MinContrast out of the backdrop behind
     // it, wherever on the screen it is.
-    static readonly float[] VariantMoments = { 5f, 12f, 40f };
+    static readonly float[] VariantMoments = { 2f, 5f, 12f, 40f };
 
     static void ContrastOverEveryVariant()
     {

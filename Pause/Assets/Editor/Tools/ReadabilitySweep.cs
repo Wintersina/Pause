@@ -8,7 +8,8 @@ using UnityEngine;
 // READABILITY SWEEP: does everything hostile read over every backdrop?
 //
 // For each world and each of its backdrop variants (Frost / Verdant: every
-// installed v1..v4; Space / Ember: the one set), at 10 s and 40 s of the
+// installed v1..v4; Space / Ember: the one set), at 2 s (the cloud
+// ceiling), 10 s and 40 s of the
 // backdrop's own clock (as drawn: its grade, set pieces, clouds), it renders
 // at gameplay scale (a 21:9 phone view, CameraFit):
 //   * every roster enemy of that world, as built (EnemyFactory: its strip's
@@ -35,7 +36,7 @@ using UnityEngine;
 //
 // Writes readability.csv (one row per item per placement), worst.csv (each
 // item's worst case), every frame (flagged items boxed red) and a contact
-// sheet per world (rows: variants, columns: 10 s / 40 s x enemies / shots).
+// sheet per world (rows: variants, columns: 2 s / 10 s / 40 s x enemies / shots).
 //
 //   scripts/unity-batch.sh -executeMethod ReadabilitySweep.Run
 //   (writes to $READABILITY_DIR, else Builds/Readability; READABILITY_STANDARD=1
@@ -47,7 +48,7 @@ public static class ReadabilitySweep
     const float Dt = 1f / 60f;
     public const float MinContrast = 3f;
     static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember" };
-    static readonly float[] Moments = { 10f, 40f };
+    static readonly float[] Moments = { 2f, 10f, 40f };   // 2 s: the opening cloud ceiling at its thickest
 
     sealed class Item
     {
