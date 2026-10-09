@@ -15,7 +15,8 @@ using UnityEngine;
 //     (plume base) within 3 px of the piece's measured point, mirrored or
 //     not, and that point is on the piece's opaque art; plumes lean with the
 //     level wind; loops draw above their piece;
-//   * the cloud ceiling (spore cloud) thick at the start and gone by ~35 s,
+//   * the cloud ceiling (spore cloud) thick at the start and gone by ~15 s (then
+//     a light scattering of cloud, CloudCoverMeter),
 //     continuing the planetfall's deck; pollen gusts; every layer behind
 //     gameplay; lane readability as rendered;
 //   * the Resin Warden launching from a tower bay / root hangar that opens
@@ -52,6 +53,7 @@ public static class VerdantBackdropTest
             Affinity();
             Emitters();
             Weather();
+            Clouds();
             Brightness();
             Sites();
             Allocation();
@@ -473,16 +475,32 @@ public static class VerdantBackdropTest
         var wb = Fresh(1);
         var d = Director(wb);
         if (d == null) { Check("Verdant director", false); return; }
+        // the ceiling's timeline (CloudCover): thick through the hold, <= 10%
+        // of the view covered by 10 s, gone by {clear} s
         Run(wb, .5f);
-        float c0 = d.CeilingCover, a0 = d.CeilingBankAlpha;
-        Run(wb, 14.5f);
-        float c15 = d.CeilingCover, a15 = d.CeilingBankAlpha;
-        Run(wb, 20f);
-        float c35 = d.CeilingCover;
-        Check("the spore-cloud ceiling is thick at the start (" + c0.ToString("F2") + " >= .35)", c0 >= .35f);
-        Check("... thinning by 15 s (cover " + c15.ToString("F2") + ", bank alpha " + a0.ToString("F2") + " -> " + a15.ToString("F2") + ")",
-              c15 < c0 * .8f || a15 < a0 * .8f);
-        Check("... and gone by 35 s (" + c35.ToString("F3") + ", " + d.Ceiling.ActiveCount + " banks)", c35 < .02f && d.Ceiling.ActiveCount == 0);
+        float c0 = d.CeilingCover;
+        Run(wb, 3.5f);
+        float c4 = d.CeilingCover;
+        var cover4 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
+        Run(wb, 6f);
+        var cover10 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
+        var spec = BackdropCatalog.For("Verdant");
+        float clear = spec.CeilingClearSeconds();
+        Run(wb, clear + 1f - 10f);
+        float cGone = d.CeilingCover;
+        int liveGone = d.Ceiling.ActiveCount;
+        Check("the cloud ceiling is thick at the start (" + c0.ToString("F2") + " of the view >= .35)", c0 >= .35f);
+        Check("... and still thick at 4 s (" + c4.ToString("F2") + ", " + cover4.covered.ToString("F2") + " of the view under cloud >= .5)",
+              c4 >= .35f && cover4.covered >= .5f);
+        Check("... clearing fast: <= .10 of the view under the ceiling at 10 s (" + cover10.covered.ToString("F3") + ")", cover10.covered <= .10f);
+        Check("... and gone by " + (clear + 1f).ToString("F0") + " s (" + cGone.ToString("F3") + ", " + liveGone + " banks)",
+              cGone < .02f && liveGone == 0 && clear <= 16f);
+        Check("ceiling density: 1 through the " + spec.CeilingHold() + " s hold, 0 at " + clear + " s",
+              VerdantDirector.CeilingDensity(0f) == 1f && VerdantDirector.CeilingDensity(spec.CeilingHold()) == 1f &&
+              VerdantDirector.CeilingDensity(clear) == 0f && VerdantDirector.CeilingDensity(10f) < .2f && VerdantDirector.CeilingDensity(6f) > .3f);
+        Check("Ember (no knobs yet) inherits the shared cloud defaults",
+              BackdropCatalog.For("Ember").CloudDensity() == CloudCover.Density && BackdropCatalog.For("Ember").CeilingClearSeconds() == CloudCover.CeilingClearSeconds);
+
         int g0 = d.Gusts, sheetFrames = 0;
         float maxAlpha = 0f;
         Run(wb, 150f, () =>
@@ -516,6 +534,58 @@ public static class VerdantBackdropTest
         int n = 0;
         foreach (var p in pool.items) if (p.active && p.sr.color.a > .05f) n++;
         return n;
+    }
+
+    // ---- cloud cover after the ceiling (CloudCover, VerdantTuning.CloudDensity) ----------
+
+    // User, 2026-10-08: "too many clouds covering the backdrop; lower the
+    // amount of clouds after the first 10 seconds". Every variant, three
+    // seeds: the share of the view under cloud (CloudCoverMeter: ceiling,
+    // wisps, mist at opacity >= .1) at 12 / 20 / 40 / 70 s averages <= 15%,
+    // and no cloud parks over the centre lane for more than ~2 s.
+    public const float MaxCloudCover = .15f, MaxLaneSeconds = 2.5f;
+
+    static void Clouds()
+    {
+        float worstMean = 0f, worstLane = 0f, sum = 0f;
+        int runs = 0;
+        string detail = "";
+        for (int v = 1; v <= 4; v++)
+            for (int seed = 1; seed <= 3; seed++)
+            {
+                var wb = Fresh(v);
+                var d = Director(wb);
+                if (d == null) { Check("Verdant director", false); return; }
+                CloudCoverMeter.Reseed(d, 9100 + 17 * seed + v);
+                var st = CloudCoverMeter.Run(wb, Dt);
+                worstMean = Mathf.Max(worstMean, st.covered);
+                worstLane = Mathf.Max(worstLane, st.laneRun);
+                sum += st.covered; runs++;
+                detail += " v" + v + ":" + st.covered.ToString("F2");
+            }
+        Debug.Log("[VBD] cloud cover after the ceiling (12/20/40/70 s, mean of runs " + (sum / runs).ToString("F3") + "):" + detail);
+        Check("after the ceiling, clouds cover <= " + MaxCloudCover + " of the view on average in every variant (worst run " +
+              worstMean.ToString("F3") + ", mean " + (sum / runs).ToString("F3") + ")", worstMean <= MaxCloudCover);
+        Check("... and never park over the centre lane (longest cover " + worstLane.ToString("F1") + " s <= " + MaxLaneSeconds + ")",
+              worstLane <= MaxLaneSeconds);
+
+        // the knob: more density = more cloud, 0 = none after the ceiling
+        float saved = VerdantTuning.CloudDensity;
+        try
+        {
+            float[] at = new float[3];
+            float[] knob = { 0f, 1f, 2.5f };
+            for (int k = 0; k < 3; k++)
+            {
+                VerdantTuning.CloudDensity = knob[k];
+                var wb = Fresh(1);
+                CloudCoverMeter.Reseed(Director(wb), 4242);
+                at[k] = CloudCoverMeter.Run(wb, Dt).covered;
+            }
+            Check("VerdantTuning.CloudDensity is the knob (0 / 1 / 2.5 -> " + at[0].ToString("F3") + " / " + at[1].ToString("F3") + " / " + at[2].ToString("F3") + ")",
+                  at[0] < .01f && at[2] > at[1]);
+        }
+        finally { VerdantTuning.CloudDensity = saved; }
     }
 
     // ---- brightness ------------------------------------------------------------------
