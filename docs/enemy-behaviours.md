@@ -747,9 +747,16 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
   the hard-edged magenta beam with a white core in Space, Frost and Ember, Verdant's lime. No player red.
 * **Damage.** A trigger box tagged `Enimey` (`RailMineLaser.HitboxName`), `HitThickness` 0.28 u across the beam,
   enabled only in the Beam phase: collisionDetection's normal hostile hit -- a heart; under a shield it is absorbed
-  and the beam ends (`EliteShip.ShieldRam` -> `RailMineLaser.EraseHitbox`); a blink erases it
-  (`EliteShip.TeleportStrike`); a heart lost ends it too. It is a projectile to the death crash and not a hazard
-  body to `RamKill`. Not shootable by player weapons (like the boss lasers).
+  and the beam ends (`EliteShip.ShieldRam` -> `RailMineLaser.EraseHitbox`); a blink erases it only when the hull
+  lands ON it (`EliteShip.TeleportStrike` -> `RailMineLaser.BlinkStrike`, not anywhere in the jump's 0.95 u blast
+  circle); a heart lost does NOT end it (the hull never destroys the hitbox: the beam burns on and the heart's
+  i-frames carry the ship through). Only the fatal hit ends it. It is a projectile to the death crash and not a
+  hazard body to `RamKill`.
+* **Fix: "the lasers randomly disappear when the ship gets close".** Two things erased the whole lane-wide beam
+  from near the ship, on both rails alike: (1) a pause jump's `TeleportFx.Strike` overlap circle (0.95 u) caught
+  the long thin hitbox from any landing within ~1.1 u of its row, so a jump landing beside the beam wiped it;
+  (2) an unshielded touch destroyed the hitbox (`collisionDetection`'s ram path), ending the beam on the spot.
+  Tested on both rails (`RailMineLaserTest`, "the ship coming close"). Not shootable by player weapons (like the boss lasers).
 * **Friendly fire.** All hostile fire hurts what it crosses. The beam's targets are picked in one place,
   `RailMineLaser.Burn()`: with `RailMineLaser.HurtsOtherEnemies` (true) every `ClearTarget` hazard whose body the
   live beam's rect touches (`FriendlyFire.CanHit`: not the boss, not shot hitboxes) takes `FriendlyFire.Hit` -- a

@@ -28,10 +28,13 @@ using UnityEngine;
 //
 // DAMAGE. The pilot: a trigger BoxCollider2D tagged "Enimey" on a child
 // (HitboxName), HitThickness across the beam, enabled in the Beam phase
-// only -- collisionDetection's normal hostile hit: a heart, or, shielded,
-// absorbed (EliteShip.ShieldRam -> EraseHitbox ends the beam), erased by a
-// blink (EliteShip.TeleportStrike). A hit that destroys the hitbox ends the
-// beam. Other hazards: TARGETS ARE DECIDED IN ONE PLACE, Burn(): when
+// only -- collisionDetection's normal hostile hit: a heart (the beam is not
+// spent on the hull: it burns on and the heart's i-frames carry the ship
+// through), or, shielded, absorbed (EliteShip.ShieldRam -> EraseHitbox ends
+// the beam); a blink erases it only when the hull lands ON it (BlinkStrike:
+// not anywhere in the jump's 0.95 u blast circle). The fatal hit destroys
+// the hitbox and ends the beam. Nothing else near the ship touches it.
+// Other hazards: TARGETS ARE DECIDED IN ONE PLACE, Burn(): when
 // HurtsOtherEnemies is on, every ClearTarget hazard the live beam's rect
 // touches (FriendlyFire.HostileFireCanHit: not the boss, not shot hitboxes,
 // not a target still in its spawn-in protection, never its own mine; off in
@@ -344,14 +347,50 @@ public class RailMineLaser : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // collisionDetection's shielded path (EliteShip.ShieldRam) and a blink
-    // (EliteShip.TeleportStrike): a mine laser's hitbox is absorbed /
-    // erased, the beam ends. False if `go` is not one.
+    // collisionDetection's shielded path (EliteShip.ShieldRam): a mine
+    // laser's hitbox is absorbed, the beam ends. False if `go` is not one.
     public static bool EraseHitbox(GameObject go)
     {
         if (go == null || !go.TryGetComponent(out RailMineLaserHitbox hb)) return false;
         if (hb.laser != null) hb.laser.Erase();
         return true;
+    }
+
+    public static bool IsHitbox(GameObject go) => go != null && go.TryGetComponent(out RailMineLaserHitbox _);
+
+    // A pause jump (TeleportFx.Strike -> EliteShip.TeleportStrike) found
+    // this hitbox inside its BlastRadius (0.95 u). That blast is sized for a
+    // body; the beam is one long thin hitbox crossing the whole lane, so the
+    // circle used to catch it from a landing well clear of it -- the beam
+    // vanished whenever a jump landed near its row. It is erased only when
+    // the landed hull itself is on the beam (LandsOn). True: it was a mine
+    // laser's hitbox (handled, erased or not).
+    public static bool BlinkStrike(GameObject go, Vector3 at)
+    {
+        if (go == null || !go.TryGetComponent(out RailMineLaserHitbox hb)) return false;
+        if (hb.laser != null && hb.laser.LandsOn(at)) hb.laser.Erase();
+        return true;
+    }
+
+    // Half the hull's extent across the beam when the pilot has no hit zone
+    // to ask (the 1.35x hull's hitbox is ~0.66 u tall).
+    public const float BlinkHullReach = .33f;
+
+    // Does a hull landed at `at` lie on the live beam? The pilot's own hit
+    // zone (ShipHitbox) when it is the one standing there, else its reach.
+    public bool LandsOn(Vector2 at)
+    {
+        if (!Live) return false;
+        var p = EliteSystem.Player;
+        var zone = p != null ? ShipHitbox.Of(p.gameObject) : null;
+        var col = zone != null ? zone.Active : null;
+        if (col != null && col.enabled && box != null && ((Vector2)p.position - at).sqrMagnitude < 1e-4f)
+        {
+            Physics2D.SyncTransforms();
+            return Physics2D.Distance(col, box).isOverlapped;
+        }
+        return Mathf.Abs(at.y - y) <= HitThickness * .5f + BlinkHullReach &&
+               at.x >= Mathf.Min(from.x, to.x) - BlinkHullReach && at.x <= Mathf.Max(from.x, to.x) + BlinkHullReach;
     }
 }
 

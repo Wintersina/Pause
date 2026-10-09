@@ -49,6 +49,7 @@ public static class RailMineLaserTest
             Timing();
             Follows();
             Damage();
+            StaysWhenClose();
             FriendlyFireOnce();
             Fairness();
             PauseFreezes();
@@ -369,6 +370,129 @@ public static class RailMineLaserTest
     }
 
     static int FirstShip { get { foreach (int id in ShipId.All) return id; return 0; } }
+
+    // ---- 3b. the ship coming close never makes the beam vanish -------------
+    //
+    // "The lasers randomly disappear when the ship gets close." On both rails,
+    // with the ship at several places along the beam: a pause jump landing
+    // NEAR the beam (the hull clear of it) leaves it burning its full
+    // BeamSeconds, drawn rail to rail; one landing ON it erases it (a blink);
+    // an unshielded touch costs a heart and the beam burns on.
+
+    // Runs the rest of a live beam; how long it stayed in the Beam phase,
+    // and whether it was drawn rail face to rail face every frame of it.
+    static float BurnsOn(EnemyBrain brain, RailMineLaser l, float already, out bool drawn)
+    {
+        float burned = already;
+        drawn = true;
+        float edge = BossRails.DrawnInnerEdge;
+        for (int i = 0; i < 120 && l.Active && brain != null; i++)
+        {
+            if (l.State == RailMineLaser.Phase.Beam)
+            {
+                var b = l.BeamRenderer.bounds;
+                drawn &= l.BeamShown && b.min.x < -edge + .05f && b.max.x > edge - .05f;
+            }
+            Step(brain);
+            if (l.State == RailMineLaser.Phase.Beam) burned += Dt;
+        }
+        return burned;
+    }
+
+    // How many times `hit` had collisionDetection Destroy() what the hull
+    // touched (Object.Destroy(Object); the hit explosion's timed
+    // Destroy(Object, float) is not counted).
+    static int HullDestroys(System.Action hit)
+    {
+        int n = 0;
+        Application.LogCallback cb = (msg, stack, type) =>
+        {
+            if (msg.StartsWith("Destroy may not be called") && stack != null && stack.Contains("Object:Destroy (UnityEngine.Object)")) n++;
+        };
+        Application.logMessageReceived += cb;
+        try { hit(); }
+        finally { Application.logMessageReceived -= cb; }
+        return n;
+    }
+
+    static void StaysWhenClose()
+    {
+        float full = RailMineLaser.BeamSeconds - 2.5f * Dt;
+        foreach (bool right in new[] { true, false })
+        {
+            string side = right ? "right" : "left";
+            // pause jumps landing beside the beam (the hull's half height at the
+            // game's 1.35x is ~0.33 u: 0.6 u off the line is well clear) and on it
+            var near = new List<string>();
+            var on = new List<string>();
+            // (x within +/-1: the jump's blast never reaches the mine itself, which
+            // a landing next to it rightly erases, beam and all)
+            foreach (float x in new[] { -1f, 0f, 1f })
+                foreach (float off in new[] { -1f, -.6f, 0f, .2f, .6f, 1f })
+                {
+                    Fresh();
+                    var brain = Mine(2, right, 1f, out var rail);
+                    var l = LiveLaser(brain);
+                    if (l == null) { near.Add("no beam"); Object.DestroyImmediate(brain.gameObject); Object.DestroyImmediate(rail); continue; }
+                    var at = new Vector3(x, l.Y + off, 0f);
+                    ship.position = at;
+                    TeleportFx.Strike(at);
+                    float burned = BurnsOn(brain, l, Dt, out bool drawn);
+                    bool landedOn = Mathf.Abs(off) <= RailMineLaser.HitThickness * .5f + .3f;
+                    string tag = F(x) + "/" + F(off) + " " + F(burned) + " s" + (drawn ? "" : " (not drawn)");
+                    if (landedOn) { if (burned > .1f) on.Add(tag); }
+                    else if (burned < full || !drawn) near.Add(tag);
+                    Object.DestroyImmediate(brain.gameObject);
+                    Object.DestroyImmediate(rail);
+                }
+            Check(side + " rail: a pause jump landing beside the beam, the hull clear of it, leaves it burning its full " +
+                  RailMineLaser.BeamSeconds + " s, drawn rail to rail (" + (near.Count == 0 ? "all" : "vanished: " + string.Join(", ", near)) + ")",
+                  near.Count == 0);
+            Check(side + " rail: a pause jump landing on the beam erases it (" + (on.Count == 0 ? "all" : "survived: " + string.Join(", ", on)) + ")",
+                  on.Count == 0);
+        }
+
+        // an unshielded touch: a heart, and the beam burns on (the i-frames carry the ship through)
+        Fresh();
+        Object.DestroyImmediate(ship.gameObject);
+        var rig = new DeathCrashTest.Rig(FirstShip);
+        try
+        {
+            ship = rig.ship.transform;
+            EliteSystem.PlayerOverride = ship;
+            foreach (bool right in new[] { true, false })
+            {
+                var bad = new List<string>();
+                foreach (float x in new[] { -1.8f, 0f, 1.8f })
+                {
+                    collisionDetection.lifeCounter = 0;
+                    PlayerInvuln.Reset();
+                    ship.position = new Vector3(x, 1f, 0f);
+                    var brain = Mine(1, right, 1f, out var rail);
+                    var l = LiveLaser(brain);
+                    if (l == null) { bad.Add("no beam"); Object.DestroyImmediate(brain.gameObject); Object.DestroyImmediate(rail); continue; }
+                    ship.position = new Vector3(x, l.Y, 0f);
+                    // (an edit-mode Destroy only logs: in play it would take the
+                    // hitbox, and the beam with it, at the end of the frame)
+                    int destroys = HullDestroys(() => rig.Hit(l.Hitbox));
+                    int hearts = collisionDetection.lifeCounter;
+                    float burned = BurnsOn(brain, l, Dt, out bool drawn);
+                    if (hearts != 1 || destroys > 0 || burned < full || !drawn)
+                        bad.Add(F(x) + ": " + hearts + " heart, " + (destroys > 0 ? "hitbox destroyed, " : "") + F(burned) + " s" + (drawn ? "" : ", not drawn"));
+                    Object.DestroyImmediate(brain.gameObject);
+                    Object.DestroyImmediate(rail);
+                }
+                Check((right ? "right" : "left") + " rail: the ship touching the beam unshielded loses one heart, the hull does not destroy the beam's hitbox, and the beam burns its full " +
+                      RailMineLaser.BeamSeconds + " s (" + (bad.Count == 0 ? "at -1.8, 0, 1.8" : string.Join("; ", bad)) + ")", bad.Count == 0);
+            }
+        }
+        finally
+        {
+            rig.Dispose();
+            collisionDetection.lifeCounter = 0;
+            PlayerInvuln.Reset();
+        }
+    }
 
     // ---- 4. friendly fire ----------------------------------------------------
 
