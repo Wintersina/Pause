@@ -125,7 +125,8 @@ public static class BossFreeShotAtomsTest
         typeof(spawnGoodStuff).GetField("redAtomDelayTimer", Inst).SetValue(r.s, 0f);
         BossEncounter.Begin(world, null);
         var e = BossEncounter.Instance;
-        var seen = new HashSet<GameObject>();
+        var seen = new HashSet<GameObject>(Reds());
+        bool held = false;
         bool killed = false;
         for (int i = 0; i < 4000 && e.State != BossEncounter.Phase.Done; i++)
         {
@@ -135,6 +136,11 @@ public static class BossFreeShotAtomsTest
             {
                 killed = true;
                 for (int k = 0; k < 20; k++) e.OnShipAttackHit(1f);
+            }
+            if (e.State == BossEncounter.Phase.Outro && !held)
+            {
+                held = true;   // the allowance's own red atom may come once the boss is gone: not under test
+                typeof(spawnGoodStuff).GetField("redAtomDelayTimer", Inst).SetValue(r.s, 1e6f);
             }
             int d = Frame(r, e);
             if (d > 0)

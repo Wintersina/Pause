@@ -219,7 +219,8 @@ public static class PickupRulesTest
         Check("red pause atoms unchanged (" + oldRed.ToString("F2") + " before, " + redMean.ToString("F2") + " now)",
               Mathf.Abs(redMean - oldRed) < .35f);
 
-        // the boss doesn't touch the red atom either
+        // the allowance's red atoms are held back through a boss: the fight hands
+        // out its own exactly-3 instead (BossFreeShotAtomsTest)
         FreshScene();
         StartBoss();
         long bossRed = 0;
@@ -228,8 +229,8 @@ public static class PickupRulesTest
             if (!BossEncounter.Running) StartBoss();
             bossRed += Simulate(seed, window).red;
         }
-        Check("red pause atoms unchanged in a boss fight (" + ((float)bossRed / 20).ToString("F2") + ")",
-              Mathf.Abs((float)bossRed / 20 - oldRed) < .5f);
+        Check("allowance red atoms held back during a boss encounter (" + ((float)bossRed / 20).ToString("F2") + ")",
+              bossRed == 0);
         BossEncounter.ResetRun();
 
         // the green heal atom lives in its own spawner, with its own rules
