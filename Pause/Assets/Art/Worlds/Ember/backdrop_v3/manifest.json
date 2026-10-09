@@ -233,5 +233,1391 @@
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
     }
-  ]
+  ],
+  "run_b": {
+    "build": "python3 src~/build_b.py",
+    "preview": "preview_b.png",
+    "atlas_grid": "4x4 grid of 256x256 cells in 1024x1024 RGBA; weather final cell contains two nonoverlapping half-cell sprites; sites use three rows",
+    "json_coordinates": "Unity sprite rect y from image bottom; points from individual sprite rect top-left",
+    "source_candidates": {
+      "landmarks": [
+        "src~/landmarks_a.png",
+        "src~/slagbarge_b.png"
+      ],
+      "pipes": [
+        "src~/pipes_a.png"
+      ],
+      "fires": [
+        "src~/fires_a.png",
+        "src~/flarestacks_b.png"
+      ],
+      "weather": [
+        "src~/weather_a.png"
+      ],
+      "sites": [
+        "src~/sites_a.png"
+      ]
+    },
+    "selected_sources": {
+      "landmarks": [
+        "src~/landmarks_a.png",
+        "src~/slagbarge_b.png"
+      ],
+      "pipes": [
+        "src~/pipes_a.png"
+      ],
+      "fires": [
+        "src~/fires_a.png",
+        "src~/flarestacks_b.png"
+      ],
+      "weather": [
+        "src~/weather_a.png"
+      ],
+      "sites": [
+        "src~/sites_a.png"
+      ]
+    },
+    "brightness": "Landmarks, pipes, fires and sites opaque HSV value p90 <= 0.55; sparse cores may be brighter.",
+    "weather_alpha": "Banks <=80, wisps <=64, mist/gust <=48, smoke <=56, embers <=72 of 255.",
+    "count_resolution": "Landmarks and fires each list 15 names, so forgewell_00 and lavachannel_00 fill the sixteenth cells. Weather lists 17 names; two sprites share its last 256px cell.",
+    "pieces": [
+      {
+        "atlas": "landmarks.png",
+        "name": "forgetower_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "forgetower_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_02",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "coolingtower_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "coolingtower_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "smelter_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "kiln_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "derrick_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "derrick_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "slagbarge_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "slagbarge_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately. Distinct separately painted canal barge."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "lavafall_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "viaduct_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "forgewell_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            36
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          125,
+          255
+        ],
+        "notes": "Painted brass/black-basalt industrial terrain island; stack smoke animates separately. Additional painted sixteenth-cell subject."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_straight_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_straight_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            128,
+            20
+          ],
+          [
+            128,
+            236
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bend_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            24,
+            88
+          ],
+          [
+            176,
+            226
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bend_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            26,
+            90
+          ],
+          [
+            190,
+            228
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tee_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ],
+          [
+            128,
+            20
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_cross_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ],
+          [
+            128,
+            20
+          ],
+          [
+            128,
+            236
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            130
+          ],
+          [
+            236,
+            130
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            130
+          ],
+          [
+            236,
+            130
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipebridge_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            110
+          ],
+          [
+            236,
+            110
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipebridge_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            110
+          ],
+          [
+            236,
+            110
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pumphouse_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            147
+          ],
+          [
+            214,
+            144
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_leak_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [
+          [
+            147,
+            116
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [
+          [
+            128,
+            233
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_leak_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [
+          [
+            134,
+            165
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_lava_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tangle_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            32,
+            210
+          ],
+          [
+            188,
+            34
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tangle_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            20,
+            128
+          ],
+          [
+            236,
+            128
+          ]
+        ],
+        "on_screen_size_px": [
+          140,
+          260
+        ],
+        "notes": "Painted copper/brass flanged pipework; endpoint coordinates are nominal chain anchors."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavafountain_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            132,
+            171
+          ],
+          [
+            130,
+            108
+          ],
+          [
+            75,
+            170
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavafountain_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            127,
+            161
+          ],
+          [
+            124,
+            98
+          ],
+          [
+            196,
+            171
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavafountain_02",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            127,
+            155
+          ],
+          [
+            63,
+            82
+          ],
+          [
+            121,
+            97
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "eruptionscar_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            121,
+            144
+          ],
+          [
+            72,
+            145
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "eruptionscar_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            114,
+            117
+          ],
+          [
+            185,
+            113
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "eruptionscar_02",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            111,
+            99
+          ],
+          [
+            143,
+            150
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "coalbed_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            157,
+            143
+          ],
+          [
+            95,
+            104
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "coalbed_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            138,
+            102
+          ],
+          [
+            68,
+            122
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavapool_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            151,
+            99
+          ],
+          [
+            184,
+            169
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavapool_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            119,
+            127
+          ],
+          [
+            194,
+            131
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "flarestack_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            32
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke. Open glowing mouth is the flame emitter; no baked flame plume."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "flarestack_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            32
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke. Open glowing mouth is the flame emitter; no baked flame plume."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "scorched_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            136,
+            150
+          ],
+          [
+            147,
+            83
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "scorched_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            144,
+            45
+          ],
+          [
+            106,
+            159
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "firebreak_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            101,
+            126
+          ],
+          [
+            168,
+            85
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lavachannel_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            109,
+            141
+          ],
+          [
+            175,
+            79
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          150,
+          270
+        ],
+        "notes": "Static lava and fire ground; hot points anchor later animated flame or smoke. Additional painted sixteenth-cell subject."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_00",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_01",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_02",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_03",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_00",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_01",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_02",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_03",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_02",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "ashgust_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "ashgust_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "ashgust_02",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "smokepall_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "smokepall_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets. Shares the final 256-pixel weather cell as a separate half-cell rect."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "embers_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha drifting ash or smoke overlay above terrain, behind enemies and bullets. Shares the final 256-pixel weather cell as a separate half-cell rect."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "foundryhangar_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "foundryhangar_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "magmabay_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "magmabay_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "slagpad_idle",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "slagpad_active",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "furnacebay_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "furnacebay_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_off",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_on",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          110,
+          200
+        ],
+        "notes": "Centered elite emergence aperture; paired state shares scale and basalt footing.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      }
+    ]
+  }
 }
