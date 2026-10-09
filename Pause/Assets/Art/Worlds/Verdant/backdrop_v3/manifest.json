@@ -1,0 +1,246 @@
+{
+  "world": "Verdant",
+  "size": [
+    512,
+    1024
+  ],
+  "format": "RGBA PNG",
+  "source_method": "Built-in image generation: two painted terrain candidates and two painted transparent flow candidates per variant; inspected flow selection, nearest-neighbor resize, palette indexing, depth haze, offset-and-blend wrap join",
+  "selected_flow_sources": {
+    "v1": "v1_flow_source.png",
+    "v2": "v2_flow_source.png",
+    "v3": "v3_flow_candidate_b.png",
+    "v4": "v4_flow_candidate_b.png"
+  },
+  "secondary_flow_sources": {
+    "v3": "v3_flow_source.png",
+    "v4": "v4_flow_source.png"
+  },
+  "preview": "preview_variants.png",
+  "files": [
+    {
+      "file": "v1/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4863,
+      "opaque_fraction": 0.1316,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 0.1119,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4902,
+      "opaque_fraction": 0.0695,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.3333,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.3647,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.3961,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.3765,
+      "opaque_fraction": 0.0453,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    }
+  ]
+}
