@@ -56,7 +56,7 @@ public static class TitleScreenTrafficTest
         NeverInterceptsUiRaycasts();
         NoPerFrameAllocations();
         LogoUntouched();
-        TitleAlienIsTheRosterSpaceAlien();
+        NoBileMiteOnHomeScreen();
 
         Debug.Log("[TT] failures: " + fails);
         return fails;
@@ -976,58 +976,26 @@ public static class TitleScreenTrafficTest
         Check("logo rotation unchanged", logo.transform.rotation == Quaternion.identity);
     }
 
-    // The drifting home-screen alien is the Space world's roster alien
-    // (EnemyRoster space_alien via EnemyArt), looping its idle and rising
-    // like the old alien1.prefab invader it replaced.
-    static void TitleAlienIsTheRosterSpaceAlien()
+    // The Bile Mite (roster space_alien) used to drift up the home screen as a
+    // scene object. It is gone from the home screen; gameplay is untouched.
+    static void NoBileMiteOnHomeScreen()
     {
-        var aliens = Object.FindObjectsByType<TitleScreenAlien>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        Check("startS4 has one drifting title alien (" + aliens.Length + ")", aliens.Length == 1);
-        if (aliens.Length != 1) return;
-        var alien = aliens[0];
-        var go = alien.gameObject;
-        Check("the title alien is active at the old alien's spot",
-              go.activeInHierarchy && (go.transform.position - new Vector3(-2.11f, -4.06f, 1f)).sqrMagnitude < 1e-6f);
-        var drift = go.GetComponent<TitleScreenMoveDown>();
-        Check("it keeps the old drift (TitleScreenMoveDown, enabled)", drift != null && drift.enabled);
-        Check("it is cosmetic: no collider, rigidbody, mover or hazard tag",
-              go.GetComponent<Collider2D>() == null && go.GetComponent<Rigidbody2D>() == null &&
-              go.GetComponent<moveEnimes>() == null && !go.CompareTag("Enimey") && !go.CompareTag("Astr"));
-        Check("it is not a prefab instance (alien1.prefab is gone)", !PrefabUtility.IsPartOfAnyPrefab(go));
-
-        var flip = alien.Build();
-        var def = EnemyRoster.Find("space_alien");
-        var frames = EnemyArt.Frames(def);
-        Check("it is the Space world's roster alien",
-              def != null && alien.Def == def && def.world == 0 && def.role == EnemyRole.Alien &&
-              EnemyRoster.One(0, EnemyRole.Alien) == def);
-        Check("it is drawn from the roster flipbook (EnemyArt)", flip != null && frames != null &&
-              System.Array.IndexOf(frames, go.GetComponent<SpriteRenderer>().sprite) >= 0);
-        alien.Build();
-        Check("building twice keeps one flipbook", go.GetComponents<EnemyFlipbook>().Length == 1);
-        if (flip == null || frames == null) return;
-
-        // It animates its idle loop (frames 0-3) and, with no ship about,
-        // never chomps.
-        var seen = new HashSet<int>();
-        var sprites = new HashSet<Sprite>();
-        bool idleOnly = true;
-        for (int i = 0; i < 60; i++)
-        {
-            flip.Advance(1f / 30f);
-            seen.Add(flip.CurrentFrame);
-            sprites.Add(go.GetComponent<SpriteRenderer>().sprite);
-            idleOnly &= flip.CurrentFrame < EnemyRoster.TellFrame;
-        }
-        Check("the title alien animates its idle loop (" + seen.Count + " frames in 2 s)", seen.Count >= 3 && sprites.Count >= 3);
-        Check("... and only its idle (no tell without a ship)", idleOnly);
-        float w = go.GetComponent<SpriteRenderer>().bounds.size.x;
-        Check("it is drawn at the roster alien size (" + w.ToString("0.00") + " u, the old invader was 0.64)",
-              Mathf.Abs(w - EnemyRoster.FrameWorldSize(EnemyRole.Alien)) < .05f);
-
-        string scene = File.ReadAllText("Assets/Scenes/startS4.unity");
-        Check("startS4 has no alien1.prefab reference", !scene.Contains("1716f248879a3d9409936e4fc65c75a4"));
-        Check("startS4 has no object named alien1", !System.Text.RegularExpressions.Regex.IsMatch(scene, @"m_Name: alien1\b"));
+        Check("startS4 has no TitleAlien object", GameObject.Find("TitleAlien") == null);
+        var scene = File.ReadAllText("Assets/Scenes/startS4.unity");
+        Check("startS4 does not reference the Bile Mite (no TitleAlien, no EnemyFlipbook, no alien1)",
+              !scene.Contains("m_Name: TitleAlien") && !scene.Contains("TitleScreenAlien") &&
+              !System.Text.RegularExpressions.Regex.IsMatch(scene, @"m_Name: alien1\b"));
+        Check("no home traffic or combat code picks the roster alien",
+              !File.ReadAllText("Assets/Scripts/UI/TitleScreenTraffic.cs").Contains("space_alien") &&
+              !File.ReadAllText("Assets/Scripts/UI/TitleScreenTraffic.Combat.cs").Contains("space_alien") &&
+              !File.ReadAllText("Assets/Scripts/UI/TitleScreenTraffic.Elite.cs").Contains("space_alien"));
+        Check("the Bile Mite still exists in the gameplay roster", EnemyRoster.Find("space_alien") != null);
+        var t = Object.FindFirstObjectByType<TitleScreenTraffic>();
+        bool mite = false;
+        if (t != null)
+            foreach (var r in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (r.GetComponent<EnemyFlipbook>() != null) mite = true;
+        Check("no roster flipbook enemy sits in the home scene", !mite);
     }
 
     static string Sha256(string path)

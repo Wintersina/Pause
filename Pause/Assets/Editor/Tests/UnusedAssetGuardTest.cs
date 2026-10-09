@@ -375,8 +375,8 @@ public static class UnusedAssetGuardTest
         // ...and no code path brings back a prefab fallback for it.
         Check("enmiesOnBoard has no alien1 prefab slot", typeof(enmiesOnBoard).GetField("alien1") == null);
         var title = File.ReadAllText("Assets/Scenes/startS4.unity");
-        Check("startS4's drifting alien is the roster alien (TitleScreenAlien), not a prefab",
-              title.Contains("m_Name: TitleAlien") && !Regex.IsMatch(title, @"m_Name: alien1\b"));
+        Check("startS4 has no drifting alien (Bile Mite removed from home), and no alien1 prefab",
+              !title.Contains("m_Name: TitleAlien") && !Regex.IsMatch(title, @"m_Name: alien1\b"));
     }
 
     static void DefaultCursorResolves()
