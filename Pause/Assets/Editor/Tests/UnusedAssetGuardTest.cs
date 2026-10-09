@@ -281,6 +281,7 @@ public static class UnusedAssetGuardTest
         {
             string path = file.Replace('\\', '/');
             if (!path.Contains("/Resources/") || path == RestoredMineAtlas) continue;
+            if (path.Contains("/Resources/Enemies/Death/")) continue;   // EnemyDeathFlipbook strips (keyed by def.key, incl. each world's mine) are not the idle atlas
             if (MineArtName.IsMatch(Path.GetFileNameWithoutExtension(path))) found.Add(path);
         }
         foreach (string path in found) Debug.Log("[UAG] stray rail-mine art under Resources: " + path);
