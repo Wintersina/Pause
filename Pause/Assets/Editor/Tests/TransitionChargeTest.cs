@@ -390,6 +390,9 @@ public static class TransitionChargeTest
         for (int i = 0; i < (int)(40f / Dt) && Liftoff.Live != null; i++)
         {
             Fly(wm, c);
+            // the last world's: the loop began this frame, the transition is
+            // over (the charge was still held through the frame: it steps first)
+            if (Liftoff.Live == null && !wm.PortalIsOpen) break;
             w.See(c, Held, 0);
             if (Liftoff.Live != null && Liftoff.Live.State == Liftoff.Stage.Rise) rose = true;
             if (Liftoff.Live != null && Liftoff.Live.State == Liftoff.Stage.Interlude)

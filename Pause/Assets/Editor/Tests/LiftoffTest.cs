@@ -239,7 +239,6 @@ public static class LiftoffTest
     {
         bool loop = from == WorldManager.Worlds.Length - 1;
         int to = loop ? RunLoop.StartWorld : from + 1;
-        int loopWas = RunLoop.Index;
         string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
         FreshScene(from);
         RunScore.BeginRun(true, true);
@@ -325,7 +324,7 @@ public static class LiftoffTest
                 if (backdrop != null) interludeSky = backdrop.Current;
             }
             if (l.State != Liftoff.Stage.Done || direct) noPortalBefore &= Portal.Live == null && !PortalPressure.Active;
-            else gatewayAt = l.Seconds;
+            if (l.State == Liftoff.Stage.Done) gatewayAt = l.Seconds;
         }
         Check("a lifted finger mid-climb froze it (clock, ship)", pausedHeld);
         Check("the ship was flown and shielded through the rise", heldThrough && moved);
@@ -387,8 +386,8 @@ public static class LiftoffTest
               WorldManager.CurrentIndex == to && wm.Stage == WorldManager.LevelStage.Level && !PortalPressure.Active &&
               Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)) &&
               RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
-        Check("... the loop count: " + (loop ? "one loop on (" + loopWas + " -> " + RunLoop.Index + ")" : "unchanged (" + RunLoop.Index + ")"),
-              RunLoop.Index == loopWas + (loop ? 1 : 0));
+        Check("... the loop count: " + (loop ? "one loop on (" + loopBefore + " -> " + RunLoop.Index + ")" : "unchanged (" + RunLoop.Index + ")"),
+              RunLoop.Index == loopBefore + (loop ? 1 : 0));
         Check("the timeline: take, swap, break, release, gateway in order; about nine and a half seconds",
               LiftoffTimeline.TakeAt < LiftoffTimeline.SwapAt && LiftoffTimeline.SwapAt < LiftoffTimeline.BreakAt &&
               LiftoffTimeline.BreakAt < LiftoffTimeline.ReleaseAt && LiftoffTimeline.ReleaseAt < LiftoffTimeline.GatewayAt &&
