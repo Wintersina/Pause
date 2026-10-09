@@ -98,8 +98,10 @@ public class BackdropTile
     readonly bool halfTurn;
     float tileHeight, tileWidth, wobblePhase;
 
+    // `lift` > 1 draws the tile brightened (BackdropGrade; not combined
+    // with a wrap cross-fade).
     public BackdropTile(Transform parent, BackdropCatalog.Layer layer, Sprite sprite, int order, float z,
-                        bool halfTurn = false)
+                        bool halfTurn = false, float lift = 1f, float sat = 1f)
     {
         this.layer = layer;
         this.sprite = sprite;
@@ -116,6 +118,8 @@ public class BackdropTile
                 wrapMat.SetFloat("_Blend", layer.wrapBlend);
             }
         }
+        else wrapMat = BackdropGrade.Create("tile_" + layer.name, lift, sat);
+        gradeLift = wrapMat != null && layer.wrapBlend <= 0f ? lift : 1f;
         for (int i = 0; i < 3; i++) AddCopy(order);
     }
 
@@ -149,7 +153,7 @@ public class BackdropTile
         // A wrap-blended tile shows only the first (1 - wrapBlend) of its art
         // per copy (BackdropSkyWrap.shader cross-fades the rest into its
         // start), so each copy is squashed to that height.
-        float shown = wrapMat != null ? 1f - layer.wrapBlend : 1f;
+        float shown = layer.wrapBlend > 0f && wrapMat != null ? 1f - layer.wrapBlend : 1f;
         tileHeight = size.y * scale * shown;
         int need = Mathf.CeilToInt(viewHeight / tileHeight) + 1;
         while (copies.Count < need) AddCopy(copies[0].sortingOrder);
@@ -162,7 +166,11 @@ public class BackdropTile
 
     public float TileHeight { get { return tileHeight; } }
     public float TileWidth { get { return tileWidth; } }
-    public Material WrapMaterial { get { return wrapMat; } }
+    // The material is the wrap cross-fade's, or the grade's (GradeLift > 1).
+    public Material WrapMaterial { get { return layer.wrapBlend > 0f ? wrapMat : null; } }
+    public Material GradeMaterial { get { return layer.wrapBlend > 0f ? null : wrapMat; } }
+    public float GradeLift { get { return gradeLift; } }
+    float gradeLift = 1f;
     public string SpriteName { get { return sprite != null ? sprite.name : null; } }
     public bool HalfTurn { get { return halfTurn; } }
 
