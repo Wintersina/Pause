@@ -266,7 +266,7 @@ public static class AtomClarityTest
             foreach (var p in pickups)
             {
                 pairs++;
-                float hue = HueGap(p.hue, s.hue);
+                float hue = p.hue < -500f || s.hue < -500f ? 0f : HueGap(p.hue, s.hue);   // no colour seen: no hue cue
                 float soft = p.softness - s.softness;
                 float size = Mathf.Max(p.extent, s.extent) / Mathf.Max(1f, Mathf.Min(p.extent, s.extent));
                 float iou = IoU(p.shape, s.shape);
@@ -318,7 +318,7 @@ public static class AtomClarityTest
         }
         Vector3 lo = cam.WorldToScreenPoint(bounds.min), hi = cam.WorldToScreenPoint(bounds.max);
         int bx0 = Mathf.FloorToInt(lo.x) - 1, by0 = Mathf.FloorToInt(lo.y) - 1, bx1 = Mathf.CeilToInt(hi.x) + 1, by1 = Mathf.CeilToInt(hi.y) + 1;
-        double sx = 0, sy = 0, sw = 0;
+        double sx = 0, sy = 0, sw = 0, dx = 0, dy = 0, dw = 0;
         int changed = 0, strong = 0, pinkCount = 0, x0 = Win, y0 = Win, x1 = -1, y1 = -1;
         var strongMask = new bool[Win * Win];
         for (int i = 0; i < fg.Length; i++)
@@ -337,11 +337,18 @@ public static class AtomClarityTest
             // ... and only the light it adds: a dark outline over a bright
             // nebula is the nebula darkened, not the object's colour
             float w = s * v * d;
-            if (s > .25f && v > .25f && Lum(f) >= Lum(b))
+            if (s > .25f && v > .25f)
             {
-                sx += Mathf.Cos(h * 2f * Mathf.PI) * w;
-                sy += Mathf.Sin(h * 2f * Mathf.PI) * w;
-                sw += w;
+                if (Lum(f) >= Lum(b))
+                {
+                    sx += Mathf.Cos(h * 2f * Mathf.PI) * w;
+                    sy += Mathf.Sin(h * 2f * Mathf.PI) * w;
+                    sw += w;
+                }
+                // fallback for a drawing darker than a bright sky everywhere
+                dx += Mathf.Cos(h * 2f * Mathf.PI) * w;
+                dy += Mathf.Sin(h * 2f * Mathf.PI) * w;
+                dw += w;
             }
             strong++;
             if (s > .3f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
@@ -350,7 +357,8 @@ public static class AtomClarityTest
             int x = i % Win, y = i / Win;
             x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y);
         }
-        look.hue = sw > 0 ? Mathf.Repeat(Mathf.Atan2((float)sy, (float)sx) * Mathf.Rad2Deg, 360f) : 0f;
+        if (sw <= 0) { sx = dx; sy = dy; sw = dw; }
+        look.hue = sw > 0 ? Mathf.Repeat(Mathf.Atan2((float)sy, (float)sx) * Mathf.Rad2Deg, 360f) : -999f;
         look.softness = changed > 0 ? (changed - strong) / (float)changed : 0f;
         look.strong = strong;
         look.pink = strong > 0 ? pinkCount / (float)strong : 0f;

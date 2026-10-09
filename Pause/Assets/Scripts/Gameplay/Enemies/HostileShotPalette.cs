@@ -9,7 +9,7 @@ using UnityEngine;
 // atom) or with cyan cores. Players kept grabbing bullets for atoms. Now:
 //
 //   atoms         cyan 178, green 82, red 7 / 357, violet 259, amber 37 deg
-//   hostile shots 306 .. 328 deg, saturated, a pink-white core
+//   hostile shots 312 .. 326 deg, saturated, a pink-white core
 //
 // The band keeps clear of the player's red (HostileGlow.RedBandDeg: past
 // 332) and of the violet capacitor (259). A source colour keeps a little of
@@ -17,9 +17,9 @@ using UnityEngine;
 // differ slightly.
 public static class HostileShotPalette
 {
-    public const float HueMin = 306f, HueMax = 328f;
+    public const float HueMin = 312f, HueMax = 326f;
     public const float MinSaturation = .62f, MaxSaturation = .8f, MinValue = 1f;
-    public const float CoreWhite = .6f;   // the core: the body this far towards white
+    public const float CoreWhite = .75f;   // the core: the body this far towards white
     public const float TraceWhite = .3f;  // the outline's light trace (ShotOutline): this far towards white
 
     public static Color Body(Color source)

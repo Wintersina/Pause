@@ -293,7 +293,8 @@ public class ShipPowerController : MonoBehaviour
     // the atom's colour. Star dust cuts silently -- it comes in clusters.
     public void AtomCharged(Color colour)
     {
-        if (indicator != null) indicator.FlashAtom(colour);
+        // a held / transition-frozen charge took no cut: nothing to show
+        if (indicator != null && !ChargeHeld) indicator.FlashAtom(colour);
     }
 
     // The tutorial's power step: a fresh, empty charge of `seconds` that

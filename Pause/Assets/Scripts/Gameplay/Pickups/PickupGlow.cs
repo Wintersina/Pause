@@ -10,7 +10,7 @@ using UnityEngine;
 //   a dashed orbit ring turning        pointed darts / chevrons / spiked burrs
 //   round it (atoms only)              facing their flight
 //   cyan / green / red / violet /      one hostile family: magenta-pink
-//   amber                              (HostileShotPalette, 306-328 deg)
+//   amber                              (HostileShotPalette, 312-326 deg)
 //   a slow, smooth breath (scale and   a hard stepped flicker of the core
 //   alpha) and a slow spin
 //   drawn PickupArt.AtomVisualScale    unchanged sizes and hitboxes
