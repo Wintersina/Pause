@@ -682,6 +682,8 @@ public class CodexPanel : MonoBehaviour
         detailArt.preserveAspect = true;
         CodexUi.Stretch(detailArt.rectTransform);
         detailAnim = CodexAnimator.On(detailArt);
+        detailMask.raycastTarget = true;   // the art box takes the triple tap (a Mask draws nothing of it)
+        detailMask.gameObject.AddComponent<CodexArtTap>().panel = this;
 
         detailIndex = CodexUi.NewText("Index", detail, font, "", 16, CodexUi.Muted, TextAnchor.UpperRight);
 
@@ -1003,14 +1005,54 @@ public class CodexPanel : MonoBehaviour
 
         ApplyArt(detailArt, detailMask, detailMaskComp, entry, found);
         detailAnim.Bind(CodexAnimations.For(entry), !found, true);
+        artTaps = 0;
         LayoutDetail();
 
         inDetail = true;
         swapAt = Time.unscaledTime;
     }
 
+    // ---- Triple tap on the detail art: the enemy's death plays once ----
+    public const float TripleTapWindow = .6f;
+    int artTaps;
+    float lastArtTap = -100f;
+
+    // One tap on the detail art at `now` (unscaled seconds). Three within
+    // TripleTapWindow of each other play the entry's death strip + sound.
+    // Returns true when that tap started the death.
+    public bool TapDetailArt(float now)
+    {
+        if (!inDetail || phase != Phase.Open || detailEntry == null || now - swapAt < SwapDuration ||
+            !Codex.IsDiscovered(detailEntry) || detailAnim.Dying)
+        {
+            artTaps = 0;
+            return false;
+        }
+        artTaps = now - lastArtTap > TripleTapWindow ? 1 : artTaps + 1;
+        lastArtTap = now;
+        if (artTaps < 3) return false;
+        artTaps = 0;
+        return PlayDetailDeath();
+    }
+
+    public void TapDetailArt() { TapDetailArt(Time.unscaledTime); }
+
+    // Plain enemies with a death strip only. Elites, bosses and mines (no
+    // strip, or a different one) do nothing special rather than risk a
+    // mismatched pose; a Verdant strip is found by key when it ships.
+    bool PlayDetailDeath()
+    {
+        var def = EnemyRoster.FindByCodexId(detailEntry.id);
+        if (def == null || BossCatalog.Find(detailEntry.id) != null || EliteCatalog.FindByCodexId(detailEntry.id) != null) return false;
+        var frames = EnemyDeathFlipbook.Frames(def);
+        if (frames == null || !detailAnim.PlayDeath(frames)) return false;
+        EnemyDeathAudio.PlayKey(def.key, def.role, true);
+        return true;
+    }
+
     public void ShowGrid()
     {
+        artTaps = 0;
         if (!inDetail) return;
         inDetail = false;
         swapAt = Time.unscaledTime;
@@ -1254,7 +1296,8 @@ public class CodexPanel : MonoBehaviour
             a.Ticking = on && a.Animates;
             if (a.Ticking) a.Advance(dt);
         }
-        detailAnim.Ticking = phase != Phase.Hidden && detailEntry != null && detailGroup.alpha > .001f && detailAnim.Animates;
+        detailAnim.Ticking = phase != Phase.Hidden && detailEntry != null && detailGroup.alpha > .001f &&
+                             (detailAnim.Animates || detailAnim.Dying);
         if (detailAnim.Ticking) detailAnim.Advance(dt);
     }
 
@@ -1346,4 +1389,11 @@ public class CodexPanel : MonoBehaviour
         tabsGroup.blocksRaycasts = !inDetail;
 
     }
+}
+
+// Forwards a tap on the detail art box to the panel (triple tap = death).
+public class CodexArtTap : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHandler
+{
+    public CodexPanel panel;
+    public void OnPointerClick(UnityEngine.EventSystems.PointerEventData e) { if (panel != null) panel.TapDetailArt(); }
 }
