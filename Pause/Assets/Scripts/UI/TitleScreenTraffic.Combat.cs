@@ -30,8 +30,9 @@ using UnityEngine.UI;
 // shot ship careens) a mid or front ship loses control, spins and dives
 // into the PAUSE logo or one of the menu buttons: a short flash, ring and
 // sparks on top of it, and the hull breaks into pieces that bounce off and
-// fall away. The logo itself is never moved, recoloured or resized; every
-// piece of the impact is gone within LogoFxMax seconds. A button's label
+// fall away. The logo gives a small damped shake (TitleScreenTraffic.Logo.cs)
+// and ends exactly where it was; it is never recoloured or resized, and
+// every piece of the impact is gone within LogoFxMax seconds. A button's label
 // gives a held cel wobble (CelPress-style poses) that ends at exactly its
 // own scale; its RectTransform, Image, Button and raycast target are never
 // touched, so it stays tappable throughout.
@@ -285,6 +286,7 @@ public partial class TitleScreenTraffic
         {
             var f = pool[i];
             if (!f.active || f.ulting || now < f.ultAt) continue;
+            if (EliteBusy) continue;   // the elite's run: no ultimates meanwhile
             if (!CanUlt(f)) continue;
             if (on >= MaxUlts) { f.ultAt = now + .5f; UltsBlocked++; continue; }
             Ult u = null;
@@ -1219,7 +1221,7 @@ public partial class TitleScreenTraffic
 
     void MaybePlunge()
     {
-        if (now < nextPlungeAt) return;
+        if (EliteBusy || now < nextPlungeAt) return;
         if (plunger != null) { nextPlungeAt = now + 1f; return; }
         Flyer best = null;
         float bestD = float.MaxValue;
@@ -1420,7 +1422,12 @@ public partial class TitleScreenTraffic
         Color energy = WeaponStyleTable.For(ship).energy;
         float s = f.scale;
         LastImpactPoint = at;
-        if (f.plungeInto < 0) { LogoCrashes++; LastLogoImpactAt = now; }
+        if (f.plungeInto < 0)
+        {
+            LogoCrashes++; LastLogoImpactAt = now;
+            // the logo flinches: kicked along the dive, tipped by the side it was hit
+            ShakeLogo(Dir(f.heading), at.x < logo.center.x ? -1f : 1f);
+        }
         else { ButtonCrashes++; LastButtonImpactAt = now; LastButtonHit = f.plungeInto; Wobble(f.plungeInto); }
 
         // a short flash and ring on top of it, sparks spraying back
