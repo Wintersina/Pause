@@ -104,6 +104,10 @@ public sealed class BossDef
     // Battle damage art (BossArt): Resources/Bosses/<damageKey>_damage.png
     // and _damage_fx.png. Null: no damage art, it fights pristine.
     public string damageKey;
+    // Death animation strip: Resources/Bosses/<deathKey>_death.png, 6 square
+    // cells played over the body while it blows up (BossArt.HasDeathArt).
+    // Null: it keeps the body atlas's own death frames.
+    public string deathKey;
     // Its damage smoke's strength: BossArt.SmokeAlpha's schedule times this
     // (clamped to 1). Tune per boss, as each one's smoke art is drawn.
     public float smokeStrength = 1f;
@@ -255,7 +259,7 @@ public static class BossCatalog
             // brow between the eyes.
             new BossDef
             {
-                id = CodexPrefix + "ember", name = "CINDER DRAKE", title = "VOLCANIC WYRM", artKey = "Ember",
+                id = CodexPrefix + "ember", name = "CINDER DRAKE", title = "VOLCANIC WYRM", artKey = "Ember", damageKey = "Ember", deathKey = "Ember",
                 lore = "A basalt dragon that swims through magma the way the pilot swims through stars. " +
                        "It guards the last gate before home, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",

@@ -70,7 +70,7 @@ public static class BossArt
     // flat index is simply Death0 + i.
     public static int Death(int i) => Death0 + Mathf.Clamp(i, 0, DeathFrames - 1);
 
-    // ---- battle damage (bosses with a BossDef.damageKey: Space, Frost) ---
+    // ---- battle damage (bosses with a BossDef.damageKey: Space, Frost, Ember) ---
     //
     //   Resources/Bosses/<Key>_damage.png     2 x 4 cells: row r = damage
     //     stage r + 1 (4 .. 1 hearts left), cols = a 2-frame idle loop A,B;
@@ -259,6 +259,28 @@ public static class BossArt
         if (!HasDamageArt(boss) || cell < 0) return null;
         var sheet = Sheet(bodies, Folder + boss.damageKey + "_damage_fx", DamageFxColumns, DamageFxRows);
         return sheet[Mathf.Clamp(cell, 0, DamageFxCells - 1)];
+    }
+
+    // ---- death strip (bosses with a BossDef.deathKey: Ember) --------------
+    //
+    //   Resources/Bosses/<Key>_death.png   DeathStripCells square cells in one
+    //     row, registered to the idle cell (same scale and anchor as the body),
+    //     DeathStripCellSeconds each. It replaces the body atlas's death frames;
+    //     the blasts, sound and outro length are unchanged (the last cell
+    //     holds until the outro's own death time is up).
+    public const int DeathStripCells = 6;
+    public const float DeathStripCellSeconds = .12f;
+    public static bool HasDeathArt(BossDef boss) =>
+        boss != null && !string.IsNullOrEmpty(boss.deathKey) && Resources.Load<Texture2D>(Folder + boss.deathKey + "_death") != null;
+    public static float DeathStripSeconds => DeathStripCells * DeathStripCellSeconds;
+    // The strip's cell `seconds` into the death, held on the last one after.
+    public static int DeathStripCell(float seconds) =>
+        Mathf.Clamp(Mathf.FloorToInt(Mathf.Max(0f, seconds) / DeathStripCellSeconds), 0, DeathStripCells - 1);
+    public static Sprite DeathStrip(BossDef boss, int cell)
+    {
+        if (boss == null || string.IsNullOrEmpty(boss.deathKey)) return null;
+        var sheet = Sheet(bodies, Folder + boss.deathKey + "_death", DeathStripCells, 1);
+        return sheet[Mathf.Clamp(cell, 0, DeathStripCells - 1)];
     }
 
     public static Sprite Shot(BossDef boss, int cell)
@@ -463,5 +485,7 @@ public static class BossArt
             for (int i = 0; i < DamageCells; i++) yield return DamageBody(boss, i);
             for (int i = 0; i < DamageFxCells; i++) yield return DamageFx(boss, i);
         }
+        if (HasDeathArt(boss))
+            for (int i = 0; i < DeathStripCells; i++) yield return DeathStrip(boss, i);
     }
 }
