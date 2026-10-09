@@ -407,10 +407,13 @@ public static class FrostEliteTest
         Check("kiter keeps its range above the pilot (" + d0.ToString("0.00") + " u vs " + def.keepDistance + ")",
               Mathf.Abs(d0 - def.keepDistance) < .5f && e.Position.y > pilot.position.y + 1f);
         // the pilot closes in: it backs off in stutter steps
+        // the reach no longer caps the elite low, so it holds its full range: the pilot
+        // jumps in to crowd it (inside Crowded x range) and then keeps closing
+        pilot.position = (Vector3)(e.Position + Vector2.down * 2.1f);
         float closest = 9f, fast = 0f, slow = 9f;
         Step(2f, () =>
         {
-            pilot.position = Vector3.MoveTowards(pilot.position, e.Position, 1.6f * Dt);
+                        pilot.position = Vector3.MoveTowards(pilot.position, e.Position, .6f * Dt);
             closest = Mathf.Min(closest, Vector2.Distance(e.Position, pilot.position));
             if (brain.Backing) { fast = Mathf.Max(fast, e.Velocity.magnitude); slow = Mathf.Min(slow, e.Velocity.magnitude); }
         });
