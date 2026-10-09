@@ -1,0 +1,923 @@
+fileFormatVersion: 2
+guid: 08348995c1c3d470b9acfd0ad0059e72
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4353400419602683806
+    second: ember_fighter_1_0
+  - first:
+      213: 4881583831167499352
+    second: ember_fighter_1_1
+  - first:
+      213: -8231675588770771864
+    second: ember_fighter_1_2
+  - first:
+      213: 1105945646640410098
+    second: ember_fighter_1_3
+  - first:
+      213: 1242554663198266528
+    second: ember_fighter_1_4
+  - first:
+      213: -8268117685009066244
+    second: ember_fighter_1_5
+  - first:
+      213: 752438310297636386
+    second: ember_fighter_1_6
+  - first:
+      213: 7282554720982113302
+    second: ember_fighter_1_7
+  - first:
+      213: 8072855520988742317
+    second: ember_fighter_1_8
+  - first:
+      213: 3171611808793428895
+    second: ember_fighter_1_9
+  - first:
+      213: -8686140382491575378
+    second: ember_fighter_1_10
+  - first:
+      213: 326062433563071915
+    second: ember_fighter_1_11
+  - first:
+      213: 3863299402320656910
+    second: ember_fighter_1_12
+  - first:
+      213: -6482765570106243103
+    second: ember_fighter_1_13
+  - first:
+      213: 1531498359670199674
+    second: ember_fighter_1_14
+  - first:
+      213: -1199506182954879420
+    second: ember_fighter_1_15
+  - first:
+      213: -7246330835722491556
+    second: ember_fighter_1_16
+  - first:
+      213: -3160119860382019944
+    second: ember_fighter_1_17
+  - first:
+      213: -8719451654395566921
+    second: ember_fighter_1_18
+  - first:
+      213: -3024116780655606574
+    second: ember_fighter_1_19
+  - first:
+      213: 3048959272627168747
+    second: ember_fighter_1_20
+  - first:
+      213: -4463258841463266116
+    second: ember_fighter_1_21
+  - first:
+      213: -2088903471919531590
+    second: ember_fighter_1_22
+  - first:
+      213: -812632718953813106
+    second: ember_fighter_1_23
+  - first:
+      213: -6072763615495036556
+    second: ember_fighter_1_24
+  - first:
+      213: 7454888650944312073
+    second: ember_fighter_1_25
+  - first:
+      213: 7819489333692652847
+    second: ember_fighter_1_26
+  - first:
+      213: 7198351207401391271
+    second: ember_fighter_1_27
+  - first:
+      213: 3859353619754714673
+    second: ember_fighter_1_28
+  - first:
+      213: 8463512565361691377
+    second: ember_fighter_1_29
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_fighter_1_0
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 6
+        width: 140
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e975477cd926a6c30800000000000000
+      internalID: 4353400419602683806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_1
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 17
+        width: 157
+        height: 163
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85c770671aedeb340800000000000000
+      internalID: 4881583831167499352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_2
+      rect:
+        serializedVersion: 2
+        x: 345
+        y: 122
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86c40115aa633cd80800000000000000
+      internalID: -8231675588770771864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_3
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 88
+        width: 44
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd24e0c4bb195f00800000000000000
+      internalID: 1105945646640410098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_4
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 129
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a410f102e07e3110800000000000000
+      internalID: 1242554663198266528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_5
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 61
+        width: 66
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf6d8e795ceb14d80800000000000000
+      internalID: -8268117685009066244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_6
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 139
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22e8fa818a2317a00800000000000000
+      internalID: 752438310297636386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_7
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 115
+        width: 19
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61c9b712fe4d01560800000000000000
+      internalID: 7282554720982113302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_8
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da2c593135b880070800000000000000
+      internalID: 8072855520988742317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_9
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 127
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f93019cd224d30c20800000000000000
+      internalID: 3171611808793428895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_10
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 118
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eabf960e751a47780800000000000000
+      internalID: -8686140382491575378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_11
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 42
+        width: 55
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba550274e08668400800000000000000
+      internalID: 326062433563071915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_12
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 92
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0a3d4876523d9530800000000000000
+      internalID: 3863299402320656910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_13
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 104
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e74fa7af079806a0800000000000000
+      internalID: -6482765570106243103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_14
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 96
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a755c36d4a9f04510800000000000000
+      internalID: 1531498359670199674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_15
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 95
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 446f61b5b7f7a5fe0800000000000000
+      internalID: -1199506182954879420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_16
+      rect:
+        serializedVersion: 2
+        x: 343
+        y: 65
+        width: 24
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c592dc36f7cdf6b90800000000000000
+      internalID: -7246330835722491556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_17
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 78
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89ec542eabff424d0800000000000000
+      internalID: -3160119860382019944
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_18
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 71
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b46f8ffae84ef680800000000000000
+      internalID: -8719451654395566921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_19
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 60
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d489b97fcd2806d0800000000000000
+      internalID: -3024116780655606574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_20
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 60
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be5639bed44105a20800000000000000
+      internalID: 3048959272627168747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_21
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 34
+        width: 30
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb4e5f52bb15f02c0800000000000000
+      internalID: -4463258841463266116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_22
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 52
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab9f72a1c59b203e0800000000000000
+      internalID: -2088903471919531590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_23
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 36
+        width: 13
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8be5edf8d2f8b4f0800000000000000
+      internalID: -812632718953813106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_24
+      rect:
+        serializedVersion: 2
+        x: 469
+        y: 61
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4716085aaa539bba0800000000000000
+      internalID: -6072763615495036556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_25
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 55
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90370a7fab5157760800000000000000
+      internalID: 7454888650944312073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_26
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 33
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2dd4bb9e18648c60800000000000000
+      internalID: 7819489333692652847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_27
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 39
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a40aadd84ea5e360800000000000000
+      internalID: 7198351207401391271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_28
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 17
+        width: 14
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13609106bad2f8530800000000000000
+      internalID: 3859353619754714673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_fighter_1_29
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 26
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fa407a26df647570800000000000000
+      internalID: 8463512565361691377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_fighter_1_0: 4353400419602683806
+      ember_fighter_1_1: 4881583831167499352
+      ember_fighter_1_10: -8686140382491575378
+      ember_fighter_1_11: 326062433563071915
+      ember_fighter_1_12: 3863299402320656910
+      ember_fighter_1_13: -6482765570106243103
+      ember_fighter_1_14: 1531498359670199674
+      ember_fighter_1_15: -1199506182954879420
+      ember_fighter_1_16: -7246330835722491556
+      ember_fighter_1_17: -3160119860382019944
+      ember_fighter_1_18: -8719451654395566921
+      ember_fighter_1_19: -3024116780655606574
+      ember_fighter_1_2: -8231675588770771864
+      ember_fighter_1_20: 3048959272627168747
+      ember_fighter_1_21: -4463258841463266116
+      ember_fighter_1_22: -2088903471919531590
+      ember_fighter_1_23: -812632718953813106
+      ember_fighter_1_24: -6072763615495036556
+      ember_fighter_1_25: 7454888650944312073
+      ember_fighter_1_26: 7819489333692652847
+      ember_fighter_1_27: 7198351207401391271
+      ember_fighter_1_28: 3859353619754714673
+      ember_fighter_1_29: 8463512565361691377
+      ember_fighter_1_3: 1105945646640410098
+      ember_fighter_1_4: 1242554663198266528
+      ember_fighter_1_5: -8268117685009066244
+      ember_fighter_1_6: 752438310297636386
+      ember_fighter_1_7: 7282554720982113302
+      ember_fighter_1_8: 8072855520988742317
+      ember_fighter_1_9: 3171611808793428895
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

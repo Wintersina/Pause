@@ -176,12 +176,16 @@ public static class RailsShipSizeTest
         float sIpad = RailInset.ShiftFor(1620, 2160), s20 = RailInset.ShiftFor(1080, 2160);
         Debug.Log("[RSS] rail shift per side: 9:16 " + F(s916) + ", iPhone SE " + F(sSE) + ", 16:10 " + F(s1610) + ", 18:9 " + F(s20) +
                   ", 19.5:9 " + F(s195) + ", 21:9 " + F(s21) + ", 3:4 " + F(sIpad) + ", landscape " + F(sLand));
-        Check("16:9 phones, 16:10 tablets and landscape keep today's rails", s916 == 0f && sSE == 0f && s1610 == 0f && sLand == 0f);
-        Check("20:9 moves them out fully too (" + F(RailInset.ShiftFor(1080, 2400)) + ")", Mathf.Approximately(RailInset.ShiftFor(1080, 2400), RailInset.MaxShift));
-        Check("19.5:9, 21:9 and 3:4 move the rails out by the full " + RailInset.MaxShift + " u (3-6% of the width)",
-              Mathf.Approximately(s195, RailInset.MaxShift) && Mathf.Approximately(s21, RailInset.MaxShift) && Mathf.Approximately(sIpad, RailInset.MaxShift) &&
-              RailInset.MaxShift / (2f * CameraFit.GameplayHalfWidth) >= .03f && RailInset.MaxShift / (2f * CameraFit.GameplayHalfWidth) <= .06f);
-        Check("18:9 eases in between (" + F(s20) + ")", s20 > 0f && s20 < RailInset.MaxShift);
+        float B = RailInset.BaseShift, Full = RailInset.BaseShift + RailInset.MaxShift;
+        Check("16:9 phones and 16:10 tablets get the base widening only (" + F(B) + ") and landscape none", Mathf.Approximately(s916, B) && Mathf.Approximately(sSE, B) && Mathf.Approximately(s1610, B) && sLand == 0f);
+        Check("20:9 moves them out fully too (" + F(RailInset.ShiftFor(1080, 2400)) + ")", Mathf.Approximately(RailInset.ShiftFor(1080, 2400), Full));
+        Check("19.5:9, 21:9 and 3:4 move the rails out by the full " + Full + " u",
+              Mathf.Approximately(s195, Full) && Mathf.Approximately(s21, Full) && Mathf.Approximately(sIpad, Full));
+        // the widened flight lane: 8-12% wider than the old layout on every portrait screen
+        float oldHalf = BossRails.ReinforcedInnerEdge;
+        Check("lane widening vs the pre-widen layout is 8-12% on 16:9 (" + F(B / oldHalf * 100f) + "%) and on tall phones (" + F(RailInset.BaseShift / (oldHalf + RailInset.MaxShift) * 100f) + "%)",
+              B / oldHalf >= .08f && B / oldHalf <= .12f && B / (oldHalf + RailInset.MaxShift) >= .08f && B / (oldHalf + RailInset.MaxShift) <= .12f);
+        Check("18:9 eases in between (" + F(s20) + ")", s20 > B && s20 < Full);
     }
 
     // gameS1 as device `d` shows it, painted as `theme`.
@@ -216,8 +220,7 @@ public static class RailsShipSizeTest
                 string tag = id + " " + theme.displayName;
                 Check(tag + ": the drawn inner edge is the authored one + the inset (" + F(inner) + " = " + F(BossRails.ReinforcedInnerEdge) + " + " + F(shift) + ")",
                       Mathf.Abs(inner - (BossRails.ReinforcedInnerEdge + shift)) < .003f && Mathf.Abs(inL - inR) < .003f);
-                if (shift == 0f) Check(tag + ": a 16:9 screen keeps today's rail (" + F(inner) + ")", Mathf.Abs(inner - BossRails.ReinforcedInnerEdge) < .003f);
-                else Check(tag + ": the rails are further out than today (" + F(inner) + " > " + F(BossRails.ReinforcedInnerEdge) + ")", inner > BossRails.ReinforcedInnerEdge + .2f);
+                Check(tag + ": the rails are further out than today (" + F(inner) + " > " + F(BossRails.ReinforcedInnerEdge) + ")", inner > BossRails.ReinforcedInnerEdge + .2f);
                 // the lamp column (20% - 45% of the rail in from its inner edge) stays on screen
                 float lampOuter = inner + .45f * (outR - inR);
                 Check(tag + ": the rail's lamp column stays on screen (to " + F(lampOuter) + " of " + F(halfW) + "); rail shows " +

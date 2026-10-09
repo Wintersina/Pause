@@ -27,8 +27,8 @@ public static class WorldPainter
     // near-black in stepped bands, and its cable gaps plus a thin strip past
     // the silhouette fill with a near-black shadow: the rails read as dark,
     // recessed walls with a dark transition into the starfield (the approved
-    // 900x1600 reference). The outer edge (against the screen border) is
-    // never touched, and saturated neon lamps keep their light (lampKeep).
+    // 900x1600 reference). The outer edge (against the screen border) fades
+    // darker too (outerDark; same in every world), and saturated neon lamps keep their light (lampKeep).
     // Tune here; per world in EdgeFor. Costs nothing per frame: a handful of
     // ALU ops in the rail's own fragment shader, no extra draw.
     public struct RailEdge
@@ -39,11 +39,14 @@ public static class WorldPainter
         public float shadow;       // alpha of the near-black fill in the gaps / past the edge
         public float shadowWidth;  // that fill past the silhouette, share of the rail width
         public float lampKeep;     // share of the shade the neon lamps ignore
+        public float outerDark;    // shade at the very OUTER edge, toward the screen border (0..1)
+        public float outerStart;   // where that fade starts, share of the rail width from the inner edge
     }
 
     public static readonly RailEdge DefaultEdge = new RailEdge
     {
-        dark = .55f, width = .16f, steps = 4f, shadow = .6f, shadowWidth = .05f, lampKeep = .85f
+        dark = .55f, width = .16f, steps = 4f, shadow = .6f, shadowWidth = .05f, lampKeep = .85f,
+        outerDark = .6f, outerStart = .4f
     };
 
     public static RailEdge EdgeFor(string world)
@@ -147,6 +150,8 @@ public static class WorldPainter
         mat.SetFloat("_EdgeShadow", e.shadow);
         mat.SetFloat("_EdgeShadowWidth", e.shadowWidth);
         mat.SetFloat("_EdgeLampKeep", e.lampKeep);
+        mat.SetFloat("_OuterDark", e.outerDark);
+        mat.SetFloat("_OuterStart", e.outerStart);
     }
 
     public static float RailWidthFactor(string world)

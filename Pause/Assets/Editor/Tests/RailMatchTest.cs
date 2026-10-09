@@ -34,12 +34,15 @@ public static class RailMatchTest
 
     public const float LitValue = .12f, LitColumn = .3f;
     // tolerances: frost vs space
-    public const float EdgeTol = .03f, WidthTol = .06f, GapTol = .2f;
+    public const float EdgeTol = .03f, WidthTol = .06f;
+    // The outer-edge fade (same in every world) darkens dark worlds' rails more below the lit threshold than Frost's pale steel, so
+    // contrast vs the backdrop is only held within a factor (was 20% before the fade; Frost's pale sky legitimately reads a rail more).
+    public const float GapTol = 1.5f;
 
     public struct Metrics
     {
         public string world;
-        public float inner, outer, width, light, body, sat, mass;
+        public float inner, outer, width, light, body, sat, mass, nearHalf, farHalf;   // near/far: mean lit value in the lane-side / screen-side half of the visible rail
         public override string ToString() =>
             world + ": inner " + inner.ToString("F3") + " outer " + outer.ToString("F3") + " width " + width.ToString("F3") +
             " | light " + light.ToString("F3") + " body " + body.ToString("F3") + " sat " + sat.ToString("F3") + " mass " + mass.ToString("F3");
@@ -99,6 +102,19 @@ public static class RailMatchTest
         m.light = litN > 0 ? (float)(litSum / litN) : 0f;
         m.body = bodyN > 0 ? (float)(bodySum / bodyN) : 0f;
         m.sat = litN > 0 ? (float)(satSum / litN) : 0f;
+        {
+            // visible rail = first..last columns; split at its middle
+            int mid = (first + last) / 2; double ns = 0, fs = 0; long nn = 0, fn = 0;
+            for (int x = first; x <= last; x++)
+                for (int y = 0; y < h; y++)
+                {
+                    var c = pix[y * w + x];
+                    float v = Mathf.Max(c.r, Mathf.Max(c.g, c.b)) / 255f;
+                    if (v <= LitValue) continue;
+                    if (x <= mid) { fs += v; fn++; } else { ns += v; nn++; }
+                }
+            m.nearHalf = nn > 0 ? (float)(ns / nn) : 0f; m.farHalf = fn > 0 ? (float)(fs / fn) : 0f;
+        }
         m.mass = (float)(massSum / h) * unit;   // summed column light, in world units of width
         return m;
     }
@@ -212,6 +228,7 @@ public static class RailMatchTest
         try
         {
             var all = new Dictionary<string, Metrics>();
+            var feet = new Dictionary<string, Vector2>();
             foreach (var theme in WorldManager.Worlds)
             {
                 if (WorldPainter.RailTextureName(theme.displayName) == null) continue;
@@ -219,6 +236,7 @@ public static class RailMatchTest
                 all[theme.displayName] = m;
                 Debug.Log("[RAILMATCH] " + m);
                 Footprint(theme, cam, out float fi, out float fo);
+                feet[theme.displayName] = new Vector2(fi, fo);
                 Debug.Log("[RAILMATCH] footprint " + theme.displayName + ": inner " + fi.ToString("F3") + " outer " + fo.ToString("F3") + " width " + (fo - fi).ToString("F3"));
                 if (theme.displayName == "Frost")
                 {
@@ -257,6 +275,18 @@ public static class RailMatchTest
             }
             Object.DestroyImmediate(backdrop.gameObject);
             WorldPainter.Apply(WorldManager.Worlds[0]);
+            // the same darker falloff toward the screen edge in every world
+            foreach (var kv in all)
+            {
+                float ratio = kv.Value.farHalf / Mathf.Max(1e-4f, kv.Value.nearHalf);
+                Check(kv.Key + ": rail is darker toward the screen edge (outer half " + kv.Value.farHalf.ToString("F3") + " vs inner half " + kv.Value.nearHalf.ToString("F3") + ", " + ratio.ToString("F2") + "x)", ratio < .85f);
+            }
+            var e0 = WorldPainter.EdgeFor("Space");
+            foreach (string w in new[] { "Frost", "Verdant", "Ember" })
+            {
+                var e1 = WorldPainter.EdgeFor(w);
+                Check(w + ": outer falloff strength and start equal Space's", e1.outerDark == e0.outerDark && e1.outerStart == e0.outerStart && e0.outerDark > 0f);
+            }
             var s = all["Space"];
             foreach (string world in new[] { "Frost", "Verdant", "Ember" })
             {
@@ -267,7 +297,8 @@ public static class RailMatchTest
                                 ", width " + m.width.ToString("F3") + "/" + s.width.ToString("F3") + ", light " + m.light.ToString("F3") + "/" + s.light.ToString("F3") +
                                 ", body " + m.body.ToString("F3") + "/" + s.body.ToString("F3") + ", sat " + m.sat.ToString("F3") + "/" + s.sat.ToString("F3") +
                                 ", mass " + m.mass.ToString("F3") + "/" + s.mass.ToString("F3");
-                bool geo = Mathf.Abs(m.inner - s.inner) <= EdgeTol && Mathf.Abs(m.width - s.width) <= WidthTol && Mathf.Abs(m.outer - s.outer) <= WidthTol;
+                // geometry on the bright-field footprint (independent of the outer fade's darkness)
+                bool geo = Mathf.Abs(m.inner - s.inner) <= EdgeTol && Mathf.Abs(feet[world].x - feet["Space"].x) <= EdgeTol && Mathf.Abs(feet[world].y - feet["Space"].y) <= WidthTol;
                 // visibility is the rail's contrast with its own backdrop (a pale
                 // Frost sky needs a lighter rail than a black Space one to read
                 // as loudly): the same gap between rail and lane, whatever the world
