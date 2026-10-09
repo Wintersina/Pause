@@ -997,6 +997,83 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
     float railOffsetY;
     bool mounted;
 
+    // ---- the ride (a laser mine keeps pace with the ship, fires, falls behind) ----
+    //
+    // The board scrolls down with the speed (up to 10.5 u/s at the cap), so a
+    // mine that simply came down with it swept past the ship's rows in a
+    // blink and got little or no shot. An armed laser mine now:
+    //   Falling   comes down with the board, as any hazard does;
+    //   Holding   once it reaches the ship's firing band it RIDES UP ITS RAIL:
+    //             Ride adds the board's step back every frame (counter-scroll),
+    //             so it stays put against the screen, in HoldBand of
+    //             ship.y + HoldAboveShip, easing along with the ship; it fires
+    //             its ShotsPerRide lasers there (the brain: aim tell, beam,
+    //             ShotGapSeconds apart);
+    //   Released  both shots done: the Ride stops, the board carries it away
+    //             (and FallAccel hurries it), out through the Destroyer strip.
+    // Only the mine's height moves; it stays clamped on its rail and its lane
+    // lives while it rides (RailLaneScroller.Riders). The ride's clock is the
+    // brain's running frames (StepRide), so a pause or a transition freezes it.
+    public const float HoldAboveShip = 0f;    // its hold row: this far above the ship (0: level with it)
+    public const float HoldBand = 1.5f;       // it stays within this of the hold row
+    public const float RideSpeedCap = 13f;    // u/s it may slide against the board (the fastest scroll is 10.5)
+    public const float RideEase = 10f;        // 1/s: how briskly it settles on the hold row
+    public const float FallAccel = 8f;        // u/s^2 extra pull once released
+    public const float MaxHoldSeconds = 12f;  // never rides longer than this
+    public enum RidePhase { Falling, Holding, Released, Skipped }
+    public RidePhase RideState { get; private set; }
+    public float Ride { get; private set; }   // how far up the rail the ride has carried it
+    public float RideSeconds { get; private set; }
+    float prevRailY = float.NaN, fallV, lastScroll;
+
+    // May its brain begin a volley? A laser mine waits for its hold row while the board rolls.
+    public bool AttackReady => RideState != RidePhase.Falling || !(lastScroll > 0f);
+    public bool Riding => RideState == RidePhase.Holding;
+    public float HoldRow(Transform ship) => ship.position.y + HoldAboveShip;
+    float BodyY => rail.position.y + railOffsetY;
+
+    // One running frame of the ride (the brain's Step: not on a frozen world).
+    public void StepRide(float dt, Transform ship)
+    {
+        if (rail == null || !mounted) return;
+        float railY = rail.position.y;
+        float scroll = float.IsNaN(prevRailY) ? 0f : Mathf.Max(0f, prevRailY - railY);
+        prevRailY = railY;
+        lastScroll = scroll;
+        switch (RideState)
+        {
+            case RidePhase.Falling:
+            {
+                if (brain == null || ship == null || !brain.RidesRail) return;
+                float row = HoldRow(ship), y = BodyY + Slide + Shove;
+                if (y > row) return;                       // still coming down to the band
+                RideState = y >= row - HoldBand ? RidePhase.Holding : RidePhase.Skipped;
+                RideSeconds = 0f;
+                break;
+            }
+            case RidePhase.Holding:
+            {
+                RideSeconds += dt;
+                if (brain == null || ship == null || brain.RideFinished || RideSeconds > MaxHoldSeconds)
+                {
+                    RideState = RidePhase.Released;
+                    fallV = 0f;
+                    break;
+                }
+                float cap = RideSpeedCap * dt;
+                Ride += Mathf.Min(scroll, cap);            // keep pace with the board ...
+                float err = HoldRow(ship) - (BodyY + Slide + Shove + Ride);   // (its slide included: the whole mine stays in the band)
+                float step = err * (1f - Mathf.Exp(-RideEase * dt));
+                Ride += Mathf.Clamp(step, -cap, cap);      // ... and settle on the ship's row
+                break;
+            }
+            case RidePhase.Released:
+                fallV += FallAccel * dt;
+                Ride -= fallV * dt;
+                break;
+        }
+    }
+
     // How far along its rail the mine has slid from where it was clamped
     // (EnemyBrain: Patrol / Creep), and the brain whose envelope bounds it.
     [System.NonSerialized] public float Slide;
@@ -1072,7 +1149,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
 
         if (rail != null)
             // (SnapLift: drawn on the same whole screen pixel as the rail art, under half a pixel from true)
-            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove + BoardRoll.SnapLift, transform.position.z);
+            transform.position = new Vector3(rail.position.x, rail.position.y + railOffsetY + Slide + Shove + Ride + BoardRoll.SnapLift, transform.position.z);
         else
             transform.position = new Vector3(lockedX, transform.position.y, transform.position.z);
     }

@@ -89,6 +89,11 @@ public class RailMineLaser : MonoBehaviour
     // mines, elites)? The one switch for the beam's target filter.
     public static bool HurtsOtherEnemies = true;
     public const int MaxHitsPerPulse = 16;
+    // A mine rides up its rail beside the ship (RailMineMount) and fires this
+    // many lasers, this many seconds apart (end of one volley to the aim of
+    // the next), whatever the board speed; then the board carries it away.
+    public const int ShotsPerRide = 2;
+    public const float ShotGapSeconds = 1f;
     // The random tilt of each shot.
     public const float MaxAngleDeg = 35f;       // either way off horizontal
     public const float MinAngleChangeDeg = 8f;  // consecutive shots differ by at least this

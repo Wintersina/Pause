@@ -311,7 +311,7 @@ public static class RailsVettingTest
                     }
                 }
                 bool ok = worstX < .001f && worstSlide < .001f && (!b.Shoots || (sawShot && shotOk)) && (b.Shoots || !sawShot) &&
-                          Mathf.Abs(go.transform.position.y - (rail.transform.position.y + mount.Slide + mount.Shove)) < .001f;
+                          Mathf.Abs(go.transform.position.y - (rail.transform.position.y + mount.Slide + mount.Shove + mount.Ride)) < .001f;
                 if (!ok) bad.Add(def.key + (rightSide ? " right" : " left") + "(off rail " + worstX.ToString("F3") + ", slide over " + worstSlide.ToString("F3") +
                                  ", shot " + sawShot + "/" + shotOk + ")");
                 Object.DestroyImmediate(go);

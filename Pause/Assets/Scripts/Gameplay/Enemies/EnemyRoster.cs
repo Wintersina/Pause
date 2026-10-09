@@ -399,7 +399,7 @@ public static class EnemyRoster
             Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
                 "Neon pixel seed mine: a wooden clamp and vine-wrapped burr with magenta thorns, a lime core that bursts in leaves.",
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
-                "to fire one laser across the lane, at any angle."),
+                "to fire a laser across the lane, at any angle - it rides up the rail to keep pace with you, fires twice, then drops away."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
                 "Five-petal carnivorous bud; the petals fold back to show a toothed glowing maw.",
                 "A flower that eats ships. Shut, it's just a big bud; when the petals snap open, it's " +
