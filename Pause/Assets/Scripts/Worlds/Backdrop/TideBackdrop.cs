@@ -149,6 +149,9 @@ public static class TideTuning
     public static float CeilingClearSeconds = 13f;                              // s: the ceiling is gone (CloudCover's 14: the teal banks read heavier, so <= 10% by 10 s needs it a touch earlier)
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f, CeilingGap = 1.5f, CeilingLowShare = .55f;
     public static float CeilingThicken = 5f;
+    // NOTE: the painted banks are cut flat at the 16 px margin of their cells (Codex run B: bbox 16..239 on every bank), so the
+    // thickened ceiling shows faint straight seams where banks meet. BackdropGrade's _Feather thins translucent art far too
+    // much to hide them (tried: the ceiling went to a veil); a soft-edged bank re-paint is the fix (reported to the coordinator).
     // ... matched to the planetfall's teal deck (tide_cloud_deck: rgb ~66,103,107; the banks are painted
     // greener and darker, ~59,90,79): lifted and tinted toward the deck's blue-teal
     public static float CeilingLift = 1.6f, CeilingSaturation = .95f;

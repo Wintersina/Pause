@@ -403,7 +403,7 @@ public static class TideBackdropTest
     // art replaces them with no change here: AtlasOverride yields to an installed atlas.
     static readonly Dictionary<string, Texture2D> fakeTex = new Dictionary<string, Texture2D>();
 
-    static BackdropAtlas FakeLoops(string world, string atlas)
+    public static BackdropAtlas FakeLoops(string world, string atlas)
     {
         if (world != "Tide") return null;
         if (Resources.Load<TextAsset>(BackdropCatalog.Folder("Tide") + atlas) != null) return null;     // the real sheet is in

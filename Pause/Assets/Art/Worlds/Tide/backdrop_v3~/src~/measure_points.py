@@ -240,8 +240,8 @@ def main():
             e.append(['smoke_a'] + tip(c, sp[0]) + [.8])      # a derrick's flare boom tip
         if name.startswith(MASTED):
             ys, xs = np.nonzero(c[..., 3] > .5)
-            lim = ys.min() + .5 * (ys.max() - ys.min())
-            for p in lamps(c, lim)[:2]:
+            lim = ys.min() + .4 * (ys.max() - ys.min())       # a mast / roof lamp, not one low on the hull
+            for p in lamps(c, lim)[:1]:
                 if all((p[0] - q[1]) ** 2 + (p[1] - q[2]) ** 2 > 18 ** 2 for q in e):
                     e.append(['beacon_mint' if len([1 for q in e if q[0].startswith('beacon')]) == 0 else 'beacon_amber'] + p + [.6])
         if name.startswith('lighthouse'):

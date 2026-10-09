@@ -15,7 +15,7 @@ using UnityEngine;
 //                          piece, alone on the ground, its loops running
 //   site-tell.png / site-emerge.png  an Ember elite (Tide has none yet) launching from a Tide site
 //
-//   TIDE_PREVIEW_DIR=<dir> [TIDE_PREVIEW_ONLY=variants|pieces|handoff] Unity -batchmode -quit -projectPath Pause
+//   TIDE_PREVIEW_DIR=<dir> [TIDE_PREVIEW_FAKELOOPS=1] [TIDE_PREVIEW_ONLY=variants|pieces|handoff] Unity -batchmode -quit -projectPath Pause
 //       -executeMethod TideBackdropPreview.Run
 public static class TideBackdropPreview
 {
@@ -27,6 +27,9 @@ public static class TideBackdropPreview
         string dir = System.Environment.GetEnvironmentVariable("TIDE_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/TideBackdropPreview";
         string only = System.Environment.GetEnvironmentVariable("TIDE_PREVIEW_ONLY") ?? "";
+        // TIDE_PREVIEW_FAKELOOPS=1: until run C is painted, stand TideBackdropTest's synthetic loop bars in (white bars on the
+        // emitter anchors) so the PLACEMENT of smoke / flares / bubbles can be looked at
+        if (System.Environment.GetEnvironmentVariable("TIDE_PREVIEW_FAKELOOPS") == "1") BackdropSet.AtlasOverride = TideBackdropTest.FakeLoops;
         Directory.CreateDirectory(dir);
         int failures = 0;
         using (new TestHarness.Sandbox())
@@ -40,6 +43,7 @@ public static class TideBackdropPreview
             catch (System.Exception e) { Debug.LogException(e); failures++; }
             finally
             {
+                BackdropSet.AtlasOverride = null;
                 BackdropVariants.For("Tide").Reset();
                 LiftoffCatalog.Enabled = true;
                 EliteSystem.PlayerOverride = null;
