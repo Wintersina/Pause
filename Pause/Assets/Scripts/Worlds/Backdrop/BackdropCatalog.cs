@@ -111,7 +111,7 @@ public static class BackdropCatalog
 
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
         // built and every frame. Null: the shared defaults (CloudCover.*), so
-        // a world wired later (Ember) opens and clears like Frost / Verdant.
+        // a world wired without its own opens and clears like Frost / Verdant / Ember.
         public System.Func<float> cloudDensity, ceilingHold, ceilingClearSeconds;
 
         public float CloudDensity() { return cloudDensity != null ? Mathf.Max(0f, cloudDensity()) : CloudCover.Density; }
@@ -261,17 +261,35 @@ public static class BackdropCatalog
             Layer.Pieces("spores", 0.400f, Role.Atmosphere),
             Layer.Pieces("fireflies", 0.550f, Role.Atmosphere),
         }},
-        new Spec { world = "Ember", layers = new[] {
-            Layer.Tile("sky", 0.006f, W),
-            Layer.Tile("far", 0.014f, W),
-            Layer.Tile("mid", 0.024f, W),
-            Layer.Strip("flow", 0.025f, 0.25f, 0.01f, new Color(1f, 1f, 1f, 0.85f)),
-            Layer.Pieces("bursts", 0.026f, Role.Landmark),
-            Layer.Pieces("volcanoes", 0.036f, Role.Landmark),
-            Layer.Pieces("haze", 0.120f, Role.Cloud),
-            Layer.Pieces("clouds", 0.300f, Role.Cloud),
+        // Ember (EmberDirector, docs in EmberBackdrop.cs): flown at atmosphere
+        // level over the forge planet: caldera fields and lava rivers, a
+        // forge city's plate maze, ash ridges, or the NIGHT side's cracked
+        // crust (EmberTuning.Night; one of four variant sets per landing).
+        // Forges, cooling towers, pipework, eruptions and slag barges stand on
+        // the ground, PINNED to the mid tile (GroundPlanner) where its
+        // affinity mask says they belong. The art is painted dark and
+        // lava-lit (value p90 ~.40-.47) and drawn as painted (brightness 1:
+        // not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Ember", folder = "Worlds/Ember/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = BackdropVariants.MaxVariants,
+                   brightness = () => EmberTuning.Brightness, saturation = () => 1f,
+                   variantBrightness = EmberTuning.VariantBrightness, variantNight = EmberTuning.Night,
+                   cloudDensity = () => EmberTuning.CloudDensity, ceilingHold = () => EmberTuning.CeilingHold,
+                   ceilingClearSeconds = () => EmberTuning.CeilingClearSeconds, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.6f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            // landmarks, pipes, eruptions and the elite sites: one ground
+            // plane pinned to the mid tile
+            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.25f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
+            // the ash-cloud ceiling the planetfall drops through
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
             Layer.Pieces("embers", 0.450f, Role.Atmosphere),
-            Layer.Pieces("ash", 0.600f, Role.Atmosphere),
         }},
     };
 

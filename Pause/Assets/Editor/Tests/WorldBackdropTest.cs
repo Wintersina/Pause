@@ -24,6 +24,10 @@ public static class WorldBackdropTest
     // variant set: two atlases more than Frost. Measured 5488 KB (ASTC 6x6
     // sizes); 7 MB leaves room for one more sheet.
     public const long VerdantTextureBudgetBytes = 7L * 1024 * 1024;
+    // Ember carries the same ten shared 1024 atlases (landmarks, pipes, fires,
+    // sites, weather and five ambient-loop sheets) as Verdant besides one
+    // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
+    public const long EmberTextureBudgetBytes = 7L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -71,14 +75,27 @@ public static class WorldBackdropTest
     const float VerdantTileMaxChroma = 0.27f;
     const float VerdantCloudMaxLuminance = 0.80f;
 
+    // EMBER IS DARK AND LAVA-LIT, AS PAINTED: its v3 forge world is painted
+    // at value p90 ~.40-.47 (v4 ~.32-.40) with lava as the bright accent,
+    // and drawn as painted (brightness 1: below Spec.BrightLift, so shots
+    // keep the thin outline). Held to these limits AS DRAWN; the gameplay
+    // guard (enemy bodies 2.5:1, brightest tone 7:1 against the rendered
+    // lane: CheckReadability and EmberBackdropTest) is every world's.
+    const float EmberTileMaxValueP90 = 0.45f;
+    const float EmberSkyMaxLuminance = 0.16f;
+    const float EmberTileMaxLuminance = 0.18f;
+    const float EmberTileMaxChroma = 0.25f;
+    const float EmberCloudMaxLuminance = 0.80f;
+
     static bool Frost(BackdropCatalog.Spec spec) { return spec.world == "Frost"; }
+    static bool Ember(BackdropCatalog.Spec spec) { return spec.world == "Ember"; }
     static bool Verdant(BackdropCatalog.Spec spec) { return spec.world == "Verdant"; }
     // the worlds measured as drawn, with their own v3 atlases
-    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec); }
-    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : TileMaxValueP90; }
-    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : TileMaxChroma; }
-    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : SkyMaxLuminance; }
-    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : TileMaxLuminance; }
+    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec) || Ember(spec); }
+    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : Ember(spec) ? EmberTileMaxValueP90 : TileMaxValueP90; }
+    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : Ember(spec) ? EmberTileMaxChroma : TileMaxChroma; }
+    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : Ember(spec) ? EmberSkyMaxLuminance : SkyMaxLuminance; }
+    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : Ember(spec) ? EmberTileMaxLuminance : TileMaxLuminance; }
 
     // A tile layer's pixels as drawn (BackdropGrade; the art itself when the
     // layer is not lifted).
@@ -116,6 +133,23 @@ public static class WorldBackdropTest
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
 
+    // An Ember atlas as drawn: pieces and loops as painted (brightness 1, no
+    // lifted smoke), the weather at the cloud ceiling's thickening and warming.
+    static Color[] EmberAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
+    {
+        float lift = 1f, alphaLift = 1f, sat = 1f;
+        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == "weather") { alphaLift = EmberTuning.CeilingThicken; lift = EmberTuning.CeilingLift; sat = EmberTuning.CeilingSaturation; }
+        return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    static float EmberDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        foreach (var l in EmberAmbientCatalog.Table.loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha * EmberTuning.NightLightBoost);
+        return a > 0f ? a : 1f;
+    }
+
     static float VerdantDrawAlpha(string atlas)
     {
         float a = 0f;
@@ -140,8 +174,7 @@ public static class WorldBackdropTest
                            "ringstation_00", "ringstation_03", "mini_station_00", "mini_ringstation_00",
                            "mini_rocky_00", "comet_00", "comet_01", "galaxy0", "galaxy1", "wisp0", "wisp1",
                            "moon", "star", "dot", "streak" } },
-        // Frost's and Verdant's v3 backdrops have no fx / anim atlases: their own (V3Atlases).
-        { "Ember", new[] { "volcano_00", "burst_00", "cloud0", "cloud1", "haze", "dot" } },
+        // Frost's, Verdant's and Ember's v3 backdrops have no fx / anim atlases: their own atlases.
     };
 
     // Frost's shared atlases and the drawings the director relies on.
@@ -177,6 +210,39 @@ public static class WorldBackdropTest
         { "lights", new[] { "beacon_lime_00", "beacon_magenta_03", "window_lights_00", "strobe_white_00", "fireflies_03" } },
     };
 
+    // Ember's shared atlases and the drawings the director relies on.
+    static readonly Dictionary<string, string[]> EmberAtlases = new Dictionary<string, string[]>
+    {
+        { "landmarks", EmberPieces("landmarks") },
+        { "pipes", EmberPieces("pipes") },
+        { "fires", EmberPieces("fires") },
+        { "sites", new[] { "foundryhangar_closed", "foundryhangar_open", "magmabay_closed", "magmabay_open", "slagpad_idle", "slagpad_active",
+                           "furnacebay_closed", "furnacebay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
+        { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "mist_00", "ashgust_00", "ashgust_02", "smokepall_00", "smokepall_01", "embers_00" } },
+        { "smoke", new[] { "smoke_a_00", "smoke_a_07", "smoke_b_07" } },
+        { "lavafire", new[] { "flare_00", "flare_07", "fountain_00", "fountain_07" } },
+        { "eruption", new[] { "eruptsmoke_a_00", "eruptsmoke_a_07", "eruptsmoke_b_00", "eruptsmoke_b_07" } },
+        { "leaks", new[] { "steam_vent_00", "pipe_drip_03", "ember_rain_00", "lava_bubble_03" } },
+        { "lights", new[] { "beacon_amber_00", "beacon_amber_03", "beacon_magenta_03", "strobe_white_00" } },
+    };
+
+    // Every drawing of an Ember piece atlas the director names.
+    static string[] EmberPieces(string atlas)
+    {
+        var names = new List<string>();
+        foreach (var group in new[] { EmberTuning.Forges, EmberTuning.Neighbours, EmberTuning.Fronts, EmberTuning.Satellites,
+                                      EmberTuning.Barges, EmberTuning.Banks, EmberTuning.Pools, EmberTuning.Lone, EmberTuning.HorizontalPipes })
+            foreach (string n in group)
+            {
+                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
+                bool fire = n.StartsWith("lava") && !n.StartsWith("lavafall") || n.StartsWith("eruption") || n.StartsWith("coal") ||
+                            n.StartsWith("scorched") || n.StartsWith("firebreak") || n.StartsWith("flarestack");
+                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
+                if (a == atlas && !names.Contains(n)) names.Add(n);
+            }
+        return names.ToArray();
+    }
+
     // Every drawing of a Verdant piece atlas the director names.
     static string[] VerdantPieces(string atlas)
     {
@@ -205,8 +271,8 @@ public static class WorldBackdropTest
             // A tile can gain its importer rule after the image was first
             // dropped in; force one normal import so that rule takes effect.
             // A tile can gain its importer rule after the image was first
-            // dropped in (Frost's / Verdant's v3 sheets): reimport those.
-            foreach (string world in new[] { "Frost", "Verdant" })
+            // dropped in (Frost's / Verdant's / Ember's v3 sheets): reimport those.
+            foreach (string world in new[] { "Frost", "Verdant", "Ember" })
             foreach (string png in Directory.GetFiles(ArtDir(world), "*.png", SearchOption.AllDirectories))
             {
                 var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
@@ -217,6 +283,7 @@ public static class WorldBackdropTest
             CheckSpaceAtlas();
             CheckSpaceTiers();
             CheckVerdantPalette();
+            CheckEmberPalette();
             CheckReadability();
             CheckWalls();
             CheckSpaceRailMaterials();
@@ -276,7 +343,7 @@ public static class WorldBackdropTest
             }
             if (V3(spec))
             {
-                foreach (var kv in Frost(spec) ? FrostAtlases : VerdantAtlases)
+                foreach (var kv in Frost(spec) ? FrostAtlases : Ember(spec) ? EmberAtlases : VerdantAtlases)
                 {
                     var atlas = new BackdropAtlas(Resources.Load<Texture2D>(folder + kv.Key), Resources.Load<TextAsset>(folder + kv.Key));
                     Check(spec.world + " atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
@@ -465,6 +532,7 @@ public static class WorldBackdropTest
                 {
                     if (tile) px = AsDrawn(spec, spec.Find(name), px, VariantOf(path));
                     else if (Frost(spec)) px = FrostAtlasAsDrawn(spec, file, px);
+                    else if (Ember(spec)) px = EmberAtlasAsDrawn(spec, file, px);
                     else px = VerdantAtlasAsDrawn(spec, file, px);
                 }
                 string drawnTag = V3(spec) ? " as drawn" : "";
@@ -483,7 +551,18 @@ public static class WorldBackdropTest
                     Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard" + drawnTag + " (lum " + lum.ToString("F3") +
                           ", chroma " + chroma.ToString("F3") + ")",
                           lum <= TileLumCap(spec) && chroma <= ChromaCap(spec));
-                if (!tile && Verdant(spec))
+                if (!tile && Ember(spec))
+                {
+                    // drawn at their loops' alpha (x the night boost) / the
+                    // weather at the ceiling's thickening
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * EmberDrawAlpha(file));
+                    float cap = file == "weather" ? EmberCloudMaxLuminance : AtlasMaxLuminance;
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
+                          drawn <= cap);
+                }
+                else if (!tile && Verdant(spec))
                 {
                     // drawn at their loops' alpha (x the night boost) / the
                     // weather at the ceiling's thickening
@@ -518,7 +597,7 @@ public static class WorldBackdropTest
             bytes += maxSet;
             astc += maxSetAstc;
             long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
-                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : TextureBudgetBytes;
+                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",
@@ -689,6 +768,73 @@ public static class WorldBackdropTest
               lime >= VerdantMinBeaconPixels && magenta >= VerdantMinBeaconPixels);
     }
 
+    // Ember must not read as one flat orange-brown mud. Every variant needs
+    // several distinct hue/value clusters and a real value range (lava
+    // against black basalt), and its accents -- molten lava and fire in the
+    // fires / lavafire sheets, amber and magenta lanterns in the lights
+    // sheet -- come from the piece and loop atlases drawn over it.
+    public const int EmberMinClusters = 5;
+    public const float EmberMinValueRange = 0.15f;
+    // (no hue-family share rule: the forge world is amber and orange throughout by design; its variety is value and saturation)
+    public const int EmberMinLavaPixels = 3000;        // hot orange pixels in the fires / lavafire atlases
+    public const int EmberMinBeaconPixels = 200;       // amber and magenta lantern pixels in the lights atlas
+
+    static void CheckEmberPalette()
+    {
+        var spec = BackdropCatalog.For("Ember");
+        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        {
+            int w, h;
+            var px = Composite("Ember", out w, out h, v);
+            var bins = new Dictionary<int, int>();
+            var fam = new int[6];
+            var values = new List<float>();
+            int n = 0;
+            for (int i = 0; i < px.Length; i += 2)
+            {
+                Color c = px[i];
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                float hue = hh * 360f;
+                int band = Mathf.Min((int)(vv / 0.1f), 5);
+                int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
+                int k;
+                bins.TryGetValue(key, out k);
+                bins[key] = k + 1;
+                fam[Family(hue, c)]++;
+                values.Add(vv);
+                n++;
+            }
+            int clusters = 0;
+            foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
+            values.Sort();
+            float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
+            Check("Ember v" + v + " has >= " + EmberMinClusters + " distinct hue/value clusters (" + clusters + ")", clusters >= EmberMinClusters);
+            Check("Ember v" + v + " value range p5..p95 >= " + EmberMinValueRange + " (" + range.ToString("F3") + ")", range >= EmberMinValueRange);
+        }
+        int lava = 0, amber = 0, magenta = 0;
+        foreach (string atlas in new[] { "fires", "lavafire" })
+            foreach (var c in ReadPixels(ArtDir("Ember") + atlas + ".png"))
+            {
+                if (c.a < 0.9f) continue;
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                if (IsSodium(hh * 360f, ss, vv)) lava++;
+            }
+        foreach (var c in ReadPixels(ArtDir("Ember") + "lights.png"))
+        {
+            if (c.a < 0.5f) continue;
+            float hh, ss, vv;
+            Color.RGBToHSV(c, out hh, out ss, out vv);
+            float hue = hh * 360f;
+            if (ss > .5f && vv > .6f && hue >= 25f && hue < 50f) amber++;
+            if (ss > .3f && vv > .6f && hue >= 290f && hue < 335f) magenta++;
+        }
+        Check("Ember's lava and fires carry hot orange (" + lava + " px >= " + EmberMinLavaPixels + ")", lava >= EmberMinLavaPixels);
+        Check("Ember's lights carry amber (" + amber + ") and magenta (" + magenta + ") lanterns (>= " + EmberMinBeaconPixels + " each)",
+              amber >= EmberMinBeaconPixels && magenta >= EmberMinBeaconPixels);
+    }
+
     // docs/art-style.md 4, with each world's enemies on top: the composited
     // lane stays darker and greyer than the enemy bodies, bodies reach 2.5:1
     // and the brightest tone 7:1 against the lane (its median luminance).
@@ -727,9 +873,9 @@ public static class WorldBackdropTest
             Check(world + " lane stays darker than enemy bodies (lane value p90 " + laneV90.ToString("F2") +
                   " <= " + ValueCap(wspec) + " and < hull " + Value(theme.hull).ToString("F2") + ")",
                   laneV90 <= ValueCap(wspec) && laneV90 < Value(theme.hull));
-            // Ember's enemies are deliberately grey char on a warm sky, so
-            // there only the guide's chroma ceiling applies; the green worlds
-            // must also stay greyer than their (green) enemies.
+            // Ember's enemies are deliberately grey char on a warm ground, so
+            // there only the world's chroma ceiling applies; the green world
+            // must also stay greyer than its (green) enemies.
             bool greyer = laneChroma <= ChromaCap(wspec) && (wspec.world != "Verdant" || laneChroma < Chroma(theme.hull));
             Check(world + " lane chroma " + laneChroma.ToString("F2") + " <= " + ChromaCap(wspec) +
                   (wspec.world == "Verdant" ? " and < enemy hull " + Chroma(theme.hull).ToString("F2") : ""), greyer);

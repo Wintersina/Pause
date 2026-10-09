@@ -7,8 +7,8 @@ using UnityEngine;
 
 // READABILITY SWEEP: does everything hostile read over every backdrop?
 //
-// For each world and each of its backdrop variants (Frost / Verdant: every
-// installed v1..v4; Space / Ember: the one set), at 2 s (the cloud
+// For each world and each of its backdrop variants (Frost / Verdant / Ember: every
+// installed v1..v4; Space: the one set), at 2 s (the cloud
 // ceiling), 10 s and 40 s of the
 // backdrop's own clock (as drawn: its grade, set pieces, clouds), it renders
 // at gameplay scale (a 21:9 phone view, CameraFit):
@@ -94,7 +94,10 @@ public static class ReadabilitySweep
         {
             try
             {
-                for (int w = 0; w < Worlds.Length; w++) SweepWorld(dir, w, rows);
+                // READABILITY_WORLDS=Ember (comma list) sweeps only those worlds
+                string only = System.Environment.GetEnvironmentVariable("READABILITY_WORLDS");
+                for (int w = 0; w < Worlds.Length; w++)
+                    if (string.IsNullOrEmpty(only) || System.Array.IndexOf(only.Split(','), Worlds[w]) >= 0) SweepWorld(dir, w, rows);
             }
             finally
             {
