@@ -1,0 +1,1027 @@
+fileFormatVersion: 2
+guid: 29a77113eb9774c28abfa925a8c519f2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8170918744116611008
+    second: ember_chaser_0
+  - first:
+      213: 2886037068222030671
+    second: ember_chaser_1
+  - first:
+      213: 2214922073787727295
+    second: ember_chaser_2
+  - first:
+      213: -5932396316388591465
+    second: ember_chaser_3
+  - first:
+      213: -2606404741088774939
+    second: ember_chaser_4
+  - first:
+      213: 7904830483925233089
+    second: ember_chaser_5
+  - first:
+      213: -6776247819316248756
+    second: ember_chaser_6
+  - first:
+      213: 9138425223080849208
+    second: ember_chaser_7
+  - first:
+      213: -95824010512610070
+    second: ember_chaser_8
+  - first:
+      213: -3191938204528097817
+    second: ember_chaser_9
+  - first:
+      213: 2332660729700675854
+    second: ember_chaser_10
+  - first:
+      213: -7811835222908422299
+    second: ember_chaser_11
+  - first:
+      213: -708349464536831501
+    second: ember_chaser_12
+  - first:
+      213: 506828403722979266
+    second: ember_chaser_13
+  - first:
+      213: 1406466874970882729
+    second: ember_chaser_14
+  - first:
+      213: -7796595273875292106
+    second: ember_chaser_15
+  - first:
+      213: 341231902265136860
+    second: ember_chaser_16
+  - first:
+      213: 3679809737322058969
+    second: ember_chaser_17
+  - first:
+      213: 900849074908654041
+    second: ember_chaser_18
+  - first:
+      213: -4811348719373610177
+    second: ember_chaser_19
+  - first:
+      213: -5984243431123193265
+    second: ember_chaser_20
+  - first:
+      213: 3673259504847206053
+    second: ember_chaser_21
+  - first:
+      213: -7074714172295383675
+    second: ember_chaser_22
+  - first:
+      213: 2531708181761090421
+    second: ember_chaser_23
+  - first:
+      213: 3477046675355899009
+    second: ember_chaser_24
+  - first:
+      213: 1999171111660163877
+    second: ember_chaser_25
+  - first:
+      213: -5422036323919734898
+    second: ember_chaser_26
+  - first:
+      213: -2259592479258612306
+    second: ember_chaser_27
+  - first:
+      213: -8418914480748718089
+    second: ember_chaser_28
+  - first:
+      213: 7414072313987985551
+    second: ember_chaser_29
+  - first:
+      213: 7130924431824881316
+    second: ember_chaser_30
+  - first:
+      213: -1446634707932698711
+    second: ember_chaser_31
+  - first:
+      213: 1394393551190737006
+    second: ember_chaser_32
+  - first:
+      213: -915664293893545393
+    second: ember_chaser_33
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_chaser_0
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 17
+        width: 144
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 048395091b01b9e80800000000000000
+      internalID: -8170918744116611008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_1
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 21
+        width: 152
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f43ebf33c634d0820800000000000000
+      internalID: 2886037068222030671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_2
+      rect:
+        serializedVersion: 2
+        x: 342
+        y: 136
+        width: 31
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbdf94514ebfcbe10800000000000000
+      internalID: 2214922073787727295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_3
+      rect:
+        serializedVersion: 2
+        x: 447
+        y: 86
+        width: 49
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79872de3bf4ebada0800000000000000
+      internalID: -5932396316388591465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_4
+      rect:
+        serializedVersion: 2
+        x: 454
+        y: 142
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e4728282b034dbd0800000000000000
+      internalID: -2606404741088774939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_5
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 125
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cdea0c817993bd60800000000000000
+      internalID: 7904830483925233089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_6
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 121
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4fb3aba28ee5f1a0800000000000000
+      internalID: -6776247819316248756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_7
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 47
+        width: 47
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83f243ca25532de70800000000000000
+      internalID: 9138425223080849208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_8
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 128
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aec4174f1909baef0800000000000000
+      internalID: -95824010512610070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_9
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 125
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e5ca165d15f3b3d0800000000000000
+      internalID: -3191938204528097817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_10
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 110
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e01ff4f13964f5020800000000000000
+      internalID: 2332660729700675854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_11
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 66
+        width: 38
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 567b8aee049c69390800000000000000
+      internalID: -7811835222908422299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_12
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 116
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f9a17d3aef6b26f0800000000000000
+      internalID: -708349464536831501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_13
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 100
+        width: 21
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c78cf57fbd980700800000000000000
+      internalID: 506828403722979266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_14
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 86
+        width: 18
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a24ef6cb26c48310800000000000000
+      internalID: 1406466874970882729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_15
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 92
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6308c2318edecc390800000000000000
+      internalID: -7796595273875292106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_16
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 79
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd65b807b9c4cb400800000000000000
+      internalID: 341231902265136860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_17
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 58
+        width: 18
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d4da1aa57f411330800000000000000
+      internalID: 3679809737322058969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_18
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 79
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d96b22f575708c00800000000000000
+      internalID: 900849074908654041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_19
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 74
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f339433d4d7aa3db0800000000000000
+      internalID: -4811348719373610177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_20
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 33
+        width: 33
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f42ff662e42b3fca0800000000000000
+      internalID: -5984243431123193265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_21
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 73
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a6be32de0a0af230800000000000000
+      internalID: 3673259504847206053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_22
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 78
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58579e891f091dd90800000000000000
+      internalID: -7074714172295383675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_23
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 76
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 573e1d08d2f622320800000000000000
+      internalID: 2531708181761090421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_24
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 64
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1849a007783f04030800000000000000
+      internalID: 3477046675355899009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_25
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 60
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5231ab3b88b7ebb10800000000000000
+      internalID: 1999171111660163877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_26
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 64
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e87df79c0be01c4b0800000000000000
+      internalID: -5422036323919734898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_27
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 64
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ead65a8ac9054a0e0800000000000000
+      internalID: -2259592479258612306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_28
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 52
+        width: 17
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f7949492e10a2b80800000000000000
+      internalID: -8418914480748718089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_29
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 31
+        width: 25
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f80ff46fc7314e660800000000000000
+      internalID: 7414072313987985551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_30
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 48
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a6831f4df126f260800000000000000
+      internalID: 7130924431824881316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_31
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 44
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a7abe1d5658cebe0800000000000000
+      internalID: -1446634707932698711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_32
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 47
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e60c1d70c81e95310800000000000000
+      internalID: 1394393551190737006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_chaser_33
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 39
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4267f41d28ea43f0800000000000000
+      internalID: -915664293893545393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_chaser_0: -8170918744116611008
+      ember_chaser_1: 2886037068222030671
+      ember_chaser_10: 2332660729700675854
+      ember_chaser_11: -7811835222908422299
+      ember_chaser_12: -708349464536831501
+      ember_chaser_13: 506828403722979266
+      ember_chaser_14: 1406466874970882729
+      ember_chaser_15: -7796595273875292106
+      ember_chaser_16: 341231902265136860
+      ember_chaser_17: 3679809737322058969
+      ember_chaser_18: 900849074908654041
+      ember_chaser_19: -4811348719373610177
+      ember_chaser_2: 2214922073787727295
+      ember_chaser_20: -5984243431123193265
+      ember_chaser_21: 3673259504847206053
+      ember_chaser_22: -7074714172295383675
+      ember_chaser_23: 2531708181761090421
+      ember_chaser_24: 3477046675355899009
+      ember_chaser_25: 1999171111660163877
+      ember_chaser_26: -5422036323919734898
+      ember_chaser_27: -2259592479258612306
+      ember_chaser_28: -8418914480748718089
+      ember_chaser_29: 7414072313987985551
+      ember_chaser_3: -5932396316388591465
+      ember_chaser_30: 7130924431824881316
+      ember_chaser_31: -1446634707932698711
+      ember_chaser_32: 1394393551190737006
+      ember_chaser_33: -915664293893545393
+      ember_chaser_4: -2606404741088774939
+      ember_chaser_5: 7904830483925233089
+      ember_chaser_6: -6776247819316248756
+      ember_chaser_7: 9138425223080849208
+      ember_chaser_8: -95824010512610070
+      ember_chaser_9: -3191938204528097817
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

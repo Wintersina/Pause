@@ -1,0 +1,689 @@
+fileFormatVersion: 2
+guid: b466749f8841b4a59933557a07a06f87
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2929073138772487517
+    second: ember_rock_obsidian_0
+  - first:
+      213: 6583856454439519864
+    second: ember_rock_obsidian_1
+  - first:
+      213: 8540677811029072577
+    second: ember_rock_obsidian_2
+  - first:
+      213: -8890655195471577083
+    second: ember_rock_obsidian_3
+  - first:
+      213: -7465535998801526600
+    second: ember_rock_obsidian_4
+  - first:
+      213: -5137233917739196885
+    second: ember_rock_obsidian_5
+  - first:
+      213: 4162347803159628511
+    second: ember_rock_obsidian_6
+  - first:
+      213: 7104200863708809417
+    second: ember_rock_obsidian_7
+  - first:
+      213: -1310917026880633643
+    second: ember_rock_obsidian_8
+  - first:
+      213: 7660507619220157144
+    second: ember_rock_obsidian_9
+  - first:
+      213: -4845478660763497816
+    second: ember_rock_obsidian_10
+  - first:
+      213: 6280809107530069888
+    second: ember_rock_obsidian_11
+  - first:
+      213: 6100532363017773505
+    second: ember_rock_obsidian_12
+  - first:
+      213: 6268067947997091743
+    second: ember_rock_obsidian_13
+  - first:
+      213: -2486614418713799786
+    second: ember_rock_obsidian_14
+  - first:
+      213: 5167923538771667050
+    second: ember_rock_obsidian_15
+  - first:
+      213: -8185418055907021968
+    second: ember_rock_obsidian_16
+  - first:
+      213: 8283785302906032099
+    second: ember_rock_obsidian_17
+  - first:
+      213: 625967248972879093
+    second: ember_rock_obsidian_18
+  - first:
+      213: 1450905067088873716
+    second: ember_rock_obsidian_19
+  - first:
+      213: -5888994714731278395
+    second: ember_rock_obsidian_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_rock_obsidian_0
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 21
+        width: 71
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5d2ca5308826a820800000000000000
+      internalID: 2929073138772487517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_1
+      rect:
+        serializedVersion: 2
+        x: 250
+        y: 42
+        width: 62
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 876c703009e8e5b50800000000000000
+      internalID: 6583856454439519864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_2
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 134
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cad27bf735968670800000000000000
+      internalID: 8540677811029072577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_3
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 97
+        width: 26
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5008f65543c0e9480800000000000000
+      internalID: -8890655195471577083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_4
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 100
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b04b8d2096156890800000000000000
+      internalID: -7465535998801526600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_5
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 109
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e111558f0e4b8b0800000000000000
+      internalID: -5137233917739196885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_6
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 100
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fda05fe1641a3c930800000000000000
+      internalID: 4162347803159628511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_7
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 99
+        width: 26
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c8036ebb01379260800000000000000
+      internalID: 7104200863708809417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_8
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 109
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d4c4cad8efaecde0800000000000000
+      internalID: -1310917026880633643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_9
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 92
+        width: 28
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d27ac2b7179f4a60800000000000000
+      internalID: 7660507619220157144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_10
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 109
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8aac47a94d661ccb0800000000000000
+      internalID: -4845478660763497816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_11
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 89
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0873e5c2b9ae92750800000000000000
+      internalID: 6280809107530069888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_12
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 83
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c1e276bcd179a450800000000000000
+      internalID: 6100532363017773505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_13
+      rect:
+        serializedVersion: 2
+        x: 446
+        y: 85
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f97d06cc696acf650800000000000000
+      internalID: 6268067947997091743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_14
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 61
+        width: 27
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 693133f5c55cd7dd0800000000000000
+      internalID: -2486614418713799786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_15
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 70
+        width: 28
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a686dd2e31728b740800000000000000
+      internalID: 5167923538771667050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_16
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 62
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07be79775ad876e80800000000000000
+      internalID: -8185418055907021968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_17
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 77
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3efc057f7dae5f270800000000000000
+      internalID: 8283785302906032099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_18
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 66
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f49e0c75e1efa800800000000000000
+      internalID: 625967248972879093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_19
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 59
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f885a6a876a22410800000000000000
+      internalID: 1450905067088873716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_obsidian_20
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 57
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cf0a481286164ea0800000000000000
+      internalID: -5888994714731278395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_rock_obsidian_0: 2929073138772487517
+      ember_rock_obsidian_1: 6583856454439519864
+      ember_rock_obsidian_10: -4845478660763497816
+      ember_rock_obsidian_11: 6280809107530069888
+      ember_rock_obsidian_12: 6100532363017773505
+      ember_rock_obsidian_13: 6268067947997091743
+      ember_rock_obsidian_14: -2486614418713799786
+      ember_rock_obsidian_15: 5167923538771667050
+      ember_rock_obsidian_16: -8185418055907021968
+      ember_rock_obsidian_17: 8283785302906032099
+      ember_rock_obsidian_18: 625967248972879093
+      ember_rock_obsidian_19: 1450905067088873716
+      ember_rock_obsidian_2: 8540677811029072577
+      ember_rock_obsidian_20: -5888994714731278395
+      ember_rock_obsidian_3: -8890655195471577083
+      ember_rock_obsidian_4: -7465535998801526600
+      ember_rock_obsidian_5: -5137233917739196885
+      ember_rock_obsidian_6: 4162347803159628511
+      ember_rock_obsidian_7: 7104200863708809417
+      ember_rock_obsidian_8: -1310917026880633643
+      ember_rock_obsidian_9: 7660507619220157144
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

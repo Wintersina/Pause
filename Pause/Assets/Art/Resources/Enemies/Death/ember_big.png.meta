@@ -1,0 +1,1027 @@
+fileFormatVersion: 2
+guid: 9fbb1e7a0fe1f40c9be8e0578b562b75
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -10946920427613191
+    second: ember_big_0
+  - first:
+      213: -4344500939088862056
+    second: ember_big_1
+  - first:
+      213: -7577904991891459065
+    second: ember_big_2
+  - first:
+      213: 7114048450703330225
+    second: ember_big_3
+  - first:
+      213: 5343639946594084894
+    second: ember_big_4
+  - first:
+      213: -241371464243580294
+    second: ember_big_5
+  - first:
+      213: -3236290372554399043
+    second: ember_big_6
+  - first:
+      213: 9104889636392017519
+    second: ember_big_7
+  - first:
+      213: -337167626216723452
+    second: ember_big_8
+  - first:
+      213: 7861046858818365590
+    second: ember_big_9
+  - first:
+      213: -1744603231664180095
+    second: ember_big_10
+  - first:
+      213: 3235813790444504161
+    second: ember_big_11
+  - first:
+      213: 7398318964589305835
+    second: ember_big_12
+  - first:
+      213: 4061240609168491151
+    second: ember_big_13
+  - first:
+      213: 456743143270443309
+    second: ember_big_14
+  - first:
+      213: -6827714909832060067
+    second: ember_big_15
+  - first:
+      213: -4025038214791151588
+    second: ember_big_16
+  - first:
+      213: -4183595277525608240
+    second: ember_big_17
+  - first:
+      213: 1726760456185401165
+    second: ember_big_18
+  - first:
+      213: 8092210792985423704
+    second: ember_big_19
+  - first:
+      213: -5873953632952894418
+    second: ember_big_20
+  - first:
+      213: 2928521572930420975
+    second: ember_big_21
+  - first:
+      213: -7557785578665242633
+    second: ember_big_22
+  - first:
+      213: 4810710588340933820
+    second: ember_big_23
+  - first:
+      213: 1262224339268554267
+    second: ember_big_24
+  - first:
+      213: -2584570725423657090
+    second: ember_big_25
+  - first:
+      213: 4710539906543393776
+    second: ember_big_26
+  - first:
+      213: -5241303758530227185
+    second: ember_big_27
+  - first:
+      213: 2400325127717537919
+    second: ember_big_28
+  - first:
+      213: -2211874641756551349
+    second: ember_big_29
+  - first:
+      213: 7777626140365291683
+    second: ember_big_30
+  - first:
+      213: 7637480449001089575
+    second: ember_big_31
+  - first:
+      213: 8441384021079965049
+    second: ember_big_32
+  - first:
+      213: 7328517114724686329
+    second: ember_big_33
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_big_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3
+        width: 242
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f3178875db19dff0800000000000000
+      internalID: -10946920427613191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_1
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 31
+        width: 219
+        height: 190
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 894e14ff96b35b3c0800000000000000
+      internalID: -4344500939088862056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_2
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 147
+        width: 15
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70476a03f8fd5d690800000000000000
+      internalID: -7577904991891459065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_3
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 147
+        width: 44
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bb0713cf5d2ab260800000000000000
+      internalID: 7114048450703330225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_4
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 112
+        width: 48
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e18e358383c682a40800000000000000
+      internalID: 5343639946594084894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_5
+      rect:
+        serializedVersion: 2
+        x: 592
+        y: 166
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7278de9ee976acf0800000000000000
+      internalID: -241371464243580294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_6
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 167
+        width: 26
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db2e0e18d036613d0800000000000000
+      internalID: -3236290372554399043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_7
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 121
+        width: 51
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6e184072e01b5e70800000000000000
+      internalID: 9104889636392017519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_8
+      rect:
+        serializedVersion: 2
+        x: 668
+        y: 170
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40c279194d3225bf0800000000000000
+      internalID: -337167626216723452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_9
+      rect:
+        serializedVersion: 2
+        x: 675
+        y: 158
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 698a19ee77c081d60800000000000000
+      internalID: 7861046858818365590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_10
+      rect:
+        serializedVersion: 2
+        x: 682
+        y: 133
+        width: 44
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18478a6aa9ce9c7e0800000000000000
+      internalID: -1744603231664180095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_11
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 145
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16441c29f7be7ec20800000000000000
+      internalID: 3235813790444504161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_12
+      rect:
+        serializedVersion: 2
+        x: 555
+        y: 105
+        width: 40
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bef916b76eb1ca660800000000000000
+      internalID: 7398318964589305835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_13
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 145
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8201e011dc6c5830800000000000000
+      internalID: 4061240609168491151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_14
+      rect:
+        serializedVersion: 2
+        x: 659
+        y: 118
+        width: 26
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d29ea38087da65600800000000000000
+      internalID: 456743143270443309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_15
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 116
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5362dbd6751f31a0800000000000000
+      internalID: -6827714909832060067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_16
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 80
+        width: 54
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c104008b1113428c0800000000000000
+      internalID: -4025038214791151588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_17
+      rect:
+        serializedVersion: 2
+        x: 682
+        y: 126
+        width: 19
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d8951fb242e0f5c0800000000000000
+      internalID: -4183595277525608240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_18
+      rect:
+        serializedVersion: 2
+        x: 711
+        y: 118
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4f4f137c7fa6f710800000000000000
+      internalID: 1726760456185401165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_19
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 80
+        width: 23
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85f6a7387de4d4070800000000000000
+      internalID: 8092210792985423704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_20
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 103
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2c3ab8da468b7ea0800000000000000
+      internalID: -5873953632952894418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_21
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 39
+        width: 106
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe00697cad234a820800000000000000
+      internalID: 2928521572930420975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_22
+      rect:
+        serializedVersion: 2
+        x: 613
+        y: 110
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ff861f1f0a5d1790800000000000000
+      internalID: -7557785578665242633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_23
+      rect:
+        serializedVersion: 2
+        x: 633
+        y: 108
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb49547bac313c240800000000000000
+      internalID: 4810710588340933820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_24
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 108
+        width: 17
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e44f85952548110800000000000000
+      internalID: 1262224339268554267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_25
+      rect:
+        serializedVersion: 2
+        x: 666
+        y: 110
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7fcf3e6e92c12cd0800000000000000
+      internalID: -2584570725423657090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_26
+      rect:
+        serializedVersion: 2
+        x: 566
+        y: 61
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0fb12d566133f5140800000000000000
+      internalID: 4710539906543393776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_27
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 75
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f04d2e050062347b0800000000000000
+      internalID: -5241303758530227185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_28
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 54
+        width: 26
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f784c077cfaaf4120800000000000000
+      internalID: 2400325127717537919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_29
+      rect:
+        serializedVersion: 2
+        x: 707
+        y: 75
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b47086a7bb7dd41e0800000000000000
+      internalID: -2211874641756551349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_30
+      rect:
+        serializedVersion: 2
+        x: 669
+        y: 58
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a0044c54cdafeb60800000000000000
+      internalID: 7777626140365291683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_31
+      rect:
+        serializedVersion: 2
+        x: 682
+        y: 51
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a63b5d008cdf960800000000000000
+      internalID: 7637480449001089575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_32
+      rect:
+        serializedVersion: 2
+        x: 703
+        y: 48
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97d3125fa02d52570800000000000000
+      internalID: 8441384021079965049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_big_33
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 30
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f91989dc7f14b560800000000000000
+      internalID: 7328517114724686329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_big_0: -10946920427613191
+      ember_big_1: -4344500939088862056
+      ember_big_10: -1744603231664180095
+      ember_big_11: 3235813790444504161
+      ember_big_12: 7398318964589305835
+      ember_big_13: 4061240609168491151
+      ember_big_14: 456743143270443309
+      ember_big_15: -6827714909832060067
+      ember_big_16: -4025038214791151588
+      ember_big_17: -4183595277525608240
+      ember_big_18: 1726760456185401165
+      ember_big_19: 8092210792985423704
+      ember_big_2: -7577904991891459065
+      ember_big_20: -5873953632952894418
+      ember_big_21: 2928521572930420975
+      ember_big_22: -7557785578665242633
+      ember_big_23: 4810710588340933820
+      ember_big_24: 1262224339268554267
+      ember_big_25: -2584570725423657090
+      ember_big_26: 4710539906543393776
+      ember_big_27: -5241303758530227185
+      ember_big_28: 2400325127717537919
+      ember_big_29: -2211874641756551349
+      ember_big_3: 7114048450703330225
+      ember_big_30: 7777626140365291683
+      ember_big_31: 7637480449001089575
+      ember_big_32: 8441384021079965049
+      ember_big_33: 7328517114724686329
+      ember_big_4: 5343639946594084894
+      ember_big_5: -241371464243580294
+      ember_big_6: -3236290372554399043
+      ember_big_7: 9104889636392017519
+      ember_big_8: -337167626216723452
+      ember_big_9: 7861046858818365590
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

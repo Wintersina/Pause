@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // The end-of-tutorial card. Same layout grammar as the Flight Complete panel
 // (DeathPanelView): header, divider, accent stat cards and two equal-width
 // buttons, built on its own root and fitted to the safe area below the
-// quick actions. Drawn in the tutorial's flat 80s-anime cel style (Akira
+// quick actions. Drawn in the tutorial's painted brass style (steampunk
 // palette, ink outlines, chamfered panels, TutorialPalette) with limited
 // animation: held poses that snap on whole steps.
 //
@@ -191,7 +191,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         Place(card, CardRects[index]);
         cardGroups[index] = go.GetComponent<CanvasGroup>();
 
-        var bg = NewImage("Background", card, Load("tut_card"), accent);
+        var bg = NewImage("Background", card, Load("tut_card"), Color.white);   // painted brass card, accent is the label
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
 
@@ -243,7 +243,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
             frame.sprite = Load("tut_button");
             frame.type = Image.Type.Sliced;
             frame.preserveAspect = false;
-            frame.color = accent;
+            frame.color = Color.white;   // painted brass plate; the label carries the colour
             frame.raycastTarget = true;
             button.targetGraphic = frame;
             // The scene buttons used a colour-tint transition whose normal

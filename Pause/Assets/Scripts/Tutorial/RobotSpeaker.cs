@@ -8,13 +8,14 @@ using UnityEngine.UI;
 // typed one character per tick. It now talks: lines come out a syllable at a
 // time, and every syllable drives the robot -- a mouth frame picked from the
 // syllable's vowel, a flash of the red antenna lamp, a jolt on stressed beats
-// with a hard octagon pulse stepping off it, and a short pitch-varied chirp
+// with a hard amber octagon pulse stepping off it, and a short pitch-varied chirp
 // (generated here with AudioClip.Create, no audio assets). When it is quiet
 // it hovers and blinks.
 //
-// Art direction: flat 2D 80s anime in the Akira palette (TutorialPalette).
-// Every moving part is a separate SVG-sourced sprite frame (Art/UI/Tutorial/
-// src~, rendered into Art/Resources/Tutorial) and the motion is limited
+// Art direction: a painted rustic steampunk robot (brass, rust, amber nixie
+// eyes and mouth, red antenna lamp) talking from a brass-framed navy panel
+// (TutorialPalette holds the matching text/tint colours). Every moving part
+// is a separate sprite frame in Art/Resources/Tutorial and the motion is limited
 // animation: poses are held for whole steps of 1/12 s ("on 2s") or 1/8 s
 // ("on 3s") and snap between them, cartoon style, rather than easing.
 //
@@ -30,7 +31,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = .5f;
 
-    public const float RobotArt = 128f;        // tut_robot.svg's canvas, in its own units
+    public const float RobotArt = 128f;        // tut_robot.png's canvas, in its own units
     public const float RobotSize = 150f;       // what it occupies on screen
     const float ArtScale = RobotSize / RobotArt;
     public const float BubbleHeight = 116f;
@@ -39,7 +40,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     public const float RobotBubbleGap = 14f;   // the tail spans it
     public const float TailReach = 19f;        // tail tip, left of the bubble body
     public const float Margin = 22f;           // from the safe area, > hover + pop travel
-    public const float BubbleMargin = 6f;      // tut_bubble's drop shadow outside the body
+    public const float BubbleMargin = 4f;      // tut_bubble's transparent rim (8 px at 200 ppu) outside the brass frame
     public const float TopGap = 10f;           // below whatever is blocking the top
     public const float TextPadX = 22f, TextPadY = 12f;
     public const int FontMax = 28, FontMin = 18;
@@ -152,7 +153,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         robotAnchor.sizeDelta = new Vector2(RobotSize, RobotSize);
         for (int i = 0; i < RingCount; i++)
         {
-            rings[i] = NewImage("VoicePulse", robotAnchor, Load("tut_ring"), TutorialPalette.Teal);
+            rings[i] = NewImage("VoicePulse", robotAnchor, Load("tut_ring"), TutorialPalette.Orange);
             Place(rings[i].rectTransform, 0f, 0f, RobotSize, RobotSize);
             rings[i].enabled = false;
             ringBornAt[i] = -10f;
@@ -171,7 +172,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         shell.raycastTarget = true;                           // tap the robot to skip ahead
         Stretch(shell.rectTransform);
 
-        // Face parts at tut_robot.svg coordinates (y down from the top).
+        // Face parts at tut_robot.png coordinates (128 art units) (y down from the top).
         lampFlash = NewImage("LampFlash", robotBody, Load("tut_glow"), TutorialPalette.Red);
         PlaceSvg(lampFlash.rectTransform, 77f, 9f, 26f, 26f);
         lampFlash.enabled = false;
@@ -654,7 +655,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         rt.sizeDelta = new Vector2(w, h);
     }
 
-    // Places a child of the robot body by tut_robot.svg coordinates (origin
+    // Places a child of the robot body by tut_robot.png coordinates (origin
     // top-left, y down, in the art's 128 units).
     static void PlaceSvg(RectTransform rt, float x, float y, float w, float h)
     {

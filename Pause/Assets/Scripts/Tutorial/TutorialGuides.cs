@@ -58,10 +58,10 @@ public class TutorialGuides : MonoBehaviour
         var ring = Resources.Load<Sprite>("Tutorial/tut_ring");
         for (int i = 0; i < touchRings.Length; i++)
         {
-            touchRings[i] = NewImage("Ring", touch, ring, TutorialPalette.Teal);
+            touchRings[i] = NewImage("Ring", touch, ring, TutorialPalette.Orange);
             Stretch(touchRings[i].rectTransform);
         }
-        touchDot = NewImage("Dot", touch, Resources.Load<Sprite>("Tutorial/tut_glow"), TutorialPalette.Teal);
+        touchDot = NewImage("Dot", touch, Resources.Load<Sprite>("Tutorial/tut_glow"), TutorialPalette.Orange);
         touchDot.rectTransform.sizeDelta = new Vector2(64f, 64f);
 
         arrowImage = NewImage("HintArrow", root, Resources.Load<Sprite>("Tutorial/tut_arrow"), Color.white);   // colours baked in

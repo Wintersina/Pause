@@ -45,7 +45,8 @@ public static class TutorialRobotTest
         PauseJumpOpensThePortal();
         SpeakerTapCompletesLine();
         CompletePanel();
-        ArtIsFlatAndParametric();
+        ArtIsThePaintedKit();
+        TutorialBackdropIsSpace();
 
         Debug.Log("[TR] failures: " + fails);
         return fails;
@@ -644,49 +645,141 @@ public static class TutorialRobotTest
         Check("no leftover CONTINUE TO GAME overlay", GameObject.Find("TutorialFinishCanvas") == null);
     }
 
-    // ---- Art direction: flat cel SVGs, one palette ----
+    // ---- Art direction: the painted rustic steampunk kit ----
 
-    const string ArtSrc = "Assets/Art/UI/Tutorial/src~/";
-
-    static void ArtIsFlatAndParametric()
+    // Every sprite of the kit and its size in pixels (the layout code places
+    // parts in these units, so a redraw must keep them).
+    static readonly (string name, int w, int h)[] Kit =
     {
-        var env = new System.Collections.Generic.Dictionary<string, string>();
-        foreach (var raw in File.ReadAllLines(ArtSrc + "palette.env"))
-        {
-            var m = Regex.Match(raw.Trim(), @"^([A-Z_]+)=(#[0-9A-Fa-f]{6})$");
-            if (m.Success) env[m.Groups[1].Value] = m.Groups[2].Value.ToUpperInvariant();
-        }
-        Check("palette.env defines the Akira palette (" + env.Count + " colours)", env.Count >= 10);
-        foreach (var pair in env)
-        {
-            string field = Regex.Replace(pair.Key.ToLowerInvariant(), @"(^|_)([a-z])", m => m.Groups[2].Value.ToUpperInvariant());
-            var f = typeof(TutorialPalette).GetField(field, BindingFlags.Public | BindingFlags.Static);
-            Check("TutorialPalette." + field + " matches palette.env " + pair.Key,
-                  f != null && TutorialPalette.Html((Color)f.GetValue(null)) == pair.Value);
-        }
-        Check("the bubble highlight is the palette's orange",
-              TutorialScript.HighlightColor == TutorialPalette.Html(TutorialPalette.Orange));
+        ("tut_robot", 256, 256), ("tut_bubble", 192, 192), ("tut_tail", 52, 40), ("tut_ring", 128, 128),
+        ("tut_glow", 64, 64), ("tut_lamp", 24, 24), ("tut_jet_a", 60, 52), ("tut_jet_b", 60, 52),
+        ("tut_eye_open", 52, 40), ("tut_eye_half", 52, 40), ("tut_eye_shut", 52, 40), ("tut_eye_happy", 52, 40),
+        ("tut_mouth_rest", 72, 40), ("tut_mouth_a", 72, 40), ("tut_mouth_e", 72, 40), ("tut_mouth_o", 72, 40),
+        ("tut_mouth_big", 72, 40), ("tut_card", 96, 96), ("tut_button", 96, 80), ("tut_arrow", 0, 0),
+    };
 
-        var svgs = Directory.GetFiles(ArtSrc, "tut_*.svg");
-        Check("tutorial art sources exist (" + svgs.Length + ")", svgs.Length >= 15);
-        foreach (var path in svgs)
+    static float Luminance(Color c)
+    {
+        float Lin(float v) { return v <= .03928f ? v / 12.92f : Mathf.Pow((v + .055f) / 1.055f, 2.4f); }
+        return .2126f * Lin(c.r) + .7152f * Lin(c.g) + .0722f * Lin(c.b);
+    }
+
+    static float Contrast(Color a, Color b)
+    {
+        float la = Luminance(a), lb = Luminance(b);
+        return (Mathf.Max(la, lb) + .05f) / (Mathf.Min(la, lb) + .05f);
+    }
+
+    // The PNG's pixels (the imported sprites are not CPU-readable).
+    static Texture2D ReadPng(string resource)
+    {
+        string path = "Assets/Art/Resources/" + resource + ".png";
+        if (!File.Exists(path)) return null;
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        return t.LoadImage(File.ReadAllBytes(path)) ? t : null;
+    }
+
+    static void ArtIsThePaintedKit()
+    {
+        foreach (var k in Kit)
         {
-            string src = File.ReadAllText(path);
-            string name = Path.GetFileName(path);
-            Check(name + " is flat: no gradients, blur or filters",
-                  !Regex.IsMatch(src, @"<\w*Gradient|<filter|filter=|feGaussianBlur"));
-            bool parametric = true;
-            foreach (Match c in Regex.Matches(src, "#[0-9A-Fa-f]{6}"))
-                parametric &= c.Value.ToUpperInvariant() == "#FFFFFF";   // white templates only
-            foreach (Match c in Regex.Matches(src, "@([A-Z_]+)@"))
-                parametric &= env.ContainsKey(c.Groups[1].Value);
-            Check(name + " takes every colour from palette.env", parametric);
-            Check(name + " has a rendered sprite",
-                  File.Exists("Assets/Art/Resources/Tutorial/" + Path.GetFileNameWithoutExtension(path) + ".png"));
+            var sprite = Resources.Load<Sprite>("Tutorial/" + k.name);
+            Check(k.name + " loads", sprite != null);
+            if (sprite == null || k.w == 0) continue;
+            Check(k.name + " is " + k.w + "x" + k.h + " (the layout's registration)",
+                  Mathf.RoundToInt(sprite.rect.width) == k.w && Mathf.RoundToInt(sprite.rect.height) == k.h);
+        }
+        Check("the 20 kit sprites are all there (" + Kit.Length + ")", Kit.Length == 20);
+        Check("the old SVG sources and palette.env are gone",
+              !File.Exists("Assets/Art/UI/Tutorial/src~/palette.env") && !File.Exists("Assets/Art/UI/Tutorial/src~/render.sh"));
+        Check("the staging folder is gone", !Directory.Exists("Assets/Art/Resources/Tutorial_new~"));
+
+        // The bubble: a nine-slice whose border clears the brass frame, and a
+        // text area inside the panel's navy fill.
+        var bubble = Resources.Load<Sprite>("Tutorial/tut_bubble");
+        var tex = ReadPng("Tutorial/tut_bubble");
+        Check("the bubble is nine-sliced with a border inside half its size",
+              bubble != null && bubble.border.x >= 24f && bubble.border.x * 2f < bubble.rect.width
+              && bubble.border.y >= 24f && bubble.border.y * 2f < bubble.rect.height);
+        if (tex != null)
+        {
+            Color fill = tex.GetPixel(tex.width / 2, tex.height / 2);
+            Check("TutorialPalette.Panel is the bubble's fill", TutorialPalette.Html(fill) == TutorialPalette.Html(TutorialPalette.Panel));
+        }
+        // Text on the panel stays readable; the red emphasis stays red.
+        Check("body text reads on the panel (" + Contrast(TutorialPalette.Paper, TutorialPalette.Panel).ToString("0.0") + ":1)",
+              Contrast(TutorialPalette.Paper, TutorialPalette.Panel) >= 7f);
+        Check("the amber highlight reads on the panel (" + Contrast(TutorialPalette.Orange, TutorialPalette.Panel).ToString("0.0") + ":1)",
+              Contrast(TutorialPalette.Orange, TutorialPalette.Panel) >= 7f);
+        Check("the bubble highlight is the palette's brass amber",
+              TutorialScript.HighlightColor == TutorialPalette.Html(TutorialPalette.Orange));
+        Check("highlight and body text are told apart", Contrast(TutorialPalette.Orange, TutorialPalette.Paper) >= 1.1f
+              && Vector3.Distance(new Vector3(TutorialPalette.Orange.r, TutorialPalette.Orange.g, TutorialPalette.Orange.b),
+                                  new Vector3(TutorialPalette.Paper.r, TutorialPalette.Paper.g, TutorialPalette.Paper.b)) > .2f);
+        Check("emphasis red is still red", TutorialPalette.Red.r > .8f && TutorialPalette.Red.g < .25f && TutorialPalette.Red.b < .25f);
+        Check("the bubble's text box sits inside the frame (pad " + RobotSpeaker.TextPadX + "/" + RobotSpeaker.TextPadY + ")",
+              bubble != null && RobotSpeaker.TextPadX * 2f >= bubble.border.x / 2f && RobotSpeaker.TextPadY * 2f >= bubble.border.y / 4f);
+
+        // Painted sprites are drawn as they are, never multiplied by a tint.
+        string skip = File.ReadAllText("Assets/Scripts/Tutorial/TutorialSkip.cs");
+        string card = File.ReadAllText("Assets/Scripts/Tutorial/TutorialCompletePanel.cs");
+        Check("the skip plate is not tinted", skip.Contains("img.color = Color.white"));
+        Check("the end card's plates are not tinted", card.Contains("Load(\"tut_card\"), Color.white") && card.Contains("frame.color = Color.white"));
+        Check("the old hand-tinted flat-octagon teal pulse is amber now",
+              File.ReadAllText("Assets/Scripts/Tutorial/RobotSpeaker.cs").Contains("Load(\"tut_ring\"), TutorialPalette.Orange"));
+
+        // The robot's face parts line up with the painted visor (tut_robot is
+        // 256 px = 128 art units; the visor's dark screen spans x 29..99,
+        // y 43..87 units).
+        var robot = Resources.Load<Sprite>("Tutorial/tut_robot");
+        var rt = ReadPng("Tutorial/tut_robot");
+        if (rt != null)
+        {
+            Color screen = rt.GetPixel(128, 256 - 128);
+            bool ok = true;
+            foreach (var p in new[] { new Vector2(47f, 57f), new Vector2(81f, 57f), new Vector2(64f, 79f) })
+            {
+                Color c = rt.GetPixel(Mathf.RoundToInt(p.x * 2f), 256 - Mathf.RoundToInt(p.y * 2f));
+                ok &= Mathf.Abs(c.r - screen.r) + Mathf.Abs(c.g - screen.g) + Mathf.Abs(c.b - screen.b) < .05f;
+            }
+            Check("the eyes and mouth sit on the visor's dark screen", ok);
         }
         foreach (var frame in new[] { "tut_mouth_rest", "tut_mouth_a", "tut_mouth_e", "tut_mouth_o", "tut_mouth_big",
                                       "tut_eye_open", "tut_eye_half", "tut_eye_shut", "tut_eye_happy", "tut_jet_a", "tut_jet_b" })
             Check("talking/blink frame " + frame + " loads", Resources.Load<Sprite>("Tutorial/" + frame) != null);
+    }
+
+    // ---- The backdrop: the real Space world, as in a run ----
+
+    static void TutorialBackdropIsSpace()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
+        var legacy = GameObject.Find("starsBackground");
+        Check("the legacy star quad has no renderer (nothing flat under the backdrop)",
+              legacy == null || legacy.GetComponent<Renderer>() == null);
+        Check("the legacy star material is gone", !File.Exists("Assets/Art/Backgrounds/Materials/starField_17.mat"));
+
+        string boot = File.ReadAllText("Assets/Scripts/Worlds/Backdrop/WorldBackdrop.cs");
+        Check("the tutorial scene starts the Space world backdrop",
+              boot.Contains("scene.name == \"tutorialS5\"") && boot.Contains("WorldBackdrop.Create(WorldManager.Worlds[0].displayName)"));
+        Check("Worlds[0] is Space", WorldManager.Worlds[0].displayName == "Space");
+
+        var go = new GameObject("~TutorialBackdropTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        wb.Show(WorldManager.Worlds[0].displayName, false);
+        for (int i = 0; i < 60; i++) wb.Step(1f / 60f);
+        var set = wb.Current;
+        Check("it builds the complete Space set", set != null && set.Complete && set.Spec.world == "Space");
+        if (set != null)
+        {
+            int expected = 0;
+            foreach (var l in set.Spec.layers) if (l.kind != BackdropCatalog.Kind.Pieces) expected++;
+            Check("with every BackdropCatalog tile layer a run has (" + set.Tiles.Count + "/" + expected + ")", set.Tiles.Count == expected && expected > 0);
+            Check("and its Space director", set.Director != null);
+            Check("scrolling slowly even at speed 0 (" + WorldBackdrop.ScrollVelocity(0f) + " u/s)",
+                  WorldBackdrop.ScrollVelocity(0f) > 0f && WorldBackdrop.ScrollVelocity(0f) < 10f);
+        }
+        Object.DestroyImmediate(go);
     }
 
     static bool Wired(GameObject go, string method)
