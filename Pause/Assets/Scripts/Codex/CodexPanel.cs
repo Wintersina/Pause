@@ -684,6 +684,12 @@ public class CodexPanel : MonoBehaviour
         detailAnim = CodexAnimator.On(detailArt);
         detailMask.raycastTarget = true;   // the art box takes the triple tap (a Mask draws nothing of it)
         detailMask.gameObject.AddComponent<CodexArtTap>().panel = this;
+        // The art box is its own sub-canvas (CodexUi.Isolate): graphics on a
+        // nested canvas are only seen by a GraphicRaycaster ON that canvas, so
+        // without this the box swallowed nothing and received nothing.
+        detailMask.gameObject.AddComponent<GraphicRaycaster>();
+        detailFrame.raycastTarget = true;  // ... and so does the whole frame around it (a fat finger's margin)
+        detailFrame.gameObject.AddComponent<CodexArtTap>().panel = this;
 
         detailIndex = CodexUi.NewText("Index", detail, font, "", 16, CodexUi.Muted, TextAnchor.UpperRight);
 
@@ -1006,40 +1012,79 @@ public class CodexPanel : MonoBehaviour
         ApplyArt(detailArt, detailMask, detailMaskComp, entry, found);
         detailAnim.Bind(CodexAnimations.For(entry), !found, true);
         artTaps = 0;
+        tapKey = null;
+        pulsing = false;
+        detailArtBox.localScale = Vector3.one;
         LayoutDetail();
 
         inDetail = true;
         swapAt = Time.unscaledTime;
     }
 
-    // ---- Triple tap on the detail art: the enemy's death plays once ----
-    public const float TripleTapWindow = .6f;
+    // ---- Triple tap on the enemy: its death plays once ----
+    // Three quick taps on the enemy in the detail view play the death (the
+    // tap that opens the detail does not count). Each of the first
+    // two taps squashes the art a hair so the player sees the count running.
+    public const float TripleTapWindow = .7f;
+    public const float PulseSeconds = .16f, PulseSquash = .07f;
+    // Test seam for the clock the taps are stamped with (unscaled seconds).
+    public static System.Func<float> TapClock;
     int artTaps;
     float lastArtTap = -100f;
+    string tapKey;          // the entry the counter belongs to
+    float pulseAt = -10f;
+    bool pulsing;
+
+    static float TapNow() { return TapClock != null ? TapClock() : Time.unscaledTime; }
+    public int ArtTaps { get { return artTaps; } }
+    public bool Pulsing { get { return pulsing; } }
 
     // One tap on the detail art at `now` (unscaled seconds). Three within
     // TripleTapWindow of each other play the entry's death strip + sound.
-    // Returns true when that tap started the death.
+    // Returns true when that tap started the death. Taps are accepted while
+    // the detail is sliding in (the art is already bound and visible).
     public bool TapDetailArt(float now)
     {
-        if (!inDetail || phase != Phase.Open || detailEntry == null || now - swapAt < SwapDuration ||
+        if (!inDetail || (phase != Phase.Open && phase != Phase.Opening) || detailEntry == null ||
             !Codex.IsDiscovered(detailEntry) || detailAnim.Dying)
         {
             artTaps = 0;
             return false;
         }
-        artTaps = now - lastArtTap > TripleTapWindow ? 1 : artTaps + 1;
+        return CountTap(now, detailEntry.id);
+    }
+
+    public void TapDetailArt() { TapDetailArt(TapNow()); }
+
+    bool CountTap(float now, string key)
+    {
+        bool same = key == tapKey && now - lastArtTap <= TripleTapWindow;
+        artTaps = same ? artTaps + 1 : 1;
+        tapKey = key;
         lastArtTap = now;
-        if (artTaps < 3) return false;
+        if (artTaps < 3)
+        {
+            pulseAt = Time.unscaledTime;   // feedback: squash on tap 1 and 2
+            pulsing = true;
+            return false;
+        }
         artTaps = 0;
         return PlayDetailDeath();
     }
 
-    public void TapDetailArt() { TapDetailArt(Time.unscaledTime); }
+    // A squash of the art box that settles back; arithmetic only.
+    void UpdatePulse()
+    {
+        if (!pulsing) return;
+        float k = (Time.unscaledTime - pulseAt) / PulseSeconds;
+        if (k >= 1f) { pulsing = false; detailArtBox.localScale = Vector3.one; return; }
+        float q = Mathf.Sin(k * Mathf.PI) * PulseSquash;
+        detailArtBox.localScale = new Vector3(1f + q * .5f, 1f - q, 1f);
+    }
 
     // Plain enemies with a death strip only. Elites, bosses and mines (no
     // strip, or a different one) do nothing special rather than risk a
-    // mismatched pose; a Verdant strip is found by key when it ships.
+    // mismatched pose; strips are found by key.
     bool PlayDetailDeath()
     {
         var def = EnemyRoster.FindByCodexId(detailEntry.id);
@@ -1273,6 +1318,7 @@ public class CodexPanel : MonoBehaviour
         if (ScreenInfo.Width != lastW || ScreenInfo.Height != lastH || ScreenInfo.SafeArea != lastSafe) Fit();
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
+        UpdatePulse();
         if (phase != Phase.Hidden) TickAnimations(Time.unscaledDeltaTime);
     }
 

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 // The codex: catalogue completeness, discovery persistence, the hidden state
@@ -72,7 +73,7 @@ public static class CodexTest
             Check("tap death: slow taps do nothing", !any && !anim.Dying);
             // Two quick then a slow one does not either.
             t += 10f;
-            any = panel.TapDetailArt(t) | panel.TapDetailArt(t + .2f) | panel.TapDetailArt(t + .9f);
+            any = panel.TapDetailArt(t) | panel.TapDetailArt(t + .2f) | panel.TapDetailArt(t + 1.2f);
             Check("tap death: 2 quick + 1 late does nothing", !any && !anim.Dying);
 
             t += 10f;
@@ -111,7 +112,7 @@ public static class CodexTest
             panel.ShowGrid(); panel.SkipAnimations();
             panel.ShowDetail(Codex.Find(withStrip));
             float n = Time.unscaledTime;
-            Check("tap death: not mid-transition", !(panel.TapDetailArt(n) | panel.TapDetailArt(n + .01f) | panel.TapDetailArt(n + .02f)));
+            Check("tap death: taps count while the detail slides in", panel.TapDetailArt(n) == false && panel.ArtTaps == 1 && panel.Pulsing);
             panel.SkipAnimations();
 
             // Locked entries do nothing.
@@ -145,6 +146,115 @@ public static class CodexTest
         {
             EnemyDeathAudio.Simulate = false;
             EnemyDeathAudio.ResetVoices();
+            panel.ShowGrid(); panel.SkipAnimations();
+            PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
+            Codex.Reload();
+        }
+    }
+
+    // ---- Real pointer events through the EventSystem ----
+
+    static Vector2 ScreenCentre(RectTransform rt)
+    {
+        var corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+        return (corners[0] + corners[2]) * .5f;   // overlay canvas: world == screen pixels
+    }
+
+    // One tap at a screen point: the canvas's GraphicRaycaster picks the hit,
+    // then down / up / click go to it like StandaloneInputModule would send.
+    static GameObject PointerTap(CodexPanel panel, Vector2 pos)
+    {
+        var es = EventSystem.current;
+        var ped = new PointerEventData(es) { position = pos, button = PointerEventData.InputButton.Left, clickCount = 1 };
+        // GraphicRaycaster.Raycast maps the position through Display.RelativeMouseAt,
+        // which has no display in batch mode, so apply its rules by hand: a
+        // graphic is only seen when the GraphicRaycaster on ITS OWN (nearest)
+        // canvas is there, and it must be a raycast target under the point
+        // that its masks / canvas groups let through.
+        Graphic best = null;
+        int bestDepth = int.MinValue;
+        var all = panel.GetComponentsInChildren<Graphic>(false);   // hierarchy order = draw order
+        for (int gi = 0; gi < all.Length; gi++)
+        {
+            var g = all[gi];
+            if (!g.raycastTarget || !g.enabled || g.canvas == null || g.canvasRenderer.cull) continue;
+            if (g.canvas.GetComponent<GraphicRaycaster>() == null) continue;
+            if (!RectTransformUtility.RectangleContainsScreenPoint(g.rectTransform, pos, null)) continue;
+            if (!g.Raycast(pos, null)) continue;
+            int d = gi;
+            if (d > bestDepth) { best = g; bestDepth = d; }
+        }
+        if (best == null) return null;
+        var results = new List<RaycastResult> { new RaycastResult { gameObject = best.gameObject } };
+        var hit = results[0].gameObject;
+        ped.pointerCurrentRaycast = results[0];
+        ped.pointerPressRaycast = results[0];
+        var down = ExecuteEvents.ExecuteHierarchy(hit, ped, ExecuteEvents.pointerDownHandler);
+        ped.pointerPress = down != null ? down : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hit);
+        ped.eligibleForClick = true;
+        ExecuteEvents.ExecuteHierarchy(hit, ped, ExecuteEvents.pointerUpHandler);
+        ExecuteEvents.ExecuteHierarchy(hit, ped, ExecuteEvents.pointerClickHandler);
+        return hit;
+    }
+
+    static void CheckPointerTapDeath(CodexPanel panel)
+    {
+        string realSeen = PlayerPrefs.GetString(Codex.PrefsKey);
+        var esGo = new GameObject("TestEventSystem", typeof(EventSystem));
+        float clock = 100f;
+        CodexPanel.TapClock = () => clock;
+        EnemyDeathAudio.Simulate = true;
+        int tested = 0, withStrip = 0;
+        try
+        {
+            panel.ApplyLayout(Screens[0].Item2);
+            var boxGraphic = panel.DetailArt.transform.parent.GetComponent<Graphic>();
+            Check("pointer tap: the art box's own canvas has a GraphicRaycaster (nested canvas graphics are invisible otherwise)",
+                  boxGraphic.canvas != null && boxGraphic.canvas.GetComponent<GraphicRaycaster>() != null && boxGraphic.raycastTarget);
+            // one of each kind per world (first of each role found), plus all strip-bearing enemies
+            var seenKinds = new HashSet<string>();
+            foreach (var e in Codex.Entries)
+            {
+                var def = EnemyRoster.FindByCodexId(e.id);
+                if (def == null || EliteCatalog.FindByCodexId(e.id) != null || BossCatalog.Find(e.id) != null) continue;
+                bool strip = EnemyDeathFlipbook.Frames(def) != null;
+                if (!strip) { if (!seenKinds.Add("none_" + def.role)) continue; }
+                Codex.Discover(e.id);
+                panel.ShowGrid(); panel.SkipAnimations();
+                panel.ShowDetail(e); panel.SkipAnimations();
+                Canvas.ForceUpdateCanvases();
+                var anim = panel.DetailAnimator;
+                clock += 10f;
+                var pos = ScreenCentre(panel.DetailArt.transform.parent as RectTransform);
+                var h1 = PointerTap(panel, pos); clock += .25f;
+                var h2 = PointerTap(panel, pos); clock += .25f;
+                bool squashed = panel.Pulsing;
+                var h3 = PointerTap(panel, pos);
+                if (h1 == null || h2 == null || h3 == null) { Check("pointer tap: " + e.id + " art is hit by a real raycast", false); continue; }
+                tested++;
+                if (strip)
+                {
+                    withStrip++;
+                    if (!anim.Dying || !squashed) Check("pointer tap: " + e.id + " 3 taps play the death (hit " + h3.name + ")", false);
+                }
+                else if (anim.Dying) Check("pointer tap: " + e.id + " has no strip but played one", false);
+                // slow taps reset
+                panel.ShowGrid(); panel.SkipAnimations();
+                panel.ShowDetail(e); panel.SkipAnimations();
+                Canvas.ForceUpdateCanvases();
+                clock += 10f;
+                PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos);
+                if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
+            }
+            Check("pointer tap: every strip-bearing enemy plays its death from real taps (" + withStrip + " tested of " + tested + ")", withStrip >= 24);
+        }
+        finally
+        {
+            CodexPanel.TapClock = null;
+            EnemyDeathAudio.Simulate = false;
+            EnemyDeathAudio.ResetVoices();
+            UnityEngine.Object.DestroyImmediate(esGo);
             panel.ShowGrid(); panel.SkipAnimations();
             PlayerPrefs.SetString(Codex.PrefsKey, realSeen);
             Codex.Reload();
@@ -959,6 +1069,7 @@ public static class CodexTest
         Check("discovered detail shows the lore", panel.DetailLore.text == Codex.Find("enemy_space_fighter_1").lore);
         panel.ShowGrid();
         CheckTapDeath(panel);
+        CheckPointerTapDeath(panel);
 
         // Layout of the real panel across screens: everything inside, text fits.
         foreach (var (name, safe) in Screens)
