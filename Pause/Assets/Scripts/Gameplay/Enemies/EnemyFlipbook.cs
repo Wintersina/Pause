@@ -4,13 +4,12 @@ using UnityEngine;
 // is held for a whole number of 24 fps ticks (on 2s and 3s), never tweened.
 //
 //   idle (frames 0-3) loops: key pose hold, anticipation, snap, settle
-//     Steel Hound uses only its two steady hover poses (frames 0-1).
 //   tell (frames 4-5) is the attack/anticipation beat, triggered per role:
 //     Accent      rocks: a random glint/pulse every few seconds
 //     Periodic    fighters, big: a wind-up every few seconds
 //     NearPlayer  mines (arming), aliens (chomp): loops while the ship is close
 //     Chasing     other chasers: loop a lunge while hunting
-//     IdleOnly    Steel Hound: stays in its subtle hover loop while hunting
+//     IdleOnly    Steel Hound: no telegraph; its four-cell idle loop runs while hunting
 //   An enemy that attacks (EnemyBrain) is BrainDriven instead: it plays no
 //   tell of its own -- the brain holds cell 4 for the windup (a mine loops
 //   4-5, waking -> charging) and cell 5 for the release (Drive).

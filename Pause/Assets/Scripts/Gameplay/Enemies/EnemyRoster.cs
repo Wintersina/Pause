@@ -186,10 +186,9 @@ public static class EnemyRoster
             ? new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks }
             : IdleTicks(def.role);
 
-    // What EnemyFlipbook actually loops: the Steel Hound only hovers between
-    // its two steady poses (6 ticks each); everyone else IdleTicks(def).
-    public static int[] FlipbookIdleTicks(EnemyDef def) =>
-        def != null && def.key == "space_chaser" ? new[] { 6, 6 } : IdleTicks(def);
+    // What EnemyFlipbook actually loops (the Steel Hound loops all four idle
+    // cells now, like everyone else).
+    public static int[] FlipbookIdleTicks(EnemyDef def) => IdleTicks(def);
 
     public static int[] TellTicks(EnemyRole role)
     {

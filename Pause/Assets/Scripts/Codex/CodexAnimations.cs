@@ -91,7 +91,7 @@ public static class CodexAnimations
         var frames = EnemyArt.Frames(def);
         if (frames == null || frames.Length == 0) return null;
 
-        // exactly the drawings and holds EnemyFlipbook loops (the Steel Hound: two)
+        // exactly the drawings and holds EnemyFlipbook loops 
         var ticks = EnemyRoster.FlipbookIdleTicks(def);
         int n = Mathf.Min(ticks.Length, Mathf.Min(EnemyRoster.TellFrame, frames.Length));
         var steps = new Sprite[n];
