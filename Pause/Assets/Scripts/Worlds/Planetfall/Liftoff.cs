@@ -24,6 +24,11 @@ using UnityEngine;
 //              WorldManager.OpenGateway -- the next planet's planetfall if
 //              it has one, else the portal, with its pressure, exactly as
 //              after any other boss. The world itself changes only there.
+//              The last world's lift-off (LiftoffDef.autoLoop: Ember) has no
+//              portal when the loop leads back to Space: the loop starts at
+//              once (WorldManager.StartLoop), the world changing under the
+//              Space sky the interlude already shows; the portal if the run
+//              began elsewhere (it loops there) or if that fails.
 //
 // Clock: like the planetfall it moves only while the world is running
 // (WorldManager.Flying), on Time.deltaTime, so a lifted finger freezes it
@@ -452,6 +457,14 @@ public class Liftoff : MonoBehaviour
         gatewayOpened = true;
         var wm = WorldManager.Instance;
         if (wm == null) return;
+        try
+        {
+            // only when the loop leads back to the sky the interlude shows
+            // (Space); a run begun elsewhere loops through its portal
+            if (def != null && def.autoLoop && !WorldManager.HasNext && WorldManager.PortalDestination == def.interludeWorld &&
+                wm.StartLoop()) return;
+        }
+        catch (System.Exception e) { Debug.LogException(e); }
         try { wm.OpenGateway(); }
         catch (System.Exception e) { Debug.LogException(e); }
     }

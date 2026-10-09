@@ -5,19 +5,23 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The lift-off (Liftoff): Frost's, Verdant's and Ember's climb back to space
-// after their boss, a calm interlude, then the gateway on: Verdant's
-// planetfall after Frost, Ember's after Verdant, the loop's portal back round
-// after Ember (the last world).
+// after their boss, a calm interlude, then the way on: Verdant's planetfall
+// after Frost, Ember's after Verdant; after Ember (the last world) no portal:
+// the loop starts Space again at once (LiftoffDef.autoLoop,
+// WorldManager.StartLoop), the loop portal only as its fallback.
 //
 //   1  which world ends lift off: Frost, Verdant and Ember. Space -> Frost
-//      stays the planetfall; Ember's gateway is the loop portal; switched off
+//      stays the planetfall; Ember's way on is the loop itself; switched off
 //      or missing art: the gateway straight away
 //   2  the flow: a beat (nothing spawns, the pilot flies), the take (held,
 //      shielded, free presses, lifted over the clouds), the backdrop swapped
 //      to Space while the clouds cover the view, control back at release,
 //      a calm interlude, then the portal with its pressure; the world
 //      changes exactly once, only through the portal; score and hearts
-//      carry through; a pause freezes it; nothing of it is left
+//      carry through; a pause freezes it; nothing of it is left. Ember's:
+//      the same up to the interlude's end, then Space's level begins with
+//      no portal ever, one loop on (exactly once), the backdrop untouched;
+//      with autoLoop off, the loop portal as before
 //   3  the gateway after Frost (Verdant's planetfall) and after Verdant
 //      (Ember's), flown all the way down (the world changes once, under the
 //      clouds, onto the new planet)
@@ -56,7 +60,10 @@ public static class LiftoffTest
             PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };
             Flow(Verdant);
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
-            Flow(Ember);
+            Flow(Ember);   // the loop, straight away
+            LiftoffCatalog.Ember.autoLoop = false;
+            Flow(Ember);   // the fallback: the loop portal
+            LiftoffCatalog.Ember.autoLoop = true;
             NextPlanetfall(Frost);
             NextPlanetfall(Verdant);
             Robust();
@@ -70,6 +77,8 @@ public static class LiftoffTest
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             PlanetfallCatalog.Enabled = true;
             LiftoffCatalog.Enabled = true;
+            LiftoffCatalog.Ember.autoLoop = true;
+            if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
             PortalPressure.Reset();
             ShipStartSpeed.EquippedHudOverride = null;
             SpeedRamp.FrameOverride = null;
@@ -230,7 +239,6 @@ public static class LiftoffTest
     {
         bool loop = from == WorldManager.Worlds.Length - 1;
         int to = loop ? RunLoop.StartWorld : from + 1;
-        int loopWas = RunLoop.Index;
         string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
         FreshScene(from);
         RunScore.BeginRun(true, true);
@@ -245,6 +253,17 @@ public static class LiftoffTest
         long before = RunScore.Total;
         Check(name + "'s lift-off flies its own planet's art", l != null && l.Def.world == from && l.Art.Def.world == from);
         var liftArt = l.Art;
+        // the last world's: no portal, the loop begins at the interlude's end
+        bool direct = l.Def.autoLoop && loop;
+        // ... under the backdrop the interlude already shows (a real one here)
+        WorldBackdrop backdrop = null;
+        if (direct)
+        {
+            backdrop = WorldBackdrop.Create(name);
+            backdrop.Show(name, false);
+        }
+        BackdropSet interludeSky = null;
+        int loopBefore = RunLoop.Index;
 
         // the beat: the pilot still flies
         for (int i = 0; i < 10; i++) Fly(wm, l);
@@ -302,9 +321,10 @@ public static class LiftoffTest
                 freeAfter &= !Liftoff.HoldsShip && !Liftoff.ShieldsShip && !Liftoff.FreePress;
                 calm &= Liftoff.SuspendsSpawning && SpaceDirector.Quiet;
                 globeSeen |= l.PlanetRenderer.enabled && !l.LimbRenderer.enabled;
+                if (backdrop != null) interludeSky = backdrop.Current;
             }
-            if (l.State != Liftoff.Stage.Done) noPortalBefore &= Portal.Live == null && !PortalPressure.Active;
-            else gatewayAt = l.Seconds;
+            if (l.State != Liftoff.Stage.Done || direct) noPortalBefore &= Portal.Live == null && !PortalPressure.Active;
+            if (l.State == Liftoff.Stage.Done) gatewayAt = l.Seconds;
         }
         Check("a lifted finger mid-climb froze it (clock, ship)", pausedHeld);
         Check("the ship was flown and shielded through the rise", heldThrough && moved);
@@ -320,6 +340,33 @@ public static class LiftoffTest
               released && freeAfter && hullAtRelease == 0 && plumeAtRelease == -1 &&
               Mathf.Abs(releasedPos.x) < 1e-3f && Mathf.Abs(releasedPos.y - ShipReach.StartY) < 1e-3f);
         Check("the interlude was calm: nothing spawning, Space's backdrop quiet", calm);
+        if (direct)
+        {
+            Check("no portal and no pressure, ever; the world changed exactly once, at the interlude's end, to " + next + " (" + changes + ")",
+                  noPortalBefore && Portal.Live == null && Object.FindFirstObjectByType<Portal>() == null && !PortalPressure.Active &&
+                  changes == 1 && WorldManager.CurrentIndex == to && gatewayAt >= LiftoffTimeline.GatewayAt - .05f);
+            Check(next + "'s level begins at once: stage Level, a full world ahead, the loop's arrival speed, the lift-off gone",
+                  Liftoff.Live == null && Planetfall.Live == null && wm.Stage == WorldManager.LevelStage.Level && !wm.PortalIsOpen &&
+                  Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)) &&
+                  Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(RunLoop.Index)) &&
+                  !Liftoff.SuspendsSpawning && !SpaceDirector.Quiet && WorldBackdrop.ScrollBoost == 1f && !WorldTransition.InProgress);
+            Check("... one loop on, exactly once (" + loopBefore + " -> " + RunLoop.Index + "); every boss to fight again",
+                  RunLoop.Index == loopBefore + 1 && !BossEncounter.DoneInWorld(from));
+            Check("... the world bonus paid once (" + before + " -> " + RunScore.Total + "), hearts untouched",
+                  RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
+            Check("... seamless: the interlude's Space sky is the level's, not rebuilt or cross-faded",
+                  interludeSky != null && backdrop.Current == interludeSky && interludeSky.Spec.world == BackdropCatalog.For(next).world);
+            Check("... nothing of it is left in the scene, its art released",
+                  GameObject.Find("~LiftoffStage") == null && GameObject.Find("~Liftoff") == null &&
+                  !liftArt.Complete && liftArt.PlanetTex == null && liftArt.DeckTex == null && liftArt.Entry == null);
+            for (int i = 0; i < 120; i++) wm.Tick(Dt);
+            Check("... and no portal turns up after (2 s of " + next + ")", Portal.Live == null && !PortalPressure.Active && RunLoop.Index == loopBefore + 1);
+            Object.DestroyImmediate(backdrop.gameObject);
+            Gone();
+            Object.DestroyImmediate(ship.gameObject);
+            Object.DestroyImmediate(wm.gameObject);
+            return;
+        }
         Check("no portal and no pressure before the gateway; the world never changed on the way (" + changes + ")",
               noPortalBefore && changes == 0 && WorldManager.CurrentIndex == from);
         Check("the gateway (" + gatewayAt.ToString("F2") + " s): the portal to " + next + " with its pressure, the lift-off gone",
@@ -339,8 +386,8 @@ public static class LiftoffTest
               WorldManager.CurrentIndex == to && wm.Stage == WorldManager.LevelStage.Level && !PortalPressure.Active &&
               Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)) &&
               RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
-        Check("... the loop count: " + (loop ? "one loop on (" + loopWas + " -> " + RunLoop.Index + ")" : "unchanged (" + RunLoop.Index + ")"),
-              RunLoop.Index == loopWas + (loop ? 1 : 0));
+        Check("... the loop count: " + (loop ? "one loop on (" + loopBefore + " -> " + RunLoop.Index + ")" : "unchanged (" + RunLoop.Index + ")"),
+              RunLoop.Index == loopBefore + (loop ? 1 : 0));
         Check("the timeline: take, swap, break, release, gateway in order; about nine and a half seconds",
               LiftoffTimeline.TakeAt < LiftoffTimeline.SwapAt && LiftoffTimeline.SwapAt < LiftoffTimeline.BreakAt &&
               LiftoffTimeline.BreakAt < LiftoffTimeline.ReleaseAt && LiftoffTimeline.ReleaseAt < LiftoffTimeline.GatewayAt &&

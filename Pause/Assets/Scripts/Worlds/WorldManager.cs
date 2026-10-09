@@ -26,7 +26,9 @@ using UnityEngine.SceneManagement;
 //           calls Advance while its clouds hide the view. A world left by
 //           lift-off (LiftoffCatalog: Frost, Verdant, Ember) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
-//           interlude ends and it opens the gateway (OpenGateway).
+//           interlude ends and it opens the gateway (OpenGateway) -- or,
+//           the last world's (Ember's, LiftoffDef.autoLoop), starts the loop
+//           at once with no portal (StartLoop).
 //
 // Through the portal: the next planet -- or, after the final world, back to
 // the world the run started in, one loop on (RunLoop, LoopRules). The score
@@ -366,7 +368,8 @@ public class WorldManager : MonoBehaviour
     // The way on from the open stage: the next planet's planetfall if it has
     // one, else the portal; either way the pressure starts. The lift-off
     // calls it when its interlude is over: Frost's ends on Verdant's planet
-    // approach, Verdant's on Ember's, Ember's (the last world) on the loop
+    // approach, Verdant's on Ember's. Ember's (the last world) starts the
+    // loop itself (StartLoop) and comes here only if that fails: the loop
     // portal back round (a loop is never a planetfall).
     public void OpenGateway()
     {
@@ -380,6 +383,27 @@ public class WorldManager : MonoBehaviour
         // the world it leads back to.
         Color color = HasNext ? Current.portalColor : Worlds[destination].portalColor;
         Portal.Spawn(color);
+    }
+
+    // The last world's lift-off (LiftoffDef.autoLoop) after its interlude:
+    // the loop's world change straight away, no portal and no pressure --
+    // the same Advance the loop portal calls (loop count, bosses again,
+    // speed, difficulty, painter, music, banner). The interlude already
+    // shows Space's backdrop, so the backdrop doesn't change. False (and
+    // nothing changed): the caller opens the loop portal instead, so the
+    // pilot is never stranded.
+    public bool StartLoop()
+    {
+        if (!portalOpen || HasNext) return false;
+        int was = CurrentIndex, loopWas = RunLoop.Index;
+        try { Advance(true); }
+        catch (System.Exception e)
+        {
+            // Advance sets its state before any presentation can throw: if
+            // the world already changed, the loop has begun regardless.
+            Debug.LogException(e);
+        }
+        return !portalOpen && (CurrentIndex != was || RunLoop.Index != loopWas);
     }
 
     // Called by Portal when the player flies through.
