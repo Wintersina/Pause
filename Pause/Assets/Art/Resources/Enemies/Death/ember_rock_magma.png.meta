@@ -1,0 +1,845 @@
+fileFormatVersion: 2
+guid: 38d18216f2f744abdb4d35798d705bcb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6358886200382177604
+    second: ember_rock_magma_0
+  - first:
+      213: 3735658463227196673
+    second: ember_rock_magma_1
+  - first:
+      213: -3192778167792985895
+    second: ember_rock_magma_2
+  - first:
+      213: -7661681378733138619
+    second: ember_rock_magma_3
+  - first:
+      213: -6506655798783979257
+    second: ember_rock_magma_4
+  - first:
+      213: 2406922127247764767
+    second: ember_rock_magma_5
+  - first:
+      213: 3257342358381248092
+    second: ember_rock_magma_6
+  - first:
+      213: 3460943217204754668
+    second: ember_rock_magma_7
+  - first:
+      213: 7609205927353682083
+    second: ember_rock_magma_8
+  - first:
+      213: 224166725355448992
+    second: ember_rock_magma_9
+  - first:
+      213: -2371906073580775614
+    second: ember_rock_magma_10
+  - first:
+      213: -593708123259970873
+    second: ember_rock_magma_11
+  - first:
+      213: 6943176588037695245
+    second: ember_rock_magma_12
+  - first:
+      213: 6299014747599168188
+    second: ember_rock_magma_13
+  - first:
+      213: -5432631123853330402
+    second: ember_rock_magma_14
+  - first:
+      213: -1035742381411937098
+    second: ember_rock_magma_15
+  - first:
+      213: 1356296836872475393
+    second: ember_rock_magma_16
+  - first:
+      213: 7963772418272622491
+    second: ember_rock_magma_17
+  - first:
+      213: 4854282990209819249
+    second: ember_rock_magma_18
+  - first:
+      213: -2917224842809426707
+    second: ember_rock_magma_19
+  - first:
+      213: 4985670440479639421
+    second: ember_rock_magma_20
+  - first:
+      213: 7539319853570256258
+    second: ember_rock_magma_21
+  - first:
+      213: 7738980267478619774
+    second: ember_rock_magma_22
+  - first:
+      213: -5772108277880903003
+    second: ember_rock_magma_23
+  - first:
+      213: 739334766627447946
+    second: ember_rock_magma_24
+  - first:
+      213: -5155964269292385358
+    second: ember_rock_magma_25
+  - first:
+      213: -7976900311406013963
+    second: ember_rock_magma_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ember_rock_magma_0
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 11
+        width: 134
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbe361b01b2b0c7a0800000000000000
+      internalID: -6358886200382177604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_1
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 18
+        width: 139
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 105b6d67499b7d330800000000000000
+      internalID: 3735658463227196673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_2
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 94
+        width: 70
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d893162c29f0b3d0800000000000000
+      internalID: -3192778167792985895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_3
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 133
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54dd26e116d3ca590800000000000000
+      internalID: -7661681378733138619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_4
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 114
+        width: 34
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 701deb55607b3b5a0800000000000000
+      internalID: -6506655798783979257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_5
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 140
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1d61ac1cea176120800000000000000
+      internalID: 2406922127247764767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_6
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 128
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5eb527ed97643d20800000000000000
+      internalID: 3257342358381248092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_7
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 105
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce87949e48db70030800000000000000
+      internalID: 3460943217204754668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_8
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 113
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a886b2c974599960800000000000000
+      internalID: 7609205927353682083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_9
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 97
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0aa2643f2766c1300800000000000000
+      internalID: 224166725355448992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_10
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 105
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24750a33efb451fd0800000000000000
+      internalID: -2371906073580775614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_11
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 82
+        width: 20
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ca53d48b99b2c7f0800000000000000
+      internalID: -593708123259970873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_12
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 88
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d07abcef15e1b5060800000000000000
+      internalID: 6943176588037695245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_13
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 85
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb268911a889a6750800000000000000
+      internalID: 6299014747599168188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_14
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 69
+        width: 28
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e18bdf2b6ca6b94b0800000000000000
+      internalID: -5432631123853330402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_15
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 41
+        width: 46
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b4df1daacd40a1f0800000000000000
+      internalID: -1035742381411937098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_16
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 92
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10315c389c882d210800000000000000
+      internalID: 1356296836872475393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_17
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 89
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b97713f02d0058e60800000000000000
+      internalID: 7963772418272622491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_18
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 80
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1726da619a0ed5340800000000000000
+      internalID: 4854282990209819249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_19
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 70
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dec366a267fe387d0800000000000000
+      internalID: -2917224842809426707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_20
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 81
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7744f3b9d8a03540800000000000000
+      internalID: 4985670440479639421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_21
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 67
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28dea18367b01a860800000000000000
+      internalID: 7539319853570256258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_22
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 40
+        width: 36
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7612d6ec81666b60800000000000000
+      internalID: 7738980267478619774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_23
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 61
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5aa21db6a1a55efa0800000000000000
+      internalID: -5772108277880903003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_24
+      rect:
+        serializedVersion: 2
+        x: 459
+        y: 36
+        width: 18
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a84ece69d05a24a00800000000000000
+      internalID: 739334766627447946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_25
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 53
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bb883680d55278b0800000000000000
+      internalID: -5155964269292385358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ember_rock_magma_26
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 49
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f111f12e6b5c4190800000000000000
+      internalID: -7976900311406013963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ember_rock_magma_0: -6358886200382177604
+      ember_rock_magma_1: 3735658463227196673
+      ember_rock_magma_10: -2371906073580775614
+      ember_rock_magma_11: -593708123259970873
+      ember_rock_magma_12: 6943176588037695245
+      ember_rock_magma_13: 6299014747599168188
+      ember_rock_magma_14: -5432631123853330402
+      ember_rock_magma_15: -1035742381411937098
+      ember_rock_magma_16: 1356296836872475393
+      ember_rock_magma_17: 7963772418272622491
+      ember_rock_magma_18: 4854282990209819249
+      ember_rock_magma_19: -2917224842809426707
+      ember_rock_magma_2: -3192778167792985895
+      ember_rock_magma_20: 4985670440479639421
+      ember_rock_magma_21: 7539319853570256258
+      ember_rock_magma_22: 7738980267478619774
+      ember_rock_magma_23: -5772108277880903003
+      ember_rock_magma_24: 739334766627447946
+      ember_rock_magma_25: -5155964269292385358
+      ember_rock_magma_26: -7976900311406013963
+      ember_rock_magma_3: -7661681378733138619
+      ember_rock_magma_4: -6506655798783979257
+      ember_rock_magma_5: 2406922127247764767
+      ember_rock_magma_6: 3257342358381248092
+      ember_rock_magma_7: 3460943217204754668
+      ember_rock_magma_8: 7609205927353682083
+      ember_rock_magma_9: 224166725355448992
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

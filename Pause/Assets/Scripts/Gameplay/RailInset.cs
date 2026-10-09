@@ -32,6 +32,11 @@ public static class RailInset
     // ---- tunables ----
     // Outward shift at full room, world units per side (3.2% of the 7.44 u view).
     public const float MaxShift = .24f;
+    // Widen-the-lane knob: extra outward shift on EVERY portrait screen (the
+    // 16:9s too), world units per side, on top of the room-based MaxShift.
+    // 0.24 = lane half-width 2.70 -> 2.94 on 16:9 (+8.9% wider lane),
+    // 2.94 -> 3.18 on tall phones (+8.2%). Set 0 for the old layout.
+    public const float BaseShift = .24f;
     // Height / width ratios where the tall-phone ramp starts and is full.
     // (just past 16:9 -- the iPhone SE's 750x1334 is 16:9 to 0.05% -- and
     // just short of 19.5:9 -- an iPhone 13's 1170x2532 is 2.164)
@@ -42,6 +47,8 @@ public static class RailInset
     // Tools only (before / after renders): false lays every screen out as
     // before the inset existed.
     public static bool Enabled = true;
+    // Tools only: false drops BaseShift (the before shot of the lane widening).
+    public static bool WidenLane = true;
 
     // World units the rails move out on a w x h screen.
     public static float ShiftFor(float w, float h)
@@ -53,7 +60,7 @@ public static class RailInset
         float room = Mathf.Max(tall, wide);
         // ease in so a ratio just past the threshold barely moves
         room = room * room * (3f - 2f * room);
-        return MaxShift * room;
+        return (WidenLane ? BaseShift : 0f) + MaxShift * room;
     }
 
     public static float ShiftFor(Vector2 screen) { return ShiftFor(screen.x, screen.y); }

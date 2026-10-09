@@ -19,6 +19,10 @@ Shader "Pause/WorldRailRepeat"
         _EdgeShadow ("Shadow into the gaps / lane, alpha", Range(0,1)) = 0
         _EdgeShadowWidth ("Shadow past the silhouette, share of rail width", Range(0,.2)) = .05
         _EdgeLampKeep ("Neon lamps keep their light", Range(0,1)) = .85
+        // Dark OUTER edge: the part of the rail nearest the screen edge fades
+        // toward black (stepped), strongest at the outer silhouette.
+        _OuterDark ("Outer darkening strength", Range(0,1)) = 0
+        _OuterStart ("Outer fade starts, share of rail width from the inner edge", Range(0,1)) = .4
     }
     SubShader
     {
@@ -37,7 +41,7 @@ Shader "Pause/WorldRailRepeat"
             fixed4 _Color;
             float _Overlap, _BlackCutout;
             float _EdgeInnerU, _EdgeOuterU, _EdgeDark, _EdgeWidth, _EdgeSteps;
-            float _EdgeShadow, _EdgeShadowWidth, _EdgeLampKeep;
+            float _EdgeShadow, _EdgeShadowWidth, _EdgeLampKeep, _OuterDark, _OuterStart;
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 vertex : SV_POSITION; float2 uv : TEXCOORD0; };
             v2f vert(appdata v)
@@ -80,6 +84,10 @@ Shader "Pause/WorldRailRepeat"
                 float lamp = smoothstep(.55, .8, peak) * smoothstep(.35, .6, sat);
                 float shade = _EdgeDark * band * (1 - _EdgeLampKeep * lamp);
                 c.rgb *= 1 - shade;
+                // outer-edge falloff (toward the screen edge), stepped like the inner one
+                float ob = saturate((d - _OuterStart) / max(1 - _OuterStart, .0001));
+                ob = ceil(ob * _EdgeSteps - .0001) / _EdgeSteps;
+                c.rgb *= 1 - _OuterDark * ob * (1 - _EdgeLampKeep * lamp);
                 // The gaps between the edge's cables, and a thin strip past
                 // the silhouette, fill with a stepped near-black shadow: the
                 // dark transition from the wall into the starfield.
