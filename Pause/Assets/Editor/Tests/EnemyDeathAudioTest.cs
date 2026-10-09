@@ -3,9 +3,10 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Authored enemy death cues (EnemyDeathAudio + EnemyDeathAudioImporter):
-// every Space / Verdant / Ember roster enemy and elite resolves three
-// variants, the living-occupant keys resolve screams (mines, chasers, bigs,
-// rocks and a few elites none), Frost keeps its procedural clip, variants never repeat back to back, the scream chance and
+// every roster enemy and elite of ALL worlds (Space, Frost, Verdant, Ember)
+// resolves three variants, the living-occupant keys resolve screams (mines,
+// chasers, bigs, rocks and a few elites none), there is no synthesized
+// fallback (an unknown key is silent), variants never repeat back to back, the scream chance and
 // delay, the polyphony cap / per-key interval under a death burst, zero
 // per-play allocation, the import settings, and an elite's death playing
 // its authored cue.
@@ -47,9 +48,17 @@ public static class EnemyDeathAudioTest
         "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_cauterizer", "ember_elite_coalrunner",
         "ember_elite_kilnback", "ember_elite_sunstoke",
     };
+    public static readonly string[] FrostKeys =
+    {
+        "frost_fighter_1", "frost_fighter_2", "frost_fighter_3", "frost_fighter_4", "frost_chaser", "frost_alien",
+        "frost_big", "frost_mine", "frost_rock_shard", "frost_rock_chunk", "frost_rock_rime",
+        "frost_elite_cryo_siren", "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_rimebreaker",
+        "frost_elite_whiteout_sentinel",
+    };
     // Authored keys that must have screams; every other authored key must not.
     public static readonly string[] ScreamingNew =
     {
+        "frost_alien",
         "verdant_fighter_1", "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4", "verdant_alien", "verdant_elite_resin_warden",
         "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_alien",
         "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_coalrunner", "ember_elite_sunstoke",
@@ -62,7 +71,7 @@ public static class EnemyDeathAudioTest
             if (allKeys == null)
             {
                 var l = new System.Collections.Generic.List<string>(SpaceKeys);
-                l.AddRange(VerdantKeys); l.AddRange(EmberKeys);
+                l.AddRange(VerdantKeys); l.AddRange(EmberKeys); l.AddRange(FrostKeys);
                 allKeys = l.ToArray();
             }
             return allKeys;
@@ -126,31 +135,37 @@ public static class EnemyDeathAudioTest
                 Check("roster key " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) >= 3);
     }
 
+    // Every key the game can pass is authored: all roster enemies and all
+    // elite defs, whatever the world. No synthesized fallback remains.
     static void OtherWorlds()
     {
-        int checkedKeys = 0;
-        bool none = true, procedural = true;
+        int enemies = 0, elites = 0;
+        var missing = new System.Collections.Generic.List<string>();
+        foreach (var d in EnemyRoster.All) { enemies++; if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key); }
+        foreach (var e in EliteCatalog.All) { elites++; if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key); }
+        Check("every roster enemy (" + enemies + ") and elite (" + elites + ") of every world has authored clips" +
+              (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 16);
+        // the tutorial's enemy is a roster alien; the rail mines are roster mines
+        Check("tutorial enemy key '" + TutorialEnemy.DefKey + "' is authored", EnemyDeathAudio.Variants(TutorialEnemy.DefKey) == 3);
         foreach (var d in EnemyRoster.All)
-        {
-            if (!d.key.StartsWith("frost_")) continue;
-            checkedKeys++;
-            none &= EnemyDeathAudio.Variants(d.key) == 0 && EnemyDeathAudio.ScreamVariants(d.key) == 0;
-            none &= !EnemyDeathAudio.PlayAuthored(d.key, 1f);
-            procedural &= EnemyDeathAudio.ProceduralClip(d.key, d.role) != null;
-        }
-        Check("Frost roster keys (" + checkedKeys + ") have no authored clips", checkedKeys >= 10 && none);
-        Check("... and still synthesize their procedural clip", procedural);
-        Check("frost_fighter_1 explicitly: no authored, procedural non-null",
-              EnemyDeathAudio.Variants("frost_fighter_1") == 0 && EnemyDeathAudio.ProceduralClip("frost_fighter_1", EnemyRole.Fighter) != null);
+            if (d.role == EnemyRole.Mine) Check("rail mine " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) == 3);
+        // no synthesized fallback: an unknown key resolves nothing and plays nothing
+        EnemyDeathAudio.ResetVoices();
+        clock += 2.0;
+        Check("an unknown key is silent (no fallback)", EnemyDeathAudio.Variants("hitbox") == 0 && !EnemyDeathAudio.PlayAuthored("hitbox", 1f) && EnemyDeathAudio.Played == 0);
+        // the key the game passes for each roster body (EnemyIdentity.Set -> def.key) and for each elite (def.key)
         foreach (var e in EliteCatalog.All)
-            if (e.key.StartsWith("frost_") && EnemyDeathAudio.Variants(e.key) != 0)
-                Check("Frost elite " + e.key + " has no authored clip", false);
+        {
+            EnemyDeathAudio.ResetVoices();
+            clock += 2.0;
+            Check("elite " + e.key + " PlayElite plays an authored clip", EnemyDeathAudio.PlayElite(e.key) && EnemyDeathAudio.LastKey == e.key);
+        }
     }
 
     static void NewWorlds()
     {
         var all = new System.Collections.Generic.List<string>(VerdantKeys);
-        all.AddRange(EmberKeys);
+        all.AddRange(EmberKeys); all.AddRange(FrostKeys);
         foreach (var key in all)
         {
             bool clips = EnemyDeathAudio.Variants(key) == 3;
@@ -164,15 +179,15 @@ public static class EnemyDeathAudioTest
         }
         int rosterChecked = 0;
         foreach (var d in EnemyRoster.All)
-            if (d.key.StartsWith("verdant_") || d.key.StartsWith("ember_"))
+            if (d.key.StartsWith("verdant_") || d.key.StartsWith("ember_") || d.key.StartsWith("frost_"))
             {
                 rosterChecked++;
                 Check("roster key " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) == 3);
             }
-        Check("all 24 Verdant+Ember roster enemies covered (" + rosterChecked + ")", rosterChecked == 24);
+        Check("all 35 Frost+Verdant+Ember roster enemies covered (" + rosterChecked + ")", rosterChecked == 35);
         int elites = 0;
         foreach (var e in EliteCatalog.All)
-            if (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_"))
+            if (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_") || e.key.StartsWith("frost_"))
             {
                 elites++;
                 EnemyDeathAudio.ResetVoices();
@@ -181,7 +196,7 @@ public static class EnemyDeathAudioTest
                 Check("elite " + e.key + " PlayElite resolves its clip (" + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "none") + ")",
                       ok && EnemyDeathAudio.LastKey == e.key && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name.StartsWith(e.key + "_"));
             }
-        Check("7 Verdant+Ember elites in the catalog (" + elites + ")", elites == 7);
+        Check("12 Frost+Verdant+Ember elites in the catalog (" + elites + ")", elites == 12);
 
         // Clip-level sanity: no sample-clipping, voice caps hold with the new keys.
         bool clipped = false;
@@ -214,7 +229,7 @@ public static class EnemyDeathAudioTest
             maxV = Mathf.Max(maxV, EnemyDeathAudio.ActiveVoices());
             maxS = Mathf.Max(maxS, EnemyDeathAudio.ActiveScreams());
         }
-        Check("Verdant/Ember burst: voices <= " + EnemyDeathAudio.MaxVoices + " (" + maxV + "), screams <= " + EnemyDeathAudio.MaxScreamVoices + " (" + maxS + ")",
+        Check("Frost/Verdant/Ember burst: voices <= " + EnemyDeathAudio.MaxVoices + " (" + maxV + "), screams <= " + EnemyDeathAudio.MaxScreamVoices + " (" + maxS + ")",
               maxV <= EnemyDeathAudio.MaxVoices && maxS <= EnemyDeathAudio.MaxScreamVoices && maxV > 1);
         EnemyDeathAudio.ScreamChance = .65f;
     }
@@ -361,14 +376,14 @@ public static class EnemyDeathAudioTest
         EnemyDeathAudio.AuthoredEnabled = false;
         clock += 2.0;
         bool played = EnemyDeathAudio.PlayAuthored("space_fighter_1", .68f) || EnemyDeathAudio.PlayElite("space_elite_orbit_reaver");
-        Check("AuthoredEnabled off: authored path refuses (procedural fallback)", !played && EnemyDeathAudio.Played == 0);
+        Check("AuthoredEnabled off: authored path refuses (silent: no fallback)", !played && EnemyDeathAudio.Played == 0);
         EnemyDeathAudio.AuthoredEnabled = true;
     }
 
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length >= 210;
+        bool ok = guids.Length >= 255;
         string bad = "";
         foreach (var g in guids)
         {

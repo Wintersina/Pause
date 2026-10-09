@@ -11,28 +11,20 @@ using UnityEngine;
 // a death combo cannot stack into a wall of sound. A key that also has
 // <key>_scream_0, ... sometimes (ScreamChance) layers a quiet radio cry /
 // creature screech a few tens of milliseconds after the death cue.
-// Space, Verdant and Ember have authored clips; Frost needs nothing but
-// <frost key>_N.wav files dropped into the same folder.
+// Every roster enemy and elite of all four worlds (Space, Frost, Verdant,
+// Ember) has authored clips. There is no synthesized fallback any more: a key
+// with no clips is silent (in the editor a roster / elite key without clips
+// logs one warning, and EnemyDeathAudioTest fails on it).
 //
-// PROCEDURAL FALLBACK: a key with no authored clip (Frost today) -- or every key when AuthoredEnabled is off -- deterministically
-// synthesizes its own clip exactly as before: hostile craft whine into a
-// metal failure, rocks crack, mines alarm-pop.
-//
-// Timing: like the procedural cue (PlayOneShot), authored cues ignore
+// Timing: like any PlayOneShot, authored cues ignore
 // Time.timeScale -- a kill on a frozen (paused) frame is heard at once --
 // and the scream's delay is AudioSource.PlayDelayed (audio clock), so it
 // follows the very same rule. Voice bookkeeping uses unscaled time.
 public static class EnemyDeathAudio
 {
-    const int Rate = 22050;
-    const int MaxCachedClips = 128;
-    static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
-    static AudioSource source;
-
     // ---- tunables -----------------------------------------------------------
 
-    // Master switch for the authored WAVs. Off: every key uses the
-    // procedural clip, and elites play no extra death cue (as before).
+    // Master switch for the authored WAVs. Off: enemy deaths are silent.
     public static bool AuthoredEnabled = true;
     // Resources folder the authored clips live in (<key>_<n>, <key>_scream_<n>).
     public const string ResourceFolder = "Audio/EnemyDeath/";
@@ -40,8 +32,7 @@ public static class EnemyDeathAudio
     public const int MaxVariants = 8;
     // Random pitch jitter of an authored cue / scream: 1 +- this.
     public static float PitchJitter = .03f;
-    // Overall gain of an authored cue (the procedural source ran at .8 x
-    // Volume(role); authored cues keep that scale).
+    // Overall gain of an authored cue (applied on top of Volume(role)).
     public static float AuthoredGain = .8f;
     // Base volume of an elite's death cue (elites have no EnemyRole).
     public static float EliteVolume = .8f;
@@ -121,21 +112,29 @@ public static class EnemyDeathAudio
     public static void PlayKey(string key, EnemyRole role, bool forceScream)
     {
         if (!(Application.isPlaying || Simulate) || string.IsNullOrEmpty(key)) return;
-        if (PlayAuthored(key, Volume(role), forceScream)) return;
-        if (!Application.isPlaying) return;
-        var clip = Clip(key, role);
-        var src = Source();
-        if (src == null || clip == null) return;
-        src.pitch = 1f;
-        src.PlayOneShot(clip, Volume(role));
+        if (!PlayAuthored(key, Volume(role), forceScream)) WarnMissing(key);
     }
 
-    // An elite going down (EliteDeath): its authored cue when it has one;
-    // otherwise nothing extra -- its generic explosion covers it, as before.
+    // An elite going down (EliteDeath): its authored cue (its generic
+    // explosion plays regardless).
     public static bool PlayElite(string eliteKey)
     {
         if (!(Application.isPlaying || Simulate)) return false;
-        return PlayAuthored(eliteKey, EliteVolume);
+        bool ok = PlayAuthored(eliteKey, EliteVolume);
+        if (!ok) WarnMissing(eliteKey);
+        return ok;
+    }
+
+    // Editor safety net: a roster / elite key that resolves no clip is a
+    // content bug (a new enemy added without a sound pass). Warn once per key.
+    static readonly HashSet<string> warned = new HashSet<string>();
+    static void WarnMissing(string key)
+    {
+#if UNITY_EDITOR
+        if (!AuthoredEnabled || Variants(key) > 0) return;
+        if (EnemyRoster.Find(key) == null && EliteCatalog.Find(key) == null) return;   // hitboxes etc. are silent by design
+        if (warned.Add(key)) Debug.LogWarning("[EnemyDeathAudio] no authored death clips for '" + key + "' (Resources/" + ResourceFolder + key + "_0)");
+#endif
     }
 
     // The authored cue (+ maybe a scream) for a key at a base volume; false
@@ -197,8 +196,6 @@ public static class EnemyDeathAudio
     public static int ScreamVariants(string key) { return string.IsNullOrEmpty(key) ? 0 : Clips(key).screams.Length; }
     public static AudioClip AuthoredClip(string key, int n) { var k = Clips(key); return n >= 0 && n < k.deaths.Length ? k.deaths[n] : null; }
     public static AudioClip ScreamClip(string key, int n) { var k = Clips(key); return n >= 0 && n < k.screams.Length ? k.screams[n] : null; }
-    // The fallback clip a key would synthesize (tests).
-    public static AudioClip ProceduralClip(string key, EnemyRole role) { return Clip(key, role); }
 
     // Voices still sounding at the bookkeeping clock (tests / dev).
     public static int ActiveVoices() { return Active(voices, Now()); }
@@ -217,7 +214,7 @@ public static class EnemyDeathAudio
         LastClip = LastScream = null; LastKey = null;
     }
 
-    public static void ClearCache() { ResetVoices(); authored.Clear(); }
+    public static void ClearCache() { ResetVoices(); authored.Clear(); warned.Clear(); }
 
     static KeyClips Clips(string key)
     {
@@ -333,102 +330,5 @@ public static class EnemyDeathAudio
     public static float Volume(EnemyRole role)
     {
         return role == EnemyRole.Big ? .9f : role == EnemyRole.Mine ? .82f : .68f;
-    }
-
-    static AudioSource Source()
-    {
-        if (source != null) return source;
-        var host = new GameObject("EnemyDeathAudio");
-        Object.DontDestroyOnLoad(host);
-        source = host.AddComponent<AudioSource>();
-        source.playOnAwake = false;
-        source.spatialBlend = 0f;
-        source.volume = .8f;
-        return source;
-    }
-
-    static AudioClip Clip(string key, EnemyRole role)
-    {
-        AudioClip found;
-        if (clips.TryGetValue(key, out found)) return found;
-        // There are presently far fewer than this; the guard keeps an
-        // experimental content build from retaining unbounded generated clips.
-        if (clips.Count >= MaxCachedClips) clips.Clear();
-        uint seed = Hash(key);
-        int count = Mathf.RoundToInt(Rate * Duration(role, seed));
-        var data = new float[count];
-        for (int i = 0; i < count; i++)
-        {
-            float t = (float)i / Rate;
-            float x = role == EnemyRole.Rock ? Rock(t, seed) :
-                      role == EnemyRole.Mine ? Mine(t, seed) : Ship(t, seed, role);
-            // Short fade avoids a digital click without softening the attack.
-            float fade = Mathf.Min(1f, i / 90f, (count - i) / 180f);
-            data[i] = Mathf.Clamp(x * fade, -.92f, .92f);
-        }
-        found = AudioClip.Create("death_" + key, count, 1, Rate, false);
-        found.SetData(data, 0);
-        clips[key] = found;
-        return found;
-    }
-
-    static float Duration(EnemyRole role, uint seed)
-    {
-        float variance = ((seed >> 8) & 31) / 200f;
-        return role == EnemyRole.Big ? .52f + variance :
-               role == EnemyRole.Rock ? .32f + variance :
-               role == EnemyRole.Mine ? .38f + variance : .28f + variance;
-    }
-
-    // A compact dying servo/scream.  Each ship key changes its base note,
-    // wobble and collapse rate; heavies retain a slower, lower pressure drop.
-    static float Ship(float t, uint seed, EnemyRole role)
-    {
-        float length = Duration(role, seed);
-        float p = Mathf.Clamp01(t / length);
-        float baseHz = 135f + (seed & 255) * 2.1f;
-        float fall = role == EnemyRole.Big ? 1f - p * .56f : 1.35f - p * .98f;
-        float wobble = Mathf.Sin(t * (23f + ((seed >> 16) & 31)) + (seed & 7)) * (18f + ((seed >> 5) & 15));
-        float tone = Mathf.Sin(6.2831853f * (baseHz * fall + wobble) * t);
-        float grit = Noise(t, seed) * (.16f + .18f * p);
-        float crack = p > .64f ? Noise(t * 4f, seed ^ 0x91u) * .34f : 0f;
-        return (tone * .56f + grit + crack) * (1f - p * .74f);
-    }
-
-    // Mineral hulls: a dry, granular split. World-key bits naturally colour
-    // every individual rock differently (ice brightens, magma darkens, etc.).
-    static float Rock(float t, uint seed)
-    {
-        float length = Duration(EnemyRole.Rock, seed);
-        float p = Mathf.Clamp01(t / length);
-        float grit = Noise(t * (1.2f + (seed & 3)), seed);
-        float split = Mathf.Sin(6.2831853f * (410f + (seed & 255) * 1.7f) * t) * Mathf.Exp(-p * 6f);
-        float chunks = Noise(t * 7f, seed ^ 0x6d2bu) * Mathf.Max(0f, p - .12f) * .42f;
-        return (grit * (.62f - p * .38f) + split * .36f + chunks) * (1f - p);
-    }
-
-    static float Mine(float t, uint seed)
-    {
-        float length = Duration(EnemyRole.Mine, seed);
-        float p = Mathf.Clamp01(t / length);
-        float chirp = Mathf.Sin(6.2831853f * (640f + p * 510f + (seed & 63)) * t) * Mathf.Exp(-p * 2.4f);
-        float blast = Noise(t, seed ^ 0xbadu) * Mathf.Clamp01((p - .28f) * 5f) * (1f - p);
-        return chirp * .4f + blast * .7f;
-    }
-
-    // Deterministic sample-and-hold noise: independent of Random state and
-    // consequently identical for a target every time it is encountered.
-    static float Noise(float t, uint seed)
-    {
-        uint n = (uint)(t * Rate / 13f) + seed;
-        n ^= n << 13; n ^= n >> 17; n ^= n << 5;
-        return ((n & 65535u) / 32767.5f) - 1f;
-    }
-
-    static uint Hash(string text)
-    {
-        uint h = 2166136261u;
-        for (int i = 0; i < text.Length; i++) { h ^= text[i]; h *= 16777619u; }
-        return h;
     }
 }
