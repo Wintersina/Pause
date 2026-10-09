@@ -19,7 +19,7 @@ RATE = 44100
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT.parent / "Resources" / "Audio" / "EnemyDeath"
 GAP = np.zeros(round(1.2 * RATE), dtype=np.float64)
-PEAK = 10 ** (-3 / 20)
+PEAK_LIMIT = 10 ** (-2 / 20)
 
 # key, character, material, nominal seconds, spectral character, layers/structure.
 # lo/hi are the main noise band's -3 dB region; the global 6 kHz shelf is below.
@@ -43,7 +43,7 @@ SOUNDS = [
 BIG = {"big", "eventide", "reaver", "rift", "hauler"}
 LAYER_NOTES = {
     "needle": "Small low pressure pop; short dry mid-band snap; softened airy noise fizz; two or three minute fragments.",
-    "steel": "Low punch; dense gunmetal noise crunch; three brief inharmonic plate modes; sparse shrapnel rattle.",
+    "steel": "Low punch; dense gunmetal noise crunch; brief damped broad plate modes; sparse shrapnel rattle.",
     "twin": "Two separately textured low crunches about 60 ms apart; deeper noise body; short torn plate resonance; metal fragments.",
     "shield": "Low electrical noise whump; delayed low thump and muffled hull burst; progressively darker noise sigh; minor metal scatter.",
     "servo": "Eight overlapping descending noise bands with slow modulation; late mechanical clunk; a few low-level sparks.",
@@ -54,8 +54,8 @@ LAYER_NOTES = {
     "cluster": "Three staggered rock fractures; many small stone grains; a longer dusty tail.",
     "coal": "Dense low coal thud; dark crumbly crackle; small close-spaced mineral bits; subdued dust.",
     "eventide": "Shield-pressure failure in dark noise; delayed heavy low hull detonation; brief torn plate mode; settling metal.",
-    "reaver": "Fast low punch; sharp filtered metal tear; four overlapping descending whoosh-noise pieces; a short plate ring and fragments.",
-    "rift": "Five ascending filtered-noise charge bands; low discharge and broad crack; short ion crackles; dim low fade.",
+    "reaver": "Fast low punch; rasping, broadband metal tear; four overlapping descending whoosh-noise pieces and fragments.",
+    "rift": "Short broadband electrical thwack; low discharge; irregular noise crackle and dim low fade.",
     "hauler": "Five inward swelling dark-noise layers; delayed heavy boom; modulated low pressure drone; sparse debris and dying hum.",
 }
 
@@ -119,17 +119,19 @@ def add_thump(x, rng, at, weight=1, deep=False):
 
 
 def add_modal(x, rng, at, amp=.06, base=330):
-    """Three masked inharmonic plate modes, each ending before 80 ms."""
+    """Three damped inharmonic plate modes, masked by the noise body."""
     start = round(at * RATE)
-    n = min(round(.072 * RATE), len(x) - start)
+    n = min(round(.058 * RATE), len(x) - start)
     if n <= 0:
         return
     t = np.arange(n) / RATE
     freqs = base * np.array([1, 1.48, 2.31]) * rng.uniform(.91, 1.09, 3)
     modes = sum(np.sin(2 * np.pi * f * t + rng.uniform(-np.pi, np.pi))
                 * np.exp(-t / d) / (i + 1) for i, (f, d) in
-                enumerate(zip(freqs, [.022, .016, .010])))
-    x[start:start+n] += amp * modes * envelope(n, .003, .060)
+                enumerate(zip(freqs, [.012, .010, .008])))
+    # Frequency jitter lowers the apparent Q without changing the metal identity.
+    modes *= .75 + .25 * shaped_noise(rng, n, 80, 1400)
+    x[start:start+n] += amp * modes * envelope(n, .003, .028)
 
 
 def add_grains(x, rng, start, end, count, material="rock", amp=.08):
@@ -173,7 +175,7 @@ def render(spec, variant):
     elif kind == "steel":
         add_thump(x, rng, impact, .84)
         add_noise(x, rng, impact, .19, low, high, .43, .048)
-        add_modal(x, rng, impact+.012, .065, 350)
+        add_modal(x, rng, impact+.012, .032, 350)
         add_grains(x, rng, .075, .23, 6+variant, "metal", .075)
     elif kind == "twin":
         for at, w in ((impact, .86), (impact+.060+rng.uniform(-.004,.004), .70)):
@@ -249,19 +251,25 @@ def render(spec, variant):
         add_noise(x, rng, .39, .30, 45, 450, .09, .113)
     elif kind == "reaver":
         add_thump(x, rng, impact, .76)
-        add_noise(x, rng, impact, .15, 90, 1350, .42, .050)
+        add_noise(x, rng, impact, .15, 90, 1050, .42, .050)
         for j in range(4):
-            add_noise(x, rng, .065+j*.027, .095, 100, 1250-j*130, .16, .036)
-        add_modal(x, rng, .064, .065, 360)
+            add_noise(x, rng, .065+j*.027, .075, 110+j*35, 1050-j*95, .15, .029)
+        # Irregular, overlapping noise tears replace the old focused plate ring.
+        for j in range(5):
+            add_noise(x, rng, .052+j*.019+rng.uniform(-.004,.004), .041,
+                      190+j*80, 1350+j*80, .065, .016)
         add_noise(x, rng, .16, .19, 100, 1050, .16, .062)
         add_grains(x, rng, .17, .39, 10+variant, "metal", .054)
     elif kind == "rift":
-        # Rising charge is a changing filtered-noise texture, never a chirp.
-        for j in range(5):
-            add_noise(x, rng, .011+j*.027, .074, 100+j*82, 500+j*155,
-                      .066+j*.016, .045, .004)
-        add_thump(x, rng, .147+jitter, .83)
-        add_noise(x, rng, .150+jitter, .13, 100, 1850, .43, .038)
+        # The charge is a short broadband electrical thwack, without a sweep.
+        add_noise(x, rng, .095, .058, 90, 1700, .22, .019, .004)
+        add_noise(x, rng, .129, .034, 350, 2400, .12, .011, .003)
+        for j in range(4):
+            add_noise(x, rng, .025+j*.027, .018, 300, 2200,
+                      .058, .007, .002)
+        # Low pressure discharge is noise too: no pitched component lasts 40 ms.
+        add_noise(x, rng, .147+jitter, .075, 35, 300, .35, .030, .004)
+        add_noise(x, rng, .150+jitter, .13, 100, 1650, .40, .038)
         for j in range(9+variant):
             at = rng.uniform(.18, .48)
             add_noise(x, rng, at, .021, 320, 2200, .057, .008)
@@ -285,12 +293,12 @@ def render(spec, variant):
     fade_out = np.sin(np.minimum(np.arange(n)[::-1] / (RATE * .020), 1) * np.pi/2) ** 2
     x *= fade_in * fade_out
     x = set_crest(x, -17 if kind in BIG else -20)
-    return x
+    return match_loudness(x, -14 if kind in BIG else -15.5)
 
 
 def set_crest(x, rms_db):
-    """Small memoryless dynamic curve sets both requested peak and RMS."""
-    target_ratio = PEAK / 10 ** (rms_db / 20)
+    """Keep the approved envelope's moderate crest without enforcing an output peak."""
+    target_ratio = 10 ** ((rms_db + 4.5) / -20)
     a = np.abs(x)
     def ratio(g):
         v = a ** g
@@ -309,9 +317,35 @@ def set_crest(x, rms_db):
     n = len(y)
     dc_window = (np.sin(np.minimum(np.arange(n)/(RATE*.0045),1)*np.pi/2)**2 *
                  np.sin(np.minimum(np.arange(n)[::-1]/(RATE*.020),1)*np.pi/2)**2)
-    y -= np.mean(y) * dc_window / np.mean(dc_window)
-    y *= PEAK / np.max(np.abs(y))
+    y = fft_filter(y, 35, 0, False) * dc_window
+    y *= 10 ** (-4.5 / 20) / np.max(np.abs(y))
     return y
+
+
+def a_weighted(x):
+    """Apply the IEC A-weighting magnitude curve in the frequency domain."""
+    f = np.fft.rfftfreq(len(x), 1 / RATE)
+    f2 = f * f
+    ra = (12194**2 * f2*f2 /
+          ((f2+20.6**2) * np.sqrt((f2+107.7**2)*(f2+737.9**2)) *
+           (f2+12194**2) + 1e-30))
+    a = ra * 10 ** (2 / 20)
+    return np.fft.irfft(np.fft.rfft(x) * a, n=len(x))
+
+
+def short_a_level(x):
+    y = a_weighted(x)
+    size, hop = round(.050*RATE), round(.025*RATE)
+    frames = np.lib.stride_tricks.sliding_window_view(y, size)[::hop]
+    return 20*np.log10(np.max(np.sqrt(np.mean(frames*frames, axis=1)))+1e-30)
+
+
+def match_loudness(x, target):
+    """Match the loudest A-weighted 50 ms, retaining a little peak headroom."""
+    x = x * 10 ** ((target-short_a_level(x))/20)
+    if np.max(np.abs(x)) > PEAK_LIMIT:
+        raise ValueError('Perceptual match would exceed -2 dBFS; reshape the source layer')
+    return x
 
 
 def write_wav(path, x):
@@ -452,84 +486,198 @@ def make_sheet(rows):
     png_write(ROOT/'sheet_space.png',img)
 
 
+def narrowband_stats(x):
+    """40 ms / 5 ms STFT: peak over +/-250 Hz median, excluding +/-50 Hz."""
+    size, hop = 1764, 220
+    frames = np.lib.stride_tricks.sliding_window_view(x, size)[::hop]
+    power = np.abs(np.fft.rfft(frames*np.hanning(size), axis=1))**2
+    db = 10*np.log10(power+1e-25)
+    f = np.fft.rfftfreq(size, 1/RATE)
+    prominence = np.zeros(len(frames))
+    for j in np.flatnonzero((f >= 800) & (f <= 3500)):
+        near = (f >= f[j]-250) & (f <= f[j]+250) & ((f < f[j]-50) | (f > f[j]+50))
+        prominence = np.maximum(prominence, db[:,j]-np.median(db[:,near],axis=1))
+    active = power.sum(axis=1) > power.sum(axis=1).max()*1e-4
+    runs = np.diff(np.r_[0, (active & (prominence > 14)).astype(int), 0])
+    starts, ends = np.flatnonzero(runs == 1), np.flatnonzero(runs == -1)
+    return float(np.max(prominence[active])), max(ends-starts, default=0)*hop/RATE*1000
+
+
+def persistent_partial_prominence(x):
+    """Highest 1-3 kHz line in an averaged spectrum, for the Reaver tear."""
+    size, hop = 4096, 512
+    frames = np.lib.stride_tricks.sliding_window_view(x,size)[::hop]
+    power = np.abs(np.fft.rfft(frames*np.hanning(size),axis=1))**2
+    db = 10*np.log10(np.mean(power,axis=0)+1e-25)
+    f = np.fft.rfftfreq(size,1/RATE)
+    result = 0.0
+    for j in np.flatnonzero((f>=1000)&(f<=3000)):
+        near = (f>=f[j]-250)&(f<=f[j]+250)&((f<f[j]-35)|(f>f[j]+35))
+        result = max(result,db[j]-np.median(db[near]))
+    return result
+
+
+def make_sheet_v2(pairs):
+    """Side-by-side spectrograms for all 45 before and after cue files."""
+    width, row_height = 1320, 120
+    img = np.full((72+len(pairs)*row_height,width,3), (16,23,29), dtype=np.uint8)
+    label(img, 18, 16, 'SPACE DEATH / BEFORE AND AFTER / ALL 45', (236,228,195), 3)
+    label(img, 225, 48, 'BEFORE', scale=2)
+    label(img, 750, 48, 'AFTER', scale=2)
+    for row,(name,before,after) in enumerate(pairs):
+        y0 = 72+row*row_height
+        img[y0:y0+1] = (51,67,77)
+        label(img, 18, y0+14, name, (235,226,196), 2)
+        reference = max(np.max(np.abs(before)),np.max(np.abs(after)))
+        for x,x0 in ((before,225),(after,750)):
+            nfft, width_px, height_px = 1024, 505, 86
+            hop = max(1,(len(x)-nfft)//width_px)
+            frames = np.lib.stride_tricks.sliding_window_view(x,nfft)[::hop][:width_px]
+            mag = np.abs(np.fft.rfft(frames*np.hanning(nfft),axis=1))
+            db = 20*np.log10(mag/(reference*nfft/4+1e-12)+1e-12)
+            bins = np.clip(np.round(np.linspace(0,4000,height_px)*nfft/RATE).astype(int),0,mag.shape[1]-1)
+            intensity = np.clip((db[:,bins]+62)/62,0,1).T[::-1]
+            color = np.empty((height_px,len(frames),3),dtype=np.uint8)
+            color[:,:,0] = (25+210*intensity).astype('u1')
+            color[:,:,1] = (32+160*intensity**.7).astype('u1')
+            color[:,:,2] = (40+80*intensity**.5).astype('u1')
+            img[y0+31:y0+31+height_px,x0:x0+len(frames)] = color
+    png_write(ROOT/'sheet_space_v2.png',img)
+
+
 def main():
+    backup = ROOT/'original_v1'
+    paths = [backup/f'{spec[0]}_{v}.wav' for spec in SOUNDS for v in range(3)]
+    if not all(p.is_file() for p in paths):
+        raise FileNotFoundError('All 45 original_v1 WAVs are required before rendering')
     OUT.mkdir(parents=True,exist_ok=True)
-    rows = []
-    all_cues = []
-    first_cues = []
-    failures = []
-    print('key variant dur_s peak_db rms_db centroid_hz HF_gt4k_pct attack_ms tonal_ms clips max_pair_xcorr')
+    report = ['# Space death cue corrective pass', '',
+              'Delivered PCM: 44.1 kHz, mono, 16-bit. A level is the loudest 50 ms RMS '
+              'with 25 ms hop after frequency-domain IEC A-weighting. Peak and A level are dBFS. '
+              'Centroid is Hz; HF is the energy share above 4 kHz. Tonal is the longest run '
+              'of 20 ms Hann frames (5 ms hop) with one bin above 45% of frame energy. '
+              'Narrowband prominence uses 40 ms Hann frames (5 ms hop), the strongest '
+              '800-3500 Hz bin versus the median of its +/-250 Hz neighbourhood excluding '
+              '+/-50 Hz; only active frames above -40 dB of maximum energy count. '
+              'The prominence-run column is the longest run above 14 dB.', '',
+              '| File | A before | A after | Peak before | Peak after | Centroid before | Centroid after | HF before % | HF after % | Tonal before ms | Tonal after ms | Max prominence before dB | Max prominence after dB | >14 dB run after ms |',
+              '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
+    print(report[-2]); print(report[-1])
+    all_cues, first_cues, changed_pairs, failures, groups = [], [], [], [], {False:[],True:[]}
+    reaver_partials, variant_corrs = [], []
     for spec in SOUNDS:
-        key,name,kind,nominal,low,high,description=spec
+        key,name,kind,nominal,*_ = spec
         variants = []
-        measures = []
         for v in range(3):
             path = OUT/f'{key}_{v}.wav'
+            before = read_wav(backup/path.name)
             write_wav(path,render(spec,v))
-            x = read_wav(path)  # verify delivered PCM, not intermediate floats
-            m = stats(x)
-            variants.append(x); measures.append(m); all_cues.append(x)
+            after = read_wav(path)
+            old, new = stats(before), stats(after)
+            a0, a1 = short_a_level(before), short_a_level(after)
+            p0, _ = narrowband_stats(before)
+            p1, prominent_run = narrowband_stats(after)
+            groups[kind in BIG].append(a1)
+            target = -14 if kind in BIG else -15.5
+            limits = [abs(new['duration']/old['duration']-1)<=.10,
+                      .75<=new['centroid']/old['centroid']<=1.25,
+                      abs(a1-target)<=.7, new['peak']<=-2,
+                      new['hf']<.12, new['tonal']<=60,
+                      prominent_run<=30, new['clipping']==0,
+                      2<=new['attack']<=8]
+            if not all(limits): failures.append((path.name,limits))
+            if kind == 'reaver':
+                partial = persistent_partial_prominence(after)
+                reaver_partials.append(partial)
+                if partial > 12: failures.append((path.name,'persistent partial',partial))
+            line = (f'| {path.name} | {a0:.2f} | {a1:.2f} | {old["peak"]:.2f} | '
+                    f'{new["peak"]:.2f} | {old["centroid"]:.0f} | {new["centroid"]:.0f} | '
+                    f'{old["hf"]*100:.2f} | {new["hf"]*100:.2f} | '
+                    f'{old["tonal"]:.1f} | {new["tonal"]:.1f} | {p0:.1f} | {p1:.1f} | '
+                    f'{prominent_run:.1f} |')
+            report.append(line); print(line)
+            all_cues.append(after); variants.append(after)
+            changed_pairs.append((f'{name} {v}',before,after))
             if v == 0:
-                first_cues.append(x); rows.append((spec,x,m))
-        cors = [max_xcorr(variants[a],variants[b]) for a,b in ((0,1),(0,2),(1,2))]
-        maxcor = max(cors)
-        for v,m in enumerate(measures):
-            print(f"{key:34} {v} {m['duration']:.3f} {m['peak']:.2f} {m['rms']:.2f} "
-                  f"{m['centroid']:.0f} {m['hf']*100:.2f} {m['attack']:.2f} {m['tonal']:.1f} "
-                  f"{m['clipping']} {maxcor:.3f}")
-            limits = [abs(m['duration']/nominal-1)<.12, abs(m['peak']+3)<.15,
-                      abs(m['rms']-(-17 if kind in BIG else -20))<.7,
-                      m['centroid']<(900 if kind in BIG else 1800), m['hf']<.12,
-                      2<=m['attack']<=8, m['tonal']<=80,
-                      m['clipping']==0, maxcor<.6]
-            if not all(limits):
-                failures.append((key,v,limits))
-        if max(len(a) for a in variants)/min(len(a) for a in variants)>1.2:
-            failures.append((key,'length spread'))
+                first_cues.append(after)
+        maxcor = max(max_xcorr(variants[a],variants[b]) for a,b in ((0,1),(0,2),(1,2)))
+        variant_corrs.append(maxcor)
+        if maxcor >= .6: failures.append((key,'variant xcorr',maxcor))
+        report.append(f'<!-- {key}: maximum variant cross-correlation {maxcor:.3f} -->')
     write_wav(ROOT/'audition_space.wav',join_with_gaps(first_cues))
     write_wav(ROOT/'audition_space_all.wav',join_with_gaps(all_cues))
-    make_sheet(rows)
-    notes = ['# Space World enemy death sounds','',
-             '44.1 kHz, mono, 16-bit PCM. Three deterministic round-robin variants per key. '
-             'The measured figures below are read back from the final integer PCM WAVs. '
-             'Peak and RMS are dBFS; centroid is Hz; HF is energy above 4 kHz. '
-             'Attack is the 10%-90% rise of the controlled primary impact envelope; '
-             'pre-impact swells on shield, ion and gravity cues are excluded. '
-             'Tonal is the longest run of 20 ms Hann frames (5 ms hop) whose strongest FFT bin '
-             'exceeds 45% of active-frame energy. Cross-correlation is the maximum normalized '
-             'full-lag value for any variant pair.\n',
-             'All cues have a masked short low thump, filtered mid-band material body, '
-             'specific debris/detail and a low-level 105-180 ms FFT-convolved dark room tail. '
-             'All final samples receive a 20 ms fade and DC removal.\n']
-    for spec,_,_ in rows:
-        key,name,kind,nominal,low,high,description=spec
-        notes += [f'## {name} — `{key}`','',f'Evokes {description}. '
-                  f'Main body noise band: {low}-{high} Hz. '
-                  f'Nominal duration {nominal:.2f} s. '+
-                  ('Heavy/elite RMS target -17 dBFS.' if kind in BIG else 'Standard RMS target -20 dBFS.'),'',
-                  f'Layers: {LAYER_NOTES[kind]}','',
-                  '| Variant | Duration s | Peak dBFS | RMS dBFS | Centroid Hz | HF % | Attack ms | Tonal ms | Clipped |',
-                  '|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
+    make_sheet_v2(changed_pairs)
+    spread = max(groups[False])-min(groups[False])
+    heavy_range = (min(groups[True]),max(groups[True]))
+    report += ['',f'Ordinary 30-file A-level spread: {spread:.2f} dB (limit 2.0).  '
+               f'Big/elite 15-file range: {heavy_range[0]:.2f} to {heavy_range[1]:.2f} dBFS '
+               '(target -14.0 +/-0.7). The brief per-frame prominence spikes shown '
+               'above never persist longer than 30 ms. '
+               f'Orbit Reaver averaged-spectrum 1-3 kHz partial prominence: '
+               f'{max(reaver_partials):.1f} dB (limit 12). '
+               f'Maximum variant cross-correlation: {max(variant_corrs):.3f} (limit 0.6).', '']
+    if spread > 2: failures.append(('ordinary spread',spread))
+    # Read existing scream PCM. The gain is chosen from its A-weighted 50 ms
+    # level so each vocal sits exactly 12 dB below its matching death cue.
+    import build_space_screams as screams
+    report += ['## Scream and death mixes', '',
+               'Existing scream WAVs are read only. The scream starts at its authored delay. '
+               'Gain sets its A-weighted loudest 50 ms to 12 dB below the matching death WAV. '
+               'Variant-zero mixes are rendered in `audition_space_scream_mixes.wav` with 1.2 s gaps.', '',
+               '| Enemy | Variant | Scream gain | Death A dBFS | Mix A dBFS | Added dB | Mix peak dBFS |',
+               '|---|---:|---:|---:|---:|---:|---:|']
+    mixes = []
+    for spec in screams.SOUNDS:
+        key, name, _, _, _, delay, _ = spec
         for v in range(3):
-            m=stats(read_wav(OUT/f'{key}_{v}.wav'))
-            notes.append(f"| {v} | {m['duration']:.3f} | {m['peak']:.2f} | {m['rms']:.2f} | "
-                         f"{m['centroid']:.0f} | {m['hf']*100:.2f} | {m['attack']:.2f} | "
-                         f"{m['tonal']:.1f} | {m['clipping']} |")
-        cors=[max_xcorr(read_wav(OUT/f'{key}_{a}.wav'),read_wav(OUT/f'{key}_{b}.wav'))
-              for a,b in ((0,1),(0,2),(1,2))]
-        notes += ['',f'Maximum variant cross-correlation: {max(cors):.3f}.','']
-    notes += ['## Audition and integration','',
-              '`audition_space.wav` plays variant 0 in roster order. '
-              '`audition_space_all.wav` plays all three variants per key in roster order. '
-              'Adjacent cues are separated by exactly 1.2 s of silence. '
-              'These files and the sheet remain in `EnemyDeathSrc~`, which Unity ignores.','',
-              'The current `EnemyDeathAudio.cs` still synthesizes cues at runtime. '
-              'Per the asset-only scope, it was not edited; the game will need a later '
-              'integration change to load these Resources WAVs.','']
+            death = read_wav(OUT/f'{key}_{v}.wav')
+            scream = read_wav(OUT/f'{key}_scream_{v}.wav')
+            level = short_a_level(death)
+            gain = 10**((level-12-short_a_level(scream))/20)
+            offset = round(delay*RATE)
+            mix = np.zeros(max(len(death),offset+len(scream)))
+            mix[:len(death)] = death
+            mix[offset:offset+len(scream)] += gain*scream
+            mixed_level = short_a_level(mix)
+            mix_peak = 20*np.log10(np.max(np.abs(mix))+1e-30)
+            if mixed_level-level > 1 or mix_peak >= 0:
+                failures.append((key,v,'mix',mixed_level-level,mix_peak))
+            line = (f'| {name} | {v} | {gain:.3f} | {level:.2f} | '
+                    f'{mixed_level:.2f} | {mixed_level-level:+.2f} | {mix_peak:.2f} |')
+            report.append(line); print(line)
+            if v == 0: mixes.append(mix)
+    write_wav(ROOT/'audition_space_scream_mixes.wav',join_with_gaps(mixes))
+    report += ['', 'The death cues retain their 20 ms end fades, seeded variants, and authored timing. '
+               'The original 45 WAVs are in `original_v1/`. A listening pass remains necessary '
+               'because these checks cannot judge the actual perceived character.', '']
+    (ROOT/'verification_space_v2.md').write_text('\n'.join(report))
+    notes = ['# Space World enemy death sounds — corrective pass', '',
+             'The 45 approved v1 WAVs are saved in `original_v1/`. The v2 files keep '
+             'their 15 identities, three deterministic variants each, nominal timing, '
+             'soft attacks and 20 ms end fade. Their loudest A-weighted 50 ms windows '
+             'now target -15.5 dBFS, or -14.0 dBFS for Bastion and the four elites. '
+             'Peak normalization and fixed RMS targets have been retired.', '',
+             'The Rift Lancer charge is a broadband electrical thwack with irregular '
+             'noise crackle. Orbit Reaver uses overlapping noisy metal tears in place '
+             'of its focused plate ring. Steel Claw has shorter, lower-level, more '
+             'damped plate modes. Eventide Bastion and Beacon Rock were checked and '
+             'retained their material body; their output levels were corrected.', '',
+             'See `verification_space_v2.md` for the full before/after table and scream '
+             'mix checks. `sheet_space_v2.png` shows before/after spectrograms. '
+             '`audition_space.wav` plays variant zero in roster order; '
+             '`audition_space_all.wav` plays all variants. Both use 1.2 s gaps.', '',
+             'The existing game C# still synthesizes cues at runtime; loading these '
+             'Resources WAVs requires a later integration change.', '']
+    for spec in SOUNDS:
+        key,name,kind,nominal,low,high,description = spec
+        notes += [f'## {name} — `{key}`', '',f'Evokes {description}.', '',
+                  f'Main noise band: {low}-{high} Hz. Nominal duration: {nominal:.2f} s.', '',
+                  f'Layers: {LAYER_NOTES[kind]}', '']
     (ROOT/'sound_notes_space.md').write_text('\n'.join(notes))
-    if failures:
-        raise SystemExit(f'FAILED checks: {failures}')
-    print('PASS: 45 WAVs, all spectral/loudness/attack/tonality/variant checks')
+    if failures: raise SystemExit(f'FAILED checks: {failures}')
+    print(f'PASS: 45 death WAVs; ordinary spread {spread:.2f} dB; '
+          f'big/elite range {heavy_range[0]:.2f}..{heavy_range[1]:.2f} dBFS; '
+          '27 scream mixes within +1 dB')
 
 
 if __name__ == '__main__':
