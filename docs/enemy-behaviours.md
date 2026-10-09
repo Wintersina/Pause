@@ -803,11 +803,23 @@ brain's `Step`, so it freezes with the world) now has three stages:
 3. **Released**: both lasers fired and cooled (`EnemyBrain.RideFinished`): `Ride` unwinds with `FallAccel`
    extra pull and the board carries it away through the Destroyer strip.
 
+   **Aim lock (fix: "once the laser starts going, the mine should stop following the player but still ride the
+   rails").** Until its first laser begins the hold row is the ship's row. From the first windup (the aim tell:
+   the aim line the player reads is fixed then too, its angle drawn once per shot and never ship-dependent) to the
+   end of the last beam, `RailMineMount.AimLocked` freezes the row at `LockedRow`, the ship's row as that tell
+   began (`TargetRow`). The mine keeps riding: `Ride` still counter-scrolls the board every frame and eases onto
+   the frozen row (no stop, no snap), the free-room rule (`Slip`) is unchanged, and the beam is re-laid on the
+   mine's muzzle each frame so it stays attached while the mine moves. The ship sweeping across the lane during
+   the tell and beams changes neither the mine's row nor its angle. The lock clears on release; the mine then
+   falls away as before. Frozen at the windup rather than the beam because the aim line is shown then: a mine
+   that kept following during the tell would slide the line out from under the player. Hit boxes, damage, tell,
+   aim and beam timings are unchanged. Same code path for all four worlds' mines.
+
 A mine that is already below the band when it first reaches the ship's rows (a late spawn) skips the ride.
 The mine is still clamped to its rail and its lane lives while it rides (`RailLaneScroller.Riders`); nothing about
 hostile fire, shields, rams, pause jumps or spawn-in protection changes. Tunables are the consts at the top of
 `RailMineMount`, plus `RailMineLaser.ShotsPerRide` / `ShotGapSeconds` (every world's roster entry uses them).
-`RailMinePacingTest` checks it at low, mid and maximum speed on both rails in all four worlds.
+`RailMinePacingTest` checks it at low, mid and maximum speed on both rails in all four worlds, including the aim lock (a ship swinging across the lane during the beams moves neither row nor angle; the along-rail ride still advances).
 
 ### Rail-mine laser
 

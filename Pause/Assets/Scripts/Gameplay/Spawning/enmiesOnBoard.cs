@@ -1030,6 +1030,17 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
     public bool AttackReady => RideState != RidePhase.Falling || !(lastScroll > 0f);
     public bool Riding => RideState == RidePhase.Holding;
     public float HoldRow(Transform ship) => ship.position.y + HoldAboveShip;
+
+    // AIM LOCK. Until its first laser begins, the mine follows the ship's row.
+    // From the start of that windup (its aim tell: the line the player reads)
+    // to the end of the last laser, the row it holds is FROZEN where the ship
+    // was, and the beam's angle was drawn at that windup and never follows
+    // either. It keeps riding the rail (counter-scrolling the board toward the
+    // frozen row, the free-room rule intact); only the ship-tracking stops.
+    public bool AimLocked { get; private set; }
+    public float LockedRow { get; private set; }
+    // The row it is riding to: the frozen one while a sequence is under way.
+    public float TargetRow(Transform ship) => AimLocked ? LockedRow : HoldRow(ship);
     float BodyY => rail.position.y + railOffsetY;
 
     // One running frame of the ride (the brain's Step: not on a frozen world).
@@ -1057,12 +1068,18 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
                 if (brain == null || ship == null || brain.RideFinished || RideSeconds > MaxHoldSeconds)
                 {
                     RideState = RidePhase.Released;
+                    AimLocked = false;
                     fallV = 0f;
                     break;
                 }
+                if (!AimLocked && (brain.State != EnemyBrain.Phase.Idle || brain.Volleys > 0))
+                {
+                    AimLocked = true;
+                    LockedRow = HoldRow(ship);             // the ship's row as the first tell begins
+                }
                 float cap = RideSpeedCap * dt;
                 float move = Mathf.Min(scroll, cap);       // keep pace with the board ...
-                float err = HoldRow(ship) - (BodyY + Slide + Shove + Ride + move);   // (its slide included: the whole mine stays in the band)
+                float err = TargetRow(ship) - (BodyY + Slide + Shove + Ride + move);   // (its slide included: the whole mine stays in the band)
                 float step = err * (1f - Mathf.Exp(-RideEase * dt));
                 move += Mathf.Clamp(step, -cap, cap);      // ... and settle on the ship's row
                 Ride += Slip(move, scroll);
