@@ -100,6 +100,15 @@ public static class BackdropCatalog
         // The art itself is painted bright (not lifted): what reads over it
         // needs the bold treatment too (HeartOutline's bold outline).
         public bool brightArt;
+        // A world's backdrop counts as BRIGHT (drawn lifted by at least
+        // BrightLift, or painted bright): what must read over it -- the
+        // hearts' outline (HeartOutline), the hostile shots' outline and rim
+        // (ShotOutline, BossArt.ShotRim) -- switches to its bold, dark-keyed
+        // style. The one predicate for all of them, so a world that is lifted
+        // later (Ember) gets every bold treatment at once.
+        public const float BrightLift = 1.2f;
+        public bool Bright => brightArt || brightness != null && brightness() >= BrightLift;
+
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
         // built and every frame. Null: the shared defaults (CloudCover.*), so
         // a world wired later (Ember) opens and clears like Frost / Verdant.
@@ -270,6 +279,12 @@ public static class BackdropCatalog
 
     // Unknown worlds (a planet added without art) fall back to Space rather
     // than an empty sky.
+    // Is the current world's backdrop bright (Spec.Bright)?
+    public static bool CurrentIsBright
+    {
+        get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
+    }
+
     public static Spec For(string displayName)
     {
         foreach (var s in specs) if (s.world == displayName) return s;

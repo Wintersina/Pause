@@ -15,7 +15,17 @@ using UnityEngine;
 // aurora, a flare) -- the job the round wrapper's dark ring did, now
 // following the shot's shape.
 //
-// Built once per (drawing, drawn size) from the drawing's pixels, upsampled
+// BOLD style, for a world whose backdrop is bright (BackdropCatalog.Spec.
+// Bright -- the same predicate as the hearts' bold outline, HeartOutline:
+// Frost's lifted ice and pale cloud ceiling, Verdant's lit jungle): two
+// rings, like the hearts' bold trace -- the light trace (BoldLightTo wide,
+// its tint paled further by the shot: BoldTrace) carries the shot over a
+// mid-dark patch, and a solid dark keyline outside it (to BoldSolidTo, then
+// a crisp anti-aliased edge to BoldReach) carries it over pale
+// cloud. Same hue, same art, same hitbox; the dark worlds keep the hairline
+// look untouched.
+//
+// Built once per (drawing, drawn size, style) from the drawing's pixels, upsampled
 // so the outline is finer than the art's own pixels, and cached: nothing is
 // made per shot or per frame. The procedural shot drawings (EliteFxArt) are
 // readable; anything else is read back once through ShieldContour.
@@ -29,25 +39,53 @@ public static class ShotOutline
     public const float Coverage = .25f;       // alpha a pixel needs to count as the drawing
     public const int Upsample = 4;            // outline texels per art pixel
     public const float PulseScale = 0f;       // it never swells; only its alpha pulses (HostileGlow.PulseAlphaAt)
+    // The bold style (bright backdrops), in world units past the silhouette.
+    // The light trace keeps (a touch more than) its standard width -- over a
+    // mid-dark patch it is what reads -- and the dark band sits outside it.
+    public const float BoldLightTo = .022f;   // the light trace, a touch wider than the standard one
+    public const float BoldSolidTo = .038f;   // the dark keyline, solid from BoldLightTo to here (~1.5 px on a 1080 px phone: no wider, or over
+                                              // the bright worlds' dark patches it is a broad dark smudge -- AtomClarityTest's hard edge)
+    public const float BoldReach = .042f;     // ... then only an anti-aliasing fade to here (a shot stays hard-edged: AtomClarityTest)
+    public static readonly Color32 BoldKey = new Color32(2, 2, 8, 255);   // near black: 3:1 over a mid-dark patch too
 
-    sealed class Entry { public Sprite art; public Sprite rim; }
+    // The bold light ring's tint: the shot's own trace colour paled further
+    // toward white (same hue: a pink shot keeps a pink-white ring), bright
+    // enough to stand 3:1 over a mid-dark patch of jungle or rock where the
+    // dark keyline can't; the keyline takes the pale cloud.
+    public const float BoldPale = .55f;
+    public static Color BoldTrace(Color trace)
+    {
+        var c = Color.Lerp(trace, Color.white, BoldPale);
+        c.a = trace.a;
+        return c;
+    }
+
+    // Bold outlines for the current world? (Tests may force it: Bold.)
+    public static bool? Bold;
+    public static bool UseBold => Bold.HasValue ? Bold.Value : BackdropCatalog.CurrentIsBright;
+
+    sealed class Entry { public Sprite art; public Sprite rim; public bool bold; }
     static readonly Dictionary<long, Entry> cache = new Dictionary<long, Entry>();
 
     // The outline for `art` drawn `drawnSize` world units tall (its height
-    // at the shot's scale). Null when the art can't be read.
-    public static Sprite For(Sprite art, float drawnSize)
+    // at the shot's scale), in the current world's style. Null when the art
+    // can't be read.
+    public static Sprite For(Sprite art, float drawnSize) { return For(art, drawnSize, UseBold); }
+
+    public static Sprite For(Sprite art, float drawnSize, bool bold)
     {
         if (art == null || drawnSize <= 0f) return null;
-        long key = ((long)art.GetInstanceID() << 16) ^ Mathf.RoundToInt(drawnSize * 1000f);
+        long key = (((long)art.GetInstanceID() << 16) ^ Mathf.RoundToInt(drawnSize * 1000f)) * 2 + (bold ? 1 : 0);
         Entry e;
-        if (cache.TryGetValue(key, out e) && e.art == art && e.rim != null && e.rim.texture != null) return e.rim;
-        var rim = Build(art, drawnSize);
-        cache[key] = new Entry { art = art, rim = rim };
+        if (cache.TryGetValue(key, out e) && e.art == art && e.bold == bold && e.rim != null && e.rim.texture != null) return e.rim;
+        var rim = Build(art, drawnSize, bold);
+        cache[key] = new Entry { art = art, rim = rim, bold = bold };
         return rim;
     }
 
     // World units of the outline past the drawing (tests).
     public static float ReachWorld => OutlineReach;
+    public static float ReachFor(bool bold) => bold ? BoldReach : OutlineReach;
 
     static Color32[] Read(Sprite art, out int w, out int h)
     {
@@ -67,7 +105,7 @@ public static class ShotOutline
         return ShieldContour.ReadPixels(art, out w, out h);
     }
 
-    static Sprite Build(Sprite art, float drawnSize)
+    static Sprite Build(Sprite art, float drawnSize, bool bold)
     {
         int w, h;
         var src = Read(art, out w, out h);
@@ -75,7 +113,7 @@ public static class ShotOutline
         int s = Upsample;
         // texels per world unit at this drawn size, and the reach in texels
         float texelsPerUnit = h * s / drawnSize;
-        float reach = Mathf.Max(1.5f, OutlineReach * texelsPerUnit);
+        float reach = Mathf.Max(1.5f, (bold ? BoldReach : OutlineReach) * texelsPerUnit);
         int pad = Mathf.CeilToInt(reach) + 2;
         int W = w * s + 2 * pad, H = h * s + 2 * pad;
         const int Far = 1 << 20;
@@ -117,21 +155,29 @@ public static class ShotOutline
                 dist[i] = v;
             }
         var px = new Color32[W * H];
-        float lightEnd = reach * (1f - DarkShare);
+        float lightEnd = bold ? Mathf.Max(1f, BoldLightTo * texelsPerUnit) : reach * (1f - DarkShare);
+        float solidEnd = bold ? Mathf.Max(lightEnd + 2f, BoldSolidTo * texelsPerUnit) : reach;
         for (int i = 0; i < px.Length; i++)
         {
             float d = dist[i] / 3f;
             if (d > reach) { px[i] = new Color32(255, 255, 255, 0); continue; }
+            if (bold && d > lightEnd)
+            {
+                // the bold keyline: solid, then an anti-aliased edge
+                float a = d <= solidEnd ? 1f : 1f - (d - solidEnd) / Mathf.Max(.01f, reach - solidEnd);
+                px[i] = new Color32(BoldKey.r, BoldKey.g, BoldKey.b, (byte)Mathf.RoundToInt(255f * Mathf.Clamp01(a)));
+                continue;
+            }
             if (d <= lightEnd)
             {
                 // the light trace: full at (and under) the drawing, fading linearly
-                float k = lightEnd > 0f ? 1f - d / lightEnd * .5f : 1f;
+                float k = lightEnd > 0f ? 1f - d / lightEnd * (bold ? .25f : .5f) : 1f;   // (bold: it stays bright to its edge, the dark band takes over)
                 px[i] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * Alpha * k));
             }
             else px[i] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(255f * DarkAlpha));   // the dark hairline
         }
         var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
-        tex.name = art.name + "Outline";
+        tex.name = art.name + (bold ? "OutlineBold" : "Outline");
         tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode = TextureWrapMode.Clamp;
         tex.hideFlags = HideFlags.HideAndDontSave;
