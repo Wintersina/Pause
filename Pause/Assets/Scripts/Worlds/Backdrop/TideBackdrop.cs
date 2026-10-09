@@ -602,28 +602,32 @@ public class TideDirector : PlanetDirector
         var a = Put(ground, landmarkArt, anchor, sa, xa, ga, Chance(.5));
         if (a == null) return 0;
         int n = 1;
-        // the neighbour: toward the middle first, then the other side
-        string nb = Pick(TideTuning.Neighbours);
-        if (nb == anchor) nb = "crane_gantry_00";
-        bool pump = nb == "pumphouse_00";
-        float sb = pump ? Rand(.9f, 1.1f) : Rand(TideTuning.LandmarkMin * .85f, TideTuning.LandmarkMax * .9f);
-        float plateA = sa * .4f, plateB = sb * (pump ? .44f : .4f);
-        for (int attempt = 0; attempt < 2; attempt++)
+        // the neighbour: toward the middle first, then the other side; a neighbour that does not fit
+        // (the deck / shoals under it, the room beside the anchor) is swapped for another, up to three tries
+        for (int pick = 0; pick < 3 && n == 1; pick++)
         {
-            float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
-            float gap = Rand(TideTuning.NeighbourGapMin, TideTuning.NeighbourGapMax);
-            float xb = xa + side * (plateA + gap + plateB);
-            double gb = ga + Rand(-.12f, .12f);
-            if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
-            var rule = TideTuning.Rule(nb, openSea);
-            if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
-            var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
-            if (b == null) break;
-            n++;
-            if (PipeRun(Mathf.Min(xa, xb) + (xa < xb ? plateA : plateB) * .75f,
-                        Mathf.Max(xa, xb) - (xa < xb ? plateB : plateA) * .75f,
-                        (ga + gb) * .5 - sa * .16f)) n++;
-            break;
+            string nb = Pick(TideTuning.Neighbours);
+            if (nb == anchor) nb = "crane_gantry_00";
+            bool pump = nb == "pumphouse_00";
+            float sb = pump ? Rand(.9f, 1.1f) : Rand(TideTuning.LandmarkMin * .85f, TideTuning.LandmarkMax * .9f);
+            float plateA = sa * .4f, plateB = sb * (pump ? .44f : .4f);
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
+                float gap = Rand(TideTuning.NeighbourGapMin, TideTuning.NeighbourGapMax);
+                float xb = xa + side * (plateA + gap + plateB);
+                double gb = ga + Rand(-.12f, .12f);
+                if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
+                var rule = TideTuning.Rule(nb, openSea);
+                if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
+                var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
+                if (b == null) break;
+                n++;
+                if (PipeRun(Mathf.Min(xa, xb) + (xa < xb ? plateA : plateB) * .75f,
+                            Mathf.Max(xa, xb) - (xa < xb ? plateB : plateA) * .75f,
+                            (ga + gb) * .5 - sa * .16f)) n++;
+                break;
+            }
         }
         return n;
     }
