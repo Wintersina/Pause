@@ -98,7 +98,14 @@ public class EliteDirector : MonoBehaviour
     public void Tick(float dt)
     {
         int w = CurrentWorld;
-        if (w != world) { world = w; worldSeconds = 0f; untilNext = Mathf.Max(untilNext, FirstSeconds); }
+        if (w != world)
+        {
+            world = w; worldSeconds = 0f; untilNext = Mathf.Max(untilNext, FirstSeconds);
+            // an elite of another world does not stay on (a dev jump, a way on that left it)
+            var left = EliteShip.Live;
+            for (int i = left.Count - 1; i >= 0; i--)
+                if (w >= 0 && left[i] != null && left[i].Def != null && left[i].Def.WorldIndex != w) BossUtil.Kill(left[i].gameObject);
+        }
         worldSeconds += dt;
 
         // a boss clears the background of parked / rising elites

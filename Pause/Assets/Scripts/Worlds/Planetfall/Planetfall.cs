@@ -443,7 +443,7 @@ public class Planetfall : MonoBehaviour
     }
 
     // Everything on the board goes, as for a boss's arrival: hazards in view
-    // burst, the rest vanish, hostile shots pop.
+    // burst, the rest vanish (the elites among them), hostile shots pop.
     static readonly List<ClearTarget> clearing = new List<ClearTarget>(64);
 
     public static void ClearBoard(Camera cam)
@@ -464,6 +464,11 @@ public class Planetfall : MonoBehaviour
             BossUtil.Kill(go);
         }
         clearing.Clear();
+        // the elites go too (parked, rising or in flight): they are the
+        // board's, and an elite carried over would fly in the next world
+        var elites = EliteShip.Live;
+        for (int i = elites.Count - 1; i >= 0; i--)
+            if (elites[i] != null) BossUtil.Kill(elites[i].gameObject);
         var shots = HostileShots.All;
         for (int i = 0; i < shots.Count; i++)
         {
