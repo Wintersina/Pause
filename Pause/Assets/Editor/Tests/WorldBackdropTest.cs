@@ -426,7 +426,7 @@ public static class WorldBackdropTest
                 else { bytes += assetBytes; astc += assetAstc; }
                 bool tile = WorldBackdropImport.IsTile(asset);
                 // The layer this file is the art of: a tile layer may name its
-                // own texture (Verdant's mid is forest_industrial_center_v1).
+                // own texture (Layer.WithTexture).
                 // A tile-named file no layer uses any more (the old mid.png)
                 // is not drawn and not held to the drawn layers' rules.
                 string name = null;

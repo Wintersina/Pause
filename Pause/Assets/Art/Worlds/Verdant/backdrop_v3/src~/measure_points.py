@@ -33,7 +33,7 @@ How the points are found (no eyeballing):
           axis to the last opaque pixel of the flange.
 
     python3 src~/measure_points.py <atlas dir (Resources/Worlds/Verdant/Backdrop3)> <out json> [--debug DIR]
-(the run B manifest beside src~ gives the nominal pipe ends)
+(the run B manifest, src~/manifest.json, gives the nominal pipe ends)
 """
 import sys, os, json, colorsys
 import numpy as np
@@ -231,7 +231,7 @@ def loop_anchor(c, kind):
 def main():
     base, out = sys.argv[1], sys.argv[2]
     dbg = sys.argv[sys.argv.index('--debug') + 1] if '--debug' in sys.argv else None
-    man = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'manifest.json')))
+    man = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'manifest.json')))
     hints = {p['name']: p for p in man['run_b']['pieces']}
     data = dict(pieces={}, loops={})
     lm = cells(base, 'landmarks'); pp = cells(base, 'pipes'); ff = cells(base, 'fires'); ss = cells(base, 'sites')

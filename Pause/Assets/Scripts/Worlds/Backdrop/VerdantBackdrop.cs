@@ -124,7 +124,9 @@ public static class VerdantTuning
     public static float CeilingMin = 4.2f, CeilingMax = 5.6f, CeilingGap = 1.5f, CeilingLowShare = .55f;
     public static float CeilingThicken = 6f;
     // ... and paled toward the planetfall's lime-white cloud break
-    public static float CeilingLift = 1.8f, CeilingSaturation = .55f;
+    public static float CeilingLift = 2.1f, CeilingSaturation = .6f;
+    // the banks are painted teal-green: tinted toward the deck's lime-white
+    public static Color CeilingTint = new Color(1f, 1f, .78f, 1f);
     public static float WispMin = 2.2f, WispMax = 3.2f, WispAlphaMin = .7f, WispAlphaMax = .95f;
     public static float MistAlphaMin = .6f, MistAlphaMax = .85f;
     public static float PollenFirst = 12f, PollenEveryMin = 14f, PollenEveryMax = 22f;
@@ -373,7 +375,9 @@ public class VerdantDirector : PlanetDirector
             if (!Drift(b, dt, v)) continue;
             float y01 = Mathf.Clamp01((b.y / HalfH + 1f) * .5f);
             float low = Mathf.Lerp(VerdantTuning.CeilingLowShare, 1f, y01 * y01 * (3f - 2f * y01));
-            Tinted(b, b.phase * density * low);
+            Color c = VerdantTuning.CeilingTint;
+            c.a = b.phase * density * low * set.Alpha;
+            b.sr.color = c;
         }
         foreach (var g in pollen.items)
         {

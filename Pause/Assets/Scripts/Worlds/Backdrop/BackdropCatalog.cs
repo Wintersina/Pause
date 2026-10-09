@@ -97,6 +97,9 @@ public static class BackdropCatalog
         // same two tables.
         public float[] variantBrightness;
         public bool[] variantNight;
+        // The art itself is painted bright (not lifted): what reads over it
+        // needs the bold treatment too (HeartOutline's bold outline).
+        public bool brightArt;
 
         public bool Night(int variant) { return variantNight != null && variant >= 0 && variant < variantNight.Length && variantNight[variant]; }
         public float VariantBrightness(int variant)
@@ -215,7 +218,7 @@ public static class BackdropCatalog
         new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants,
                    brightness = () => VerdantTuning.Brightness, saturation = () => 1f,
-                   variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, layers = new[] {
+                   variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, brightArt = true, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.6f),
             Layer.Tile("far", 0.014f, W).Graded(.8f),
             Layer.Tile("mid", 0.024f, W).Graded(1f),

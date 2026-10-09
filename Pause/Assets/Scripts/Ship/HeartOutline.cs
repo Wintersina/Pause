@@ -17,7 +17,8 @@ using UnityEngine;
 //            out), so the trace holds over a bright patch too (Frost's ice,
 //            a flare).
 // BOLD style, for a world whose backdrop is drawn brightened (Frost:
-// BackdropCatalog.Spec.brightness, its pale cloud ceiling and lifted ice):
+// BackdropCatalog.Spec.brightness, its pale cloud ceiling and lifted ice), or
+// whose art is painted bright (Spec.brightArt: Verdant's lit jungle):
 // a slightly thinner core and a wider, solid keyline, so the dark ring
 // carries the trace over pale cloud as the light core does over dark
 // ground. Same reach (<= 8% of the cell); the dark worlds keep the
@@ -57,7 +58,7 @@ public static class HeartOutline
         {
             if (Bold.HasValue) return Bold.Value;
             var spec = BackdropCatalog.For(WorldManager.Current.displayName);
-            return spec != null && spec.brightness != null && spec.brightness() >= BrightLift;
+            return spec != null && (spec.brightArt || spec.brightness != null && spec.brightness() >= BrightLift);
         }
     }
 
