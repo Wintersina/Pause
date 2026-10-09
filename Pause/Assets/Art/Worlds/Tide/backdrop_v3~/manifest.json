@@ -1,0 +1,231 @@
+{
+  "world": "Tide",
+  "version": "backdrop_v3",
+  "source": "Built-in image generation, 8 inspected painted candidates; selected pairs in src~/candidate_review.png",
+  "files": [
+    {
+      "path": "v1/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": 1,
+      "notes": "Open swell, thin whitecap veins, kelp and sparse rusted buoys; painted candidate 2, imagegen seam repaint",
+      "p90_hsv_value": 0.3843,
+      "mean_hsv_value": 0.1344,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v1/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": 1,
+      "notes": "Open swell, thin whitecap veins, kelp and sparse rusted buoys; painted candidate 2, imagegen seam repaint",
+      "p90_hsv_value": 0.4314,
+      "mean_hsv_value": 0.1588,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v1/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": 1,
+      "notes": "Open swell, thin whitecap veins, kelp and sparse rusted buoys; painted candidate 1, imagegen seam repaint",
+      "p90_hsv_value": 0.4745,
+      "mean_hsv_value": 0.2005,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v1/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": 1,
+      "notes": "Open swell, thin whitecap veins, kelp and sparse rusted buoys; translucent painted drift",
+      "p90_hsv_value": 0.7294,
+      "mean_hsv_value": 0.7227,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 0.0297
+    },
+    {
+      "path": "v2/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": 2,
+      "notes": "Top-down oil rig rings, dense industrial decks and pipe bridges; painted candidate 4, imagegen seam repaint",
+      "p90_hsv_value": 0.3843,
+      "mean_hsv_value": 0.1539,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v2/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": 2,
+      "notes": "Top-down oil rig rings, dense industrial decks and pipe bridges; painted candidate 4, imagegen seam repaint",
+      "p90_hsv_value": 0.4353,
+      "mean_hsv_value": 0.1847,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v2/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": 2,
+      "notes": "Top-down oil rig rings, dense industrial decks and pipe bridges; painted candidate 3, imagegen seam repaint",
+      "p90_hsv_value": 0.4706,
+      "mean_hsv_value": 0.213,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v2/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": 2,
+      "notes": "Top-down oil rig rings, dense industrial decks and pipe bridges; translucent painted drift",
+      "p90_hsv_value": 0.7255,
+      "mean_hsv_value": 0.4772,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 0.0427
+    },
+    {
+      "path": "v3/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": 3,
+      "notes": "Submerged factory and street grid with tower crowns and caustic marks; painted candidate 5, imagegen seam repaint",
+      "p90_hsv_value": 0.3843,
+      "mean_hsv_value": 0.2039,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v3/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": 3,
+      "notes": "Submerged factory and street grid with tower crowns and caustic marks; painted candidate 5, imagegen seam repaint",
+      "p90_hsv_value": 0.4314,
+      "mean_hsv_value": 0.2389,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v3/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": 3,
+      "notes": "Submerged factory and street grid with tower crowns and caustic marks; painted candidate 6, imagegen seam repaint",
+      "p90_hsv_value": 0.4745,
+      "mean_hsv_value": 0.2494,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v3/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": 3,
+      "notes": "Submerged factory and street grid with tower crowns and caustic marks; translucent painted drift",
+      "p90_hsv_value": 0.7294,
+      "mean_hsv_value": 0.6575,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 0.0548
+    },
+    {
+      "path": "v4/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": 4,
+      "notes": "Night-black current vortices, sparse beacons and mint plankton; painted candidate 8, imagegen seam repaint",
+      "p90_hsv_value": 0.3059,
+      "mean_hsv_value": 0.1131,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v4/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": 4,
+      "notes": "Night-black current vortices, sparse beacons and mint plankton; painted candidate 8, imagegen seam repaint",
+      "p90_hsv_value": 0.3529,
+      "mean_hsv_value": 0.135,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v4/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": 4,
+      "notes": "Night-black current vortices, sparse beacons and mint plankton; painted candidate 7, imagegen seam repaint",
+      "p90_hsv_value": 0.3922,
+      "mean_hsv_value": 0.1877,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    {
+      "path": "v4/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": 4,
+      "notes": "Night-black current vortices, sparse beacons and mint plankton; translucent painted drift",
+      "p90_hsv_value": 0.7294,
+      "mean_hsv_value": 0.6712,
+      "wrap_edge_difference": 0.0,
+      "opaque_fraction": 0.0357
+    }
+  ]
+}
