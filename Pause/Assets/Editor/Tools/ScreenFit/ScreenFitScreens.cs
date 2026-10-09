@@ -70,6 +70,8 @@ public static class ScreenFitScreens
         new FitScreen { id = "options-signout", fullBleed = true, scene = "leaderboardS3", title = "Options: sign-out dialog", stage = r => Options(r, 1) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
         new FitScreen { id = "options-start-locked", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (locked)", stage = r => Options(r, 4) },
+        new FitScreen { id = "options-mute-on", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: ON row", stage = r => Options(r, 5) },
+        new FitScreen { id = "options-mute-off", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: OFF row", stage = r => Options(r, 6) },
         new FitScreen { id = "leaderboard", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard panel", stage = r => Options(r, 2) },
         new FitScreen { id = "credits", fullBleed = true, scene = "creditsS7", title = "Credits", stage = Credits },
         new FitScreen { id = "dock", fullBleed = true, scene = "shopS6", title = "Space dock", stage = r => Dock(r, 0, false) },
@@ -248,6 +250,7 @@ public static class ScreenFitScreens
             PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, shot == 3 ? 2 : 0);
             PlayerPrefs.DeleteKey(PlayerStartWorld.Key);
             if (shot == 3) PlayerPrefs.SetInt(PlayerStartWorld.Key, 1);
+            if (shot == 6) PlayerPrefs.SetInt(SoundSettings.Key, 1); else PlayerPrefs.DeleteKey(SoundSettings.Key);
         }
         else DeveloperUnlocks.SetEnabled(true);
         var fake = new FakeLeaderboards { LocalPlayerName = "KANEDA_THE_LONG_NAMED_PILOT" };
@@ -256,6 +259,7 @@ public static class ScreenFitScreens
         rig.Sync();
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
+        Add<SoundOptions>("~SoundOptions");
         var account = new GameObject("~AccountOptions").AddComponent<AccountOptions>();
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
