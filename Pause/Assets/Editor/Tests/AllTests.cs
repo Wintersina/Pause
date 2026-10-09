@@ -49,6 +49,7 @@ public static class AllTests
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("AsteroidDriftTest", AsteroidDriftTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
+        ("AtomSpacingTest", AtomSpacingTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
@@ -159,6 +160,7 @@ public static class AllTests
         ("ExplosionV2Test", ExplosionV2Test.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
     };

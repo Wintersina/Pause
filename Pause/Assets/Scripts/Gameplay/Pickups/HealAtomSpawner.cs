@@ -36,7 +36,11 @@ public class HealAtomSpawner : MonoBehaviour
         return WorldManager.Instance != null ? WorldManager.CurrentIndex : 0;
     }
 
-    void Update()
+    void Update() { Step(Time.deltaTime); }
+
+    // One frame; dt explicit so a headless test can step a run (Time.deltaTime
+    // is 0 outside Play mode; AtomSpacingTest drives it).
+    public void Step(float dt)
     {
         // A new planet gets a fresh allowance.
         int world = CurrentWorld();
@@ -54,8 +58,11 @@ public class HealAtomSpawner : MonoBehaviour
         bool running = TouchInput.IsPressed || score.pauseCounter <= 0;
         if (!running) return;
 
-        timer -= Time.deltaTime;
+        timer -= dt;
         if (timer > 0f) return;
+        // Another atom just went out (AtomSpacing): this one waits its turn
+        // with its timer run out, then rolls as usual.
+        if (!AtomSpacing.Ready) return;
 
         timer = Random.Range(gapSeconds.x, gapSeconds.y);
 
@@ -70,6 +77,7 @@ public class HealAtomSpawner : MonoBehaviour
         Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + SpawnAboveTop, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
+        AtomSpacing.Released();
     }
 }
 
