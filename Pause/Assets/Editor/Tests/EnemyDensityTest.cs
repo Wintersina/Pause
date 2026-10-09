@@ -81,7 +81,8 @@ public static class EnemyDensityTest
             float lowCut = 1f, highCut = 0f;
             for (int i = 0; i < points.Length; i++)
             {
-                var s = EnemyDensityProbe.Pinned(points[i], EnemyDensityProbe.LevelSecondFor(points[i]), 3);
+                // 8 seeds, as in Table(): the shots-in-flight average at one HUD point swings about +/-0.07 between 3-seed samples
+                var s = EnemyDensityProbe.Pinned(points[i], EnemyDensityProbe.LevelSecondFor(points[i]), 8);
                 float before = BeforeOnScreen[i] * k, cut = 1f - s.Threats / before;
                 Debug.Log(string.Format("[DENSITY] PHONE {0} (view {1:F1} u) hud {2,2} | before (scaled) {3,5:F2} | now {4,5:F2} + {5:F2} shots = {6,5:F2} | cut {7:P0} | pilots in view {8:F2}, in view {9:F1}s | peak {10:F0} of ceiling {11:F1}",
                                         tag, 2f * EnemyDensityProbe.ViewHalfHeight, points[i], before, s.onScreen, s.shots, s.Threats, cut, s.pilots,
