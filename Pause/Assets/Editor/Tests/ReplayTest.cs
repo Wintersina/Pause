@@ -71,8 +71,10 @@ public static class ReplayTest
 
     // ---- fixtures -----------------------------------------------------------
 
+    // A run begun from the menu: no replay pin (GameStateReset drops it).
     static void Prefs(int highest, bool developer = false, int pick = -1)
     {
+        WorldManager.ClearReplayWorld();
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, developer ? 1 : 0);
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, highest);
