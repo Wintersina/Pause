@@ -157,7 +157,10 @@ public static class LoopTest
     // Level clock out -> the boss, all the way to Done.
     static void PlayBoss(WorldManager wm)
     {
-        // Fly the rest of the level in one step, at whatever speed it is.
+        // Fly the rest of the level in one step, at whatever speed it is (a
+        // stock ship arrives at 0 and would never cover the distance in one
+        // flat step, so stand in for the ramp's first seconds).
+        if (moveBackGround.speed < .04f) moveBackGround.speed = .04f;
         wm.Tick((wm.DistanceLeft + 1f) / Mathf.Max(moveBackGround.speed, .01f));
         var e = BossEncounter.Instance;
         if (e == null || !BossEncounter.Running) return;

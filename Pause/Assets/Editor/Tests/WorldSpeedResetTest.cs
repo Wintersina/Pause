@@ -123,6 +123,7 @@ public static class WorldSpeedResetTest
             // flown fast, a limit break on, hearts and score banked
             moveBackGround.speed = .33f;
             collisionDetection.lifeCounter = 3;
+            RunScore.BeginRun(true, false);
             long score0 = RunScore.Total;
             OpenPortal(true);
             moveBackGround.speed = .33f;
@@ -131,8 +132,9 @@ public static class WorldSpeedResetTest
             Check(tag + "speed == the ship's fresh-run start (" + moveBackGround.speed + " vs " + def + ")",
                   Mathf.Approximately(moveBackGround.speed, def));
             Check(tag + "== WorldManager.RunStartSpeed(0)", Mathf.Approximately(moveBackGround.speed, WorldManager.RunStartSpeed(0f)));
-            Check(tag + "hearts untouched, score only gains the world bonus",
-                  collisionDetection.lifeCounter == 3 && RunScore.Total == score0 + ScoreRules.WorldClearedPoints(from, 0));
+            Check(tag + "hearts untouched (" + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 3);
+            Check(tag + "score only gains the world bonus (" + score0 + " -> " + RunScore.Total + ")",
+                  RunScore.Total == score0 + ScoreRules.WorldClearedPoints(from, 0));
             Check(tag + "distance clock restarted for the new world",
                   Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && wm.HasLevelClock);
             float s0 = moveBackGround.speed;
