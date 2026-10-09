@@ -386,6 +386,36 @@ def masked(img, mask):
     return out
 
 
+SAFE_FIT = 0.97     # fraction of the safe circle the adaptive foreground may reach
+
+
+def fit_adaptive_fg(big):
+    """Foreground at 432 px with EVERYTHING visible (hull, glow, exhaust) inside
+    the 66 dp safe circle: crop to the art, scale it down until its farthest
+    pixel is inside the circle, centre it. (The exhaust used to run off the
+    layer, so every launcher mask cut the flames.)"""
+    a = np.array(big.getchannel("A"))
+    ys, xs = np.nonzero(a > 12)
+    x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
+    crop = big.crop((x0, y0, x1, y1))
+    w, h = crop.size
+    R = SAFE * SAFE_FIT * 216.0
+    s = 1.0
+    ca = np.array(crop.getchannel("A"))
+    cy_, cx_ = np.nonzero(ca > 12)
+    while True:
+        sw, sh = max(1, round(w * s)), max(1, round(h * s))
+        px, py = 216 - sw / 2.0, 216 - sh / 2.0
+        d = np.hypot(px + (cx_ + 0.5) * sw / w - 216, py + (cy_ + 0.5) * sh / h - 216).max()
+        if d <= R:
+            break
+        s *= 0.99
+    im = crop.resize((sw, sh), Image.LANCZOS)
+    out = Image.new("RGBA", (432, 432), (0, 0, 0, 0))
+    out.alpha_composite(im, (int(round(px)), int(round(py))))
+    return out
+
+
 def build(key):
     c = CANDIDATES[key]
     k, frac = scale_for(key, c)
@@ -402,7 +432,7 @@ def build(key):
     abg = Image.alpha_composite(backdrop(ca, c, seed), pause_bars(ca, c)).convert("RGB")
     afg, _, _ = foreground(ca, key, c, k)
     abg = abg.resize((432, 432), Image.LANCZOS)
-    afg = afg.resize((432, 432), Image.LANCZOS)
+    afg = fit_adaptive_fg(afg)
 
     out = os.path.join(OUT_ROOT, key)
     os.makedirs(out, exist_ok=True)

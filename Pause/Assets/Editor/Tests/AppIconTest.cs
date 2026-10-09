@@ -7,8 +7,8 @@ using UnityEngine;
 // AppIconSetter):
 //  - every candidate has all its files at the right pixel size, the opaque
 //    ones (master, iOS, adaptive background) without an alpha channel;
-//  - the adaptive foreground is transparent around the ship, and nothing but
-//    the exhaust (which runs down out of frame) leaves the 66 dp safe circle;
+//  - the adaptive foreground is transparent around the ship, and all of
+//    it (hull, glow, exhaust) sits inside the 66 dp safe circle;
 //  - Player Settings use the recommended candidate: default icon, Android
 //    adaptive (background layer 0, foreground layer 1), round and legacy
 //    icons, and every iOS slot with the alpha-free 1024;
@@ -94,13 +94,22 @@ public static class AppIconTest
         Check("adaptive foreground corners are transparent",
               fg.GetPixel(0, 0).a == 0f && fg.GetPixel(n - 1, n - 1).a == 0f && fg.GetPixel(0, n - 1).a == 0f);
         Check("adaptive foreground centre is the opaque hull", fg.GetPixel(n / 2, n / 2).a > .95f);
-        // Unity's y runs up: the upper half (no exhaust there) must sit in the safe circle.
+        // everything (hull, glow AND exhaust) must sit in the safe circle, or the
+        // launcher mask cuts it
         int outside = 0;
-        for (int y = n / 2; y < n; y++)
+        for (int y = 0; y < n; y++)
             for (int x = 0; x < n; x++)
                 if (fg.GetPixel(x, y).a > .2f && new Vector2(x + .5f - c, y + .5f - c).magnitude > safe) outside++;
         Check("ship + glow stay inside the 66dp safe circle (" + outside + " px outside)", outside == 0);
+        Check("adaptive foreground has real art (not blank)", fg.GetPixel(n / 2, n / 2).a > .95f);
         Object.DestroyImmediate(fg);
+
+        // opaque background layer: no pixel under the mask may be see-through
+        var bg = Pixels(AppIconSetter.PathOf(ship, AppIconSetter.AdaptiveBg));
+        bool opaque = true;
+        foreach (var px in bg.GetPixels32()) if (px.a != 255) { opaque = false; break; }
+        Check("adaptive background is fully opaque", opaque);
+        Object.DestroyImmediate(bg);
     }
 
     static string PathOf(Texture2D t) { return t == null ? "(none)" : AssetDatabase.GetAssetPath(t); }
@@ -138,6 +147,7 @@ public static class AppIconTest
         Check(ship + ": Android has adaptive, round and legacy icon slots", adaptive && round && legacy);
         if (!(adaptive && round && legacy)) allSet = false;
         Check(ship + ": every Android slot uses the candidate (adaptive bg = layer 0, fg = layer 1)", allSet);
+
 
         int slots = 0;
         bool iosSet = true;
