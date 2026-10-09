@@ -57,9 +57,9 @@ public static class LoopTest
         // the speed-keyed density cut (EnemyDensity, its own suite) multiplies
         // the same delays, so it is switched off here (the Sandbox puts it back).
         EnemyDensity.Disabled = true;
-        // This suite is the loop portal's: Ember's lift-off (LiftoffTest, which
-        // also flies it to this same portal) stands aside so the boss's end
-        // opens the portal at once.
+        // This suite is the loop portal's: Ember's lift-off (LiftoffTest; it
+        // starts the loop with no portal, LoopStartsStraightFromTheLiftoff)
+        // stands aside so the boss's end opens the portal at once.
         LiftoffCatalog.Enabled = false;
         int rush = PlayerPrefs.GetInt(BossDev.RushKey, -1);
         try
@@ -68,6 +68,7 @@ public static class LoopTest
             WaitingAtTheFinalPortal();
             LoopBackGoesToTheStartWorld();
             LoopBackFromAnEmberStart();
+            LoopStartsStraightFromTheLiftoff();
             LoopScalingAppliesAndCaps();
             SpeedMultiplierTiersAndCap();
             HudBadgesFit();
@@ -350,6 +351,65 @@ public static class LoopTest
               WorldManager.PortalDestination == Ember);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         PortalPressure.Reset();
+    }
+
+    // Ember's lift-off (LiftoffDef.autoLoop): after its interlude in Space's
+    // sky the loop begins at once, no portal -- the same world change as the
+    // loop portal's. A run that began in Ember loops back there through its
+    // portal, as before.
+    static void LoopStartsStraightFromTheLiftoff()
+    {
+        LiftoffCatalog.Enabled = true;
+        try
+        {
+            FreshScene(Ember, 0);
+            Board();
+            var wm = World(-1f);
+            RunScore.Tick(30f, .3f);
+            PlayBoss(wm);
+            var l = Liftoff.Live;
+            Check("Ember's boss down: the lift-off, no portal", l != null && l.Def.autoLoop && Portal.Live == null && wm.PortalIsOpen);
+            long before = RunScore.Total;
+            bool noPortal = true;
+            int changes = 0, world = WorldManager.CurrentIndex;
+            for (int i = 0; i < 1200 && Liftoff.Live != null; i++)
+            {
+                try { Liftoff.Live.Step(1f / 60f); }
+                catch (System.Exception ex) { Debug.LogWarning("[LOOP] lift-off step threw: " + ex.Message); }
+                noPortal &= Portal.Live == null && !PortalPressure.Active;
+                if (WorldManager.CurrentIndex != world) { changes++; world = WorldManager.CurrentIndex; }
+            }
+            Check("the lift-off ends straight in Space's level: no portal, no pressure, one world change (" + changes + ")",
+                  Liftoff.Live == null && noPortal && Object.FindFirstObjectByType<Portal>() == null && changes == 1 &&
+                  WorldManager.CurrentIndex == 0 && wm.Stage == WorldManager.LevelStage.Level && !wm.PortalIsOpen);
+            Check("... loopIndex 0 -> 1, exactly once", RunLoop.Index == 1 && RunScore.Parts.loops == 1);
+            Check("... + Ember's world bonus only (" + before + " -> " + RunScore.Total + ")",
+                  RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
+            Check("... the loop's arrival speed, the level distance restarted, every boss again",
+                  Mathf.Approximately(moveBackGround.speed, WorldManager.ArrivalSpeed(1)) &&
+                  Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !BossEncounter.DoneInWorld(Ember));
+            wm.Tick(5f);
+            Check("... 5 s on: still no portal, still loop 2", Portal.Live == null && RunLoop.Index == 1 && WorldManager.CurrentIndex == 0);
+            Object.DestroyImmediate(wm.gameObject);
+
+            // a run begun in Ember: the loop leads back to Ember, so its portal
+            FreshScene(Ember, Ember);
+            Board();
+            wm = World(-1f);
+            PlayBoss(wm);
+            for (int i = 0; i < 1200 && Liftoff.Live != null; i++)
+            {
+                try { Liftoff.Live.Step(1f / 60f); }
+                catch (System.Exception ex) { Debug.LogWarning("[LOOP] lift-off step threw: " + ex.Message); }
+            }
+            Check("Ember start: the lift-off ends on the loop portal back to Ember (not straight round)",
+                  Liftoff.Live == null && Portal.Live != null && WorldManager.CurrentIndex == Ember && RunLoop.Index == 0 &&
+                  WorldManager.PortalDestination == Ember && PortalPressure.Active);
+            foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
+            Object.DestroyImmediate(wm.gameObject);
+            PortalPressure.Reset();
+        }
+        finally { LiftoffCatalog.Enabled = false; }
     }
 
     // ---- 4. per-loop scaling ---------------------------------------------------

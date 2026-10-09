@@ -17,8 +17,9 @@ using UnityEngine;
 //      the switch, the breakthrough) until control returns
 //   4  the lift-off (Frost's, Verdant's and Ember's): the beat, the rise,
 //      the interlude and the gateway after (Verdant's planetfall after
-//      Frost, Ember's after Verdant, flown down until control returns; the
-//      loop portal after Ember)
+//      Frost, Ember's after Verdant, flown down until control returns);
+//      after Ember's no portal: held to the interlude's last frame, then
+//      Space's level starts (the loop) and the charge carries on at once
 //   5  the boss: the fight charges as normal; its end opens the portal and
 //      the charge holds from there
 //   6  the signal can't stick: a scene reload, a dead pilot's reload, a
@@ -400,9 +401,22 @@ public static class TransitionChargeTest
         Check(name + ": beat, rise and interlude (" + (w.frames * Dt).ToString("F1") + " s) hold the charge",
               rose && interlude && w.held && Liftoff.Live == null);
         Check(name + ": ... nothing fires, the gun tucked in, the signal on throughout", w.quiet && w.tucked && w.signal);
-        // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Ember's (the last world): the loop portal
+        // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Ember's
+        // (the last world): no gateway, the loop starts Space at once
         bool fall = from < WorldManager.Worlds.Length - 1;
         string onto = fall ? WorldManager.Worlds[from + 1].displayName : "";
+        if (!fall && LiftoffCatalog.Ember.autoLoop)
+        {
+            Check(name + ": no portal: the loop began at the interlude's end (" + WorldManager.Current.displayName + ", loop " +
+                  RunLoop.Index + "), the transition over",
+                  Portal.Live == null && Planetfall.Live == null && WorldManager.CurrentIndex == RunLoop.StartWorld &&
+                  RunLoop.Index == 1 && !wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Level);
+            Resumes(name, c, wm, Held, 0);
+            Teardown(c);
+            Gone();
+            Object.DestroyImmediate(wm.gameObject);
+            return;
+        }
         Check(name + ": the gateway it opened (" + (fall ? onto + "'s planetfall" : "the loop portal") + ") is still the transition",
               (fall ? Planetfall.Live != null && Portal.Live == null : Portal.Live != null && Planetfall.Live == null) &&
               WorldTransition.InProgress);

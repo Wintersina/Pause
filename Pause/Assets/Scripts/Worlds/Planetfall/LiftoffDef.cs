@@ -8,13 +8,18 @@
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant) and
-// opens the portal otherwise (after Ember: the loop back to Space).
+// opens the portal otherwise. A lift-off with autoLoop (Ember's: the last
+// world) skips the loop portal: the interlude already flies Space's sky, so
+// the run simply starts its first world again, one loop on
+// (WorldManager.StartLoop; the portal only if that fails).
 public class LiftoffDef
 {
     public int world;                   // WorldManager.Worlds index it leaves
     public PlanetfallDef planet;        // the planet's art, numbers and colours
     public int interludeWorld;          // whose backdrop (and rails) the interlude flies: Space
     public string banner;               // as the ship is taken: LIFT OFF
+    public bool autoLoop;               // the last world: after the interlude the loop starts at once, no portal
+                                        // (when the loop leads back to interludeWorld; else its portal)
 }
 
 // Which worlds are left by lift-off. A world not listed ends at its portal,
@@ -42,15 +47,17 @@ public static class LiftoffCatalog
         banner = "LIFT OFF",
     };
 
-    // Ember: leaving the forge world after its boss, the last world; its
-    // gateway is the loop's portal back to the first world (Space has no
-    // planetfall), with LoopRules counting the loop as before.
+    // Ember: leaving the forge world after its boss, the last world. No
+    // loop portal: once the interlude is over the run starts its first world
+    // (Space) again, one loop on, through the loop's own world change
+    // (LoopRules counting it as before).
     public static readonly LiftoffDef Ember = new LiftoffDef
     {
         world = 3,
         planet = PlanetfallCatalog.Ember,
         interludeWorld = 0,
         banner = "LIFT OFF",
+        autoLoop = true,
     };
 
     public static readonly LiftoffDef[] Defs = { Frost, Verdant, Ember };
