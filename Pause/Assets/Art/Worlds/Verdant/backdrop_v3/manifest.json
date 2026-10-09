@@ -1,0 +1,1952 @@
+{
+  "world": "Verdant",
+  "size": [
+    512,
+    1024
+  ],
+  "format": "RGBA PNG",
+  "source_method": "Built-in image generation: two painted terrain candidates and two painted transparent flow candidates per variant; inspected flow selection, nearest-neighbor resize, palette indexing, depth haze, offset-and-blend wrap join",
+  "selected_flow_sources": {
+    "v1": "v1_flow_source.png",
+    "v2": "v2_flow_source.png",
+    "v3": "v3_flow_candidate_b.png",
+    "v4": "v4_flow_candidate_b.png"
+  },
+  "secondary_flow_sources": {
+    "v3": "v3_flow_source.png",
+    "v4": "v4_flow_source.png"
+  },
+  "preview": "preview_variants.png",
+  "files": [
+    {
+      "file": "v1/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v1",
+      "notes": "Canopy sea and rivers; cliff waterfalls and rusted relay trellises. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4863,
+      "opaque_fraction": 0.1316,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v2",
+      "notes": "Swamp delta; braided channels, mangroves and stilt refineries. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 0.1119,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v3",
+      "notes": "Overgrown ruined city; broken road and rail grid, canals and rooftop vines. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.4902,
+      "opaque_fraction": 0.0695,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Deepest hazy ground plane; lowest contrast and green-teal atmospheric fade.",
+      "p90_hsv_value_opaque": 0.3333,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Distant painted terrain; reduced contrast and more haze than mid.",
+      "p90_hsv_value_opaque": 0.3647,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Nearest detailed painted terrain; restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.3961,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v4",
+      "notes": "Bioluminescent night forest; luminous roots, fungus and distant lamps. Sparse transparent painted scrolling overlay; ground shows through.",
+      "p90_hsv_value_opaque": 0.3765,
+      "opaque_fraction": 0.0453,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    }
+  ],
+  "run_b": {
+    "build": "python3 src~/build_b.py",
+    "preview": "preview_b.png",
+    "atlas_grid": "4x4 256x256 cells in 1024x1024 RGBA; JSON y measured from image bottom",
+    "source_candidates": {
+      "landmarks": [
+        "src~/landmarks_a.png"
+      ],
+      "pipes": [
+        "src~/pipes_a.png",
+        "src~/pipes_b.png"
+      ],
+      "fires": [
+        "src~/fires_a.png"
+      ],
+      "weather": [
+        "src~/weather_a.png",
+        "src~/weather_b.png"
+      ],
+      "sites": [
+        "src~/sites_a.png"
+      ]
+    },
+    "selected_sources": {
+      "landmarks": "src~/landmarks_a.png",
+      "pipes": "src~/pipes_b.png",
+      "fires": "src~/fires_a.png",
+      "weather": "src~/weather_b.png",
+      "sites": "src~/sites_a.png"
+    },
+    "point_origin": "All emitter, pipe-end, and emergence points use (x,y) pixels from cell top-left.",
+    "brightness": "Landmarks, pipes, fires, and sites opaque-pixel HSV value p90 <= 0.55; sparse fire cores and lamps may exceed it.",
+    "weather_alpha": "Cloud banks <= 80, wisps <= 64, mist and pollen <= 48, smoke palls <= 56, spores <= 88 of 255.",
+    "extra_cells": [
+      "canopy_intake_00",
+      "pipe_loop_00",
+      "burnpatch_04"
+    ],
+    "pieces": [
+      {
+        "atlas": "landmarks.png",
+        "name": "tower_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            122,
+            20
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Rusted pipe trellis with vine canopy and a stack emitter base."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "tower_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            192,
+            20
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Rusted pipe trellis with vine canopy and a stack emitter base."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            138,
+            20
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Tank farm, racks, and stack outlets; smoke animation belongs in a later run."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            156,
+            20
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Tank farm, racks, and stack outlets; smoke animation belongs in a later run."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_02",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            107,
+            24
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Tank farm, racks, and stack outlets; smoke animation belongs in a later run."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "relay_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Vine-tangled antennas above a small forest terrain island."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "relay_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Vine-tangled antennas above a small forest terrain island."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "bridge_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Rail viaduct across the bio-river; rotate for placement."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "barge_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Top-down harvester barge with lime river wake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "barge_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Top-down harvester barge with lime river wake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "waterfall_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Cliff-step bio-river fall with a corroded pipe intake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "waterfall_01",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Cliff-step bio-river fall with a corroded pipe intake."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "dome_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Biological greenhouse domes with restrained status lamps."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "silo_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            117,
+            22
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Seed silo and trellis over canopy."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "derrick_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [
+          [
+            133,
+            20
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Sap derrick rising through canopy."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "canopy_intake_00",
+        "layer_role": "Landmark",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          230
+        ],
+        "notes": "Extra sixteenth cell: jungle water intake and pipe gantry."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_straight_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            28,
+            123
+          ],
+          [
+            228,
+            123
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_straight_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            128,
+            29
+          ],
+          [
+            128,
+            224
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bend_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            31,
+            97
+          ],
+          [
+            184,
+            198
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bend_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            70,
+            34
+          ],
+          [
+            227,
+            158
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tee_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            29,
+            120
+          ],
+          [
+            228,
+            120
+          ],
+          [
+            128,
+            201
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_cross_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            29,
+            127
+          ],
+          [
+            226,
+            127
+          ],
+          [
+            128,
+            36
+          ],
+          [
+            128,
+            213
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            29,
+            133
+          ],
+          [
+            232,
+            133
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            126,
+            27
+          ],
+          [
+            127,
+            217
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipebridge_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            35,
+            99
+          ],
+          [
+            227,
+            99
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipebridge_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            128,
+            55
+          ],
+          [
+            128,
+            163
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pumphouse_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            28,
+            158
+          ],
+          [
+            230,
+            158
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_leak_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            102
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [
+          [
+            29,
+            99
+          ],
+          [
+            226,
+            99
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_leak_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [
+          [
+            120,
+            128
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [
+          [
+            120,
+            27
+          ],
+          [
+            120,
+            224
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tangle_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            29,
+            132
+          ],
+          [
+            228,
+            132
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_tangle_01",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            119,
+            29
+          ],
+          [
+            119,
+            224
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_loop_00",
+        "layer_role": "Pipe",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [
+          [
+            42,
+            114
+          ],
+          [
+            222,
+            99
+          ]
+        ],
+        "on_screen_size_px": [
+          120,
+          240
+        ],
+        "notes": "Overgrown flanged copper network; pipe endpoints are nominal top-left cell coordinates for chaining."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnfront_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            66,
+            105
+          ],
+          [
+            214,
+            171
+          ],
+          [
+            139,
+            172
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnfront_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            85,
+            119
+          ],
+          [
+            144,
+            145
+          ],
+          [
+            184,
+            172
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnfront_02",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            91,
+            117
+          ],
+          [
+            182,
+            181
+          ],
+          [
+            36,
+            65
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnfront_03",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            129,
+            155
+          ],
+          [
+            103,
+            114
+          ],
+          [
+            196,
+            203
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnpatch_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            88,
+            241
+          ],
+          [
+            34,
+            142
+          ],
+          [
+            105,
+            141
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnpatch_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            126,
+            137
+          ],
+          [
+            179,
+            168
+          ],
+          [
+            154,
+            81
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnpatch_02",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            120,
+            141
+          ],
+          [
+            152,
+            182
+          ],
+          [
+            77,
+            183
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnpatch_03",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            128,
+            241
+          ],
+          [
+            89,
+            134
+          ],
+          [
+            179,
+            134
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "coalbed_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            94,
+            104
+          ],
+          [
+            159,
+            165
+          ],
+          [
+            228,
+            130
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "coalbed_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            155,
+            144
+          ],
+          [
+            92,
+            103
+          ],
+          [
+            171,
+            94
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "scorched_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            98,
+            91
+          ],
+          [
+            119,
+            139
+          ],
+          [
+            43,
+            98
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "scorched_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            90,
+            186
+          ],
+          [
+            98,
+            105
+          ],
+          [
+            188,
+            182
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "firebreak_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            192,
+            160
+          ],
+          [
+            103,
+            138
+          ],
+          [
+            147,
+            113
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burntforest_00",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            152,
+            165
+          ],
+          [
+            105,
+            182
+          ],
+          [
+            101,
+            134
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burntforest_01",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            136,
+            183
+          ],
+          [
+            196,
+            133
+          ],
+          [
+            85,
+            134
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "burnpatch_04",
+        "layer_role": "Fire",
+        "emitter_points_px_from_top_left": [
+          [
+            153,
+            141
+          ],
+          [
+            138,
+            73
+          ],
+          [
+            105,
+            148
+          ]
+        ],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          145,
+          260
+        ],
+        "notes": "Static scorched canopy and ember ground; listed hot points are bases for later flame/smoke animation."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_00",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_01",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_02",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_03",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          390,
+          620
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_00",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_01",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_02",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_03",
+        "layer_role": "Cloud",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_02",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "pollen_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "pollen_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "smokepall_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "smokepall_01",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "spore_00",
+        "layer_role": "Atmosphere",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          190,
+          420
+        ],
+        "notes": "Low-alpha atmospheric overlay; keep above terrain but below combat readability priority."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "roothangar_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "roothangar_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "riverbay_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "riverbay_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "podpad_idle",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "podpad_active",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "towerbay_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "towerbay_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_closed",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "hatch_open",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_off",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_on",
+        "layer_role": "Site",
+        "emitter_points_px_from_top_left": [],
+        "pipe_end_points_px_from_top_left": [],
+        "on_screen_size_px": [
+          100,
+          190
+        ],
+        "notes": "Centered elite emergence site; closed/open pair shares scale and terrain silhouette.",
+        "emergence_point_px_from_top_left": [
+          128,
+          128
+        ]
+      }
+    ]
+  },
+  "run_c": {
+    "build": "python3 src~/build_c.py",
+    "preview": "preview_c.png",
+    "animated_preview": "preview_c.gif",
+    "source_key_paintings": [
+      "src~/smoke_keys.png",
+      "src~/wildfire_keys.png",
+      "src~/firesmoke_keys.png",
+      "src~/leaks_keys.png",
+      "src~/lights_keys.png"
+    ],
+    "atlas_grid": "1024x1024 RGBA, 4x4 grid of 256x256 cells; JSON y from bottom",
+    "lights_packing_exception": "Five four-frame loops make 20 sprites. The final lights row packs strobe_white and fireflies into eight nonoverlapping 128x128 subcells; all other sprite rects are 256x256.",
+    "emitter_anchor": "Ground-attached loops use local pixel (128,236) from top; strobe_white uses (64,121) in its half-size rect; fireflies are atmospheric.",
+    "loops": [
+      {
+        "name": "smoke_a",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_a_00",
+          "smoke_a_01",
+          "smoke_a_02",
+          "smoke_a_03",
+          "smoke_a_04",
+          "smoke_a_05",
+          "smoke_a_06",
+          "smoke_a_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery_00/01/02 and silo_00 stack mouths",
+        "recommended_draw_alpha": 0.62
+      },
+      {
+        "name": "smoke_b",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_b_00",
+          "smoke_b_01",
+          "smoke_b_02",
+          "smoke_b_03",
+          "smoke_b_04",
+          "smoke_b_05",
+          "smoke_b_06",
+          "smoke_b_07"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery_00/01/02 auxiliary stacks",
+        "recommended_draw_alpha": 0.64
+      },
+      {
+        "name": "flame_front",
+        "atlas": "wildfire.png",
+        "frames": [
+          "flame_front_00",
+          "flame_front_01",
+          "flame_front_02",
+          "flame_front_03",
+          "flame_front_04",
+          "flame_front_05",
+          "flame_front_06",
+          "flame_front_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnfront_00..03 burning edge",
+        "recommended_draw_alpha": 0.76
+      },
+      {
+        "name": "flame_patch",
+        "atlas": "wildfire.png",
+        "frames": [
+          "flame_patch_00",
+          "flame_patch_01",
+          "flame_patch_02",
+          "flame_patch_03",
+          "flame_patch_04",
+          "flame_patch_05",
+          "flame_patch_06",
+          "flame_patch_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnpatch_*, coalbed_*, scorched_*",
+        "recommended_draw_alpha": 0.74
+      },
+      {
+        "name": "wildsmoke_a",
+        "atlas": "firesmoke.png",
+        "frames": [
+          "wildsmoke_a_00",
+          "wildsmoke_a_01",
+          "wildsmoke_a_02",
+          "wildsmoke_a_03",
+          "wildsmoke_a_04",
+          "wildsmoke_a_05",
+          "wildsmoke_a_06",
+          "wildsmoke_a_07"
+        ],
+        "recommended_fps": 7,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnfront_00..03, behind flame_front",
+        "recommended_draw_alpha": 0.55
+      },
+      {
+        "name": "wildsmoke_b",
+        "atlas": "firesmoke.png",
+        "frames": [
+          "wildsmoke_b_00",
+          "wildsmoke_b_01",
+          "wildsmoke_b_02",
+          "wildsmoke_b_03",
+          "wildsmoke_b_04",
+          "wildsmoke_b_05",
+          "wildsmoke_b_06",
+          "wildsmoke_b_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnpatch_* smoke ribbon",
+        "recommended_draw_alpha": 0.58
+      },
+      {
+        "name": "steam_vent",
+        "atlas": "leaks.png",
+        "frames": [
+          "steam_vent_00",
+          "steam_vent_01",
+          "steam_vent_02",
+          "steam_vent_03"
+        ],
+        "recommended_fps": 10,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipes.png pipe flanges and pumphouse_00",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "leak_sap",
+        "atlas": "leaks.png",
+        "frames": [
+          "leak_sap_00",
+          "leak_sap_01",
+          "leak_sap_02",
+          "leak_sap_03"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipes.png pipe_leak_00/01 rupture mouths",
+        "recommended_draw_alpha": 0.72
+      },
+      {
+        "name": "ember_rain",
+        "atlas": "leaks.png",
+        "frames": [
+          "ember_rain_00",
+          "ember_rain_01",
+          "ember_rain_02",
+          "ember_rain_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "all fires.png burning pieces, sparse overlay",
+        "recommended_draw_alpha": 0.56
+      },
+      {
+        "name": "spore_burst",
+        "atlas": "leaks.png",
+        "frames": [
+          "spore_burst_00",
+          "spore_burst_01",
+          "spore_burst_02",
+          "spore_burst_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png dome_00 and silo_00 foliage",
+        "recommended_draw_alpha": 0.59
+      },
+      {
+        "name": "beacon_lime",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_lime_00",
+          "beacon_lime_01",
+          "beacon_lime_02",
+          "beacon_lime_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png tower_*, relay_*, derrick_00",
+        "recommended_draw_alpha": 0.73
+      },
+      {
+        "name": "beacon_magenta",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_magenta_00",
+          "beacon_magenta_01",
+          "beacon_magenta_02",
+          "beacon_magenta_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png tower_*, relay_*, derrick_00",
+        "recommended_draw_alpha": 0.73
+      },
+      {
+        "name": "window_lights",
+        "atlas": "lights.png",
+        "frames": [
+          "window_lights_00",
+          "window_lights_01",
+          "window_lights_02",
+          "window_lights_03"
+        ],
+        "recommended_fps": 5,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png refinery_* and dome_00",
+        "recommended_draw_alpha": 0.71
+      },
+      {
+        "name": "strobe_white",
+        "atlas": "lights.png",
+        "frames": [
+          "strobe_white_00",
+          "strobe_white_01",
+          "strobe_white_02",
+          "strobe_white_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          64,
+          121
+        ],
+        "intended_use": "landmarks.png towers and relay antenna tops",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "fireflies",
+        "atlas": "lights.png",
+        "frames": [
+          "fireflies_00",
+          "fireflies_01",
+          "fireflies_02",
+          "fireflies_03"
+        ],
+        "recommended_fps": 6,
+        "anchor_px_from_top": [
+          64,
+          121
+        ],
+        "intended_use": "atmospheric foliage above v1/mid.png",
+        "recommended_draw_alpha": 0.61
+      }
+    ]
+  }
+}
