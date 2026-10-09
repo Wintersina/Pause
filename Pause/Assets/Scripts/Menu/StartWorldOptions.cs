@@ -74,7 +74,11 @@ public class StartWorldOptions : MonoBehaviour
         lockedLabel.text = PlayerStartWorld.LockedLabel;
         lockedLabel.color = AkiraPalette.Muted;
         var button = locked.GetComponent<Button>();
-        if (button != null) button.interactable = false;
+        if (button != null)
+        {
+            button.transition = Selectable.Transition.None;   // no grey disabled block behind the text
+            button.interactable = false;
+        }
 
         // The hint under the dimmed row's name.
         var hintGo = new GameObject("Hint", typeof(RectTransform));
@@ -82,7 +86,7 @@ public class StartWorldOptions : MonoBehaviour
         var hr = hintGo.GetComponent<RectTransform>();
         hr.anchorMin = hr.anchorMax = new Vector2(.5f, .5f);
         hr.pivot = new Vector2(.5f, 1f);
-        hr.anchoredPosition = new Vector2(0f, -RowH * .32f);
+        hr.anchoredPosition = new Vector2(0f, -RowH * .26f);
         hr.sizeDelta = new Vector2(520f, 28f);
         lockedHint = hintGo.AddComponent<Text>();
         lockedHint.font = lockedLabel.font;
