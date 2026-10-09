@@ -1026,6 +1026,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         lockedX = targetRail != null ? targetRail.position.x : transform.position.x;
         mounted = targetRail != null;
         if (mounted) railOffsetY = transform.position.y - targetRail.position.y;
+        Board(targetRail);
 
         // EnemyFactory retains the legacy straight-line mover so prefab and
         // targeting contracts stay intact.  Once mounted, it must not be the
@@ -1043,6 +1044,12 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
 
     public bool SelfSteering => false;
 
+    // Rides `lane`: the lane stays while it does (RailLaneScroller.Riders).
+    void Board(Transform lane)
+    {
+        if (lane != null && lane.TryGetComponent(out RailLaneScroller scroller)) scroller.Board(this);
+    }
+
     void LateUpdate()
     {
         if (!mounted && rail != null)
@@ -1052,6 +1059,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
             railOffsetY = transform.position.y - rail.position.y;
             var looseScroller = GetComponent<moveItemEnmInStrightLine>();
             if (looseScroller != null) looseScroller.enabled = false;
+            Board(rail);
         }
 
         // A lane has left the board (or was otherwise removed).  Do not let
@@ -1081,6 +1089,32 @@ public class RailLaneScroller : MonoBehaviour
 {
     // The rails' layout this lane was placed on (WorldPainter.AppliedInset).
     float placedInset = float.NaN;
+    public const float EndY = -12f;
+
+    // The mines riding this lane. The spawner mounts every mine on the
+    // NEAREST live lane on its side -- often one spawned seconds earlier and
+    // far down the board -- and a mine whose lane is gone destroys itself
+    // (RailMineMount). So the lane must outlive its mines: it used to go at
+    // EndY whatever rode it, and a mine mounted 10 u above it vanished,
+    // without a blast, as it came down past the ship's rows. It goes once it
+    // is past EndY and nothing rides it (the mines leave the board on their
+    // own: the Destroyer strip under the view).
+    readonly System.Collections.Generic.List<RailMineMount> riders = new System.Collections.Generic.List<RailMineMount>(4);
+
+    public void Board(RailMineMount mine)
+    {
+        if (mine != null && !riders.Contains(mine)) riders.Add(mine);
+    }
+
+    public int Riders
+    {
+        get
+        {
+            for (int i = riders.Count - 1; i >= 0; i--)
+                if (riders[i] == null || riders[i].rail != transform) riders.RemoveAt(i);
+            return riders.Count;
+        }
+    }
 
     void Update()
     {
@@ -1099,6 +1133,9 @@ public class RailLaneScroller : MonoBehaviour
         // on this lane stays registered to the art it is clamped to
         if (TouchInput.IsPressed || score.pauseCounter <= 0)
             transform.position += Vector3.down * BoardRoll.Advance(moveBackGround.speed, Time.deltaTime);
-        if (transform.position.y < -12f) Destroy(gameObject);
+        if (transform.position.y < EndY && Riders == 0)
+        {
+            if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject);
+        }
     }
 }

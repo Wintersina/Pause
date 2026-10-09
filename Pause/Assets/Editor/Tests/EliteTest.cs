@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 // The elite ships (Scripts/Gameplay/Elites): data, life cycle, the cell
 // maps (Ember layout, flight layout), the personalities and attacks (six
-// Ember, Frost's Rimebreaker, Verdant's Resin Warden; the four Space elites'
+// Ember, Frost's Rimebreaker -- its four newer elites: FrostEliteTest --, Verdant's Resin Warden; the four Space elites'
 // own brains / attacks and their launches out of stations, planets and
 // asteroids are SpaceEliteTest's), shots from muzzles,
 // friendly fire, dodging and baited crashes, perception after a teleport,
@@ -159,7 +159,9 @@ public static class EliteTest
         var verdant = new List<EliteDef>();
         EliteCatalog.ForWorld(1, frost);
         EliteCatalog.ForWorld(2, verdant);
-        Check("Frost has its own elite: the Rimebreaker (" + frost.Count + ")", frost.Count == 1 && frost[0].key == "frost_elite_rimebreaker");
+        bool rime = false;
+        foreach (var d in frost) rime |= d.key == "frost_elite_rimebreaker";
+        Check("Frost has its five elites: the Rimebreaker and the four of FrostEliteTest (" + frost.Count + ")", frost.Count == 5 && rime);
         Check("Verdant has its own elite: the Resin Warden (" + verdant.Count + ")", verdant.Count == 1 && verdant[0].key == "verdant_elite_resin_warden");
         var space = new List<EliteDef>();
         EliteCatalog.ForWorld(0, space);
@@ -700,6 +702,8 @@ public static class EliteTest
     {
         foreach (var def in EliteCatalog.All)
         {
+            // (drone_deploy releases drones, not shots: FrostEliteTest checks they leave its pods)
+            if (!EliteAttacks.Create(def.attack).Shoots) continue;
             Fresh(.05f);
             pilot.position = new Vector3(0f, -2.5f, 0f);
             var e = EliteShip.CreateInPlay(def, new Vector2(.4f, .5f));

@@ -194,13 +194,13 @@ public static class CooldownAtomTest
                 {
                     float f = times[0];
                     firstMin = Mathf.Min(firstMin, f); firstMax = Mathf.Max(firstMax, f);
-                    if (f < PickupRules.CooldownAtomFirstDelayMin || f > PickupRules.CooldownAtomFirstDelayMax + Dt * 2f) firstOut++;
+                    if (f < PickupRules.CooldownAtomFirstDelayMin || f > PickupRules.CooldownAtomFirstDelayMax + AtomSpacing.Gap + Dt * 2f) firstOut++;
                 }
                 for (int i = 1; i < times.Count; i++)
                 {
                     float g = times[i] - times[i - 1];
                     gapMin = Mathf.Min(gapMin, g); gapMax = Mathf.Max(gapMax, g);
-                    if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + Dt * 2f) gapOut++;
+                    if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + AtomSpacing.Gap + Dt * 2f) gapOut++;
                 }
             }
             if (clones != total) cloneMismatch++;
@@ -209,11 +209,13 @@ public static class CooldownAtomTest
             int bossClones;
             var bossRun = Simulate(seed, 1, worldSeconds, true, out bossClones);
             var b = bossRun[0];
-            if (b.Count == 0 || run[0].Count == 0 || Mathf.Abs(b[0] - run[0][0]) > 1e-3f) bossFirstDiffers++;
+            // (it may wait out AtomSpacing.Gap behind another atom, whose rolls the
+            // boss's extra star dust shifts)
+            if (b.Count == 0 || run[0].Count == 0 || Mathf.Abs(b[0] - run[0][0]) > AtomSpacing.Gap + 1e-3f) bossFirstDiffers++;
             for (int i = 1; i < b.Count; i++)
             {
                 float g = b[i] - b[i - 1];
-                if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + Dt * 2f) bossGapOut++;
+                if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + AtomSpacing.Gap + Dt * 2f) bossGapOut++;
             }
             if (b.Count > PickupRules.CooldownAtomsPerWorld) overBudget++;
         }
@@ -221,7 +223,7 @@ public static class CooldownAtomTest
               overBudget == 0);
         Check("every world (fresh allowance each planet) hands out both (" + notTwo + " short of " + seeds * worlds + ")",
               notTwo == 0);
-        Check("first capacitor after 35-65 s (seen " + firstMin.ToString("F1") + "-" + firstMax.ToString("F1") + ")",
+        Check("first capacitor after 35-65 s, + up to the atom gap (seen " + firstMin.ToString("F1") + "-" + firstMax.ToString("F1") + ")",
               firstOut == 0 && firstMax > firstMin);
         Check("next one 75-115 s later (seen " + gapMin.ToString("F1") + "-" + gapMax.ToString("F1") + ")",
               gapOut == 0 && gapMax > gapMin);

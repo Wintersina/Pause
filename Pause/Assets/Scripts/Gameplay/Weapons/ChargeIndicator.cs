@@ -187,9 +187,22 @@ public class ChargeIndicator : MonoBehaviour
     public const float ChargeFlashSeconds = FreeFlashSeconds;
     float freeFlashT = -1f;
     Color flashColour = AkiraPalette.RedHi;
-    bool chargeFlash;
-    public bool FreeFlashing => freeFlashT >= 0f && !chargeFlash;
+    bool chargeFlash, atomFlash;
+    public bool FreeFlashing => freeFlashT >= 0f && !chargeFlash && !atomFlash;
     public bool ChargeFlashing => freeFlashT >= 0f && chargeFlash;
+    // A blue or green atom's cut to the charge (ShipPowerController.
+    // AtomCharged): the same stepped pulse in that atom's own colour, so the
+    // HUD says "that atom fed your weapon".
+    public bool AtomFlashing => freeFlashT >= 0f && atomFlash;
+    public int AtomFlashCount { get; private set; }
+    public Color FlashColour => flashColour;
+
+    public void FlashAtom(Color colour)
+    {
+        AtomFlashCount++;
+        StartFlash(colour, false);
+        atomFlash = true;
+    }
     public int FreeFlashCount { get; private set; }
     public int ChargeFlashCount { get; private set; }
 
@@ -210,6 +223,7 @@ public class ChargeIndicator : MonoBehaviour
         freeFlashT = 0f;
         flashColour = colour;
         chargeFlash = charge;
+        atomFlash = false;
         if (view != null) view.color = colour;
     }
 

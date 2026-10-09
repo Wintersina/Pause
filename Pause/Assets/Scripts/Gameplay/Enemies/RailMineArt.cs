@@ -68,6 +68,23 @@ public static class RailMineArt
         new Vector2(175f, 1042.5f), new Vector2(476f, 1049.5f), new Vector2(770f, 1046.5f), new Vector2(1074f, 1056.5f),
     };
 
+    // The core: where the mine's laser leaves it (RailMineLaser.MuzzleOf).
+    // Image px from a frame's pivot, x toward the lane (unflipped), y up:
+    // the centre of the brightest pixels of the glowing core in the waking
+    // and charging frames (shown through the windup and the burn), measured
+    // on the atlas (RailMineLaserTest measures them again).
+    static readonly Vector2[] CorePx =
+    {
+        new Vector2(34.4f, -1.4f),   // Space
+        new Vector2(38f, -3f),       // Frost
+        new Vector2(39.4f, 1f),      // Verdant
+        new Vector2(38.1f, -2.2f),   // Ember
+    };
+
+    // The core's offset from the mine's centre in world units (unscaled,
+    // for a left-hand mine: +x toward the lane).
+    public static Vector2 CoreOffset(int world) => CorePx[Mathf.Clamp(world, 0, Worlds - 1)] / PixelsPerUnit;
+
     // The flipbook's seven slots (EnemyFlipbook: 0-3 idle, 4-5 tell, 6 hit)
     // as atlas columns. Idle is the dormant mine with one waking blink of the
     // core per loop (EnemyRoster.IdleTicks: 6, 4, 6, 6); the arming tell

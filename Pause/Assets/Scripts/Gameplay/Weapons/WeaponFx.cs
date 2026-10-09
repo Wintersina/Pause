@@ -56,6 +56,18 @@ public static class WeaponFx
         }
     }
 
+    // Active flipbooks of one mode (no allocation).
+    public static int ActiveOf(FlipbookFx.Mode mode)
+    {
+        int n = 0;
+        for (int i = 0; i < flipbooks.Count; i++)
+        {
+            var f = flipbooks[i];
+            if (f != null && f.Active && f.CurrentMode == mode) n++;
+        }
+        return n;
+    }
+
     // Edit-mode tests open fresh scenes under a static pool; drop whatever
     // the editor already destroyed.
     static void Purge()
@@ -446,7 +458,19 @@ public class FlipbookFx : MonoBehaviour
         int f = WeaponArt.FrameAt(ticks, clock / hold, false);
         if (f >= ticks.Length) { Stop(); return; }
         if (f != Frame) { Frame = f; Apply(); }
+        if (mode == Mode.Explosion) Fade(ticks);
     }
+
+    // The explosion body eases out over the last FadeTail of its run, so it
+    // always ends on transparent, never on a cut.
+    public const float FadeTail = .3f;
+    void Fade(int[] ticks)
+    {
+        float total = WeaponArt.Seconds(ticks) * hold;
+        float left = total > 0f ? 1f - clock / total : 0f;
+        var c = tint; c.a = tint.a * Mathf.Clamp01(left / FadeTail); sr.color = c;
+    }
+    public float Alpha => sr != null ? sr.color.a : 0f;
 
     void Apply()
     {

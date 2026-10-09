@@ -52,6 +52,7 @@ public class spawnGoodStuff : MonoBehaviour {
         redAtomDelayTimer = 10f;
         if (cooldownAtom == null) cooldownAtom = Resources.Load<GameObject>("prefabs/cooldownAtom");
         resetBlueBudget();
+        AtomSpacing.Reset();
 	
 	}
 
@@ -113,6 +114,9 @@ public class spawnGoodStuff : MonoBehaviour {
         atomTimer -= dt * PickupRules.ShieldAtomRate;
         redAtomDelayTimer -= dt;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
+        // No two atoms (this spawner's or the green one's) within
+        // AtomSpacing.Gap: one that comes due inside it waits its turn.
+        AtomSpacing.Tick(dt);
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
@@ -141,7 +145,7 @@ public class spawnGoodStuff : MonoBehaviour {
         // Blue atoms used to arrive every 6-9 seconds, which made a shield and
         // boost routine. They are now a scarce, per-planet allowance.
         int reserve = blueGuaranteeUsed ? 0 : 1;   // always hold one back for the end
-        if (atomTimer <= 0 && blueSpawned < blueBudget - reserve)
+        if (atomTimer <= 0 && blueSpawned < blueBudget - reserve && AtomSpacing.Ready)
         {
             atomDelayTimer = Random.Range(55f, 95f);
             spawnAtom();
@@ -152,7 +156,7 @@ public class spawnGoodStuff : MonoBehaviour {
         // The held-back one, released near the portal.
         if (!blueGuaranteeUsed && WorldManager.Instance != null &&
             WorldManager.Instance.SecondsLeftInWorld <= guaranteeWhenSecondsLeft &&
-            blueSpawned < blueBudget)
+            blueSpawned < blueBudget && AtomSpacing.Ready)
         {
             blueGuaranteeUsed = true;
             spawnAtom();
@@ -161,14 +165,14 @@ public class spawnGoodStuff : MonoBehaviour {
         }
         // Red atoms were arriving every 5-10 seconds, so pauses were effectively
         // unlimited. Now a fixed allowance per planet, spread across the level.
-        if (redAtomDelayTimer <= 0 && redSpawned < redBudget)
+        if (redAtomDelayTimer <= 0 && redSpawned < redBudget && AtomSpacing.Ready)
         {
             redAtomDelayTimer = Random.Range(50f, 90f);
             spawnRedAtom();
             redSpawned++;
         }
 
-        if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget)
+        if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget && AtomSpacing.Ready)
         {
             cooldownAtomDelayTimer = PickupRules.CooldownAtomRepeatDelay();
             spawnCooldownAtom();
@@ -199,17 +203,20 @@ public class spawnGoodStuff : MonoBehaviour {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         // spawn 3 enimies at the same time
         AtomSpin.AddTo(Place(Atom, randomStarPos));
+        AtomSpacing.Released();
 
     }
     void spawnRedAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(redAtom, randomStarPos));
+        AtomSpacing.Released();
     }
     void spawnCooldownAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(cooldownAtom, randomStarPos));
+        AtomSpacing.Released();
     }
 
     // Placement only (SpawnSpace): a pickup lands clear of the enemies'
@@ -223,6 +230,7 @@ public class spawnGoodStuff : MonoBehaviour {
         pos = SpawnSpace.PickupSpot(pos, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Instantiate(prefab, pos, transform.rotation) as GameObject;
         PickupArt.ApplyInGameScale(go, prefab);
+        PickupGlow.Dress(go);   // star dust's soft halo (atoms: AtomSpin.AddTo)
         SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
         return go;
     }

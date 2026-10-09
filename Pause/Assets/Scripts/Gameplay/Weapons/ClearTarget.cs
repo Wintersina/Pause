@@ -39,6 +39,7 @@ public class ClearTarget : MonoBehaviour
     [System.NonSerialized] public int SensedStep = -1;
     [System.NonSerialized] public bool SensedMeasured;   // false: first sight, SensedVelocity is a guess
     [System.NonSerialized] public EliteShip Elite;   // set by the elite itself when it joins the play
+    [System.NonSerialized] public EliteShip Mother;  // an elite's own drone (drone_deploy): it never crashes into or dodges it
     // Seconds it has been inside the playfield (view, between the rails):
     // hostile fire's spawn-in protection (FriendlyFire.TrackPlayfield).
     [System.NonSerialized] public float PlayfieldSeconds;

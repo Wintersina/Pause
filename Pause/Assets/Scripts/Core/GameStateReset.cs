@@ -51,5 +51,7 @@ public static class GameStateReset
         SpeedRamp.ResetBoost();
         PortalPressure.Reset();
         PlayerInvuln.Reset();
+        // A Replay pins its world after this; any other way out drops it.
+        WorldManager.ClearReplayWorld();
     }
 }

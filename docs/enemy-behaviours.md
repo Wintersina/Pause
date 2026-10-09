@@ -684,6 +684,51 @@ this Unity Mono; `EliteTest`'s two older allocation checks still use it and prov
 * [ ] An exact predictor for weaving bodies (ask `EnemyBrain` where its pattern will be instead of extrapolating a
       straight line) would let elites thread alien lines; today they give weavers extra room instead
 
+## Frost elites
+
+Branch `feature/frost-elites-wired`. Frost had one elite (the Rimebreaker, `breaker` / `ice_ram`); Codex drew four more
+(`Art/Enemies/Elite/Frost/manifest_new_elites.md`: 7-cell flight strips, landed .. damaged) and each got its own brain
+and attack (`Scripts/Gameplay/Elites/FrostElites.cs`), all launching from the Frost backdrop's ground sites. Like
+the others they keep 2 hearts, cruise at 1.4-2.9 u/s, wait 3-5 s between attacks and tell every attack for at
+least 0.6 s. Everything below is from headless simulation, tests and preview frames; none of it has been played.
+
+| Elite | Launches from | Brain | Attack |
+|---|---|---|---|
+| Floe Harrower (wide ice barge) | `hangar`, `crawlerbay` | `herder`: holds `followDistance` (2.7) ahead of the pilot; its lane drifts (70% of its speed) toward where the pilot is heading, `Lead` 1.1 s of the pilot's drift ahead, at most `laneOffset` (1.2) | `floe_cast`: tell 0.8 s planted, chutes glowing, the gap chosen and (from 40% of the tell) a sight line blinking down its lane; then `shotCount` (4) ice slabs glide out of alternate chutes 60 ms apart (`hazardSeconds` 0.45) onto a staggered row across the whole board, led by the scroll so it is `lobAhead` (2.0) ahead of the pilot when the lance comes -- 5 slots, one left open beside the pilot toward the middle; the slabs ride the board drifting `hazardSpeed` (0.18 u/s), glance off the rails, block shots (`hazardArmour` 3 hits) and hurt on touch. 0.15 s after the last slab one lance (bolt, 7 u/s) goes down the gap's lane to the pilot's height: keep out of the gap's lane until it has passed, then slip in before the row arrives |
+| Cryo Siren (spine hull, coolant dish) | `rigbay` | `kiter`: keeps `keepDistance` (3.0) on a bearing within 40 deg of straight above the pilot, jittering; crowded (under 75% of that) it backpedals in stutter steps (0.22 s bursts straight away at x1.5, 0.22 s pauses) until back at 95% of its range, holding fire. `avoidance` 1.0: it flees whatever comes at it | `frost_bloom`: tell 0.6 s (the dish charges); a slow cryo orb (2.4 u/s) out of the forward outlet on a fuse ring that blinks faster as it runs down; after `hazardSeconds` (0.8) it bursts into a ring of `hazardCount` (8) shards at `hazardSpeed` (3.0). Shot first, it pops. Every third attack is a beam instead: a 0.96 s tell in which the sight line swings across the arc (16 deg either side of the pilot) then locks on its start, then a 0.55 s sweep of fast bolts (8 u/s, every 35 ms) across it |
+| Glacier Tender (boxy tug, 4 drone pods) | `crawlerbay` | `tender`: hovers `topMargin` (1.3) under the top, its lane crawling toward halfway between the pilot's and the middle; the pilot within `keepDistance` (1.9): it flees sideways at x1.7 until 1.4x that away. Armoured | `drone_deploy`: tell 0.8 s (pods glow); releases 2-3 drones -- Frost's Flake fighter (`frost_fighter_1`) at `hazardSize` (0.7) scale, its own movers off -- out of its pods, never more than `hazardCount` (3) alive, each on a blinking cyan tether, fanned 38 deg apart `lobAhead` (1.8) below it, never lower than 1.1 u above the pilot. While 2+ live it is shield-linked (a blinking ring): only a pause jump, a shielded ram or a rail costs it a heart. Its drones never crash into or worry it; killing it scuttles them. Drones killed by the pilot pay as Flakes |
+| Whiteout Sentinel (shield wedge, ice plates) | `padring`, `hatch` | `ironclad`: straight legs -- every 1.6 s it fixes a point `followDistance` (1.8) above the pilot and flies there at 60% of its 1.4 u/s -- never dodging (`Steadfast`: no evasion at all), its prow turned on the pilot (`turnsToFace`). Armoured | `armour_shatter`: `hazardCount` (3) plate rims on its prow soak every hit but a pause jump, a shielded ram or a rail, outermost first (0.3 s plate grace); each broken plate blinks a cone from its eye for 0.4 s, then sprays `shotCount` (5) shards along it (12 deg apart). Plated, its own attack is a shard from each side emitter at the pilot. Stripped (the damaged cell), it charges: a 0.9 s tell with a sight line tracking then locked, a 0.7 s dash at `dashSpeed` (6), then 1.6 s limping at 30% |
+
+Framework hooks added for them (`EliteAttack`): `Passive` (every play step), `Absorbs` (a hit soaked, no heart),
+`OnDeath` (tidy up before `End`), `ShowsDamaged`, `Shoots`; `EliteBrain.Steadfast`; new shot kinds `slab` (glide,
+drift, armour) and `orb` (fuse, burst) in `EliteShots`; `ClearTarget.Mother` (a drone's elite: it neither crashes
+into it nor dodges it). New def fields: `hazardSize`, `hazardSeconds`, `hazardCount`, `hazardSpeed`,
+`hazardArmour`.
+
+Rules kept: friendly fire (slabs, orb rings and sprays hit every other hazard; slabs are `Fixed` mass so other
+shots break on them), rails (slabs glance off, ring shards break), the pause jump and the shielded ram always get
+through shield link and plates, `PilotAirspace` / spawn space (drones carry a self-steering `SpawnFootprint`),
+lift-off joins away from the pilot as for every elite.
+
+### Tests
+
+`FrostEliteTest` (in `AllTests`): the roster, strips and cell maps, muzzles / nozzles on solid hull pixels,
+hearts, codex entries; the director launching each from its own site kinds and any free one otherwise; each
+one's life cycle off a pad, attack, and death taking its slabs / orb / drones with it; the herder cutting off the
+lane both ways at a steady height; the slab row (count, stagger, gap beside the pilot toward the middle, no
+overlaps, sight from the wind-up then the lance, the lance down the gap's lane, drift, armour); the kiter's range,
+backpedal and stutter, the orb's fuse and ring, the beam's painted tell and sweep, an orb popping with its Siren;
+the tender's hover, drones from the pods, tethers, fan, floor, shield link on / off, cap, flight; the ironclad's
+straight legs, no evasion, ploughing a rock, facing; plates in order with grace, the telegraphed spray, the
+stripped drawing, the charge and the limp; zero allocations (profiler meter). `EliteTest` counts Frost's five.
+Preview: `FrostElitePreview` (attack-moment frames over the Frost backdrop at phone portrait).
+
+### Progress
+
+* [x] Art installed, points measured, defs, brains, attacks, tests, preview
+* [ ] Play it on a phone: slab row readability at speed, whether the lance feels fair, the Siren's beam arc
+      width, drone count / Tender shield frustration, the Sentinel's spray cone and charge
+
 ## Rails and view
 
 Branch `fix/rails-vetting` (from `integrate/oct05-full-master`). The roster vetted against the reinforced rails
@@ -713,6 +758,19 @@ tests and editor renders only; nothing here has been played.
   clamp is inside the box. Chosen on purpose: a real hazard at the edge of the lane, not decoration.
 * **Motion.** Position on the rail line = rail + spacing + `Slide` (the brain: Patrol, Creep) + `Shove` (the
   shockwave). x is always the rail's. Tested through slides, shoves both ways and a scrolling rail.
+* **Lanes outlive their mines (fix: "sometimes rail mines disappear when you get close to them").** The spawner
+  mounts each mine on the nearest live `RailMineLane` on its side (one lane per side while it lives), usually one
+  spawned seconds earlier and already far down the board, so the spacing can be 10 u or more. The lane removed itself
+  at y -12 whatever rode it, and a mine whose lane is gone destroys itself (`RailMineMount`, no detached mines): a
+  mine mounted 10 u above an old lane vanished, without a blast, as it came down past y -2 -- the ship's rows (on
+  a 21:9 phone the view reaches y -8.7, so anything mounted more than ~3.3 u above its lane could vanish on screen).
+  Since `14fb831a` (Oct 4). Now `RailLaneScroller` keeps its riders (`Board`, `Riders`) and goes past `EndY` only
+  when none is left; the mines leave by the Destroyer strip under the view like every hazard. `RailsVettingTest`
+  "a lane lives while a mine rides it", both rails. Checked and intended, not changed: a pause jump landing within
+  0.95 u erases a mine (a paid teleport kill with its burst, `TeleportFx.Erase`); a shielded or unshielded ram
+  blows it up (`RamKill`); another mine's beam, a boss / elite shot, a crashing free mover or a neighbour's blast
+  kills it with its blast (hostile fire: rail mines are listed targets, `FriendlyFire`); each of those shows an
+  explosion.
 * **Scroll (decision).** Mines ride the board's scroll like every hazard: gameplay position has to agree with
   rocks, pickups and `SpawnSpace`. The rail ART was what disagreed: it advanced one texture tile per unit of
   speed, a tile being 5.2 u (Frost, Verdant) or 6.8 u (Space, Ember), against the board's 30 u. The rail art
@@ -736,14 +794,26 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
 | Phase | Length | What shows | Harmful |
 |---|---|---|---|
 | Windup | the mine's tell, unchanged (Space 0.9, Frost 0.9, Verdant 1.0, Ember 1.1 s) | waking -> charging loop, the charge light | no |
-| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, rail to rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
+| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, from the mine's core to the far rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
 | Beam | `BeamSeconds` 0.4 s | the beam, 0.4 u drawn (the world boss's beam cells, flickering on twos), a muzzle flash at the mine, a spark on the far rail | **yes** |
 | Cool | `CoolSeconds` 0.2 s | the beam flickers and thins out | no |
 
-* **Geometry.** From its own rail's drawn inner face at the mine's current y every frame (it rides the board with
-  the mine), across the lane at this shot's angle to the opposite rail's face: `BossRails.DrawnInnerEdge` (the
-  measured rails, RailInset included), so it is exactly rail to rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every
-  world); `Length` = 2 edge / cos(angle). Blocked by nothing but the rails.
+* **Geometry.** From the mine's muzzle -- its glowing core (`RailMineArt.CoreOffset`, 34-39 atlas px = 0.09-0.10 u
+  toward the lane from the body's centre, measured on the waking / charging cells; `RailMineLaser.MuzzleOf`) --
+  every frame (it rides the board with the mine; laid after `RailMineMount` places the mine, execution order 10),
+  across the lane at this shot's angle to the opposite rail's face: `BossRails.DrawnInnerEdge` (the measured rails,
+  RailInset included), so it reaches exactly the far rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every world);
+  `Length` = (face - muzzle x) / cos(angle). Blocked by nothing but the rails.
+* **Fix: "the rail laser is slightly off from the head of the rails when it shoots upwards at an angle".** The
+  random-angle change pivoted the beam on its own rail's face, behind the mine and 0.26 u outboard of its core: at
+  35 deg the beam crossed the core 0.18 u off (about 35 screen px on a 1080 px phone) and left the sphere near its
+  rim, with the muzzle flash floating above it; and the square-cut far end stopped short of the opposite rail face on
+  one side (a 0.115 u wedge at 35 deg) and poked into the rail on the other. Now everything pivots on the core, and
+  both ends of the drawn beam and aim line are cut along the rails' vertical (a sheared quad: `Span` splits the
+  shear into rotate-scale-rotate), so the far end lies flush on the face at every angle. The muzzle flash sits
+  `FlashAlong` 0.19 u along the beam from the core (the sphere's rim). `RailMineLaserTest` "the muzzle" measures the
+  core on the art and the drawn quads' corners: 40 cases (4 worlds, both rails, -35..35 deg) and +/-35 deg at
+  every phone shape.
 * **Angle.** "Make the lasers from the rail mines be shot at different angles too, randomly." Each shot draws its
   angle when the windup starts (`RailMineLaser.Arm` -> `NextAngle`), so the aim line already shows the exact line:
   uniform within +/-`MaxAngleDeg` 35 deg off horizontal (positive rises toward the far rail; left and right rails
@@ -752,7 +822,7 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
   unchanged; `RailMineLaser.Seed` / `AngleOverride` for tests and previews. At 35 deg the beam rises or falls
   ~3.65 u across the lane and is 0.34 u tall where it crosses a column. The sprites, the hitbox (a BoxCollider2D
   on the rotated beam), `Touches` (an oriented-rect test), the burn (`Burn`: distance to the segment) and a blink
-  (`LandsOn`) all use the one rotated segment `From` -> `To`.
+  (`LandsOn`) all use the one rotated segment `From` (the core) -> `To` (the far face).
 * **Look.** The world boss's own laser art (`BossArt` telegraph and beam cells, `BossAttackFx` flash and spark):
   the hard-edged magenta beam with a white core in Space, Frost and Ember, Verdant's lime. No player red.
 * **Damage.** A trigger box tagged `Enimey` (`RailMineLaser.HitboxName`), `HitThickness` 0.28 u across the beam,

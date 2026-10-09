@@ -472,7 +472,13 @@ public static class HostileReachTest
                         }
                     }
                     if (e == null || e.State == EliteState.Dead || !e.InPlay) { Cleanup(ship, rock); continue; }   // crashed before the jump
-                    if (k % 3 == 1) { e.TakeHit(EliteDamage.PlayerWeapon, (Vector3)e.Position + Vector3.left); }
+                    if (k % 3 == 1)
+                    {
+                        // (the Whiteout Sentinel's plates would soak it: off first, the heart underneath)
+                        var plated = e.Attack as ArmourShatterAttack;
+                        if (plated != null) plated.Strip();
+                        e.TakeHit(EliteDamage.PlayerWeapon, (Vector3)e.Position + Vector3.left);
+                    }
                     if (e.State == EliteState.Dead) { Cleanup(ship, rock); continue; }
                     attempted++;
                     if (e.Hearts >= 2) fromTwo++; else fromOne++;

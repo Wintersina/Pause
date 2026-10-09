@@ -1,0 +1,85 @@
+{
+  "key": "frost_elite_cryo_siren",
+  "displayName": "Cryo Siren",
+  "world": "frost",
+  "role": "cryo kiter",
+  "codexId": "elite_frost_cryo_siren",
+  "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and backing off in nervous little hops when you close in. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. Every third song is a beam: watch the dish paint its arc, then get out of it.",
+  "brain": "kiter",
+  "attack": "frost_bloom",
+  "launchFrom": "rigbay",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.26,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 5,
+  "speed": 2.9,
+  "accel": 7,
+  "turnRate": 260,
+  "aggression": 0.55,
+  "tellSeconds": 0.6,
+  "attackGap": 3.0,
+  "avoidance": 1.0,
+  "lookAhead": 0.7,
+  "perception": 2.6,
+  "actionSeconds": 0.55,
+  "shotCount": 1,
+  "shotSpeed": 8,
+  "shotSpread": 0,
+  "shotSize": 0.16,
+  "shotKind": "bolt",
+  "heartColor": "#5CE8FF",
+  "shotColor": "#8FE9FF",
+  "shotCore": "#F5FDFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.9,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "outlet",
+      "x": 96,
+      "y": 60,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 90,
+      "y": 158,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 102,
+      "y": 159,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.6,
+  "keepDistance": 3.0,
+  "hazardSize": 0.36,
+  "hazardSeconds": 0.8,
+  "hazardCount": 8,
+  "hazardSpeed": 3.0
+}

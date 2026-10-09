@@ -106,13 +106,13 @@ public class spawnGoodStuffTut: MonoBehaviour {
     void spawnSmStar(int pos, Vector3 vPos)
     {
         Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
-        Instantiate(smStar, spawner, transform.rotation);
+        PickupGlow.Dress(Instantiate(smStar, spawner, transform.rotation) as GameObject);
     }
 
     void spawnMidStar(int pos, Vector3 vPos)
     {
         Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
-        Instantiate(midStar, spawner, transform.rotation);
+        PickupGlow.Dress(Instantiate(midStar, spawner, transform.rotation) as GameObject);
     }
 
     // Kept closer to the middle than stars so it is easy to reach. It drops in

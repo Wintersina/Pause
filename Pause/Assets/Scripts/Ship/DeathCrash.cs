@@ -743,10 +743,10 @@ public partial class DeathCrash : MonoBehaviour
     {
         if (fastForward) return;   // a skipped chain plays out unseen
         if (!Application.isPlaying && !EditorBlasts) return;   // edit-mode tests: no pooled flipbooks
-        Color energy = WeaponStyleTable.For(shipId).energy;
-        if (flash) WeaponFx.Flipbook().Play(FlipbookFx.Mode.Flash, at, size * 1.15f, shipId, kind, energy, 1f, 64);
-        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Ring, at, size * 1.3f, shipId, kind, energy, 1f, 65);
-        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Explosion, at, size, shipId, kind, Color.white, 1f, 66);
+        // the shared blast at the master loudness (TargetExplosion.Intensity),
+        // crowd-capped so a chain of blasts never walls off the screen
+        TargetExplosion.Burst(at, kind, size * TargetExplosion.SizeScale, shipId,
+                              .86f * TargetExplosion.HoldScale, flash, 1.15f, 1.3f);
     }
 
     // ---- particles ----

@@ -8,10 +8,14 @@ using UnityEngine;
 //             the blinking aim line over its last AimSeconds, then
 //             BeamSeconds of beam, then CoolSeconds of flicker, then gone;
 //             the mine holds still while the beam burns
-//   SPAN      the beam lies at the mine's y, from its own rail's inner face
-//             to the opposite rail's, follows the mine as the board carries
-//             it, and spans exactly rail to rail at 9:16, 9:19.5, 9:21 and
-//             3:4 in every world (the painted rails, RailInset included)
+//   SPAN      the beam lies at the mine's y, from the mine's core (its
+//             muzzle) to the opposite rail's inner face, follows the mine as
+//             the board carries it, and reaches exactly the opposite rail at
+//             9:16, 9:19.5, 9:21 and 3:4 in every world (the painted rails,
+//             RailInset included), its far end flush with the face
+//   MUZZLE    at every angle, both rails, every world: the drawn beam and aim
+//             line start centred on the core measured on the art, both ends
+//             cut along the rails' vertical
 //   DAMAGE    the hitbox exists in the Beam phase only (the aim line and the
 //             flicker are harmless); unshielded it costs a heart through
 //             collisionDetection; under a shield it is absorbed and the beam
@@ -31,7 +35,7 @@ using UnityEngine;
 //   ANGLES    every shot a random angle within +/-MaxAngleDeg (a varied,
 //             deterministic stream that leaves UnityEngine.Random alone); the
 //             aim line, beam, hitbox, Touches, blink and burn all follow the
-//             rotated segment rail face to rail face; left / right mirror
+//             rotated segment core to rail face; left / right mirror
 //             (the geometry checks above pin AngleOverride = 0)
 public static class RailMineLaserTest
 {
@@ -56,6 +60,7 @@ public static class RailMineLaserTest
         {
             Timing();
             Angles();
+            Muzzle();
             Follows();
             Damage();
             StaysWhenClose();
@@ -312,19 +317,19 @@ public static class RailMineLaserTest
                         {
                             aimSeen = true;
                             var sb = l.SightRenderer.bounds;
-                            Vector2 up = l.SightRenderer.transform.up;
-                            aimOk = Mathf.Abs(l.Angle - deg) < 1e-3f && Vector2.Dot(up, l.Direction) > .9999f &&
-                                    Mathf.Abs(sb.center.x) < .02f && Mathf.Abs(sb.center.y - (l.From.y + l.To.y) * .5f) < .02f;
+                            aimOk = Mathf.Abs(l.Angle - deg) < 1e-3f &&
+                                    QuadError(l.SightRenderer, l, l.From, -s * edge, RailMineLaser.SightWidth, RailMineLaser.SightWidth) == null &&
+                                    Mathf.Abs(sb.center.x - (l.From.x + l.To.x) * .5f) < .02f && Mathf.Abs(sb.center.y - (l.From.y + l.To.y) * .5f) < .02f;
                         }
                         if (l.State == RailMineLaser.Phase.Beam) break;
                     }
                     if (l == null || l.State != RailMineLaser.Phase.Beam) { bad.Add(tag + "no beam"); Cleanup(brain, rail); continue; }
                     if (!aimOk) bad.Add(tag + "aim line not on the beam's line");
-                    float y0 = l.From.y, rise = 2f * edge * Mathf.Tan(deg * Mathf.Deg2Rad);
-                    // rail face to rail face, at the angle, mirrored
-                    if (Mathf.Abs(l.From.x - s * edge) > 1e-3f || Mathf.Abs(y0 - brain.transform.position.y) > 1e-3f ||
-                        Mathf.Abs(l.To.x + s * edge) > 1e-3f || Mathf.Abs(l.To.y - (y0 + rise)) > 1e-3f ||
-                        Mathf.Abs(l.Length - 2f * edge / Mathf.Cos(deg * Mathf.Deg2Rad)) > 1e-3f || Mathf.Sign(l.Direction.x) != -s)
+                    float y0 = l.From.y, span = Mathf.Abs(l.To.x - l.From.x), rise = span * Mathf.Tan(deg * Mathf.Deg2Rad);
+                    // the mine's core to the opposite rail face, at the angle, mirrored
+                    if ((l.From - ExpectedMuzzle(brain.transform, 1)).magnitude > .02f || Mathf.Abs(y0 - brain.transform.position.y) > .02f ||
+                        Mathf.Abs(l.To.x + s * edge) > 1e-3f || Mathf.Abs(l.To.y - (y0 + rise)) > 1e-3f || span < 2f * edge - .5f ||
+                        Mathf.Abs(l.Length - span / Mathf.Cos(deg * Mathf.Deg2Rad)) > 1e-3f || Mathf.Sign(l.Direction.x) != -s)
                         bad.Add(tag + "span " + l.From + " -> " + l.To + " (" + F(l.Length) + ")");
                     if (right) mirror[deg] = l.To - l.From;
                     else if (mirror.TryGetValue(deg, out var rv))
@@ -334,9 +339,11 @@ public static class RailMineLaserTest
                     }
                     // drawn along it
                     var br = l.BeamRenderer.bounds;
-                    float yLo = Mathf.Min(y0, y0 + rise), yHi = Mathf.Max(y0, y0 + rise), pad = RailMineLaser.DrawWidth * .5f + .02f;
-                    if (!l.BeamShown || br.min.x > -edge + .02f || br.max.x < edge - .02f || br.min.y > yLo + .02f || br.max.y < yHi - .02f ||
-                        br.min.x < -edge - pad || br.max.x > edge + pad || br.min.y < yLo - pad || br.max.y > yHi + pad)
+                    // (the ends are cut along the rails: w / 2 cos A above and below the line there)
+                    float yLo = Mathf.Min(y0, y0 + rise), yHi = Mathf.Max(y0, y0 + rise), pad = RailMineLaser.DrawWidth * .5f / Mathf.Cos(deg * Mathf.Deg2Rad) + .02f;
+                    float xLo = Mathf.Min(l.From.x, l.To.x), xHi = Mathf.Max(l.From.x, l.To.x);
+                    if (!l.BeamShown || Mathf.Abs(br.min.x - xLo) > .01f || Mathf.Abs(br.max.x - xHi) > .01f || br.min.y > yLo + .02f || br.max.y < yHi - .02f ||
+                        br.min.y < yLo - pad || br.max.y > yHi + pad)
                         bad.Add(tag + "drawn " + br.min + ".." + br.max);
                     // the hitbox follows the rotated segment: hit on it, miss beside it
                     var box = l.Hitbox.GetComponent<BoxCollider2D>();
@@ -360,8 +367,8 @@ public static class RailMineLaserTest
                 }
         }
         finally { if (probe != null) Object.DestroyImmediate(probe); }
-        Check("pinned at -" + max + ", -20, 0, 12 and " + max + " deg on both rails: the aim line on the exact line, the beam from its own " +
-              "rail's face at the mine's row to the opposite face (rising for + angles on either side: left and right mirror), drawn " +
+        Check("pinned at -" + max + ", -20, 0, 12 and " + max + " deg on both rails: the aim line on the exact line, the beam from the " +
+              "mine's core to the opposite rail's face (rising for + angles on either side: left and right mirror), drawn " +
               "along it, its hitbox and Touches hit on the rotated segment and miss beside it (" + (bad.Count == 0 ? "all" : string.Join("; ", bad)) + ")",
               bad.Count == 0);
 
@@ -424,6 +431,151 @@ public static class RailMineLaserTest
         if (rail != null) Object.DestroyImmediate(rail);
     }
 
+    // ---- 1c. the muzzle: the beam leaves the mine's core at every angle ------
+    //
+    // "The rail laser is slightly off from the head of the rails when it
+    // shoots upwards at an angle." The beam used to pivot on the rail face
+    // behind the mine (0.26 u outboard of its core), so a tilted beam crossed
+    // the core 0.18 u off (35 deg) and left the sphere near its rim, the
+    // muzzle flash floating above it; its square-cut far end left a wedge
+    // short of the opposite rail face. Measured on the drawn quads: both
+    // ends cut along the rails' vertical (the start pair on the core's
+    // x, centred on the core; the end pair exactly on the opposite rail's
+    // face), the long edges along the beam, for the aim line and the beam,
+    // both rails, every world, at -35 .. 35 deg.
+
+    const string AtlasFile = "Assets/Art/Resources/Enemies/Mines/rail_mines_neon.png";
+    static Texture2D atlasPng;
+
+    // The core of a world's mine as drawn: the brightest pixels near the
+    // body in its waking and charging frames (shown through the windup and
+    // the burn), measured on the PNG; image px from the frame's pivot, x
+    // toward the lane (unflipped), y up.
+    public static Vector2 MeasuredCorePx(int world)
+    {
+        if (atlasPng == null)
+        {
+            atlasPng = new Texture2D(2, 2);
+            atlasPng.LoadImage(System.IO.File.ReadAllBytes(AtlasFile));
+        }
+        int h = atlasPng.height;
+        Vector2 sum = Vector2.zero;
+        foreach (int col in new[] { RailMineArt.Waking, RailMineArt.Charging })
+        {
+            Vector2 piv = RailMineArt.PixelPivot(world, col);
+            var best = new List<Vector3>();
+            for (int x = (int)piv.x + 5; x < (int)piv.x + 70; x++)
+                for (int y = (int)piv.y - 30; y < (int)piv.y + 30; y++)
+                {
+                    Color c = atlasPng.GetPixel(x, h - 1 - y);
+                    best.Add(new Vector3(c.r + c.g + c.b, x, y));
+                }
+            best.Sort((p, q) => q.x.CompareTo(p.x));
+            Vector2 c25 = Vector2.zero;
+            for (int i = 0; i < 25; i++) c25 += new Vector2(best[i].y, best[i].z);
+            c25 /= 25f;
+            sum += new Vector2(c25.x - piv.x, piv.y - c25.y);
+        }
+        return sum * .5f;
+    }
+
+    // Where the core of this mine is in the world.
+    static Vector2 ExpectedMuzzle(Transform mine, int world)
+    {
+        Vector2 px = MeasuredCorePx(world) / RailMineArt.PixelsPerUnit;
+        Vector3 p = mine.position, sc = mine.lossyScale;
+        float s = p.x >= 0f ? 1f : -1f;
+        return new Vector2(p.x - s * px.x * Mathf.Abs(sc.x), p.y + px.y * Mathf.Abs(sc.y));
+    }
+
+    // The drawn quad's four corners in the world.
+    static Vector2[] Corners(SpriteRenderer sr)
+    {
+        var b = sr.sprite.bounds;
+        var m = sr.transform.localToWorldMatrix;
+        return new Vector2[]
+        {
+            m.MultiplyPoint3x4(new Vector3(b.min.x, b.min.y, 0f)), m.MultiplyPoint3x4(new Vector3(b.min.x, b.max.y, 0f)),
+            m.MultiplyPoint3x4(new Vector3(b.max.x, b.min.y, 0f)), m.MultiplyPoint3x4(new Vector3(b.max.x, b.max.y, 0f)),
+        };
+    }
+
+    // Does `sr`'s quad run from `muzzle` to the face at `faceX`, both ends cut
+    // along the vertical, `w` wide (lo..hi) across the beam? Null if so.
+    static string QuadError(SpriteRenderer sr, RailMineLaser l, Vector2 muzzle, float faceX, float wLo, float wHi)
+    {
+        if (sr == null || sr.sprite == null) return "no sprite";
+        var c = Corners(sr);
+        System.Array.Sort(c, (p, q) => Vector2.Dot(p - l.From, l.Direction).CompareTo(Vector2.Dot(q - l.From, l.Direction)));
+        Vector2 s0 = c[0], s1 = c[1], e0 = c[2], e1 = c[3];
+        const float tol = 2e-3f;
+        float cos = Mathf.Abs(l.Direction.x);
+        var why = new List<string>();
+        if (Mathf.Abs(s0.x - muzzle.x) > tol || Mathf.Abs(s1.x - muzzle.x) > tol)
+            why.Add("start corners x " + F(s0.x) + "/" + F(s1.x) + " not on the core's " + F(muzzle.x));
+        if (((s0 + s1) * .5f - muzzle).magnitude > tol) why.Add("start centred " + ((s0 + s1) * .5f).ToString("F3") + " not on the core " + muzzle.ToString("F3"));
+        if (Mathf.Abs(e0.x - faceX) > tol || Mathf.Abs(e1.x - faceX) > tol)
+            why.Add("end corners x " + F(e0.x) + "/" + F(e1.x) + " not on the rail face " + F(faceX));
+        if (((e0 + e1) * .5f - l.To).magnitude > tol) why.Add("end centred " + ((e0 + e1) * .5f).ToString("F3") + " not on To " + l.To.ToString("F3"));
+        float w = Mathf.Abs(s0.y - s1.y) * cos / Mathf.Max(1e-4f, sr.sprite.bounds.size.x);   // per unit of the cell's own width
+        if (w < wLo - 1e-3f || w > wHi + 1e-3f) why.Add("width " + F(w) + " not " + F(wLo) + ".." + F(wHi));
+        // the long edges run along the beam
+        Vector2 a = s0.y < s1.y ? s0 : s1, b = e0.y < e1.y ? e0 : e1;
+        if (Vector2.Dot((b - a).normalized, l.Direction) < .99999f) why.Add("edges not along the beam");
+        return why.Count == 0 ? null : string.Join(", ", why);
+    }
+
+    static void Muzzle()
+    {
+        float max = RailMineLaser.MaxAngleDeg;
+        var bad = new List<string>();
+        var cores = new List<string>();
+        for (int w = 0; w < 4; w++) cores.Add(EnemyRoster.WorldKeys[w] + " " + MeasuredCorePx(w).ToString("F1"));
+        int n = 0;
+        for (int w = 0; w < 4; w++)
+            foreach (bool right in new[] { true, false })
+                foreach (float deg in new[] { -max, -20f, 0f, 20f, max })
+                {
+                    Fresh();
+                    RailMineLaser.AngleOverride = deg;
+                    var brain = Mine(w, right, 0f, out var rail);
+                    string tag = EnemyRoster.WorldKeys[w] + (right ? " R " : " L ") + F(deg) + ": ";
+                    float s = right ? 1f : -1f, edge = BossRails.DrawnInnerEdge;
+                    TestHarness.Send(brain.GetComponent<RailMineMount>(), "LateUpdate");
+                    var l = RailMineLasers.Take();
+                    if (l == null) { bad.Add(tag + "no laser"); Cleanup(brain, rail); continue; }
+                    l.Arm(brain.transform, w, RailMineLaser.AimSeconds);
+                    l.Step(.01f);   // the aim line shows
+                    Vector2 muzzle = ExpectedMuzzle(brain.transform, w);
+                    if ((l.From - muzzle).magnitude > .02f) bad.Add(tag + "beam starts at " + l.From.ToString("F3") + ", the mine's core is at " + muzzle.ToString("F3"));
+                    string e = l.SightShown ? QuadError(l.SightRenderer, l, l.From, -s * edge, RailMineLaser.SightWidth, RailMineLaser.SightWidth) : "aim line not shown";
+                    if (e != null) bad.Add(tag + "aim line: " + e);
+                    l.Fire();
+                    l.Place();
+                    e = l.BeamShown ? QuadError(l.BeamRenderer, l, l.From, -s * edge, RailMineLaser.DrawWidth * .85f, RailMineLaser.DrawWidth) : "beam not shown";
+                    if (e != null) bad.Add(tag + "beam: " + e);
+                    if (Mathf.Abs(l.To.x + s * edge) > 1e-3f) bad.Add(tag + "To " + l.To.ToString("F3") + " not on the opposite face " + F(-s * edge));
+                    n++;
+                    l.Recycle();
+                    Cleanup(brain, rail);
+                }
+        Check("the beam and the aim line leave the mine's core (measured on the art: " + string.Join(", ", cores) + " px) and end flush on the " +
+              "opposite rail's face, both ends cut along the rails, at -" + max + " .. " + max + " deg on both rails in every world (" + n + " cases; " +
+              (bad.Count == 0 ? "all" : bad.Count + " off: " + string.Join("; ", bad.GetRange(0, Mathf.Min(bad.Count, 12)))) + ")",
+              bad.Count == 0 && n == 40);
+
+        // the beam is laid after the mount has put the mine where it is this
+        // frame: RailMineLaser's LateUpdate runs after RailMineMount's
+        int Order(System.Type t)
+        {
+            var a = (DefaultExecutionOrder)System.Attribute.GetCustomAttribute(t, typeof(DefaultExecutionOrder));
+            return a != null ? a.order : 0;
+        }
+        Check("the beam is laid after the mine is placed each frame (execution order: mount " + Order(typeof(RailMineMount)) + ", laser " +
+              Order(typeof(RailMineLaser)) + ")", Order(typeof(RailMineLaser)) > Order(typeof(RailMineMount)));
+        RailMineLaser.AngleOverride = 0f;
+    }
+
     // ---- 2. it lies on the mine's row and follows it -------------------------
 
     static void Follows()
@@ -438,19 +590,21 @@ public static class RailMineLaserTest
             if (l == null) { Check("a laser fired", false); continue; }
             float edge = BossRails.DrawnInnerEdge, s = right ? 1f : -1f;
             float y0 = l.Y;
-            Check((right ? "right" : "left") + " mine: the beam runs from its own rail's face " + F(l.From.x) + " to the opposite rail's " +
+            Vector2 core = ExpectedMuzzle(brain.transform, 0);
+            Check((right ? "right" : "left") + " mine: the beam runs from the mine's core " + F(l.From.x) + " (" + F(core.x) + ") to the opposite rail's face " +
                   F(l.To.x) + " (+/-" + F(edge) + "), level with the mine (" + F(l.Y) + " vs " + F(brain.transform.position.y) + ")",
-                  Mathf.Abs(l.From.x - s * edge) < 1e-4f && Mathf.Abs(l.To.x + s * edge) < 1e-4f &&
+                  (l.From - core).magnitude < .02f && Mathf.Abs(l.To.x + s * edge) < 1e-4f &&
                   Mathf.Abs(l.Y - brain.transform.position.y) < 1e-4f && Mathf.Abs(l.From.y - l.To.y) < 1e-5f &&
-                  Mathf.Abs(l.Length - 2f * edge) < 1e-4f);
+                  Mathf.Abs(l.Length - Mathf.Abs(l.To.x - l.From.x)) < 1e-4f);
             var br = l.BeamRenderer.bounds;
+            float xLo = Mathf.Min(l.From.x, l.To.x), xHi = Mathf.Max(l.From.x, l.To.x);
             Check("... drawn across exactly that span (" + F(br.min.x) + " .. " + F(br.max.x) + "), " + F(br.size.y) + " u thick",
-                  Mathf.Abs(br.min.x + edge) < .01f && Mathf.Abs(br.max.x - edge) < .01f && br.size.y <= RailMineLaser.DrawWidth + 1e-3f);
+                  Mathf.Abs(br.min.x - xLo) < .01f && Mathf.Abs(br.max.x - xHi) < .01f && br.size.y <= RailMineLaser.DrawWidth + 1e-3f);
             var box = l.Hitbox.GetComponent<BoxCollider2D>();
             Physics2D.SyncTransforms();
             var bb = box.bounds;
             Check("... its hitbox too, " + F(bb.size.y) + " u thick (" + RailMineLaser.HitThickness + ")",
-                  Mathf.Abs(bb.min.x + edge) < .01f && Mathf.Abs(bb.max.x - edge) < .01f &&
+                  Mathf.Abs(bb.min.x - xLo) < .01f && Mathf.Abs(bb.max.x - xHi) < .01f &&
                   Mathf.Abs(bb.size.y - RailMineLaser.HitThickness) < .01f && box.isTrigger && box.CompareTag("Enimey"));
             // the board carries the mine down: the beam goes with it
             rail.transform.position += Vector3.down * .5f;
@@ -587,7 +741,7 @@ public static class RailMineLaserTest
     // "The lasers randomly disappear when the ship gets close." On both rails,
     // with the ship at several places along the beam: a pause jump landing
     // NEAR the beam (the hull clear of it) leaves it burning its full
-    // BeamSeconds, drawn rail to rail; one landing ON it erases it (a blink);
+    // BeamSeconds, drawn mine to far rail; one landing ON it erases it (a blink);
     // an unshielded touch costs a heart and the beam burns on.
 
     // Runs the rest of a live beam; how long it stayed in the Beam phase,
@@ -602,7 +756,9 @@ public static class RailMineLaserTest
             if (l.State == RailMineLaser.Phase.Beam)
             {
                 var b = l.BeamRenderer.bounds;
-                drawn &= l.BeamShown && b.min.x < -edge + .05f && b.max.x > edge - .05f;
+                // core to the far rail's face
+                drawn &= l.BeamShown && Mathf.Abs(b.min.x - Mathf.Min(l.From.x, l.To.x)) < .05f && Mathf.Abs(b.max.x - Mathf.Max(l.From.x, l.To.x)) < .05f &&
+                         Mathf.Abs(Mathf.Abs(l.To.x) - edge) < .01f;
             }
             Step(brain);
             if (l.State == RailMineLaser.Phase.Beam) burned += Dt;
@@ -657,7 +813,7 @@ public static class RailMineLaserTest
                     Object.DestroyImmediate(rail);
                 }
             Check(side + " rail: a pause jump landing beside the beam, the hull clear of it, leaves it burning its full " +
-                  RailMineLaser.BeamSeconds + " s, drawn rail to rail (" + (near.Count == 0 ? "all" : "vanished: " + string.Join(", ", near)) + ")",
+                  RailMineLaser.BeamSeconds + " s, drawn from the mine to the far rail (" + (near.Count == 0 ? "all" : "vanished: " + string.Join(", ", near)) + ")",
                   near.Count == 0);
             Check(side + " rail: a pause jump landing on the beam erases it (" + (on.Count == 0 ? "all" : "survived: " + string.Join(", ", on)) + ")",
                   on.Count == 0);
@@ -895,6 +1051,7 @@ public static class RailMineLaserTest
                 WorldPainter.VisibleRailEdges(GameObject.Find("leftPipe"), out float inL, out float outL);
                 WorldPainter.VisibleRailEdges(GameObject.Find("rightPipe"), out float inR, out float outR);
                 float halfW = cam.orthographicSize * cam.aspect;
+                int w = System.Array.IndexOf(WorldManager.Worlds, theme);
                 foreach (bool right in new[] { true, false })
                 {
                     n++;
@@ -903,11 +1060,29 @@ public static class RailMineLaserTest
                     float own = right ? inR : -inL, other = right ? -inL : inR;
                     if (Mathf.Abs(from - own) > .005f || Mathf.Abs(to - other) > .005f || Mathf.Abs(from) > halfW || Mathf.Abs(to) > halfW)
                         bad.Add(id + " " + theme.displayName + (right ? " R" : " L") + " " + F(from) + ".." + F(to) + " rails " + F(-inL) + "/" + F(inR));
+                    // a real mine on that rail, its beam at both extremes: from its core, flush on the painted face
+                    var mine = EnemyFactory.Create(EnemyRoster.One(w, EnemyRole.Mine), new Vector3(mx, 0f, 0f), Quaternion.identity);
+                    foreach (float deg in new[] { -RailMineLaser.MaxAngleDeg, RailMineLaser.MaxAngleDeg })
+                    {
+                        RailMineLaser.AngleOverride = deg;
+                        var l = RailMineLasers.Take();
+                        if (l == null) { bad.Add(id + " no laser"); continue; }
+                        l.Arm(mine.transform, w, RailMineLaser.AimSeconds);
+                        l.Fire();
+                        l.Place();
+                        string e = QuadError(l.BeamRenderer, l, l.From, to, RailMineLaser.DrawWidth * .85f, RailMineLaser.DrawWidth);
+                        Vector2 core = ExpectedMuzzle(mine.transform, w);
+                        if ((l.From - core).magnitude > .02f) e = (e == null ? "" : e + ", ") + "starts at " + l.From.ToString("F3") + " not the core " + core.ToString("F3");
+                        if (e != null) bad.Add(id + " " + theme.displayName + (right ? " R " : " L ") + F(deg) + ": " + e);
+                        l.Recycle();
+                    }
+                    RailMineLaser.AngleOverride = null;
+                    Object.DestroyImmediate(mine);
                 }
             }
         }
-        Check("at 9:16, 9:19.5, 9:21 and 3:4 in every world a mine's beam spans exactly from its own rail's drawn inner face to the " +
-              "opposite one's, on screen (" + n + " cases; " + string.Join(", ", bad) + ")", bad.Count == 0 && n == 32);
+        Check("at 9:16, 9:19.5, 9:21 and 3:4 in every world a mine's beam spans to the opposite rail's drawn inner face, on screen, and " +
+              "at +/-" + RailMineLaser.MaxAngleDeg + " deg its drawn quad leaves the mine's core and ends flush on that face (" + n + " cases; " + string.Join(", ", bad) + ")", bad.Count == 0 && n == 32);
         ScreenInfo.ClearOverride();
     }
 }

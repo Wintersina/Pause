@@ -106,8 +106,8 @@ public class EliteDef
     public string lore;
 
     // ---- personality ----
-    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | breaker | warden | bastion | reaver | lancer | tug
-    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | ice_ram | resin_mortar | ward_curtain | crescent_volley | rift_rail | gravity_sling
+    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | breaker | warden | bastion | reaver | lancer | tug | herder | kiter | tender | ironclad
+    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | ice_ram | resin_mortar | ward_curtain | crescent_volley | rift_rail | gravity_sling | floe_cast | frost_bloom | drone_deploy | armour_shatter
 
     // ---- body ----
     public float cellWorldSize = 1.4f;  // one strip cell, world units
@@ -132,8 +132,8 @@ public class EliteDef
     public float perception = 2.4f;     // u/s its idea of where the pilot is catches up after a teleport
     public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go
     public float circleRadius = 1.9f;   // striker / reaver: circling radius
-    public float keepDistance = 2.6f;   // skirmisher: preferred distance
-    public float topMargin = 1.5f;      // siege: distance below the top of the view
+    public float keepDistance = 2.6f;   // skirmisher / kiter: preferred distance; tender: how close the pilot may come before it flees
+    public float topMargin = 1.5f;      // siege / tender: distance below the top of the view
 
     // ---- attack tuning ----
     public float actionSeconds = .5f;   // how long the action frame / move lasts
@@ -150,6 +150,13 @@ public class EliteDef
     public float lobSpacing = .7f;      // resin_mortar / ward_curtain: world units between the spots of the row
     public float lobAhead = 1.6f;       // resin_mortar: how far ahead of the pilot the row lands; gravity_sling: the well
     public float poolSeconds = 4f;      // glob: how long the landed pool lingers
+
+    // ---- hazards (Frost's floe_cast / frost_bloom / drone_deploy / armour_shatter) ----
+    public float hazardSize = .6f;      // floe_cast: an ice slab's world size; frost_bloom: the cryo orb's; drone_deploy: a drone's scale
+    public float hazardSeconds = .8f;   // floe_cast: a slab's glide out to its spot; frost_bloom: the orb's fuse
+    public int hazardCount = 3;         // frost_bloom: shards in the burst ring; drone_deploy: most drones at once; armour_shatter: ice plates
+    public float hazardSpeed = .2f;     // floe_cast: the slabs' sideways drift; frost_bloom: the ring shards' speed; drone_deploy: a drone's speed
+    public int hazardArmour = 3;        // floe_cast: player hits a slab soaks before it breaks
 
     // ---- colours (hex) ----
     public string heartColor = "#C85AFF";   // hearts: magenta / violet / cyan, never the player's red

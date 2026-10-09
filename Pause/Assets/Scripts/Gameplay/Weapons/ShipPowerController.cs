@@ -288,6 +288,15 @@ public class ShipPowerController : MonoBehaviour
         timer = Mathf.Max(0f, timer - seconds);
     }
 
+    // A blue or green atom was caught (collisionDetection): its cut to the
+    // countdown (ReduceTimer) is shown as a pulse of the charge read-out in
+    // the atom's colour. Star dust cuts silently -- it comes in clusters.
+    public void AtomCharged(Color colour)
+    {
+        // a held / transition-frozen charge took no cut: nothing to show
+        if (indicator != null && !ChargeHeld) indicator.FlashAtom(colour);
+    }
+
     // The tutorial's power step: a fresh, empty charge of `seconds` that
     // only pickups fill (ChargeMode.PickupsOnly), so it goes off after
     // exactly the atoms it was sized for.

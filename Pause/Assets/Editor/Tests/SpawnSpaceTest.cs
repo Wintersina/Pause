@@ -479,7 +479,7 @@ public static class SpawnSpaceTest
                             foreach (var r in Object.FindObjectsByType<RailLaneScroller>(FindObjectsSortMode.None))
                             {
                                 r.transform.position += Vector3.down * v * dt;
-                                if (r.transform.position.y < -12f) Object.DestroyImmediate(r.gameObject);   // RailLaneScroller
+                                if (r.transform.position.y < RailLaneScroller.EndY && r.Riders == 0) Object.DestroyImmediate(r.gameObject);   // RailLaneScroller: not while a mine rides it
                             }
                             // LateUpdate: the brains run their patterns (EnemyBrain), mines
                             // settle on their rails, then the chasers steer

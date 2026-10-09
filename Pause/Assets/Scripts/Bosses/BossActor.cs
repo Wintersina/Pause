@@ -667,7 +667,8 @@ public class BossActor : MonoBehaviour
 
     static readonly float[] BlastTimes = { 0f, .12f, .26f, .4f };
 
-    TargetExplosion.Kind ExplosionKind => boss.artKey == "Ember" ? TargetExplosion.Kind.Rock : TargetExplosion.Kind.Metal;
+    // the boss bursts in its world's material (Space metal, Frost ice, Verdant spore, Ember magma)
+    public TargetExplosion.Kind ExplosionKind => TargetExplosion.KindForWorld(boss.artKey);
 }
 
 // Marks the boss's body hitbox as the target of the ship's attacks. It is a
@@ -694,7 +695,9 @@ public class BossTarget : MonoBehaviour, IShipAttackTarget
     public void TakeShipAttack(int ship, float weight, Vector3 at)
     {
         var encounter = BossEncounter.Instance;
-        TargetExplosion.Spawn(transform.position + Vector3.down * .35f, TargetExplosion.Kind.Metal,
+        var actor = GetComponentInParent<BossActor>();
+        TargetExplosion.Spawn(transform.position + Vector3.down * .35f,
+                              actor != null ? actor.ExplosionKind : TargetExplosion.Kind.Metal,
                               weight >= .5f ? TargetExplosion.Size.Medium : TargetExplosion.Size.Small, ship);
         collisionDetection.PlayExplosion();
         if (encounter != null) encounter.OnShipAttackHit(weight, at);

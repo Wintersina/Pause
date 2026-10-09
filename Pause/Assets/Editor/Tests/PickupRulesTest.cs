@@ -89,6 +89,7 @@ public static class PickupRulesTest
         var c = new Counts();
         foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
+            if (t == null) continue;   // a child of a clone destroyed above (an atom's PickupGlow halo / ring)
             string n = t.name;
             if (!n.EndsWith("(Clone)")) continue;
             if (n.StartsWith("smStar1")) c.small++;

@@ -158,14 +158,20 @@ public class PauseQuickActions : MonoBehaviour
             // The old persistent listeners lived behind a paused/death canvas
             // and were easy to block. These live copies call the action
             // directly, above every gameplay raycast blocker.
+            //
+            // A fresh event each, not RemoveAllListeners: Instantiate copies
+            // the source's PERSISTENT onClick (buttonClicks.replay /
+            // mainMenuButton, wired in the scene), which RemoveAllListeners
+            // never touches -- so every tap ran the action twice and loaded
+            // the scene twice back to back.
             if (replay != null)
             {
-                replay.onClick.RemoveAllListeners();
+                replay.onClick = new Button.ButtonClickedEvent();
                 replay.onClick.AddListener(clicks.replay);
             }
             if (leave != null)
             {
-                leave.onClick.RemoveAllListeners();
+                leave.onClick = new Button.ButtonClickedEvent();
                 leave.onClick.AddListener(clicks.mainMenuButton);
             }
         }

@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using System.Collections.Generic;
 using System.Reflection;
 
 // Covers the second 2026-09-07 batch:
@@ -161,6 +162,22 @@ public static class NextFeatures0907Test
 
     // ---- 3: pause-time quick actions ---------------------------------------
 
+    // The method names of an event's runtime (AddListener) calls.
+    static List<string> RuntimeMethods(UnityEngine.Events.UnityEventBase e)
+    {
+        const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
+        var names = new List<string>();
+        var calls = typeof(UnityEngine.Events.UnityEventBase).GetField("m_Calls", F)?.GetValue(e);
+        var runtime = calls?.GetType().GetField("m_RuntimeCalls", F)?.GetValue(calls) as System.Collections.IList;
+        if (runtime == null) return names;
+        foreach (var call in runtime)
+        {
+            var del = call.GetType().GetField("Delegate", F | BindingFlags.Public)?.GetValue(call) as System.Delegate;
+            names.Add(del != null ? del.Method.Name : "?");
+        }
+        return names;
+    }
+
     static void PauseQuickActionsVisibility()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
@@ -202,17 +219,18 @@ public static class NextFeatures0907Test
               lRect.anchoredPosition.x + 0.01f < rRect.anchoredPosition.x - PauseQuickActions.ButtonSize);
         Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
 
+        // Exactly one call per tap: the clone's own runtime listener, none of
+        // the scene button's persistent calls (Instantiate copies them, and
+        // with both the action ran twice -- two scene loads per tap).
         var replayButton = replay.GetComponent<UnityEngine.UI.Button>();
-        bool wiredToReplay = false;
-        for (int i = 0; i < replayButton.onClick.GetPersistentEventCount(); i++)
-            if (replayButton.onClick.GetPersistentMethodName(i) == "replay") wiredToReplay = true;
-        Check("replay clone still calls buttonClicks.replay()", wiredToReplay);
+        Check("replay clone calls buttonClicks.replay() once (runtime only)",
+              replayButton.onClick.GetPersistentEventCount() == 0 &&
+              string.Join(",", RuntimeMethods(replayButton.onClick)) == "replay");
 
         var leaveButton = leave.GetComponent<UnityEngine.UI.Button>();
-        bool wiredToLeave = false;
-        for (int i = 0; i < leaveButton.onClick.GetPersistentEventCount(); i++)
-            if (leaveButton.onClick.GetPersistentMethodName(i) == "mainMenuButton") wiredToLeave = true;
-        Check("leave clone still calls buttonClicks.mainMenuButton()", wiredToLeave);
+        Check("leave clone calls buttonClicks.mainMenuButton() once (runtime only)",
+              leaveButton.onClick.GetPersistentEventCount() == 0 &&
+              string.Join(",", RuntimeMethods(leaveButton.onClick)) == "mainMenuButton");
 
         // The same high-priority controls remain available after death. This
         // avoids the old death dialog eating taps intended for its lower-canvas
