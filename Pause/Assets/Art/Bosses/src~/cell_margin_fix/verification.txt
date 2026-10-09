@@ -1,0 +1,45 @@
+Atlas  Cell  Sides  Max alpha within 6 px  Body IoU  All opaque IoU
+Body = largest 4-connected component of original alpha > 200; detached debris excluded.
+Space  r0c0  R       0                  1.0000    0.9927
+Space  r0c1  L       0                  0.9805    0.9805
+Space  r0c2  LR      0                  0.9943    0.9938
+Space  r0c3  L       0                  0.9890    0.9890
+Space  r0c4  L       0                  0.9937    0.9937
+Space  r1c0  R       0                  0.9976    0.9976
+Space  r1c1  B       0                  0.9840    0.9840
+Space  r1c2  L       0                  0.9969    0.9969
+Space  r1c3  L       0                  0.9985    0.9985
+Space  r1c4  RTB     0                  0.9824    0.9824
+Space  r2c0  B       0                  1.0000    0.9991
+Space  r2c1  LT      0                  0.9843    0.9842
+Space  r2c2  LRB     0                  0.9940    0.9903
+Space  r2c3  LRB     0                  0.9911    0.9875
+Space  r2c4  LRTB    0                  0.9924    0.9835
+Space  r3c0  RT      0                  1.0000    0.9326
+Space  r3c1  L       0                  1.0000    0.9184
+Space  r3c2  LRT     0                  0.9811    0.9808
+Space  r3c3  LRT     0                  0.9802    0.9801
+Space  r3c4  LT      0                  0.9808    0.9807
+Space  r6c0  LR      0                  0.9848    0.9848
+Space  r6c1  LR      0                  0.9950    0.9947
+Frost  r0c0  RB      0                  0.9814    0.9814
+Frost  r0c1  LB      0                  0.9953    0.9932
+Frost  r0c2  B       0                  0.9960    0.9960
+Frost  r0c3  B       0                  0.9960    0.9960
+Frost  r0c4  B       0                  0.9931    0.9900
+Frost  r1c0  RB      0                  0.9812    0.9812
+Frost  r1c1  LB      0                  0.9950    0.9922
+Frost  r1c2  B       0                  0.9947    0.9947
+Frost  r1c3  B       0                  0.9944    0.9944
+Frost  r1c4  B       0                  0.9848    0.9848
+Frost  r2c0  RTB     0                  0.9806    0.9806
+Frost  r2c1  LTB     0                  0.9810    0.9762
+Frost  r2c2  RTB     0                  0.9843    0.9819
+Frost  r2c3  B       0                  0.9887    0.9850
+Frost  r2c4  TB      0                  0.9903    0.9870
+Frost  r3c0  RT      0                  1.0000    0.9551
+Frost  r3c1  LT      0                  1.0000    0.9858
+Frost  r3c2  T       0                  1.0000    0.9995
+Frost  r3c3  T       0                  1.0000    0.9998
+Frost  r3c4  T       0                  1.0000    0.9998
+Fixed 42 cells; untouched cells are byte-identical at the pixel level.
