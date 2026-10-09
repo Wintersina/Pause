@@ -435,7 +435,10 @@ public static class ScreenFitScreens
     // the action, each swatch and the close button finger-sized; the drawn
     // swatch chips PopupChipGapPt apart; and the card itself beside its ship
     // (not over it), its tail pointing at it.
-    public const float PopupSmallPt = 11f, PopupNamePt = 13f, PopupActionPt = 16f, PopupChipGapPt = 8f;
+    // (The card is drawn at DockPopup.PopupScale, so its type floors are the
+    // originals (11 / 13 / 16 pt) times that; touch targets are NOT scaled.)
+    public const float PopupSmallPt = 11f * DockPopup.PopupScale, PopupNamePt = 13f * DockPopup.PopupScale,
+                       PopupActionPt = 16f * DockPopup.PopupScale, PopupChipGapPt = 8f;
 
     static void PopupChecks(ScreenFitRig rig, SpaceDock dock, int selected)
     {

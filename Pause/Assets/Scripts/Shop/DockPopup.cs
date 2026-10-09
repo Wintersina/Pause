@@ -38,7 +38,14 @@ public class DockPopup : MonoBehaviour
     public const float StartSpeedLineHeight = 18f;
     public const float OwnedHeight = BaseHeight + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight;
     public const float TailUnits = 14f;
-    public const float CloseSize = 48f;
+    // The whole card is drawn at this fraction of its original size (the
+    // layout above is the original, 100%): one constant, applied to the unit
+    // in SetDensity, so type, chips, buttons and the card all shrink together.
+    public const float PopupScale = .85f;
+    // Touch targets keep the platform minimum (48 dp / 44 pt) however small
+    // the card is drawn: this many canvas units is 48 points at PopupScale.
+    public const float HitUnits = 48f / PopupScale;
+    public const float CloseSize = HitUnits;
     // The type sizes (units).
     public const int TitleSize = 17, TitleMinSize = 13, StatusSize = 13, PriceSize = 17, SmallSize = 12, ButtonSize = 18;
 
@@ -130,7 +137,7 @@ public class DockPopup : MonoBehaviour
     // card keeps that size unless it would not fit the safe view.
     public void SetDensity(float worldPerPoint)
     {
-        float u = worldPerPoint > 0f ? worldPerPoint : DefaultUnit;
+        float u = (worldPerPoint > 0f ? worldPerPoint : DefaultUnit) * PopupScale;
         if (safeView.width > 0f) u = Mathf.Min(u, safeView.width / PanelWidth);
         if (safeView.height > 0f) u = Mathf.Min(u, safeView.height / (OwnedHeight + TailUnits));
         Unit = u;
@@ -214,6 +221,9 @@ public class DockPopup : MonoBehaviour
         buttonImage = buttonRect.gameObject.AddComponent<Image>();
         buttonImage.sprite = DockArt.Get("button", 8f);
         buttonImage.type = Image.Type.Sliced;
+        // drawn ButtonHeight tall, its touch target HitUnits (grows up and down)
+        float actionPad = Mathf.Max(0f, (HitUnits - ButtonHeight) * .5f);
+        buttonImage.raycastPadding = new Vector4(0f, -actionPad, 0f, -actionPad);
         var button = buttonRect.gameObject.AddComponent<Button>();
         button.targetGraphic = buttonImage;
         var colors = button.colors;
@@ -242,8 +252,11 @@ public class DockPopup : MonoBehaviour
         var hit = rt.gameObject.AddComponent<Image>();
         hit.color = new Color(0f, 0f, 0f, 0f);
         hit.raycastTarget = true;
-        float pad = (CloseSize - 28f) * .5f;
-        hit.raycastPadding = new Vector4(-pad, -pad, -pad, -pad);
+        // The target grows inward only (left and down): the drawn X sits 8 from
+        // the card's corner, so reaching 8 outward would just touch the card
+        // edge, and the card may sit against the screen edge.
+        float grow = CloseSize - 28f - 8f;
+        hit.raycastPadding = new Vector4(-grow, -grow, -8f, -8f);
         var label = Label("X", rt, font, 16, TextAnchor.MiddleCenter, AkiraPalette.Muted);
         label.fontStyle = FontStyle.Bold;
         label.text = "X";
@@ -302,14 +315,15 @@ public class DockPopup : MonoBehaviour
     // the drawn chips ~15 apart so a finger lands on one or the other.
     const float SkinRowTop = Pad + HeaderHeight + 6f;
     const float ChipW = 40f, ChipH = 24f;
-    const float SlotW = (PanelWidth - 2f * Pad) / ShipSkins.PerShip;
+    // The slots tile the whole card width (the outer ones reach into its
+    // padding) so each is a finger wide even at PopupScale.
+    const float SlotW = PanelWidth / ShipSkins.PerShip;
     const float SlotContent = ChipH + 4f + 14f;   // chip, gap, price line
 
     void BuildSkinRow()
     {
         skinRow = Rect("Skins", panel);
-        float rowW = PanelWidth - 2f * Pad;
-        Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -SkinRowTop), new Vector2(rowW, SkinRowHeight), new Vector2(.5f, 1f));
+        Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -SkinRowTop), new Vector2(PanelWidth, SkinRowHeight), new Vector2(.5f, 1f));
         float top = (SkinRowHeight - SlotContent) * .5f;   // the slot's overhang above the chip
         for (int n = 0; n < swatches.Length; n++)
         {
@@ -319,7 +333,7 @@ public class DockPopup : MonoBehaviour
                   new Vector2(ChipW, ChipH), new Vector2(.5f, .5f));
             // The touch target is the whole slot (chip, price, half of each
             // gap): 2 units narrower than the slot so neighbours never touch.
-            w.hit = Chip(w.root, "Hit", null, new Vector2(SlotW - 2f, SkinRowHeight));
+            w.hit = Chip(w.root, "Hit", null, new Vector2(SlotW - 2f, HitUnits));
             w.hit.rectTransform.anchoredPosition = new Vector2(0f, ChipH * .5f + top - SkinRowHeight * .5f);
             w.hit.color = new Color(0f, 0f, 0f, 0f);
             w.hit.raycastTarget = true;
