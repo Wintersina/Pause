@@ -161,6 +161,7 @@ read or written by the game), the Top Speed leaderboard (table row, submission, 
   for a stock ship (it now holds 35 where it used to creep to 38-44: up to 20% less trickle for those
   seconds), and nothing is paid while a portal is kept waiting past its grace (anti-farm). A faster
   ship earns the same per level but more levels per run.
+* **Reward scale.** Since the dust-economy change the trickle is paid at `ScoreRules.DustRewardScale` (0.60) of the per-level figures above (see docs/economy.md).
 * **Saves.** `ProgressSnapshot.highestSpeed` stays in the cloud-save format as a legacy field: it still
   round-trips and merges (max), so an older build on another device keeps its value and old saves load.
   The game no longer uses it.
