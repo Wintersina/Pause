@@ -26,13 +26,30 @@ public static class BackdropGrade
         return Mathf.Max(1f, 1f + (b - 1f) * share);
     }
 
+    // The lift of a layer of `spec` on variant set `variant`: the world's,
+    // times its variant brightness (Spec.variantBrightness; a night side
+    // < 1 draws darker: k < 1 is a darkening curve).
+    public static float Lift(BackdropCatalog.Spec spec, BackdropCatalog.Layer layer, int variant)
+    {
+        return Lift(spec, layer.grade, variant);
+    }
+
+    public static float Lift(BackdropCatalog.Spec spec, float share, int variant)
+    {
+        float k = Lift(spec, share);
+        float vb = spec != null ? spec.VariantBrightness(variant) : 1f;
+        if (Mathf.Approximately(vb, 1f)) return k;
+        // the variant's factor applies in proportion to the layer's share
+        return Mathf.Max(.3f, k * (1f + (vb - 1f) * Mathf.Clamp01(share)));
+    }
+
     // Saturation for a layer lifted by `lift`: the world's saturation nudge,
     // in proportion to how much the layer is lifted.
     public static float Saturation(BackdropCatalog.Spec spec, float lift)
     {
         float b = spec != null && spec.brightness != null ? spec.brightness() : 1f;
         float s = spec != null && spec.saturation != null ? spec.saturation() : 1f;
-        if (b <= 1.0001f) return 1f;
+        if (b <= 1.0001f || lift <= 1f) return 1f;
         return 1f + (s - 1f) * Mathf.Clamp01((lift - 1f) / (b - 1f));
     }
 
@@ -41,6 +58,7 @@ public static class BackdropGrade
     // One texel as the shader draws it (straight alpha, before the tint).
     public static Color Apply(Color c, float lift, float sat = 1f, float alphaLift = 1f)
     {
+        if (Mathf.Approximately(lift, 1f) && Mathf.Approximately(sat, 1f) && alphaLift <= 1f) return c;
         float v = Mathf.Max(c.r, Mathf.Max(c.g, c.b));
         float k = v > 1e-4f ? Curve(v, lift) / v : 0f;
         float r = c.r * k, g = c.g * k, b = c.b * k;
@@ -53,7 +71,7 @@ public static class BackdropGrade
 
     public static Color[] Apply(Color[] px, float lift, float sat = 1f, float alphaLift = 1f)
     {
-        if (lift <= 1f && alphaLift <= 1f && Mathf.Approximately(sat, 1f)) return px;
+        if (Mathf.Approximately(lift, 1f) && alphaLift <= 1f && Mathf.Approximately(sat, 1f)) return px;
         var o = new Color[px.Length];
         for (int i = 0; i < px.Length; i++) o[i] = Apply(px[i], lift, sat, alphaLift);
         return o;
@@ -61,15 +79,22 @@ public static class BackdropGrade
 
     // A material drawing with the lift, or null when there is nothing to
     // lift (keep the default sprite material) or the shader is missing.
-    public static Material Create(string name, float lift, float sat = 1f, float alphaLift = 1f)
+    public static Material Create(string name, float lift, float sat = 1f, float alphaLift = 1f, float feather = 0f)
     {
-        if (lift <= 1f && alphaLift <= 1f && Mathf.Approximately(sat, 1f)) return null;
+        if (Mathf.Approximately(lift, 1f) && alphaLift <= 1f && Mathf.Approximately(sat, 1f) && feather <= 0f) return null;
         var shader = Resources.Load<Shader>(ShaderName);
         if (shader == null) return null;
         var m = new Material(shader) { name = "Grade_" + name };
         Set(m, lift, sat, alphaLift);
+        m.SetFloat("_Feather", feather);
         return m;
     }
+
+    // Feathered piece edges (BackdropGrade.shader _Feather): a set piece's
+    // own terrain plate fades out over its outer ~this many texels of a 256
+    // cell instead of ending in a hard sticker edge (the shader averages the
+    // alpha of a ring of neighbours, clamped to the piece's atlas cell).
+    public const float PlateFeatherTexels = 9f;
 
     public static void Set(Material m, float lift, float sat, float alphaLift)
     {

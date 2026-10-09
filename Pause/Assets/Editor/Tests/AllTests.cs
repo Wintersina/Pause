@@ -162,6 +162,7 @@ public static class AllTests
         ("ExplosionV2Test", ExplosionV2Test.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),

@@ -1,33 +1,45 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Which of Frost's ground-tile variant sets a landing flies over.
+// Which of a world's ground-tile variant sets a landing flies over.
 //
-// Every entry into Frost (each new Frost BackdropSet: a planetfall, a
-// portal, a run starting there) picks one of up to MaxVariants sets of
-// {sky, far, mid, flow} from Backdrop3/v1..v4 -- frozen ocean, coast and
-// harbour, inland tundra, glacier night. A variant whose folder is not
-// installed is skipped, so dropping a new v<N>/ folder in is enough to
-// enable it. With more than one installed, the same set never comes twice
-// in a row. Its own random stream: gameplay's Random is never touched.
-public static class FrostBackdropSelection
+// Every entry into a world with variant sets (Spec.variantSets: Frost,
+// Verdant; each new BackdropSet: a planetfall, a portal, a run starting
+// there) picks one of up to MaxVariants sets of {sky, far, mid, flow} from
+// <folder>v1..v4. A variant whose folder is not installed is skipped, so
+// dropping a new v<N>/ folder in is enough to enable it. With more than one
+// installed, the same set never comes twice in a row. One instance per
+// world, each its own random stream: gameplay's Random is never touched.
+public class BackdropVariants
 {
     public const int MaxVariants = 4;
 
+    static readonly System.Collections.Generic.Dictionary<string, BackdropVariants> worlds =
+        new System.Collections.Generic.Dictionary<string, BackdropVariants>();
+
+    public static BackdropVariants For(string world)
+    {
+        BackdropVariants v;
+        if (!worlds.TryGetValue(world, out v)) worlds[world] = v = new BackdropVariants(world);
+        return v;
+    }
+
+    public readonly string World;
     // The variant picked last (0: none yet).
-    public static int Last { get; private set; }
-    public static int Picks { get; private set; }
-
+    public int Last { get; private set; }
+    public int Picks { get; private set; }
     // Test / preview hook: > 0 always picks this variant (when installed).
-    public static int Force;
+    public int Force;
 
-    static System.Random rng = new System.Random();
-    static readonly int[] known = new int[MaxVariants + 1];   // 0 unknown, 1 installed, -1 missing
-    static readonly int[] order = new int[MaxVariants];
+    System.Random rng = new System.Random();
+    readonly int[] known = new int[MaxVariants + 1];   // 0 unknown, 1 installed, -1 missing
+    readonly int[] order = new int[MaxVariants];
 
-    public static void Seed(int seed) { rng = new System.Random(seed); }
+    BackdropVariants(string world) { World = world; }
 
-    public static void Reset()
+    public void Seed(int seed) { rng = new System.Random(seed); }
+
+    public void Reset()
     {
         Last = 0;
         Picks = 0;
@@ -36,30 +48,30 @@ public static class FrostBackdropSelection
         System.Array.Clear(known, 0, known.Length);
     }
 
-    // Is variant `v` of `world` on disk (its sky tile resolves)?
-    public static bool Installed(string world, int v)
+    // Is variant `v` on disk (its sky tile resolves)?
+    public bool Installed(int v)
     {
         if (v < 1 || v > MaxVariants) return false;
         if (known[v] == 0)
-            known[v] = Resources.Load<Sprite>(BackdropCatalog.TileFolder(world, v) + "sky") != null ? 1 : -1;
+            known[v] = Resources.Load<Sprite>(BackdropCatalog.TileFolder(World, v) + "sky") != null ? 1 : -1;
         return known[v] > 0;
     }
 
-    public static int InstalledCount(string world, int count)
+    public int InstalledCount(int count)
     {
         int n = 0;
-        for (int v = 1; v <= Mathf.Min(count, MaxVariants); v++) if (Installed(world, v)) n++;
+        for (int v = 1; v <= Mathf.Min(count, MaxVariants); v++) if (Installed(v)) n++;
         return n;
     }
 
     // One variant for a new entry: random among the installed ones, never
     // the previous one when another is installed. 1 when none is (the set
     // then reports itself incomplete).
-    public static int Pick(string world, int count)
+    public int Pick(int count)
     {
         count = Mathf.Clamp(count, 1, MaxVariants);
         int pick = 0;
-        if (Force > 0 && Installed(world, Force)) pick = Force;
+        if (Force > 0 && Installed(Force)) pick = Force;
         else
         {
             for (int i = 0; i < count; i++) order[i] = i + 1;
@@ -69,14 +81,30 @@ public static class FrostBackdropSelection
                 int t = order[i]; order[i] = order[j]; order[j] = t;
             }
             for (int i = 0; i < count && pick == 0; i++)
-                if (order[i] != Last && Installed(world, order[i])) pick = order[i];
-            if (pick == 0 && Installed(world, Last)) pick = Last;
+                if (order[i] != Last && Installed(order[i])) pick = order[i];
+            if (pick == 0 && Installed(Last)) pick = Last;
             if (pick == 0) pick = 1;
         }
         Last = pick;
         Picks++;
         return pick;
     }
+}
+
+// Frost's variant selection (BackdropVariants.For("Frost")), kept as the
+// static API its tests and preview use.
+public static class FrostBackdropSelection
+{
+    public const int MaxVariants = BackdropVariants.MaxVariants;
+    static BackdropVariants F => BackdropVariants.For("Frost");
+    public static int Last => F.Last;
+    public static int Picks => F.Picks;
+    public static int Force { get => F.Force; set => F.Force = value; }
+    public static void Seed(int seed) { F.Seed(seed); }
+    public static void Reset() { F.Reset(); }
+    public static bool Installed(string world, int v) { return BackdropVariants.For(world).Installed(v); }
+    public static int InstalledCount(string world, int count) { return BackdropVariants.For(world).InstalledCount(count); }
+    public static int Pick(string world, int count) { return BackdropVariants.For(world).Pick(count); }
 }
 
 // The ambient loops of the Frost backdrop, as data: what animates where.
@@ -185,17 +213,46 @@ public static class FrostAmbientCatalog
 
     static Binding B(string piece, params Emitter[] emitters) { return new Binding { piece = piece, emitters = emitters }; }
 
-    public static int LoopIndex(string name)
+    public static int LoopIndex(string name) { return Table.LoopIndex(name); }
+
+    // The emitters of a piece drawing (exact name), or none.
+    public static Emitter[] For(string piece) { return Table.For(piece); }
+
+    // Frost's loops and bindings as an AmbientTable (AmbientEmitters).
+    public static readonly AmbientTable Table = new AmbientTable
     {
-        for (int i = 0; i < Loops.Length; i++) if (Loops[i].name == name) return i;
+        loops = Loops, bindings = Bindings, maxPerPiece = MaxPerPiece,
+        lifted = Lifted, plumeShare = () => FrostTuning.PlumeShare, brightness = () => Brightness,
+    };
+}
+
+// What animates where, for one world: its loops and which piece drawings
+// carry which loop at which point (FrostAmbientCatalog.Table,
+// VerdantAmbientCatalog.Table). AmbientEmitters plays it.
+public class AmbientTable
+{
+    public FrostAmbientCatalog.Loop[] loops;
+    public FrostAmbientCatalog.Binding[] bindings;
+    public int maxPerPiece = 4;
+    // the atlases drawn lifted by the world's brightness (smoke, steam)
+    public System.Func<string, bool> lifted = a => false;
+    public System.Func<float> plumeShare = () => 1f, brightness = () => 1f;
+    // optional: the plumes' own lift (lighter smoke against a lit forest),
+    // instead of their share of the world's brightness
+    public System.Func<float> plumeLift;
+    // extra opacity for the light loops (beacons, windows): the night side
+    public System.Func<float> lightBoost = () => 1f;
+
+    public int LoopIndex(string name)
+    {
+        for (int i = 0; i < loops.Length; i++) if (loops[i].name == name) return i;
         return -1;
     }
 
-    // The emitters of a piece drawing (exact name), or none.
-    public static Emitter[] For(string piece)
+    public FrostAmbientCatalog.Emitter[] For(string piece)
     {
         if (string.IsNullOrEmpty(piece)) return null;
-        for (int i = 0; i < Bindings.Length; i++) if (Bindings[i].piece == piece) return Bindings[i].emitters;
+        for (int i = 0; i < bindings.Length; i++) if (bindings[i].piece == piece) return bindings[i].emitters;
         return null;
     }
 }
@@ -211,11 +268,18 @@ public class AmbientEmitters
     {
         public SpriteRenderer sr;
         public Sprite[] frames;
-        public float fps, alpha, phase;
+        public float fps, alpha, phase, boost;
         public bool on;
+        public int loop;
+        public Vector2 host;          // the host's point, body-local units
     }
 
     readonly BackdropSet set;
+    public readonly AmbientTable Table;
+    // +1 / -1: every plume leans that way on screen whatever the mirroring
+    // of the piece it rides (the art leans right; -1 mirrors the loops). 0
+    // (Frost): loops mirror with their piece.
+    public float Wind;
     readonly Sprite[][] frames;
     readonly List<BackdropPool> pools = new List<BackdropPool>();
     readonly List<Slot[][]> slots = new List<Slot[][]>();
@@ -223,12 +287,15 @@ public class AmbientEmitters
     Material plumeMat, plainMat;
     public Material PlumeMaterial { get { return plumeMat; } }
 
-    public AmbientEmitters(BackdropSet set)
+    public AmbientEmitters(BackdropSet set) : this(set, FrostAmbientCatalog.Table) { }
+
+    public AmbientEmitters(BackdropSet set, AmbientTable table)
     {
         this.set = set;
-        float lift = BackdropGrade.Lift(set.Spec, FrostTuning.PlumeShare);
+        Table = table;
+        float lift = table.plumeLift != null ? table.plumeLift() : BackdropGrade.Lift(set.Spec, table.plumeShare(), set.Variant);
         plumeMat = BackdropGrade.Create("plumes", lift, BackdropGrade.Saturation(set.Spec, lift));
-        var loops = FrostAmbientCatalog.Loops;
+        var loops = table.loops;
         frames = new Sprite[loops.Length][];
         for (int i = 0; i < loops.Length; i++) frames[i] = set.Atlas(loops[i].atlas).Frames(loops[i].name);
     }
@@ -236,7 +303,7 @@ public class AmbientEmitters
     // The loop's frames, empty when its atlas is not installed.
     public Sprite[] Frames(string loop)
     {
-        int i = FrostAmbientCatalog.LoopIndex(loop);
+        int i = Table.LoopIndex(loop);
         return i >= 0 ? frames[i] : new Sprite[0];
     }
 
@@ -250,7 +317,7 @@ public class AmbientEmitters
         for (int i = 0; i < pool.items.Count; i++)
         {
             var p = pool.items[i];
-            table[i] = new Slot[FrostAmbientCatalog.MaxPerPiece];
+            table[i] = new Slot[Table.maxPerPiece];
             for (int k = 0; k < table[i].Length; k++)
             {
                 var go = new GameObject("ambient" + k);
@@ -277,7 +344,8 @@ public class AmbientEmitters
             if (i >= 0) mine = slots[k][i];
         }
         if (mine == null) return 0;
-        var list = FrostAmbientCatalog.For(piece);
+        var list = Table.For(piece);
+        float bodyFlip = p.body.localScale.x < 0f ? -1f : 1f;
         int n = 0;
         for (int s = 0; s < mine.Length; s++)
         {
@@ -286,24 +354,33 @@ public class AmbientEmitters
             slot.sr.enabled = false;
             if (list == null || s >= list.Length) continue;
             var e = list[s];
-            int li = FrostAmbientCatalog.LoopIndex(e.loop);
+            int li = Table.LoopIndex(e.loop);
             if (li < 0 || frames[li].Length == 0) continue;
-            var loop = FrostAmbientCatalog.Loops[li];
+            var loop = Table.loops[li];
             float scale = loop.scale * e.scale;
             // The loop's anchor lands on the host's point (both in 256 cells
-            // at the same pixel size; sprites pivot on their centre).
+            // at the same pixel size; sprites pivot on their centre). With a
+            // level wind the loop is counter-mirrored against its piece so
+            // it leans the wind's way on screen (its anchor still on the point).
+            float flip = Wind != 0f ? Mathf.Sign(Wind) * bodyFlip : 1f;
+            Vector2 cellPx = new Vector2(128f, 128f);
+            Sprite f0 = frames[li][0];
+            if (f0 != null) cellPx = new Vector2(f0.rect.width * .5f, f0.rect.height * .5f) / Mathf.Max(.01f, f0.pixelsPerUnit / BackdropAtlas.PixelsPerUnit);
             const float ppu = BackdropAtlas.PixelsPerUnit;
             Vector2 host = new Vector2((e.at.x - 128f) / ppu, (128f - e.at.y) / ppu);
-            Vector2 anchor = new Vector2((loop.anchor.x - 128f) / ppu, (128f - loop.anchor.y) / ppu);
+            Vector2 anchor = new Vector2((loop.anchor.x - cellPx.x) / ppu * flip, (cellPx.y - loop.anchor.y) / ppu);
             Vector2 pos = host - anchor * scale;
             slot.sr.transform.localPosition = new Vector3(pos.x, pos.y, 0f);
-            slot.sr.transform.localScale = new Vector3(scale, scale, 1f);
+            slot.sr.transform.localScale = new Vector3(scale * flip, scale, 1f);
+            slot.host = host;
+            slot.loop = li;
+            slot.boost = Table.lifted(loop.atlas) ? 1f : -1f;
             slot.frames = frames[li];
             slot.fps = loop.fps * (.9f + .2f * (float)rng.NextDouble());
             slot.alpha = loop.alpha * e.alpha;
             slot.phase = (float)rng.NextDouble() * slot.frames.Length / Mathf.Max(.01f, slot.fps);
             slot.sr.sprite = slot.frames[0];
-            Material m = plumeMat != null && FrostAmbientCatalog.Lifted(loop.atlas) ? plumeMat : plainMat;
+            Material m = plumeMat != null && Table.lifted(loop.atlas) ? plumeMat : plainMat;
             if (m != null && slot.sr.sharedMaterial != m) slot.sr.sharedMaterial = m;
             slot.on = true;
             n++;
@@ -329,9 +406,35 @@ public class AmbientEmitters
 
     public void Destroy() { BackdropAtlas.Kill(plumeMat); plumeMat = null; }
 
+    // Slot `k` of piece `p` when it shows: the loop's name, its anchor and
+    // the host point it should sit on, both in world space (tests).
+    public bool Probe(BackdropPiece p, int k, out string loop, out Vector3 anchorWorld, out Vector3 hostWorld)
+    {
+        loop = null; anchorWorld = hostWorld = Vector3.zero;
+        for (int q = 0; q < pools.Count; q++)
+        {
+            int i = pools[q].items.IndexOf(p);
+            if (i < 0) continue;
+            var mine = slots[q][i];
+            if (k < 0 || k >= mine.Length || !mine[k].on) return false;
+            var slot = mine[k];
+            var l = Table.loops[slot.loop];
+            loop = l.name;
+            var sp = slot.frames[0];
+            float half = sp.rect.width * .5f / (sp.pixelsPerUnit / BackdropAtlas.PixelsPerUnit);
+            float halfH = sp.rect.height * .5f / (sp.pixelsPerUnit / BackdropAtlas.PixelsPerUnit);
+            const float ppu = BackdropAtlas.PixelsPerUnit;
+            anchorWorld = slot.sr.transform.TransformPoint(new Vector3((l.anchor.x - half) / ppu, (halfH - l.anchor.y) / ppu, 0f));
+            hostWorld = p.body.TransformPoint(new Vector3(slot.host.x, slot.host.y, 0f));
+            return true;
+        }
+        return false;
+    }
+
     public void Step(float fade)
     {
-        float a = fade * set.Alpha * FrostAmbientCatalog.Brightness;
+        float a = fade * set.Alpha * Table.brightness();
+        float boost = Table.lightBoost();
         for (int k = 0; k < pools.Count; k++)
         {
             var items = pools[k].items;
@@ -348,7 +451,7 @@ public class AmbientEmitters
                     int n = slot.frames.Length;
                     int f = (int)((p.age + slot.phase) * slot.fps) % n;
                     slot.sr.sprite = slot.frames[f];
-                    slot.sr.color = new Color(1f, 1f, 1f, slot.alpha * a);
+                    slot.sr.color = new Color(1f, 1f, 1f, Mathf.Min(1f, slot.alpha * a * (slot.boost < 0f ? boost : 1f)));
                     if (!slot.sr.enabled) slot.sr.enabled = true;
                 }
             }

@@ -18,6 +18,12 @@ public static class WorldBackdropTest
     // generic 9 MB. The user asked for much sharper planets (2026-10-08), so
     // Space gets a deliberate 10 MB.
     public const long SpaceTextureBudgetBytes = 10L * 1024 * 1024;
+    // Verdant carries ten shared 1024 atlases (landmarks, pipes, fires,
+    // sites, weather and five ambient-loop sheets: the user asked for "more
+    // pipes and smokes and wild fires", 2026-10-08) besides one 4-tile
+    // variant set: two atlases more than Frost. Measured 5488 KB (ASTC 6x6
+    // sizes); 7 MB leaves room for one more sheet.
+    public const long VerdantTextureBudgetBytes = 7L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -49,15 +55,36 @@ public static class WorldBackdropTest
     // purpose, to continue the planetfall's cloud deck (mean value ~.86).
     const float FrostCloudMaxLuminance = 0.80f;
 
+    // VERDANT IS BRIGHTER TOO, AS PAINTED: its v3 jungle art (approved by
+    // the user 2026-10-08: "new forest is great") is painted lit and lush,
+    // value p90 ~.47 on every ground tile, and drawn as painted on the day
+    // side (the night side v4 is drawn darker, VerdantTuning). It is held
+    // to these limits AS DRAWN; the gameplay guard (enemy bodies 2.5:1,
+    // brightest tone 7:1 against the rendered lane: CheckReadability and
+    // VerdantBackdropTest) is the same as every world's.
+    // Measured as drawn (2026-10-08): value p90 .40-.47, luminance .23-.32
+    // (the "sky" tile is the deepest ground plane -- canopy far below, not
+    // a night sky -- so it is as lit as the rest), chroma .13-.24.
+    const float VerdantTileMaxValueP90 = 0.52f;
+    const float VerdantSkyMaxLuminance = 0.34f;
+    const float VerdantTileMaxLuminance = 0.34f;
+    const float VerdantTileMaxChroma = 0.27f;
+    const float VerdantCloudMaxLuminance = 0.80f;
+
     static bool Frost(BackdropCatalog.Spec spec) { return spec.world == "Frost"; }
-    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : TileMaxValueP90; }
-    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : TileMaxChroma; }
+    static bool Verdant(BackdropCatalog.Spec spec) { return spec.world == "Verdant"; }
+    // the worlds measured as drawn, with their own v3 atlases
+    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec); }
+    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : TileMaxValueP90; }
+    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : TileMaxChroma; }
+    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : SkyMaxLuminance; }
+    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : TileMaxLuminance; }
 
     // A tile layer's pixels as drawn (BackdropGrade; the art itself when the
     // layer is not lifted).
-    static Color[] AsDrawn(BackdropCatalog.Spec spec, BackdropCatalog.Layer layer, Color[] px)
+    static Color[] AsDrawn(BackdropCatalog.Spec spec, BackdropCatalog.Layer layer, Color[] px, int variant = 0)
     {
-        float lift = BackdropGrade.Lift(spec, layer);
+        float lift = BackdropGrade.Lift(spec, layer, variant);
         return BackdropGrade.Apply(px, lift, BackdropGrade.Saturation(spec, lift));
     }
 
@@ -78,6 +105,24 @@ public static class WorldBackdropTest
         return BackdropGrade.Apply(px, lift, BackdropGrade.Saturation(spec, lift) * satScale, alphaLift);
     }
 
+    // A Verdant atlas as drawn: the ground pieces at the ground's lift, the
+    // weather at the cloud ceiling's thickening.
+    static Color[] VerdantAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
+    {
+        float lift = 1f, alphaLift = 1f, sat = 1f;
+        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == "smoke" || atlas == "firesmoke") lift = VerdantTuning.PlumeLift;
+        else if (atlas == "weather") { alphaLift = VerdantTuning.CeilingThicken; lift = VerdantTuning.CeilingLift; sat = VerdantTuning.CeilingSaturation; }
+        return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    static float VerdantDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        foreach (var l in VerdantAmbientCatalog.Table.loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha * VerdantTuning.NightLightBoost);
+        return a > 0f ? a : 1f;
+    }
+
     static void Check(string what, bool ok)
     {
         Debug.Log((ok ? "[WB] PASS  " : "[WB] FAIL  ") + what);
@@ -95,9 +140,7 @@ public static class WorldBackdropTest
                            "ringstation_00", "ringstation_03", "mini_station_00", "mini_ringstation_00",
                            "mini_rocky_00", "comet_00", "comet_01", "galaxy0", "galaxy1", "wisp0", "wisp1",
                            "moon", "star", "dot", "streak" } },
-        // Frost's v3 backdrop has no fx / anim atlases: its own (FrostAtlases).
-        { "Verdant", new[] { "waterfall_00", "ruin_00", "obelisk0", "obelisk1", "cloud0", "cloud1", "haze", "dot",
-                             "firefly_00", "spore_00" } },
+        // Frost's and Verdant's v3 backdrops have no fx / anim atlases: their own (V3Atlases).
         { "Ember", new[] { "volcano_00", "burst_00", "cloud0", "cloud1", "haze", "dot" } },
     };
 
@@ -118,6 +161,38 @@ public static class WorldBackdropTest
         { "aurora", new[] { "aurora_00", "aurora_15" } },
     };
 
+    // Verdant's shared atlases and the drawings the director relies on.
+    static readonly Dictionary<string, string[]> VerdantAtlases = new Dictionary<string, string[]>
+    {
+        { "landmarks", VerdantPieces("landmarks") },
+        { "pipes", VerdantPieces("pipes") },
+        { "fires", VerdantPieces("fires") },
+        { "sites", new[] { "roothangar_closed", "roothangar_open", "riverbay_closed", "riverbay_open", "podpad_idle", "podpad_active",
+                           "towerbay_closed", "towerbay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
+        { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "mist_00", "pollen_00", "smokepall_00", "spore_00" } },
+        { "smoke", new[] { "smoke_a_00", "smoke_a_07", "smoke_b_07" } },
+        { "wildfire", new[] { "flame_front_00", "flame_patch_07" } },
+        { "firesmoke", new[] { "wildsmoke_a_00", "wildsmoke_b_07" } },
+        { "leaks", new[] { "steam_vent_00", "leak_sap_03", "ember_rain_00", "spore_burst_03" } },
+        { "lights", new[] { "beacon_lime_00", "beacon_magenta_03", "window_lights_00", "strobe_white_00", "fireflies_03" } },
+    };
+
+    // Every drawing of a Verdant piece atlas the director names.
+    static string[] VerdantPieces(string atlas)
+    {
+        var names = new List<string>();
+        foreach (var group in new[] { VerdantTuning.Refineries, VerdantTuning.Neighbours, VerdantTuning.Fronts, VerdantTuning.Satellites,
+                                      VerdantTuning.Barges, VerdantTuning.Banks, VerdantTuning.Lone, VerdantTuning.HorizontalPipes })
+            foreach (string n in group)
+            {
+                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
+                bool fire = n.StartsWith("burn") || n.StartsWith("coal") || n.StartsWith("scorched") || n.StartsWith("firebreak");
+                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
+                if (a == atlas && !names.Contains(n)) names.Add(n);
+            }
+        return names.ToArray();
+    }
+
     static string ArtDir(string world) { return "Assets/Art/Backgrounds/Resources/" + BackdropCatalog.Folder(world); }
 
     public static int Execute()
@@ -129,11 +204,10 @@ public static class WorldBackdropTest
         {
             // A tile can gain its importer rule after the image was first
             // dropped in; force one normal import so that rule takes effect.
-            AssetDatabase.ImportAsset(
-                "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
-                ImportAssetOptions.ForceUpdate);
-            // Same for Frost's v3 sheets imported before their rule settled.
-            foreach (string png in Directory.GetFiles(ArtDir("Frost"), "*.png", SearchOption.AllDirectories))
+            // A tile can gain its importer rule after the image was first
+            // dropped in (Frost's / Verdant's v3 sheets): reimport those.
+            foreach (string world in new[] { "Frost", "Verdant" })
+            foreach (string png in Directory.GetFiles(ArtDir(world), "*.png", SearchOption.AllDirectories))
             {
                 var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
                 if (imp != null && imp.mipmapEnabled) AssetDatabase.ImportAsset(png.Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
@@ -170,14 +244,18 @@ public static class WorldBackdropTest
             // Space carries two runs of body tiers (planets, structures).
             // Space carries two runs of body tiers (planets, structures);
             // Frost its weather at several depths.
-            int maxLayers = spec.world == "Space" || spec.world == "Frost" ? 14 : 10;
+            int maxLayers = spec.world == "Space" || V3(spec) ? 14 : 10;
             Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
                   spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 
+            // A layer PINNED to the ground tile before it (Layer.pinTo:
+            // Verdant's ground pieces on the mid tile) shares its rate.
             bool increasing = true;
             for (int i = 1; i < spec.layers.Length; i++)
-                if (!(spec.layers[i].rate > spec.layers[i - 1].rate)) increasing = false;
-            Check(theme.displayName + " parallax rates strictly increase far -> near", increasing);
+                if (!(spec.layers[i].rate > spec.layers[i - 1].rate) &&
+                    !(spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate))
+                    increasing = false;
+            Check(theme.displayName + " parallax rates strictly increase far -> near (pinned layers share their host's)", increasing);
             Check(theme.displayName + " far layer is an opaque sky tile",
                   spec.layers[0].kind == BackdropCatalog.Kind.Tile && spec.layers[0].name == "sky");
             if (spec.world != "Space") CheckDepthModel(spec);
@@ -196,13 +274,13 @@ public static class WorldBackdropTest
                           Resources.Load<Sprite>(tiles + texture) != null);
                 }
             }
-            if (spec.world == "Frost")
+            if (V3(spec))
             {
-                foreach (var kv in FrostAtlases)
+                foreach (var kv in Frost(spec) ? FrostAtlases : VerdantAtlases)
                 {
                     var atlas = new BackdropAtlas(Resources.Load<Texture2D>(folder + kv.Key), Resources.Load<TextAsset>(folder + kv.Key));
-                    Check("Frost atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
-                    foreach (string n in kv.Value) Check("Frost " + kv.Key + " sprite " + n + " present", atlas.Has(n));
+                    Check(spec.world + " atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
+                    foreach (string n in kv.Value) Check(spec.world + " " + kv.Key + " sprite " + n + " present", atlas.Has(n));
                     atlas.Destroy();
                 }
                 continue;
@@ -348,7 +426,7 @@ public static class WorldBackdropTest
                 else { bytes += assetBytes; astc += assetAstc; }
                 bool tile = WorldBackdropImport.IsTile(asset);
                 // The layer this file is the art of: a tile layer may name its
-                // own texture (Verdant's mid is forest_industrial_center_v1).
+                // own texture (Layer.WithTexture).
                 // A tile-named file no layer uses any more (the old mid.png)
                 // is not drawn and not held to the drawn layers' rules.
                 string name = null;
@@ -382,13 +460,14 @@ public static class WorldBackdropTest
                                                   SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamTolerance);
                 }
 
-                // Frost is measured as drawn (lifted by FrostTuning.Brightness).
-                if (Frost(spec))
+                // Frost and Verdant are measured as drawn (BackdropGrade).
+                if (V3(spec))
                 {
-                    if (tile) px = AsDrawn(spec, spec.Find(name), px);
-                    else px = FrostAtlasAsDrawn(spec, file, px);
+                    if (tile) px = AsDrawn(spec, spec.Find(name), px, VariantOf(path));
+                    else if (Frost(spec)) px = FrostAtlasAsDrawn(spec, file, px);
+                    else px = VerdantAtlasAsDrawn(spec, file, px);
                 }
-                string drawnTag = Frost(spec) ? " as drawn" : "";
+                string drawnTag = V3(spec) ? " as drawn" : "";
                 float lum, chroma;
                 Measure(px, out lum, out chroma);
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
@@ -399,12 +478,23 @@ public static class WorldBackdropTest
                 }
                 if (spaceSky || name == "sky")
                     Check(spec.world + " " + VariantTag(path) + "sky stays dark" + drawnTag + " (lum " + lum.ToString("F3") + ")",
-                          lum <= (Frost(spec) ? FrostSkyMaxLuminance : SkyMaxLuminance));
+                          lum <= SkyLumCap(spec));
                 if (spaceSky || name == "sky" || name == "far" || name == "mid")
                     Check(spec.world + "/" + VariantTag(path) + name + " under gameplay contrast guard" + drawnTag + " (lum " + lum.ToString("F3") +
                           ", chroma " + chroma.ToString("F3") + ")",
-                          lum <= (Frost(spec) ? FrostTileMaxLuminance : TileMaxLuminance) && chroma <= ChromaCap(spec));
-                if (!tile && spec.world == "Frost")
+                          lum <= TileLumCap(spec) && chroma <= ChromaCap(spec));
+                if (!tile && Verdant(spec))
+                {
+                    // drawn at their loops' alpha (x the night boost) / the
+                    // weather at the ceiling's thickening
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * VerdantDrawAlpha(file));
+                    float cap = file == "weather" ? VerdantCloudMaxLuminance : AtlasMaxLuminance;
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
+                          drawn <= cap);
+                }
+                else if (!tile && spec.world == "Frost")
                 {
                     // Frost's v3 sheets are drawn at their loops' draw alpha
                     // (FrostAmbientCatalog) and the weather carries its
@@ -427,7 +517,8 @@ public static class WorldBackdropTest
             for (int v = 1; v < variantBytes.Length; v++) { maxSet = System.Math.Max(maxSet, variantBytes[v]); maxSetAstc = System.Math.Max(maxSetAstc, variantAstc[v]); }
             bytes += maxSet;
             astc += maxSetAstc;
-            long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes : TextureBudgetBytes;
+            long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
+                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",
@@ -445,7 +536,7 @@ public static class WorldBackdropTest
         string dir = "Assets/Art/Backgrounds/Resources/" + (spec.variantSets > 0
             ? BackdropCatalog.TileFolder(world, variant) : BackdropCatalog.Folder(world));
         string skyName = world == "Space" ? SpaceSkySelection.Texture : "sky";
-        var outPx = (Color[])AsDrawn(spec, spec.Find("sky"), ReadPixels(dir + skyName + ".png")).Clone();
+        var outPx = (Color[])AsDrawn(spec, spec.Find("sky"), ReadPixels(dir + skyName + ".png"), variant).Clone();
         w = ReadW; h = ReadH;
         foreach (string layerName in new[] { "far", "mid", "flow" })
         {
@@ -456,7 +547,7 @@ public static class WorldBackdropTest
             var layer = spec.Find(layerName);
             string path = dir + layer.texture + ".png";
             if (!File.Exists(path)) continue;
-            var px = AsDrawn(spec, layer, ReadPixels(path));
+            var px = AsDrawn(spec, layer, ReadPixels(path), variant);
             int lw = ReadW, lh = ReadH;
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
@@ -524,84 +615,78 @@ public static class WorldBackdropTest
     // foreground rail lamp, so its valid brightness is intentionally lower.
     static bool IsSodium(float hue, float s, float v) { return hue >= 15f && hue < 45f && s >= 0.6f && v >= 0.55f; }
 
-    // Verdant must read as an 80s anime night forest, not monochrome mud:
-    // several hue families (indigo night + greens), several distinct
-    // hue/value clusters, a real value range, and the teal neon / sodium
-    // lantern accents. Before the redo master had 85% of the screen in one
-    // green family, 5 clusters, a 0.17 value range, ~0.06% teal, no sodium.
-    public const int VerdantMinClusters = 7;            // 30-degree hue x 0.1 value bins with >= 0.5% coverage
-    public const float VerdantMinValueRange = 0.20f;    // p95 - p5 of HSV value
-    public const float VerdantMaxFamilyShare = 0.80f;   // no single hue family may own the picture
-    public const float VerdantMinFamilyShare = 0.065f;  // at least two families this big
-    public const float VerdantMinTeal = 0.0015f;        // teal / cyan neon pixels (fraction of the screen)
-    public const float VerdantMinSodium = 0.00015f;     // sodium / amber lantern pixels
+    // Verdant must not read as monochrome mud. The v3 jungle (user,
+    // 2026-10-08: "new forest is great") is a lit green world -- the old
+    // "80s anime night forest" rule (an indigo night sky over 20% of the
+    // screen) went with the old art: the planet's night side is now its own
+    // variant (v4). Every variant still needs several distinct hue/value
+    // clusters and a real value range, and its accents -- the wildfires'
+    // orange, the lime / magenta beacons -- come from the piece and loop
+    // atlases drawn over it.
+    public const int VerdantMinClusters = 6;            // 30-degree hue x 0.1 value bins with >= 0.5% coverage
+    public const float VerdantMinValueRange = 0.15f;    // p95 - p5 of HSV value
+    public const float VerdantMaxFamilyShare = 0.97f;   // the jungle is green, but never a single flat family
+    public const int VerdantMinFirePixels = 2000;       // hot orange pixels in the wildfire atlases
+    public const int VerdantMinBeaconPixels = 200;      // lime and magenta lamp pixels in the lights atlas
 
     static void CheckVerdantPalette()
     {
-        int w, h;
-        var px = Composite("Verdant", out w, out h);
-        var bins = new Dictionary<int, int>();
-        var fam = new int[6];
-        var values = new List<float>();
-        int n = 0, teal = 0, sodium = 0;
-        for (int i = 0; i < px.Length; i += 2)
+        var spec = BackdropCatalog.For("Verdant");
+        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
         {
-            Color c = px[i];
-            float hh, ss, vv;
-            Color.RGBToHSV(c, out hh, out ss, out vv);
-            float hue = hh * 360f;
-            int band = Mathf.Min((int)(vv / 0.1f), 5);
-            int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
-            int k;
-            bins.TryGetValue(key, out k);
-            bins[key] = k + 1;
-            fam[Family(hue, c)]++;
-            values.Add(vv);
-            if (IsTeal(hue, ss, vv)) teal++;
-            if (IsSodium(hue, ss, vv)) sodium++;
-            n++;
+            int w, h;
+            var px = Composite("Verdant", out w, out h, v);
+            var bins = new Dictionary<int, int>();
+            var fam = new int[6];
+            var values = new List<float>();
+            int n = 0;
+            for (int i = 0; i < px.Length; i += 2)
+            {
+                Color c = px[i];
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                float hue = hh * 360f;
+                int band = Mathf.Min((int)(vv / 0.1f), 5);
+                int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
+                int k;
+                bins.TryGetValue(key, out k);
+                bins[key] = k + 1;
+                fam[Family(hue, c)]++;
+                values.Add(vv);
+                n++;
+            }
+            int clusters = 0;
+            foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
+            values.Sort();
+            float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
+            float maxShare = 0f;
+            for (int f = 0; f < FamGrey; f++) maxShare = Mathf.Max(maxShare, fam[f] / (float)n);
+            Check("Verdant v" + v + " has >= " + VerdantMinClusters + " distinct hue/value clusters (" + clusters + ")", clusters >= VerdantMinClusters);
+            Check("Verdant v" + v + " value range p5..p95 >= " + VerdantMinValueRange + " (" + range.ToString("F3") + ")", range >= VerdantMinValueRange);
+            Check("Verdant v" + v + " is not one flat hue family (largest " + maxShare.ToString("F2") + " <= " + VerdantMaxFamilyShare + ")",
+                  maxShare <= VerdantMaxFamilyShare);
         }
-        int clusters = 0;
-        foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
-        values.Sort();
-        float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
-        float maxShare = 0f;
-        int big = 0;
-        for (int f = 0; f < FamGrey; f++)
-        {
-            float share = fam[f] / (float)n;
-            maxShare = Mathf.Max(maxShare, share);
-            if (share >= VerdantMinFamilyShare) big++;
-        }
-        Check("Verdant has >= " + VerdantMinClusters + " distinct hue/value clusters (" + clusters + ")",
-              clusters >= VerdantMinClusters);
-        Check("Verdant value range p5..p95 >= " + VerdantMinValueRange + " (" + range.ToString("F3") + ")",
-              range >= VerdantMinValueRange);
-        Check("Verdant is not one hue family (largest " + maxShare.ToString("F2") + " <= " + VerdantMaxFamilyShare +
-              ", " + big + " families >= " + VerdantMinFamilyShare + ")", maxShare <= VerdantMaxFamilyShare && big >= 2);
-        Check("Verdant greens and indigo night both present (green " + (fam[FamGreen] / (float)n).ToString("F2") +
-              ", indigo " + (fam[FamIndigo] / (float)n).ToString("F2") + ")",
-              fam[FamGreen] >= VerdantMinFamilyShare * n && fam[FamIndigo] >= 0.2f * n);
-        Check("Verdant teal neon present (" + (teal / (float)n).ToString("F4") + " >= " + VerdantMinTeal + ")",
-              teal >= VerdantMinTeal * n);
-        Check("Verdant sodium accents present (" + (sodium / (float)n).ToString("F4") + " >= " + VerdantMinSodium + ")",
-              sodium >= VerdantMinSodium * n);
-
-        // The landmarks and particles carry the neon and lantern lights too.
-        foreach (string atlas in new[] { "anim", "fx" })
-        {
-            int t = 0, so = 0;
-            foreach (var c in ReadPixels("Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/" + atlas + ".png"))
+        int fire = 0, lime = 0, magenta = 0;
+        foreach (string atlas in new[] { "fires", "wildfire" })
+            foreach (var c in ReadPixels(ArtDir("Verdant") + atlas + ".png"))
             {
                 if (c.a < 0.9f) continue;
                 float hh, ss, vv;
                 Color.RGBToHSV(c, out hh, out ss, out vv);
-                if (IsTeal(hh * 360f, ss, vv)) t++;
-                if (IsSodium(hh * 360f, ss, vv)) so++;
+                if (IsSodium(hh * 360f, ss, vv)) fire++;
             }
-            Check("Verdant " + atlas + " atlas carries teal (" + t + " px) and sodium (" + so + " px) lights",
-                  t >= 200 && so >= 50);
+        foreach (var c in ReadPixels(ArtDir("Verdant") + "lights.png"))
+        {
+            if (c.a < 0.5f) continue;
+            float hh, ss, vv;
+            Color.RGBToHSV(c, out hh, out ss, out vv);
+            float hue = hh * 360f;
+            if (ss > .5f && vv > .6f && hue >= 70f && hue < 110f) lime++;
+            if (ss > .4f && vv > .6f && hue >= 290f && hue < 335f) magenta++;
         }
+        Check("Verdant's wildfires carry hot orange (" + fire + " px >= " + VerdantMinFirePixels + ")", fire >= VerdantMinFirePixels);
+        Check("Verdant's lights carry lime (" + lime + ") and magenta (" + magenta + ") beacons (>= " + VerdantMinBeaconPixels + " each)",
+              lime >= VerdantMinBeaconPixels && magenta >= VerdantMinBeaconPixels);
     }
 
     // docs/art-style.md 4, with each world's enemies on top: the composited
@@ -645,9 +730,9 @@ public static class WorldBackdropTest
             // Ember's enemies are deliberately grey char on a warm sky, so
             // there only the guide's chroma ceiling applies; the green worlds
             // must also stay greyer than their (green) enemies.
-            bool greyer = laneChroma <= ChromaCap(wspec) && (world != "Verdant" || laneChroma < Chroma(theme.hull));
+            bool greyer = laneChroma <= ChromaCap(wspec) && (wspec.world != "Verdant" || laneChroma < Chroma(theme.hull));
             Check(world + " lane chroma " + laneChroma.ToString("F2") + " <= " + ChromaCap(wspec) +
-                  (world == "Verdant" ? " and < enemy hull " + Chroma(theme.hull).ToString("F2") : ""), greyer);
+                  (wspec.world == "Verdant" ? " and < enemy hull " + Chroma(theme.hull).ToString("F2") : ""), greyer);
         }
     }
 

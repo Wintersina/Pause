@@ -12,7 +12,7 @@ using UnityEngine;
 //                     which is the continuation), wrap U = Clamp. sky is
 //                     opaque (full-rect mesh); the alpha tiles use tight
 //                     meshes so transparent areas aren't drawn (overdraw).
-//   Frost/Backdrop3/  the same rules for its v1..v4 tile sets and its atlases
+//   <World>/Backdrop3/ (Frost, Verdant) the same rules for the v1..v4 tile sets and atlases
 //                     (landmarks, sites, weather and the ambient loops),
 //                     point-sampled except the soft atlases (IsSoftAtlas).
 //   fx/anim atlases   Default texture; WorldBackdrop cuts sprites at
@@ -47,7 +47,7 @@ public class WorldBackdropImport : AssetPostprocessor
                (path.Contains("/Backdrop/") || IsBackdrop3(path)) && path.EndsWith(".png");
     }
 
-    // Frost's v3 backdrop (BackdropCatalog Spec.folder "Worlds/Frost/Backdrop3/"):
+    // Frost's and Verdant's v3 backdrops (Spec.folder "Worlds/<World>/Backdrop3/"):
     // variant tile sets in v1..v4/, shared atlases beside them.
     public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
 
@@ -57,7 +57,7 @@ public class WorldBackdropImport : AssetPostprocessor
     // times their pixel size and keep bilinear filtering.
     public static bool IsSoftAtlas(string file)
     {
-        return file == "weather" || file == "smoke" || file == "steam" || file == "aurora";
+        return file == "weather" || file == "smoke" || file == "steam" || file == "aurora" || file == "firesmoke";
     }
 
     public static bool IsTile(string path)
@@ -115,8 +115,6 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        // Verdant's central world tile is the visual anchor behind the thick
-        // rails. Keep its high-resolution industrial detail on modern phones.
         ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;

@@ -121,8 +121,7 @@ public static class UnusedAssetGuardTest
         // inGameShips/shipN are Resources-loaded, by spawnShips.PrefabPathFor),
         // their parked sprites (ship1-7 no longer carry a 2016 rest sprite:
         // spawnShips.ApplyHull dresses every hull from the roster), the dead
-        // OriginalShipArt / roate scripts, and Verdant's old mid tile (its mid
-        // layer draws forest_industrial_center_v1).
+        // OriginalShipArt / roate scripts, and Verdant's old mid tile.
         "Assets/Resources/prefabs/Ships/Ninja_0.prefab",
         "Assets/Resources/prefabs/Ships/Saboteur_0.prefab",
         "Assets/Resources/prefabs/Ships/UFO_0.prefab",
@@ -141,6 +140,16 @@ public static class UnusedAssetGuardTest
         "Assets/Scripts/Ship/OriginalShipArt.cs",
         "Assets/Scripts/Gameplay/roate.cs",
         "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/mid.png",
+        // Verdant's old backdrop (2026-10-08): replaced by the v3 jungle in
+        // Worlds/Verdant/Backdrop3 (VerdantDirector); its SVG render script went too.
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/sky.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/far.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/flow.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/fx.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/anim.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/steam_plume_4f_v1.png",
+        "Assets/Art/Worlds/Verdant/src~/render.sh",
     };
 
     static void ReplacedAssetsStayDeleted()
