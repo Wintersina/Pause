@@ -763,7 +763,7 @@ public static class ScoringTest
         Check("Top Score: no Play Console id yet, so disabled", top != null && top.androidId == "" && !top.Enabled &&
               top.PlatformId(true) == null && top.PlatformId(false) == null);
         Check("Top Score never reuses the retired speed board's ids",
-              !top.iosId.EndsWith("highest_speed") && top.androidId != StringHolder.leaderboard_highest_speed_reached);
+              !top.iosId.EndsWith("highest_speed") && top.androidId != "CgkI3eXNjrQcEAIQAA");
         Check("the speed board is retired: not in the table, no board enabled until Top Score's id is in",
               LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null && LeaderboardBoards.Enabled().Count == 0);
         Check("Top Score: higher is better, measures the run score, formats 1,234,567",
@@ -848,12 +848,12 @@ public static class ScoringTest
         // Flash / Speedster / Super Sonic mark the cap and the limit break.
         float cap = SpeedRamp.Cap, max = SpeedRamp.MaxBoost;
         Check("milestones: below the cap, none (34, or 25 on a boost)",
-              achievementAPICalls.SpeedMilestones.Reached(cap - .01f, 0f) == 0 &&
-              achievementAPICalls.SpeedMilestones.Reached(.20f, .05f) == 0);
-        Check("milestones: natural 35 without a boost is Flash (1)", achievementAPICalls.SpeedMilestones.Reached(cap, 0f) == 1);
+              SpeedMilestones.Reached(cap - .01f, 0f) == 0 &&
+              SpeedMilestones.Reached(.20f, .05f) == 0);
+        Check("milestones: natural 35 without a boost is Flash (1)", SpeedMilestones.Reached(cap, 0f) == 1);
         Check("milestones: boosted past the cap is Speedster (2)",
-              achievementAPICalls.SpeedMilestones.Reached(cap, SpeedRamp.BoostPerAtom) == 2);
-        Check("milestones: the full boost at the cap is Super Sonic (3)", achievementAPICalls.SpeedMilestones.Reached(cap, max) == 3);
+              SpeedMilestones.Reached(cap, SpeedRamp.BoostPerAtom) == 2);
+        Check("milestones: the full boost at the cap is Super Sonic (3)", SpeedMilestones.Reached(cap, max) == 3);
     }
 
     // ---- 13. loops pay more for flight and kills ------------------------------------------------

@@ -138,7 +138,7 @@ public static class AccountSignInTest
         AccountLink.ResetSession();
         AccountLink.AccountPlatformOverride = "android";
         PlayerAccounts.Current = fake;
-        var sync = new CloudSync(fake, () => 1000) { AchievementReporter = (id, p, done) => done(false) };
+        var sync = new CloudSync(fake, () => 1000);
         CloudSync.SetInstance(sync);
         sync.Start();
         return sync;
@@ -377,7 +377,7 @@ public static class AccountSignInTest
         Check("signed out: no cloud upload", fake.writes.Count == writesBefore);
         Check("signed out: SocialBridge reports nothing", !SocialBridge.IsAuthenticated);
         bool reported = true;
-        SocialBridge.ReportProgress(StringHolder.achievement_flash, 50.0, ok => reported = ok);
+        SocialBridge.ReportProgress("CgkI3eXNjrQcEAIQCQ", 50.0, ok => reported = ok);
         Check("signed out: achievement report dropped", !reported);
         FakeLeaderboards board;
         var service = QueueScore(out board);

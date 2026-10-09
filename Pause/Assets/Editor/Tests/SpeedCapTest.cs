@@ -618,7 +618,6 @@ public static class SpeedCapTest
     {
         ("Core/CloudSave/ProgressSnapshot.cs", ""),       // the legacy save field: old saves keep it
         ("Core/CloudSave/ProgressMerge.cs", ""),          // ... and it still merges (max)
-        ("Core/StringHolder.cs", "leaderboard_highest_speed_reached"),   // generated Play Games resource ids
         ("Core/Leaderboards/LeaderboardBoards.cs", "RetiredSpeedBoard"), // the retired id, so old queues drop it
         ("Gameplay/playerIsDead.cs", "FormerlySerializedAs"),            // keeps the scene's wiring
     };
@@ -646,7 +645,7 @@ public static class SpeedCapTest
         string scene = File.ReadAllText("Assets/Scenes/gameS1.unity");
         Check("gameS1 has no speed text left on the death panel (\"Your Speed\")", !scene.Contains("m_Text: Your Speed"));
         Check("no speed board in the leaderboard table",
-              LeaderboardBoards.All.All(b => b.id != LeaderboardBoards.RetiredSpeedBoard && b.androidId != StringHolder.leaderboard_highest_speed_reached));
+              LeaderboardBoards.All.All(b => b.id != LeaderboardBoards.RetiredSpeedBoard && b.androidId != "CgkI3eXNjrQcEAIQAA"));
         Check("the run stats carry no speed", typeof(LeaderboardRunStats).GetField("topSpeed") == null);
         Check("the death panel's results carry no speed",
               typeof(DeathPanelView.Results).GetField("bestSpeed") == null && typeof(DeathPanelView.Results).GetField("runSpeed") == null);
@@ -703,7 +702,7 @@ public static class SpeedCapTest
                 sink += SpeedRamp.Natural + SpeedRamp.Boost + (SpeedRamp.LimitBroken ? 1f : 0f);
                 sink += SpeedRamp.SecondsToCover(SpeedRamp.Natural, .00315f, SpeedRamp.Cap, 12f);
                 sink += ScoreRules.SpeedMultiplierFor(moveBackGround.speed) + ScoreRules.FlightDust(moveBackGround.speed, dt);
-                sink += achievementAPICalls.SpeedMilestones.Reached(SpeedRamp.Natural, SpeedRamp.Boost);
+                sink += SpeedMilestones.Reached(SpeedRamp.Natural, SpeedRamp.Boost);
             }
         };
         work();

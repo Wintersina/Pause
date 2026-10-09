@@ -66,17 +66,15 @@ public class ProgressSnapshot
     // Highest ship index whose ownership is synced (inclusive).
     public static int MaxShipIndex { get { return shopingShips.shipTotal; } }
 
-    // Every lifetime counter that is synced: the per-category achievement
-    // counts and the per-tier keys they migrated from.
+    // Every integer pref that is synced as a counter (merged by max): the
+    // achievements' unlocked / claimed flags, counters and sets
+    // (AchievementStore.SyncKeys), plus the legacy per-category counts the
+    // migration seeds from, kept for one release so an install updating later
+    // still carries them (AchievementMigration.LegacyKeys).
     public static List<string> CounterKeys()
     {
-        var keys = new List<string>();
-        foreach (AchievementCategory category in Enum.GetValues(typeof(AchievementCategory)))
-        {
-            keys.Add(AchievementTiers.CounterKey(category));
-            foreach (var tier in AchievementTiers.For(category))
-                keys.Add(AchievementTiers.LegacyProgressKey(tier.id));
-        }
+        var keys = AchievementStore.SyncKeys();
+        keys.AddRange(AchievementMigration.LegacyKeys());
         return keys;
     }
 
@@ -128,18 +126,8 @@ public class ProgressSnapshot
         s.equippedSkins = equippedSkins.ToArray();
 
         var counters = new List<Counter>();
-        foreach (AchievementCategory category in Enum.GetValues(typeof(AchievementCategory)))
-        {
-            // Count() seeds from the legacy per-tier keys on old installs.
-            int count = AchievementTiers.Count(category);
-            if (count > 0 || PlayerPrefs.HasKey(AchievementTiers.CounterKey(category)))
-                counters.Add(new Counter(AchievementTiers.CounterKey(category), count));
-        }
         foreach (string key in CounterKeys())
-        {
-            if (key.StartsWith("achv_count_")) continue;
             if (PlayerPrefs.HasKey(key)) counters.Add(new Counter(key, PlayerPrefs.GetInt(key)));
-        }
         s.counters = counters.ToArray();
         return s;
     }

@@ -287,6 +287,7 @@ public static class ShipSkins
         if (dust < price) return PurchaseResult.CantAfford;
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - price);
         PlayerPrefs.SetInt(OwnedKey(id, skin), 1);
+        AchievementTracker.OnSkinBought(id, skin, price);
         Equip(id, skin);   // saves
         return PurchaseResult.Bought;
     }

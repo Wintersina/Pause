@@ -138,6 +138,7 @@ public class movePlayer : MonoBehaviour
                     MarkTeleport();
                     TeleportFx.Play(before, transform.position);
                     RunScore.OnTeleport(before, transform.position);
+                    AchievementTracker.OnTeleport(before, transform.position);
                 }
                 else if (!teleportLockedUntilRelease)
                 {

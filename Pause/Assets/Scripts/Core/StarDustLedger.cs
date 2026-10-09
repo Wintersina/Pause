@@ -70,6 +70,22 @@ public static class StarDustLedger
         return amount;
     }
 
+    // Adds star dust that is not a run's earnings (an achievement reward). It
+    // is claimed from menus, where no run is active, but if one is (a test, a
+    // future caller) the grant also goes into the run's baseline so the next
+    // Commit's absolute write keeps it. Does not save: the caller does.
+    public static void Grant(float amount)
+    {
+        if (amount <= 0f) return;
+        if (active)
+        {
+            baseline += amount;
+            PlayerPrefs.SetFloat(CurrencyKey, Balance);
+        }
+        else PlayerPrefs.SetFloat(CurrencyKey, Saved + amount);
+        PrefsSaver.MarkDirty();
+    }
+
     // Writes and saves the run's balance. Safe to call any number of times.
     public static void Commit(int token)
     {

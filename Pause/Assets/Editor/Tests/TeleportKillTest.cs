@@ -36,6 +36,7 @@ public static class TeleportKillTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        Achievements.ForceReal = true;   // the kill counters only count in a real run
         try
         {
             ArtIsDistinctAndNeverRed();
@@ -123,7 +124,7 @@ public static class TeleportKillTest
         var far = Spawn(EnemyRole.Rock, new Vector3(-2f, -3f, 0f));
         int played = TeleportKillFx.Played;
         int flipbooks = WeaponFx.ActiveFlipbooks;
-        int aliensBefore = AchievementTiers.Count(AchievementCategory.Aliens);
+        int aliensBefore = AchievementStore.Counter(AchievementCatalog.CKills);
         var parts = RunScore.Parts;
         int scored = 0; Vector3 scoredAt = Vector3.zero; RunScore.Source src = RunScore.Source.Distance;
         System.Action<int, Vector3, RunScore.Source> spy = (p, w, s) => { scored = p; scoredAt = w; src = s; };
@@ -145,16 +146,16 @@ public static class TeleportKillTest
               TeleportKillFx.Last != null && ((Vector2)(TeleportKillFx.Last.transform.position - at)).sqrMagnitude < 1e-4f &&
               TeleportKillFx.Last.transform.localScale.x > .5f);
         Check("... not the weapons' cel explosion", WeaponFx.ActiveFlipbooks == flipbooks);
-        Check("an alien teleport kill counts toward the alien achievements",
-              AchievementTiers.Count(AchievementCategory.Aliens) == aliensBefore + 1);
+        Check("an alien teleport kill counts toward the kill achievements",
+              AchievementStore.Counter(AchievementCatalog.CKills) == aliensBefore + 1);
 
         // A rock pays rock points + bonus and counts toward the asteroid tiers.
         BreakChain();
-        int rocksBefore = AchievementTiers.Count(AchievementCategory.Asteroids);
+        int rocksBefore = AchievementStore.Counter(AchievementCatalog.CRocks);
         long before = RunScore.Total;
         TeleportFx.Strike(far.transform.position);
         Check("a rock teleport kill pays rock + bonus", RunScore.Total - before == ScoreRules.Rock + ScoreRules.TeleportKillBonus);
-        Check("... and counts toward the asteroid achievements", AchievementTiers.Count(AchievementCategory.Asteroids) == rocksBefore + 1);
+        Check("... and counts toward the rock achievements", AchievementStore.Counter(AchievementCatalog.CRocks) == rocksBefore + 1);
         Check("TeleportFx counts its kills", TeleportFx.Kills >= 2);
     }
 
@@ -311,8 +312,8 @@ public static class TeleportKillTest
             targets[0] = Spawn(EnemyRole.Alien, new Vector3(-1f, 2f, 0f));
             for (int i = 1; i < targets.Length; i++) targets[i] = Spawn(EnemyRole.Rock, new Vector3(i - 2f, 3f, 0f));
 
-            int aliens = AchievementTiers.Count(AchievementCategory.Aliens);
-            int rocks = AchievementTiers.Count(AchievementCategory.Asteroids);
+            int aliens = AchievementStore.Counter(AchievementCatalog.CKills);
+            int rocks = AchievementStore.Counter(AchievementCatalog.CRocks);
             int tk = TeleportKillFx.Played;
             int raised = 0;
             System.Action<int, Vector3, RunScore.Source> spy = (p, w, s) => { if (s == RunScore.Source.Kill) raised++; };
@@ -338,8 +339,8 @@ public static class TeleportKillTest
                   paid[2] == ScoreRules.Rock * 2 && paid[3] == ScoreRules.Rock * 2 && RunScore.Chain == 4);
             Check("... raise a popup per kill", raised == targets.Length);
             Check("... count toward the kill achievements",
-                  AchievementTiers.Count(AchievementCategory.Aliens) == aliens + 1 &&
-                  AchievementTiers.Count(AchievementCategory.Asteroids) == rocks + 3);
+                  AchievementStore.Counter(AchievementCatalog.CKills) == aliens + 1 &&
+                  AchievementStore.Counter(AchievementCatalog.CRocks) == rocks + 3);
             var book = LatestExplosion();
             Check("... and keep the cel explosion", book != null && TeleportKillFx.Played == tk);
 

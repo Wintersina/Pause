@@ -89,6 +89,7 @@ public class shopingShips : MonoBehaviour {
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - cost);
         PlayerPrefs.SetString(ShipId.OwnedKey(index), "True");
         ShipId.Equip(index);
+        AchievementTracker.OnShipBought(index, cost);
         PrefsSaver.SaveNow();
         return true;
     }

@@ -156,7 +156,11 @@ public static class RunScore
     {
         ended = true;
         BankCount++;
-        if (savesBest) WriteBest(true);
+        if (savesBest)
+        {
+            AchievementTracker.OnScore(Total);   // the last distance points count too
+            WriteBest(true);
+        }
     }
 
     static void WriteBest(bool flush)
@@ -217,6 +221,7 @@ public static class RunScore
         chain = chainLeft > 0f ? chain + 1 : 1;
         chainLeft = ScoreRules.ComboWindowSeconds;
         parts.bestChain = Mathf.Max(parts.bestChain, chain);
+        AchievementTracker.OnChain(chain);
         float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
         NoteMultiplier(m);

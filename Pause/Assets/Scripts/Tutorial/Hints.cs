@@ -275,8 +275,7 @@ public class Hints : MonoBehaviour {
         // pays real star dust.
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.Save();
-        //---------------Complete Tut ---------##19-----------
-        achievementAPICalls.achievement_tutorial_completed();
+        AchievementTracker.OnTutorialDone();
     }
 
     void RunEnding()
