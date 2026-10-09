@@ -15,6 +15,7 @@
 // otherwise untouched. The clock is spawnGoodStuff's: it ticks on its
 // running spawn frames only, so a pause, a planetfall's descent or a
 // lift-off (when nothing new arrives) doesn't count toward the gap.
+// The boss fight's three free-shot atoms (BossFreeShotAtoms) are spaced too.
 // Star dust is not an atom and is not spaced.
 public static class AtomSpacing
 {

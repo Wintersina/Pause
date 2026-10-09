@@ -22,6 +22,9 @@ using UnityEngine.SceneManagement;
 //            (BossHearts): each one an equal share (HeartWeight) of its hit
 //            points, gone when that share is spent; the attack phases follow
 //            the hearts as well as the clock (PhaseProgress01).
+//            Exactly BossFreeShotAtoms.Count red free-shot atoms arrive at random
+//            moments of the fight, all before the clock runs out (the allowance's
+//            own red atoms wait for the portal).
 //   Outro    the boss explodes (its hit points ran out) or retreats (the
 //            fight clock ran out first) -- whichever came first (BossEndRule).
 //   Done     everything above is released and the portal opens.
