@@ -1039,7 +1039,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (!InPlay || weight <= 0f) return;
         Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
         if (TakeHit(EliteDamage.PlayerWeapon, at))
-            TargetExplosion.Spawn(blast, TargetExplosion.Kind.Metal, TargetExplosion.Size.Small, ship);
+            TargetExplosion.Spawn(blast, TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
 
     // ---- hooks for the pilot's side ----------------------------------------

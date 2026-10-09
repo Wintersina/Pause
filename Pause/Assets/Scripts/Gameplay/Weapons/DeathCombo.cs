@@ -269,8 +269,13 @@ public static class DeathCombo
     static void BurstFx(Vector3 at, int depth)
     {
         if (!Application.isPlaying) return;
-        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Ring, at, RingSize, ShipId.None, TargetExplosion.Kind.Metal, RingColour, 1.3f, 67);
-        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Flash, at, .9f, ShipId.None, TargetExplosion.Kind.Metal, FlashColour, 1f, 68);
+        // the ring keeps the blast radius (it shows the reach); alpha and the
+        // flash follow the master explosion loudness (TargetExplosion.Intensity)
+        float a = TargetExplosion.OverlayAlphaNow;
+        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Ring, at, RingSize, ShipId.None, TargetExplosion.Kind.Metal, Faded(RingColour, a), 1.3f, 67);
+        if (!TargetExplosion.Crowded)
+            WeaponFx.Flipbook().Play(FlipbookFx.Mode.Flash, at, .9f * TargetExplosion.SizeScale, ShipId.None, TargetExplosion.Kind.Metal,
+                                     Faded(FlashColour, a), 1f, 68);
         var hud = ScoreHud.Current;
         if (hud != null) hud.ShowWord(WordFor(depth), at, depth == 0 ? FlashColour : RingColour, 28 + Mathf.Min(depth, 5) * 2);
     }
@@ -278,6 +283,9 @@ public static class DeathCombo
     static void LinkFx(Vector3 at)
     {
         if (!Application.isPlaying) return;
-        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Ring, at, .7f, ShipId.None, TargetExplosion.Kind.Metal, FlashColour, 1f, 67);
+        WeaponFx.Flipbook().Play(FlipbookFx.Mode.Ring, at, .7f, ShipId.None, TargetExplosion.Kind.Metal,
+                                 Faded(FlashColour, TargetExplosion.OverlayAlphaNow), 1f, 67);
     }
+
+    static Color Faded(Color c, float a) { c.a *= a; return c; }
 }
