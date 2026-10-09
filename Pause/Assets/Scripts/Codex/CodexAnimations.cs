@@ -312,11 +312,7 @@ public static class CodexAnimations
     // The same textures CodexCatalogue crops for the static square.
     static Texture2D SkyTexture(int index)
     {
-        if (index == 0)
-        {
-            var refs = Resources.Load<CodexArtRefs>("Codex/CodexArtRefs");
-            return refs != null ? refs.spaceBackdrop : null;
-        }
+        if (index == 0) return CodexCatalogue.SpaceSkyTexture();
         var specs = BackdropCatalog.All;
         if (index >= specs.Length) return null;
         return Resources.Load<Texture2D>(BackdropCatalog.TileFolder(specs[index].world, 1) + "sky");   // variant 1 for worlds with variant sets
