@@ -16,7 +16,7 @@ public class SoundOptions : MonoBehaviour
     const float HitPad = 6f;
     public const string RowName = "SoundToggle";
 
-    public static float RowY { get { return DeveloperUnlocks.Available ? 137f : -33f; } }
+    public static float RowY { get { return DeveloperUnlocks.Available ? 147f : -33f; } }
 
     GameObject row;
     Text label;

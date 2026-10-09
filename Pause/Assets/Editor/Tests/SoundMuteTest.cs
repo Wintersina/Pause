@@ -143,7 +143,7 @@ public static class SoundMuteTest
         {
             Open(true);
             var r2 = (RectTransform)Obj(SoundOptions.RowName).transform;
-            Check("developer: row above the developer rows", r2.anchoredPosition.y > 47f + 44f);
+            Check("developer: row above the developer rows", r2.anchoredPosition.y > 47f + 88f);
         }
 
         // cloud snapshot: untouched by the preference (device-local)
