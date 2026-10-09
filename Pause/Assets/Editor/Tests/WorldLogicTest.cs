@@ -138,7 +138,8 @@ public static class WorldLogicTest
         {
             var t = WorldManager.Worlds[i];
             string skyName = t.displayName == "Space" ? SpaceSkySelection.Texture : "sky";
-            string p = "Assets/Art/Backgrounds/Resources/Worlds/" + t.displayName + "/Backdrop/" + skyName + ".png";
+            // the folder the world's tiles really load from (its variant 1 set, if it has sets)
+            string p = "Assets/Art/Backgrounds/Resources/" + BackdropCatalog.TileFolder(t.displayName, 1) + skyName + ".png";
             Check("art present for " + t.displayName + " (" + p + ")",
                   AssetDatabase.LoadAssetAtPath<Texture2D>(p) != null);
             if (string.IsNullOrEmpty(t.musicResource)) continue; // scene-default world
