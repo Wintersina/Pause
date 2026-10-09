@@ -555,8 +555,15 @@ public static class BossHeartsTest
               " (x" + grow.ToString("F2") + ", a round halo would be far more), under half its quad",
               clearCorners && lit < px.Length / 2 && grow < 1.9f && grow > 1.05f);
         Check("two tones: a light core line (" + core + " texels) and a dark keyline (" + key + ")", core > 0 && key > 0);
-        Check("its reach is a thin trace: " + HeartOutline.ReachShare(64).ToString("F3") + " of the heart's cell (<= 0.08)",
-              HeartOutline.ReachShare(64) <= .08f);
+        Check("its reach is a thin trace: " + HeartOutline.ReachShare(64).ToString("F3") + " of the heart's cell, bold style (bright worlds) " +
+              HeartOutline.BoldReachShare(64).ToString("F3") + " (<= 0.08)",
+              HeartOutline.ReachShare(64) <= .08f && HeartOutline.BoldReachShare(64) <= .08f);
+        int savedWorld = PlayerPrefs.GetInt(WorldManager.PrefsCurrentWorld, 0);
+        var bold = new bool[WorldManager.Worlds.Length];
+        for (int wi = 0; wi < bold.Length; wi++) { PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, wi); bold[wi] = HeartOutline.UseBold; }
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, savedWorld);
+        Check("brightened Frost wears the bold outline, Space / Verdant / Ember the standard one (" + string.Join(",", bold) + ")",
+              bold.Length == 4 && !bold[0] && bold[1] && !bold[2] && !bold[3]);
         Color c = HeartOutline.Core;
         Check("the light line is not red (it's amber-white: saturation " + Saturation(c).ToString("F2") + ")", Saturation(c) < .25f);
         // no halo objects anywhere on a boss's or an elite's hearts
@@ -589,16 +596,23 @@ public static class BossHeartsTest
 
     static void OutlineReadsOverEveryWorld()
     {
-        string[] worlds = { "Space", "Frost", "Verdant", "Ember" };
-        for (int w = 0; w < worlds.Length; w++)
+        // Frost twice: under its bright opening cloud ceiling (10 s) and over
+        // its brightened ground once the ceiling has cleared.
+        string[] worlds = { "Space", "Frost", "Verdant", "Ember", "Frost" };
+        int[] index = { 0, 1, 2, 3, 1 };
+        float[] seconds = { 10f, 10f, 10f, 10f, FrostTuning.CeilingClearAt + 5f };
+        for (int pass = 0; pass < worlds.Length; pass++)
         {
+            int w = index[pass];
+            string label = pass == 4 ? "Frost ground" : worlds[pass];
             FreshScene(w);
+            HeartOutline.Bold = System.Environment.GetEnvironmentVariable("HEARTS_PREVIEW_STANDARD") == "1" ? false : (bool?)null;
             cam.aspect = RW / (float)RH;
             cam.orthographicSize = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, RW, RH);
             var backdrop = new GameObject("~Backdrop");
             var wb = backdrop.AddComponent<WorldBackdrop>();
-            wb.Show(worlds[w], false);
-            for (int i = 0; i < 600; i++) wb.Step(1f / 60f);
+            wb.Show(worlds[pass], false);
+            for (int i = 0; i < (int)(seconds[pass] * 60f); i++) wb.Step(1f / 60f);
 
             // the world's boss, resting at the top, its ring turned a little
             var boss = BossCatalog.ForWorld(w);
@@ -626,6 +640,14 @@ public static class BossHeartsTest
             cam.targetTexture = rt;
             var tex = new Texture2D(RW, RH, TextureFormat.RGB24, false);
             Color[] with = Grab(rt, tex);
+            // Review crops: HEARTS_PREVIEW_DIR=<dir> (HEARTS_PREVIEW_STANDARD=1 renders
+            // the standard outline everywhere, for a before / after).
+            string previewDir = System.Environment.GetEnvironmentVariable("HEARTS_PREVIEW_DIR");
+            if (!string.IsNullOrEmpty(previewDir) && w == 1)
+            {
+                System.IO.Directory.CreateDirectory(previewDir);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(previewDir, label.Replace(' ', '-') + ".png"), tex.EncodeToPNG());
+            }
             SetOutlines(actor.Hearts, false);
             foreach (var eh in elites) SetOutlines(eh, false);
             Color[] without = Grab(rt, tex);
@@ -652,10 +674,10 @@ public static class BossHeartsTest
                     eliteWorst = Mathf.Min(eliteWorst, n);
                     eliteShare = Mathf.Min(eliteShare, share);
                 }
-            Check(worlds[w] + ": every boss heart's outline stands " + MinContrast + ":1 clear of what is behind it (at least " +
+            Check(label + ": every boss heart's outline stands " + MinContrast + ":1 clear of what is behind it (at least " +
                   bossWorst + " px a heart, " + (bossShare * 100f).ToString("F0") + "% of its outline pixels; need " + MinStandOut + ")",
                   bossWorst >= MinStandOut && bossShare >= MinShare);
-            Check(worlds[w] + ": every elite heart's outline stands " + MinContrast + ":1 clear of the backdrop and its ship (" + eliteHearts +
+            Check(label + ": every elite heart's outline stands " + MinContrast + ":1 clear of the backdrop and its ship (" + eliteHearts +
                   " hearts in front, at least " + eliteWorst + " px a heart, " + (eliteShare * 100f).ToString("F0") + "% of its outline pixels; need " + MinStandOut + ")",
                   eliteHearts > 0 && eliteWorst >= MinStandOut && eliteShare >= MinShare);
 
@@ -665,6 +687,7 @@ public static class BossHeartsTest
             Object.DestroyImmediate(backdrop);
             Object.DestroyImmediate(actor.gameObject);
             EliteSystem.Clear();
+            HeartOutline.Bold = null;
         }
     }
 
