@@ -15,9 +15,10 @@ using UnityEngine;
 //      in); after, the same charge carries on and fires as usual
 //   3  the planetfall: the approach and the whole descent (commit, shroud,
 //      the switch, the breakthrough) until control returns
-//   4  the lift-off (Frost's and Verdant's): the beat, the rise, the
-//      interlude and the gateway after (Verdant's planetfall after Frost,
-//      flown down until control returns; Ember's portal after Verdant)
+//   4  the lift-off (Frost's, Verdant's and Ember's): the beat, the rise,
+//      the interlude and the gateway after (Verdant's planetfall after
+//      Frost, Ember's after Verdant, flown down until control returns; the
+//      loop portal after Ember)
 //   5  the boss: the fight charges as normal; its end opens the portal and
 //      the charge holds from there
 //   6  the signal can't stick: a scene reload, a dead pilot's reload, a
@@ -53,6 +54,7 @@ public static class TransitionChargeTest
             PlanetfallDescent();
             LiftoffClimb(1);
             LiftoffClimb(2);
+            LiftoffClimb(3);
             BossKillToPortal();
             NeverSticks();
             NoAllocations();
@@ -61,6 +63,7 @@ public static class TransitionChargeTest
         {
             Gone();
             LiftoffCatalog.Enabled = true;
+            PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             AttackPool.StopAll();
             typeof(ShipPowerController).GetMethod("FinishCinematic", Stat).Invoke(null, null);
             PortalPressure.Reset();
@@ -283,7 +286,9 @@ public static class TransitionChargeTest
 
     static void Portals()
     {
-        LiftoffCatalog.Enabled = false;   // Verdant's own end is a lift-off (LiftoffClimb); here its portal
+        LiftoffCatalog.Enabled = false;   // Verdant's and Ember's own ends are lift-offs (LiftoffClimb); here their portals
+        // ... and Verdant -> Ember without Ember's planetfall: the portal as it was before Ember's art
+        PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };
         foreach (int world in new[] { 2, 3 })   // Verdant -> Ember, and Ember's loop portal
         {
             string name = world == 3 ? "the loop portal" : "the portal";
@@ -313,6 +318,7 @@ public static class TransitionChargeTest
             Gone();
             Object.DestroyImmediate(wm.gameObject);
         }
+        PlanetfallCatalog.Defs = PlanetfallCatalog.All;
         LiftoffCatalog.Enabled = true;
     }
 
@@ -394,8 +400,10 @@ public static class TransitionChargeTest
         Check(name + ": beat, rise and interlude (" + (w.frames * Dt).ToString("F1") + " s) hold the charge",
               rose && interlude && w.held && Liftoff.Live == null);
         Check(name + ": ... nothing fires, the gun tucked in, the signal on throughout", w.quiet && w.tucked && w.signal);
-        bool fall = from == 1;   // Frost's gateway: Verdant's planetfall; Verdant's: Ember's portal
-        Check(name + ": the gateway it opened (" + (fall ? "Verdant's planetfall" : "the portal") + ") is still the transition",
+        // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Ember's (the last world): the loop portal
+        bool fall = from < WorldManager.Worlds.Length - 1;
+        string onto = fall ? WorldManager.Worlds[from + 1].displayName : "";
+        Check(name + ": the gateway it opened (" + (fall ? onto + "'s planetfall" : "the loop portal") + ") is still the transition",
               (fall ? Planetfall.Live != null && Portal.Live == null : Portal.Live != null && Planetfall.Live == null) &&
               WorldTransition.InProgress);
         for (int i = 0; i < 60; i++) Fly(wm, c);
@@ -411,8 +419,8 @@ public static class TransitionChargeTest
                 if (Planetfall.Live == null) break;
                 wf.See(c, Held, 0);
             }
-            Check(name + ": ... Verdant's descent holds it too, the world now Verdant",
-                  wf.held && wf.quiet && wf.frames > 60 && WorldManager.CurrentIndex == 2);
+            Check(name + ": ... " + onto + "'s descent holds it too, the world now " + onto,
+                  wf.held && wf.quiet && wf.frames > 60 && WorldManager.CurrentIndex == from + 1);
         }
         else if (Portal.Live != null) Portal.Live.Enter();
         Resumes(name, c, wm, Held, 0);
@@ -426,6 +434,7 @@ public static class TransitionChargeTest
     static void BossKillToPortal()
     {
         LiftoffCatalog.Enabled = false;   // Verdant's end straight to its portal (its lift-off: LiftoffClimb)
+        PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };   // ... not Ember's planet
         FreshScene(2);
         var c = Ship();
         var wm = World();
@@ -456,6 +465,7 @@ public static class TransitionChargeTest
         Gone();
         Object.DestroyImmediate(wm.gameObject);
         BossEncounter.ResetRun();
+        PlanetfallCatalog.Defs = PlanetfallCatalog.All;
         LiftoffCatalog.Enabled = true;
     }
 
@@ -475,7 +485,8 @@ public static class TransitionChargeTest
         Check("a scene reload mid-descent clears it", on && !WorldTransition.InProgress);
 
         // a dead pilot at the open portal: nothing fires, and the run's reload clears it
-        FreshScene(3);   // Ember: a portal (Frost and Verdant lift off)
+        LiftoffCatalog.Enabled = false;   // Ember's loop portal (its lift-off: LiftoffClimb)
+        FreshScene(3);
         wm = World();
         c = Ship();
         SetTimer(c, 0f);
@@ -486,6 +497,7 @@ public static class TransitionChargeTest
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         buttonClicks.playerDied = false;
         Check("death at the portal: nothing fires; the reload clears it", quiet && !WorldTransition.InProgress);
+        LiftoffCatalog.Enabled = true;
 
         // the dev skip (BOSS RUSH FINAL) mid-descent
         FreshScene(0);
@@ -515,13 +527,15 @@ public static class TransitionChargeTest
         Object.DestroyImmediate(wm.gameObject);
 
         // the manager going with the portal open (the scene going) clears it
+        LiftoffCatalog.Enabled = false;   // Ember's loop portal straight away
         FreshScene(3);
         wm = World();
         FinishLevel(wm);
-        on = WorldTransition.InProgress;
+        on = WorldTransition.InProgress && Portal.Live != null;
         Object.DestroyImmediate(wm.gameObject);
         Check("the world manager destroyed with the portal open clears it", on && !WorldTransition.InProgress);
         Gone();
+        LiftoffCatalog.Enabled = true;
 
         // a lift-off destroyed mid-rise along with its scene
         FreshScene(1);
