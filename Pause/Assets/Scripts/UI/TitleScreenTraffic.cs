@@ -42,14 +42,16 @@ using UnityEngine.SceneManagement;
 // the air are ever the same), nothing allocates per frame, and the whole
 // thing runs on unscaled time: moveBackGround can freeze Time.timeScale on
 // the menu after a run. Purely cosmetic: no colliders, no UI graphics, all on
-// the Ignore Raycast layer, and it never moves, recolours or resizes the logo
-// or a button (a crash into one is drawn on top of it; a button's label may
-// wobble and always settles back exactly).
+// the Ignore Raycast layer, and it never recolours or resizes the logo or a
+// button (a crash into one is drawn on top of it; the logo gives a small
+// shake and a button's label a wobble, and both settle back exactly).
 //
 // More in the partial files: TitleScreenTraffic.Combat.cs (ultimates,
 // shoot-downs into the walls, crashes into the logo and buttons),
-// TitleScreenTraffic.Touch.cs (the finger pushes ships around) and
-// TitleScreenTraffic.Skins.cs (every ship flies all of its skins).
+// TitleScreenTraffic.Touch.cs (the finger pushes ships around),
+// TitleScreenTraffic.Skins.cs (every ship flies all of its skins),
+// TitleScreenTraffic.Elite.cs (every ~40 s an enemy elite snipes the sky
+// clear) and TitleScreenTraffic.Logo.cs (the logo shakes when hit).
 public partial class TitleScreenTraffic : MonoBehaviour
 {
     public enum Depth { Back = 0, Mid = 1, Front = 2 }
@@ -185,6 +187,8 @@ public partial class TitleScreenTraffic : MonoBehaviour
         public float emit;
         // touch (Touch.cs)
         public Vector2 push;
+        // elite (Elite.cs): a shot is on its way to it
+        public bool sniped;
         public DeathCrash.FragmentSet Frags => skin != ShipSkins.Stock && residentFrags != null ? residentFrags : stockFrags;
     }
 
@@ -337,6 +341,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         BuildStars();
         BuildCombat();
         BuildTouch();
+        BuildElite();
         FindScene();
         RefreshGeometry(true);
         FindTouchUi();
@@ -353,6 +358,8 @@ public partial class TitleScreenTraffic : MonoBehaviour
         for (int d = 0; d < 3; d++)
             for (int i = 0; i < layerTargets[d] && ActiveCount < maxShips; i++)
                 Launch((Depth)d, true, false, null);
+
+        StartElite();
     }
 
     void BuildPool()
@@ -548,6 +555,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         Separate(dt);
         DetectCrashes();
         TickUltimates(dt);
+        TickElite(dt);
 
         for (int i = 0; i < pool.Length; i++)
             if (pool[i].active) Draw(pool[i], dt);
@@ -557,17 +565,19 @@ public partial class TitleScreenTraffic : MonoBehaviour
         TickStars(dt);
         TickCombatFx(dt);
         TickFx(dt);
+        TickLogoShake(dt);
     }
 
     // ------------------------------------------------------------- spawning
 
     void Populate()
     {
+        if (EliteBusy) return;   // the elite clears the sky; nothing new until it's gone
         for (int d = 0; d < 3; d++)
         {
             if (now < nextSpawnAt[d]) continue;
             if (CruisersIn((Depth)d) >= layerTargets[d] || ActiveCount >= maxShips) continue;
-            nextSpawnAt[d] = now + Random.Range(respawnDelay.x, respawnDelay.y);
+            nextSpawnAt[d] = now + RespawnGap();
 
             var lead = Launch((Depth)d, false, false, null);
             // now and then a pair comes in together
@@ -639,6 +649,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         f.turn = 0f;
         f.push = Vector2.zero;
         f.stricken = false;
+        f.sniped = false;
         f.ulting = false;
         f.aim = null;
         f.plungeInto = -1;
@@ -1166,6 +1177,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
     bool CanCrash(Flyer a, Flyer b)
     {
         if (a.layer != b.layer) return false;          // depth reads right
+        if (EliteBusy) return false;                   // one show at a time
         if (now < nextCrashAt) return false;           // rate limit
         if (a.state == State.Dizzy || b.state == State.Dizzy) return false;
         if (a.state == State.Plunge || b.state == State.Plunge) return false;
@@ -1248,6 +1260,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
     // Pick two cruisers on one layer and send them at each other.
     void Matchmake()
     {
+        if (EliteBusy) return;
         if (pursuerA != null)
         {
             if (now - pursuitStarted > 4f) { EndPursuit(); nextCrashAt = now + 1f; }
@@ -1683,6 +1696,8 @@ public partial class TitleScreenTraffic : MonoBehaviour
     {
         ReleaseSkins();
         RestoreButtons();
+        CancelElite();
+        SettleLogo();
         // hand any explosions we were driving back to their own clock
         for (int i = 0; i < fxCount; i++) if (fx[i] != null) fx[i].enabled = true;
         fxCount = 0;
