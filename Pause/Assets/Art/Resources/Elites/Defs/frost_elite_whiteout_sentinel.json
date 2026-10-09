@@ -1,0 +1,95 @@
+{
+  "key": "frost_elite_whiteout_sentinel",
+  "displayName": "Whiteout Sentinel",
+  "world": "frost",
+  "role": "armoured ironclad",
+  "codexId": "elite_frost_whiteout_sentinel",
+  "lore": "A shield wedge of glacier plate that plods straight at you and never dodges a thing. Each of its three ice plates soaks a hit and sprays its shards back along the blinking cone, so shoot from the side of it. Strip it bare and it loses its temper: one long glare, then a charge you can sidestep.",
+  "brain": "ironclad",
+  "attack": "armour_shatter",
+  "launchFrom": "padring,hatch",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.55,
+  "hullRadius": 0.33,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "maxBank": 0,
+  "speed": 1.4,
+  "accel": 3,
+  "turnRate": 70,
+  "aggression": 0.5,
+  "tellSeconds": 0.6,
+  "attackGap": 3.6,
+  "avoidance": 0.3,
+  "lookAhead": 0.3,
+  "perception": 2.0,
+  "actionSeconds": 0.7,
+  "shotCount": 5,
+  "shotSpeed": 4.0,
+  "shotSpread": 12,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "heartColor": "#5CE8FF",
+  "shotColor": "#9FE4FF",
+  "shotCore": "#F2FCFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "eye",
+      "x": 95,
+      "y": 75,
+      "dir": -1.0
+    },
+    {
+      "name": "sideL",
+      "x": 49,
+      "y": 116,
+      "dir": -1.0
+    },
+    {
+      "name": "sideR",
+      "x": 143,
+      "y": 117,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 83,
+      "y": 154,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 109,
+      "y": 154,
+      "dir": -1.0
+    }
+  ],
+  "armored": true,
+  "followDistance": 1.8,
+  "dashSpeed": 6.0,
+  "hazardCount": 3
+}

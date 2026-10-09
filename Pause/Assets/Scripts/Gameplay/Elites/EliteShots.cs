@@ -25,6 +25,13 @@ using UnityEngine;
 //   glob   resin lobbed in a high arc (Lob) onto a marked spot: harmless
 //          and untouchable in the air, it lands as a sticky pool that
 //          rides the board (poolSeconds) and catches whatever touches it
+//   slab   (floe_cast) a block of floating ice: glides out of its chute onto
+//          a spot on a row, then rides the board drifting sideways,
+//          glancing off the rails; soaks hazardArmour player hits (it
+//          blocks shots) and hurts on touch
+//   orb    (frost_bloom) a slow cryo orb on a fuse (a blinking ring round
+//          it): at zero it bursts into a ring of hazardCount shards. Shot
+//          down first, it just pops
 // Any kind can be slung (Sling, the Singularity Hauler's gravity_sling):
 // it curves past a bend point through a ringed spot on the board, deadly
 // all the way, then flies straight on.
@@ -34,7 +41,7 @@ using UnityEngine;
 // violet / cyan, never the player's red.
 public sealed class EliteShots
 {
-    public enum Kind { Bolt, Shard, Slag, Shell, Glob }
+    public enum Kind { Bolt, Shard, Slag, Shell, Glob, Slab, Orb }
     public const int MaxShots = 48;
     public const string HitboxName = "EliteShotHit";
 
@@ -72,6 +79,8 @@ public sealed class EliteShots
             case "slag": return Kind.Slag;
             case "shell": return Kind.Shell;
             case "glob": return Kind.Glob;
+            case "slab": return Kind.Slab;
+            case "orb": return Kind.Orb;
             default: return Kind.Bolt;
         }
     }
@@ -121,7 +130,7 @@ public class EliteShotHitbox : MonoBehaviour, IShipAttackTarget
 
     public void TakeShipAttack(int ship, float weight, Vector3 at)
     {
-        if (shot != null) shot.Recycle();
+        if (shot != null) shot.Struck();
     }
 }
 
@@ -153,6 +162,15 @@ public class EliteShot : MonoBehaviour, IHostileShot
     bool slung;
     float slingTime, slingTotal;
     Vector2 slingFrom, slingBend, slingTo;
+    // a slab gliding out of its chute (floe_cast): from `glideFrom` to `glideTo`
+    // (both riding the board) in `glideTotal`, then drifting `drift` sideways
+    bool gliding;
+    float glideTime, glideTotal, drift;
+    Vector2 glideFrom, glideTo;
+    int armour;
+    bool afloat;   // a slab out of its glide: it rides the board
+    // an orb's fuse (frost_bloom): seconds left, and the whole of it
+    float fuse, fuseTotal;
 
     public bool Active { get; private set; }
     public EliteShots.Kind Kind { get; private set; }
@@ -170,6 +188,12 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public Vector2 LobTarget => lobTo;
     public bool Slung => Active && slung;
     public Vector2 SlingTarget => slingTo;
+    public bool Gliding => Active && gliding;
+    public Vector2 GlideTarget => glideTo;
+    public float Drift => drift;
+    public int Armour => armour;
+    public float FuseLeft => Active && Kind == EliteShots.Kind.Orb ? fuse : 0f;
+    public int Bursts { get; private set; }
     // A glob in the air: seconds until it lands, and the pool it will be.
     public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
     public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
@@ -187,7 +211,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float ShotRadius => radius;
     public int ShotOwner => ownerId;
     public float ShotAge => age;
-    public int ShotMass => Kind == EliteShots.Kind.Glob ? HostileShots.Fixed
+    public int ShotMass => Kind == EliteShots.Kind.Glob || Kind == EliteShots.Kind.Slab ? HostileShots.Fixed
+                         : Kind == EliteShots.Kind.Orb ? HostileShots.Heavy
                          : Kind == EliteShots.Kind.Slag || Kind == EliteShots.Kind.Shell ? HostileShots.Heavy
                          : HostileShots.Light;
     public Color ShotTint => def != null ? def.ShotColor : Color.white;
@@ -248,13 +273,18 @@ public class EliteShot : MonoBehaviour, IHostileShot
         LaunchedAt = at;
         airborne = false;
         slung = false;
+        gliding = false;
+        fuse = 0f;
+        drift = 0f;
+        armour = 1;
+        afloat = false;
         rosterShot = false;
         shooter = from != null ? from.gameObject : null;
         ride = 0f;
         bounces = Mathf.Max(0, d.shotBounces);
         Bounced = 0;
         if (mark != null) mark.enabled = false;
-        float size = Mathf.Max(.06f, d.shotSize);
+        float size = Mathf.Max(.06f, kind == EliteShots.Kind.Slab || kind == EliteShots.Kind.Orb ? d.hazardSize : d.shotSize);
         Sprite sprite;
         switch (kind)
         {
@@ -262,12 +292,17 @@ public class EliteShot : MonoBehaviour, IHostileShot
             case EliteShots.Kind.Slag: sprite = EliteFxArt.Slag; radius = size * .42f; life = 7f; pierce = 0; break;
             case EliteShots.Kind.Shell: sprite = EliteFxArt.Shell; radius = size * .36f; life = 4f; pierce = 2; break;
             case EliteShots.Kind.Glob: sprite = EliteFxArt.Slag; radius = size * .4f; life = d.lobSeconds + d.poolSeconds; pierce = 0; break;
+            case EliteShots.Kind.Slab: sprite = EliteFxArt.Slab; radius = size * .42f; life = 12f; pierce = 3; bounces = 99; armour = Mathf.Max(1, d.hazardArmour); break;
+            case EliteShots.Kind.Orb: sprite = EliteFxArt.Orb; radius = size * .4f; life = 6f; pierce = 0; break;
             default: sprite = EliteFxArt.Bolt; radius = size * .3f; life = 4f; pierce = 0; break;
         }
         body.sprite = sprite;
         core.sprite = sprite;
-        body.color = d.ShotColor;
+        // (a slab is the world's own ice: drawn as it is, no core; its outline says "hazard")
+        bool slab = kind == EliteShots.Kind.Slab;
+        body.color = slab ? Color.white : d.ShotColor;
         core.color = d.ShotCore;
+        core.enabled = !slab;
         core.transform.localScale = Vector3.one * .5f;
         float k = size / Mathf.Max(.01f, sprite.bounds.size.y);
         transform.localScale = Vector3.one * k;
@@ -335,6 +370,66 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.color = def.ShotColor;
     }
 
+    // Turns a just-fired slab into a glide out to `to` (world, riding the
+    // board) in `seconds`; then it rides the board drifting `sideways` u/s.
+    // Dangerous all the way.
+    public void Glide(Vector2 to, float seconds, float sideways)
+    {
+        gliding = true;
+        glideFrom = transform.position;
+        glideTo = to;
+        glideTime = 0f;
+        glideTotal = Mathf.Max(.05f, seconds);
+        drift = sideways;
+        velocity = (to - glideFrom) / glideTotal;
+    }
+
+    // Lights a just-fired orb's fuse: it bursts in `seconds`. A blinking
+    // ring round it shows the fuse, blinking faster near the end.
+    public void Fuse(float seconds)
+    {
+        fuse = fuseTotal = Mathf.Max(.05f, seconds);
+        mark.sprite = EliteFxArt.Ring;
+        mark.enabled = true;
+        mark.color = def.ShotColor;
+    }
+
+    // A player weapon touched it: a slab soaks it (armour) until it breaks,
+    // anything else is shot down (an orb pops without bursting).
+    public void Struck()
+    {
+        if (!Active) return;
+        if (Kind == EliteShots.Kind.Slab && armour > 1)
+        {
+            armour--;
+            EliteSystem.Fx.Sparks(transform.position, def.ShotCore, 5);
+            return;
+        }
+        if (Kind == EliteShots.Kind.Slab || Kind == EliteShots.Kind.Orb) EliteSystem.Fx.Sparks(transform.position, def.ShotColor, 8);
+        EndReason = 5;
+        Recycle();
+    }
+
+    // The orb's fuse ran out: a ring of hazardCount shards out of where it is.
+    void Burst()
+    {
+        Vector2 at = transform.position;
+        int n = Mathf.Max(3, def.hazardCount);
+        float speed = Mathf.Max(.5f, def.hazardSpeed);
+        float spin = Mathf.Repeat(age * 37f, 360f / n);   // (never quite the same ring twice)
+        var o = owner;
+        var d = def;
+        EliteSystem.Fx.Sparks(at, d.ShotCore, 10);
+        EndReason = 6;
+        Recycle();
+        Bursts++;
+        for (int i = 0; i < n; i++)
+        {
+            float r = (spin + i * 360f / n) * Mathf.Deg2Rad;
+            pool.Fire(o, d, EliteShots.Kind.Shard, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
+        }
+    }
+
     // The glob comes down: a flat sticky pool on the board.
     void Land()
     {
@@ -382,6 +477,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
 
     void Face()
     {
+        // (slabs and orbs float upright)
+        if (Kind == EliteShots.Kind.Slab || Kind == EliteShots.Kind.Orb) { transform.rotation = Quaternion.identity; return; }
         if (velocity.sqrMagnitude < 1e-6f) return;
         float deg = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg - 90f;
         transform.rotation = Quaternion.Euler(0f, 0f, deg);
@@ -429,6 +526,38 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float pulse = 1f + .08f * (Mathf.FloorToInt(age * 8f) % 2);
             core.transform.localScale = Vector3.one * .5f * pulse;
         }
+        if (gliding)
+        {
+            // out of the chute onto its spot (both riding the board), easing in
+            float fall = EliteSystem.Scroll * dt;
+            glideFrom.y -= fall;
+            glideTo.y -= fall;
+            glideTime += dt;
+            float k = Mathf.Clamp01(glideTime / glideTotal), e = 1f - (1f - k) * (1f - k);
+            Vector2 g = Vector2.Lerp(glideFrom, glideTo, e);
+            velocity = (g - (Vector2)p) / dt;
+            if (k >= 1f) { gliding = false; afloat = true; velocity = new Vector2(drift, -EliteSystem.Scroll); }
+        }
+        else if (Kind == EliteShots.Kind.Slab && afloat)
+        {
+            // afloat: rides the board, drifting (a rail turns the drift round)
+            velocity.y = -EliteSystem.Scroll;
+            transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Sin(age * 1.7f) * 4f);
+        }
+        if (Kind == EliteShots.Kind.Orb && fuse > 0f)
+        {
+            fuse -= dt;
+            float k = 1f - fuse / fuseTotal;
+            mark.transform.position = new Vector3(p.x, p.y, 0f);
+            // the ring shows the fuse: wider as it runs down, blinking faster at the end
+            mark.transform.localScale = Vector3.one * def.hazardSize * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+            Color mc = def.ShotColor;
+            mc.a = Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .95f : .35f;
+            mark.color = mc;
+            float pulse = 1f + .12f * (Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2);
+            core.transform.localScale = Vector3.one * .5f * pulse;
+            if (fuse <= 0f) { Burst(); return; }
+        }
         if (slung)
         {
             // round the curve (a quadratic through the bend), the points riding the board
@@ -474,7 +603,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
                 // glances off the rail, back across the board
                 bounces--;
                 Bounced++;
-                velocity.x = -velocity.x * .85f;
+                velocity.x = -velocity.x * (Kind == EliteShots.Kind.Slab ? 1f : .85f);
+                if (Kind == EliteShots.Kind.Slab) drift = velocity.x;
                 p.x = Mathf.Sign(p.x) * (edge - radius - .01f);
                 transform.position = p;
                 Face();
@@ -497,7 +627,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float R = radius + t.Radius * FriendlyFire.HostileFireReach;
             if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
             if (!FriendlyFire.HostileFireCanHit(t, shooter)) continue;   // its shooter, the boss, a target just come in
-            string by = Kind == EliteShots.Kind.Glob ? "resin pool" : rosterShot ? "enemy shot" : "elite shot";
+            string by = Kind == EliteShots.Kind.Glob ? "resin pool" : Kind == EliteShots.Kind.Slab ? "ice slab" : rosterShot ? "enemy shot" : "elite shot";
             if (!FriendlyFire.HostileHit(t, p, by)) continue;   // the frame's kill cap: not spent, next frame
             pool.CountFriendly();
             if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
@@ -517,6 +647,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Active = false;
         airborne = false;
         slung = false;
+        gliding = false;
+        fuse = 0f;
         shooter = null;
         if (mark != null) mark.enabled = false;
         gameObject.SetActive(false);

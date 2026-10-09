@@ -133,6 +133,7 @@ public static class AllTests
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
+        ("FrostEliteTest", FrostEliteTest.Execute),
         ("SpaceStationTest", SpaceStationTest.Execute),
         ("SpacePlanetSheetTest", SpacePlanetSheetTest.Execute),
         ("SpawnSpaceTest", SpawnSpaceTest.Execute),

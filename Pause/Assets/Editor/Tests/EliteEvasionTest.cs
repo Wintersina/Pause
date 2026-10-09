@@ -602,14 +602,16 @@ public static class EliteEvasionTest
             e.AttackCooldown = 99f;
             Step(.3f);
             int hits = 0;
-            for (int i = 0; i < def.hearts + 2 && Alive(e); i++)
+            // (the Whiteout Sentinel's ice plates soak a hit each first: armour_shatter)
+            int plates = def.attack == "armour_shatter" ? def.hazardCount : 0;
+            for (int i = 0; i < def.hearts + plates + 2 && Alive(e); i++)
             {
                 e.TakeShipAttack(0, 1f, e.Position);
                 hits++;
                 Step(EliteShip.GraceSeconds + .05f);
             }
-            Check(def.key + ": the player still kills it, a heart a hit (" + hits + " hits for " + def.hearts + " hearts)",
-                  !Alive(e) && hits == def.hearts && EliteShip.LastKillCause == EliteDamage.PlayerWeapon);
+            Check(def.key + ": the player still kills it, a heart a hit (" + hits + " hits for " + def.hearts + " hearts" + (plates > 0 ? " + " + plates + " plates" : "") + ")",
+                  !Alive(e) && hits == def.hearts + plates && EliteShip.LastKillCause == EliteDamage.PlayerWeapon);
         }
 
         // straight from the lift-off: no protection of any kind against the pilot
