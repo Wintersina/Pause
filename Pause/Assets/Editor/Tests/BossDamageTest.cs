@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: a boss with damage art (BossDef.damageKey: Space, Frost) shows its
-// battle damage as it loses hearts; Verdant and Ember have none yet.
+// Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember) shows
+// its battle damage as it loses hearts; Verdant has none yet. A boss with a
+// BossDef.deathKey (Ember) plays its <Key>_death.png strip over the body as it
+// blows up.
 //
 // Stage = hearts lost (0 pristine .. 4 one heart left). From stage 1 its idle
 // drawing is the matching damaged hull (<Key>_damage.png, a 2-frame loop over
@@ -35,13 +37,19 @@ public static class BossDamageTest
             StageFollowsHeartsLost();
             ArtSlicesIntoItsCells(0);
             ArtSlicesIntoItsCells(1);
+            ArtSlicesIntoItsCells(3);
             OnlyKeyedBossesHaveDamage();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
+            FightShowsTheDamage(3);
             OtherBossesUnchangedInAFight();
             OverlayGoesWithTheBoss(0);
             OverlayGoesWithTheBoss(1);
+            OverlayGoesWithTheBoss(3);
+            DeathStripArt();
+            DeathStripPlaysOnce();
+            OtherBossesKeepTheirDeath();
         }
         finally
         {
@@ -181,7 +189,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember";
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
@@ -191,7 +199,7 @@ public static class BossDamageTest
             }
             if (!space) ok &= BossArt.DamageBody(b, 0) == null && BossArt.DamageFx(b, 0) == null;
         }
-        Check("damaged idle frames resolve for Space and Frost (by damageKey); Verdant / Ember get none", ok);
+        Check("damaged idle frames resolve for Space, Frost and Ember (by damageKey); Verdant gets none", ok);
 
         // Frost's idle is the 4-frame Idle0 loop: the damaged loop spans it
         var fr = BossCatalog.ForWorld(1);
@@ -295,6 +303,12 @@ public static class BossDamageTest
         Check(a.Boss.artKey + ": time scale 0 freezes smoke and arcs", frozen);
     }
 
+    static bool IsDeathStripCell(BossDef b, Sprite sp)
+    {
+        for (int c = 0; c < BossArt.DeathStripCells; c++) if (sp == BossArt.DeathStrip(b, c)) return true;
+        return false;
+    }
+
     static void OtherBossesUnchangedInAFight()
     {
         for (int w = 0; w < BossCatalog.All.Length; w++)
@@ -332,7 +346,7 @@ public static class BossDamageTest
         for (int i = 0; i < 200 && a != null && e.State == BossEncounter.Phase.Outro; i++)
         {
             gone &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled;
-            if (a.State == BossActor.Mode.Dying) { dyingFrames++; gone &= Body(a).sprite == BossArt.Body(a.Boss, a.BodyFrame); }
+            if (a.State == BossActor.Mode.Dying) { dyingFrames++; gone &= BossArt.HasDeathArt(a.Boss) ? IsDeathStripCell(a.Boss, Body(a).sprite) : Body(a).sprite == BossArt.Body(a.Boss, a.BodyFrame); }
             e.Step(Dt, 1f);
         }
         Check(a.Boss.artKey + ": destroyed: overlay gone through the death blasts, death frames pristine (" + dyingFrames + " frames)",
@@ -352,5 +366,146 @@ public static class BossDamageTest
             left &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled && body.sprite == BossArt.Body(a.Boss, a.BodyFrame);
         }
         Check(a.Boss.artKey + ": retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
+    }
+
+    // ---- the death strip -----------------------------------------------
+
+    static Color32[] Pixels(Sprite sp, out int w, out int h) => ShieldContour.ReadPixels(sp, out w, out h);
+
+    // opaque bounding box in cell px (null when empty)
+    // (sprites are cut tight to their drawing: offset by the trim to get cell px)
+    static int[] Box(Sprite sp)
+    {
+        int w, h;
+        var px = Pixels(sp, out w, out h);
+        if (px == null) return null;
+        var o = sp.textureRectOffset;
+        var b = BoxOf(px, w, h);
+        if (b == null) return null;
+        int ox = Mathf.RoundToInt(o.x), oy = Mathf.RoundToInt(o.y);
+        return new[] { b[0] + ox, b[1] + oy, b[2] + ox, b[3] + oy };
+    }
+
+    static int[] BoxOf(Color32[] px, int w, int h)
+    {
+        int x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+                if (px[y * w + x].a > 24) { x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y); }
+        return x1 < 0 ? null : new[] { x0, y0, x1, y1 };
+    }
+
+    static void DeathStripArt()
+    {
+        var em = BossCatalog.ForWorld(3);
+        var tex = Resources.Load<Texture2D>(BossArt.Folder + "Ember_death");
+        Check("Ember: deathKey set and Ember_death imports unscaled at 2304x384 (" + (tex ? tex.width + "x" + tex.height : "missing") + ")",
+              em.deathKey == "Ember" && BossArt.HasDeathArt(em) && tex != null && tex.width == 2304 && tex.height == 384);
+        var idle = BossArt.Body(em, BossArt.Idle0);
+        var seen = new HashSet<Sprite>();
+        bool same = true, inside = true;
+        var ibox = Box(idle);
+        for (int i = 0; i < BossArt.DeathStripCells; i++)
+        {
+            var s = BossArt.DeathStrip(em, i);
+            if (s == null || !seen.Add(s)) { same = false; continue; }
+            // same scale, same anchor as the idle cell
+            same &= s.rect.width == 384f && s.rect.height == 384f && Mathf.Abs(s.bounds.size.x - idle.bounds.size.x) < 1e-4f &&
+                    Mathf.Abs(s.bounds.size.y - idle.bounds.size.y) < 1e-4f && s.pivot == idle.pivot && s.rect.x == i * 384f;
+            var box = Box(s);
+            // content is never empty and stays inside its own 384 cell (the idle art itself spans 7..382 of it)
+            inside &= box != null && box[0] >= 0 && box[1] >= 0 && box[2] < 384 && box[3] < 384 &&
+                      box[2] - box[0] <= (ibox[2] - ibox[0]) + 16;
+        }
+        Check("Ember death strip: 6 distinct 384px cells, same scale / pivot as the idle cell", same && seen.Count == 6);
+        Check("Ember death strip: every cell is drawn and sits inside its cell, no wider than the idle art", inside);
+        // registration: the first cell is the idle pose bursting, so its body centre matches the idle cell's
+        var b0 = Box(BossArt.DeathStrip(em, 0));
+        float cx0 = (b0[0] + b0[2]) / 2f, cx1 = (ibox[0] + ibox[2]) / 2f;
+        float cy0 = (b0[1] + b0[3]) / 2f, cy1 = (ibox[1] + ibox[3]) / 2f;
+        Check("Ember death cell 0 is registered to the idle cell (centre off by " + Mathf.Abs(cx0 - cx1).ToString("0") + ", " +
+              Mathf.Abs(cy0 - cy1).ToString("0") + " px of 384)", Mathf.Abs(cx0 - cx1) <= 40f && Mathf.Abs(cy0 - cy1) <= 40f);
+        Check("strip timing: 6 cells at 0.12 s, clamped (cell at 0 s, .13 s, .5 s, .71 s, 3 s)",
+              BossArt.DeathStripCell(0f) == 0 && BossArt.DeathStripCell(.13f) == 1 && BossArt.DeathStripCell(.5f) == 4 &&
+              BossArt.DeathStripCell(.71f) == 5 && BossArt.DeathStripCell(3f) == 5 && BossArt.DeathStripCell(-1f) == 0);
+        // picked up purely by key
+        var temp = new BossDef { artKey = "Frost", deathKey = "Ember" };
+        var missing = new BossDef { artKey = "Frost", deathKey = "NoSuchWorld" };
+        Check("death art is looked up by deathKey: found for a key with a strip, absent (no throw) for one without or none",
+              BossArt.HasDeathArt(temp) && BossArt.DeathStrip(temp, 0) == BossArt.DeathStrip(em, 0) &&
+              !BossArt.HasDeathArt(missing) && !BossArt.HasDeathArt(new BossDef { artKey = "Frost" }) && !BossArt.HasDeathArt(null));
+    }
+
+    static void DeathStripPlaysOnce()
+    {
+        FreshScene(3);
+        bool done = false;
+        BossEncounter.Begin(3, () => done = true);
+        var e = BossEncounter.Instance;
+        e.Step(.1f, 1f);
+        for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
+        var a = e.Actor;
+        var body = Body(a);
+        for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
+        Check("Ember: destroyed", e.Destroyed && e.State == BossEncounter.Phase.Outro);
+
+        int dying = 0, lastCell = -1, back = 0, firstFrameCell = -1, maxCell = -1;
+        var cellFrames = new int[BossArt.DeathStripCells];
+        bool strip = true;
+        long alloc = 0;
+        int allocFrames = 0;
+        for (int i = 0; i < 300 && a != null && e.State == BossEncounter.Phase.Outro && !done; i++)
+        {
+            bool dyingNow = a.State == BossActor.Mode.Dying && body.enabled;
+            if (dyingNow)
+            {
+                dying++;
+                int cell = -1;
+                for (int c = 0; c < BossArt.DeathStripCells; c++) if (body.sprite == BossArt.DeathStrip(a.Boss, c)) cell = c;
+                strip &= cell >= 0;
+                if (cell >= 0) cellFrames[cell]++;
+                if (dying == 1) firstFrameCell = cell;
+                if (cell < lastCell) back++;
+                lastCell = cell; maxCell = Mathf.Max(maxCell, cell);
+            }
+            // between the last blast (0.4 s) and the end, nothing else spawns: step must not allocate
+            bool quiet = a.State == BossActor.Mode.Dying && dying * Dt > .45f && dying * Dt < .7f;
+            long before = quiet ? System.GC.GetAllocatedBytesForCurrentThread() : 0;
+            e.Step(Dt, 1f);
+            if (quiet) { alloc += System.GC.GetAllocatedBytesForCurrentThread() - before; allocFrames++; }
+        }
+        Check("death strip: every dying frame shows a strip cell (" + dying + " frames), starting at cell 0", strip && dying > 0 && firstFrameCell == 0);
+        Check("death strip: plays once, in order, never backwards, reaching the last cell", back == 0 && maxCell == BossArt.DeathStripCells - 1);
+        bool each = true;
+        for (int c = 0; c < 5; c++) each &= Mathf.Abs(cellFrames[c] * Dt - BossArt.DeathStripCellSeconds) < 2.5f * Dt;
+        Check("each early cell holds ~0.12 s (" + string.Join(",", cellFrames) + " frames at 60 fps)", each);
+        Check("the death is not shortened: lasts at least the atlas death's " + BossArt.Seconds(BossArt.DeathTicks).ToString("0.00") +
+              " s (" + (dying * Dt).ToString("0.00") + " s)", dying * Dt >= BossArt.Seconds(BossArt.DeathTicks) - 2.5f * Dt);
+        Check("no allocation while the strip plays (" + alloc + " B over " + allocFrames + " frames)", allocFrames > 5 && alloc == 0);
+        // the flow: it ends, then the encounter finishes and the world transition callback fires
+        for (int i = 0; i < 400 && !done; i++) e.Step(Dt, 1f);
+        Check("defeat flow completes: the boss is gone and the finished callback (world transition) fires", done);
+    }
+
+    static void OtherBossesKeepTheirDeath()
+    {
+        bool ok = true;
+        foreach (var b in BossCatalog.All)
+        {
+            bool want = b.artKey == "Ember";
+            ok &= BossArt.HasDeathArt(b) == want && (want || string.IsNullOrEmpty(b.deathKey));
+        }
+        Check("only Ember has a death strip; Space / Frost / Verdant keep the atlas death", ok);
+        var e = StartFight(1);
+        var a = e.Actor;
+        var body = Body(a);
+        for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
+        bool atlas = true; int n = 0;
+        for (int i = 0; i < 200 && a != null && e.State == BossEncounter.Phase.Outro; i++)
+        {
+            if (a.State == BossActor.Mode.Dying && body.enabled) { n++; atlas &= body.sprite == BossArt.Body(a.Boss, a.BodyFrame); }
+            e.Step(Dt, 1f);
+        }
+        Check("Frost still dies on its atlas death frames (" + n + " frames)", atlas && n > 0);
     }
 }
