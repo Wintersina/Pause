@@ -73,6 +73,7 @@ public static class AllTests
         ("DeathComboTest", DeathComboTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
+        ("DeveloperUiStartTest", DeveloperUiStartTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
         ("DifficultyRetuneTest", DifficultyRetuneTest.Execute),
         ("EliteTest", EliteTest.Execute),
