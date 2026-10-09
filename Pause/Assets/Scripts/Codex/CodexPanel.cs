@@ -39,12 +39,15 @@ public class CodexPanel : MonoBehaviour
     public const float Pad = 30f;
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
-    // Six category tabs in two rows of three: one row of six left each tab
-    // ~110 units wide and 60 tall (~32-40 dp touch targets even padded). Each
+    // Seven tabs (the six entry categories, then ACHIEVEMENTS) in two rows,
+    // 4 + 3 (the second row's tabs are wider): one row left each tab ~110
+    // units wide and 60 tall (~32-40 dp touch targets even padded). Each
     // tab is drawn TabRowHeight tall and its touch target reaches half of
     // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
     // 44 pt wherever the canvas is >= 0.5 dp per unit (UiScale's floor).
-    public const int TabsPerRow = 3, TabRows = 2;
+    public const int TabsPerRow = 4, TabRows = 2;
+    public const int AchievementsTab = 6;           // index of the ACHIEVEMENTS tab (after CodexPanel.Tabs)
+    public const int TabCount = 7;
     public const float TabRowHeight = 84f;
     public const float TabRowGap = 12f;
     public const float TabsHeight = TabRows * TabRowHeight + (TabRows - 1) * TabRowGap;
@@ -81,6 +84,13 @@ public class CodexPanel : MonoBehaviour
     };
 
     public const string LockedHint = "Not yet discovered.\nKeep flying - it's out there somewhere.";
+
+    public const string AchievementsLabel = "ACHIEVEMENTS";
+
+    public static string TabName(int i)
+    {
+        return i == AchievementsTab ? AchievementsLabel : CategoryLabel(Tabs[i]);
+    }
 
     public static string CategoryLabel(CodexCategory c)
     {
@@ -138,13 +148,16 @@ public class CodexPanel : MonoBehaviour
         return l;
     }
 
-    // Tab `i`'s drawn rect (panel-local): row-major, two rows of three.
+    // Tab `i`'s drawn rect (panel-local): row-major, 4 + 3; the second row
+    // shares the band's width between its three.
     public static Rect TabRect(Layout l, int i)
     {
         int row = i / TabsPerRow, col = i % TabsPerRow;
-        float x = l.tabs.xMin + col * (l.tabWidth + TabGap);
+        int inRow = row == 0 ? TabsPerRow : TabCount - TabsPerRow;
+        float w = (l.tabs.width - TabGap * (inRow - 1)) / inRow;
+        float x = l.tabs.xMin + col * (w + TabGap);
         float y = l.tabs.yMax - (row + 1) * TabRowHeight - row * TabRowGap;
-        return new Rect(x, y, l.tabWidth, TabRowHeight);
+        return new Rect(x, y, w, TabRowHeight);
     }
 
     // ---------------------------------------------------------------------
@@ -308,6 +321,8 @@ public class CodexPanel : MonoBehaviour
     Button backBtn;
     RectTransform chipsRoot;
     CanvasGroup chipsGroup;
+    CodexAchievementsView ach;
+    bool achievementsOpen;
     Chip[] chips;
     SectionBar[] headers;
     SectionBar sticky;
@@ -363,6 +378,9 @@ public class CodexPanel : MonoBehaviour
     }
 
     public bool IsOpen { get { return phase == Phase.Opening || phase == Phase.Open; } }
+    // The ACHIEVEMENTS tab (not a CodexCategory: its cards are achievements, not entries).
+    public CodexAchievementsView Achievements { get { return ach; } }
+    public bool AchievementsOpen { get { return achievementsOpen; } }
     public bool InDetail { get { return inDetail; } }
     public CodexCategory Category { get { return category; } }
     public CodexEntry DetailEntry { get { return detailEntry; } }
@@ -462,6 +480,7 @@ public class CodexPanel : MonoBehaviour
         BuildTabs();
         BuildChips();
         BuildGrid();
+        ach = new CodexAchievementsView(this, panel, font);
         BuildDetail();
         BuildBack();
     }
@@ -470,21 +489,22 @@ public class CodexPanel : MonoBehaviour
     {
         tabsRoot = CodexUi.NewRect("Tabs", panel);
         tabsGroup = tabsRoot.gameObject.AddComponent<CanvasGroup>();
-        tabFrames = new Image[Tabs.Length];
-        tabLabels = new Text[Tabs.Length];
-        for (int i = 0; i < Tabs.Length; i++)
+        tabFrames = new Image[TabCount];
+        tabLabels = new Text[TabCount];
+        for (int i = 0; i < TabCount; i++)
         {
             int index = i;
-            var tabFrame = CodexUi.NewImage("Tab" + CategoryLabel(Tabs[i]), tabsRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
+            string tabName = TabName(i);
+            var tabFrame = CodexUi.NewImage("Tab" + tabName, tabsRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
             tabFrame.raycastTarget = true;
             // the hit area spans half of every gap around the tab's art
             tabFrame.raycastPadding = new Vector4(-TabGap * .5f, -TabRowGap * .5f, -TabGap * .5f, -TabRowGap * .5f);
             var button = tabFrame.gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
             button.targetGraphic = tabFrame;
-            button.onClick.AddListener(() => ShowCategory(Tabs[index]));
+            button.onClick.AddListener(() => ShowTab(index));
 
-            var label = CodexUi.NewText("Label", tabFrame.rectTransform, font, CategoryLabel(Tabs[i]), TabLabelSize, Color.white,
+            var label = CodexUi.NewText("Label", tabFrame.rectTransform, font, tabName, TabLabelSize, Color.white,
                                         TextAnchor.MiddleCenter);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;
@@ -784,7 +804,7 @@ public class CodexPanel : MonoBehaviour
         CodexUi.Place(divider.rectTransform, layout.divider);
 
         CodexUi.Place(tabsRoot, layout.tabs);
-        for (int i = 0; i < Tabs.Length; i++)
+        for (int i = 0; i < TabCount; i++)
         {
             Rect t = TabRect(layout, i);   // panel-local -> the tab band's own centre-origin space
             t.center -= layout.tabs.center;
@@ -799,6 +819,7 @@ public class CodexPanel : MonoBehaviour
 
         LayoutCards();
         LayoutDetail();
+        ach.ApplyLayout(layout.body, layout);
     }
 
     void LayoutCards()
@@ -940,7 +961,11 @@ public class CodexPanel : MonoBehaviour
     void Show()
     {
         gameObject.SetActive(true);
+        // Old progress becomes achievements the first time (and derived ones are current).
+        AchievementMigration.RunIfNeeded();
         Codex.Reload();
+        AchievementTracker.RefreshCodex();
+        if (achievementsOpen) HideAchievements();
         RefreshCounter();
         // The codex owns Back/Escape while it is up (BackNavigator layer), so
         // the home screen's back-to-quit never sees those presses.
@@ -976,16 +1001,72 @@ public class CodexPanel : MonoBehaviour
     public void Back()
     {
         if (phase != Phase.Open && phase != Phase.Opening) return;
-        if (inDetail) ShowGrid();
+        if (achievementsOpen && ach.InDetail) ach.CloseDetail();
+        else if (inDetail) ShowGrid();
         else Close();
     }
 
     public void ShowCategory(CodexCategory c)
     {
         if (inDetail) ShowGrid();
+        if (achievementsOpen)
+        {
+            HideAchievements();
+            Populate(c);
+            tabAt = Time.unscaledTime;
+            return;
+        }
         if (c == category && shownCount > 0) return;
         Populate(c);
         tabAt = Time.unscaledTime;
+    }
+
+    // A tab button: 0-5 are the entry categories, AchievementsTab the achievements.
+    public void ShowTab(int i)
+    {
+        if (i == AchievementsTab) ShowAchievements();
+        else if (i >= 0 && i < Tabs.Length) ShowCategory(Tabs[i]);
+    }
+
+    public void ShowAchievements()
+    {
+        if (inDetail) ShowGrid();
+        if (achievementsOpen) { ach.CloseDetail(); return; }
+        achievementsOpen = true;
+        grid.gameObject.SetActive(false);
+        chipsRoot.gameObject.SetActive(false);
+        ach.ApplyLayout(layout.body, layout);
+        ach.Show();
+        PaintTabs();
+        RefreshCounter();
+        tabAt = Time.unscaledTime;
+    }
+
+    void HideAchievements()
+    {
+        if (!achievementsOpen) return;
+        achievementsOpen = false;
+        ach.Hide();
+        grid.gameObject.SetActive(true);
+        chipsRoot.gameObject.SetActive(sectioned);
+        RefreshCounter();
+    }
+
+    // The tab row's selection colours (Kaneda red marks the selection).
+    void PaintTabs()
+    {
+        for (int i = 0; i < TabCount; i++)
+        {
+            bool active = i == AchievementsTab ? achievementsOpen : (!achievementsOpen && Tabs[i] == category);
+            tabFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
+            tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
+        }
+    }
+
+    // After a claim: the counter and the open view are current.
+    public void OnAchievementsChanged()
+    {
+        RefreshCounter();
     }
 
     public void ShowDetail(CodexEntry entry)
@@ -1207,13 +1288,7 @@ public class CodexPanel : MonoBehaviour
         }
         chipsRoot.gameObject.SetActive(sectioned);
 
-        for (int i = 0; i < Tabs.Length; i++)
-        {
-            bool active = Tabs[i] == c;
-            // Kaneda red marks the selection; idle tabs sit in the shadow tone.
-            tabFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
-            tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
-        }
+        PaintTabs();
 
         gridRect = sectioned ? layout.list : layout.body;
         CodexUi.Place(grid, gridRect);
@@ -1349,6 +1424,7 @@ public class CodexPanel : MonoBehaviour
     {
         if (phase == Phase.Hidden) return;
         RefreshCounter();
+        if (achievementsOpen) { ach.Show(true); return; }
         var open = inDetail ? detailEntry : null;
         Populate(category, true);
         if (open != null)
@@ -1361,7 +1437,9 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
-        counter.text = Codex.DiscoveredCount + " / " + Codex.Total + "  DISCOVERED";
+        counter.text = achievementsOpen
+            ? AchievementStore.UnlockedCount + " / " + AchievementCatalog.ActiveCount + "  UNLOCKED"
+            : Codex.DiscoveredCount + " / " + Codex.Total + "  DISCOVERED";
     }
 
     // ---------------------------------------------------------------------
@@ -1374,6 +1452,7 @@ public class CodexPanel : MonoBehaviour
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
         UpdatePulse();
+        if (achievementsOpen) ach.Tick(Time.unscaledTime);
         if (phase != Phase.Hidden) TickAnimations(Time.unscaledDeltaTime);
     }
 
@@ -1430,6 +1509,7 @@ public class CodexPanel : MonoBehaviour
         phaseAt = -100f;
         swapAt = tabAt = -100f;
         if (jumping) { jumpAt = -100f; UpdateJump(Time.unscaledTime); }
+        if (achievementsOpen) ach.SkipAnimations();
         ApplyFrame(Time.unscaledTime);
     }
 
@@ -1477,13 +1557,14 @@ public class CodexPanel : MonoBehaviour
         detail.anchoredPosition = layout.detail.center + new Vector2((1f - d) * 48f, 0f);
 
         float tab = CodexUi.EaseOutCubic((now - tabAt) / TabFadeDuration);
-        gridGroup.alpha = (1f - d) * tab;
-        gridGroup.interactable = !inDetail;
-        gridGroup.blocksRaycasts = !inDetail;
+        gridGroup.alpha = achievementsOpen ? 0f : (1f - d) * tab;
+        gridGroup.interactable = !inDetail && !achievementsOpen;
+        gridGroup.blocksRaycasts = !inDetail && !achievementsOpen;
+        if (achievementsOpen) ach.SetFade(tab);
         grid.anchoredPosition = gridRect.center + new Vector2(-d * 48f, (1f - tab) * -18f);
-        chipsGroup.alpha = (1f - d) * tab;
-        chipsGroup.interactable = !inDetail;
-        chipsGroup.blocksRaycasts = !inDetail;
+        chipsGroup.alpha = achievementsOpen ? 0f : (1f - d) * tab;
+        chipsGroup.interactable = !inDetail && !achievementsOpen;
+        chipsGroup.blocksRaycasts = !inDetail && !achievementsOpen;
         // The detail view takes over the tab row's space too.
         tabsGroup.alpha = 1f - d;
         tabsGroup.interactable = !inDetail;

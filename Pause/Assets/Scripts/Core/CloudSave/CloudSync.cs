@@ -70,9 +70,6 @@ public sealed class CloudSync
     // WorldManager hold their own copy of those values). Tests override it.
     public Func<bool> CanApplyNow = () => !StarDustLedger.IsActive;
 
-    // Re-reports achievement progress after sign-in; tests substitute a fake.
-    public AchievementSync.Reporter AchievementReporter;
-
     public CloudSync(IPlayerAccount account, Func<long> clock = null)
     {
         this.account = account;
@@ -156,7 +153,6 @@ public sealed class CloudSync
         SocialBridge.NotifySignedIn();
         if (Current == State.Loading || Current == State.Ready) return;
         Debug.Log("[CloudSave] signed in to " + account.PlatformName + ".");
-        achievementAPICalls.achievement_logged_on_successfully();
         Current = State.Loading;
         account.LoadCloudSave(OnCloudLoaded);
     }
@@ -201,6 +197,7 @@ public sealed class CloudSync
 
         result.Apply();
         if (switched) AchievementSync.ClearSyncMarks();
+        AchievementMigration.AfterCloudApply();   // merged counters / owned state may unlock more
         if (!string.IsNullOrEmpty(id)) PlayerPrefs.SetString(LastAccountKey, id);
         PlayerPrefs.SetString(LocalSavedAtKey, result.savedAtUtc.ToString());
         PlayerPrefs.SetString(LocalHashKey, Hash(ProgressSnapshot.Capture(0).ContentKey()));
@@ -216,7 +213,7 @@ public sealed class CloudSync
 
     void ResyncAchievements()
     {
-        AchievementSync.ResyncAll(AchievementReporter);
+        AchievementSync.ResyncAll();
     }
 
     // The account rule (see the header). Pure apart from `backups`.

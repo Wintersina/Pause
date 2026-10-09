@@ -283,6 +283,7 @@ public class BossEncounter : MonoBehaviour
         if (state != Phase.Intro && state != Phase.Pending) return;
         if (state == Phase.Pending) StartIntro();
         state = Phase.Fight;
+        AchievementTracker.OnBossFightStart();   // boss_no_hit: hearts lost from here on count
         moveBackGround.speed = BossConfig.FightSpeed;
         remaining = BossConfig.FightSeconds;
         if (DevShortFight)
@@ -376,6 +377,7 @@ public class BossEncounter : MonoBehaviour
         bool explode = Destroyed;
         RunScore.OnBoss(explode, remaining, false,
                         actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f));
+        AchievementTracker.OnBossOutro(world, explode);
         actor.BeginOutro(explode);
     }
 

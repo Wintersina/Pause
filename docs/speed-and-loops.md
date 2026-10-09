@@ -118,7 +118,7 @@ level (about 63 s at a flat 35), density starts at its HUD-35 values.
 | `ScoreRules.SpeedTierHud` | 20 / 30 / 40 / 46 -> x1.25 / 1.5 / 2 / 2.5 | 20 / 30 / 35 -> x1.25 / 1.5 / 2; **limit break** (HUD above the cap) -> `LimitBreakMultiplier` x2.5 |
 | `EnemyDensity` rate / ceiling / pilot load | sampled to 46, flat above `HighHud` 35 | unchanged: 35 is now the top of the natural range |
 | Loop cap bonus, KEEP FLYING speed | +1 / +2, +4, never past 50 | removed |
-| `achievement_speedster` | never unlocked by code | **repurposed**: unlocked on the first limit break (speed above 35 with the boost shield) |
+| `achievement_speedster` (now `speed_speedster`) | never unlocked by code | **repurposed**: unlocked on the first limit break (speed above 35 with the boost shield); tracked by `SpeedMilestones` -> `AchievementTracker` |
 | Top Speed leaderboard, best speed | submitted, shown | removed (section 2) |
 
 Scoring potential: x2 used to need HUD 40 (a later world's cap or a fast ship) and x2.5 needed 46 (loops

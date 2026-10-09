@@ -387,6 +387,7 @@ public class WorldManager : MonoBehaviour
         moveBackGround.speed = RunStartSpeed(moveBackGround.speed);
         WorldBanner.Show(Current.displayName);
         Codex.Discover(Codex.WorldId(CurrentIndex));
+        AchievementTracker.OnWorldEntered(CurrentIndex);
     }
 
     void Update()
@@ -527,12 +528,15 @@ public class WorldManager : MonoBehaviour
 
         // Points for the world just cleared; the run score carries on.
         RunScore.OnWorldCleared(CurrentIndex);
+        AchievementTracker.OnWorldCleared();
         PortalPressure.Close(true);
         string banner;
         if (loop)
         {
             // Back to where the run began, one loop on: every boss again.
-            RunScore.OnLoop(RunLoop.Advance());
+            int loopIndex = RunLoop.Advance();
+            RunScore.OnLoop(loopIndex);
+            AchievementTracker.OnLoop(loopIndex);
             BossEncounter.ForgetDone();
             CurrentIndex = RunLoop.StartWorld;
             banner = Current.displayName + "  LOOP " + RunLoop.DisplayNumber;
@@ -562,6 +566,7 @@ public class WorldManager : MonoBehaviour
         WorldBackdrop.Apply(theme, true);
         if (showBanner) WorldBanner.Show(banner);
         Codex.Discover(Codex.WorldId(CurrentIndex));
+        AchievementTracker.OnWorldEntered(CurrentIndex);
         return banner;
     }
 

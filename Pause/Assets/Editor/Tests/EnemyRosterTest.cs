@@ -484,7 +484,7 @@ public static class EnemyRosterTest
             UnityEngine.Object.DestroyImmediate(mine);
         }
         string collision = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
-        Check("collisionDetection still keys the alien achievement on \"alien1\"", collision.Contains("PrefabName.Is(target, \"alien1\")"));
+        Check("every kill reaches the achievement tracker (all enemies count, not only \"alien1\")", collision.Contains("AchievementTracker.OnKill(target, bonusPoints)"));
         Check("collisionDetection still keys the mine explosion on \"mine\"", collision.Contains("PrefabName.Is(hit.gameObject, \"mine\")"));
     }
 

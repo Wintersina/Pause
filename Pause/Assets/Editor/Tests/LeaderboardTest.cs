@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -118,11 +119,11 @@ public static class LeaderboardTest
         // Speed is capped (SpeedRamp.Cap): there is no speed board any more.
         bool noSpeedBoard = LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null;
         foreach (var b in LeaderboardBoards.All)
-            noSpeedBoard &= b.androidId != StringHolder.leaderboard_highest_speed_reached &&
+            noSpeedBoard &= b.androidId != "CgkI3eXNjrQcEAIQAA" &&
                             !b.iosId.EndsWith("highest_speed") && !b.displayName.ToLowerInvariant().Contains("speed");
         Check("registry: no speed board (no top_speed id, no Highest Speed ids or name)", noSpeedBoard);
         Check("registry: AchievementIds has no entry for the retired speed board",
-              AchievementIds.Resolve(StringHolder.leaderboard_highest_speed_reached, true) == null);
+              AchievementCatalog.All.All(d => AchievementIds.AndroidId(d) != "CgkI3eXNjrQcEAIQAA"));
         var score = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
         Check("Top Score is the first (primary) board", LeaderboardBoards.All.Length > 0 && LeaderboardBoards.All[0] == score);
         Check("Top Score uses me.sinaserati.Pause.top_score on iOS",

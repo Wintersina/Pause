@@ -400,14 +400,9 @@ public static class TestHarness
             for (int n = 0; n < ShipSkins.PerShip; n++) keys.Add(ShipSkins.OwnedKey(i, n));
         }
 
-        // Tiered achievement counts, plus the old per-tier keys they migrate from.
-        foreach (AchievementCategory category in System.Enum.GetValues(typeof(AchievementCategory)))
-        {
-            keys.Add(AchievementTiers.CounterKey(category));
-            keys.Add(AchievementSync.SyncedKey(category));
-            foreach (var tier in AchievementTiers.For(category))
-                keys.Add(AchievementTiers.LegacyProgressKey(tier.id));
-        }
+        // Achievement state (unlocked / claimed / counters / store marks / schema) and the legacy counts it migrates from.
+        keys.AddRange(AchievementStore.AllKeys());
+        keys.AddRange(AchievementMigration.LegacyKeys());
 
         // Account cloud-save bookkeeping.
         keys.Add(CloudSync.LastAccountKey);

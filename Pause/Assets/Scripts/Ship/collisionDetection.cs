@@ -119,7 +119,7 @@ public class collisionDetection : MonoBehaviour {
         RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         Codex.Discover(target);   // ultimate kills count as meeting it too
         SecretPowerController.OnKill();   // kills fill the secret power's meter
-        RecordKillAchievement(target);
+        RecordKillAchievement(target, bonusPoints);
         var player = Object.FindFirstObjectByType<collisionDetection>();
         if (player != null) player.awardKillDust(player.enemyDustValue);
         // ...and sometimes it sets off a DEATH COMBO (a chain victim never
@@ -127,14 +127,12 @@ public class collisionDetection : MonoBehaviour {
         DeathCombo.OnPlayerKill(target);
     }
 
-    // Kill 5/25/50/150/1000/3500 Aliens (##08-13), destroy 5/25/50/100/1500
-    // Asteroids (##14-18). Used to fire for shielded rams only, so weapon,
-    // ultimate and teleport kills never counted.
-    public static void RecordKillAchievement(GameObject target)
+    // The kill achievements: every enemy (kills_*), rail mine, rock, and a
+    // blink kill (bonusPoints > 0) -- weapon, ultimate, power and teleport
+    // kills all count (AchievementTracker).
+    public static void RecordKillAchievement(GameObject target, int bonusPoints = 0)
     {
-        if (target == null) return;
-        if (PrefabName.Is(target, "alien1")) achievementAPICalls.alien_killed();
-        if (target.CompareTag("Astr")) achievementAPICalls.asteroid_destroyed();
+        AchievementTracker.OnKill(target, bonusPoints);
     }
 
     // What an atom just did, in one word floating up from where it was
@@ -201,7 +199,8 @@ public class collisionDetection : MonoBehaviour {
 
         // empty out any counters
         SpeedRamp.ResetBoost();
-        achievementAPICalls.SpeedMilestones.Reset();
+        SpeedMilestones.Reset();
+        AchievementTracker.ResetRun();
         lifeCounter = 0;
     }
 	
@@ -291,6 +290,7 @@ public class collisionDetection : MonoBehaviour {
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
+                AchievementEvents.RaisePlayerHurt();   // boss_no_hit, the blink-dodge probe
                 // the heart this costs darts out to shield against it
                 ShipLivesIndicator.Impact(hit.transform.position);
                 //change sprite
@@ -303,8 +303,7 @@ public class collisionDetection : MonoBehaviour {
                 if (lifeCounter >= MAXLIFE)
                 {
                     buttonClicks.playerDied = true;
-                    //--------------------1st/5th/10th/50th/100th DEATH ---##01-04-----------------
-                    achievementAPICalls.player_died();
+                    AchievementTracker.OnDeath();
                     // End of the run: flush the batched achievement counters.
                     PrefsSaver.SaveNow();
                     PlayExplosion();
@@ -354,8 +353,7 @@ public class collisionDetection : MonoBehaviour {
 
             if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
-                //--------------------PickUp Stars 150/1000-------##06-07--------------------
-                achievementAPICalls.star_collected();
+                AchievementTracker.OnStar();
             }
 
                 // calculate different scores for each items.
@@ -464,8 +462,8 @@ public class collisionDetection : MonoBehaviour {
         PlayerInvuln.Tick(Time.deltaTime);
 
         // Flash / Speedster / Super Sonic: the cap and the limit break of a
-        // real run (achievementAPICalls.SpeedMilestones), once each per run.
-        if (score.paysRealDust && !DeveloperUnlocks.Enabled) achievementAPICalls.SpeedMilestones.Step();
+        // real run (SpeedMilestones), once each per run.
+        if (score.paysRealDust && !DeveloperUnlocks.Enabled) SpeedMilestones.Step();
 
         // check if atom is captrured and its time to reduce it.
         if (atomCheck && invTimer <= 0)

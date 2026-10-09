@@ -37,6 +37,7 @@ public static class RedAtomFreeShotTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        Achievements.ForceReal = true;   // the rock counter only counts in a real run
         try
         {
             RedAtomCutsFiveSeconds();
@@ -468,7 +469,7 @@ public static class RedAtomFreeShotTest
         Enemy(EnemyRole.Rock, new Vector3(0f, 1f, 0f));
         var parts = RunScore.Parts;
         long total = RunScore.Total;
-        int rocks = AchievementTiers.Count(AchievementCategory.Asteroids);
+        int rocks = AchievementStore.Counter(AchievementCatalog.CRocks);
         int scored = 0; RunScore.Source src = RunScore.Source.Distance;
         Action<int, Vector3, RunScore.Source> spy = (p, w, s) => { if (s == RunScore.Source.Kill) { scored = p; src = s; } };
         RunScore.Scored += spy;
@@ -479,8 +480,8 @@ public static class RedAtomFreeShotTest
               RunScore.Parts.killCount == parts.killCount + 1 && RunScore.Parts.kills - parts.kills == rock &&
               RunScore.Total > total);
         Check("... raised as a kill for the HUD popup", scored == rock && src == RunScore.Source.Kill);
-        Check("... counts toward the asteroid achievements",
-              AchievementTiers.Count(AchievementCategory.Asteroids) == rocks + 1);
+        Check("... counts toward the rock achievements",
+              AchievementStore.Counter(AchievementCatalog.CRocks) == rocks + 1);
 
         Enemy(EnemyRole.Rock, new Vector3(0f, 2f, 0f));
         c.FreeShot();

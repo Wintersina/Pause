@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -69,6 +70,108 @@ public static class CodexPreview
             code = 1;
         }
         EditorApplication.Exit(code);
+    }
+
+    // The ACHIEVEMENTS tab on a 1170 x 2532 phone (800 x 1732 canvas units), in the
+    // states a player sees, into $PAUSE_CODEX_PREVIEW_DIR (default /private/tmp):
+    //   achievements-<n>-<what>.png
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunAchievements
+    public const int PhoneW = 1170, PhoneH = 2532;
+
+    public static void RunAchievements()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(false);
+                PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
+                for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+                PlayerPrefs.SetString("boughtship1", "True");
+                PlayerPrefs.SetString(Codex.PrefsKey, "");
+                Codex.Reload();
+                WorldManager.TideEnabled = false;
+                float sf = PhoneW / 800f;
+
+                // 1. a fresh profile: everything locked
+                AchievementStore.ResetAll();
+                PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
+                PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 240f);
+                var panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                Shot(panel, Path.Combine(dir, "achievements-1-fresh.png"), sf, () => { });
+
+                // 2. a mid-game profile: some collected, some waiting, counters part-way
+                string[] claimed = { "meta_first_flight", "world_frost_reached", "world_verdant_reached", "kills_100", "stars_150", "ship_first", "pause_first", "elite_first" };
+                string[] waiting = { "meta_logged_on", "boss_space", "rocks_500", "codex_10", "score_10k", "skin_first" };
+                foreach (string id in claimed.Concat(waiting)) AchievementStore.Unlock(AchievementCatalog.Find(id));
+                foreach (string id in claimed) AchievementStore.Claim(AchievementCatalog.Find(id));
+                AchievementStore.SetCounter("kills", 640);
+                AchievementStore.SetCounter("stars", 780);
+                AchievementStore.SetCounter("elites", 4);
+                AchievementStore.SetCounter("deaths", 6);
+                AchievementStore.SetCounter("blinks", 37);
+                AchievementStore.SetCounter("spent", 3200);
+                AchievementStore.SetCounter("ships", 5);
+                AchievementStore.SetCounter("codex", 31);
+                AchievementStore.SetCounter("elite_w0", 2);
+                AchievementStore.SetCounter("best_score", 3100);
+                AchievementStore.SetCounter("best_chain", 7);
+                PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 640f);
+                panel.Refresh();
+                var v = panel.Achievements;
+                string[] names = { "top", "bosses", "combat", "collection" };
+                int[] sections = { 0, 1, 3, 6 };
+                for (int k = 0; k < sections.Length; k++)
+                {
+                    int sec = sections[k];
+                    Shot(panel, Path.Combine(dir, "achievements-2" + (char)('a' + k) + "-grid-" + names[k] + ".png"), sf, () => v.SetScrollY(v.JumpTargetY(sec)));
+                }
+                // the whole list in one tall image
+                panel.ApplyLayout(new Rect(-400f, -640f, 800f, 1280f));
+                panel.ShowAchievements();
+                v.Show(false);
+                int tallH = Mathf.Clamp(Mathf.CeilToInt(1280f - v.ListRect.height + v.ContentHeight + 8f), 1280, 8000);
+                Shot(panel, Path.Combine(dir, "achievements-2e-grid-full.png"), 1f, () => { }, 800, tallH);
+
+                // 3. details: claimable, claimed, locked with progress, hidden
+                string[] details = { "boss_space", "kills_100", "kills_1000", "deaths_100" };
+                string[] what = { "claimable", "claimed", "locked-progress", "hidden" };
+                for (int k = 0; k < details.Length; k++)
+                {
+                    string id = details[k];
+                    Shot(panel, Path.Combine(dir, "achievements-3" + (char)('a' + k) + "-detail-" + what[k] + ".png"), sf, () => v.ShowDetail(AchievementCatalog.Find(id)));
+                    v.CloseDetail();
+                }
+                panel.Close();
+                panel.SkipAnimations();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            code = 1;
+        }
+        EditorApplication.Exit(code);
+    }
+
+    static void Shot(CodexPanel panel, string path, float sf, Action setup, int w = PhoneW, int h = PhoneH)
+    {
+        var tex = Capture(panel, w, h, () =>
+        {
+            panel.ShowAchievements();
+            panel.Achievements.Show(false);
+            setup();
+            panel.SkipAnimations();
+        }, 1, sf);
+        File.WriteAllBytes(path, tex.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(tex);
+        Debug.Log("[CODEX-PREVIEW] " + path);
     }
 
     // The triple-tap death of some detail entries as a strip of frames (one
@@ -205,9 +308,9 @@ public static class CodexPreview
         Debug.Log("[CODEX-PREVIEW] " + path + " (" + n + " entries)");
     }
 
-    // Renders the panel's canvas at w x h canvas units (1 unit = 1 px),
+    // Renders the panel's canvas at w x h pixels (sf pixels per canvas unit, 1 by default),
     // laid out for that whole area, after `setup`; downscaled by `scale`.
-    static Texture2D Capture(CodexPanel panel, int w, int h, Action setup, int scale = 1)
+    static Texture2D Capture(CodexPanel panel, int w, int h, Action setup, int scale = 1, float sf = 1f)
     {
         var canvas = panel.GetComponent<Canvas>();
         var scaler = panel.GetComponent<CanvasScaler>();
@@ -230,9 +333,9 @@ public static class CodexPreview
         canvas.renderMode = RenderMode.ScreenSpaceCamera;
         canvas.worldCamera = cam;
         canvas.planeDistance = 1f;
-        canvas.scaleFactor = 1f;
+        canvas.scaleFactor = sf;
         Canvas.ForceUpdateCanvases();
-        panel.ApplyLayout(new Rect(-w * .5f, -h * .5f, w, h));
+        panel.ApplyLayout(new Rect(-w / sf * .5f, -h / sf * .5f, w / sf, h / sf));
         setup();
         Canvas.ForceUpdateCanvases();
         cam.Render();

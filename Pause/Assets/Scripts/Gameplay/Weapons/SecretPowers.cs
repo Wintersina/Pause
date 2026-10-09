@@ -244,6 +244,7 @@ public class SecretPowerController : MonoBehaviour
     {
         meter = 0f;
         FireCount++;
+        AchievementTracker.OnSecretPower();
         if (badge != null) badge.Flash();
         Vector3 at = transform.position;
         switch (loadout.power)

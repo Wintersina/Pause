@@ -8,7 +8,7 @@ using GooglePlayGames.BasicApi;
 // Google Play Games Services v2 leaderboards (play-games-plugin-for-unity 2.x).
 //
 // Sign-in is PlayGamesAccount's (CloudSync); this only reads and writes
-// scores. Board ids are the Play Console ids (StringHolder). Scores are read
+// scores. Board ids are the Play Console ids (LeaderboardBoards). Scores are read
 // from the PUBLIC collection: players who keep their Play Games profile
 // private still see their own score, but not in the public ranks.
 public sealed class PlayGamesLeaderboards : ILeaderboardPlatform

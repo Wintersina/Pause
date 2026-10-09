@@ -420,7 +420,7 @@ Thresholds keyed to speed, checked one by one:
 | Ship start speeds (`ShipStartSpeed`) | 0-30 | unchanged | the fastest (30) starts at the knee, under the lowest cap (38) |
 | Loop arrival speed | 4 / 8 / 12 | removed: every world starts at the ship's START SPD | n/a |
 | Top Speed leaderboard (`docs/leaderboards.md`) | best-ever value | unchanged code | see note |
-| `achievement_speedster` | never triggered by code | unchanged | not keyed to a speed in code |
+| `speed_speedster` (was `achievement_speedster`) | never triggered by code | unchanged | not keyed to a speed in code |
 | `score.topSpeed` (dust trickle, scene value 0.6) | 0.6 | unchanged | under 1% of income; left so the economy does not move |
 
 Note for the user: scores already on the **Top Speed** board (and each device's saved best speed) were

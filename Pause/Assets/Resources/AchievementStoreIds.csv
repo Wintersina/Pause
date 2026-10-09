@@ -1,0 +1,5 @@
+# Google Play Games achievement ids, one per line: internal_id,CgkI...
+# Fill in the ids Play Console generated for the rows imported from docs/achievements-export/play-console.csv.
+# Lines left out (or placeholders) keep the defaults in AchievementIds.cs; the 13 legacy ids already in the code
+# stay until you override them here.
+# Example:  loop_1,CgkI3eXNjrQcEAIQXX

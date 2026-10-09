@@ -197,6 +197,7 @@ public class score : MonoBehaviour {
     {
         pauseCounter = pauseCounter - 1;
         pauseCounterBool = true;
+        AchievementTracker.OnPauseSpent();
     }
 
     // The one rule for tutorial runs: anything in the tutorial scene, or any
@@ -242,6 +243,7 @@ public class score : MonoBehaviour {
     public static void incromentPause()
     {
         pauseCounter += 2;
+        AchievementTracker.OnPauseCount(pauseCounter);
     }
 
 }

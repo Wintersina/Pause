@@ -104,8 +104,8 @@ public static class AccountCloudSaveTest
         PlayerPrefs.DeleteKey("PlayerCurrecny");
         PlayerPrefs.DeleteKey("HighestSpeed");
         foreach (string key in CloudKeys) PlayerPrefs.DeleteKey(key);
-        foreach (AchievementCategory c in Enum.GetValues(typeof(AchievementCategory)))
-            PlayerPrefs.DeleteKey(AchievementSync.SyncedKey(c));
+        AchievementStore.ResetAll();
+        AchievementStores.Current = null;
     }
 
     static ProgressSnapshot Snap(long at, float currency, int[] ships, int spawn, float speed,
@@ -189,8 +189,12 @@ public static class AccountCloudSaveTest
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt("achv_count_aliens", 31);
         PlayerPrefs.SetInt("achv_count_stars", 999);
-        string legacy = AchievementTiers.LegacyProgressKey(StringHolder.achievement_destroyer);
+        string legacy = AchievementMigration.LegacyProgressPrefix + "CgkI3eXNjrQcEAIQBA";
         PlayerPrefs.SetInt(legacy, 17);
+        PlayerPrefs.SetInt("ach_u_loop_1", 1);
+        PlayerPrefs.SetInt("ach_c_loop_1", 1);
+        PlayerPrefs.SetInt("ach_n_kills", 321);
+        PlayerPrefs.SetInt(AchievementStore.BossFlagKey(2), 1);
         // Device-only keys that must stay out of the cloud.
         PlayerPrefs.SetInt(DeveloperUnlocks.SelectedWorldKey, 2);
 
@@ -217,6 +221,12 @@ public static class AccountCloudSaveTest
         Check("round trip: achv_count_* counters",
               PlayerPrefs.GetInt("achv_count_aliens") == 31 && PlayerPrefs.GetInt("achv_count_stars") == 999);
         Check("round trip: achv_progress_* legacy key", PlayerPrefs.GetInt(legacy) == 17);
+        Check("round trip: achievement unlocked / claimed / counter / boss-set keys",
+              PlayerPrefs.GetInt("ach_u_loop_1") == 1 && PlayerPrefs.GetInt("ach_c_loop_1") == 1 &&
+              PlayerPrefs.GetInt("ach_n_kills") == 321 && PlayerPrefs.GetInt(AchievementStore.BossFlagKey(2)) == 1);
+        Check("round trip: the device-local store marks are NOT synced",
+              !ProgressSnapshot.CounterKeys().Contains(AchievementCatalog.Find("loop_1").syncedKey) &&
+              !ProgressSnapshot.CounterKeys().Contains(AchievementStore.SchemaKey));
         Check("round trip: equal content after re-capture",
               ProgressSnapshot.Capture(5555).ToJson() == json);
 
@@ -308,7 +318,7 @@ public static class AccountCloudSaveTest
         {
             cloudJson = Snap(now + 1000, 70f, new[] { 1, 6 }, 6, 400f, 2, 2, true, ("achv_count_aliens", 9)).ToJson(),
         };
-        var sync = new CloudSync(fake, () => now) { AchievementReporter = (id, p, done) => done(false) };
+        var sync = new CloudSync(fake, () => now) ;
         sync.Start();
         Check("signed in: state is Ready", sync.Current == CloudSync.State.Ready);
         Check("signed in: ships merged into local", Ships() == "1,2,6");
@@ -342,28 +352,28 @@ public static class AccountCloudSaveTest
         ClearProgress();
         SetLocal(30f, new[] { 1, 2 }, 2, 120f, 1, 1, true);
         PlayerPrefs.SetString(CloudSync.LastAccountKey, "player-A");
-        PlayerPrefs.SetInt(AchievementSync.SyncedKey(AchievementCategory.Aliens), 25);
+        PlayerPrefs.SetInt(AchievementCatalog.Find("kills_100").syncedKey, 100);
 
         // B has a cloud save: it wins outright (no union with A's ships).
         var b = new FakeAccount { id = "player-B", cloudJson = Snap(1, 5f, new[] { 1, 9 }, 9, 50f, 0, 0, false).ToJson() };
-        new CloudSync(b, () => 600000) { AchievementReporter = (id, p, done) => done(false) }.Start();
+        new CloudSync(b, () => 600000) .Start();
         Check("switch: the new account's cloud progress replaces local", Ships() == "1,9" &&
               PlayerPrefs.GetFloat("PlayerCurrecny") == 5f && PlayerPrefs.GetFloat("HighestSpeed") == 50f &&
               !PlayerPrefs.HasKey("HasDoneTut"));
         Check("switch: last account is now B", PlayerPrefs.GetString(CloudSync.LastAccountKey) == "player-B");
         Check("switch: achievement confirmations reset",
-              !PlayerPrefs.HasKey(AchievementSync.SyncedKey(AchievementCategory.Aliens)));
+              !PlayerPrefs.HasKey(AchievementCatalog.Find("kills_100").syncedKey));
         Check("switch: A's progress parked on the device", PlayerPrefs.GetString(CloudSync.BackupsKey).Contains("player-A"));
 
         // A comes back with no cloud save (its upload never happened): the parked progress returns.
         var a = new FakeAccount { id = "player-A", cloudJson = null };
-        new CloudSync(a, () => 700000) { AchievementReporter = (id, p, done) => done(false) }.Start();
+        new CloudSync(a, () => 700000) .Start();
         Check("switch back: A's parked progress restored", Ships() == "1,2" &&
               PlayerPrefs.GetFloat("PlayerCurrecny") == 30f && PlayerPrefs.GetString("HasDoneTut") == "true");
 
         // A brand-new account with nothing anywhere starts fresh.
         var c = new FakeAccount { id = "player-C", cloudJson = null };
-        new CloudSync(c, () => 800000) { AchievementReporter = (id, p, done) => done(false) }.Start();
+        new CloudSync(c, () => 800000) .Start();
         Check("switch to a new account: starts fresh", Ships() == "" &&
               PlayerPrefs.GetFloat("PlayerCurrecny") == 0f && !PlayerPrefs.HasKey("HasDoneTut"));
 
@@ -371,7 +381,7 @@ public static class AccountCloudSaveTest
         ClearProgress();
         SetLocal(12f, new[] { 1, 4 }, 4, 90f, 0, 0, true);
         var first = new FakeAccount { id = "player-D", cloudJson = Snap(1, 3f, new[] { 1, 5 }, 5, 10f, 0, 0, false).ToJson() };
-        new CloudSync(first, () => 900000) { AchievementReporter = (id, p, done) => done(false) }.Start();
+        new CloudSync(first, () => 900000) .Start();
         Check("first sign-in: local progress merged, not replaced", Ships() == "1,4,5" && PlayerPrefs.GetFloat("HighestSpeed") == 90f);
     }
 
@@ -379,102 +389,81 @@ public static class AccountCloudSaveTest
 
     static void AchievementIdTable()
     {
-        var all = AchievementIds.All;
-        Check("ids: every entry has an Android and an iOS id",
-              all.All(e => !string.IsNullOrEmpty(e.android) && !string.IsNullOrEmpty(e.ios) && e.ios != AchievementIds.IosPrefix));
-        Check("ids: no duplicate Android ids", all.Select(e => e.android).Distinct().Count() == all.Length);
-        Check("ids: no duplicate iOS ids", all.Select(e => e.ios).Distinct().Count() == all.Length);
+        var defs = AchievementCatalog.All;
+        var android = defs.Select(AchievementIds.AndroidId).ToList();
+        var ios = defs.Select(AchievementIds.IosId).ToList();
+        Check("ids: every achievement has an Android and an iOS id",
+              android.All(id => !string.IsNullOrEmpty(id)) && ios.All(id => id.StartsWith(AchievementIds.AchievementIosPrefix)));
+        Check("ids: no duplicate Android ids", android.Distinct().Count() == android.Count);
+        Check("ids: no duplicate iOS ids", ios.Distinct().Count() == ios.Count);
         Check("ids: iOS ids use only Game Center-safe characters",
-              all.All(e => e.ios.All(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_')));
-
-        bool everyTier = true;
-        foreach (AchievementCategory c in Enum.GetValues(typeof(AchievementCategory)))
-            foreach (var tier in AchievementTiers.For(c))
-            {
-                AchievementIds.Entry entry;
-                if (!AchievementIds.TryGet(tier.id, out entry)) { everyTier = false; Debug.Log("[ACS] no ids for tier " + tier.id); }
-            }
-        Check("ids: every tier resolves on both platforms", everyTier);
-
-        var generated = typeof(StringHolder).GetFields(BindingFlags.Public | BindingFlags.Static)
-            .Where(f => f.IsLiteral).Select(f => (string)f.GetValue(null)).ToList();
-        // StringHolder is generated from the Play Console and still lists the
-        // retired "Highest Speed Reached" board until it is removed there; the
-        // game no longer reports to it, so it has no iOS id on purpose.
-        Check("ids: every StringHolder id in use has an iOS id (the retired speed board excepted)",
-              generated.Where(id => id != StringHolder.leaderboard_highest_speed_reached)
-                       .All(id => !string.IsNullOrEmpty(AchievementIds.Resolve(id, true))));
-        Check("ids: the retired speed board has no iOS id (nothing is reported to it)",
-              AchievementIds.Resolve(StringHolder.leaderboard_highest_speed_reached, true) == null);
-        Check("ids: Android resolves to the GPGS id itself",
-              AchievementIds.Resolve(StringHolder.achievement_aliens_6, false) == StringHolder.achievement_aliens_6);
-        Check("ids: iOS resolves to the Game Center id",
-              AchievementIds.Resolve(StringHolder.achievement_aliens_6, true) == "me.sinaserati.Pause.aliens_3500");
-        Check("ids: points fit Game Center's 1000 cap", all.Sum(e => e.points) <= 1000 && all.All(e => e.points <= 100));
+              ios.All(id => id.All(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_')));
+        Check("ids: placeholders are recognised, real ids are not",
+              AchievementIds.IsPlaceholder(AchievementIds.Placeholder("loop_1")) && AchievementIds.IsPlaceholder("") &&
+              !AchievementIds.IsPlaceholder("CgkI3eXNjrQcEAIQBw"));
+        Check("ids: iOS reporting stays off until the Game Center ids exist",
+              !AchievementIds.IsReportable(defs[0], true));
+        Check("ids: points fit Game Center's 1000 cap", defs.Sum(d => d.points) <= 1000 && defs.All(d => d.points <= 100));
     }
 
     static void AchievementResync()
     {
         ClearProgress();
-        foreach (AchievementCategory c in Enum.GetValues(typeof(AchievementCategory)))
-            PlayerPrefs.SetInt(AchievementTiers.CounterKey(c), 0);
-        PlayerPrefs.SetInt(AchievementTiers.CounterKey(AchievementCategory.Aliens), 30);
-        PlayerPrefs.SetInt(AchievementTiers.CounterKey(AchievementCategory.Asteroids), 100);
-        PlayerPrefs.SetInt(AchievementSync.SyncedKey(AchievementCategory.Aliens), 5);  // tier 5 already confirmed
+        var fake = new FakeAchievementStore { available = true };
+        AchievementStores.Current = fake;
+        var kills100 = AchievementCatalog.Find("kills_100");
+        var kills1000 = AchievementCatalog.Find("kills_1000");
+        var tut = AchievementCatalog.Find("meta_first_flight");
+        // Earned while signed out: the unlock is local, nothing was reported.
+        fake.available = false;
+        AchievementStore.Unlock(tut);
+        AchievementStore.SetCounter(AchievementCatalog.CKills, 130);
+        Check("resync: nothing reported while signed out", fake.reports.Count == 0 && AchievementStore.IsUnlocked(tut));
+        fake.available = true;
+        var sent = AchievementSync.ResyncAll();
+        Check("resync: the offline unlock is reported after sign-in (100%)",
+              fake.reports.Any(r => r.Key == "meta_first_flight" && r.Value == 100.0));
+        Check("resync: the completed counter is reported at 100% too",
+              fake.reports.Any(r => r.Key == "kills_100" && r.Value == 100.0));
+        Check("resync: the open counter reports its percent (13%)",
+              fake.reports.Any(r => r.Key == "kills_1000" && Math.Abs(r.Value - 13.0) < 1e-9));
+        Check("resync: confirmed marks remembered", AchievementSync.Confirmed(tut) == 100 && AchievementSync.Confirmed(kills100) == 100 &&
+              AchievementSync.Confirmed(kills1000) == 13);
+        fake.reports.Clear();
+        AchievementSync.ResyncAll();
+        Check("resync again: nothing the store already confirmed", fake.reports.Count == 0);
 
-        var calls = new List<KeyValuePair<string, double>>();
-        AchievementSync.Reporter fake = (id, p, done) => { calls.Add(new KeyValuePair<string, double>(id, p)); done(true); };
-        AchievementSync.ResyncAll(fake);
-
-        var expected = new List<KeyValuePair<string, double>>
-        {
-            new KeyValuePair<string, double>(StringHolder.achievement_aliens_2, 100.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_aliens_3, 60.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_aliens_4, 20.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_aliens_5, 3.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_aliens_6, 30 * 100.0 / 3500),
-            new KeyValuePair<string, double>(StringHolder.achievement_destroyer, 100.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_destroy_2, 100.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_destroyer_3, 100.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_destroyer_4, 100.0),
-            new KeyValuePair<string, double>(StringHolder.achievement_destroyer_5, 100 * 100.0 / 1500),
-        };
-        Check("resync: reports exactly the tiers not yet confirmed, with the right percentages",
-              calls.Count == expected.Count &&
-              calls.Zip(expected, (a, b) => a.Key == b.Key && Math.Abs(a.Value - b.Value) < 1e-9).All(x => x));
-        Check("resync: no reports for categories with no progress",
-              !calls.Any(c => AchievementTiers.Deaths.Any(t => t.id == c.Key) || AchievementTiers.Stars.Any(t => t.id == c.Key)));
-        Check("resync: confirmed completions remembered",
-              PlayerPrefs.GetInt(AchievementSync.SyncedKey(AchievementCategory.Aliens)) == 25 &&
-              PlayerPrefs.GetInt(AchievementSync.SyncedKey(AchievementCategory.Asteroids)) == 100);
-
-        calls.Clear();
-        AchievementSync.ResyncAll(fake);
-        Check("resync again: only the still-incomplete tiers",
-              calls.Count == 5 && calls.All(c => c.Value < 100.0));
-
-        calls.Clear();
-        AchievementSync.ResyncAll((id, p, done) => { calls.Add(new KeyValuePair<string, double>(id, p)); done(false); });
-        int confirmedBefore = PlayerPrefs.GetInt(AchievementSync.SyncedKey(AchievementCategory.Aliens));
-        Check("resync: a failed report confirms nothing", confirmedBefore == 25);
+        fake.reports.Clear();
+        AchievementStore.Unlock(AchievementCatalog.Find("world_frost_reached"));
+        fake.acceptOk = false;
+        AchievementStore.Unlock(AchievementCatalog.Find("world_verdant_reached"));
+        Check("resync: a failed report confirms nothing", AchievementSync.Confirmed(AchievementCatalog.Find("world_verdant_reached")) == 0 &&
+              AchievementSync.Confirmed(AchievementCatalog.Find("world_frost_reached")) == 100);
+        fake.acceptOk = true;
+        fake.reports.Clear();
+        AchievementSync.ResyncAll();
+        Check("resync: ... and is retried next time", fake.reports.Count == 1 && fake.reports[0].Key == "world_verdant_reached");
+        AchievementStores.Current = null;
     }
 
     static void ResyncRunsAfterSignIn()
     {
         ClearProgress();
         SetLocal(0f, new[] { 1 }, 1, 0f, 0, 0, true);
-        PlayerPrefs.SetInt(AchievementTiers.CounterKey(AchievementCategory.Deaths), 7);
-        var reported = new List<string>();
-        AchievementSync.Reporter reporter = (id, p, done) => { reported.Add(id); done(true); };
+        AchievementStore.Unlock(AchievementCatalog.Find("world_ember_reached"));
+        var fakeStore = new FakeAchievementStore { available = false };
+        AchievementStores.Current = fakeStore;
 
         var offline = new FakeAccount { signInResult = false };
-        new CloudSync(offline, () => 1) { AchievementReporter = reporter }.Start();
-        Check("resync: nothing reported while signed out", reported.Count == 0);
+        new CloudSync(offline, () => 1).Start();
+        Check("resync: nothing reported while signed out", fakeStore.reports.Count == 0);
 
+        fakeStore.available = true;
         var online = new FakeAccount { cloudJson = null };
-        new CloudSync(online, () => 2) { AchievementReporter = reporter }.Start();
+        new CloudSync(online, () => 2).Start();
         Check("resync: offline progress reported after sign-in",
-              reported.SequenceEqual(AchievementTiers.Deaths.Select(t => t.id)));
+              fakeStore.reports.Any(r => r.Key == "world_ember_reached" && r.Value == 100.0));
+        AchievementStores.Current = null;
     }
 
     // ---- home screen ----

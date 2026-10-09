@@ -238,7 +238,7 @@ public class TutorialSkip : MonoBehaviour
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
         Time.timeScale = 1f;
 
-        achievementAPICalls.achievement_tutorial_completed();
+        AchievementTracker.OnTutorialDone();
         return ExitScene;
     }
 }

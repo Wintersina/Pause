@@ -11,8 +11,7 @@ using UnityEngine.SocialPlatforms;
 // interactive one is AccountLink.SignIn (Options Account row, leaderboard
 // panel, the store screens below). While the player is signed out in Pause
 // (AccountLink.Disconnected) nothing is reported. Achievement and leaderboard
-// ids are the GPGS ids from StringHolder; AchievementIds maps them to the
-// Game Center ids on iOS.
+// ids come from AchievementIds (one table: Play Games and Game Center ids).
 public static class SocialBridge
 {
     public delegate void SocialCallback(bool success);
@@ -52,14 +51,6 @@ public static class SocialBridge
         });
     }
 
-    // The id to send on this platform, or null when it has none.
-    static string PlatformId(string achievementId)
-    {
-        string id = AchievementIds.ForCurrentPlatform(achievementId);
-        if (string.IsNullOrEmpty(id)) Debug.Log("[SocialBridge] No id on this platform for " + achievementId);
-        return id;
-    }
-
     // Signed out: one interactive sign-in attempt, then the native UI.
     public static void ShowLeaderboard()
     {
@@ -71,10 +62,10 @@ public static class SocialBridge
         Authenticate(success => { if (success) Social.ShowAchievementsUI(); });
     }
 
+    // `leaderboardId` is already the id for this platform.
     public static void ReportScore(long score, string leaderboardId, SocialCallback callback = null)
     {
-        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated ||
-            string.IsNullOrEmpty(leaderboardId = PlatformId(leaderboardId)))
+        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated)
         {
             if (callback != null) callback(false);
             return;
@@ -85,17 +76,12 @@ public static class SocialBridge
         });
     }
 
-    public static void UnlockAchievement(string achievementId, SocialCallback callback = null)
-    {
-        ReportProgress(achievementId, 100.0, callback);
-    }
-
-    // Tiered achievements report percent-complete here; AchievementTiers keeps
-    // the counts, since Unity's portable API has no "increment".
+    // Reports percent-complete (100 unlocks) for an achievement. `achievementId`
+    // is already the id for this platform (AchievementIds); Unity's portable
+    // API has no "increment", so AchievementStore keeps the counts.
     public static void ReportProgress(string achievementId, double percent, SocialCallback callback = null)
     {
-        if (string.IsNullOrEmpty(achievementId) || !IsAuthenticated ||
-            string.IsNullOrEmpty(achievementId = PlatformId(achievementId)))
+        if (string.IsNullOrEmpty(achievementId) || !IsAuthenticated)
         {
             if (callback != null) callback(false);
             return;

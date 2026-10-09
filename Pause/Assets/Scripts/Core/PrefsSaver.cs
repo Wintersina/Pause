@@ -29,8 +29,8 @@ public static class PrefsSaver
 
     public static void SaveNow()
     {
-        // Achievement progress is batched the same way (AchievementTiers).
-        AchievementTiers.FlushReports();
+        // Achievement progress reports are batched the same way (AchievementSync).
+        AchievementSync.FlushReports();
         PlayerPrefs.Save();
         dirty = false;
         lastSaveAt = Time.unscaledTime;
