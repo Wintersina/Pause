@@ -42,14 +42,28 @@ public static class DeveloperUiStartTest
         return fails;
     }
 
+    static DeveloperOptions options;
+
+    // The Options screen as the player opens it (leaderboardS3 loads fresh
+    // each visit; the dev rows are built in its Start).
+    static void EnsureOptions()
+    {
+        if (options != null) return;
+        EditorSceneManager.OpenScene("Assets/Scenes/leaderboardS3.unity", OpenSceneMode.Single);
+        options = new GameObject("~DeveloperOptions").AddComponent<DeveloperOptions>();
+        options.SendMessage("Start");
+    }
+
     static Button Find(string name)
     {
+        EnsureOptions();
         var go = SceneUtil.FindAny(name);
         return go != null ? go.GetComponent<Button>() : null;
     }
 
     static string LabelOf(string name)
     {
+        EnsureOptions();
         var go = SceneUtil.FindAny(name);
         var t = go != null ? go.GetComponentInChildren<Text>(true) : null;
         return t != null ? t.text : "(missing)";
@@ -73,9 +87,7 @@ public static class DeveloperUiStartTest
         WorldManager.ClearReplayWorld();
 
         // ---- the Options screen ----
-        EditorSceneManager.OpenScene("Assets/Scenes/leaderboardS3.unity", OpenSceneMode.Single);
-        var opts = new GameObject("~DeveloperOptions").AddComponent<DeveloperOptions>();
-        opts.SendMessage("Start");
+        EnsureOptions();
         Check("Options has the DEVELOPER switch", Find("DeveloperToggle") != null);
         Check("Options has the start-world row", SceneUtil.FindAny("DeveloperStartWorld") != null);
         Check("developer OFF label", LabelOf("DeveloperToggle") == "DEVELOPER  OFF");
@@ -118,7 +130,7 @@ public static class DeveloperUiStartTest
         Click("DeveloperToggle");
         Check("ON again: the pick (Verdant) rules", DeveloperUnlocks.StartWorld(true) == 2);
         RunFromPick(2, "toggled");
-        Object.DestroyImmediate(opts.gameObject);
+        options = null;
     }
 
     // PLAY: the world the next run starts in, then gameS1 loading.
@@ -130,6 +142,7 @@ public static class DeveloperUiStartTest
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, (pick + 1) % WorldManager.Worlds.Length);
         GameStateReset.Clear();
 
+        options = null;                         // leaving Options for the game
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
         BossEncounter.ResetRun();
         RunScore.EndRun(RunScore.RunId);
@@ -139,6 +152,7 @@ public static class DeveloperUiStartTest
         // scene's Awakes and before the Starts.
         var wm = new GameObject("~WorldManager").AddComponent<WorldManager>();
         wm.SendMessage("Awake");
+        wm.HoldStartWorld();                    // Awake does this while playing
         int early = WorldManager.CurrentIndex;  // what a Start that runs first sees
         try { typeof(WorldManager).GetMethod("Start", Inst).Invoke(wm, null); }
         catch (System.Exception e) { Debug.Log("[DEVUI] (Start's presentation threw in edit mode: " + (e.InnerException ?? e).Message + ")"); }

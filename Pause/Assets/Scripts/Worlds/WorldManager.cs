@@ -241,6 +241,19 @@ public class WorldManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        if (Application.isPlaying) HoldStartWorld();
+    }
+
+    // The manager is attached when gameS1 loads, before any Start, but it
+    // picks the run's world in its own Start. A script whose Start runs first
+    // would read the world the LAST run ended on (the saved current world): the
+    // wrong cast, backdrop or music for a developer pick or a Replay. Hold the
+    // world this run will start in from Awake on (memory only; Start saves
+    // it). Edit-mode tests build managers by hand and set the saved world
+    // themselves, so Awake only does this while playing.
+    public void HoldStartWorld()
+    {
+        runWorld = Mathf.Clamp(RunStartWorld(startAtHighestUnlocked), 0, Worlds.Length - 1);
     }
 
     void OnDestroy()
@@ -277,13 +290,26 @@ public class WorldManager : MonoBehaviour
         return DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
     }
 
+    // Where RunStartWorld got its answer, for the run-start log line.
+    public static string RunStartSource(bool startAtHighestUnlocked)
+    {
+        if (replayWorld >= 0) return "replay pin";
+        if (DeveloperUnlocks.Enabled && DeveloperUnlocks.HasSelectedWorld) return "developer pick";
+        return startAtHighestUnlocked ? "furthest planet" : "journey (Space)";
+    }
+
     void Start()
     {
         // Unlocks are permanent: once a planet has been reached, later runs
         // start there rather than replaying the earlier worlds. Developer mode
         // can pin a start world from Options instead. Replay restarts the
         // world the replayed run began in (RunStartWorld).
+        string source = RunStartSource(startAtHighestUnlocked);
         CurrentIndex = RunStartWorld(startAtHighestUnlocked);
+        Debug.Log("[WorldManager] run start: " + Current.displayName + " (index " + CurrentIndex + ", source " + source +
+                  "; saved highest " + PlayerPrefs.GetInt(PrefsHighestWorld, 0) + ", dev " + DeveloperUnlocks.Enabled +
+                  ", dev pick " + (DeveloperUnlocks.HasSelectedWorld ? PlayerPrefs.GetInt(DeveloperUnlocks.SelectedWorldKey).ToString() : "none") +
+                  ", boss rush " + BossDev.RushMode + ", loop " + RunLoop.Index + ")");
         // The final world's portal returns here (usually Space, or the developer's pick).
         RunLoop.StartWorld = CurrentIndex;
 
