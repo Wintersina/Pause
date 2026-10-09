@@ -122,7 +122,8 @@ public sealed class CodexAchievementsView
     int columns;
 
     // balance count-up
-    float countFrom, countTo, countAt = -10f;
+    float countFrom, countTo, countAt;
+    bool counting;
     int countShown = -1;
 
     public CodexAchievementsView(CodexPanel panel, RectTransform parent, Font font)
@@ -886,6 +887,7 @@ public sealed class CodexAchievementsView
         countFrom = Mathf.Floor(before);
         countTo = Mathf.Floor(StarDustLedger.Saved);
         countAt = Time.unscaledTime;
+        counting = true;
         countShown = Mathf.FloorToInt(countFrom);
         PaintAll();
         panel.OnAchievementsChanged();
@@ -1008,7 +1010,7 @@ public sealed class CodexAchievementsView
             if (collectAll.button.interactable) collectAll.rt.localScale = new Vector3(k, k, 1f);
             else collectAll.rt.localScale = Vector3.one;
         }
-        if (countAt > -5f)
+        if (counting)
         {
             float p = (now - countAt) / CountUpSeconds;
             int shown = p >= 1f ? Mathf.FloorToInt(countTo) : Mathf.FloorToInt(Mathf.Lerp(countFrom, countTo, CodexUi.EaseOutCubic(p)));
@@ -1017,7 +1019,7 @@ public sealed class CodexAchievementsView
                 countShown = shown;
                 PaintStrip();
             }
-            if (p >= 1f) countAt = -10f;
+            if (p >= 1f) counting = false;
         }
     }
 
@@ -1033,6 +1035,6 @@ public sealed class CodexAchievementsView
     public void SkipAnimations()
     {
         if (jumping) { jumpAt = Time.unscaledTime - 100f; Tick(Time.unscaledTime); }
-        if (countAt > -5f) { countAt = Time.unscaledTime - 100f; Tick(Time.unscaledTime); }
+        if (counting) { countAt = Time.unscaledTime - 100f; Tick(Time.unscaledTime); }
     }
 }

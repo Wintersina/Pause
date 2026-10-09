@@ -365,14 +365,16 @@ public static class CodexAchievementsTabTest
         Check("... the strip updates (3 to collect, balance counts up to 125)", v.StripLine.text.StartsWith("3 TO COLLECT"));
         v.SkipAnimations();
         Check("... the balance reads 125 after the count-up", v.StripLine.text.EndsWith("DUST 125") && v.ShownBalance == 125);
-        Tap(panel, ScreenCentre(chip.rt));
+        Tap(panel, ScreenCentre(chip.rt));   // the chip is gone: the tap lands on the card and opens its detail
         Check("tapping the (gone) chip again pays nothing", Dust() == 125f);
+        v.CloseDetail();
 
         // tap a card: detail opens; COLLECT in the detail
         int idx2 = v.CardIndexOf("world_frost_reached");
         Reveal(v, idx2);
         var cardBtn = v.CardButton(idx2);
-        var topLeft = ScreenCentre(v.CardRect(idx2)) + new Vector2(0f, v.CardRect(idx2).rect.height * .15f);
+        var cc = new Vector3[4]; v.CardRect(idx2).GetWorldCorners(cc);
+        var topLeft = ScreenCentre(v.CardRect(idx2)) - new Vector2(0f, (cc[1].y - cc[0].y) * .1f);   // a little below the centre, clear of the pinned header
         var h2 = Tap(panel, topLeft);
         Check("a real tap on a card's badge opens its detail (hit " + (h2 != null ? h2.name : "nothing") + ")",
               h2 == cardBtn.gameObject && v.InDetail && v.DetailDef.id == "world_frost_reached");

@@ -1,0 +1,61 @@
+Order,Name,Description,Points,Incremental steps (blank = standard),Initial state,Icon file (512x512)
+1,First Flight,Finish the tutorial and take your first real run.,5,,Revealed,meta_first_flight.png
+2,Logged On,Sign in to Google Play Games or Game Center.,5,,Revealed,meta_logged_on.png
+3,Cold Front,Reach the Frost world.,10,,Revealed,world_frost_reached.png
+4,Into the Green,Reach the Verdant world.,10,,Revealed,world_verdant_reached.png
+5,Trial by Fire,Reach the Ember world.,15,,Revealed,world_ember_reached.png
+6,Deep Water,Reach the Tide world.,20,,Hidden,world_tide_reached.png
+7,Full Circle,Complete a full loop of every world.,25,,Revealed,loop_1.png
+8,Second Lap,Complete two loops in a single run.,25,,Revealed,loop_2.png
+9,Orbit Lifer,Complete five loops in a single run.,40,,Revealed,loop_5.png
+10,Archon Down,Defeat the Void Archon.,10,,Revealed,boss_space.png
+11,Leviathan Slain,Defeat the Hoarfrost Leviathan.,15,,Revealed,boss_frost.png
+12,Bloom Queen Felled,Defeat the Bloom Queen.,20,,Revealed,boss_verdant.png
+13,Drake Slayer,Defeat the Cinder Drake.,25,,Revealed,boss_ember.png
+14,Tide Turner,Defeat the Tide boss.,25,,Hidden,boss_tide.png
+15,Untouchable,Defeat a boss without losing a heart.,25,,Revealed,boss_no_hit.png
+16,Boss Collector,Defeat every live world's boss.,35,4,Revealed,boss_all.png
+17,Elite Hunter,Destroy your first elite ship.,10,,Revealed,elite_first.png
+18,Veteran Hunter,Destroy 10 elite ships.,10,10,Revealed,elite_10.png
+19,Elite Exterminator,Destroy 50 elite ships.,25,50,Revealed,elite_50.png
+20,Space Elites,Down every Space elite.,15,4,Revealed,elite_space_all.png
+21,Frost Elites,Down every Frost elite.,20,5,Revealed,elite_frost_all.png
+22,Verdant Elites,Down the Verdant elite.,15,,Revealed,elite_verdant_all.png
+23,Ember Elites,Down every Ember elite.,25,6,Revealed,elite_ember_all.png
+24,Blink Strike,Destroy an elite with a pause blink.,10,,Revealed,elite_blink.png
+25,Gunner,Destroy 100 enemies.,5,100,Revealed,kills_100.png
+26,Hundredfold,"Destroy 1,000 enemies.",10,1000,Revealed,kills_1000.png
+27,Warlord,"Destroy 5,000 enemies.",25,5000,Revealed,kills_5000.png
+28,Rock Breaker,Destroy 500 asteroids and rocks.,10,500,Revealed,rocks_500.png
+29,Minesweeper,Destroy 25 rail mines.,10,25,Revealed,mines_25.png
+30,Chain Reaction,Reach a 10-kill chain.,10,,Revealed,chain_10.png
+31,MEGA DOMINO,Trigger a MEGA DOMINO.,15,,Hidden,mega_domino.png
+32,Curious Pilot,Discover 10 Codex entries.,5,10,Revealed,codex_10.png
+33,Cartographer,Discover 50 Codex entries.,10,50,Revealed,codex_50.png
+34,Field Guide,Fully catalogue one world's enemies and hazards.,15,,Revealed,codex_field_guide.png
+35,Completionist,Discover every Codex entry.,35,,Revealed,codex_complete.png
+36,Hangar Debut,Buy your first ship.,5,,Revealed,ship_first.png
+37,Squadron,Own half the hangar.,15,8,Revealed,ship_half.png
+38,Fleet Admiral,Own every ship.,40,,Revealed,ship_all.png
+39,Fresh Paint,Buy your first ship skin.,5,,Revealed,skin_first.png
+40,Special Edition,Buy a Special skin.,10,,Revealed,skin_special.png
+41,Full Wardrobe,Own all skins for one ship.,25,,Revealed,skin_full_set.png
+42,Secret Power,Unleash a ship's secret power.,10,,Revealed,secret_power_first.png
+43,Dust Gatherer,Collect 150 star dust pickups.,10,150,Revealed,stars_150.png
+44,Dust Hoarder,"Collect 1,000 star dust pickups.",20,1000,Revealed,stars_1000.png
+45,Dust Baron,"Collect 5,000 star dust pickups.",25,5000,Revealed,stars_5000.png
+46,Big Spender,"Spend 10,000 star dust in the shop.",15,10000,Revealed,dust_spent_10000.png
+47,Rookie Score,"Score 2,500 points in a run.",10,,Revealed,score_10k.png
+48,Ace Score,"Score 8,000 points in a run.",20,,Revealed,score_50k.png
+49,Legend Score,"Score 30,000 points in a run.",35,,Revealed,score_150k.png
+50,Flash,Reach the speed cap.,15,,Revealed,speed_flash.png
+51,Speedster,Break the speed limit.,20,,Revealed,speed_speedster.png
+52,Super Sonic,Max out the limit break.,35,,Revealed,speed_super_sonic.png
+53,Crash Course,Crash 10 times.,5,10,Revealed,deaths_10.png
+54,Frequent Flyer,Crash 100 times.,10,100,Hidden,deaths_100.png
+55,Paused,Spend your first pause.,5,,Revealed,pause_first.png
+56,Correct Pause,Destroy an enemy by blinking onto it.,10,,Revealed,pause_blink_kill.png
+57,Blink Master,Blink 100 times.,10,100,Revealed,pause_blink_100.png
+58,Hold Your Breath,Clear a world without spending a pause.,20,,Revealed,pause_no_pause_world.png
+59,Time Banker,Hold 15 pauses at once.,10,,Revealed,pause_hoarder.png
+60,Perfect Pause,Blink out of a hostile shot's path.,25,,Hidden,pause_perfect_dodge.png
