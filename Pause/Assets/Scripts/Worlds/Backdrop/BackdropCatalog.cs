@@ -291,6 +291,36 @@ public static class BackdropCatalog
             Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
             Layer.Pieces("embers", 0.450f, Role.Atmosphere),
         }},
+        // Tide (TideDirector, docs in TideBackdrop.cs): flown at atmosphere
+        // level over the ocean planet: open sea, a field of oil rigs and
+        // refineries, a drowned city, or the NIGHT side's glowing currents
+        // (TideTuning.Night; one of four variant sets per landing). Rigs,
+        // pipework, vessels, vents and flare stacks stand (or float) on the
+        // ground, PINNED to the mid tile (GroundPlanner) where its affinity
+        // mask says they belong. The art is painted dark with mint foam and
+        // lamps (value p90 ~.38-.47) and drawn as painted (brightness 1: not
+        // Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Tide", folder = "Worlds/Tide/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = BackdropVariants.MaxVariants,
+                   brightness = () => TideTuning.Brightness, saturation = () => 1f,
+                   variantBrightness = TideTuning.VariantBrightness, variantNight = TideTuning.Night,
+                   cloudDensity = () => TideTuning.CloudDensity, ceilingHold = () => TideTuning.CeilingHold,
+                   ceilingClearSeconds = () => TideTuning.CeilingClearSeconds, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.6f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            // landmarks, pipes, vents, vessels and the elite sites: one ground
+            // plane pinned to the mid tile
+            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
+            // the storm-cloud ceiling the planetfall drops through
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
+            Layer.Pieces("rain", 0.450f, Role.Atmosphere),
+        }},
     };
 
     public static Spec[] All { get { return specs; } }
@@ -303,13 +333,8 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
-    // Tide has no ground backdrop yet (add-world phase 11): its level flies over
-    // Ember's, so a Tide run is playable in dev. Removed with the real Spec.
-    public const string TideStandIn = "Ember";
-
     public static Spec For(string displayName)
     {
-        if (displayName == "Tide") displayName = TideStandIn;
         foreach (var s in specs) if (s.world == displayName) return s;
         return specs[0];
     }

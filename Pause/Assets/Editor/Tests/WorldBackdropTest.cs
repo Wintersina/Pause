@@ -28,6 +28,10 @@ public static class WorldBackdropTest
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
     public const long EmberTextureBudgetBytes = 7L * 1024 * 1024;
+    // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
+    // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
+    // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
+    public const long TideTextureBudgetBytes = 10L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -87,15 +91,28 @@ public static class WorldBackdropTest
     const float EmberTileMaxChroma = 0.25f;
     const float EmberCloudMaxLuminance = 0.80f;
 
+    // TIDE IS DARK, MINT-FOAMED AND LAMP-LIT, AS PAINTED: its v3 ocean world is painted at value
+    // p90 ~.38-.47 (v4 ~.30-.40) with white-mint foam and lamps as the bright accent, and
+    // drawn as painted (brightness 1: below Spec.BrightLift, so shots keep the thin outline;
+    // a set that fails the lane guard is drawn darker by TideTuning.VariantBrightness).
+    // Held to these limits AS DRAWN; the gameplay guard (enemy bodies 2.5:1, brightest tone
+    // 7:1 against the rendered lane: CheckReadability and TideBackdropTest) is every world's.
+    const float TideTileMaxValueP90 = 0.48f;
+    const float TideSkyMaxLuminance = 0.17f;
+    const float TideTileMaxLuminance = 0.20f;
+    const float TideTileMaxChroma = 0.30f;
+    const float TideCloudMaxLuminance = 0.80f;
+
     static bool Frost(BackdropCatalog.Spec spec) { return spec.world == "Frost"; }
     static bool Ember(BackdropCatalog.Spec spec) { return spec.world == "Ember"; }
     static bool Verdant(BackdropCatalog.Spec spec) { return spec.world == "Verdant"; }
     // the worlds measured as drawn, with their own v3 atlases
-    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec) || Ember(spec); }
-    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : Ember(spec) ? EmberTileMaxValueP90 : TileMaxValueP90; }
-    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : Ember(spec) ? EmberTileMaxChroma : TileMaxChroma; }
-    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : Ember(spec) ? EmberSkyMaxLuminance : SkyMaxLuminance; }
-    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : Ember(spec) ? EmberTileMaxLuminance : TileMaxLuminance; }
+    static bool Tide(BackdropCatalog.Spec spec) { return spec.world == "Tide"; }
+    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec) || Ember(spec) || Tide(spec); }
+    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : Ember(spec) ? EmberTileMaxValueP90 : Tide(spec) ? TideTileMaxValueP90 : TileMaxValueP90; }
+    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : Ember(spec) ? EmberTileMaxChroma : Tide(spec) ? TideTileMaxChroma : TileMaxChroma; }
+    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : Ember(spec) ? EmberSkyMaxLuminance : Tide(spec) ? TideSkyMaxLuminance : SkyMaxLuminance; }
+    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : Ember(spec) ? EmberTileMaxLuminance : Tide(spec) ? TideTileMaxLuminance : TileMaxLuminance; }
 
     // A tile layer's pixels as drawn (BackdropGrade; the art itself when the
     // layer is not lifted).
@@ -141,6 +158,23 @@ public static class WorldBackdropTest
         if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "weather") { alphaLift = EmberTuning.CeilingThicken; lift = EmberTuning.CeilingLift; sat = EmberTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    // A Tide atlas as drawn: pieces and loops as painted, the weather at the cloud
+    // ceiling's thickening, lift and tint toward the planetfall's teal deck.
+    static Color[] TideAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
+    {
+        float lift = 1f, alphaLift = 1f, sat = 1f;
+        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == "weather") { alphaLift = TideTuning.CeilingThicken; lift = TideTuning.CeilingLift; sat = TideTuning.CeilingSaturation; }
+        return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    static float TideDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        foreach (var l in TideAmbientCatalog.Table.loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha * TideTuning.NightLightBoost);
+        return a > 0f ? a : 1f;
     }
 
     static float EmberDrawAlpha(string atlas)
@@ -226,6 +260,35 @@ public static class WorldBackdropTest
         { "lights", new[] { "beacon_amber_00", "beacon_amber_03", "beacon_magenta_03", "strobe_white_00" } },
     };
 
+    // Tide's shared atlases and the drawings the director relies on (run C's loop
+    // sheets are optional until they land: TideAmbientCatalog.Missing lists them).
+    static readonly Dictionary<string, string[]> TideAtlases = new Dictionary<string, string[]>
+    {
+        { "landmarks", TidePieces("landmarks") },
+        { "pipes", TidePieces("pipes") },
+        { "fires", TidePieces("fires") },
+        { "sites", new[] { "trench_hatch_closed", "trench_hatch_open", "rig_bay_closed", "rig_bay_open", "reef_dock_closed", "reef_dock_open",
+                           "vent_stack_closed", "vent_stack_open", "wreck_bay_closed", "wreck_bay_open", "lights_off", "lights_on" } },
+        { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_03", "mist_00", "mist_02", "gust_00", "gust_02", "pall_00", "rain_00" } },
+    };
+
+    // Every drawing of a Tide piece atlas the director names.
+    static string[] TidePieces(string atlas)
+    {
+        var names = new List<string>();
+        foreach (var group in new[] { TideTuning.Rigs, TideTuning.Neighbours, TideTuning.Fronts, TideTuning.Satellites,
+                                      TideTuning.Vessels, TideTuning.Banks, TideTuning.Lone, TideTuning.HorizontalPipes })
+            foreach (string n in group)
+            {
+                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
+                bool fire = n.StartsWith("whirlpool") || n.StartsWith("oil_slick") || n.StartsWith("reef_head") || n.StartsWith("wreck_hull") ||
+                            n.StartsWith("bubbling_vent") || n.StartsWith("flare_stack") || n.StartsWith("plankton") || n.StartsWith("salvage_crawler");
+                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
+                if (a == atlas && !names.Contains(n)) names.Add(n);
+            }
+        return names.ToArray();
+    }
+
     // Every drawing of an Ember piece atlas the director names.
     static string[] EmberPieces(string atlas)
     {
@@ -272,7 +335,7 @@ public static class WorldBackdropTest
             // dropped in; force one normal import so that rule takes effect.
             // A tile can gain its importer rule after the image was first
             // dropped in (Frost's / Verdant's / Ember's v3 sheets): reimport those.
-            foreach (string world in new[] { "Frost", "Verdant", "Ember" })
+            foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide" })
             foreach (string png in Directory.GetFiles(ArtDir(world), "*.png", SearchOption.AllDirectories))
             {
                 var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
@@ -284,6 +347,7 @@ public static class WorldBackdropTest
             CheckSpaceTiers();
             CheckVerdantPalette();
             CheckEmberPalette();
+            CheckTidePalette();
             CheckReadability();
             CheckWalls();
             CheckSpaceRailMaterials();
@@ -304,7 +368,7 @@ public static class WorldBackdropTest
     // Every world resolves to its own complete set; rates rise far -> near.
     static void CheckCatalog()
     {
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)   // Tide joins when its release switch flips (it flies Ember's until then)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)   // Tide has its own backdrop now, whatever its release switch says
         {
             var theme = WorldManager.Worlds[w];
             var spec = BackdropCatalog.For(theme.displayName);
@@ -344,7 +408,7 @@ public static class WorldBackdropTest
             }
             if (V3(spec))
             {
-                foreach (var kv in Frost(spec) ? FrostAtlases : Ember(spec) ? EmberAtlases : VerdantAtlases)
+                foreach (var kv in Frost(spec) ? FrostAtlases : Ember(spec) ? EmberAtlases : Tide(spec) ? TideAtlases : VerdantAtlases)
                 {
                     var atlas = new BackdropAtlas(Resources.Load<Texture2D>(folder + kv.Key), Resources.Load<TextAsset>(folder + kv.Key));
                     Check(spec.world + " atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
@@ -534,6 +598,7 @@ public static class WorldBackdropTest
                     if (tile) px = AsDrawn(spec, spec.Find(name), px, VariantOf(path));
                     else if (Frost(spec)) px = FrostAtlasAsDrawn(spec, file, px);
                     else if (Ember(spec)) px = EmberAtlasAsDrawn(spec, file, px);
+                    else if (Tide(spec)) px = TideAtlasAsDrawn(spec, file, px);
                     else px = VerdantAtlasAsDrawn(spec, file, px);
                 }
                 string drawnTag = V3(spec) ? " as drawn" : "";
@@ -560,6 +625,15 @@ public static class WorldBackdropTest
                     foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
                     float drawn = lum * Mathf.Min(1f, maxA * EmberDrawAlpha(file));
                     float cap = file == "weather" ? EmberCloudMaxLuminance : AtlasMaxLuminance;
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
+                          drawn <= cap);
+                }
+                else if (!tile && Tide(spec))
+                {
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * TideDrawAlpha(file));
+                    float cap = file == "weather" ? TideCloudMaxLuminance : AtlasMaxLuminance;
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
                           drawn <= cap);
                 }
@@ -598,7 +672,7 @@ public static class WorldBackdropTest
             bytes += maxSet;
             astc += maxSetAstc;
             long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
-                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : TextureBudgetBytes;
+                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",
@@ -836,12 +910,91 @@ public static class WorldBackdropTest
               amber >= EmberMinBeaconPixels && magenta >= EmberMinBeaconPixels);
     }
 
+    // Tide must not read as one flat teal-green mud, and must keep clear of the
+    // player's red and of orange fire (the brief: "no red, lime, orange"). Every
+    // variant needs several distinct hue/value clusters and a real value range;
+    // its accents -- mint foam, green lamps and blue-violet lamps -- come from the
+    // piece atlases drawn over it.
+    public const int TideMinClusters = 5;
+    public const float TideMinValueRange = 0.15f;
+    public const int TideMinMintPixels = 3000;          // bright mint foam / glow pixels in the fires atlas
+    public const int TideMinLampPixels = 150;           // green and blue-violet lamp pixels in the landmarks atlas
+    public const float TideMaxForbiddenShare = 0.003f;  // tile pixels in the forbidden hue bands (player red 345..15, fire orange 15..45 bright)
+    public const int TideMaxForbiddenAtlasPixels = 150; // ... in the piece atlases (a rusted rivet may stray)
+
+    // the forbidden bands: the player's red (345..15 deg, saturated and lit) and bright fire orange
+    static bool IsForbiddenTide(Color c)
+    {
+        float hh, ss, vv;
+        Color.RGBToHSV(c, out hh, out ss, out vv);
+        float hue = hh * 360f;
+        bool red = (hue >= 345f || hue < 15f) && ss > .5f && vv > .45f;
+        bool fire = hue >= 15f && hue < 45f && ss > .6f && vv > .6f;
+        return red || fire;
+    }
+
+    static void CheckTidePalette()
+    {
+        var spec = BackdropCatalog.For("Tide");
+        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        {
+            int w, h;
+            var px = Composite("Tide", out w, out h, v);
+            var bins = new Dictionary<int, int>();
+            var values = new List<float>();
+            int n = 0, forbidden = 0;
+            for (int i = 0; i < px.Length; i += 2)
+            {
+                Color c = px[i];
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                float hue = hh * 360f;
+                int band = Mathf.Min((int)(vv / 0.1f), 5);
+                int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
+                int k;
+                bins.TryGetValue(key, out k);
+                bins[key] = k + 1;
+                values.Add(vv);
+                if (IsForbiddenTide(c)) forbidden++;
+                n++;
+            }
+            int clusters = 0;
+            foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
+            values.Sort();
+            float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
+            Check("Tide v" + v + " has >= " + TideMinClusters + " distinct hue/value clusters (" + clusters + ")", clusters >= TideMinClusters);
+            Check("Tide v" + v + " value range p5..p95 >= " + TideMinValueRange + " (" + range.ToString("F3") + ")", range >= TideMinValueRange);
+            Check("Tide v" + v + " keeps out of the player's red and fire orange (" + (forbidden / (float)n).ToString("F4") + " <= " + TideMaxForbiddenShare + ")",
+                  forbidden <= TideMaxForbiddenShare * n);
+        }
+        int mint = 0, green = 0, blue = 0;
+        foreach (string atlas in new[] { "landmarks", "pipes", "fires", "sites", "weather" })
+        {
+            int bad = 0;
+            foreach (var c in ReadPixels(ArtDir("Tide") + atlas + ".png"))
+            {
+                if (c.a < 0.9f) continue;
+                if (IsForbiddenTide(c)) bad++;
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                float hue = hh * 360f;
+                if (atlas == "fires" && hue >= 135f && hue < 175f && ss > .3f && vv > .6f) mint++;
+                if (atlas == "landmarks" && ss > .45f && vv > .45f && hue >= 120f && hue < 190f) green++;
+                if (atlas == "landmarks" && ss > .4f && vv > .4f && hue >= 200f && hue < 265f) blue++;
+            }
+            Check("Tide " + atlas + " keeps out of the player's red and fire orange (" + bad + " px <= " + TideMaxForbiddenAtlasPixels + ")", bad <= TideMaxForbiddenAtlasPixels);
+        }
+        Check("Tide's foam and vents carry bright mint (" + mint + " px >= " + TideMinMintPixels + ")", mint >= TideMinMintPixels);
+        Check("Tide's landmarks carry green (" + green + ") and blue-violet (" + blue + ") lamps (>= " + TideMinLampPixels + " each)",
+              green >= TideMinLampPixels && blue >= TideMinLampPixels);
+    }
+
     // docs/art-style.md 4, with each world's enemies on top: the composited
     // lane stays darker and greyer than the enemy bodies, bodies reach 2.5:1
     // and the brightest tone 7:1 against the lane (its median luminance).
     static void CheckReadability()
     {
-        for (int wi = 0; wi < WorldManager.LiveWorldCount; wi++)
+        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
         for (int variant = 1; variant <= Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets); variant++)
         {
             var wspec = BackdropCatalog.For(WorldManager.Worlds[wi].displayName);
@@ -897,7 +1050,7 @@ public static class WorldBackdropTest
             Check(world + " has a reinforced rail", rail);
             if (rail) failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
         }
-        foreach (string world in new[] { "Frost", "Verdant", "Ember" })
+        foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide" })
             foreach (string name in new[] { "wallLeft", "wallRight" })
                 Check("the legacy " + world + " " + name + " wall stays deleted",
                       !File.Exists("Assets/Art/Resources/Worlds/" + world + "/" + name + ".png") &&

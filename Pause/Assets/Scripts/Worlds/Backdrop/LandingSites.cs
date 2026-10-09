@@ -27,8 +27,13 @@ using UnityEngine;
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
+//
+// Tide's (TideDirector) are emerge sites too: a trench hatch in the sea floor
+// shoals, a rig deck bay, a reef dock, a vent stack and a wreck bay -- shut
+// until the launch tell opens them.
 public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay,
-                         FoundryHangar, MagmaBay, SlagPad, FurnaceBay }
+                         FoundryHangar, MagmaBay, SlagPad, FurnaceBay,
+                         TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay }
 
 public struct LandingSite
 {
@@ -45,7 +50,8 @@ public struct LandingSite
 
     // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
     // "padring" / "crawlerbay" / "hatch" / "roothangar" / "riverbay" / "podpad" /
-    // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" (EliteDef.launchFrom); anything else:
+    // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" / "trenchhatch" / "rigdeck" /
+    // "reefdock" / "ventstack" / "wreckbay" (EliteDef.launchFrom); anything else:
     // null (any pad). A launchFrom may list several, comma separated
     // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
@@ -66,6 +72,11 @@ public struct LandingSite
             case "magmabay": return LandingKind.MagmaBay;
             case "slagpad": return LandingKind.SlagPad;
             case "furnacebay": return LandingKind.FurnaceBay;
+            case "trenchhatch": return LandingKind.TideTrenchHatch;
+            case "rigdeck": return LandingKind.TideRigDeck;
+            case "reefdock": return LandingKind.TideReefDock;
+            case "ventstack": return LandingKind.TideVentStack;
+            case "wreckbay": return LandingKind.TideWreckBay;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;

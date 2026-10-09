@@ -160,7 +160,7 @@ public static class WorldLogicTest
     }
 
     // World 5, Tide: in the list, behind the release switch, with its planet art
-    // but (until the backdrop / roster / boss phases) Ember's stand-ins.
+    // and its own backdrop, but (until the roster / boss / rails phases) Ember's stand-ins.
     static void TideWorld()
     {
         const int Ember = 3, Tide = 4;
@@ -170,8 +170,16 @@ public static class WorldLogicTest
               t.enemyRampScale > WorldManager.Worlds[Ember].enemyRampScale);
         Check("... its portal wears the bioluminescent mint, not the player's red nor a pickup's cyan",
               t.portalColor.g > .85f && t.portalColor.r < .6f && t.portalColor.b > .6f && t.portalColor.b < .85f);
-        Check("... the stand-ins are explicit: Ember's rails folder, Ember's backdrop spec",
-              t.resourceFolder == "Ember" && BackdropCatalog.For("Tide") == BackdropCatalog.For("Ember"));
+        Check("... the stand-ins are explicit: Ember's rails folder (the backdrop is Tide's own now)",
+              t.resourceFolder == "Ember" && BackdropCatalog.For("Tide").world == "Tide" && BackdropCatalog.For("Tide") != BackdropCatalog.For("Ember"));
+        // its own backdrop art, whatever the release switch says (the live-world loop above skips it until the switch flips)
+        foreach (string layer in new[] { "sky", "far", "mid", "flow" })
+        {
+            string tile = "Assets/Art/Backgrounds/Resources/" + BackdropCatalog.TileFolder("Tide", 1) + layer + ".png";
+            Check("art present for Tide (" + tile + ")", AssetDatabase.LoadAssetAtPath<Texture2D>(tile) != null || AssetDatabase.LoadAssetAtPath<Sprite>(tile) != null);
+        }
+        Check("... its codex backdrop tile resolves through BackdropCatalog.TileFolder (" + BackdropCatalog.TileFolder("Tide", 1) + ")",
+              BackdropCatalog.TileFolder("Tide", 1) == "Worlds/Tide/Backdrop3/v1/");
         DeveloperUnlocks.SelectWorld(99);
         Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Tide);
         PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);

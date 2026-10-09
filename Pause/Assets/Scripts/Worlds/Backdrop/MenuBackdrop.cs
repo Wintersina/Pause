@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 //
 //   WHICH   Arriving at a menu from outside the menus (app start, a run, the
 //           tutorial) rolls one backdrop: a random world among those the
-//           player has reached (Space always; Frost / Verdant / Ember once
+//           player has reached (Space always; Frost / Verdant / Ember / Tide once
 //           highestWorld gets there), then a random variant (v1..v4) of it,
 //           never the world + variant shown last. Navigating between the
 //           menu pages (home, credits, options, shop) keeps that backdrop.

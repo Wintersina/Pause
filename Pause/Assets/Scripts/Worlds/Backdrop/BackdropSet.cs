@@ -133,6 +133,10 @@ public class BackdropSet
         if (Director != null && Complete) Director.Init(this);
     }
 
+    // Tests: stands in for an atlas that is not installed yet (Tide's run C loop sheets).
+    // Returns a fresh BackdropAtlas per call (the set destroys it), or null for "load it normally".
+    public static System.Func<string, string, BackdropAtlas> AtlasOverride;
+
     // A named atlas from the world's folder, loaded once and kept for the
     // set's life. A missing atlas is an empty one (Count 0, every Get null),
     // so art that has not landed yet just spawns nothing.
@@ -140,7 +144,8 @@ public class BackdropSet
     {
         BackdropAtlas a;
         if (atlases.TryGetValue(name, out a)) return a;
-        a = LoadAtlas(BackdropCatalog.Folder(Spec.world), name);
+        a = AtlasOverride != null ? AtlasOverride(Spec.world, name) : null;
+        if (a == null) a = LoadAtlas(BackdropCatalog.Folder(Spec.world), name);
         atlases[name] = a;
         return a;
     }
@@ -176,6 +181,7 @@ public class BackdropSet
             case "Frost": return new FrostDirector();
             case "Verdant": return new VerdantDirector();
             case "Ember": return new EmberDirector();
+            case "Tide": return new TideDirector();
             default: return new SpaceDirector();
         }
     }
