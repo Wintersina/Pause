@@ -94,12 +94,27 @@ public class WorldManager : MonoBehaviour
         },
     };
 
+    // The world the live run is on. Once this manager has set it (Start,
+    // Advance) it is held here, in memory: the saved world (PlayerPrefs) is
+    // progress other writers touch mid-run -- a cloud pull, developer mode's
+    // restore -- and the spawners, elites, boss and music all read the world
+    // through CurrentIndex, so a write there flipped them to another world
+    // while the backdrop and rails stayed painted for this one (a Space cast
+    // flying over Frost). -1: not set yet (the saved world is read).
+    int runWorld = -1;
+
     public static int CurrentIndex
     {
-        get { return Mathf.Clamp(PlayerPrefs.GetInt(PrefsCurrentWorld, 0), 0, Worlds.Length - 1); }
+        get
+        {
+            var run = Instance;
+            if (run != null && run.runWorld >= 0) return run.runWorld;
+            return Mathf.Clamp(PlayerPrefs.GetInt(PrefsCurrentWorld, 0), 0, Worlds.Length - 1);
+        }
         set
         {
             int v = Mathf.Clamp(value, 0, Worlds.Length - 1);
+            if (Instance != null) Instance.runWorld = v;
             PlayerPrefs.SetInt(PrefsCurrentWorld, v);
             if (v > PlayerPrefs.GetInt(PrefsHighestWorld, 0))
                 PlayerPrefs.SetInt(PrefsHighestWorld, v);
@@ -416,6 +431,11 @@ public class WorldManager : MonoBehaviour
         bool loop = !HasNext;
         // The way round again only exists as an open portal.
         if (loop && !portalOpen) return null;
+
+        // Nothing of the world left comes along (a planetfall cleared the
+        // board at its commit; a portal has no such beat): the hazards and
+        // elites on the board are this world's cast, not the next one's.
+        Planetfall.ClearBoard(Camera.main);
 
         // Points for the world just cleared; the run score carries on.
         RunScore.OnWorldCleared(CurrentIndex);

@@ -167,6 +167,7 @@ public static class AllTests
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
+        ("WorldLeakTest", WorldLeakTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
     };
