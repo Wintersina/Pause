@@ -185,4 +185,6 @@ old `AchievementIds`, `AchievementTiersTest` (and with them the five never-firin
     the new keys are added. Currency still merges "newer wins": a claim on one device can be overwritten by a newer save from another
     (the claimed flag survives, so it never pays twice, but the 25 may be lost). Documented risk, unchanged.
 
+13. *Legacy `HighestSpeed` fallback dropped.* The plan's fallback for `speed_flash` was removed: `SpeedCapTest` forbids code outside the save field reading a highest speed, and pre-cap speeds are not comparable to the cap anyway. Those three unlock in play.
+
 **Owner-only steps** are in `docs/achievements-export/README.md`.

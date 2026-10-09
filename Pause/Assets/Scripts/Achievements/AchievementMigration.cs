@@ -12,7 +12,7 @@ using UnityEngine;
 //     deaths, stars: the old counts are lower bounds), then Reevaluate()
 //   Reevaluate() (that launch, and after every cloud restore / account switch)
 //     unlock everything derivable: tutorial, worlds reached, ships, skins,
-//     codex counts, best score, speed
+//     codex counts, best score
 //
 // Everything unlocked this way is UNLOCKED but not claimed, so each earned one
 // is worth 25 star dust to collect. It never runs in developer mode (the keys
@@ -97,9 +97,6 @@ public static class AchievementMigration
         AchievementTracker.RefreshCodex();
 
         AchievementStore.SetCounterAtLeast(AchievementCatalog.CScore, RunScore.SavedBest);
-        // The legacy best speed (before the cap) tells whether the pilot ever flew at the cap.
-        if (Mathf.RoundToInt(PlayerPrefs.GetFloat(ProgressSnapshot.HighestSpeedKey, 0f) * 100f) >= SpeedRamp.CapHud)
-            AchievementStore.Unlock(AchievementCatalog.Find("speed_flash"));
         AchievementStore.RecountDerived();
     }
 }
