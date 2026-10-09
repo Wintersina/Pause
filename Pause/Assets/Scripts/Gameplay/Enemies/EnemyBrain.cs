@@ -242,6 +242,11 @@ public class EnemyBrain : MonoBehaviour
     RailMineLaser laser;            // a mine's laser, from its windup until it has cooled (EnemyAttack.Laser)
 
     // The mine's laser while it aims, burns or cools (tests); null otherwise.
+    // A laser mine that rides its rail beside the ship (RailMineMount.StepRide).
+    public bool RidesRail => onRail && Armed && Behaviour != null && Behaviour.attack == EnemyAttack.Laser;
+    // ... and has fired its volleys and cooled: time to let the board take it.
+    public bool RideFinished => Volleys >= Behaviour.maxVolleys && State == Phase.Idle && laser == null;
+
     public RailMineLaser Laser => laser != null && laser.Owner == transform ? laser : null;
 
     public void Init(EnemyDef def, EnemyBehaviour behaviour)
@@ -334,6 +339,8 @@ public class EnemyBrain : MonoBehaviour
         if (IsPilot) { StepPilot(dt); return; }
         // the spawner clamps a mine to its rail after it is built
         if (onRail && mount == null && TryGetComponent(out mount)) mount.brain = this;
+
+        if (onRail && mount != null) mount.StepRide(dt, Target);
 
         float beforeX = ox + lx, beforeY = oy + ly;
         Vector3 p = transform.position;
@@ -780,6 +787,7 @@ public class EnemyBrain : MonoBehaviour
     {
         if (!inView || t == null || seen < Behaviour.firstDelay) return false;
         if (Behaviour.Shoots && !EnemyThreat.ShootingAllowed) return false;
+        if (onRail && mount != null && !mount.AttackReady) return false;   // a laser mine fires from its hold row
         if (Behaviour.attack == EnemyAttack.Lunge && EliteInLungePath(p)) return false;
         Vector3 s = t.position;
         if (Behaviour.attack == EnemyAttack.Cross || Behaviour.attack == EnemyAttack.Laser)

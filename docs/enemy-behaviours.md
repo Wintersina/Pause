@@ -114,7 +114,7 @@ Shot speeds are relative to the board, in world units per second.
 | `space_rock_crater` | Beacon Rock | floating regolith chunk, blinking survey beacon | upright; slow heave (`Bob`) and a lazy sway | no | beacon flares (cosmetic) | steady and predictable: go round |
 | `space_rock_cluster` | Cluster Rock | three strapped boulders, magenta seam | heavy slow tumble; slow `Drift` bouncing in a narrow band | no | seam flares (cosmetic) | wide: give it room |
 | `space_rock_dark` | Coal Rock | dark slanted wedge, one buried eye | quick tumble; one slanted `Glide`, never turns | no | eye blinks (cosmetic) | read the slant early, it never changes |
-| `space_mine` | Rail Mine | clamp + sphere on the rail | `Patrol`: slides up and down its rail; freezes while armed | **yes**: a laser across the lane at a random angle (`Laser`), twice | arming loop 0.9 s, aim line its last 0.7 s | be off the line when it blinks |
+| `space_mine` | Rail Mine | clamp + sphere on the rail | `Patrol`: slides up and down its rail; freezes while armed | **yes**: two lasers across the lane at random angles (`Laser`), fired from its hold row beside the ship (see "Rail-mine ride") | arming loop 0.9 s, aim line its last 0.7 s | be off the line when it blinks |
 | `space_big` | Bastion | octagonal pod, twin cannon prongs, reactor eye | holds its column; short `Brake` hover | **yes**: twin parallel bolts straight down | eye flares for 0.8 s, then fires | leave the column under it when the eye flares |
 | `space_fighter_1` | Needle | slim dart, one ram prong | fast narrow `Sway` | no (`Lunge`: straight dash down) | thrusters flare, then the dash | it only goes straight: step off its line |
 | `space_fighter_2` | Steel Claw | twin pinching claws | `Track`s the pilot slowly, `Brake`s | no (`Lunge`: pounces sideways-and-down at the pilot's x) | claws pinch, then snap | sidestep once the claws pinch; it commits |
@@ -130,7 +130,7 @@ Shot speeds are relative to the board, in world units per second.
 | `frost_rock_shard` | Ice Shard | crystal splinters round a core | tumble; light, skittish `Drift` bouncing across a wide band | no | core flashes (cosmetic) | watch the bounce |
 | `frost_rock_chunk` | Frozen Chunk | floating bedrock, snow cap, icicles | upright; heavy slow heave (`Bob`), no sideways | no | crystal glints (cosmetic) | it stays in its column |
 | `frost_rock_rime` | Rime Star | six-point ice star | even snowflake spin; slow `Orbit` circle | no | glint (cosmetic) | the circle is small and regular |
-| `frost_mine` | Geode Mine | crystal sphere on the rail | `Creep`s down its rail and stops | **yes**: a laser across the lane at a random angle (`Laser`) | charging loop 0.9 s, aim line its last 0.7 s | be off the aim line when the crystals grow |
+| `frost_mine` | Geode Mine | crystal sphere on the rail | `Creep`s down its rail and stops | **yes**: two lasers across the lane at random angles (`Laser`), from its hold row ("Rail-mine ride") | charging loop 0.9 s, aim line its last 0.7 s | be off the aim line when the crystals grow |
 | `frost_big` | Glacier Golem | iceberg hulk, visor, ice maw | holds; slow small `Sway` | **yes**: a fan of three frost shards downward | maw cracks open 0.9 s | get outside the fan or tight between two shards |
 | `frost_fighter_1` | Flake | orb drone with an icicle lance | snowflake `Sway` drift | no (`Lunge`: lance dash at the pilot's x) | lance swirls, then the dash | it drifts until it decides: move when it does |
 | `frost_fighter_2` | Icicle | four blades, long lance | `Track` | **yes**: one aimed lance bolt | blades pinch 0.55 s | sidestep after the pinch |
@@ -147,7 +147,7 @@ Shot speeds are relative to the board, in world units per second.
 | `verdant_rock_spore` | Spore Rock | floating mossy rock, spore vents | upright; each puff lifts it (`Pulse`), slow `Drift` | no | vents puff (cosmetic) | it hops up, never down |
 | `verdant_rock_knot` | Bramble Knot | spinning thorn ball | fast spin; rolls across a wide band (`Drift`) | no | bud glows (cosmetic) | it crosses lanes: don't sit beside it |
 | `verdant_rock_vine` | Vine Rock | floating earth, dangling vines | upright; swings like a pendulum (`Sway`, bigger tilt) | no | buds light, vines whip (cosmetic) | pass at the end of a swing |
-| `verdant_mine` | Burr Mine | vine-wrapped burr on the rail | `Patrol`: swings up and down its rail | **yes**, once: a laser across the lane at a random angle (`Laser`) | husk splits, charging loop 1.0 s, aim line its last 0.7 s | its aim line is the danger: leave it |
+| `verdant_mine` | Burr Mine | vine-wrapped burr on the rail | `Patrol`: swings up and down its rail | **yes**: two lasers across the lane at random angles (`Laser`), from its hold row ("Rail-mine ride") | husk splits, charging loop 1.0 s, aim line its last 0.7 s | its aim line is the danger: leave it |
 | `verdant_big` | Bloom Maw | five-petal carnivorous bud | holds its column | **yes**: lobs a resin glob onto where the pilot is; it lands as a sticky pool | petals snap open 0.9 s; a ring marks the landing spot | leave the marked spot; the pool dries in ~2.5 s |
 | `verdant_fighter_1` | Gnat | small buzzing bug | fast jittery `Sway` + `Bob` | no | buzz when near (cosmetic) | small and erratic: keep a body's width |
 | `verdant_fighter_2` | Wasp | striped abdomen, stinger | `Track`, `Brake` | no (`Lunge`: a deep fast dive at the pilot's x) | wings blur, then the dive | deepest dive in the roster: sidestep late |
@@ -164,7 +164,7 @@ Shot speeds are relative to the board, in world units per second.
 | `ember_rock_cinder` | Cinder Chunk | blocky cinder, furnace split | steady slow spin; `Sink`s down the board (heavy) | no | split glows (cosmetic) | arrives a little sooner than it looks |
 | `ember_rock_obsidian` | Obsidian Shard | tall glass blade | barely turns; fast slanted `Glide` | no | vein flashes (cosmetic) | it slices one way only |
 | `ember_rock_islet` | Lava Islet | floating slab dripping lava | upright; wide slow `Sway`, `Bob` | no | seams flare (cosmetic) | wide but slow |
-| `ember_mine` | Crucible Mine | magma pot on the rail | stays put | **yes**: boils over, a laser across the lane at a random angle (`Laser`) | charging loop 1.1 s, aim line its last 0.7 s | it burns twice, each at its own angle: be off the line when it blinks |
+| `ember_mine` | Crucible Mine | magma pot on the rail | stays put | **yes**: boils over, two lasers across the lane at random angles (`Laser`), from its hold row ("Rail-mine ride") | charging loop 1.1 s, aim line its last 0.7 s | it burns twice, each at its own angle: be off the line when it blinks |
 | `ember_big` | Magma Skull | horned skull, furnace jaw | holds its column | **yes**: jaw drops, two slag blobs angled out below it | grille brightens 1.0 s | slag lingers under it: don't follow it down |
 | `ember_fighter_1` | Cinder | charred arrowhead | diagonal `Drift` | no (`Lunge`: straight dash down) | vents flare, then the dash | the dash never tracks |
 | `ember_fighter_2` | Scorch | forked claw with a mortar | `Track`s to line up over the pilot | **yes**: quick bolts straight down, up to three | vents go white 0.5 s | it must be over you to hit: keep moving |
@@ -784,6 +784,30 @@ tests and editor renders only; nothing here has been played.
 * **Art.** All 16 cells are whole. Space and Frost carry none of the player's red. **Art gap:** the Ember
   mine's lava is orange-red (42% of the dormant cell is inside `HostileGlow`'s red band) and the Verdant
   mine's thorns touch it (14%).
+
+### Rail-mine ride
+
+"The rail mines at high speed fall past too fast: they should ride up the rails to keep up with the player, fire
+2 lasers, then fall behind." The board scrolls at `speed` x 30 u/s (10.5 u/s at the 0.35 cap), so a mine that just
+came down with it crossed the ship's rows in a blink. An armed laser mine (`RailMineMount.StepRide`, run by the
+brain's `Step`, so it freezes with the world) now has three stages:
+
+1. **Falling**: comes down with the board like any hazard. It does not start a volley yet (`AttackReady`; a
+   board that is not rolling never holds a ride back: tests, previews).
+2. **Holding**: when its row reaches the hold row (`ship.y + HoldAboveShip`) it RIDES UP the rail: `Ride`
+   adds the board's step back every frame (counter-scroll, capped at `RideSpeedCap`), then eases onto the ship's
+   row (`RideEase`), so it sits still against the screen, always within `HoldBand` of the hold row, whatever the
+   speed. Its slide (Patrol / Creep), the shockwave `Shove` and the laser's geometry are unchanged and stack on top.
+   It fires `RailMineLaser.ShotsPerRide` (2) lasers, `ShotGapSeconds` (1 s) between one volley's end and the next
+   aim: the existing tell, aim line, 0.4 s beam, random angle each. Never longer than `MaxHoldSeconds`.
+3. **Released**: both lasers fired and cooled (`EnemyBrain.RideFinished`): `Ride` unwinds with `FallAccel`
+   extra pull and the board carries it away through the Destroyer strip.
+
+A mine that is already below the band when it first reaches the ship's rows (a late spawn) skips the ride.
+The mine is still clamped to its rail and its lane lives while it rides (`RailLaneScroller.Riders`); nothing about
+hostile fire, shields, rams, pause jumps or spawn-in protection changes. Tunables are the consts at the top of
+`RailMineMount`, plus `RailMineLaser.ShotsPerRide` / `ShotGapSeconds` (every world's roster entry uses them).
+`RailMinePacingTest` checks it at low, mid and maximum speed on both rails in all four worlds.
 
 ### Rail-mine laser
 

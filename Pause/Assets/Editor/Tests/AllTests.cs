@@ -105,6 +105,8 @@ public static class AllTests
         ("PostHitInvulnTest", PostHitInvulnTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
         ("RailMineLaserTest", RailMineLaserTest.Execute),
+        ("RailMatchTest", RailMatchTest.Execute),
+        ("RailMinePacingTest", RailMinePacingTest.Execute),
         ("RailsRollTest", RailsRollTest.Execute),
         ("RailsShipSizeTest", RailsShipSizeTest.Execute),
         ("RailsVettingTest", RailsVettingTest.Execute),

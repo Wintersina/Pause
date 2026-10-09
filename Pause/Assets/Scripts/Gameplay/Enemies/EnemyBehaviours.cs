@@ -275,8 +275,8 @@ public static class EnemyBehaviours
         B("space_rock_dark", "coal wedge: quick tumble on one slanted line")
             .Glide(.9f, .55f).Spin(45f, 85f)
             .Sizes(.78f, .98f, 1.32f);
-        B("space_mine", "rail mine: slides up and down its rail, a laser across the lane at a random angle")
-            .Patrol(.8f, 2.6f).Laser().Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
+        B("space_mine", "rail mine: slides up and down its rail, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Patrol(.8f, 2.6f).Laser().Muzzle(.5f).Timing(.9f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
         B("space_big", "Bastion: holds its column, twin cannon bolts straight down")
             .Brake(1.2f, .5f).Shot(Bolt, 2, 0f, 2.6f, .2f).Twin(.42f).Muzzle(.5f).Timing(.8f, 2.6f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -309,8 +309,8 @@ public static class EnemyBehaviours
         B("frost_rock_rime", "rime star: even snowflake spin in a slow circle")
             .Orbit(.45f, 3.4f).Spin(38f, 44f)
             .Sizes(.76f, 1f, 1.3f);
-        B("frost_mine", "geode mine: creeps down its rail, a laser across the lane at a random angle")
-            .Creep(1.4f, .7f).Laser().Muzzle(.5f).Timing(.9f, 2.8f, 2, .15f);
+        B("frost_mine", "geode mine: creeps down its rail, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Creep(1.4f, .7f).Laser().Muzzle(.5f).Timing(.9f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
         B("frost_big", "Glacier Golem: slow sway, a fan of three frost shards")
             .Sway(.3f, 4.5f).Shot(Shard, 3, 22f, 2.4f, .22f).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -346,8 +346,8 @@ public static class EnemyBehaviours
         B("verdant_rock_vine", "vine rock: swings like a pendulum")
             .Sway(.55f, 2.6f).Tilt(14f, 2.6f)
             .Sizes(.78f, .98f, 1.32f);
-        B("verdant_mine", "burr mine: swings on its rail, one laser across the lane at a random angle")
-            .Patrol(.7f, 1.9f).Laser().Muzzle(.5f).Timing(1f, 3.5f, 1, .15f);
+        B("verdant_mine", "burr mine: swings on its rail, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Patrol(.7f, 1.9f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
         B("verdant_big", "Bloom Maw: lobs a resin glob onto the pilot's spot")
             .Lob(.3f, 2.5f).Muzzle(.2f).Timing(.9f, 3.5f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.4f, 9f, PilotExit.Climb).Slow().Volleys(3);
@@ -383,8 +383,8 @@ public static class EnemyBehaviours
         B("ember_rock_islet", "lava islet: wide slow sway and bob")
             .Sway(.7f, 4.2f).Bob(.14f, 3f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
             .Sizes(.8f, .92f, 1.48f);
-        B("ember_mine", "crucible mine: boils over, a laser across the lane at a random angle")
-            .Laser().Muzzle(.5f).Timing(1.1f, 4f, 2, .15f);
+        B("ember_mine", "crucible mine: boils over, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Laser().Muzzle(.5f).Timing(1.1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
         B("ember_big", "Magma Skull: jaw drops, two slag blobs angled out")
             .Shot(Slag, 2, 56f, 1.5f, .32f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
