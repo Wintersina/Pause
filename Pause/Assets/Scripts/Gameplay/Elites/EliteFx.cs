@@ -271,6 +271,9 @@ public static class EliteDeath
     public static void Play(EliteShip ship, EliteDamage cause)
     {
         Played++;
+        // Its own authored death cue (Space elites today), whichever handler
+        // draws the death; elites without one keep just the explosion.
+        if (ship != null && ship.Def != null) EnemyDeathAudio.PlayElite(ship.Def.key);
         if (Handler != null) { Handler(ship, cause); return; }
         Default(ship, cause);
     }

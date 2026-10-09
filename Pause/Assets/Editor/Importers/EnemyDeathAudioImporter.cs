@@ -1,0 +1,33 @@
+using UnityEditor;
+using UnityEngine;
+
+// Import settings for the authored enemy death cues and scream layers
+// (Audio/Resources/Audio/EnemyDeath, read by EnemyDeathAudio): short mono
+// clips (~0.2-1.1 s, ~72 files, ~3 MB as PCM), so uncompressed PCM,
+// decompressed on load and preloaded -- the first kill of a run must not
+// stall on a decode, and a burst of kills costs no CPU decoding.
+// Sample rate preserved (authored at 44.1 kHz).
+public class EnemyDeathAudioImporter : AssetPostprocessor
+{
+    public const string Folder = "Assets/Audio/Resources/Audio/EnemyDeath/";
+
+    // Bump to reimport the folder after changing a rule below.
+    public override uint GetVersion() { return 1; }
+
+    void OnPreprocessAudio()
+    {
+        if (!assetPath.StartsWith(Folder)) return;
+        var importer = (AudioImporter)assetImporter;
+        importer.forceToMono = true;
+        importer.loadInBackground = false;
+        importer.ambisonic = false;
+        var s = importer.defaultSampleSettings;
+        s.loadType = AudioClipLoadType.DecompressOnLoad;
+        s.compressionFormat = AudioCompressionFormat.PCM;
+        s.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
+        s.preloadAudioData = true;
+        importer.defaultSampleSettings = s;
+        importer.ClearSampleSettingOverride("Android");
+        importer.ClearSampleSettingOverride("iOS");
+    }
+}
