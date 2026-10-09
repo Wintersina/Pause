@@ -2,12 +2,12 @@
 // own planetfall art (the same globe, limb, cloud decks, plasma and burst,
 // flown the other way), the world whose backdrop is the space between
 // planets, and its words. One entry per world that is left by lift-off
-// (LiftoffCatalog); everything else about the sequence is the same for
+// (LiftoffCatalog: Frost, Verdant); everything else about the sequence is the same for
 // every planet (Liftoff, LiftoffTimeline).
 //
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
-// PlanetfallCatalog has one (Verdant does not yet) and opens the portal
+// PlanetfallCatalog has one (Verdant after Frost; Ember has none yet) and opens the portal
 // otherwise.
 public class LiftoffDef
 {
@@ -32,7 +32,17 @@ public static class LiftoffCatalog
         banner = "LIFT OFF",
     };
 
-    public static readonly LiftoffDef[] Defs = { Frost };
+    // Verdant: leaving the green planet after its boss, into the same calm
+    // space; its gateway is Ember's portal until Ember has planetfall art.
+    public static readonly LiftoffDef Verdant = new LiftoffDef
+    {
+        world = 2,
+        planet = PlanetfallCatalog.Verdant,
+        interludeWorld = 0,
+        banner = "LIFT OFF",
+    };
+
+    public static readonly LiftoffDef[] Defs = { Frost, Verdant };
 
     // The lift-off for leaving `from` for `to` (the next planet, or the
     // loop's way round), or null for the portal straight away.

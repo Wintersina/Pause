@@ -19,11 +19,12 @@ using UnityEngine.SceneManagement;
 //   Portal  the portal is open and STAYS open until the ship flies through
 //           it. The level clock is stopped; PortalPressure escalates the
 //           board for as long as the pilot stays (docs/speed-and-loops.md).
-//           A world with a planetfall (PlanetfallCatalog: Space -> Frost)
+//           A world with a planetfall (PlanetfallCatalog: Space -> Frost,
+//           Frost -> Verdant)
 //           shows its planet instead: the same stage and the same pressure
 //           until the ship touches it, then the descent (Planetfall), which
 //           calls Advance while its clouds hide the view. A world left by
-//           lift-off (LiftoffCatalog: Frost) climbs to space first (Liftoff):
+//           lift-off (LiftoffCatalog: Frost, Verdant) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
 //           interlude ends and it opens the gateway (OpenGateway).
 //
@@ -324,7 +325,7 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
-        // Leaving a planet that lifts off (LiftoffCatalog: Frost): the climb
+        // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant): the climb
         // to space and a calm interlude first, then Liftoff opens the gateway
         // itself (no pressure until then). Missing art: the gateway now.
         if (Liftoff.Spawn(LiftoffCatalog.For(CurrentIndex, PortalDestination, !HasNext)) != null) return;
@@ -333,9 +334,9 @@ public class WorldManager : MonoBehaviour
 
     // The way on from the open stage: the next planet's planetfall if it has
     // one, else the portal; either way the pressure starts. The lift-off
-    // calls it when its interlude is over. A Verdant planetfall needs only
-    // its art and a PlanetfallCatalog entry: Frost's lift-off then ends on
-    // its approach.
+    // calls it when its interlude is over: Frost's ends on Verdant's planet
+    // approach, Verdant's on Ember's portal (an Ember planetfall needs only
+    // its art and a PlanetfallCatalog entry).
     public void OpenGateway()
     {
         if (!portalOpen) return;

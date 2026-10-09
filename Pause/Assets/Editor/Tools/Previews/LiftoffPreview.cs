@@ -3,13 +3,14 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders Frost's lift-off (Liftoff) in gameS1 -- backdrop, rails, the ship
+// Renders a lift-off (Liftoff: Frost's, or LIFTOFF_WORLD=2 Verdant's) in gameS1 -- backdrop, rails, the ship
 // -- as the game camera sees it on a phone, for review:
 //
 //   moment-NN-<name>.png   ten full-size frames: spool-up, climb, deep
 //                          cloud, flash, burst, clearing into space, the
-//                          planet receding, the interlude's calm, the portal
-//                          opening, the portal waiting
+//                          planet receding, the interlude's calm, the gateway
+//                          opening (the next planet's approach, or the
+//                          portal), the gateway waiting
 //   frames/fNNN.png        the whole sequence at 12 fps, quarter size
 //
 //   LIFTOFF_PREVIEW_DIR=<dir> Unity -batchmode -quit -projectPath Pause
@@ -29,8 +30,11 @@ public static class LiftoffPreview
         ("portal-opening", 10.3f), ("portal-waiting", 13.5f),
     };
 
+    static int world = 1;
+
     public static void Run()
     {
+        if (!int.TryParse(System.Environment.GetEnvironmentVariable("LIFTOFF_WORLD") ?? "1", out world)) world = 1;
         string dir = System.Environment.GetEnvironmentVariable("LIFTOFF_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/LiftoffPreview";
         string devices = System.Environment.GetEnvironmentVariable("LIFTOFF_DEVICES");
@@ -65,7 +69,7 @@ public static class LiftoffPreview
 
     static void Render(FitDevice d, string dir)
     {
-        const int Frost = 1;
+        int Frost = world;   // the world lifted off from
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity");
         BossEncounter.ResetRun();
         BossRails.Reset();
@@ -117,7 +121,7 @@ public static class LiftoffPreview
         typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(wm, 0f);
         wm.EndLevel();
         var lift = Liftoff.Live;
-        if (lift == null) throw new System.Exception("no lift-off opened for Frost -> Verdant");
+        if (lift == null) throw new System.Exception("no lift-off opened for world " + world);
 
         int frame = 0, shot = 0, n = 0;
         float t = 0f;
@@ -129,6 +133,7 @@ public static class LiftoffPreview
                 if (lift != null && lift.State != Liftoff.Stage.Done) lift.Step(Dt);
                 if (Liftoff.Live == null) lift = null;
                 if (Portal.Live != null) Portal.Live.Step(Dt);
+                if (lift == null && Planetfall.Live != null) Planetfall.Live.Step(Dt);
                 wb.Step(Dt);
                 t += Dt;
                 if (frame++ % 5 == 0) Capture(cam, d.w / 4, d.h / 4, Path.Combine(dir, "frames", "f" + shot++.ToString("000") + ".png"));
@@ -139,7 +144,8 @@ public static class LiftoffPreview
                                     m.name, t, lift != null ? lift.State.ToString() : "gone", LiftoffTimeline.Cover(t),
                                     WorldBackdrop.ScrollBoost, wb.Current != null ? wb.Current.Spec.world : "-",
                                     WorldManager.Current.displayName, ship.transform.position,
-                                    Portal.Live != null ? Portal.Live.transform.position.ToString() : "none"));
+                                    Portal.Live != null ? Portal.Live.transform.position.ToString() :
+                                    Planetfall.Live != null ? "planetfall " + Planetfall.Live.Def.openBanner + " " + Planetfall.Live.transform.position : "none"));
             if (lift != null && lift.PlumeRenderer.enabled)
                 Debug.Log("[LIFTOFF-PREVIEW]   plume " + lift.PlumeRenderer.bounds + " order " + lift.PlumeRenderer.sortingOrder +
                           " colour " + lift.PlumeRenderer.color + " sprite " + lift.PlumeRenderer.sprite);

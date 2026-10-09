@@ -306,7 +306,7 @@ public static class EnemyRoster
             Def("space_mine", "Rail Mine", M, 0, 0, "hazard_mine", Mine,
                 "Neon pixel rail bomb: gunmetal clamp and sphere, four lugs, a cyan core that wakes, charges and bursts.",
                 "Bombs clamped to the side rails of deep space. They never leave their rail: the core arms as " +
-                "you pass, a line blinks across the lane, then a laser burns it - be off that row.",
+                "you pass, a line blinks across the lane at a slant, then a laser burns it - be off that line.",
                 "mine"),
             Def("space_big", "Bastion", B, 0, 0, "enemy_space_big", Metal,
                 "Octagonal armoured pod, four bruise plates, twin cannon prongs, one big magenta reactor eye.",
@@ -353,7 +353,7 @@ public static class EnemyRoster
             Def("frost_mine", "Geode Mine", M, 1, 0, "hazard_frost_mine", Mine,
                 "Neon pixel ice mine: clamp and steel lugs round a blue crystal sphere, a snowflake core that bursts into a frost star.",
                 "A geode the Frost rails grew around a cold star. Get close and the crystals start to grow - " +
-                "then it lasers its whole row, rail to rail."),
+                "then it lasers the lane, rail to rail, at a slant of its choosing."),
             Def("frost_big", "Glacier Golem", B, 1, 0, "enemy_frost_big", Ice,
                 "A hunched iceberg hulk with crystal shoulders, one cyan visor and a jagged ice maw that cracks open.",
                 "A walking iceberg with one cold eye. When its crystal jaw cracks open, the frost is coming " +
@@ -399,7 +399,7 @@ public static class EnemyRoster
             Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
                 "Neon pixel seed mine: a wooden clamp and vine-wrapped burr with magenta thorns, a lime core that bursts in leaves.",
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
-                "to fire one laser across the lane."),
+                "to fire one laser across the lane, at any angle."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
                 "Five-petal carnivorous bud; the petals fold back to show a toothed glowing maw.",
                 "A flower that eats ships. Shut, it's just a big bud; when the petals snap open, it's " +
@@ -440,7 +440,7 @@ public static class EnemyRoster
                 "mind the drops, mind the rock.")),
             Def("ember_mine", "Crucible Mine", M, 3, 0, "hazard_ember_mine", Mine,
                 "Neon pixel magma mine: a basalt clamp and sphere cracked with lava, an orange core that erupts in a sun burst.",
-                "A pot of magma on a chain. It simmers as you pass, then a laser boils across its row - twice. Don't linger."),
+                "A pot of magma on a chain. It simmers as you pass, then a laser boils across the lane - twice, at two angles. Don't linger."),
             Def("ember_big", "Magma Skull", B, 3, 0, "enemy_ember_big", Magma,
                 "A horned basalt skull whose furnace jaw glows behind a grille and drops open.",
                 "A skull of cooled lava with a furnace for a jaw. The grille glows brighter right before it " +

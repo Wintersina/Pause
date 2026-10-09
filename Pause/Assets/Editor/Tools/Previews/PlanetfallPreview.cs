@@ -19,7 +19,10 @@ using UnityEngine;
 //   PLANETFALL_PREVIEW_DIR=<dir> Unity -batchmode -quit -projectPath Pause
 //       -executeMethod PlanetfallPreview.Run
 //   (PLANETFALL_DEVICES=flip7-1080x2520,and-1080x1920 picks the screens;
-//    the first is the default. The UI is not drawn: it is a screen overlay.)
+//    the first is the default. PLANETFALL_FROM=1 renders Frost -> Verdant:
+//    the approach in the Space sky of Frost's lift-off interlude, the lift-off
+//    itself skipped; default 0, Space -> Frost. The UI is not drawn: it is a
+//    screen overlay.)
 public static class PlanetfallPreview
 {
     const float Dt = 1f / 60f;
@@ -34,8 +37,13 @@ public static class PlanetfallPreview
         ("breakthrough-flash", 5.0f), ("burst", 5.3f), ("cloud-clear", 5.85f), ("frost-start", 7.6f),
     };
 
+    static int from;
+
     public static void Run()
     {
+        int.TryParse(System.Environment.GetEnvironmentVariable("PLANETFALL_FROM") ?? "0", out from);
+        from = Mathf.Clamp(from, 0, WorldManager.Worlds.Length - 2);
+        LiftoffCatalog.Enabled = false;
         string dir = System.Environment.GetEnvironmentVariable("PLANETFALL_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/PlanetfallPreview";
         string devices = System.Environment.GetEnvironmentVariable("PLANETFALL_DEVICES");
@@ -64,6 +72,7 @@ public static class PlanetfallPreview
                 PlayField.Reset();
                 ScreenInfo.ClearOverride();
                 buttonClicks.playerDied = false;
+                LiftoffCatalog.Enabled = true;
             }
         }
         EditorApplication.Exit(failures == 0 ? 0 : 1);
@@ -87,12 +96,14 @@ public static class PlanetfallPreview
         score.pauseCounter = 0;
         Time.timeScale = 1f;
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, from);
         Random.InitState(7);
 
         // flying: the PAUSED icon is hidden in the game
         var paused = SceneUtil.FindAny("paused");
         if (paused != null) paused.SetActive(false);
+        // the approach is always seen in Space's sky (a lift-off's interlude
+        // shows Space's backdrop and rails before the gateway)
         var theme = WorldManager.Worlds[0];
         WorldPainter.Apply(theme);
         foreach (var name in new[] { "leftPipe", "rightPipe" })
@@ -114,11 +125,11 @@ public static class PlanetfallPreview
         const System.Reflection.BindingFlags Inst = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         typeof(WorldManager).GetField("levelBegun", Inst).SetValue(wm, true);
         typeof(BossEncounter).GetField("doneWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
-            .SetValue(null, 0);
+            .SetValue(null, from);
         typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(wm, 0f);
         wm.EndLevel();
         var fall = Planetfall.Live;
-        if (fall == null) throw new System.Exception("no planetfall opened for Space -> Frost");
+        if (fall == null) throw new System.Exception("no planetfall opened from world " + from);
 
         var ship = new GameObject("~PfSpawner").AddComponent<spawnShips>().Spawn(ShipId.Starter);
         ship.transform.position = new Vector3(-1.1f, ShipReach.StartY, 0f);

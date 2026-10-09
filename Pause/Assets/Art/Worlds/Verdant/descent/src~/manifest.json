@@ -1,0 +1,228 @@
+{
+  "palette": "Verdant corroded copper and emerald/teal canopy; lime-gold rivers and spores, magenta-pink night lights",
+  "files": {
+    "verdant_planet.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Space backdrop approach",
+      "pivot_px": [
+        512,
+        512
+      ],
+      "disc_radius_px": 424,
+      "atmosphere_outer_radius_px": 438,
+      "measurement": "top cardinal alpha and palette scan at x=512; root trellis excluded"
+    },
+    "verdant_planet_limb.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Close approach curved horizon",
+      "pivot_px": [
+        1024,
+        355
+      ],
+      "horizon_y_at_center_px": 355,
+      "horizon_y_at_edges_px": 722
+    },
+    "verdant_cloud_deck.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Fast scrolling upper cloud layer; wrap X/Y",
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "verdant_cloud_deck_dark.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Deep cloud parallax; wrap X/Y",
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "verdant_entry_fx.png": {
+      "size": [
+        3072,
+        1024
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "intended_use": "Looping ship-centered entry wake",
+      "pivot_px": [
+        256,
+        300
+      ],
+      "cell_size": [
+        512,
+        1024
+      ],
+      "ship_clear_radius_px": 44,
+      "hole_center_px": [
+        256,
+        338
+      ],
+      "hole_size_px": [
+        146,
+        166
+      ],
+      "hole_center_px_per_frame": [
+        [
+          256,
+          338
+        ],
+        [
+          256,
+          338
+        ],
+        [
+          256,
+          338
+        ],
+        [
+          256,
+          338
+        ],
+        [
+          256,
+          338
+        ],
+        [
+          256,
+          338
+        ]
+      ],
+      "hole_size_px_per_frame": [
+        [
+          152,
+          167
+        ],
+        [
+          153,
+          167
+        ],
+        [
+          147,
+          167
+        ],
+        [
+          152,
+          167
+        ],
+        [
+          153,
+          167
+        ],
+        [
+          147,
+          167
+        ]
+      ]
+    },
+    "verdant_breakthrough.png": {
+      "size": [
+        5120,
+        1024
+      ],
+      "cell_grid": [
+        5,
+        1
+      ],
+      "frame_count": 5,
+      "intended_use": "One-shot cloud break shockwave",
+      "pivot_px": [
+        512,
+        512
+      ],
+      "cell_size": [
+        1024,
+        1024
+      ]
+    },
+    "verdant_entry_streaks.png": {
+      "size": [
+        1024,
+        2048
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Vertically repeating dive streak overlay",
+      "pivot_px": [
+        512,
+        1024
+      ],
+      "wrap_y": true
+    },
+    "preview.png": {
+      "size": [
+        1600,
+        1530
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Contact sheet",
+      "pivot_px": [
+        800,
+        765
+      ]
+    },
+    "preview.gif": {
+      "size": [
+        256,
+        512
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "intended_use": "Entry wake loop preview",
+      "pivot_px": [
+        128,
+        150
+      ]
+    }
+  }
+}

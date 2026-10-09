@@ -102,9 +102,54 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
-    // Every planet arrived at by planetfall. A new planet (Verdant: after
-    // Frost's lift-off) is one more entry here; the tests swap the list.
-    public static PlanetfallDef[] Defs = { Frost };
+
+    // Verdant: after Frost's lift-off, the green jungle world under its
+    // orbital vine ring (Art/Worlds/Verdant/descent/src~/manifest.json,
+    // re-measured on the pixels).
+    public static readonly PlanetfallDef Verdant = new PlanetfallDef
+    {
+        world = 2,
+        folder = "Worlds/Verdant/Planetfall/",
+        planet = "verdant_planet",
+        limb = "verdant_planet_limb",
+        deck = "verdant_cloud_deck",
+        deckDark = "verdant_cloud_deck_dark",
+        entryFx = "verdant_entry_fx",
+        burst = "verdant_breakthrough",
+        streaks = "verdant_entry_streaks",
+        // The globe is centred in its square (opaque from y 76 to 949, x 80
+        // to 944); the radius is the middle of its lime atmosphere band (the
+        // surface 424, the band's outer edge 438), where the limb's horizon
+        // line (the middle of its own glow band at y 355) sits too. The vine
+        // ring reaches past it and is clipped away as the limb takes over.
+        planetCentrePx = new Vector2(512f, 512.5f),
+        planetDiscPx = 430f,
+        limbApexPx = 355f,
+        limbEdgePx = 722f,
+        entryFrames = 6,
+        // The opening, measured per cell (flood fill of the clear pixels
+        // round 256, 338): round, 167 tall (y 255 .. 421), widest 148 .. 154
+        // px across its middle row, whose centre wanders 253 .. 259; the
+        // lime-gold plasma is a thin ribbon trailing below it.
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 150f,
+        entryHoleX = new[] { 253.5f, 253f, 256f, 258.5f, 259f, 256f },
+        burstFrames = 5,
+        cue = new Color(0.70f, 1f, 0.36f),          // lime: the atmosphere band, the river light
+        heat = new Color(0.86f, 0.90f, 0.22f),      // lime-gold plasma
+        cold = new Color(0.22f, 0.80f, 0.58f),      // the emerald / teal canopy under the clouds
+        flash = new Color(0.94f, 1f, 0.80f),        // lime-white
+        shade = new Color(0.02f, 0.08f, 0.05f),     // deep jungle green
+        openBanner = "LAND ON VERDANT",
+        urgeBanner = "DIVE INTO VERDANT",
+        chipPrefix = "ORBIT  DANGER ",
+    };
+
+    // Every planet arrived at by planetfall (Frost from Space, Verdant after
+    // Frost's lift-off). A new planet (Ember) is one more entry here; the
+    // tests swap the list.
+    public static readonly PlanetfallDef[] All = { Frost, Verdant };
+    public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.
     // A loop (the way back round after the final world) is always a portal.

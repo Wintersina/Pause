@@ -128,6 +128,7 @@ public static class TitleScreenCombatTest
         });
         t.NextCrashAt = 1e9f;
         t.NextPlungeAt = 1e9f;
+        t.NextEliteAt = 1e9f;  // no elite snipe run mid-test (TitleScreenEliteTest covers it)
         t.NextZoomAt = 1e9f;   // Init schedules a first zoomer at 1.5-4 s whatever zoomInterval says; it would relaunch a pooled hull mid-test
         foreach (var f in t.Pool) if (f.active) { f.active = false; f.go.SetActive(false); }
         return t;
@@ -175,7 +176,10 @@ public static class TitleScreenCombatTest
         float plungeRate = (t.LogoCrashes + t.ButtonCrashes) / (float)t.Flights;
         Check("logo/button crashes stay rare (" + (plungeRate * 100f).ToString("0.0") + "% of flights)", plungeRate > 0f && plungeRate <= .1f);
         Check("the usual cute crashes keep happening (" + t.Crashes + ")", t.Crashes >= 40);
-        Check("logo transform untouched by the long run", logo.transform.position == LogoPos &&
+        Check("the elite snipe runs went off (" + t.EliteEvents + " runs, " + t.EliteSnipes + " sniped)", t.EliteEvents >= 15 && t.EliteSnipes >= 60);
+        Check("every logo crash shook the logo (" + t.LogoShakes + " shakes / " + t.LogoCrashes + " crashes)", t.LogoShakes == t.LogoCrashes);
+        for (int i = 0; i < 30 && t.LogoShaking; i++) t.Step(Dt);
+        Check("logo transform back exactly at rest after the long run", logo.transform.position == LogoPos &&
               (logo.transform.localScale - LogoScale).sqrMagnitude < 1e-10f && logo.transform.rotation == Quaternion.identity);
         Done(t);
     }
@@ -266,7 +270,7 @@ public static class TitleScreenCombatTest
         Sprite sprite = logo.sprite;
         Color color = logo.color;
         int order = logo.sortingOrder;
-        bool crashed = false, quick = true, intact = true, frontOk = true;
+        bool crashed = false, quick = true, intact = true, frontOk = true, shook = false, rest = false;
         float longest = 0f;
         for (int seed = 0; seed < 40 && !crashed; seed++)
         {
@@ -278,21 +282,24 @@ public static class TitleScreenCombatTest
             for (int i = 0; i < 150 && t.LogoCrashes == 0; i++)
             {
                 t.Step(Dt);
-                intact &= logo.transform.position == LogoPos && logo.sprite == sprite && logo.color == color;
+                intact &= (t.LogoCrashes > 0 || logo.transform.position == LogoPos) && logo.sprite == sprite && logo.color == color;
             }
             if (t.LogoCrashes == 0) { Done(t); continue; }
             crashed = true;
             float hit = t.LastLogoImpactAt;
             Check("the impact lands on the logo", t.LogoRect.Contains(f.tr.position));
             Check("something is drawn over the logo at the impact", t.ImpactRenderersOn(t.LogoRect) > 0);
+            shook = t.LogoShaking;
             for (int i = 0; i < 60; i++)
             {
                 t.Step(Dt);
                 if (t.ImpactRenderersOn(t.LogoRect) > 0) longest = t.Now - hit;
-                intact &= logo.transform.position == LogoPos && logo.sprite == sprite && logo.color == color &&
-                          (logo.transform.localScale - LogoScale).sqrMagnitude < 1e-10f && logo.transform.rotation == Quaternion.identity &&
+                // it shakes a little (TitleScreenEliteTest measures it); everything else stays
+                intact &= logo.sprite == sprite && logo.color == color &&
+                          (logo.transform.localScale - LogoScale).sqrMagnitude < 1e-10f &&
                           logo.sortingOrder == order && logo.enabled;
             }
+            rest = !t.LogoShaking && logo.transform.position == LogoPos && logo.transform.rotation == Quaternion.identity;
             quick = longest <= TitleScreenTraffic.LogoFxMax;
             frontOk = !f.active;
             Done(t);
@@ -300,7 +307,9 @@ public static class TitleScreenCombatTest
         Check("a ship dives into the PAUSE logo", crashed);
         Check("the impact clears off the logo within " + TitleScreenTraffic.LogoFxMax + " s (" + longest.ToString("0.00") + " s)", crashed && quick);
         Check("the ship is gone (its pieces fell away)", frontOk);
-        Check("logo sprite, colour, sorting and transform never change", intact);
+        Check("the crash gives the logo a little shake", crashed && shook);
+        Check("which settles back exactly to its rest transform", crashed && rest);
+        Check("logo sprite, colour, sorting and scale never change", intact);
         Check("logo art untouched on disk", File.Exists(LogoPath));
     }
 
@@ -486,6 +495,9 @@ public static class TitleScreenCombatTest
     {
         var t = Make("~TC_skins", 99);
         Run(t, 600f);
+        // not mid elite run (the sky would be empty): let it finish and refill
+        for (int i = 0; i < 30 * 20 && t.EliteBusy; i++) t.Step(Dt);
+        if (t.LastEliteReturnAt >= 0f && t.Now - t.LastEliteReturnAt < 6f) Run(t, 6f);
         int combos = 0, shipsWithMore = 0, ships = 0;
         foreach (int id in ShipId.All)
         {
@@ -557,6 +569,7 @@ public static class TitleScreenCombatTest
         {
             "Assets/Scripts/UI/TitleScreenTraffic.cs", "Assets/Scripts/UI/TitleScreenTraffic.Combat.cs",
             "Assets/Scripts/UI/TitleScreenTraffic.Touch.cs", "Assets/Scripts/UI/TitleScreenTraffic.Skins.cs",
+            "Assets/Scripts/UI/TitleScreenTraffic.Elite.cs", "Assets/Scripts/UI/TitleScreenTraffic.Logo.cs",
         };
         string[] banned =
         {
