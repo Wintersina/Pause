@@ -288,7 +288,7 @@ public static class EliteDeath
         }
         // sometimes it breaks into spinning pieces of its hull (EnemySplit), over a smaller blast
         bool split = EnemySplit.TrySplitElite(ship);
-        TargetExplosion.Spawn(at, TargetExplosion.Kind.Metal, split ? TargetExplosion.Size.Medium : TargetExplosion.Size.Large,
+        TargetExplosion.Spawn(at, TargetExplosion.KindForWorld(ship.Def.world), split ? TargetExplosion.Size.Medium : TargetExplosion.Size.Large,
                               cause == EliteDamage.Crash || cause == EliteDamage.Rail || cause == EliteDamage.FriendlyFire ? ShipId.None : ShipId.Equipped());
         collisionDetection.PlayExplosion();
         EliteSystem.Fx.Debris(ship);
