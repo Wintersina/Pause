@@ -23,7 +23,8 @@ using UnityEngine;
 // While it is on (entry to the return) nothing else starts: no spawns,
 // zoomers, crashes, pursuits, logo dives or ultimates, and it only starts
 // once no dive or ultimate is under way. Ships that come into view while
-// it is perched are sniped too; any still off-screen when it leaves are
+// it is perched are sniped too; the rest ease off (EliteSpookSpeed) and
+// start no boosts, zips or tricks while it hunts; any still off-screen when it leaves are
 // quietly sent back to the pool, so the sky really is clear for a beat.
 // With nothing on the screen it just flies by.
 //
@@ -49,8 +50,8 @@ public partial class TitleScreenTraffic
 
     public const float EliteScale = .8f;            // x the def's cell size
     public const float EliteEnterTime = 1.1f;       // off-screen -> perch
-    public const float EliteSnipeBudget = 3.6f;     // seconds of aiming for a full sky
-    public const float EliteAimMin = .2f, EliteAimMax = .42f;   // per mark
+    public const float EliteSnipeBudget = 3f;     // seconds of aiming for a full sky
+    public const float EliteAimMin = .17f, EliteAimMax = .4f;   // per mark
     public const float EliteFireHold = .1f;         // action cell / muzzle flash after a shot
     public const float EliteShotSpeed = 24f;        // world units per second
     public const float EliteClearHold = .35f;       // empty sky this long -> it leaves
@@ -62,6 +63,7 @@ public partial class TitleScreenTraffic
     public const float EliteRefillWindow = 3f;      // fast respawns for this long after
     public static readonly Vector2 EliteRefillDelay = new Vector2(.06f, .16f);
     public const float EliteRetry = .5f;            // busy (a dive / ultimate): try again in
+    public const float EliteSpookSpeed = .4f;       // ships ease off while it hunts (so they don't just fly out of its sights)
     public const int EliteShotPool = 4;
     public const int EliteSort = 104;               // over the front band and its fx (95..99)
     const float EliteTurnRate = 720f;                // degrees/s it swings onto a mark
@@ -128,6 +130,12 @@ public partial class TitleScreenTraffic
     bool OnScreen(Flyer f)
     {
         return f != null && f.active && Overlaps(view, f.pos, -.15f);
+    }
+
+    // Close enough to the screen to be marked (a hull half out still shows).
+    bool InReach(Flyer f)
+    {
+        return f != null && f.active && Overlaps(view, f.pos, .25f);
     }
 
     // ------------------------------------------------------------- setup
@@ -308,7 +316,7 @@ public partial class TitleScreenTraffic
         elitePos = Vector2.Lerp(elitePos, perch, 1f - Mathf.Exp(-8f * dt));
         eliteVel = dt > 0f ? (elitePos - prev) / dt : Vector2.zero;
 
-        if (eliteAim != null && !OnScreen(eliteAim)) eliteAim = null;   // flew off: pick again
+        if (eliteAim != null && !InReach(eliteAim)) eliteAim = null;   // flew off: pick again
         if (eliteAim == null && eliteFire <= 0f)
         {
             eliteAim = NextMark();
@@ -328,7 +336,8 @@ public partial class TitleScreenTraffic
         if (eliteClearT >= EliteClearHold || eliteT >= EliteSnipeMax) BeginEliteExit();
     }
 
-    // The next mark: the unmarked on-screen ship it has to turn least for.
+    // The next mark: whoever is about to slip off the screen first, then the
+    // one it has to turn least for.
     Flyer NextMark()
     {
         Flyer best = null;
@@ -337,10 +346,13 @@ public partial class TitleScreenTraffic
         for (int i = 0; i < pool.Length; i++)
         {
             var f = pool[i];
-            if (!OnScreen(f) || f.sniped) continue;
+            if (!InReach(f) || f.sniped) continue;
             Vector2 d = f.pos - from;
             float turn = Mathf.Abs(Mathf.DeltaAngle(eliteFacing, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg));
-            float score = turn + d.magnitude * 4f;
+            float edge = Mathf.Min(Mathf.Min(f.pos.x - view.xMin, view.xMax - f.pos.x), Mathf.Min(f.pos.y - view.yMin, view.yMax - f.pos.y));
+            Vector2 fwd = Dir(f.heading);
+            bool leaving = Vector2.Dot(fwd, f.pos - view.center) > 0f || f.state == State.ZipOut;
+            float score = turn * .5f + d.magnitude * 3f + Mathf.Max(0f, edge) * (leaving ? 22f : 45f);
             if (score < bestScore) { bestScore = score; best = f; }
         }
         return best;
@@ -512,6 +524,9 @@ public partial class TitleScreenTraffic
         elitePhase = ElitePhase.None;
         eliteAim = null;
     }
+
+    // Cruise speed factor: ships ease off, spooked, while the elite hunts.
+    float EliteSpook => elitePhase == ElitePhase.Enter || elitePhase == ElitePhase.Snipe ? EliteSpookSpeed : 1f;
 
     // Spawning pace while the traffic refills after a run.
     float RespawnGap()

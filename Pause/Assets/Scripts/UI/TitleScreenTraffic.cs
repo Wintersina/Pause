@@ -861,7 +861,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
                 if (f.waypointsLeft > 0) { f.waypointsLeft--; f.waypoint = PickWaypoint(f.layer); }
                 else if (view.Contains(f.waypoint)) f.waypoint = ExitPoint(f);
             }
-            if (f.state == State.Cruise && !f.ulting) MaybeStartSomething(f);
+            if (f.state == State.Cruise && !f.ulting && !EliteBusy) MaybeStartSomething(f);
         }
 
         // steering: turn toward the waypoint, plus a lazy weave
@@ -885,7 +885,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         if (f.ulting) steer = UltSteer(f, steer, turnRate);
         f.turn = steer;
         f.heading += steer * dt;
-        f.speed = f.baseSpeed * f.speedMul * (f.ulting ? UltSlow : 1f);
+        f.speed = f.baseSpeed * f.speedMul * (f.ulting ? UltSlow : 1f) * EliteSpook;
         f.pos += new Vector2(Mathf.Cos(f.heading), Mathf.Sin(f.heading)) * (f.speed * dt);
 
         // out of the sky and heading away: back to the pool
