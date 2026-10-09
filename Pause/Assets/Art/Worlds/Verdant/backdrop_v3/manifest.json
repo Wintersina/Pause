@@ -1652,5 +1652,301 @@
         ]
       }
     ]
+  },
+  "run_c": {
+    "build": "python3 src~/build_c.py",
+    "preview": "preview_c.png",
+    "animated_preview": "preview_c.gif",
+    "source_key_paintings": [
+      "src~/smoke_keys.png",
+      "src~/wildfire_keys.png",
+      "src~/firesmoke_keys.png",
+      "src~/leaks_keys.png",
+      "src~/lights_keys.png"
+    ],
+    "atlas_grid": "1024x1024 RGBA, 4x4 grid of 256x256 cells; JSON y from bottom",
+    "lights_packing_exception": "Five four-frame loops make 20 sprites. The final lights row packs strobe_white and fireflies into eight nonoverlapping 128x128 subcells; all other sprite rects are 256x256.",
+    "emitter_anchor": "Ground-attached loops use local pixel (128,236) from top; strobe_white uses (64,121) in its half-size rect; fireflies are atmospheric.",
+    "loops": [
+      {
+        "name": "smoke_a",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_a_00",
+          "smoke_a_01",
+          "smoke_a_02",
+          "smoke_a_03",
+          "smoke_a_04",
+          "smoke_a_05",
+          "smoke_a_06",
+          "smoke_a_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery_00/01/02 and silo_00 stack mouths",
+        "recommended_draw_alpha": 0.62
+      },
+      {
+        "name": "smoke_b",
+        "atlas": "smoke.png",
+        "frames": [
+          "smoke_b_00",
+          "smoke_b_01",
+          "smoke_b_02",
+          "smoke_b_03",
+          "smoke_b_04",
+          "smoke_b_05",
+          "smoke_b_06",
+          "smoke_b_07"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "refinery_00/01/02 auxiliary stacks",
+        "recommended_draw_alpha": 0.64
+      },
+      {
+        "name": "flame_front",
+        "atlas": "wildfire.png",
+        "frames": [
+          "flame_front_00",
+          "flame_front_01",
+          "flame_front_02",
+          "flame_front_03",
+          "flame_front_04",
+          "flame_front_05",
+          "flame_front_06",
+          "flame_front_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnfront_00..03 burning edge",
+        "recommended_draw_alpha": 0.76
+      },
+      {
+        "name": "flame_patch",
+        "atlas": "wildfire.png",
+        "frames": [
+          "flame_patch_00",
+          "flame_patch_01",
+          "flame_patch_02",
+          "flame_patch_03",
+          "flame_patch_04",
+          "flame_patch_05",
+          "flame_patch_06",
+          "flame_patch_07"
+        ],
+        "recommended_fps": 12,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnpatch_*, coalbed_*, scorched_*",
+        "recommended_draw_alpha": 0.74
+      },
+      {
+        "name": "wildsmoke_a",
+        "atlas": "firesmoke.png",
+        "frames": [
+          "wildsmoke_a_00",
+          "wildsmoke_a_01",
+          "wildsmoke_a_02",
+          "wildsmoke_a_03",
+          "wildsmoke_a_04",
+          "wildsmoke_a_05",
+          "wildsmoke_a_06",
+          "wildsmoke_a_07"
+        ],
+        "recommended_fps": 7,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnfront_00..03, behind flame_front",
+        "recommended_draw_alpha": 0.55
+      },
+      {
+        "name": "wildsmoke_b",
+        "atlas": "firesmoke.png",
+        "frames": [
+          "wildsmoke_b_00",
+          "wildsmoke_b_01",
+          "wildsmoke_b_02",
+          "wildsmoke_b_03",
+          "wildsmoke_b_04",
+          "wildsmoke_b_05",
+          "wildsmoke_b_06",
+          "wildsmoke_b_07"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "fires.png burnpatch_* smoke ribbon",
+        "recommended_draw_alpha": 0.58
+      },
+      {
+        "name": "steam_vent",
+        "atlas": "leaks.png",
+        "frames": [
+          "steam_vent_00",
+          "steam_vent_01",
+          "steam_vent_02",
+          "steam_vent_03"
+        ],
+        "recommended_fps": 10,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipes.png pipe flanges and pumphouse_00",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "leak_sap",
+        "atlas": "leaks.png",
+        "frames": [
+          "leak_sap_00",
+          "leak_sap_01",
+          "leak_sap_02",
+          "leak_sap_03"
+        ],
+        "recommended_fps": 9,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "pipes.png pipe_leak_00/01 rupture mouths",
+        "recommended_draw_alpha": 0.72
+      },
+      {
+        "name": "ember_rain",
+        "atlas": "leaks.png",
+        "frames": [
+          "ember_rain_00",
+          "ember_rain_01",
+          "ember_rain_02",
+          "ember_rain_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "all fires.png burning pieces, sparse overlay",
+        "recommended_draw_alpha": 0.56
+      },
+      {
+        "name": "spore_burst",
+        "atlas": "leaks.png",
+        "frames": [
+          "spore_burst_00",
+          "spore_burst_01",
+          "spore_burst_02",
+          "spore_burst_03"
+        ],
+        "recommended_fps": 8,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png dome_00 and silo_00 foliage",
+        "recommended_draw_alpha": 0.59
+      },
+      {
+        "name": "beacon_lime",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_lime_00",
+          "beacon_lime_01",
+          "beacon_lime_02",
+          "beacon_lime_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png tower_*, relay_*, derrick_00",
+        "recommended_draw_alpha": 0.73
+      },
+      {
+        "name": "beacon_magenta",
+        "atlas": "lights.png",
+        "frames": [
+          "beacon_magenta_00",
+          "beacon_magenta_01",
+          "beacon_magenta_02",
+          "beacon_magenta_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png tower_*, relay_*, derrick_00",
+        "recommended_draw_alpha": 0.73
+      },
+      {
+        "name": "window_lights",
+        "atlas": "lights.png",
+        "frames": [
+          "window_lights_00",
+          "window_lights_01",
+          "window_lights_02",
+          "window_lights_03"
+        ],
+        "recommended_fps": 5,
+        "anchor_px_from_top": [
+          128,
+          236
+        ],
+        "intended_use": "landmarks.png refinery_* and dome_00",
+        "recommended_draw_alpha": 0.71
+      },
+      {
+        "name": "strobe_white",
+        "atlas": "lights.png",
+        "frames": [
+          "strobe_white_00",
+          "strobe_white_01",
+          "strobe_white_02",
+          "strobe_white_03"
+        ],
+        "recommended_fps": 4,
+        "anchor_px_from_top": [
+          64,
+          121
+        ],
+        "intended_use": "landmarks.png towers and relay antenna tops",
+        "recommended_draw_alpha": 0.68
+      },
+      {
+        "name": "fireflies",
+        "atlas": "lights.png",
+        "frames": [
+          "fireflies_00",
+          "fireflies_01",
+          "fireflies_02",
+          "fireflies_03"
+        ],
+        "recommended_fps": 6,
+        "anchor_px_from_top": [
+          64,
+          121
+        ],
+        "intended_use": "atmospheric foliage above v1/mid.png",
+        "recommended_draw_alpha": 0.61
+      }
+    ]
   }
 }
