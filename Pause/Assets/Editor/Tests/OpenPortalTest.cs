@@ -90,7 +90,8 @@ public static class OpenPortalTest
         // This suite is the portal's: Space's planetfall (PlanetfallTest)
         // stands aside so world 0 opens a portal as every world once did.
         PlanetfallCatalog.Enabled = false;
-        // ... and Frost's and Verdant's lift-offs (LiftoffTest): their portals open at once.
+        // ... and Frost's, Verdant's and Ember's lift-offs (LiftoffTest): their portals open at once
+        // (Ember's planetfall after Verdant stands aside with the rest).
         LiftoffCatalog.Enabled = false;
         var camGo = new GameObject("Main Camera", typeof(Camera));
         camGo.tag = "MainCamera";

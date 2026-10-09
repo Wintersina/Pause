@@ -145,10 +145,54 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
+    // Ember: after Verdant's lift-off, the amber volcanic forge world, its
+    // lava-veined globe girdled by a ring of brass radiator panels
+    // (Art/Worlds/Ember/descent~/manifest.json, re-measured on the pixels).
+    public static readonly PlanetfallDef Ember = new PlanetfallDef
+    {
+        world = 3,
+        folder = "Worlds/Ember/Planetfall/",
+        planet = "ember_planet",
+        limb = "ember_planet_limb",
+        deck = "ember_cloud_deck",
+        deckDark = "ember_cloud_deck_dark",
+        entryFx = "ember_entry_fx",
+        burst = "ember_breakthrough",
+        streaks = "ember_entry_streaks",
+        // A circle fitted to the globe's outer edge (360 rays, the brass
+        // ring, the ash plumes and the ring's hanging pods rejected): centre
+        // 505, 513, edge 404. The radius is the middle of its amber rim band
+        // (glow peak ~388, edge 404), where the limb's horizon (the middle of
+        // its own glow band: alpha from y 346, peak 353) sits too. The
+        // manifest's 512, 512 / 376 is the inner basalt, inside the rim.
+        planetCentrePx = new Vector2(505f, 513f),
+        planetDiscPx = 396f,
+        limbApexPx = 353f,
+        limbEdgePx = 718f,
+        entryFrames = 6,
+        // The opening, measured per cell (flood fill of the clear pixels
+        // round 256, 338): round, 168 tall (y 254 .. 421), 147 .. 149 px
+        // across its middle row, centred 255 .. 256 (it barely wanders); the
+        // amber-gold plasma is an S-shaped ribbon trailing below it.
+        entryShipPx = new Vector2(256f, 337.5f),
+        entryHolePx = 148f,
+        entryHoleX = new[] { 255f, 256f, 256f, 256f, 256f, 255.5f },
+        burstFrames = 5,
+        cue = new Color(1f, 0.74f, 0.26f),          // amber-gold: the rim band, the lava light (hue ~37 deg)
+        heat = new Color(1f, 0.64f, 0.20f),         // amber-gold plasma (hue ~33 deg)
+        cold = new Color(0.66f, 0.50f, 0.40f),      // the ash deck under the plasma, warm charcoal
+        flash = new Color(1f, 0.95f, 0.80f),        // white-gold
+        shade = new Color(0.07f, 0.04f, 0.03f),     // ash-charcoal
+        openBanner = "LAND ON EMBER",
+        urgeBanner = "DIVE INTO EMBER",
+        chipPrefix = "ORBIT  DANGER ",
+    };
+
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
-    // Frost's lift-off). A new planet (Ember) is one more entry here; the
-    // tests swap the list.
-    public static readonly PlanetfallDef[] All = { Frost, Verdant };
+    // Frost's lift-off, Ember after Verdant's). A new planet is one more
+    // entry here; the tests swap the list. Space, the loop's way back round,
+    // has none: the loop keeps the portal.
+    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember };
     public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.

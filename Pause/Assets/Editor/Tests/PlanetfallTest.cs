@@ -4,13 +4,13 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The planetfall (Planetfall): the Space -> Frost and Frost -> Verdant
-// descents that replace the portal there (Frost's after its lift-off,
-// LiftoffTest; here the lift-off is switched off so Frost's gateway opens
-// straight away).
+// The planetfall (Planetfall): the Space -> Frost, Frost -> Verdant and
+// Verdant -> Ember descents that replace the portal there (Frost's and
+// Verdant's after their lift-off, LiftoffTest; here the lift-off is switched
+// off so their gateway opens straight away).
 //
-//   1  which world changes are planetfalls: Space -> Frost and Frost ->
-//      Verdant; Verdant -> Ember and the loop back keep the portal; missing
+//   1  which world changes are planetfalls: Space -> Frost, Frost ->
+//      Verdant and Verdant -> Ember; the loop back keeps the portal; missing
 //      art falls back to the portal
 //   2  the approach is the open portal's stage: pressure, a reserved column,
 //      in the ship's reach, frozen by a pause
@@ -48,12 +48,16 @@ public static class PlanetfallTest
             Approach();
             DescentFlow(0);
             DescentFlow(1);
+            DescentFlow(2);
             ShroudFits(0);
             ShroudFits(1);
+            ShroudFits(2);
             NoAllocations(0);
             NoAllocations(1);
-            ArtLoads(PlanetfallCatalog.Frost, 1024f - 536f);
-            ArtLoads(PlanetfallCatalog.Verdant, 1024f - 512.5f);
+            NoAllocations(2);
+            ArtLoads(PlanetfallCatalog.Frost, 1024f - 536f, 1612f);
+            ArtLoads(PlanetfallCatalog.Verdant, 1024f - 512.5f, 1612f);
+            ArtLoads(PlanetfallCatalog.Ember, 1024f - 513f, 1619f);
         }
         finally
         {
@@ -159,9 +163,9 @@ public static class PlanetfallTest
 
     static void WhichTransitions()
     {
-        Check("the catalogue: Space -> Frost and Frost -> Verdant are planetfalls; Verdant -> Ember and the loop are not",
+        Check("the catalogue: Space -> Frost, Frost -> Verdant and Verdant -> Ember are planetfalls; the loop is not",
               PlanetfallCatalog.For(0, 1, false) == PlanetfallCatalog.Frost && PlanetfallCatalog.For(1, 2, false) == PlanetfallCatalog.Verdant &&
-              PlanetfallCatalog.For(2, 3, false) == null && PlanetfallCatalog.For(3, 0, true) == null &&
+              PlanetfallCatalog.For(2, 3, false) == PlanetfallCatalog.Ember && PlanetfallCatalog.For(3, 0, true) == null &&
               PlanetfallCatalog.For(3, 1, true) == null);
 
         for (int world = 0; world < WorldManager.Worlds.Length; world++)
@@ -172,7 +176,7 @@ public static class PlanetfallTest
             bool fall = world == 0;
             string name = WorldManager.Worlds[world].displayName;
             if (LiftoffCatalog.For(world, WorldManager.PortalDestination, !WorldManager.HasNext) != null)
-                // Frost and Verdant lift off first (LiftoffTest), then their gateway
+                // Frost, Verdant and Ember lift off first (LiftoffTest), then their gateway
                 Check(name + "'s end: the lift-off, no planetfall (stage Portal)",
                       wm.Stage == WorldManager.LevelStage.Portal && Liftoff.Live != null && Planetfall.Live == null);
             else
@@ -201,6 +205,24 @@ public static class PlanetfallTest
               verdant.openBanner == "LAND ON VERDANT");
         Gone();
         Object.DestroyImmediate(wv.gameObject);
+        FreshScene(2);
+        var we = World();
+        FinishLevel(we);
+        var ember = PlanetfallCatalog.Ember;
+        Check("Verdant's gateway (lift-off skipped): Ember's planet, no portal, its words (" + PortalPressure.Urge + " / " +
+              PortalPressure.Chip.Trim() + ")",
+              Planetfall.Live != null && Planetfall.Live.Def == ember && Portal.Live == null && PortalPressure.Active &&
+              PortalPressure.Destination == 3 && PortalPressure.Urge == ember.urgeBanner && PortalPressure.Chip == ember.chipPrefix &&
+              ember.openBanner == "LAND ON EMBER" && ember.urgeBanner == "DIVE INTO EMBER");
+        Gone();
+        Object.DestroyImmediate(we.gameObject);
+        FreshScene(3);
+        var wl = World();
+        FinishLevel(wl);
+        Check("Ember's end (lift-off skipped): the loop portal back round, no planetfall",
+              Planetfall.Live == null && Portal.Live != null && PortalPressure.Active && PortalPressure.Destination == RunLoop.StartWorld);
+        Gone();
+        Object.DestroyImmediate(wl.gameObject);
         LiftoffCatalog.Enabled = true;
 
 
@@ -282,7 +304,8 @@ public static class PlanetfallTest
 
     // ---- 3, 4. the commit and the descent ------------------------------------------
 
-    // `from`: Space (onto Frost) or Frost (onto Verdant; its lift-off skipped).
+    // `from`: Space (onto Frost), Frost (onto Verdant) or Verdant (onto
+    // Ember; their lift-offs skipped).
     static void DescentFlow(int from)
     {
         int to = from + 1;
@@ -512,7 +535,8 @@ public static class PlanetfallTest
     }
 
     // `planetPivotY`: the globe's centre, texture rows up from the bottom.
-    static void ArtLoads(PlanetfallDef def, float planetPivotY)
+    // `limbArc`: the horizon circle's radius from the measured apex / edges.
+    static void ArtLoads(PlanetfallDef def, float planetPivotY, float limbArc)
     {
         string name = WorldManager.Worlds[def.world].displayName;
         var art = PlanetfallArt.Load(def);
@@ -553,8 +577,8 @@ public static class PlanetfallTest
         Object.DestroyImmediate(png);
         Check("each entry cell's pivot is the centre of its opening (clear px left/right, up/down:" + spans + ")",
               pivots && centred);
-        Check("the limb's horizon circle: radius " + def.LimbArcPx(2048f).ToString("F0") + " px (apex 355, edges 722)",
-              Mathf.Abs(def.LimbArcPx(2048f) - 1612f) < 2f);
+        Check("the limb's horizon circle: radius " + def.LimbArcPx(2048f).ToString("F0") + " px (apex " + def.limbApexPx + ", edges " +
+              def.limbEdgePx + ")", Mathf.Abs(def.LimbArcPx(2048f) - limbArc) < 2f);
         bool importer = true;
         foreach (string f in new[] { def.planet, def.limb, def.deck, def.deckDark, def.entryFx, def.burst, def.streaks })
         {
@@ -565,9 +589,12 @@ public static class PlanetfallTest
         }
         Check("the importer: no mipmaps, never NPOT-scaled, no size cap under the art, bilinear (PlanetfallArtImporter)", importer);
         Check("the layer shader loads", Resources.Load<Shader>(Planetfall.ShaderPath) != null);
+        // (descent/src~, or a wholly Unity-ignored descent~ as Ember's)
+        string descent = "Assets/Art/Worlds/" + name + "/descent";
+        if (!Directory.Exists(descent)) descent += "~";
         Check("the sources stay out of the build (src~)",
-              Directory.Exists("Assets/Art/Worlds/" + name + "/descent/src~") && !Directory.Exists("Assets/Art/Backgrounds/Resources/" + def.folder + "src~") &&
-              Directory.GetFiles("Assets/Art/Worlds/" + name + "/descent", "*.png").Length == 0);
+              Directory.Exists(descent + "/src~") && !Directory.Exists("Assets/Art/Backgrounds/Resources/" + def.folder + "src~") &&
+              Directory.GetFiles(descent, "*.png").Length == 0);
         art.Release();
         Check("... and released after: no textures or sprites held, no longer complete",
               !art.Complete && art.PlanetTex == null && art.EntryTex == null && art.Entry == null && art.Planet == null);

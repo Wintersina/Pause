@@ -4,21 +4,23 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The lift-off (Liftoff): Frost's and Verdant's climb back to space after
-// their boss, a calm interlude, then the gateway on: Verdant's planetfall
-// after Frost, Ember's portal after Verdant.
+// The lift-off (Liftoff): Frost's, Verdant's and Ember's climb back to space
+// after their boss, a calm interlude, then the gateway on: Verdant's
+// planetfall after Frost, Ember's after Verdant, the loop's portal back round
+// after Ember (the last world).
 //
-//   1  which world ends lift off: Frost and Verdant. Space -> Frost stays the
-//      planetfall, Ember's loop the portal; switched off or missing art:
-//      the portal straight away
+//   1  which world ends lift off: Frost, Verdant and Ember. Space -> Frost
+//      stays the planetfall; Ember's gateway is the loop portal; switched off
+//      or missing art: the gateway straight away
 //   2  the flow: a beat (nothing spawns, the pilot flies), the take (held,
 //      shielded, free presses, lifted over the clouds), the backdrop swapped
 //      to Space while the clouds cover the view, control back at release,
 //      a calm interlude, then the portal with its pressure; the world
 //      changes exactly once, only through the portal; score and hearts
 //      carry through; a pause freezes it; nothing of it is left
-//   3  the gateway after Frost: Verdant's planetfall, flown all the way
-//      down (the world changes once, under the clouds, onto Verdant)
+//   3  the gateway after Frost (Verdant's planetfall) and after Verdant
+//      (Ember's), flown all the way down (the world changes once, under the
+//      clouds, onto the new planet)
 //   4  robustness: a dead pilot freezes it; the ship gone mid-climb still
 //      finishes and opens the gateway
 //   5  no per-frame allocation after warm-up
@@ -36,7 +38,7 @@ public static class LiftoffTest
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
     const BindingFlags Stat = BindingFlags.NonPublic | BindingFlags.Static;
     const float Dt = 1f / 60f;
-    const int Frost = 1, Verdant = 2;
+    const int Frost = 1, Verdant = 2, Ember = 3;
     static int frame;
 
     public static int Execute()
@@ -47,15 +49,20 @@ public static class LiftoffTest
         {
             WhichTransitions();
             // the flow's gateway is the portal: Frost's with no Verdant
-            // planetfall listed (as before Verdant's art), Verdant's for real
+            // planetfall listed (as before Verdant's art), Verdant's with no
+            // Ember planetfall listed, Ember's (the loop) for real
             PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost };
             Flow(Frost);
-            PlanetfallCatalog.Defs = PlanetfallCatalog.All;
+            PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };
             Flow(Verdant);
-            VerdantPlanetfall();
+            PlanetfallCatalog.Defs = PlanetfallCatalog.All;
+            Flow(Ember);
+            NextPlanetfall(Frost);
+            NextPlanetfall(Verdant);
             Robust();
             NoAllocations(Frost);
             NoAllocations(Verdant);
+            NoAllocations(Ember);
         }
         finally
         {
@@ -160,13 +167,15 @@ public static class LiftoffTest
 
     static void WhichTransitions()
     {
-        Check("the catalogue: Frost and Verdant lift off; Space and Ember (and the loop) do not",
+        Check("the catalogue: Frost, Verdant and Ember (on the loop) lift off; Space does not",
               LiftoffCatalog.For(1, 2, false) == LiftoffCatalog.Frost && LiftoffCatalog.For(0, 1, false) == null &&
-              LiftoffCatalog.For(2, 3, false) == LiftoffCatalog.Verdant && LiftoffCatalog.For(3, 0, true) == null &&
+              LiftoffCatalog.For(2, 3, false) == LiftoffCatalog.Verdant && LiftoffCatalog.For(3, 0, true) == LiftoffCatalog.Ember &&
               LiftoffCatalog.Frost.planet == PlanetfallCatalog.Frost && LiftoffCatalog.Frost.interludeWorld == 0 &&
-              LiftoffCatalog.Verdant.planet == PlanetfallCatalog.Verdant && LiftoffCatalog.Verdant.interludeWorld == 0);
-        Check("... the gateways: Frost's is Verdant's planetfall, Verdant's (no Ember planetfall yet) the portal",
-              PlanetfallCatalog.For(1, 2, false) == PlanetfallCatalog.Verdant && PlanetfallCatalog.For(2, 3, false) == null);
+              LiftoffCatalog.Verdant.planet == PlanetfallCatalog.Verdant && LiftoffCatalog.Verdant.interludeWorld == 0 &&
+              LiftoffCatalog.Ember.planet == PlanetfallCatalog.Ember && LiftoffCatalog.Ember.interludeWorld == 0);
+        Check("... the gateways: Frost's is Verdant's planetfall, Verdant's Ember's, Ember's the loop portal (never a planetfall)",
+              PlanetfallCatalog.For(1, 2, false) == PlanetfallCatalog.Verdant && PlanetfallCatalog.For(2, 3, false) == PlanetfallCatalog.Ember &&
+              PlanetfallCatalog.For(3, 0, true) == null && PlanetfallCatalog.For(3, 1, true) == null);
 
         for (int world = 0; world < WorldManager.Worlds.Length; world++)
         {
@@ -177,7 +186,7 @@ public static class LiftoffTest
             bool stage = wm.Stage == WorldManager.LevelStage.Portal && wm.PortalIsOpen;
             if (world == 0)
                 Check(name + "'s end: the planetfall (unchanged)", stage && Planetfall.Live != null && Liftoff.Live == null && Portal.Live == null);
-            else if (world == Frost || world == Verdant)
+            else if (world == Frost || world == Verdant || world == Ember)
                 Check(name + "'s end: the lift-off; no portal, no pressure yet, nothing spawning",
                       stage && Liftoff.Live != null && Portal.Live == null && Planetfall.Live == null && !PortalPressure.Active &&
                       Liftoff.SuspendsSpawning && !Liftoff.HoldsShip && Liftoff.Live.State == Liftoff.Stage.Beat);
@@ -215,10 +224,13 @@ public static class LiftoffTest
 
     // ---- 2. the flow ---------------------------------------------------------------
 
-    // `from` lifts off; the gateway after it must be the portal to the next.
+    // `from` lifts off; the gateway after it must be the portal to the next
+    // (after the last world: the loop's portal back to where the run began).
     static void Flow(int from)
     {
-        int to = from + 1;
+        bool loop = from == WorldManager.Worlds.Length - 1;
+        int to = loop ? RunLoop.StartWorld : from + 1;
+        int loopWas = RunLoop.Index;
         string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
         FreshScene(from);
         RunScore.BeginRun(true, true);
@@ -321,11 +333,14 @@ public static class LiftoffTest
               RunScore.Total == before && collisionDetection.lifeCounter == 1);
 
         // through the portal: the world change, once
+        if (Portal.Live == null) { Gone(); Object.DestroyImmediate(ship.gameObject); Object.DestroyImmediate(wm.gameObject); return; }
         Portal.Live.Enter();
         Check("through the portal: " + next + ", stage Level, a full world ahead, the world bonus paid once",
               WorldManager.CurrentIndex == to && wm.Stage == WorldManager.LevelStage.Level && !PortalPressure.Active &&
               Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)) &&
               RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
+        Check("... the loop count: " + (loop ? "one loop on (" + loopWas + " -> " + RunLoop.Index + ")" : "unchanged (" + RunLoop.Index + ")"),
+              RunLoop.Index == loopWas + (loop ? 1 : 0));
         Check("the timeline: take, swap, break, release, gateway in order; about nine and a half seconds",
               LiftoffTimeline.TakeAt < LiftoffTimeline.SwapAt && LiftoffTimeline.SwapAt < LiftoffTimeline.BreakAt &&
               LiftoffTimeline.BreakAt < LiftoffTimeline.ReleaseAt && LiftoffTimeline.ReleaseAt < LiftoffTimeline.GatewayAt &&
@@ -343,13 +358,17 @@ public static class LiftoffTest
         Object.DestroyImmediate(wm.gameObject);
     }
 
-    // ---- 3. a Verdant planetfall takes the portal's place ----------------------------
+    // ---- 3. the next planet's planetfall takes the portal's place -------------------
 
-    static void VerdantPlanetfall()
+    // `from` (Frost or Verdant) lifts off; its gateway is the next planet's
+    // planetfall (Verdant's, Ember's), flown all the way down.
+    static void NextPlanetfall(int from)
     {
-        var verdant = PlanetfallCatalog.Verdant;
-        Check("Frost -> Verdant is a planetfall", PlanetfallCatalog.For(Frost, Verdant, false) == verdant);
-        FreshScene(Frost);
+        int to = from + 1;
+        string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
+        var fall = System.Array.Find(PlanetfallCatalog.Defs, d => d.world == to);
+        Check(name + " -> " + next + " is a planetfall", fall != null && PlanetfallCatalog.For(from, to, false) == fall);
+        FreshScene(from);
         RunScore.BeginRun(true, true);
         RunScore.Tick(10f, .3f);
         var ship = Ship();
@@ -361,13 +380,13 @@ public static class LiftoffTest
         long before = RunScore.Total;
         for (int i = 0; i < (int)(15f / Dt) && Liftoff.Live != null; i++) Fly(wm, l);
         var p = Planetfall.Live;
-        Check("the lift-off ends on Verdant's planet approach, not the portal (" + PortalPressure.Urge + ")",
-              Liftoff.Live == null && p != null && p.Def == verdant && Portal.Live == null &&
-              PortalPressure.Active && PortalPressure.Destination == Verdant && PortalPressure.Urge == verdant.urgeBanner &&
-              WorldManager.CurrentIndex == Frost && wm.Stage == WorldManager.LevelStage.Portal);
+        Check("the lift-off ends on " + next + "'s planet approach, not the portal (" + PortalPressure.Urge + ")",
+              Liftoff.Live == null && p != null && p.Def == fall && Portal.Live == null &&
+              PortalPressure.Active && PortalPressure.Destination == to && PortalPressure.Urge == fall.urgeBanner &&
+              WorldManager.CurrentIndex == from && wm.Stage == WorldManager.LevelStage.Portal);
         if (p == null) { Gone(); Object.DestroyImmediate(ship.gameObject); Object.DestroyImmediate(wm.gameObject); return; }
-        Check("... in the interlude's quiet Space sky, with Verdant's own art loaded",
-              SpaceDirector.Quiet && p.Art.Complete && p.Art.PlanetTex.name == verdant.planet && p.Art.EntryTex.name == verdant.entryFx);
+        Check("... in the interlude's quiet Space sky, with " + next + "'s own art loaded",
+              SpaceDirector.Quiet && p.Art.Complete && p.Art.PlanetTex.name == fall.planet && p.Art.EntryTex.name == fall.entryFx);
 
         // the approach: the planet drifts in and holds station; the pilot flies
         int frames = 0;
@@ -375,7 +394,7 @@ public static class LiftoffTest
         Check("... it arrives (" + (frames * Dt).ToString("F1") + " s) and holds station, the pilot free",
               p.OnStation && !Planetfall.HoldsShip && p.Radius > Planetfall.FirstRadius && p.ReticleRenderer.enabled);
 
-        // the descent: one world change, under the clouds, onto Verdant
+        // the descent: one world change, under the clouds, onto the new planet
         Check("the commit is taken", p.Commit(ship));
         var art = p.Art;
         int switches = 0, world = WorldManager.CurrentIndex;
@@ -396,14 +415,14 @@ public static class LiftoffTest
             if (WorldManager.CurrentIndex != world) { switches++; world = WorldManager.CurrentIndex; coverAt = PlanetfallTimeline.Cover(p.Seconds); }
             if (p.State != Planetfall.Stage.Done) held &= Planetfall.HoldsShip && Planetfall.ShieldsShip;
         }
-        Check("the world changed exactly once, to Verdant, while the clouds covered the view (" + switches + ", cover " +
-              coverAt.ToString("F3") + ")", switches == 1 && WorldManager.CurrentIndex == Verdant && coverAt >= .999f);
+        Check("the world changed exactly once, to " + next + ", while the clouds covered the view (" + switches + ", cover " +
+              coverAt.ToString("F3") + ")", switches == 1 && WorldManager.CurrentIndex == to && coverAt >= .999f);
         Check("a lifted finger mid-descent froze it; the ship was held and shielded throughout", pausedHeld && held);
-        Check("score carried through plus Frost's world bonus once (" + before + " -> " + RunScore.Total + "), hearts untouched",
-              RunScore.Total == before + ScoreRules.WorldClearedPoints(Frost) && collisionDetection.lifeCounter == 1);
-        Check("Verdant's level begins: stage Level, a full world ahead",
+        Check("score carried through plus " + name + "'s world bonus once (" + before + " -> " + RunScore.Total + "), hearts untouched",
+              RunScore.Total == before + ScoreRules.WorldClearedPoints(from) && collisionDetection.lifeCounter == 1);
+        Check(next + "'s level begins: stage Level, a full world ahead",
               wm.Stage == WorldManager.LevelStage.Level && !wm.PortalIsOpen && !PortalPressure.Active &&
-              Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(Verdant)));
+              Mathf.Approximately(wm.DistanceLeft, WorldManager.WorldDistanceFor(to)));
         Check("control returns: every hook off, the hull back (" + hull.sortingOrder + "), nothing left, the art released",
               Planetfall.Live == null && Liftoff.Live == null && !Planetfall.HoldsShip && !Planetfall.ShieldsShip &&
               !Planetfall.SuspendsSpawning && !Liftoff.SuspendsSpawning && !SpaceDirector.Quiet && hull.sortingOrder == 0 &&

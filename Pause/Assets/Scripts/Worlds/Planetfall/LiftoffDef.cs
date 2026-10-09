@@ -2,13 +2,13 @@
 // own planetfall art (the same globe, limb, cloud decks, plasma and burst,
 // flown the other way), the world whose backdrop is the space between
 // planets, and its words. One entry per world that is left by lift-off
-// (LiftoffCatalog: Frost, Verdant); everything else about the sequence is the same for
+// (LiftoffCatalog: Frost, Verdant, Ember); everything else about the sequence is the same for
 // every planet (Liftoff, LiftoffTimeline).
 //
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
-// PlanetfallCatalog has one (Verdant after Frost; Ember has none yet) and opens the portal
-// otherwise.
+// PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant) and
+// opens the portal otherwise (after Ember: the loop back to Space).
 public class LiftoffDef
 {
     public int world;                   // WorldManager.Worlds index it leaves
@@ -33,7 +33,7 @@ public static class LiftoffCatalog
     };
 
     // Verdant: leaving the green planet after its boss, into the same calm
-    // space; its gateway is Ember's portal until Ember has planetfall art.
+    // space; its gateway is Ember's planetfall.
     public static readonly LiftoffDef Verdant = new LiftoffDef
     {
         world = 2,
@@ -42,7 +42,18 @@ public static class LiftoffCatalog
         banner = "LIFT OFF",
     };
 
-    public static readonly LiftoffDef[] Defs = { Frost, Verdant };
+    // Ember: leaving the forge world after its boss, the last world; its
+    // gateway is the loop's portal back to the first world (Space has no
+    // planetfall), with LoopRules counting the loop as before.
+    public static readonly LiftoffDef Ember = new LiftoffDef
+    {
+        world = 3,
+        planet = PlanetfallCatalog.Ember,
+        interludeWorld = 0,
+        banner = "LIFT OFF",
+    };
+
+    public static readonly LiftoffDef[] Defs = { Frost, Verdant, Ember };
 
     // The lift-off for leaving `from` for `to` (the next planet, or the
     // loop's way round), or null for the portal straight away.
