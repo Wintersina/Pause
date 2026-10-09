@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -79,7 +80,7 @@ public static class AchievementTracker
     public static void OnKill(GameObject target, int bonusPoints)
     {
         if (target == null || !Achievements.Real) return;
-        if (target.name.StartsWith("Boss")) return;   // a boss part or shot, not an enemy
+        if (target.name.StartsWith("Boss", System.StringComparison.Ordinal)) return;   // a boss part or shot, not an enemy
         if (target.CompareTag("Enimey"))
         {
             AchievementStore.AddCounter(AchievementCatalog.CKills, 1);
