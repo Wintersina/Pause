@@ -21,13 +21,21 @@ using UnityEngine;
 // magenta (MagentaHue), keeping its saturation and brightness: built once
 // per world (MineLaserArt), never per fire or per frame.
 //
-// GEOMETRY. Every frame (LateUpdate, after RailMineMount places the mine)
-// the beam is laid from its own rail's drawn inner face at the mine's
-// current y, across the lane at this shot's Angle, to the opposite rail's
+// GEOMETRY. Every frame (LateUpdate, after RailMineMount places the mine:
+// DefaultExecutionOrder) the beam is laid from the mine's MUZZLE -- its
+// glowing core, RailMineArt.CoreOffset, mirrored for a right-hand mine --
+// across the lane at this shot's Angle, to the opposite rail's drawn inner
 // face (BossRails.DrawnInnerEdge: the measured rails, or where WorldPainter
-// puts them on this screen, RailInset included): Length = 2 edge / cos
-// Angle. It rides the board with the mine and is blocked by nothing but the
-// rails.
+// puts them on this screen, RailInset included): Length = (face - muzzle)
+// / cos Angle. Everything pivots on the core, so a tilted beam still
+// leaves the mine's head (it used to pivot on the rail face behind the
+// mine, 0.26 u outboard of the core: at 35 deg it crossed the core 0.18 u
+// off and left the sphere near its rim). Both ends of the drawn quads (the
+// beam, the aim line) are cut along the rails' vertical, so the far end
+// lies flush on the opposite face at every angle (a square-cut end left a
+// wedge of gap on one side): each quad is the sheared parallelogram
+// muzzle -> face, built as a rotate-scale-rotate pair (Span). It rides the
+// board with the mine and is blocked by nothing but the rails.
 //
 // ANGLE. Drawn when the windup starts (Arm), so the blinking aim line shows
 // exactly the line the beam will burn: uniform in +/-MaxAngleDeg off
@@ -38,7 +46,7 @@ using UnityEngine;
 // consumed exactly as before. Mirrored left / right: the direction is
 // (-side cos A, sin A), side +1 for the right rail. Everything -- the
 // sprites, the hitbox, Touches, Burn, a blink's LandsOn -- follows the one
-// rotated segment From -> To.
+// rotated segment From (the muzzle) -> To (the far face).
 //
 // DAMAGE. The pilot: a trigger BoxCollider2D tagged "Enimey" on a child
 // (HitboxName), HitThickness across the beam, enabled in the Beam phase
@@ -60,6 +68,7 @@ using UnityEngine;
 // calls on running frames, so a frozen world freezes the laser. Pooled
 // (RailMineLasers, at most Max), every sprite looked up once per fire;
 // nothing allocates per frame.
+[DefaultExecutionOrder(10)]   // LateUpdate after RailMineMount (0) has placed the mine this frame
 public class RailMineLaser : MonoBehaviour
 {
     public enum Phase { Off, Aim, Beam, Cool }
@@ -71,7 +80,7 @@ public class RailMineLaser : MonoBehaviour
     public const float DrawWidth = .4f;        // drawn beam (the art cell's width)
     public const float HitThickness = .28f;    // hitbox across the beam (DrawWidth x BossConfig.BeamHitFraction)
     public const float SightWidth = .12f;      // the aim line (DrawWidth x BossConfig.BeamSightWidth)
-    public const float FlashAlong = .45f;      // muzzle flash: this far along from the rail face (the mine's lane-side face)
+    public const float FlashAlong = .19f;      // muzzle flash: this far along from the core (the sphere's lane-side rim)
     public const float FlashSize = .34f;
     public const int SortBeam = 11;            // under the mine (12): the beam leaves its body
     public const int SortFx = 13;
@@ -95,7 +104,7 @@ public class RailMineLaser : MonoBehaviour
     readonly Sprite[] flashSprites = new Sprite[BossAttackFx.FlashFrames];
     readonly Sprite[] sparkSprites = new Sprite[2];
     readonly int[] hit = new int[MaxHitsPerPulse];
-    int hitCount;
+    int hitCount, world;
     float t, age, aimDelay, length, side, y, angle;
     Vector2 from, to, dir = Vector2.left;
 
@@ -106,7 +115,7 @@ public class RailMineLaser : MonoBehaviour
     public bool BeamShown => beam != null && beam.enabled;
     public GameObject Hitbox => hitbox;
     public Transform Owner => owner;
-    public Vector2 From => from;            // its own rail's inner face, at the mine's y
+    public Vector2 From => from;            // the muzzle: the mine's core (MuzzleOf)
     public Vector2 To => to;                // the opposite rail's inner face, along Angle
     public Vector2 Direction => dir;        // unit, From -> To
     public float Angle => angle;            // degrees off horizontal (+: rising toward the far rail)
@@ -124,6 +133,16 @@ public class RailMineLaser : MonoBehaviour
         float s = mineX >= 0f ? 1f : -1f;
         fromX = s * edge;
         toX = -s * edge;
+    }
+
+    // Where a mine's beam leaves it: its core (RailMineArt.CoreOffset, at
+    // the mine's scale), mirrored for a right-hand mine (flipX about the pivot).
+    public static Vector2 MuzzleOf(Transform mine, int world)
+    {
+        Vector3 p = mine.position, sc = mine.lossyScale;
+        Vector2 core = RailMineArt.CoreOffset(world);
+        float s = p.x >= 0f ? 1f : -1f;
+        return new Vector2(p.x - s * core.x * Mathf.Abs(sc.x), p.y + core.y * Mathf.Abs(sc.y));
     }
 
     // The beam's direction from a rail (side +1: the right one) at `deg`.
@@ -212,8 +231,8 @@ public class RailMineLaser : MonoBehaviour
         var go = new GameObject("RailMineLaser");
         go.transform.SetParent(root, false);
         var l = go.AddComponent<RailMineLaser>();
-        l.sight = Piece(go.transform, "Sight", SortBeam);
-        l.beam = Piece(go.transform, "Beam", SortBeam);
+        l.sight = Piece(go.transform, "Sight", SortBeam, true);
+        l.beam = Piece(go.transform, "Beam", SortBeam, true);
         l.flash = Piece(go.transform, "Flash", SortFx);
         l.impact = Piece(go.transform, "Impact", SortFx);
         l.EnsureHitbox();
@@ -222,10 +241,18 @@ public class RailMineLaser : MonoBehaviour
         return l;
     }
 
-    static SpriteRenderer Piece(Transform parent, string name, int order)
+    // `framed`: the sprite sits under its own frame transform, so Span can
+    // shear it (a parallelogram, both ends cut along the rails).
+    static SpriteRenderer Piece(Transform parent, string name, int order, bool framed = false)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
+        if (framed)
+        {
+            var art = new GameObject(name + "Art");
+            art.transform.SetParent(go.transform, false);
+            go = art;
+        }
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = order;
         sr.enabled = false;
@@ -249,6 +276,7 @@ public class RailMineLaser : MonoBehaviour
     public void Arm(Transform mine, int world, float tellSeconds)
     {
         owner = mine;
+        this.world = world;
         var art = MineLaserArt.For(world);
         sightSprite = art.sight;
         beamSprites[0] = art.beam0;
@@ -335,11 +363,11 @@ public class RailMineLaser : MonoBehaviour
         SpanFor(m.x, out fx, out tx);
         side = m.x >= 0f ? 1f : -1f;
         dir = DirectionFor(side, angle);
-        from = new Vector2(fx, y);
-        // rail face to rail face across the lane, at the angle
-        length = Mathf.Abs(tx - fx) / Mathf.Max(.05f, Mathf.Abs(dir.x));
+        from = MuzzleOf(owner, world);
+        // the mine's core to the opposite rail's face, at the angle
+        length = Mathf.Abs(tx - from.x) / Mathf.Max(.05f, Mathf.Abs(dir.x));
         to = from + dir * length;
-        transform.position = new Vector3(fx, y, 0f);
+        transform.position = new Vector3(from.x, from.y, 0f);
         // local +y runs along the beam, toward the far rail
         transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f);
         transform.localScale = Vector3.one;
@@ -351,7 +379,7 @@ public class RailMineLaser : MonoBehaviour
             {
                 bool on = t >= aimDelay && Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick)) % 2 == 0;
                 sight.enabled = on && sightSprite != null;
-                Span(sight.transform, SightWidth, length);
+                Span(sight.transform, SightWidth, length, dir);
                 break;
             }
             case Phase.Beam:
@@ -360,7 +388,7 @@ public class RailMineLaser : MonoBehaviour
                 float w = DrawWidth * (Mathf.FloorToInt(age / (2f * tick)) % 2 == 0 ? 1f : .85f);
                 beam.enabled = beamSprites[0] != null;
                 beam.sprite = beamSprites[BossArt.FrameAt(BossArt.BeamTicks, age, true) % 2];
-                Span(beam.transform, w, length);
+                Span(beam.transform, w, length, dir);
                 int f = Mathf.Min(BossArt.FrameAt(BossAttackFx.FlashTickTable, age, true), flashSprites.Length - 1);
                 flash.sprite = flashSprites[f];
                 flash.enabled = flash.sprite != null;
@@ -388,7 +416,7 @@ public class RailMineLaser : MonoBehaviour
                 // flickers out on ticks, thinning
                 float k = 1f - Mathf.Clamp01(t / CoolSeconds);
                 beam.enabled = beamSprites[0] != null && Mathf.FloorToInt(t / tick) % 2 == 0;
-                Span(beam.transform, DrawWidth * Mathf.Max(.2f, k), length);
+                Span(beam.transform, DrawWidth * Mathf.Max(.2f, k), length, dir);
                 break;
             }
         }
@@ -432,10 +460,29 @@ public class RailMineLaser : MonoBehaviour
         return false;
     }
 
-    static void Span(Transform tr, float w, float len)
+    // Lays a unit sprite (art, under its frame) as the parallelogram from
+    // the muzzle to the far face: in the laser's frame (local +y along the
+    // beam) its edges are (0, len) along the beam and (w, k) across it,
+    // k = -w dir.y / dir.x, so the across edge is the rails' vertical (both
+    // ends flush with a rail face) and the beam is w wide. A transform
+    // cannot shear, so the linear map [[w, 0], [k, len]] is split as
+    // R(phi) S(sx, sy) R(theta) (the closed-form 2x2 SVD): the frame takes
+    // R(phi) S, the art R(theta).
+    static void Span(Transform art, float w, float len, Vector2 dir)
     {
-        tr.localPosition = new Vector3(0f, len * .5f, 0f);
-        tr.localScale = new Vector3(w, Mathf.Max(.001f, len), 1f);
+        len = Mathf.Max(.001f, len);
+        float dx = Mathf.Abs(dir.x) > 1e-4f ? dir.x : -1e-4f;
+        float k = -w * dir.y / dx;
+        float e = (w + len) * .5f, f = (w - len) * .5f, g = k * .5f, h = k * .5f;
+        float q = Mathf.Sqrt(e * e + h * h), r = Mathf.Sqrt(f * f + g * g);
+        float a1 = Mathf.Atan2(g, f), a2 = Mathf.Atan2(h, e);
+        var frame = art.parent;
+        frame.localPosition = new Vector3(0f, len * .5f, 0f);
+        frame.localRotation = Quaternion.Euler(0f, 0f, (a2 + a1) * .5f * Mathf.Rad2Deg);
+        frame.localScale = new Vector3(q + r, Mathf.Max(1e-5f, q - r), 1f);
+        art.localPosition = Vector3.zero;
+        art.localRotation = Quaternion.Euler(0f, 0f, (a2 - a1) * .5f * Mathf.Rad2Deg);
+        art.localScale = Vector3.one;
     }
 
     public void Recycle()

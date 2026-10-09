@@ -287,10 +287,12 @@ public static class RailsVettingTest
                     var laser = brain.Laser;
                     if (laser != null && laser.State == RailMineLaser.Phase.Beam && !sawShot)
                     {
-                        // a laser mine: the beam leaves its own rail's face at the mine's row and crosses the lane
+                        // a laser mine: the beam leaves the mine's core at its row and crosses the lane to the far rail's face
                         sawShot = true;
                         shotOk &= Mathf.Abs(laser.Y - go.transform.position.y) < .05f &&
-                                  Mathf.Abs(Mathf.Abs(laser.From.x) - BossRails.DrawnInnerEdge) < .01f &&
+                                  (laser.From - RailMineLaser.MuzzleOf(go.transform, w)).magnitude < .02f &&
+                                  Mathf.Abs(laser.From.x) < Mathf.Abs(x) && Mathf.Abs(x) - Mathf.Abs(laser.From.x) < .2f &&
+                                  Mathf.Abs(Mathf.Abs(laser.To.x) - BossRails.DrawnInnerEdge) < .01f &&
                                   Mathf.Sign(laser.From.x) == Mathf.Sign(x) && Mathf.Sign(laser.To.x) == -Mathf.Sign(x);
                     }
                     if (EliteSystem.Shots.Launched > launched && !sawShot)

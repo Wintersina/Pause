@@ -781,14 +781,26 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
 | Phase | Length | What shows | Harmful |
 |---|---|---|---|
 | Windup | the mine's tell, unchanged (Space 0.9, Frost 0.9, Verdant 1.0, Ember 1.1 s) | waking -> charging loop, the charge light | no |
-| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, rail to rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
+| Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, from the mine's core to the far rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
 | Beam | `BeamSeconds` 0.4 s | the beam, 0.4 u drawn (the world boss's beam cells, flickering on twos), a muzzle flash at the mine, a spark on the far rail | **yes** |
 | Cool | `CoolSeconds` 0.2 s | the beam flickers and thins out | no |
 
-* **Geometry.** From its own rail's drawn inner face at the mine's current y every frame (it rides the board with
-  the mine), across the lane at this shot's angle to the opposite rail's face: `BossRails.DrawnInnerEdge` (the
-  measured rails, RailInset included), so it is exactly rail to rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every
-  world); `Length` = 2 edge / cos(angle). Blocked by nothing but the rails.
+* **Geometry.** From the mine's muzzle -- its glowing core (`RailMineArt.CoreOffset`, 34-39 atlas px = 0.09-0.10 u
+  toward the lane from the body's centre, measured on the waking / charging cells; `RailMineLaser.MuzzleOf`) --
+  every frame (it rides the board with the mine; laid after `RailMineMount` places the mine, execution order 10),
+  across the lane at this shot's angle to the opposite rail's face: `BossRails.DrawnInnerEdge` (the measured rails,
+  RailInset included), so it reaches exactly the far rail at 9:16, 9:19.5, 9:21 and 3:4 (tested in every world);
+  `Length` = (face - muzzle x) / cos(angle). Blocked by nothing but the rails.
+* **Fix: "the rail laser is slightly off from the head of the rails when it shoots upwards at an angle".** The
+  random-angle change pivoted the beam on its own rail's face, behind the mine and 0.26 u outboard of its core: at
+  35 deg the beam crossed the core 0.18 u off (about 35 screen px on a 1080 px phone) and left the sphere near its
+  rim, with the muzzle flash floating above it; and the square-cut far end stopped short of the opposite rail face on
+  one side (a 0.115 u wedge at 35 deg) and poked into the rail on the other. Now everything pivots on the core, and
+  both ends of the drawn beam and aim line are cut along the rails' vertical (a sheared quad: `Span` splits the
+  shear into rotate-scale-rotate), so the far end lies flush on the face at every angle. The muzzle flash sits
+  `FlashAlong` 0.19 u along the beam from the core (the sphere's rim). `RailMineLaserTest` "the muzzle" measures the
+  core on the art and the drawn quads' corners: 40 cases (4 worlds, both rails, -35..35 deg) and +/-35 deg at
+  every phone shape.
 * **Angle.** "Make the lasers from the rail mines be shot at different angles too, randomly." Each shot draws its
   angle when the windup starts (`RailMineLaser.Arm` -> `NextAngle`), so the aim line already shows the exact line:
   uniform within +/-`MaxAngleDeg` 35 deg off horizontal (positive rises toward the far rail; left and right rails
@@ -797,7 +809,7 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
   unchanged; `RailMineLaser.Seed` / `AngleOverride` for tests and previews. At 35 deg the beam rises or falls
   ~3.65 u across the lane and is 0.34 u tall where it crosses a column. The sprites, the hitbox (a BoxCollider2D
   on the rotated beam), `Touches` (an oriented-rect test), the burn (`Burn`: distance to the segment) and a blink
-  (`LandsOn`) all use the one rotated segment `From` -> `To`.
+  (`LandsOn`) all use the one rotated segment `From` (the core) -> `To` (the far face).
 * **Look.** The world boss's own laser art (`BossArt` telegraph and beam cells, `BossAttackFx` flash and spark):
   the hard-edged magenta beam with a white core in Space, Frost and Ember, Verdant's lime. No player red.
 * **Damage.** A trigger box tagged `Enimey` (`RailMineLaser.HitboxName`), `HitThickness` 0.28 u across the beam,
