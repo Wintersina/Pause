@@ -57,6 +57,7 @@ public static class AllTests
         ("BossDamageTest", BossDamageTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),
+        ("BossFreeShotAtomsTest", BossFreeShotAtomsTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
         ("BossWarningTest", BossWarningTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),

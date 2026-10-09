@@ -165,11 +165,21 @@ public class spawnGoodStuff : MonoBehaviour {
         }
         // Red atoms were arriving every 5-10 seconds, so pauses were effectively
         // unlimited. Now a fixed allowance per planet, spread across the level.
-        if (redAtomDelayTimer <= 0 && redSpawned < redBudget && AtomSpacing.Ready)
+        // (Held back through a boss encounter: the fight hands out exactly
+        // BossFreeShotAtoms.Count of its own, below.)
+        if (redAtomDelayTimer <= 0 && redSpawned < redBudget && AtomSpacing.Ready && !BossEncounter.Running)
         {
             redAtomDelayTimer = Random.Range(50f, 90f);
             spawnRedAtom();
             redSpawned++;
+        }
+
+        // The boss fight's free-shot atoms (BossFreeShotAtoms): a due one
+        // waits out the spacing gap like any atom. Not part of the allowance.
+        if (BossEncounter.FreeAtomDue && AtomSpacing.Ready)
+        {
+            BossEncounter.FreeAtomReleased();
+            spawnRedAtom();
         }
 
         if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget && AtomSpacing.Ready)

@@ -53,6 +53,9 @@ public class BossEncounter : MonoBehaviour
     bool freePress;
     float outroClock;
     float rushClock;
+    // The fight's free-shot atoms (BossFreeShotAtoms): when each is due.
+    readonly float[] freeAtomTimes = new float[BossFreeShotAtoms.Count];
+    int freeAtomCount, freeAtomNext;
 
     BossActor actor;
     BossProjectilePool pool;
@@ -73,6 +76,17 @@ public class BossEncounter : MonoBehaviour
     // score: a press during the intro, or the first one after it, is not a
     // spent pause -- the freeze was the boss's, not the player's.
     public static bool FreePress => Instance != null && Instance.freePress;
+
+    // spawnGoodStuff: true when a fight free-shot atom is due now (and the
+    // boss is still there to shoot at); the caller then releases one. Never
+    // true outside the fight, nor once the boss is destroyed or out of clock.
+    public static bool FreeAtomDue => Instance != null && Instance.IsFreeAtomDue;
+    public static void FreeAtomReleased() { if (Instance != null) Instance.freeAtomNext++; }
+    bool IsFreeAtomDue => state == Phase.Fight && hp > 0 && remaining > 0f &&
+        freeAtomNext < freeAtomCount && fightClock >= freeAtomTimes[freeAtomNext];
+    public int FreeAtomsPlanned => freeAtomCount;
+    public int FreeAtomsReleased => freeAtomNext;
+    public float FightClock => fightClock;
 
     public static bool DoneInWorld(int worldIndex) => doneWorld == worldIndex;
 
@@ -158,6 +172,7 @@ public class BossEncounter : MonoBehaviour
         heartsLeft = Mathf.Max(1, BossConfig.Hearts);
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
+        freeAtomCount = freeAtomNext = 0;
         freePress = false;
     }
 
@@ -273,6 +288,8 @@ public class BossEncounter : MonoBehaviour
             remaining = Mathf.Min(remaining, DevShortFightSeconds);
         }
         fightClock = 0f;
+        freeAtomCount = BossFreeShotAtoms.Roll(remaining, freeAtomTimes);
+        freeAtomNext = 0;
         actor.BeginFight();
         if (TouchInput.IsPressed) freePress = false;
     }
