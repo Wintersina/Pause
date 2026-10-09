@@ -97,7 +97,7 @@ public static class UnusedAssetGuardTest
 
     // The 2026-10 cleanup: the Unity-5 explosion_0 prefab and its
     // controller / clip / sheet (TargetExplosion draws every explosion now),
-    // the old xenon2 default app icon (the icon is Art/AppIcon/GoldWarden),
+    // the old xenon2 default app icon (the icon is Art/AppIcon/OrbitalRail),
     // and the scrollingText behaviour nothing attached.
     public static readonly string[] ReplacedAssets =
     {
