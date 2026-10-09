@@ -312,7 +312,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         body.color = slab ? Color.white : tint;
         core.color = coreTint;
         core.enabled = !slab;
-        core.transform.localScale = Vector3.one * .5f;
+        // a big white-hot core: the thin arrows still read on the bright skies (Frost)
+        core.transform.localScale = Vector3.one * .62f;
         float k = size / Mathf.Max(.01f, sprite.bounds.size.y);
         transform.localScale = Vector3.one * k;
         transform.position = new Vector3(at.x, at.y, 0f);
@@ -321,7 +322,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         hitCol.radius = radius / k;
         hitCol.enabled = true;
         ownerId = from != null ? from.GetInstanceID() : 0;
-        glowTint = HostileGlow.Tint(tint);
+        // the outline's light trace: the hostile pink only a little paled
+        // (HostileShotPalette.TraceWhite), so even a thin bolt over a blue
+        // planet reads hot pink, never lilac
+        glowTint = Color.Lerp(tint, Color.white, HostileShotPalette.TraceWhite);
+        glowTint.a = 1f;
         Outline(sprite, k);
         Pulse();
         Active = true;

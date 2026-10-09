@@ -24,7 +24,7 @@ public static class ShotOutline
     // ---- tuning ----
     public const float OutlineReach = .03f;   // world units past the silhouette (a boss bolt's rim: .06 x .46 = .028)
     public const float DarkShare = .4f;       // the outer share of the reach drawn as the dark hairline
-    public const float Alpha = .8f;           // light trace's opacity at the silhouette
+    public const float Alpha = .95f;          // light trace's opacity at the silhouette (near opaque: the sky behind must not tint it)
     public const float DarkAlpha = .8f;       // the dark hairline's opacity
     public const float Coverage = .25f;       // alpha a pixel needs to count as the drawing
     public const int Upsample = 4;            // outline texels per art pixel

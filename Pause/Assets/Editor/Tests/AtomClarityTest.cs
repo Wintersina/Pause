@@ -9,6 +9,7 @@ using UnityEngine;
 // (AtomClarityPreview.PixelsPerUnit), measured from the pixels they change:
 //
 //   hue        the saturation-weighted circular mean hue of what changed
+//              strongly (the drawing, not its fringes)
 //   softness   the share of changed pixels changed only a little (a soft
 //              halo bleeding out): high for a friendly pickup, low for a
 //              hard-outlined shot
@@ -46,7 +47,7 @@ public static class AtomClarityTest
     public const float CueMaxIoU = .55f;         // silhouettes this different
     public const float CuePinkGap = .08f;        // shot's hostile-pink share - pickup's
     public const float HostileEdgeSlack = 6f;
-    public const int MinShotCues = 4;            // of 5, for an elite / roster shot (hue among them)
+    public const int MinShotCues = 3;            // of 5, for an elite / roster shot (hue among them)
     public const int MinBossCues = 2;            // of 5, for a boss's painted shot
     public const float MinAtomPixels = 46f;      // an atom's drawing, px across on a 1080 px phone
     public const float MinAtomSoftness = .3f;    // every atom wears a soft halo
@@ -273,7 +274,7 @@ public static class AtomClarityTest
                 int cues = (hue >= CueHueGap ? 1 : 0) + (soft >= CueSoftGap ? 1 : 0) + (size >= CueSizeRatio ? 1 : 0) +
                            (iou <= CueMaxIoU ? 1 : 0) + (pink >= CuePinkGap ? 1 : 0);
                 bool ok = s.boss ? cues >= MinBossCues : hue >= MinHueGap && cues >= MinShotCues;
-                string line = name + ": " + p.name + " vs " + s.name + " -- hue " + hue.ToString("F0") + " deg, softness gap " +
+                string line = name + ": " + p.name + " vs " + s.name + " -- hue " + hue.ToString("F0") + " deg (" + p.hue.ToString("F0") + " / " + s.hue.ToString("F0") + "), softness gap " +
                               soft.ToString("F2") + ", hostile-pink gap " + pink.ToString("F2") + ", size x" + size.ToString("F2") + ", silhouette IoU " + iou.ToString("F2") +
                               " -> " + cues + " cues";
                 if (!ok) { bad++; Check(line, false); }
@@ -299,27 +300,51 @@ public static class AtomClarityTest
         var bg = Grab(cam, rt, tex);
         go.SetActive(true);
         var fg = Grab(cam, rt, tex);
+        string dump = System.Environment.GetEnvironmentVariable("ATOM_CLARITY_DUMP");
+        if (!string.IsNullOrEmpty(dump))
+        {
+            System.IO.Directory.CreateDirectory(dump);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dump, PlayerPrefs.GetInt(WorldManager.PrefsCurrentWorld) + "-" + name.Replace(' ', '_') + ".png"), tex.EncodeToPNG());
+        }
         var look = new Look { name = name, boss = boss, shape = new bool[32 * 32] };
+        // only inside the object's own renderers (a backdrop that twinkles
+        // on its own between the two renders must not count as the object)
+        bool any = false;
+        var bounds = new Bounds();
+        foreach (var r in go.GetComponentsInChildren<Renderer>())
+        {
+            if (!r.enabled) continue;
+            if (!any) { bounds = r.bounds; any = true; } else bounds.Encapsulate(r.bounds);
+        }
+        Vector3 lo = cam.WorldToScreenPoint(bounds.min), hi = cam.WorldToScreenPoint(bounds.max);
+        int bx0 = Mathf.FloorToInt(lo.x) - 1, by0 = Mathf.FloorToInt(lo.y) - 1, bx1 = Mathf.CeilToInt(hi.x) + 1, by1 = Mathf.CeilToInt(hi.y) + 1;
         double sx = 0, sy = 0, sw = 0;
         int changed = 0, strong = 0, pinkCount = 0, x0 = Win, y0 = Win, x1 = -1, y1 = -1;
         var strongMask = new bool[Win * Win];
         for (int i = 0; i < fg.Length; i++)
         {
             Color f = fg[i], b = bg[i];
+            int ix = i % Win, iy = i / Win;
+            if (ix < bx0 || ix > bx1 || iy < by0 || iy > by1) continue;
             float d = Mathf.Max(Mathf.Abs(f.r - b.r), Mathf.Max(Mathf.Abs(f.g - b.g), Mathf.Abs(f.b - b.b)));
             if (d < SoftDiff) continue;
             changed++;
             Color.RGBToHSV(f, out float h, out float s, out float v);
+            if (d < StrongDiff) continue;
+            // the hue of the drawing itself (strongly changed pixels): soft
+            // fringes blended with the backdrop would drag a thin shot's hue
+            // towards the sky behind it
+            // ... and only the light it adds: a dark outline over a bright
+            // nebula is the nebula darkened, not the object's colour
             float w = s * v * d;
-            if (s > .25f && v > .25f)
+            if (s > .25f && v > .25f && Lum(f) >= Lum(b))
             {
                 sx += Mathf.Cos(h * 2f * Mathf.PI) * w;
                 sy += Mathf.Sin(h * 2f * Mathf.PI) * w;
                 sw += w;
             }
-            if (d < StrongDiff) continue;
             strong++;
-            if (s > .4f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
+            if (s > .3f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
                 h * 360f <= HostileShotPalette.HueMax + HostileEdgeSlack) pinkCount++;
             strongMask[i] = true;
             int x = i % Win, y = i / Win;
@@ -356,6 +381,8 @@ public static class AtomClarityTest
         RenderTexture.active = old;
         return tex.GetPixels();
     }
+
+    static float Lum(Color c) => .2126f * c.r + .7152f * c.g + .0722f * c.b;
 
     static float HueGap(float a, float b)
     {

@@ -332,10 +332,10 @@ public static class EliteFxArt
                 float px = Mathf.Abs(x + .5f - cx), v = (y + .5f) / h;   // v: 0 tail .. 1 tip
                 bool inside;
                 if (v >= head) inside = px <= (1f - v) / (1f - head) * cx;          // the head
-                else inside = px <= cx * .28f + .01f ||                               // the shaft
+                else inside = px <= cx * .34f + .01f ||                               // the shaft
                               (fletch > 0f && v < .22f && px <= cx * fletch * (1f - v / .22f * .5f));   // fins
                 // barbs: the head's base cut back in the middle, so its corners hook
-                if (v >= head && v < head + .1f && px < cx * .5f && px > cx * .28f) inside = false;
+                if (v >= head && v < head + .1f && px < cx * .55f && px > cx * .34f) inside = false;
                 if (!inside) { t.SetPixel(x, y, Color.clear); continue; }
                 bool spine = px <= Mathf.Max(.6f, cx * .2f);
                 float g = spine ? 1f : x + .5f < cx ? .86f : .68f;   // lit left, shaded right
