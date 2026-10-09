@@ -99,6 +99,12 @@ public class collisionDetection : MonoBehaviour {
         score.AwardStarDust(amount);
     }
 
+    // A kill's crumb of dust is a reward, not a pickup: scaled (DustRewardScale).
+    void awardKillDust(float baseAmount)
+    {
+        score.AwardRewardDust(baseAmount);
+    }
+
     // Every way the pilot destroys a hazard ends here -- weapons, the
     // ultimate, secret powers, ramming it shielded, blinking onto it with the
     // pause-teleport -- so each pays the same: codex, secret meter, run score
@@ -115,7 +121,7 @@ public class collisionDetection : MonoBehaviour {
         SecretPowerController.OnKill();   // kills fill the secret power's meter
         RecordKillAchievement(target);
         var player = Object.FindFirstObjectByType<collisionDetection>();
-        if (player != null) player.awardDust(player.enemyDustValue);
+        if (player != null) player.awardKillDust(player.enemyDustValue);
         // ...and sometimes it sets off a DEATH COMBO (a chain victim never
         // rolls again: DeathCombo.Resolving).
         DeathCombo.OnPlayerKill(target);

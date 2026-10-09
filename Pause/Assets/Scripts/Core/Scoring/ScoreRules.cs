@@ -39,6 +39,23 @@ public static class ScoreRules
     // integer. At the cap (35) that is 1.75 a second before the multiplier.
     public static float DistancePerSpeedSecond = .05f;
 
+    // ---- the dust economy dial ----
+    // Every star dust reward that is NOT the collectible itself (the flight
+    // trickle, a kill's crumb, an elite going down, the end-of-run score
+    // bonus -- all the "base" numbers in this file) is paid at this fraction
+    // of its base value: "about 40% less overall" is 0.60. Pickups the pilot
+    // flies into (small star 0.5, large star 1, and the blue atom's 2 on
+    // collisionDetection) are NOT scaled. Dust is a float, so nothing is
+    // rounded per award (no 0.12 -> 0): the scaled amounts simply accumulate
+    // in the ledger, and only the score bonus is tidied to 0.01 after scaling.
+    // Shop prices, skin costs and saved balances are untouched. Retune here.
+    public static float DustRewardScale = 0.60f;
+
+    public static float RewardDust(float baseAmount)
+    {
+        return baseAmount > 0f ? baseAmount * DustRewardScale : 0f;
+    }
+
     // ---- star dust for flying ----
     // The flight trickle: star dust per unit of distance flown
     // (moveBackGround.speed x seconds). 1/12 is exactly what the old
@@ -50,7 +67,7 @@ public static class ScoreRules
     public static float FlightDust(float speed, float dt)
     {
         if (dt <= 0f || speed <= 0f) return 0f;
-        return DustPerDistance * speed * dt;
+        return RewardDust(DustPerDistance * speed * dt);
     }
 
     // ---- kills (before the chain multiplier) ----
@@ -225,6 +242,9 @@ public static class ScoreRules
     //   score     200    400    600   1,500  3,000  5,625+
     //   bonus    0.28   0.40   0.49   0.77   1.10   1.50 (cap)
     //
+    // (Table above is the base; the amount paid is DustRewardScale x it, 0.60:
+    // 0.17 / 0.24 / 0.29 / 0.46 / 0.66 / 0.90 cap.)
+    //
     // Paid once, through the run's own ledger commit (score.Settle); none in
     // the tutorial or in developer mode.
     public static float ScoreDustPerSqrtPoint = .02f;
@@ -233,7 +253,7 @@ public static class ScoreRules
     public static float ScoreDustBonus(long score)
     {
         if (score <= 0) return 0f;
-        float raw = Mathf.Min(ScoreDustCap, ScoreDustPerSqrtPoint * Mathf.Sqrt(score));
+        float raw = RewardDust(Mathf.Min(ScoreDustCap, ScoreDustPerSqrtPoint * Mathf.Sqrt(score)));
         return Mathf.Round(raw * 100f) / 100f;
     }
 

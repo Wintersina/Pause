@@ -307,8 +307,7 @@ public static class EliteRewards
         Paid++;
         var def = ship.Def;
         LastPoints = RunScore.OnElite(ship.Position, def.Score);
-        LastDust = def.Dust;
-        score.AwardStarDust(def.Dust);
+        LastDust = score.AwardRewardDust(def.Dust);
         Codex.Discover(ship.gameObject);
         SecretPowerController.OnKill();
     }

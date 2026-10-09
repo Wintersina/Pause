@@ -216,6 +216,17 @@ public class score : MonoBehaviour {
     // destroyed enemy). The tutorial watches it to know a star was caught.
     public static int dustPickups;
 
+    // A dust reward that is not the collectible itself (a kill's crumb, an
+    // elite going down): paid at ScoreRules.DustRewardScale of its base value.
+    // Returns what was actually paid. Star and blue-atom pickups use
+    // AwardStarDust directly and stay at full value.
+    public static float AwardRewardDust(float baseAmount)
+    {
+        float paid = ScoreRules.RewardDust(baseAmount);
+        AwardStarDust(paid);
+        return paid;
+    }
+
     public static void AwardStarDust(float amount)
     {
         dustPickups++;
