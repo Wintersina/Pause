@@ -164,6 +164,7 @@ public static class AllTests
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("ExplosionV2Test", ExplosionV2Test.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
+        ("MenuBackdropTest", MenuBackdropTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),

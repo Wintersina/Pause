@@ -15,6 +15,8 @@ public static class SpaceSkySelection
         HalfTurn = Random.Range(0, 2) == 1;
     }
 
+    public static string TextureFor(int variant) { return "sky_0" + Mathf.Clamp(variant, 1, VariantCount); }
+
     public static string Texture
     {
         get
@@ -55,7 +57,17 @@ public class BackdropSet
 
     float laidOutW = -1f, laidOutH = -1f;
 
-    public BackdropSet(string world, Transform parent, float halfWidth, float halfHeight)
+    // The menus' backdrop (MenuBackdrop): a chosen variant, the tile layers
+    // only (no atlases, no director: nothing but the world's own scrolling
+    // sky / ground), drawn darker by `dim` (1 = as in a run).
+    public class MenuOptions
+    {
+        public int variant;
+        public bool halfTurn;
+        public float dim = 1f;
+    }
+
+    public BackdropSet(string world, Transform parent, float halfWidth, float halfHeight, MenuOptions menu = null)
     {
         Spec = BackdropCatalog.For(world);
         Root = new GameObject("Backdrop_" + Spec.world).transform;
@@ -64,20 +76,29 @@ public class BackdropSet
         HalfHeight = halfHeight;
 
         string folder = BackdropCatalog.Folder(Spec.world);
-        Fx = LoadAtlas(folder, BackdropCatalog.AtlasFx);
-        Anim = LoadAnimAtlas(folder);
-        if (Anim.texture != null) Textures.Add(Anim.texture);
-        if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
-        if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
-        if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
-        if (Spec.world == "Space") CometFrames = LoadAtlas(folder, "comet_frames_v1");
-        Complete = string.IsNullOrEmpty(Spec.keyAtlas) ? Fx.Count > 0 : Atlas(Spec.keyAtlas).Count > 0;
+        if (menu == null)
+        {
+            Fx = LoadAtlas(folder, BackdropCatalog.AtlasFx);
+            Anim = LoadAnimAtlas(folder);
+            if (Anim.texture != null) Textures.Add(Anim.texture);
+            if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
+            if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
+            if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
+            if (Spec.world == "Space") CometFrames = LoadAtlas(folder, "comet_frames_v1");
+            Complete = string.IsNullOrEmpty(Spec.keyAtlas) ? Fx.Count > 0 : Atlas(Spec.keyAtlas).Count > 0;
+        }
+        else
+        {
+            Fx = new BackdropAtlas(null, null);
+            Anim = new BackdropAtlas(null, null);
+            Complete = true;
+        }
 
         // A world with variant sets: one per entry, among those installed.
         string tileFolder = folder;
         if (Spec.variantSets > 0)
         {
-            Variant = BackdropVariants.For(Spec.world).Pick(Spec.variantSets);
+            Variant = menu != null ? menu.variant : BackdropVariants.For(Spec.world).Pick(Spec.variantSets);
             tileFolder = BackdropCatalog.TileFolder(Spec.world, Variant);
         }
 
@@ -85,17 +106,30 @@ public class BackdropSet
         {
             if (layer.kind == BackdropCatalog.Kind.Pieces) continue;
             bool spaceSky = Spec.world == "Space" && layer.name == "sky";
-            string texture = spaceSky ? SpaceSkySelection.Texture : layer.texture;
+            string texture = spaceSky ? (menu != null ? SpaceSkySelection.TextureFor(menu.variant) : SpaceSkySelection.Texture) : layer.texture;
+            bool turn = spaceSky && (menu != null ? menu.halfTurn : SpaceSkySelection.HalfTurn);
             var sprite = Resources.Load<Sprite>(tileFolder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
             float lift = BackdropGrade.Lift(Spec, layer, Variant);
-            Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
-                                       spaceSky && SpaceSkySelection.HalfTurn, lift, BackdropGrade.Saturation(Spec, lift)));
+            float sat = BackdropGrade.Saturation(Spec, lift);
+            var tileLayer = layer;
+            if (menu != null)
+            {
+                lift *= menu.dim;
+                // a wrap-blended sky has no grade: darken it by its tint
+                if (layer.wrapBlend > 0f)
+                {
+                    Color t = layer.tint;
+                    tileLayer.tint = new Color(t.r * menu.dim, t.g * menu.dim, t.b * menu.dim, t.a);
+                }
+            }
+            Tiles.Add(new BackdropTile(Root, tileLayer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
+                                       turn, lift, sat));
         }
 
         Layout(halfWidth, halfHeight);
-        Director = CreateDirector(Spec.world);
+        Director = menu != null ? null : CreateDirector(Spec.world);
         if (Director != null && Complete) Director.Init(this);
     }
 
