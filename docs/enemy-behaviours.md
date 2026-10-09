@@ -758,6 +758,19 @@ tests and editor renders only; nothing here has been played.
   clamp is inside the box. Chosen on purpose: a real hazard at the edge of the lane, not decoration.
 * **Motion.** Position on the rail line = rail + spacing + `Slide` (the brain: Patrol, Creep) + `Shove` (the
   shockwave). x is always the rail's. Tested through slides, shoves both ways and a scrolling rail.
+* **Lanes outlive their mines (fix: "sometimes rail mines disappear when you get close to them").** The spawner
+  mounts each mine on the nearest live `RailMineLane` on its side (one lane per side while it lives), usually one
+  spawned seconds earlier and already far down the board, so the spacing can be 10 u or more. The lane removed itself
+  at y -12 whatever rode it, and a mine whose lane is gone destroys itself (`RailMineMount`, no detached mines): a
+  mine mounted 10 u above an old lane vanished, without a blast, as it came down past y -2 -- the ship's rows (on
+  a 21:9 phone the view reaches y -8.7, so anything mounted more than ~3.3 u above its lane could vanish on screen).
+  Since `14fb831a` (Oct 4). Now `RailLaneScroller` keeps its riders (`Board`, `Riders`) and goes past `EndY` only
+  when none is left; the mines leave by the Destroyer strip under the view like every hazard. `RailsVettingTest`
+  "a lane lives while a mine rides it", both rails. Checked and intended, not changed: a pause jump landing within
+  0.95 u erases a mine (a paid teleport kill with its burst, `TeleportFx.Erase`); a shielded or unshielded ram
+  blows it up (`RamKill`); another mine's beam, a boss / elite shot, a crashing free mover or a neighbour's blast
+  kills it with its blast (hostile fire: rail mines are listed targets, `FriendlyFire`); each of those shows an
+  explosion.
 * **Scroll (decision).** Mines ride the board's scroll like every hazard: gameplay position has to agree with
   rocks, pickups and `SpawnSpace`. The rail ART was what disagreed: it advanced one texture tile per unit of
   speed, a tile being 5.2 u (Frost, Verdant) or 6.8 u (Space, Ember), against the board's 30 u. The rail art

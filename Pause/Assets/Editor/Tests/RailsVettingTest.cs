@@ -63,6 +63,7 @@ public static class RailsVettingTest
             MineArt();
             MinesRideTheDrawnRail();
             MineMotionAndShots();
+            MinesOutliveTheirLane();
             RailArtScrollsWithTheBoard();
             RailEdgeFromTheStart();
             RailQuadCollidersTouchNothing();
@@ -326,6 +327,59 @@ public static class RailsVettingTest
         float reach = enmiesOnBoard.WorldRailX(false) - FriendlyFire.MineBlastRadius;
         Check("a mine's blast (" + FriendlyFire.MineBlastRadius + " u) reaches in to x " + reach.ToString("F2") + ": about a fifth of the lane on its side, never the middle",
               reach > 1.2f && reach < 1.6f);
+    }
+
+    // ---- 3b: a mine is never taken by its lane --------------------------------
+    //
+    // "Sometimes rail mines disappear when you get close to them." The spawner
+    // mounts every mine on the NEAREST live lane on its side (one lane per
+    // side while it lives), which is usually one spawned seconds earlier and
+    // already far down the board; the lane removed itself at y -12 and a mine
+    // whose lane is gone destroys itself (RailMineMount: no detached mines).
+    // So a mine mounted 10 u above an old lane vanished, without a blast, as
+    // it came down past y -2 -- right where the ship flies. The lane now lives
+    // while any mine rides it (the mines leave by the Destroyer under the view).
+    static void MinesOutliveTheirLane()
+    {
+        Stage(0, Shapes[1]);
+        Clear();
+        moveBackGround.speed = 0f;
+        var def = EnemyRoster.One(0, EnemyRole.Mine);
+        var bad = new List<string>();
+        foreach (bool rightSide in new[] { false, true })
+        {
+            float x = enmiesOnBoard.WorldRailX(!rightSide);
+            var lane = new GameObject("RailMineLane");
+            lane.transform.position = new Vector3(x, -9f, 0f);
+            var scroller = lane.AddComponent<RailLaneScroller>();
+            // a mine spawned at the top long after its lane, mounted on it (the nearest live one)
+            var go = EnemyFactory.Create(def, new Vector3(x, 1f, 0f), Quaternion.identity);
+            var mount = go.AddComponent<RailMineMount>();
+            mount.MountTo(lane.transform);
+            // the lane passes its old end (-12) with the mine still on screen, 1.2 u under the ship's row
+            lane.transform.position = new Vector3(x, -12.2f, 0f);
+            bool triedToGo = false;
+            Application.LogCallback cb = (m, st, t) => { if (m.Contains("Destroy may not be called from edit mode")) triedToGo = true; };
+            Application.logMessageReceived += cb;
+            try
+            {
+                TestHarness.Send(scroller, "Update");
+                if (lane != null) TestHarness.Send(mount, "LateUpdate");
+            }
+            finally { Application.logMessageReceived -= cb; }
+            string side = rightSide ? "right" : "left";
+            if (triedToGo || lane == null) bad.Add(side + ": the lane went with a mine on it");
+            if (go == null || !mount.IsOnRail() || Mathf.Abs(go.transform.position.y - (-2.2f)) > .01f)
+                bad.Add(side + ": the mine at y -2.2 went with its lane (" + (go == null ? "gone" : go.transform.position.y.ToString("F2")) + ")");
+            // its last mine gone, the lane goes
+            if (go != null) Object.DestroyImmediate(go);
+            if (lane != null) TestHarness.Send(scroller, "Update");
+            if (lane != null) { bad.Add(side + ": an empty lane past the board's end stays"); Object.DestroyImmediate(lane); }
+        }
+        Clear();
+        Check("a lane lives while a mine rides it: one mounted 10 u above its lane stays on the board (and on its rail) as the lane passes " +
+              "y -12 and the empty lane then goes, on both rails (" +
+              (bad.Count == 0 ? "all" : string.Join("; ", bad)) + ")", bad.Count == 0);
     }
 
     // ---- 4: scroll -------------------------------------------------------------
