@@ -174,6 +174,7 @@ public sealed class CodexAchievementsView
     public RectTransform SectionHeaderRect(int i) { return headers[i].rt; }
     public RectTransform Viewport { get { return viewport; } }
     public float ScrollY { get { return content.anchoredPosition.y; } }
+    public float ContentHeight { get { return content.sizeDelta.y; } }
     public float MaxScroll { get { return Mathf.Max(0f, content.sizeDelta.y - viewport.rect.height); } }
     public int StickySection { get { return stickySection; } }
     public Rect ListRect { get { return listRect; } }

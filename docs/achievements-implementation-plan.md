@@ -132,3 +132,57 @@ Art (Codex headless) runs alongside A/B and lands before C's final polish; C can
 8. Should score thresholds follow loop count? Default: single-run score as designed.
 9. Pause-related ones depend on the owner's definition of "Correct Pause"; default = blink-kill.
 10. Names are placeholders for the owner to rename in the redesign table before store entry.
+
+## 8. Implementation notes (as built, branch `feature/achievements-impl`)
+
+What shipped follows sections 1-6. Where the code differed from the plan, this is what was done instead.
+
+**Files** (`Pause/Assets/Scripts/Achievements/`): `AchievementDef`, `AchievementCatalog` (the 60-row table), `AchievementStore`
+(prefs state, claim), `Achievements` (facade, guards, `AchievementEvents`, `AchievementRunner`), `AchievementTracker` (every hook),
+`AchievementSync` (store reporting, sign-in catch-up), `IAchievementStore` (+ Null / PlayGames / GameCenter stores, `AchievementStores`),
+`AchievementIds` (the single id table), `AchievementMigration`, `AchievementArt` (badge loader + placeholder medal), `SpeedMilestones`.
+UI: `Codex/CodexAchievementsView.cs`, `CodexPanel` (7th tab), `CodexHomeButton` (collect dot). Editor: `Tools/AchievementStoreExport.cs`
+(`Pause > Achievements > Export store CSV`, output in `docs/achievements-export/`), `Importers/AchievementArtImporter.cs`,
+`Previews/CodexPreview.RunAchievements`. Removed: `achievementAPICalls`, `AchievementTiers`, the old `AchievementSync`, `StringHolder`,
+old `AchievementIds`, `AchievementTiersTest` (and with them the five never-firing achievements).
+
+**Deviations**
+
+1. *State keys.* No `ach_p_<id>`: progress is a set of shared lifetime counters (`ach_n_<name>`), because several achievements read one
+   count. One-shots only need `ach_u_<id>`. Sets that feed counters are `ach_e_<eliteCodexId>` and `ach_b_<world>` (ints, so the cloud
+   merge needs no new type: counters merge by max, flags by union; `AchievementStore.RecountDerived` reconciles after a restore).
+   `ach_s_<id>` (the store-confirmed percent) is device-local and not synced; `ach_schema` is not synced either.
+2. *Score thresholds recalibrated* (open question 8 in the redesign): ScoreRules put a first pass Space -> Ember at ~6,600 and a second loop
+   at ~8,100, so 10k / 50k / 150k were out of reach. Now **2,500 / 8,000 / 30,000** (`AchievementCatalog.ScoreRookie/Ace/Legend`). The ids
+   (`score_10k` / `score_50k` / `score_150k`) are unchanged so the badge art names still match; titles are unchanged, descriptions show
+   the real numbers. `docs/achievements-export/` is generated from the code and supersedes the CSV in `achievements-store-setup.md`.
+3. *Progress bars for max-style achievements.* `chain_10`, `loop_1/2/5` and the score ones are counters (`best_chain`, `best_loop`,
+   `best_score`) with `storeSteps = 0`, so the Codex shows "7/10" while the stores see a standard (non-incremental) achievement.
+4. *Codex tab is not a `CodexCategory`.* Its cards are achievements, not entries, so `CodexPanel.Tabs` stays the six entry categories and
+   `CodexPanel.TabCount = 7` / `AchievementsTab = 6` adds the seventh. 4 + 3 tabs (the second row's three are wider). The tab is its own
+   view (`CodexAchievementsView`, own ScrollRect, sections, jump chips, pinned header, detail) rather than a branch of `Populate`, which
+   left the 2500-line `CodexTest` untouched. `MaxSections` (7) was enough, no bump.
+5. *Buttons.* COLLECT, COLLECT ALL and the detail COLLECT each sit on their own sub-canvas with their own `GraphicRaycaster` (the
+   nested-canvas lesson), which also keeps the pulse from rebuilding the list's canvas. Pulse = scale of the visible chips only.
+   No dust sound: the menus have no shared UI sound to reuse. The balance counts up in the strip.
+6. *Toast.* Via `CodexToast.Announce` as planned, only in `gameS1`. It is not held back during a boss intro: the toast already drops
+   under the boss/portal banners (`TopOffset`), so a separate hold queue was not added.
+7. *Codex counts.* `codex_complete` needs every entry in `Codex.Entries` (bosses and all ships included); `codex_field_guide` is one
+   world's non-elite, non-boss enemies and hazards (elites and bosses have their own achievements). `codex_10` is already true on a
+   fresh profile (17 entries are free: Log, atoms, ...), which is how the codex counts it.
+8. *Elite credit* goes to the pilot's own kills only (`PlayerWeapon`, `Teleport`, `ShieldRam`, `PlayerContact`, `Combo`), not crash /
+   rail / friendly fire / domino.
+9. *Store ids.* 13 legacy Play ids that map one-to-one onto a new achievement are kept in `AchievementIds` (tutorial, logged on, the three
+   speed ones, paused, correct pause, buy first / all ships, stars 150 / 1000, deaths 10 / 100); the other 47 are `TODO_android_<id>`
+   placeholders. Real ids go in `Assets/Resources/AchievementStoreIds.csv` (`internal_id,CgkI...`), no code change. iOS ids follow
+   `me.sinaserati.Pause.ach_<id>` but reporting stays off until `AchievementIds.IosIdsConfirmed` is set (App Store Connect rows exist).
+   `SocialBridge.ReportProgress/ReportScore` now take platform-ready ids.
+10. *Blink-dodge probe* (`pause_perfect_dodge`) ships ON behind `AchievementTracker.DodgeProbeEnabled`: a hostile shot within 0.6 of the
+    blink origin that the blink left behind (landing > 0.9 from it), and no heart lost for 1 s of world time. Not play-tested on device.
+11. *Sign-in.* `meta_logged_on` fires from `SocialBridge.SignedIn` (via the tracker) and ignores developer mode, as planned; the tutorial
+    achievement ignores `paysRealDust` (it happens in the tutorial scene) but not developer mode.
+12. *Cloud.* The legacy `achv_count_*` / `achv_progress_*` keys stay in the snapshot's counter list for one release (migration seed);
+    the new keys are added. Currency still merges "newer wins": a claim on one device can be overwritten by a newer save from another
+    (the claimed flag survives, so it never pays twice, but the 25 may be lost). Documented risk, unchanged.
+
+**Owner-only steps** are in `docs/achievements-export/README.md`.

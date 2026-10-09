@@ -51,7 +51,7 @@ submitted and nothing queued.
 
 * **When:** at run end. That covers death, and also leaving a run early (Menu/Replay/Back) or
   backgrounding the app, but in those cases only when the run beat the local best score
-  (`BestScore`). (The best speed and the old `achievementAPICalls.leaderboard_highest_speed_reached`
+  (`BestScore`). (The best speed and the old `leaderboard_highest_speed_reached`
   call are gone with the speed board.)
 * **Improvement only:** an offer is dropped unless it beats both the last value this device submitted
   to that board and the value already waiting to be sent.
@@ -81,13 +81,12 @@ opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfe
 
 1. Create the leaderboard in **both** consoles (see below).
 2. In Play Console, use *Get resources* to copy the generated id, then add or refresh it in
-   `StringHolder` (Window → Google Play Games → Setup), or paste the id string straight in.
+   the `LeaderboardBoards` row (the generated `StringHolder` was removed with the achievements rewrite).
 3. Add one `LeaderboardBoard` row to `LeaderboardBoards.All`, giving it a logical id constant, both ids,
    a name, a description, the sort order, a formatter and the metric taken from
    `LeaderboardRunStats`. If the metric needs a new number, add the field and fill it in
    `LeaderboardRunTracker.Stats()`.
-4. If you use the iOS prefix scheme, also add an entry to `AchievementIds.All` with `leaderboard: true`
-   for reference.
+4. (Leaderboard ids live only in `LeaderboardBoards`; `AchievementIds` is for achievements.)
 5. Run `AllTests.RunAll`. `LeaderboardTest` checks the id rules.
 
 To turn on one of the placeholders, just fill in its two empty strings. Top Score only needs its
@@ -108,8 +107,7 @@ Play Console id: its iOS id is already in.
    * **Tamper protection:** **On**
    * Save, then **Get resources** and copy the generated id (it looks like `CgkI3eXNjrQcEAIQ..`).
      Paste it into the empty Android id of the `TopScore` row in
-     `Pause/Assets/Scripts/Core/Leaderboards/LeaderboardBoards.cs` (or regenerate `StringHolder` with
-     Window -> Google Play Games -> Setup and reference the new constant there). Don't reuse the
+     `Pause/Assets/Scripts/Core/Leaderboards/LeaderboardBoards.cs`. Don't reuse the
      speed board's id: it is a different metric. The board turns on, and becomes the first tab, as soon
      as that string is filled in. Run `AllTests.RunAll`.
 3. Retire Top Speed (`CgkI3eXNjrQcEAIQAA`, "Highest Speed Reached"): see "Retiring Top Speed".
@@ -159,15 +157,18 @@ The game no longer sends anything to the speed board; these steps only tidy the 
   from the app version's Game Center section (detach it) so the native Game Center screen stops
   listing it, then submit with the next build. A leaderboard that has been live can't be deleted, only
   detached / archived.
-* **Achievements:** "Speedster" (`achievement_speedster`, iOS `speedster`) is repurposed: it now unlocks
+* **Achievements (superseded):** the 28 legacy achievements were replaced by the 60 in
+  `docs/achievements-redesign.md` (Flash / Speedster / Super Sonic live on as `speed_flash`,
+  `speed_speedster`, `speed_super_sonic`, same legacy Android ids). The text below is the original note.
+  "Speedster" (`achievement_speedster`, iOS `speedster`) is repurposed: it now unlocks
   on the first **limit break** (speed past 35 on the blue atom's boost shield). Re-word its
   description in both consoles, e.g. "Break the speed limit: pass 35 on a boost shield". "Flash"
   (`achievement_flash`) now unlocks when natural speed reaches the cap (35): suggested text "Reach
   the speed limit". "Super Sonic" (`achievement_super_sonic`) unlocks on a full limit break (the
   boost at its maximum, HUD 45): suggested text "Push a limit break to the max". None of the three
   was ever unlocked by code before, so no player holds them under the old meaning.
-* `StringHolder.leaderboard_highest_speed_reached` stays in the generated resources (it is
-  regenerated from the console); nothing in the game uses it.
+* The retired speed board's Play id (`CgkI3eXNjrQcEAIQAA`) is no longer in the code at all
+  (`StringHolder` was removed); nothing in the game uses it.
 
 ## Verified vs. not verifiable yet
 
