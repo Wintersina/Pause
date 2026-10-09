@@ -12,8 +12,9 @@ using UnityEngine.UI;
 // (generated here with AudioClip.Create, no audio assets). When it is quiet
 // it hovers and blinks.
 //
-// Art direction: a painted rustic steampunk robot (brass, rust, amber nixie
-// eyes and mouth, red antenna lamp) talking from a brass-framed navy panel
+// Art direction: a stern cyberpunk robot in true low-res pixel art (gunmetal
+// shell, CRT visor with cyan slit eyes and a magenta/cyan segmented mouth,
+// red antenna lamp) talking from a dark navy HUD panel with corner brackets
 // (TutorialPalette holds the matching text/tint colours). Every moving part
 // is a separate sprite frame in Art/Resources/Tutorial and the motion is limited
 // animation: poses are held for whole steps of 1/12 s ("on 2s") or 1/8 s
@@ -40,9 +41,9 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     public const float RobotBubbleGap = 14f;   // the tail spans it
     public const float TailReach = 19f;        // tail tip, left of the bubble body
     public const float Margin = 22f;           // from the safe area, > hover + pop travel
-    public const float BubbleMargin = 4f;      // tut_bubble's transparent rim (8 px at 200 ppu) outside the brass frame
+    public const float BubbleMargin = 4f;      // tut_bubble's transparent rim (8 px at 200 ppu) outside the panel's dark outline
     public const float TopGap = 10f;           // below whatever is blocking the top
-    public const float TextPadX = 22f, TextPadY = 12f;
+    public const float TextPadX = 26f, TextPadY = 12f;
     public const int FontMax = 28, FontMin = 18;
     // How far the hover, jolt and pop overshoot can push art past its
     // laid-out rect. Margin must exceed it so nothing leaves the safe area.
@@ -58,7 +59,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
 
     const string SpriteRoot = "Tutorial/";
     const int RingCount = 3;
-    const float RingAlpha = .55f;   // the painted ring is a thick cream octagon; keep the pulse a hint
+    const float RingAlpha = .55f;   // the pixel ring is a thin white octagon over a dark fill; keep the pulse a hint
 
     // Mouth frames, by index.
     const int MouthRest = 0, MouthE = 1, MouthA = 2, MouthO = 3, MouthBig = 4;
@@ -154,7 +155,7 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
         robotAnchor.sizeDelta = new Vector2(RobotSize, RobotSize);
         for (int i = 0; i < RingCount; i++)
         {
-            rings[i] = NewImage("VoicePulse", robotAnchor, Load("tut_ring"), TutorialPalette.Orange);
+            rings[i] = NewImage("VoicePulse", robotAnchor, Load("tut_ring"), TutorialPalette.Cyan);
             Place(rings[i].rectTransform, 0f, 0f, RobotSize, RobotSize);
             rings[i].enabled = false;
             ringBornAt[i] = -10f;

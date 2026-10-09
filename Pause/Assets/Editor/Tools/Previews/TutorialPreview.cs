@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 // The tutorial as a player sees it, without a build: tutorialS5 with the real
 // Space world backdrop (as the runtime bootstrap sets it up), the robot and
-// its brass bubble speaking a few of the script's lines, and the pickups the
+// its HUD bubble speaking a few of the script's lines, and the pickups the
 // steps teach. One PNG per step into $TUTORIAL_PREVIEW_DIR (else
 // Builds/TutorialPreview), 1080x2340, plus a crop of the robot and bubble.
 //
@@ -30,6 +30,8 @@ public static class TutorialPreview
                new Rect(0f, 90f / Sf, Width / Sf, (Height - 90f - 130f) / Sf)))
         {
             for (int i = 0; i < Shots.Length; i++) Step(dir, i);
+            LipSync(dir);
+            EndCard(dir);
         }
         EditorApplication.Exit(0);
     }
@@ -160,5 +162,135 @@ public static class TutorialPreview
         Object.DestroyImmediate(png);
         Object.DestroyImmediate(speaker.gameObject);
         Debug.Log("[TUTORIAL-PREVIEW] " + stem + ".png (" + step.line + ")");
+    }
+
+    // ---- Extra sets: lip-sync crops and the end card ----
+
+    static Camera Stage(out RenderTexture rt)
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
+        Time.timeScale = 1f;
+        moveBackGround.speed = 0f;
+        var cam = Camera.main;
+        cam.orthographic = true;
+        cam.aspect = Width / (float)Height;
+        cam.orthographicSize = CameraFit.GameplayHalfWidth * Height / Width;
+        cam.transform.position = new Vector3(0f, 0f, -10f);
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        var theme = WorldManager.Worlds[0];
+        var wb = WorldBackdrop.Create(theme.displayName);
+        wb.Show(theme.displayName, false);
+        WorldPainter.Apply(theme);
+        for (int i = 0; i < 900; i++) wb.Step(1f / 60f);
+        var paused = GameObject.Find("paused");
+        if (paused != null) paused.SetActive(false);
+        rt = new RenderTexture(Width, Height, 24);
+        cam.targetTexture = rt;
+        return cam;
+    }
+
+    static void WorldCanvas(Canvas canvas, Camera cam)
+    {
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.worldCamera = cam;
+        canvas.scaleFactor = 1f;
+        var crt = (RectTransform)canvas.transform;
+        crt.sizeDelta = new Vector2(Width / Sf, Height / Sf);
+        crt.position = new Vector3(0f, 0f, -1f);
+        crt.localScale = Vector3.one * Sf * (2f * CameraFit.GameplayHalfWidth / Width);
+    }
+
+    static Texture2D Grab(Camera cam, RenderTexture rt)
+    {
+        cam.Render();
+        var old = RenderTexture.active;
+        RenderTexture.active = rt;
+        var png = new Texture2D(Width, Height, TextureFormat.RGB24, false);
+        png.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+        png.Apply();
+        RenderTexture.active = old;
+        return png;
+    }
+
+    // The robot alone, one crop per mouth frame (a, e, o, big, rest) and the
+    // happy eyes, mid-speech, to check the face parts sit on the visor.
+    static void LipSync(string dir)
+    {
+        string[] names = { "rest", "e", "a", "o", "big" };
+        for (int m = 0; m <= names.Length; m++)
+        {
+            RenderTexture rt;
+            var cam = Stage(out rt);
+            var speaker = RobotSpeaker.Create(null);
+            WorldCanvas(speaker.GetComponent<Canvas>(), cam);
+            Call(speaker, "Fit", true);
+            speaker.Say(TutorialScript.Speak("Hold anywhere to fly."));
+            SetField(speaker, "robotShownAt", -10f);
+            SetField(speaker, "bubbleShownAt", -10f);
+            SetField(speaker, "nextSyllableAt", float.MaxValue);
+            if (m < names.Length)
+            {
+                SetField(speaker, "mouthFrame", m);
+                SetField(speaker, "mouthHeldUntil", float.MaxValue);
+            }
+            else SetField(speaker, "happyUntil", float.MaxValue);
+            SetField(speaker, "nextBlinkAt", float.MaxValue);
+            Canvas.ForceUpdateCanvases();
+            Call(speaker, "Update");
+            Canvas.ForceUpdateCanvases();
+            var png = Grab(cam, rt);
+            var rc = new Vector3[4];
+            speaker.Robot.GetWorldCorners(rc);
+            float unit = Width / (2f * CameraFit.GameplayHalfWidth);
+            float x0 = Width, x1 = 0f, y0 = Height, y1 = 0f;
+            foreach (var c in rc)
+            {
+                x0 = Mathf.Min(x0, Width * .5f + c.x * unit); x1 = Mathf.Max(x1, Width * .5f + c.x * unit);
+                y0 = Mathf.Min(y0, Height * .5f + c.y * unit); y1 = Mathf.Max(y1, Height * .5f + c.y * unit);
+            }
+            const int pad = 30;
+            int cx = Mathf.Max(0, Mathf.FloorToInt(x0) - pad), cy = Mathf.Max(0, Mathf.FloorToInt(y0) - pad);
+            int cw = Mathf.Min(Width - cx, Mathf.CeilToInt(x1 - x0) + 2 * pad), ch = Mathf.Min(Height - cy, Mathf.CeilToInt(y1 - y0) + 2 * pad);
+            var zoom = new Texture2D(cw, ch, TextureFormat.RGB24, false);
+            zoom.SetPixels(png.GetPixels(cx, cy, cw, ch));
+            zoom.Apply();
+            File.WriteAllBytes(Path.Combine(dir, "lipsync-" + (m < names.Length ? names[m] : "happy") + ".png"), zoom.EncodeToPNG());
+            Object.DestroyImmediate(zoom);
+            Object.DestroyImmediate(png);
+            cam.targetTexture = null;
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(speaker.gameObject);
+        }
+    }
+
+    static Button DummyButton(Transform parent, string name)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        go.transform.SetParent(parent, false);
+        var t = new GameObject("Text", typeof(RectTransform), typeof(Text));
+        t.transform.SetParent(go.transform, false);
+        return go.GetComponent<Button>();
+    }
+
+    static void EndCard(string dir)
+    {
+        RenderTexture rt;
+        var cam = Stage(out rt);
+        var canvasGo = new GameObject("PreviewCanvas", typeof(RectTransform), typeof(Canvas));
+        var canvas = canvasGo.GetComponent<Canvas>();
+        WorldCanvas(canvas, cam);
+        var play = DummyButton(canvasGo.transform, "playMainGameButton");
+        var menu = DummyButton(canvasGo.transform, "MainMenuButton");
+        var view = TutorialCompletePanel.Build(canvasGo.transform, play, menu, null, 3.5f, 4);
+        Canvas.ForceUpdateCanvases();
+        view.ApplyAt(10f);
+        Canvas.ForceUpdateCanvases();
+        var png = Grab(cam, rt);
+        File.WriteAllBytes(Path.Combine(dir, "endcard.png"), png.EncodeToPNG());
+        Object.DestroyImmediate(png);
+        cam.targetTexture = null;
+        Object.DestroyImmediate(rt);
+        Object.DestroyImmediate(canvasGo);
     }
 }
