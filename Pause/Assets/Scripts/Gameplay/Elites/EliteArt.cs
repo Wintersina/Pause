@@ -137,7 +137,7 @@ public static class EliteFxArt
     // A landed resin pool: a flat, lumpy puddle (wider than tall).
     public static Sprite Pool => pool != null ? pool : (pool = Puddle("ElitePool", 24, 14, 31));
     public static Sprite Shell => shell != null ? shell : (shell = Dart("EliteShell", 14, 24, .8f));
-    public static Sprite Shard => shard != null ? shard : (shard = Chevron("EliteShard", 12, 16));
+    public static Sprite Shard => shard != null ? shard : (shard = ArrowHead("EliteShard", 12, 16));
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
     // The siege cannon's blinking sight line: a 1 x 8 bar.
     public static Sprite Sight => sight != null ? sight : (sight = Bar("EliteSight"));
@@ -156,8 +156,9 @@ public static class EliteFxArt
         }
     }
     public const string SlabArtKey = "frost_rock_chunk";
-    // frost_bloom's cryo orb: a hard-stepped disc with a bright rim.
-    public static Sprite Orb => orb != null ? orb : (orb = Disc("EliteOrb", 14, new[] { 1f, 1f, .7f, .95f }));
+    // frost_bloom's cryo orb: a spiked ice urchin (ten short spikes round a
+    // hot core) -- never a smooth disc, which reads as an atom (PickupGlow).
+    public static Sprite Orb => orb != null ? orb : (orb = Burr("EliteOrb", 21, 10));
     // armour_shatter's ice plate rim: a chevron, apex at the top (its pivot).
     public static Sprite Plate => plate != null ? plate : (plate = Chevron("ElitePlate", 72, 44));
 
@@ -346,7 +347,7 @@ public static class EliteFxArt
 
     // An arrowhead pointing up the texture: a solid triangle with a
     // shallow notch in its base.
-    static Sprite Chevron(string name, int w, int h)
+    static Sprite ArrowHead(string name, int w, int h)
     {
         var t = NewTex(w, h, name);
         float cx = w * .5f;

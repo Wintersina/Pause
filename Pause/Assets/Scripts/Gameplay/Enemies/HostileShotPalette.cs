@@ -31,6 +31,15 @@ public static class HostileShotPalette
         return c;
     }
 
+    // The light trace of a shot's outline (ShotOutline) or a boss shot's rim
+    // (BossArt.ShotRim): the body's pink, a little paled.
+    public static Color Trace(Color body)
+    {
+        var c = Color.Lerp(body, Color.white, TraceWhite);
+        c.a = 1f;
+        return c;
+    }
+
     public static Color Core(Color body)
     {
         var c = Color.Lerp(body, Color.white, CoreWhite);

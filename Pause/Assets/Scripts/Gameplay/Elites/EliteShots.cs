@@ -325,8 +325,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // the outline's light trace: the hostile pink only a little paled
         // (HostileShotPalette.TraceWhite), so even a thin bolt over a blue
         // planet reads hot pink, never lilac
-        glowTint = Color.Lerp(tint, Color.white, HostileShotPalette.TraceWhite);
-        glowTint.a = 1f;
+        glowTint = HostileShotPalette.Trace(tint);
         Outline(sprite, k);
         Pulse();
         Active = true;
@@ -405,7 +404,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         fuse = fuseTotal = Mathf.Max(.05f, seconds);
         mark.sprite = EliteFxArt.Ring;
         mark.enabled = true;
-        mark.color = def.ShotColor;
+        mark.color = tint;
     }
 
     // A player weapon touched it: a slab soaks it (armour) until it breaks,
@@ -567,7 +566,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             mark.transform.position = new Vector3(p.x, p.y, 0f);
             // the ring shows the fuse: wider as it runs down, blinking faster at the end
             mark.transform.localScale = Vector3.one * def.hazardSize * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
-            Color mc = def.ShotColor;
+            Color mc = tint;
             mc.a = Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .95f : .35f;
             mark.color = mc;
             float pulse = 1f + .12f * (Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2);

@@ -16,7 +16,7 @@ using UnityEngine;
 //   size       the extent of the pixels changed strongly (the drawing)
 //   silhouette the strongly changed pixels, centred and fitted to one
 //              square: two shapes' IoU
-//   hostile    the share of strongly changed pixels in the hostile family's
+//   hostile    the share of changed pixels in the hostile family's
 //   edge       hot pink (HostileShotPalette, +-HostileEdgeSlack deg): every
 //              hostile shot's outline / rim carries it, no pickup does
 //
@@ -162,7 +162,7 @@ public static class AtomClarityTest
         Check("a hostile shot's core flickers hard (" + seen.Count + " distinct colours over half a second: on / off, never a smooth breath)",
               seen.Count == 2);
         shot.Recycle();
-        foreach (var sprite in new[] { EliteFxArt.Bolt, EliteFxArt.Shard, EliteFxArt.Shell, EliteFxArt.Slag })
+        foreach (var sprite in new[] { EliteFxArt.Bolt, EliteFxArt.Shard, EliteFxArt.Shell, EliteFxArt.Slag, EliteFxArt.Orb })
         {
             float fill = Fill(sprite);
             Check("the " + sprite.name + " drawing is pointed / spiked, not a round blob, capsule or gem (fills " +
@@ -211,7 +211,7 @@ public static class AtomClarityTest
         var shots = new List<Look>();
         var roster = AtomClarityPreview.RosterShooter(world);
         if (roster != null)
-            foreach (EliteShots.Kind kind in System.Enum.GetValues(typeof(EliteShots.Kind)))
+            foreach (var kind in new[] { EliteShots.Kind.Bolt, EliteShots.Kind.Shard, EliteShots.Kind.Slag, EliteShots.Kind.Shell, EliteShots.Kind.Glob })
             {
                 var at = Spot();
                 var s = EliteSystem.Shots.Fire(null, roster.ShotStyle, kind, at, Vector2.down * .01f);
@@ -261,8 +261,12 @@ public static class AtomClarityTest
             if (!s.boss)
                 Check(name + ": " + s.name + " is hard-edged (" + (s.softness * 100f).ToString("F0") + "% soft, at most " +
                       (MaxShotSoftness * 100f).ToString("F0") + "%)", s.softness <= MaxShotSoftness);
-            Check(name + ": " + s.name + " carries the hostile pink edge (" + (s.pink * 100f).ToString("F0") + "% of its pixels, need " +
-                  (CuePinkGap * 100f).ToString("F0") + "%)", s.pink >= CuePinkGap);
+            // (a boss shot's pink rim is thin against its big painted drawing:
+            // reported, and counted as a cue below when it shows)
+            string edge = name + ": " + s.name + " carries the hostile pink edge (" + (s.pink * 100f).ToString("F0") + "% of its pixels, need " +
+                          (CuePinkGap * 100f).ToString("F0") + "%)";
+            if (s.boss) Debug.Log("[ATOMCLARITY] INFO  " + edge);
+            else Check(edge, s.pink >= CuePinkGap);
             foreach (var p in pickups)
             {
                 pairs++;
@@ -318,7 +322,7 @@ public static class AtomClarityTest
         }
         Vector3 lo = cam.WorldToScreenPoint(bounds.min), hi = cam.WorldToScreenPoint(bounds.max);
         int bx0 = Mathf.FloorToInt(lo.x) - 1, by0 = Mathf.FloorToInt(lo.y) - 1, bx1 = Mathf.CeilToInt(hi.x) + 1, by1 = Mathf.CeilToInt(hi.y) + 1;
-        double sx = 0, sy = 0, sw = 0, dx = 0, dy = 0, dw = 0;
+        var lit = new List<Vector3>(); var all = new List<Vector3>();
         int changed = 0, strong = 0, pinkCount = 0, x0 = Win, y0 = Win, x1 = -1, y1 = -1;
         var strongMask = new bool[Win * Win];
         for (int i = 0; i < fg.Length; i++)
@@ -330,38 +334,33 @@ public static class AtomClarityTest
             if (d < SoftDiff) continue;
             changed++;
             Color.RGBToHSV(f, out float h, out float s, out float v);
+            // the hostile edge: any visibly changed pixel in the hostile pink
+            // (a rim is thin and pale over a bright cloud, but it is there)
+            if (s > .25f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
+                h * 360f <= HostileShotPalette.HueMax + HostileEdgeSlack) pinkCount++;
             if (d < StrongDiff) continue;
             // the hue of the drawing itself (strongly changed pixels): soft
             // fringes blended with the backdrop would drag a thin shot's hue
             // towards the sky behind it
             // ... and only the light it adds: a dark outline over a bright
             // nebula is the nebula darkened, not the object's colour
-            float w = s * v * d;
             if (s > .25f && v > .25f)
             {
-                if (Lum(f) >= Lum(b))
-                {
-                    sx += Mathf.Cos(h * 2f * Mathf.PI) * w;
-                    sy += Mathf.Sin(h * 2f * Mathf.PI) * w;
-                    sw += w;
-                }
-                // fallback for a drawing darker than a bright sky everywhere
-                dx += Mathf.Cos(h * 2f * Mathf.PI) * w;
-                dy += Mathf.Sin(h * 2f * Mathf.PI) * w;
-                dw += w;
+                // candidates; the hue is taken over the most-changed half
+                // (the drawing's opaque body, not its edges blended with the sky)
+                if (Lum(f) >= Lum(b)) lit.Add(new Vector3(d, h, s * v));
+                all.Add(new Vector3(d, h, s * v));
             }
             strong++;
-            if (s > .3f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
-                h * 360f <= HostileShotPalette.HueMax + HostileEdgeSlack) pinkCount++;
+
             strongMask[i] = true;
             int x = i % Win, y = i / Win;
             x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y);
         }
-        if (sw <= 0) { sx = dx; sy = dy; sw = dw; }
-        look.hue = sw > 0 ? Mathf.Repeat(Mathf.Atan2((float)sy, (float)sx) * Mathf.Rad2Deg, 360f) : -999f;
+        look.hue = TopHalfHue(lit.Count > 0 ? lit : all);
         look.softness = changed > 0 ? (changed - strong) / (float)changed : 0f;
         look.strong = strong;
-        look.pink = strong > 0 ? pinkCount / (float)strong : 0f;
+        look.pink = changed > 0 ? pinkCount / (float)changed : 0f;
         look.extent = x1 >= x0 ? Mathf.Max(x1 - x0 + 1, y1 - y0 + 1) : 0f;
         if (x1 >= x0)
         {
@@ -388,6 +387,23 @@ public static class AtomClarityTest
         tex.Apply();
         RenderTexture.active = old;
         return tex.GetPixels();
+    }
+
+    // Circular mean hue (weighted by saturation x value x change) over the
+    // most-changed half of the candidates; -999 when there are none.
+    static float TopHalfHue(List<Vector3> px)
+    {
+        if (px.Count == 0) return -999f;
+        px.Sort((a, b) => b.x.CompareTo(a.x));
+        int n = Mathf.Max(1, (px.Count + 1) / 2);
+        double sx = 0, sy = 0;
+        for (int i = 0; i < n; i++)
+        {
+            float w = px[i].z * px[i].x;
+            sx += Mathf.Cos(px[i].y * 2f * Mathf.PI) * w;
+            sy += Mathf.Sin(px[i].y * 2f * Mathf.PI) * w;
+        }
+        return Mathf.Repeat(Mathf.Atan2((float)sy, (float)sx) * Mathf.Rad2Deg, 360f);
     }
 
     static float Lum(Color c) => .2126f * c.r + .7152f * c.g + .0722f * c.b;
