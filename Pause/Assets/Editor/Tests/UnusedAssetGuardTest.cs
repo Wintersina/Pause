@@ -150,6 +150,16 @@ public static class UnusedAssetGuardTest
         "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/forest_industrial_center_v1.png",
         "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop/steam_plume_4f_v1.png",
         "Assets/Art/Worlds/Verdant/src~/render.sh",
+        // Ember's old backdrop (2026-10-09): replaced by the v3 forge world in
+        // Worlds/Ember/Backdrop3 (EmberDirector); its SVG generator went too.
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/sky.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/far.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/mid.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/flow.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/fx.png",
+        "Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop/anim.png",
+        "Assets/Art/Worlds/Ember/src~/render.sh",
+        "Assets/Art/Worlds/src~/ember.py",
     };
 
     static void ReplacedAssetsStayDeleted()

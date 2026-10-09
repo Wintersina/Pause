@@ -809,63 +809,17 @@ public partial class SpaceDirector : BackdropDirector
 // view, and never spawn on top of each other.
 public abstract class PlanetDirector : BackdropDirector
 {
-    protected BackdropPool haze, clouds;
-    readonly Timer hazeTimer = new Timer(6f, 11f, 2.5f);
-    readonly Timer cloudTimer = new Timer(7f, 14f, 4f);
     protected readonly List<BackdropPool> landmarks = new List<BackdropPool>();
 
     protected PlanetDirector(int seed) : base(seed) { }
 
     public IList<BackdropPool> Landmarks { get { return landmarks; } }
 
-    protected void BuildAir()
-    {
-        haze = Pool("haze", 2);
-        clouds = Pool("clouds", 2);
-        SpawnHaze(Rand(-HalfH * 0.3f, HalfH * 0.5f));
-    }
-
     protected BackdropPool LandmarkPool(string layer, int capacity, int orderOffset = 0)
     {
         var p = Pool(layer, capacity, false, orderOffset);
         landmarks.Add(p);
         return p;
-    }
-
-    protected void StepAir(float dt, float v)
-    {
-        if (hazeTimer.Tick(dt, rng)) SpawnHaze(float.NaN);
-        if (cloudTimer.Tick(dt, rng)) SpawnCloud();
-        foreach (var h in haze.items)
-            if (h.active && Drift(h, dt, v)) Paint(h, 1f);
-        foreach (var c in clouds.items)
-            if (c.active && Drift(c, dt, v)) Paint(c, 1f);
-    }
-
-    void SpawnHaze(float y)
-    {
-        var h = haze.Spawn();
-        if (h == null) return;
-        SetSprite(h, fx.Get("haze"), HalfW * 2f * Rand(1.15f, 1.35f));
-        h.root.localScale = new Vector3(h.root.localScale.x, h.root.localScale.y * Rand(1.2f, 2.2f), 1f);
-        h.x = Rand(-0.3f, 0.3f);
-        h.y = float.IsNaN(y) ? HalfH + 1.2f : y;
-        h.size = 1.5f;
-        h.rate = set.Spec.Rate("haze");
-        h.color = new Color(1f, 1f, 1f, Rand(0.22f, 0.32f));
-    }
-
-    void SpawnCloud()
-    {
-        var c = clouds.Spawn();
-        if (c == null) return;
-        SetSprite(c, fx.Get(Chance(0.5) ? "cloud0" : "cloud1"), Rand(2.0f, 3.0f));
-        if (Chance(0.5)) c.body.localScale = new Vector3(-1f, 1f, 1f);
-        c.x = Rand(-HalfW * 0.6f, HalfW * 0.6f);
-        c.y = SpawnY(1f);
-        c.vx = Rand(-0.12f, 0.12f);
-        c.rate = set.Spec.Rate("clouds");
-        c.color = new Color(1f, 1f, 1f, Rand(0.26f, 0.36f));
     }
 
     // True when the top of the view is clear of other landmarks, so a new
@@ -892,152 +846,5 @@ public abstract class PlanetDirector : BackdropDirector
         p.color = Color.white;
         if (Chance(0.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);
         return p;
-    }
-
-    // Elite landing pads on `pool`'s landmarks still in the upper part of
-    // the view (a parked ship has time to be seen before it lifts off):
-    // each pad is a fraction of the drawing's bounds from its centre (x
-    // right, y up; mirrored with the drawing), `pick` filters by drawing.
-    // Ids are unique per landmark and pad (`idBase` per pool).
-    protected void LandmarkPads(BackdropPool pool, List<LandingSite> into, System.Func<BackdropPiece, Vector2[]> pads,
-                                float scale, int idBase)
-    {
-        for (int i = 0; i < pool.items.Count; i++)
-        {
-            var p = pool.items[i];
-            if (!p.active || p.sr.sprite == null) continue;
-            if (p.y < -HalfH * .15f || p.y > HalfH - p.size * .3f) continue;
-            var list = pads(p);
-            if (list == null) continue;
-            Bounds b = p.sr.sprite.bounds;
-            float flip = p.body.localScale.x < 0f ? -1f : 1f;
-            for (int k = 0; k < list.Length; k++)
-            {
-                into.Add(new LandingSite
-                {
-                    anchor = p.root,
-                    local = new Vector3(flip * (b.center.x + list[k].x * b.size.x), b.center.y + list[k].y * b.size.y, 0f),
-                    scale = scale,
-                    order = p.sr.sortingOrder + 1,
-                    id = idBase + i * 8 + k,
-                });
-            }
-        }
-    }
-
-    protected void StepLandmarks(BackdropPool pool, float dt, float v)
-    {
-        foreach (var p in pool.items)
-        {
-            if (!p.active || !Drift(p, dt, v)) continue;
-            p.Animate();
-            if (p.Finished) { Despawn(p); continue; }
-            Paint(p, 1f);
-        }
-    }
-}
-
-// FrostDirector lives in FrostBackdrop.cs.
-
-// VerdantDirector lives in VerdantBackdrop.cs.
-
-public class EmberDirector : PlanetDirector
-{
-    BackdropPool volcanoes, bursts, embers, ash;
-    Sprite[] volcano, burst;
-    Timer volcanoTimer = new Timer(8f, 13f, 5f);
-    Timer burstTimer = new Timer(1.8f, 3.8f, 1f);
-
-    public EmberDirector() : base(1991) { }
-
-    protected override void Build()
-    {
-        volcano = anim.Frames("volcano");
-        burst = fx.Frames("burst");
-        bursts = LandmarkPool("bursts", 3);
-        volcanoes = LandmarkPool("volcanoes", 2);
-        BuildAir();
-        embers = Pool("embers", 24);
-        ash = Pool("ash", 12);
-        Scatter(embers, fx.Get("dot"), 0.05f, 0.1f, new[] { new Color(1f, 0.55f, 0.18f, 0.75f),
-            new Color(1f, 0.75f, 0.3f, 0.6f) }, set.Spec.Rate("embers"));
-        Scatter(ash, fx.Get("dot"), 0.04f, 0.08f, new[] { new Color(0.45f, 0.4f, 0.42f, 0.5f) },
-                set.Spec.Rate("ash"));
-        SpawnVolcano(Rand(-HalfH * 0.1f, HalfH * 0.4f));
-    }
-
-    protected override void Step(float dt, float v)
-    {
-        if (volcanoTimer.Tick(dt, rng)) SpawnVolcano(float.NaN);
-        if (burstTimer.Tick(dt, rng)) SpawnBurst();
-        StepLandmarks(volcanoes, dt, v);
-        StepLandmarks(bursts, dt, v);
-        StepAir(dt, v);
-        foreach (var e in embers.items)
-        {
-            Recycle(e, 1.1f, dt, v, 0.7f);
-            float f = Mathf.Sin(e.age * 9f + e.phase);
-            Paint(e, f > 0.2f ? 1f : 0.55f);
-        }
-        foreach (var a in ash.items)
-        {
-            Recycle(a, -0.3f, dt, v, 0.4f);
-            Paint(a, 1f);
-        }
-    }
-
-    // Elite landing pads: the two rock shoulders either side of each
-    // forge-volcano's cone (fractions of the drawing's bounds), on volcanoes
-    // still in the upper part of the view -- a ship parked there has time to
-    // be seen before it lifts off. Far below the play area, so a parked
-    // ship is drawn small (ParkedScale) just above the volcano.
-    public static readonly Vector2[] VolcanoPads = { new Vector2(-.27f, -.2f), new Vector2(.27f, -.24f) };
-    public const float ParkedScale = .36f;
-
-    public override void LandingSites(List<LandingSite> into)
-    {
-        for (int v = 0; v < volcanoes.items.Count; v++)
-        {
-            var p = volcanoes.items[v];
-            if (!p.active || p.sr.sprite == null) continue;
-            if (p.y < -HalfH * .15f || p.y > HalfH - p.size * .3f) continue;
-            Bounds b = p.sr.sprite.bounds;
-            for (int k = 0; k < VolcanoPads.Length; k++)
-            {
-                into.Add(new LandingSite
-                {
-                    anchor = p.root,
-                    local = new Vector3(b.center.x + VolcanoPads[k].x * b.size.x, b.center.y + VolcanoPads[k].y * b.size.y, 0f),
-                    scale = ParkedScale,
-                    order = p.sr.sortingOrder + 1,
-                    id = v * 8 + k,
-                });
-            }
-        }
-    }
-
-    void SpawnVolcano(float y)
-    {
-        if (volcano.Length == 0) return;
-        var vo = SpawnLandmark(volcanoes, volcano[0], Rand(1.1f, 1.5f), "volcanoes", y);
-        if (vo == null) return;
-        vo.frames = volcano;
-        vo.fps = 6f;
-        vo.age = Rand(0f, 2f);       // eruptions out of step with each other
-    }
-
-    void SpawnBurst()
-    {
-        if (burst.Length == 0) return;
-        var b = bursts.Spawn();
-        if (b == null) return;
-        b.frames = burst;
-        b.fps = 10f;
-        b.loop = false;
-        SetSprite(b, burst[0], Rand(0.22f, 0.32f));
-        b.x = Rand(-0.12f, 0.12f) * set.TileScale;     // on the lava river, far below
-        b.y = Rand(-HalfH * 0.6f, HalfH * 0.8f);
-        b.rate = set.Spec.Rate("bursts");
-        b.color = new Color(0.9f, 0.78f, 0.68f, 0.85f);
     }
 }

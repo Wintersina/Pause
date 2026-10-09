@@ -166,6 +166,7 @@ public static class AllTests
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
+        ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLeakTest", WorldLeakTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),

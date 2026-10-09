@@ -3,33 +3,35 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The Verdant v3 backdrop (VerdantDirector, GroundPlanner, VerdantAmbientCatalog):
+// The Ember v3 backdrop (EmberDirector, GroundPlanner, EmberAmbientCatalog):
 //   * one of four ground sets per landing, never the same twice running; the
 //     night side (v4) flagged, drawn darker, its lights stronger;
 //   * PINNED pieces: a landmark's spot on the mid tile never changes while
 //     it is in view (60 s of scroll);
-//   * AFFINITY: over 200 seeded runs per variant no piece stands on ground
-//     its rule forbids (barges on water, fires in the forest ...), and no
-//     two pieces' footprints overlap;
+//   * AFFINITY: over 150 seeded runs per variant no piece stands on ground
+//     its rule forbids (slag barges and pools on lava, forges on land ...),
+//     and no two pieces' footprints overlap;
 //   * EXACT EMITTERS: every binding draws its loop with the loop's anchor
 //     (plume base) within 3 px of the piece's measured point, mirrored or
-//     not, and that point is on the piece's opaque art; plumes lean with the
-//     level wind; loops draw above their piece;
-//   * the cloud ceiling (spore cloud) thick at the start and gone by ~15 s (then
-//     a light scattering of cloud, CloudCoverMeter),
-//     continuing the planetfall's deck; pollen gusts; every layer behind
-//     gameplay; lane readability as rendered;
-//   * the Resin Warden launching from a tower bay / root hangar that opens
-//     for its tell and shuts behind it; and no per-frame allocation.
+//     not, and that point is on the piece's opaque art -- the stack smoke
+//     over its mouth, the eruption smoke over its crater; plumes lean with
+//     the level wind; loops draw above their piece;
+//   * the cloud ceiling (ash cloud) thick at the start and gone by ~15 s (then
+//     a light scattering of cloud, CloudCoverMeter), continuing the
+//     planetfall's deck; ash gusts; every layer behind gameplay; lane
+//     readability as rendered; the dark worlds' thin shot outlines;
+//   * an Ember elite launching from a foundry hangar / magma bay / slag pad /
+//     furnace bay / hatch that opens for its tell and shuts behind it; and
+//     no per-frame allocation.
 // (The tiles' seams / brightness caps / texture budget are WorldBackdropTest's.)
 //
-//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod VerdantBackdropTest.Run
-public static class VerdantBackdropTest
+//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EmberBackdropTest.Run
+public static class EmberBackdropTest
 {
     static int fails;
     static void Check(string what, bool ok)
     {
-        Debug.Log((ok ? "[VBD] PASS  " : "[VBD] FAIL  ") + what);
+        Debug.Log((ok ? "[EBD] PASS  " : "[EBD] FAIL  ") + what);
         if (!ok) fails++;
     }
 
@@ -37,8 +39,8 @@ public static class VerdantBackdropTest
 
     const float Dt = 1f / 30f;
     public const float EmitterTolerancePx = 3f;
-    public const int SeededRuns = 200;
-    static BackdropVariants Sel => BackdropVariants.For("Verdant");
+    public const int SeededRuns = 150;
+    static BackdropVariants Sel => BackdropVariants.For("Ember");
 
     public static int Execute()
     {
@@ -63,13 +65,13 @@ public static class VerdantBackdropTest
             moveBackGround.speed = savedSpeed;
             Time.timeScale = 1f;
             Sel.Reset();
-            VerdantDirector.SeedOverride = 0;
+            EmberDirector.SeedOverride = 0;
             LandingSites.Override = null;
             EliteSystem.PlayerOverride = null;
             EliteSystem.Clear();
             if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
         }
-        Debug.Log("[VBD] failures: " + fails);
+        Debug.Log("[EBD] failures: " + fails);
         return fails;
     }
 
@@ -86,19 +88,19 @@ public static class VerdantBackdropTest
         cam.orthographic = true;
         cam.aspect = 1080f / 2400f;
         cam.orthographicSize = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, 1080, 2400);
-        var wb = WorldBackdrop.Create("Verdant");
-        wb.Show("Verdant", false);
+        var wb = WorldBackdrop.Create("Ember");
+        wb.Show("Ember", false);
         return wb;
     }
 
-    static VerdantDirector Director(WorldBackdrop wb) { return wb.Current != null ? wb.Current.Director as VerdantDirector : null; }
+    static EmberDirector Director(WorldBackdrop wb) { return wb.Current != null ? wb.Current.Director as EmberDirector : null; }
 
     static void Run(WorldBackdrop wb, float seconds, System.Action each = null)
     {
         for (float t = 0f; t < seconds; t += Dt) { wb.Step(Dt); if (each != null) each(); }
     }
 
-    static IEnumerable<BackdropPool> PinnedPools(VerdantDirector d)
+    static IEnumerable<BackdropPool> PinnedPools(EmberDirector d)
     {
         yield return d.Pipes; yield return d.Fires; yield return d.Ground; yield return d.Sites;
     }
@@ -107,13 +109,13 @@ public static class VerdantBackdropTest
 
     static void Catalog()
     {
-        var spec = BackdropCatalog.For("Verdant");
-        Check("Verdant has its own v3 folder and four variant sets",
-              spec.folder == "Worlds/Verdant/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
-        string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "pollen", "spores", "fireflies" };
+        var spec = BackdropCatalog.For("Ember");
+        Check("Ember has its own v3 folder and four variant sets",
+              spec.folder == "Worlds/Ember/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
+        string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "gusts", "embers" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
-        Check("Verdant layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, pollen, spores, fireflies", all);
+        Check("Ember layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, gusts, embers", all);
         var g = spec.Find("ground");
         Check("the ground pieces are PINNED to the mid tile: same rate (" + g.rate + " = " + spec.Rate("mid") + " <= " +
               BackdropCatalog.MaxGroundRate + "), landmark role, right after it",
@@ -123,14 +125,16 @@ public static class VerdantBackdropTest
         for (int i = 1; i < spec.layers.Length; i++)
             rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
                       (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
-        Check("Verdant rates strictly increase far -> near (a pinned layer shares its host's)", rising);
+        Check("Ember rates strictly increase far -> near (a pinned layer shares its host's)", rising);
         Check("the night side is v4 only, drawn darker (" + spec.VariantBrightness(4) + ")",
               !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && spec.Night(4) && spec.VariantBrightness(4) < 1f &&
-              spec.VariantBrightness(1) >= .9f);
-        Check("ground pieces stay under the size limit", VerdantTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
-              VerdantTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && VerdantTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
+              spec.VariantBrightness(1) > spec.VariantBrightness(4) && spec.VariantBrightness(2) >= .3f);
+        Check("the art is dark: Ember is drawn below the bright-world lift (" + EmberTuning.Brightness + " < " + BackdropCatalog.Spec.BrightLift +
+              "), so shots keep the thin outline and the hearts the standard one", !spec.Bright);
+        Check("ground pieces stay under the size limit", EmberTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
+              EmberTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && EmberTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
 
-        var table = VerdantAmbientCatalog.Table;
+        var table = EmberAmbientCatalog.Table;
         bool loops = true;
         int bound = 0;
         foreach (var b in table.bindings)
@@ -144,29 +148,33 @@ public static class VerdantBackdropTest
         foreach (var l in table.loops)
         {
             bool measured = false;
-            foreach (var m in VerdantAmbientCatalog.MeasuredLoops) if (m.name == l.name) measured = true;
-            if (l.name != "window_lights" && l.name != "strobe_white" && l.name != "fireflies") anchors &= measured;
+            foreach (var m in EmberAmbientCatalog.MeasuredLoops) if (m.name == l.name) measured = true;
+            anchors &= measured;
         }
         Check("every bound loop's anchor is measured on its own frames", anchors);
         bool smokeBase = true;
-        foreach (var m in VerdantAmbientCatalog.MeasuredLoops)
-            if (VerdantAmbientCatalog.Plume(m.name)) smokeBase &= Mathf.Abs(m.x - 128f) <= 4f && m.y >= 228f && m.spread <= 4f;
+        foreach (var m in EmberAmbientCatalog.MeasuredLoops)
+            if (EmberAmbientCatalog.Plume(m.name)) smokeBase &= Mathf.Abs(m.x - 128f) <= 4f && m.y >= 228f && m.spread <= 4f;
         Check("the plume loops' bases sit on their cell's bottom-centre anchor, steady over the frames", smokeBase);
-        string[] smokers = { "refinery_00", "refinery_01", "refinery_02", "burnfront_00", "pipe_leak_00", "scorched_00" };
+        string[] smokers = { "refinery_00", "forgetower_00", "coolingtower_00", "smelter_00", "kiln_00", "lavafountain_00", "eruptionscar_00", "coalbed_00", "flarestack_00", "pipe_leak_00" };
         bool smokes = true;
-        foreach (string s in smokers) smokes &= VerdantAmbientCatalog.Table.For(s) != null;
-        Check("refineries, burn fronts, pipe leaks and burnt industry all carry loops", smokes);
+        foreach (string s in smokers) smokes &= EmberAmbientCatalog.Table.For(s) != null;
+        Check("forges, cooling towers, fountains, scars, coal beds, flare stacks and venting pipes all carry loops", smokes);
         for (int v = 1; v <= 4; v++)
         {
-            var mask = GroundMask.Load("Verdant", v);
+            var mask = GroundMask.Load("Ember", v);
             Check("v" + v + " has its affinity mask (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", water " +
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
         }
-        var resin = EliteCatalog.Find("verdant_elite_resin_warden");
-        Check("the Resin Warden launches from a tower bay or a root hangar",
-              resin != null && LandingSite.Accepts(resin.launchFrom, LandingKind.TowerBay) &&
-              LandingSite.Accepts(resin.launchFrom, LandingKind.RootHangar) && !LandingSite.Accepts(resin.launchFrom, LandingKind.Hangar));
+        var kiln = EliteCatalog.Find("ember_elite_kilnback");
+        bool any = kiln != null;
+        foreach (var k in EmberTuning.SiteKinds) any &= LandingSite.Accepts(kiln != null ? kiln.launchFrom : null, k);
+        Check("an Ember elite (no launchFrom) takes any of the five Ember site kinds", any);
+        Check("the sites' kinds are Ember's own and parse from launchFrom strings",
+              LandingSite.KindOf("foundryhangar") == LandingKind.FoundryHangar && LandingSite.KindOf("magmabay") == LandingKind.MagmaBay &&
+              LandingSite.KindOf("slagpad") == LandingKind.SlagPad && LandingSite.KindOf("furnacebay") == LandingKind.FurnaceBay &&
+              LandingSite.Accepts("furnacebay,hatch", LandingKind.Hatch) && !LandingSite.Accepts("furnacebay,hatch", LandingKind.SlagPad));
     }
 
     // ---- four ground sets, random per landing ----------------------------------
@@ -174,7 +182,7 @@ public static class VerdantBackdropTest
     static void Selection()
     {
         Sel.Reset();
-        Check("all four Verdant ground sets are installed (" + Sel.InstalledCount(4) + ")", Sel.InstalledCount(4) == 4 && !Sel.Installed(5));
+        Check("all four Ember ground sets are installed (" + Sel.InstalledCount(4) + ")", Sel.InstalledCount(4) == 4 && !Sel.Installed(5));
         Sel.Seed(3);
         var seen = new HashSet<int>();
         int prev = 0, repeats = 0;
@@ -191,14 +199,14 @@ public static class VerdantBackdropTest
         for (int i = 0; i < 6; i++)
         {
             wb.Show("Space", false);
-            wb.Show("Verdant", false);
+            wb.Show("Ember", false);
             var set = wb.Current;
             if (set.Variant != last) changes++;
             last = set.Variant;
-            var sky = Resources.Load<Sprite>(BackdropCatalog.TileFolder("Verdant", set.Variant) + "sky");
+            var sky = Resources.Load<Sprite>(BackdropCatalog.TileFolder("Ember", set.Variant) + "sky");
             if (sky != null && set.Textures.Contains(sky.texture) && set.Complete) loaded++;
         }
-        Check("every landing in Verdant flies a different set, from its own folder (" + changes + "/6, " + loaded + "/6)",
+        Check("every landing in Ember flies a different set, from its own folder (" + changes + "/6, " + loaded + "/6)",
               changes == 6 && loaded == 6);
         Check("Frost keeps its own selection", BackdropVariants.For("Frost") != Sel);
     }
@@ -227,7 +235,7 @@ public static class VerdantBackdropTest
     {
         var wb = Fresh(1, .6f);
         var d = Director(wb);
-        Check("Verdant builds its director on the v3 art", d != null && wb.Current.Complete && d.Planner.Ready && d.Planner.Mask != null);
+        Check("Ember builds its director on the v3 art", d != null && wb.Current.Complete && d.Planner.Ready && d.Planner.Mask != null);
         if (d == null) return;
         var start = new Dictionary<BackdropPiece, Vector2>();
         float worst = 0f;
@@ -271,7 +279,7 @@ public static class VerdantBackdropTest
             string bad = "";
             for (int run = 0; run < SeededRuns; run++)
             {
-                VerdantDirector.SeedOverride = 101 + run * 7;
+                EmberDirector.SeedOverride = 101 + run * 7;
                 var wb = Fresh(v, 1.5f);
                 var d = Director(wb);
                 if (d == null) continue;
@@ -286,10 +294,10 @@ public static class VerdantBackdropTest
                             seenPieces.Add(p);
                             pieces++;
                             string name = p.sr.sprite != null ? p.sr.sprite.name : "";
-                            var rule = VerdantTuning.Rule(name);
+                            var rule = EmberTuning.Rule(name);
                             bool site = pool == d.Sites;
                             if (pool == d.Pipes) pipes++;
-                            if (pool == d.Pipes && p.kind == VerdantDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
+                            if (pool == d.Pipes && p.kind == EmberDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
                                 if (site && d.Planner.Accepts(new PieceRule(GroundClass.Land, .5f), p.x, p.gy, p.size)) relaxed++;
@@ -308,10 +316,10 @@ public static class VerdantBackdropTest
                 clusters += d.Clusters;
                 Object.DestroyImmediate(wb.gameObject);
             }
-            VerdantDirector.SeedOverride = 0;
+            EmberDirector.SeedOverride = 0;
             var top = new List<string>();
             foreach (var kv in byClass) if (kv.Value >= runs / 4) top.Add(kv.Key + " " + kv.Value);
-            Debug.Log("[VBD] v" + v + " placements by drawing:ground " + string.Join(", ", top));
+            Debug.Log("[EBD] v" + v + " placements by drawing:ground " + string.Join(", ", top));
             Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + pipes + " pipes, " + clusters +
                   " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
                   runs == SeededRuns && pieces > runs * 4 && wrong == 0);
@@ -319,14 +327,14 @@ public static class VerdantBackdropTest
         }
     }
 
-    static void Overlap(VerdantDirector d, BackdropPiece a, ref int overlaps)
+    static void Overlap(EmberDirector d, BackdropPiece a, ref int overlaps)
     {
         if (!a.active) return;
         foreach (var pool in new[] { d.Ground, d.Fires, d.Sites })
             foreach (var b in pool.items)
             {
                 if (!b.active || b == a || b.GetHashCode() < a.GetHashCode()) continue;
-                var ra = VerdantTuning.Rule(a.sr.sprite.name); var rb = VerdantTuning.Rule(b.sr.sprite.name);
+                var ra = EmberTuning.Rule(a.sr.sprite.name); var rb = EmberTuning.Rule(b.sr.sprite.name);
                 if (Mathf.Abs(a.x - b.x) < (GroundPlanner.HalfX(ra, a.size) + GroundPlanner.HalfX(rb, b.size)) * .98f &&
                     System.Math.Abs(a.gy - b.gy) < (GroundPlanner.HalfY(ra, a.size) + GroundPlanner.HalfY(rb, b.size)) * .98f) overlaps++;
             }
@@ -343,12 +351,12 @@ public static class VerdantBackdropTest
         if (!atlasPx.TryGetValue(atlas, out px))
         {
             var t = new Texture2D(2, 2);
-            t.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop3/" + atlas + ".png"));
+            t.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop3/" + atlas + ".png"));
             atlasPx[atlas] = px = t.GetPixels32();
             atlasW[atlas] = t.width;
             Object.DestroyImmediate(t);
         }
-        var a = new BackdropAtlas(Resources.Load<Texture2D>("Worlds/Verdant/Backdrop3/" + atlas), Resources.Load<TextAsset>("Worlds/Verdant/Backdrop3/" + atlas));
+        var a = new BackdropAtlas(Resources.Load<Texture2D>("Worlds/Ember/Backdrop3/" + atlas), Resources.Load<TextAsset>("Worlds/Ember/Backdrop3/" + atlas));
         var s = a.Get(piece);
         float alpha = 0f;
         if (s != null)
@@ -370,16 +378,16 @@ public static class VerdantBackdropTest
     static void Emitters()
     {
         var root = new GameObject("~Emitters").transform;
-        BackdropVariants.For("Verdant").Force = 1;
-        var set = new BackdropSet("Verdant", root, 3f, 6f);
-        var amb = new AmbientEmitters(set, VerdantAmbientCatalog.Table) { Wind = 1f };
+        BackdropVariants.For("Ember").Force = 1;
+        var set = new BackdropSet("Ember", root, 3f, 6f);
+        var amb = new AmbientEmitters(set, EmberAmbientCatalog.Table) { Wind = 1f };
         var pool = new BackdropPool(root, "test", 1, -400, 0f);
         amb.Rig(pool);
         var p = pool.Spawn();
         float worst = 0f;
         int probes = 0, offArt = 0, notAbove = 0, lean = 0;
         string far = "", off = "";
-        foreach (var piece in VerdantAmbientCatalog.Pieces)
+        foreach (var piece in EmberAmbientCatalog.Pieces)
         {
             if (piece.emit == null || piece.emit.Length == 0) continue;
             var atlas = set.Atlas(piece.atlas);
@@ -395,7 +403,7 @@ public static class VerdantBackdropTest
                     p.body.localScale = new Vector3(mirror, 1f, 1f);
                     amb.Attach(p, piece.name, new System.Random(3));
                     amb.Step(1f);
-                    for (int s = 0; s < piece.emit.Length && s < VerdantAmbientCatalog.MaxPerPiece; s++)
+                    for (int s = 0; s < piece.emit.Length && s < EmberAmbientCatalog.MaxPerPiece; s++)
                     {
                         string loop; Vector3 a, h;
                         if (!amb.Probe(p, s, out loop, out a, out h)) continue;
@@ -417,7 +425,7 @@ public static class VerdantBackdropTest
               notAbove == 0 && lean == 0);
         set.Destroy();
         Object.DestroyImmediate(root.gameObject);
-        BackdropVariants.For("Verdant").Reset();
+        BackdropVariants.For("Ember").Reset();
 
         // in a real run: the live plumes stay on their stacks while scrolling
         var wb = Fresh(2, .5f);
@@ -433,7 +441,7 @@ public static class VerdantBackdropTest
                 foreach (var q in pl.items)
                 {
                     if (!q.active) continue;
-                    for (int s = 0; s < VerdantAmbientCatalog.MaxPerPiece; s++)
+                    for (int s = 0; s < EmberAmbientCatalog.MaxPerPiece; s++)
                     {
                         string loop; Vector3 a, h;
                         if (!d.Ambient.Probe(q, s, out loop, out a, out h)) continue;
@@ -450,13 +458,13 @@ public static class VerdantBackdropTest
         });
         Check("over 90 s of flying the live loops (" + live + " samples, peak " + peak + ") stay within " + EmitterTolerancePx +
               " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 1000 && peak >= 6 && runWorst <= EmitterTolerancePx && advanced);
-        Check("the forest is busy: pipe runs " + d.PipeRuns + ", clusters " + d.Clusters + ", fires seen", d.PipeRuns >= 1 && d.Clusters >= 6);
+        Check("the forge world is busy: pipe runs " + d.PipeRuns + ", clusters " + d.Clusters + ", fires seen", d.PipeRuns >= 1 && d.Clusters >= 6);
         Object.DestroyImmediate(wb.gameObject);
 
         // without the loop atlases (Space has none) the emitters quietly show nothing
         var root2 = new GameObject("~Missing").transform;
         var ember = new BackdropSet("Space", root2, 3f, 6f);
-        var amb2 = new AmbientEmitters(ember, VerdantAmbientCatalog.Table);
+        var amb2 = new AmbientEmitters(ember, EmberAmbientCatalog.Table);
         var pool2 = new BackdropPool(root2, "test", 1, -400, 0f);
         amb2.Rig(pool2);
         int shown = -1;
@@ -474,7 +482,7 @@ public static class VerdantBackdropTest
     {
         var wb = Fresh(1);
         var d = Director(wb);
-        if (d == null) { Check("Verdant director", false); return; }
+        if (d == null) { Check("Ember director", false); return; }
         // the ceiling's timeline (CloudCover): thick through the hold, <= 10%
         // of the view covered by 10 s, gone by {clear} s
         Run(wb, .5f);
@@ -484,7 +492,7 @@ public static class VerdantBackdropTest
         var cover4 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
         Run(wb, 6f);
         var cover10 = CloudCoverMeter.Measure(wb.Current, CloudCoverMeter.CeilingOnly);
-        var spec = BackdropCatalog.For("Verdant");
+        var spec = BackdropCatalog.For("Ember");
         float clear = spec.CeilingClearSeconds();
         Run(wb, clear + 1f - 10f);
         float cGone = d.CeilingCover;
@@ -496,36 +504,38 @@ public static class VerdantBackdropTest
         Check("... and gone by " + (clear + 1f).ToString("F0") + " s (" + cGone.ToString("F3") + ", " + liveGone + " banks)",
               cGone < .02f && liveGone == 0 && clear <= 16f);
         Check("ceiling density: 1 through the " + spec.CeilingHold() + " s hold, 0 at " + clear + " s",
-              VerdantDirector.CeilingDensity(0f) == 1f && VerdantDirector.CeilingDensity(spec.CeilingHold()) == 1f &&
-              VerdantDirector.CeilingDensity(clear) == 0f && VerdantDirector.CeilingDensity(10f) < .2f && VerdantDirector.CeilingDensity(6f) > .3f);
-        Check("Ember's cloud knobs default to the shared cloud defaults",
-              BackdropCatalog.For("Ember").CloudDensity() == CloudCover.Density && BackdropCatalog.For("Ember").CeilingClearSeconds() == CloudCover.CeilingClearSeconds);
+              EmberDirector.CeilingDensity(0f) == 1f && EmberDirector.CeilingDensity(spec.CeilingHold()) == 1f &&
+              EmberDirector.CeilingDensity(clear) == 0f && EmberDirector.CeilingDensity(10f) < .2f && EmberDirector.CeilingDensity(6f) > .3f);
+        Check("Ember's knobs default to the shared cloud defaults (CloudCover)",
+              spec.CloudDensity() == CloudCover.Density && spec.CeilingClearSeconds() == CloudCover.CeilingClearSeconds &&
+              spec.CeilingHold() == CloudCover.CeilingHold);
 
         int g0 = d.Gusts, sheetFrames = 0;
         float maxAlpha = 0f;
         Run(wb, 150f, () =>
         {
-            foreach (var p in d.Pollen.items) if (p.active && p.sr.enabled) { sheetFrames++; maxAlpha = Mathf.Max(maxAlpha, p.sr.color.a); }
+            foreach (var p in d.GustSheetPool.items) if (p.active && p.sr.enabled) { sheetFrames++; maxAlpha = Mathf.Max(maxAlpha, p.sr.color.a); }
         });
         int gusts = d.Gusts - g0;
-        Check("pollen gusts come round every " + VerdantTuning.PollenEveryMin + "-" + VerdantTuning.PollenEveryMax + " s (" + gusts + " in 150 s)",
+        Check("ash gusts come round every " + EmberTuning.GustEveryMin + "-" + EmberTuning.GustEveryMax + " s (" + gusts + " in 150 s)",
               gusts >= 6 && gusts <= 12 && sheetFrames > 0);
-        Check("... translucent (peak draw alpha " + maxAlpha.ToString("F2") + ")", maxAlpha > .05f && maxAlpha <= VerdantTuning.PollenMaxAlpha + 1e-3f);
+        Check("... translucent (peak draw alpha " + maxAlpha.ToString("F2") + ")", maxAlpha > .05f && maxAlpha <= EmberTuning.GustMaxAlpha + 1e-3f);
         bool behind = true;
         var renderers = wb.Current.Root.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var r in renderers) behind &= r.sortingOrder < 0;
-        Check("every Verdant backdrop renderer sorts behind gameplay (" + renderers.Length + ")", behind);
+        Check("every Ember backdrop renderer sorts behind gameplay (" + renderers.Length + ")", behind);
         int palls = 0;
-        Run(wb, 60f, () => palls = Mathf.Max(palls, d.Palls.ActiveCount));
-        Check("smoke palls hang over the wildfires (peak " + palls + ")", palls > 0);
-        int dayFlies = Lit(d.Fireflies);
+        Run(wb, 120f, () => palls = Mathf.Max(palls, d.Palls.ActiveCount));
+        Check("ash palls hang over the eruptions (peak " + palls + ")", palls > 0);
+        float dayBoost = EmberTuning.LightBoostNow;
+        int dayEmbers = d.Embers.ActiveCount;
         Object.DestroyImmediate(wb.gameObject);
         wb = Fresh(4);
         d = Director(wb);
         Run(wb, 2f);
-        int nightFlies = Lit(d.Fireflies);
-        Check("the night side swarms with fireflies (" + nightFlies + " vs day " + dayFlies + ") and boosts its lights (" +
-              VerdantTuning.LightBoostNow + ")", d.IsNight && nightFlies > dayFlies * 2 && VerdantTuning.LightBoostNow > 1f);
+        Check("the night side boosts its lanterns (" + EmberTuning.LightBoostNow + " vs day " + dayBoost + ") and drifts embers (" +
+              d.Embers.ActiveCount + " vs " + dayEmbers + ")",
+              d.IsNight && EmberTuning.LightBoostNow > 1f && dayBoost == 1f && d.Embers.ActiveCount >= 1);
         Object.DestroyImmediate(wb.gameObject);
     }
 
@@ -536,7 +546,7 @@ public static class VerdantBackdropTest
         return n;
     }
 
-    // ---- cloud cover after the ceiling (CloudCover, VerdantTuning.CloudDensity) ----------
+    // ---- cloud cover after the ceiling (CloudCover, EmberTuning.CloudDensity) ----------
 
     // User, 2026-10-08: "too many clouds covering the backdrop; lower the
     // amount of clouds after the first 10 seconds". Every variant, three
@@ -555,7 +565,7 @@ public static class VerdantBackdropTest
             {
                 var wb = Fresh(v);
                 var d = Director(wb);
-                if (d == null) { Check("Verdant director", false); return; }
+                if (d == null) { Check("Ember director", false); return; }
                 CloudCoverMeter.Reseed(d, 9100 + 17 * seed + v);
                 var st = CloudCoverMeter.Run(wb, Dt);
                 worstMean = Mathf.Max(worstMean, st.covered);
@@ -563,29 +573,29 @@ public static class VerdantBackdropTest
                 sum += st.covered; runs++;
                 detail += " v" + v + ":" + st.covered.ToString("F2");
             }
-        Debug.Log("[VBD] cloud cover after the ceiling (12/20/40/70 s, mean of runs " + (sum / runs).ToString("F3") + "):" + detail);
+        Debug.Log("[EBD] cloud cover after the ceiling (12/20/40/70 s, mean of runs " + (sum / runs).ToString("F3") + "):" + detail);
         Check("after the ceiling, clouds cover <= " + MaxCloudCover + " of the view on average in every variant (worst run " +
               worstMean.ToString("F3") + ", mean " + (sum / runs).ToString("F3") + ")", worstMean <= MaxCloudCover);
         Check("... and never park over the centre lane (longest cover " + worstLane.ToString("F1") + " s <= " + MaxLaneSeconds + ")",
               worstLane <= MaxLaneSeconds);
 
         // the knob: more density = more cloud, 0 = none after the ceiling
-        float saved = VerdantTuning.CloudDensity;
+        float saved = EmberTuning.CloudDensity;
         try
         {
             float[] at = new float[3];
             float[] knob = { 0f, 1f, 2.5f };
             for (int k = 0; k < 3; k++)
             {
-                VerdantTuning.CloudDensity = knob[k];
+                EmberTuning.CloudDensity = knob[k];
                 var wb = Fresh(1);
                 CloudCoverMeter.Reseed(Director(wb), 4242);
                 at[k] = CloudCoverMeter.Run(wb, Dt).covered;
             }
-            Check("VerdantTuning.CloudDensity is the knob (0 / 1 / 2.5 -> " + at[0].ToString("F3") + " / " + at[1].ToString("F3") + " / " + at[2].ToString("F3") + ")",
+            Check("EmberTuning.CloudDensity is the knob (0 / 1 / 2.5 -> " + at[0].ToString("F3") + " / " + at[1].ToString("F3") + " / " + at[2].ToString("F3") + ")",
                   at[0] < .01f && at[2] > at[1]);
         }
-        finally { VerdantTuning.CloudDensity = saved; }
+        finally { EmberTuning.CloudDensity = saved; }
     }
 
     // ---- brightness ------------------------------------------------------------------
@@ -599,8 +609,8 @@ public static class VerdantBackdropTest
         var top = Rendered(.5f, 1f);
         Object.DestroyImmediate(wb.gameObject);
         var deckTex = new Texture2D(2, 2);
-        deckTex.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Verdant.folder +
-                                            PlanetfallCatalog.Verdant.deck + ".png"));
+        deckTex.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Ember.folder +
+                                            PlanetfallCatalog.Ember.deck + ".png"));
         double dsum = 0;
         var dpx = deckTex.GetPixels32();
         for (int i = 0; i < dpx.Length; i += 7) dsum += Mathf.Max(dpx[i].r, Mathf.Max(dpx[i].g, dpx[i].b)) / 255f;
@@ -610,7 +620,7 @@ public static class VerdantBackdropTest
               " within " + (CeilingDeckTolerance * 100f).ToString("F0") + "% of the deck's " + deck.ToString("F2") + ")",
               top.mean >= deck * (1f - CeilingDeckTolerance) && top.mean <= deck + .08f);
 
-        var theme = EnemyPalette.ThemeFor(2);
+        var theme = EnemyPalette.ThemeFor(3);
         float hullV = Mathf.Max(theme.hull.r, Mathf.Max(theme.hull.g, theme.hull.b));
         float dayMedian = 0f, nightMedian = 0f;
         for (int v = 1; v <= 4; v++)
@@ -677,7 +687,7 @@ public static class VerdantBackdropTest
     {
         var wb = Fresh(3);
         var d = Director(wb);
-        if (d == null) { Check("Verdant director", false); return; }
+        if (d == null) { Check("Ember director", false); return; }
         var sites = new List<LandingSite>();
         var kinds = new HashSet<LandingKind>();
         bool shape = true;
@@ -691,17 +701,17 @@ public static class VerdantBackdropTest
                 kinds.Add(s.kind);
                 Vector3 p = s.Position - wb.transform.position;
                 shape &= s.emerge && s.Valid && s.order < EliteShip.PlayOrder - 2 && s.scale > .05f && s.scale < .5f &&
-                         p.y > -CameraFit.ViewTop * .5f && (s.kind >= LandingKind.RootHangar || s.kind == LandingKind.Hatch);
+                         p.y > -CameraFit.ViewTop * .5f && (s.kind >= LandingKind.FoundryHangar || s.kind == LandingKind.Hatch);
             }
         });
-        Check("Verdant offers ground launch sites while flying (" + samples + " samples, " + d.SitesSpawned + " sites, kinds " +
+        Check("Ember offers ground launch sites while flying (" + samples + " samples, " + d.SitesSpawned + " sites, kinds " +
               string.Join(",", kinds) + ")", samples > 150 && kinds.Count >= 3);
-        Check("... each an emerge site of a Verdant kind, behind gameplay, small, in the upper view", shape);
+        Check("... each an emerge site of an Ember kind, behind gameplay, small, in the upper view", shape);
 
         var defs = new List<EliteDef>();
-        EliteCatalog.ForWorld(2, defs);
-        EliteDef resin = defs.Find(x => x.key == "verdant_elite_resin_warden");
-        if (resin == null) { Check("the Resin Warden is defined", false); return; }
+        EliteCatalog.ForWorld(3, defs);
+        Check("Ember defines its six elites (" + defs.Count + ")", defs.Count == 6);
+        if (defs.Count == 0) return;
         var pilot = new GameObject("~Pilot").transform;
         pilot.position = new Vector3(0f, -2.5f, 0f);
         EliteSystem.PlayerOverride = pilot;
@@ -710,21 +720,21 @@ public static class VerdantBackdropTest
         {
             wb.Step(Dt);
             LandingSites.Collect(sites);
-            foreach (var s in sites) if (s.kind == LandingKind.TowerBay || s.kind == LandingKind.RootHangar) found = true;
+            foreach (var s in sites) if (s.kind >= LandingKind.FoundryHangar) found = true;
             if (!found && i % 300 == 299) d.SpawnSite(float.NaN, 3);
         }
-        Check("a tower bay or root hangar comes into view", found);
+        Check("a foundry hangar, magma bay, slag pad or furnace bay comes into view", found);
         if (!found) return;
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         Random.InitState(5);
-        dir.SpawnGroup(2, 1);
+        dir.SpawnGroup(3, 1);
         var e = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
-        Check("the director docks the Resin Warden in its own kind of site (" + (e != null ? e.Site.kind.ToString() : "-") + ")",
-              e != null && (e.Site.kind == LandingKind.TowerBay || e.Site.kind == LandingKind.RootHangar) && e.IsDocked);
+        Check("the director docks an Ember elite in one of the world's own sites (" + (e != null ? e.Site.kind.ToString() : "-") + ")",
+              e != null && e.Site.kind >= LandingKind.FoundryHangar && e.IsDocked);
         if (e == null) return;
         BackdropPiece site = null;
         foreach (var p in d.Sites.items) if (p.active && p.root == e.Site.anchor) site = p;
-        Check("... inside a Verdant site piece", site != null);
+        Check("... inside an Ember site piece", site != null);
         if (site == null) return;
         Sprite closed = site.sr.sprite;
         bool shutWhileParked = true, opened = false, lit = false;
@@ -748,7 +758,7 @@ public static class VerdantBackdropTest
             openLift &= d.SiteOpen(site);
         }
         Check("... stays open while it emerges and it reaches the play layer", openLift && e != null && e.InPlay);
-        Run(wb, VerdantTuning.SiteCloseDelay + 1f, () => EliteSystem.Step(Dt));
+        Run(wb, EmberTuning.SiteCloseDelay + 1f, () => EliteSystem.Step(Dt));
         Check("... then shuts again behind it", !d.SiteOpen(site) && site.sr.sprite == closed);
         Object.DestroyImmediate(dir.gameObject);
         EliteSystem.Clear();
@@ -767,7 +777,7 @@ public static class VerdantBackdropTest
         Check("allocation meter sees a control allocation (" + control + " bytes)", meter);
         d.ForceGust();
         long used = TestHarness.AllocatedBytes(() => Run(wb, 120f));
-        Check("Verdant backdrop allocates nothing over 2 minutes of frames, clusters, gusts and loops (" + used + " bytes)",
+        Check("Ember backdrop allocates nothing over 2 minutes of frames, clusters, gusts and loops (" + used + " bytes)",
               meter && used >= 0 && used <= 256);
         int transforms = wb.GetComponentsInChildren<Transform>(true).Length;
         Run(wb, 300f);

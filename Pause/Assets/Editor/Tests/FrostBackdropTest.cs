@@ -199,7 +199,7 @@ public static class FrostBackdropTest
         Check("ceiling density: 1 through the " + spec.CeilingHold() + " s hold, 0 at " + clear + " s",
               FrostDirector.CeilingDensity(0f) == 1f && FrostDirector.CeilingDensity(spec.CeilingHold()) == 1f &&
               FrostDirector.CeilingDensity(clear) == 0f && FrostDirector.CeilingDensity(10f) < .2f && FrostDirector.CeilingDensity(6f) > .3f);
-        Check("Ember (no knobs yet) inherits the shared cloud defaults",
+        Check("Ember's cloud knobs default to the shared cloud defaults",
               BackdropCatalog.For("Ember").CloudDensity() == CloudCover.Density && BackdropCatalog.For("Ember").CeilingClearSeconds() == CloudCover.CeilingClearSeconds);
 
         // blizzard gusts: periodic, translucent, behind gameplay
@@ -449,9 +449,9 @@ public static class FrostBackdropTest
         Run(wb, 40f, () => { auroras = Mathf.Max(auroras, d.Aurora.ActiveCount); });
         Check("the glacier night (v4) shows its aurora", auroras > 0);
 
-        // Missing atlases: Ember's folder has none of the loop sheets.
+        // Missing atlases: Space's folder has none of the loop sheets.
         var root = new GameObject("~AmbientMissing").transform;
-        var verdant = new BackdropSet("Ember", root, 3f, 6f);
+        var verdant = new BackdropSet("Space", root, 3f, 6f);
         var amb = new AmbientEmitters(verdant);
         var pool = new BackdropPool(root, "test", 2, -400, 0f);
         amb.Rig(pool);
