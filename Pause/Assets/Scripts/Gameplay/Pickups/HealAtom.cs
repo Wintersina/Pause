@@ -55,6 +55,8 @@ public class HealAtom : MonoBehaviour
         // Its idle animation: light overlays flipped on top of the untouched
         // original art (electron glints in sequence, then a nucleus pulse).
         PickupFlipbook.AddTo(go, PickupKind.Heal);
+        // the friendly look: bigger, a soft halo and an orbit ring
+        PickupGlow.Dress(go);
 
         return go;
     }

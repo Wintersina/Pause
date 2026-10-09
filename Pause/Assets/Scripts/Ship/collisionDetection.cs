@@ -131,6 +131,23 @@ public class collisionDetection : MonoBehaviour {
         if (target.CompareTag("Astr")) achievementAPICalls.asteroid_destroyed();
     }
 
+    // What an atom just did, in one word floating up from where it was
+    // caught (ScoreHud.ShowWord: pooled, on the world's clock), in the
+    // atom's own colour, above its "+N". Constant strings: no allocation.
+    public const string HealWord = "+1 HULL", PauseWord = "+1 PAUSE", ShieldWord = "SHIELD";
+    public const float PickupWordLift = .5f;
+
+    static void PickupWord(string word, Vector3 at, Color colour)
+    {
+        var hud = ScoreHud.Current;
+        if (hud != null) hud.ShowWord(word, at + Vector3.up * PickupWordLift, colour, 28);
+    }
+
+    static void AtomCharged(Color colour)
+    {
+        if (ShipPowerController.Instance != null) ShipPowerController.Instance.AtomCharged(colour);
+    }
+
     // Shaves time off the ultimate's countdown on pickup -- a little for
     // star dust, a lot more for an atom (blue shield and green heal atoms
     // count the same; the red pause atom cuts less -- secondsPerRedAtom).
@@ -359,6 +376,8 @@ public class collisionDetection : MonoBehaviour {
                 if (lifeCounter > 0) lifeCounter--;
                 if (hypeText != null) hypeText.text = "REPAIRED";
                 BoostUltimate(dust: false);
+                PickupWord(HealWord, hit.transform.position, PickupGlow.HealGreen);
+                AtomCharged(PickupGlow.HealGreen);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
@@ -367,6 +386,7 @@ public class collisionDetection : MonoBehaviour {
                 RunScore.OnAtom(RunScore.Atom.Pause, hit.transform.position);
                 score.incromentPause();
                 BoostUltimate(dust: false, red: true);
+                PickupWord(PauseWord, hit.transform.position, AkiraPalette.RedHi);
                 // ...and a free shot of the main weapon (the charge timer
                 // keeps its progress; ShipPowerController.FreeShot).
                 if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();
@@ -382,6 +402,7 @@ public class collisionDetection : MonoBehaviour {
                 {
                     string word = ShipPowerController.Instance.CollectCooldownAtom();
                     if (hypeText != null) hypeText.text = word;
+                    PickupWord(word, hit.transform.position, AkiraPalette.VioletHi);
                 }
                 Destroy(hit.gameObject);
             }
@@ -390,6 +411,8 @@ public class collisionDetection : MonoBehaviour {
                 shieldAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Shield, hit.transform.position);
                 BoostUltimate(dust: false);
+                PickupWord(ShieldWord, hit.transform.position, AkiraPalette.Cyan);
+                AtomCharged(AkiraPalette.Cyan);
                 boostSound.Play();
                 // ---------------------------
                 //   Music control section!

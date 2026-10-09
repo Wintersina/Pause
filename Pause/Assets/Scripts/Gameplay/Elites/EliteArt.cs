@@ -127,13 +127,17 @@ public static class EliteFxArt
     // A rising heat-shimmer streak.
     public static Sprite Streak => streak != null ? streak : (streak = StreakSprite());
     public static Sprite Ring => ring != null ? ring : (ring = RingSprite("EliteRing", 24));
-    // Shots: white core, the colour comes from the tint (two layers).
-    public static Sprite Bolt => bolt != null ? bolt : (bolt = Capsule("EliteBolt", 8, 16));
-    public static Sprite Slag => slag != null ? slag : (slag = Blob("EliteSlag", 16, 23));
+    // Shots: white core, the colour comes from the tint (two layers). Every
+    // shot is drawn HOSTILE -- pointed, angular, hard-edged, facing its
+    // flight (a dart, a finned shell, a chevron, a spiked burr) -- never a
+    // round capsule, gem or nugget an atom could be mistaken for
+    // (PickupGlow: atoms are the round, soft, glowing things).
+    public static Sprite Bolt => bolt != null ? bolt : (bolt = Dart("EliteBolt", 10, 20, 0f));
+    public static Sprite Slag => slag != null ? slag : (slag = Burr("EliteSlag", 19, 6));
     // A landed resin pool: a flat, lumpy puddle (wider than tall).
     public static Sprite Pool => pool != null ? pool : (pool = Puddle("ElitePool", 24, 14, 31));
-    public static Sprite Shell => shell != null ? shell : (shell = Capsule("EliteShell", 12, 24));
-    public static Sprite Shard => shard != null ? shard : (shard = Diamond("EliteShard", 10, 16));
+    public static Sprite Shell => shell != null ? shell : (shell = Dart("EliteShell", 14, 24, .8f));
+    public static Sprite Shard => shard != null ? shard : (shard = Chevron("EliteShard", 12, 16));
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
     // The siege cannon's blinking sight line: a 1 x 8 bar.
     public static Sprite Sight => sight != null ? sight : (sight = Bar("EliteSight"));
@@ -299,24 +303,6 @@ public static class EliteFxArt
         return Make(t, h);
     }
 
-    // Upright capsule (points up the screen), hot white core and a body.
-    static Sprite Capsule(string name, int w, int h)
-    {
-        var t = NewTex(w, h, name);
-        float cx = (w - 1) * .5f;
-        for (int y = 0; y < h; y++)
-            for (int x = 0; x < w; x++)
-            {
-                float rx = Mathf.Abs(x - cx) / (w * .5f);
-                float ry = Mathf.Abs(y - (h - 1) * .5f) / (h * .5f);
-                float d = Mathf.Max(rx, Mathf.Pow(ry, 3f));
-                float a = d < .45f ? 1f : d < .8f ? .85f : d < 1f ? .45f : 0f;
-                float v = d < .45f ? 1f : .8f;
-                t.SetPixel(x, y, new Color(v, v, v, a));
-            }
-        return Make(t, h);
-    }
-
     static Sprite Diamond(string name, int w, int h)
     {
         var t = NewTex(w, h, name);
@@ -329,6 +315,71 @@ public static class EliteFxArt
                 t.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
         return Make(t, h);
+    }
+
+    // An arrow pointing up the texture (EliteShot.Face turns it along its
+    // flight): a barbed head over a narrow shaft; `fletch` > 0 adds tail
+    // fins (the siege shell). Straight edges only: nothing round, nothing
+    // with two lobes (a heart is the player's life). Hard alpha.
+    static Sprite Dart(string name, int w, int h, float fletch)
+    {
+        var t = NewTex(w, h, name);
+        float cx = w * .5f;
+        const float head = .5f;   // the head's base, as a share of the length
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float px = Mathf.Abs(x + .5f - cx), v = (y + .5f) / h;   // v: 0 tail .. 1 tip
+                bool inside;
+                if (v >= head) inside = px <= (1f - v) / (1f - head) * cx;          // the head
+                else inside = px <= cx * .28f + .01f ||                               // the shaft
+                              (fletch > 0f && v < .22f && px <= cx * fletch * (1f - v / .22f * .5f));   // fins
+                // barbs: the head's base cut back in the middle, so its corners hook
+                if (v >= head && v < head + .1f && px < cx * .5f && px > cx * .28f) inside = false;
+                if (!inside) { t.SetPixel(x, y, Color.clear); continue; }
+                bool spine = px <= Mathf.Max(.6f, cx * .2f);
+                float g = spine ? 1f : x + .5f < cx ? .86f : .68f;   // lit left, shaded right
+                t.SetPixel(x, y, new Color(g, g, g, 1f));
+            }
+        return Make(t, h);
+    }
+
+    // An arrowhead pointing up the texture: a solid triangle with a
+    // shallow notch in its base.
+    static Sprite Chevron(string name, int w, int h)
+    {
+        var t = NewTex(w, h, name);
+        float cx = w * .5f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float px = Mathf.Abs(x + .5f - cx), v = (y + .5f) / h;   // 0 base .. 1 point
+                bool inside = px <= (1f - v) * cx && !(v < .3f && px < (.3f - v) / .3f * cx * .55f);
+                if (!inside) { t.SetPixel(x, y, Color.clear); continue; }
+                float g = px < (1f - v) * cx * .35f ? 1f : (x + .5f < cx ? .86f : .68f);
+                t.SetPixel(x, y, new Color(g, g, g, 1f));
+            }
+        return Make(t, h);
+    }
+
+    // A spiked mine: a hot core in a dark collar, `spikes` long thin points.
+    static Sprite Burr(string name, int n, int spikes)
+    {
+        var t = NewTex(n, n, name);
+        float c = n * .5f;
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float dx = x + .5f - c, dy = y + .5f - c;
+                float r = Mathf.Sqrt(dx * dx + dy * dy) / c;
+                float a = Mathf.Atan2(dy, dx) * spikes * .5f;
+                float spike = Mathf.Pow(Mathf.Abs(Mathf.Cos(a)), 12f);
+                float reach = .42f + .58f * spike;
+                if (r > reach) { t.SetPixel(x, y, Color.clear); continue; }
+                float g = r < .2f ? 1f : r < .36f ? .38f : (dx + dy < 0f ? .86f : .68f);
+                t.SetPixel(x, y, new Color(g, g, g, 1f));
+            }
+        return Make(t, n);
     }
 
     static Sprite Bar(string name)

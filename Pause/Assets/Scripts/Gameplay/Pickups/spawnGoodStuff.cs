@@ -230,6 +230,7 @@ public class spawnGoodStuff : MonoBehaviour {
         pos = SpawnSpace.PickupSpot(pos, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Instantiate(prefab, pos, transform.rotation) as GameObject;
         PickupArt.ApplyInGameScale(go, prefab);
+        PickupGlow.Dress(go);   // star dust's soft halo (atoms: AtomSpin.AddTo)
         SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
         return go;
     }

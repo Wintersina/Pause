@@ -24,7 +24,7 @@ public static class TutorialScript
         new TutorialStep("freeze",   "Let go. Time *freezes*!",                       TutorialAdvance.LetGo, .6f,           TutorialCue.None),
         new TutorialStep("teleport", "Touch to teleport. Each costs a *pause*.",      TutorialAdvance.SpendPause, 1f,       TutorialCue.PointAtPauses),
         new TutorialStep("dust",     "*Star dust*! Grab it, that's your cash.",       TutorialAdvance.CollectStar, 1f,      TutorialCue.SpawnStars),
-        new TutorialStep("heal",     "*Green* fixes your hull.",                      TutorialAdvance.CollectGreenAtom, 1f, TutorialCue.SpawnGreenAtom),
+        new TutorialStep("heal",     "Glowing *atoms* help! *Green* fixes hull.",       TutorialAdvance.CollectGreenAtom, 1f, TutorialCue.SpawnGreenAtom),
         new TutorialStep("shield",   "*Blue* wraps you in a shield.",                 TutorialAdvance.CollectBlueAtom, 1f,  TutorialCue.SpawnBlueAtom),
         new TutorialStep("refill",   "*Red* refills pauses. Zero means no freezing!", TutorialAdvance.CollectRedAtom, 1f,   TutorialCue.SpawnRedAtom),
         new TutorialStep("enemies",  "An *alien*! Dodge it, or teleport onto it!",    TutorialAdvance.EnemyGone, 1f,        TutorialCue.SpawnEnemy),

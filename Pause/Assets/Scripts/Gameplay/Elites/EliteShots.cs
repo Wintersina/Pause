@@ -37,7 +37,10 @@ using UnityEngine;
 // all the way, then flies straight on.
 // A def's shotBounces lets its shots glance off the side rails that many
 // times (the Rimebreaker's frost shards) instead of breaking there.
-// All drawn in the elite's shotColor with a shotCore centre -- magenta /
+// All drawn in the hostile family (HostileShotPalette: the def's shotColor
+// pulled to magenta-pink, a pink-white flickering core), as arrows, arrowheads
+// and spiked mines (EliteFxArt) -- never an atom's colour or shape. Was:
+// the elite's shotColor with a shotCore centre -- magenta /
 // violet / cyan, never the player's red.
 public sealed class EliteShots
 {
@@ -140,6 +143,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
     SpriteRenderer body, core, mark;
     SpriteRenderer glow;      // the visibility outline (ShotOutline): hugs the drawing, never a round halo
     Color glowTint;
+    // the shot's colours: the def's, pulled into the hostile family (HostileShotPalette)
+    Color tint = Color.white, coreTint = Color.white;
     int ownerId;
     GameObject hitbox;
     CircleCollider2D hitCol;
@@ -215,12 +220,14 @@ public class EliteShot : MonoBehaviour, IHostileShot
                          : Kind == EliteShots.Kind.Orb ? HostileShots.Heavy
                          : Kind == EliteShots.Kind.Slag || Kind == EliteShots.Kind.Shell ? HostileShots.Heavy
                          : HostileShots.Light;
-    public Color ShotTint => def != null ? def.ShotColor : Color.white;
+    public Color ShotTint => def != null ? tint : Color.white;
+    public Color BodyTint => tint;
+    public Color CoreTint => coreTint;
 
     public void ShotPop(Vector2 at)
     {
         if (!Active) return;
-        if (def != null) EliteSystem.Fx.Sparks(at, def.ShotColor, 4);
+        if (def != null) EliteSystem.Fx.Sparks(at, tint, 4);
         EndReason = 5;
         Recycle();
     }
@@ -300,8 +307,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
         core.sprite = sprite;
         // (a slab is the world's own ice: drawn as it is, no core; its outline says "hazard")
         bool slab = kind == EliteShots.Kind.Slab;
-        body.color = slab ? Color.white : d.ShotColor;
-        core.color = d.ShotCore;
+        tint = HostileShotPalette.Body(d.ShotColor);
+        coreTint = HostileShotPalette.Core(tint);
+        body.color = slab ? Color.white : tint;
+        core.color = coreTint;
         core.enabled = !slab;
         core.transform.localScale = Vector3.one * .5f;
         float k = size / Mathf.Max(.01f, sprite.bounds.size.y);
@@ -312,7 +321,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         hitCol.radius = radius / k;
         hitCol.enabled = true;
         ownerId = from != null ? from.GetInstanceID() : 0;
-        glowTint = HostileGlow.Tint(d.ShotColor);
+        glowTint = HostileGlow.Tint(tint);
         Outline(sprite, k);
         Pulse();
         Active = true;
@@ -345,7 +354,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
         mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
-        mark.color = def.ShotColor;
+        mark.color = tint;
     }
 
     // Turns a just-fired shot into a slung one (gravity_sling): it curves
@@ -367,7 +376,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
         mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
-        mark.color = def.ShotColor;
+        mark.color = tint;
     }
 
     // Turns a just-fired slab into a glide out to `to` (world, riding the
@@ -405,7 +414,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             EliteSystem.Fx.Sparks(transform.position, def.ShotCore, 5);
             return;
         }
-        if (Kind == EliteShots.Kind.Slab || Kind == EliteShots.Kind.Orb) EliteSystem.Fx.Sparks(transform.position, def.ShotColor, 8);
+        if (Kind == EliteShots.Kind.Slab || Kind == EliteShots.Kind.Orb) EliteSystem.Fx.Sparks(transform.position, tint, 8);
         EndReason = 5;
         Recycle();
     }
@@ -450,7 +459,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
-        EliteSystem.Fx.Sparks(lobTo, def.ShotColor, 5);
+        EliteSystem.Fx.Sparks(lobTo, tint, 5);
         Physics2D.SyncTransforms();
     }
 
@@ -491,6 +500,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         if (dt <= 0f) return;
         age += dt;
         Pulse();
+        // the danger tell: the core flickers hard, white-hot and back
+        core.color = HostileShotPalette.FlickerHot(age) ? Color.white : coreTint;
         Vector3 p = transform.position;
         if (airborne)
         {
@@ -504,7 +515,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             transform.localScale = Vector3.one * (def.shotSize / Mathf.Max(.01f, EliteFxArt.Slag.bounds.size.y)) * (1f + .9f * height);
             transform.rotation = Quaternion.Euler(0f, 0f, age * 240f);
             mark.transform.position = new Vector3(lobTo.x, lobTo.y, 0f);
-            Color mc = def.ShotColor;
+            Color mc = tint;
             mc.a = Mathf.FloorToInt(lobTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
             mark.color = mc;
             if (k >= 1f) Land();
@@ -573,7 +584,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             p.y = c.y;
             Face();
             mark.transform.position = new Vector3(slingTo.x, slingTo.y, 0f);
-            Color mc = def.ShotColor;
+            Color mc = tint;
             mc.a = Mathf.FloorToInt(slingTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
             mark.color = mc;
             if (k >= 1f)
@@ -597,7 +608,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         float edge = EliteSystem.RailEdge;
         if (Mathf.Abs(p.x) + radius > edge)
         {
-            EliteSystem.Fx.Sparks(new Vector2(Mathf.Sign(p.x) * edge, p.y), def.ShotColor, 4);
+            EliteSystem.Fx.Sparks(new Vector2(Mathf.Sign(p.x) * edge, p.y), tint, 4);
             if (bounces > 0 && Mathf.Sign(velocity.x) == Mathf.Sign(p.x))
             {
                 // glances off the rail, back across the board

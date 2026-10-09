@@ -36,6 +36,8 @@ public class AtomSpin : MonoBehaviour
     public static GameObject AddTo(GameObject atom)
     {
         if (atom != null && atom.GetComponent<AtomSpin>() == null) atom.AddComponent<AtomSpin>();
+        // the friendly look: bigger, a soft halo and an orbit ring (PickupGlow)
+        PickupGlow.Dress(atom);
         return atom;
     }
 }

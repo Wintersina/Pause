@@ -49,6 +49,8 @@ RAMPS = {
     "shield": [hexc("#0F5E6A"), hexc("#1FB5B9"), hexc("#6EF2EE"), BONE],   # TEAL_SH TEAL CYAN
     "pause": [hexc("#86121F"), hexc("#D8232C"), hexc("#FF5B45"), BONE],    # RED_SH RED RED_HI
     "dust": [hexc("#A9481A"), hexc("#F2862B"), hexc("#FFB43C"), BONE],     # SODIUM_SH SODIUM AMBER
+    # The violet capacitor (AkiraPalette.VioletShadow / Violet / VioletHi).
+    "cooldown": [hexc("#322056"), hexc("#7051B7"), hexc("#B99AFF"), BONE],
     # The green atom's own tones, sampled from heal_atom_green.png.
     "heal": [hexc("#29A805"), hexc("#7EE702"), hexc("#B4F246"), hexc("#FDFDFD")],
 }
@@ -320,6 +322,59 @@ def pause_frame(phase, pulse):
     return out
 
 
+def cooldown_frame(step, pulse):
+    """Capacitor atom: a round ring of six capacitor cells that charge one
+    by one around a violet core carrying a BONE lightning bolt. Nothing like
+    the pause atom's crossed orbits and bars: one circle, one bolt. `step`
+    is how many cells are lit (0..6); the pop flashes them all."""
+    n = ATOM_CELLS
+    c = n / 2
+    out = np.zeros((n, n), dtype=np.uint8)
+    g = Grid(n)
+    x, y = g.cells()
+    dx, dy = x - c, y - c
+    r = np.hypot(dx, dy)
+    ang = (np.degrees(np.arctan2(dy, dx)) + 90.0 + 360.0) % 360.0   # 0 at the top, clockwise
+    band = np.abs(r - 18.6) <= 2.3
+    seg = np.floor(ang / 60.0).astype(int)
+    gap = (ang % 60.0) < 9.0
+    cells = band & ~gap
+    lit_all = pulse == 1
+    for k in range(6):
+        m = cells & (seg == k)
+        if lit_all or k < step:
+            g.set(m, LIGHT)
+            g.set(m & (r > 18.6 + 0.6), BASE)
+            g.set(m & (r < 18.6 - 1.2) & ((ang % 60.0) < 22.0), KICK)
+        else:
+            g.set(m, SH)
+            g.set(m & (r < 18.6 - 0.8), BASE)
+    over(out, outline(g.a))
+
+    # core: a violet ball, chamfered like the pause atom's, with the bolt
+    rr = {-1: 9.0, 0: 10.0, 1: 11.0, 2: 10.4}[pulse]
+    g = Grid(n)
+    ball(g, c, c, rr, flash=(pulse == 1), kick=False)
+    x, y = g.cells()
+    bolt = [(c + 2.6, c - 8.0), (c - 4.4, c + 1.2), (c - 0.4, c + 1.2),
+            (c - 2.8, c + 8.0), (c + 4.4, c - 1.4), (c + 0.4, c - 1.4)]
+    if pulse == -1:
+        bolt = [(px, c + (py - c) * 0.8) for px, py in bolt]
+    inside = poly_fill(g, bolt) & (g.a > 0)
+    g.set(inside, KICK)
+    lay = outline(g.a)
+    bars = g.a == KICK
+    ring = np.zeros_like(bars)
+    for ddy in (-1, 0, 1):
+        for ddx in (-1, 0, 1):
+            ring |= shift(bars, ddx, ddy)
+    lay[ring & ~bars & (g.a > 0)] = INKC
+    kk = (np.abs(x - (c - rr * 0.6)) <= 0.8) & (np.abs(y - (c - rr * 0.55)) <= 0.8) & (g.a > 0) & ~bars
+    lay[kk] = KICK
+    over(out, lay)
+    return out
+
+
 def star_cells(n, rx, ry, w, flip, sparkle=0, scale=1.0, core=True):
     """Four-point star, cel-faceted: each ray split along its axis into a
     light and a shadow half (light from the upper left), BONE core."""
@@ -388,7 +443,10 @@ def atom_idle(kind):
     frames = []
     for i, ticks in enumerate(ATOM_IDLE_TICKS):
         pulse = ATOM_PULSE[i]
-        if kind == "shield":
+        if kind == "cooldown":
+            # the ring charges a cell every two drawings, then pops
+            frames.append((cooldown_frame(min(6, 1 + i // 2), pulse), ticks))
+        elif kind == "shield":
             # electrons step one hexagon edge per two frames; the loop closes
             # after 1/3 turn because the three electrons are identical
             phase = (i / len(ATOM_IDLE_TICKS)) / 3.0
@@ -419,7 +477,7 @@ def burst(kind):
     n = BURST_CELLS
     c = n / 2
     frames = []
-    shapes = {"heal": "plus", "pause": "bars", "shield": "hex", "dust": "star"}[kind]
+    shapes = {"heal": "plus", "pause": "bars", "shield": "hex", "dust": "star", "cooldown": "bolt"}[kind]
     for fi, ticks in enumerate(BURST_TICKS):
         out = np.zeros((n, n), dtype=np.uint8)
         g = Grid(n)
@@ -467,6 +525,10 @@ def burst(kind):
                     elif shapes == "bars":
                         m = ((np.abs(px - gx - sz * 0.75) <= sz * 0.35) | (np.abs(px - gx + sz * 0.75) <= sz * 0.35)) & \
                             (np.abs(py - gy) <= sz * 1.2)
+                    elif shapes == "bolt":
+                        # a little zigzag: two offset diagonal strokes
+                        m = ((np.abs((px - gx) + (py - gy) * 0.5) <= sz * 0.45) & (np.abs(py - gy) <= sz * 1.4) &
+                             ((py - gy) * np.sign(px - gx + 1e-6) >= -sz * 0.3))
                     elif shapes == "hex":
                         m = (np.abs(px - gx) + np.abs(py - gy) <= sz * 1.3)
                     else:
@@ -683,10 +745,11 @@ def write_all(preview=False):
 
     shield = emit("shield_idle", atom_idle("shield"), RAMPS["shield"])
     pause = emit("pause_idle", atom_idle("pause"), RAMPS["pause"])
+    cooldown = emit("cooldown_idle", atom_idle("cooldown"), RAMPS["cooldown"])
     dust = emit("dust_idle", dust_idle(DUST_CELLS), RAMPS["dust"])
     dustsm = emit("dustsm_idle", dust_idle(DUST_SM_CELLS), RAMPS["dust"])
     emit("heal_glint", heal_idle(), RAMPS["heal"], HEAL_INK, HEAL_UP)
-    for kind in ("shield", "pause", "dust"):
+    for kind in ("shield", "pause", "dust", "cooldown"):
         emit(f"{kind}_burst", burst(kind), RAMPS[kind])
     emit("heal_burst", burst("heal"), RAMPS["heal"], HEAL_INK)
 
@@ -694,6 +757,7 @@ def write_all(preview=False):
     # sprite guid and a spawned atom looks right before its first Update.
     save(shield[0][0], os.path.join(ASSETS, "Art", "Pickups", "atom3a.png"), PPU["atom"])
     save(pause[0][0], os.path.join(ASSETS, "Art", "Pickups", "pauseAtom.png"), PPU["atom"])
+    save(cooldown[0][0], os.path.join(ASSETS, "Art", "Pickups", "cooldownAtom.png"), PPU["atom"])
     save(dust[0][0], os.path.join(ASSETS, "Art", "Pickups", "StarDustLarge.png"), PPU["dust"])
     save(dustsm[0][0], os.path.join(ASSETS, "Art", "Pickups", "StarDustSmall.png"), PPU["dustsm"])
 
@@ -742,8 +806,8 @@ def write_previews(written):
 
     heal = [(heal_composited(img), t) for img, t in written["heal_glint"]]
     strip(heal, "heal_idle")
-    for name in ("shield_idle", "pause_idle", "dust_idle", "dustsm_idle",
-                 "shield_burst", "pause_burst", "dust_burst", "heal_burst"):
+    for name in ("shield_idle", "pause_idle", "cooldown_idle", "dust_idle", "dustsm_idle",
+                 "shield_burst", "pause_burst", "cooldown_burst", "dust_burst", "heal_burst"):
         strip(written[name], name)
 
     # family sheet: frame 0 of each at the same world scale
