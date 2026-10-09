@@ -178,6 +178,7 @@ public static class AllTests
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
         ("RowHeartsTest", RowHeartsTest.Execute),
+        ("ColumnSpeedTest", ColumnSpeedTest.Execute),
         ("DockPopupScaleTest", DockPopupScaleTest.Execute),
     };
 

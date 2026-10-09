@@ -69,29 +69,24 @@ public static class WorldPaceTest
 
     static void Table()
     {
-        var byPrice = ShipId.All.OrderByDescending(id => shopingShips.CostFor(id)).Take(4).OrderBy(id => id).ToArray();
-        var highEnd = ShipStartSpeed.HighEndShips.OrderBy(id => id).ToArray();
-        Check("high-end ships are the four priciest (" + string.Join(",", byPrice) + ")", byPrice.SequenceEqual(highEnd));
-        Check("high-end = Ion Lancer, Jade Phantom, Gold Warden, Turtle",
-              highEnd.Select(ShipId.KeyOf).SequenceEqual(new[] { "IonLancer", "JadePhantom", "GoldWarden", "Turtle" }));
-
-        int[] regular = { 0, 5, 10, 15, 20 }, high = { 10, 15, 20, 25, 30 };
         bool all = true;
         var lines = new List<string>();
         foreach (int id in ShipId.All)
         {
-            int[] want = ShipStartSpeed.IsHighEnd(id) ? high : regular;
+            int[] want = { 0, 5, 10, 15, 20 };
+            int add = ShipStartSpeed.ColumnHud[ShipStartSpeed.Column(id) - 1];
+            for (int k = 0; k < want.Length; k++) want[k] += add;
             var got = new int[ShipSkins.CountFor(id)];
             for (int skin = 0; skin < got.Length; skin++) got[skin] = ShipStartSpeed.HudFor(id, skin);
             all &= got.Length == 5 && got.SequenceEqual(want);
             lines.Add(ShipId.KeyOf(id) + " " + string.Join("/", got));
         }
         Debug.Log("[PACE] start speeds by colour: " + string.Join("; ", lines));
-        Check("every ship: colour 1..5 = 0/5/10/15/20, high-end 10/15/20/25/30", all);
+        Check("every ship: colour 1..5 = its column base (0/5/10) + 0/5/10/15/20", all);
         Check("regular colour 1 is gameS1's own start (0)", ShipStartSpeed.HudFor(1, 0) == ShipStartSpeed.StockHud && ShipStartSpeed.StockHud == 0);
-        Check("an unknown skin falls back to colour 1", ShipStartSpeed.HudFor(7, 99) == 10 && ShipStartSpeed.HudFor(2, -1) == 0);
+        Check("an unknown skin falls back to colour 1", ShipStartSpeed.HudFor(7, 99) == ShipStartSpeed.BaseHud(7) && ShipStartSpeed.HudFor(2, -1) == ShipStartSpeed.BaseHud(2));
         Check("no ship: the stock start", ShipStartSpeed.HudFor(0, 3) == 0);
-        Check("speed = HUD / 100", Mathf.Approximately(ShipStartSpeed.SpeedFor(15, 4), .30f));
+        Check("speed = HUD / 100", Mathf.Approximately(ShipStartSpeed.SpeedFor(7, 4), .30f));
         Check("label", ShipStartSpeed.Label(15) == "START SPD 15");
         Check("the fastest start (HUD 30) is under the one speed cap (" + SpeedRamp.Cap + ")",
               ShipStartSpeed.SpeedFor(7, 4) < SpeedRamp.Cap);
@@ -343,7 +338,7 @@ public static class WorldPaceTest
         PlayerPrefs.SetString(ShipId.OwnedKey(2), "True");
         popup.Show(2, ship, .3f, true, false, 0f, 0f);
         popup.ShowSkins(2, 3, 0f);
-        Check("Volt Viper colour 4: START SPD 15", popup.StartSpeedText == "START SPD 15");
+        Check("Volt Viper (column 2) colour 4: START SPD 20", popup.StartSpeedText == "START SPD 20");
         Check("the popup grows by the line's height", Mathf.Approximately(popup.CurrentHeightUnits,
               DockPopup.BaseHeight + DockPopup.SkinRowHeight + DockPopup.WeaponRowHeight + DockPopup.StartSpeedLineHeight));
     }

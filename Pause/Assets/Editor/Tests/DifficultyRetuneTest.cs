@@ -205,8 +205,8 @@ public static class DifficultyRetuneTest
               Mathf.RoundToInt(BossConfig.FightSpeed * 100f) + ") sit under the cap",
               ResumeSlowMo.MinHudSpeed < SpeedRamp.CapHud && BossConfig.FightSpeed < cap);
         bool starts = true;
-        foreach (int hud in ShipStartSpeed.HighEndHud) starts &= hud / 100f < cap;
-        foreach (int hud in ShipStartSpeed.RegularHud) starts &= hud / 100f < cap;
+        foreach (int id in ShipId.All)
+            for (int skin = 0; skin < ShipSkins.CountFor(id); skin++) starts &= ShipStartSpeed.HudFor(id, skin) / 100f < cap;
         Check("every ship and colour's start speed is under the cap", starts);
         Check("loops still arrive below the ease (HUD " + (LoopRules.ArrivalSpeed(LoopRules.MaxScaledLoops) * 100f).ToString("F0") + ")",
               LoopRules.ArrivalSpeed(LoopRules.MaxScaledLoops) < SpeedRamp.EaseKnee);

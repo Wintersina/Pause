@@ -7,14 +7,20 @@ using UnityEngine;
 // moveBackGround.speed 0.15). Colour 1 is ShipSkins.Stock (skin index 0),
 // colours 2..5 are the extra skins in ShipSkins' table order.
 //
-//                      colour 1   2    3    4    5
-//   regular ships           0     5   10   15   20     (0 = gameS1's own start)
-//   high-end ships         10    15   20   25   30
+// The base is the ship's COLUMN in the dock grid (SpaceDock.ColumnOf: left
+// to right as the player sees it; the same layout that gives hearts by row):
 //
-// High-end ships are the priciest four: Ion Lancer (3200), Jade Phantom
-// (4400), Gold Warden (5800) and Turtle (3000) -- the same tier that gets the
-// extra hearts. Every start is under the speed cap (SpeedRamp.Cap, HUD 35),
-// and WorldManager clamps to it regardless.
+//   column 1 = 0, column 2 = 5, column 3 = 10        (ColumnHud)
+//
+// and each colour bought adds StepHud on top, as before:
+//
+//                      colour 1   2    3    4    5
+//   column 1 ships          0     5   10   15   20     (0 = gameS1's own start)
+//   column 2 ships          5    10   15   20   25
+//   column 3 ships         10    15   20   25   30
+//
+// The fastest start is 30, under the speed cap (SpeedRamp.Cap, HUD 35), and
+// WorldManager clamps to it regardless.
 //
 // The run ramps up from here as usual (SpeedRamp), and every world is
 // arrived in at this speed again. Since no ship can pass the cap, the start
@@ -32,31 +38,29 @@ public static class ShipStartSpeed
     public const int StockHud = 0;
     public const int StepHud = 5;
 
-    // By colour (skin index). A table longer than these continues +StepHud.
-    public static readonly int[] RegularHud = { StockHud, 5, 10, 15, 20 };
-    public static readonly int[] HighEndHud = { 10, 15, 20, 25, 30 };
+    // Base start by grid column (index 0 = column 1).
+    public static readonly int[] ColumnHud = { StockHud, 5, 10 };
 
-    // ShipId: Ion Lancer, Jade Phantom, Gold Warden, Turtle.
-    public static readonly int[] HighEndShips = { 5, 6, 7, 15 };
+    // The ship's column in the dock grid, 1..DockLayout.MaxColumns.
+    public static int Column(int id) { return SpaceDock.ColumnOf(id); }
+
+    // The ship's base HUD start, before any colour.
+    public static int BaseHud(int id)
+    {
+        int col = Column(id);
+        return col <= 0 ? StockHud : ColumnHud[Mathf.Min(col, ColumnHud.Length) - 1];
+    }
 
     // Test hook: the HUD start of the equipped ship/colour.
     public static Func<int> EquippedHudOverride;
 
-    public static bool IsHighEnd(int id)
-    {
-        return Array.IndexOf(HighEndShips, id) >= 0;
-    }
-
-    // HUD start speed of ship `id` in colour `skin` (0 = stock).
+    // HUD start speed of ship `id` in colour `skin` (0 = stock): its column's
+    // base plus StepHud per colour.
     public static int HudFor(int id, int skin)
     {
         if (!ShipId.IsValid(id)) return StockHud;
         if (!ShipSkins.Has(id, skin)) skin = ShipSkins.Stock;
-        int[] table = IsHighEnd(id) ? HighEndHud : RegularHud;
-        int hud = skin < table.Length
-            ? table[skin]
-            : table[table.Length - 1] + StepHud * (skin - table.Length + 1);
-        return Mathf.Max(StockHud, hud);
+        return Mathf.Max(StockHud, BaseHud(id) + StepHud * skin);
     }
 
     public static float SpeedFor(int id, int skin) { return HudFor(id, skin) / 100f; }
