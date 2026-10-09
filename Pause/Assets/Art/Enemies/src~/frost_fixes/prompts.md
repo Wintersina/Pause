@@ -1,0 +1,13 @@
+# Painted imagegen prompts
+
+Built-in `image_gen` was used for two selected painted cells, with one alternate candidate each. The selected outputs are `rime_candidate_selected.png` and `big_hit_candidate_selected.png`.
+
+## Rime star-cutter — selected
+
+Use case: precise-object-edit. Asset type: single 2D game sprite for a vertical shooter. Edit target: `frost_rock_rime.png`, preserving its centered six-point star-cutter silhouette and upright orientation. Style references: `frost_rock_chunk.png` and `frost_rock_shard.png` show the approved rugged industrial Frost pixel art quality. Draw ONE centered star-cutter, no sprite sheet, no background. Heavy icebreaker blue-steel hub plate with six ice-and-steel blades, copper clamp pins, snow on upper edges, cyan cryo core in an octagonal housing. Intricate hand-placed pixel-art texture: 1-pixel selective dark outline, 4–6 tone steel and ice ramps, upper-left rim light, tiny rivets, scratches, copper weathering and frost facets. Palette steel `#2a3a50` to `#8fb0cc`, ice `#bfe6ff`, core `#4fe6ff` to `#f2fcff`, sparse copper. Composition: compact six-point star, symmetric enough to be instantly readable; long top and bottom blades and four diagonal points; centered with generous transparent margin. Crisp hard pixel edges, no antialiasing or smooth gradients. Absolutely no thick black halo, cream, lavender, purple, red, text or ground shadow.
+
+## Glacier Golem hit — selected
+
+Use case: precise-object-edit. Asset type: ONE 256x256 transparent game sprite, hit pose for the Frost Glacier Golem. Edit target: enlarged `frost_big` cell 3 reference. Preserve the exact same character, hull proportions, scale, centered anchor, rugged hand-painted pixel-art construction, steel and glacier ice colors, copper pipes, snow cap, upper-left lighting, and thin 1-pixel dark outline. Make a localized hit reaction only: white-hot cyan flash centered in the horizontal visor; a diagonal jagged crack across the dark blue chest plate beneath the visor, cyan light inside; 5–8 small blue ice and copper chips flying nearby; the right arm recoils inward slightly. Keep both arms, ice fins, snow cap, face and body fully colored as in the input. Transparent background, compact within at least 8 pixels margin. Palette icebreaker dark blue steel, glacial blue-white ice, cyan luminous core, sparse copper. Pixel sharp, no blur. Do not blow out the body to white, do not change character design, no purple/red, no text.
+
+Both selected candidates were cropped by their nontransparent bounds, resized with nearest-neighbour sampling, snapped to an original Frost palette, and cleaned to hard alpha. `build.py` supplies the frame-specific core, glint and chip changes while keeping each idle hull fixed.

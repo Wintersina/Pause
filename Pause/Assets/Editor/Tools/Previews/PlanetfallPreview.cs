@@ -30,7 +30,7 @@ public static class PlanetfallPreview
     };
     static readonly (string name, float at)[] Descent =
     {
-        ("commit", .55f), ("limb", 1.45f), ("entry-heat", 2.05f), ("deep-cloud", 3.4f),
+        ("commit", .55f), ("limb-start", 1.1f), ("limb-mid", 1.25f), ("limb", 1.45f), ("entry-heat", 2.05f), ("deep-cloud", 3.4f),
         ("breakthrough-flash", 5.0f), ("burst", 5.3f), ("cloud-clear", 5.85f), ("frost-start", 7.6f),
     };
 

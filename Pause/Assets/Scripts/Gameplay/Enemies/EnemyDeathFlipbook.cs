@@ -1,13 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// A detached, three-drawing death pose for Space enemies. The original
+// A detached, three-drawing death pose for any enemy whose world painted a
+// strip (Enemies/Death/<key>.png, width = 3 x height); the rest keep the
+// generic debris. The original
 // seven-frame idle/tell/hit strip remains unchanged while this finishes.
 public class EnemyDeathFlipbook : MonoBehaviour
 {
     const float FlashSeconds = .08f;
     const float RuptureSeconds = .11f;
     const float SmokeSeconds = .2f;
+
+    // Test seam: swaps the Resources load for a synthetic strip.
+    public static System.Func<string, Texture2D> TextureLoader;
+    public static void ClearCache() { cache.Clear(); }
 
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
     Sprite[] frames;
@@ -16,10 +22,10 @@ public class EnemyDeathFlipbook : MonoBehaviour
 
     public static Sprite[] Frames(EnemyDef def)
     {
-        if (def == null || def.world != 0) return null;
+        if (def == null) return null;
         Sprite[] result;
         if (cache.TryGetValue(def.key, out result) && result != null && result[0] != null) return result;
-        var texture = Resources.Load<Texture2D>("Enemies/Death/" + def.key);
+        var texture = TextureLoader != null ? TextureLoader(def.key) : Resources.Load<Texture2D>("Enemies/Death/" + def.key);
         if (texture == null || texture.width != texture.height * 3) return null;
         float side = texture.height;
         float ppu = side / Mathf.Max(.01f, def.FrameWorldSize);

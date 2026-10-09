@@ -13,6 +13,11 @@ public static class WorldBackdropTest
     // Frost carries eight shared 1024 atlases (landmarks, sites, weather and
     // five ambient-loop sheets) besides one 4-tile variant set.
     public const long FrostTextureBudgetBytes = 12L * 1024 * 1024;
+    // Space carries the 2048 anim_hires planet sheet (~5.3 MB with mips; the 1x
+    // sheet was ~1.3 MB) beside the asteroid-drift sheets: 9573 KB, over the
+    // generic 9 MB. The user asked for much sharper planets (2026-10-08), so
+    // Space gets a deliberate 10 MB.
+    public const long SpaceTextureBudgetBytes = 10L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -422,7 +427,7 @@ public static class WorldBackdropTest
             for (int v = 1; v < variantBytes.Length; v++) { maxSet = System.Math.Max(maxSet, variantBytes[v]); maxSetAstc = System.Math.Max(maxSetAstc, variantAstc[v]); }
             bytes += maxSet;
             astc += maxSetAstc;
-            long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : TextureBudgetBytes;
+            long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",

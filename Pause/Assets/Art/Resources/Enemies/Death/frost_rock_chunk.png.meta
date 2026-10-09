@@ -1,0 +1,585 @@
+fileFormatVersion: 2
+guid: c19d07902650c425e8bab586a33bb0b4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6002696829252998621
+    second: frost_rock_chunk_0
+  - first:
+      213: 5370755234186631605
+    second: frost_rock_chunk_1
+  - first:
+      213: 1009434249892366943
+    second: frost_rock_chunk_2
+  - first:
+      213: -6958739017797412159
+    second: frost_rock_chunk_3
+  - first:
+      213: -7794698973068199333
+    second: frost_rock_chunk_4
+  - first:
+      213: 6484966747660781792
+    second: frost_rock_chunk_5
+  - first:
+      213: -6040003970139268984
+    second: frost_rock_chunk_6
+  - first:
+      213: -5843027955239358049
+    second: frost_rock_chunk_7
+  - first:
+      213: 2620351232940050870
+    second: frost_rock_chunk_8
+  - first:
+      213: -1277957963931124632
+    second: frost_rock_chunk_9
+  - first:
+      213: 6988971890271568318
+    second: frost_rock_chunk_10
+  - first:
+      213: 5977873245785240725
+    second: frost_rock_chunk_11
+  - first:
+      213: -6516049307368544067
+    second: frost_rock_chunk_12
+  - first:
+      213: 7847956000793174651
+    second: frost_rock_chunk_13
+  - first:
+      213: -9059464079477141343
+    second: frost_rock_chunk_14
+  - first:
+      213: 8078260499905228493
+    second: frost_rock_chunk_15
+  - first:
+      213: -6264436516329585862
+    second: frost_rock_chunk_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_rock_chunk_0
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 6
+        width: 148
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd51df966fcdd4350800000000000000
+      internalID: 6002696829252998621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_1
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 19
+        width: 149
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b993451e61c88a40800000000000000
+      internalID: 5370755234186631605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_2
+      rect:
+        serializedVersion: 2
+        x: 298
+        y: 151
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5a82f02a1b320e00800000000000000
+      internalID: 1009434249892366943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_3
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 142
+        width: 22
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cad8877bb79d6f90800000000000000
+      internalID: -6958739017797412159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_4
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 126
+        width: 13
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5afa23059aa3d390800000000000000
+      internalID: -7794698973068199333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_5
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 38
+        width: 101
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e88a8ee5ea3ff950800000000000000
+      internalID: 6484966747660781792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_6
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 121
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88856e5f3689d2ca0800000000000000
+      internalID: -6040003970139268984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_7
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 109
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f91f74b480569eea0800000000000000
+      internalID: -5843027955239358049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_8
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 46
+        width: 57
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b9062a209b5d5420800000000000000
+      internalID: 2620351232940050870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_9
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 110
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86cf002b008c34ee0800000000000000
+      internalID: -1277957963931124632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_10
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 79
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb1c3d0b7e0ddf060800000000000000
+      internalID: 6988971890271568318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_11
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 79
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 594375f7b0ca5f250800000000000000
+      internalID: 5977873245785240725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_12
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 86
+        width: 13
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db82e5fada75295a0800000000000000
+      internalID: -6516049307368544067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_13
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 62
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b722c28076a89ec60800000000000000
+      internalID: 7847956000793174651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_14
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 62
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a09a573b61564280800000000000000
+      internalID: -9059464079477141343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_15
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 44
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dceabebcf1fbb1070800000000000000
+      internalID: 8078260499905228493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_rock_chunk_16
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 45
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a338036cd204019a0800000000000000
+      internalID: -6264436516329585862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_rock_chunk_0: 6002696829252998621
+      frost_rock_chunk_1: 5370755234186631605
+      frost_rock_chunk_10: 6988971890271568318
+      frost_rock_chunk_11: 5977873245785240725
+      frost_rock_chunk_12: -6516049307368544067
+      frost_rock_chunk_13: 7847956000793174651
+      frost_rock_chunk_14: -9059464079477141343
+      frost_rock_chunk_15: 8078260499905228493
+      frost_rock_chunk_16: -6264436516329585862
+      frost_rock_chunk_2: 1009434249892366943
+      frost_rock_chunk_3: -6958739017797412159
+      frost_rock_chunk_4: -7794698973068199333
+      frost_rock_chunk_5: 6484966747660781792
+      frost_rock_chunk_6: -6040003970139268984
+      frost_rock_chunk_7: -5843027955239358049
+      frost_rock_chunk_8: 2620351232940050870
+      frost_rock_chunk_9: -1277957963931124632
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

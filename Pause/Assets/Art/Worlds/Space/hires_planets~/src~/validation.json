@@ -1,0 +1,574 @@
+{
+  "passed": true,
+  "runtime": {
+    "sheet": "anim_hires.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "mode": "RGBA",
+    "spriteCount": 16,
+    "sprites": [
+      {
+        "name": "giant_00",
+        "discBBoxInRect": [
+          5,
+          5,
+          467,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_01",
+        "discBBoxInRect": [
+          5,
+          5,
+          467,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_02",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0457,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_03",
+        "discBBoxInRect": [
+          5,
+          5,
+          459,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0365,
+        "redAdjacentFraction": 0.00057
+      },
+      {
+        "name": "giant_04",
+        "discBBoxInRect": [
+          5,
+          5,
+          467,
+          447
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0452,
+        "redAdjacentFraction": 0.02855
+      },
+      {
+        "name": "giant_05",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          447
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_06",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          447
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_07",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          447
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_08",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          439
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0553,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_09",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0457,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_10",
+        "discBBoxInRect": [
+          5,
+          5,
+          463,
+          447
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_11",
+        "discBBoxInRect": [
+          5,
+          5,
+          467,
+          443
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.00411
+      },
+      {
+        "name": "rocky_00",
+        "discBBoxInRect": [
+          5,
+          5,
+          423,
+          399
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0609,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_01",
+        "discBBoxInRect": [
+          5,
+          5,
+          411,
+          399
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0305,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_02",
+        "discBBoxInRect": [
+          5,
+          5,
+          403,
+          395
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0205,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_03",
+        "discBBoxInRect": [
+          5,
+          5,
+          407,
+          395
+        ],
+        "clearBorderPx": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "discRatio": 1.0308,
+        "redAdjacentFraction": 0.0
+      }
+    ]
+  },
+  "master": {
+    "sheet": "anim_hires_4096.png",
+    "size": [
+      4096,
+      4096
+    ],
+    "mode": "RGBA",
+    "spriteCount": 16,
+    "sprites": [
+      {
+        "name": "giant_00",
+        "discBBoxInRect": [
+          10,
+          10,
+          934,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_01",
+        "discBBoxInRect": [
+          10,
+          10,
+          934,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_02",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0457,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_03",
+        "discBBoxInRect": [
+          10,
+          10,
+          918,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0365,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_04",
+        "discBBoxInRect": [
+          10,
+          10,
+          934,
+          894
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0452,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_05",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          894
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_06",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          894
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_07",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          894
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_08",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          878
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0553,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_09",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0457,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_10",
+        "discBBoxInRect": [
+          10,
+          10,
+          926,
+          894
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0362,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "giant_11",
+        "discBBoxInRect": [
+          10,
+          10,
+          934,
+          886
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0548,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_00",
+        "discBBoxInRect": [
+          10,
+          10,
+          846,
+          798
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0609,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_01",
+        "discBBoxInRect": [
+          10,
+          10,
+          822,
+          798
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0305,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_02",
+        "discBBoxInRect": [
+          10,
+          10,
+          806,
+          790
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0205,
+        "redAdjacentFraction": 0.0
+      },
+      {
+        "name": "rocky_03",
+        "discBBoxInRect": [
+          10,
+          10,
+          814,
+          790
+        ],
+        "clearBorderPx": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "discRatio": 1.0308,
+        "redAdjacentFraction": 0.0
+      }
+    ]
+  },
+  "exactBoxDownsample": true,
+  "phonePreview": [
+    1170,
+    2532
+  ]
+}

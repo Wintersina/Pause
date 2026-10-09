@@ -74,6 +74,7 @@ public static class AllTests
         ("EliteTest", EliteTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
+        ("EnemyDeathFlipbookTest", EnemyDeathFlipbookTest.Execute),
         ("EnemyDensityTest", EnemyDensityTest.Execute),
         ("EnemyRosterTest", EnemyRosterTest.Execute),
         ("ExhaustSkinTest", ExhaustSkinTest.Execute),
