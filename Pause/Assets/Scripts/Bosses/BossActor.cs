@@ -40,6 +40,7 @@ public class BossActor : MonoBehaviour
     float tellAge;         // world time inside the current tell
     float outroClock;
     int explosionsFired;
+    bool hasDeathArt;      // the outro plays the boss's death strip over the body
 
     // movement
     float moveClock;
@@ -617,6 +618,8 @@ public class BossActor : MonoBehaviour
         outroClock = 0f;
         explosionsFired = 0;
         retreatVy = 0f;
+        hasDeathArt = explode && BossArt.HasDeathArt(boss);
+        if (hasDeathArt && body != null) body.sprite = BossArt.DeathStrip(boss, 0);
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
         HideDamage();
         flashLeft = 0f;
@@ -636,8 +639,11 @@ public class BossActor : MonoBehaviour
         if (mode == Mode.Dying)
         {
             int f = BossArt.FrameAt(BossArt.DeathTicks, outroClock, false);
+            // A death strip outlasts the atlas frames if it must, never cuts them short.
+            if (hasDeathArt && outroClock < BossArt.DeathStripSeconds) f = Mathf.Min(f, BossArt.DeathFrames - 1);
             if (f >= BossArt.DeathFrames) { body.enabled = false; mode = Mode.Gone; if (hearts != null) hearts.Hide(); return; }
             SetFrame(BossArt.Death(f));
+            if (hasDeathArt) body.sprite = BossArt.DeathStrip(boss, BossArt.DeathStripCell(outroClock));
             // Cartoon blasts on the hull as it breaks up.
             var at = BlastTimes;
             while (explosionsFired < at.Length && outroClock >= at[explosionsFired])

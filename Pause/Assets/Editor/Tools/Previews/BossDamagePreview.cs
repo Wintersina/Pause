@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each boss with damage art (Space, Frost) over its backdrop at 5,
+// Renders each boss with damage art (Space, Frost, Ember) over its backdrop at 5,
 // 4, 3, 2 and 1 hearts left
 // (pristine, then battle damage stages 1..4: hull, smoke, arcs) side by side
 // in one PNG strip per boss (bossdamage-<key>-strip.png), for review.
@@ -97,6 +97,32 @@ public static class BossDamagePreview
         }
         strip.Apply();
         File.WriteAllBytes(path, strip.EncodeToPNG());
+
+        // a boss with a death strip: three frames of its death (bossdeath-<key>-strip.png)
+        if (BossArt.HasDeathArt(e.Actor.Boss))
+        {
+            for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
+            var dstrip = new Texture2D(side * 3, side, TextureFormat.RGB24, false);
+            float[] at = { .1f, .3f, .55f };
+            float t0 = 0f;
+            for (int t = 0; t < 3; t++)
+            {
+                while (t0 < at[t]) { e.Step(Dt, 1f); t0 += Dt; }
+                cam.Render();
+                var old = RenderTexture.active;
+                RenderTexture.active = rt;
+                shot.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+                shot.Apply();
+                RenderTexture.active = old;
+                Vector3 c = cam.WorldToScreenPoint(e.Actor.transform.position);
+                int x0 = Mathf.Clamp((int)c.x - side / 2, 0, Width - side);
+                int y0 = Mathf.Clamp((int)c.y - side / 2, 0, Height - side);
+                dstrip.SetPixels(t * side, 0, side, side, shot.GetPixels(x0, y0, side, side));
+            }
+            dstrip.Apply();
+            File.WriteAllBytes(path.Replace("bossdamage-", "bossdeath-"), dstrip.EncodeToPNG());
+            Object.DestroyImmediate(dstrip);
+        }
 
         cam.targetTexture = null;
         Object.DestroyImmediate(rt);
