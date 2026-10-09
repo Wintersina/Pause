@@ -1,0 +1,237 @@
+{
+  "world": "Ember",
+  "view": "Orthographic atmosphere-level surface beneath ash clouds",
+  "size": [
+    512,
+    1024
+  ],
+  "format": "RGBA PNG",
+  "source_method": "Sixteen built-in imagegen paintings: two terrain and two transparent flow candidates per place; nearest-neighbor crop, discrete palette, depth haze, color limit, two-axis wrap blending",
+  "preview": "preview_variants.png",
+  "files": [
+    {
+      "file": "v1/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v1",
+      "notes": "Lava caldera fields. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v1",
+      "notes": "Lava caldera fields. Distant top-down ground with reduced contrast and warm atmospheric haze.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v1",
+      "notes": "Lava caldera fields. Near detailed top-down ground with restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v1/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v1",
+      "notes": "Lava caldera fields. Sparse transparent painted scrolling marks revealing layers beneath.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 0.0962,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v2",
+      "notes": "Forge city. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v2",
+      "notes": "Forge city. Distant top-down ground with reduced contrast and warm atmospheric haze.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v2",
+      "notes": "Forge city. Near detailed top-down ground with restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v2/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v2",
+      "notes": "Forge city. Sparse transparent painted scrolling marks revealing layers beneath.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 0.1151,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v3",
+      "notes": "Ash plains and ember rivers. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
+      "p90_hsv_value_opaque": 0.4157,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v3",
+      "notes": "Ash plains and ember rivers. Distant top-down ground with reduced contrast and warm atmospheric haze.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v3",
+      "notes": "Ash plains and ember rivers. Near detailed top-down ground with restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.4745,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v3/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v3",
+      "notes": "Ash plains and ember rivers. Sparse transparent painted scrolling marks revealing layers beneath.",
+      "p90_hsv_value_opaque": 0.4431,
+      "opaque_fraction": 0.067,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/sky.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sky",
+      "variant": "v4",
+      "notes": "Obsidian night volcano. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
+      "p90_hsv_value_opaque": 0.3333,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/far.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "far",
+      "variant": "v4",
+      "notes": "Obsidian night volcano. Distant top-down ground with reduced contrast and warm atmospheric haze.",
+      "p90_hsv_value_opaque": 0.3647,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/mid.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "mid",
+      "variant": "v4",
+      "notes": "Obsidian night volcano. Near detailed top-down ground with restrained highlights for action readability.",
+      "p90_hsv_value_opaque": 0.3961,
+      "opaque_fraction": 1.0,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    },
+    {
+      "file": "v4/flow.png",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "flow",
+      "variant": "v4",
+      "notes": "Obsidian night volcano. Sparse transparent painted scrolling marks revealing layers beneath.",
+      "p90_hsv_value_opaque": 0.3765,
+      "opaque_fraction": 0.0332,
+      "wrap_edge_mean_abs_channel_difference": 0.0,
+      "wrap_edge_max_channel_difference": 0
+    }
+  ]
+}
