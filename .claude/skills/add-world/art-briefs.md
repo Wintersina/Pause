@@ -36,8 +36,14 @@ Read ./docs/art-style.md (neon pixel art, rugged cyberpunk/steampunk industrial,
 anywhere: red means friendly) and ./docs/user-art-and-world-brief.md.
 WORLD: <WORLD>, world <N> in the loop Space -> Frost -> Verdant -> Ember -> ... : <LOOK>
 PALETTE: <PALETTE>. <NO>. <HUE_RULE>.
+[OPTIONAL: paste this paragraph only into UI/character art prompts] UI / CHARACTER ART (tutorial, menu or codex sprites): the user rejected a painterly
+"happy" tutorial robot ("too happy, not cyberpunk enough, more pixel arty"). Demand TRUE low-res pixel art: author on a
+native grid (e.g. 64x64 / 96x96), upscale ONLY by an exact integer factor with nearest-neighbour, no smoothing or
+anti-aliased edges; verify by down-scaling by that factor and up-scaling again == identical image. Limited palette per
+small sprite (<= ~24 colours), stern/menacing faces, never cute, never smiling.
 The level is flown at ATMOSPHERE LEVEL, looking straight down from just under the cloud ceiling. NOT SPACE: no
 stars/planets/stations/comets/asteroids anywhere in <WORLD>'s backdrop art.
+PREVIEWS: never draw mock UI (boxes, buttons, lines, labels) into previews; show the art itself, on a plain dark ground or the real tiles.
 METHOD (mandatory): use IMAGE GENERATION for the painted content: generate several candidates, inspect them,
 pick the best, then pixel-clean (nearest-neighbour only, NO blur, limited palette PER MATERIAL RAMP -- but rich
 tonal ramps, not a global small palette). Procedural-only results will be rejected.
@@ -197,7 +203,11 @@ Refs: `Resources/Enemies/{ember,frost,space}_*.png`, the finished backdrop mid t
 write into Resources/ until I say>
 Draw the <WORLD> cast: 11 horizontal strips, 7 square cells each, cell side = strip height (192 px; the big 256): 1344x192
 (1792x256 for <w>_big). Cells 0-3 IDLE: ONE fixed hull and anchor -- the body centroid within 3 px of cell 0 and its area
-within +-4% in all four idle cells; only a small detail moves (core pulse, wing, antenna, drip, glint) so the loop breathes.
+within +-4% in all four idle cells, BUT THE IDLE MUST BE CLEARLY VISIBLE at 12 fps (the user called the Steel Hound's
+"too mute"): >= 3% of the body's pixels change between every pair of consecutive idle cells (0>1, 1>2, 2>3 and the
+seam 3>0). Move real parts -- turbines, claws, core, visor, wings, legs -- with a 2-3 px bob/rotation drawn on the limbs,
+NOT a drifting hull and NOT a single glint; the hull itself stays anchored (centroid within 3 px). Four genuinely
+different drawings, never 2 cells repeated.
 Cell 4 and 5 = the TELL (anticipation, then the discharge), cell 6 = HIT: the same hull in a white-hot flash with a cracked
 part and a few chips -- NEVER a blown-out whole-body white or an off-palette recolour. Same scale and anchor in all 7
 cells. >= 6 px clear margin to every cell edge in EVERY cell. 1 px dark outline plus a LIGHT RIM (upper-left, 2 px) and a
@@ -213,14 +223,16 @@ THE CAST (design each from its role AND its counter, one line each):
  <w>_alien "<Name>": <design>      <w>_chaser "<Name>": <design>      <w>_big "<Name>": <design> (reads properly BIG)
  <w>_fighter_1 "<Name>" (tier 1) ... <w>_fighter_4 "<Name>" (tier 4, heaviest): <designs; four DISTINCT silhouettes>
  <w>_rock_<a> .. <d>: four rocks; <d> is the FLOATING one (a chunk of the world's ground, upright, sways): <designs>
- Rocks idle must still MOVE visibly (a "rock" with four identical idle cells was rejected).
+ Rocks idle must still MOVE visibly (a "rock" with four identical idle cells was rejected). Chasers get the same
+ 4-cell loop as everyone else (the game must not special-case them to a 2-cell loop, see SKILL.md Phase 12).
 The mine is NOT a strip: it is drawn separately as new rows of the neon mines atlas (template MINES below) -- skip it here.
 Write preview.png (each strip at 2x on #0b0b1a, and each key pose over the four v*/mid.png tiles) and audit.py that prints,
 per strip: tones, boundaries, outline columns, longest straight cut, idle centroid drift and area ratio, margins per cell,
 red share, stand-out share on the tiles.
 ```
 
-Local check: `scripts/verify_enemy_strip.py <strips>` + `Pause/Assets/Art/Enemies/src~/audit_cells.py`.
+Local check: `scripts/verify_enemy_strip.py <strips>` (includes the per-frame idle-motion % check, `--min-motion`, default 3)
++ `Pause/Assets/Art/Enemies/src~/audit_cells.py`. Reference: the old `space_chaser` strip FAILS the motion check (0.3-0.4%).
 
 ### 3-fix -- fix pass on named strips
 

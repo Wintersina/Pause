@@ -43,6 +43,15 @@ lower-case key ("tide"), `N` = world index (Space 0, Frost 1, Verdant 2, Ember 3
   reached" line in a log means *wait for the reset*, not retry. Codex cannot be
   messaged mid-run: restructure and relaunch; but **look at the output folder
   before calling a run stuck** (one "stuck" run had already written its files).
+- **Codex CLI preflight (before a world starts).** Installed: `codex-cli 0.161.0` at
+  `~/.local/bin/codex`, logged in via ChatGPT. Run `codex --version` and `codex
+  login status` first. On a usage-limit hit Codex **stops mid-run**; the job log
+  (`codex_<job>.log`) says so: wait for the reset, then relaunch the *same prompt* in
+  the *same worktree* (it keeps the files already written). `-i` image refs are
+  resolved **relative to the shell's cwd**, not the `-C` worktree: pass absolute
+  paths. Launching: `run_codex.sh` backgrounds with `nohup ... &`; the tool's
+  "completed" notification for that launcher is **not** the Codex run finishing.
+  Check `pgrep -f 'codex exec'` and the `-o ..._last.txt` file (written only at the end).
 - **One worktree + one branch per job.** Codex: `.claude/worktrees/codex-<job>`,
   branch `art/<job>`. Agents: `.claude/worktrees/<name>`, `feature/<name>`.
   **Never edit or commit in the main checkout** `/Users/sina/Developer/Pause`
@@ -318,8 +327,10 @@ upright), and the mine (a row of the neon mines atlas, see Phase 12).
 
 **Contract per strip:** 7 square cells in one row, cell side = height (**192 px;
 the big 256** -> 1344x192 / 1792x256); cells 0-3 idle (one fixed anchor and scale:
-centroid within **3 px**, area within **+-4%** of cell 0; only the small detail
-moves), 4-5 tell, 6 hit flash (the same hull, white-hot accent; **not** a
+centroid within **3 px**, area within **+-4%** of cell 0; the hull stays put but
+the idle must be **visibly alive**: >= 3% of the body's pixels change between
+consecutive idle cells at 12 fps -- turbines/claws/core/visor/limbs bobbing 2-3 px,
+not hull drift and not a lone glint), 4-5 tell, 6 hit flash (the same hull, white-hot accent; **not** a
 blown-out recolour). >= 6 px clear margin in every cell. 1 px dark outline **and
 a light rim** so it stands out of the world's backdrop (`ReadabilitySweep`
 stand-out >= 10% of the footprint, aliens >= 15%).
@@ -342,14 +353,22 @@ were *held back from master* for failing this.
 4. Order a **fix pass** for the usual defects (below) with originals saved to
    `src~/<w>_fixes/original/` and every untouched cell byte-identical.
 
-**Quality traps (all seen):** posterising to ~22 colours; edges cut by cell
+**Idle must not be mute.** The user called the Steel Hound's animation "too mute":
+its strip barely changes (0.3-0.4% of pixels between cells, measured by
+`verify_enemy_strip.py`) *and* the game special-cased it to a 2-cell loop
+(`EnemyRoster.FlipbookIdleTicks`: `space_chaser` -> `{6, 6}`, used by
+`EnemyFlipbook` and `CodexAnimations`), which hid the animation altogether. New
+worlds must **not** special-case any chaser (or other enemy) in `IdleTicks` /
+`FlipbookIdleTicks`: every strip plays its 4 idle cells at the role's ticks.
+
+**Quality traps (all seen):** near-static idle loops (< 3% change); posterising to ~22 colours; edges cut by cell
 borders; identical idle cells (a "rock" that does not move); drift between idle
 cells; a hit cell blown out to white or recoloured off-palette; stray colours
 from another world; margins under 6 px; bodies too dark for the backdrop; a
 thick 6-8 px black halo instead of the 1 px outline; rocks that read as
 rectangles.
 
-**Accept:** every strip PASS in `verify_enemy_strip.py`; no off-palette reds.
+**Accept:** every strip PASS in `verify_enemy_strip.py` (including the idle-motion rows); no off-palette reds.
 **Show:** contact sheet 2x on `#0b0b1a` and on a mid tile.
 
 ### Phase 4 -- Death strips (Codex J7)
@@ -363,6 +382,10 @@ intact enemy + white-hot starburst in the world's colours; cell 1 = rupture
 debris/vapour/sparks. Bright parts >= 6 px from the cell edge. Rocks just
 shatter; machines die by their anatomy; creatures spill. Palette = the idle
 strip's ramps.
+
+Each death strip also powers the **Codex screen's triple-tap death** (works for every
+enemy with an `Enemies/Death/<key>.png`: 46 today); an enemy without one cannot be
+triple-tapped, so none may be skipped.
 
 **Accept:** `verify_enemy_strip.py --death <strip> --idle-png <idle>` PASS (the
 mine's idle cell is in the atlas: compare by eye); `EnemyDeathFlipbookTest`.
@@ -466,7 +489,12 @@ tonal run > 100 ms. Screams: long painful "ahhh" cries **0.7-1.2 s** (elites
 1.0-1.3 s), radio-filtered, centroid < 1.5-1.7 kHz, < 8% above 3.5 kHz, peak
 -9 dBFS, ~10-14 dB under their death cue in game (`ScreamVolume` .5). Every cue
 is a believable physical/organic event for *that* unit; lines like "just
-something breaking" get sent back. Do **not** produce backdrop/ambient/music.
+something breaking" get sent back. Do **not** produce backdrop/ambient/music (the user authors every world's backdrop,
+ambient and music sounds himself). Remaining sounds never beep or coin. **Gap to
+list in the report and phase for:** boss damage/death sounds are not authored for
+*any* world yet. The scream-borrow hook (`EnemyDeathAudio.ScreamBorrow`, a
+key -> borrowed-scream map) exists but is empty and unapproved: do not fill it
+without the user's go.
 
 **Accept:** `verify_wavs.py <EnemyDeath dir> <w>_ --big <big-ish names>` PASS (it
 reproduces the A-weighted table, xcorr < .6, lengths +-20%); `EnemyDeathAudioTest`
@@ -649,6 +677,13 @@ inventing: `<World>Backdrop.cs`, `<World>Ambient.cs`, a `<World>BackdropPreview`
    `RailMineArt.Frame(world, column)` routed to it, measured rects/pivots/core
    offset (`RailMineLaserTest` measures the core), the original test kept intact.
    Ask Codex for the new rows with the original atlas as the style reference.
+   **Shot readability:** the Verdant mine's and boss's shots are WEAK on dark
+   worlds, so the new world's mine needs *lit* (bright, saturated core and beam)
+   rows in the second atlas, and its boss shots need checking on its own tiles.
+   Inherited automatically (do not rebuild): rail mines **lock their row at windup**
+   (`RailMineMount.AimLocked`, frozen `LockedRow`), rails get darker toward the
+   outer screen edge (`WorldPainter.RailEdge.outerDark`) and the lane width is
+   `RailInset.BaseShift` (.24).
 6. `EnemyDensity`/`LoopRules` interplay: nothing per world except the pilot-load
    arrays (Phase 9). Spawn weights/phases are shared (`enmiesOnBoard` phases keyed
    on the level clock, `phaseRampScale`).
@@ -728,9 +763,15 @@ tutorial.
 
 1. **Codex**: world entry (`WorldIds`, `Backdrop("<World>")`, lore line in the
    user's voice), enemies/elites/boss list automatically; triple-tap death
-   animation works for any enemy with a death strip (not mines/elites/bosses).
+   animation works for any enemy with a death strip (not mines/elites/bosses; 46
+   today -- each new enemy needs its `Enemies/Death/<key>.png`). The world entry
+   uses the world's **real backdrop tile** (the Space entry uses Space `sky_01`,
+   `CodexCatalogue.SpaceSkyTexture`); no bespoke art. Test the triple-tap with
+   **real pointer events** (see "Testing UI" below).
 2. **Menus**: `MenuBackdrop` picks from the worlds up to
-   `PrefsHighestWorld` and each installed variant -- automatic; verify with
+   `PrefsHighestWorld` and each installed variant -- automatic: a new world needs
+   nothing but its real tiles (the user rejected bespoke menu vistas). Previews
+   must never draw mock UI boxes/lines; render them device-like (below). Verify with
    `MenuBackdropTest` and `MENU_PREVIEW_DIR`. Unlock gating is
    `WorldManager.PrefsHighestWorld` (set by `CurrentIndex`'s setter).
 3. **Dev**: world picker row (automatic), F-keys (Phase 9), `BossDev` rush-final
@@ -892,6 +933,28 @@ auditing the code for this skill.**
     the other world's nouns before launching.
 
 ## 7. Pitfalls
+
+- **Testing UI**: a feature (Codex triple-tap death) passed tests that called its
+  hook directly yet failed on a real touch: a nested sub-`Canvas` without a
+  `GraphicRaycaster` swallowed the pointer events. Any interactive UI needs a test that
+  sends **real pointer events** through the EventSystem/raycast rules (see the
+  pointer-event tests added in `b73108f5`), not a direct method call. Preview/batch
+  tools must **lay out like a device**: the home-screen "Play touches the logo" false
+  alarm came from a fake world-space canvas; use the ScreenFit rig /
+  `MenuBackdropPreview` device settings (aspect, safe area, canvas scaler).
+- **Art that fails the Unity quality tests is held back, not excused.** Do not loosen
+  the floors (detail floor, margins, motion): send it back to Codex with the failing
+  numbers (Verdant's quantised strips were redone this way). Codex outputs are
+  committed on `art/<x>` branches; integration agents merge them.
+- **Stale `Unity.Licensing.Client`** makes batch builds hang or print fake compiler
+  errors: kill the helper and rerun (`unity-batch.sh` handles it).
+- **Merging into the main checkout** is blocked by Unity-generated untracked `.meta`
+  files and importer rewrites of dirty files. Discard only files that are *identical to
+  the branch's*; never discard anyone else's edits. Repeated, re-sent subagent
+  hand-backs are harmless: ignore the duplicates.
+- **The integration loop**: merge `art/*` then `feature/*` into `integrate/world-<w>`,
+  run the full `RunAll`, run it on a plain-master control, compare to the known
+  baseline; only differences are yours.
 
 - Letting Codex "finish" with a procedural-only script: **image generation is
   mandatory**; procedural-only results get rejected. Put "use image generation"

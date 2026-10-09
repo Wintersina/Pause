@@ -14,7 +14,10 @@
 # Codex cannot be messaged mid-run: if a job is off, let it finish or kill it and relaunch a narrower
 # prompt - but LOOK AT THE OUTPUT FOLDER before calling a run stuck (a "stuck" run had already written its files).
 # At most 2 Codex jobs at once. Codex shares the usage limit of the user's ChatGPT login: a limit message in the
-# log means "wait for the reset", not "retry".
+# log means "wait for the reset" (Codex stops mid-run), then relaunch the SAME prompt in the SAME worktree.
+# Preflight: `codex --version` (0.161.0 at ~/.local/bin/codex) and `codex login status`. Pass ref images as ABSOLUTE
+# paths (-i resolves against the shell cwd, not -C). This script backgrounds codex with nohup: the tool's "completed"
+# notice for THIS launcher is not the run finishing -- check `pgrep -f 'codex exec'` and the last.txt file.
 set -eu
 job="${1:?job name}"; prompt="${2:?prompt file}"; shift 2
 repo="${PAUSE_REPO:-/Users/sina/Developer/Pause}"

@@ -2,7 +2,7 @@
 """Pre-flight for an enemy idle strip (and an enemy's death strip) against the numbers the
 Unity tests enforce, so Codex output can be judged BEFORE it is wired.
 
-  python3 verify_enemy_strip.py STRIP.png [more.png ...] [--frames 7] [--death] [--idle-png IDLE.png]
+  python3 verify_enemy_strip.py STRIP.png [more.png ...] [--frames 7] [--death] [--idle-png IDLE.png] [--min-motion 3]
 
 Idle strip (default): 7 square cells (192 px, big 256), checked like EnemyRosterTest:
   detail floor (cell 0 = the key pose): distinct tones >= 300, colour boundaries >= 3000 (big 6000)
@@ -10,6 +10,9 @@ Idle strip (default): 7 square cells (192 px, big 256), checked like EnemyRoster
   player's reds: < 2% of opaque texels within 24 (L1) of #D8232C / #86121F / #FF5B45
   and the art-pass rules (audit_cells.py does the full job): idle cells 0-3 keep one anchor
   (centroid within 3 px of cell 0) and scale (area within +-4%); every cell keeps >= 6 px clear margin.
+  VISIBLE IDLE MOTION (the Steel Hound loop was "too mute"): between consecutive idle cells (0>1, 1>2, 2>3,
+  and the loop seam 3>0) >= 3% of the body's pixels must change (moving parts -- turbines, claws, core,
+  visor -- not hull drift; anchor stays within 3 px). Tune with --min-motion.
 
 --death: a death strip (Resources/Enemies/Death/<key>.png): width = 3 x height, cell 0 anchored on the
   enemy's idle cell 3 (pass --idle-png <the idle strip>; centroid within 3 px), bright parts >= 6 px from edges.
@@ -55,7 +58,16 @@ def straight_cut(cell):
                 worst = max(worst, run)
     return worst
 
-def idle(path, frames, big_hint=None):
+def motion_pct(a, b):
+    """% of the body (union of opaque texels) whose colour or coverage differs between two cells."""
+    oa, ob = a[..., 3] > 128, b[..., 3] > 128
+    body = oa | ob
+    if not body.any(): return 0.0
+    d = np.abs(a[..., :3].astype(int) - b[..., :3].astype(int)).sum(axis=2) > 24
+    changed = (oa ^ ob) | (oa & ob & d)
+    return 100.0 * changed.sum() / body.sum()
+
+def idle(path, frames, min_motion=3.0):
     im = np.asarray(Image.open(path).convert("RGBA"))
     h, w = im.shape[:2]
     check(w == h * frames, f"{path}: {frames} square cells ({w}x{h})")
@@ -88,6 +100,10 @@ def idle(path, frames, big_hint=None):
         c, a = centroid_area(cells[i])
         d = math.hypot(c[0] - ref[0], c[1] - ref[1]) if c else 99
         check(d <= 3.0 and abs(a / area0 - 1) <= .04, f"idle cell {i}: centroid drift {d:.1f} px (<=3), area x{a/area0:.2f} (1+-.04)")
+    for i in range(4):
+        j = (i + 1) % 4
+        mp = motion_pct(cells[i], cells[j])
+        check(mp >= min_motion, f"idle motion cell {i}>{j}: {mp:.1f}% of body pixels change (>= {min_motion:g}%; a 2-3 px limb bob, not a still hull)")
     for i, c in enumerate(cells):
         m = margins(c)
         ok = m is not None and m >= 6
@@ -121,8 +137,9 @@ if __name__ == "__main__":
     ap.add_argument("--frames", type=int, default=7)
     ap.add_argument("--death", action="store_true")
     ap.add_argument("--idle-png")
+    ap.add_argument("--min-motion", type=float, default=3.0, help="min %% of body pixels changing between consecutive idle cells")
     a = ap.parse_args()
     for p in a.strips:
-        death(p, a.idle_png) if a.death else idle(p, a.frames)
+        death(p, a.idle_png) if a.death else idle(p, a.frames, a.min_motion)
     print("RESULT:", "FAIL" if fails else "PASS", f"({fails} failures)")
     sys.exit(1 if fails else 0)

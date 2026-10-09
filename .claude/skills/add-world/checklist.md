@@ -75,10 +75,10 @@ decks match the backdrop ceiling; masters kept in `descent~/`; preview sheet + g
 not); B: 5 atlases + JSON, margins >= 14, lots of pipes/smoke/fire sources; C: loops seamless, bases on anchor,
 blink ratios >= 4 / 2.2, particles visible; manifests with measured numbers; user saw the sheets.
 
-**3 Enemy strips** -- 11 strips (+ mine rows) PASS `verify_enemy_strip.py` + `audit_cells.py`; stand-out on the world's
+**3 Enemy strips** -- 11 strips (+ mine rows) PASS `verify_enemy_strip.py` (idle motion >= 3% per consecutive cell, no chaser special-casing in `FlipbookIdleTicks`) + `audit_cells.py`; stand-out on the world's
 tiles checked on a contact sheet; fix pass done; floating rock present; no off-palette reds.
 
-**4 Deaths** -- 12 strips (mine, big included) PASS `--death`; timing/anchor rules; user saw the preview gif.
+**4 Deaths** -- (every enemy needs one: triple-tap death in the Codex) 12 strips (mine, big included) PASS `--death`; timing/anchor rules; user saw the preview gif.
 
 **5 Rails** -- 725x2170, seamless, visibility ~ Space's; `RailBounds` measured.
 
@@ -87,7 +87,7 @@ tiles checked on a contact sheet; fix pass done; floating rock present; no off-p
 
 **7 Elite art** -- 5-6 strips + manifest + concepts; distinct silhouettes; margins >= 16.
 
-**8 Sounds** -- WAVs for every roster key + elite (3 variants); screams only for living occupants; `verify_wavs.py` PASS;
+**8 Sounds** -- (user authors backdrop/ambient/music; never beep/coin; boss damage/death sounds are a known gap for all worlds; `ScreamBorrow` stays empty) WAVs for every roster key + elite (3 variants); screams only for living occupants; `verify_wavs.py` PASS;
 audition WAV + sheet delivered; notes list which cues need ear tuning.
 
 **9 Scaffold** -- compiles; in every list; `world_audit.sh` sections 2 and 5 empty; pinned tests generic or extended;
@@ -100,7 +100,7 @@ previews opened (descent and lift-off at two device aspect ratios); `WorldTransi
 emitters; clouds: <= ~10% by 10 s, gone by ~14 s; launch sites; all `*BackdropTest` + `WorldBackdropTest` green vs
 control; real-frame previews for all 4 variants at 2/10/40 s.
 
-**12 Roster** -- 12 defs + behaviours + palette + explosion + mine atlas; spawn tests green; no wrong-world leaks.
+**12 Roster** -- 12 defs + behaviours + palette + explosion + mine atlas (lit mine rows, shots readable on the dark world); spawn tests green; no wrong-world leaks.
 
 **13 Boss** -- catalog, emitters regenerated, hearts ellipse, warning accent, fx row; attack previews show fair telegraphs.
 
@@ -108,7 +108,7 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 
 **15 Audio** -- keys registered; `EnemyDeathAudioTest` green; user listened.
 
-**16 Meta** -- codex entry/sections/chips fit, menu pool, dev picker, leaderboard range noted for the user, docs updated.
+**16 Meta** -- codex entry uses the real backdrop tile, triple-tap death tested with real pointer events, previews device-like with no mock UI, codex entry/sections/chips fit, menu pool, dev picker, leaderboard range noted for the user, docs updated.
 
 **17 Release** -- full `RunAll` on the integration branch == control + only intended diffs; soak test green;
 `ReadabilitySweep` no new LOW/WEAK; Mac + Android dev builds Succeeded; hygiene below; user go-ahead.
