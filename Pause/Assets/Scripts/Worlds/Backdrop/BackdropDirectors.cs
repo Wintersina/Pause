@@ -630,8 +630,9 @@ public partial class SpaceDirector : BackdropDirector
     {
         Rect r = s.textureRect;
         float tw = s.texture.width, th = s.texture.height;
-        bool inset = s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal) ||
-                     s.name.StartsWith("neon_planet_", System.StringComparison.Ordinal);
+        // (neon_planet_ cells are cut tight on the disc by build_neon_frames.py,
+        // so they take the margin rule; only the haloed planets are inset.)
+        bool inset = s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal);
         float margin = DiscMarginPx * s.pixelsPerUnit / BackdropAtlas.PixelsPerUnit;
         float radius = inset
             ? r.width * 0.39f : r.width * 0.5f - margin;
