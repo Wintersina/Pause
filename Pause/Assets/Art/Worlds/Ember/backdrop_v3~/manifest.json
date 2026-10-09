@@ -6,8 +6,8 @@
     1024
   ],
   "format": "RGBA PNG",
-  "source_method": "Sixteen built-in imagegen paintings: two terrain and two transparent flow candidates per place; nearest-neighbor crop, discrete palette, depth haze, color limit, two-axis wrap blending",
-  "preview": "preview_variants.png",
+  "source_method": "Original built-in imagegen backdrop set, with ten layers rebuilt from ten new built-in imagegen paintings; nearest-neighbour crop, discrete palette, depth values and two-axis wrap joins",
+  "preview": "preview_variants_v2.png",
   "files": [
     {
       "file": "v1/sky.png",
@@ -17,8 +17,8 @@
       ],
       "role": "sky",
       "variant": "v1",
-      "notes": "Lava caldera fields. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
-      "p90_hsv_value_opaque": 0.4157,
+      "notes": "Deep dark basalt distance with violet-brown haze, fine lava veins and tiny forge lights.",
+      "p90_hsv_value_opaque": 0.4039,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -31,8 +31,8 @@
       ],
       "role": "far",
       "variant": "v1",
-      "notes": "Lava caldera fields. Distant top-down ground with reduced contrast and warm atmospheric haze.",
-      "p90_hsv_value_opaque": 0.4431,
+      "notes": "Distant dark volcanic ground with subdued hot amber channels and lit ruins.",
+      "p90_hsv_value_opaque": 0.4392,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -73,8 +73,8 @@
       ],
       "role": "sky",
       "variant": "v2",
-      "notes": "Forge city. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
-      "p90_hsv_value_opaque": 0.4157,
+      "notes": "Deep dark basalt distance with violet-brown haze, fine lava veins and tiny forge lights.",
+      "p90_hsv_value_opaque": 0.4039,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -87,8 +87,8 @@
       ],
       "role": "far",
       "variant": "v2",
-      "notes": "Forge city. Distant top-down ground with reduced contrast and warm atmospheric haze.",
-      "p90_hsv_value_opaque": 0.4431,
+      "notes": "Distant dark volcanic ground with subdued hot amber channels and lit ruins.",
+      "p90_hsv_value_opaque": 0.4392,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -129,8 +129,8 @@
       ],
       "role": "sky",
       "variant": "v3",
-      "notes": "Ash plains and ember rivers. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
-      "p90_hsv_value_opaque": 0.4157,
+      "notes": "Deep dark basalt distance with violet-brown haze, fine lava veins and tiny forge lights.",
+      "p90_hsv_value_opaque": 0.4039,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -143,8 +143,8 @@
       ],
       "role": "far",
       "variant": "v3",
-      "notes": "Ash plains and ember rivers. Distant top-down ground with reduced contrast and warm atmospheric haze.",
-      "p90_hsv_value_opaque": 0.4431,
+      "notes": "Distant dark volcanic ground with subdued hot amber channels and lit ruins.",
+      "p90_hsv_value_opaque": 0.4392,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -157,7 +157,7 @@
       ],
       "role": "mid",
       "variant": "v3",
-      "notes": "Ash plains and ember rivers. Near detailed top-down ground with restrained highlights for action readability.",
+      "notes": "Dark wind-carved ash dunes with narrow ember rivers, glowing vents and buried ruins.",
       "p90_hsv_value_opaque": 0.4745,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
@@ -171,9 +171,9 @@
       ],
       "role": "flow",
       "variant": "v3",
-      "notes": "Ash plains and ember rivers. Sparse transparent painted scrolling marks revealing layers beneath.",
+      "notes": "Sparse transparent painted wind-blown ash streaks and glowing ember specks.",
       "p90_hsv_value_opaque": 0.4431,
-      "opaque_fraction": 0.067,
+      "opaque_fraction": 0.0846,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
     },
@@ -185,8 +185,8 @@
       ],
       "role": "sky",
       "variant": "v4",
-      "notes": "Obsidian night volcano. Deepest hazy far-ground plane, warm brown-violet ash haze, lowest contrast.",
-      "p90_hsv_value_opaque": 0.3333,
+      "notes": "Deep dark basalt distance with violet-brown haze, fine lava veins and tiny forge lights.",
+      "p90_hsv_value_opaque": 0.3216,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -199,8 +199,8 @@
       ],
       "role": "far",
       "variant": "v4",
-      "notes": "Obsidian night volcano. Distant top-down ground with reduced contrast and warm atmospheric haze.",
-      "p90_hsv_value_opaque": 0.3647,
+      "notes": "Distant dark volcanic ground with subdued hot amber channels and lit ruins.",
+      "p90_hsv_value_opaque": 0.3608,
       "opaque_fraction": 1.0,
       "wrap_edge_mean_abs_channel_difference": 0.0,
       "wrap_edge_max_channel_difference": 0
@@ -1899,5 +1899,71 @@
         "recommended_draw_alpha": 0.8
       }
     ]
+  },
+  "preview_v2": "preview_variants_v2.png",
+  "redo": {
+    "source_method": "Ten built-in imagegen paintings: two terrain candidates per variant and two transparent v3 flow candidates; nearest-neighbour resize, discrete palette, two-axis wrap blending",
+    "builder": "src~/redo.py",
+    "source_candidates": {
+      "v1": [
+        "src~/v1_redo_terrain_a.png",
+        "src~/v1_redo_terrain_b.png"
+      ],
+      "v2": [
+        "src~/v2_redo_terrain_a.png",
+        "src~/v2_redo_terrain_b.png"
+      ],
+      "v3": [
+        "src~/v3_redo_terrain_a.png",
+        "src~/v3_redo_terrain_b.png"
+      ],
+      "v4": [
+        "src~/v4_redo_terrain_a.png",
+        "src~/v4_redo_terrain_b.png"
+      ]
+    },
+    "v3_flow_candidates": [
+      "src~/v3_redo_flow_a.png",
+      "src~/v3_redo_flow_b.png"
+    ],
+    "originals": "src~/originals_v1/",
+    "changed_files": [
+      "v1/sky.png",
+      "v1/far.png",
+      "v2/sky.png",
+      "v2/far.png",
+      "v3/sky.png",
+      "v3/far.png",
+      "v3/mid.png",
+      "v3/flow.png",
+      "v4/sky.png",
+      "v4/far.png"
+    ],
+    "measured_p90_per_file": {
+      "v1/sky.png": 0.4039,
+      "v1/far.png": 0.4392,
+      "v1/mid.png": 0.4745,
+      "v1/flow.png": 0.4431,
+      "v2/sky.png": 0.4039,
+      "v2/far.png": 0.4392,
+      "v2/mid.png": 0.4745,
+      "v2/flow.png": 0.4431,
+      "v3/sky.png": 0.4039,
+      "v3/far.png": 0.4392,
+      "v3/mid.png": 0.4745,
+      "v3/flow.png": 0.4431,
+      "v4/sky.png": 0.3216,
+      "v4/far.png": 0.3608,
+      "v4/mid.png": 0.3961,
+      "v4/flow.png": 0.3765
+    },
+    "untouched_sha256": {
+      "v1/mid.png": "386fd05933022debd82b1e73650579fd3f92238e3a0defce89bdcdb7c2586f07",
+      "v1/flow.png": "df96c9bbf5806461c2fda18b4c38ae1db7a4982021a751ccd8f47d2d26d5b3a5",
+      "v2/mid.png": "0a9f90d94f9abddea92b7c365fd8afe926d97c43e72b44808bc1fcf63d23662d",
+      "v2/flow.png": "3222ca08d63bc9b3e6db454b09ca89fc5b9f1ef417d473efc65cc63d0517c4a7",
+      "v4/mid.png": "70edbeccc15dd02fd0d6f597b4e22e22e83cf7d909a7cf5d0e1952a4b0b64844",
+      "v4/flow.png": "402cc5f244418f987c37ff4426873c43db9645d96cb96b474198b2162fd05341"
+    }
   }
 }
