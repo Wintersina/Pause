@@ -69,6 +69,16 @@ public static class MenuBackdropTest
         Check("space + frost + verdant are all offered once reached (" + seen.Count + " worlds)",
               seen.Contains("Space") && seen.Contains("Frost") && seen.Contains("Verdant"));
 
+        // Tide (world 4) has its own backdrop now: all four ground sets join the pool once the player has reached it
+        // (highestWorld 4: a developer unlock, or the release switch flipped), and not before
+        int tideAt = -1;
+        for (int i = 0; i < WorldManager.Worlds.Length; i++) if (WorldManager.Worlds[i].displayName == "Tide") tideAt = i;
+        int tideSets = 0, tideBefore = 0;
+        foreach (var p in List(tideAt)) if (p.world == "Tide") tideSets++;
+        foreach (var p in List(tideAt - 1)) if (p.world == "Tide") tideBefore++;
+        Check("Tide's four ground sets are offered once reached (" + tideSets + ") and not before (" + tideBefore + ")",
+              tideAt == 4 && tideSets == 4 && tideBefore == 0);
+
         // the PlayerPrefs hook
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);
         Check("HighestWorld reads the saved progress", MenuBackdropSelection.HighestWorld() == 1);

@@ -146,7 +146,7 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 
 ## F. Tide scaffold status (what is real, what is a stand-in) -- remove a line as its phase lands
 
-Real: `Worlds[4]` ("Tide", ramp .00385 / enemyRampScale 1.50, mint portal), `PlanetfallCatalog.Tide`,
+Real: `Worlds[4]` ("Tide", ramp .00385 / enemyRampScale 1.50, mint portal), the backdrop (`TideBackdrop.cs` director + tuning, `TideAmbient.cs`, `Backdrop3/` art, five `LandingKind.Tide*` sites; run C loop atlases still to land: `TideAmbientCatalog.Missing()`), `PlanetfallCatalog.Tide`,
 `LiftoffCatalog.Tide` (`autoLoop`), the planetfall art in `Backgrounds/Resources/Worlds/Tide/Planetfall/`, the
 loop rewiring, `EnemyDensity` entry, `CodexPanel.MaxSections = 7`, `DeveloperUnlocks` F5, `TideLoopSoakTest`.
 
@@ -155,7 +155,6 @@ Stand-ins (all resolve "Tide" to **Ember**'s; delete each when its phase lands):
 | Piece | Stand-in | Where | Phase |
 | --- | --- | --- | --- |
 | rails (texture, bounds, edge) | Ember's | `WorldPainter.RailArtWorld`, `Worlds[4].resourceFolder = "Ember"` | 5 |
-| backdrop spec + director | Ember's | `BackdropCatalog.TideStandIn` | 11 |
 | roster, rail mine row, palette, density | Ember's (`EnemyRoster.For` clamps to the last key; `EnemyPalette.ThemeFor(4)`; `EnemyDensity` 5th entry) | add `"tide"` to `EnemyRoster.WorldKeys` with the 12 defs | 12 |
 | explosion | Ice for elites by name, Ember's Magma for the roster | `TargetExplosion.KindForWorld("tide")` | 12 |
 | boss | Ember's (`BossCatalog.ForWorld` clamps; **no** 5th `BossDef`, the codex would list a duplicate) | add the `BossDef` + emitters/hearts/warning/fx rows | 13 |
