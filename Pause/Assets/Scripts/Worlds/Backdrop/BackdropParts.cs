@@ -91,7 +91,11 @@ public class BackdropAtlas
 public class BackdropTile
 {
     public readonly BackdropCatalog.Layer layer;
-    public float offset;                 // integrated scroll, world units
+    public float offset;                 // integrated scroll, world units (wrapped to one tile)
+    // The same scroll, never wrapped (double: exact over a long run). Pieces
+    // pinned to this tile (GroundPlanner) are placed from it, so they stay on
+    // their spot of the ground for as long as they are in view.
+    public double travel;
     readonly Transform root;
     readonly List<SpriteRenderer> copies = new List<SpriteRenderer>();
     readonly Sprite sprite;
@@ -178,9 +182,13 @@ public class BackdropTile
 
     public void Tick(float dt, float velocity, float viewHeight, float alpha)
     {
-        offset += (velocity * layer.rate + layer.flow) * dt;
-        if (tileHeight <= 0f) return;
-        offset = Mathf.Repeat(offset, tileHeight);
+        float step = (velocity * layer.rate + layer.flow) * dt;
+        travel += step;
+        if (tileHeight <= 0f) { offset += step; return; }
+        // derived from the unwrapped travel, so the drawn tile and anything
+        // pinned to it never drift apart
+        double h = tileHeight;
+        offset = (float)(travel - System.Math.Floor(travel / h) * h);
         wobblePhase += dt * 7.3f;
         float x = layer.wobble > 0f ? Mathf.Sin(wobblePhase) * layer.wobble : 0f;
 
@@ -216,6 +224,11 @@ public class BackdropPiece
     public float fps;
     public bool loop = true;
     public int kind, tier;               // tier: depth tier, where a director has them
+    // Pinned to the ground (GroundPlanner): `gy` is the piece's ground
+    // coordinate (its y plus the ground tile's travel), constant while it is
+    // in view; its y is recomputed from it every frame.
+    public double gy;
+    public int footprint = -1;           // GroundPlanner footprint slot, -1 none
     public BackdropPiece[] children;     // e.g. a planet's moon
     public BackdropPiece parent;         // set on a child that is placed by its parent
     public readonly BackdropPiece[] slot = new BackdropPiece[1];   // reusable one-child `children` array

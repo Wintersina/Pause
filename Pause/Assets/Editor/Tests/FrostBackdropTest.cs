@@ -386,9 +386,9 @@ public static class FrostBackdropTest
         Run(wb, 40f, () => { auroras = Mathf.Max(auroras, d.Aurora.ActiveCount); });
         Check("the glacier night (v4) shows its aurora", auroras > 0);
 
-        // Missing atlases: Verdant's folder has none of the loop sheets.
+        // Missing atlases: Ember's folder has none of the loop sheets.
         var root = new GameObject("~AmbientMissing").transform;
-        var verdant = new BackdropSet("Verdant", root, 3f, 6f);
+        var verdant = new BackdropSet("Ember", root, 3f, 6f);
         var amb = new AmbientEmitters(verdant);
         var pool = new BackdropPool(root, "test", 2, -400, 0f);
         amb.Rig(pool);

@@ -77,7 +77,7 @@ public class BackdropSet
         string tileFolder = folder;
         if (Spec.variantSets > 0)
         {
-            Variant = FrostBackdropSelection.Pick(Spec.world, Spec.variantSets);
+            Variant = BackdropVariants.For(Spec.world).Pick(Spec.variantSets);
             tileFolder = BackdropCatalog.TileFolder(Spec.world, Variant);
         }
 
@@ -89,7 +89,7 @@ public class BackdropSet
             var sprite = Resources.Load<Sprite>(tileFolder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
-            float lift = BackdropGrade.Lift(Spec, layer);
+            float lift = BackdropGrade.Lift(Spec, layer, Variant);
             Tiles.Add(new BackdropTile(Root, layer, sprite, Spec.Order(layer.name), DepthZ(layer.name),
                                        spaceSky && SpaceSkySelection.HalfTurn, lift, BackdropGrade.Saturation(Spec, lift)));
         }

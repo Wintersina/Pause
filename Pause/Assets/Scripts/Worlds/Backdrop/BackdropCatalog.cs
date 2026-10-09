@@ -44,6 +44,13 @@ public static class BackdropCatalog
         public Color tint;
         public float wrapBlend;     // Tile: fraction of the art cross-faded into its start (seamless whatever the art's wrap)
         public float grade;         // share of the world's brightness lift drawn on this layer (BackdropGrade; 0 = as painted)
+        // Pieces pinned to a ground tile layer (GroundPlanner): they move at
+        // exactly that layer's rate, on its scroll, so they stay on their
+        // spot of the ground. A pinned layer shares its host's rate (the one
+        // exception to "rates strictly increase"; it must follow its host).
+        public string pinTo;
+
+        public Layer PinnedTo(string host, float hostRate) { var l = this; l.pinTo = host; l.rate = hostRate; return l; }
 
         public Layer Graded(float share) { var l = this; l.grade = share; return l; }
 
@@ -82,6 +89,20 @@ public static class BackdropCatalog
         // = the art as painted) and its saturation nudge; each layer takes
         // Layer.grade of the lift. Read when a set is built.
         public System.Func<float> brightness, saturation;
+        // Per variant set (index = variant, 0 = none): a brightness table
+        // multiplying the world's lift (1 = the world's, < 1 darker: a night
+        // landing) and which variants are the planet's NIGHT side (darker
+        // ground, lights and glowing life emphasised by the director).
+        // Null: every variant is drawn alike. Frost / Ember v4 can use the
+        // same two tables.
+        public float[] variantBrightness;
+        public bool[] variantNight;
+
+        public bool Night(int variant) { return variantNight != null && variant >= 0 && variant < variantNight.Length && variantNight[variant]; }
+        public float VariantBrightness(int variant)
+        {
+            return variantBrightness != null && variant >= 0 && variant < variantBrightness.Length ? variantBrightness[variant] : 1f;
+        }
 
         public bool Has(string name)
         {
@@ -162,7 +183,7 @@ public static class BackdropCatalog
         // the ground and landmarks all of it, the far layers less so the
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = FrostBackdropSelection.MaxVariants,
+                   variantSets = BackdropVariants.MaxVariants,
                    brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.55f),
             Layer.Tile("far", 0.014f, W).Graded(.8f),
@@ -181,20 +202,35 @@ public static class BackdropCatalog
             Layer.Pieces("snow_mid", 0.450f, Role.Atmosphere),
             Layer.Pieces("snow_near", 0.700f, Role.Atmosphere),
         }},
-        new Spec { world = "Verdant", layers = new[] {
-            Layer.Tile("sky", 0.006f, W),
-            Layer.Tile("far", 0.014f, W),
-            // Distant planet-side industry stays beneath the high-contrast
-            // rail frame and ship silhouettes.
-            Layer.Tile("mid", 0.024f, new Color(.78f, .78f, .78f, 1f)).WithTexture("forest_industrial_center_v1")
-                .WrapBlended(0.50f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0f, W),
-            Layer.Pieces("waterfalls", 0.030f, Role.Landmark),
-            Layer.Pieces("ruins", 0.036f, Role.Landmark),
-            Layer.Pieces("haze", 0.120f, Role.Cloud),
-            Layer.Pieces("clouds", 0.300f, Role.Cloud),
-            Layer.Pieces("glowspores", 0.400f, Role.Atmosphere),
-            Layer.Pieces("spores", 0.500f, Role.Atmosphere),
+        // Verdant (VerdantDirector, docs in VerdantBackdrop.cs): flown at
+        // atmosphere level over the jungle planet: canopy sea and rivers, a
+        // swamp delta, an overgrown ruined city, or the NIGHT side's
+        // bioluminescent forest (VerdantTuning.Night; one of four variant
+        // sets per landing). Overgrown industry, pipework, smoking stacks
+        // and wildfires burning in the forest stand on the ground, PINNED to
+        // the mid tile (GroundPlanner: same rate, same scroll) and placed
+        // where its affinity mask says they belong. The art is painted
+        // brighter than Frost's (value p90 ~.47) and drawn as painted on the
+        // day side; the night side is drawn darker (variantBrightness).
+        new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = BackdropVariants.MaxVariants,
+                   brightness = () => VerdantTuning.Brightness, saturation = () => 1f,
+                   variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.6f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            // landmarks, pipes, wildfires and the elite sites: one ground
+            // plane pinned to the mid tile
+            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.30f, 0f, W).Graded(1f),
+            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
+            // the spore-cloud ceiling the planetfall drops through
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("pollen", 0.250f, Role.Atmosphere),
+            Layer.Pieces("spores", 0.400f, Role.Atmosphere),
+            Layer.Pieces("fireflies", 0.550f, Role.Atmosphere),
         }},
         new Spec { world = "Ember", layers = new[] {
             Layer.Tile("sky", 0.006f, W),

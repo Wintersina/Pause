@@ -157,6 +157,7 @@ public static class AllTests
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
     };
