@@ -91,8 +91,9 @@ public static class CodexAnimations
         var frames = EnemyArt.Frames(def);
         if (frames == null || frames.Length == 0) return null;
 
-        var ticks = EnemyRoster.IdleTicks(def);
-        int n = Mathf.Min(EnemyRoster.TellFrame, frames.Length);
+        // exactly the drawings and holds EnemyFlipbook loops (the Steel Hound: two)
+        var ticks = EnemyRoster.FlipbookIdleTicks(def);
+        int n = Mathf.Min(ticks.Length, Mathf.Min(EnemyRoster.TellFrame, frames.Length));
         var steps = new Sprite[n];
         var holds = new float[n];
         for (int i = 0; i < n; i++)
@@ -103,7 +104,7 @@ public static class CodexAnimations
         var a = CodexAnimation.Loop(def.role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy, steps, holds);
         if (a == null) return null;
 
-        if (frames.Length >= EnemyRoster.TellFrame + 2)
+        if (frames.Length >= EnemyRoster.TellFrame + 2 && def.key != "space_chaser")   // the hound never tells
         {
             var tt = EnemyRoster.TellTicks(def.role);
             a.AddTell(new[] { frames[EnemyRoster.TellFrame], frames[EnemyRoster.TellFrame + 1] },
@@ -169,20 +170,22 @@ public static class CodexAnimations
     public static CodexAnimation Boss(BossDef boss)
     {
         if (boss == null) return null;
-        int n = BossArt.IdleFrames;
+        // BossActor's idle: the Space boss' six engine cells at 2 ticks, the rest four at IdleTicks
+        int n = BossArt.IdleCount(boss);
+        var idleTicks = BossArt.IdleTicksFor(boss);
         var steps = new Sprite[n];
         var holds = new float[n];
         for (int i = 0; i < n; i++)
         {
-            steps[i] = BossArt.Body(boss, BossArt.Idle0 + i);
-            holds[i] = BossArt.IdleTicks[Mathf.Min(i, BossArt.IdleTicks.Length - 1)] * BossArt.Tick;
+            steps[i] = BossArt.Body(boss, BossArt.IdleStart(boss) + i);
+            holds[i] = idleTicks[Mathf.Min(i, idleTicks.Length - 1)] * BossArt.Tick;
         }
         var a = CodexAnimation.Loop(CodexAnimKind.Boss, steps, holds);
         if (a == null) return null;
         // Each drawn tell pose in turn: anticipation, the held wind-up, fire.
         for (int pose = 0; pose < 3; pose++)
-            a.AddTell(new[] { BossArt.Body(boss, BossArt.Tell(pose, 0)), BossArt.Body(boss, BossArt.Tell(pose, 1)),
-                              BossArt.Body(boss, BossArt.Fire) },
+            a.AddTell(new[] { BossArt.Body(boss, BossArt.TellFrame(boss, pose, 0f)), BossArt.Body(boss, BossArt.TellFrame(boss, pose, .5f)),
+                              BossArt.Body(boss, BossArt.FireFrame(boss, pose)) },
                       new[] { BossArt.TellInTicks * BossArt.Tick, BossTellHoldTicks * BossArt.Tick, BossArt.FireTicks * BossArt.Tick });
         a.tellGap = new Vector2(3f, 5f);
         return a.Finish();

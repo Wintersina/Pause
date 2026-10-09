@@ -36,6 +36,7 @@ public static class CodexTest
         CheckCatalogue();
         CheckInventory();
         CheckAnimationCatalogue();
+        CheckIdleParity();
         CheckSpawnerCoverage();
         CheckDiscovery();
         CheckDiscoveryHooks();
@@ -455,7 +456,8 @@ public static class CodexTest
             Check(e.id + " art: sprite and every animation frame present", e.Sprite != null && art);
             var kind = CodexAnimations.KindOf(e);
             if (kind == CodexAnimKind.Enemy || kind == CodexAnimKind.Mine || kind == CodexAnimKind.Boss)
-                Check(e.id + " detail plays an attack tell", a != null && a.HasTell);
+                Check(e.id + " detail plays an attack tell (the Steel Hound has none in game)",
+                      a != null && (a.HasTell || EnemyRoster.FindByCodexId(e.id)?.key == "space_chaser"));
         }
 
         // ---- ships show off every colour in the detail view ----
@@ -1303,11 +1305,11 @@ public static class CodexTest
                     break;
                 }
                 var frames = EnemyArt.Frames(EnemyRoster.FindByCodexId(e.id));
-                if (frames != null) for (int i = 0; i < Mathf.Min(EnemyRoster.TellFrame, frames.Length); i++) drawings.Add(frames[i]);
+                if (frames != null) for (int i = 0; i < Mathf.Min(EnemyRoster.FlipbookIdleTicks(EnemyRoster.FindByCodexId(e.id)).Length, Mathf.Min(EnemyRoster.TellFrame, frames.Length)); i++) drawings.Add(frames[i]);
                 break;
             }
             case CodexAnimKind.Boss:
-                for (int i = 0; i < BossArt.IdleFrames; i++) drawings.Add(BossArt.Body(BossCatalog.Find(e.id), BossArt.Idle0 + i));
+                for (int i = 0; i < BossArt.IdleCount(BossCatalog.Find(e.id)); i++) drawings.Add(BossArt.Body(BossCatalog.Find(e.id), BossArt.IdleStart(BossCatalog.Find(e.id)) + i));
                 break;
             case CodexAnimKind.Atom:
             {
@@ -1425,8 +1427,9 @@ public static class CodexTest
                   needle.HasTell && needle.tells[0][0] == EnemyArt.Frame(def, EnemyRoster.TellFrame));
             var boss = CodexAnimations.For(Codex.Find(BossCatalog.All[0].id));
             Check("a boss's loop is BossArt's idle on BossArt.IdleTicks, with its three tell poses",
-                  boss.idle.Length == BossArt.IdleFrames && boss.idle[1] == BossArt.Body(BossCatalog.All[0], BossArt.Idle0 + 1) &&
-                  Mathf.Abs(boss.IdleLoopSeconds - BossArt.Seconds(BossArt.IdleTicks)) < 1e-4f && boss.tells.Length == 3);
+                  boss.idle.Length == BossArt.IdleCount(BossCatalog.All[0]) &&
+                  boss.idle[1] == BossArt.Body(BossCatalog.All[0], BossArt.IdleStart(BossCatalog.All[0]) + 1) &&
+                  Mathf.Abs(boss.IdleLoopSeconds - BossArt.Seconds(BossArt.IdleTicksFor(BossCatalog.All[0]))) < 1e-4f && boss.tells.Length == 3);
             var hull = CodexAnimations.For(Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ShipId.Starter)));
             Check("a ship loops ShipHullArt's idle table (stock skin)",
                   Mathf.Abs(hull.IdleLoopSeconds - ShipHullArt.IdleLoopTicks / ShipHullArt.TicksPerSecond) < 1e-4f &&
@@ -1452,6 +1455,145 @@ public static class CodexTest
         }
         finally
         {
+            UnityEngine.Object.DestroyImmediate(root);
+        }
+    }
+
+    // ---- The codex plays the game's idle, frame for frame ----
+
+    const float Frame60 = 1f / 60f;
+
+    // (cell, frames held) runs of a per-frame cell series, first partial run dropped.
+    static List<int[]> Runs(List<int> cells)
+    {
+        var runs = new List<int[]>();
+        int start = 0;
+        for (int i = 1; i <= cells.Count; i++)
+        {
+            if (i < cells.Count && cells[i] == cells[start]) continue;
+            if (start > 0 && i < cells.Count) runs.Add(new[] { cells[start], i - start });
+            start = i;
+        }
+        return runs;
+    }
+
+    static void CheckIdleParity()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        GameObject root;
+        var animator = TestAnimator(out root);
+        var fbGo = new GameObject("FlipbookProbe", typeof(SpriteRenderer), typeof(EnemyFlipbook));
+        var fb = fbGo.GetComponent<EnemyFlipbook>();
+        try
+        {
+            // Enemies and mines: frames, order and holds are EnemyFlipbook's, and a
+            // real flipbook stepped at 60 fps dwells exactly as long on each drawing.
+            int enemies = 0, worlds = 0;
+            var worldSeen = new HashSet<int>();
+            foreach (var def in EnemyRoster.All)
+            {
+                var frames = EnemyArt.Frames(def);
+                if (frames == null || frames.Length < EnemyRoster.FrameCount) continue;
+                enemies++;
+                if (worldSeen.Add(def.world)) worlds++;
+                var a = CodexAnimations.Enemy(def);
+                var ticks = EnemyRoster.FlipbookIdleTicks(def);
+                bool same = a != null && a.idle.Length == ticks.Length;
+                for (int i = 0; same && i < ticks.Length; i++)
+                    same = a.idle[i] == frames[i] && Mathf.Abs(a.idleHold[i] - ticks[i] * EnemyFlipbook.TickSeconds) < 1e-5f;
+                Check(def.key + ": codex idle frames and holds equal EnemyFlipbook's", same);
+                if (!same) continue;
+
+                fb.Init(def);
+                animator.Bind(a, false, false);
+                var game = new List<int>();
+                var codex = new List<int>();
+                for (int f = 0; f < 150; f++)   // 2.5 s: before any tell
+                {
+                    fb.Advance(Frame60);
+                    animator.Advance(Frame60);
+                    game.Add(fb.CurrentFrame);
+                    codex.Add(animator.Step);
+                }
+                var g = Runs(game);
+                var c = Runs(codex);
+                int k = 0;
+                while (k < c.Count && g.Count > 0 && c[k][0] != g[0][0]) k++;
+                bool match = g.Count >= 2 && k < c.Count;
+                for (int i = 0; match && i < g.Count && k + i < c.Count; i++)
+                    match = c[k + i][0] == g[i][0] && Mathf.Abs(c[k + i][1] - g[i][1]) <= 1;
+                Check(def.key + ": codex steps drawings in the game's order with the game's dwell at 60 fps", match);
+            }
+            Check("idle parity covered enemies in every world (" + enemies + " enemies, " + worlds + " worlds)", enemies > 20 && worlds >= 4);
+
+            // Elites: the flight loop on EliteArt's idle ticks.
+            int elites = 0;
+            foreach (var elite in EliteCatalog.All)
+            {
+                var frames = EliteArt.Frames(elite);
+                if (frames == null || frames.Length < elite.cells.Count || elite.cells.flight.Length < 2) continue;
+                elites++;
+                var a = CodexAnimations.Elite(elite);
+                bool same = a != null && a.idle.Length == elite.cells.flight.Length;
+                for (int i = 0; same && i < a.idle.Length; i++)
+                    same = a.idle[i] == frames[elite.cells.flight[i]] &&
+                           Mathf.Abs(a.idleHold[i] - EliteArt.IdleTicks[i % EliteArt.IdleTicks.Length] * EliteArt.Tick) < 1e-5f;
+                Check(elite.key + ": codex idle equals EliteShip's flight loop", same);
+            }
+            Check("idle parity covered elites (" + elites + ")", elites > 0);
+
+            // Bosses: BossArt.IdleFrame, sampled every 60 fps frame (one frame of slack at a change).
+            foreach (var boss in BossCatalog.All)
+            {
+                var a = CodexAnimations.Boss(boss);
+                if (a == null) { Check(boss.id + " has an idle animation", false); continue; }
+                animator.Bind(a, false, false);
+                int bad = 0;
+                for (int f = 1; f < 240; f++)
+                {
+                    animator.Advance(Frame60);
+                    float t = f * Frame60;
+                    int mine = BossArt.IdleStart(boss) + animator.Step;
+                    if (mine != BossArt.IdleFrame(boss, t) && mine != BossArt.IdleFrame(boss, t - Frame60) &&
+                        mine != BossArt.IdleFrame(boss, t + Frame60)) bad++;
+                    if (a.idle[animator.Step] != BossArt.Body(boss, mine)) bad++;
+                }
+                Check(boss.id + ": codex idle follows BossArt.IdleFrame frame for frame (" + a.idle.Length + " drawings)", bad == 0);
+            }
+
+            // Nothing steps coarser than its own table: at 60 fps every drawing is
+            // held for its authored time give or take one frame, whatever the kind.
+            int checkedAnims = 0;
+            foreach (var e in Codex.Entries)
+            {
+                var a = CodexAnimations.For(e);
+                if (a == null || a.idle == null || a.idle.Length < 2 || a.distinctIdle < 2) continue;
+                checkedAnims++;
+                animator.Bind(a, false, false);
+                float worst = 0f, last = 0f;
+                int prev = animator.Step;
+                for (int f = 1; f <= 600; f++)
+                {
+                    animator.Advance(Frame60);
+                    if (animator.Step == prev) continue;
+                    float t = f * Frame60;
+                    if (last > 0f) worst = Mathf.Max(worst, Mathf.Abs((t - last) - a.idleHold[prev]));
+                    last = t;
+                    prev = animator.Step;
+                }
+                Check(e.id + ": stepping at 60 fps is within one frame of the table (off by " + worst.ToString("0.000") + ")", worst <= Frame60 + 1e-3f);
+            }
+            Check("stepping precision covered the animated entries (" + checkedAnims + ")", checkedAnims > 30);
+
+            // The Steel Hound only hovers between its two steady poses, as in game.
+            var hound = EnemyRoster.All[0];
+            foreach (var d in EnemyRoster.All) if (d.key == "space_chaser") hound = d;
+            var ha = CodexAnimations.Enemy(hound);
+            Check("the Steel Hound loops its two hover poses and never tells", ha != null && ha.idle.Length == 2 && !ha.HasTell);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(fbGo);
             UnityEngine.Object.DestroyImmediate(root);
         }
     }
@@ -1709,6 +1851,22 @@ public static class CodexTest
 
     static void CheckPanelAnimation(CodexPanel panel)
     {
+        // Each animated art holder has its own sub-canvas, so a frame swap
+        // rebuilds a few quads rather than the whole panel's canvas.
+        {
+            bool isolated = panel.VisibleCards > 0;
+            for (int i = 0; i < panel.VisibleCards; i++)
+            {
+                var box = panel.CardAnimator(i).transform.parent;
+                var cv = box.GetComponent<Canvas>();
+                isolated &= cv != null && !cv.overrideSorting;
+                var lockT = box.parent.Find("Lock");
+                isolated &= lockT != null && lockT.GetComponent<Canvas>() != null && lockT.GetSiblingIndex() > box.GetSiblingIndex();
+            }
+            var dbox = panel.DetailArt.transform.parent.GetComponent<Canvas>();
+            Check("card and detail art sit in their own sub-canvases (lock icon stays above the art)",
+                  isolated && dbox != null && !dbox.overrideSorting);
+        }
         panel.ApplyLayout(Screens[1].safe);
         DeveloperUnlocks.SetEnabled(true);   // bosses listed, everything revealed
         panel.SkipAnimations();

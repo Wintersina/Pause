@@ -644,6 +644,7 @@ public class CodexPanel : MonoBehaviour
         card.artBox = card.mask.rectTransform;
         card.maskComp = card.mask.gameObject.AddComponent<Mask>();
         card.maskComp.showMaskGraphic = false;
+        CodexUi.Isolate(card.mask.gameObject);
         card.art = CodexUi.NewImage("Art", card.artBox, null, Color.white);
         card.art.preserveAspect = true;
         CodexUi.Stretch(card.art.rectTransform);
@@ -658,6 +659,7 @@ public class CodexPanel : MonoBehaviour
 
         card.lockIcon = CodexUi.NewImage("Lock", card.rt, CodexUi.CodexSprite("cx_lock"), CodexUi.Select);
         card.lockIcon.preserveAspect = true;
+        CodexUi.Isolate(card.lockIcon.gameObject);   // a sub-canvas draws over its parent: keep the lock above the art
         return card;
     }
 
@@ -675,6 +677,7 @@ public class CodexPanel : MonoBehaviour
         detailArtBox = detailMask.rectTransform;
         detailMaskComp = detailMask.gameObject.AddComponent<Mask>();
         detailMaskComp.showMaskGraphic = false;
+        CodexUi.Isolate(detailMask.gameObject);
         detailArt = CodexUi.NewImage("Art", detailArtBox, null, Color.white);
         detailArt.preserveAspect = true;
         CodexUi.Stretch(detailArt.rectTransform);

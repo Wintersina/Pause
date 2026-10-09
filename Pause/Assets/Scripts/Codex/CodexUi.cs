@@ -83,6 +83,20 @@ public static class CodexUi
         return img;
     }
 
+    // Gives an animated holder its own sub-canvas. A sprite swap dirties its
+    // canvas and rebuilds that canvas's whole batch; on the panel's one big
+    // canvas (dozens of outlined, best-fit texts and masks) a card swapping
+    // frames nearly every frame made a long rebuild every frame -- the idle
+    // loops hitched. In its own canvas only the art's few quads rebuild.
+    // (No overrideSorting: it still draws in hierarchy order with its parent,
+    // and the panel's RectMask2D / CanvasGroup alpha / scale still apply.)
+    public static Canvas Isolate(GameObject go)
+    {
+        var c = go.GetComponent<Canvas>();
+        if (c == null) c = go.AddComponent<Canvas>();
+        return c;
+    }
+
     public static Text NewText(string name, Transform parent, Font font, string content, int size, Color color,
                                TextAnchor align, bool wrap = false)
     {

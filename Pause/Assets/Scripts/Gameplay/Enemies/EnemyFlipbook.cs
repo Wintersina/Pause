@@ -73,7 +73,7 @@ public class EnemyFlipbook : MonoBehaviour
     {
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         frames = EnemyArt.Frames(def);
-        idleTicks = def.key == "space_chaser" ? new[] { 6, 6 } : EnemyRoster.IdleTicks(def);
+        idleTicks = EnemyRoster.FlipbookIdleTicks(def);
         tellTicks = EnemyRoster.TellTicks(def.role);
         tellMode = ModeFor(def.role);
         if (def.key == "space_chaser") tellMode = TellMode.IdleOnly;

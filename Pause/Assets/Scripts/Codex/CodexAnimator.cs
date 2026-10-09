@@ -400,8 +400,7 @@ public class CodexAnimator : MonoBehaviour
         if (anim.fit == CodexAnimation.FitMode.Cover)
         {
             float k = side / Mathf.Max(.0001f, Mathf.Min(b.size.x, b.size.y)) * Mathf.Max(1f, anim.overscan);
-            rt.sizeDelta = new Vector2(b.size.x * k, b.size.y * k);
-            rt.anchoredPosition = new Vector2(0f, rt.anchoredPosition.y);
+            SetRect(rt, new Vector2(b.size.x * k, b.size.y * k), new Vector2(0f, rt.anchoredPosition.y));
             return;
         }
         var u = anim.union;
@@ -409,8 +408,15 @@ public class CodexAnimator : MonoBehaviour
         bool turns = anim.spinDegreesPerSecond != 0f;
         float extent = turns ? new Vector2(u.size.x, u.size.y).magnitude : Mathf.Max(u.size.x, u.size.y);
         float scale = side / Mathf.Max(.0001f, extent);
-        rt.sizeDelta = new Vector2(b.size.x * scale, b.size.y * scale);
-        rt.anchoredPosition = new Vector2((b.center.x - u.center.x) * scale, (b.center.y - u.center.y) * scale);
+        SetRect(rt, new Vector2(b.size.x * scale, b.size.y * scale),
+                new Vector2((b.center.x - u.center.x) * scale, (b.center.y - u.center.y) * scale));
+    }
+
+    // Writes only what changed: an untouched rect dirties no layout or mesh.
+    static void SetRect(RectTransform rt, Vector2 size, Vector2 pos)
+    {
+        if (rt.sizeDelta != size) rt.sizeDelta = size;
+        if (rt.anchoredPosition != pos) rt.anchoredPosition = pos;
     }
 
     static void Stretch(RectTransform rt)

@@ -50,6 +50,11 @@ public static class BossArt
             ? SpaceIdle0 + FrameAt(SpaceIdleTicks, seconds, true)
             : Idle0 + FrameAt(IdleTicks, seconds, true);
     }
+    // The idle loop as data (BossActor plays it by FrameAt; the codex steps it):
+    // how many drawings it has and the ticks each is held.
+    public static int IdleCount(BossDef boss) => HasExpandedCombat(boss) ? SpaceIdleFrames : IdleFrames;
+    public static int[] IdleTicksFor(BossDef boss) => HasExpandedCombat(boss) ? SpaceIdleTicks : IdleTicks;
+    public static int IdleStart(BossDef boss) => HasExpandedCombat(boss) ? SpaceIdle0 : Idle0;
     public static int TellFrame(BossDef boss, int pose, float progress)
     {
         if (!HasExpandedCombat(boss)) return Tell(pose, progress < .34f ? 0 : 1);
