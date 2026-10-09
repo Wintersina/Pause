@@ -75,6 +75,9 @@ public class ShipPowerController : MonoBehaviour
     //   Held         frozen: no ticking, pickups don't cut it, it never fires,
     //                and red-atom free shots are dropped
     //   PickupsOnly  only pickup cuts move it; it fires at zero as usual
+    // Whatever the mode, a world transition (WorldTransition.InProgress: the
+    // open portal, a planetfall, a lift-off) holds it the way Held does --
+    // see TransitionFrozen.
     public enum ChargeMode { Timed, Held, PickupsOnly }
     [System.NonSerialized] public ChargeMode chargeMode = ChargeMode.Timed;
 
@@ -159,21 +162,45 @@ public class ShipPowerController : MonoBehaviour
         secret = SecretPowerController.Attach(gameObject, shipIndex);
     }
 
+    // ---- world transitions ---------------------------------------------
+    //
+    // While the world changes (WorldTransition.InProgress: the open portal,
+    // a planetfall's approach and descent, a lift-off's climb and interlude,
+    // until the new world is live and the pilot has control) the charge is
+    // frozen, as ChargeMode.Held freezes it: the countdown doesn't tick,
+    // pickups don't cut it, it never fires (the gun stays tucked in), a red
+    // atom's free shot is dropped and one already queued waits. Whatever was
+    // earned is kept and carries on the moment the transition is over. The
+    // pickups themselves still pay everything else (shield, heal, pause,
+    // points); only their charge is void.
+    public static bool TransitionFrozen => WorldTransition.InProgress;
+
+    // The charge can't move or fire right now (the tutorial's hold, or a
+    // world transition).
+    bool ChargeHeld => chargeMode == ChargeMode.Held || TransitionFrozen;
+
     void Update()
+    {
+        Step(Time.deltaTime);
+    }
+
+    // One frame. Public so edit-mode tests can step it with a real dt.
+    public void Step(float dt)
     {
         TickCinematic();
 
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
+        bool transit = TransitionFrozen;
 
-        if (running && timer > 0f && chargeMode == ChargeMode.Timed) timer -= Time.deltaTime;
+        if (running && timer > 0f && chargeMode == ChargeMode.Timed && !transit) timer -= dt;
 
-        float extendTarget = timer <= extendLeadSeconds
+        float extendTarget = !transit && timer <= extendLeadSeconds
             ? 1f - Mathf.Clamp01(timer / Mathf.Max(0.01f, extendLeadSeconds))
             : 0f;
         if (gun != null) gun.Tick(extendTarget);
 
-        if (running && timer <= 0f && chargeMode != ChargeMode.Held)
+        if (running && timer <= 0f && chargeMode != ChargeMode.Held && !transit)
         {
             Fire();
             cooldown = RollCooldown();
@@ -195,7 +222,8 @@ public class ShipPowerController : MonoBehaviour
     // "FREE SHOT" word say why it fired.
     //
     // It waits (queued, up to MaxPendingFreeShots) rather than break or crowd
-    // anything: while the world is frozen, while the ultimate is sliding out
+    // anything: while the world is frozen, through a world transition (one
+    // picked up during it is dropped -- TransitionFrozen), while the ultimate is sliding out
     // or about to fire, through the top tier's cinematic, and while an attack
     // of this ship is still mid-fire (a beam, blowtorch, orbit, burst) -- it
     // then goes the moment that one ends. Projectiles already in flight don't
@@ -212,6 +240,7 @@ public class ShipPowerController : MonoBehaviour
     // Why a free shot has to wait right now (world freezing aside).
     public bool FreeShotBlocked =>
         CinematicClearActive ||
+        TransitionFrozen ||
         timer <= extendLeadSeconds ||
         (runner != null && runner.ActiveRuns > 0);
 
@@ -219,7 +248,7 @@ public class ShipPowerController : MonoBehaviour
     // while the world moves, so it fires straight away unless blocked.
     public void FreeShot()
     {
-        if (buttonClicks.playerDied || chargeMode == ChargeMode.Held) return;
+        if (buttonClicks.playerDied || ChargeHeld) return;
         pendingFree = Mathf.Min(pendingFree + 1, MaxPendingFreeShots);
         ServiceFreeShots(Time.timeScale > 0f);
     }
@@ -255,7 +284,7 @@ public class ShipPowerController : MonoBehaviour
     public void ReduceTimer(float seconds)
     {
         // Ignore non-positive cuts; an already-ready weapon (timer 0) stays at 0.
-        if (seconds <= 0f || chargeMode == ChargeMode.Held) return;
+        if (seconds <= 0f || ChargeHeld) return;
         timer = Mathf.Max(0f, timer - seconds);
     }
 
@@ -276,6 +305,7 @@ public class ShipPowerController : MonoBehaviour
     // seconds actually cut: min(secondsPerCooldownAtom, what was left).
     public float ReduceWeaponCooldown()
     {
+        if (TransitionFrozen) return 0f;
         float cut = Mathf.Min(Mathf.Max(0f, secondsPerCooldownAtom), Mathf.Max(0f, timer));
         ReduceTimer(secondsPerCooldownAtom);
         if (indicator != null) indicator.FlashCharge();
@@ -286,6 +316,8 @@ public class ShipPowerController : MonoBehaviour
     // emptied the countdown, otherwise "-Ns CHARGE" with the seconds cut.
     // Labels are cached, so a pickup allocates nothing.
     public const string WeaponChargedLabel = "WEAPON CHARGED";
+    // ... and during a world transition, when it cuts nothing.
+    public const string ChargeHeldLabel = "CHARGE HELD";
     static string[] chargeCutLabels;
 
     public static string CooldownAtomLabel(float secondsCut, bool fullyCharged)
@@ -301,6 +333,7 @@ public class ShipPowerController : MonoBehaviour
     // charge and returns the word to show.
     public string CollectCooldownAtom()
     {
+        if (TransitionFrozen) return ChargeHeldLabel;
         float cut = ReduceWeaponCooldown();
         return CooldownAtomLabel(cut, timer <= 0f);
     }
