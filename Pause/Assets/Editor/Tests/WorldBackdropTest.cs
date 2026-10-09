@@ -304,8 +304,9 @@ public static class WorldBackdropTest
     // Every world resolves to its own complete set; rates rise far -> near.
     static void CheckCatalog()
     {
-        foreach (var theme in WorldManager.Worlds)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)   // Tide joins when its release switch flips (it flies Ember's until then)
         {
+            var theme = WorldManager.Worlds[w];
             var spec = BackdropCatalog.For(theme.displayName);
             Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).
@@ -840,7 +841,7 @@ public static class WorldBackdropTest
     // and the brightest tone 7:1 against the lane (its median luminance).
     static void CheckReadability()
     {
-        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        for (int wi = 0; wi < WorldManager.LiveWorldCount; wi++)
         for (int variant = 1; variant <= Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets); variant++)
         {
             var wspec = BackdropCatalog.For(WorldManager.Worlds[wi].displayName);
@@ -889,7 +890,7 @@ public static class WorldBackdropTest
     // WorldPainter actually binds at runtime.
     static void CheckWalls()
     {
-        for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
+        for (int wi = 0; wi < WorldManager.LiveWorldCount; wi++)
         {
             string world = WorldManager.Worlds[wi].displayName;
             bool rail = WorldPainter.RailTextureName(world) != null;

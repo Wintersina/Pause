@@ -406,9 +406,9 @@ public static class TransitionChargeTest
         Check(name + ": ... nothing fires, the gun tucked in, the signal on throughout", w.quiet && w.tucked && w.signal);
         // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Ember's
         // (the last world): no gateway, the loop starts Space at once
-        bool fall = from < WorldManager.Worlds.Length - 1;
+        bool fall = from < WorldManager.LastLiveWorld;
         string onto = fall ? WorldManager.Worlds[from + 1].displayName : "";
-        if (!fall && LiftoffCatalog.Ember.autoLoop)
+        if (!fall && LiftoffCatalog.Ember.AutoLoopNow)
         {
             Check(name + ": no portal: the loop began at the interlude's end (" + WorldManager.Current.displayName + ", loop " +
                   RunLoop.Index + "), the transition over",

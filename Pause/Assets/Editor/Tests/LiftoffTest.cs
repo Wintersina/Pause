@@ -42,7 +42,7 @@ public static class LiftoffTest
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
     const BindingFlags Stat = BindingFlags.NonPublic | BindingFlags.Static;
     const float Dt = 1f / 60f;
-    const int Frost = 1, Verdant = 2, Ember = 3;
+    const int Frost = 1, Verdant = 2, Ember = 3, Tide = 4;
     static int frame;
 
     public static int Execute()
@@ -61,11 +61,22 @@ public static class LiftoffTest
             Flow(Verdant);
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             Flow(Ember);   // the loop, straight away
-            LiftoffCatalog.Ember.autoLoop = false;
+            LiftoffCatalog.Ember.loopsWhileLastLive = false;
             Flow(Ember);   // the fallback: the loop portal
-            LiftoffCatalog.Ember.autoLoop = true;
+            LiftoffCatalog.Ember.loopsWhileLastLive = true;
             NextPlanetfall(Frost);
             NextPlanetfall(Verdant);
+            // Tide: the release switch on. Ember's lift-off now flies Tide's planetfall; Tide's
+            // (the final world) is the one that loops straight back to Space
+            WorldManager.TideEnabled = true;
+            TideTransitions();
+            NextPlanetfall(Ember);
+            Flow(Tide);
+            LiftoffCatalog.Tide.autoLoop = false;
+            Flow(Tide);   // the fallback: the loop portal
+            LiftoffCatalog.Tide.autoLoop = true;
+            NoAllocations(Tide);
+            WorldManager.TideEnabled = false;
             Robust();
             NoAllocations(Frost);
             NoAllocations(Verdant);
@@ -77,7 +88,9 @@ public static class LiftoffTest
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             PlanetfallCatalog.Enabled = true;
             LiftoffCatalog.Enabled = true;
-            LiftoffCatalog.Ember.autoLoop = true;
+            LiftoffCatalog.Ember.loopsWhileLastLive = true;
+            LiftoffCatalog.Tide.autoLoop = true;
+            WorldManager.TideEnabled = false;
             if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
             PortalPressure.Reset();
             ShipStartSpeed.EquippedHudOverride = null;
@@ -186,7 +199,7 @@ public static class LiftoffTest
               PlanetfallCatalog.For(1, 2, false) == PlanetfallCatalog.Verdant && PlanetfallCatalog.For(2, 3, false) == PlanetfallCatalog.Ember &&
               PlanetfallCatalog.For(3, 0, true) == null && PlanetfallCatalog.For(3, 1, true) == null);
 
-        for (int world = 0; world < WorldManager.Worlds.Length; world++)
+        for (int world = 0; world < WorldManager.LiveWorldCount; world++)
         {
             FreshScene(world);
             var wm = World();
@@ -231,13 +244,37 @@ public static class LiftoffTest
         finally { PlanetfallCatalog.Frost.folder = folder; }
     }
 
+    // Tide, with the release switch on: the catalogue, the gateways, the end of each world.
+    static void TideTransitions()
+    {
+        Check("Tide's catalogue: world 4, its own planet's art, Space's sky for the interlude, the loop on (autoLoop); Ember's does not loop by itself any more",
+              LiftoffCatalog.Tide.world == Tide && LiftoffCatalog.Tide.planet == PlanetfallCatalog.Tide && LiftoffCatalog.Tide.interludeWorld == 0 &&
+              LiftoffCatalog.Tide.autoLoop && LiftoffCatalog.Tide.AutoLoopNow && LiftoffCatalog.Tide.banner == "LIFT OFF" &&
+              !LiftoffCatalog.Ember.autoLoop && !LiftoffCatalog.Ember.AutoLoopNow &&
+              LiftoffCatalog.For(Ember, Tide, false) == LiftoffCatalog.Ember && LiftoffCatalog.For(Tide, 0, true) == LiftoffCatalog.Tide);
+        Check("... the gateways: Ember's is Tide's planetfall, Tide's the loop (never a planetfall)",
+              PlanetfallCatalog.For(Ember, Tide, false) == PlanetfallCatalog.Tide && PlanetfallCatalog.For(Tide, 0, true) == null &&
+              System.Array.IndexOf(PlanetfallCatalog.All, PlanetfallCatalog.Tide) == 3 && System.Array.IndexOf(LiftoffCatalog.Defs, LiftoffCatalog.Tide) == 3);
+        foreach (int world in new[] { Ember, Tide })
+        {
+            FreshScene(world);
+            var wm = World();
+            FinishLevel(wm);
+            Check(WorldManager.Worlds[world].displayName + "'s end (switch on): the lift-off; no portal, no pressure yet, nothing spawning",
+                  wm.Stage == WorldManager.LevelStage.Portal && wm.PortalIsOpen && Liftoff.Live != null && Liftoff.Live.Def.world == world &&
+                  Portal.Live == null && Planetfall.Live == null && !PortalPressure.Active && Liftoff.SuspendsSpawning);
+            Gone();
+            Object.DestroyImmediate(wm.gameObject);
+        }
+    }
+
     // ---- 2. the flow ---------------------------------------------------------------
 
     // `from` lifts off; the gateway after it must be the portal to the next
     // (after the last world: the loop's portal back to where the run began).
     static void Flow(int from)
     {
-        bool loop = from == WorldManager.Worlds.Length - 1;
+        bool loop = from == WorldManager.LastLiveWorld;
         int to = loop ? RunLoop.StartWorld : from + 1;
         string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
         FreshScene(from);
@@ -254,7 +291,7 @@ public static class LiftoffTest
         Check(name + "'s lift-off flies its own planet's art", l != null && l.Def.world == from && l.Art.Def.world == from);
         var liftArt = l.Art;
         // the last world's: no portal, the loop begins at the interlude's end
-        bool direct = l.Def.autoLoop && loop;
+        bool direct = l.Def.AutoLoopNow && loop;
         // ... under the backdrop the interlude already shows (a real one here)
         WorldBackdrop backdrop = null;
         if (direct)

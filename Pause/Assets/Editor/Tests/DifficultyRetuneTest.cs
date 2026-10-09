@@ -100,7 +100,7 @@ public static class DifficultyRetuneTest
     static void SoftKnee()
     {
         Check("the ease starts at HUD 25", Mathf.Approximately(SpeedRamp.EaseKnee, .25f));
-        for (int i = 0; i < WorldManager.Worlds.Length; i++)
+        for (int i = 0; i < WorldManager.LiveWorldCount; i++)
         {
             var t = WorldManager.Worlds[i];
             float below = SpeedRamp.RateAt(.25f, t.speedRampPerSecond) * 100f, above = SpeedRamp.RateAt(.33f, t.speedRampPerSecond) * 100f;
@@ -169,7 +169,7 @@ public static class DifficultyRetuneTest
         Check("SecondsToCover is DistanceOver's inverse", inverse);
 
         bool level = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var t = WorldManager.Worlds[w];
             float secs = SpeedRamp.SecondsToCover(0f, t.speedRampPerSecond, cap, WorldManager.WorldDistanceFor(w));

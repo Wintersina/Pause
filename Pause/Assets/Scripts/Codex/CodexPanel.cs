@@ -61,7 +61,7 @@ public class CodexPanel : MonoBehaviour
     public const float SectionHeaderHeight = 56f;
     public const float SectionHeaderGap = 12f; // header -> its first card row
     public const float SectionGap = 28f;       // last card row -> next header
-    public const int MaxSections = 5;          // four worlds + bosses
+    public const int MaxSections = 7;          // up to six worlds + bosses (Tide is the fifth; Storm the sixth)
 
     // ---- Timing (seconds, unscaled) ----
 

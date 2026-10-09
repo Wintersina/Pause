@@ -546,6 +546,15 @@ control (art-dependent checks stay red until their phase).
 
 This is the Space-return rewiring. Read section 5 first.
 
+**Release-switch pattern (used for Tide; reuse it for Storm).** A world is added to `Worlds[]` and to the
+catalogues long before its backdrop/roster/boss exist, so the *production* loop must not reach it yet:
+`WorldManager.TideEnabled` (default false) decides `LastLiveWorld` (`HasNext`, `PortalDestination`, boss rush
+final all read it), the previous last world's `LiftoffDef` keeps looping while it is last live
+(`loopsWhileLastLive` -> `AutoLoopNow`), and the new world's own `LiftoffDef.autoLoop = true`. Tests that walk
+"every world" use `LiveWorldCount`/`LastLiveWorld`, so flipping the switch turns the unfinished-world checks red.
+`TideLoopSoakTest` walks the chain headless with the switch off and on (and runs begun elsewhere); copy it for
+the next world. Unknown-world lookups resolve to the previous world meanwhile (checklist section F).
+
 1. Install the art: `git mv Art/Worlds/<World>/descent~/<7 files>
    Art/Backgrounds/Resources/Worlds/<World>/Planetfall/` (sources/manifest stay
    in `descent~`); `.meta` for new files only. `PlanetfallArtImporter` handles

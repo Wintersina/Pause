@@ -33,7 +33,7 @@ public static class WorldGatingTest
 
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
     const BindingFlags Stat = BindingFlags.NonPublic | BindingFlags.Static;
-    static int Worlds => WorldManager.Worlds.Length;
+    static int Worlds => WorldManager.LiveWorldCount;
     static string W(int w) => WorldManager.Worlds[w].displayName;
 
     public static int Execute()

@@ -428,7 +428,7 @@ public class BossEncounter : MonoBehaviour
         if (WorldManager.Instance.PortalIsOpen) return;
         bool final = BossDev.FinalRushEnabled && RunLoop.Index == 0;
         if (!final && DoneInWorld(WorldManager.CurrentIndex)) return;
-        if (final && DoneInWorld(WorldManager.Worlds.Length - 1)) return;
+        if (final && DoneInWorld(WorldManager.LastLiveWorld)) return;
         rushClock += dt;
         if (rushClock >= BossConfig.DevRushAfterSeconds)
         {

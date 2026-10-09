@@ -118,7 +118,7 @@ public static class WorldSpeedResetTest
             Fresh(hud);
             string tag = "HUD " + hud + " " + how + ": ";
             int from = 1;
-            if (how == "loop") from = WorldManager.Worlds.Length - 1;
+            if (how == "loop") from = WorldManager.LastLiveWorld;
             WorldManager.CurrentIndex = from;
             // flown fast, a limit break on, hearts and score banked
             moveBackGround.speed = .33f;

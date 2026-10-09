@@ -103,9 +103,9 @@ public static class BossEncounterTest
 
     static void EveryWorldHasCompleteArt()
     {
-        Check("one boss per world", BossCatalog.All.Length == WorldManager.Worlds.Length);
+        Check("one boss per world", BossCatalog.All.Length == WorldManager.LiveWorldCount);
         var names = new System.Collections.Generic.HashSet<string>();
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var boss = BossCatalog.ForWorld(w);
             Check(boss.artKey + " belongs to " + WorldManager.Worlds[w].displayName,

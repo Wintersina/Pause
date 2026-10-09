@@ -43,6 +43,8 @@ public static class PlanetfallPreview
     {
         int.TryParse(System.Environment.GetEnvironmentVariable("PLANETFALL_FROM") ?? "0", out from);
         from = Mathf.Clamp(from, 0, WorldManager.Worlds.Length - 2);
+        // PLANETFALL_FROM=3 renders Ember -> Tide, a planetfall only the Tide release switch opens
+        WorldManager.TideEnabled = from >= 3;
         LiftoffCatalog.Enabled = false;
         string dir = System.Environment.GetEnvironmentVariable("PLANETFALL_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/PlanetfallPreview";
@@ -73,6 +75,7 @@ public static class PlanetfallPreview
                 ScreenInfo.ClearOverride();
                 buttonClicks.playerDied = false;
                 LiftoffCatalog.Enabled = true;
+                WorldManager.TideEnabled = false;
             }
         }
         EditorApplication.Exit(failures == 0 ? 0 : 1);

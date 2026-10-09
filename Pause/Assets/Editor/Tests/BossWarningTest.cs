@@ -336,7 +336,7 @@ public static class BossWarningTest
 
     static void EveryWorld()
     {
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             string name = WorldManager.Worlds[w].displayName;
             var rig = Fly(w);
@@ -478,7 +478,7 @@ public static class BossWarningTest
 
     static void SpeedChanges()
     {
-        for (int w = 0; w < WorldManager.Worlds.Length; w += 3)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w += 3)
         {
             string name = WorldManager.Worlds[w].displayName;
             var rig = Fly(w);
@@ -589,7 +589,7 @@ public static class BossWarningTest
 
     static void LoopsAndRoutes()
     {
-        int last = WorldManager.Worlds.Length - 1;
+        int last = WorldManager.LastLiveWorld;
         var rig = Fly(last, .2f);
         RunLoop.StartWorld = 0;
         var c = rig.hud.Countdown;
@@ -844,7 +844,7 @@ public static class BossWarningTest
             float deg = h * 360f;
             red |= sat > .5f && (deg < 20f || deg > 345f);
         }
-        Check("one accent per world, none of them the player's red", BossWarningConfig.Accents.Length == WorldManager.Worlds.Length && !red);
+        Check("one accent per world, none of them the player's red", BossWarningConfig.Accents.Length == WorldManager.LiveWorldCount && !red);
         UnityEngine.Object.DestroyImmediate(hud.gameObject);
         UnityEngine.Object.DestroyImmediate(go);
     }
@@ -906,7 +906,7 @@ public static class BossWarningTest
 
     static void NameAndTunables()
     {
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var boss = BossCatalog.ForWorld(w);
             var rig = Fly(w, .3f);

@@ -164,7 +164,7 @@ public static class DeveloperUiStartTest
         var bd = WorldBackdrop.Instance;
         if (bd != null && bd.Current != null)
             Check(tag + "backdrop is the pick's (" + bd.Current.Spec.world + ")",
-                  bd.Current.Spec.world == WorldManager.Worlds[pick].displayName);
+                  bd.Current.Spec.world == BackdropCatalog.For(WorldManager.Worlds[pick].displayName).world);   // (Tide: Ember's until its own)
 
         // Replay keeps it.
         buttonClicks.playerDied = true;

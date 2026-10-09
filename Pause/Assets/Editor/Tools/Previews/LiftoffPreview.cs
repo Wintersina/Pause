@@ -35,6 +35,8 @@ public static class LiftoffPreview
     public static void Run()
     {
         if (!int.TryParse(System.Environment.GetEnvironmentVariable("LIFTOFF_WORLD") ?? "1", out world)) world = 1;
+        // LIFTOFF_WORLD=4 renders Tide's lift-off (the final world), which needs the release switch on
+        WorldManager.TideEnabled = world >= 4;
         string dir = System.Environment.GetEnvironmentVariable("LIFTOFF_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/LiftoffPreview";
         string devices = System.Environment.GetEnvironmentVariable("LIFTOFF_DEVICES");
@@ -62,6 +64,7 @@ public static class LiftoffPreview
                 PlayField.Reset();
                 ScreenInfo.ClearOverride();
                 buttonClicks.playerDied = false;
+                WorldManager.TideEnabled = false;
             }
         }
         EditorApplication.Exit(failures == 0 ? 0 : 1);

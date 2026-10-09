@@ -163,6 +163,7 @@ public static class AllTests
         ("TutorialCurrencyTest", TutorialCurrencyTest.Execute),
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("TutorialRobotTest", TutorialRobotTest.Execute),
+        ("TideLoopSoakTest", TideLoopSoakTest.Execute),
         ("TransitionChargeTest", TransitionChargeTest.Execute),
         ("UiScaleTest", UiScaleTest.Execute),
         ("UnusedAssetGuardTest", UnusedAssetGuardTest.Execute),

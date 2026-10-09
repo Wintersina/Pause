@@ -42,7 +42,7 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 | `top_score` | Top Score | empty (create it in Play Console, then paste the id) | `me.sinaserati.Pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | **disabled until the Play Console id is filled in** |
 | ~~`top_speed`~~ | ~~Top Speed~~ | (was `CgkI3eXNjrQcEAIQAA`) | (was `me.sinaserati.Pause.highest_speed`) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
 | `run_star_dust` | Star Dust | empty | empty (proposed `me.sinaserati.Pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | placeholder, disabled |
-| `furthest_world` | Furthest World | empty | empty (proposed `me.sinaserati.Pause.furthest_world`) | higher is better | 1 = Space ... 4 = Ember, shown as the world name | placeholder, disabled |
+| `furthest_world` | Furthest World | empty | empty (proposed `me.sinaserati.Pause.furthest_world`) | higher is better | 1 = Space ... 5 = Tide, shown as the world name | placeholder, disabled |
 
 A board is **enabled only when both ids are filled in**. A disabled board gets no tab, nothing
 submitted and nothing queued.
@@ -141,7 +141,7 @@ Play Console id: its iOS id is already in.
 3. Retire Top Speed (`me.sinaserati.Pause.highest_speed`): see "Retiring Top Speed".
 4. For each placeholder, create a leaderboard the same way:
    * `me.sinaserati.Pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
-   * `me.sinaserati.Pause.furthest_world`: Integer, High to low, range 1 to 4
+   * `me.sinaserati.Pause.furthest_world`: Integer, High to low, range 1 to 5 (Tide is world 5; raise it from 1-4 BEFORE WorldManager.TideEnabled ships; a sixth world needs 1-6)
    Then copy the ids into `LeaderboardBoards`.
 5. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
    submit them with the next build. Sandbox/TestFlight accounts can use them before release.

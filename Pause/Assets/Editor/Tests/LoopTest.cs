@@ -356,7 +356,7 @@ public static class LoopTest
         PortalPressure.Reset();
     }
 
-    // Ember's lift-off (LiftoffDef.autoLoop): after its interlude in Space's
+    // Ember's lift-off (LiftoffDef.AutoLoopNow while Tide is gated off): after its interlude in Space's
     // sky the loop begins at once, no portal -- the same world change as the
     // loop portal's. A run that began in Ember loops back there through its
     // portal, as before.
@@ -371,7 +371,7 @@ public static class LoopTest
             RunScore.Tick(30f, .3f);
             PlayBoss(wm);
             var l = Liftoff.Live;
-            Check("Ember's boss down: the lift-off, no portal", l != null && l.Def.autoLoop && Portal.Live == null && wm.PortalIsOpen);
+            Check("Ember's boss down: the lift-off, no portal", l != null && l.Def.AutoLoopNow && Portal.Live == null && wm.PortalIsOpen);
             long before = RunScore.Total;
             bool noPortal = true;
             int changes = 0, world = WorldManager.CurrentIndex;
@@ -946,7 +946,7 @@ public static class LoopTest
         var oldPass = new Sim();
         for (int loop = 0; loop < 2; loop++)
         {
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 var ws = SimWorld(w, loop, true, true, true);
                 Debug.Log("[LOOP] SIM " + Line("loop " + (loop + 1) + " " + WorldManager.Worlds[w].displayName, ws));
@@ -1132,7 +1132,7 @@ public static class LoopTest
         float gap = SpawnLane.ShipGap;
         try
         {
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
                 PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
                 int[] counts = new int[2];

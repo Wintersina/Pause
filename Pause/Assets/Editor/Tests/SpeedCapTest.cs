@@ -237,7 +237,7 @@ public static class SpeedCapTest
         bool onlyBoosted = true, settled = true;
         int runs = 0;
         Clock(1f / 30f);
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             for (int loop = 0; loop <= 5; loop++)
                 foreach (float start in new[] { 0f, .20f, .35f })
                 {
@@ -471,7 +471,7 @@ public static class SpeedCapTest
     {
         Debug.Log("[CAP] TABLE ramp: seconds from 0 to HUD 10 / 20 / 30 / 35, old (cap) / new");
         bool early = true, slower = true, slightly = true, reached = true, tickAgrees = true;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var theme = WorldManager.Worlds[w];
             float rate = theme.speedRampPerSecond;
@@ -525,7 +525,7 @@ public static class SpeedCapTest
         bool sooner = true, baseline = true, lasting = true, dustSame = true;
         var passOld = new float[Starts.Length];
         var passNew = new float[Starts.Length];
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var theme = WorldManager.Worlds[w];
             float rate = theme.speedRampPerSecond, oldD = OldWorldDistance(w), newD = WorldManager.WorldDistanceFor(w);
@@ -578,7 +578,7 @@ public static class SpeedCapTest
               Mathf.Approximately(WorldManager.ArrivalSpeed(0), SpeedRamp.Cap));
         Check("... skips the calm arrival (HUD " + enmiesOnBoard.FastArrivalHudSpeed + "+)", SpeedRamp.CapHud >= enmiesOnBoard.FastArrivalHudSpeed);
         float shortest = float.PositiveInfinity;
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             shortest = Mathf.Min(shortest, SpeedRamp.SecondsToCover(SpeedRamp.Cap, WorldManager.Worlds[w].speedRampPerSecond, SpeedRamp.Cap,
                                                                     WorldManager.WorldDistanceFor(w)));
         Check("... its shortest level (" + shortest.ToString("F0") + " s) is longer than the boss warning's lead (" + BossWarningConfig.LeadSeconds + " s)",

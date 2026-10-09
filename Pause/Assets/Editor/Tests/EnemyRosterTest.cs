@@ -57,7 +57,7 @@ public static class EnemyRosterTest
     }
 
     static readonly EnemyRole[] Roles = (EnemyRole[])Enum.GetValues(typeof(EnemyRole));
-    static int Worlds => WorldManager.Worlds.Length;
+    static int Worlds => WorldManager.LiveWorldCount;
     static string W(int world) => WorldManager.Worlds[world].displayName;
 
     // ---- 1: rosters ------------------------------------------------------------

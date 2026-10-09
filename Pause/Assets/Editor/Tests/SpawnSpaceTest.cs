@@ -440,7 +440,7 @@ public static class SpawnSpaceTest
         var buffer = new List<SpawnFootprint>(128);
         try
         {
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
                 for (int si = 0; si < speeds.Length; si++)
                     for (int di = 0; di < densities.Length; di++)
                     {

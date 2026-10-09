@@ -698,7 +698,7 @@ public static class HazardSizeTest
         var fresh = new List<SpawnFootprint>();
         try
         {
-            for (int w = 0; w < WorldManager.Worlds.Length; w++)
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
                 for (int si = 0; si < speeds.Length; si++)
                     for (int di = 0; di < densities.Length; di++)
                     {

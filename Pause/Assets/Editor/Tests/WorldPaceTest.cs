@@ -219,7 +219,7 @@ public static class WorldPaceTest
     static void TimeToBoss()
     {
         int[] starts = { 0, 5, 10, 20, 30 };
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             var times = starts.Select(s => FlyToBoss(w, s)).ToArray();
             string name = WorldManager.Worlds[w].displayName;
@@ -249,7 +249,7 @@ public static class WorldPaceTest
         int chaos = names.Length - 1;
         Check("the last phase is Chaos, from " + enmiesOnBoard.ChaosStartSeconds + "s of the 120s level",
               names[chaos] == "Chaos" && enmiesOnBoard.ChaosStartSeconds < WorldManager.BaselineWorldSeconds);
-        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
             string name = WorldManager.Worlds[w].displayName;
             foreach (int hud in new[] { 0, 30 })

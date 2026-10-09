@@ -115,6 +115,14 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 
 ## D. World release gate (present this to the user)
 
+- [ ] **RELEASE SWITCH: flip `WorldManager.TideEnabled`'s initial value (`{ get; set; } = false`) to `true`** -- the one
+  constant that puts Tide into the production loop (Space -> Frost -> Verdant -> Ember -> **Tide** -> Space). Until then
+  Ember is `WorldManager.LastLiveWorld`, its lift-off starts the loop (`LiftoffDef.loopsWhileLastLive`) and nothing flies to
+  Tide's planet; Tide exists in `Worlds[]` for the developer picker (F5, Options) and the tests only. Flipping it also
+  makes every test that walks `WorldManager.LiveWorldCount` include Tide, so the "stand-in" checks below turn red until
+  the real art/roster/boss exist (that is the point). Do it last, together with `WorldLogicTest`'s "release switch is off"
+  check (invert it) and `TideLoopSoakTest.ReleaseSwitchIsOffInTheShippedCode`; both suites cover ON and OFF already.
+
 - [ ] World loop plays end to end in the soak test: `... -> prev lift-off -> <W> planetfall -> <W> -> boss -> <W> lift-off -> Space (loop n+1)` and, for a run that began in `<W>`, the loop portal back to `<W>`.
 - [ ] Space continues cleanly after `<W>`: score/hearts/pauses/dust carried, speed = `ArrivalSpeed(loop)`, Space enemies only (no `<W>` leftovers), calm window re-armed, no portal shown.
 - [ ] Previews seen by the user: planet + planetfall + lift-off, 4 backdrop variants (real frames), every enemy (idle + death), elites, boss attacks + damage + death, rails, menu backdrop pool, codex page.
@@ -135,3 +143,26 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 - Staged art lives in `~` folders until the wiring change moves it (`git mv`); old art is deleted in that same change.
 - Re-run a red suite once; compare to a plain-master control worktree before blaming your branch.
 - Clean up finished worktrees only after their branch is merged and the user has no pending feedback on them.
+
+## F. Tide scaffold status (what is real, what is a stand-in) -- remove a line as its phase lands
+
+Real: `Worlds[4]` ("Tide", ramp .00385 / enemyRampScale 1.50, mint portal), `PlanetfallCatalog.Tide`,
+`LiftoffCatalog.Tide` (`autoLoop`), the planetfall art in `Backgrounds/Resources/Worlds/Tide/Planetfall/`, the
+loop rewiring, `EnemyDensity` entry, `CodexPanel.MaxSections = 7`, `DeveloperUnlocks` F5, `TideLoopSoakTest`.
+
+Stand-ins (all resolve "Tide" to **Ember**'s; delete each when its phase lands):
+
+| Piece | Stand-in | Where | Phase |
+| --- | --- | --- | --- |
+| rails (texture, bounds, edge) | Ember's | `WorldPainter.RailArtWorld`, `Worlds[4].resourceFolder = "Ember"` | 5 |
+| backdrop spec + director | Ember's | `BackdropCatalog.TideStandIn` | 11 |
+| roster, rail mine row, palette, density | Ember's (`EnemyRoster.For` clamps to the last key; `EnemyPalette.ThemeFor(4)`; `EnemyDensity` 5th entry) | add `"tide"` to `EnemyRoster.WorldKeys` with the 12 defs | 12 |
+| explosion | Ice for elites by name, Ember's Magma for the roster | `TargetExplosion.KindForWorld("tide")` | 12 |
+| boss | Ember's (`BossCatalog.ForWorld` clamps; **no** 5th `BossDef`, the codex would list a duplicate) | add the `BossDef` + emitters/hearts/warning/fx rows | 13 |
+| codex world entry / enemies | none (`Codex.WorldId(4)` is null, discovery skips) | `CodexCatalogue.WorldIds` + entry | 16 |
+| `BossWarning.Accents`, `BossHearts.Body`, `BossAttackFx` rows | clamped to Ember's | each file | 13 |
+| elites, sounds | none for Tide | `add-elite-ship`, phase 8/15 | 14, 15 |
+| leaderboard `furthest_world` store range | still 1-4 in the stores | user: Play Console / Game Center, set 1-5 before the switch ships (`docs/leaderboards.md`) | 17 |
+
+Test convention: tests that mean "every world that is live" use `WorldManager.LiveWorldCount` /
+`LastLiveWorld`; the few that mean the whole list (dev picker, `DeveloperUnlocks`, clamps) use `Worlds.Length`.
