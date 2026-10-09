@@ -551,10 +551,10 @@ public static class SpeedCapTest
             for (float t = 0f, v = 0f; t < WorldManager.BaselineWorldSeconds; t += .01f)
             {
                 float next = OldSpeedAfter(v, rate, OldCaps[w], .01f);
-                oldDust += .05f * Mathf.Min(1f, .5f * (v + next) / .6f) * .01f;   // the old score.cs formula
+                oldDust += ScoreRules.DustRewardScale * .05f * Mathf.Min(1f, .5f * (v + next) / .6f) * .01f;   // the old score.cs formula
                 v = next;
             }
-            float newDust = ScoreRules.DustPerDistance * newD;
+            float newDust = ScoreRules.DustPerDistance * newD * ScoreRules.DustRewardScale;
             Debug.Log(string.Format("[CAP] TABLE {0,-8} flight dust for a level: old {1:F2}, new {2:F2}", theme.displayName, oldDust, newDust));
             dustSame &= Mathf.Abs(oldDust - newDust) < .03f;
         }

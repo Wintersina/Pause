@@ -1013,7 +1013,8 @@ public static class EliteTest
         }
         finally { RunScore.Scored -= spy; }
         Check("an elite kill pays " + ScoreRules.EliteDown + " points (" + (RunScore.Total - total) + ")", RunScore.Total - total == ScoreRules.EliteDown);
-        Check("... and " + ScoreRules.EliteDownDust + " star dust", Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - ScoreRules.EliteDownDust) < .01f);
+        float eliteDust = ScoreRules.EliteDownDust * ScoreRules.DustRewardScale;   // a reward, not a pickup: 15 x 0.60
+        Check("... and " + eliteDust + " star dust", Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - eliteDust) < .01f);
         Check("... with the ELITE DOWN popup", src == RunScore.Source.Elite && pts == ScoreRules.EliteDown &&
               ScoreHud.StyleFor(RunScore.Source.Elite, false).suffix.Contains("ELITE DOWN"));
 
@@ -1037,9 +1038,9 @@ public static class EliteTest
             ShipAttackHits.Hit(e.gameObject, 3);
             Step(EliteShip.GraceSeconds + .1f);
             ShipAttackHits.Hit(e.gameObject, 3);
-            Check(Def(brain).displayName + " down pays " + ScoreRules.EliteDown + " points and " + ScoreRules.EliteDownDust + " dust",
+            Check(Def(brain).displayName + " down pays " + ScoreRules.EliteDown + " points and " + ScoreRules.EliteDownDust * ScoreRules.DustRewardScale + " dust (15 x scale)",
                   e == null && RunScore.Total - total == 50 && ScoreRules.EliteDown == 50 && ScoreRules.EliteDownDust == 15f &&
-                  Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - 15f) < .01f);
+                  Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - 15f * ScoreRules.DustRewardScale) < .01f);
         }
     }
 

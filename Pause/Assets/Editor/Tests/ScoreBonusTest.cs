@@ -66,12 +66,13 @@ public static class ScoreBonusTest
         }
         Check("the bonus never falls as the score rises", monotonic);
         Check("each extra 250 points adds less (diminishing)", diminishing);
-        Check("capped at " + ScoreRules.ScoreDustCap + " however big the loop run",
-              ScoreRules.ScoreDustBonus(1000000) == ScoreRules.ScoreDustCap && ScoreRules.ScoreDustBonus(14757) == ScoreRules.ScoreDustCap);
+        float paidCap = Mathf.Round(ScoreRules.ScoreDustCap * ScoreRules.DustRewardScale * 100f) / 100f;
+        Check("capped at " + paidCap + " (" + ScoreRules.ScoreDustCap + " x DustRewardScale) however big the loop run",
+              ScoreRules.ScoreDustBonus(1000000) == paidCap && ScoreRules.ScoreDustBonus(14757) == paidCap);
         foreach (long sc in new long[] { 200, 400, 600, 1466, 3000, 6645, 14757 })
             Debug.Log("[BONUS] score " + sc + " -> +" + ScoreRules.ScoreDustBonus(sc).ToString("F2") + " star dust");
-        Check("small: 400 points -> 0.40, a whole first pass (6,645) -> the 1.5 cap",
-              Mathf.Approximately(ScoreRules.ScoreDustBonus(400), .4f) && ScoreRules.ScoreDustBonus(6645) == 1.5f);
+        Check("small: 400 points -> 0.24 (0.40 x 0.60), a whole first pass (6,645) -> the 0.90 cap",
+              Mathf.Approximately(ScoreRules.ScoreDustBonus(400), .24f) && Mathf.Approximately(ScoreRules.ScoreDustBonus(6645), .9f));
         Check("a top-up, not an income: the cap is under 1% of the cheapest ship (600)",
               ScoreRules.ScoreDustCap <= shopingShips.Prices[2] * .01f);
     }

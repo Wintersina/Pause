@@ -831,14 +831,14 @@ public static class ScoringTest
             float speed = i / 100f;
             foreach (float dt in new[] { 1f / 60f, 1f / 120f, .5f })
             {
-                float old = .05f * Mathf.Min(1f, speed / .6f) * dt;
+                float old = ScoreRules.DustRewardScale * .05f * Mathf.Min(1f, speed / .6f) * dt;   // the old trickle, paid at the reward scale
                 float now = ScoreRules.FlightDust(speed, dt);
                 float err = Mathf.Abs(now - old);
                 worst = Mathf.Max(worst, err);
                 same &= err <= 1e-6f * Mathf.Max(1f, old);
             }
         }
-        Check("flight dust per distance equals the old top-speed trickle at every speed 0-45 (worst error " + worst + ")", same);
+        Check("flight dust per distance equals the old top-speed trickle x DustRewardScale at every speed 0-45 (worst error " + worst + ")", same);
         Check("flight dust: nothing frozen or stopped", ScoreRules.FlightDust(.35f, 0f) == 0f && ScoreRules.FlightDust(0f, 1f) == 0f);
         Check("score has no top-speed fields any more",
               typeof(score).GetField("topSpeed") == null && typeof(score).GetField("dustPerSecondAtTopSpeed") == null);
