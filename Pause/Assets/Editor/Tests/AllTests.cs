@@ -58,6 +58,7 @@ public static class AllTests
         ("AtomSpacingTest", AtomSpacingTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BackdropCellClipTest", BackdropCellClipTest.Execute),
+        ("BackdropLoopGuardTest", BackdropLoopGuardTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),

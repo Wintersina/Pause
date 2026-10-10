@@ -267,7 +267,9 @@ public class FrostDirector : PlanetDirector
         auroraPool = Pool("aurora", 2);
         ground = LandmarkPool("landmarks", 7);
         sites = LandmarkPool("landmarks", 3, 3);
-        ambient.Rig(ground, 1);
+        // loops above both pools' plates (the sites' sit 3 above the ground's): a
+        // site plate must not slice a neighbouring stack's plume off flat
+        ambient.Rig(ground, 4);
         ambient.Rig(sites, 1);
         for (int i = 0; i < sites.items.Count; i++)
         {
