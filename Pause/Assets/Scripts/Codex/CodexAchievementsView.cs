@@ -35,7 +35,7 @@ public sealed class CodexAchievementsView
 
     // ---- tint roles ----
     static Color Gold { get { return CodexPalette.Amber; } }
-    static readonly Color LockedBadge = new Color(.26f, .28f, .36f, 1f);
+    static readonly Color LockedBadge = new Color(.58f, .60f, .70f, 1f); // dimmed but still readable (was .26/.28/.36)
 
     sealed class Card
     {

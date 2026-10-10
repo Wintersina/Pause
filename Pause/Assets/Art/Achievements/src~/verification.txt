@@ -1,69 +1,86 @@
-badges: 60
-masters: 60 RGB 1024x1024
-icons: 60 RGBA 128x128
-tiers: {'bronze': 16, 'silver': 27, 'gold': 11, 'platinum': 6}
-colour range: 46-262
-unique 16x16 dHashes: 60
-failures: 0
+VERIFY TABLE
+badges | 60 / 60
+128 icons | 60 RGBA, hard alpha
+1024 masters | 60 RGB, exact x8, #07070f corners
+frames | 14 = 4 tiers + 10 accessories
+tiers | {'bronze': 16, 'silver': 27, 'gold': 11, 'platinum': 6}
+groups | {'meta': 2, 'world': 7, 'boss': 7, 'elite': 8, 'enemy': 9, 'codex': 4, 'collection': 6, 'skill': 7, 'dust': 4, 'pause': 6}
+colour range | 339..1062 per icon
+dHash exact duplicates | 0
+failures | 0
 
-id,tier,colour_count
-meta_first_flight,bronze,51
-meta_logged_on,bronze,50
-world_frost_reached,bronze,119
-world_verdant_reached,silver,126
-world_ember_reached,silver,133
-world_tide_reached,silver,156
-loop_1,gold,102
-loop_2,gold,47
-loop_5,platinum,48
-boss_space,silver,150
-boss_frost,silver,148
-boss_verdant,silver,148
-boss_ember,gold,153
-boss_tide,gold,112
-boss_no_hit,gold,52
-boss_all,platinum,262
-elite_first,bronze,50
-elite_10,silver,50
-elite_50,gold,50
-elite_space_all,silver,137
-elite_frost_all,silver,64
-elite_verdant_all,silver,147
-elite_ember_all,gold,143
-elite_blink,silver,133
-kills_100,bronze,50
-kills_1000,silver,50
-kills_5000,gold,50
-rocks_500,bronze,135
-mines_25,bronze,132
-chain_10,silver,46
-mega_domino,silver,48
-codex_10,bronze,54
-codex_50,silver,54
-codex_field_guide,silver,53
-codex_complete,platinum,54
-ship_first,bronze,142
-ship_half,silver,161
-ship_all,platinum,163
-skin_first,bronze,49
-skin_special,silver,139
-skin_full_set,gold,48
-secret_power_first,bronze,47
-stars_150,bronze,54
-stars_1000,silver,54
-stars_5000,gold,56
-dust_spent_10000,silver,56
-score_10k,bronze,48
-score_50k,silver,49
-score_150k,platinum,49
-speed_flash,silver,48
-speed_speedster,silver,49
-speed_super_sonic,platinum,105
-deaths_10,bronze,141
-deaths_100,silver,48
-pause_first,bronze,48
-pause_blink_kill,bronze,50
-pause_blink_100,silver,78
-pause_no_pause_world,silver,49
-pause_hoarder,silver,49
-pause_perfect_dodge,gold,125
+NEAREST PERCEPTUAL HASH PAIRS (Hamming distance on 256-bit dHash)
+5 | elite_frost_all | elite_verdant_all
+5 | pause_first | pause_no_pause_world
+8 | elite_space_all | elite_verdant_all
+8 | score_10k | score_50k
+8 | stars_1000 | stars_5000
+8 | stars_150 | stars_1000
+9 | codex_10 | codex_50
+9 | elite_space_all | elite_frost_all
+10 | elite_first | elite_frost_all
+10 | stars_150 | stars_5000
+11 | boss_ember | boss_tide
+11 | elite_blink | pause_blink_100
+
+ID | TIER | COLOURS
+meta_first_flight | bronze | 348
+meta_logged_on | bronze | 347
+world_frost_reached | bronze | 418
+world_verdant_reached | silver | 425
+world_ember_reached | silver | 432
+world_tide_reached | silver | 745
+loop_1 | gold | 416
+loop_2 | gold | 346
+loop_5 | platinum | 347
+boss_space | silver | 866
+boss_frost | silver | 861
+boss_verdant | silver | 786
+boss_ember | gold | 786
+boss_tide | gold | 777
+boss_no_hit | gold | 379
+boss_all | platinum | 791
+elite_first | bronze | 773
+elite_10 | silver | 889
+elite_50 | gold | 930
+elite_space_all | silver | 956
+elite_frost_all | silver | 405
+elite_verdant_all | silver | 899
+elite_ember_all | gold | 854
+elite_blink | silver | 678
+kills_100 | bronze | 401
+kills_1000 | silver | 403
+kills_5000 | gold | 402
+rocks_500 | bronze | 1062
+mines_25 | bronze | 718
+chain_10 | silver | 398
+mega_domino | silver | 400
+codex_10 | bronze | 404
+codex_50 | silver | 405
+codex_field_guide | silver | 403
+codex_complete | platinum | 404
+ship_first | bronze | 482
+ship_half | silver | 509
+ship_all | platinum | 561
+skin_first | bronze | 399
+skin_special | silver | 487
+skin_full_set | gold | 385
+secret_power_first | bronze | 367
+stars_150 | bronze | 378
+stars_1000 | silver | 378
+stars_5000 | gold | 380
+dust_spent_10000 | silver | 377
+score_10k | bronze | 374
+score_50k | silver | 374
+score_150k | platinum | 375
+speed_flash | silver | 368
+speed_speedster | silver | 369
+speed_super_sonic | platinum | 470
+deaths_10 | bronze | 490
+deaths_100 | silver | 400
+pause_first | bronze | 339
+pause_blink_kill | bronze | 343
+pause_blink_100 | silver | 369
+pause_no_pause_world | silver | 340
+pause_hoarder | silver | 340
+pause_perfect_dodge | gold | 415

@@ -161,7 +161,7 @@ public static class CodexAchievementsTabTest
         int locked = v.CardIndexOf("stars_150"), claimable = v.CardIndexOf("loop_1"), claimed = v.CardIndexOf("kills_100"), secret = v.CardIndexOf("mega_domino");
         Check("locked counter: bar 40/150 at 27%", v.CardBarText(locked).text == "40/150" &&
               Mathf.Abs(v.CardBarFill(locked).rectTransform.anchorMax.x - 40f / 150f) < .001f && v.CardLock(locked).gameObject.activeSelf);
-        Check("locked: the badge is darkened", v.CardBadge(locked).color.r < .5f && v.CardEdge(locked).color == CodexUi.Locked);
+        Check("locked: the badge is dimmed but still readable", v.CardBadge(locked).color.r < .75f && v.CardBadge(locked).color.r > .45f && v.CardEdge(locked).color == CodexUi.Locked);
         Check("unlocked (claimable): COLLECT 25 chip, no padlock, full-colour badge, gold edge",
               v.CardCollectVisible(claimable) && v.CardCollect(claimable).label.text == "COLLECT 25" && !v.CardLock(claimable).gameObject.activeSelf &&
               v.CardBadge(claimable).color == Color.white && v.CardEdge(claimable).color == CodexPalette.Amber && !v.CardCollected(claimable).gameObject.activeSelf);
