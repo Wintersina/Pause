@@ -1,0 +1,38 @@
+Built-in imagegen mode; input references were the live Tide weather atlas and
+Tide Planetfall tide_cloud_deck.png. Candidate files are retained here.
+
+Candidate 1 — cloud_candidate_atlas.png (selected for the final silhouettes):
+Use case: precise-object-edit. Asset type: source candidate for a 1024x1024
+pixel-art Unity weather atlas. Image 1 is the edit target: Tide weather.png.
+Image 2 is a colour and cloud-structure reference only: Tide planetfall cloud
+deck. Repaint ONLY the four large cloud_bank sprites in the TOP ROW, one
+storm-cloud bank per 256x256 cell. Maintain each bank's overall size, position,
+rugged detailed silhouette, and grey-slate teal with sparse mint-lit crests.
+Make every left and right outline taper organically into ragged pixel-clustered
+lobes and wisps inside its cell, fading well before all four borders. No straight
+vertical cuts, no hard horizontal cuts, no cloud on a cell edge. Keep alpha
+gentle / translucent for an overhead cloud-ceiling overlay. Match existing
+dense hand-pixelled texture and shaded lobes. Preserve every sprite in lower
+three rows. True transparent background, no labels, no text, no grid, no red,
+no pink, no stars, no space scenery.
+
+Candidate 2 — cloud_candidate_shapes.png (shape exploration only):
+Use case: style-transfer. Asset type: four independent transparent pixel-art
+storm-cloud bank shape candidates, in a 2x2 grid with wide transparent space
+separating them. Image 1 supplies the exact existing Tide grey-teal/mint pixel
+palette and granular pixel cluster treatment; image 2 supplies the billowing
+storm-cloud forms and mint backlit crests. Draw FOUR DIFFERENT horizontally
+broad, ragged storm cloud masses for an overhead atmosphere-ceiling overlay,
+each mass contained comfortably inside its own quadrant with generous empty
+margins on every side. Their ends dissolve into sparse small puffs, never meet
+the quadrant edges; central mass dense and billowy but semi-transparent. Shape
+directions: curled crescent, long diagonal shoal, broken twin-crest, coiled
+storm head. Dark muted slate blue-green, limited mint accents; no bright cyan,
+no lime, no violet, no red, no pink. Hand-placed pixel clusters, hard pixel
+steps, textured 4-6 colour ramps, high-detail silhouette, no smooth blur, no
+gradients, no scenery, no text, no frame lines. Genuinely transparent background.
+Keep the whole composition flat top-down game sprite art.
+
+Selected candidate processing: nearest-neighbour sampling, remapping to the
+eight exact colours of the original weather banks, stepped alpha <=105, and
+footprint-edge fade. Only the four upper atlas cells are replaced.
