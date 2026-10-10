@@ -332,8 +332,10 @@ spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 
 * `RunScore.Total` is what leaderboards, the best score and score achievements read, so they see the
   doubled score automatically. `RunScore.Parts.secondsIn2x` records the time spent on x2 for a future
   achievement (none added).
-* HUD (`ScoreX2Cue`, on the SPEED row): after 2 s at the cap a slim cyan bar fills along the bottom of the
-  row over the 15 s; at 15 s a small teal "x2" plate pops in between the speed figure and the SPD badge;
+* HUD (`ScoreX2Cue`, on the SCORE row; the SPEED row is untouched): after 2 s at the cap a slim cyan bar
+  fills along the bottom of the score row over the 15 s (half-second steps); at 15 s a small teal "x2" plate
+  pops in hugging the right edge of the score figure ("SCORE  12,345 x2"), following the figure's rendered
+  width as digits are added and clamped left of the kill-chain badge column;
   when it ends the plate dims to muted grey and sinks for 0.6 s. No sound, no red, no allocation; the bar
   yields to the resume slow-mo spool bar, which uses the same strip.
 

@@ -359,8 +359,10 @@ public static class ScoreMultiplierTest
 
         // the live HUD (gameS1)
         var hud = BuildHud(out GameObject go, out ScoreX2Cue cue);
-        if (cue == null) { Check("the HUD attaches the cue to the SPEED row", false); return; }
-        Check("the cue sits on the SPEED row", cue.transform.name == "SpeedText" && cue.Bar.transform.parent == cue.transform);
+        if (cue == null) { Check("the HUD attaches the cue to the SCORE row", false); return; }
+        Check("the cue sits on the SCORE row", cue.transform.name == ScoreHud.RowName && cue.Bar.transform.parent == cue.transform);
+        Check("... and the SPEED row has none of it", SceneUtil.FindAny("SpeedText").GetComponent<ScoreX2Cue>() == null &&
+              SceneUtil.FindAny("SpeedText").transform.Find(ScoreX2Cue.BarName) == null && SceneUtil.FindAny("SpeedText").transform.Find(ScoreX2Cue.PlateName) == null);
         float t = 100f;
         cue.Refresh(t);
         Check("not started: nothing visible", cue.State == ScoreX2Cue.CueState.Hidden && !cue.Bar.enabled && !cue.Plate.enabled);
@@ -423,8 +425,8 @@ public static class ScoreMultiplierTest
         var styler = go.AddComponent<HudStyler>();
         styler.SendMessage("Start");
         var hud = go.GetComponent<ScoreHud>();
-        var speed = SceneUtil.FindAny("SpeedText");
-        cue = speed != null ? speed.GetComponent<ScoreX2Cue>() : null;
+        cue = hud != null && hud.ScoreText != null ? hud.ScoreText.GetComponent<ScoreX2Cue>() : null;
+        if (cue != null) { Canvas.ForceUpdateCanvases(); LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)hud.ScoreText.transform.parent); }
         return hud;
     }
 
@@ -433,57 +435,111 @@ public static class ScoreMultiplierTest
         var hud = BuildHud(out GameObject go, out ScoreX2Cue cue);
         if (cue == null) { Check("layout: cue exists", false); return; }
         var styler = go.GetComponent<HudStyler>();
-        var speedRow = cue.transform.GetComponent<Text>();
-        var rows = (RectTransform)hud.ScoreText.transform.parent;
+        var scoreRow = hud.ScoreText;
+        var rows = (RectTransform)scoreRow.transform.parent;
         LayoutRebuilder.ForceRebuildLayoutImmediate(rows);
 
-        // the cue changes the panel not at all
+        // the SPEED row is exactly as it was: its own height, no cue children
+        var speedRow = SceneUtil.FindAny("SpeedText").GetComponent<Text>();
+        Check("the SPEED row has no x2 bar or plate", speedRow.transform.Find(ScoreX2Cue.BarName) == null &&
+              speedRow.transform.Find(ScoreX2Cue.BackName) == null && speedRow.transform.Find(ScoreX2Cue.PlateName) == null);
         Check("the read-out keeps its size (131)", Mathf.Approximately(styler.HudRoot.rect.size.y, 131f));
 
-        // widest content on the SPEED row: SPEED 99, the SPD x2.5 badge, the x2 plate
-        speedRow.text = "SPEED  99";
-        hud.SpeedBadge.text = "SPD x2.5";
         var plate = cue.Plate.rectTransform;
         plate.localScale = Vector3.one;
-        plate.gameObject.SetActive(true);
         cue.Plate.enabled = true;
-        var speedRect = speedRow.rectTransform;
-        float rowW = speedRect.rect.width;
-        float textRight = speedRow.preferredWidth;
-        float plateLeft = rowW - ScoreX2Cue.PlateRightInset - ScoreX2Cue.PlateWidth;
-        float plateRight = rowW - ScoreX2Cue.PlateRightInset;
-        float badgeLeft = rowW - hud.SpeedBadge.preferredWidth;
-        Check("SPEED 99 ends before the x2 plate starts (" + textRight.ToString("F0") + " < " + plateLeft.ToString("F0") + ")",
-              textRight + 4f <= plateLeft);
-        Check("the x2 plate ends before SPD x2.5 starts (" + plateRight.ToString("F0") + " < " + badgeLeft.ToString("F0") + ")",
-              plateRight + 3f <= badgeLeft);
-        Check("the plate is inside the SPEED row (row " + speedRect.rect.size + ")", InsideLocal(speedRect, plate));
-        Check("the bar strip is inside the SPEED row", InsideLocal(speedRect, cue.Bar.rectTransform) && InsideLocal(speedRect, cue.Back.rectTransform));
+        var rowRect = scoreRow.rectTransform;
+        float rowW = rowRect.rect.width;
+        string[] scores = { "SCORE  0", "SCORE  12,345", "SCORE  123,456", "SCORE  9,999,999" };
+        foreach (bool chain in new[] { false, true })
+        {
+            hud.ChainText.text = chain ? "x4" : "";
+            float chainLeft = chain ? rowW - hud.ChainText.preferredWidth - 2f : rowW;
+            foreach (var label in scores)
+            {
+                scoreRow.text = label;
+                Measure(cue, label);
+                float textRight = scoreRow.preferredWidth;
+                float left = plate.anchoredPosition.x, right = left + ScoreX2Cue.PlateWidth;
+                string what = "'" + label + "'" + (chain ? " + chain x4" : "");
+                Debug.Log("[X2] " + what + ": text " + textRight.ToString("F1") + " plate " + left + ".." + right + " (shown " + cue.Plate.enabled + ") chain from " + chainLeft.ToString("F1") + " row " + rowW);
+                if (cue.Plate.enabled)
+                {
+                    Check(what + ": the plate hugs the figure (gap " + (left - textRight).ToString("F1") + ")",
+                          left >= textRight + 2f && left <= textRight + ScoreX2Cue.PlateGap + 1.5f);
+                    Check(what + ": inside the row, clear of the chain badge", right <= chainLeft + .5f && InsideLocal(rowRect, plate));
+                }
+                else
+                {
+                    Check(what + ": no room, so the plate waits instead of covering a digit or the chain badge", chain && label.EndsWith("9,999,999"));
+                }
+            }
+        }
+        hud.ChainText.text = "";
+        scoreRow.text = "SCORE  123,456,789,012";   // absurdly long: the plate waits, never spills
+        Measure(cue, scoreRow.text);
+        Check("an absurdly long score never puts the plate outside the row", !cue.Plate.enabled || InsideLocal(rowRect, plate));
+        Check("the plate follows the figure (a longer score pushes it right)",
+              ScoreX2Cue.PlateLeftFor(100f, 323f, 0f) < ScoreX2Cue.PlateLeftFor(150f, 323f, 0f) &&
+              ScoreX2Cue.PlateLeftFor(900f, 323f, 0f) == ScoreX2Cue.NoRoom && ScoreX2Cue.PlateLeftFor(100f, 323f, 0f) == 106f);
+
+        Check("the bar strip is inside the SCORE row", InsideLocal(rowRect, cue.Bar.rectTransform) && InsideLocal(rowRect, cue.Back.rectTransform));
         Check("the label fits its plate", cue.LabelText.preferredWidth <= ScoreX2Cue.PlateWidth - 8f && cue.LabelText.preferredHeight <= ScoreX2Cue.PlateHeight);
         Check("nothing of the cue is a raycast target", !cue.Plate.raycastTarget && !cue.Bar.raycastTarget && !cue.Back.raycastTarget && !cue.LabelText.raycastTarget);
-        Check("the cue never reaches the SCORE or PAUSES rows",
-              cue.transform.parent == rows && cue.Plate.transform.parent == cue.transform && cue.Bar.transform.parent == cue.transform);
+        Check("the cue is children of the SCORE row only",
+              cue.transform == scoreRow.transform && cue.Plate.transform.parent == cue.transform && cue.Bar.transform.parent == cue.transform);
 
-        // the whole read-out stays where it was on every device shape (ScreenFit also
-        // checks the live x2 plate: ScreenFitScreens, GameShot.Popups)
+        // every device shape: bar and plate (with a 7-digit and a very long score)
+        // inside the safe area
+        scoreRow.text = "SCORE  9,999,999";
+        Measure(cue, scoreRow.text);
         var canvas = styler.HudRoot.parent.GetComponent<Canvas>();
         var scaler = canvas.GetComponent<CanvasScaler>();
         Vector2 hudSize = styler.HudRoot.rect.size;
         int checkedDevices = 0;
-        foreach (var d in FitDevice.All)
+        foreach (var long_ in new[] { false, true })
         {
-            var screen = new Vector2(d.w, d.h);
-            float scale = HudStyler.HudCanvasScale(canvas, scaler, screen);
-            Rect r = HudStyler.HudScreenRect(d.Safe, screen, scale, hudSize);
-            // the plate in screen px: its share of the panel, scaled with it
-            float fit = r.width / (hudSize.x * scale);
-            float h = ScoreX2Cue.PlateHeight * scale * fit;
-            bool ok = d.Safe.Contains(r.min) && d.Safe.Contains(r.max) && h > 0f;
-            if (!ok) Check(d.id + ": HUD (with the x2 plate) inside the safe area", false);
-            checkedDevices++;
+            scoreRow.text = long_ ? "SCORE  123,456,789,012" : "SCORE  9,999,999";
+            Measure(cue, scoreRow.text);
+            foreach (var d in FitDevice.All)
+            {
+                var screen = new Vector2(d.w, d.h);
+                float scale = HudStyler.HudCanvasScale(canvas, scaler, screen);
+                Rect r = HudStyler.HudScreenRect(d.Safe, screen, scale, hudSize);
+                bool ok = d.Safe.Contains(r.min) && d.Safe.Contains(r.max);
+                foreach (var item in new[] { plate, cue.Bar.rectTransform, cue.Back.rectTransform })
+                {
+                    if (item == plate && !cue.Plate.enabled) continue;
+                    Rect pr = ScreenRectOf(styler.HudRoot, item, r, hudSize);
+                    ok &= d.Safe.Contains(pr.min) && d.Safe.Contains(pr.max) && pr.height > 0f;
+                }
+                if (!ok) Check(d.id + ": HUD with the x2 cue (" + (long_ ? "long" : "7-digit") + " score) inside the safe area", false);
+                if (!long_) checkedDevices++;
+            }
         }
-        Check("the read-out with the plate is inside the safe area on all " + checkedDevices + " devices", true);
+        Check("the read-out with the x2 plate and bar is inside the safe area on all " + checkedDevices + " devices (7-digit and very long scores)", checkedDevices == FitDevice.All.Length);
         Object.DestroyImmediate(go);
+    }
+
+    static void Measure(ScoreX2Cue cue, string label)
+    {
+        Canvas.ForceUpdateCanvases();
+        cue.Plate.enabled = true;
+        cue.Remeasure();
+        cue.Plate.enabled = cue.PlateX >= 0f;   // as Refresh does in the Active state
+        cue.Plate.rectTransform.anchoredPosition = new Vector2(Mathf.Max(0f, cue.PlateX), 0f);
+    }
+
+    // `item`'s rect in screen px, given where the panel (`panel`, size `hudSize`) lands (`r`)
+    static Rect ScreenRectOf(RectTransform panel, RectTransform item, Rect r, Vector2 hudSize)
+    {
+        var corners = new Vector3[4];
+        item.GetWorldCorners(corners);
+        Vector2 lo = panel.InverseTransformPoint(corners[0]), hi = panel.InverseTransformPoint(corners[2]);
+        float kx = r.width / hudSize.x, ky = r.height / hudSize.y;
+        float x0 = r.xMin + (lo.x - panel.rect.xMin) * kx, x1 = r.xMin + (hi.x - panel.rect.xMin) * kx;
+        float y0 = r.yMin + (lo.y - panel.rect.yMin) * ky, y1 = r.yMin + (hi.y - panel.rect.yMin) * ky;
+        return Rect.MinMaxRect(Mathf.Min(x0, x1), Mathf.Min(y0, y1), Mathf.Max(x0, x1), Mathf.Max(y0, y1));
     }
 
     static bool InsideLocal(RectTransform outer, RectTransform inner)
