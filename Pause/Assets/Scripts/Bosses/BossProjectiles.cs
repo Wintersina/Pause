@@ -319,6 +319,8 @@ public class BossBeam : MonoBehaviour
     public SpriteRenderer Sheath => sheath;
     public int OwnerId => pool != null ? pool.OwnerId : 0;
     public float LiveAge => age;   // seconds since it ignited (once live)
+    public float TellLeft => tellLeft;   // seconds of telegraph left (tests, the dodge bot)
+    public float HoldLeft => holdLeft;   // seconds of live beam left
 
     // Does a circle at p (radius r) touch the live beam's hitbox?
     public bool Touches(Vector2 p, float r)
