@@ -7,8 +7,9 @@ using UnityEngine;
 //
 //   lateral   None / Drift / Glide / Sway / Orbit / Track / March
 //   vertical  None / Bob / Pulse / Brake / Sink / Patrol / Creep
-//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike
-//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns -- themed area hazards)
+//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike / Jet / Wave
+//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns; Jet: AttackJet's cone or column;
+//              Wave: AttackWave's falling band with a gap -- themed area hazards)
 //
 // Everything a brain adds is an OFFSET in board space on top of the enemy's
 // mover, bounded by the behaviour's envelope (bandX either side, Up above,
@@ -16,7 +17,7 @@ using UnityEngine;
 // patterns can never meet.
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
-public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike }
+public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Jet, Wave }
 public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
@@ -80,6 +81,8 @@ public sealed class EnemyBehaviour
     // enemy's own world when the attack is armed; `ride` is the behaviour's `ride` for a hazard and 0 for a pilot.
     public BlastSpec blast = BlastSpec.Standard(0);
     public StrikeSpec strike = StrikeSpec.Standard(0);
+    public JetSpec jet = JetSpec.Standard(0);     // Jet (Attacks/AttackJet.cs)
+    public WaveSpec wave = WaveSpec.Standard(0);  // Wave (Attacks/AttackWave.cs)
     public int strikeLanes = 1;        // Strike: columns in one pattern
     public float laneSpacing = AttackStrike.MinLaneSpacing;
 
@@ -103,11 +106,12 @@ public sealed class EnemyBehaviour
 
     public bool Shoots => attack == EnemyAttack.Shot || attack == EnemyAttack.Ring ||
                           attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser ||
-                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
+                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave;
     // An area hazard (AttackHazard): told for at least AttackHazard.MinTellSeconds, never a projectile.
-    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
+    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave;
     // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a strike 1 a lane).
-    public int ThreatCount => attack == EnemyAttack.Blast ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
+    // (a jet counts 1.5, rounded up; a wave 2)
+    public int ThreatCount => attack == EnemyAttack.Blast || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
     public bool Attacks => attack != EnemyAttack.None;
 
     // The envelope: how far the brain's offset can ever reach.
@@ -214,6 +218,18 @@ public sealed class EnemyBehaviour
     public EnemyBehaviour Strike(StrikeSpec spec, int lanes = 1, float spacing = AttackStrike.MinLaneSpacing)
     {
         attack = EnemyAttack.Strike; strike = spec; strikeLanes = Mathf.Max(1, lanes); laneSpacing = spacing; shotCount = 1; ride = 1f;
+        return this;
+    }
+    // A cone or column out of the muzzle at the locked pilot point: AttackJet (JetSpec.Standard(world) picks the world's: flame, pressure jet, frost ray, lance).
+    public EnemyBehaviour Jet(JetSpec spec)
+    {
+        attack = EnemyAttack.Jet; jet = spec; shotCount = 1; ride = 1f;
+        return this;
+    }
+    // A band across the lane with one gap (aimed at the pilot at the tell), falling: AttackWave (WaveSpec.Standard(world): surf wave, scan line).
+    public EnemyBehaviour Wave(WaveSpec spec)
+    {
+        attack = EnemyAttack.Wave; wave = spec; shotCount = 1; ride = 1f;
         return this;
     }
     public EnemyBehaviour Lob(float size, float pool)
