@@ -288,7 +288,8 @@ Deviations from the plan and decisions a later phase should know:
 7. **Sight line.** The Streak's hairline runs from the slug to the edge of the view for its whole flight (cheap, and it is what the doc calls the drawn line); the line shown *before* it fires (the charge of the cannon) belongs to the shooter's tell, as the Rift Lancer's does.
 8. A chip or a spore keeps its parent's `ShotAge` (`ageBias`): `HostileShots` tells one volley's shots from another's by owner and age, and a spore born at a pod that landed .8 s ago popped on its own pod (a fixed-mass shot) before this.
 9. Numbers a world phase may want to tune live in `ShotMotions` (EliteShots.cs) and `LashSpec.Standard`; the procedural bodies are fallbacks for Codex's art (the Verdant lash art slot is `verdant_attack_lash.png`, the shot bodies are the shots atlas cells `sigA` crescent, `sigB` pod and so on).
-10. Not done here: `BossAttackKind.Lash` / `Roll` executors (1g), per-world rows, the elite `log_roll`, `AtomClarityTest` / `ReadabilitySweep` items for the lash strips (the pixel pink-cue audit is in `AttackLashTest` and `ShotMotionTest`), sounds.
+10. **Full `RunAll` on this branch**: the only failures are the known baseline ones (`BossAttackTest` Space pod lasers opaque pixel, `RailMineLaserTest` x3, `UnusedAssetGuardTest` 1 orphan); `AttackBudgetTest` (7 themed rows) and every other suite pass.
+11. Not done here: `BossAttackKind.Lash` / `Roll` executors (1g), per-world rows, the elite `log_roll`, `AtomClarityTest` / `ReadabilitySweep` items for the lash strips (the pixel pink-cue audit is in `AttackLashTest` and `ShotMotionTest`), sounds.
 
 ### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
 
