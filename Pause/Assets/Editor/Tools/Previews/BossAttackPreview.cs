@@ -11,7 +11,8 @@ using UnityEngine;
 // contact sheet and a GIF per boss.
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod BossAttackPreview.Run
-//   (writes to $BOSSATK_PREVIEW_DIR, else Builds/BossAttackPreview)
+//   (writes to $BOSSATK_PREVIEW_DIR, else Builds/BossAttackPreview; filters: -only <boss key> -attack <index>;
+//   $BOSSATK_BACKDROP = a PNG drawn behind the fight, covering the view, instead of the flat blue-black)
 public static class BossAttackPreview
 {
     const int Width = 360, Height = 780;          // a 9:19.5 phone
@@ -66,6 +67,18 @@ public static class BossAttackPreview
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
 
+        string back = System.Environment.GetEnvironmentVariable("BOSSATK_BACKDROP");
+        if (!string.IsNullOrEmpty(back) && File.Exists(back))
+        {
+            var bt = new Texture2D(2, 2, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            bt.LoadImage(File.ReadAllBytes(back));
+            var bg = new GameObject("backdrop").AddComponent<SpriteRenderer>();
+            bg.sprite = Sprite.Create(bt, new Rect(0, 0, bt.width, bt.height), new Vector2(.5f, .5f), bt.height);   // 1 u tall
+            bg.sortingOrder = -20;
+            float k = cam.orthographicSize * 2f;
+            bg.transform.localScale = Vector3.one * Mathf.Max(k, k * cam.aspect * bt.height / bt.width);
+            bg.transform.position = new Vector3(0f, 0f, 5f);
+        }
         // the two walls, as in gameS1 (world-fixed quads; inner faces at +/-2.435)
         var white = Texture2D.whiteTexture;
         var sprite = Sprite.Create(white, new Rect(0, 0, white.width, white.height), new Vector2(.5f, .5f), white.width);

@@ -169,6 +169,8 @@ Elites already have tell cells; the elite def's `tell`/`action` cells (authored 
 
 ## 5. What was done in code (no art), and the remaining gap
 
+**Superseded: the authored kit (U1) is installed** (`Art/Resources/Attacks/Space/space_attack_laser*.png`, `AttackArt.SpaceLaser`, `BossBeam`; test `SpaceLaserArtTest`).
+`SpaceBeamFx` is deleted; with the files missing the Archon draws the generic boss beam. What follows is the stand-in it replaced.
 `SpaceBeamFx` (new): procedural 48 x 192 beam body in 4 noise frames (soft-edged core + body + glow, rolling brightness), radial glow sprite, spark star.
 `BossBeam` (only when `artKey == "Space"`): windup flare at the pod that swells with tell progress (flickering), a hot throbbing bloom at the root while live
 (bigger flash on ignition), a rail impact glow + spinning spark star. Hitbox, `BeamHitFraction`, tells, timing, aim, sweep untouched; the visual width

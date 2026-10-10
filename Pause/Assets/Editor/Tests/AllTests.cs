@@ -60,6 +60,7 @@ public static class AllTests
         ("AttackLashTest", AttackLashTest.Execute),
         ("ShotMotionTest", ShotMotionTest.Execute),
         ("ShotSkinTest", ShotSkinTest.Execute),
+        ("SpaceLaserArtTest", SpaceLaserArtTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("AtomSpacingTest", AtomSpacingTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
