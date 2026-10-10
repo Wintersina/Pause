@@ -52,7 +52,7 @@ public static class ShotMotionArt
         }
         var ramp = MaterialOf(piece, world);
         string key = "ShotMot" + (int)piece + "_" + world + "_" + f;
-        return AttackHazardArt.Made(key, w, h, Ppu, new Vector2(.5f, .5f), (px, ww, hh) => Shade(px, ww, hh, inside, f, ramp.light, ramp.dark), false);
+        return AttackHazardArt.Made(key, w, h, Ppu, new Vector2(.5f, .5f), (px, ww, hh) => Shade(px, ww, hh, inside, f, ramp.light, ramp.dark, piece == Piece.Log, piece == Piece.Leaf || piece == Piece.Pod ? 2 : 1), false);
     }
 
     static AttackHazardArt.Ramp MaterialOf(Piece piece, int world)
@@ -60,9 +60,19 @@ public static class ShotMotionArt
         switch (piece)
         {
             case Piece.Log: return new AttackHazardArt.Ramp { light = AttackHazardArt.Hsv(28, .33f, .52f), dark = AttackHazardArt.Hsv(26, .34f, .36f) };   // grey bark: under the audit's saturation (.35) near the amber pickup
-            case Piece.Slug: return AttackHazardArt.RampOf(world);
+            case Piece.Slug:   // white-hot: the world's ramp pulled pale (under the audit's saturation .35, so no world's tint reads as a pickup)
+            {
+                var r = AttackHazardArt.RampOf(world);
+                return new AttackHazardArt.Ramp { light = Pale(r.light), dark = Pale(r.dark) };
+            }
             default: return AttackHazardArt.RampOf(2);   // leaf, crescent blade, pod husk: the deep leaf ramp
         }
+    }
+
+    static Color32 Pale(Color32 c)
+    {
+        Color.RGBToHSV(c, out float h, out float sat, out float v);
+        return (Color32)Color.HSVToRGB(h, Mathf.Min(sat, .33f), v);
     }
 
     // ---- masks (pixel coordinates, y up) ---------------------------------------------------------------
@@ -109,7 +119,7 @@ public static class ShotMotionArt
 
     // ---- shading by depth from the rim ---------------------------------------------------------------------
 
-    static void Shade(Color32[] px, int w, int h, System.Func<int, int, bool> inside, int f, Color32 light, Color32 dark)
+    static void Shade(Color32[] px, int w, int h, System.Func<int, int, bool> inside, int f, Color32 light, Color32 dark, bool rings, int coreRows)
     {
         var d = new int[w * h];
         var m = new bool[w * h];
@@ -133,7 +143,10 @@ public static class ShotMotionArt
             maxD = layer;
         }
         Color32 edge = AttackHazardArt.PinkEdge, body = AttackHazardArt.PinkBody, core = f == 0 ? AttackHazardArt.CoreA : AttackHazardArt.CoreB;
-        int coreFrom = Mathf.Max(2, maxD - 2);
+        // the rim is the pink-white stroke, the deepest rows the hot core; a body line of pink between them only where the shape is thick,
+        // the rest the world's material (so the leaf still reads green and the log brown)
+        int coreFrom = Mathf.Max(3, maxD - coreRows);
+        bool bodyLine = maxD >= 5;
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
             {
@@ -142,8 +155,8 @@ public static class ShotMotionArt
                 Color32 c;
                 if (depth == 1) c = edge;
                 else if (depth >= coreFrom) c = core;
-                else if (depth == 2) c = body;
-                else c = (((x >> 1) + (y >> 1)) & 1) == 0 ? light : dark;
+                else if (depth == 2 && bodyLine) c = body;
+                else c = (rings ? ((y >> 1) & 1) : (((x >> 1) + (y >> 1)) & 1)) == 0 ? light : dark;   // (the log's bark in rings)
                 px[i] = c;
             }
     }

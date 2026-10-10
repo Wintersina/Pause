@@ -402,9 +402,9 @@ public static class AttackHazardArt
     // <w>_attack_lash.png cells (link a,b / tip a,b / root a,b / dash a,b) take the place of each when present; otherwise:
     //   vine      a green chain (the Verdant ramp) with pink thorns on alternating sides, a pink-white edge stroke and core
     //   tentacle  brass-teal segments with pink sucker dots (Tide)
-    public const int LinkW = 16, LinkH = 20, LashTipW = 16, LashTipH = 24, LashRootSize = 20, LashDashSize = 6;
+    public const int LinkW = 18, LinkH = 20, LashTipW = 18, LashTipH = 24, LashRootSize = 20, LashDashSize = 6;
     public const float LinkLength = LinkH / Ppu;        // .625 u: the length an unscaled procedural link has
-    public const float LashBodyWidth = 12f / Ppu;       // .375 u drawn (the hit is .28)
+    public const float LashBodyWidth = 14f / Ppu;       // .44 u drawn (the hit is .28)
 
     public static LashLook LookOf(int world) => world == 4 ? LashLook.Tentacle : LashLook.Vine;
 
@@ -452,23 +452,25 @@ public static class AttackHazardArt
                 for (int x = 0; x < w; x++)
                 {
                     float dx = Mathf.Abs(x + .5f - w * .5f);
-                    if (dx >= 6f) continue;
-                    float u = 6f - dx;
+                    if (dx >= 7f) continue;
+                    float u = 7f - dx;
                     Color32 c;
                     if (u <= 2f) c = edge;
                     else if (u <= 3f || y == 0 || y == h - 1) c = body;
-                    else if (dx <= (f == 0 ? 1f : 1.99f)) c = core;
-                    else if (look == LashLook.Tentacle && (y == 9 || y == 10) && (x == 5 || x == 10) ) c = edge;   // a sucker
+                    else if (dx <= .99f) c = core;                    // a two pixel core line (its colour flickers between the frames)
+                    else if (look == LashLook.Tentacle && (y == 9 || y == 10) && (x == 6 || x == 11)) c = edge;   // a sucker
                     else c = Material(look, world, y / 3, ((y / 3) & 1) == 0);
                     px[y * w + x] = c;
                 }
             if (look == LashLook.Vine)
             {
-                // a thorn, pink, on the left on one frame and the right on the other (stepped, not a smooth sway: PC5)
-                int xs = f == 0 ? 1 : w - 2, step = f == 0 ? -1 : 1;
-                Dot(px, w, h, xs, 10, edge); Dot(px, w, h, xs + step, 10, edge);
-                Dot(px, w, h, xs, 9, body); Dot(px, w, h, xs, 11, body);
-                Dot(px, w, h, xs - step, 10, edge);
+                // a thorn, pink-white, on the left on one frame and the right on the other (stepped, not a smooth sway: PC5)
+                int xs = f == 0 ? 2 : w - 3, step = f == 0 ? -1 : 1;
+                for (int k = 0; k < 3; k++)
+                {
+                    Dot(px, w, h, xs + step * k, 10, edge); Dot(px, w, h, xs + step * k, 9, k < 2 ? body : edge); Dot(px, w, h, xs + step * k, 11, k < 2 ? body : edge);
+                }
+                Dot(px, w, h, xs + step * 3, 10, edge);
             }
         }, bold, true);
     }
@@ -493,7 +495,7 @@ public static class AttackHazardArt
             Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
             for (int y = 0; y < h; y++)
             {
-                float hw = 1f + 5f * Mathf.Min(1f, y / 15f);              // y = 0 is the point
+                float hw = 1f + 6f * Mathf.Min(1f, y / 15f);              // y = 0 is the point (14 px wide at the base, like a link)
                 if (look == LashLook.Tentacle && y >= 9 && y <= 11) hw += 2f;   // a barb either side
                 for (int x = 0; x < w; x++)
                 {

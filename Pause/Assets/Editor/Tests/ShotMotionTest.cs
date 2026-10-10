@@ -527,7 +527,7 @@ public static class ShotMotionTest
         Fresh();
         int n = 0, lowPink = 0, red = 0, hot = 0, heavy = 0, softEdge = 0, flat = 0;
         float minPink = 9f, minEdge = 9f, maxMat = 0f;
-        string worstPink = "", worstEdge = "", hotWhere = "";
+        string worstPink = "", worstEdge = "", hotWhere = "", worstMat = "";
         foreach (ShotMotionArt.Piece piece in System.Enum.GetValues(typeof(ShotMotionArt.Piece)))
             for (int world = 0; world < ShotSkins.Worlds; world++)
                 for (int f = 0; f < 2; f++)
@@ -543,7 +543,7 @@ public static class ShotMotionTest
                     if (au.red > 0) red++;
                     if (au.PickupShare >= ShotSkinTest.MaxPickupShare) { hot++; hotWhere += tag + "; "; }
                     float mat = au.opaque > 0 ? 1f - au.PinkShare : 0f;
-                    if (mat > maxMat) maxMat = mat;
+                    if (mat > maxMat) { maxMat = mat; worstMat = tag; }
                     if (mat > .5f) heavy++;
                     int edge = 0, edgePink = 0;
                     for (int y = 0; y < h; y++)
@@ -568,7 +568,7 @@ public static class ShotMotionTest
                     if (w == h && fill > .78f) flat++;
                 }
         Check(n + " procedural bodies (slug, leaf, crescent, log, pod x 5 worlds x 2 frames): at least " + (ShotSkinTest.MinPinkShare * 100f) + "% pink-family or white in every one, the least " + (minPink * 100f).ToString("F0") + "% (" + worstPink + ")", lowPink == 0 && n == 50);
-        Check("... no player-red pixel, no saturated pickup hue (" + red + " red, " + hot + " hot: " + hotWhere + "), material at most half (most " + (maxMat * 100f).ToString("F0") + "%)", red == 0 && hot == 0 && heavy == 0);
+        Check("... no player-red pixel, no saturated pickup hue (" + red + " red, " + hot + " hot: " + hotWhere + "), material at most half (most " + (maxMat * 100f).ToString("F0") + "%, " + worstMat + ")", red == 0 && hot == 0 && heavy == 0);
         Check("... the silhouette edge is the pink-white stroke (least " + (minEdge * 100f).ToString("F0") + "%, " + worstEdge + "; " + softEdge + " under 80%), and no body is a smooth filled square or disc (" + flat + ")", softEdge == 0 && flat == 0);
         var a = Pixels(ShotMotionArt.Sprite_(ShotMotionArt.Piece.Leaf, 2, 0)); var b = Pixels(ShotMotionArt.Sprite_(ShotMotionArt.Piece.Leaf, 2, 1));
         int diff = 0;
