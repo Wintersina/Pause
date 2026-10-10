@@ -162,10 +162,9 @@ public static class BackNavigator
     }
 
     // Leave for the home screen: the same thing every MENU / Home / Back
-    // button has always done (hide any ad, clear run state, load startS4).
+    // button has always done (clear run state, load startS4).
     public static void GoHome()
     {
-        if (AdMob.isAdsShowwing) AdMob.hide();
         GameStateReset.Clear();
         LoadScene(HomeScene);
     }
@@ -205,7 +204,6 @@ public static class BackNavigator
     public static void QuitNow()
     {
         if (!QuitAllowed) return;
-        if (AdMob.isAdsShowwing) AdMob.hide();
         GameStateReset.Clear();
         QuitApplication();
     }

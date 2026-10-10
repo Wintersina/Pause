@@ -9,7 +9,7 @@ generators and source art that render the PNGs next to them.
 | Folder | What is in it |
 | --- | --- |
 | `Scenes/` | The 7 build scenes (`spashS7`, `startS4`, `gameS1`, `tutorialS5`, `shopS6`, `leaderboardS3`, `creditsS7`) and their lighting settings. |
-| `Scripts/` | Runtime C#, by domain: `Bosses`, `Codex`, `Core` (+ `CloudSave`, `Leaderboards`, `Scoring`), `Credits`, `Gameplay` (+ `Elites`, `Enemies`, `Pickups`, `Spawning`, `Weapons`), `Menu`, `Ship`, `Shop`, `Tutorial`, `UI` (+ `Leaderboard`), `Worlds` (+ `Backdrop`), `Audio`. |
+| `Scripts/` | Runtime C#, by domain: `Bosses`, `Codex`, `Core` (+ `CloudSave`, `Leaderboards`, `Scoring`), `Credits`, `Gameplay` (+ `Elites`, `Enemies`, `Pickups`, `Spawning`, `Weapons`), `Menu`, `Ship`, `Shop`, `Tutorial`, `UI` (+ `Leaderboard`; no ad code, see `docs/release/no-ads.md`), `Worlds` (+ `Backdrop`), `Audio`. |
 | `Editor/Build/` | `BuildScript` (the Makefile's `-executeMethod` targets) and the iOS post-process. |
 | `Editor/Importers/` | Asset importers and bakers keyed on art folders: boss / boss-attack / weapon / ship / resume-fx importers, `EliteArtSync` (Codex's elite strips -> `Art/Resources/Elites`), `ShipHitboxBaker`, `ShieldSilhouetteBaker`. |
 | `Editor/Tests/` | Editor test suites; every suite is registered in `AllTests.cs` (`AllTests.RunAll`). |
