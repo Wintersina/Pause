@@ -31,15 +31,64 @@ public static class AttackBudgetScenarios
 
     public static IScenario Make(string id)
     {
-        if (id.StartsWith("roster:")) return new Roster(id);
+        if (id.StartsWith("roster:") || id.StartsWith("themed:")) return new Roster(id);
         if (id.StartsWith("elite:")) return new Elite(id);
         if (id.StartsWith("boss:")) return new Boss(id);
         throw new ArgumentException("unknown attack id " + id);
     }
 
+    // ---- TEST-ONLY FIXTURES for the themed area hazards (plan phases 1c / 1d) -----------------------------------
+    //
+    // No world's table uses EnemyAttack.Blast / Strike yet (the per-world phases switch them on), so the dodge
+    // bot rolls them on a fixture: the behaviour of the attack they will replace with the attack swapped.
+    // "themed:<name>" -> (the roster key whose body it is, the behaviour). AttackBudgetTest.Themed maps each to the
+    // pinned attack it must stay within 1.15x (+2 points) of.
+    public static class ThemedFixtures
+    {
+        public static readonly string[] Ids = { "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop" };
+
+        public static string BaseKey(string id)
+        {
+            switch (id)
+            {
+                case "themed:frost_cold_blast": return "frost_big";
+                case "themed:ember_eruption": return "ember_fighter_3";
+                case "themed:frost_icicle_drop": return "frost_fighter_2";
+                default: return null;
+            }
+        }
+
+        static BlastSpec BlastForGolem()
+        {
+            var s = BlastSpec.Wide(1);   // (the standard 3.4 u ring never reaches a ship 5-6 u below a hovering Golem: 0% for the bot and for a ghost)
+            s.gapOffsetDeg = 40f;
+            return s;
+        }
+
+        // Fresh each call (a brain mutates nothing of it, but a fixture must not leak between rolls).
+        public static EnemyBehaviour Behaviour(string id)
+        {
+            switch (id)
+            {
+                case "themed:frost_cold_blast":   // the Glacier Golem: the 3-shard fan becomes the cold blast; volleys 3 -> 2
+                    // (the crack is turned 40 deg off the pilot, toward the lane's middle: he has to step into it, standing still is not safe)
+                    return new EnemyBehaviour { key = "frost_big" }.Sway(.3f, 4.5f).Blast(BlastForGolem()).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Slow().Volleys(2);
+                case "themed:ember_eruption":     // Brand: the aimed bolt becomes an eruption of three columns
+                    return new EnemyBehaviour { key = "ember_fighter_3" }.Drift(.75f, 1.5f).Strike(StrikeSpec.Standard(3), 3).Timing(.8f, 1.8f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2.4f, 7f, PilotExit.Run).Volleys(2);
+                case "themed:frost_icicle_drop":  // Icicle: the lance bolt becomes an icicle drop on three lanes
+                    return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Strike(StrikeSpec.Standard(1), 3).Timing(.8f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2.4f, 5.5f, PilotExit.Peel).Volleys(2);
+                default: return null;
+            }
+        }
+    }
+
     // The shape of a roster attack as the table says it (volleys, cooldown, count): pinned beside the hit rate.
     public static string Shape(string id)
     {
+        if (id.StartsWith("themed:")) { var f = ThemedFixtures.Behaviour(id); return f == null ? "" : f.attack + " x" + f.ThreatCount + " volleys " + f.maxVolleys + " cooldown " + f.cooldown.ToString("0.0#") + " tell " + f.tell.ToString("0.0#"); }
         if (!id.StartsWith("roster:")) return "";
         var b = EnemyBehaviours.For(id.Substring(7));
         return b == null ? "" : b.attack + " x" + b.shotCount + " volleys " + b.maxVolleys + " cooldown " + b.cooldown.ToString("0.0#") + " tell " + b.tell.ToString("0.0#");
@@ -65,6 +114,11 @@ public static class AttackBudgetScenarios
         PilotAirspace.Clear();
         PilotAirspace.ResetStats();
         EnemyBrain.PilotsEnabled = true;
+        EnemyBehaviours.ClearOverrides();
+        AttackPools.Forget();
+        AttackHazard.ForgetAll();
+        AttackHazardArt.Forget();
+        ShotOutline.Bold = false;
         EnemyThreat.ForceShooting = true;
         BossEncounter.ResetRun();
         BossRails.Reset();
@@ -93,6 +147,8 @@ public static class AttackBudgetScenarios
     public static void Cleanup()
     {
         EliteSystem.Clear();
+        EnemyBehaviours.ClearOverrides();
+        ShotOutline.Bold = null;
         EliteSystem.PlayerOverride = null;
         EnemyThreat.ForceShooting = false;
         EnemyThreat.Reset();
@@ -129,6 +185,54 @@ public static class AttackBudgetScenarios
         return n;
     }
 
+    // The themed area hazards as the bot sees them: a ring's bars (segments, the expansion known during the tell: the
+    // preview shows the first ring and the crack), a strike's column (a segment, live from the end of its tell).
+    static void CollectHazards(List<Hz> into)
+    {
+        var all = AttackHazard.All;
+        for (int h = 0; h < all.Count; h++)
+        {
+            var hz = all[h];
+            if (hz == null || !hz.Active || hz.State == AttackHazard.Phase.After) continue;
+            int baseId = 1000 + h * 40;
+            var blast = hz as AttackBlast;
+            var strike = hz as AttackStrike;
+            if (strike != null)
+            {
+                AttackStrike.Column(strike.Spec, strike.LaneX, strike.ImpactY, out Vector2 foot, out Vector2 top);
+                bool tell = strike.State == AttackHazard.Phase.Tell;
+                into.Add(Hz.Segment(baseId, foot, top, strike.HitHalf, tell ? strike.TellLeft : 0f, tell ? strike.LiveSeconds : Mathf.Max(0f, strike.LiveSeconds - strike.Age)));
+                continue;
+            }
+            if (blast == null) continue;
+            var spec = blast.Spec;
+            bool telling = blast.State == AttackHazard.Phase.Tell;
+            float r = telling ? spec.startRadius : blast.Radius;
+            float speed = blast.RadialSpeed;
+            float liveIn = telling ? blast.TellLeft : 0f;
+            float liveFor = Mathf.Max(0f, (spec.reach - r) / speed);
+            const float d = .05f;
+            for (int k = 0; k < blast.Bars; k++)
+            {
+                AttackBlast.BarAt(in spec, blast.Origin, blast.GapRad, r, k, out Vector2 a, out Vector2 b, out float ang);
+                AttackBlast.BarAt(in spec, blast.Origin, blast.GapRad, r + d, k, out Vector2 a2, out Vector2 b2, out float ang2);
+                Vector2 va = (a2 - a) / (d / speed), vb = (b2 - b) / (d / speed);
+                if (telling)
+                {
+                    var hzd = Hz.Segment(baseId + k, a - va * liveIn, b - vb * liveIn, spec.barHalf, liveIn, liveFor);
+                    hzd.hasV = true; hzd.va = va; hzd.vb = vb;
+                    into.Add(hzd);
+                }
+                else
+                {
+                    var hzd = Hz.Segment(baseId + k, a, b, spec.barHalf, 0f, liveFor);
+                    hzd.hasV = true; hzd.va = va; hzd.vb = vb;
+                    into.Add(hzd);
+                }
+            }
+        }
+    }
+
     // ---- roster enemies and mines ------------------------------------------
 
     sealed class Roster : IScenario
@@ -142,12 +246,20 @@ public static class AttackBudgetScenarios
         bool attacked, sawLaser;
         Transform ship;
 
-        public Roster(string id) { def = EnemyRoster.Find(id.Substring(7)); b = EnemyBehaviours.For(def.key); Name = id; }
+        public Roster(string id)
+        {
+            bool themed = id.StartsWith("themed:");
+            def = EnemyRoster.Find(themed ? ThemedFixtures.BaseKey(id) : id.Substring(7));
+            b = themed ? ThemedFixtures.Behaviour(id) : EnemyBehaviours.For(def.key);
+            Name = id;
+            if (themed) fixture = b;
+        }
+        readonly EnemyBehaviour fixture;
         public string Name { get; }
         public float MaxSeconds => b.attack == EnemyAttack.Laser ? 14f : 16f;
         public bool Attacked => attacked;
         public bool Telling => brain != null && brain.State == EnemyBrain.Phase.Windup && b.attack != EnemyAttack.Laser && b.attack != EnemyAttack.Lunge;
-        public bool Done => (brain == null || brain.Stage == EnemyBrain.PilotStage.Gone || (brain.RideFinished && !sawLaserLive())) && ActiveRosterShots() == 0 && t > 1f && attacked
+        public bool Done => (brain == null || brain.Stage == EnemyBrain.PilotStage.Gone || (brain.RideFinished && !sawLaserLive())) && ActiveRosterShots() == 0 && AttackHazard.ActiveCount == 0 && t > 1f && attacked
                             || t > MaxSeconds - .1f;
 
         bool sawLaserLive()
@@ -163,6 +275,7 @@ public static class AttackBudgetScenarios
             EliteSystem.PlayerOverride = ship;
             EnemyThreat.Reset();
             PilotAirspace.Clear();
+            if (fixture != null) EnemyBehaviours.TestOverride(def.key, fixture);   // (a themed fixture: the body of one attacker, the attack of the new one)
             clock = 100f;
             SpawnSpace.ClockOverride = clock;
             t = 0f;
@@ -217,6 +330,7 @@ public static class AttackBudgetScenarios
         public void Collect(List<Hz> into)
         {
             CollectShots(into);
+            CollectHazards(into);
             if (brain == null) return;
             var lasers = RailMineLasers.All;
             float tellTotal = Mathf.Max(EnemyBrain.TellFloorSeconds, b.tell);

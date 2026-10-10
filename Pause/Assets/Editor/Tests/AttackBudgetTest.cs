@@ -123,6 +123,10 @@ public static class AttackBudgetTest
     // A row whose id is unchanged means "this attack was re-themed in place; hold it to its own baseline".
     static readonly Dictionary<string, string> Themed = new Dictionary<string, string>
     {
+        // plan phases 1c / 1d: the new area hazards on TEST-ONLY fixtures (AttackBudgetScenarios.ThemedFixtures); no world's table uses them yet
+        { "themed:frost_cold_blast", "roster:frost_big" },          // Glacier Golem: the 3-shard fan -> the cold blast ring (volleys 3 -> 2)
+        { "themed:ember_eruption", "roster:ember_fighter_3" },      // Brand: the aimed bolt -> an eruption of three columns
+        { "themed:frost_icicle_drop", "roster:frost_fighter_2" },   // Icicle: the lance bolt -> an icicle drop on three lanes
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)

@@ -331,7 +331,7 @@ public class collisionDetection : MonoBehaviour {
                 // hull: the beam burns on across the lane and the heart's
                 // i-frames carry the ship through it (RailMineLaser).
                 if (fatal) Destroy(hit.gameObject);
-                else if (RailMineLaser.IsHitbox(hit.gameObject)) { }
+                else if (RailMineLaser.IsHitbox(hit.gameObject) || AttackHazard.IsHitbox(hit.gameObject)) { }   // (a laser / a themed hazard is not spent on the hull)
                 else if (!EliteShip.Rammed(hit.gameObject, shipPos))
                 {
                     RamKill.Blast(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));

@@ -741,6 +741,11 @@ constraint 10; the method is in repo `docs/world-attacks-design.md` (catalogue, 
    `ShotSkins.Enable(world)` once its art is in `Resources/Attacks/<World>/`): skins (`ShotSkins.For(world, kind)`, procedural fallback so code never waits for art), the world's rows in `EnemyBehaviours`
    (attack primitive + shot kind), elite `shotKind`s and any new elite attack id, the boss's two signature attacks (`BossAttack.minPhase`; phase 1: 2 attacks, phase 2: 3, phase 3: all), the mine's beam skin
    (`MineLaserArt` prefers `AttackArt.Beam(world)`), and the attack sound cues (`AttackAudio`, material-based).
+   **The area-hazard cores exist (plan phases 1c, 1d):** `EnemyAttack.Blast` (an expanding ring of bars with a guaranteed crack; `EnemyBehaviour.Blast(BlastSpec.Standard(world))`, or `.Blast(bars, reach, speed, gapDeg)`)
+   and `EnemyAttack.Strike` (lane glyph, then a column, then a ground burst; `.Strike(StrikeSpec.Standard(world), lanes)`), both in `Gameplay/Enemies/Attacks/` on the shared `AttackHazard` base (tell >= .7 s, footprint previewed,
+   trigger-collider hitbox from the same `AttackShape`, burns crossing shots, friendly fire, pooled, cleared on world change / death). Elites and bosses call `AttackBlast.Arm(spec, muzzle, target, tell, shooter)` /
+   `AttackStrike.Arm(spec, laneX, impactY, tell, shooter)` (+ `StrikeLanes.Pick`) directly. They draw themselves (procedural, pink-cue compliant) and pick up `<w>_attack_ring.png` / `<w>_attack_strike.png`
+   from `Resources/Attacks/<World>/` automatically once delivered. A world's phase adds a fixture row to `AttackBudgetScenarios.ThemedFixtures` + `AttackBudgetTest.Themed`, never edits the cores.
 5. **Tests**: `ShotSkinTest` (pink share and hue audit of the world's art, skins differ across worlds), `AttackHazardTest`, `AttackFairnessTest`
    (tells, preview, live time, safe corridor), `AttackBudgetTest` (dodge-bot hit rate <= 1.15x the attack replaced), `AttackAudioTest`; extend `AtomClarityTest`, `HostileProjectileTest`,
    `ReadabilitySweep` (the world's shots + new hazards), `EnemyBehaviourTest` ("no two worlds' same-tier fighters share a skin / attack").

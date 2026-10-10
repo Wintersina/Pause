@@ -166,6 +166,14 @@ public class EnemyBrain : MonoBehaviour
     // ---- fairness, shared by every enemy (tunables) ----
     public const float TellFloorSeconds = .45f;   // no windup is ever shorter
     public const float ReleaseSeconds = .2f;      // tell cell 5 held
+
+    // The windup's length for a behaviour: its tell, never under the floor -- and an instant-hit area hazard
+    // (Blast, Strike) is told at least AttackHazard.MinTellSeconds (FR1).
+    public static float TellFor(EnemyBehaviour b)
+    {
+        float t = Mathf.Max(TellFloorSeconds, b.tell);
+        return b.IsAreaHazard ? Mathf.Max(t, AttackHazard.MinTellSeconds) : t;
+    }
     public const float MinFireAbove = 1.6f;       // only starts a windup this far above the pilot ...
     public const float MinFireDistance = 1.8f;    // ... and this far from it
     public const float ViewInset = .35f;          // and this far inside the top of the view
@@ -279,6 +287,9 @@ public class EnemyBrain : MonoBehaviour
         // a laser mine: its world's beam art and the laser pool, ready before
         // it ever fires (at spawn, so firing never builds anything)
         if (behaviour.attack == EnemyAttack.Laser && Armed) { MineLaserArt.For(def.world); RailMineLasers.Prewarm(); }
+        // an area hazard: its pool is built at spawn too, so arming one never builds anything
+        if (behaviour.attack == EnemyAttack.Blast && Armed) { var warm = AttackBlast.Pool; }
+        else if (behaviour.attack == EnemyAttack.Strike && Armed) { var warm = AttackStrike.Pool; }
 
         IsPilot = PilotsEnabled && behaviour.IsPilot && def.role != EnemyRole.Chaser && !onRail && hostMover != null;
         Stage = PilotStage.None;
@@ -490,14 +501,14 @@ public class EnemyBrain : MonoBehaviour
                 if (!MayAttack(p, inView, t)) return;
                 if (b.Shoots)
                 {
-                    if (!EnemyThreat.TryReserveVolley(b.shotCount)) { cooldown = .25f; return; }
-                    reserved = Mathf.Max(1, b.shotCount);
+                    if (!EnemyThreat.TryReserveVolley(b.ThreatCount)) { cooldown = .25f; return; }
+                    reserved = Mathf.Max(1, b.ThreatCount);
                 }
                 BeginWindup(p, t);
                 break;
             case Phase.Windup:
                 PulseCharge();
-                if (stateTime < Mathf.Max(TellFloorSeconds, b.tell)) return;
+                if (stateTime < TellFor(b)) return;
                 LastTellSeconds = stateTime;
                 Release(p, baseX, t);
                 break;
@@ -548,6 +559,7 @@ public class EnemyBrain : MonoBehaviour
     void OnDisable()
     {
         ReleaseReservation();
+        CancelHazards();
         var l = Laser;
         if (l != null) l.Cancel();
         laser = null;
@@ -907,6 +919,7 @@ public class EnemyBrain : MonoBehaviour
             laser = RailMineLasers.Take();
             if (laser != null) laser.Arm(transform, Def.world, Mathf.Max(TellFloorSeconds, b.tell));
         }
+        else if (b.IsAreaHazard) ArmHazards(p, t);
     }
 
     void PulseCharge()
@@ -947,7 +960,70 @@ public class EnemyBrain : MonoBehaviour
             }
             return;
         }
+        if (b.IsAreaHazard)
+        {
+            int n = IgniteHazards();
+            ShotsFired += n;
+            EnemyVolley.Volleys++;
+            EnemyVolley.Fired += n;
+            return;
+        }
         ShotsFired += EnemyVolley.Fire(this, b, (Vector2)p + (Vector2)MuzzleLocal(), aim, lobTarget);
+    }
+
+    // ---- the themed area hazards (Blast, Strike): armed with the windup, ignited at the release ----
+
+    readonly AttackHazard[] armed = new AttackHazard[4];
+    static readonly float[] laneBuffer = new float[4];
+
+    void ArmHazards(Vector3 p, Transform t)
+    {
+        var b = Behaviour;
+        float tell = TellFor(b);
+        int world = Def != null ? Def.world : 0;
+        // a pilot holds its place in the world; a hazard's ground rides the board
+        float ride = IsPilot ? 0f : b.ride;
+        CancelHazards();
+        Vector2 target = t != null ? (Vector2)t.position : (Vector2)p + Vector2.down * 3f;
+        if (b.attack == EnemyAttack.Blast)
+        {
+            var spec = b.blast;
+            spec.world = world;
+            spec.ride = ride;
+            Vector2 offset = MuzzleLocal();
+            var blast = AttackBlast.Arm(spec, (Vector2)p + offset, target, tell, gameObject);
+            if (blast != null) { blast.Follow(transform, offset); armed[0] = blast; }
+            return;
+        }
+        var ss = b.strike;
+        ss.world = world;
+        ss.ride = ride;
+        int lanes = StrikeLanes.Pick(target.x, Mathf.Min(armed.Length, b.strikeLanes), b.laneSpacing, BossRails.DrawnInnerEdge, ss.hitHalf > 0f ? ss.hitHalf : .18f, laneBuffer);
+        for (int i = 0; i < lanes; i++)
+            armed[i] = AttackStrike.Arm(ss, laneBuffer[i], target.y, tell, gameObject);
+    }
+
+    int IgniteHazards()
+    {
+        int n = 0;
+        for (int i = 0; i < armed.Length; i++)
+        {
+            if (armed[i] == null) continue;
+            armed[i].Ignite();
+            armed[i] = null;
+            n++;
+        }
+        return n;
+    }
+
+    // Its tell was cut short (it died, was told to leave): the hazards it armed go with it.
+    void CancelHazards()
+    {
+        for (int i = 0; i < armed.Length; i++)
+        {
+            if (armed[i] != null && armed[i].State == AttackHazard.Phase.Tell) armed[i].Cancel();
+            armed[i] = null;
+        }
     }
 
     static Vector2 Rotate(Vector2 v, float deg)
@@ -1067,7 +1143,7 @@ public static class EnemyThreat
             int n = 0;
             for (int i = 0; i < all.Count; i++)
                 if (all[i] != null && all[i].Active && all[i].RosterShot) n++;
-            return n + RailMineLasers.LiveBeams;   // a burning mine laser counts as a shot
+            return n + RailMineLasers.LiveBeams + AttackHazard.LiveThreat;   // a burning mine laser or area hazard counts as shots
         }
     }
 

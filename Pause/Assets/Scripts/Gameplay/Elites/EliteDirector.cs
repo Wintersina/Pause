@@ -67,6 +67,8 @@ public class EliteDirector : MonoBehaviour
 
     void Update()
     {
+        // a player death: the themed area hazards vanish (the crash domino owns the board)
+        if (buttonClicks.playerDied && AttackHazard.ActiveCount > 0) AttackPools.ClearAll();
         if (!Flying || WorldEntry.Active) return;
         float dt = Time.deltaTime;
         if (dt <= 0f) return;

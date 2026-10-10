@@ -516,6 +516,7 @@ public class Planetfall : MonoBehaviour
             var s = shots[i];
             if (s != null && s.ShotCollidable) s.ShotPop(s.ShotPosition);
         }
+        AttackPools.ClearAll();   // the themed area hazards (blast rings, strikes ...) and their previews go with the board
     }
 
     // The ship's renderers over the clouds for the descent (and back).

@@ -99,6 +99,17 @@ public static class AttackArt
         return list;
     }
 
+    // ---- the cores' slots (plan phases 1c / 1d) --------------------------------------------------------
+    // frost_attack_ring.png (8 x 128): bar x4, gapMarker a,b, glyph a,b
+    public static Sprite RingBar(int world, int i) => Cell(world, "ring", Mathf.Clamp(i, 0, 3), 0);
+    public static Sprite RingGapMarker(int world, int i) => Cell(world, "ring", 4 + Mathf.Clamp(i, 0, 1), 0);
+    public static Sprite RingGlyph(int world, int i) => Cell(world, "ring", 6 + Mathf.Clamp(i, 0, 1), 0);
+    // <w>_attack_strike.png (768 x 512): row 0 six 128 x 384 column frames (24 fps over the live window); row 1 (from y 384)
+    // 128 x 128: glyph a,b then burst x3 then one reserved
+    public static Sprite StrikeBody(int world, int i) => Cell(world, "strike", ((i % 6) + 6) % 6, 0, 128, 384);
+    public static Sprite StrikeGlyph(int world, int i) => Cell(world, "strike", Mathf.Clamp(i, 0, 1), 3, 128, 128);
+    public static Sprite StrikeBurst(int world, int i) => Cell(world, "strike", 2 + Mathf.Clamp(i, 0, 2), 3, 128, 128);
+
     // ---- tests --------------------------------------------------------------------
 
     public static void Inject(int world, string file, Texture2D tex) { injected[PathOf(world, file)] = tex; }
