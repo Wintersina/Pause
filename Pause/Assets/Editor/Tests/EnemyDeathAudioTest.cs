@@ -98,6 +98,7 @@ public static class EnemyDeathAudioTest
             Resolution();
             NewWorlds();
             Borrow();
+            CodexForced();
             OtherWorlds();
             NoRepeats();
             ScreamOdds();
@@ -243,6 +244,52 @@ public static class EnemyDeathAudioTest
         Check("Frost/Verdant/Ember burst: voices <= " + EnemyDeathAudio.MaxVoices + " (" + maxV + "), screams <= " + EnemyDeathAudio.MaxScreamVoices + " (" + maxS + ")",
               maxV <= EnemyDeathAudio.MaxVoices && maxS <= EnemyDeathAudio.MaxScreamVoices && maxV > 1);
         EnemyDeathAudio.ScreamChance = .65f;
+    }
+
+    // Codex-only boost: forced scream is louder than the (ducked) death cue, in-game is unchanged.
+    static void CodexForced()
+    {
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.ScreamChance = 0f;
+        try
+        {
+            var keys = new[] { "space_fighter_4", "space_elite_orbit_reaver", "ember_fighter_2", "space_fighter_1" /* borrower */, "frost_alien" /* borrower */ };
+            foreach (var key in keys)
+            {
+                foreach (var role in new[] { EnemyRole.Fighter, EnemyRole.Big })
+                {
+                    float baseVol = EnemyDeathAudio.Volume(role);
+                    clock += 2.0;
+                    EnemyDeathAudio.ResetVoices();
+                    EnemyDeathAudio.PlayAuthored(key, baseVol, true);
+                    float death = EnemyDeathAudio.LastVolume, scream = EnemyDeathAudio.LastScreamVolume;
+                    Check(key + " forced scream plays at chance 0", EnemyDeathAudio.Screams == 1);
+                    Check(key + " forced scream (" + scream + ") >= death cue (" + death + ")", scream >= death);
+                    Check(key + " forced scream in (0,1] (" + scream + ")", scream <= 1f && scream > 0f);
+                    Check(key + " forced delay in [0,0.02] (" + EnemyDeathAudio.LastScreamDelay + ")", EnemyDeathAudio.LastScreamDelay >= 0f && EnemyDeathAudio.LastScreamDelay <= .02f);
+                    Check(key + " forced death cue ducked", Mathf.Abs(death - baseVol * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexDeathDuck) < 1e-4f);
+                    EnemyDeathAudio.Borrow b;
+                    if (EnemyDeathAudio.ScreamBorrow.TryGetValue(key, out b))
+                        Check(key + " forced borrowed pitch kept (" + EnemyDeathAudio.LastScreamPitch + ")", Mathf.Abs(EnemyDeathAudio.LastScreamPitch - b.pitch) <= b.pitch * EnemyDeathAudio.PitchJitter + 1e-4f);
+                }
+            }
+            EnemyDeathAudio.ScreamChance = 1f;
+            clock += 2.0; EnemyDeathAudio.ResetVoices();
+            EnemyDeathAudio.PlayAuthored("space_fighter_4", .68f);
+            Check("in-game scream volume unchanged", Mathf.Abs(EnemyDeathAudio.LastScreamVolume - EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume) < 1e-4f
+                  && Mathf.Abs(EnemyDeathAudio.LastVolume - .68f * EnemyDeathAudio.AuthoredGain) < 1e-4f);
+            Check("in-game scream delay unchanged", EnemyDeathAudio.LastScreamDelay >= EnemyDeathAudio.ScreamDelayMin && EnemyDeathAudio.LastScreamDelay <= EnemyDeathAudio.ScreamDelayMax);
+            clock += 2.0; EnemyDeathAudio.ResetVoices();
+            EnemyDeathAudio.PlayAuthored("space_fighter_1", .68f);
+            Check("in-game borrowed scream keeps BorrowVolume", Mathf.Abs(EnemyDeathAudio.LastScreamVolume - EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume * EnemyDeathAudio.BorrowVolume) < 1e-4f);
+            EnemyDeathAudio.ScreamChance = 0f;
+            for (int i = 0; i < 20; i++) { clock += 2.0; EnemyDeathAudio.PlayAuthored(keys[i % keys.Length], .68f, true); }
+            long before = System.GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 100; i++) { clock += .02; EnemyDeathAudio.PlayAuthored(keys[i % keys.Length], .68f, true); }
+            long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+            Check("zero allocations on the forced path (" + allocated + " bytes)", allocated == 0);
+        }
+        finally { EnemyDeathAudio.ResetBorrows(); EnemyDeathAudio.ScreamChance = .65f; }
     }
 
     static void Borrow()
