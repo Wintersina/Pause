@@ -107,7 +107,7 @@ public static class CodexCatalogue
     public static string Seconds(float s) { return s.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s"; }
 
     // World ids, index-aligned with WorldManager.Worlds.
-    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember" };
+    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide" };
 
     static CodexEntry[] all;
 
@@ -190,6 +190,10 @@ public static class CodexCatalogue
                 "almost like home.", null, round: true),
             new CodexEntry(WorldIds[3], "Ember", CodexCategory.Worlds, () => Backdrop("Ember"),
                 "Lava, ash and the fastest skies yet. If home is past this, he'll fly through fire to reach it.",
+                null, round: true),
+            new CodexEntry(WorldIds[4], "Tide", CodexCategory.Worlds, () => Backdrop("Tide"),
+                "A drowned world of rusted rigs, barnacled walkways and sunken cities still glowing under the " +
+                "waves. The skies have teeth and the lights are alive. Faster again - and wetter.",
                 null, round: true),
         };
 

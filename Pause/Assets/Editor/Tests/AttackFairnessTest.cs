@@ -18,7 +18,7 @@ using static AttackTestKit;
 //   * the pink cue (PC1-PC3) on the drawn pixels of every sprite: edge, core, >= 30% pink-family or white, no red, material
 //     <= half and clear of the pickup hues; bold keyline on bright worlds; the hit box matches the drawn footprint
 //   * the art slot (frost_attack_ring.png, <w>_attack_strike.png) is used automatically when present
-public static class AttackFairnessTest
+public static partial class AttackFairnessTest
 {
     static int fails;
     static void Check(string what, bool ok)
@@ -47,6 +47,7 @@ public static class AttackFairnessTest
                 HitMatchesDrawing();
                 ArtSlots();
                 BudgetRows();
+                JetWaveSuite();   // AttackFairnessTestJetWave.cs: phases 1a (AttackJet) and 1b (AttackWave)
             }
             finally
             {
@@ -67,6 +68,7 @@ public static class AttackFairnessTest
         public AttackHazard hz;
         public float tellStart = -1f, liveStart = -1f, liveEnd = -1f, tellSeconds, laneAtTell, laneAtLive, gapAtTell, gapAtLive;
         public float shooterAbove, shooterDistance;
+        public float frontSeconds = -1f, gapWidth, gapLeft, gapRight;   // waves: the fall from its start to the pilot's row, the gap as locked
         public bool wasLive;
     }
 
@@ -95,6 +97,8 @@ public static class AttackFairnessTest
                     if (!seen.TryGetValue(hz, out s)) seen[hz] = s = new Seen { hz = hz };
                     var blast = hz as AttackBlast;
                     var strike = hz as AttackStrike;
+                    var jet = hz as AttackJet;
+                    var wave = hz as AttackWave;
                     // a new use of a pooled item: archive the last one
                     if (hz.State == AttackHazard.Phase.Tell && s.tellStart >= 0f && s.wasLive)
                     {
@@ -105,8 +109,9 @@ public static class AttackFairnessTest
                     {
                         s.tellStart = t;
                         s.tellSeconds = hz.TellSeconds;
-                        s.laneAtTell = strike != null ? strike.LaneX : 0f;
-                        s.gapAtTell = blast != null ? blast.GapRad : 0f;
+                        s.laneAtTell = strike != null ? strike.LaneX : (wave != null ? wave.GapX : 0f);
+                        s.gapAtTell = blast != null ? blast.GapRad : (jet != null ? jet.AimDirection : 0f);
+                        if (wave != null) { s.gapWidth = wave.GapWidth; s.gapLeft = wave.GapX - wave.GapWidth * .5f; s.gapRight = wave.GapX + wave.GapWidth * .5f; }
                         var sh = hz.Shooter != null ? (Vector2)hz.Shooter.transform.position : Vector2.zero;
                         s.shooterAbove = sh.y - AttackBudgetScenarios.Ship.position.y;
                         s.shooterDistance = Vector2.Distance(sh, AttackBudgetScenarios.Ship.position);
@@ -114,7 +119,13 @@ public static class AttackFairnessTest
                     if (hz.State == AttackHazard.Phase.Live)
                     {
                         live++;
-                        if (s.liveStart < 0f) { s.liveStart = t; s.laneAtLive = strike != null ? strike.LaneX : 0f; s.gapAtLive = blast != null ? blast.GapRad : 0f; }
+                        if (s.liveStart < 0f)
+                        {
+                            s.liveStart = t;
+                            s.laneAtLive = strike != null ? strike.LaneX : (wave != null ? wave.GapX : 0f);
+                            s.gapAtLive = blast != null ? blast.GapRad : (jet != null ? jet.AimDirection : 0f);
+                            if (wave != null) s.frontSeconds = (wave.Y - wave.HitHalf - AttackBudgetScenarios.Ship.position.y) / (wave.FallSpeed + EliteSystem.Scroll * wave.Spec.ride);
+                        }
                         s.liveEnd = t;
                         s.wasLive = true;
                     }
@@ -124,7 +135,8 @@ public static class AttackFairnessTest
             }
             foreach (var kv in seen) finished.Add(kv.Value);
             int n = 0, short_ = 0, lockedWrong = 0, tooEarly = 0, tooClose = 0;
-            float minTell = 99f, maxLiveFor = 0f, minAbove = 99f, minDist = 99f;
+            float minTell = 99f, maxLiveFor = 0f, minAbove = 99f, minDist = 99f, minFront = 99f, minGap = 99f;
+            int gapOut = 0;
             foreach (var s in finished)
             {
                 if (!s.wasLive) continue;
@@ -132,7 +144,8 @@ public static class AttackFairnessTest
                 float tell = s.liveStart - s.tellStart;
                 minTell = Mathf.Min(minTell, tell);
                 if (tell < AttackHazard.MinTellSeconds - .03f) short_++;
-                if (s.hz is AttackStrike) maxLiveFor = Mathf.Max(maxLiveFor, s.liveEnd - s.liveStart + DodgeBot.Dt);
+                if (s.hz is AttackStrike || s.hz is AttackJet) maxLiveFor = Mathf.Max(maxLiveFor, s.liveEnd - s.liveStart + DodgeBot.Dt);
+                if (s.frontSeconds >= 0f) { minFront = Mathf.Min(minFront, s.frontSeconds); minGap = Mathf.Min(minGap, s.gapWidth); if (s.gapLeft < -BossRails.DrawnInnerEdge - .001f || s.gapRight > BossRails.DrawnInnerEdge + .001f) gapOut++; }
                 if (Mathf.Abs(s.laneAtTell - s.laneAtLive) > .001f || Mathf.Abs(s.gapAtTell - s.gapAtLive) > .001f) lockedWrong++;
                 minAbove = Mathf.Min(minAbove, s.shooterAbove);
                 minDist = Mathf.Min(minDist, s.shooterDistance);
@@ -145,7 +158,12 @@ public static class AttackFairnessTest
             if (id.Contains("eruption") || id.Contains("icicle"))
                 Check(id + ": a strike column was live for at most " + maxLiveFor.ToString("F2") + " s (<= " + AttackStrike.MaxLiveSeconds + ", FR3); " + maxLive + " columns at once",
                       maxLiveFor <= AttackStrike.MaxLiveSeconds + .05f && maxLive >= 2);
-            Check(id + ": the aim is locked at the tell (lane / crack unchanged by the time it is live): " + lockedWrong + " moved", lockedWrong == 0);
+            if (id.Contains("jet") || id.Contains("ray"))
+                Check(id + ": a jet was live for at most " + maxLiveFor.ToString("F2") + " s (<= " + AttackJet.MaxLiveSeconds + ", FR3)", maxLiveFor > .2f && maxLiveFor <= AttackJet.MaxLiveSeconds + .05f);
+            if (id.Contains("wave") || id.Contains("scan"))
+                Check(id + ": the band's fall from its start to the pilot's row took at least " + minFront.ToString("F2") + " s (>= " + AttackWave.MinFrontSeconds + ", FR3), its gap is at least " + minGap.ToString("F2") +
+                      " u (>= " + AttackWave.MinGap + ") and always inside the rails (" + gapOut + " outside)", minFront >= AttackWave.MinFrontSeconds - .05f && minGap >= AttackWave.MinGap - .001f && gapOut == 0);
+            Check(id + ": the aim is locked at the tell (lane / crack / direction / gap unchanged by the time it is live): " + lockedWrong + " moved", lockedWrong == 0);
             Check(id + ": it starts only >= " + EnemyBrain.MinFireAbove + " u above and >= " + EnemyBrain.MinFireDistance + " u from the pilot (least: " + minAbove.ToString("F2") + " / " + minDist.ToString("F2") + ")",
                   tooEarly == 0 && tooClose == 0);
             sc.End();
@@ -435,6 +453,23 @@ public static class AttackFairnessTest
             if (AttackHazardArt.HasTip(st))
                 yield return new KeyValuePair<string, Sprite>(st + " tip", AttackHazardArt.ColumnProcedural(world, st, 0, bold, true));
         }
+        // the jet (every preset spec at its nominal and its reaching length, every frame), its flare and sparks, and the wave's strips
+        foreach (var spec in new[] { JetSpec.Flame(world), JetSpec.Pressure(world), JetSpec.Ray(world), JetSpec.Lance(world) })
+            foreach (float len in new[] { spec.length, spec.maxLength })
+            {
+                float tip = spec.IsCone ? spec.baseHalf + (spec.tipHalf - spec.baseHalf) * len / spec.length : spec.baseHalf;
+                for (int f = 0; f < AttackHazardArt.JetProceduralFrames; f++)
+                    yield return new KeyValuePair<string, Sprite>(spec.style + " jet " + len.ToString("F1") + " u frame " + f,
+                        AttackHazardArt.JetBody(world, spec.style, f, len, spec.baseHalf, tip, bold, out _, out _, out _));
+            }
+        foreach (JetStyle js in System.Enum.GetValues(typeof(JetStyle)))
+        {
+            for (int st = 0; st < 3; st++) yield return new KeyValuePair<string, Sprite>(js + " nozzle flare " + st, AttackHazardArt.Flare(world, js, st, bold));
+            for (int st = 0; st < 3; st++) yield return new KeyValuePair<string, Sprite>(js + " tip sparks " + st, AttackHazardArt.Sparks(world, js, st, bold));
+        }
+        foreach (WaveStyle ws in System.Enum.GetValues(typeof(WaveStyle)))
+            for (int f = 0; f < AttackHazardArt.WaveProceduralFrames; f++)
+                yield return new KeyValuePair<string, Sprite>(ws + " wave strip " + f, AttackHazardArt.WaveProcedural(world, ws, f, bold));
     }
 
     static void DrawnPixels()

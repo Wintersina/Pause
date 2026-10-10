@@ -9,7 +9,7 @@ using UnityEngine.UI;
 // "???" with no lore.
 //
 // ENEMIES and HAZARDS are one vertically scrolling list in world sections
-// (SPACE, FROST, VERDANT, EMBER, then BOSSES for enemies), each under a flat
+// (SPACE, FROST, VERDANT, EMBER, TIDE, then BOSSES for enemies), each under a flat
 // cel header bar in that world's enemy light with a found/total counter.
 // The current section's header stays pinned to the top of the list while
 // you scroll through it (pushed up by the next one), and a row of jump chips
@@ -251,6 +251,10 @@ public class CodexPanel : MonoBehaviour
             InsertSorted(sections[w].entries, keys[w], e, key * 1000 + i);
         }
         for (int w = 0; w < worlds; w++) Finish(sections[w]);
+        // a world that is not live yet shows no section (its entries are unlisted): drop the empty ones off the end
+        while (sections.Count > 1 && sections[sections.Count - 1].world >= WorldManager.LiveWorldCount &&
+               sections[sections.Count - 1].entries.Count == 0)
+            sections.RemoveAt(sections.Count - 1);
         if (bosses.entries.Count > 0)
         {
             Finish(bosses);
@@ -1166,7 +1170,7 @@ public class CodexPanel : MonoBehaviour
     // Enemies play EnemyDeathFlipbook's three drawings; elites their own
     // `_death` strip when they ship one (none do yet), else the composed
     // break-up (hit drawing, then shards / sparks / ring: CodexBurst); bosses
-    // their 6-cell death strip where one exists (Ember), else nothing. Mines
+    // their 6-cell death strip where one exists (Ember, Tide), else nothing. Mines
     // and anything else without a strip do nothing rather than risk a
     // mismatched pose.
     static readonly float[] BossDeathHolds = MakeHolds(BossArt.DeathStripCells, BossArt.DeathStripCellSeconds);

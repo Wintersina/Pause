@@ -619,15 +619,15 @@ public static class HostileFireTest
         string volley = classes.ContainsKey("EnemyVolley") ? classes["EnemyVolley"] : "";
         // (Laser is a rail mine's beam, RailMineLaser, not a volley of shots: checked just below)
         var firing = System.Enum.GetValues(typeof(EnemyAttack)).Cast<EnemyAttack>()
-            .Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge && a != EnemyAttack.Laser && a != EnemyAttack.Blast && a != EnemyAttack.Strike && a != EnemyAttack.Lash).ToList();
+            .Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge && a != EnemyAttack.Laser && a != EnemyAttack.Blast && a != EnemyAttack.Strike && a != EnemyAttack.Jet && a != EnemyAttack.Wave && a != EnemyAttack.Lash).ToList();
         bool cased = firing.All(a => volley.Contains("case EnemyAttack." + a + ":"));
         int fires = Regex.Matches(volley, @"pool\.Fire\(").Count, marks = Regex.Matches(volley, @"AsRosterShot\(source").Count;
         Check("every firing roster attack (" + string.Join(", ", firing) + ") goes through EnemyVolley's pool, each shot marked with its shooter (" +
               fires + " launches, " + marks + " marked)", cased && fires > 0 && fires == marks);
 
-        // (Blast and Strike are the themed area hazards, AttackBlast / AttackStrike on the AttackHazard base: they burn through hostile fire the way a laser does)
+        // (Blast, Strike, Jet and Wave are the themed area hazards, AttackBlast / AttackStrike / AttackJet / AttackWave on the AttackHazard base: they burn through hostile fire the way a laser does)
         string hazard = classes.ContainsKey("AttackHazard") ? classes["AttackHazard"] : "";
-        Check("the themed area hazards (EnemyAttack.Blast, Strike: AttackHazard) burn through hostile fire (FriendlyFire.HostileFireCanHit + HostileHit) and never hurt their shooter",
+        Check("the themed area hazards (EnemyAttack.Blast, Strike, Jet, Wave: AttackHazard) burn through hostile fire (FriendlyFire.HostileFireCanHit + HostileHit) and never hurt their shooter",
               hazard.Contains("FriendlyFire.HostileFireCanHit(") && hazard.Contains("FriendlyFire.HostileHit(") && hazard.Contains("shooter"));
 
         string laser = classes.ContainsKey("RailMineLaser") ? classes["RailMineLaser"] : "";

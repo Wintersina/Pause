@@ -22,7 +22,7 @@ using UnityEngine;
 public enum StrikeStyle { Icicle, Eruption, Thunder }
 public enum LashLook { Vine, Tentacle }
 
-public static class AttackHazardArt
+public static partial class AttackHazardArt
 {
     public const float Ppu = 32f;                    // procedural sprites: 32 px per unit
     public const int BarW = 28, BarH = 9;            // 0.875 x 0.28 u, the art cell's bar (112 x 36 px of 128)
@@ -71,19 +71,19 @@ public static class AttackHazardArt
     // call allocates nothing (the string keys above are only built when a sprite is first made).
     static readonly Dictionary<int, Sprite> resolved = new Dictionary<int, Sprite>();
     static readonly Dictionary<int, bool> flags = new Dictionary<int, bool>();
-    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Link, LTip, Root, Dash }
+    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Jet, Nozzle, JetTip, Wave, WaveMarker, Link, LTip, Root, Dash }
     static int Key(Kind k, int world, int style, int frame, bool bold) =>
         ((((int)k * 8 + world) * 4 + style) * 8 + frame) * 2 + (bold ? 1 : 0);
     static bool Cached(int key, out Sprite s) => resolved.TryGetValue(key, out s) && s != null && s.texture != null;
 
     // `seam`: a tile that stacks (a column body): the keyline pads left and right only, so no dark line crosses a seam;
     // `tipBottom`: the spear point, which pads left, right and bottom (its top meets a body tile).
-    public static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold, bool seam = false, bool tipBottom = false)
+    public static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold, bool seam = false, bool tipBottom = false, bool hSeam = false)
     {
         Sprite s;
         if (cache.TryGetValue(key, out s) && s != null && s.texture != null) return s;
         int pad = bold ? 1 : 0;
-        int padX = pad, padBottom = (seam ? 0 : pad), padTop = (seam || tipBottom ? 0 : pad);
+        int padX = hSeam ? 0 : pad, padBottom = (seam ? 0 : pad), padTop = (seam || tipBottom ? 0 : pad);
         int W = w + padX * 2, H = h + padBottom + padTop;
         var px = new Color32[W * H];
         var inner = new Color32[w * h];
@@ -123,7 +123,7 @@ public static class AttackHazardArt
 
     static bool Bold => ShotOutline.UseBold;
 
-    public static void Forget() { cache.Clear(); resolved.Clear(); flags.Clear(); }   // (tests: after injecting art)
+    public static void Forget() { cache.Clear(); resolved.Clear(); flags.Clear(); ForgetJetWave(); }   // (tests: after injecting art)
 
     // ---- the ring's bar (Frost's cold blast; any world's material) -----------------------------------
 

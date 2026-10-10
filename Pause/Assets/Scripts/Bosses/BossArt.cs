@@ -72,7 +72,7 @@ public static class BossArt
     // flat index is simply Death0 + i.
     public static int Death(int i) => Death0 + Mathf.Clamp(i, 0, DeathFrames - 1);
 
-    // ---- battle damage (bosses with a BossDef.damageKey: Space, Frost, Ember) ---
+    // ---- battle damage (bosses with a BossDef.damageKey: Space, Frost, Ember, Tide) ---
     //
     //   Resources/Bosses/<Key>_damage.png     2 x 4 cells: row r = damage
     //     stage r + 1 (4 .. 1 hearts left), cols = a 2-frame idle loop A,B;
@@ -263,7 +263,7 @@ public static class BossArt
         return sheet[Mathf.Clamp(cell, 0, DamageFxCells - 1)];
     }
 
-    // ---- death strip (bosses with a BossDef.deathKey: Ember) --------------
+    // ---- death strip (bosses with a BossDef.deathKey: Ember, Tide) --------------
     //
     //   Resources/Bosses/<Key>_death.png   DeathStripCells square cells in one
     //     row, registered to the idle cell (same scale and anchor as the body),

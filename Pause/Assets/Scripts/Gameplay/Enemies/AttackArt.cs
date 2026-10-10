@@ -78,6 +78,23 @@ public static class AttackArt
         return s;
     }
 
+    // A sprite at an exact pixel rectangle (x, yTop counted from the TOP of the image): for the strips whose rows are not
+    // a multiple of their cell height (the jet's nozzle row, the wave's cap row). Null if missing or outside.
+    public static Sprite CellAt(int world, string file, int x, int yTop, int w, int h)
+    {
+        var tex = Atlas(world, file);
+        if (tex == null) return null;
+        if (x < 0 || yTop < 0 || x + w > tex.width || yTop + h > tex.height) return null;
+        string key = PathOf(world, file) + "@" + x + "," + yTop + "," + w + "x" + h;
+        Sprite s;
+        if (cells.TryGetValue(key, out s) && s != null) return s;
+        tex.filterMode = FilterMode.Point;
+        s = Sprite.Create(tex, new Rect(x, tex.height - yTop - h, w, h), new Vector2(.5f, .5f), PixelsPerUnit, 0, SpriteMeshType.FullRect);
+        s.name = key;
+        cells[key] = s;
+        return s;
+    }
+
     // A cell of the shots atlas by its role.
     public static Sprite ShotCell(int world, ShotCellName name)
     {
@@ -116,6 +133,25 @@ public static class AttackArt
     public static Sprite LashTip(int world, int i) => Cell(world, "lash", 2 + Mathf.Clamp(i, 0, 1), 0);
     public static Sprite LashRoot(int world, int i) => Cell(world, "lash", 4 + Mathf.Clamp(i, 0, 1), 0);
     public static Sprite LashDash(int world, int i) => Cell(world, "lash", 6 + Mathf.Clamp(i, 0, 1), 0);
+    // <w>_attack_jet.png (768 x (body + 128)): row 0 six body frames 128 x body (Ember 256, Tide 320; apex at the TOP centre, 12 fps loop);
+    // row 1 (from y = body) six 128 x 128 cells: nozzle x3 (the flare that grows through the tell) then tip x3 (sparks / splash at the far end)
+    public static int JetBodyPx(int world)
+    {
+        var tex = Atlas(world, "jet");
+        return tex == null ? 0 : tex.height - 128;
+    }
+    // The part of the body cell the jet itself fills, in pixels from the apex (Ember: 230 of 256; Tide: the whole 320)
+    public static int JetContentPx(int world) { int h = JetBodyPx(world); return h == 256 ? 230 : h; }
+    public static Sprite JetBody(int world, int i) { int h = JetBodyPx(world); return h < 128 ? null : CellAt(world, "jet", (((i % 6) + 6) % 6) * 128, 0, 128, h); }
+    public static Sprite JetNozzle(int world, int i) { int h = JetBodyPx(world); return h < 128 ? null : CellAt(world, "jet", Mathf.Clamp(i, 0, 2) * 128, h, 128, 128); }
+    public static Sprite JetTip(int world, int i) { int h = JetBodyPx(world); return h < 128 ? null : CellAt(world, "jet", (3 + Mathf.Clamp(i, 0, 2)) * 128, h, 128, 128); }
+
+    // tide_attack_wave.png (512 x 480): four 512 x 96 body frames (seamless left-right, 12 fps) then row 4 (y 384) of 96 x 96 cells:
+    // capL, capR, gapMarker a, b
+    public static Sprite WaveBody(int world, int i) { return CellAt(world, "wave", 0, (((i % 4) + 4) % 4) * 96, 512, 96); }
+    public static Sprite WaveCapL(int world) { return CellAt(world, "wave", 0, 384, 96, 96); }
+    public static Sprite WaveCapR(int world) { return CellAt(world, "wave", 96, 384, 96, 96); }
+    public static Sprite WaveGapMarker(int world, int i) { return CellAt(world, "wave", 192 + Mathf.Clamp(i, 0, 1) * 96, 384, 96, 96); }
 
     // ---- tests --------------------------------------------------------------------
 

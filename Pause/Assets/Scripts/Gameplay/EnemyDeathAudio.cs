@@ -133,6 +133,7 @@ public static class EnemyDeathAudio
 #if UNITY_EDITOR
         if (!AuthoredEnabled || Variants(key) > 0) return;
         if (EnemyRoster.Find(key) == null && EliteCatalog.Find(key) == null) return;   // hitboxes etc. are silent by design
+        if (key.StartsWith("tide_")) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
         if (warned.Add(key)) Debug.LogWarning("[EnemyDeathAudio] no authored death clips for '" + key + "' (Resources/" + ResourceFolder + key + "_0)");
 #endif
     }

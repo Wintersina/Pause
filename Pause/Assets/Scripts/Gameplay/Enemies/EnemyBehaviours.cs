@@ -7,9 +7,9 @@ using UnityEngine;
 //
 //   lateral   None / Drift / Glide / Sway / Orbit / Track / March
 //   vertical  None / Bob / Pulse / Brake / Sink / Patrol / Creep
-//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike / Lash
-//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns; Lash: AttackLash's arc sweep of a
-//             segment chain -- themed area hazards)
+//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike / Jet / Wave / Lash
+//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns; Jet: AttackJet's cone or column;
+//              Wave: AttackWave's falling band with a gap; Lash: AttackLash's arc sweep of a segment chain -- themed area hazards)
 //
 // Everything a brain adds is an OFFSET in board space on top of the enemy's
 // mover, bounded by the behaviour's envelope (bandX either side, Up above,
@@ -17,8 +17,8 @@ using UnityEngine;
 // patterns can never meet.
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
-public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Lash }
-public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
+public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Jet, Wave, Lash }
+public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
 // Pilot (fighters, heavies, chasers, aliens) is piloted or alive: it flies
@@ -81,6 +81,8 @@ public sealed class EnemyBehaviour
     // enemy's own world when the attack is armed; `ride` is the behaviour's `ride` for a hazard and 0 for a pilot.
     public BlastSpec blast = BlastSpec.Standard(0);
     public StrikeSpec strike = StrikeSpec.Standard(0);
+    public JetSpec jet = JetSpec.Standard(0);     // Jet (Attacks/AttackJet.cs)
+    public WaveSpec wave = WaveSpec.Standard(0);  // Wave (Attacks/AttackWave.cs)
     public int strikeLanes = 1;        // Strike: columns in one pattern
     public float laneSpacing = AttackStrike.MinLaneSpacing;
     public LashSpec lash = LashSpec.Standard(0);   // Lash: AttackLash's whip (vine / tentacle by the enemy's world)
@@ -105,11 +107,12 @@ public sealed class EnemyBehaviour
 
     public bool Shoots => attack == EnemyAttack.Shot || attack == EnemyAttack.Ring ||
                           attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser ||
-                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Lash;
+                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave || attack == EnemyAttack.Lash;
     // An area hazard (AttackHazard): told for at least AttackHazard.MinTellSeconds, never a projectile.
-    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Lash;
-    // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a lash 1.5 -> 2, a strike 1 a lane).
-    public int ThreatCount => attack == EnemyAttack.Blast || attack == EnemyAttack.Lash ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
+    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave || attack == EnemyAttack.Lash;
+    // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a strike 1 a lane).
+    // (a jet counts 1.5, rounded up; a wave 2)
+    public int ThreatCount => attack == EnemyAttack.Blast || attack == EnemyAttack.Jet || attack == EnemyAttack.Wave || attack == EnemyAttack.Lash ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
     public bool Attacks => attack != EnemyAttack.None;
 
     // The envelope: how far the brain's offset can ever reach.
@@ -230,6 +233,18 @@ public sealed class EnemyBehaviour
         s.length = length; s.arcDeg = arcDeg; s.sweepSeconds = sweepSeconds; s.hitHalf = hitHalf;
         return Lash(s);
     }
+    // A cone or column out of the muzzle at the locked pilot point: AttackJet (JetSpec.Standard(world) picks the world's: flame, pressure jet, frost ray, lance).
+    public EnemyBehaviour Jet(JetSpec spec)
+    {
+        attack = EnemyAttack.Jet; jet = spec; shotCount = 1; ride = 1f;
+        return this;
+    }
+    // A band across the lane with one gap (aimed at the pilot at the tell), falling: AttackWave (WaveSpec.Standard(world): surf wave, scan line).
+    public EnemyBehaviour Wave(WaveSpec spec)
+    {
+        attack = EnemyAttack.Wave; wave = spec; shotCount = 1; ride = 1f;
+        return this;
+    }
     public EnemyBehaviour Lob(float size, float pool)
     {
         attack = EnemyAttack.Lob; shotKind = EliteShots.Kind.Glob; shotCount = 1; shotSize = size; poolSeconds = pool;
@@ -278,6 +293,7 @@ public static class EnemyBehaviours
             case 1: return EnemyPalette.Cyan;
             case 2: return EnemyPalette.BileLight;
             case 3: return EnemyPalette.Amber;
+            case 4: return EnemyPalette.Mint;
             default: return SpaceShot;
         }
     }
@@ -464,6 +480,46 @@ public static class EnemyBehaviours
         B("ember_alien", "Ember Imp: flickers, quick small pulses")
             .Sway(.22f, 1.1f).Pulse(.2f, .85f)
             .Descend(1.3f);
+
+        // ================================================================== TIDE
+        // The same budgets as Ember's cast (rocks, mine, fighters 1-4, big, alien), in the reef's own
+        // movement; the themed jet / wave / strike attacks are not switched on yet
+        // (docs/world-attacks-design.md), these are the generic shots.
+        B("tide_rock_brain", "brain coral: slow wide tumble, lazy sideways drift")
+            .Drift(.55f, .3f).Bob(.06f, 3f).Spin(12f, 30f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("tide_rock_staghorn", "staghorn spire: barely turns, one slanted slice across the lane")
+            .Glide(1.2f, .9f).Spin(4f, 8f)
+            .Sizes(.76f, 1.02f, 1.24f);
+        B("tide_rock_urchin", "spine urchin: spins as it sinks down the board")
+            .Sink(1.2f, .45f).Spin(25f, 45f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("tide_rock_islet", "kelp islet: wide slow sway and bob, upright")
+            .Sway(.65f, 4.6f).Bob(.16f, 3.4f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .92f, 1.48f);
+        B("tide_mine", "limpet mine: creeps down its rail, the eye flares, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Creep(1.2f, .6f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
+        B("tide_big", "Nautilus Bulwark: holds its column, the shell opens, a fan of three pearl shots")
+            .Shot(Shard, 3, 28f, 1.8f, .26f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
+        B("tide_fighter_1", "Remora: diagonal drift, then a straight dash that never steers")
+            .Drift(.55f, .65f).Lunge(0f, 1.6f, .22f).Timing(.45f, 2.1f, 1, .15f)
+            .Pilot(PilotEntry.Swoop, 2.4f, 2.5f, PilotExit.Run).Volleys(0);
+        B("tide_fighter_2", "Needlefish: lines up over the pilot, quick bolts straight down")
+            .Track(.65f, 1f).Shot(Bolt, 1, 0f, 3.6f, .18f).Timing(.5f, 1.5f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 5.5f, PilotExit.Peel).Volleys(4);
+        B("tide_fighter_3", "Lantern Angler: hovers, the lure flares, then one aimed bolt")
+            .Drift(.6f, .5f).Brake(1.4f, .6f).Shot(Bolt, 1, 0f, 3.4f, .2f, 34f).Timing(.8f, 2f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(3);
+        B("tide_fighter_4", "Hammerhead: hovers, tracks slowly, a full ring of eight")
+            .Track(.55f, .45f).Brake(1.7f, .65f).Ring(Bolt, 8, 2f, .18f).Muzzle(0f).Timing(1.2f, 3.8f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("tide_chaser", "Wire Eel: surges in sinusoidal lunges on an S-curve, coils, then orbits")
+            .Chaser(ChaserStyle.Slither, 4.2f, 2.3f, 1f, 1f, .8f)
+            .Linger(6f);
+        B("tide_alien", "Glow Jelly: pulses as it sinks, slow sway")
+            .Sway(.2f, 2f).Pulse(.35f, 1.6f)
+            .Descend(1.1f);
 
         var built = building;
         building = null;

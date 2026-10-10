@@ -83,6 +83,12 @@ public static class AttackBudgetTest
         { "roster:ember_fighter_2", new Pin(19, 2000, 840) },   // 1.0 % bot, 42.0 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.4 tell 0.5
         { "roster:ember_fighter_3", new Pin(14, 2000, 1989) },   // 0.7 % bot, 99.5 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 1.8 tell 0.5
         { "roster:ember_fighter_4", new Pin(6, 2000, 173) },   // 0.3 % bot, 8.7 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.1
+        { "roster:tide_mine", new Pin(32, 2000, 1188) },   // 1.6 % bot, 59.4 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
+        { "roster:tide_big", new Pin(28, 2000, 475) },   // 1.4 % bot, 23.8 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
+        { "roster:tide_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
+        { "roster:tide_fighter_2", new Pin(26, 2000, 884) },   // 1.3 % bot, 44.2 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.5 tell 0.5
+        { "roster:tide_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.8
+        { "roster:tide_fighter_4", new Pin(4, 2000, 162) },   // 0.2 % bot, 8.1 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.2
         { "elite:ember_elite_ash_wraith", new Pin(1940, 2000, 64) },   // 97.0 % bot, 3.2 % standing; shown in 2000/2000;
         { "elite:ember_elite_brass_vulture", new Pin(1098, 1654, 1098) },   // 66.4 % bot, 66.4 % standing; shown in 1654/2000;
         { "elite:ember_elite_cauterizer", new Pin(0, 2000, 706) },   // 0.0 % bot, 35.3 % standing; shown in 2000/2000;
@@ -132,6 +138,12 @@ public static class AttackBudgetTest
         { "themed:space_rail_slug", "roster:space_fighter_4" },         // Warden: the heavy shell -> the rail-gun slug (Streak; tell .9 -> 1.1 s, volleys 4 -> 3)
         { "themed:frost_splinter_pair", "roster:frost_fighter_3" },     // Frost Kite: the splayed pair -> a splinter pair (Shatter; volleys 3 -> 2)
         { "themed:verdant_leaf_volley", "roster:space_fighter_3" },     // Snap Sprout (no attack today): a leaf volley (Flutter), held to a Twin Claw pair's rate
+        // plan phases 1a / 1b: the jet and the wave on TEST-ONLY fixtures too
+        { "themed:ember_flame_jet", "roster:ember_fighter_3" },     // Brand: the aimed bolt -> a flamethrower cone (swept 10 deg); cooldown 1.8 -> 2.6, volleys 3 -> 2
+        { "themed:frost_ray", "roster:frost_fighter_3" },           // Frost Kite: the splayed shard pair -> a thin frost ray
+        { "themed:tide_pressure_jet", "roster:frost_fighter_2" },   // a pressure jet (water column) in place of the lance bolt
+        { "themed:tide_surf_wave", "roster:ember_fighter_4" },      // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap; volleys 3 -> 2
+        { "themed:space_scan_line", "roster:space_fighter_3" },     // Void Archon's scan line (a thin neon wave): a NEW boss attack, held to Twin Claw's (the middle Space fighter) rate
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)
@@ -278,6 +290,36 @@ public static class AttackBudgetTest
     // ---- the sweep: measure everything, print the table ---------------------------------
 
     // -executeMethod AttackBudgetTest.Sweep [-rolls N] [-only substring]
+    // -executeMethod AttackBudgetTest.SweepThemed [-rolls N] [-only substring] [-trace]: the same for the themed fixtures (they are not
+    // attacks of the game, so Sweep does not list them): hit rate, standing-still rate and the budget verdict against the pinned attack.
+    public static void SweepThemed()
+    {
+        fails = 0;
+        int rolls = Rolls;
+        string only = null;
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == "-rolls") int.TryParse(args[i + 1], out rolls);
+            if (args[i] == "-only") only = args[i + 1];
+        }
+        for (int i = 0; i < args.Length; i++) if (args[i] == "-trace") DodgeBot.Trace = true;
+        try
+        {
+            foreach (var kv in Themed)
+            {
+                if (only != null && !kv.Key.Contains(only)) continue;
+                var r = Measure(kv.Key, rolls);
+                string why;
+                bool ok = WithinBudget(kv.Key, r, out why);
+                Debug.Log("[ATKBUD] THEMED " + (ok ? "ok   " : "OVER ") + kv.Key + ": bot " + r.HitRate.ToString("P1") + " (" + r.hits + "/" + r.attacked + "), standing still " + r.GhostRate.ToString("P1") +
+                          ", shown in " + r.attacked + "/" + r.rolls + "; " + AttackBudgetScenarios.Shape(kv.Key) + " -- " + why);
+            }
+        }
+        finally { AttackBudgetScenarios.Cleanup(); }
+        TestHarness.Exit(0);
+    }
+
     public static void Sweep()
     {
         fails = 0;

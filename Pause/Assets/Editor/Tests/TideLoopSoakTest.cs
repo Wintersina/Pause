@@ -205,6 +205,13 @@ public static class TideLoopSoakTest
             if (!arrivedClean) { clean = false; why += " [unclean at " + from + "->" + now + "]"; }
             speedOk &= Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(RunLoop.Index));
             rosterOk &= EnemyRoster.CurrentWorld == now && WorldManager.Current == WorldManager.Worlds[now];
+            // the cast the spawner draws from IS that world's own (Tide: tide_*, never an Ember stand-in), in every role
+            foreach (EnemyRole role in System.Enum.GetValues(typeof(EnemyRole)))
+            {
+                var cast = EnemyRoster.For(EnemyRoster.CurrentWorld, role);
+                rosterOk &= cast.Count > 0;
+                foreach (var d in cast) rosterOk &= d.world == now && d.key.StartsWith(EnemyRoster.WorldKeys[now] + "_", System.StringComparison.Ordinal);
+            }
             scoreOk &= RunScore.Total >= scoreWas && collisionDetection.lifeCounter == 1;
             scoreWas = RunScore.Total;
             calmOk &= !SpaceDirector.Quiet;

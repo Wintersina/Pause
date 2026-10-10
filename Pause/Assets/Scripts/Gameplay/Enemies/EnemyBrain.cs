@@ -290,6 +290,8 @@ public class EnemyBrain : MonoBehaviour
         // an area hazard: its pool is built at spawn too, so arming one never builds anything
         if (behaviour.attack == EnemyAttack.Blast && Armed) { var warm = AttackBlast.Pool; }
         else if (behaviour.attack == EnemyAttack.Strike && Armed) { var warm = AttackStrike.Pool; }
+        else if (behaviour.attack == EnemyAttack.Jet && Armed) { var warm = AttackJet.Pool; }
+        else if (behaviour.attack == EnemyAttack.Wave && Armed) { var warm = AttackWave.Pool; }
         else if (behaviour.attack == EnemyAttack.Lash && Armed) { var warm = AttackLash.Pool; }
 
         IsPilot = PilotsEnabled && behaviour.IsPilot && def.role != EnemyRole.Chaser && !onRail && hostMover != null;
@@ -972,7 +974,7 @@ public class EnemyBrain : MonoBehaviour
         ShotsFired += EnemyVolley.Fire(this, b, (Vector2)p + (Vector2)MuzzleLocal(), aim, lobTarget);
     }
 
-    // ---- the themed area hazards (Blast, Strike, Lash): armed with the windup, ignited at the release ----
+    // ---- the themed area hazards (Blast, Strike, Jet, Wave, Lash): armed with the windup, ignited at the release ----
 
     readonly AttackHazard[] armed = new AttackHazard[4];
     static readonly float[] laneBuffer = new float[4];
@@ -1004,6 +1006,24 @@ public class EnemyBrain : MonoBehaviour
             Vector2 offset = MuzzleLocal();
             var lash = AttackLash.Arm(ls, (Vector2)p + offset, target, tell, gameObject);
             if (lash != null) { lash.Follow(transform, offset); armed[0] = lash; }
+            return;
+        }
+        if (b.attack == EnemyAttack.Jet)
+        {
+            var spec = b.jet;
+            spec.world = world;
+            spec.ride = ride;
+            Vector2 offset = MuzzleLocal();
+            var jet = AttackJet.Arm(spec, (Vector2)p + offset, target, tell, gameObject);
+            if (jet != null) { jet.Follow(transform, offset); armed[0] = jet; }
+            return;
+        }
+        if (b.attack == EnemyAttack.Wave)
+        {
+            var spec = b.wave;
+            spec.world = world;
+            spec.ride = ride;
+            armed[0] = AttackWave.Arm(spec, (Vector2)p + (Vector2)MuzzleLocal(), target, tell, gameObject);
             return;
         }
         var ss = b.strike;

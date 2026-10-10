@@ -102,7 +102,7 @@ public static class WorldLogicTest
               PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 1);
         for (int w = 0; w < EnemyRoster.WorldKeys.Length; w++)
             Check("the " + EnemyRoster.WorldKeys[w] + " rail mine flipbook is present (neon atlas row)",
-                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png") != null &&
+                  AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/" + RailMineArt.AtlasPathFor(w) + ".png") != null &&
                   RailMineArt.Frame(w, RailMineArt.Dormant) != null);
 
         Check("starts at index 0", WorldManager.CurrentIndex == 0);
@@ -159,8 +159,8 @@ public static class WorldLogicTest
         return failures;
     }
 
-    // World 5, Tide: in the list, behind the release switch, with its planet art
-    // and its own backdrop, but (until the roster / boss / rails phases) Ember's stand-ins.
+    // World 5, Tide: in the list, behind the release switch, with its planet art,
+    // its own backdrop, rails, roster and boss (elites, sounds, themed attacks: still stand-ins).
     static void TideWorld()
     {
         const int Ember = 3, Tide = 4;
@@ -170,8 +170,10 @@ public static class WorldLogicTest
               t.enemyRampScale > WorldManager.Worlds[Ember].enemyRampScale);
         Check("... its portal wears the bioluminescent mint, not the player's red nor a pickup's cyan",
               t.portalColor.g > .85f && t.portalColor.r < .6f && t.portalColor.b > .6f && t.portalColor.b < .85f);
-        Check("... the stand-ins are explicit: Ember's rails folder (the backdrop is Tide's own now)",
-              t.resourceFolder == "Ember" && BackdropCatalog.For("Tide").world == "Tide" && BackdropCatalog.For("Tide") != BackdropCatalog.For("Ember"));
+        Check("... its own rails folder, texture and backdrop (no Ember stand-ins left)",
+              t.resourceFolder == "Tide" && WorldPainter.RailTextureName("Tide") == "rail_tide_wide_v1" &&
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Worlds/Tide/rail_tide_wide_v1.png") != null &&
+              BackdropCatalog.For("Tide").world == "Tide" && BackdropCatalog.For("Tide") != BackdropCatalog.For("Ember"));
         // its own backdrop art, whatever the release switch says (the live-world loop above skips it until the switch flips)
         foreach (string layer in new[] { "sky", "far", "mid", "flow" })
         {

@@ -34,6 +34,12 @@ public static class EnemyPalette
     public static readonly Color Char = Hex(0x6A5462);
     public static readonly Color CharSh = Hex(0x2A1C26);
     public static readonly Color CharHi = Hex(0xA08A9A);
+    public static readonly Color Barnacle = Hex(0x6F8F83);
+    public static readonly Color BarnacleSh = Hex(0x24342F);
+    public static readonly Color BarnacleHi = Hex(0xC4E6D8);
+    public static readonly Color Mint = Hex(0x7CF2C0);
+    public static readonly Color MintSh = Hex(0x1F6B55);
+    public static readonly Color Brass = Hex(0x8A6B4E);
 
     // One world's enemy look, for art that must sit in the same cast (the
     // end-of-level bosses): hull base / one shadow / one highlight, a
@@ -58,10 +64,13 @@ public static class EnemyPalette
                                        accent = Bruise, light = BileLight, lightDim = BileSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Spore };
             case 3:
-            case 4: // Tide: Ember's cast until its own palette (add-world phase 12)
                 return new Theme { world = "ember", hull = Char, hullShadow = CharSh, hullHighlight = CharHi,
                                        accent = Gun, light = Sodium, lightDim = SodiumSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Magma };
+            case 4: // Tide: barnacle grey-green plating, brass, bioluminescent mint
+                return new Theme { world = "tide", hull = Barnacle, hullShadow = BarnacleSh, hullHighlight = BarnacleHi,
+                                       accent = Brass, light = Mint, lightDim = MintSh, ink = Ink, bone = Bone,
+                                       explosion = TargetExplosion.Kind.Ice };   // stand-in until Tide's own Water row
             default: return new Theme { world = "space", hull = Steel, hullShadow = SteelSh, hullHighlight = SteelHi,
                                         accent = Bruise, light = Magenta, lightDim = MagentaSh, ink = Ink, bone = Bone,
                                         explosion = TargetExplosion.Kind.Metal };

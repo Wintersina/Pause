@@ -297,7 +297,7 @@ public static class BossCatalog
             // colours are the mint of its eye.)
             new BossDef
             {
-                id = CodexPrefix + "tide", name = "IRON KRAKEN", title = "TYRANT OF THE DEEP", artKey = "Tide", expandedCombat = true,
+                id = CodexPrefix + "tide", name = "IRON KRAKEN", title = "TYRANT OF THE DEEP", artKey = "Tide", damageKey = "Tide", deathKey = "Tide", expandedCombat = true,
                 lore = "A riveted iron kraken that has ruled the Tide trenches since the first hull went down. " +
                        "Its eight pipe-and-cable arms end in cannons, its beak spits a hydraulic jet and its one mint eye never blinks. " +
                        "Everything that sinks here ends up bolted to it.",

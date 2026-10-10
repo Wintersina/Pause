@@ -173,6 +173,26 @@ Shot speeds are relative to the board, in world units per second.
 | `ember_chaser` | Cinder Fang | salamander jaws | chaser: short hard chase, then a wide burnt-out wander | no | jaw gapes while hunting | outlast the short chase |
 | `ember_alien` | Ember Imp | flame in a basalt mask | flickers: quick small `Pulse` + `Sway` | no | flares up when near (cosmetic) | small quick moves, tight envelope |
 
+### Tide (shots: mint, then the world's pink band like every hostile shot)
+
+Behind the release switch (`WorldManager.TideEnabled`); the generic shots stand in until the themed jets / waves / strikes
+(`world-attacks-design.md`) are switched on. Budgets are Ember's, row for row (`roster:tide_*` pins in `AttackBudgetTest`).
+
+| Key | Name | What it is (art) | Movement | Shoots | Tell | Counter |
+|---|---|---|---|---|---|---|
+| `tide_rock_brain` | Brain Coral | maze-fold coral boulder, barnacles | slow tumble, wide lazy `Drift`, tiny `Bob` | no | mint cracks (cosmetic) | wide and slow |
+| `tide_rock_staghorn` | Staghorn Spire | branched reef blade | barely turns; one fast slanted `Glide` | no | polyps glow (cosmetic) | reads early |
+| `tide_rock_urchin` | Spine Urchin | iron-spined ball, mint core | spins as it `Sink`s | no | core flickers (cosmetic) | arrives sooner than it looks |
+| `tide_rock_islet` | Kelp Islet | floating reef slab under kelp | upright; wide slow `Sway`, `Bob` | no | drips (cosmetic) | wide but slow |
+| `tide_mine` | Limpet Mine | horned sea-mine on a brass clamp (second atlas) | `Creep`s down its rail | **yes**: two lasers across the lane at random angles | eye flares 1.0 s (waking -> charging) | be off the line when it blinks |
+| `tide_big` | Nautilus Bulwark | spiral shell hulk, mint maw | holds its column | **yes**: shell opens, a fan of three pearls | maw lights 1.0 s | stand between the shots |
+| `tide_fighter_1` | Remora | suckerfish drone | diagonal `Drift` | no (`Lunge`: straight dash) | eye flares, then the dash | the dash never tracks |
+| `tide_fighter_2` | Needlefish | beaked skiff | `Track`s to line up | **yes**: quick bolts straight down, up to four | beak glows 0.5 s | keep moving |
+| `tide_fighter_3` | Lantern Angler | anglerfish gunship | slow `Drift`, `Brake` hover | **yes**: one aimed bolt | the lure flares 0.8 s | move after the lamp lights |
+| `tide_fighter_4` | Hammerhead | twin-cannon heavy | `Brake` hover, slow `Track` | **yes**: a full ring of eight | gills swell 1.2 s | back off; the ring opens with distance |
+| `tide_chaser` | Wire Eel | mechanical eel | chaser, `ChaserStyle.Slither`: surges in sinusoidal lunges on an S-curve (speed x(1 +/- .85) at .9 Hz, a quarter-cycle side sway) | no | S-curve while hunting | slide sideways; it overshoots on each lunge |
+| `tide_alien` | Glow Jelly | brass-collared jellyfish | `Pulse` + slow `Sway` | no | tendrils lash (cosmetic) | pass on the sink |
+
 17 of the 46 shoot (one of them only some of the time); 29 never do. Six more attack with their body
 (`Lunge`). Bosses are untouched. Elites are untouched apart from the small `EliteShot` addition above.
 
