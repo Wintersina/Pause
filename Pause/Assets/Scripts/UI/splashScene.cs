@@ -28,8 +28,9 @@ using UnityEngine.UI;
 // uniform transform scale and position.
 public class splashScene : MonoBehaviour
 {
-    [Tooltip("How long the card holds if the player does not skip it.")]
-    public float holdSeconds = 1.25f;
+    [Tooltip("How long the intro runs if the player does not tap (the door is forced open " +
+             "and the card leaves). Three taps smash the door and skip it sooner.")]
+    public float holdSeconds = GateSim.IntroSeconds;
 
     [Tooltip("Ignore input for a moment so a stray tap carried over from a " +
              "previous screen cannot skip the card before it is even seen.")]
@@ -66,13 +67,38 @@ public class splashScene : MonoBehaviour
     public const float AuthoredLogoScale = 0.7f;
     public const float AuthoredPixelsPerUnit = 192f;
 
-    float elapsed;
+    // ---- hooks (tests, previews, audio) -------------------------------------
+
+    // Scene change, replaceable so tests can count loads without leaving the scene.
+    public static System.Action<string> LoadScene = name => SceneManager.LoadScene(name);
+
+    // Where the player's presses come from (legacy Input by default).
+    public static System.Func<SplashInput.Sample> InputSource = SplashInput.ReadLegacy;
+
+    // Build the door while not playing (edit-mode tests and preview filmstrips).
+    public static bool BuildGateInEditMode;
+
+    // Sound hooks: no authored cues exist yet, so the splash only names them.
+    // Cues: gate_rattle (intro start), gate_step (each forced-open jolt),
+    // gate_crack (tap 1 and 2), gate_smash (tap 3). See docs/hapticgate-splash.md.
+    public static event System.Action<string> SoundCue;
+
+    public const string NextScene = "startS4";
+
     bool leaving;
-    Transform leftGate, rightGate;
+    int loadCount;
+    public int LoadCount { get { return loadCount; } }
+    public GateSim Sim { get { return sim; } }
+    public GateView View { get { return view; } }
+    public GateArt Art { get { return art; } }
+
+    GateSim sim;
+    GateArt art;
+    GateView view;
     Transform gateRoot;
-    Sprite leftPanelSprite, rightPanelSprite, steamSprite;
-    readonly Transform[] steam = new Transform[6];
-    readonly SpriteRenderer[] steamRenderers = new SpriteRenderer[6];
+    Layout layout;
+    bool haveLayout;
+    Vector3 logoBase, rootBase;
 
     Camera cam;
     Vector2[] wordsAuthored;
@@ -168,17 +194,19 @@ public class splashScene : MonoBehaviour
             logo.color = Color.white;
         }
 
-        if (Application.isPlaying)
+        if (Application.isPlaying || BuildGateInEditMode)
         {
             EnsureGate();
             if (gateRoot != null)
             {
-                gateRoot.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y,
-                                                logo != null ? logo.transform.position.z - 0.15f : 0f);
+                rootBase = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y,
+                                       logo != null ? logo.transform.position.z - 0.15f : 0f);
+                gateRoot.position = rootBase;
                 gateRoot.localScale = Vector3.one * l.logoSize.x;
-                AnimateGate();
+                view.SetView(l.viewSize, l.logoSize.x);
             }
         }
+        if (logo != null) logoBase = logo.transform.position;
 
         if (words != null)
         {
@@ -198,6 +226,9 @@ public class splashScene : MonoBehaviour
             var canvas = wordsScaler.GetComponent<Canvas>();
             if (canvas != null) canvas.scaleFactor = l.wordsScaleFactor;
         }
+        layout = l;
+        haveLayout = true;
+        ApplyShake();
         return l;
     }
 
@@ -223,118 +254,106 @@ public class splashScene : MonoBehaviour
         ApplyLayout(ScreenInfo.Width, ScreenInfo.Height, safe);
     }
 
+    void Awake() { EnsureSim(); }
+
+    void EnsureSim()
+    {
+        if (sim != null) return;
+        sim = new GateSim { naturalSeconds = holdSeconds };
+        sim.Impact += (strength, step) => { if (step >= 0) Cue("gate_step"); };
+        sim.Cracked += stage => { if (stage < GateSim.TapsToSmash) Cue("gate_crack"); };
+        sim.Smashed += () => Cue("gate_smash");
+        sim.Done += Leave;
+    }
+
+    static void Cue(string name) { if (SoundCue != null) SoundCue(name); }
+
+    void Start() { Cue("gate_rattle"); }
+
+    // Back / Escape skips the card at once, as it always did (routed through
+    // BackNavigator, the only reader of Escape).
+    void OnEnable() { BackNavigator.Register(this, OnBackPressed); }
+    void OnDisable() { BackNavigator.Unregister(this); }
+
+    public bool OnBackPressed()
+    {
+        Leave();
+        return true;
+    }
+
     void Update()
     {
         // Unscaled: this is the first scene, and a timeScale left at 0 by a
         // previous run would otherwise stall the card indefinitely.
-        elapsed += Time.unscaledDeltaTime;
-        AnimateGate();
+        var press = InputSource != null ? InputSource() : default(SplashInput.Sample);
+        if (press.tap) Tap();
+        Step(Time.unscaledDeltaTime);
+    }
 
-        if (elapsed >= holdSeconds || (elapsed >= skipLockout && Skipped()))
-            Leave();
+    // Back to the first frame (previews and tests).
+    public void Restart()
+    {
+        EnsureSim();
+        sim.Reset();
+        leaving = false;
+        loadCount = 0;
+    }
+
+    // One discrete press. Up to three are kept (queued), applied in order.
+    public bool Tap()
+    {
+        EnsureSim();
+        return !leaving && sim.Tap();
+    }
+
+    // Advance the card by dt seconds (clamped: a loading hitch must not skip the show).
+    public void Step(float dt)
+    {
+        EnsureSim();
+        sim.naturalSeconds = holdSeconds;
+        dt = Mathf.Min(dt, 0.1f);
+        if (!leaving) sim.Advance(dt);
+        if (view != null) view.Sync(dt);
+        ApplyShake();
     }
 
     void EnsureGate()
     {
         if (gateRoot != null) return;
-        var panels = Resources.Load<Texture2D>("HapticGate/industrial_gate");
-        var vapor = Resources.Load<Texture2D>("HapticGate/steam");
-        if (panels == null || vapor == null) return;
-        panels.filterMode = FilterMode.Point;
-        vapor.filterMode = FilterMode.Point;
+        EnsureSim();
+        art = GateArt.Load();
+        if (art == null) return;
         gateRoot = new GameObject("Industrial gate").transform;
-        leftPanelSprite = PanelSprite(panels, 0.055f);
-        rightPanelSprite = PanelSprite(panels, 0.51f);
-        leftGate = NewPanel("Left steel door", leftPanelSprite);
-        rightGate = NewPanel("Right steel door", rightPanelSprite);
-        steamSprite = Sprite.Create(vapor, new Rect(0, 0, vapor.width, vapor.height),
-                                    new Vector2(0.5f, 0.5f), 100f);
-        for (int i = 0; i < steam.Length; i++)
+        view = new GateView(gateRoot, art, sim);
+    }
+
+    // Shake the whole card (door, mark and words) like a camera shake.
+    void ApplyShake()
+    {
+        if (!haveLayout) return;
+        Vector2 w = sim != null ? sim.shake * layout.logoSize.x : Vector2.zero;
+        if (logo != null) logo.transform.position = logoBase + new Vector3(w.x, w.y, 0f);
+        if (gateRoot != null) gateRoot.position = rootBase + new Vector3(w.x, w.y, 0f);
+        if (words != null && wordsAuthored != null && wordsAuthored.Length == words.Length)
         {
-            var puff = new GameObject("Vent steam " + i);
-            puff.transform.SetParent(gateRoot, false);
-            steam[i] = puff.transform;
-            var sr = puff.AddComponent<SpriteRenderer>();
-            sr.sprite = steamSprite;
-            sr.sortingOrder = 3;
-            steamRenderers[i] = sr;
-        }
-    }
-
-    static Sprite PanelSprite(Texture2D texture, float x)
-    {
-        return Sprite.Create(texture,
-                             new Rect(texture.width * x, texture.height * 0.05f,
-                                      texture.width * 0.44f, texture.height * 0.9f),
-                             new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-    }
-
-    Transform NewPanel(string name, Sprite sprite)
-    {
-        var go = new GameObject(name);
-        go.transform.SetParent(gateRoot, false);
-        go.transform.localScale = Vector3.one * (0.5f / sprite.bounds.size.x);
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = 2;
-        return go.transform;
-    }
-
-    void AnimateGate()
-    {
-        if (gateRoot == null) return;
-        // A held latch, then a smooth powered slide with a small damped stop.
-        float t = elapsed;
-        float latch = t < 0.32f ? Mathf.Sin(t * 68f) * (0.32f - t) * 0.002f : 0f;
-        float open = Mathf.Clamp01((t - 0.32f) / 1.10f);
-        float smooth = open * open * (3f - 2f * open);
-        float stop = open > 0.8f ? Mathf.Sin((open - 0.8f) * 24f) * (1f - open) * 0.009f : 0f;
-        float travel = 0.58f * smooth + stop;
-        leftGate.localPosition = new Vector3(-0.25f - travel + latch, 0f, 0f);
-        rightGate.localPosition = new Vector3(0.25f + travel - latch, 0f, 0f);
-
-        // Repeating puffs rise from both vents. Their staggered life phases
-        // keep the smoke moving smoothly between rendered frames.
-        for (int i = 0; i < steam.Length; i++)
-        {
-            float age = Mathf.Repeat(t - 0.28f - i * 0.18f, 1.08f) / 1.08f;
-            bool active = t >= 0.28f + i * 0.18f && t < 1.85f;
-            float side = i % 2 == 0 ? -1f : 1f;
-            steam[i].localPosition = new Vector3(side * (0.10f + smooth * 0.44f + age * 0.10f),
-                                                  -0.21f + age * 0.31f, -0.02f);
-            float size = 0.065f + age * 0.12f;
-            steam[i].localScale = Vector3.one * (size / steamSprite.bounds.size.x);
-            float alpha = active ? Mathf.Sin(age * Mathf.PI) * 0.56f * (1f - 0.35f * smooth) : 0f;
-            steamRenderers[i].color = new Color(0.74f, 0.85f, 0.92f, alpha);
+            Vector2 c = w * layout.pixelsPerUnit / Mathf.Max(layout.wordsScaleFactor, 0.0001f);
+            for (int i = 0; i < words.Length; i++)
+                if (words[i] != null) words[i].anchoredPosition = wordsAuthored[i] + layout.wordsShift + c;
         }
     }
 
     void OnDestroy()
     {
-        Release(leftPanelSprite);
-        Release(rightPanelSprite);
-        Release(steamSprite);
-    }
-
-    static void Release(Object asset)
-    {
-        if (asset == null) return;
-        if (Application.isPlaying) Destroy(asset);
-        else DestroyImmediate(asset);
-    }
-
-    static bool Skipped()
-    {
-        return Input.GetMouseButtonDown(0)
-            || Input.touchCount > 0
-            || Input.anyKeyDown;
+        if (art != null) art.Release();
+        art = null; view = null;
     }
 
     void Leave()
     {
         if (leaving) return;
         leaving = true;
+        loadCount++;
         Time.timeScale = 1f;
-        SceneManager.LoadScene("startS4");
+        LoadScene(NextScene);
     }
 }

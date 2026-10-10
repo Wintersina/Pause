@@ -691,7 +691,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47079772a8f0c13488f5c9c6cce35078, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holdSeconds: 2
+  holdSeconds: 2.3
   skipLockout: 0.15
   logo: {fileID: 175737379}
   wordsScaler: {fileID: 405873919}
