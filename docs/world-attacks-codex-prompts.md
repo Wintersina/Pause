@@ -121,6 +121,21 @@ c5,c6,c7 spark 1-3 (the impact on the rail, ~64 px, grows and fades).
 Reference the existing rail-mine laser cells (-i the world's <Key>_shots.png cells 4-7 and Enemies/Mines/rail_mines_neon.png) for placement conventions. Lime/cyan/amber limits below.
 ```
 
+### P7b. Ember mine flame-thrower -- `ember_attack_mineflame.png` (Ember only; supersedes the Ember P7 beam)
+
+```
+TASK: <OUT>/ember_attack_mineflame.png, exactly 768x768 RGBA, 6 columns of 128. Replaces the Ember rail mine's laser: a FLAME-THROWER fired from the mine's glowing core across the lane.
+Row 0 (y 0-383): six cells of 128x384 = the flame body, a seamless 6-frame loop at 12 fps. Bottom centre = the nozzle (hot, narrow), the flame flows UP and widens a little; vertically stretchable
+(it is drawn about 6 u long, 0.4 u wide): vertical streaks and licking tongues, no features that need a fixed aspect ratio. Content ~100 px wide. White-yellow core (#FFF4D0, ~20 px), amber
+and orange body (#FFBE32, #FF8C18), a deep red-orange edge (#D04C0E, hue 19: NOT the player's red #FF3E4E, never closer than 22 deg to it), a 2 px neon-pink rim (#FF4CB2) on the outermost
+pixels and a few pink-white ember specks flying off (the hostile cue), turbulent soft edges, plum-black outline (#220C26, 1-2 px) so it reads over the orange lava backdrop. Heat-shimmer feel.
+Row 1 (y 384): pilot a-d = the gas flare building (a small teardrop pilot flame, base at the bottom centre of the cell, tip up, four flickering frames), then aim a,b = a dashed gas-jet tile
+(content 12 px wide, tileable along its length, orange dashes with a pink speck between).
+Row 2 (y 512): burst a-d = the muzzle flare the instant it fires (ragged flame tongues round a white centre, ~120 px), impact a,b = the scorch where the flame meets the far rail.
+Row 3 (y 640): impact c, haze a,b (a very faint warm veil, under 25 % alpha, soft sides), 3 cells left empty.
+Pink-leaning outline rule as the other Ember art; no ice, leaf, water, lime or cyan. Reference: Ember_shots.png, the Ember jet atlas (P4), rail_mines_neon.png.
+```
+
 ### P8. Lash atlas -- `<w>_attack_lash.png` (Verdant vine, Tide tentacle) and P9. Log atlas -- `verdant_attack_log.png`
 
 ```

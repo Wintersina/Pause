@@ -628,20 +628,65 @@ public static class RailMineLaserTest
                 art &= s != null;
                 if (s == null) continue;
                 var px = ShieldContour.ReadPixels(s, out int pw, out int ph);
-                int red = 0, lit = 0, hot = 0;
+                int red = 0, lit = 0, hot = 0, nearRed = 0;
                 for (int i = 0; px != null && i < px.Length; i++)
                 {
                     if (px[i].a < 128) continue;
                     lit++;
-                    if (HostileGlow.IsPlayerRed(px[i])) red++;
                     Color.RGBToHSV(px[i], out float hh, out float ss, out float vv);
+                    if (w == MineLaserArt.EmberWorld)
+                    {
+                        // EMBER'S MINE ONLY (the flame-thrower, MineFlameArt): a red-orange edge is allowed, but never within
+                        // MinHueGapDeg of the player's red (hue 355); the rest of the rule is the same
+                        if (ss > .35f && vv > .25f && HueGap(hh * 360f, MineFlameArt.PlayerRedHueDeg) < MineFlameArt.MinHueGapDeg) red++;
+                        else if (HostileGlow.IsPlayerRed(px[i])) nearRed++;
+                    }
+                    else if (HostileGlow.IsPlayerRed(px[i])) red++;
                     if (ss > .5f && vv > .8f) hot++;
                 }
-                if (s == a.beam0) tints += " " + EnemyRoster.WorldKeys[w] + " " + red + " red / " + hot + " neon of " + lit;
+                if (s == a.beam0) tints += " " + EnemyRoster.WorldKeys[w] + " " + red + " red / " + hot + " neon of " + lit + (w == MineLaserArt.EmberWorld ? " (" + nearRed + " red-orange edge px >= " + MineFlameArt.MinHueGapDeg + " deg off the player's red)" : "");
                 art &= lit > 0 && red == 0 && (s == a.sight || hot > lit / 5);
             }
         }
+        EmberFlame();
         Check("the beam is the world boss's laser art in neon (magenta, Verdant lime), none of it the player's red (" + tints + ")", art);
+    }
+
+    static float HueGap(float a, float b) { float d = Mathf.Abs(a - b) % 360f; return d > 180f ? 360f - d : d; }
+
+    // Ember's mine is a flame-thrower: tongue frames, a growing pilot flame, a burst and a scorch, none of Tide's or the other
+    // worlds' beams changed, the red-orange edge kept clear of the player's red, a pink hostile rim present.
+    static void EmberFlame()
+    {
+        var f = MineFlameArt.Ember();
+        var ember = MineLaserArt.For(MineLaserArt.EmberWorld);
+        Check("Ember's mine beam is the flame-thrower (" + MineFlameArt.BeamFrames + " tongue frames, " + MineFlameArt.PilotFrames + " pilot frames)",
+              ember.flame != null && ember.flame == f && f.Alive);
+        Check("Tide (shares Ember's boss cells) and the other worlds keep the plain beam", MineLaserArt.For(4).flame == null && MineLaserArt.For(0).flame == null &&
+              MineLaserArt.For(1).flame == null && MineLaserArt.For(2).flame == null);
+        int pink = 0, deep = 0, white = 0, orange = 0;
+        float minGap = 360f;
+        foreach (var s in f.beam)
+        {
+            var px = ShieldContour.ReadPixels(s, out int w, out int h);
+            for (int i = 0; i < px.Length; i++)
+            {
+                if (px[i].a < 128) continue;
+                Color.RGBToHSV(px[i], out float hh, out float ss, out float vv);
+                float deg = hh * 360f;
+                if (ss > .35f && vv > .6f)
+                {
+                    float gap = HueGap(deg, MineFlameArt.PlayerRedHueDeg);
+                    minGap = Mathf.Min(minGap, gap);
+                    if (deg > 300f && deg < 340f) pink++;
+                    else if (deg < 28f) deep++;
+                    else orange++;
+                }
+                else if (ss < .2f && vv > .9f) white++;
+            }
+        }
+        Check("the flame's hottest-red pixel is " + F(minGap) + " deg from the player's red (>= " + MineFlameArt.MinHueGapDeg + "), pink rim/embers " + pink +
+              ", red-orange edge " + deep + ", orange/yellow " + orange + ", white-hot " + white, minGap >= MineFlameArt.MinHueGapDeg && pink > 20 && deep > 100 && orange > deep && white > 50);
     }
 
     // ---- 3. damage -----------------------------------------------------------
