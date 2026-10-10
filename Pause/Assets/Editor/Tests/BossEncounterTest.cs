@@ -32,6 +32,7 @@ public static class BossEncounterTest
         try
         {
             EveryWorldHasCompleteArt();
+            TideBossUsesItsExpandedCells();
             LevelEndStartsTheBossThenThePortal();
             EmberHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
@@ -103,9 +104,9 @@ public static class BossEncounterTest
 
     static void EveryWorldHasCompleteArt()
     {
-        Check("one boss per world", BossCatalog.All.Length == WorldManager.LiveWorldCount);
+        Check("one boss per world (Tide's too, while its world switch is off)", BossCatalog.All.Length == WorldManager.Worlds.Length);
         var names = new System.Collections.Generic.HashSet<string>();
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             var boss = BossCatalog.ForWorld(w);
             Check(boss.artKey + " belongs to " + WorldManager.Worlds[w].displayName,
@@ -137,9 +138,49 @@ public static class BossEncounterTest
         // rendered atlases, so hold those and the generator itself.
         Check("the boss generator exists", File.Exists("Assets/Art/Bosses/src~/bosses.py"));
         Check("the warning slab is rendered", File.Exists("Assets/Art/Resources/Bosses/warning.png"));
-        foreach (var dir in new[] { "Space", "Frost", "Verdant", "Ember" })
+        foreach (var dir in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })
             foreach (var suffix in new[] { "", "_shots", "_card" })
                 Check(dir + suffix + ".png is rendered", File.Exists("Assets/Art/Resources/Bosses/" + dir + suffix + ".png"));
+    }
+
+    // The Iron Kraken (Tide): the 35-cell expanded atlas through BossDef.expandedCombat
+    // (data, not a name check), the way Space has it; the others keep their
+    // 20-cell behaviour; no damage / death art yet (the TODO in the add-world
+    // checklist), so it fights pristine and keeps the atlas's death frames.
+    static void TideBossUsesItsExpandedCells()
+    {
+        var tide = BossCatalog.Find("boss_tide");
+        Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 5 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
+        Check("... named IRON KRAKEN, TYRANT OF THE DEEP", tide != null && tide.name == "IRON KRAKEN" && tide.title == "TYRANT OF THE DEEP");
+        Check("expandedCombat: Space and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
+              !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && !BossCatalog.All[3].expandedCombat);
+        Check("Tide's atlas holds 35 cells", BossArt.BodyFrameCount(tide) == BossArt.BodyFrames);
+        Check("its idle is the six tentacle cells at 20..25", BossArt.IdleStart(tide) == 20 && BossArt.IdleCount(tide) == 6 &&
+              BossArt.IdleFrame(tide, 0f) == 20 && BossArt.IdleFrame(tide, 5.5f * 2 * BossArt.Tick) == 25);
+        bool tells = true;
+        for (int pose = 0; pose < 3; pose++)
+        {
+            tells &= BossArt.TellFrame(tide, pose, 0f) == 26 + pose * 3 && BossArt.TellFrame(tide, pose, .99f) == 28 + pose * 3 &&
+                     BossArt.FireFrame(tide, pose) == 28 + pose * 3;
+        }
+        Check("its three tells run 26..34, three drawings each", tells);
+        Check("the other bosses keep the four-cell idle and the base tells",
+              BossArt.IdleStart(BossCatalog.All[1]) == 0 && BossArt.IdleCount(BossCatalog.All[3]) == 4 &&
+              BossArt.FireFrame(BossCatalog.All[3], 0) == BossArt.Fire);
+        Check("no damage or death art yet: it fights pristine, the atlas death stays",
+              !BossArt.HasDamageArt(tide) && !BossArt.HasDeathArt(tide) && BossArt.DeathStrip(tide, 0) == null &&
+              BossArt.DamageIdleCell(tide, 20, 3, 0f) == -1);
+        bool muzzles = BossEmitterTable.FrameCount(BossEmitters.World(tide)) == 35;
+        foreach (var a in tide.attacks)
+            foreach (int part in a.parts)
+                for (int f = 20; f < 35; f++)
+                {
+                    Vector2 m = BossEmitters.Local(tide, part, f);
+                    muzzles &= part >= 0 && Mathf.Abs(m.x) <= BossConfig.BossWorldSize * .5f && Mathf.Abs(m.y) <= BossConfig.BossWorldSize * .5f;
+                }
+        Check("every attack's muzzles resolve in all 15 expanded drawings", muzzles);
+        Check("a mint accent and heart colour of its own", BossWarningConfig.Accent(4) != BossWarningConfig.Accent(3) && tide.heartColor == tide.flash);
+        Check("the attack fx sheet has its row", BossAttackFx.Row(tide) == 4 && BossAttackFx.Get(tide, BossAttackFx.Ring) != null);
     }
 
     static void LevelEndStartsTheBossThenThePortal()

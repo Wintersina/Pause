@@ -312,6 +312,9 @@ public static class CodexCatalogue
             case "Cannon": return "its flank cannons";
             case "Furnace": return "its chest furnace";
             case "Brow": return "the gem on its brow";
+            case "Beak": return "its beak";
+            case "LeftA": case "LeftB": return "its port cannon arms";
+            case "RightA": case "RightB": return "its starboard cannon arms";
             default: return null;
         }
     }

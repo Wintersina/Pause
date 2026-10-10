@@ -163,9 +163,9 @@ Stand-ins (all resolve "Tide" to **Ember**'s; delete each when its phase lands):
 | rails (texture, bounds, edge) | Ember's | `WorldPainter.RailArtWorld`, `Worlds[4].resourceFolder = "Ember"` | 5 |
 | roster, rail mine row, palette, density | Ember's (`EnemyRoster.For` clamps to the last key; `EnemyPalette.ThemeFor(4)`; `EnemyDensity` 5th entry) | add `"tide"` to `EnemyRoster.WorldKeys` with the 12 defs | 12 |
 | explosion | Ice for elites by name, Ember's Magma for the roster | `TargetExplosion.KindForWorld("tide")` | 12 |
-| boss | Ember's (`BossCatalog.ForWorld` clamps; **no** 5th `BossDef`, the codex would list a duplicate) | add the `BossDef` + emitters/hearts/warning/fx rows | 13 |
+| boss | **real**: Iron Kraken (`BossCatalog` 5th `BossDef`, `expandedCombat` 35-cell atlas, emitters / hearts / warning / fx row). **TODO: Tide boss damage + death** (no `damageKey` / `deathKey` yet: it fights pristine and keeps the atlas death; Codex job pending: `Tide_damage.png`, `_damage_fx.png`, `_death.png`, then set the keys and extend `BossDamageTest`) | damage + death art | 13 |
 | codex world entry / enemies | none (`Codex.WorldId(4)` is null, discovery skips) | `CodexCatalogue.WorldIds` + entry | 16 |
-| `BossWarning.Accents`, `BossHearts.Body`, `BossAttackFx` rows | clamped to Ember's | each file | 13 |
+| `BossWarning.Accents`, `BossHearts.Body`, `BossAttackFx` rows | **real** (mint; attacks are placeholders on the existing kinds: beak = beam, left cluster = fan, right = lob; themed water attacks still **TODO**, phase 12b) | each file | 13 |
 | elites, sounds | none for Tide | `add-elite-ship`, phase 8/15 | 14, 15 |
 | leaderboard `furthest_world` store range | still 1-4 in the stores | user: Play Console / Game Center, set 1-5 before the switch ships (`docs/leaderboards.md`) | 17 |
 

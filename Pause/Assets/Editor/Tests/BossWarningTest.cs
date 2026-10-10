@@ -844,7 +844,7 @@ public static class BossWarningTest
             float deg = h * 360f;
             red |= sat > .5f && (deg < 20f || deg > 345f);
         }
-        Check("one accent per world, none of them the player's red", BossWarningConfig.Accents.Length == WorldManager.LiveWorldCount && !red);
+        Check("one accent per world, none of them the player's red", BossWarningConfig.Accents.Length == WorldManager.Worlds.Length && !red);
         UnityEngine.Object.DestroyImmediate(hud.gameObject);
         UnityEngine.Object.DestroyImmediate(go);
     }

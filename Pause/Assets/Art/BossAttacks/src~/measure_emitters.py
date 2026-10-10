@@ -44,6 +44,10 @@ COLS = 5
 FRAMES = list(range(12))
 FRAME_NAMES = ["idle0", "idle1", "idle2", "idle3", "hit", "tell0a", "tell0b",
                "tell1a", "tell1b", "fire", "tell2a", "tell2b"]
+# The Iron Kraken (Tide) is measured on every cell of its expanded 35-cell
+# atlas (0..19 base, 20..25 tentacle idle, 26..34 the three tells): its
+# tentacles move, so each drawing has its own muzzle pixels.
+EXPANDED = {"Tide": 35}
 
 # name, reference frame, patch centre (cell px, y down), patch half size,
 # muzzle offset from the patch centre (cell px at the reference frame).
@@ -72,6 +76,13 @@ PARTS = {
         ("CannonR", 0, (276, 262), 22, (14, 10)),
         ("Bulb", 0, (190, 180), 30, (0, 0)),       # the seed bulb (radial centre for spores)
     ],
+    "Tide": [
+        ("Beak", 20, (190, 170), 24, (0, 12)),     # the hydraulic beak -> its mouth (the pressure jet)
+        # the four cannon lenses (tentacle clusters) are found per drawing as
+        # bright mint discs, see measure_tide(); the names are the part order.
+        ("LeftA", None, None, 0, (0, 0)), ("LeftB", None, None, 0, (0, 0)),
+        ("RightA", None, None, 0, (0, 0)), ("RightB", None, None, 0, (0, 0)),
+    ],
     "Ember": [
         ("Jaw", 0, (192, 196), 26, (0, 8)),        # the burning maw
         ("Furnace", 0, (192, 250), 22, (0, 0)),    # the chest furnace
@@ -84,7 +95,8 @@ PARTS = {
 # (y0, y1, x0, x1): the Drake's wings flap between poses, so only its head
 # and neck are compared.
 BAND = {"Space": (96, 282, 0, 384), "Frost": (112, 292, 0, 384),
-        "Verdant": (40, 262, 0, 384), "Ember": (40, 236, 112, 272)}
+        "Verdant": (40, 262, 0, 384), "Ember": (40, 236, 112, 272),
+        "Tide": (56, 250, 112, 272)}
 
 SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
@@ -92,7 +104,7 @@ SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 def cells(world):
     im = Image.open(os.path.join(ATLAS, world + ".png")).convert("RGBA")
     out = []
-    for f in range(12):
+    for f in range(EXPANDED.get(world, 12)):
         r, c = divmod(f, COLS)
         out.append(im.crop((c * CELL, r * CELL, c * CELL + CELL, r * CELL + CELL)))
     return out
@@ -192,7 +204,107 @@ def snap_opaque(img, x, y, radius=96):
     return best[1], best[2]
 
 
+def snap_or_keep(img, pt):
+    """pt snapped onto an opaque pixel of this drawing; kept as is where the
+    drawing is nearly empty (a death debris cell: nothing fires from it)."""
+    try:
+        return snap_opaque(img, pt[0], pt[1])
+    except SystemExit:
+        return pt
+
+
+def lens_blobs(img):
+    """The bright mint cannon lenses of a Kraken drawing, as (x, y, size)."""
+    a = np.asarray(img).astype(int)
+    r, g, b, al = a[:, :, 0], a[:, :, 1], a[:, :, 2], a[:, :, 3]
+    m = (al > 200) & (g > 190) & (b > 165) & (g >= r + 25)
+    H, W = m.shape
+    seen = np.zeros(m.shape, bool)
+    out = []
+    for y in range(H):
+        for x in range(W):
+            if m[y, x] and not seen[y, x]:
+                st = [(y, x)]
+                seen[y, x] = True
+                pts = []
+                while st:
+                    cy, cx = st.pop()
+                    pts.append((cx, cy))
+                    for dy in (-1, 0, 1):
+                        for dx in (-1, 0, 1):
+                            ny, nx = cy + dy, cx + dx
+                            if 0 <= ny < H and 0 <= nx < W and m[ny, nx] and not seen[ny, nx]:
+                                seen[ny, nx] = True
+                                st.append((ny, nx))
+                if 12 <= len(pts) <= 120:
+                    p = np.array(pts).mean(0)
+                    cx, cy = p
+                    if 140 < cx < 244 and 95 < cy < 160:   # the central eye
+                        continue
+                    if 150 < cx < 234:                      # the beak's jet
+                        continue
+                    out.append((float(cx), float(cy), len(pts)))
+    return out
+
+
+def measure_tide(world):
+    frames = cells(world)
+    table = []
+    regs = {}
+    # Beak: template-matched from the first idle drawing like any other part.
+    name, ref_f, seed, half, off = PARTS[world][0]
+    ref = frames[ref_f]
+    pts = []
+    for f in range(len(frames)):
+        if f < 20:   # the base drawings: the expanded combat never fires from them; filled below
+            pts.append(None)
+            continue
+        if f == ref_f:
+            x, y, s = seed[0], seed[1], 1.0
+        else:
+            if (ref_f, f) not in regs:
+                regs[(ref_f, f)] = register(ref, frames[f], BAND[world])
+            x, y, s = match(ref, frames[f], seed, half, regs[(ref_f, f)])
+        pts.append(snap_opaque(frames[f], x + off[0] * s, y + off[1] * s))
+    for f in range(0, 20):
+        pts[f] = snap_or_keep(frames[f], pts[ref_f])
+    table.append((name, pts))
+    # Cannons: per drawing, the two lenses left of the eye (upper, lower) and
+    # the two right of it.
+    sides = [[], [], [], []]
+    for f, img in enumerate(frames):
+        blobs = lens_blobs(img) if f >= 20 else []
+        left = sorted([b for b in blobs if b[0] < 192], key=lambda b: b[1])
+        right = sorted([b for b in blobs if b[0] >= 192], key=lambda b: b[1])
+        for k, grp in enumerate((left, right)):
+            if len(grp) != 2 and f >= 20:
+                print("  WARN %s drawing %d: %d lenses on the %s" % (world, f, len(grp), "left" if k == 0 else "right"))
+                grp = (grp + [None, None])[:2] if len(grp) < 2 else grp[:2]
+            if len(grp) < 2:
+                grp = [None, None]
+            for j in (0, 1):
+                sides[k * 2 + j].append(grp[j])
+    for k in range(4):
+        name = PARTS[world][1 + k][0]
+        pts = []
+        last = None
+        for f, b in enumerate(sides[k]):
+            if f < 20:
+                pts.append(None)
+                continue
+            if b is None:   # a drawing with a dim lens: keep the neighbouring drawing's
+                b = next((c for c in sides[k][f:] if c is not None), last)
+            last = b
+            pts.append(snap_opaque(frames[f], b[0], b[1]))
+        for f in range(0, 20):
+            pts[f] = snap_or_keep(frames[f], pts[20])
+        table.append((name, pts))
+    return frames, table
+
+
 def measure(world):
+    if world in EXPANDED:
+        return measure_tide(world)
     frames = cells(world)
     table = []
     regs = {}
@@ -214,10 +326,12 @@ def measure(world):
 
 def preview(world, frames, table, out_dir):
     S = 1
-    sheet = Image.new("RGBA", (CELL * 6, (CELL + 18) * 2), (16, 16, 26, 255))
+    n = len(frames)
+    sheet = Image.new("RGBA", (CELL * 6, (CELL + 18) * ((n + 5) // 6)), (16, 16, 26, 255))
     colors = [(0, 255, 120), (255, 230, 0), (0, 200, 255), (255, 120, 0), (255, 255, 255),
               (180, 120, 255), (120, 255, 255), (255, 160, 200), (160, 255, 0), (255, 80, 255)]
-    for i, f in enumerate(FRAMES):
+    for i in range(n):
+        f = i
         bg = Image.new("RGBA", (CELL, CELL), (16, 16, 26, 255))
         bg.alpha_composite(frames[f])
         d = ImageDraw.Draw(bg)
@@ -231,7 +345,7 @@ def preview(world, frames, table, out_dir):
                 d.text((x + 6, y - 12), name, fill=c)
         X, Y = (i % 6) * CELL, (i // 6) * (CELL + 18)
         sheet.paste(bg, (X, Y + 18))
-        ImageDraw.Draw(sheet).text((X + 4, Y + 3), FRAME_NAMES[i], fill=(255, 255, 255, 255))
+        ImageDraw.Draw(sheet).text((X + 4, Y + 3), FRAME_NAMES[i] if i < len(FRAME_NAMES) else "cell%d" % i, fill=(255, 255, 255, 255))
     sheet.save(os.path.join(out_dir, "bossatk-emitters-%s.png" % world.lower()))
 
 
@@ -245,10 +359,13 @@ def write_cs(results):
     w("// Muzzle points per boss, per named body part, per body drawing (BossArt")
     w("// flat frames 0..11: idle 0..3, hit, tell0 a/b, tell1 a/b, fire, tell2")
     w("// a/b), in cell pixels (384 per cell, x right, y down from the top-left).")
+    w("// The Iron Kraken's table also covers its expanded cells 20..34.")
     w("public static class BossEmitterTable")
     w("{")
     w("    public const int CellPixels = %d;" % CELL)
-    w("    public const int Frames = %d;" % len(FRAMES))
+    w("    public const int Frames = %d;   // the base drawings every boss has" % len(FRAMES))
+    w("    // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide: 35).")
+    w("    public static int FrameCount(int world) { return Points[world][0].Length / 2; }")
     w("")
     w("    public static readonly string[] Worlds = { %s };" % ", ".join('"%s"' % k for k in results))
     w("")
@@ -280,12 +397,12 @@ def main():
         out_dir = sys.argv[sys.argv.index("--preview") + 1]
         os.makedirs(out_dir, exist_ok=True)
     results = {}
-    for world in ["Space", "Frost", "Verdant", "Ember"]:
+    for world in ["Space", "Frost", "Verdant", "Ember", "Tide"]:
         frames, table = measure(world)
         results[world] = table
         if out_dir:
             preview(world, frames, table, out_dir)
-        print(world, ", ".join("%s %s" % (n, pts[9]) for n, pts in table))
+        print(world, ", ".join("%s %s" % (n, pts[min(9, len(pts) - 1)]) for n, pts in table))
     write_cs(results)
     print("wrote", OUT)
 
