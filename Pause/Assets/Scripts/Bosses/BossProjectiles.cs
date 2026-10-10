@@ -321,6 +321,9 @@ public class BossBeam : MonoBehaviour
     public float LiveAge => age;   // seconds since it ignited (once live)
     public float TellLeft => tellLeft;   // seconds of telegraph left (tests, the dodge bot)
     public float HoldLeft => holdLeft;   // seconds of live beam left
+    public float SweepDeg => sweepDeg;   // degrees it swings over its hold (+ counter-clockwise)
+    public float HoldTotal => holdTotal;
+    public float StartDeg => startDeg;   // the angle it ignites at (its telegraph scans the arc from here)
 
     // Does a circle at p (radius r) touch the live beam's hitbox?
     public bool Touches(Vector2 p, float r)
