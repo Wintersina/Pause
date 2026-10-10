@@ -8,8 +8,9 @@ using Object = UnityEngine.Object;
 // blue-atom shield runs out, hazards near the ship are pushed away from it
 // and everything in front of the ship in its column is pushed up-screen.
 //
-//   - the shield ending is what fires it, with a cyan ring the size of the
-//     push radius and a streak up the column, both built ahead of time
+//   - the shield ending is what fires it, with a transparent turbulent ring
+//     (only its circumference shows) out to the push radius and a faint
+//     streak up the column edges, both built ahead of time
 //   - inside the radius: pushed outward, harder the closer; outside: not at all
 //   - the ship's column: pushed up-screen however far away; the neighbouring
 //     column and anything behind the ship: not
@@ -68,6 +69,7 @@ public static class ShieldShockwaveTest
             NothingMovesWhilePaused();
             NoScoreNoKills();
             ReleaseAllocatesNothing();
+            TheRingIsOnlyACircumference();
             GuardsAndFeel();
         }
         finally
@@ -178,9 +180,6 @@ public static class ShieldShockwaveTest
 
         var fx = ShieldShockwaveFx.Instance;
         Check("the ring and the column streak show on the release frame", fx != null && fx.RingShowing && fx.StreakShowing);
-        var tint = fx != null ? fx.RingTint : Color.clear;
-        Check("the ring is shield cyan, not the player's red (" + ColorUtility.ToHtmlStringRGB(tint) + ")",
-              tint.b > .8f && tint.g > .8f && tint.r < .6f);
         float widest = 0f;
         bool streakUp = false;
         for (int i = 0; i < 40 && fx != null; i++)
@@ -190,7 +189,7 @@ public static class ShieldShockwaveTest
             if (fx.StreakShowing) streakUp |= fx.StreakBounds.max.y > CameraFit.ViewTop - .6f && Mathf.Abs(fx.StreakBounds.center.x - Ship.x) < .01f;
         }
         Check("the ring grows to the push radius (" + widest.ToString("F2") + " of " + ShieldShockwave.Radius + " u)",
-              widest > ShieldShockwave.Radius * .9f && widest <= ShieldShockwave.Radius * 1.02f);
+              widest > ShieldShockwave.Radius * .97f && widest <= ShieldShockwave.Radius * 1.02f);
         Check("the streak runs up the ship's column to the top of the view", streakUp);
         Check("both are gone when it is over", fx != null && !fx.RingShowing && !fx.StreakShowing);
         Check("the hazard beside the ship was shoved away by it", (near.transform.position - was).magnitude > .2f);
@@ -767,6 +766,11 @@ public static class ShieldShockwaveTest
         Check("300 frozen frames: nothing has moved and the pushes are still waiting (" + EnemyShove.Active + ")",
               near.transform.position == nearAt && column.transform.position == columnAt && EnemyShove.Active == active && active == 2);
         Check("... the ring holds its drawing", fx.RingShowing);
+        var frozenPx = (Color32[])fx.RingPixels.Clone();
+        for (int i = 0; i < 30; i++) { TestHarness.Send(fx, "LateUpdate"); fx.Tick(0f); }
+        bool same = true;
+        for (int i = 0; i < frozenPx.Length; i++) if (!frozenPx[i].Equals(fx.RingPixels[i])) { same = false; break; }
+        Check("... pixel for pixel while frozen", same);
 
         score.pauseCounter = 0;
         buttonClicks.playerDied = true;
@@ -861,6 +865,105 @@ public static class ShieldShockwaveTest
               ShieldShockwaveFx.Created == created && Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Length == objects);
         Check("every one of those releases shoved a busy board (at least " + least + " bodies, capacity " + EnemyShove.Capacity + ")",
               least > 5 && least <= EnemyShove.Capacity);
+    }
+
+    // ---- the ring's picture ----------------------------------------------------
+
+    static float PxAlpha(Color32[] px, int w, int x, int y) { return px[y * w + x].a / 255f; }
+
+    static void TheRingIsOnlyACircumference()
+    {
+        Fresh();
+        ShieldShockwave.ResetGuards();
+        var fx = ShieldShockwaveFx.Ensure();
+        const float ppu = ShieldShockwave.PixelsPerUnit;
+        ShieldShockwaveFx.Play(Ship, ShieldShockwave.Radius, .4f, Ship.y + 9f, 0, 4);
+        int w = fx.RingCanvas, half = w / 2;
+        bool interiorClear = true, anyRing = true, tame = true, bluish = true;
+        int minRing = int.MaxValue;
+        float worstInside = 0f;
+        float[] times = { 0f, .05f, .1f, .15f, .2f, .28f, .33f };
+        float t = 0f;
+        foreach (float at in times)
+        {
+            while (t < at - 1e-4f) { fx.Tick(Dt); t += Dt; }
+            if (!fx.RingShowing) { anyRing = false; continue; }
+            float R = fx.RingWorldRadius * ppu;
+            var px = fx.RingPixels;
+            int onRing = 0;
+            float lead = 0f;
+            for (int y = 0; y < w; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float a = PxAlpha(px, w, x, y);
+                    if (a <= 0f) continue;
+                    float d = Mathf.Sqrt((x + .5f - half) * (x + .5f - half) + (y + .5f - half) * (y + .5f - half));
+                    if (a > .70f) tame = false;
+                    // nothing visible further inside than the strands' reach (leading radius - 8 px - turbulence)
+                    if (d < R - 14f) { interiorClear = false; worstInside = Mathf.Max(worstInside, a); }
+                    if (Mathf.Abs(d - R) <= .2f * ppu) { onRing++; lead = Mathf.Max(lead, a); }
+                    var c = px[y * w + x];
+                    if (!(c.b > c.r + 40 && c.b < 250 && c.r < 215)) bluish = false;
+                }
+            minRing = Mathf.Min(minRing, onRing);
+            Check("t " + at.ToString("F2") + ": " + onRing + " ring pixels within +-0.2 u of the radius " + fx.RingWorldRadius.ToString("F2") + ", brightest " + lead.ToString("F2"),
+                  onRing > 40 && lead > .08f);
+        }
+        Check("the disc inside the circle is fully transparent at every sample (worst inside alpha " + worstInside.ToString("F2") + ")", interiorClear);
+        Check("the ring showed at every sample", anyRing);
+        Check("no pixel brighter than 70% alpha anywhere (max " + fx.RingMaxAlpha + "/255)", tame && fx.RingMaxAlpha <= 178);
+        Check("every drawn pixel is a pale shield blue (not white, not pink)", bluish);
+
+        // the exact centre and the hull's neighbourhood
+        Check("the centre pixels are transparent",
+              PxAlpha(fx.RingPixels, w, half, half) == 0f && PxAlpha(fx.RingPixels, w, half + 4, half - 3) == 0f);
+
+        // at PushSeconds the circle is at the push radius
+        ShieldShockwaveFx.Play(Ship, ShieldShockwave.Radius, .4f, Ship.y + 9f, 0, 4);
+        for (float u = 0f; u < ShieldShockwave.PushSeconds - 1e-4f; u += Dt) fx.Tick(Dt);
+        fx.Tick(Dt);
+        Check("at PushSeconds the circle is out at the push radius (" + fx.RingWorldRadius.ToString("F2") + ")",
+              fx.RingShowing && Mathf.Abs(fx.RingWorldRadius - ShieldShockwave.Radius) < .05f);
+        for (float u = 0f; u < ShieldShockwave.RingSeconds; u += Dt) fx.Tick(Dt);
+        Check("it fades out and is gone at RingSeconds", !fx.RingShowing);
+
+        // sorting: behind hazards (5), the ship (6), under shots
+        Check("sorted below the hazards and the ship; the streak below the ring",
+              fx.RingRenderer.sortingOrder < 5 && fx.StreakRenderer.sortingOrder < fx.RingRenderer.sortingOrder);
+
+        // the streak: transparent between its two edge lines, faint
+        ShieldShockwaveFx.Play(Ship, ShieldShockwave.Radius, .4f, Ship.y + 9f, 0, 4);
+        for (int i = 0; i < 10; i++) fx.Tick(Dt);
+        var sp = fx.StreakPixels;
+        int sw = fx.StreakCanvasWidth, sh = fx.StreakCanvasHeight, cx = sw / 2, edge = Mathf.RoundToInt(.4f * ppu);
+        bool streakClear = true, streakAny = false;
+        for (int y = 0; y < sh; y++)
+            for (int x = 0; x < sw; x++)
+            {
+                float a = PxAlpha(sp, sw, x, y);
+                if (a <= 0f) continue;
+                streakAny = true;
+                if (Mathf.Abs(x - cx) < edge - 3 || Mathf.Abs(x - cx) > edge + 3) streakClear = false;
+            }
+        Check("the column streak is only two thin edge lines, nothing between them or outside (max alpha " + fx.StreakMaxAlpha + "/255)",
+              streakAny && streakClear && fx.StreakMaxAlpha <= 90);
+
+        // no allocation per frame
+        ShieldShockwaveFx.Play(Ship, ShieldShockwave.Radius, .4f, Ship.y + 9f, 0, 4);
+        Action frames = () =>
+        {
+            for (int n = 0; n < 40; n++)
+            {
+                ShieldShockwaveFx.Play(Ship, ShieldShockwave.Radius, .4f, Ship.y + 9f, 0, 4);
+                for (int i = 0; i < 20; i++) fx.Tick(Dt);
+            }
+        };
+        frames();
+        long control;
+        bool meterWorks = TestHarness.AllocMeterWorks(out control);
+        long bytes = TestHarness.AllocatedBytes(frames);
+        int created = ShieldShockwaveFx.Created;
+        Check("800 painted frames allocate nothing (" + bytes + " bytes) and build nothing new", meterWorks && bytes == 0 && ShieldShockwaveFx.Created == created);
     }
 
     // ---- guards, feel ----------------------------------------------------------

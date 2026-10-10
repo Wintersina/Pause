@@ -3,127 +3,139 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders the shield's release shockwave (ShieldShockwave) a few frames after it fires, for review:
-// a shielded ship, hazards around and above it, frames at 0, 0.1, 0.2 and 0.4 s.
+// Renders the shield's release shockwave (ShieldShockwave) over real backdrops, for review:
+// a shielded ship with real enemy sprites around it, frames at 0, .1, .2, .3 and .4 s over Space,
+// Frost, Verdant and Ember. Per world: shockwave-<world>-strip.png (cropped around the ship, the
+// five frames side by side) and shockwave-<world>-full-0.2.png (the whole screen).
 //
-//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod ShockwavePreview.Run
-//   (frames to $SHOCKWAVE_PREVIEW_DIR/shockwave-<t>.png, else Builds/ShockwavePreview)
+//   SHOCKWAVE_PREVIEW_DIR=<dir> Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod ShockwavePreview.Run
 public static class ShockwavePreview
 {
-    const int Width = 432;
-    const float HalfH = 6.4f, HalfW = 2.95f, Dt = 1f / 60f;
-    static Camera cam;
+    const int W = 1080, H = 2400, Crop = 760;
+    const float Dt = 1f / 60f;
+    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember" };
 
     public static void Run()
     {
         string dir = System.Environment.GetEnvironmentVariable("SHOCKWAVE_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/ShockwavePreview";
         Directory.CreateDirectory(dir);
-        using (var sandbox = new TestHarness.Sandbox())
+        int failures = 0;
+        using (new TestHarness.Sandbox())
         {
-            try { Clip(dir); }
-            catch (System.Exception e) { Debug.LogError("[ShockwavePreview] " + e); }
+            for (int w = 0; w < Worlds.Length; w++)
+            {
+                try { One(dir, w); }
+                catch (System.Exception e) { Debug.LogException(e); failures++; }
+            }
             EnemyShove.Clear();
+            EliteSystem.PlayerOverride = null;
+            EliteSystem.Clear();
+            PlayField.Reset();
+            ScreenInfo.ClearOverride();
         }
-        EditorApplication.Exit(0);
+        EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 
-    static void Clip(string dir)
+    static void One(string dir, int world)
     {
-        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        string name = Worlds[world];
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity");
+        BossEncounter.ResetRun();
+        BossRails.Reset();
+        PortalPressure.Reset();
+        RunLoop.Reset();
+        var cam = Camera.main;
+        cam.aspect = W / (float)H;
+        cam.orthographicSize = CameraFit.ComputeSize(5f, CameraFit.GameplayHalfWidth, W, H);
+        PlayField.Reset();
         buttonClicks.playerDied = false;
-        score.pauseCounter = 0;
         startMenu.youAreInTutorial = false;
-        moveBackGround.speed = .2f;
+        score.pauseCounter = 0;
+        Time.timeScale = 1f;
+        moveBackGround.speed = .25f;
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        Random.InitState(7);
+        var paused = SceneUtil.FindAny("paused");
+        if (paused != null) paused.SetActive(false);
+        WorldPainter.Apply(WorldManager.Worlds[world]);
+        foreach (var n in new[] { "leftPipe", "rightPipe" })
+        {
+            var wall = GameObject.Find(n);
+            if (wall == null) continue;
+            var sc = wall.transform.localScale;
+            sc.y = cam.orthographicSize * 2f * 1.085f / wall.GetComponent<MeshFilter>().sharedMesh.bounds.size.y;
+            wall.transform.localScale = sc;
+            RailFit.RefreshTextureTiling(wall);
+        }
+        BossRails.Measure();
         ShieldShockwave.ResetGuards();
         EnemyShove.Clear();
 
-        var camGo = new GameObject("Main Camera", typeof(Camera));
-        camGo.tag = "MainCamera";
-        cam = camGo.GetComponent<Camera>();
-        cam.orthographic = true;
-        cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(.06f, .05f, .14f);
-        cam.orthographicSize = HalfH;
-        cam.aspect = HalfW / HalfH;
-        cam.transform.position = new Vector3(0f, 0f, -10f);
+        var wb = WorldBackdrop.Create(name);
+        if (name != "Space") wb.Show("Space", false);
+        wb.Show(name, false);
+        for (int i = 0; i < (name == "Space" ? 240 : 60 * 14); i++) wb.Step(Dt);
 
-        var ship = new GameObject(ShipId.ObjectName(ShipId.Starter) + "(Clone)", typeof(SpriteRenderer));
-        var sr = ship.GetComponent<SpriteRenderer>();
-        sr.sprite = ShipHullArt.Rest(ShipId.Starter);
-        sr.sortingOrder = 6;
-        float s = shopingShips.NormalizedHullScale(sr.sprite);
-        ship.transform.localScale = new Vector3(s, s, 1f);
-        ship.transform.position = new Vector3(0f, -3f, 0f);
-
-        // pink hazards: beside the ship, in its column, beyond the ring, behind
-        Hazard(new Vector2(1.2f, -2.3f), .5f);
-        Hazard(new Vector2(-1.7f, -3.3f), .5f);
-        Hazard(new Vector2(0f, -.6f), .5f);
-        Hazard(new Vector2(.05f, 2.2f), .5f);
-        Hazard(new Vector2(-2.0f, 0f), .5f);      // outside both: stays
-        Hazard(new Vector2(1.9f, -5.3f), .5f);    // behind, inside the ring
-
+        var ship = new GameObject("~PfSpawner").AddComponent<spawnShips>().Spawn(ShipId.Starter);
+        ship.transform.position = new Vector3(0f, -1.6f, 0f);
         var shield = ShipShield.For(ship);
         shield.remainingOverride = 5f;
         shield.Show();
         for (int i = 0; i < 40; i++) shield.Tick(Dt);
-        Shoot(Path.Combine(dir, "shockwave-before.png"));
+
+        // real enemies: around the ship, in its column, beyond the ring
+        Vector2[] spots = { new Vector2(1.3f, -1.2f), new Vector2(-1.4f, -2.3f), new Vector2(.1f, .3f), new Vector2(-.9f, 1.3f), new Vector2(1.5f, 2.2f), new Vector2(-2.2f, -.4f) };
+        int placed = 0;
+        foreach (var def in EnemyRoster.All)
+        {
+            if (placed >= spots.Length) break;
+            if (def.role == EnemyRole.Chaser || def.role == EnemyRole.Mine) continue;
+            var go = EnemyFactory.Create(def, new Vector3(spots[placed].x, spots[placed].y, 0f), Quaternion.identity);
+            var brain = go.GetComponent<EnemyBrain>();
+            if (brain != null) brain.TargetOverride = ship.transform;
+            placed++;
+        }
         shield.Hide();   // the 5.8 s ran out: ShipShield.Hide -> ShieldShockwave.TryRelease
 
+        Vector3 vp = cam.WorldToViewportPoint(ship.transform.position);
+        Vector3 sp = new Vector3(vp.x * W, vp.y * H, 0f);
+        int cx = Mathf.Clamp(Mathf.RoundToInt(sp.x) - Crop / 2, 0, W - Crop), cy = Mathf.Clamp(Mathf.RoundToInt(sp.y) - Crop / 2, 0, H - Crop);
+        var times = new[] { 0f, .1f, .2f, .3f, .4f };
+        var strip = new Texture2D(Crop * times.Length, Crop, TextureFormat.RGB24, false);
         float t = 0f;
-        foreach (float at in new[] { 0f, .1f, .2f, .4f })
+        for (int k = 0; k < times.Length; k++)
         {
-            while (t < at - 1e-4f)
+            while (t < times[k] - 1e-4f)
             {
                 ShieldShockwaveFx.Instance.Tick(Dt);
-                ShieldShards.Instance.Tick(Dt);
+                if (ShieldShards.Instance != null) ShieldShards.Instance.Tick(Dt);
                 t += Dt;
             }
-            Shoot(Path.Combine(dir, "shockwave-" + at.ToString("0.0") + ".png"));
+            var full = Render(cam);
+            strip.SetPixels(Crop * k, 0, Crop, Crop, full.GetPixels(cx, cy, Crop, Crop));
+            if (k == 2) File.WriteAllBytes(Path.Combine(dir, "shockwave-" + name + "-full-0.2.png"), full.EncodeToPNG());
+            Object.DestroyImmediate(full);
         }
+        File.WriteAllBytes(Path.Combine(dir, "shockwave-" + name + "-strip.png"), strip.EncodeToPNG());
+        Object.DestroyImmediate(strip);
+        Object.DestroyImmediate(wb.gameObject);
     }
 
-    static Sprite white;
-    static void Hazard(Vector2 at, float size)
+    static Texture2D Render(Camera cam)
     {
-        if (white == null)
-        {
-            var tex = new Texture2D(1, 1);
-            tex.SetPixel(0, 0, Color.white);
-            tex.Apply();
-            white = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(.5f, .5f), 1f);
-        }
-        var go = new GameObject("~hazard");
-        go.tag = "Enimey";
-        go.transform.position = new Vector3(at.x, at.y, 0f);
-        go.transform.localScale = new Vector3(size, size, 1f);
-        var r = go.AddComponent<SpriteRenderer>();
-        r.sprite = white;
-        r.color = new Color(1f, .25f, .6f);
-        r.sortingOrder = 5;
-        var box = go.AddComponent<BoxCollider2D>();
-        box.isTrigger = true;
-        ClearTarget.Ensure(go).SetRadius(size * .5f);
-        SpawnFootprint.Attach(go, Vector2.one * size * .5f);
-        go.transform.localScale = new Vector3(size, size, 1f);
-    }
-
-    static void Shoot(string path)
-    {
-        int px = Width, py = Mathf.RoundToInt(Width / cam.aspect);
-        var rt = new RenderTexture(px, py, 24);
+        var rt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        var previous = cam.targetTexture;
         cam.targetTexture = rt;
         cam.Render();
         var old = RenderTexture.active;
         RenderTexture.active = rt;
-        var png = new Texture2D(px, py, TextureFormat.RGB24, false);
-        png.ReadPixels(new Rect(0, 0, px, py), 0, 0);
+        var png = new Texture2D(W, H, TextureFormat.RGB24, false);
+        png.ReadPixels(new Rect(0, 0, W, H), 0, 0);
         png.Apply();
-        File.WriteAllBytes(path, png.EncodeToPNG());
         RenderTexture.active = old;
-        cam.targetTexture = null;
-        Object.DestroyImmediate(png);
+        cam.targetTexture = previous;
         Object.DestroyImmediate(rt);
+        return png;
     }
 }

@@ -112,10 +112,13 @@ public sealed class EnemyBehaviour
             if (style != null) return style;
             var def = EnemyRoster.Find(key);
             Color c = EnemyBehaviours.ShotColor(def != null ? def.world : 0);
+            // (the shooter's world rides along: ShotSkins picks the shot's drawing by it, EliteShot.Launch)
+            int w = def != null ? Mathf.Clamp(def.world, 0, EnemyRoster.WorldKeys.Length - 1) : 0;
             style = new EliteDef
             {
                 key = key + "_shot", shotSize = shotSize, shotBounces = 0, lobSeconds = EnemyBehaviours.LobSeconds,
                 poolSeconds = poolSeconds, ShotColor = c, ShotCore = Color.Lerp(c, Color.white, .8f),
+                world = EnemyRoster.WorldKeys[w], WorldIndex = w,
             };
             return style;
         }

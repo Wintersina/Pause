@@ -18,7 +18,7 @@ playbook. Companion files (read them when the phase says so):
 | `art-briefs.md` | Reusable Codex prompt templates (planet, backdrop A/B/C, enemy strips, deaths, elites, boss, damage, rails, sounds, fix passes) |
 | `world-5-6-briefs.md` | Starter briefs for World 5 *Tide* (ocean) and World 6 *Storm* (gas giant) -- **proposals** for the user to refine |
 | `docs/world-attacks-design.md`, `world-attacks-art.md`, `world-attacks-codex-prompts.md`, `world-attacks-implementation-plan.md`, `world-attacks-audit.md` (repo `docs/`) | **THEMED ATTACKS**: the per-world attack for every enemy/elite/boss/mine, the pink-cue and fairness contracts, the attack art list + Codex prompts, the build plan. Read before Phase 12b |
-| `scripts/` | `world_audit.sh` (what a world touches), `run_codex.sh`, `contact_sheet.py`, and pre-flight verifiers that reproduce the Unity tests' numbers on Codex output: `verify_enemy_strip.py`, `verify_backdrop_tiles.py`, `verify_planetfall_art.py`, `verify_boss_art.py`, `verify_wavs.py` |
+| `scripts/` | `world_audit.sh` (what a world touches), `run_codex.sh`, `contact_sheet.py`, and pre-flight verifiers that reproduce the Unity tests' numbers on Codex output: `verify_enemy_strip.py`, `verify_backdrop_tiles.py`, `verify_planetfall_art.py`, `verify_boss_art.py`, `verify_wavs.py`, `verify_attack_art.py` (themed attack atlases: sizes, cells, pink cue, hue audit, red band, frame pairs, x2 round trip, contact sheet) |
 
 Path note: `scripts/<tool>` in this skill means `.claude/skills/add-world/scripts/<tool>`,
 except **`scripts/unity-batch.sh`**, which is the repo's own machine-wide Unity wrapper
@@ -737,15 +737,19 @@ constraint 10; the method is in repo `docs/world-attacks-design.md` (catalogue, 
 3. **Art (Codex J12)**: `art-briefs.md` section 10 / `docs/world-attacks-codex-prompts.md`: per world `<w>_attack_shots.png` (1024x256, bolt/shard/shell/slag/pool + 3 signature
    cells), `<w>_attack_fx.png` (impact, special, trail, glyph, flash), plus the world's `strike` / `jet` / `wave` / `ring` / `lash` / `beam` / `log` strips as its attacks need
    (the exact list is in `docs/world-attacks-art.md`). Say which attacks are code-only (procedural: neon lines, telegraph previews, cloud puffs, heat shimmer).
-4. **Code**: skins (`ShotSkins.For(world, kind)`, procedural fallback so code never waits for art), the world's rows in `EnemyBehaviours`
+4. **Code** (the foundations exist on master since plan phase 0b: `ShotSkin`/`ShotSkins`, `AttackArt`, `IHostileZone`, `AttackShape`, `AttackPreview`, `AttackPools`; a world's wiring commit calls
+   `ShotSkins.Enable(world)` once its art is in `Resources/Attacks/<World>/`): skins (`ShotSkins.For(world, kind)`, procedural fallback so code never waits for art), the world's rows in `EnemyBehaviours`
    (attack primitive + shot kind), elite `shotKind`s and any new elite attack id, the boss's two signature attacks (`BossAttack.minPhase`; phase 1: 2 attacks, phase 2: 3, phase 3: all), the mine's beam skin
    (`MineLaserArt` prefers `AttackArt.Beam(world)`), and the attack sound cues (`AttackAudio`, material-based).
 5. **Tests**: `ShotSkinTest` (pink share and hue audit of the world's art, skins differ across worlds), `AttackHazardTest`, `AttackFairnessTest`
    (tells, preview, live time, safe corridor), `AttackBudgetTest` (dodge-bot hit rate <= 1.15x the attack replaced), `AttackAudioTest`; extend `AtomClarityTest`, `HostileProjectileTest`,
    `ReadabilitySweep` (the world's shots + new hazards), `EnemyBehaviourTest` ("no two worlds' same-tier fighters share a skin / attack").
+   Pin the budget BEFORE changing a world's attacks: `AttackBudgetTest.Pinned` already holds the dodge-bot hit rate of every roster attacker, mine, elite and boss attack as they were
+   (a new world adds its rows by running `scripts/unity-batch.sh -executeMethod AttackBudgetTest.Sweep -only <world key>` before its themed attacks land and pasting the PIN lines; a themed attack
+   that replaces one is held to `rate <= old * 1.15 + 2 points`, see the `Themed` table).
 6. **Shows**: contact sheet of every attack with its telegraph frames over the world's real tiles; the pink-cue sweep; the sound audition.
 
-**Accept:** the tests above clean vs control; `ReadabilitySweep` no new LOW/WEAK; the user saw the attack sheet and the previews.
+**Accept:** every Codex atlas passes `scripts/verify_attack_art.py <files> --sheet out.png --backdrops <mid tile>` before it is opened for the user; the tests above clean vs control; `ReadabilitySweep` no new LOW/WEAK; the user saw the attack sheet and the previews.
 **Do not** reuse the previous world's attack for a unit "because it is the same tier": a different material means a different attack.
 
 ### Phase 13 -- Boss wiring (Claude agent)

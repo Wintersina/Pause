@@ -81,6 +81,7 @@ public static class EliteSystem
     // Everything gone (scene change, tests).
     public static void Clear()
     {
+        AttackPools.ClearAll();   // the themed hazards (jets, bands, rings, strikes, lashes) and their previews
         var live = EliteShip.Live;
         for (int i = live.Count - 1; i >= 0; i--)
             if (live[i] != null) BossUtil.Kill(live[i].gameObject);

@@ -86,11 +86,18 @@ public static class ShieldShockwave
     public static bool PushRocks = true;        // asteroids are shoved like any hazard
     public static float BodyMargin = .03f;      // gap kept between two shoved bodies
 
-    // The look (shield cyan, never the player's red).
-    public static float RingSeconds = .32f;
+    // The look: a transparent circle whose only visible part is its
+    // circumference -- 3 thin, turbulent, pixel-stepped strands in a pale shield
+    // blue, grown from the hull to Radius over PushSeconds and faded out by
+    // RingSeconds. No fill, no glow, no flash; the inside stays alpha 0.
+    public static float RingSeconds = .36f;
     public static float StreakSeconds = .26f;
-    public static readonly Color RingColor = new Color32(0x6E, 0xF2, 0xEE, 230);
-    public static readonly Color StreakColor = new Color32(0x6E, 0xF2, 0xEE, 150);
+    public const float PixelsPerUnit = 26f;            // chunky art pixels of the fx canvases
+    public const float RingLeadAlpha = .50f;           // the leading strand
+    public const float RingMaxAlpha = .62f;            // the brightest sparkle pixel, never above .7
+    public const float StreakAlpha = .20f;
+    public static readonly Color32 FxColor = new Color32(150, 208, 236, 255);     // pale shield blue
+    public static readonly Color32 FxSpark = new Color32(196, 228, 246, 255);     // a few lighter pixels
 
     // ------------------------------------------------------------- counters
     public static int Releases { get; private set; }
@@ -385,27 +392,65 @@ public static class EnemyShove
     }
 }
 
-// The shockwave's look, and the clock that drives the shoves: a cyan ring
-// growing to the push radius and a quick streak up the ship's column. Two
-// sprite renderers, built once per scene with the shield and reused.
+// The shockwave's look, and the clock that drives the shoves.
+//
+// The look is drawn procedurally into two small point-filtered textures that
+// are built once with the shield and rewritten in place on every running frame
+// of the effect (preallocated Color32 buffers, SetPixels32: nothing allocates):
+//
+//   ring    a canvas covering the push radius. Three thin strands (a leading
+//           one and two behind it) are plotted one pixel at a time around the
+//           circle; their radius wobbles with precomputed periodic noise that
+//           drifts around the ring (small waves and eddies), they break into
+//           gaps, a few pixels are lighter, and short wisps peel off outward.
+//           The disc inside is never touched: alpha 0.
+//   streak  a canvas up the ship's column: one faint broken turbulent line on
+//           each edge of the pushed strip, nothing between them.
+//
+// Both use the game's time (Tick(dt) from LateUpdate; frozen while paused).
 [DefaultExecutionOrder(-30)]   // LateUpdate before EnemyBrain (-20) reads where its body is
 public class ShieldShockwaveFx : MonoBehaviour
 {
     static ShieldShockwaveFx instance;
-    static Sprite ringSprite, streakSprite;
 
+    const int Samples = 720;            // angle steps round the ring
+    const int Strands = 3;
+    const int Wisps = 9;
+
+    // ring canvas
     SpriteRenderer ring, streak;
-    float ringAge = 99f, streakAge = 99f, ringRadius, streakHalf, streakTop;
+    Texture2D ringTex, streakTex;
+    Color32[] ringPx, streakPx;
+    int ringSize, ringHalf, streakW, streakH;
+    Sprite ringSprite, streakSprite;
+
+    // precomputed noise (periodic over the ring): two drifting layers per strand, a gap rank per strand
+    float[][] waveA, waveB, gapRank;
+    int[] wispAt;
+    float[] edgeNoise;                  // along the column, 2 edges x 512
+
+    float ringAge = 99f, streakAge = 99f, ringRadius, streakHalf, streakTop, leadRadius;
     Vector2 origin;
+    int ringMaxA, streakMaxA;
 
     public static bool Exists { get { return instance != null; } }
     public static ShieldShockwaveFx Instance { get { return instance; } }
     public static int Created { get; private set; }
     public bool RingShowing { get { return ring != null && ring.enabled; } }
     public bool StreakShowing { get { return streak != null && streak.enabled; } }
-    public float RingWorldRadius { get { return ring != null ? ring.bounds.extents.x : 0f; } }
+    // the leading strand's mean radius now, world units from the ship
+    public float RingWorldRadius { get { return RingShowing ? leadRadius : 0f; } }
     public Bounds StreakBounds { get { return streak != null ? streak.bounds : default; } }
-    public Color RingTint { get { return ring != null ? ring.color : Color.clear; } }
+    public SpriteRenderer RingRenderer { get { return ring; } }
+    public SpriteRenderer StreakRenderer { get { return streak; } }
+    public Color32[] RingPixels { get { return ringPx; } }
+    public Color32[] StreakPixels { get { return streakPx; } }
+    public int RingCanvas { get { return ringSize; } }
+    public int StreakCanvasWidth { get { return streakW; } }
+    public int StreakCanvasHeight { get { return streakH; } }
+    public int RingMaxAlpha { get { return ringMaxA; } }
+    public int StreakMaxAlpha { get { return streakMaxA; } }
+    public Vector2 Origin { get { return origin; } }
 
     public static ShieldShockwaveFx Ensure()
     {
@@ -417,20 +462,33 @@ public class ShieldShockwaveFx : MonoBehaviour
         return instance;
     }
 
-    static Sprite Load(ref Sprite cache, string file)
-    {
-        if (cache != null) return cache;
-        var tex = Resources.Load<Texture2D>("Vfx/Kenney/" + file);
-        if (tex == null) tex = Texture2D.whiteTexture;
-        cache = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
-        cache.name = "~" + file;
-        return cache;
-    }
-
     void Build()
     {
-        ring = Layer("Ring", Load(ref ringSprite, "vfx_circle_05"));
-        streak = Layer("Streak", Load(ref streakSprite, "vfx_trace_01"));
+        const float ppu = ShieldShockwave.PixelsPerUnit;
+        ringHalf = Mathf.CeilToInt((ShieldShockwave.Radius + .45f) * ppu);
+        ringSize = ringHalf * 2;
+        ringPx = new Color32[ringSize * ringSize];
+        ringTex = NewTex("~ShockwaveRing", ringSize, ringSize);
+        ringSprite = Sprite.Create(ringTex, new Rect(0, 0, ringSize, ringSize), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
+        ring = Layer("Ring", ringSprite);
+
+        streakW = 2 * Mathf.CeilToInt(1.4f * ppu);
+        streakH = Mathf.CeilToInt(14f * ppu);
+        streakPx = new Color32[streakW * streakH];
+        streakTex = NewTex("~ShockwaveStreak", streakW, streakH);
+        streakSprite = Sprite.Create(streakTex, new Rect(0, 0, streakW, streakH), new Vector2(.5f, 0f), ppu, 0, SpriteMeshType.FullRect);
+        streak = Layer("Streak", streakSprite);
+
+        BuildNoise();
+    }
+
+    static Texture2D NewTex(string n, int w, int h)
+    {
+        var t = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        t.name = n;
+        t.filterMode = FilterMode.Point;
+        t.wrapMode = TextureWrapMode.Clamp;
+        return t;
     }
 
     SpriteRenderer Layer(string layerName, Sprite sprite)
@@ -443,17 +501,53 @@ public class ShieldShockwaveFx : MonoBehaviour
         return sr;
     }
 
+    // Smooth periodic noise (a sum of harmonics with random phases), unit-ish range.
+    static float[] Periodic(System.Random rng, int n, int kMin, int kMax, float falloff)
+    {
+        var v = new float[n];
+        float peak = 0f;
+        for (int k = kMin; k <= kMax; k++)
+        {
+            float amp = 1f / Mathf.Pow(k, falloff), ph = (float)rng.NextDouble() * Mathf.PI * 2f;
+            for (int i = 0; i < n; i++) v[i] += amp * Mathf.Sin(k * i * (Mathf.PI * 2f / n) + ph);
+        }
+        for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(v[i]));
+        for (int i = 0; i < n; i++) v[i] /= Mathf.Max(1e-4f, peak);
+        return v;
+    }
+
+    void BuildNoise()
+    {
+        var rng = new System.Random(20261009);
+        waveA = new float[Strands][]; waveB = new float[Strands][]; gapRank = new float[Strands][];
+        for (int s = 0; s < Strands; s++)
+        {
+            waveA[s] = Periodic(rng, Samples, 4, 46, .7f);     // eddies, wavelength ~10-100 px
+            waveB[s] = Periodic(rng, Samples, 2, 20, .8f);     // slower swell
+            var g = Periodic(rng, Samples, 3, 16, .6f);
+            // turn the values into ranks 0..1, so a threshold is the fraction of ring left open
+            var idx = new int[Samples];
+            for (int i = 0; i < Samples; i++) idx[i] = i;
+            System.Array.Sort(idx, (a, b) => g[a].CompareTo(g[b]));
+            gapRank[s] = new float[Samples];
+            for (int r = 0; r < Samples; r++) gapRank[s][idx[r]] = r / (float)(Samples - 1);
+        }
+        wispAt = new int[Wisps];
+        for (int j = 0; j < Wisps; j++) wispAt[j] = (int)((j + (float)rng.NextDouble() * .8f) * Samples / Wisps) % Samples;
+        edgeNoise = Periodic(rng, 512, 3, 60, .7f);
+    }
+
     public static void Play(Vector2 at, float radius, float columnHalf, float viewTop, int sortingLayer, int sortingOrder)
     {
         var fx = Ensure();
         fx.origin = at;
         fx.ringRadius = radius;
-        fx.streakHalf = columnHalf;
-        fx.streakTop = Mathf.Max(viewTop, at.y + .5f);
+        fx.streakHalf = Mathf.Min(columnHalf, 1.25f);
+        fx.streakTop = Mathf.Min(Mathf.Max(viewTop, at.y + .5f), at.y + 13.5f);
         fx.ringAge = 0f;
         fx.streakAge = 0f;
         fx.ring.sortingLayerID = fx.streak.sortingLayerID = sortingLayer;
-        fx.ring.sortingOrder = sortingOrder;
+        fx.ring.sortingOrder = sortingOrder;          // under hazards (5) and shots, the ship and its shield
         fx.streak.sortingOrder = sortingOrder - 1;
         fx.Paint();
     }
@@ -481,17 +575,27 @@ public class ShieldShockwaveFx : MonoBehaviour
         Paint();
     }
 
+    // -------------------------------------------------------------- drawing
+
+    static void Plot(Color32[] px, int w, int h, int x, int y, float a, Color32 c, ref int maxA)
+    {
+        if (x < 0 || y < 0 || x >= w || y >= h) return;
+        int ai = Mathf.Clamp(Mathf.RoundToInt(a * 255f), 0, 255);
+        int at = y * w + x;
+        if (ai <= px[at].a) return;
+        px[at] = new Color32(c.r, c.g, c.b, (byte)ai);
+        if (ai > maxA) maxA = ai;
+    }
+
+    static int Wrap(int i) { i %= Samples; return i < 0 ? i + Samples : i; }
+
     void Paint()
     {
         float rk = ringAge / ShieldShockwave.RingSeconds;
         if (rk < 1f)
         {
-            float e = 1f - (1f - rk) * (1f - rk);
-            float size = Mathf.Lerp(.25f, 1f, e) * ringRadius * 2f / Mathf.Max(.01f, ring.sprite.bounds.size.x);
+            PaintRing(rk);
             ring.transform.position = new Vector3(origin.x, origin.y, 0f);
-            ring.transform.localScale = new Vector3(size, size, 1f);
-            var c = ShieldShockwave.RingColor; c.a *= 1f - rk * rk;
-            ring.color = c;
             ring.enabled = true;
         }
         else if (ring.enabled) ring.enabled = false;
@@ -499,22 +603,116 @@ public class ShieldShockwaveFx : MonoBehaviour
         float sk = streakAge / ShieldShockwave.StreakSeconds;
         if (sk < 1f)
         {
-            // the head runs up the column, the tail follows it out
-            float head = Mathf.Lerp(origin.y, streakTop, Mathf.Clamp01(sk * 2.2f));
-            float tail = Mathf.Lerp(origin.y, streakTop, Mathf.Clamp01(sk * 1.4f - .25f));
-            float length = Mathf.Max(.05f, head - tail);
-            var b = streak.sprite.bounds.size;
-            streak.transform.position = new Vector3(origin.x, (head + tail) * .5f, 0f);
-            streak.transform.localScale = new Vector3(streakHalf * 2f / Mathf.Max(.01f, b.x), length / Mathf.Max(.01f, b.y), 1f);
-            var c = ShieldShockwave.StreakColor; c.a *= 1f - sk;
-            streak.color = c;
+            PaintStreak(sk);
+            streak.transform.position = new Vector3(origin.x, origin.y, 0f);
             streak.enabled = true;
         }
         else if (streak.enabled) streak.enabled = false;
     }
 
+    void PaintRing(float rk)
+    {
+        const float ppu = ShieldShockwave.PixelsPerUnit;
+        System.Array.Clear(ringPx, 0, ringPx.Length);
+        ringMaxA = 0;
+
+        // the circle grows from the hull to the push radius over PushSeconds (ease-out, as the shove)
+        float pk = Mathf.Clamp01(ringAge / Mathf.Max(.01f, ShieldShockwave.PushSeconds));
+        float e = 1f - (1f - pk) * (1f - pk);
+        leadRadius = Mathf.Lerp(.3f, ringRadius, e);
+        float fade = 1f - rk * rk;                       // thins out as it goes
+        float rPx = leadRadius * ppu;
+        float maxR = ringHalf - 2f;
+        int step = Mathf.FloorToInt(ringAge * 60f);       // pixel-stepped time: the eddies move in jumps
+        int driftA = step * 3, driftB = -step * 2;
+        float turb = 1.2f + 1.8f * Mathf.Min(1f, ringAge / .2f);      // eddies build up
+
+        for (int s = 0; s < Strands; s++)
+        {
+            float back = s == 0 ? 0f : (s == 1 ? 3.4f : 6.6f);
+            float alpha = (s == 0 ? ShieldShockwave.RingLeadAlpha : (s == 1 ? .30f : .20f)) * fade;
+            float open = s == 0 ? .10f : (s == 1 ? .32f : .48f);
+            float[] wa = waveA[s], wb = waveB[s], gr = gapRank[s];
+            for (int i = 0; i < Samples; i++)
+            {
+                if (gr[Wrap(i + step * (s + 1))] < open) continue;                    // a gap
+                float n = wa[Wrap(i + driftA)] * .65f + wb[Wrap(i + driftB)] * .5f;
+                float r = Mathf.Min(maxR, rPx - back + n * turb * 1.5f);
+                float ang = i * (Mathf.PI * 2f / Samples);
+                int x = ringHalf + Mathf.RoundToInt(Mathf.Cos(ang) * r);
+                int y = ringHalf + Mathf.RoundToInt(Mathf.Sin(ang) * r);
+                float a = alpha;
+                Color32 c = ShieldShockwave.FxColor;
+                if (s == 0 && ((i * 73 + step) % 17) == 0) { a = ShieldShockwave.RingMaxAlpha * fade; c = ShieldShockwave.FxSpark; }
+                Plot(ringPx, ringSize, ringSize, x, y, a, c, ref ringMaxA);
+                if (s == 0 && wb[Wrap(i + driftB)] > .62f)         // the strand thickens where it swells
+                {
+                    float r2 = Mathf.Min(maxR, r + 1f);
+                    Plot(ringPx, ringSize, ringSize, ringHalf + Mathf.RoundToInt(Mathf.Cos(ang) * r2), ringHalf + Mathf.RoundToInt(Mathf.Sin(ang) * r2), alpha * .55f, ShieldShockwave.FxColor, ref ringMaxA);
+                }
+            }
+        }
+
+        // wisps peeling off the leading strand, curling outward
+        for (int j = 0; j < Wisps; j++)
+        {
+            int at = Wrap(wispAt[j] + driftA);
+            int len = 5 + (j * 3) % 5;
+            float r0 = rPx + waveA[0][at] * turb * 1.0f;
+            for (int k = 1; k <= len; k++)
+            {
+                float ang = (at + k * .8f) * (Mathf.PI * 2f / Samples);
+                float r = Mathf.Min(maxR, r0 + k * 1.1f);
+                float a = .26f * (1f - k / (len + 1f)) * fade;
+                Plot(ringPx, ringSize, ringSize, ringHalf + Mathf.RoundToInt(Mathf.Cos(ang) * r), ringHalf + Mathf.RoundToInt(Mathf.Sin(ang) * r), a, ShieldShockwave.FxColor, ref ringMaxA);
+            }
+        }
+        ringTex.SetPixels32(ringPx);
+        ringTex.Apply(false);
+    }
+
+    void PaintStreak(float sk)
+    {
+        const float ppu = ShieldShockwave.PixelsPerUnit;
+        System.Array.Clear(streakPx, 0, streakPx.Length);
+        streakMaxA = 0;
+        float height = Mathf.Max(.05f, streakTop - origin.y);
+        float head = Mathf.Clamp01(sk * 2.2f) * height;                     // the head runs up the column,
+        float tail = Mathf.Clamp01(sk * 1.4f - .25f) * height;             // the tail follows it out
+        float fade = 1f - sk;
+        int step = Mathf.FloorToInt(streakAge * 60f);
+        int cx = streakW / 2;
+        int halfPx = Mathf.RoundToInt(streakHalf * ppu);
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(tail * ppu)), y1 = Mathf.Min(streakH - 1, Mathf.FloorToInt(head * ppu));
+        for (int edge = 0; edge < 2; edge++)
+        {
+            int sign = edge == 0 ? -1 : 1;
+            for (int y = y0; y <= y1; y++)
+            {
+                int ni = (y * 3 + step * 5 + edge * 211) & 511;
+                if (edgeNoise[(ni * 7 + 100 * edge) & 511] < -.35f) continue;            // gaps
+                int wob = Mathf.RoundToInt(edgeNoise[ni] * 1.6f);
+                float a = StreakFalloff(y, y0, y1) * ShieldShockwave.StreakAlpha * fade;
+                Plot(streakPx, streakW, streakH, cx + sign * (halfPx + wob), y, a, ShieldShockwave.FxColor, ref streakMaxA);
+            }
+        }
+        streakTex.SetPixels32(streakPx);
+        streakTex.Apply(false);
+    }
+
+    static float StreakFalloff(int y, int y0, int y1)
+    {
+        // the leading end is the strongest, the tail end thins away
+        float t = y1 > y0 ? (y - y0) / (float)(y1 - y0) : 1f;
+        return .35f + .65f * t;
+    }
+
     void OnDestroy()
     {
         if (instance == this) { instance = null; EnemyShove.Clear(); }
+        if (ringTex != null) Destroy(ringTex);
+        if (streakTex != null) Destroy(streakTex);
+        if (ringSprite != null) Destroy(ringSprite);
+        if (streakSprite != null) Destroy(streakSprite);
     }
 }
