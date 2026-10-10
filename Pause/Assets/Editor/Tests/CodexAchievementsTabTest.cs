@@ -62,6 +62,7 @@ public static class CodexAchievementsTabTest
             Dormant(panel);
             Perf(panel);
             Home();
+            HomeFit();
         }
         finally
         {
@@ -489,16 +490,34 @@ public static class CodexAchievementsTabTest
         try
         {
             home.Build();
-            Check("home: no dot while nothing is waiting", !home.DotVisible);
-            AchievementStore.Unlock(AchievementCatalog.Find("loop_1"));
-            AchievementStore.Unlock(AchievementCatalog.Find("loop_2"));
-            home.Refresh();
-            Check("home: the dot shows how many are waiting (2)", home.DotVisible && home.DotText.text == "2");
-            Check("home: the dot takes no touches and the DISCOVERED counter is unchanged",
-                  !home.Dot.raycastTarget && System.Text.RegularExpressions.Regex.IsMatch(home.Counter.text, @"^\d+/\d+ DISCOVERED$"));
+            // edit mode never calls OnEnable: do what Play mode does, so the event wiring is what is under test
+            typeof(CodexHomeButton).GetMethod("OnEnable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(home, null);
+            Check("home: no badge while nothing is waiting", !home.BadgeVisible);
+            Check("home: label rule 0/1/9/10/42 -> 0,1,9,9+,9+",
+                  CodexHomeButton.BadgeLabel(1) == "1" && CodexHomeButton.BadgeLabel(9) == "9" &&
+                  CodexHomeButton.BadgeLabel(10) == "9+" && CodexHomeButton.BadgeLabel(42) == "9+");
+            var all = AchievementCatalog.All.Where(d => AchievementCatalog.IsActive(d)).ToList();
+            AchievementStore.Unlock(all[0]);
+            Check("home: one unlock shows 1 live (no manual refresh)", home.BadgeVisible && home.BadgeText.text == "1");
+            for (int i = 1; i < 9; i++) AchievementStore.Unlock(all[i]);
+            Check("home: 9 shows 9", home.BadgeVisible && home.BadgeText.text == "9" && AchievementStore.ClaimableCount == 9);
+            AchievementStore.Unlock(all[9]);
+            Check("home: 10 shows 9+", home.BadgeText.text == "9+");
+            AchievementStore.Unlock(all[10]);
+            AchievementStore.Unlock(all[11]);
+            Check("home: 12 still shows 9+", home.BadgeText.text == "9+" && AchievementStore.ClaimableCount == 12);
+            AchievementStore.Claim(all[0]);
+            Check("home: a claim updates it live (11 -> 9+)", home.BadgeText.text == "9+" && AchievementStore.ClaimableCount == 11);
+            AchievementStore.Claim(all[1]);
+            AchievementStore.Claim(all[2]);
+            Check("home: 9 left shows 9", home.BadgeText.text == "9");
+            Check("home: the badge takes no touches, has no canvas, and the DISCOVERED counter is unchanged",
+                  !home.Badge.raycastTarget && !home.BadgeText.raycastTarget && home.Badge.GetComponent<Canvas>() == null &&
+                  System.Text.RegularExpressions.Regex.IsMatch(home.Counter.text, @"^\d+/\d+ DISCOVERED$"));
+            Check("home: the badge sprite is point filtered", home.Badge.sprite != null && home.Badge.sprite.texture.filterMode == FilterMode.Point);
             AchievementStore.ClaimAll();
-            home.Refresh();
-            Check("home: the dot goes once everything is collected", !home.DotVisible);
+            Check("home: the badge goes once everything is collected", !home.BadgeVisible);
+            typeof(CodexHomeButton).GetMethod("OnDisable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(home, null);
             string src = System.IO.File.ReadAllText("Assets/Scripts/Codex/CodexHomeButton.cs");
             Check("home: it listens to unlocks, claims and the panel closing",
                   src.Contains("AchievementStore.Unlocked +=") && src.Contains("AchievementStore.Claimed +=") && src.Contains("CodexPanel.Closed +="));
@@ -507,6 +526,64 @@ public static class CodexAchievementsTabTest
         {
             Object.DestroyImmediate(host);
         }
+    }
+
+    // The badge on the real home screen, on every device shape: inside the
+    // button, in its top-right, and clear of the tap target.
+    static void HomeFit()
+    {
+        int bad = 0, cells = 0;
+        string first = "";
+        var screen = new FitScreen
+        {
+            id = "home-badge", scene = "startS4", title = "badge", fullBleed = false,
+            stage = rig =>
+            {
+                HomeBadgeStage(rig, ref bad, ref first);
+            }
+        };
+        foreach (var device in FitDevice.All)
+        {
+            using (new TestHarness.Sandbox())
+            {
+                AchievementStore.ResetAll();
+                var shot = ScreenFitRunner.Run(screen, device, null, 0);
+                cells++;
+                if (shot.error != null) { bad++; if (first == "") first = device.id + ": " + shot.error; }
+            }
+        }
+        Check("home: badge inside the Codex button's top-right, taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
+    }
+
+    static void HomeBadgeStage(ScreenFitRig rig, ref int bad, ref string first)
+    {
+        foreach (var d in AchievementCatalog.All.Where(x => AchievementCatalog.IsActive(x)).Take(12)) AchievementStore.Unlock(d);
+        ScreenFitScreens.HomeBase(rig);
+        var home = Object.FindFirstObjectByType<CodexHomeButton>();
+        string why = null;
+        if (home == null || !home.BadgeVisible) why = "badge not shown";
+        else
+        {
+            home.Refresh();
+            var br = rig.PixelRect(home.Badge.rectTransform);
+            var tr = rig.PixelRect((RectTransform)home.transform);
+            float e = 1.5f;
+            if (br.xMin < tr.xMin - e || br.xMax > tr.xMax + e || br.yMin < tr.yMin - e || br.yMax > tr.yMax + e) why = "badge outside button " + br + " vs " + tr;
+            else if (br.center.x < tr.center.x + tr.width * .25f || br.center.y < tr.center.y) why = "badge not in the top-right quadrant";
+            else if (home.BadgeText.text != "9+") why = "text " + home.BadgeText.text;
+            else if (br.width < 8f || br.width > tr.width * .4f) why = "badge size " + br.width + " in button " + tr.width;
+            else
+            {
+                // a tap at the badge's centre must still land on the button
+                var p = br.center;
+                bool onBadge = false;
+                foreach (var g in home.GetComponentsInChildren<Graphic>(false))
+                    if (g.raycastTarget && (g == home.Badge || g == home.BadgeText)) onBadge = true;
+                if (onBadge) why = "badge graphics catch raycasts";
+                else if (!home.Button.targetGraphic.raycastTarget) why = "button lost its raycast target";
+            }
+        }
+        if (why != null) { bad++; if (first == "") first = rig.device.id + ": " + why; }
     }
 
     // ---- helpers (the same measuring rules as CodexTest) ----
