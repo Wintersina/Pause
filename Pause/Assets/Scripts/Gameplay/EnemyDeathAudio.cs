@@ -86,6 +86,14 @@ public static class EnemyDeathAudio
     // Put the table back to BorrowTable (tests clear and edit it).
     public static void ResetBorrows() { ScreamBorrow.Clear(); foreach (var kv in BuildBorrows()) ScreamBorrow[kv.Key] = kv.Value; }
     public static float BorrowVolume = .7f;
+
+    // Codex-only (forceScream == true): the scream is the point of the triple-tap,
+    // so it must cut through other sounds. Its volume is the UNDUCKED cue volume x
+    // CodexScreamBoost (clamped to 1 on the AudioSource), the death cue itself is
+    // ducked by CodexDeathDuck (0.5 ~ -6 dB) so the scream stays on top, the delay
+    // is 0..CodexScreamDelayMax and a borrowed scream skips BorrowVolume. In-game
+    // deaths (forceScream == false) are untouched.
+    public static float CodexScreamBoost = 2.6f, CodexDeathDuck = .5f, CodexScreamDelayMax = .02f;
     public static float LastScreamPitch { get; private set; }
     public static float LastScreamVolume { get; private set; }
 
@@ -177,6 +185,8 @@ public static class EnemyDeathAudio
         k.repeats = now - k.lastTime < DuckWindow ? k.repeats + 1 : 0;
         k.lastTime = now;
         float volume = baseVolume * AuthoredGain * Mathf.Max(DuckFloor, Mathf.Pow(DuckFactor, k.repeats));
+        float fullVolume = volume;
+        if (forceScream) volume *= CodexDeathDuck;
 
         int slot = PickSlot(voices, now, volume);
         if (slot < 0) { Dropped++; return true; }
@@ -196,7 +206,7 @@ public static class EnemyDeathAudio
             if (ScreamBorrow.TryGetValue(key, out b) && b.donor != key)
             {
                 var d = Clips(b.donor);
-                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = BorrowVolume; }
+                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = forceScream ? 1f : BorrowVolume; }
             }
         }
         if (sk.screams.Length > 0 && (forceScream || Next01() < ScreamChance))
@@ -206,8 +216,8 @@ public static class EnemyDeathAudio
             {
                 int sv = PickVariant(sk.screams.Length, sk.lastScream);
                 sk.lastScream = sv;
-                float delay = Range(ScreamDelayMin, ScreamDelayMax);
-                float sVol = volume * ScreamVolume * screamGain;
+                float delay = forceScream ? Range(0f, CodexScreamDelayMax) : Range(ScreamDelayMin, ScreamDelayMax);
+                float sVol = forceScream ? Mathf.Min(1f, fullVolume * CodexScreamBoost * screamGain) : volume * ScreamVolume * screamGain;
                 float sPitch = screamPitch * (1f + Range(-PitchJitter, PitchJitter));
                 Start(ref screamVoices[s], sk.screams[sv], now, delay, sVol, sPitch);
                 Screams++;
