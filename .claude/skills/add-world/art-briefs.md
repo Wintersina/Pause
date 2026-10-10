@@ -425,6 +425,32 @@ neon-pixel bursts, no outline, no red, core + debris <= 55-65% of the cell, a ho
 Deliver a NEW file with the extra row(s) appended (2048 x (768 + 128 per row)); the existing rows must be byte-identical.
 ```
 
+## 10. Attack art (J12, THEMED ATTACKS) -- `Art/Attacks/<World>~/` (staged), final in `Art/Resources/Attacks/<World>/`
+
+User requirement (every new world): "the attack patterns for each world should match the enemies there ... ice attacks and blasts, fire attacks, flame throwers,
+fire lasers, surf wave attacks, water guns, thunder ... for space, laser neon attacks ... vine attacks, leaf attacks, tree trunks ... not all enemies should be doing the
+same attacks as first world; if you need animations have codex make it, else do it yourself".
+
+The full set lives in repo `docs/`: `world-attacks-art.md` (exact files, sizes, cell grids per world), `world-attacks-codex-prompts.md` (the preamble, the per-atlas prompts P1-P9,
+a filled slot sheet per world, the verification list). For a new world fill a new slot sheet from the same template (`<MATERIAL>`, `<BODY_RAMP>`, `<PINK>`, `<AVOID>`, `<REFS>`, the shots table,
+`SPECIAL`, `TRAIL`, `GLYPH_MOTIF`, strike/jet/lash bodies) and run the atlases the world's attacks need:
+
+| File | Size | Always? |
+| --- | --- | --- |
+| `<w>_attack_shots.png` | 1024x256, 8x2 cells of 128 (bolt, shard, shell, slag, pool, 3 signature cells; 2 frames each) | yes |
+| `<w>_attack_fx.png` | 1024x256 (impact x4, special x4, trail x4, glyph x2, flash x2) | yes |
+| `<w>_attack_beam.png` | 1024x128 (aim, beam a,b, flash a,b, spark x3): the mine's laser skin | yes |
+| `<w>_attack_strike.png` | 768x512 (column body x6 of 128x384, glyph x2, burst x3) | if it has a lane strike (eruption / thunder / icicle drop) |
+| `<w>_attack_jet.png` | cone or column loop, 6 frames + nozzle + tip | if it has a flamethrower / water jet |
+| `<w>_attack_wave.png` | 512x480 seamless band + caps + gap markers | if it has a sweeping wave |
+| `<w>_attack_ring.png` | 1024x128 (ring bars, gap markers, muzzle glyph) | if it has a blast ring |
+| `<w>_attack_lash.png` | 1024x128 (link, tip, root, dash) | if it has a whip |
+
+Hard rules (copy into every prompt; they are the reason this section exists): every projectile >= 30% pink-family (312-326) or white-hot in its opaque pixels, a pink-white core/edge on every strip,
+the world's material only as the secondary colour, pointed shapes (a pearl/bubble gets a spiked pink rim), never red, never a saturated pickup hue (178 / 82 / 259 / 37), nothing within
+4 px of a cell border, nearest-neighbour only, authored at 64 px and upscaled x2. Verifier: `scripts/verify_attack_art.py <dir> <World>` (to be written in the implementation plan, phase 0b).
+Pre-launch lint: the other worlds' nouns must not appear in the prompt.
+
 ## What to look at when you critique (copy into your reply to the user)
 
 - **Planet:** silhouette distinct? entry plasma wide? decks tile? cloud colour continues into the backdrop?
@@ -433,4 +459,5 @@ Deliver a NEW file with the extra row(s) appended (2048 x (768 + 128 per row)); 
 - **Enemies:** tones/boundaries numbers, anchor/scale drift, margins, stand-out on each tile, rocks that move, the weakest strip.
 - **Deaths:** body continuity, readable at game scale, forbidden colours.
 - **Boss:** stage 3-4 dramatic? smoke bold? clipped cells? attacks readable (tell before shot)?
+- **Attack art:** pink first, material second at 40 px over a bright and a dark tile? five shapes of one world distinct, none atom-like (round, smooth, calm)? frames flicker?
 - **Sounds:** table PASS; "most need ear-tuning: ...".

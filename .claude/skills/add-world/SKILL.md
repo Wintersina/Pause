@@ -1,6 +1,6 @@
 ---
 name: add-world
-description: Add a whole new planet world to Pause (the next world after Ember, e.g. World 5 "Tide" the ocean planet, World 6 "Storm" the gas giant) as an ordered, executable playbook for the coordinator -- brief, planet approach + planetfall + lift-off, how the previous last world stops looping straight to Space, atmosphere-level backdrops (4 variants, landmarks, pipes, loops, launch sites), the 11-enemy roster + behaviours + death strips + mines, boss (atlas, shots, card, damage, death, attacks), rails, elites, authored death sounds, codex/menus/dev/leaderboards, tests and gates. Use when the user says "start World N", "add the ocean / storm world", "what does a world need", or when auditing that an existing world missed a piece. Delegates art to Codex (`codex exec`) and code/tests to Sonnet subagents.
+description: Add a whole new planet world to Pause (the next world after Ember, e.g. World 5 "Tide" the ocean planet, World 6 "Storm" the gas giant) as an ordered, executable playbook for the coordinator -- brief, planet approach + planetfall + lift-off, how the previous last world stops looping straight to Space, atmosphere-level backdrops (4 variants, landmarks, pipes, loops, launch sites), the 11-enemy roster + behaviours + death strips + mines, THEMED ATTACKS (every enemy/elite/boss/mine attacks in its world's material: ice, fire, vines, water, neon; pink-cue rule), boss (atlas, shots, card, damage, death, attacks), rails, elites, authored death sounds, codex/menus/dev/leaderboards, tests and gates. Use when the user says "start World N", "add the ocean / storm world", "what does a world need", or when auditing that an existing world missed a piece. Delegates art to Codex (`codex exec`) and code/tests to Sonnet subagents.
 ---
 
 # Add a world
@@ -17,6 +17,7 @@ playbook. Companion files (read them when the phase says so):
 | `checklist.md` | The file-by-file touch list, the per-phase definition of done, and the world release gate -- tick it as you go |
 | `art-briefs.md` | Reusable Codex prompt templates (planet, backdrop A/B/C, enemy strips, deaths, elites, boss, damage, rails, sounds, fix passes) |
 | `world-5-6-briefs.md` | Starter briefs for World 5 *Tide* (ocean) and World 6 *Storm* (gas giant) -- **proposals** for the user to refine |
+| `docs/world-attacks-design.md`, `world-attacks-art.md`, `world-attacks-codex-prompts.md`, `world-attacks-implementation-plan.md`, `world-attacks-audit.md` (repo `docs/`) | **THEMED ATTACKS**: the per-world attack for every enemy/elite/boss/mine, the pink-cue and fairness contracts, the attack art list + Codex prompts, the build plan. Read before Phase 12b |
 | `scripts/` | `world_audit.sh` (what a world touches), `run_codex.sh`, `contact_sheet.py`, and pre-flight verifiers that reproduce the Unity tests' numbers on Codex output: `verify_enemy_strip.py`, `verify_backdrop_tiles.py`, `verify_planetfall_art.py`, `verify_boss_art.py`, `verify_wavs.py` |
 
 Path note: `scripts/<tool>` in this skill means `.claude/skills/add-world/scripts/<tool>`,
@@ -151,6 +152,19 @@ every one still missing (section 2 of its output is the hard-coded-count list).
    sections 1-5).
 9. **No space imagery** in planet backdrops: no planets/stations/comets/stars.
    The ship is at *atmosphere level* looking down.
+10. **THEMED ATTACKS (user requirement, applies to every world we create).** The user's words:
+    "the attack patterns for each world should match the enemies there, for example, frost world there will be
+    ice attacks and blasts etc, for fire world fire attacks, flame throwers, fire lasers etc, for water world, surf
+    wave attacks, water guns, thunder etc... for space, laser neon attacks etc. does that make sense, not all enemies
+    should be doing same attacks as first world; if you need animations have codex make it, else do it yourself; and
+    for forest world (he wrote 'frost' by mistake: Verdant) have vine attacks, leaf attacks, tree trunks etc."
+    So a world is **not done** while its shooters fire Space's pink darts. Every enemy, elite, boss and mine of the
+    new world gets an attack whose *shape, motion, trail, impact and sound* match its material and name. The
+    **pink-cue rule stays**: every hostile thing keeps a pink-leaning core and/or keyline (`HostileShotPalette` 312-326,
+    pickups own 178/82/259/37, never the player's red, bold two-ring keyline on bright worlds), so the world supplies
+    the material and the pink says "this hurts". Fairness: an instant-hit hazard (cone, column, band, ring, strike)
+    needs a >= .7 s tell, a drawn footprint >= .4 s before it is live and a >= 1.4 u safe corridor; budgets are held
+    by a dodge-bot hit-rate test. Details, catalogue and contracts: repo `docs/world-attacks-design.md`.
 
 ## 3. Phase map
 
@@ -175,6 +189,7 @@ slots above; Codex limits can add half a day.
 | 10 | Planetfall / lift-off / loop wiring | A | 1, 9 | 11 | 3-5 h |
 | 11 | Backdrop wiring (director, ground masks, emitters, sites) | A | 2c, 9 | 12 | 6-10 h |
 | 12 | Roster, behaviours, mines, explosion kind, density | A | 3, 4, 8, 9 | 11 | 4-6 h |
+| 12b | **THEMED ATTACKS**: every enemy / elite / boss / mine gets an attack that matches the world's theme (skins, new hazards, boss signature attacks, attack sounds) | C (J12 art) + A | 3, 6, 7, 12 and the roster/boss art drafted | 13 | 6-8 h + art |
 | 13 | Boss wiring (catalog, emitters, hearts, fx row, damage/death) | A | 6, 9 | 11 | 3-5 h |
 | 14 | Elite wiring (`add-elite-ship`, landing kinds) | A | 7, 11 | 13 | 1-2 h each |
 | 15 | Audio hookup + tests | A | 8, 12, 14 | -- | 1-2 h |
@@ -183,7 +198,7 @@ slots above; Codex limits can add half a day.
 
 **Codex job order** (two slots): J1 planet + J2 backdrop A -> J3 backdrop B + J4
 enemies -> J5 backdrop C + J6 boss -> J7 deaths + J8 elites -> J9 boss damage +
-J10 sounds -> rails (J11, short, any gap) -> fix passes. Start Phase 9 on day one.
+J10 sounds -> rails (J11, short, any gap) -> **J12 attack art (shots + fx first, then strike / jet / wave / lash / beam)** -> fix passes. Start Phase 9 on day one.
 
 Work on **one world at a time**. World 6 does not start until World 5 is at the
 release gate (the loop rewiring in Phase 10 is done twice; doing it for a
@@ -219,6 +234,9 @@ and paste its slots into every job prompt (`art-briefs.md` "Slots"); add the wor
 7. **Difficulty tier**: `speedRampPerSecond`, `enemyRampScale`, pilot load
    (Phase 9).
 8. **Sound identity** for deaths/screams (materials, which units scream).
+9. **Themed attacks** (user requirement, see constraint 10): for each of the 12 units, each elite, the boss and the mine, one line:
+   the attack's name, the primitive it reuses (`Shot`, `Lob`, `Laser`, `Lunge`, `Ring`, `Sling`, `Fuse`...) or the new one it needs (cone/jet, band/wave, ring/blast, lane strike, lash), its tell, its
+   counter, and its pink cue. A world whose attack column repeats another world's is not accepted.
 
 **Accept:** the user answered the open questions (or said "your call").
 **Show:** the one-page brief + 2-3 reference sentences, not art.
@@ -706,6 +724,30 @@ inventing: `<World>Backdrop.cs`, `<World>Ambient.cs`, a `<World>BackdropPreview`
 `EnemyDensityTest`, `EnemyDeathFlipbookTest`, `RailMineArtTest`, `RailMineLaserTest`,
 `WorldGatingTest`, `WorldLeakTest`, `CodexTest`, `ExplosionV2Test` clean vs control.
 
+### Phase 12b -- THEMED ATTACKS (Codex J12 for art, Claude agent for code, **mandatory**)
+
+Run after the roster and boss art are drafted (Phases 3, 6, 7), alongside Phases 12-13. The user's requirement is quoted in
+constraint 10; the method is in repo `docs/world-attacks-design.md` (catalogue, contracts) and `docs/world-attacks-implementation-plan.md` (files, tests).
+
+1. **Attack sheet.** For every roster unit (12), elite (5-6), the mine, and the boss's 5 attacks write the themed attack in the
+   design-doc table format: name, reused primitive vs new, telegraph (>= the unit's current tell; >= .7 s for instant hits), damage and
+   hit box (never harder than today unless noted), counter, **pink cue**, VFX, sound identity (material, no beeps), size S/M/L. Show it to the user with the brief.
+2. **Pink-cue contract (PC1-PC5)**: pink keyline (`ShotOutline`), pink-white core flickering at `HostileShotPalette.FlickerHz`, material <= half of the saturated
+   area and clear of 178/82/259/37, pointed shapes only (a round pearl/bubble gets a spiked pink rim), stepped hostile motion.
+3. **Art (Codex J12)**: `art-briefs.md` section 10 / `docs/world-attacks-codex-prompts.md`: per world `<w>_attack_shots.png` (1024x256, bolt/shard/shell/slag/pool + 3 signature
+   cells), `<w>_attack_fx.png` (impact, special, trail, glyph, flash), plus the world's `strike` / `jet` / `wave` / `ring` / `lash` / `beam` / `log` strips as its attacks need
+   (the exact list is in `docs/world-attacks-art.md`). Say which attacks are code-only (procedural: neon lines, telegraph previews, cloud puffs, heat shimmer).
+4. **Code**: skins (`ShotSkins.For(world, kind)`, procedural fallback so code never waits for art), the world's rows in `EnemyBehaviours`
+   (attack primitive + shot kind), elite `shotKind`s and any new elite attack id, the boss's two signature attacks (`BossAttack.minPhase`; phase 1: 2 attacks, phase 2: 3, phase 3: all), the mine's beam skin
+   (`MineLaserArt` prefers `AttackArt.Beam(world)`), and the attack sound cues (`AttackAudio`, material-based).
+5. **Tests**: `ShotSkinTest` (pink share and hue audit of the world's art, skins differ across worlds), `AttackHazardTest`, `AttackFairnessTest`
+   (tells, preview, live time, safe corridor), `AttackBudgetTest` (dodge-bot hit rate <= 1.15x the attack replaced), `AttackAudioTest`; extend `AtomClarityTest`, `HostileProjectileTest`,
+   `ReadabilitySweep` (the world's shots + new hazards), `EnemyBehaviourTest` ("no two worlds' same-tier fighters share a skin / attack").
+6. **Shows**: contact sheet of every attack with its telegraph frames over the world's real tiles; the pink-cue sweep; the sound audition.
+
+**Accept:** the tests above clean vs control; `ReadabilitySweep` no new LOW/WEAK; the user saw the attack sheet and the previews.
+**Do not** reuse the previous world's attack for a unit "because it is the same tier": a different material means a different attack.
+
 ### Phase 13 -- Boss wiring (Claude agent)
 
 1. Install `Bosses/<Key>*.png` (importer `BossArtImporter` is by folder:
@@ -713,7 +755,7 @@ inventing: `<World>Backdrop.cs`, `<World>Ambient.cs`, a `<World>BackdropPreview`
 2. `BossCatalog` entry (index-aligned): `id = CodexPrefix + "<w>"`, `name`,
    `title`, `artKey`, `damageKey`, `deathKey`, `lore` (the codex entry: 3
    sentences, hint-giving), sway (`swayX/Y`, `freqX/Y`), `flash` colour (never the
-   player's red), `heartColor`, `smokeStrength`, and **3 `BossAttack`s**
+   player's red), `heartColor`, `smokeStrength`, and **3 `BossAttack`s** (the themed signature pair of Phase 12b makes it 5)
    (`kind` Aimed/Fan/Lob/Beam, `tell` pose 0..2, `tellSeconds` .6-1.0,
    `emitters` = part names, `fireFrame`, `volleys/count/spreadDeg/speed`,
    `style` Bolt/Shard, `rail` Absorb/Bounce/Pass, beams: `aim/aimDeg/sweepDeg/
@@ -883,6 +925,8 @@ player whose best was Ember starts the next run in Ember and simply meets the ne
 planet at the end of it.
 
 ## 6. Things easy to miss (flagged)
+
+0. **THEMED ATTACKS are mandatory (Phase 12b).** The first four worlds' shooters all fired the same pink darts until the user asked for ice / fire / vines / water attacks; do not repeat that. Read constraint 10 and `docs/world-attacks-design.md`.
 
 Items 1-12 are from the coordinator's experience; **items marked NEW were found
 auditing the code for this skill.**
