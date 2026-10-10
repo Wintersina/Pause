@@ -63,6 +63,7 @@ public sealed class AttackStrike : AttackHazard
         s.tiles = new SpriteRenderer[MaxTiles];
         for (int i = 0; i < MaxTiles; i++) s.tiles[i] = Piece(go.transform, "Col" + i, SortBody);
         s.tip = Piece(go.transform, "Tip", SortBody);
+        s.band = Piece(go.transform, "Band", SortGlyph - 1);
         s.glyph = Piece(go.transform, "Glyph", SortGlyph);
         s.burst = Piece(go.transform, "Burst", SortBurst);
         s.Register();
@@ -102,7 +103,7 @@ public sealed class AttackStrike : AttackHazard
     // ---- instance ----
 
     SpriteRenderer[] tiles;
-    SpriteRenderer tip, glyph, burst;
+    SpriteRenderer tip, glyph, burst, band;
     StrikeSpec spec;
     float laneX, impactY, burstFor, liveTotal, tileHeight;
     StrikeStyle style;
@@ -162,15 +163,30 @@ public sealed class AttackStrike : AttackHazard
         PlaceGlyph();
     }
 
+    // The tell's faint fill of the footprint (the column's own rectangle, from the shape the hit test uses), blinking in 8 fps steps.
+    void PlaceBand()
+    {
+        var r = shape.Bounds();
+        if (band.sprite == null) band.sprite = AttackHazardArt.Band();
+        band.enabled = State == Phase.Tell && r.width > 0f;
+        band.transform.position = new Vector3(r.center.x, r.center.y, 0f);
+        band.transform.localScale = new Vector3(r.width, r.height, 1f);
+        bool on = (Mathf.FloorToInt(t * 8f) & 1) == 0;
+        var c = HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
+        c.a = on ? .2f : .09f;
+        band.color = c;
+    }
+
     void PlaceGlyph()
     {
+        PlaceBand();
         int f = Mathf.FloorToInt(t * 8f) & 1;
         var g = glyphSprites[f];
         glyph.sprite = g;
         glyph.enabled = g != null && State == Phase.Tell;
         glyph.transform.position = new Vector3(laneX, impactY, 0f);
         float size = g != null ? Mathf.Max(.01f, g.bounds.size.x) : 1f;
-        glyph.transform.localScale = Vector3.one * (GlyphSize / size);
+        glyph.transform.localScale = Vector3.one * (GlyphSize * 1.2f / size);
     }
 
     void HideBody()
@@ -227,6 +243,7 @@ public sealed class AttackStrike : AttackHazard
     protected override void OnIgnited()
     {
         glyph.enabled = false;
+        band.enabled = false;
         BuildShape();
         DrawBody();
     }
@@ -264,6 +281,7 @@ public sealed class AttackStrike : AttackHazard
         if (tiles != null) HideBody();
         if (glyph != null) glyph.enabled = false;
         if (burst != null) burst.enabled = false;
+        if (band != null) band.enabled = false;
     }
 
     protected override void ReturnToPool() { var p = AttackPools.Find<AttackStrike>("strikes"); if (p != null) p.Release(this); }

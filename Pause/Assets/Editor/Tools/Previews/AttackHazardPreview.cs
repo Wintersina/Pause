@@ -129,7 +129,7 @@ public static class AttackHazardPreview
         Tick(.45f); Shoot(dir, name + "-strike-2-tell-late");
         Tick(.14f);
         Shoot(dir, name + "-strike-3-live");
-        Tick(.18f);
+        Tick(.3f);
         Shoot(dir, name + "-strike-4-burst");
         EliteSystem.Clear();
     }

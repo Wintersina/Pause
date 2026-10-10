@@ -333,17 +333,18 @@ public sealed class AttackBlast : AttackHazard
         var m = gapSprites[f];
         float gap = spec.gapDeg * .5f * Mathf.Deg2Rad;
         float mr = Mathf.Min(spec.reach, spec.startRadius + 1.1f);
-        PlaceMarker(markerA, m, at, gapRad - gap, mr);
-        PlaceMarker(markerB, m, at, gapRad + gap, mr);
+        // each chevron points across the crack toward its middle
+        PlaceMarker(markerA, m, at, gapRad - gap, mr, (gapRad - gap) * Mathf.Rad2Deg);
+        PlaceMarker(markerB, m, at, gapRad + gap, mr, (gapRad + gap) * Mathf.Rad2Deg - 180f);
     }
 
-    void PlaceMarker(SpriteRenderer sr, Sprite s, Vector2 o, float ang, float r)
+    void PlaceMarker(SpriteRenderer sr, Sprite s, Vector2 o, float ang, float r, float rotationDeg)
     {
         sr.sprite = s;
         sr.enabled = s != null && State == Phase.Tell;
         Vector2 p = o + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * r;
         sr.transform.position = new Vector3(p.x, p.y, 0f);
-        sr.transform.rotation = Quaternion.identity;
+        sr.transform.rotation = Quaternion.Euler(0f, 0f, rotationDeg);
         sr.transform.localScale = Vector3.one;
     }
 

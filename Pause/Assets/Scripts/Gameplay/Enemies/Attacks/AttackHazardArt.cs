@@ -75,16 +75,19 @@ public static class AttackHazardArt
         ((((int)k * 8 + world) * 4 + style) * 8 + frame) * 2 + (bold ? 1 : 0);
     static bool Cached(int key, out Sprite s) => resolved.TryGetValue(key, out s) && s != null && s.texture != null;
 
-    static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold)
+    // `seam`: a tile that stacks (a column body): the keyline pads left and right only, so no dark line crosses a seam;
+    // `tipBottom`: the spear point, which pads left, right and bottom (its top meets a body tile).
+    static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold, bool seam = false, bool tipBottom = false)
     {
         Sprite s;
         if (cache.TryGetValue(key, out s) && s != null && s.texture != null) return s;
         int pad = bold ? 1 : 0;
-        int W = w + pad * 2, H = h + pad * 2;
+        int padX = pad, padBottom = (seam ? 0 : pad), padTop = (seam || tipBottom ? 0 : pad);
+        int W = w + padX * 2, H = h + padBottom + padTop;
         var px = new Color32[W * H];
         var inner = new Color32[w * h];
         paint(inner, w, h);
-        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) px[(y + pad) * W + x + pad] = inner[y * w + x];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) px[(y + padBottom) * W + x + padX] = inner[y * w + x];
         if (bold) Keyline(px, W, H);
         var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
         tex.filterMode = FilterMode.Point;
@@ -94,7 +97,7 @@ public static class AttackHazardArt
         tex.SetPixels32(px);
         tex.Apply(false, false);
         // (the pivot is given on the unpadded canvas)
-        var pv = new Vector2((pivot.x * w + pad) / W, (pivot.y * h + pad) / H);
+        var pv = new Vector2((pivot.x * w + padX) / W, (pivot.y * h + padBottom) / H);
         s = Sprite.Create(tex, new Rect(0, 0, W, H), pv, ppu, 0, SpriteMeshType.FullRect);
         s.name = key;
         s.hideFlags = HideFlags.DontSave;
@@ -293,7 +296,7 @@ public static class AttackHazardArt
                     px[y * w + x] = c;
                 }
             }
-        }, bold);
+        }, bold, !tip, tip);
     }
 
     // The lane marker (1 u): a dotted pink-white ring around the style's motif; frame 1 is the blink.
@@ -347,6 +350,14 @@ public static class AttackHazardArt
     {
         if (x < 0 || y < 0 || x >= w || y >= h) return;
         px[y * w + x] = c;
+    }
+
+    // A white 1 x 1 u square (pixel art: one texel), scaled to a footprint rectangle and tinted pink: the tell's faint fill of a column.
+    public static Sprite Band()
+    {
+        Sprite s;
+        if (cache.TryGetValue("AtkBand", out s) && s != null && s.texture != null) return s;
+        return Made("AtkBand", 1, 1, 1f, new Vector2(.5f, .5f), (px, w, h) => { px[0] = new Color32(255, 255, 255, 255); }, false);
     }
 
     // The ground burst (3 frames, 1 u): a spiked ring in the material, growing and breaking up.
