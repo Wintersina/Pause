@@ -126,11 +126,11 @@ public static class BossThemed
     static BossAttack SurfWave(int w)
     {
         var wave = WaveSpec.Surf(w);
-        wave.gapOffset = .8f;
+        wave.gapOffset = .8f; wave.gapWidth = 1.9f;   // (measured: two bands 1.4 s apart with 1.6 u gaps on opposite sides hit the bot 39 %, over the budget)
         return new BossAttack
         {
             name = "surf wave", kind = BossAttackKind.Wave, tell = 0, tellSeconds = 1.1f, emitters = new[] { "Beak" },
-            wave = wave, volleys = 2, volleyGap = 1.4f, cooldown = 1.4f, minPhase = 3,
+            wave = wave, volleys = 2, volleyGap = 1.7f, cooldown = 1.4f, minPhase = 3,
         };
     }
 }

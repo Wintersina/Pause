@@ -156,9 +156,9 @@ public static class BossExecutors
             var spec = a.wave;
             spec.world = boss.World;
             spec.ride = 0f;
-            // the gap of every other band on the other side of the lane
+            // the gap of every other band on the other side of the lane (not all the way across: the second band is a re-step, not a sprint)
             Vector2 target = player;
-            if (k % 2 == 1) target.x = -player.x;
+            if (k % 2 == 1) target.x = -player.x * .6f;
             Add(into, ref n, AttackWave.Arm(spec, muzzle, target, tell, boss.gameObject));
         }
     }

@@ -37,6 +37,10 @@ public static class BossAttackTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // The projectile and laser attacks (this suite's subject) are the default tables; the themed hazards of a boss that fights
+        // with its themed table (BossDef.themedAttacks) are BossThemedTest's.
+        var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
+        foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
         try
         {
             EveryBossHasASensibleSet();
@@ -53,6 +57,7 @@ public static class BossAttackTest
         }
         finally
         {
+            foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value;
             BossEncounter.ResetRun();
             BossRails.Reset();
             ReleaseAtlases();
@@ -66,8 +71,10 @@ public static class BossAttackTest
     public static int DodgeSimulation()
     {
         fails = 0;
+        var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
+        foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
         try { EveryPatternLeavesAWayThrough(); }
-        finally { BossEncounter.ResetRun(); BossRails.Reset(); ReleaseAtlases(); }
+        finally { foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value; BossEncounter.ResetRun(); BossRails.Reset(); ReleaseAtlases(); }
         return fails;
     }
 
