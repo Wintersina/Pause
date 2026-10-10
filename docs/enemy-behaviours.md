@@ -850,6 +850,7 @@ fires too). `Scripts/Gameplay/Enemies/RailMineLaser.cs`, driven by the mine's `E
 | Phase | Length | What shows | Harmful |
 |---|---|---|---|
 | Windup | the mine's tell, unchanged (Space 0.9, Frost 0.9, Verdant 1.0, Ember 1.1 s) | waking -> charging loop, the charge light | no |
+| Ember's flame-thrower (art only) | Ember's mine (world 3 only; Tide keeps the plain beam) draws its laser as a flame: a pilot flame at the muzzle grows through the windup like a gas flare building, a dashed gas-jet aim line, a 6-frame white-yellow / orange / red-orange flickering beam with a pink hostile rim and ember specks, a heat haze, a ragged muzzle burst and a rail scorch (`MineFlameArt`). The red-orange edge (hue 19) is the one standing exception to "no red but the player's": at least 22 deg from the player's red (hue 355), measured in `RailMineLaserTest`. Timings, angle stream, hitbox and span are untouched. Codex slot: `ember_attack_mineflame.png` (`world-attacks-art.md` 3.7b). | n/a | no |
 | Aim line | the windup's last `AimSeconds` 0.7 s | a thin (0.12 u) blinking line on the exact line the beam will burn, at its angle, from the mine's core to the far rail (the boss laser's telegraph cell, blinking on 3-tick steps) | no |
 | Beam | `BeamSeconds` 0.4 s | the beam, 0.4 u drawn (the world boss's beam cells, flickering on twos), a muzzle flash at the mine, a spark on the far rail | **yes** |
 | Cool | `CoolSeconds` 0.2 s | the beam flickers and thins out | no |

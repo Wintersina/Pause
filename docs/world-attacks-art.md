@@ -91,6 +91,26 @@ c0 `aim` (the thin aim-line tile, 128 wide, stretches along its length), c1-2 `b
 c3-4 `flash` a,b (the muzzle flash), c5-7 `spark` a-c (the rail impact). Frost: crystalline cold beam with frost sparkle; Verdant: a thorned vine (pink thorn tips); Ember:
 white-hot orange beam with magma drips; Tide: white-water jet with spray. **Must not contain lime (Verdant), cyan 178 (Frost, Tide), amber 37 (Ember) in more than 8% of its saturated area.**
 
+### 3.7b `ember_attack_mineflame.png` -- 768 x 768, Ember's mine flame-thrower (replaces the 3.7 beam skin for Ember only)
+
+The Ember rail mine fires a **flame-thrower**, not the boss-cell laser (user ask, Oct 10). `MineFlameArt` draws all of it procedurally today
+(six looping 48 x 448 tongue frames, a growing pilot flame, a dashed gas-jet aim line, a muzzle burst, a rail scorch, a heat haze) and
+`AttackArt.MineFlame(3)` serves Codex's atlas slot by slot as soon as `Resources/Attacks/Ember/ember_attack_mineflame.png` exists
+(a missing cell stays procedural). Grid, 128 px cells, nearest-neighbour:
+
+* row 0 (y 0): `beam` a-f, six cells **128 x 384**, one loop at 12 fps. Local bottom = the muzzle, flow runs UP (away from the mine). It is stretched over the whole lane
+  (about 6 u long, 0.4 u wide), so keep detail in vertical streaks and tongues, no features that must keep an aspect ratio. Content ~100 px wide: white-yellow core (~20 px),
+  amber and orange body, a **deep red-orange edge**, a thin **neon-pink rim** (hostile cue), flickering tongues licking out of the edges, ember specks, soft turbulent edge.
+* row 1 (y 384): `pilot` a-d (the gas flare building at the muzzle: a teardrop flame, base at the cell's bottom centre, tip up; the code scales it from 0.1 to 0.36 u through
+  the 1.1 s tell), `aim` a,b (a 128 tile, content 12 px wide, a dashed gas jet, tileable along its length; code uses cell a).
+* row 2 (y 512): `burst` a-d (the muzzle flare when it fires, ragged tongues, ~120 px), `impact` a,b (the scorch where the flame meets the far rail).
+* row 3 (y 640): `impact` c, `haze` a,b (a very faint warm heat-shimmer veil 128 x 128, wide soft sides, under 25 % alpha), three reserved.
+
+**Palette exception (Ember mine only).** The game's rule is "no red but the player's" (`HostileGlow.IsPlayerRed`, 28 deg around red). The user asked for a red / fire look for these mines,
+so this one attack may carry a red-orange edge: **hue >= 17 deg and never within 22 deg of the player's red (#FF3E4E, hue 355)**; the shipped edge colour is #D04C0E (hue 19, 24 deg away).
+The hostile cue is kept as a thin **neon-pink rim and pink ember specks (hue 318-330)**, and a dark plum outline (#220C26) separates the flame from the lava backdrop.
+Do not use the player's red, blue, lime or cyan. `RailMineLaserTest` measures the gap on the shipped pixels. Every other world's mine, and Tide's, keep the 3.7 skin and the old rule.
+
 ### 3.8 `<w>_attack_lash.png` -- 1024 x 128, 8 cells, Verdant (vine whip) and Tide (tentacle whip)
 
 c0-1 `link` a,b (one 128 px section of the whip pointing down, tiles end to end along the curve), c2-3 `tip` a,b (Verdant: a thorn with a pink tip; Tide: a barnacled tentacle tip with a

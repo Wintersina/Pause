@@ -116,6 +116,28 @@ public static class AttackArt
         return list;
     }
 
+    // ember_attack_mineflame.png (768 x 768, docs/world-attacks-art.md 3.7b): the Ember mine's flame-thrower. Row 0: six 128 x 384 beam
+    // frames (hot at the bottom = the muzzle, flowing up); row 1 (y 384): pilot flame a-d (the charge-up, base at the cell's bottom, tip up),
+    // aim a,b (a 128 tile, content 12 px wide); row 2 (y 512): muzzle burst a-d, impact a,b; row 3 (y 640): impact c, haze a,b (a soft warm
+    // veil, 128 x 128), three reserved. Any missing cell leaves that slot procedural (MineFlameArt); null when the file is missing.
+    public static MineFlameArt MineFlame(int world)
+    {
+        if (!Has(world, "mineflame")) return null;
+        var a = new MineFlameArt();
+        a.painted = true;
+        var proc = MineFlameArt.Build();
+        for (int i = 0; i < a.beam.Length; i++) a.beam[i] = Cell(world, "mineflame", i, 0, 128, 384) ?? proc.beam[i];
+        for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = CellAt(world, "mineflame", i * 128, 384, 128, 128) ?? proc.pilot[i];
+        a.sight = CellAt(world, "mineflame", 4 * 128, 384, 128, 128) ?? proc.sight;
+        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = CellAt(world, "mineflame", i * 128, 512, 128, 128) ?? proc.flash[i];
+        a.spark[0] = CellAt(world, "mineflame", 4 * 128, 512, 128, 128) ?? proc.spark[0];
+        a.spark[1] = CellAt(world, "mineflame", 5 * 128, 512, 128, 128) ?? proc.spark[1];
+        a.spark[2] = CellAt(world, "mineflame", 0, 640, 128, 128) ?? proc.spark[2];
+        a.haze[0] = CellAt(world, "mineflame", 128, 640, 128, 128) ?? proc.haze[0];
+        a.haze[1] = CellAt(world, "mineflame", 256, 640, 128, 128) ?? proc.haze[1];
+        return a;
+    }
+
     // ---- the cores' slots (plan phases 1c / 1d) --------------------------------------------------------
     // frost_attack_ring.png (8 x 128): bar x4, gapMarker a,b, glyph a,b
     public static Sprite RingBar(int world, int i) => Cell(world, "ring", Mathf.Clamp(i, 0, 3), 0);
