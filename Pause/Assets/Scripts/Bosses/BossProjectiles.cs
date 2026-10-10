@@ -288,7 +288,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
 // hurts.
 public class BossBeam : MonoBehaviour
 {
-    SpriteRenderer sight, beam, flash, impact, sheath;   // sheath: the glow along its length (HostileGlow)
+    SpriteRenderer sight, beam, flash, impact, sheath, spark;   // sheath: the glow along its length (HostileGlow)
     Color sheathTint;
     BossProjectilePool pool;
     GameObject hitbox;
@@ -299,7 +299,7 @@ public class BossBeam : MonoBehaviour
     float startDeg, sweepDeg, tellLeft, tellTotal, holdLeft, holdTotal, fadeLeft, age, width;
     float length;            // current drawn length
     float reach;             // to the rail or past the view's bottom, this frame
-    bool live, fading, railHit;
+    bool live, fading, railHit, fancy;   // fancy: the Archon's procedural laser (SpaceBeamFx)
     Vector3 origin;
 
     public bool Active { get; private set; }
@@ -350,6 +350,8 @@ public class BossBeam : MonoBehaviour
         b.beam = Piece(go.transform, "Beam", 26);
         b.flash = Piece(go.transform, "Flash", 31);
         b.impact = Piece(go.transform, "Impact", 31);
+        b.spark = Piece(go.transform, "ImpactSpark", 32);
+        b.spark.enabled = false;
         go.SetActive(false);
         return b;
     }
@@ -388,8 +390,16 @@ public class BossBeam : MonoBehaviour
         beam.sprite = BossArt.Shot(boss, BossArt.Beam0);
         flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0);
         impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0);
+        fancy = SpaceBeamFx.Applies(boss);
+        flash.color = impact.color = Color.white;
+        if (fancy)
+        {
+            beam.sprite = SpaceBeamFx.Beam(0f);
+            flash.sprite = impact.sprite = SpaceBeamFx.Glow();
+            spark.sprite = SpaceBeamFx.Star();
+        }
         sight.enabled = true;
-        beam.enabled = flash.enabled = impact.enabled = false;
+        beam.enabled = flash.enabled = impact.enabled = spark.enabled = false;
         sheath.enabled = false;
         sheathTint = HostileGlow.Tint(boss != null ? boss.flash : Color.white);
 
@@ -501,6 +511,7 @@ public class BossBeam : MonoBehaviour
             int blink = Mathf.FloorToInt(age / (BossArt.TelegraphBlinkTicks * BossArt.Tick));
             sight.enabled = blink % 2 == 0 && length > 0f;
             Span(sight.transform, width * BossConfig.BeamSightWidth, length);
+            if (fancy) WindupFlare();
             return;
         }
 
@@ -520,12 +531,13 @@ public class BossBeam : MonoBehaviour
         var sc = sheathTint;
         sc.a = HostileGlow.PulseAlphaAt(age);
         sheath.color = sc;
-        beam.sprite = BossArt.Shot(boss, BossArt.Beam0 + BossArt.FrameAt(BossArt.BeamTicks, age, true));
+        beam.sprite = fancy ? SpaceBeamFx.Beam(age) : BossArt.Shot(boss, BossArt.Beam0 + BossArt.FrameAt(BossArt.BeamTicks, age, true));
 
         int f = BossArt.FrameAt(BossAttackFx.FlashTickTable, age, true);
         flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0 + Mathf.Min(f, BossAttackFx.FlashFrames - 1));
         flash.transform.localPosition = Vector3.zero;
         flash.transform.localScale = Vector3.one * BossConfig.BeamFlashSize * (fading ? .6f : 1f);
+        if (fancy) LiveFlare(w);
 
         bool touching = railHit && length >= reach - 1e-3f;
         impact.enabled = touching && !fading;
@@ -535,7 +547,9 @@ public class BossBeam : MonoBehaviour
             impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0 + 1 + s);
             impact.transform.localPosition = new Vector3(0f, length, 0f);
             impact.transform.localScale = Vector3.one * BossConfig.RailSparkSize;
+            if (fancy) RailImpact(w);
         }
+        else spark.enabled = false;
 
         if (box != null)
         {
@@ -543,6 +557,45 @@ public class BossBeam : MonoBehaviour
             box.offset = new Vector2(0f, length * .5f);
             BurnHazards();
         }
+    }
+
+    // ---- the Archon's laser: visual only (SpaceBeamFx) ----
+
+    // The pod gathers light during the tell: a flare that swells and flickers, brightest just before it fires.
+    void WindupFlare()
+    {
+        float k = tellTotal > 0f ? Mathf.Clamp01(1f - tellLeft / tellTotal) : 1f;
+        float flick = .88f + .12f * Mathf.Sin(age * 55f);
+        flash.enabled = true;
+        flash.sprite = SpaceBeamFx.Glow();
+        flash.transform.localPosition = Vector3.zero;
+        flash.transform.localScale = Vector3.one * Mathf.Lerp(.18f, .85f, k * k) * flick;
+        var c = sheathTint; c.a = Mathf.Lerp(.35f, 1f, k);
+        flash.color = Color.Lerp(c, Color.white, k * k);
+    }
+
+    // Live: the muzzle is a hot, throbbing bloom, flaring on ignition and shrinking as it fades.
+    void LiveFlare(float w)
+    {
+        float ignite = Mathf.Clamp01(1f - age / .18f);
+        float size = (BossConfig.BeamFlashSize * 1.9f + .35f * ignite) * (.92f + .08f * Mathf.Sin(age * 48f)) * (fading ? .6f : 1f);
+        flash.sprite = SpaceBeamFx.Glow();
+        flash.transform.localScale = Vector3.one * size;
+        flash.color = Color.white;
+    }
+
+    // Where it meets a rail: a glow and a spinning spark star.
+    void RailImpact(float w)
+    {
+        float pulse = .85f + .15f * Mathf.Sin(age * 40f);
+        impact.sprite = SpaceBeamFx.Glow();
+        impact.transform.localScale = Vector3.one * (BossConfig.RailSparkSize * 1.6f) * pulse;
+        impact.color = Color.white;
+        spark.enabled = true;
+        spark.sprite = SpaceBeamFx.Star();
+        spark.transform.localPosition = new Vector3(0f, length, 0f);
+        spark.transform.localRotation = Quaternion.Euler(0f, 0f, age * 140f);
+        spark.transform.localScale = Vector3.one * (BossConfig.RailSparkSize * 1.3f) * (.8f + .4f * Mathf.Abs(Mathf.Sin(age * 23f)));
     }
 
     // Friendly fire: everything the live beam crosses -- rocks, enemies,
@@ -568,6 +621,7 @@ public class BossBeam : MonoBehaviour
         Active = false;
         live = fading = false;
         if (sheath != null) sheath.enabled = false;
+        if (spark != null) spark.enabled = false;
         if (hitbox != null) { BossUtil.Kill(hitbox); hitbox = null; box = null; }
         gameObject.SetActive(false);
     }
