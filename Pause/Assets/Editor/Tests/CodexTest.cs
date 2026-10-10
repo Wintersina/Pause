@@ -140,7 +140,7 @@ public static class CodexTest
                 if (r || panel.DetailAnimator.Dying) Check("tap death: no-strip entry " + e.id + " must do nothing", false);
                 checkedNoStrip++;
             }
-            Check("tap death: entries without a strip are inert (" + checkedNoStrip + ")", checkedNoStrip > 0);
+            Check("tap death: entries without a strip are inert (" + checkedNoStrip + "; every boss now has a strip)", checkedNoStrip >= 0);
         }
         finally
         {
@@ -332,7 +332,7 @@ public static class CodexTest
                 if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
             }
             Check("pointer tap: every Codex elite plays a death from real taps (" + elites + " elites, " + bursts + " composed)", elites >= 16 && bursts + 0 >= 0);
-            Check("pointer tap: bosses with a death strip play it (" + bossStrips + " of " + bosses + ": Ember and Tide)", bossStrips >= 2);
+            Check("pointer tap: every boss plays its death strip on tap (" + bossStrips + " of " + bosses + ")", bossStrips == BossCatalog.All.Length && bosses == BossCatalog.All.Length);
 
             // a locked elite stays inert
             PlayerPrefs.DeleteKey(Codex.PrefsKey);

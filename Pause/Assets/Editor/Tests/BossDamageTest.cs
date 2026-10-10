@@ -4,7 +4,7 @@ using UnityEngine;
 
 // Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember, Tide) shows
 // its battle damage as it loses hearts; Verdant has none yet. A boss with a
-// BossDef.deathKey (Ember, Tide) plays its <Key>_death.png strip over the body as it
+// BossDef.deathKey (all five) plays its <Key>_death.png strip over the body as it
 // blows up.
 //
 // Stage = hearts lost (0 pristine .. 4 one heart left). From stage 1 its idle
@@ -50,11 +50,14 @@ public static class BossDamageTest
             OverlayGoesWithTheBoss(1);
             OverlayGoesWithTheBoss(3);
             OverlayGoesWithTheBoss(4);
+            DeathStripArt(0, "Space");
+            DeathStripArt(1, "Frost");
+            DeathStripArt(2, "Verdant");
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
-            DeathStripPlaysOnce(3);
-            DeathStripPlaysOnce(4);
-            OtherBossesKeepTheirDeath();
+            for (int w = 0; w < 5; w++) DeathStripPlaysOnce(w);
+            EveryBossHasDeathArt();
+            BossDeathSoundHook();
         }
         finally
         {
@@ -492,25 +495,47 @@ public static class BossDamageTest
         Check("defeat flow completes: the boss is gone and the finished callback (world transition) fires", done);
     }
 
-    static void OtherBossesKeepTheirDeath()
+    static void EveryBossHasDeathArt()
     {
-        bool ok = true;
+        bool ok = BossCatalog.All.Length >= 5;
+        string miss = "";
         foreach (var b in BossCatalog.All)
         {
-            bool want = b.artKey == "Ember" || b.artKey == "Tide";
-            ok &= BossArt.HasDeathArt(b) == want && (want || string.IsNullOrEmpty(b.deathKey));
+            bool has = !string.IsNullOrEmpty(b.deathKey) && BossArt.HasDeathArt(b);
+            if (!has) miss += b.artKey + " ";
+            ok &= has;
         }
-        Check("only Ember and Tide have a death strip; Space / Frost / Verdant keep the atlas death", ok);
-        var e = StartFight(1);
-        var a = e.Actor;
-        var body = Body(a);
-        for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
-        bool atlas = true; int n = 0;
-        for (int i = 0; i < 200 && a != null && e.State == BossEncounter.Phase.Outro; i++)
+        Check("EVERY boss in BossCatalog.All has a death strip (missing: " + miss.Trim() + ")", ok);
+        // importer settings of each death strip match Ember's reference
+        var refImp = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Bosses/Ember_death.png") as UnityEditor.TextureImporter;
+        bool same = refImp != null;
+        foreach (var b in BossCatalog.All)
         {
-            if (a.State == BossActor.Mode.Dying && body.enabled) { n++; atlas &= body.sprite == BossArt.Body(a.Boss, a.BodyFrame); }
-            e.Step(Dt, 1f);
+            var imp = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Bosses/" + b.deathKey + "_death.png") as UnityEditor.TextureImporter;
+            same &= imp != null && refImp != null && imp.textureType == refImp.textureType &&
+                    imp.filterMode == refImp.filterMode && imp.mipmapEnabled == refImp.mipmapEnabled && imp.isReadable == refImp.isReadable &&
+                    imp.alphaIsTransparency == refImp.alphaIsTransparency && imp.maxTextureSize == refImp.maxTextureSize &&
+                    imp.textureCompression == refImp.textureCompression && imp.npotScale == refImp.npotScale &&
+                    imp.spritePixelsPerUnit == refImp.spritePixelsPerUnit && imp.sRGBTexture == refImp.sRGBTexture;
         }
-        Check("Frost still dies on its atlas death frames (" + n + " frames)", atlas && n > 0);
+        Check("every boss death strip has the same importer settings as Ember_death", same);
+    }
+
+    // The sound hook: keys are boss_<world>, silent (no throw) while no clips are authored.
+    static void BossDeathSoundHook()
+    {
+        bool keys = EnemyDeathAudio.BossKey("Space") == "boss_space" && EnemyDeathAudio.BossKey("Verdant") == "boss_verdant" && EnemyDeathAudio.BossKey("") == null;
+        bool silent = true;
+        EnemyDeathAudio.Simulate = true;
+        try
+        {
+            int before = EnemyDeathAudio.Played;
+            foreach (var b in BossCatalog.All)
+                if (EnemyDeathAudio.Variants(EnemyDeathAudio.BossKey(b.artKey)) == 0)
+                    silent &= !EnemyDeathAudio.PlayBossDeath(b.artKey, true) && EnemyDeathAudio.Played == before;
+        }
+        finally { EnemyDeathAudio.Simulate = false; }
+        Check("boss death sound hook: boss_<world> keys, silent and harmless without authored clips; screams for Frost/Verdant only",
+              keys && silent && EnemyDeathAudio.BossScreams("Frost") && EnemyDeathAudio.BossScreams("Verdant") && !EnemyDeathAudio.BossScreams("Space"));
     }
 }

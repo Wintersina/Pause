@@ -1170,7 +1170,7 @@ public class CodexPanel : MonoBehaviour
     // Enemies play EnemyDeathFlipbook's three drawings; elites their own
     // `_death` strip when they ship one (none do yet), else the composed
     // break-up (hit drawing, then shards / sparks / ring: CodexBurst); bosses
-    // their 6-cell death strip where one exists (Ember, Tide), else nothing. Mines
+    // their 6-cell death strip where one exists (all five bosses), else nothing. Mines
     // and anything else without a strip do nothing rather than risk a
     // mismatched pose.
     static readonly float[] BossDeathHolds = MakeHolds(BossArt.DeathStripCells, BossArt.DeathStripCellSeconds);
@@ -1199,6 +1199,7 @@ public class CodexPanel : MonoBehaviour
             for (int i = 0; i < frames.Length; i++) frames[i] = BossArt.DeathStrip(boss, i);
             if (!detailAnim.PlayDeath(frames, BossDeathHolds)) return false;
             LastDeathKind = "boss-strip";
+            EnemyDeathAudio.PlayBossDeath(boss.artKey, EnemyDeathAudio.BossScreams(boss.artKey));
             return true;
         }
         var elite = EliteCatalog.FindByCodexId(id);
