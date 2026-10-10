@@ -139,6 +139,7 @@ public static class AllTests
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
+        ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
         ("DustEconomyTest", DustEconomyTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),

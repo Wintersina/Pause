@@ -827,6 +827,18 @@ public static class ScreenFitScreens
 
             case GameShot.Popups:
                 {
+                    // the max-speed streak's x2 plate on the SPEED row, at rest: checked
+                    // like the rest of the read-out (inside the safe area, readable)
+                    var speedRow = SceneUtil.FindAny("SpeedText");
+                    var x2 = speedRow != null ? speedRow.GetComponent<ScoreX2Cue>() : null;
+                    if (x2 != null)
+                    {
+                        RunScore.BeginRun(true, true);
+                        ScoreMultiplier.Tick(ScoreMultiplier.StreakSeconds + .1f, SpeedRamp.Cap);
+                        x2.Refresh(1000f);
+                        x2.Refresh(1001f);
+                        Canvas.ForceUpdateCanvases();
+                    }
                     var hud = ScoreHud.Current ?? UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
                     if (hud != null)
                     {

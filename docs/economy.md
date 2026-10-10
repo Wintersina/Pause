@@ -29,3 +29,11 @@ it never touches the saved balance. Developer mode earns no bonus, as before.
 `DustEconomyTest` simulates seeded runs: pickups identical to master, rewards 0.60x. Rewards are only a part of a
 typical run (the stars are most of it), so the combined income drops by less than 40% (see the test log lines
 `[DUSTECON]`). Prices are untouched, so ships and skins take proportionally more runs to afford.
+
+## Max-speed streak (2x score)
+
+Holding the speed cap for 15 s without losing a heart doubles the score gained from then on
+(`ScoreMultiplier`, see `docs/speed-and-loops.md`). Star dust is not multiplied: the dust rewards and the
+flight trickle are unchanged. The end-of-run score bonus reads `RunScore.Total`, so a doubled score raises
+it, but it is `min(1.5, 0.02 sqrt(score))` x `DustRewardScale` and caps at 5,625 points (0.90 dust), so
+doubling a 3,000-point run moves it from 0.66 to 0.78 dust at most. No retune needed.

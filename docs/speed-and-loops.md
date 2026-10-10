@@ -303,6 +303,50 @@ spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 
 30 s peak 16 (13.3); 120 s peak 24 (24); 600 s peak 25 (24). The ceiling is soft by a body or three
 (it is checked as a spawn is placed, above the view); the absolute body cap is never reached.
 
+## Max-speed streak: 2x score
+
+*"If you maintain max speed for 15 seconds (35 speed) without losing a heart you start getting 2x score."*
+`Core/Scoring/ScoreMultiplier.cs` holds every number; `ScoreMultiplierTest` pins the rule.
+
+| Tunable (`ScoreMultiplier`) | Value | Meaning |
+|---|---|---|
+| `StreakSeconds` | 15 | seconds at the cap, no heart lost, before the multiplier starts |
+| `Factor` | 2 | what score gained while it is on is multiplied by |
+| `CapEpsilon` | .0005 | speed within this of `SpeedRamp.Cap` counts as at the cap |
+| `CueShowAfterSeconds` | 2 | the HUD bar only appears once the streak is this old |
+| `CueStepSeconds` | .5 | the bar fills in steps of this (pixel look) |
+| `LossCueSeconds` | .6 | how long the "just lost" plate lingers |
+
+* The streak counts running time only (`RunScore.Tick` is fed by `score.StepRunning`: not while the pause
+  menu, the shield-expire shockwave, a boss intro / planetfall / lift-off freeze or the run entry hold the
+  world; paused time neither counts nor breaks it).
+* It ends, and the timer returns to 0, when a heart is lost (`collisionDetection`, the killing hit too;
+  shielded / cloaked / invulnerable hits cost nothing and a heal does not restore it) or when speed drops
+  below the cap (a limit-break boost above the cap still counts). A new run resets it. A world change does
+  not touch it; only an actual speed change does. A boss holds speed at 20, so every boss fight ends it.
+* The multiplier applies to score gained while it is on, through the single place `RunScore` adds score
+  (`ScoreMultiplier.Gain`: flight, kills, elites, shield absorbs, dust, atoms, blinks, bosses, world clears,
+  death combo). Earlier points are never revalued. It multiplies after `MaxTotalMultiplier` and the loop
+  scale, so it can stack with the speed tier (x2 at the cap, x2.5 limit break): at the cap flight is worth
+  4x, a x4-chain kill up to 16x.
+* `RunScore.Total` is what leaderboards, the best score and score achievements read, so they see the
+  doubled score automatically. `RunScore.Parts.secondsIn2x` records the time spent on x2 for a future
+  achievement (none added).
+* HUD (`ScoreX2Cue`, on the SPEED row): after 2 s at the cap a slim cyan bar fills along the bottom of the
+  row over the 15 s; at 15 s a small teal "x2" plate pops in between the speed figure and the SPD badge;
+  when it ends the plate dims to muted grey and sinks for 0.6 s. No sound, no red, no allocation; the bar
+  yields to the resume slow-mo spool bar, which uses the same strip.
+
+### Retuning note
+
+A stock ship reaches 35 only 120-140 s into a world (see the ramp table), so on a 3-minute level x2 is on
+for the last ~25-45 s before the boss, roughly +15-25% on a stock run; a fast-start ship holds the cap most of
+the level and can approach +80-90% when it avoids hits. Rookie 2,500 stays right (a first world is mostly
+before the streak). Ace 8,000 and Legend 30,000 are the ones to watch: if play-tests show fast-start
+ships clearing Legend in one pass, raise Ace to ~10,000 and Legend to ~40,000. The star-dust score bonus
+(`min(1.5, 0.02 sqrt(score))`, then x0.60) caps at 5,625 points, so it is already flat for the runs that
+double; no change needed.
+
 ## Open questions
 
 1. Grace 8 s / Level every 10 s: is the wait punished too early or too late? (Tunables.)

@@ -225,6 +225,7 @@ public static class ScoringTest
         Check("ten seconds at HUD speed 35 (the cap) pay 17.5 distance points (speed / 20 a second) x2 speed tier = 35",
               RunScore.Total - t == 35 || RunScore.Total - t == 36);
         t = RunScore.Total;
+        ScoreMultiplier.Reset();   // the 20 s at the cap so far would have started the max-speed streak (ScoreMultiplierTest)
         RunScore.Tick(10f, .46f);
         // above the cap only a boost gets there: the limit break, x2.5
         Check("ten seconds at HUD 46 (a limit break) pay 23 distance points x2.5 = 57",

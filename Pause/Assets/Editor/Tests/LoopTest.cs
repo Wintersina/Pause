@@ -598,6 +598,7 @@ public static class LoopTest
         Check("flight at HUD 40 (limit break) pays 20 x2.5 = 50 over 10s (" + (RunScore.Total - t) + ")",
               RunScore.Total - t == 50 || RunScore.Total - t == 49);
         t = RunScore.Total;
+        ScoreMultiplier.Reset();   // measure the base rule: the 15 s max-speed streak (ScoreMultiplierTest) is off
         RunScore.Tick(10f, .35f);
         Check("flight at the cap pays 17.5 x2 = 35 over 10s (" + (RunScore.Total - t) + ")",
               RunScore.Total - t == 35 || RunScore.Total - t == 34);
