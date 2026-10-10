@@ -204,4 +204,5 @@ Tests: id uniqueness, 1000-point total, <= 100 points each, title and descriptio
 | Style | one family: a round riveted brass/iron medal, neon rim light, subject centred, consistent line weight; rim metal by tier (copper, steel, brass, white-gold); world accent in the glow. No locked variant is drawn (greyscale is applied in code). |
 | Count | 60 icons; per-id concepts in `achievements-redesign.md` section 4 |
 
-Install locations: `Pause/Assets/Art/Resources/Achievements/<id>.png` (128) and staged masters in `Pause/Assets/Art/Achievements/src~/<id>_1024.png` (tilde folder, Unity ignores it). See the plan.
+Install locations: `Pause/Assets/Art/Resources/Achievements/<id>.png` (128) and staged masters in `Pause/Assets/Art/Achievements/src~/<id>_1024.png` (tilde folder, Unity ignores it). INSTALLED: the 60 pixel-art badges are in both places; `AchievementArtImporter` sets the sprite import (point filter, no mipmaps, uncompressed, 100 PPU) and `AchievementCatalogTest` guards presence, size, alpha and orphans.
+Store uploads: `Pause > Achievements > Export store icons` (or `-executeMethod AchievementStoreExport.ExportIcons`) writes `docs/achievements-export/play-icons-512/<id>.png` (nearest-neighbour from the masters; committed, upload these to Play) and `docs/achievements-export/gamecenter-1024/<id>.png` (RGB, no alpha; committed too, about 1.8 MB).

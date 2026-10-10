@@ -28,6 +28,48 @@ public static class AchievementStoreExport
         Debug.Log("[Achievements] exported store CSVs to " + dir);
     }
 
+    // Pause > Achievements > Export store icons: the Google Play 512 x 512 PNGs (nearest-neighbour from the
+    // 1024 masters in Art/Achievements/src~, so the pixel art stays crisp) into play-icons-512/<id>.png, and
+    // the Game Center 1024 masters (RGB, no alpha) into gamecenter-1024/<id>.png. -executeMethod AchievementStoreExport.ExportIcons
+    [MenuItem("Pause/Achievements/Export store icons")]
+    public static void ExportIcons()
+    {
+        string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", Folder));
+        string src = Path.Combine(Application.dataPath, "Art", "Achievements", "src~");
+        string play = Path.Combine(dir, "play-icons-512"), gc = Path.Combine(dir, "gamecenter-1024");
+        Directory.CreateDirectory(play); Directory.CreateDirectory(gc);
+        int n = 0;
+        foreach (var d in AchievementCatalog.All)
+        {
+            string master = Path.Combine(src, d.id + "_1024.png");
+            if (!File.Exists(master)) { Debug.LogError("[Achievements] missing master " + master); continue; }
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(master));
+            File.WriteAllBytes(Path.Combine(play, d.id + ".png"), Downscale(tex, 512).EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(gc, d.id + ".png"), Downscale(tex, tex.width).EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            n++;
+        }
+        Debug.Log("[Achievements] exported " + n + " store icons to " + dir);
+    }
+
+    // Nearest-neighbour resample to size x size, fully opaque (RGB: flattened onto near-black).
+    static Texture2D Downscale(Texture2D s, int size)
+    {
+        var o = new Texture2D(size, size, TextureFormat.RGB24, false);
+        var px = new Color32[size * size];
+        var sp = s.GetPixels32();
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                var c = sp[(y * s.height / size) * s.width + (x * s.width / size)];
+                float a = c.a / 255f;
+                px[y * size + x] = new Color32((byte)(c.r * a + 8 * (1 - a)), (byte)(c.g * a + 8 * (1 - a)), (byte)(c.b * a + 10 * (1 - a)), 255);
+            }
+        o.SetPixels32(px); o.Apply();
+        return o;
+    }
+
     public static string Field(string s)
     {
         if (s == null) return "";
