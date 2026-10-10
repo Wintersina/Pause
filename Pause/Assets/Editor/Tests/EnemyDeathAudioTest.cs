@@ -107,6 +107,7 @@ public static class EnemyDeathAudioTest
             Switch();
             Import();
             Elite();
+            Bosses();
         }
         finally
         {
@@ -471,7 +472,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length >= 224;   // 186 death cues + 38 scream layers
+        bool ok = guids.Length >= 238;   // 186 death cues + 38 scream layers + 14 boss cues
         string bad = "";
         foreach (var g in guids)
         {
@@ -487,6 +488,46 @@ public static class EnemyDeathAudioTest
             if (!good) { ok = false; bad = path; break; }
         }
         Check("EnemyDeath clips (" + guids.Length + ") import mono / PCM / decompress-on-load / preload / 44.1 kHz" + (bad != "" ? " (bad: " + bad + ")" : ""), ok);
+    }
+
+    // Boss death cues (BossActor.BeginOutro / the codex): boss_<world>_0..1, plus
+    // boss_<world>_scream_0..1 for Frost and Verdant, the scream boosted on the codex path.
+    static void Bosses()
+    {
+        foreach (var b in BossCatalog.All)
+        {
+            string key = EnemyDeathAudio.BossKey(b.artKey);
+            bool screams = EnemyDeathAudio.BossScreams(b.artKey);
+            Check(key + " has 2 death variants (" + EnemyDeathAudio.Variants(key) + ")", EnemyDeathAudio.Variants(key) == 2 && EnemyDeathAudio.AuthoredClip(key, 0) != null && EnemyDeathAudio.AuthoredClip(key, 1) != null);
+            Check(key + " has " + (screams ? 2 : 0) + " scream variants (" + EnemyDeathAudio.ScreamVariants(key) + ")", EnemyDeathAudio.ScreamVariants(key) == (screams ? 2 : 0));
+
+            clock += 5; EnemyDeathAudio.ResetVoices();
+            float savedChance = EnemyDeathAudio.ScreamChance; EnemyDeathAudio.ScreamChance = 0f;
+            bool played = EnemyDeathAudio.PlayBossDeath(b.artKey, screams);
+            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null);
+            if (screams)
+            {
+                float death = EnemyDeathAudio.LastVolume, scream = EnemyDeathAudio.LastScreamVolume;
+                Check(key + " codex path layers the boosted scream (" + scream + " vs cue " + death + ")",
+                      EnemyDeathAudio.Screams == 1 && EnemyDeathAudio.LastScream != null && scream > death
+                      && Mathf.Abs(death - EnemyDeathAudio.BossVolume * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexDeathDuck) < 1e-4f
+                      && Mathf.Abs(scream - Mathf.Min(1f, EnemyDeathAudio.BossVolume * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexScreamBoost)) < 1e-4f);
+            }
+            else Check(key + " has no scream layer", EnemyDeathAudio.Screams == 0);
+            EnemyDeathAudio.ScreamChance = savedChance;
+            // two variants alternate
+            int v0 = -1, repeats = 0;
+            for (int i = 0; i < 12; i++)
+            {
+                clock += 5; EnemyDeathAudio.PlayBossDeath(b.artKey, false);
+                int v = EnemyDeathAudio.LastClip == EnemyDeathAudio.AuthoredClip(key, 0) ? 0 : 1;
+                if (v == v0) repeats++;
+                v0 = v;
+            }
+            Check(key + " never repeats a variant back to back", repeats == 0);
+        }
+        Check("unknown boss key is harmless", !EnemyDeathAudio.PlayBossDeath("Nope", true) && !EnemyDeathAudio.PlayBossDeath("", true));
+        EnemyDeathAudio.ResetVoices();
     }
 
     static void Elite()

@@ -525,17 +525,32 @@ public static class BossDamageTest
     static void BossDeathSoundHook()
     {
         bool keys = EnemyDeathAudio.BossKey("Space") == "boss_space" && EnemyDeathAudio.BossKey("Verdant") == "boss_verdant" && EnemyDeathAudio.BossKey("") == null;
-        bool silent = true;
+        Check("boss death sound hook: boss_<world> keys; screams for Frost/Verdant only",
+              keys && EnemyDeathAudio.BossScreams("Frost") && EnemyDeathAudio.BossScreams("Verdant") && !EnemyDeathAudio.BossScreams("Space"));
+
+        // the real fight path: BossActor.BeginOutro(true) plays the world's boss cue exactly once
+        bool sim = EnemyDeathAudio.Simulate;
+        var clock = EnemyDeathAudio.Clock;
+        double t = 1000;
         EnemyDeathAudio.Simulate = true;
+        EnemyDeathAudio.Clock = () => t;
         try
         {
-            int before = EnemyDeathAudio.Played;
-            foreach (var b in BossCatalog.All)
-                if (EnemyDeathAudio.Variants(EnemyDeathAudio.BossKey(b.artKey)) == 0)
-                    silent &= !EnemyDeathAudio.PlayBossDeath(b.artKey, true) && EnemyDeathAudio.Played == before;
+            for (int w = 0; w < 5; w++)
+            {
+                EnemyDeathAudio.ResetVoices();
+                var e = StartFight(w);
+                var a = e.Actor;
+                string key = EnemyDeathAudio.BossKey(a.Boss.artKey);
+                int before = EnemyDeathAudio.Played;
+                t += 5;
+                a.BeginOutro(true);
+                Check(a.Boss.artKey + ": BeginOutro(true) plays " + key + " once (" + (EnemyDeathAudio.Played - before) + ")",
+                      EnemyDeathAudio.Played == before + 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null);
+                a.BeginOutro(false);
+                Check(a.Boss.artKey + ": a retreat (BeginOutro(false)) is silent", EnemyDeathAudio.Played == before + 1);
+            }
         }
-        finally { EnemyDeathAudio.Simulate = false; }
-        Check("boss death sound hook: boss_<world> keys, silent and harmless without authored clips; screams for Frost/Verdant only",
-              keys && silent && EnemyDeathAudio.BossScreams("Frost") && EnemyDeathAudio.BossScreams("Verdant") && !EnemyDeathAudio.BossScreams("Space"));
+        finally { EnemyDeathAudio.Simulate = sim; EnemyDeathAudio.Clock = clock; EnemyDeathAudio.ResetVoices(); }
     }
 }

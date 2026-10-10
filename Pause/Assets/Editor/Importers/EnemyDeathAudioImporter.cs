@@ -13,12 +13,14 @@ public class EnemyDeathAudioImporter : AssetPostprocessor
 
     public const string ShockwaveFolder = "Assets/Audio/Resources/Audio/Shockwave/";   // the shield release whump, same rules
 
+    public const string GateFolder = "Assets/Audio/Resources/Audio/Gate/";   // HapticGate splash cues (GateAudio), same rules
+
     // Bump to reimport the folder after changing a rule below.
-    public override uint GetVersion() { return 2; }
+    public override uint GetVersion() { return 3; }
 
     void OnPreprocessAudio()
     {
-        if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(ShockwaveFolder)) return;
+        if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(ShockwaveFolder) && !assetPath.StartsWith(GateFolder)) return;
         var importer = (AudioImporter)assetImporter;
         importer.forceToMono = true;
         importer.loadInBackground = false;
