@@ -143,6 +143,31 @@ mint-white. Damage: stages crack the mantle, snap a tentacle, flood the breaches
 sparks), late stages drag a hanging arm; smoke = steam. Death: the mantle bursts, the lamp shatters, a
 water-white shockwave ring.
 
+### Themed attacks (Phase 12b; full table in repo `docs/world-attacks-design.md` section 6)
+
+User requirement: surf wave attacks, water guns, thunder (and every enemy's attack must match its look). Pink-cue rule: pink-white pressure cores / foam crests inside
+white-teal water (never saturated cyan 178); round pearls and bubbles get a spiked or scalloped pink rim.
+
+| Unit | Attack | Primitive |
+| --- | --- | --- |
+| Limpet Mine | **pressure jet** across the lane (white-water beam, spray, splash at the rail) | `Laser` + Tide beam skin |
+| Nautilus Bulwark | **pearl fan** of 3 (scalloped pearls, bubble trail) after the shell opens 1.0 s | `Shot` Shard, Pearl skin |
+| Remora | suction dash with a foam wake | `Lunge` + trail |
+| Needlefish | **water gun**: 3 quick spout drops straight down | `Shot` Bolt, Spout skin |
+| Lantern Angler | **thunder lure**: lure flares .8 s, lane glyph .9 s, lightning column .25 s on the pilot's x | NEW `Strike` (Thunder) |
+| Hammerhead | **surf wave**: foam-crested band across the lane with a 1.6 u gap at the pilot's x, ripple markers, 1.1 s to contact (replaces the ring of 8, volleys 3 -> 2) | NEW `Wave` |
+| Wire Eel / Glow Jelly | static trail / tendril sting (cosmetic) | |
+| Riptide Lancer | foam-wake dash, spout needles | `lance_dash` + skin |
+| Trawler Maw | sinking **nets** (mesh pool, swallows shots) | `slag_drop` + Glob skin |
+| Abyss Lamp | lure beam + pearl shards | `blink_shards` + skin |
+| Brine Siege | **depth charge**: bubble-held mine, bursts in a ring of pearls | `siege_cannon` / Orb `Fuse` skin |
+| Manta | wing dive with spray | `claw_dive` |
+| Pearl Bastion | slow pearls with one gap | `ward_curtain` + Pearl skin |
+| (optional) whirlpool | Pearl shots `Sling`-curve through a ringed well (no ship pull) | `gravity_sling` skin |
+| Iron Kraken | beak spit = water-cannon fan; ink barrage = ink-blot pools; tentacle lasers = thunder arcs; NEW signature **thunder strike** (phase 1+) and **surf wave** (phase 3) | `Fan`/`Lob`/`Beam` skins + `Strike` + `Wave` |
+
+Art (Codex J12g/h): shots, fx, beam, jet (water), wave, strike (thunder), lash (tentacle) = 7 files, 80 cells (`docs/world-attacks-art.md`); sounds: pressure hiss, swell and crash, thunder crack + rumble, bubble blub (no sonar pings: a ping is a tone).
+
 ### Difficulty and numbers (propose; validate with the pace tests)
 
 `speedRampPerSecond .00385`, `enemyRampScale 1.50`, pilot load 4.0 (low speed) / 3.0 (high). Music: `""`
@@ -263,6 +288,23 @@ core, bounce once; (2) *lane strike*: `Lob`/lane telegraphs on chosen columns, t
 Damage: coils snap and spark, turbine blades tear off, vents burst steam; death: core overload with a
 white-yellow flash and ring. Flash: white-yellow; heart: pale yellow.
 
+### Themed attacks (Phase 12b; ideas for when Storm starts, to be confirmed with the user)
+
+Material: static, hail, wind, cloud, coil, lightning. Pink cue: pink-white arc cores in white-yellow lightning (never violet 259, never amber 37 beyond a small glint).
+
+| Unit | Attack idea | Primitive |
+| --- | --- | --- |
+| Rod Mine | **arc rail**: a jagged lightning beam rail to rail that crackles at the rail | `Laser` + arc skin |
+| Cloud Whale | **gill vents**: fan of 3 arc shots / a rolling thunderhead | `Shot` + `Blast` |
+| Stormray Pup / Stormray | **wing-flap gust dash** / aimed arc bolt with a trailing static | `Lunge` / `Shot` |
+| Thunderhead | **cloud-seed shell**: lobs a cloud that discharges a column after .9 s | `Lob` + `Strike` |
+| Tempest Anvil | **anvil nova**: a ring of chain-lightning bolts | `Ring` / `Blast` |
+| Cyclone Drone | spinning rotor: a spiral of hail pellets | `Shot` spiral |
+| Static Mote | ball-lightning spit that arcs to the nearest rail | `Shot` + arc |
+| Boss Tempest Engine | arc fan; **lane strike** (crown flares first); coil beams; signature **chain lightning sweep** (`Wave`) | |
+
+Sounds: crackle as filtered noise bursts, thunder as low rumble, hail clatter; no electrical beeps.
+
 ### Difficulty and numbers (propose)
 
 `speedRampPerSecond .00405`, `enemyRampScale 1.65`, pilot load 4.5 / 3.5.
@@ -278,12 +320,31 @@ white-yellow flash and ring. Flash: white-yellow; heart: pale yellow.
 
 ---
 
+## World 7 -- DUNE (a desert planet) -- placeholder, unscoped
+
+Not planned yet (no palette, no roster): only the **themed attack ideas** are recorded so the world is born with them (Phase 12b is mandatory; user requirement in SKILL.md constraint 10).
+Material: sand, glass, scorched brass, bone, sun. Pink cue: pink-white heat cores in sand-gold bodies (amber 37 is star dust: keep the gold pale and desaturated, the pink carries the cue);
+no red clay (player's red).
+
+| Idea | Primitive |
+| --- | --- |
+| **Sandstorm gust**: a wall of sand, a `Wave` band with a gap, grit particles | `Wave` |
+| **Dust devil**: a spinning column that drifts sideways along a lane, telegraphed by swirling dust | `Strike` / slow `Lob` |
+| **Scorpion sting**: a lashing tail arc, a venom bolt with a pink tip | `Lash` + `Shot` |
+| **Cactus needles**: a fan of straight needles from a spiny husk | `Shot` fan, needle skin |
+| **Sun-lens beam**: a mirror-carrying machine focuses a hot beam (sweeps from the sun side) | `Laser` / boss `Beam` |
+| **Mirage decoy**: a false, harmless echo of an enemy shot (needs a distinct shimmer, a gameplay-readability decision) | OPEN |
+| **Sand-glass shards**: shatter on rails like Frost icicles but warm and opaque | `Shatter` skin |
+| **Sinkhole / quicksand pool**: a landed pool that swallows shots (a Glob skin) | `Lob` pool |
+| Sound identity | grit hiss, glass tink, dry wind, brass clank; no beeps |
+
 ## Shared order of work for each world (summary of SKILL.md section 3)
 
 1. Phase 0 with the user (answers to the OPEN lists).
 2. Day one: Phase 9 scaffold (Claude) + Codex J1 (planet) and J2 (backdrop A) in parallel.
 3. Codex J3 (backdrop B) + J4 (enemies); then J5 (loops) + J6 (boss base); then J7 (deaths) + J8 (elites);
    then J9 (boss damage) + J10 (sounds); rails in a gap.
+3b. Codex J12 (attack art) from the world's `docs/world-attacks-codex-prompts.md` slot sheet, as soon as the roster/boss art are drafted (Phase 12b is mandatory).
 4. Claude: Phase 10 once the planet art lands (this is the step that makes the old last world stop
    looping), 11 backdrop wiring, 12 roster, 13 boss, 14 elites, 15 audio, 16 meta.
 5. Phase 17 gate. Only then start World 6, whose Phase 10 moves `autoLoop` from Tide to Storm.

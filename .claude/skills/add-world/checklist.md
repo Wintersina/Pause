@@ -21,7 +21,10 @@ counts, section 5 = reference files that do not mention the new world yet).
 | `Worlds/Backdrop/LandingSites.cs` | new `LandingKind` values + `KindOf` strings (+ doc comment) | 11, 14 |
 | `Worlds/WorldMusic.cs` | **only when the user supplies a track**: `<W>Track` const, `LoopOutSeconds` | -- |
 | `Gameplay/Enemies/EnemyRoster.cs` | `WorldKeys`, 12 `Def(...)`, explosion kinds | 9, 12 |
-| `Gameplay/Enemies/EnemyBehaviours.cs` | 12 `B("<key>", ...)` (+ `ChaserStyle` decision) | 12 |
+| `Gameplay/Enemies/EnemyBehaviours.cs` | 12 `B("<key>", ...)` (+ `ChaserStyle` decision); each row's attack must be the world's **themed** one (12b) | 12, 12b |
+| `Gameplay/Enemies/ShotSkins.cs`, `AttackArt.cs`, `Attacks/*.cs`, `AttackAudio.cs` | the world's skins per `EliteShots.Kind`, its hazards (jet/wave/blast/strike/lash), beam skin, attack cues | 12b |
+| `Gameplay/Elites/EliteAttacks.cs`, `Art/Resources/Elites/Defs/*.json` | elite `shotKind` skin, new attack id only if the theme needs one | 12b, 14 |
+| `Art/Resources/Attacks/<World>/*.png`, `Audio/Resources/Audio/Attack/<world>/*.wav` | attack art (Codex J12) and cues | 12b |
 | `Gameplay/Enemies/EnemyPalette.cs` + `Art/Enemies/src~/palette.env`, `common.py` | colours + `ThemeFor(N)` | 12 |
 | `Gameplay/Enemies/EnemyDensity.cs` | `PilotLoadAtLowSpeed/HighSpeed` entries | 9 |
 | `Gameplay/Enemies/RailMineArt.cs` | second atlas routing, rects/pivots/core offsets for the new rows | 12 |
@@ -102,6 +105,8 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 
 **12 Roster** -- 12 defs + behaviours + palette + explosion + mine atlas (lit mine rows, shots readable on the dark world); spawn tests green; no wrong-world leaks.
 
+**12b Themed attacks** -- the attack sheet (every unit/elite/mine/boss attack with name, primitive, telegraph, counter, pink cue) approved by the user; no two worlds' same-tier enemies share an attack skin; instant-hit hazards pass `AttackFairnessTest` (tell >= .7 s, preview >= .4 s, safe corridor >= 1.4 u); `AttackBudgetTest` (dodge bot <= 1.15x the old hit rate); pink-cue contract on the art (`ShotSkinTest`, `AtomClarityTest`); the world's shots in `ReadabilitySweep` with no new LOW/WEAK; attack cues material-based (no beeps); user saw the previews.
+
 **13 Boss** -- catalog, emitters regenerated, hearts ellipse, warning accent, fx row; attack previews show fair telegraphs.
 
 **14 Elites** -- each its own brain/attack; muzzles/nozzles measured; sites per kind; `EliteTest` + `<W>EliteTest` green.
@@ -126,6 +131,7 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 - [ ] World loop plays end to end in the soak test: `... -> prev lift-off -> <W> planetfall -> <W> -> boss -> <W> lift-off -> Space (loop n+1)` and, for a run that began in `<W>`, the loop portal back to `<W>`.
 - [ ] Space continues cleanly after `<W>`: score/hearts/pauses/dust carried, speed = `ArrivalSpeed(loop)`, Space enemies only (no `<W>` leftovers), calm window re-armed, no portal shown.
 - [ ] Previews seen by the user: planet + planetfall + lift-off, 4 backdrop variants (real frames), every enemy (idle + death), elites, boss attacks + damage + death, rails, menu backdrop pool, codex page.
+- [ ] **Themed attacks (Phase 12b)**: every enemy, elite, mine and boss attack matches the world's material (show the attack sheet + previews); pink-cue contract holds on every skin and hazard; attack sounds material-based.
 - [ ] Readability: `ReadabilitySweep` before/after; hearts/shots outlines pass on every variant; lane contrast guard passes.
 - [ ] Audio: authored cues for every key; loudness table PASS; user listened.
 - [ ] Known-failure diff vs plain-master control = none new.
