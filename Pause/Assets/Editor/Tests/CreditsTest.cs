@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // The credits are "Made by Sina Serati" plus a Special thanks list (Josh Morris,
-// Pouya Vafaee, Preston). Guards against the old role lines and the Kenney
+// Pouya Vafaee, Preston Nalls). Guards against the old role lines and the Kenney
 // attribution (CC0, not legally required; licence files stay in docs/licenses/)
 // coming back, and checks the scroll still fits its text box (no truncation).
 public static class CreditsTest
@@ -46,7 +46,7 @@ public static class CreditsTest
               credits.IndexOf("Sina Serati") == credits.LastIndexOf("Sina Serati"));
         Check("Special thanks section lists the three originals",
               credits.Contains("Special thanks") && credits.IndexOf("Special thanks") > credits.IndexOf("Sina Serati") &&
-              credits.Contains("Josh Morris") && credits.Contains("Pouya Vafaee") && credits.Contains("Preston"));
+              credits.Contains("Josh Morris") && credits.Contains("Pouya Vafaee") && credits.Contains("Preston Nalls"));
         Check("no iOS/Android duplicate lines", !credits.Contains("iOS Developer") && !credits.Contains("Android Developer"));
         Check("closing line is spelled right", credits.Contains("Thank you for playing.") && !credits.Contains("playting"));
         Check("no runs of 5+ blank lines", !credits.Contains("\n\n\n\n\n\n"));
