@@ -243,13 +243,30 @@ def main():
             lim = ys.min() + .4 * (ys.max() - ys.min())       # a mast / roof lamp, not one low on the hull
             for p in lamps(c, lim)[:1]:
                 if all((p[0] - q[1]) ** 2 + (p[1] - q[2]) ** 2 > 18 ** 2 for q in e):
-                    e.append(['beacon_mint' if len([1 for q in e if q[0].startswith('beacon')]) == 0 else 'beacon_amber'] + p + [.6])
+                    e.append(['beacon_mint' if len([1 for q in e if q[0].startswith('beacon')]) == 0 else 'beacon_pink'] + p + [.6])
         if name.startswith('lighthouse'):
             e = [q for q in e if not q[0].startswith('beacon')]
             l = lamps(c)
             tx, ty = top_of(c)
             p = min(l, key=lambda q: q[1]) if l else [tx, ty + 4]
             e.append(['beacon_mint'] + p + [.9])
+        # run C swaps and additions (bound by the piece's role)
+        lamp_pts = [q for q in e if q[0].startswith('beacon')]
+        if name == 'oilrig_01' and sp:
+            e.append(['smoke_c'] + tip(c, sp[0]) + [.8])
+        if name in ('crane_gantry_00', 'bridge_section_00'):
+            e = [['strobe_white'] + q[1:] if q[0] == 'beacon_mint' else q for q in e]
+        if name == 'tanker_00':
+            e = [['beacon_pink'] + q[1:] if q[0] == 'beacon_mint' else q for q in e]
+        if name == 'oilrig_00' and lamp_pts:
+            e.append(['searchlight_sweep'] + lamp_pts[0][1:3] + [.6])
+        if name == 'lighthouse_00':
+            for q in [q for q in e if q[0] == 'beacon_mint']:
+                e.append(['lighthouse_beam'] + q[1:3] + [.9])
+        if name.startswith('sunken_city'):
+            b = box(c)
+            e.append(['caustic', (b[0] + b[2]) / 2, (b[1] + b[3]) / 2, .9])
+            e.append(['window_lights', (b[0] + b[2]) / 2, (b[1] + b[3]) / 2, .9])
         data['pieces'][name] = dict(atlas='landmarks', box=box(c), emit=e[:4])
     for name, c in pp.items():
         e = []
@@ -257,7 +274,7 @@ def main():
             p = spray_mouth(c, name)
             if p:
                 e.append(['steam_vent'] + p + [.8])
-                e.append(['pipe_bubbles'] + p + [.6])
+                e.append(['bubble_stream'] + p + [.5])
         elif name == 'pumphouse_00':
             sp = [s for s in spires(c, 10) if s['w'] >= 2]
             if sp:
@@ -270,33 +287,40 @@ def main():
         if name.startswith('bubbling_vent'):
             p = vent_centre(c) or snap_opaque(c, [131, 131])
             e.append(['bubble_stream'] + p + [.9])
-            e.append(['vent_gas'] + p + [.6])
+            e.append(['steam_vent'] + p + [.5])
         elif name.startswith('flare_stack'):
             sp = [s for s in spires(c, 10) if chimney(c, s)]
             if sp:
                 s = max(sp, key=lambda q: q['topw'])
                 p = chimney(c, s)
-                e.append(['flare'] + p + [.7])
+                e.append(['flare' if name.endswith('00') else 'flare_b'] + p + [.7])
                 e.append(['smoke_a'] + p + [.8])
         elif name.startswith('whirlpool'):
             e.append(['whirlpool'] + eye(c) + [.9])
-        elif name.startswith('wreck_hull'):
-            pass
+        elif name.startswith('oil_slick') or name.startswith('plankton_bloom') or name.startswith('reef_head') or name.startswith('wreck_hull'):
+            b = box(c)
+            cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+            loop = 'burn' if name.startswith('oil_slick') else 'plankton_glow' if name.startswith('plankton') else 'foam_ring' if name.startswith('reef') else 'ripple'
+            e.append([loop, cx, cy, .9])
         data['pieces'][name] = dict(atlas='fires', box=box(c), emit=e[:4])
     for name, c in ss.items():
         data['pieces'][name] = dict(atlas='sites', box=box(c), emit=[])
-    # run C loop anchors, for every run C atlas that is installed
-    loops = ['smoke_a', 'smoke_b', 'flare', 'vent_gas', 'steam_vent', 'pipe_bubbles', 'bubble_stream', 'oil_drip',
-             'beacon_mint', 'beacon_amber', 'strobe_white', 'whirlpool']
-    for atlas in ('smoke', 'flames', 'surf', 'leaks', 'lights'):
-        if not os.path.exists(os.path.join(base, atlas + '.json')): continue
-        a = cells(base, atlas)
-        for loop in loops:
-            frames = [a[k] for k in sorted(a) if k.startswith(loop + '_')]
-            if frames:
-                pts = np.array([q for q in (loop_anchor(f) for f in frames) if q is not None])
-                data['loops'][loop] = dict(anchor=[round(float(pts[:, 0].mean()), 1), round(float(pts[:, 1].mean()), 1)],
-                                           spread=round(float(np.abs(pts - pts.mean(0)).max()), 1), kind='base')
+    # run C loop anchors, for every run C atlas page that is installed. Plumes / flames are measured on
+    # their own foot; centred loops (surf, lights, burn, glows) carry the manifest's declared (128, 128).
+    top = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'manifest.json')))['run_c']
+    run_c = top['loops']
+    for l in run_c:
+        pages = [p for p in top['pages'][l['atlas']]]
+        for pg in pages:
+            stem = pg[:-4]
+            if not os.path.exists(os.path.join(base, stem + '.json')): continue
+            a = cells(base, stem)
+            frames = [a[k] for k in sorted(a) if k.startswith(l['name'] + '_') and k[len(l['name']) + 1:].isdigit()]
+            if not frames: continue
+            # the run C manifest's anchor is authoritative (verify_c.py holds every frame's source point on it:
+            # the porous smoke and flames defeat an alpha-threshold foot measurement)
+            data['loops'][l['name']] = dict(anchor=[float(l['anchor'][0]), float(l['anchor'][1])], spread=0.0,
+                                            kind='base' if l['anchor'][1] > 200 else 'centre')
     flat = dict(
         pieces=[dict(name=n, atlas=p['atlas'], box=p['box'],
                      emit=[dict(loop=e[0], x=round(e[1], 1), y=round(e[2], 1), scale=e[3]) for e in p['emit']],
