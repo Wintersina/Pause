@@ -1,0 +1,8 @@
+file | size OK | RGBA | reserved empty | border 6px | pink min/max | forbidden 178/82/259/37 | red | loop steps including seam | x2 | vertical | width
+verdant_attack_laser.png | True | True | n/a (all used), nonempty=True | True | 79.9/100.0% | 0/0/0/0 | 0 | muzzle:7.6/7.4/7.7/7.8, spark:4.7/5.7/6.7/5.5 | True | n/a | n/a
+  per-cell pink %: 100.0 98.2 95.5 91.7 89.2 85.1 85.5 85.2 86.1 85.9 86.2 86.0 87.0 85.2 98.8 100.0 85.8 81.0 79.9 81.2 81.0 81.2 81.3 81.2
+verdant_attack_laserbody.png | True | True | n/a (all used), nonempty=True | True | 62.5/63.1% | 0/0/0/0 | 0 | body:73.8/74.1/74.3/73.6 | True | True | 100
+  per-cell pink %: 62.5 63.1 62.6 62.9
+verdant_attack_lasertell.png | True | True | n/a (all used), nonempty=True | True | 100.0/100.0% | 0/0/0/0 | 0 | sight:100.0/100.0, lock:69.7/69.7 | True | True | n/a
+  per-cell pink %: 100.0 100.0 100.0 100.0
+overall: PASS
