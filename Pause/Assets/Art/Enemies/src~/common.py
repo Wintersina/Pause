@@ -48,6 +48,8 @@ AMBER, SODIUM, SODIUM_SH = T("AMBER"), T("SODIUM"), T("SODIUM_SH")
 ICE, ICE_SH, ICE_HI = T("ICE"), T("ICE_SH"), T("ICE_HI")
 BARK, BARK_SH, BARK_HI, MOSS = T("BARK"), T("BARK_SH"), T("BARK_HI"), T("MOSS")
 CHAR, CHAR_SH, CHAR_HI, OBSIDIAN = T("CHAR"), T("CHAR_SH"), T("CHAR_HI"), T("OBSIDIAN")
+BARNACLE, BARNACLE_SH, BARNACLE_HI = T("BARNACLE"), T("BARNACLE_SH"), T("BARNACLE_HI")
+MINT, MINT_SH, BRASS = T("MINT"), T("MINT_SH"), T("BRASS")
 
 import akira as _akira  # noqa: E402
 
@@ -71,6 +73,7 @@ WORLD_THEMES = {
     "frost":   dict(hull=ICE, hull_sh=ICE_SH, hull_hi=ICE_HI, accent=STEEL, light=CYAN, light_dim=TEAL_SH),
     "verdant": dict(hull=BILE, hull_sh=BILE_SH, hull_hi=BILE_HI, accent=BRUISE, light=BILE_LIGHT, light_dim=BILE_SH),
     "ember":   dict(hull=CHAR, hull_sh=CHAR_SH, hull_hi=CHAR_HI, accent=GUN, light=SODIUM, light_dim=SODIUM_SH),
+    "tide":    dict(hull=BARNACLE, hull_sh=BARNACLE_SH, hull_hi=BARNACLE_HI, accent=BRASS, light=MINT, light_dim=MINT_SH),
 }
 
 # A light's dimmed (charging / dormant) tone.

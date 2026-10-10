@@ -10,7 +10,9 @@ using UnityEngine;
 // no mipmaps, uncompressed); each world's mine shows its own row (checked by
 // the row's neon colour); the flipbook idles dormant, arms through
 // waking/charging and detonates on the burst; and the size stays close to the
-// original mine's.
+// original mine's. Tide's mine is the one row of a SECOND atlas file
+// (rail_mines_neon_tide.png, 1254x314), routed by RailMineArt.AtlasPathFor;
+// the original file stays byte-identical.
 public static class RailMineArtTest
 {
     static int fails;
@@ -26,6 +28,8 @@ public static class RailMineArtTest
     }
 
     public const string AtlasAsset = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
+    public const string TideAtlasAsset = "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png";
+    static string AssetFor(int world) => world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
     // SHA-1 of Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png at
     // 18b5e5f^ (git blob 0702e8004b2c486f1b6cd08b105df36cf15fcd4a), the art
     // before the flat-cartoon restyle repacked it.
@@ -65,59 +69,81 @@ public static class RailMineArtTest
         Check("the atlas loads from Resources/" + RailMineArt.AtlasPath, tex != null);
         Check("the atlas is " + RailMineArt.AtlasSize + " px square",
               tex != null && tex.width == RailMineArt.AtlasSize && tex.height == RailMineArt.AtlasSize);
+        var tide = RailMineArt.AtlasFor(RailMineArt.OriginalWorlds);
+        Check("Tide's second atlas is at " + TideAtlasAsset + " and loads from Resources/" + RailMineArt.TideAtlasPath,
+              File.Exists(TideAtlasAsset) && tide != null);
+        Check("... " + RailMineArt.AtlasSize + " x " + RailMineArt.TideAtlasHeight + " px: one row, the same four columns",
+              tide != null && tide.width == RailMineArt.AtlasSize && tide.height == RailMineArt.TideAtlasHeight);
+        Check("... a different file from the original one (the original is untouched)", tide != tex && RailMineArt.AtlasPathFor(0) == RailMineArt.AtlasPath &&
+              RailMineArt.AtlasPathFor(3) == RailMineArt.AtlasPath && RailMineArt.AtlasPathFor(4) == RailMineArt.TideAtlasPath);
     }
 
     static void ImportedCrisp()
     {
-        var importer = AssetImporter.GetAtPath(AtlasAsset) as TextureImporter;
-        Check("the atlas has a texture importer", importer != null);
-        if (importer == null) return;
-        Check("point filtered", importer.filterMode == FilterMode.Point);
-        Check("no mipmaps", !importer.mipmapEnabled);
-        Check("uncompressed by default", importer.textureCompression == TextureImporterCompression.Uncompressed);
-        foreach (string platform in new[] { "Android", "iPhone", "Standalone" })
+        foreach (int world in new[] { 0, RailMineArt.OriginalWorlds })
         {
-            var s = importer.GetPlatformTextureSettings(platform);
-            Check(platform + " keeps it uncompressed (no compressed override)",
-                  !s.overridden || s.textureCompression == TextureImporterCompression.Uncompressed);
+            string asset = AssetFor(world);
+            string tag = world == 0 ? "the atlas" : "Tide's atlas";
+            var importer = AssetImporter.GetAtPath(asset) as TextureImporter;
+            Check(tag + " has a texture importer", importer != null);
+            if (importer == null) continue;
+            Check(tag + " is point filtered", importer.filterMode == FilterMode.Point);
+            Check(tag + " has no mipmaps", !importer.mipmapEnabled);
+            Check(tag + " is uncompressed by default", importer.textureCompression == TextureImporterCompression.Uncompressed);
+            foreach (string platform in new[] { "Android", "iPhone", "Standalone" })
+            {
+                var s = importer.GetPlatformTextureSettings(platform);
+                Check(tag + ": " + platform + " keeps it uncompressed (no compressed override)",
+                      !s.overridden || s.textureCompression == TextureImporterCompression.Uncompressed);
+            }
+            Check(tag + " is full size (max texture size >= 1254)", importer.maxTextureSize >= RailMineArt.AtlasSize);
+            Check(tag + " is imported as a sprite texture, sliced at runtime", importer.textureType == TextureImporterType.Sprite);
+            var tex = RailMineArt.AtlasFor(world);
+            Check(tag + ": the loaded texture is point filtered with one mip", tex != null && tex.filterMode == FilterMode.Point && tex.mipmapCount == 1);
         }
-        Check("full size (max texture size >= 1254)", importer.maxTextureSize >= RailMineArt.AtlasSize);
-        Check("imported as a sprite texture, sliced at runtime", importer.textureType == TextureImporterType.Sprite);
-        var tex = RailMineArt.Atlas;
-        Check("the loaded texture is point filtered with one mip", tex != null && tex.filterMode == FilterMode.Point && tex.mipmapCount == 1);
     }
 
     // ---- rows ------------------------------------------------------------------
 
-    static Color32[] pixels;
-    static int pixelsW, pixelsH;
+    // The pixels of each atlas file, by asset path.
+    static readonly Dictionary<string, (Color32[] px, int w, int h)> atlases = new Dictionary<string, (Color32[], int, int)>();
 
-    static void LoadPixels()
+    static (Color32[] px, int w, int h) Pixels(int world)
     {
-        if (pixels != null) return;
+        string asset = AssetFor(world);
+        if (atlases.TryGetValue(asset, out var got)) return got;
         var tex = new Texture2D(2, 2);
-        tex.LoadImage(File.ReadAllBytes(AtlasAsset));
-        pixels = tex.GetPixels32();
-        pixelsW = tex.width;
-        pixelsH = tex.height;
+        tex.LoadImage(File.ReadAllBytes(asset));
+        got = (tex.GetPixels32(), tex.width, tex.height);
         Object.DestroyImmediate(tex);
+        atlases[asset] = got;
+        return got;
     }
 
-    // Top-left-origin pixel, as RailMineArt's rects are written.
-    static Color32 Px(int x, int y) => pixels[(pixelsH - 1 - y) * pixelsW + x];
+    // Top-left-origin pixel of a world's atlas, as RailMineArt's rects are written.
+    static Color32 Px(int world, int x, int y)
+    {
+        var a = Pixels(world);
+        return a.px[(a.h - 1 - y) * a.w + x];
+    }
 
     // The neon each row is lit with, from its saturated bright pixels' hue.
-    public enum Neon { Cyan, Blue, Lime, Orange, None }
-    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange };
+    public enum Neon { Cyan, Blue, Lime, Orange, Mint, None }
+    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange, Neon.Mint };
 
-    static Neon Signature(RectInt r)
+    // The lit pixels a frame needs to show its neon. Tide's DORMANT frame is a dim sleeping eye by design (234 lit
+    // mint pixels against the original rows' 500+; waking / charging / burst have 1400-11600): its floor is 200.
+    const int LitFloor = 500, TideDormantLitFloor = 200;
+
+    static Neon Signature(int world, RectInt r)
     {
-        LoadPixels();
-        int cyan = 0, blue = 0, lime = 0, orange = 0;
+        // the dormant frame of a world past the original atlas is the dim one
+        bool tideDormant = world >= RailMineArt.OriginalWorlds && r.Equals(RailMineArt.PixelRect(world, RailMineArt.Dormant));
+        int cyan = 0, blue = 0, lime = 0, orange = 0, mint = 0;
         for (int y = r.y; y < r.y + r.height; y++)
             for (int x = r.x; x < r.x + r.width; x++)
             {
-                var c = Px(x, y);
+                var c = Px(world, x, y);
                 if (c.a < 230) continue;
                 float h, s, v;
                 Color.RGBToHSV(c, out h, out s, out v);
@@ -125,12 +151,13 @@ public static class RailMineArtTest
                 float deg = h * 360f;
                 if (deg >= 175f && deg < 200f) cyan++;
                 else if (deg >= 200f && deg < 245f) blue++;
+                else if (deg >= 135f && deg < 175f) mint++;
                 else if (deg >= 60f && deg < 130f) lime++;
                 else if (deg < 45f) orange++;
             }
-        int best = Mathf.Max(Mathf.Max(cyan, blue), Mathf.Max(lime, orange));
-        if (best < 500) return Neon.None;
-        return best == cyan ? Neon.Cyan : best == blue ? Neon.Blue : best == lime ? Neon.Lime : Neon.Orange;
+        int best = Mathf.Max(Mathf.Max(cyan, blue), Mathf.Max(Mathf.Max(lime, orange), mint));
+        if (best < (tideDormant ? TideDormantLitFloor : LitFloor)) return Neon.None;
+        return best == cyan ? Neon.Cyan : best == blue ? Neon.Blue : best == lime ? Neon.Lime : best == mint ? Neon.Mint : Neon.Orange;
     }
 
     static void EachWorldUsesItsOwnRow()
@@ -141,14 +168,14 @@ public static class RailMineArtTest
             for (int c = 0; c < RailMineArt.Columns; c++)
             {
                 var r = RailMineArt.PixelRect(w, c);
-                var sig = Signature(r);
+                var sig = Signature(w, r);
                 Check(string.Format("{0} {1} frame is lit {2} (got {3})", EnemyRoster.WorldKeys[w], RailMineArt.ColumnName(c), RowNeon[w], sig),
                       sig == RowNeon[w]);
             }
 
-        var atlasTex = RailMineArt.Atlas;
         for (int w = 0; w < RailMineArt.Worlds; w++)
         {
+            var atlasTex = RailMineArt.AtlasFor(w);
             var def = EnemyRoster.One(w, EnemyRole.Mine);
             var go = EnemyFactory.Create(def, Vector3.zero, Quaternion.identity);
             var sr = go.GetComponent<SpriteRenderer>();
@@ -161,9 +188,9 @@ public static class RailMineArtTest
             {
                 var want = RailMineArt.PixelRect(w, RailMineArt.Dormant);
                 var got = sprite.rect;
-                var top = new RectInt((int)got.x, RailMineArt.AtlasSize - (int)got.y - (int)got.height, (int)got.width, (int)got.height);
+                var top = new RectInt((int)got.x, atlasTex.height - (int)got.y - (int)got.height, (int)got.width, (int)got.height);
                 Check(def.key + " idles on its own row's dormant frame " + want + " (got " + top + ")", top.Equals(want));
-                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(top) == RowNeon[w]);
+                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(w, top) == RowNeon[w]);
             }
             Check(def.key + " keeps its id, name, collider and explosion",
                   go.name == EnemyRoster.MineObjectName && go.CompareTag("Enimey") &&
@@ -183,7 +210,6 @@ public static class RailMineArtTest
     static void FramesKeepTheMineInPlace()
     {
         if (!File.Exists(AtlasAsset)) return;
-        LoadPixels();
         for (int w = 0; w < RailMineArt.Worlds; w++)
         {
             float dormant = ClampOffset(w, RailMineArt.Dormant);
@@ -202,7 +228,7 @@ public static class RailMineArtTest
                       p.x > r.x && p.x < r.xMax && p.y > r.y && p.y < r.yMax);
                 // no frame is clipped: the rect's border is (nearly) empty
                 Check(EnemyRoster.WorldKeys[w] + " " + RailMineArt.ColumnName(c) + " drawing isn't clipped by its rect",
-                      EdgeCoverage(r) < .02f);
+                      EdgeCoverage(w, r) < .02f);
             }
         }
     }
@@ -216,25 +242,25 @@ public static class RailMineArtTest
         int y0 = Mathf.Max(r.y, (int)p.y - 40), y1 = Mathf.Min(r.yMax, (int)p.y + 40);
         for (int x = r.x; x < r.xMax; x++)
             for (int y = y0; y < y1; y++)
-                if (Px(x, y).a >= 200) return x - p.x;
+                if (Px(w, x, y).a >= 200) return x - p.x;
         return 0f;
     }
 
     // Share of the rect's border pixels that are solid (alpha >= 128).
-    static float EdgeCoverage(RectInt r)
+    static float EdgeCoverage(int w, RectInt r)
     {
         int solid = 0, n = 0;
         for (int x = r.x; x < r.xMax; x++)
         {
             n += 2;
-            if (Px(x, r.y).a >= 128) solid++;
-            if (Px(x, r.yMax - 1).a >= 128) solid++;
+            if (Px(w, x, r.y).a >= 128) solid++;
+            if (Px(w, x, r.yMax - 1).a >= 128) solid++;
         }
         for (int y = r.y; y < r.yMax; y++)
         {
             n += 2;
-            if (Px(r.x, y).a >= 128) solid++;
-            if (Px(r.xMax - 1, y).a >= 128) solid++;
+            if (Px(w, r.x, y).a >= 128) solid++;
+            if (Px(w, r.xMax - 1, y).a >= 128) solid++;
         }
         return solid / (float)n;
     }
@@ -242,7 +268,6 @@ public static class RailMineArtTest
     static void SizeMatchesTheOriginal()
     {
         if (!File.Exists(AtlasAsset)) return;
-        LoadPixels();
         Check("the atlas draws at 384 PPU", Mathf.Approximately(RailMineArt.PixelsPerUnit, 384f));
         // 1080x1920 portrait at orthographic size 5: 192 screen px per unit
         float atlasPerScreen = RailMineArt.PixelsPerUnit / (1920f / 10f);
@@ -253,7 +278,7 @@ public static class RailMineArtTest
             int minX = int.MaxValue, maxX = -1;
             for (int y = r.y; y < r.yMax; y++)
                 for (int x = r.x; x < r.xMax; x++)
-                    if (Px(x, y).a > 128) { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); }
+                    if (Px(w, x, y).a > 128) { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); }
             float width = (maxX - minX + 1) / RailMineArt.PixelsPerUnit;
             Check(string.Format("{0} mine is {1:F2} u wide (original {2:F2} u, +/-10%)", EnemyRoster.WorldKeys[w], width, EnemyRoster.MineWidth),
                   Mathf.Abs(width - EnemyRoster.MineWidth) <= EnemyRoster.MineWidth * .1f);

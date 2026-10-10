@@ -12,10 +12,8 @@ using UnityEngine;
 // hovering above the plume: the leftover top row of the crop). Table lines are
 // "[LOOPGUARD] world atlas frame ...".
 //
-// Failing: any frame with art in the top 2 rows or within 2 px of a side, apart
-// from KnownEdge (Verdant's smoke_a / wildsmoke_b, whose right edge is painted to the
-// cell: listed in docs/ember-smoke-fixes.md for Codex), and any sliver outside
-// KnownSliver (Ember's strips, same list). The sets shrink as art is fixed.
+// Failing: any frame with art in the top 2 rows or within 2 px of a side,
+// or with a detached flat sliver.
 //
 // Drawing: every loop of a pinned pool draws above the plates of every pool of its
 // layer (EmberDirector: a fire's / pipe's plume was hidden behind a landmark plate
@@ -44,9 +42,8 @@ public static class BackdropLoopGuardTest
         new[] { "Frost", "smoke", "steam", "fire_lights", "beacons" },
         new[] { "Tide", "smoke", "flames", "leaks", "lights", "surf" },     // art not delivered yet: skipped
     };
-    // art known to touch a side of its cell / to carry a flat sliver (Codex fix list)
-    static readonly HashSet<string> KnownEdge = new HashSet<string> { "Verdant/smoke", "Verdant/firesmoke" };
-    static readonly HashSet<string> KnownSliver = new HashSet<string> { "Ember/eruption", "Ember/lavafire", "Ember/leaks", "Ember/lights" };
+    static readonly HashSet<string> KnownEdge = new HashSet<string>();
+    static readonly HashSet<string> KnownSliver = new HashSet<string>();
 
     [System.Serializable] class R { public string n; public int x, y, w, h; }
     [System.Serializable] class M { public R[] sprites; }

@@ -81,11 +81,11 @@ public static class WorldGatingTest
 
     static void Keys()
     {
-        Check("the roster has a key per world", EnemyRoster.WorldKeys.Length == Worlds);
+        Check("the roster has a key per world", EnemyRoster.WorldKeys.Length == WorldManager.Worlds.Length);
         int bad = 0;
         string example = null;
         foreach (var d in EnemyRoster.All)
-            if (d.world < 0 || d.world >= Worlds || !d.key.StartsWith(EnemyRoster.WorldKeys[d.world] + "_", StringComparison.Ordinal))
+            if (d.world < 0 || d.world >= WorldManager.Worlds.Length || !d.key.StartsWith(EnemyRoster.WorldKeys[d.world] + "_", StringComparison.Ordinal))
             { bad++; example = example ?? d.key; }
         Check("every roster enemy belongs to exactly one world, named by its key (" + bad + " off" +
               (example != null ? ", e.g. " + example : "") + ")", bad == 0);

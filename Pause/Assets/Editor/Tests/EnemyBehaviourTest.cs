@@ -92,6 +92,7 @@ public static class EnemyBehaviourTest
     {
         Clear();
         EliteSystem.Clear();
+        RailMineLasers.Clear();   // a mine's burning beam counts against the shot budget (one per world's mine would pile up)
         EnemyThreat.Reset();
         PilotAirspace.Clear();
         PilotAirspace.ResetStats();
@@ -311,7 +312,8 @@ public static class EnemyBehaviourTest
                       lightOn && tellCellOk && releaseCell && brain.ShotsFired >= 1 && (fb.BrainDriven || def.role == EnemyRole.Mine);
             if (!ok)
                 bad.Add(def.key + "(fired " + fired + " told " + told.ToString("F2") + "/" + need.ToString("F2") + " light " + lightOn +
-                        " tellCell " + tellCellOk + " releaseCell " + releaseCell + ")");
+                        " tellCell " + tellCellOk + " releaseCell " + releaseCell + " live " + EnemyThreat.LiveShots + " (beams " + RailMineLasers.LiveBeams + " hazards " + AttackHazard.LiveThreat + ") pending " + EnemyThreat.PendingShots +
+                        " budget " + EnemyThreat.ShotBudget + " state " + brain.State + " y " + brain.transform.position.y.ToString("F2") + ")");
             Object.DestroyImmediate(brain.gameObject);
             if (rail != null) Object.DestroyImmediate(rail);
         }
@@ -561,7 +563,7 @@ public static class EnemyBehaviourTest
     static void ShotsAreFairAndBudgeted()
     {
         bool colours = true;
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             Color c = EnemyBehaviours.ShotColor(w);
             colours &= !HostileGlow.IsPlayerRed(c) && !HostileGlow.IsPlayerRed(HostileGlow.Tint(c));
@@ -634,8 +636,8 @@ public static class EnemyBehaviourTest
     {
         var styles = new HashSet<ChaserStyle>();
         var paths = new List<float>();
-        bool lancerAims = false, weaverWeaves = false;
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        bool lancerAims = false, weaverWeaves = false, slitherSurges = false, slitherSways = false;
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             Fresh();
             ship.position = new Vector3(0f, 2f, 0f);
@@ -644,11 +646,13 @@ public static class EnemyBehaviourTest
             var c = go.GetComponent<ChaserEnemy>();
             c.Target = ship;
             styles.Add(c.style);
-            float sideways = 0f, aimed = 0f;
+            float sideways = 0f, aimed = 0f, slowest = 99f, fastest = 0f;
             Vector3 last = go.transform.position;
             for (int i = 0; i < 120; i++)
             {
                 c.Step(Dt);
+                float climb = (go.transform.position.y - last.y) / Dt;
+                if (i > 5) { slowest = Mathf.Min(slowest, climb); fastest = Mathf.Max(fastest, climb); }
                 sideways += Mathf.Abs(go.transform.position.x - last.x);
                 if (c.Aiming) aimed += Dt;
                 last = go.transform.position;
@@ -656,16 +660,17 @@ public static class EnemyBehaviourTest
             paths.Add(go.transform.position.y);
             if (c.style == ChaserStyle.Lancer) lancerAims = aimed > .3f;
             if (c.style == ChaserStyle.Weaver) weaverWeaves = sideways > .5f;
+            if (c.style == ChaserStyle.Slither) { slitherSways = sideways > .5f; slitherSurges = fastest > slowest * 2f && slowest < 2f; }
             Check(def.displayName + " (" + c.style + ") closes on a pilot straight above it (y -5 -> " + go.transform.position.y.ToString("F2") + ")",
                   go.transform.position.y > -4.9f && c.chaseSeconds == EnemyBehaviours.For(def.key).chaseSeconds);
             Object.DestroyImmediate(go);
         }
-        Check("the four worlds' chasers hunt in four different styles", styles.Count == 4);
+        Check("every world's chaser hunts in its own style (" + styles.Count + " styles over " + WorldManager.Worlds.Length + " worlds)", styles.Count == WorldManager.Worlds.Length);
 
         // they do not stay for ever: chase, linger, then climb out the top
         bool allLeft = true;
         float longest = 0f;
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             Fresh();
             ship.position = new Vector3(0f, -1f, 0f);
@@ -684,6 +689,7 @@ public static class EnemyBehaviourTest
         Check("every chaser leaves after its chase and linger, climbing out the top (longest stay " + longest.ToString("F1") + " s)", allLeft);
         Check("the Frost Lancer stops to aim between dashes", lancerAims);
         Check("the Dragonsting weaves sideways even at a pilot straight ahead", weaverWeaves);
+        Check("the Wire Eel slithers: it surges and coils in sinusoidal lunges (climb speed swings > 2x) on an S-curve", slitherSurges && slitherSways);
     }
 
     // ---- 10 ------------------------------------------------------------------
@@ -812,7 +818,7 @@ public static class EnemyBehaviourTest
             n++;
         }
         var chasers = new List<ChaserEnemy>();
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             var c = EnemyFactory.Create(EnemyRoster.One(w, EnemyRole.Chaser), new Vector3(-1.5f + w, -5.5f, 0f), Quaternion.identity).GetComponent<ChaserEnemy>();
             c.Target = ship;
@@ -926,7 +932,7 @@ public static class EnemyBehaviourTest
         }
         Check("every roster key is a hazard or a pilot: rocks and rail mines ride the board (" + hazards + "), fighters, heavies, chasers and " +
               "aliens fly (" + pilots + "), and the factory builds them so (" + string.Join(",", wrong) + ")",
-              wrong.Count == 0 && hazards == 18 && pilots == 28);
+              wrong.Count == 0 && hazards + pilots == EnemyRoster.All.Length && pilots == 7 * EnemyRoster.WorldKeys.Length);
 
         EnemyBrain.PilotsEnabled = false;
         var off = EnemyFactory.Create(EnemyRoster.Fighter(0, 2), new Vector3(0f, 40f, 0f), Quaternion.identity);
@@ -1054,7 +1060,7 @@ public static class EnemyBehaviourTest
         }
         Check(flown + " pilots flown at HUD 5 and at HUD 40: each enters from the top, keeps to its column and the lane, starts every " +
               "windup on station in view above the pilot, and leaves by the top or the bottom as its script says (" + string.Join(", ", bad) + ")",
-              bad.Count == 0 && flown == 24);
+              bad.Count == 0 && flown == 6 * EnemyRoster.WorldKeys.Length);
         Check("a pilot's time on screen does not depend on the scroll speed (worst difference HUD 5 vs 40: " + worstSpread.ToString("F2") + " s)",
               worstSpread <= .25f);
         // (13 s before HostileReach: a heavy holding in the player's reach climbs
@@ -1065,7 +1071,7 @@ public static class EnemyBehaviourTest
 
         // tiers: the higher the tier, the longer it stays and the more it does
         bool tiers = true;
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             var t1 = EnemyRoster.Fighter(w, 1).Behaviour; var t2 = EnemyRoster.Fighter(w, 2).Behaviour;
             var t3 = EnemyRoster.Fighter(w, 3).Behaviour; var t4 = EnemyRoster.Fighter(w, 4).Behaviour;
@@ -1238,7 +1244,7 @@ public static class EnemyBehaviourTest
         float worstLoad = 0f, worstShare = 0f;
         int most = 0;
         foreach (float hud in new[] { 5f, 20f, 35f, 44f })
-            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+            for (int w = 0; w < WorldManager.Worlds.Length; w++)
             {
                 Fresh();
                 moveBackGround.speed = hud / 100f;
