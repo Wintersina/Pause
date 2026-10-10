@@ -79,7 +79,7 @@ public class movePlayer : MonoBehaviour
         // (Planetfall, Liftoff): no steering and
         // no teleport. A touch held into the hand-back steers on from where
         // the descent left the ship (under the finger), not as an arrival.
-        if (Planetfall.HoldsShip || Liftoff.HoldsShip)
+        if (Planetfall.HoldsShip || Liftoff.HoldsShip || PortalArrival.HoldsShip)
         {
             teleported = false;
             teleportLockedUntilRelease = false;

@@ -108,6 +108,7 @@ public static class AllTests
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("OpenPortalTest", OpenPortalTest.Execute),
         ("PlanetfallTest", PlanetfallTest.Execute),
+        ("EntryAnimTest", EntryAnimTest.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
         ("PausedLabelTest", PausedLabelTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),

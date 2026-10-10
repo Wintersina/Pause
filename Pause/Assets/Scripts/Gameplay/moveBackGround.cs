@@ -84,13 +84,13 @@ public class moveBackGround : MonoBehaviour {
         {
             Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
             moveBackground();
-            if (!BossEncounter.SpeedLocked) speedUp(); // a boss holds speed at 20
+            if (!BossEncounter.SpeedLocked && !WorldEntry.Active) speedUp(); // a boss holds speed at 20; the entry waits
         }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
             Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
             moveBackground();
-            if (!BossEncounter.SpeedLocked) speedUp(); // a boss holds speed at 20
+            if (!BossEncounter.SpeedLocked && !WorldEntry.Active) speedUp(); // a boss holds speed at 20; the entry waits
         }
         else
         {

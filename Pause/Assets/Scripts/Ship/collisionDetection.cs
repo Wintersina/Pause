@@ -235,7 +235,7 @@ public class collisionDetection : MonoBehaviour {
             if (PlayerInvuln.Active && !Invulnerable) return;
             // A planetfall's descent: nothing can touch the ship (the board
             // was cleared at the commit; this is the guarantee).
-            if (Planetfall.ShieldsShip || Liftoff.ShieldsShip) return;
+            if (Planetfall.ShieldsShip || Liftoff.ShieldsShip || PortalArrival.ShieldsShip) return;
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.

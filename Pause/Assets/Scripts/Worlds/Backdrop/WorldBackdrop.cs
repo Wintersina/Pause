@@ -40,6 +40,7 @@ public class WorldBackdrop : MonoBehaviour
         get
         {
             if (Planetfall.Live != null) return Planetfall.Live.BackdropBoost;
+            if (PortalArrival.Live != null) return PortalArrival.Live.BackdropBoost;
             return Liftoff.Live != null ? Liftoff.Live.BackdropBoost : 1f;
         }
     }

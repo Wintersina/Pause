@@ -107,6 +107,8 @@ public class score : MonoBehaviour {
         if (Planetfall.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
         // ... and a lift-off's rise (Liftoff.FreePress).
         if (Liftoff.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
+        // ... and so is a run's entry (WorldEntry: the portal arrival).
+        if (PortalArrival.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
 
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
@@ -120,22 +122,25 @@ public class score : MonoBehaviour {
             }
             else if (ShouldSpendPause(hasStartedRun, pauseCounterBool))
                 pauseCounterFunction();
-            payDust();
-            // calculate speed
-            showSpeed();
-            RunScore.Tick(Time.deltaTime, moveBackGround.speed);
-
+            StepRunning();
         }
         else if (pauseCounter <= 0 && !buttonClicks.playerDied)
         {
-            payDust();
-            // calculate speed
-            showSpeed();
-            RunScore.Tick(Time.deltaTime, moveBackGround.speed);
+            StepRunning();
         }
         else
             pauseCounterBool = false;
 	}
+    // A running frame: the flight dust, the speed read-out and the score. The
+    // run has not begun while its entry plays (WorldEntry): nothing is earned.
+    void StepRunning()
+    {
+        showSpeed();
+        if (WorldEntry.Active) return;
+        payDust();
+        RunScore.Tick(Time.deltaTime, moveBackGround.speed);
+    }
+
     // Leaving the run by any route (Menu, Replay, Back, scene change) banks
     // what it earned. Replay/Menu zero totalCurrency first, which is why the
     // ledger, not that field, is what gets saved.

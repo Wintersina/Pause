@@ -39,6 +39,10 @@ using UnityEngine.SceneManagement;
 // run starts on the furthest planet reached (or the world the player chose in
 // Options, PlayerStartWorld) -- except REPLAY, which flies the same run again
 // from the world it began in (RunStartWorld).
+//
+// A run that starts from the menu begins with its entry (WorldEntry): the
+// portal arrival in Space, the planet's planetfall on a planet; a replay does
+// not. The level clock starts when the entry hands the ship over.
 public class WorldManager : MonoBehaviour
 {
     public const string PrefsCurrentWorld = "currentWorld";
@@ -379,13 +383,29 @@ public class WorldManager : MonoBehaviour
         levelBegun = true;
         portalOpen = false;
         PortalPressure.Reset();
-        WorldPainter.Apply(Current);
-        WorldMusic.Apply(Current);
-        WorldBackdrop.Apply(Current, false);
+        // The run's entry (WorldEntry): a planet's planetfall starts in
+        // Space's sky and switches to the planet under its clouds
+        // (ShowEntryWorld); Space's portal arrival and every other start
+        // show the world at once. A replay (a pinned world) has none.
+        var entryPlan = WorldEntry.Plan(CurrentIndex, PinnedReplayWorld >= 0);
+        var shown = entryPlan == WorldEntry.Kind.Planetfall ? Worlds[0] : Current;
+        WorldPainter.Apply(shown);
+        WorldMusic.Apply(shown);
+        WorldBackdrop.Apply(shown, false);
         ApplyDifficulty(Current);
         // The walls' Start may run before or after this one; both set it.
         moveBackGround.speed = RunStartSpeed(moveBackGround.speed);
-        WorldBanner.Show(Current.displayName);
+        var entryKind = WorldEntry.Begin(entryPlan, CurrentIndex);
+        EntryPlayed = entryKind;
+        if (shown != Current && entryKind != WorldEntry.Kind.Planetfall)
+        {
+            // the planetfall could not play: the planet at once
+            WorldPainter.Apply(Current);
+            WorldMusic.Apply(Current);
+            WorldBackdrop.Apply(Current, false);
+        }
+        // The planetfall shows the banner after its clouds (ShowEntryWorld).
+        if (entryKind != WorldEntry.Kind.Planetfall) WorldBanner.Show(Current.displayName);
         Codex.Discover(Codex.WorldId(CurrentIndex));
         AchievementTracker.OnWorldEntered(CurrentIndex);
     }
@@ -408,6 +428,8 @@ public class WorldManager : MonoBehaviour
     // Public so edit-mode tests can step it (Time.deltaTime is 0 there).
     public void Tick(float dt)
     {
+        // The run has not begun while its entry plays (WorldEntry) ...
+        if (WorldEntry.Active) return;
         // The level clock stops for the boss ...
         if (BossEncounter.Running) return;
         // ... and for the open portal, whose own clock runs instead: the
@@ -510,6 +532,22 @@ public class WorldManager : MonoBehaviour
         return !portalOpen && (CurrentIndex != was || RunLoop.Index != loopWas);
     }
 
+    // What this run's start played (WorldEntry.Kind.None: nothing, or a replay).
+    public WorldEntry.Kind EntryPlayed { get; private set; }
+
+    // The planetfall entry's clouds cover the view: the planet the run
+    // began on takes the place of Space's sky (the same presentation as
+    // Advance, without a world change: the run is already on this world).
+    // Returns the banner for after the clouds.
+    public string ShowEntryWorld()
+    {
+        var theme = Current;
+        WorldPainter.Apply(theme);
+        WorldMusic.Apply(theme);
+        WorldBackdrop.Apply(theme, true);
+        return theme.displayName;
+    }
+
     // Called by Portal when the player flies through.
     public void Advance() { Advance(true); }
 
@@ -605,6 +643,7 @@ public class WorldManager : MonoBehaviour
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) BossUtil.Kill(p.gameObject);
         if (Planetfall.Live != null) BossUtil.Kill(Planetfall.Live.gameObject);
         if (Liftoff.Live != null) BossUtil.Kill(Liftoff.Live.gameObject);
+        if (PortalArrival.Live != null) BossUtil.Kill(PortalArrival.Live.gameObject);
         if (CurrentIndex == last) return;
         CurrentIndex = last;
         var theme = Current;
