@@ -89,9 +89,29 @@ public static class Codex
     // Whether the codex shows the entry at all: a secret entry stays off the
     // list -- not even a "???" card -- until it is discovered (developer mode
     // discovers, so lists, everything).
+    // The entries of a world that is not live yet (Tide, until WorldManager.TideEnabled) stay
+    // off the list the same way, so the codex never shows a world the loop cannot reach.
     public static bool IsListed(CodexEntry entry)
     {
-        return entry != null && (!entry.secret || IsDiscovered(entry));
+        return entry != null && ((!entry.secret && !InFutureWorld(entry)) || IsDiscovered(entry));
+    }
+
+    // True for a world entry, roster enemy / hazard or elite of a world past WorldManager.LiveWorldCount.
+    public static bool InFutureWorld(CodexEntry entry)
+    {
+        if (entry == null || WorldManager.LiveWorldCount >= WorldManager.Worlds.Length) return false;
+        int world = Array.IndexOf(CodexCatalogue.WorldIds, entry.id);
+        if (world < 0)
+        {
+            var def = EnemyRoster.FindByCodexId(entry.id);
+            if (def != null) world = def.world;
+            else
+            {
+                var elite = EliteCatalog.FindByCodexId(entry.id);
+                if (elite != null) world = elite.WorldIndex;
+            }
+        }
+        return world >= WorldManager.LiveWorldCount;
     }
 
     public static CodexEntry Find(string id)

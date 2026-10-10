@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Every enemy the spawner can field, per world, in one table.
 //
-// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember) fills the
+// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide) fills the
 // same gameplay roles, so enmiesOnBoard's phases and difficulty hold whatever
 // planet the player is on -- only the cast changes:
 //
@@ -24,7 +24,8 @@ using UnityEngine;
 // Art/Enemies/src~) and the spawned GameObject's name, except for the alien
 // and the mine, which keep the legacy names "alien1" and "mine" that
 // collisionDetection matches on. The rail mines are neon pixel art instead:
-// one row each of the original four-world atlas (RailMineArt).
+// one row each of the original four-world atlas, Tide's in a second atlas
+// file of its own (RailMineArt).
 public enum EnemyRole { Rock, Big, Fighter, Chaser, Alien, Mine }
 
 public sealed class EnemyDef
@@ -35,6 +36,7 @@ public sealed class EnemyDef
     public int world;             // WorldManager.Worlds index
     public int tier;              // fighters 1-4; rocks 1-4 (variant); others 0
     public bool floating;         // rocks only: a floating chunk of the world's ground (sways, never tumbles)
+    public float frameScale = 1f; // the drawing's frame size relative to its role's (an art that draws small inside its cell)
     public string codexId;        // CodexCatalogue entry id
     public string concept;        // one-line art brief
     public string lore;           // codex text
@@ -49,11 +51,11 @@ public sealed class EnemyDef
         role == EnemyRole.Mine ? EnemyRoster.MineObjectName : key;
 
     // The mines all read the one neon atlas (RailMineArt), a row per world.
-    public string StripPath => role == EnemyRole.Mine ? RailMineArt.AtlasPath : EnemyRoster.ArtFolder + "/" + key;
+    public string StripPath => role == EnemyRole.Mine ? RailMineArt.AtlasPathFor(world) : EnemyRoster.ArtFolder + "/" + key;
 
     // World size of one 128 u flipbook frame (the drawing sits inside it) and
     // the BoxCollider2D in world units, both per role.
-    public float FrameWorldSize => EnemyRoster.FrameWorldSize(role);
+    public float FrameWorldSize => EnemyRoster.FrameWorldSize(role) * frameScale;
     public Vector2 ColliderSize => EnemyRoster.ColliderSize(role);
 
     public bool IsHazard => role == EnemyRole.Rock || role == EnemyRole.Mine;
@@ -70,7 +72,7 @@ public static class EnemyRoster
     public const int FrameCount = 7;                  // 0-3 idle, 4-5 tell, 6 hit flash
     public const int TellFrame = 4, HitFrame = 6;
 
-    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember" };
+    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide" };
 
     // ---- sizes ---------------------------------------------------------------
     // What each role measured before the redraw (world units), so every
@@ -263,6 +265,13 @@ public static class EnemyRoster
     static EnemyDef Floating(EnemyDef d)
     {
         d.floating = true;
+        return d;
+    }
+
+    // The art draws small inside its cell: show the frame this much larger (silhouette back within the role's size).
+    static EnemyDef Scaled(EnemyDef d, float scale)
+    {
+        d.frameScale = scale;
         return d;
     }
 
@@ -468,6 +477,56 @@ public static class EnemyRoster
             Def("ember_alien", "Ember Imp", A, 3, 0, "enemy_ember_alien", Magma,
                 "A living flame wearing a horned basalt mask with two magenta eyes.",
                 "Little flames in basalt masks, grinning in formation. They flare up when you get close."),
+
+            // ================================================================ TIDE
+            Def("tide_rock_brain", "Brain Coral", R, 4, 1, "hazard_tide_rock_brain", Ice,
+                "Rounded maze-fold coral boulder pitted with barnacles, faint mint cracks.",
+                "A reef that outgrew its ocean. The folds are full of barnacles and the cracks glow when " +
+                "something stirs them. It tumbles slow and wide - give it the room it asks for."),
+            Def("tide_rock_staghorn", "Staghorn Spire", R, 4, 2, "hazard_tide_rock_staghorn", Ice,
+                "Upright branched reef blade with rusted brass tips and glowing polyps.",
+                "A branch of drowned coral sharp enough to open a hull. It slices across the lane on one " +
+                "slanted line, polyps lit, so you can see it coming."),
+            Def("tide_rock_urchin", "Spine Urchin", R, 4, 3, "hazard_tide_rock_urchin", Ice,
+                "Round shell of uneven bone-white iron spines around a mint core.",
+                "An urchin with iron for spines and a lamp for a heart. It spins as it sinks and arrives " +
+                "sooner than it looks."),
+            Floating(Def("tide_rock_islet", "Kelp Islet", R, 4, 4, "hazard_tide_rock_islet", Ice,
+                "Floating reef slab under a kelp cap, a tide pool on top, roots and drips hanging below.",
+                "A slab of reef that floated off with its tide pool and its kelp still on it. It dips and " +
+                "sways, dripping, wide and slow.")),
+            Def("tide_mine", "Limpet Mine", M, 4, 0, "hazard_tide_mine", Mine,
+                "Neon pixel sea-mine: a barnacled iron sphere with four pearl horns on a brass clamp, a mint eye that wakes, charges and bursts in shell shards.",
+                "A limpet on the rail, horned and patient. When the eye flares mint a line blinks across " +
+                "the lane, then a pressure jet burns it - twice, at two angles. Be off the line."),
+            Def("tide_big", "Nautilus Bulwark", B, 4, 0, "enemy_tide_big", Ice,
+                "A huge layered spiral shell of plates and barnacles with tentacle pipes, its shell opening on a mint-lit maw.",
+                "A shell-plated hulk with a lantern in its mouth. When the shell cracks open it fans pearl " +
+                "shots across the water - stand between them."),
+            Def("tide_fighter_1", "Remora", F, 4, 1, "enemy_tide_fighter_1", Ice,
+                "Small suckerfish drone with an oval back disc, paired fins and a mint eye.",
+                "A little drone that clings to bigger things. It drifts alongside, then lets go and darts " +
+                "straight at you - and never steers."),
+            Def("tide_fighter_2", "Needlefish", F, 4, 2, "enemy_tide_fighter_2", Ice,
+                "Narrow skiff with a needle-beak cannon, a dorsal blade and paired fins.",
+                "A long beak and a short temper. It lines up above you and spits quick bolts straight down."),
+            Def("tide_fighter_3", "Lantern Angler", F, 4, 3, "enemy_tide_fighter_3", Ice,
+                "Armoured anglerfish gunship: hinged jaw of pearl teeth, a curved stalk carrying a bright mint lure.",
+                "It hangs in the dark behind its lure. When the lamp flares it has picked you out - move " +
+                "after the light comes on."),
+            Def("tide_fighter_4", "Hammerhead", F, 4, 4, "enemy_tide_fighter_4", Ice,
+                "Broad transverse hammer hull with twin tip cannons, plated gills and tail.",
+                "The deep fleet's heavy: a hammer of plate with a cannon on each end. It parks and rings " +
+                "itself in shots - the gaps open with distance."),
+            Def("tide_chaser", "Wire Eel", C, 4, 0, "enemy_tide_chaser", Ice,
+                "Long segmented iron-and-brass mechanical eel, a sharp downward head, a mint eye and thruster fins.",
+                "It slips up out of the dark in an S, coils and whips forward again. Slide sideways and let " +
+                "it overshoot."),
+            // (the jelly's bell and tendrils draw 0.53 u of its cell: shown 17% larger, 0.62 u, inside the Alien role's 0.64 +/-15%)
+            Scaled(Def("tide_alien", "Glow Jelly", A, 4, 0, "enemy_tide_alien", Ice,
+                "Translucent mint bell in a brass collar trailing glowing tendrils; a living jelly drone.",
+                "Jellies in a brass collar, drifting in lines with their lights on. They pulse as they sink - " +
+                "slip past on the down-beat."), 1.17f),
         };
     }
 }

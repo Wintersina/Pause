@@ -130,11 +130,15 @@ public static class RailsVettingTest
 
     static void MineArt()
     {
-        var path = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
-        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        tex.LoadImage(File.ReadAllBytes(path));
-        var px = tex.GetPixels32();
-        int size = tex.width;
+        var texs = new Dictionary<string, Texture2D>();
+        var pxs = new Dictionary<string, Color32[]>();
+        foreach (var ap in new[] { RailMineArt.AtlasPath, RailMineArt.TideAtlasPath })
+        {
+            var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            t.LoadImage(File.ReadAllBytes("Assets/Art/Resources/" + ap + ".png"));
+            texs[ap] = t;
+            pxs[ap] = t.GetPixels32();
+        }
         bool whole = true, reachOk = true;
         float minReach = 9f, maxReach = 0f;
         var red = new float[RailMineArt.Worlds];
@@ -143,11 +147,14 @@ public static class RailsVettingTest
             {
                 var r = RailMineArt.PixelRect(w, c);
                 Vector2 pivot = RailMineArt.PixelPivot(w, c);
+                string ap = RailMineArt.AtlasPathFor(w);
+                var px = pxs[ap];
+                int size = texs[ap].width, heightPx = texs[ap].height;
                 int left = int.MaxValue, opaque = 0, reddish = 0, onBorder = 0;
                 for (int y = r.y; y < r.y + r.height; y++)
                     for (int x = r.x; x < r.x + r.width; x++)
                     {
-                        var p = px[(size - 1 - y) * size + x];   // top-left origin
+                        var p = px[(heightPx - 1 - y) * size + x];   // top-left origin
                         if (p.a <= 40) continue;
                         opaque++;
                         left = Mathf.Min(left, x);
@@ -161,12 +168,13 @@ public static class RailsVettingTest
                 reachOk &= Mathf.Abs(reach - RailMineArt.ClampReach) <= .03f;
                 if (c == RailMineArt.Dormant) red[w] = reddish / (float)opaque;
             }
-        Object.DestroyImmediate(tex);
-        Check("all 16 mine cells (4 worlds x dormant / waking / charging / burst) are whole: nothing cut at a cell's edge", whole);
+        foreach (var t in texs.Values) Object.DestroyImmediate(t);
+        Check("all 20 mine cells (5 worlds x dormant / waking / charging / burst) are whole: nothing cut at a cell's edge", whole);
         Check("in every cell the clamp's outer face is RailMineArt.ClampReach (" + RailMineArt.ClampReach + " u) from the pivot (" +
               minReach.ToString("F3") + " to " + maxReach.ToString("F3") + " u)", reachOk);
-        Debug.Log(string.Format("[RAILS] mine art in the player's red band (HostileGlow.IsPlayerRed), dormant cell: Space {0:P0}, Frost {1:P0}, Verdant {2:P0}, Ember {3:P0}",
-                                red[0], red[1], red[2], red[3]));
+        Debug.Log(string.Format("[RAILS] mine art in the player's red band (HostileGlow.IsPlayerRed), dormant cell: Space {0:P0}, Frost {1:P0}, Verdant {2:P0}, Ember {3:P0}, Tide {4:P0}",
+                                red[0], red[1], red[2], red[3], red[4]));
+        Check("the Tide mine carries none of the player's red", red[4] < .01f);
         Check("the Space and Frost mines carry none of the player's red", red[0] < .01f && red[1] < .01f);
         // KNOWN ART GAP (reported, not fixed here: the atlas is approved art):
         // the Ember mine's lava is orange-red, 42% of it inside the red band,

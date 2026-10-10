@@ -247,7 +247,7 @@ public static class CodexTest
                 PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos); clock += 1f; PointerTap(panel, pos);
                 if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
             }
-            Check("pointer tap: every strip-bearing enemy plays its death from real taps (" + withStrip + " tested of " + tested + ")", withStrip >= 24);
+            Check("pointer tap: every strip-bearing enemy plays its death from real taps (" + withStrip + " tested of " + tested + "; all " + EnemyRoster.All.Length + " roster enemies incl. Tide's 12)", withStrip == EnemyRoster.All.Length);
         }
         finally
         {
@@ -332,7 +332,7 @@ public static class CodexTest
                 if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
             }
             Check("pointer tap: every Codex elite plays a death from real taps (" + elites + " elites, " + bursts + " composed)", elites >= 16 && bursts + 0 >= 0);
-            Check("pointer tap: bosses with a death strip play it (" + bossStrips + " of " + bosses + ")", bossStrips >= 1);
+            Check("pointer tap: bosses with a death strip play it (" + bossStrips + " of " + bosses + ": Ember and Tide)", bossStrips >= 2);
 
             // a locked elite stays inert
             PlayerPrefs.DeleteKey(Codex.PrefsKey);
@@ -758,7 +758,7 @@ public static class CodexTest
         }
 
         // ---- worlds and the portal ----
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)   // Tide's entry exists too; it only stays unlisted until the world is live
         {
             Check("inventory: world " + WorldManager.Worlds[w].displayName, Codex.Find(Codex.WorldId(w)) != null);
             accounted.Add(Codex.WorldId(w));
@@ -869,7 +869,7 @@ public static class CodexTest
                 Hook(b.id, "meeting the boss (BossEncounter)", () => Codex.Discover(b.id), toasts);
                 Check(b.id + " is listed once met", Codex.IsListed(e));
             }
-            for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+            for (int w = 0; w < WorldManager.Worlds.Length; w++)
             {
                 int world = w;
                 Hook(Codex.WorldId(w), "entering the world (WorldManager)", () => Codex.Discover(Codex.WorldId(world)), toasts);
@@ -1322,7 +1322,7 @@ public static class CodexTest
                 panel.SkipAnimations();
             }
         }
-        Check("checked the locked view of every undiscovered entry (" + lockedChecked + ")", lockedChecked >= Codex.Entries.Length - 10);
+        Check("checked the locked view of every undiscovered entry (" + lockedChecked + ")", lockedChecked >= Codex.Total - 10);
 
         // Unlocked (developer mode reveals every entry, the bosses too): full
         // name, lore, subtitle and colour art, and its animation plays.
@@ -1454,6 +1454,35 @@ public static class CodexTest
               EnemyRoster.FindByCodexId(space[rosterCount - 1].id).role == EnemyRole.Big);
         Check("one jump chip per section", ActiveChips(panel) == 4 && panel.ChipLabel(3).text == "EMBER");
 
+        // Tide's cast and world entry exist but stay off the list while the world is not live (WorldManager.TideEnabled);
+        // once it is, its TIDE section (the 7 pilots of ENEMIES, in the same tier / role order) and its jump chip appear
+        var tideBig = Codex.Find(EnemyRoster.One(4, EnemyRole.Big).codexId);
+        Check("Tide's codex entries exist (world entry, 12 roster entries) and are unlisted while the switch is off",
+              tideBig != null && Codex.Find(Codex.WorldId(4)) != null && !WorldManager.TideEnabled &&
+              !Codex.IsListed(tideBig) && !Codex.IsListed(Codex.Find(Codex.WorldId(4))) && Codex.InFutureWorld(tideBig));
+        bool tideWas = WorldManager.TideEnabled;
+        WorldManager.TideEnabled = true;
+        try
+        {
+            panel.Refresh();
+            panel.SkipAnimations();
+            Check("switch on: ENEMIES gains a TIDE section after EMBER with Tide's 7 pilots (" + Labels(panel) + ")",
+                  Labels(panel) == "SPACE,FROST,VERDANT,EMBER,TIDE" && panel.SectionAt(4).entries.Count == 7 &&
+                  panel.SectionAt(4).color == EnemyPalette.WorldLight(4) && Codex.IsListed(tideBig));
+            Check("switch on: its fighters list by tier, then chaser, alien and big",
+                  EnemyRoster.FindByCodexId(panel.SectionAt(4).entries[0].id).tier == 1 &&
+                  EnemyRoster.FindByCodexId(panel.SectionAt(4).entries[3].id).tier == 4 &&
+                  EnemyRoster.FindByCodexId(panel.SectionAt(4).entries[4].id).role == EnemyRole.Chaser &&
+                  EnemyRoster.FindByCodexId(panel.SectionAt(4).entries[6].id).role == EnemyRole.Big);
+        }
+        finally
+        {
+            WorldManager.TideEnabled = tideWas;
+            panel.Refresh();
+            panel.SkipAnimations();
+        }
+        Check("switch off again: the TIDE section is gone (" + Labels(panel) + ")", Labels(panel) == "SPACE,FROST,VERDANT,EMBER");
+
         // One boss met: the BOSSES section appears last with just that boss.
         var boss = BossCatalog.ForWorld(1);
         int totalBefore = Codex.Total;
@@ -1478,12 +1507,14 @@ public static class CodexTest
         string seen = PlayerPrefs.GetString(Codex.PrefsKey);
         DeveloperUnlocks.SetEnabled(true);
         panel.SkipAnimations();
-        bool allBosses = panel.SectionCount == 5 && panel.SectionAt(4).entries.Count == BossCatalog.All.Length;
+        // (dev mode discovers everything, so Tide's section is listed too: SPACE..TIDE, then BOSSES)
+        int bi = WorldManager.Worlds.Length;
+        bool allBosses = panel.SectionCount == bi + 1 && panel.SectionAt(bi).entries.Count == BossCatalog.All.Length;
         for (int b = 0; allBosses && b < BossCatalog.All.Length; b++)
-            allBosses &= panel.SectionAt(4).entries[b].id == BossCatalog.All[b].id &&
-                         panel.CardName(panel.SectionStart(4) + b).text == Codex.Find(BossCatalog.All[b].id).name;
-        Check("dev mode: BOSSES shows all four bosses, named", allBosses);
-        Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(4).text == BossCatalog.All.Length.ToString());
+            allBosses &= panel.SectionAt(bi).entries[b].id == BossCatalog.All[b].id &&
+                         panel.CardName(panel.SectionStart(bi) + b).text == Codex.Find(BossCatalog.All[b].id).name;
+        Check("dev mode: BOSSES shows all five bosses, named, after Tide's section", allBosses && panel.ChipLabel(bi - 1).text == "TIDE");
+        Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(bi).text == BossCatalog.All.Length.ToString());
         CheckWorldSections(panel, true);
         DeveloperUnlocks.SetEnabled(false);
         panel.SkipAnimations();

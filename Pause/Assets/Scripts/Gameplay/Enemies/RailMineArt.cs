@@ -8,6 +8,12 @@ using UnityEngine;
 //   rows    = worlds (Space, Frost, Verdant, Ember), top to bottom
 //   columns = Dormant, Waking, Charging, Burst, left to right
 //
+// Later worlds get a SECOND atlas file of their own (the original stays
+// byte-identical: RailMineArtTest pins its SHA-1): Tide's Limpet Mine is the
+// one row of Resources/Enemies/Mines/rail_mines_neon_tide.png (1254x314,
+// same four columns, same 384 PPU, same clamp geometry). AtlasPathFor(world)
+// routes; PixelRect / PixelPivot are in the world's own atlas.
+//
 // The drawings don't sit on the even 313.5 px grid the old slicer cut (the
 // rows drift up and the columns left, so Verdant's and Ember's top lugs were
 // clipped and frames jumped about), and the charging/burst glow spills past
@@ -25,7 +31,10 @@ public static class RailMineArt
 {
     public const string AtlasPath = "Enemies/Mines/rail_mines_neon";
     public const float PixelsPerUnit = 384f;
-    public const int Worlds = 4;
+    public const string TideAtlasPath = "Enemies/Mines/rail_mines_neon_tide";
+    public const int OriginalWorlds = 4;   // the rows of the original atlas
+    public const int Worlds = 5;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas)
+    public const int TideAtlasHeight = 314;
     public const int Dormant = 0, Waking = 1, Charging = 2, Burst = 3;
     public const int Columns = 4;
 
@@ -57,6 +66,8 @@ public static class RailMineArt
         new RectInt(0, 594, 320, 298), new RectInt(320, 594, 293, 298), new RectInt(613, 594, 309, 298), new RectInt(922, 594, 332, 298),
         // Ember
         new RectInt(0, 892, 309, 362), new RectInt(309, 892, 294, 362), new RectInt(603, 892, 319, 362), new RectInt(922, 892, 332, 362),
+        // Tide (the second atlas, one row: y from its own top). Cut along the empty gaps between the panels.
+        new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
     };
 
     // Each frame's pivot in image pixels (top-left origin): where the rail is.
@@ -66,6 +77,8 @@ public static class RailMineArt
         new Vector2(177f, 443f), new Vector2(477f, 445f), new Vector2(772f, 443f), new Vector2(1070f, 455f),
         new Vector2(177f, 738f), new Vector2(473f, 744f), new Vector2(766f, 744f), new Vector2(1071f, 747f),
         new Vector2(175f, 1042.5f), new Vector2(476f, 1049.5f), new Vector2(770f, 1046.5f), new Vector2(1074f, 1056.5f),
+        // Tide: the clamp's solid left edge sits 128 px left of the pivot in every frame (the others 124-134)
+        new Vector2(186f, 161f), new Vector2(490f, 161f), new Vector2(788f, 161f), new Vector2(1093f, 161f),
     };
 
     // The core: where the mine's laser leaves it (RailMineLaser.MuzzleOf).
@@ -79,6 +92,7 @@ public static class RailMineArt
         new Vector2(38f, -3f),       // Frost
         new Vector2(39.4f, 1f),      // Verdant
         new Vector2(38.1f, -2.2f),   // Ember
+        new Vector2(27.5f, .7f),     // Tide (same method; the brightest pixels sit on the eye's glare)
     };
 
     // The core's offset from the mine's centre in world units (unscaled,
@@ -92,8 +106,17 @@ public static class RailMineArt
     // detonation, RailBombAnimator.Burst) is the burst.
     public static readonly int[] FlipbookColumns = { Dormant, Waking, Dormant, Dormant, Waking, Charging, Burst };
 
-    static Texture2D atlas;
+    static Texture2D atlas, tideAtlas;
     static Sprite[] sprites;   // [world * Columns + column]
+
+    // The atlas file a world's mine is drawn from.
+    public static string AtlasPathFor(int world) => world >= OriginalWorlds ? TideAtlasPath : AtlasPath;
+    public static Texture2D AtlasFor(int world)
+    {
+        if (world < OriginalWorlds) return Atlas;
+        if (tideAtlas == null) tideAtlas = Resources.Load<Texture2D>(TideAtlasPath);
+        return tideAtlas;
+    }
 
     public static Texture2D Atlas
     {
@@ -120,7 +143,7 @@ public static class RailMineArt
         // null check catches that and the atlas is sliced again.
         if (sprites == null || sprites[i] == null)
         {
-            var tex = Atlas;
+            var tex = AtlasFor(world);
             if (tex == null) return null;
             if (sprites == null) sprites = new Sprite[Worlds * Columns];
             var r = Rects[i];
@@ -137,7 +160,7 @@ public static class RailMineArt
     // The seven flipbook frames for one world's mine.
     public static Sprite[] Flipbook(int world)
     {
-        if (Atlas == null) return null;
+        if (AtlasFor(world) == null) return null;
         var frames = new Sprite[FlipbookColumns.Length];
         for (int i = 0; i < frames.Length; i++) frames[i] = Frame(world, FlipbookColumns[i]);
         return frames;

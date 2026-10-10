@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember) shows
+// Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember, Tide) shows
 // its battle damage as it loses hearts; Verdant has none yet. A boss with a
-// BossDef.deathKey (Ember) plays its <Key>_death.png strip over the body as it
+// BossDef.deathKey (Ember, Tide) plays its <Key>_death.png strip over the body as it
 // blows up.
 //
 // Stage = hearts lost (0 pristine .. 4 one heart left). From stage 1 its idle
@@ -38,17 +38,22 @@ public static class BossDamageTest
             ArtSlicesIntoItsCells(0);
             ArtSlicesIntoItsCells(1);
             ArtSlicesIntoItsCells(3);
+            ArtSlicesIntoItsCells(4);
             OnlyKeyedBossesHaveDamage();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
             FightShowsTheDamage(3);
+            FightShowsTheDamage(4);
             OtherBossesUnchangedInAFight();
             OverlayGoesWithTheBoss(0);
             OverlayGoesWithTheBoss(1);
             OverlayGoesWithTheBoss(3);
-            DeathStripArt();
-            DeathStripPlaysOnce();
+            OverlayGoesWithTheBoss(4);
+            DeathStripArt(3, "Ember");
+            DeathStripArt(4, "Tide");
+            DeathStripPlaysOnce(3);
+            DeathStripPlaysOnce(4);
             OtherBossesKeepTheirDeath();
         }
         finally
@@ -189,7 +194,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide";
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
@@ -199,7 +204,7 @@ public static class BossDamageTest
             }
             if (!space) ok &= BossArt.DamageBody(b, 0) == null && BossArt.DamageFx(b, 0) == null;
         }
-        Check("damaged idle frames resolve for Space, Frost and Ember (by damageKey); Verdant gets none", ok);
+        Check("damaged idle frames resolve for Space, Frost, Ember and Tide (by damageKey); Verdant gets none", ok);
 
         // Frost's idle is the 4-frame Idle0 loop: the damaged loop spans it
         var fr = BossCatalog.ForWorld(1);
@@ -395,13 +400,13 @@ public static class BossDamageTest
         return x1 < 0 ? null : new[] { x0, y0, x1, y1 };
     }
 
-    static void DeathStripArt()
+    static void DeathStripArt(int world, string name)
     {
-        var em = BossCatalog.ForWorld(3);
-        var tex = Resources.Load<Texture2D>(BossArt.Folder + "Ember_death");
-        Check("Ember: deathKey set and Ember_death imports unscaled at 2304x384 (" + (tex ? tex.width + "x" + tex.height : "missing") + ")",
-              em.deathKey == "Ember" && BossArt.HasDeathArt(em) && tex != null && tex.width == 2304 && tex.height == 384);
-        var idle = BossArt.Body(em, BossArt.Idle0);
+        var em = BossCatalog.ForWorld(world);
+        var tex = Resources.Load<Texture2D>(BossArt.Folder + name + "_death");
+        Check(name + ": deathKey set and " + name + "_death imports unscaled at 2304x384 (" + (tex ? tex.width + "x" + tex.height : "missing") + ")",
+              em.deathKey == name && BossArt.HasDeathArt(em) && tex != null && tex.width == 2304 && tex.height == 384);
+        var idle = BossArt.Body(em, BossArt.IdleFrame(em, 0f));
         var seen = new HashSet<Sprite>();
         bool same = true, inside = true;
         var ibox = Box(idle);
@@ -417,37 +422,37 @@ public static class BossDamageTest
             inside &= box != null && box[0] >= 0 && box[1] >= 0 && box[2] < 384 && box[3] < 384 &&
                       box[2] - box[0] <= (ibox[2] - ibox[0]) + 16;
         }
-        Check("Ember death strip: 6 distinct 384px cells, same scale / pivot as the idle cell", same && seen.Count == 6);
-        Check("Ember death strip: every cell is drawn and sits inside its cell, no wider than the idle art", inside);
+        Check(name + " death strip:"+" 6 distinct 384px cells, same scale / pivot as the idle cell", same && seen.Count == 6);
+        Check(name + " death strip:"+" every cell is drawn and sits inside its cell, no wider than the idle art", inside);
         // registration: the first cell is the idle pose bursting, so its body centre matches the idle cell's
         var b0 = Box(BossArt.DeathStrip(em, 0));
         float cx0 = (b0[0] + b0[2]) / 2f, cx1 = (ibox[0] + ibox[2]) / 2f;
         float cy0 = (b0[1] + b0[3]) / 2f, cy1 = (ibox[1] + ibox[3]) / 2f;
-        Check("Ember death cell 0 is registered to the idle cell (centre off by " + Mathf.Abs(cx0 - cx1).ToString("0") + ", " +
+        Check(name + " death cell 0 is registered to the idle cell (centre off by " + Mathf.Abs(cx0 - cx1).ToString("0") + ", " +
               Mathf.Abs(cy0 - cy1).ToString("0") + " px of 384)", Mathf.Abs(cx0 - cx1) <= 40f && Mathf.Abs(cy0 - cy1) <= 40f);
         Check("strip timing: 6 cells at 0.12 s, clamped (cell at 0 s, .13 s, .5 s, .71 s, 3 s)",
               BossArt.DeathStripCell(0f) == 0 && BossArt.DeathStripCell(.13f) == 1 && BossArt.DeathStripCell(.5f) == 4 &&
               BossArt.DeathStripCell(.71f) == 5 && BossArt.DeathStripCell(3f) == 5 && BossArt.DeathStripCell(-1f) == 0);
         // picked up purely by key
-        var temp = new BossDef { artKey = "Frost", deathKey = "Ember" };
+        var temp = new BossDef { artKey = "Frost", deathKey = name };
         var missing = new BossDef { artKey = "Frost", deathKey = "NoSuchWorld" };
         Check("death art is looked up by deathKey: found for a key with a strip, absent (no throw) for one without or none",
               BossArt.HasDeathArt(temp) && BossArt.DeathStrip(temp, 0) == BossArt.DeathStrip(em, 0) &&
               !BossArt.HasDeathArt(missing) && !BossArt.HasDeathArt(new BossDef { artKey = "Frost" }) && !BossArt.HasDeathArt(null));
     }
 
-    static void DeathStripPlaysOnce()
+    static void DeathStripPlaysOnce(int world)
     {
-        FreshScene(3);
+        FreshScene(world);
         bool done = false;
-        BossEncounter.Begin(3, () => done = true);
+        BossEncounter.Begin(world, () => done = true);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
         var a = e.Actor;
         var body = Body(a);
         for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
-        Check("Ember: destroyed", e.Destroyed && e.State == BossEncounter.Phase.Outro);
+        Check(a.Boss.artKey + ": destroyed", e.Destroyed && e.State == BossEncounter.Phase.Outro);
 
         int dying = 0, lastCell = -1, back = 0, firstFrameCell = -1, maxCell = -1;
         var cellFrames = new int[BossArt.DeathStripCells];
@@ -492,10 +497,10 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in BossCatalog.All)
         {
-            bool want = b.artKey == "Ember";
+            bool want = b.artKey == "Ember" || b.artKey == "Tide";
             ok &= BossArt.HasDeathArt(b) == want && (want || string.IsNullOrEmpty(b.deathKey));
         }
-        Check("only Ember has a death strip; Space / Frost / Verdant keep the atlas death", ok);
+        Check("only Ember and Tide have a death strip; Space / Frost / Verdant keep the atlas death", ok);
         var e = StartFight(1);
         var a = e.Actor;
         var body = Body(a);

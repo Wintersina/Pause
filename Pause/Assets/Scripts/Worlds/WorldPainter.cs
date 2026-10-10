@@ -52,7 +52,7 @@ public static class WorldPainter
     public static RailEdge EdgeFor(string world)
     {
         var e = DefaultEdge;
-        switch (RailArtWorld(world))
+        switch (world)
         {
             // Frost's pale steel is the brightest metal: a touch more shade
             // for the same read.
@@ -124,17 +124,14 @@ public static class WorldPainter
         BossRails.Measure();
     }
 
-    // Tide has no rails of its own yet (add-world phase 5): it flies between
-    // Ember's, texture, bounds and edge alike. Dropped with the real art.
-    static string RailArtWorld(string world) { return world == "Tide" ? "Ember" : world; }
-
     public static string RailTextureName(string world)
     {
-        switch (RailArtWorld(world))
+        switch (world)
         {
             case "Verdant": return "rail_forest_wide_v1";
             case "Frost": return "rail_frost_wide_v1";
             case "Ember": return "rail_ember_wide_v1";
+            case "Tide": return "rail_tide_wide_v1";
             case "Space": return "rail_space_wide_v1";
             default: return null;
         }
@@ -168,11 +165,12 @@ public static class WorldPainter
 
     static void RailBounds(string world, out float min, out float max)
     {
-        switch (RailArtWorld(world))
+        switch (world)
         {
             case "Frost": min = 140f / 725f; max = 583f / 725f; break;
             case "Verdant": min = 139f / 725f; max = 580f / 725f; break;
             case "Ember": min = 157f / 725f; max = 497f / 725f; break;
+            case "Tide": min = 159f / 725f; max = 499f / 725f; break;   // opaque columns >= 10% of the rows (Codex rail, 2026-10-10)
             default: min = 159f / 725f; max = 499f / 725f; break;
         }
     }
@@ -192,7 +190,7 @@ public static class WorldPainter
         var tex = mat != null ? mat.mainTexture : null;
         if (tex == null) return false;
         string world = null;
-        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember" })
+        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })
             if (RailTextureName(w) == tex.name) world = w;
         if (world == null) return false;
         RailBounds(world, out float min, out float max);

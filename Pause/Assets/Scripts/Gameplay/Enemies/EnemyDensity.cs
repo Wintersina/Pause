@@ -34,7 +34,8 @@ public static class EnemyDensity
     // The pilot load allowed at once, at low / high speed, per world (Space,
     // Frost, Verdant, Ember). A scout or an alien weighs 0.5, a heavy or a
     // tier-4 fighter 1.5, the rest 1 (PilotAirspace.Weight).
-    // (The fifth entry is Tide's: Ember's numbers while Tide flies Ember's roster; retune in add-world phase 12.)
+    // (The fifth entry is Tide's own: Ember's numbers on purpose, so the new cast
+    // fights at the difficulty the stand-in did; EnemyRosterTest pins one entry per world.)
     public static readonly float[] PilotLoadAtLowSpeed = { 3f, 3f, 3.5f, 3.5f, 3.5f };
     public static readonly float[] PilotLoadAtHighSpeed = { 2f, 2f, 2.5f, 2.5f, 2.5f };
     // Chasers hold no column; they have their own cap.

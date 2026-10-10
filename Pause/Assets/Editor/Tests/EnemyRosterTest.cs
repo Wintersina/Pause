@@ -57,7 +57,7 @@ public static class EnemyRosterTest
     }
 
     static readonly EnemyRole[] Roles = (EnemyRole[])Enum.GetValues(typeof(EnemyRole));
-    static int Worlds => WorldManager.LiveWorldCount;
+    static int Worlds => WorldManager.Worlds.Length;   // every world incl. Tide: its cast is real and tested whatever the release switch says
     static string W(int world) => WorldManager.Worlds[world].displayName;
 
     // ---- 1: rosters ------------------------------------------------------------
@@ -89,7 +89,7 @@ public static class EnemyRosterTest
             var tex = Resources.Load<Texture2D>(d.StripPath);
             Check(d.key + " strip resolves (Resources/" + d.StripPath + ")", tex != null);
             if (d.role == EnemyRole.Mine)
-                Check(d.key + " reads the neon rail-mine atlas", d.StripPath == RailMineArt.AtlasPath);
+                Check(d.key + " reads the neon rail-mine atlas", d.StripPath == RailMineArt.AtlasPathFor(d.world));
             else if (tex != null)
                 Check(d.key + " strip holds " + EnemyRoster.FrameCount + " square frames",
                       tex.width == tex.height * EnemyRoster.FrameCount);
@@ -110,7 +110,7 @@ public static class EnemyRosterTest
                     string path = sr.sprite != null ? AssetDatabase.GetAssetPath(sr.sprite.texture) : "";
                     if (d.role == EnemyRole.Mine)
                         Check(W(w) + " " + d.key + " draws from its own row of the neon mine atlas",
-                              path.EndsWith("/" + RailMineArt.AtlasPath + ".png") &&
+                              path.EndsWith("/" + RailMineArt.AtlasPathFor(w) + ".png") &&
                               Array.IndexOf(EnemyArt.Frames(d), sr.sprite) >= 0 && EnemyArt.Frames(d)[0] == RailMineArt.Frame(w, RailMineArt.Dormant));
                     else
                         Check(W(w) + " " + d.key + " draws from its own strip", path.EndsWith("/Enemies/" + d.key + ".png"));
@@ -255,7 +255,7 @@ public static class EnemyRosterTest
     // alpha > 50% bounds, in world units at RailMineArt.PixelsPerUnit.
     static float MineSilhouette(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
+        string path = "Assets/Art/Resources/" + RailMineArt.AtlasPathFor(d.world) + ".png";
         if (!File.Exists(path)) return 0f;
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -332,7 +332,7 @@ public static class EnemyRosterTest
             if (!all) continue;
             if (d.role == EnemyRole.Mine)
                 Check(d.key + " frames are neon atlas cells at " + RailMineArt.PixelsPerUnit + " PPU",
-                      frames[0].texture == RailMineArt.Atlas && Mathf.Approximately(frames[0].pixelsPerUnit, RailMineArt.PixelsPerUnit));
+                      frames[0].texture == RailMineArt.AtlasFor(d.world) && Mathf.Approximately(frames[0].pixelsPerUnit, RailMineArt.PixelsPerUnit));
             else
                 Check(d.key + " frames are " + d.FrameWorldSize + " u", Mathf.Abs(frames[0].bounds.size.x - d.FrameWorldSize) < .01f);
             Check(d.key + " idle/tell timing is on 2s-6s",

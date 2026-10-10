@@ -47,10 +47,15 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     //           locked (DashSeconds), again and again
     //   Weaver  pursues on a sideways weave
     //   Burner  the same pursuit, tuned short and hard (its numbers)
+    //   Slither a wire eel: surges toward the ship in sinusoidal lunges (it
+    //           coils back, then whips forward) on a side-to-side S-curve
     public ChaserStyle style = ChaserStyle.Hound;
     public const float LancerAimSeconds = .55f, LancerDashSeconds = .7f;
     public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
     public const float WeaveSpeed = 1.5f, WeaveHz = .8f;
+    // Slither: the surge is speed x (1 + SlitherSurge * sin) at SlitherHz (average speed unchanged: 1),
+    // the S-curve a sideways sine a quarter cycle behind it (it whips its tail as it coils)
+    public const float SlitherSurge = .85f, SlitherHz = .9f, SlitherSideSpeed = 1.3f;
 
     // It does not stay for ever: after lingerSeconds of orbiting (or when a
     // boss / portal is coming) it leaves, climbing out the top.
@@ -185,7 +190,14 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                         if (styleClock < LancerAimSeconds) { lockedHeading = heading; speed *= LancerAimSpeed; }
                         else { heading = lockedHeading; speed *= LancerDashSpeed; }
                     }
+                    if (style == ChaserStyle.Slither)
+                        speed *= 1f + SlitherSurge * Mathf.Sin(styleClock * SlitherHz * 2f * Mathf.PI);
                     wish += heading * speed * dt;
+                    if (style == ChaserStyle.Slither)
+                    {
+                        Vector3 side = new Vector3(-heading.y, heading.x, 0f);
+                        wish += side * Mathf.Cos(styleClock * SlitherHz * 2f * Mathf.PI) * SlitherSideSpeed * dt;
+                    }
                     if (style == ChaserStyle.Weaver)
                         wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt;
                 }

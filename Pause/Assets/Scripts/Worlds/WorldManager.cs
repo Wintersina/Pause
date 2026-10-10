@@ -97,14 +97,12 @@ public class WorldManager : MonoBehaviour
             portalColor = new Color(1f, 0.62f, 0.35f),
             speedRampPerSecond = 0.00365f, enemyRampScale = 1.35f,
         },
-        // World 5, the ocean planet. UNDER CONSTRUCTION (see TideEnabled): only its
-        // planetfall / lift-off art and numbers are real. Its rails, backdrop,
-        // roster, boss and explosion are Ember's stand-ins until the add-world
-        // phases 5, 11, 12, 13 land (resourceFolder "Ember" = Ember's rails;
-        // BackdropCatalog.For, EnemyRoster.For, BossCatalog.ForWorld and
-        // TargetExplosion.KindForWorld all resolve an unknown world to Ember's).
+        // World 5, the ocean planet. UNDER CONSTRUCTION (see TideEnabled): its
+        // planetfall / lift-off, rails, backdrop, roster and boss are real; the
+        // elites, sounds, themed attacks and explosion kind are still stand-ins
+        // (add-world checklist section F).
         new WorldTheme {
-            displayName = "Tide", resourceFolder = "Ember", // placeholder rails (Ember's)
+            displayName = "Tide", resourceFolder = "Tide",
             musicResource = "", progressiveMusic = false,   // plays the scene's own track
             portalColor = new Color(0.49f, 0.95f, 0.75f),   // bioluminescent mint #7CF2C0
             speedRampPerSecond = 0.00385f, enemyRampScale = 1.50f,

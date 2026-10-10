@@ -825,4 +825,4 @@ DRAW = {
 
 # The floating rocks (drawn upright with a bob; they sway in game instead of
 # tumbling). Mirrored by EnemyDef.floating in EnemyRoster.cs.
-FLOATING = ("space_rock_crater", "frost_rock_chunk", "verdant_rock_spore", "verdant_rock_vine", "ember_rock_islet")
+FLOATING = ("space_rock_crater", "frost_rock_chunk", "verdant_rock_spore", "verdant_rock_vine", "ember_rock_islet", "tide_rock_islet")

@@ -17,7 +17,7 @@ using UnityEngine;
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
 public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike }
-public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
+public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
 // Pilot (fighters, heavies, chasers, aliens) is piloted or alive: it flies
@@ -264,6 +264,7 @@ public static class EnemyBehaviours
             case 1: return EnemyPalette.Cyan;
             case 2: return EnemyPalette.BileLight;
             case 3: return EnemyPalette.Amber;
+            case 4: return EnemyPalette.Mint;
             default: return SpaceShot;
         }
     }
@@ -450,6 +451,46 @@ public static class EnemyBehaviours
         B("ember_alien", "Ember Imp: flickers, quick small pulses")
             .Sway(.22f, 1.1f).Pulse(.2f, .85f)
             .Descend(1.3f);
+
+        // ================================================================== TIDE
+        // The same budgets as Ember's cast (rocks, mine, fighters 1-4, big, alien), in the reef's own
+        // movement; the themed jet / wave / strike attacks are not switched on yet
+        // (docs/world-attacks-design.md), these are the generic shots.
+        B("tide_rock_brain", "brain coral: slow wide tumble, lazy sideways drift")
+            .Drift(.55f, .3f).Bob(.06f, 3f).Spin(12f, 30f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("tide_rock_staghorn", "staghorn spire: barely turns, one slanted slice across the lane")
+            .Glide(1.2f, .9f).Spin(4f, 8f)
+            .Sizes(.76f, 1.02f, 1.24f);
+        B("tide_rock_urchin", "spine urchin: spins as it sinks down the board")
+            .Sink(1.2f, .45f).Spin(25f, 45f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("tide_rock_islet", "kelp islet: wide slow sway and bob, upright")
+            .Sway(.65f, 4.6f).Bob(.16f, 3.4f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .92f, 1.48f);
+        B("tide_mine", "limpet mine: creeps down its rail, the eye flares, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Creep(1.2f, .6f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
+        B("tide_big", "Nautilus Bulwark: holds its column, the shell opens, a fan of three pearl shots")
+            .Shot(Shard, 3, 28f, 1.8f, .26f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
+        B("tide_fighter_1", "Remora: diagonal drift, then a straight dash that never steers")
+            .Drift(.55f, .65f).Lunge(0f, 1.6f, .22f).Timing(.45f, 2.1f, 1, .15f)
+            .Pilot(PilotEntry.Swoop, 2.4f, 2.5f, PilotExit.Run).Volleys(0);
+        B("tide_fighter_2", "Needlefish: lines up over the pilot, quick bolts straight down")
+            .Track(.65f, 1f).Shot(Bolt, 1, 0f, 3.6f, .18f).Timing(.5f, 1.5f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 5.5f, PilotExit.Peel).Volleys(4);
+        B("tide_fighter_3", "Lantern Angler: hovers, the lure flares, then one aimed bolt")
+            .Drift(.6f, .5f).Brake(1.4f, .6f).Shot(Bolt, 1, 0f, 3.4f, .2f, 34f).Timing(.8f, 2f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(3);
+        B("tide_fighter_4", "Hammerhead: hovers, tracks slowly, a full ring of eight")
+            .Track(.55f, .45f).Brake(1.7f, .65f).Ring(Bolt, 8, 2f, .18f).Muzzle(0f).Timing(1.2f, 3.8f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("tide_chaser", "Wire Eel: surges in sinusoidal lunges on an S-curve, coils, then orbits")
+            .Chaser(ChaserStyle.Slither, 4.2f, 2.3f, 1f, 1f, .8f)
+            .Linger(6f);
+        B("tide_alien", "Glow Jelly: pulses as it sinks, slow sway")
+            .Sway(.2f, 2f).Pulse(.35f, 1.6f)
+            .Descend(1.1f);
 
         var built = building;
         building = null;
