@@ -84,7 +84,7 @@ public static class BossConfig
     // between the silhouette and the heart's edge.
     public static float HeartClearance = .06f;
     // Kept this far inside the rails and under the HUD band.
-    public static float HeartScreenMargin = .05f;
+    public static float HeartScreenMargin = .02f;   // (the Iron Kraken's wide tentacles need the room)
     // Over the boss (-3), its charges (28/29) and its shots (30-32), under
     // the HUD (screen-space canvases).
     public const int HeartSortingOrder = 40;
@@ -226,7 +226,7 @@ public static class BossConfig
         if (w < 0) low = BossWorldSize * .5f;   // unmeasured art: its whole cell
         else
             for (int part = 0; part < BossEmitterTable.Parts[w].Length; part++)
-                for (int frame = 0; frame < BossEmitterTable.Frames; frame++)
+                for (int frame = 0; frame < BossEmitterTable.FrameCount(w); frame++)
                     low = Mathf.Max(low, -BossEmitters.Local(boss, part, frame).y);
         boss.underside = low + Mathf.Abs(boss.swayY);
         return boss.underside;

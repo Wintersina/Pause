@@ -677,7 +677,8 @@ public static class HostileProjectileTest
         // bounds, as shares of the cell: the rim's full-strength core, the art's solid pixels
         float pad = BossArt.ShotRimPad, n = BossArt.ShotRimTexels;
         Vector4 core = Bounds(px, w, h, most > 0 ? most : 255, -pad, n);
-        Vector4 solid = Bounds(src, aw, ah, 128, 0f, aw);
+        // (the alpha the rim itself counts as the drawing: a soft-edged shot, the Kraken's, has a glow below 128)
+        Vector4 solid = Bounds(src, aw, ah, Mathf.RoundToInt(BossArt.ShotRimCoverage * 255f), 0f, aw);
         float off = Mathf.Max(Mathf.Max(Mathf.Abs(core.x - solid.x), Mathf.Abs(core.y - solid.y)),
                               Mathf.Max(Mathf.Abs(core.z - solid.z), Mathf.Abs(core.w - solid.w)));
         what = "peak alpha " + most + ", " + lit + " of " + px.Length + " texels lit, edges " + (clearEdges ? "clear" : "NOT clear") +

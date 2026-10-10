@@ -43,7 +43,9 @@ public static class BossArt
         frame = Mathf.Clamp(frame, 0, 1);
         return pose == 0 ? 5 + frame : pose == 1 ? 7 + frame : 10 + frame;
     }
-    public static bool HasExpandedCombat(BossDef boss) => boss != null && boss.artKey == "Space";
+    // Bosses with the 35-cell atlas (BossDef.expandedCombat: Space, Tide): six
+    // idle drawings at 20..25 and three drawings per tell pose at 26..34.
+    public static bool HasExpandedCombat(BossDef boss) => boss != null && boss.expandedCombat;
     public static int IdleFrame(BossDef boss, float seconds)
     {
         return HasExpandedCombat(boss)

@@ -81,7 +81,9 @@ public static class BossEmitters
             return petals[part - 1];
         }
         var pts = BossEmitterTable.Points[w][part];
-        int f = TableFrame(bodyFrame);
+        // A boss measured on its expanded cells (the Kraken: 35) has its own
+        // muzzle in every drawing.
+        int f = bodyFrame >= 0 && bodyFrame < BossEmitterTable.FrameCount(w) ? bodyFrame : TableFrame(bodyFrame);
         return new Vector2Int(pts[f * 2], pts[f * 2 + 1]);
     }
 

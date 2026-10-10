@@ -108,6 +108,8 @@ public sealed class BossDef
     // cells played over the body while it blows up (BossArt.HasDeathArt).
     // Null: it keeps the body atlas's own death frames.
     public string deathKey;
+    // The atlas has the expanded combat rows (BossArt.HasExpandedCombat).
+    public bool expandedCombat;
     // Its damage smoke's strength: BossArt.SmokeAlpha's schedule times this
     // (clamped to 1). Tune per boss, as each one's smoke art is drawn.
     public float smokeStrength = 1f;
@@ -148,6 +150,7 @@ public static class BossCatalog
     // Heart colours: Space violet, Frost ice, Verdant bile, Ember amber.
     static readonly Color HeartViolet = new Color(.78f, .38f, 1f);
     static readonly Color HeartAmber = new Color(1f, .74f, .16f);
+    static readonly Color Mint = new Color(.45f, 1f, .82f);
 
     static BossDef[] Build()
     {
@@ -158,7 +161,7 @@ public static class BossCatalog
             // two engine pods hanging off its shoulders.
             new BossDef
             {
-                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space",
+                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space", expandedCombat = true,
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
@@ -286,6 +289,41 @@ public static class BossCatalog
                                      emitters = new[] { "Brow" },
                                      aim = BossBeamAim.AtShip, sweepDeg = 55f, beamWidth = .34f, hold = .8f,
                                      cooldown = 1.3f },
+                },
+            },
+            // ----------------------------------------------------------- Tide
+            // An iron kraken: a hydraulic beak with a pressure jet, two
+            // clusters of cannon tentacles on its flanks. (Heart and flash
+            // colours are the mint of its eye.)
+            new BossDef
+            {
+                id = CodexPrefix + "tide", name = "IRON KRAKEN", title = "TYRANT OF THE DEEP", artKey = "Tide", expandedCombat = true,
+                lore = "A riveted iron kraken that has ruled the Tide trenches since the first hull went down. " +
+                       "Its eight pipe-and-cable arms end in cannons, its beak spits a hydraulic jet and its one mint eye never blinks. " +
+                       "Everything that sinks here ends up bolted to it.",
+                swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = Mint, heartColor = Mint,
+                attacks = new[]
+                {
+                    // The left tentacle cluster glows and sweeps two fans of
+                    // pressure bolts out of its cannons; they ricochet once.
+                    new BossAttack { name = "port cluster", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
+                                     emitters = new[] { "LeftA", "LeftB" }, fireFrame = true, alternate = true,
+                                     volleys = 3, volleyGap = .45f, count = 5, spreadDeg = 60f, rotateDeg = 8f,
+                                     speed = 3f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
+                    // The beak opens around a mint bubble, then a pressure jet
+                    // rakes straight down from the mouth.
+                    new BossAttack { name = "beak jet", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .9f,
+                                     emitters = new[] { "Beak" },
+                                     aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 30f, beamWidth = .34f, hold = .8f,
+                                     cooldown = 1.3f },
+                    // The right cluster glows and lobs depth charges that
+                    // arc up and rain down on four columns.
+                    new BossAttack { name = "starboard cluster", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
+                                     emitters = new[] { "RightA", "RightB" },
+                                     volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
+                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
+                                     rail = BossRailMode.Absorb, cooldown = 1.4f },
                 },
             },
         };
