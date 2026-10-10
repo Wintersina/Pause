@@ -38,9 +38,12 @@ public static class EnemyDeathAudition
                   : key.EndsWith("_mine") ? EnemyDeathAudio.Volume(EnemyRole.Mine)
                   : key.Contains("_elite_") ? EnemyDeathAudio.EliteVolume
                   : EnemyDeathAudio.Volume(EnemyRole.Fighter);
+        int screamsBefore = EnemyDeathAudio.Screams;
         bool ok = EnemyDeathAudio.PlayAuthored(key, vol, forceScream: true);
+        EnemyDeathAudio.Borrow borrow;
+        bool borrowed = EnemyDeathAudio.ScreamBorrow.TryGetValue(key, out borrow) && EnemyDeathAudio.ScreamVariants(key) == 0;
         Debug.Log("[Audition] " + key + (ok ? " -> " + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "?") +
-                  (EnemyDeathAudio.ScreamVariants(key) > 0 && EnemyDeathAudio.LastScream != null ? " + " + EnemyDeathAudio.LastScream.name : "")
+                  (EnemyDeathAudio.Screams > screamsBefore && EnemyDeathAudio.LastScream != null ? " + " + EnemyDeathAudio.LastScream.name + (borrowed ? " (borrowed x" + EnemyDeathAudio.LastScreamPitch.ToString("0.00") + ")" : "") : "")
                   : " (no authored clip)"));
         due = EditorApplication.timeSinceStartup + Gap;
     }

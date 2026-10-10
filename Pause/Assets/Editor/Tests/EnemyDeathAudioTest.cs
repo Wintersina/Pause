@@ -31,9 +31,11 @@ public static class EnemyDeathAudioTest
     };
     public static readonly string[] Screaming =
     {
-        "space_fighter_1", "space_fighter_2", "space_fighter_3", "space_fighter_4", "space_alien",
+        "space_fighter_4",
         "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_rift_lancer", "space_elite_singularity_hauler",
     };
+    // Scream variants a native screamer keeps (the rest were deleted to shrink the game).
+    public const int ScreamVariantCount = 2;
 
     public static readonly string[] VerdantKeys =
     {
@@ -58,8 +60,7 @@ public static class EnemyDeathAudioTest
     // Authored keys that must have screams; every other authored key must not.
     public static readonly string[] ScreamingNew =
     {
-        "frost_alien",
-        "verdant_fighter_1", "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4", "verdant_alien", "verdant_elite_resin_warden",
+        "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4", "verdant_alien", "verdant_elite_resin_warden",
         "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_alien",
         "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_coalrunner", "ember_elite_sunstoke",
     };
@@ -127,7 +128,7 @@ public static class EnemyDeathAudioTest
             bool clips = EnemyDeathAudio.Variants(key) == 3;
             for (int n = 0; n < 3 && clips; n++) clips &= EnemyDeathAudio.AuthoredClip(key, n) != null;
             Check(key + " resolves 3 authored variants (" + EnemyDeathAudio.Variants(key) + ")", clips);
-            int want = System.Array.IndexOf(Screaming, key) >= 0 ? 3 : 0;
+            int want = System.Array.IndexOf(Screaming, key) >= 0 ? ScreamVariantCount : 0;
             Check(key + " has " + want + " screams (" + EnemyDeathAudio.ScreamVariants(key) + ")", EnemyDeathAudio.ScreamVariants(key) == want);
         }
         foreach (var d in EnemyRoster.All)
@@ -182,7 +183,7 @@ public static class EnemyDeathAudioTest
             for (int n = 0; n < 3 && clips; n++) clips &= EnemyDeathAudio.AuthoredClip(key, n) != null && EnemyDeathAudio.AuthoredClip(key, n).length > .05f;
             Check(key + " resolves 3 authored variants (" + EnemyDeathAudio.Variants(key) + ")", clips);
             bool wantScream = System.Array.IndexOf(ScreamingNew, key) >= 0;
-            int want = wantScream ? 3 : 0;
+            int want = wantScream ? ScreamVariantCount : 0;
             Check(key + " has " + want + " screams (" + EnemyDeathAudio.ScreamVariants(key) + ")", EnemyDeathAudio.ScreamVariants(key) == want);
             bool unit = key.EndsWith("_mine") || key.EndsWith("_chaser") || key.EndsWith("_big") || key.Contains("_rock_");
             if (unit) Check(key + " (mine/chaser/big/rock) has no screams", EnemyDeathAudio.ScreamVariants(key) == 0);
@@ -246,11 +247,11 @@ public static class EnemyDeathAudioTest
 
     static void Borrow()
     {
+        BorrowTable();
         EnemyDeathAudio.ScreamBorrow.Clear();
         EnemyDeathAudio.ResetVoices();
         EnemyDeathAudio.ScreamChance = 1f;
         clock += 5.0;
-        Check("ScreamBorrow is empty by default", EnemyDeathAudio.ScreamBorrow.Count == 0);
         EnemyDeathAudio.PlayAuthored("ember_mine", .68f);
         Check("unborrowed mine: no scream", EnemyDeathAudio.Screams == 0);
         try
@@ -277,7 +278,37 @@ public static class EnemyDeathAudioTest
             EnemyDeathAudio.PlayAuthored("ember_mine", .68f);
             Check("a donor with no screams yields none", EnemyDeathAudio.Screams == s0);
         }
-        finally { EnemyDeathAudio.ScreamBorrow.Clear(); EnemyDeathAudio.ScreamChance = .65f; }
+        finally { EnemyDeathAudio.ResetBorrows(); EnemyDeathAudio.ScreamChance = .65f; }
+    }
+
+    // The shipped ScreamBorrow table: donors own screams, only living units borrow,
+    // nobody borrows from itself or from another borrower, and each borrow plays.
+    static void BorrowTable()
+    {
+        EnemyDeathAudio.ResetBorrows();
+        Check("ScreamBorrow is populated from BorrowTable (" + EnemyDeathAudio.ScreamBorrow.Count + ")",
+              EnemyDeathAudio.ScreamBorrow.Count == EnemyDeathAudio.BorrowTable.Length && EnemyDeathAudio.ScreamBorrow.Count >= 5);
+        foreach (var kv in EnemyDeathAudio.ScreamBorrow)
+        {
+            string key = kv.Key, donor = kv.Value.donor;
+            Check("borrow " + key + " <- " + donor + ": donor owns screams (" + EnemyDeathAudio.ScreamVariants(donor) + ")", EnemyDeathAudio.ScreamVariants(donor) > 0);
+            Check("borrow " + key + ": not from itself", key != donor);
+            Check("borrow " + key + ": donor is not itself a borrower", !EnemyDeathAudio.ScreamBorrow.ContainsKey(donor));
+            Check("borrow " + key + ": has no screams of its own (deleted)", EnemyDeathAudio.ScreamVariants(key) == 0);
+            Check("borrow " + key + ": has a death cue", EnemyDeathAudio.Variants(key) > 0);
+            Check("borrow " + key + ": pitched up 1.1-1.6 (" + kv.Value.pitch + ")", kv.Value.pitch >= 1.1f && kv.Value.pitch <= 1.6f);
+            bool nonLiving = key.EndsWith("_mine") || key.EndsWith("_big") || key.Contains("_rock_") || key.StartsWith("frost_fighter_") || key == "frost_chaser" ||
+                             key.Contains("_elite_") || key.Contains("_pod") || key.Contains("drone");
+            Check("borrow " + key + ": a living voice (no rock, mine, drone, machine or elite)", !nonLiving);
+            var def = EnemyRoster.Find(key);
+            Check("borrow " + key + " is a roster enemy", def != null && def.role != EnemyRole.Rock && def.role != EnemyRole.Mine && def.role != EnemyRole.Big);
+            EnemyDeathAudio.ResetVoices();
+            EnemyDeathAudio.ScreamChance = 1f;
+            clock += 2.0;
+            EnemyDeathAudio.PlayAuthored(key, .68f);
+            Check("borrow " + key + " plays a " + donor + " scream", EnemyDeathAudio.LastScream != null && EnemyDeathAudio.LastScream.name.StartsWith(donor + "_scream_"));
+            EnemyDeathAudio.ScreamChance = .65f;
+        }
     }
 
     static void NoRepeats()
@@ -393,7 +424,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length >= 255;
+        bool ok = guids.Length >= 224;   // 186 death cues + 38 scream layers
         string bad = "";
         foreach (var g in guids)
         {
