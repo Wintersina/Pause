@@ -27,6 +27,7 @@ public static class AchievementCatalogTest
             Catalogue();
             Dormant();
             StoreIds();
+            Icons();
             Art();
             Export();
         }
@@ -99,6 +100,41 @@ public static class AchievementCatalogTest
         Check("... boss_all follows the live world count", Target("boss_all") == WorldManager.LiveWorldCount);
         WorldManager.TideEnabled = false;
         AchievementStore.ResetAll();
+    }
+
+    // The 60 pixel-art badges: Art/Resources/Achievements/<id>.png, 128 x 128 RGBA with real transparency,
+    // imported as point-filtered sprites, and nothing in the folder that is not an achievement.
+    static void Icons()
+    {
+        const string folder = "Assets/Art/Resources/Achievements/";
+        var ids = AchievementCatalog.All.Select(d => d.id).ToList();
+        var missing = new List<string>(); var badSize = new List<string>(); var noAlpha = new List<string>(); var badImport = new List<string>();
+        foreach (string id in ids)
+        {
+            string path = folder + id + ".png";
+            if (!File.Exists(path)) { missing.Add(id); continue; }
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(path));
+            if (tex.width != AchievementArt.Size || tex.height != AchievementArt.Size) badSize.Add(id);
+            bool transparent = false, opaque = false;
+            foreach (var c in tex.GetPixels32()) { if (c.a < 255) transparent = true; if (c.a > 0) opaque = true; }
+            if (!transparent || !opaque) noAlpha.Add(id);
+            Object.DestroyImmediate(tex);
+            var imp = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+            if (imp == null || imp.textureType != UnityEditor.TextureImporterType.Sprite || imp.filterMode != FilterMode.Point ||
+                imp.mipmapEnabled || !imp.alphaIsTransparency || imp.textureCompression != UnityEditor.TextureImporterCompression.Uncompressed)
+                badImport.Add(id);
+        }
+        Check("every one of the 60 ids (dormant Tide included) has an icon (missing: " + string.Join(",", missing) + ")", missing.Count == 0 && ids.Count == 60);
+        Check("all icons are 128 x 128 (bad: " + string.Join(",", badSize) + ")", badSize.Count == 0);
+        Check("all icons have a transparent corner area and an opaque body (bad: " + string.Join(",", noAlpha) + ")", noAlpha.Count == 0);
+        Check("all icons import as point-filtered, uncompressed, mip-less sprites (bad: " + string.Join(",", badImport) + ")", badImport.Count == 0);
+        var orphans = Directory.GetFiles(folder, "*.png").Select(f => Path.GetFileNameWithoutExtension(f)).Where(n => !ids.Contains(n)).ToList();
+        Check("no icon without an achievement (orphans: " + string.Join(",", orphans) + ")", orphans.Count == 0);
+        AchievementArt.Reload();
+        Check("AchievementArt.HasArt for all 60", ids.All(AchievementArt.HasArt));
+        string setup = File.ReadAllText("../docs/achievements-store-setup.md");
+        Check("docs/achievements-store-setup.md documents installing the icons", setup.Contains("Art/Resources/Achievements") && setup.Contains("play-icons-512"));
     }
 
     static void StoreIds()

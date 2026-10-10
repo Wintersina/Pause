@@ -9,6 +9,9 @@ Generated from the code (`Pause > Achievements > Export store CSV`, or
 | `game-center.csv` | App Store Connect > Game Center > Achievements: Reference name, Achievement ID (`me.sinaserati.Pause.ach_<id>`), points, hidden, titles and descriptions, image file. |
 | `android-ids.csv` | `internal_id,android_id` as the code sees it now (13 legacy ids, 47 `TODO_android_` placeholders). |
 
+| `play-icons-512/<id>.png` | The 60 Google Play icons, 512x512 RGB, nearest-neighbour from the 1024 masters (committed). Upload one per row. |
+| `gamecenter-1024/<id>.png` | The 60 App Store Connect images, 1024x1024 RGB, no alpha. Committed (about 1.8 MB). Regenerate with `Pause > Achievements > Export store icons` (or `scripts/unity-batch.sh -executeMethod AchievementStoreExport.ExportIcons`) from `Pause/Assets/Art/Achievements/src~`. |
+
 Steps for the owner (see also `docs/achievements-store-setup.md`):
 
 1. Play Console: if the game was never published, delete the 28 legacy achievements and create the 60 from `play-console.csv`
