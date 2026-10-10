@@ -39,6 +39,7 @@ public static class TideBackdropPreview
                 if (only.Contains("handoff")) Handoff(dir);       // opt-in: needs the Ember -> Tide planetfall (WorldManager.TideEnabled)
                 if (only == "" || only.Contains("variants")) Variants(dir);
                 if (only == "" || only.Contains("pieces")) Pieces(dir);
+                if (only.Contains("motion")) Motion(dir);
             }
             catch (System.Exception e) { Debug.LogException(e); failures++; }
             finally
@@ -187,6 +188,28 @@ public static class TideBackdropPreview
                           " clusters " + d.Clusters + " runs " + d.PipeRuns);
             }
             if (v == 2) Launch(cam, wb, d, dir);
+        }
+        Object.DestroyImmediate(wb.gameObject);
+    }
+
+    // motion-vN-k.png: six frames 0.4 s apart of each ground set once it is busy (run C loops running)
+    static void Motion(string dir)
+    {
+        var cam = Scene(4, 4);
+        var wb = WorldBackdrop.Create("Tide");
+        for (int v = 1; v <= BackdropVariants.MaxVariants; v++)
+        {
+            BackdropVariants.For("Tide").Force = v;
+            wb.Show("Space", false);
+            wb.Show("Tide", false);
+            var d = (TideDirector)wb.Current.Director;
+            while (d.Clock < 16f) wb.Step(Dt);
+            for (int k = 0; k < 6; k++)
+            {
+                Capture(cam, Path.Combine(dir, "motion-v" + v + "-" + k + ".png"));
+                for (int i = 0; i < 24; i++) wb.Step(Dt);
+            }
+            Debug.Log("[TIDE-PREVIEW] motion v" + v + " loops " + d.Ambient.LiveCount);
         }
         Object.DestroyImmediate(wb.gameObject);
     }

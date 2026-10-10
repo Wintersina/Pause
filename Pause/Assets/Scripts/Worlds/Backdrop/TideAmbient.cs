@@ -46,23 +46,29 @@ public static class TideAmbientCatalog
     // (128, 236): plumes, flames, lamps)
     static readonly (string name, string atlas, float fps, float alpha, float scale, bool centred)[] Specs =
     {
-        ("smoke_a", "smoke", 8f, .85f, 1.5f, false), ("smoke_b", "smoke", 9f, .8f, 1.4f, false),
-        ("flare", "flames", 12f, .9f, 1f, false),
-        ("steam_vent", "leaks", 10f, .75f, 1.3f, false), ("pipe_bubbles", "leaks", 9f, .8f, 1f, false),
-        ("bubble_stream", "leaks", 9f, .85f, 1.2f, false), ("vent_gas", "leaks", 8f, .6f, 1.2f, false),
-        ("oil_drip", "leaks", 9f, .8f, 1f, false),
-        ("beacon_mint", "lights", 4f, .9f, 1.4f, false), ("beacon_amber", "lights", 4f, .9f, 1.4f, false),
-        ("strobe_white", "lights", 4f, .8f, 1.2f, false), ("window_lights", "lights", 5f, .6f, 1f, true),
-        ("wave_crest_a", "surf", 8f, .55f, 1f, true), ("wave_crest_b", "surf", 8f, .55f, 1f, true),
-        ("foam_ring", "surf", 8f, .6f, 1f, true), ("ripple", "surf", 8f, .5f, 1f, true),
-        ("wake", "surf", 8f, .7f, 1f, true), ("whirlpool", "surf", 10f, .8f, 1f, true),
-        ("spray", "surf", 10f, .7f, 1f, false), ("caustic", "surf", 6f, .5f, 1f, true),
+        ("smoke_a", "smoke", 7f, .66f, 1.5f, false), ("smoke_b", "smoke", 7f, .66f, 1.4f, false), ("smoke_c", "smoke_2", 7f, .66f, 1.4f, false),
+        ("flare", "flames", 10f, .82f, 1f, false), ("flare_b", "flames", 10f, .78f, 1f, false), ("burn", "flames_2", 8f, .62f, 1f, true),
+        ("steam_vent", "leaks", 7f, .56f, 1.3f, false), ("bubble_stream", "leaks", 8f, .65f, 1.2f, false),
+        ("pipe_drip", "leaks", 6f, .55f, 1f, false), ("plankton_glow", "leaks_2", 6f, .42f, 1f, true),
+        ("beacon_mint", "lights", 4f, .85f, 1.4f, true), ("beacon_pink", "lights", 4f, .55f, 1.4f, true),
+        ("strobe_white", "lights", 5f, .66f, 1.2f, true), ("window_lights", "lights", 5f, .5f, 1f, true),
+        ("searchlight_sweep", "lights_2", 8f, .35f, 1f, true), ("lighthouse_beam", "lights_2", 7f, .37f, 1f, true),
+        ("wave_crest_a", "surf", 8f, .46f, 1f, true), ("wave_crest_b", "surf", 8f, .46f, 1f, true),
+        ("foam_ring", "surf_2", 8f, .46f, 1f, true), ("ripple", "surf_2", 8f, .46f, 1f, true),
+        ("wake", "surf_3", 8f, .46f, 1f, true), ("whirlpool", "surf_3", 8f, .46f, 1f, true),
+        ("spray", "surf_4", 8f, .58f, 1f, false), ("caustic", "surf_4", 8f, .46f, 1f, true),
     };
+
+    // The blinking lamp loops (dark / igniting / lit / fading frames): brightest frame vs dimmest >= 4.
+    public static bool Blinks(string loop)
+    {
+        return loop == "beacon_mint" || loop == "beacon_pink" || loop == "strobe_white";
+    }
 
     // Rising plumes: the loops whose base must sit on their emitter point.
     public static bool Plume(string loop)
     {
-        return loop == "smoke_a" || loop == "smoke_b" || loop == "steam_vent" || loop == "vent_gas" || loop == "bubble_stream";
+        return loop == "smoke_a" || loop == "smoke_b" || loop == "smoke_c" || loop == "steam_vent" || loop == "bubble_stream";
     }
 
     // Loops that wander the open water on their own instead of riding a piece

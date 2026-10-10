@@ -40,10 +40,11 @@ public static class BackdropLoopGuardTest
         new[] { "Ember", "smoke", "eruption", "lavafire", "leaks", "lights" },
         new[] { "Verdant", "smoke", "firesmoke", "wildfire", "leaks", "lights" },
         new[] { "Frost", "smoke", "steam", "fire_lights", "beacons" },
-        new[] { "Tide", "smoke", "flames", "leaks", "lights", "surf" },     // art not delivered yet: skipped
+        new[] { "Tide", "smoke", "smoke_2", "flames", "flames_2", "leaks", "leaks_2", "lights", "lights_2", "surf", "surf_2", "surf_3", "surf_4" },
     };
     static readonly HashSet<string> KnownEdge = new HashSet<string>();
-    static readonly HashSet<string> KnownSliver = new HashSet<string>();
+    // Tide/lights: beacon_mint_01's lit frame spreads a flat 38x7 pool of light under the lamp (light spill, not a detached plume strip).
+    static readonly HashSet<string> KnownSliver = new HashSet<string> { "Tide/lights" };
 
     [System.Serializable] class R { public string n; public int x, y, w, h; }
     [System.Serializable] class M { public R[] sprites; }

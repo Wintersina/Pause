@@ -60,6 +60,13 @@ public class WorldBackdropImport : AssetPostprocessor
         return file == "weather" || file == "smoke" || file == "steam" || file == "aurora" || file == "firesmoke" || file == "eruption" || file == "surf";
     }
 
+    // Tide's run C loops (smoke, surf, ...) are nearest-neighbour pixel art: point-sampled,
+    // unlike Ember's and Verdant's soft sheets of the same name. Only its weather stays soft.
+    public static bool IsTidePixelLoop(string path, string file)
+    {
+        return path.Contains("/Worlds/Tide/Backdrop3/") && file != "weather";
+    }
+
     public static bool IsTile(string path)
     {
         string f = System.IO.Path.GetFileNameWithoutExtension(path);
@@ -110,7 +117,7 @@ public class WorldBackdropImport : AssetPostprocessor
         bool planetSheet = IsPlanetSheet(assetPath);
         ti.mipmapEnabled = planetSheet;
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
-        bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && !IsSoftAtlas(file));
+        bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && (!IsSoftAtlas(file) || IsTidePixelLoop(assetPath, file)));
         ti.filterMode = crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;

@@ -59,6 +59,7 @@ public static class TideBackdropTest
             Pinned();
             Affinity();
             Emitters();
+            RunC();
             Weather();
             Clouds();
             Brightness();
@@ -163,6 +164,7 @@ public static class TideBackdropTest
         Check("every INSTALLED run C loop's anchor is measured on its own frames (" + installed + " installed)", anchors);
         var missing = TideAmbientCatalog.Missing();
         Debug.Log("[TBD] run C loops still missing (" + missing.Count + " of " + table.loops.Length + "): " + string.Join(", ", missing));
+        Check("run C has landed: no ambient slot is missing (" + missing.Count + ")", missing.Count == 0);
         Check("run C is accounted for: " + installed + " loops installed + " + missing.Count + " listed missing = " + table.loops.Length + " slots",
               installed + missing.Count == table.loops.Length);
         bool known = true;
@@ -549,6 +551,122 @@ public static class TideBackdropTest
         Check("without the loop atlases the emitters show nothing, without an error", quiet && shown == 0);
         space.Destroy();
         Object.DestroyImmediate(root2.gameObject);
+    }
+
+    // ---- run C: the installed loops animate, the lamps blink, the loops are bound -------------
+
+    static readonly Dictionary<string, Color32[]> runCPx = new Dictionary<string, Color32[]>();
+
+    static Color32[][] LoopFrames(string loop)
+    {
+        string atlas = TideAmbientCatalog.AtlasOf(loop);
+        string path = "Assets/Art/Backgrounds/Resources/Worlds/Tide/Backdrop3/" + atlas;
+        Color32[] px;
+        int w;
+        if (!runCPx.TryGetValue(atlas, out px))
+        {
+            var t = new Texture2D(2, 2);
+            t.LoadImage(File.ReadAllBytes(path + ".png"));
+            runCPx[atlas] = px = t.GetPixels32();
+            Object.DestroyImmediate(t);
+        }
+        w = 1024;
+        var json = JsonUtility.FromJson<RunCAtlas>(File.ReadAllText(path + ".json"));
+        var frames = new List<Color32[]>();
+        foreach (var r in json.sprites)
+        {
+            if (!r.n.StartsWith(loop + "_") || !int.TryParse(r.n.Substring(loop.Length + 1), out int _)) continue;
+            var cell = new Color32[r.w * r.h];
+            for (int y = 0; y < r.h; y++)
+                for (int x = 0; x < r.w; x++) cell[y * r.w + x] = px[(r.y + y) * w + r.x + x];
+            frames.Add(cell);
+        }
+        return frames.ToArray();
+    }
+
+    [System.Serializable] class RunCRect { public string n; public int x, y, w, h; }
+    [System.Serializable] class RunCAtlas { public RunCRect[] sprites; }
+
+    static float Luma(Color32[] c)
+    {
+        double sum = 0;
+        foreach (var p in c) sum += (p.r * .2126 + p.g * .7152 + p.b * .0722) * p.a / 255.0;
+        return (float)sum;
+    }
+
+    // share of the union of two frames' visible pixels (alpha > 8) whose premultiplied colour moved
+    static float Motion(Color32[] a, Color32[] b)
+    {
+        int union = 0, moved = 0;
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (a[i].a <= 8 && b[i].a <= 8) continue;
+            union++;
+            float d = Mathf.Abs(a[i].r * a[i].a - b[i].r * b[i].a) + Mathf.Abs(a[i].g * a[i].a - b[i].g * b[i].a) +
+                      Mathf.Abs(a[i].b * a[i].a - b[i].b * b[i].a) + Mathf.Abs(a[i].a - b[i].a) * 255f;
+            if (d > 255f * 6f) moved++;
+        }
+        return union == 0 ? 0f : moved / (float)union;
+    }
+
+    static void RunC()
+    {
+        var table = TideAmbientCatalog.Table;
+        int loops = 0, still = 0, tight = 0, blinkBad = 0, flat = 0;
+        string worstStill = "", worstBlink = "";
+        float minMotion = 1f;
+        foreach (var l in table.loops)
+        {
+            if (!TideAmbientCatalog.Present(l.name)) continue;
+            loops++;
+            var f = LoopFrames(l.name);
+            if (f.Length < 4) { tight++; continue; }
+            float lowest = 1f;
+            for (int i = 0; i < f.Length; i++) lowest = Mathf.Min(lowest, Motion(f[i], f[(i + 1) % f.Length]));
+            if (lowest < minMotion) minMotion = lowest;
+            if (lowest < .03f) { still++; worstStill += l.name + " " + lowest.ToString("P1") + "; "; }
+            if (TideAmbientCatalog.Blinks(l.name) || l.name == "window_lights")
+            {
+                float hi = 0f, lo = float.MaxValue;
+                foreach (var fr in f) { float b = Luma(fr); hi = Mathf.Max(hi, b); lo = Mathf.Min(lo, b); }
+                float ratio = hi / Mathf.Max(1e-3f, lo);
+                float need = l.name == "window_lights" ? 2.2f : 4f;
+                if (ratio < need) { blinkBad++; worstBlink += l.name + " x" + ratio.ToString("F1") + "; "; }
+                Debug.Log("[TBD] blink " + l.name + " brightness ratio x" + ratio.ToString("F1") + " (need " + need + ")");
+            }
+            else if (f.Length > 0)
+            {
+                float hi = 0f, lo = float.MaxValue;
+                foreach (var fr in f) { float b = Luma(fr); hi = Mathf.Max(hi, b); lo = Mathf.Min(lo, b); }
+                if (hi / Mathf.Max(1e-3f, lo) > 4f) flat++;      // a non-blinking loop must not pulse like a lamp
+            }
+        }
+        Check("run C: " + loops + " loops installed, 4 or 8 cells each", loops >= 24 && tight == 0);
+        Check("every loop moves >= 3% of its visible pixels between consecutive frames, looping (min " + minMotion.ToString("P1") + ") " + worstStill, still == 0);
+        Check("the lamps blink: beacons and strobe >= 4x dimmest-to-brightest, windows >= 2.2x " + worstBlink, blinkBad == 0);
+        Check("smoke, flames and surf keep a steady brightness (no lamp pulsing; " + flat + " pulse)", flat == 0);
+
+        // placement: every bound loop sits on a piece of the right kind of ground
+        var seen = new HashSet<string>();
+        foreach (var piece in TideAmbientCatalog.Pieces)
+            if (piece.emit != null) foreach (var e in piece.emit) seen.Add(e.loop);
+        string[] mustBind = { "smoke_a", "smoke_b", "smoke_c", "flare", "flare_b", "burn", "steam_vent", "bubble_stream", "plankton_glow",
+                              "beacon_mint", "beacon_pink", "strobe_white", "window_lights", "searchlight_sweep", "lighthouse_beam",
+                              "foam_ring", "ripple", "whirlpool", "caustic" };
+        string unbound = "";
+        foreach (string m in mustBind) if (!seen.Contains(m)) unbound += m + " ";
+        Check("run C loops are bound to pieces: smoke, flames, leaks, lights, surf (unbound: " + unbound + ")", unbound.Length == 0);
+        bool crestsOk = true;
+        foreach (string c in TideAmbientCatalog.Crests) crestsOk &= TideAmbientCatalog.Present(c);
+        Check("the free ocean crests (wave_crest_a/b) are installed and wander the water", crestsOk);
+        bool lane = true;
+        foreach (var piece in TideAmbientCatalog.Pieces)
+        {
+            if (piece.emit == null) continue;
+            foreach (var e in piece.emit)
+                if (e.x < 0 || e.x > 256 || e.y < 0 || e.y > 256) lane = false;
+        }
+        Check("every emitter point lies inside its 256 cell (lane rules: bounded by the piece, which GroundPlanner keeps off the lane)", lane);
     }
 
     // ---- ceiling, gusts, layers behind gameplay ---------------------------------
