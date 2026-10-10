@@ -6,7 +6,7 @@ Generated from the code (`Pause > Achievements > Export store CSV`, or
 | File | Use |
 |---|---|
 | `play-console.csv` | Play Console > Play Games Services > Achievements: one row per achievement (Order, Name, Description, Points, Incremental steps, Initial state, Icon file). If bulk import rejects it, enter rows by hand in this order. |
-| `game-center.csv` | App Store Connect > Game Center > Achievements: Reference name, Achievement ID (`me.sinaserati.Pause.ach_<id>`), points, hidden, titles and descriptions, image file. |
+| `game-center.csv` | App Store Connect > Game Center > Achievements: Reference name, Achievement ID (`me.hapticgate.pause.ach_<id>`), points, hidden, titles and descriptions, image file. |
 | `android-ids.csv` | `internal_id,android_id` as the code sees it now (13 legacy ids, 47 `TODO_android_` placeholders). |
 
 | `play-icons-512/<id>.png` | The 60 Google Play icons, 512x512 RGB, nearest-neighbour from the 1024 masters (committed). Upload one per row. |

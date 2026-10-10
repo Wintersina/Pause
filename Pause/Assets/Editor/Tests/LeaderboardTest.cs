@@ -91,8 +91,8 @@ public static class LeaderboardTest
                 "Most star dust collected in a single run.", LeaderboardSort.HigherIsBetter,
                 LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0)),
             new LeaderboardBoard(LeaderboardBoards.FurthestWorld, TestWorldAndroid, AchievementIds.IosPrefix + "furthest_world",
-                "Furthest World", "Furthest world reached in a single run.", LeaderboardSort.HigherIsBetter,
-                LeaderboardBoards.FormatWorld, r => r.worldIndex + 1),
+                "Furthest Loop", "Furthest loop reached in a single run.", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatLoop, r => System.Math.Max(1, r.loop)),
         };
     }
 
@@ -110,10 +110,10 @@ public static class LeaderboardTest
         bool both = true, named = true;
         foreach (var b in LeaderboardBoards.Enabled())
         {
-            both &= !string.IsNullOrEmpty(b.androidId) && !string.IsNullOrEmpty(b.iosId);
+            both &= !string.IsNullOrEmpty(b.PlatformId());
             named &= !string.IsNullOrEmpty(b.displayName) && !string.IsNullOrEmpty(b.description);
         }
-        Check("registry: every enabled board has both platform ids", both);
+        Check("registry: every enabled board has an id for the running platform", both);
         Check("registry: every enabled board has a name and description", named);
 
         // Speed is capped (SpeedRamp.Cap): there is no speed board any more.
@@ -126,17 +126,24 @@ public static class LeaderboardTest
               AchievementCatalog.All.All(d => AchievementIds.AndroidId(d) != "CgkI3eXNjrQcEAIQAA"));
         var score = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
         Check("Top Score is the first (primary) board", LeaderboardBoards.All.Length > 0 && LeaderboardBoards.All[0] == score);
-        Check("Top Score uses me.sinaserati.Pause.top_score on iOS",
+        Check("Top Score uses me.hapticgate.pause.top_score on iOS",
               score != null && score.iosId == AchievementIds.IosPrefix + "top_score");
 
         var dust = LeaderboardBoards.Get(LeaderboardBoards.RunStarDust);
         var world = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
-        Check("Star Dust placeholder exists and is disabled", dust != null && !dust.Enabled);
-        Check("Furthest World placeholder exists and is disabled", world != null && !world.Enabled);
-        Check("disabled board has no id on either platform",
-              dust.PlatformId(false) == null && dust.PlatformId(true) == null);
+        Check("Android ids: Top Score / Star Dust / Furthest Loop",
+              score.androidId == "CgkIopqxqbAPEAIQPg" && dust.androidId == "CgkIopqxqbAPEAIQPw" && world.androidId == "CgkIopqxqbAPEAIQQA");
+        Check("a board is enabled per platform: all three on Android", score.EnabledOn(false) && dust.EnabledOn(false) && world.EnabledOn(false));
+        Check("a board is enabled per platform: only Top Score on iOS until the other Game Center ids exist",
+              score.EnabledOn(true) && !dust.EnabledOn(true) && !world.EnabledOn(true) &&
+              dust.PlatformId(true) == null && world.PlatformId(true) == null && dust.PlatformId(false) == dust.androidId);
+        Check("Furthest Loop: renamed, logical id kept",
+              world.id == "furthest_world" && world.displayName == "Furthest Loop" && world.description == "Furthest loop reached in a single run.");
+        Check("Furthest Loop: value is the loop number, no cap, 1 at least",
+              world.Measure(new LeaderboardRunStats { loop = 1 }) == 1 && world.Measure(new LeaderboardRunStats { loop = 40 }) == 40 &&
+              world.Measure(new LeaderboardRunStats()) == 1);
+        Check("formatters: loop", LeaderboardBoards.FormatLoop(1) == "Loop 1" && LeaderboardBoards.FormatLoop(12) == "Loop 12");
         Check("formatters: hundredths", LeaderboardBoards.FormatHundredths(1234) == "12.34");
-        Check("formatters: world name", LeaderboardBoards.FormatWorld(2) == WorldManager.Worlds[1].displayName);
 
         var lower = new LeaderboardBoard("t", "a", "i", "T", "d", LeaderboardSort.LowerIsBetter, null, r => 0);
         Check("sort order: lower-is-better compares the other way", lower.IsBetter(5, 9) && !lower.IsBetter(9, 5));
@@ -144,10 +151,10 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        Check("offer to a disabled board is skipped", !service.Offer(LeaderboardBoards.RunStarDust, 500));
+        Check("offer to an unknown/disabled board is skipped", !service.Offer("no_such_board", 500));
         long v;
-        Check("nothing queued for a disabled board", !service.HasPending(LeaderboardBoards.RunStarDust, out v));
-        int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, worldIndex = 2 });
+        Check("nothing queued for a disabled board", !service.HasPending("no_such_board", out v));
+        int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, loop = 2 });
         Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().Count);
         Check("only enabled boards appear as panel tabs", service.UsableBoards().Count == LeaderboardBoards.Enabled().Count);
     }
@@ -174,7 +181,7 @@ public static class LeaderboardTest
                   !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));
             Check("retired speed board: an offer to it is refused", !service.Offer(LeaderboardBoards.RetiredSpeedBoard, 50));
 
-            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 1234, starDust = 2.5f, worldIndex = 1 });
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 1234, starDust = 2.5f, loop = 1 });
             now = 60f;
             service.Tick();
             bool onlyLive = true;
@@ -353,6 +360,32 @@ public static class LeaderboardTest
         Check("top-10 player: list row highlighted red",
               row1 != null && row1.GetComponent<CelShape>().fill == AkiraPalette.Red);
         Check("top-10 player: rows match entries", panel.RowCount == 3 && panel.PlayerRankText == "#2");
+
+        // 25 entries: exactly the top 10 in rank order, plus the player's own row when they rank outside it.
+        var big = new FakeLeaderboards();
+        var entries = new LeaderboardEntry[25];
+        for (int i = 0; i < 25; i++)
+            entries[i] = i == 17 ? FakeLeaderboards.Entry(i + 1, "KANEDA", 1000 - i * 10, true)
+                                 : FakeLeaderboards.Entry(i + 1, "PILOT" + (i + 1), 1000 - i * 10);
+        big.SetBoard(TopScoreId, entries);
+        panel = OpenPanel(big);
+        bool ordered = true;
+        for (int i = 0; i < 10; i++)
+        {
+            var r = panel.PanelRoot.Find("List/Rows/Row" + i + "/Rank");
+            var t = r != null ? r.GetComponent<UnityEngine.UI.Text>() : null;
+            ordered &= t != null && t.text == "#" + (i + 1);
+        }
+        Check("25 entries: exactly 10 rows", panel.RowCount == 10 && panel.PanelRoot.Find("List/Rows/Row9") != null &&
+              panel.PanelRoot.Find("List/Rows/Row10") == null);
+        Check("25 entries: rows are ranks 1 to 10 in order", ordered);
+        Check("25 entries: own row #18 shown below the list", panel.PlayerRowShown && panel.PlayerRankText == "#18");
+        entries[17] = FakeLeaderboards.Entry(18, "PILOT18", 820);
+        entries[3] = FakeLeaderboards.Entry(4, "KANEDA", 960, true);
+        big.SetBoard(TopScoreId, entries);
+        panel = OpenPanel(big);
+        Check("25 entries, player in the top 10: still 10 rows and own rank shown",
+              panel.RowCount == 10 && panel.PlayerRankText == "#4");
 
         // Signed out -> one tap signs in, then loads.
         var signedOut = FakeLeaderboards.Demo();

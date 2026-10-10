@@ -175,7 +175,7 @@ old `AchievementIds`, `AchievementTiersTest` (and with them the five never-firin
 9. *Store ids.* 13 legacy Play ids that map one-to-one onto a new achievement are kept in `AchievementIds` (tutorial, logged on, the three
    speed ones, paused, correct pause, buy first / all ships, stars 150 / 1000, deaths 10 / 100); the other 47 are `TODO_android_<id>`
    placeholders. Real ids go in `Assets/Resources/AchievementStoreIds.csv` (`internal_id,CgkI...`), no code change. iOS ids follow
-   `me.sinaserati.Pause.ach_<id>` but reporting stays off until `AchievementIds.IosIdsConfirmed` is set (App Store Connect rows exist).
+   `me.hapticgate.pause.ach_<id>` but reporting stays off until `AchievementIds.IosIdsConfirmed` is set (App Store Connect rows exist).
    `SocialBridge.ReportProgress/ReportScore` now take platform-ready ids.
 10. *Blink-dodge probe* (`pause_perfect_dodge`) ships ON behind `AchievementTracker.DodgeProbeEnabled`: a hostile shot within 0.6 of the
     blink origin that the blink left behind (landing > 0.9 from it), and no heart lost for 1 s of world time. Not play-tested on device.

@@ -1,7 +1,9 @@
 # Achievements store setup (Google Play Games Services and Game Center)
 
-For the project owner. Nothing is configured yet on the Apple side; the Play side may already hold the 28 legacy
-achievements (see section 5). The 60 new achievements are defined in `docs/achievements-redesign.md`; the CSVs below are
+For the project owner. Package / bundle id: `me.hapticgate.pause` (new Play Console account, Google Cloud project number
+`528367766818`). Status: **Android is done** (Play Games Services project `528367766818`: the 60 achievements are imported as drafts and their ids are in
+`Assets/Resources/AchievementStoreIds.csv` and `docs/achievements-export/android-ids.csv`; they still need **Review and publish** in Play Console).
+**Game Center (iOS) is still pending**: create the 60 from section 3. The 60 new achievements are defined in `docs/achievements-redesign.md`; the CSVs below are
 generated from that table (the planned menu tool `Pause/Achievements/Export store CSV` regenerates them from code, see
 `achievements-implementation-plan.md`).
 
@@ -105,7 +107,7 @@ After creating them, copy the generated resource ids (`CgkI...`) back as a two-c
 
 App Store Connect > your app > Services > Game Center > Achievements (inside an Achievement Group if you use groups). Required per achievement: reference
 name, ID, points, hidden, "Achievable More Than Once" = No, and per localization (English U.S. at minimum): title, pre-earned description, earned
-description, image. Id scheme: `me.sinaserati.Pause.ach_<internal id>`. The legacy 28 proposed iOS ids never existed in App Store Connect, so nothing collides.
+description, image. Id scheme: `me.sinaserati.Pause.ach_<internal id>`.
 
 ```csv
 Reference name,Achievement ID,Point value,Hidden,Achievable more than once,Title,Pre-earned description,Earned description,Image
@@ -184,11 +186,9 @@ Tests: id uniqueness, 1000-point total, <= 100 points each, title and descriptio
 
 ## 5. Order of operations for the owner
 
-1. Legacy Android achievements: if the Play Games game was never published, delete the 28 and create the 60 from section 2. If it was published, published
-   achievements generally cannot be deleted; leave them (the game stops reporting them) and add the 60. The 1000-point cap is per game across all
-   achievements, so the legacy points may block the new ones. (Verify in the console: this is from memory.)
-2. Upload the 60 icons (section 6) while creating each row.
-3. Copy the 60 generated Android ids into `AchievementStoreIds.csv`; on iOS create the 60 ids exactly as in section 3.
+1. DONE (Android): the 60 achievements from section 2 are imported as drafts. Remaining: Review and publish in Play Console, and add testers.
+2. DONE (Android): icons uploaded with the rows. iOS: upload the 60 icons (section 6) while creating each Game Center row.
+3. DONE (Android): ids pasted into `AchievementStoreIds.csv`. iOS: create the 60 ids exactly as in section 3, then set `AchievementIds.IosIdsConfirmed`.
 4. Publish the Play Games configuration and add testers so achievements work for non-testers.
 5. Test on a device: sign in, earn one (for example `meta_first_flight`), check Play Games / Game Center.
 

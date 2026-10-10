@@ -9,7 +9,7 @@ using UnityEngine.SocialPlatforms.GameCenter;
 //
 // Sign-in is GameCenterAccount's (CloudSync). Board ids are the App Store
 // Connect leaderboard ids (LeaderboardBoards, e.g.
-// me.sinaserati.Pause.top_score). Reading uses ILeaderboard with a global
+// me.hapticgate.pause.top_score). Reading uses ILeaderboard with a global
 // user scope, a time scope and a 1-based rank range.
 public sealed class GameCenterLeaderboards : ILeaderboardPlatform
 {

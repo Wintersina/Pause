@@ -21,7 +21,7 @@ using UnityEngine;
 // 2016 build shipped with.
 public static class PlayGamesSetup
 {
-    public const string AppId = "976061952733";
+    public const string AppId = "528367766818";
 
     static readonly string[] Templates = { "mainTemplate.gradle", "settingsTemplate.gradle", "gradleTemplate.properties" };
 

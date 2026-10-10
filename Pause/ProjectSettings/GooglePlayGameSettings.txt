@@ -1,2 +1,2 @@
-proj.AppId=976061952733
+proj.AppId=528367766818
 android.SetupDone=true

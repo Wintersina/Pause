@@ -1,5 +1,63 @@
 # Google Play Games achievement ids, one per line: internal_id,CgkI...
-# Fill in the ids Play Console generated for the rows imported from docs/achievements-export/play-console.csv.
-# Lines left out (or placeholders) keep the defaults in AchievementIds.cs; the 13 legacy ids already in the code
-# stay until you override them here.
-# Example:  loop_1,CgkI3eXNjrQcEAIQXX
+# These are the ids of the 60 achievements in the me.hapticgate.pause Play Games project (Cloud project 528367766818).
+# A line left out (or a TODO_ placeholder) stays a placeholder and is never reported.
+meta_first_flight,CgkIopqxqbAPEAIQDg
+meta_logged_on,CgkIopqxqbAPEAIQEw
+world_frost_reached,CgkIopqxqbAPEAIQCA
+world_verdant_reached,CgkIopqxqbAPEAIQHA
+world_ember_reached,CgkIopqxqbAPEAIQDQ
+world_tide_reached,CgkIopqxqbAPEAIQIw
+loop_1,CgkIopqxqbAPEAIQCQ
+loop_2,CgkIopqxqbAPEAIQCg
+loop_5,CgkIopqxqbAPEAIQIQ
+boss_space,CgkIopqxqbAPEAIQBw
+boss_frost,CgkIopqxqbAPEAIQIg
+boss_verdant,CgkIopqxqbAPEAIQDw
+boss_ember,CgkIopqxqbAPEAIQAw
+boss_tide,CgkIopqxqbAPEAIQCw
+boss_no_hit,CgkIopqxqbAPEAIQGQ
+boss_all,CgkIopqxqbAPEAIQOQ
+elite_first,CgkIopqxqbAPEAIQOw
+elite_10,CgkIopqxqbAPEAIQKQ
+elite_50,CgkIopqxqbAPEAIQFA
+elite_space_all,CgkIopqxqbAPEAIQFQ
+elite_frost_all,CgkIopqxqbAPEAIQOA
+elite_verdant_all,CgkIopqxqbAPEAIQFg
+elite_ember_all,CgkIopqxqbAPEAIQDA
+elite_blink,CgkIopqxqbAPEAIQKg
+kills_100,CgkIopqxqbAPEAIQGw
+kills_1000,CgkIopqxqbAPEAIQMA
+kills_5000,CgkIopqxqbAPEAIQAg
+rocks_500,CgkIopqxqbAPEAIQNA
+mines_25,CgkIopqxqbAPEAIQEA
+chain_10,CgkIopqxqbAPEAIQJQ
+mega_domino,CgkIopqxqbAPEAIQLg
+codex_10,CgkIopqxqbAPEAIQPA
+codex_50,CgkIopqxqbAPEAIQKw
+codex_field_guide,CgkIopqxqbAPEAIQJA
+codex_complete,CgkIopqxqbAPEAIQKA
+ship_first,CgkIopqxqbAPEAIQGg
+ship_half,CgkIopqxqbAPEAIQHQ
+ship_all,CgkIopqxqbAPEAIQHw
+skin_first,CgkIopqxqbAPEAIQFw
+skin_special,CgkIopqxqbAPEAIQOg
+skin_full_set,CgkIopqxqbAPEAIQEg
+secret_power_first,CgkIopqxqbAPEAIQBA
+stars_150,CgkIopqxqbAPEAIQBg
+stars_1000,CgkIopqxqbAPEAIQHg
+stars_5000,CgkIopqxqbAPEAIQNg
+dust_spent_10000,CgkIopqxqbAPEAIQMg
+score_10k,CgkIopqxqbAPEAIQNQ
+score_50k,CgkIopqxqbAPEAIQJw
+score_150k,CgkIopqxqbAPEAIQGA
+speed_flash,CgkIopqxqbAPEAIQLw
+speed_speedster,CgkIopqxqbAPEAIQNw
+speed_super_sonic,CgkIopqxqbAPEAIQMw
+deaths_10,CgkIopqxqbAPEAIQEQ
+deaths_100,CgkIopqxqbAPEAIQLQ
+pause_first,CgkIopqxqbAPEAIQMQ
+pause_blink_kill,CgkIopqxqbAPEAIQPQ
+pause_blink_100,CgkIopqxqbAPEAIQIA
+pause_no_pause_world,CgkIopqxqbAPEAIQJg
+pause_hoarder,CgkIopqxqbAPEAIQBQ
+pause_perfect_dodge,CgkIopqxqbAPEAIQLA

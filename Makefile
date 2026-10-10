@@ -6,8 +6,8 @@
 UNITY ?= /Applications/Unity/Hub/Editor/6000.3.23f1/Unity.app/Contents/MacOS/Unity
 ADB ?= adb
 PROJECT ?= Pause
-ANDROID_PACKAGE ?= me.sinaserati.Pause
-IOS_BUNDLE_ID ?= me.sinaserati.Pause
+ANDROID_PACKAGE ?= me.hapticgate.pause
+IOS_BUNDLE_ID ?= me.hapticgate.pause
 # Required by ios-deploy. Find it with `make ios-devices`.
 IOS_DEVICE_ID ?=
 

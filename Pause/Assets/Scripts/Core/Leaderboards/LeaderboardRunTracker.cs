@@ -16,14 +16,14 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     long runScore;
     long bestScoreAtStart;
-    int furthestWorld;
+    int furthestLoop;
     bool ended;
 
     void Start()
     {
         bestScoreAtStart = RunScore.SavedBest;
         runScore = 0;
-        furthestWorld = WorldManager.CurrentIndex;
+        furthestLoop = RunLoop.DisplayNumber;
         ended = false;
     }
 
@@ -42,7 +42,7 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     void Sample()
     {
-        furthestWorld = Mathf.Max(furthestWorld, WorldManager.CurrentIndex);
+        furthestLoop = Mathf.Max(furthestLoop, RunLoop.DisplayNumber);
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
@@ -56,7 +56,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         {
             score = runScore,
             starDust = StarDustLedger.Earned,
-            worldIndex = furthestWorld,
+            loop = furthestLoop,
         };
     }
 
