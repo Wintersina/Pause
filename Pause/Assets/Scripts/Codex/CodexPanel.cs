@@ -309,6 +309,7 @@ public class CodexPanel : MonoBehaviour
     CanvasGroup tabsGroup;
     Image[] tabFrames;
     Text[] tabLabels;
+    Image[] tabDots;
     RectTransform grid, viewport, content;
     CanvasGroup gridGroup;
     ScrollRect scroll;
@@ -373,7 +374,7 @@ public class CodexPanel : MonoBehaviour
     {
         public RectTransform rt;
         public Button button;
-        public Image frame, edge, mask, art, lockIcon;
+        public Image frame, edge, mask, art, lockIcon, newDot;
         public Mask maskComp;
         public RectTransform artBox;
         public Text name;
@@ -495,6 +496,7 @@ public class CodexPanel : MonoBehaviour
         tabsGroup = tabsRoot.gameObject.AddComponent<CanvasGroup>();
         tabFrames = new Image[TabCount];
         tabLabels = new Text[TabCount];
+        tabDots = new Image[TabCount];
         for (int i = 0; i < TabCount; i++)
         {
             int index = i;
@@ -520,6 +522,8 @@ public class CodexPanel : MonoBehaviour
             lrt.offsetMin = new Vector2(6f, 0f);
             lrt.offsetMax = new Vector2(-6f, 0f);
 
+            // NEW dot on the tab's top-right corner: shown until the tab is opened
+            tabDots[i] = NewDot(tabFrame.rectTransform, new Vector2(-4f, -4f), false);
             tabFrames[i] = tabFrame;
             tabLabels[i] = label;
         }
@@ -684,7 +688,37 @@ public class CodexPanel : MonoBehaviour
         card.lockIcon = CodexUi.NewImage("Lock", card.rt, CodexUi.CodexSprite("cx_lock"), CodexUi.Select);
         card.lockIcon.preserveAspect = true;
         CodexUi.Isolate(card.lockIcon.gameObject);   // a sub-canvas draws over its parent: keep the lock above the art
+        card.newDot = NewDot(card.rt, new Vector2(-8f, -8f), true);
         return card;
+    }
+
+    // The restrained amber pixel dot of the home bubble, no number: takes no touches, no animation.
+    public const float NewDotSize = 26f;
+    Image NewDot(RectTransform parent, Vector2 inset, bool above)
+    {
+        var dot = CodexUi.NewImage("NewDot", parent, CodexHomeButton.BadgeSprite(), Color.white);
+        dot.raycastTarget = false;
+        var rt = dot.rectTransform;
+        rt.anchorMin = rt.anchorMax = Vector2.one;
+        rt.pivot = new Vector2(1f, 1f);
+        rt.anchoredPosition = inset;
+        rt.sizeDelta = new Vector2(NewDotSize, NewDotSize);
+        if (above) CodexUi.Isolate(dot.gameObject);   // a sub-canvas draws over its parent: keep the dot above the art
+        dot.gameObject.SetActive(false);
+        return dot;
+    }
+
+    public Image CardNewDot(int i) { return cards[i].newDot; }
+    public Image TabNewDot(int i) { return tabDots[i]; }
+
+    // Card dots follow Codex.IsNew; tab dots follow "something NEW and the tab not opened".
+    void PaintNewDots()
+    {
+        if (cards == null || tabDots == null) return;
+        for (int i = 0; i < cards.Length; i++)
+            cards[i].newDot.gameObject.SetActive(i < shownCount && cards[i].entry != null && Codex.IsNew(cards[i].entry.id));
+        for (int i = 0; i < TabCount; i++)
+            tabDots[i].gameObject.SetActive(i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
     }
 
     void BuildDetail()
@@ -979,6 +1013,8 @@ public class CodexPanel : MonoBehaviour
         detailEntry = null;
         Fit();
         Populate(category);
+        Codex.AckTab(category);
+        PaintNewDots();
         phase = Phase.Opening;
         phaseAt = Time.unscaledTime;
         swapAt = tabAt = -10f;
@@ -1012,6 +1048,13 @@ public class CodexPanel : MonoBehaviour
 
     public void ShowCategory(CodexCategory c)
     {
+        ShowCategoryInner(c);
+        Codex.AckTab(c);   // the tab was interacted with: its dot (and home count share) goes
+        PaintNewDots();
+    }
+
+    void ShowCategoryInner(CodexCategory c)
+    {
         if (inDetail) ShowGrid();
         if (achievementsOpen)
         {
@@ -1035,7 +1078,7 @@ public class CodexPanel : MonoBehaviour
     public void ShowAchievements()
     {
         if (inDetail) ShowGrid();
-        if (achievementsOpen) { ach.CloseDetail(); return; }
+        if (achievementsOpen) { ach.CloseDetail(); Codex.AckAchievements(); PaintNewDots(); return; }
         achievementsOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
@@ -1044,6 +1087,8 @@ public class CodexPanel : MonoBehaviour
         PaintTabs();
         RefreshCounter();
         tabAt = Time.unscaledTime;
+        Codex.AckAchievements();
+        PaintNewDots();
     }
 
     void HideAchievements()
@@ -1071,6 +1116,7 @@ public class CodexPanel : MonoBehaviour
     public void OnAchievementsChanged()
     {
         RefreshCounter();
+        PaintNewDots();
     }
 
     public void ShowDetail(CodexEntry entry)
@@ -1078,6 +1124,7 @@ public class CodexPanel : MonoBehaviour
         if (entry == null) return;
         detailEntry = entry;
         bool found = Codex.IsDiscovered(entry);
+        if (found) Codex.MarkSeen(entry.id);   // opening the entry clears its NEW dot
 
         detailName.text = Codex.DisplayName(entry);
         detailPillLabel.text = CategoryLabel(entry.category);
@@ -1104,6 +1151,7 @@ public class CodexPanel : MonoBehaviour
 
         inDetail = true;
         swapAt = Time.unscaledTime;
+        PaintNewDots();
     }
 
     // ---- Triple tap on the enemy: its death plays once ----
@@ -1293,6 +1341,7 @@ public class CodexPanel : MonoBehaviour
         chipsRoot.gameObject.SetActive(sectioned);
 
         PaintTabs();
+        PaintNewDots();
 
         gridRect = sectioned ? layout.list : layout.body;
         CodexUi.Place(grid, gridRect);

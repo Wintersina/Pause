@@ -552,7 +552,7 @@ public static class CodexAchievementsTabTest
                 if (shot.error != null) { bad++; if (first == "") first = device.id + ": " + shot.error; }
             }
         }
-        Check("home: badge inside the Codex button's top-right, taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
+        Check("home: badge rides the Codex word's top-right (also for a longer word), taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
     }
 
     static void HomeBadgeStage(ScreenFitRig rig, ref int bad, ref string first)
@@ -565,17 +565,12 @@ public static class CodexAchievementsTabTest
         else
         {
             home.Refresh();
-            var br = rig.PixelRect(home.Badge.rectTransform);
-            var tr = rig.PixelRect((RectTransform)home.transform);
-            float e = 1.5f;
-            if (br.xMin < tr.xMin - e || br.xMax > tr.xMax + e || br.yMin < tr.yMin - e || br.yMax > tr.yMax + e) why = "badge outside button " + br + " vs " + tr;
-            else if (br.center.x < tr.center.x + tr.width * .25f || br.center.y < tr.center.y) why = "badge not in the top-right quadrant";
-            else if (home.BadgeText.text != "9+") why = "text " + home.BadgeText.text;
-            else if (br.width < 8f || br.width > tr.width * .4f) why = "badge size " + br.width + " in button " + tr.width;
-            else
+            why = BadgeRidesWord(rig, home, "Codex");
+            if (why == null) why = BadgeRidesWord(rig, home, "Discoveries");
+            if (why == null) why = BadgeRidesWord(rig, home, "Codex");
+            if (why == null)
             {
-                // a tap at the badge's centre must still land on the button
-                var p = br.center;
+                // a tap at the badge must still land on the button
                 bool onBadge = false;
                 foreach (var g in home.GetComponentsInChildren<Graphic>(false))
                     if (g.raycastTarget && (g == home.Badge || g == home.BadgeText)) onBadge = true;
@@ -584,6 +579,48 @@ public static class CodexAchievementsTabTest
             }
         }
         if (why != null) { bad++; if (first == "") first = rig.device.id + ": " + why; }
+    }
+
+
+    // Rect of a RectTransform in the button's local space.
+    static Rect LocalRect(Transform space, RectTransform rt)
+    {
+        var c = new Vector3[4];
+        rt.GetWorldCorners(c);
+        var lo = new Vector2(float.MaxValue, float.MaxValue); var hi = new Vector2(float.MinValue, float.MinValue);
+        foreach (var w in c) { var l = space.InverseTransformPoint(w); lo = Vector2.Min(lo, l); hi = Vector2.Max(hi, l); }
+        return Rect.MinMaxRect(lo.x, lo.y, hi.x, hi.y);
+    }
+
+    // The bubble rides the top-right of the rendered word: right of its last
+    // glyph (<= 10 units away), above the text's vertical centre, inside the
+    // button, clear of the DISCOVERED line, 18..28 units, whole 13 px multiples.
+    static string BadgeRidesWord(ScreenFitRig rig, CodexHomeButton home, string word)
+    {
+        home.Label.text = word;
+        Canvas.ForceUpdateCanvases();
+        home.PlaceBadge(true);
+        float right, top, lastTop;
+        if (!home.MeasureWord(out right, out top, out lastTop)) return word + ": word not measurable";
+        var lab = home.Label.rectTransform;
+        var wr = home.transform.InverseTransformPoint(lab.TransformPoint(new Vector3(right, lastTop, 0f)));
+        var btn = LocalRect(home.transform, (RectTransform)home.transform);
+        var bd = LocalRect(home.transform, home.Badge.rectTransform);
+        var cnt = LocalRect(home.transform, home.Counter.rectTransform);
+        var labR = LocalRect(home.transform, lab);
+        float e = 1.5f;
+        if (bd.xMin < btn.xMin - e || bd.xMax > btn.xMax + e || bd.yMin < btn.yMin - e || bd.yMax > btn.yMax + e) return word + ": badge outside button " + bd + " vs " + btn;
+        if (bd.xMin < wr.x - 4f) return word + ": badge covers the last glyph " + bd.xMin + " < " + wr.x;
+        if (bd.xMin - wr.x > 10f) return word + ": badge " + (bd.xMin - wr.x) + " units from the word";
+        if (bd.yMin < wr.y - 4f && bd.xMin < wr.x - .5f) return word + ": badge below the last glyph's top";
+        if (bd.center.y <= labR.center.y) return word + ": badge not above the text centre";
+        if (bd.Overlaps(cnt)) return word + ": badge overlaps the DISCOVERED line";
+        if (bd.width < 18f || bd.width > 28f) return word + ": badge size " + bd.width;
+        float scale = home.GetComponentInParent<Canvas>().rootCanvas.scaleFactor;
+        float px = bd.width * scale / 13f;
+        if (Mathf.Abs(px - Mathf.Round(px)) > .03f) return word + ": badge not a whole multiple of the 13 px art (" + px + ")";
+        if (home.BadgeText.text != "9+") return word + ": text " + home.BadgeText.text;
+        return null;
     }
 
     // ---- helpers (the same measuring rules as CodexTest) ----
