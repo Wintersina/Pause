@@ -285,7 +285,9 @@ public static class AttackBudgetTest
     {
         foreach (var kv in Themed)
         {
-            var r = Measure(kv.Key);
+            // (a boss attack fights 3 starts of up to 26 s: 2000 rolls take ~3 min each, so the suite rolls the first 500 of its seeded rolls --
+            // deterministic, so a pass stays a pass; SweepThemed measures all 2000)
+            var r = Measure(kv.Key, kv.Key.StartsWith("themed:boss_") ? 500 : Rolls);
             string why;
             bool ok = WithinBudget(kv.Key, r, out why);
             Check("themed attack within the budget: " + why, ok);
