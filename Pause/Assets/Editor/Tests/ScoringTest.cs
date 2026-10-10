@@ -307,7 +307,7 @@ public static class ScoringTest
 
         string src = System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs");
         Check("score.cs ticks the score on the world's scaled clock, only on running frames",
-              Regex.Matches(src, @"RunScore\.Tick\(Time\.deltaTime, moveBackGround\.speed\)").Count == 2 &&
+              Regex.Matches(src, @"RunScore\.Tick\(Time\.deltaTime, moveBackGround\.speed\)").Count == 1 &&   // StepRunning: both running branches
               !src.Contains("RunScore.Tick(Time.unscaledDeltaTime"));
         Check("the boss intro freezes the world (timeScale 0), so it earns nothing",
               System.IO.File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("BossEncounter.ScriptedFreeze"));
