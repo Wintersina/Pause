@@ -280,6 +280,43 @@ Deviations from the plan and decisions a later phase should know:
 10. **Not done here (later phases)**: `BossAttackKind.Jet / Wave` (a boss's flame sweep is `JetSpec.centered` + the executor, phase 1g), elite attack ids, sounds (1h), the `ReadabilitySweep` and `AtomClarityTest` items for the new strips, the rail mine's pressure jet / frost ray (the mine fires a `Laser` on a rail mount: the table row needs the jet armed from the mount),
    the per-world rows, and the Codex art (P4 jets, P5 wave) -- they plug into the slots above without code.
 
+### 8.2d Phase 1g: boss infrastructure (branch `feature/attacks-boss-infra`, worktree `attacks-boss`)
+
+Built:
+
+* `BossAttack.minPhase` (1..3) and `BossCatalog.UnlockedAttacks` generalised: the unlocked attacks are the prefix of the active table whose `minPhase` has come
+  (`BossCatalog.PhaseOf`: thirds, as `BossEncounter.FightPhase`). Default tables are minPhase 1, 2, 3 (exactly the old behaviour); a themed table is 1, 1, 2, 3, 3 = 2 / 3 / 5 attacks.
+* `BossDef.themed` (the five-attack table, built by `Bosses/BossThemed.cs`) and `BossDef.themedAttacks` (the per-boss flag). `BossDef.attacks` is now a property that returns
+  the active table, so every reader (actor, codex, tests, previews) follows the flag; `DefaultAttacks` is always today's three.
+* `Bosses/BossExecutors.cs`: `IBossAttackExecutor.Arm(boss, attack, player, into)` + a registry (`BossExecutors.Register(kind, executor)`, `For(kind)`); executors for new
+  `BossAttackKind.Jet / Wave / Blast / Strike` (appended at the end of the enum). **Adding Lash (or Roll) = one class implementing the interface + one enum value + one `Register` line**;
+  the actor, the scheduler and the dodge-bot rows need nothing else.
+* `BossActor`: a `Hazards` attack phase. The executor arms the pooled hazards at the START of the tell (aim locked then, FR1/FR2: the footprint preview shows from the first frame); each
+  hazard ignites on its own tell (a later volley is armed with `tellSeconds + k * volleyGap`); the boss holds its tell pose and waits until every hazard has ended, then starts the cooldown
+  (safety cap `BossActor.MaxHazardSeconds` 9 s). The hazards are cancelled when the boss dies/leaves. `BossActor.TellMuzzle(attack, part, out local)` = the part's `BossEmitters` muzzle in the
+  drawing the tell ends on (the Space/Tide expanded atlases' per-part tell stages through `BossArt.TellFrame`; rings and jets ride the boss until the last stretch of the tell).
+* `BossEncounter.Step` steps `AttackPools` itself when there is no `EliteDirector` (tests, previews); in the game `EliteSystem.Step` (EliteDirector) does, also during a boss fight.
+* Tests: `BossThemedTest` (tables, flag, schedule, executor registry incl. a stub kind, every new attack through `BossEncounter` headless with the ship at three x: FR1 tell and preview,
+  muzzle on the part, no early live, FR3 caps, FR4 corridor, FR9 boss untouched, ends/cooldown/next; pause freeze; boss death takes the hazards; phase 1/2/3 rotation), dodge-bot rows
+  `themed:boss_<boss>_<attack>` (`AttackBudgetScenarios.ThemedBossIds`, `Boss` scenario with the flag on; the pinned `boss:` ids keep measuring today's table), tool `BossThemedPreview`.
+
+Decisions and deviations:
+
+1. **Which table fights.** Frost (icicle drop, cold blast) and Ember (flame sweep, eruption columns) fight themed (`themedAttacks` true in `BossCatalog.Build`). Space, Tide off, Verdant has no table.
+   Still needed: **Space** rail slugs (`Streak`, 1f), ion-arc / scan-line sounds and the final look of the neon pulse and scan band; **Tide** thunder strike and surf wave are built but the Tide
+   boss stays on its placeholder attacks until its water art (spout/ink/thunder arc skins) and sounds exist; its beak "water jet" stays a Beam (the design has no boss Jet there);
+   **Verdant** vine lash (`Lash`, cores branch `feature/attacks-cores-lash-proj`) and trunk toss (`Roll`).
+2. **Budget mapping.** The new attacks have no predecessor, so each row is held to the pinned attack of the same boss that joins the rotation in the same phase (x 1.15 + 2 points):
+   icicle drop -> glare beams, cold blast -> blowhole hail, flame sweep -> fire breath, eruption columns -> brow laser, ion arcs -> core burst, scan line -> pod lasers, thunder strike and surf wave -> starboard cluster.
+   Measured (2000 rolls, seed 1): see the table below. The suite rolls the first 500 seeds of the boss rows (deterministic; each row is ~3 min at 2000).
+3. **Eruption: 3 lanes, not 4.** Four columns >= 1.8 u apart do not fit between rails 4.8 u apart (the lane picker yields 3); the doc's "4 lane glyphs" is 3.
+4. **Flame sweep: +-30 deg is capped by FR3.** The jet's far end may not move faster than 3 u/s, so over the .6 s live time a 5-7 u flame sweeps about +-7 deg (the cap), centred on the aim locked at the tell.
+   Its spec is longer than the roster Flame (5 u, reaching up to 7.5 u: the Drake's jaw is 5-6 u above the ship).
+5. **Cold blast: Wide ring from 1.6 u to 7.5 u** (the crown is 6-7 u above the ship's row; 32 bars close the wall up to 7.5 u), two rings 1.1 s apart, the second aimed 1.8 u across the ship.
+6. **Surf wave** (Tide): two bands 1.7 s apart, 1.9 u gaps, the second gap on the other side at 0.6 x -x. First attempt (1.4 s apart, 1.6 u gaps, mirrored) hit the bot 39 % (over the 37.9 % budget).
+7. **Ion arcs** (Space): two Lance jets, one per pod, each aimed 1 u to its own side of the ship (the ship between them is safe: they bracket it), two volleys .9 s apart.
+8. `BossAttackTest` is pinned to the default tables (it turns `themedAttacks` off for its run; its subject is projectiles and lasers), `AttackBudgetTest` ids `boss:` mean today's attacks.
+
 ### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
 
 Pinned in `AttackBudgetTest.Pinned`. "bot" = rolls in which the bot was touched; "standing" = the ghost that never moves in the same rolls.
