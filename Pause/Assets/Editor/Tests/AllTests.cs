@@ -171,6 +171,7 @@ public static class AllTests
         ("WorldSpeedResetTest", WorldSpeedResetTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
         ("SplashLayoutTest", SplashLayoutTest.Execute),
+        ("SplashViolentGateTest", SplashViolentGateTest.Execute),
         ("StarDustPersistenceTest", StarDustPersistenceTest.Execute),
         ("ThrusterTest", ThrusterTest.Execute),
         ("TallScreenTest", TallScreenTest.Execute),
