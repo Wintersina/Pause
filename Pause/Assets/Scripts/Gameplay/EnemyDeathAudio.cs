@@ -220,6 +220,7 @@ public static class EnemyDeathAudio
     {
         KeyClips k;
         if (authored.TryGetValue(key, out k)) return k;
+        // a key with a '/' is a path under Audio/ (e.g. "Shockwave/shield_release"), not under EnemyDeath/
         k = new KeyClips { deaths = Load(key + "_"), screams = Load(key + "_scream_") };
         authored[key] = k;
         return k;
@@ -230,7 +231,7 @@ public static class EnemyDeathAudio
         List<AudioClip> found = null;
         for (int n = 0; n < MaxVariants; n++)
         {
-            var c = Resources.Load<AudioClip>(ResourceFolder + prefix + n);
+            var c = Resources.Load<AudioClip>((prefix.IndexOf('/') >= 0 ? "Audio/" : ResourceFolder) + prefix + n);
             if (c == null) break;
             if (found == null) found = new List<AudioClip>(3);
             found.Add(c);

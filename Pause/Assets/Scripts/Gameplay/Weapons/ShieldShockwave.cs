@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// The shield's parting shot. When the blue-atom shield lets go (its timer runs
-// out and the plates shatter -- ShipShield.Hide, the only way a shield ends),
+// The shield's parting shot. When the blue-atom shield lets go (its 5.8 s timer
+// runs out and the plates shatter -- ShipShield.Hide, the only way a shield
+// ends: lifting the finger only pauses the game, it never drops the shield),
 // a small shockwave shoves the board away from the ship:
 //
 //   radial   every hazard within Radius of the ship is pushed straight away
@@ -39,6 +40,9 @@ using UnityEngine;
 //   elites                        in play: a velocity kick (their own steering
 //                                 eases them back); parked or lifting off: not
 //                                 moved
+//   elites take EliteResist (25%) of the kick. TryRelease (the shield's entry)
+//   refuses a shield held under MinHeldSeconds, a second release within
+//   Cooldown, and any release in the tutorial or a world entry.
 //   bosses, hostile shots         not moved (the shield already eats the
 //                                 shots it touches)
 //
@@ -54,15 +58,31 @@ using UnityEngine;
 public static class ShieldShockwave
 {
     // ------------------------------------------------------------- tunables
-    public static float Radius = 1.7f;          // world units from the ship's centre (to a body's edge)
-    public static float RadialPush = .85f;      // displacement right next to the hull (keep < Radius)
+    public static float Radius = 2.6f;          // world units from the ship's centre (to a body's edge)
+    public static float RadialPush = 1.0f;       // displacement right next to the hull (keep < Radius)
     public static float RadialFalloff = 1f;     // 1 = linear to zero at the ring; higher = tighter
     public static float ColumnMargin = .12f;    // added each side of the hull's width
     public static float ColumnPush = 1.25f;     // up-screen displacement for the whole column
     public static float PushSeconds = .28f;     // how long a shove takes (ease-out)
     public static float MineMaxSlide = .6f;     // a mine never slides further than this from its clamp
-    public static float EliteKick = 3.2f;       // u/s added to an elite's velocity next to the hull
-    public static float EliteColumnKick = 2.4f; // u/s up-screen for an elite in the column
+    public static float EliteKick = 3.2f;       // u/s added to an elite's velocity next to the hull (before EliteResist)
+    public static float EliteColumnKick = 2.4f; // u/s up-screen for an elite in the column (before EliteResist)
+    public static float EliteResist = .25f;     // elites take this share of the kick; their own steering eases them back
+    public const float ShockwaveDamage = 0f;    // push only. Raise to make the wave hurt (no damage path is wired yet)
+
+    // Fairness. TryRelease (what the shield calls) fires only for a shield
+    // that was up this long, and not twice within Cooldown seconds.
+    public const float MinHeldSeconds = .25f;
+    public const float Cooldown = .5f;
+    public static bool? EntryOverride;          // tests: stands in for WorldEntry.Active
+    public static System.Func<float> Clock;     // tests; default Time.time
+    static float lastRelease = -99f;
+    public static int Suppressed { get; private set; }   // releases refused by a guard
+
+    // The look and feel.
+    public const float KickAmount = .012f;      // CameraKick, under TargetExplosion's medium .014
+    public const string SoundKey = "Shockwave/shield_release";   // Audio/Resources/Audio/Shockwave/shield_release_0..2
+    public const float SoundVolume = .7f;
     public static bool PushRocks = true;        // asteroids are shoved like any hazard
     public static float BodyMargin = .03f;      // gap kept between two shoved bodies
 
@@ -90,6 +110,24 @@ public static class ShieldShockwave
     // Builds the ring and the streak now (with the shield, as the ship
     // spawns), so the release creates nothing.
     public static void Prewarm() { ShieldShockwaveFx.Ensure(); }
+
+    // The guarded entry the shield uses when it lets go: not in the tutorial
+    // or a world-entry sequence, only for a shield that was up MinHeldSeconds,
+    // and not within Cooldown of the last one. Returns bodies moved, -1 if refused.
+    public static int TryRelease(Vector2 ship, float hullHalfWidth, float heldSeconds, int sortingLayer = 0, int sortingOrder = 4)
+    {
+        float now = Clock != null ? Clock() : Time.time;
+        if (heldSeconds < MinHeldSeconds || now - lastRelease < Cooldown ||
+            startMenu.youAreInTutorial || (EntryOverride ?? WorldEntry.Active)) { Suppressed++; return -1; }
+        lastRelease = now;
+        int moved = Release(ship, hullHalfWidth, sortingLayer, sortingOrder);
+        CameraKick.Kick(KickAmount);
+        EnemyDeathAudio.PlayAuthored(SoundKey, SoundVolume);
+        AchievementEvents.RaiseShieldReleased(moved);
+        return moved;
+    }
+
+    public static void ResetGuards() { lastRelease = -99f; Suppressed = 0; }
 
     // The shield at `ship` (world) lets go. `hullHalfWidth` is half the
     // hull's visible width in world units. Returns how many bodies it moved.
@@ -137,8 +175,8 @@ public static class ShieldShockwave
             if (go.TryGetComponent(out elite))
             {
                 if (!elite.InPlay) continue;   // parked on its site, or lifting off: not shoved
-                Vector2 kick = away * (EliteKick * k);
-                if (inColumn) kick = new Vector2(kick.x * .35f, Mathf.Max(kick.y, EliteColumnKick));
+                Vector2 kick = away * (EliteKick * k * EliteResist);
+                if (inColumn) kick = new Vector2(kick.x * .35f, Mathf.Max(kick.y, EliteColumnKick * EliteResist));
                 elite.Velocity += kick;
                 kicked++;
                 continue;

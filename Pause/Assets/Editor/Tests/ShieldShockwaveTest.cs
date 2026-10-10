@@ -68,6 +68,7 @@ public static class ShieldShockwaveTest
             NothingMovesWhilePaused();
             NoScoreNoKills();
             ReleaseAllocatesNothing();
+            GuardsAndFeel();
         }
         finally
         {
@@ -91,6 +92,8 @@ public static class ShieldShockwaveTest
 
     static void Fresh()
     {
+        ShieldShockwave.Clock = () => clock;
+        ShieldShockwave.EntryOverride = null;
         Clear();
         EliteSystem.Clear();
         EnemyShove.Clear();
@@ -145,6 +148,7 @@ public static class ShieldShockwaveTest
     static void TheShieldEndingFiresIt()
     {
         Fresh();
+        ShieldShockwave.ResetGuards();
         var hull = new GameObject(ShipId.ObjectName(ShipId.Starter) + "(Clone)", typeof(SpriteRenderer));
         hull.transform.position = new Vector3(Ship.x, Ship.y, 0f);
         hull.GetComponent<SpriteRenderer>().sprite = ShipHullArt.Rest(ShipId.Starter);
@@ -205,7 +209,7 @@ public static class ShieldShockwaveTest
         var close = Hazard(Ship + new Vector2(.75f, .1f));
         var mid = Hazard(Ship + new Vector2(-1.2f, -.3f));
         var below = Hazard(Ship + new Vector2(.1f, -.9f));
-        var outside = Hazard(Ship + new Vector2(2.2f, .9f));
+        var outside = Hazard(Ship + new Vector2(3.4f, .9f));
         var rock = Hazard(Ship + new Vector2(-.8f, .7f), .4f, "Astr");
         var all = new[] { close, mid, below, outside, rock };
         var start = new Vector2[all.Length];
@@ -250,7 +254,7 @@ public static class ShieldShockwaveTest
         var far = Hazard(new Vector2(Ship.x + .05f, top - .8f));                  // far up the ship's column
         var edge = Hazard(new Vector2(Ship.x + HullHalf + .2f, 1f));              // its body reaches into the strip
         var next = Hazard(new Vector2(Ship.x + 1.1f, top - .8f));                 // the neighbouring column
-        var behind = Hazard(new Vector2(Ship.x, Ship.y - 2.2f));                  // same column, behind the ship
+        var behind = Hazard(new Vector2(Ship.x, Ship.y - 3.4f));                  // same column, behind the ship
         var offTop = Hazard(new Vector2(Ship.x, top + 2f));                       // not on the playfield yet
         var all = new[] { far, edge, next, behind, offTop };
         var start = new Vector2[all.Length];
@@ -690,7 +694,7 @@ public static class ShieldShockwaveTest
         Check("the release kicks the elite in play (" + ShieldShockwave.LastKicked + " kicked, " +
               ShieldShockwave.LastPushed + " pushed)", moved == 1 && ShieldShockwave.LastKicked == 1 && ShieldShockwave.LastPushed == 0);
         Check("an elite in play is kicked away from the ship (" + flying.Velocity.magnitude.ToString("F1") + " u/s)",
-              flying.Velocity.magnitude > 1f && Vector2.Dot(flying.Velocity.normalized, away) > .95f);
+              flying.Velocity.magnitude > .3f && flying.Velocity.magnitude < 1.2f && Vector2.Dot(flying.Velocity.normalized, away) > .95f);
         float farthest = 0f;
         for (int i = 0; i < 30; i++)
         {
@@ -699,7 +703,7 @@ public static class ShieldShockwaveTest
             farthest = Mathf.Max(farthest, Vector2.Distance(flying.Position, Ship) - Vector2.Distance(flyingAt, Ship));
         }
         Check("... and is carried off by it (" + farthest.ToString("F2") + " u further away), still in play, hearts intact",
-              farthest > .2f && flying.InPlay && flying.Hearts == def.hearts);
+              farthest > .03f && flying.InPlay && flying.Hearts == def.hearts);
         EliteSystem.Clear();
     }
 
@@ -857,5 +861,58 @@ public static class ShieldShockwaveTest
               ShieldShockwaveFx.Created == created && Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Length == objects);
         Check("every one of those releases shoved a busy board (at least " + least + " bodies, capacity " + EnemyShove.Capacity + ")",
               least > 5 && least <= EnemyShove.Capacity);
+    }
+
+    // ---- guards, feel ----------------------------------------------------------
+
+    static void GuardsAndFeel()
+    {
+        Fresh();
+        ShieldShockwave.ResetGuards();
+        var inside = Hazard(Ship + new Vector2(1.9f, .6f));    // beyond the old 1.7 radius, inside 2.6
+        var outside = Hazard(Ship + new Vector2(3.4f, .6f));   // outside both
+        var inColumn = Hazard(Ship + new Vector2(0f, 4f));
+        Vector3 outsideAt = outside.transform.position, insideAt = inside.transform.position, colAt = inColumn.transform.position;
+        int hit = 0, moved = -9;
+        System.Action<int> on = n => { hit++; moved = n; };
+        AchievementEvents.ShieldReleased += on;
+        try
+        {
+            Check("a shield held under " + ShieldShockwave.MinHeldSeconds + " s does not fire",
+                  ShieldShockwave.TryRelease(Ship, HullHalf, .1f) == -1 && hit == 0);
+            startMenu.youAreInTutorial = true;
+            Check("the tutorial never fires it", ShieldShockwave.TryRelease(Ship, HullHalf, 3f) == -1 && hit == 0);
+            startMenu.youAreInTutorial = false;
+            ShieldShockwave.EntryOverride = true;
+            Check("a world-entry sequence never fires it", ShieldShockwave.TryRelease(Ship, HullHalf, 3f) == -1 && hit == 0);
+            ShieldShockwave.EntryOverride = null;
+            Check("refusals are counted (" + ShieldShockwave.Suppressed + ")", ShieldShockwave.Suppressed == 3);
+
+            int releases = ShieldShockwave.Releases;
+            int r = ShieldShockwave.TryRelease(Ship, HullHalf, 3f);
+            Check("a held shield fires (" + r + " moved)", r >= 2 && ShieldShockwave.Releases == releases + 1);
+            Check("the achievements event carries the count once", hit == 1 && moved == r);
+            Run(.5f);
+            Check("radius " + ShieldShockwave.Radius + ": a body 2 u away is pushed, one 3.4 u away and the lane beside are not",
+                  (inside.transform.position - insideAt).magnitude > .05f && outside.transform.position == outsideAt);
+            Check("the column body is pushed up-screen", inColumn.transform.position.y > colAt.y + .5f);
+            Check("... and stays below the top of the view", inColumn.transform.position.y < CameraFit.ViewTop + 1f);
+
+            clock += .3f;
+            Check("a second release inside the cooldown is refused", ShieldShockwave.TryRelease(Ship, HullHalf, 3f) == -1 && hit == 1);
+            clock += .3f;
+            Check("... and allowed after it", ShieldShockwave.TryRelease(Ship, HullHalf, 3f) >= 0 && hit == 2);
+            Check("no damage by default", ShieldShockwave.ShockwaveDamage == 0f);
+        }
+        finally { AchievementEvents.ShieldReleased -= on; ShieldShockwave.Clock = null; }
+
+        EnemyDeathAudio.ClearCache();
+        Check("three authored whump variants load", EnemyDeathAudio.Variants(ShieldShockwave.SoundKey) == 3);
+        for (int i = 0; i < 3; i++)
+        {
+            var c = EnemyDeathAudio.AuthoredClip(ShieldShockwave.SoundKey, i);
+            Check("whump " + i + " is a short soft cue (" + (c != null ? c.length.ToString("F2") : "null") + " s)", c != null && c.length > .15f && c.length < .6f);
+        }
+        EnemyDeathAudio.ClearCache();
     }
 }
