@@ -283,7 +283,13 @@ public class enmiesOnBoard : MonoBehaviour {
 
         // A planetfall's descent suspends spawning (Planetfall), as does a
         // lift-off from the boss's end to its gateway (Liftoff) ...
-        if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning) return;
+        if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning)
+        {
+            // The run's entry (WorldEntry) is not part of the calm start: the
+            // window waits so all of it is still ahead at the hand-off.
+            if (flying && !openingEncounterPrimed && WorldEntry.Active) calmEndsAt += Time.deltaTime;
+            return;
+        }
         // A boss encounter clears the board and suspends normal spawning.
         if (flying && !BossEncounter.SuspendsSpawning)
         {

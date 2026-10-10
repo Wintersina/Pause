@@ -67,7 +67,7 @@ public class EliteDirector : MonoBehaviour
 
     void Update()
     {
-        if (!Flying) return;
+        if (!Flying || WorldEntry.Active) return;
         float dt = Time.deltaTime;
         if (dt <= 0f) return;
         Tick(dt);

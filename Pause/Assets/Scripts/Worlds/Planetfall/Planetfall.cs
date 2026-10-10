@@ -115,6 +115,17 @@ public class Planetfall : MonoBehaviour
 
     public enum Stage { Approach, Descent, Done }
 
+    // ---- the run-start entry (WorldEntry) ----
+    // A run that begins on a planet flies this planet's descent first: the
+    // approach is skipped (the planet is already on station above the ship),
+    // the ship commits at once, and the clouds hide the switch from Space's
+    // sky to the planet's own presentation (WorldManager.ShowEntryWorld).
+    // The clock runs a little faster than a mid-run descent's: it is flown
+    // at the start of every run.
+    public static float EntryTimeScale = 1.25f;
+    // A planetfall is the run's entry and has not handed the ship back yet.
+    public static bool EntryActive { get { return Live != null && Live.entry && Live.state != Stage.Done; } }
+
     // The planetfall in progress, if any (one at a time).
     public static Planetfall Live { get; private set; }
 
@@ -146,7 +157,7 @@ public class Planetfall : MonoBehaviour
     float clock, held, homeX;       // approach
     float radius;                   // approach: the disc's radius now
     float t;                        // descent: seconds since the commit
-    bool switched, bannered;
+    bool switched, bannered, entry;
     string banner;
     Transform ship;
     Vector3 shipFrom;
@@ -181,6 +192,7 @@ public class Planetfall : MonoBehaviour
     public const string ShaderPath = "Planetfall/PlanetfallLayer";
 
     public Stage State { get { return state; } }
+    public bool IsEntry { get { return entry; } }
     public PlanetfallDef Def { get { return def; } }
     public PlanetfallArt Art { get { return art; } }
     public float Seconds { get { return state == Stage.Approach ? clock : t; } }
@@ -216,6 +228,36 @@ public class Planetfall : MonoBehaviour
     // when its art is missing; the caller opens a portal instead.
     public static Planetfall Spawn(PlanetfallDef def)
     {
+        var p = Create(def, false);
+        if (p == null) return null;
+        p.Step(0f, true);
+        PortalPressure.SetWording(def.urgeBanner, def.chipPrefix);
+        WorldBanner.Show(def.openBanner);
+        return p;
+    }
+
+    // WorldEntry: a run beginning on this planet. The planet is placed on
+    // station above the ship and the ship commits on the spot; no pressure,
+    // no banner (the world's own banner comes after the clouds). Null (and
+    // nothing built) when the art is missing or the ship is gone.
+    public static Planetfall SpawnEntry(PlanetfallDef def, Transform shipTransform)
+    {
+        if (shipTransform == null) return null;
+        var p = Create(def, true);
+        if (p == null) return null;
+        p.homeX = 0f;
+        p.clock = ArriveSeconds;
+        p.Step(0f, true);
+        if (!p.Commit(shipTransform))
+        {
+            BossUtil.Kill(p.gameObject);
+            return null;
+        }
+        return p;
+    }
+
+    static Planetfall Create(PlanetfallDef def, bool asEntry)
+    {
         if (def == null) return null;
         var art = PlanetfallArt.Load(def);
         var shader = Resources.Load<Shader>(ShaderPath);
@@ -230,12 +272,10 @@ public class Planetfall : MonoBehaviour
         var p = go.AddComponent<Planetfall>();
         p.def = def;
         p.art = art;
+        p.entry = asEntry;
         p.homeX = side * Random.Range(HomeMinX, HomeMaxX);
         p.Build(shader);
         Live = p;
-        p.Step(0f, true);
-        PortalPressure.SetWording(def.urgeBanner, def.chipPrefix);
-        WorldBanner.Show(def.openBanner);
         return p;
     }
 
@@ -338,6 +378,7 @@ public class Planetfall : MonoBehaviour
         if (!force && dt <= 0f) return;
         if (state == Stage.Done) return;
         dt = Mathf.Min(Mathf.Max(0f, dt), MaxStep);
+        if (entry && state == Stage.Descent) dt *= EntryTimeScale;
         View();
         if (state == Stage.Approach) StepApproach(dt);
         else StepDescent(dt);
@@ -783,7 +824,7 @@ public class Planetfall : MonoBehaviour
         switched = true;
         var wm = WorldManager.Instance;
         if (wm == null) return;
-        try { banner = wm.Advance(false); }
+        try { banner = entry ? wm.ShowEntryWorld() : wm.Advance(false); }
         catch (System.Exception e) { Debug.LogException(e); }   // never strand the ship in the clouds
     }
 

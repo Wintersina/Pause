@@ -60,7 +60,7 @@ public class spawnGoodStuff : MonoBehaviour {
     void Update() {
         // nothing new arrives during a planetfall's descent (Planetfall) or
         // a lift-off and its interlude (Liftoff)
-        if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning) return;
+        if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning) return;
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             spawn();

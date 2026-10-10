@@ -8,6 +8,8 @@
 //   planetfall  the planet's approach (the same Portal stage) and the whole
 //               descent -- commit, entry shroud, cloud decks, the switch,
 //               the breakthrough -- until it hands the ship back (Finish)
+//   entry       a run's own start (WorldEntry): the portal arrival in Space,
+//               the planet's planetfall (above) on a planet
 //   lift-off    the beat, the rise and the calm interlude (all inside the
 //               Portal stage), then the gateway it opens (portal or
 //               planetfall, as above)
@@ -31,6 +33,7 @@ public static class WorldTransition
         {
             var fall = Planetfall.Live;
             if (fall != null && fall.State != Planetfall.Stage.Done) return true;
+            if (PortalArrival.Active) return true;
             var lift = Liftoff.Live;
             if (lift != null && lift.State != Liftoff.Stage.Done) return true;
             var wm = WorldManager.Instance;
