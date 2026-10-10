@@ -129,6 +129,7 @@ public static class AttackArt
         for (int i = 0; i < a.beam.Length; i++) a.beam[i] = Cell(world, "mineflame", i, 0, 128, 384) ?? proc.beam[i];
         for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = CellAt(world, "mineflame", i * 128, 384, 128, 128) ?? proc.pilot[i];
         a.sight = CellAt(world, "mineflame", 4 * 128, 384, 128, 128) ?? proc.sight;
+        a.sightB = CellAt(world, "mineflame", 5 * 128, 384, 128, 128);
         for (int i = 0; i < a.flash.Length; i++) a.flash[i] = CellAt(world, "mineflame", i * 128, 512, 128, 128) ?? proc.flash[i];
         a.spark[0] = CellAt(world, "mineflame", 4 * 128, 512, 128, 128) ?? proc.spark[0];
         a.spark[1] = CellAt(world, "mineflame", 5 * 128, 512, 128, 128) ?? proc.spark[1];
@@ -138,25 +139,42 @@ public static class AttackArt
         return a;
     }
 
-    // space_attack_laser (1024 x 384, 8 x 3 cells of 128), space_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)
-    // and space_attack_lasertell (512 x 128: sight a,b then lock a,b). Null when any of the three files is missing (BossBeam then draws
-    // the generic boss beam).
-    //   laser row 0: windup 1-8 (energy gathering at the pod); row 1: muzzle a-d (loop) then fade 1-4; row 2: impact 1-4 then spark a-d
-    public sealed class SpaceLaserArt
+    // <w>_attack_laser (1024 x 384, 8 x 3 cells of 128), <w>_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)
+    // and <w>_attack_lasertell (512 x 128: sight a,b then lock a,b) for the worlds whose boss fires a painted beam (Space pod lasers,
+    // Frost glare beams, Verdant acid cannons, Ember brow laser). Null when any of the three files is missing (BossBeam then draws
+    // the generic boss beam). Tide's kit stays staged (Attacks/Tide~): Tide's boss keeps the generic beam.
+    //   laser row 0: windup 1-8 (energy gathering at the emitter); row 1: muzzle a-d (loop) then fade 1-4; row 2: impact 1-4 then spark a-d
+    public sealed class LaserArt
     {
         public readonly Sprite[] windup = new Sprite[8], muzzle = new Sprite[4], fade = new Sprite[4], impact = new Sprite[4],
                                  spark = new Sprite[4], body = new Sprite[4], sight = new Sprite[2], lockOn = new Sprite[2];
+        public int bodyOpaquePx;    // the opaque columns of a 128 px wide beam frame: the part that stays inside the hit shape
+        public int impactBasePx;    // the impact burst's base, in px below its cell centre
     }
 
-    public const int SpaceLaserBodyOpaquePx = 72;   // the opaque columns of a 128 px wide beam frame (px 28..99): the part that stays in the hit shape
+    // per world (ShotSkins.WorldKeys order: space, frost, verdant, ember, tide), measured on the delivered sheets
+    // (union of the four body frames' columns with any alpha; the impact-1 cell's lowest pixel row less 66)
+    static readonly int[] LaserBodyOpaque = { 72, 94, 100, 100, 0 };
+    static readonly int[] LaserImpactBase = { 47, 45, 49, 53, 0 };
 
-    static SpaceLaserArt spaceLaser;
+    public static bool HasBossLaser(int world) => world >= 0 && world < LaserBodyOpaque.Length && LaserBodyOpaque[world] > 0;
 
-    public static SpaceLaserArt SpaceLaser(int world = 0)
+    // the world index of a boss's artKey ("Space", "Frost", ...); -1 if none
+    public static int WorldOfArtKey(string artKey)
     {
-        if (spaceLaser != null && spaceLaser.body[0] != null) return spaceLaser;
+        if (string.IsNullOrEmpty(artKey)) return -1;
+        return System.Array.IndexOf(ShotSkins.WorldKeys, artKey.ToLowerInvariant());
+    }
+
+    static readonly LaserArt[] lasers = new LaserArt[5];
+
+    public static LaserArt BossLaser(int world)
+    {
+        if (!HasBossLaser(world)) return null;
+        var c = lasers[world];
+        if (c != null && c.body[0] != null) return c;
         if (!Has(world, "laser") || !Has(world, "laserbody") || !Has(world, "lasertell")) return null;
-        var a = new SpaceLaserArt();
+        var a = new LaserArt { bodyOpaquePx = LaserBodyOpaque[world], impactBasePx = LaserImpactBase[world] };
         for (int i = 0; i < 8; i++) if ((a.windup[i] = Cell(world, "laser", i, 0)) == null) return null;
         for (int i = 0; i < 4; i++)
         {
@@ -173,8 +191,11 @@ public static class AttackArt
             a.lockOn[i] = Cell(world, "lasertell", 2 + i, 0);
             if (a.sight[i] == null || a.lockOn[i] == null) return null;
         }
-        return spaceLaser = a;
+        return lasers[world] = a;
     }
+
+    // the boss's own painted beam kit, or null (the generic beam)
+    public static LaserArt BossLaserFor(string artKey) => BossLaser(WorldOfArtKey(artKey));
 
     // ---- the cores' slots (plan phases 1c / 1d) --------------------------------------------------------
     // frost_attack_ring.png (8 x 128): bar x4, gapMarker a,b, glyph a,b
@@ -220,7 +241,7 @@ public static class AttackArt
     public static void Clear()
     {
         injected.Clear();
-        spaceLaser = null;
+        System.Array.Clear(lasers, 0, lasers.Length);
         cells.Clear();
         atlases.Clear();
     }
