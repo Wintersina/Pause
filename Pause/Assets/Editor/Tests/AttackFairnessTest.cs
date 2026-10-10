@@ -47,6 +47,7 @@ public static partial class AttackFairnessTest
                 HitMatchesDrawing();
                 ArtSlots();
                 BudgetRows();
+                VerdantEliteSuite();   // AttackFairnessTestVerdantElites.cs: the four new Verdant elites
                 JetWaveSuite();   // AttackFairnessTestJetWave.cs: phases 1a (AttackJet) and 1b (AttackWave)
             }
             finally

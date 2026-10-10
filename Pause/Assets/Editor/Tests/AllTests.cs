@@ -166,6 +166,7 @@ public static class AllTests
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
         ("FrostEliteTest", FrostEliteTest.Execute),
+        ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("SpaceStationTest", SpaceStationTest.Execute),
         ("SpacePlanetSheetTest", SpacePlanetSheetTest.Execute),
         ("SpawnSpaceTest", SpawnSpaceTest.Execute),

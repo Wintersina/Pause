@@ -76,7 +76,7 @@ public static class AchievementCatalog
         D("elite_50", "Elite Exterminator", "Destroy 50 elite ships.", 25, G, Elite, "EliteShip.Died", CElites, 50, steps: 50),
         D("elite_space_all", "Space Elites", "Down every Space elite.", 15, S, Elite, "EliteShip.Died (EliteCatalog world 0)", "elite_w0", 0, () => EliteCount(0), steps: 4),
         D("elite_frost_all", "Frost Elites", "Down every Frost elite.", 20, S, Elite, "EliteShip.Died (EliteCatalog world 1)", "elite_w1", 0, () => EliteCount(1), steps: 5),
-        D("elite_verdant_all", "Verdant Elites", "Down the Verdant elite.", 15, S, Elite, "EliteShip.Died (EliteCatalog world 2)", "elite_w2", 0, () => EliteCount(2)),
+        D("elite_verdant_all", "Verdant Elites", "Down every Verdant elite.", 15, S, Elite, "EliteShip.Died (EliteCatalog world 2)", "elite_w2", 0, () => EliteCount(2)),
         D("elite_ember_all", "Ember Elites", "Down every Ember elite.", 25, G, Elite, "EliteShip.Died (EliteCatalog world 3)", "elite_w3", 0, () => EliteCount(3), steps: 6),
         D("elite_blink", "Blink Strike", "Destroy an elite with a pause blink.", 10, S, Elite, "EliteShip.Died (cause Teleport)"),
         D("kills_100", "Gunner", "Destroy 100 enemies.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 100, steps: 100),

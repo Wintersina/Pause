@@ -113,6 +113,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack;
     public bool Telling => State == EliteState.Attack && attackPhase == 0;
     public bool Acting => State == EliteState.Attack && attackPhase == 1;
+    public float AttackClock => attackClock;
     public int CurrentFrame { get; private set; }
     public float Grace => grace;
     public SpriteRenderer Hull => hull;

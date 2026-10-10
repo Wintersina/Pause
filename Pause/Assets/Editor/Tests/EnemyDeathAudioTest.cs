@@ -64,6 +64,10 @@ public static class EnemyDeathAudioTest
         "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_alien",
         "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_coalrunner", "ember_elite_sunstoke",
     };
+    // Elites painted and wired whose death cues Codex has still to author (EnemyDeathAudio.PendingClips): silent until then.
+    static bool Pending(string key) => System.Array.IndexOf(EnemyDeathAudio.PendingClips, key) >= 0;
+    // Living elites that borrow a scream (the Timber Hauler is a machine and does not): their rows may pitch below 1.1 (a bigger body than the donor's).
+    static readonly string[] LivingElites = { "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade" };
     static string[] allKeys;
     public static string[] AllKeys
     {
@@ -151,7 +155,15 @@ public static class EnemyDeathAudioTest
             enemies++;
             if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key);
         }
-        foreach (var e in EliteCatalog.All) { elites++; if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key); }
+        int pendingElites = 0;
+        foreach (var e in EliteCatalog.All)
+        {
+            if (Pending(e.key)) { pendingElites++; continue; }   // (death cues still to be authored: silent, see below)
+            elites++;
+            if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
+        }
+        Check("the four new Verdant elites are listed as awaiting authored death cues and play silently, no error (" + pendingElites + ")",
+              pendingElites == 4 && EnemyDeathAudio.Variants("verdant_elite_timber_hauler") == 0 && !EnemyDeathAudio.PlayElite("verdant_elite_timber_hauler"));
         Check("every roster enemy (" + enemies + ") and elite (" + elites + ") of every live-art world has authored clips" +
               (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 16);
         Check("Tide's 12 roster keys are in the roster; their death sounds are still a TODO (" + tideSilent + " without clips) and playing one is silent, not an error",
@@ -167,6 +179,7 @@ public static class EnemyDeathAudioTest
         // the key the game passes for each roster body (EnemyIdentity.Set -> def.key) and for each elite (def.key)
         foreach (var e in EliteCatalog.All)
         {
+            if (Pending(e.key)) continue;
             EnemyDeathAudio.ResetVoices();
             clock += 2.0;
             Check("elite " + e.key + " PlayElite plays an authored clip", EnemyDeathAudio.PlayElite(e.key) && EnemyDeathAudio.LastKey == e.key);
@@ -198,7 +211,7 @@ public static class EnemyDeathAudioTest
         Check("all 35 Frost+Verdant+Ember roster enemies covered (" + rosterChecked + ")", rosterChecked == 35);
         int elites = 0;
         foreach (var e in EliteCatalog.All)
-            if (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_") || e.key.StartsWith("frost_"))
+            if (!Pending(e.key) && (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_") || e.key.StartsWith("frost_")))
             {
                 elites++;
                 EnemyDeathAudio.ResetVoices();
@@ -295,11 +308,20 @@ public static class EnemyDeathAudioTest
             Check("borrow " + key + ": not from itself", key != donor);
             Check("borrow " + key + ": donor is not itself a borrower", !EnemyDeathAudio.ScreamBorrow.ContainsKey(donor));
             Check("borrow " + key + ": has no screams of its own (deleted)", EnemyDeathAudio.ScreamVariants(key) == 0);
-            Check("borrow " + key + ": has a death cue", EnemyDeathAudio.Variants(key) > 0);
-            Check("borrow " + key + ": pitched up 1.1-1.6 (" + kv.Value.pitch + ")", kv.Value.pitch >= 1.1f && kv.Value.pitch <= 1.6f);
+            // (a living elite of Verdant is the one other kind of borrower, and is pitched down or at the donor's pitch; its death cue is still to be authored)
+            bool livingElite = System.Array.IndexOf(LivingElites, key) >= 0;
+            bool pending = Pending(key);
+            Check("borrow " + key + ": has a death cue" + (pending ? " (still to be authored)" : ""), pending || EnemyDeathAudio.Variants(key) > 0);
+            float lo = livingElite ? .85f : 1.1f;
+            Check("borrow " + key + ": pitched " + lo + "-1.6 (" + kv.Value.pitch + ")", kv.Value.pitch >= lo && kv.Value.pitch <= 1.6f);
             bool nonLiving = key.EndsWith("_mine") || key.EndsWith("_big") || key.Contains("_rock_") || key.StartsWith("frost_fighter_") || key == "frost_chaser" ||
-                             key.Contains("_elite_") || key.Contains("_pod") || key.Contains("drone");
-            Check("borrow " + key + ": a living voice (no rock, mine, drone, machine or elite)", !nonLiving);
+                             (key.Contains("_elite_") && !livingElite) || key.Contains("_pod") || key.Contains("drone");
+            Check("borrow " + key + ": a living voice (no rock, mine, drone, machine or elite but a living one)", !nonLiving);
+            if (livingElite)
+            {
+                Check("borrow " + key + " is a Verdant elite def", EliteCatalog.Find(key) != null && EliteCatalog.Find(key).world == "verdant");
+                continue;   // (nothing to play yet: the scream layers on a death cue)
+            }
             var def = EnemyRoster.Find(key);
             Check("borrow " + key + " is a roster enemy", def != null && def.role != EnemyRole.Rock && def.role != EnemyRole.Mine && def.role != EnemyRole.Big);
             EnemyDeathAudio.ResetVoices();
@@ -309,6 +331,7 @@ public static class EnemyDeathAudioTest
             Check("borrow " + key + " plays a " + donor + " scream", EnemyDeathAudio.LastScream != null && EnemyDeathAudio.LastScream.name.StartsWith(donor + "_scream_"));
             EnemyDeathAudio.ScreamChance = .65f;
         }
+        Check("the Timber Hauler (a machine) borrows no scream", !EnemyDeathAudio.ScreamBorrow.ContainsKey("verdant_elite_timber_hauler"));
     }
 
     static void NoRepeats()

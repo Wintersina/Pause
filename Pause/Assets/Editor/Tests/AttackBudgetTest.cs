@@ -144,6 +144,11 @@ public static class AttackBudgetTest
         { "themed:tide_pressure_jet", "roster:frost_fighter_2" },   // a pressure jet (water column) in place of the lance bolt
         { "themed:tide_surf_wave", "roster:ember_fighter_4" },      // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap; volleys 3 -> 2
         { "themed:space_scan_line", "roster:space_fighter_3" },     // Void Archon's scan line (a thin neon wave): a NEW boss attack, held to Twin Claw's (the middle Space fighter) rate
+        // the four new Verdant elites: each themed attack held to the pinned Verdant elite baseline (the Resin Warden's seed-pod mortar, 1.0 %: limit 3.2 %)
+        { "elite:verdant_elite_timber_hauler", "elite:verdant_elite_resin_warden" },   // log_roll: two trunks lobbed onto ringed spots, each rolls on a drawn lane
+        { "elite:verdant_elite_thornlash", "elite:verdant_elite_resin_warden" },       // vine_lash: a whip sweep, its swept area drawn from the first frame of the tell
+        { "elite:verdant_elite_sporebloom", "elite:verdant_elite_resin_warden" },      // spore_burst: pods that burst into rings of six spores, the rings drawn first
+        { "elite:verdant_elite_leafblade", "elite:verdant_elite_resin_warden" },       // leaf_dive: a drawn dive lane, then a crescent along a drawn row
         // plan phase 1g: the NEW attacks of the bosses' themed tables (BossThemed), fought through BossEncounter with BossDef.themedAttacks on.
         // Each is held to the attack of its boss that joins the rotation in the same phase (same slot in the fight).
         { "themed:boss_frost_icicle_drop", "boss:Frost:glare beams" },

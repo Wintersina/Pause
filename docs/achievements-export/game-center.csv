@@ -20,7 +20,7 @@ Pause elite_10,me.hapticgate.pause.ach_elite_10,10,No,No,Veteran Hunter,Destroy 
 Pause elite_50,me.hapticgate.pause.ach_elite_50,25,No,No,Elite Exterminator,Destroy 50 elite ships.,Destroy 50 elite ships.,elite_50_1024.png
 Pause elite_space_all,me.hapticgate.pause.ach_elite_space_all,15,No,No,Space Elites,Down every Space elite.,Down every Space elite.,elite_space_all_1024.png
 Pause elite_frost_all,me.hapticgate.pause.ach_elite_frost_all,20,No,No,Frost Elites,Down every Frost elite.,Down every Frost elite.,elite_frost_all_1024.png
-Pause elite_verdant_all,me.hapticgate.pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down the Verdant elite.,Down the Verdant elite.,elite_verdant_all_1024.png
+Pause elite_verdant_all,me.hapticgate.pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down every Verdant elite.,Down every Verdant elite.,elite_verdant_all_1024.png
 Pause elite_ember_all,me.hapticgate.pause.ach_elite_ember_all,25,No,No,Ember Elites,Down every Ember elite.,Down every Ember elite.,elite_ember_all_1024.png
 Pause elite_blink,me.hapticgate.pause.ach_elite_blink,10,No,No,Blink Strike,Destroy an elite with a pause blink.,Destroy an elite with a pause blink.,elite_blink_1024.png
 Pause kills_100,me.hapticgate.pause.ach_kills_100,5,No,No,Gunner,Destroy 100 enemies.,Destroy 100 enemies.,kills_100_1024.png
