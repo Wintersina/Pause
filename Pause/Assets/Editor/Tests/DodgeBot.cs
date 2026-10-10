@@ -58,6 +58,7 @@ public static class DodgeBot
         public bool hasV;              // the scenario supplies va / vb (a telegraphed beam's known sweep)
         public Vector2 vbExtra;        // (hasV) extra velocity of the far end b only, from moveFrom on (a beam's swing once it is live)
         public float moveFrom;         // seconds from the snapshot at which vbExtra starts
+        public bool planOnly;          // the bot knows it (the preview draws it: a sweep's whole sector) but it is not where the hazard is: never scored as a hit
 
         public static Hz Circle(int id, Vector2 c, float r, float liveIn = 0f, float liveFor = float.PositiveInfinity)
         { return new Hz { id = id, a = c, b = c, r = r, liveIn = liveIn, liveFor = liveFor }; }
@@ -161,7 +162,7 @@ public static class DodgeBot
                 for (int i = 0; i < now.Count && !(hit && ghostHit); i++)
                 {
                     var h = now[i];
-                    if (!h.HarmfulNow) continue;
+                    if (!h.HarmfulNow || h.planOnly) continue;
                     float reach = h.r + ShipRadius;
                     if (!hit && Touches(h, pos, reach)) hit = true;
                     if (!ghostHit && Touches(h, ghost, reach)) ghostHit = true;

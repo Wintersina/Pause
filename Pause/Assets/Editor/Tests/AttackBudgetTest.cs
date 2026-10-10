@@ -127,6 +127,12 @@ public static class AttackBudgetTest
         { "themed:frost_cold_blast", "roster:frost_big" },          // Glacier Golem: the 3-shard fan -> the cold blast ring (volleys 3 -> 2)
         { "themed:ember_eruption", "roster:ember_fighter_3" },      // Brand: the aimed bolt -> an eruption of three columns
         { "themed:frost_icicle_drop", "roster:frost_fighter_2" },   // Icicle: the lance bolt -> an icicle drop on three lanes
+        // plan phases 1a / 1b: the jet and the wave on TEST-ONLY fixtures too
+        { "themed:ember_flame_jet", "roster:ember_fighter_3" },     // Brand: the aimed bolt -> a flamethrower cone (swept 10 deg); cooldown 1.8 -> 2.6, volleys 3 -> 2
+        { "themed:frost_ray", "roster:frost_fighter_3" },           // Frost Kite: the splayed shard pair -> a thin frost ray
+        { "themed:tide_pressure_jet", "roster:frost_fighter_2" },   // a pressure jet (water column) in place of the lance bolt
+        { "themed:tide_surf_wave", "roster:ember_fighter_4" },      // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap; volleys 3 -> 2
+        { "themed:space_scan_line", "roster:space_fighter_3" },     // Void Archon's scan line (a thin neon wave): a NEW boss attack, held to Twin Claw's (the middle Space fighter) rate
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)
@@ -273,6 +279,36 @@ public static class AttackBudgetTest
     // ---- the sweep: measure everything, print the table ---------------------------------
 
     // -executeMethod AttackBudgetTest.Sweep [-rolls N] [-only substring]
+    // -executeMethod AttackBudgetTest.SweepThemed [-rolls N] [-only substring] [-trace]: the same for the themed fixtures (they are not
+    // attacks of the game, so Sweep does not list them): hit rate, standing-still rate and the budget verdict against the pinned attack.
+    public static void SweepThemed()
+    {
+        fails = 0;
+        int rolls = Rolls;
+        string only = null;
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == "-rolls") int.TryParse(args[i + 1], out rolls);
+            if (args[i] == "-only") only = args[i + 1];
+        }
+        for (int i = 0; i < args.Length; i++) if (args[i] == "-trace") DodgeBot.Trace = true;
+        try
+        {
+            foreach (var kv in Themed)
+            {
+                if (only != null && !kv.Key.Contains(only)) continue;
+                var r = Measure(kv.Key, rolls);
+                string why;
+                bool ok = WithinBudget(kv.Key, r, out why);
+                Debug.Log("[ATKBUD] THEMED " + (ok ? "ok   " : "OVER ") + kv.Key + ": bot " + r.HitRate.ToString("P1") + " (" + r.hits + "/" + r.attacked + "), standing still " + r.GhostRate.ToString("P1") +
+                          ", shown in " + r.attacked + "/" + r.rolls + "; " + AttackBudgetScenarios.Shape(kv.Key) + " -- " + why);
+            }
+        }
+        finally { AttackBudgetScenarios.Cleanup(); }
+        TestHarness.Exit(0);
+    }
+
     public static void Sweep()
     {
         fails = 0;

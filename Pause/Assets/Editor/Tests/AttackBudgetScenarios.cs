@@ -45,7 +45,11 @@ public static class AttackBudgetScenarios
     // pinned attack it must stay within 1.15x (+2 points) of.
     public static class ThemedFixtures
     {
-        public static readonly string[] Ids = { "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop" };
+        public static readonly string[] Ids =
+        {
+            "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop",
+            "themed:ember_flame_jet", "themed:frost_ray", "themed:tide_pressure_jet", "themed:tide_surf_wave", "themed:space_scan_line",
+        };
 
         public static string BaseKey(string id)
         {
@@ -54,6 +58,11 @@ public static class AttackBudgetScenarios
                 case "themed:frost_cold_blast": return "frost_big";
                 case "themed:ember_eruption": return "ember_fighter_3";
                 case "themed:frost_icicle_drop": return "frost_fighter_2";
+                case "themed:ember_flame_jet": return "ember_fighter_3";
+                case "themed:frost_ray": return "frost_fighter_3";
+                case "themed:tide_pressure_jet": return "frost_fighter_2";
+                case "themed:tide_surf_wave": return "ember_fighter_4";
+                case "themed:space_scan_line": return "space_fighter_3";
                 default: return null;
             }
         }
@@ -80,9 +89,29 @@ public static class AttackBudgetScenarios
                 case "themed:frost_icicle_drop":  // Icicle: the lance bolt becomes an icicle drop on three lanes
                     return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Strike(StrikeSpec.Standard(1), 3).Timing(.8f, 2.4f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 2.4f, 5.5f, PilotExit.Peel).Volleys(2);
+                // ---- phases 1a / 1b: the jet and the wave. A jet reaches its locked target, so the fixtures hold their shooters
+                // lower on the screen (station 4.8 u below the top of the view = 3.6-4.6 u above the bot's ship) than the table's, as the Golem's wide ring did.
+                case "themed:ember_flame_jet":    // Brand: the aimed bolt becomes a flamethrower cone swept 10 deg (design: cooldown 1.8 -> 2.6, volleys 3 -> 2)
+                    return new EnemyBehaviour { key = "ember_fighter_3" }.Drift(.75f, 1.5f).Jet(JetSpec.Flame(3)).Timing(.8f, 2.6f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 4.8f, 7f, PilotExit.Run).Volleys(2);
+                case "themed:frost_ray":          // Kite: the splayed shard pair becomes a thin frost ray
+                    return new EnemyBehaviour { key = "frost_fighter_3" }.Orbit(.5f, 1.5f).Jet(JetSpec.Ray(1)).Timing(.8f, 2.6f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 4.8f, 7f, PilotExit.Run).Volleys(2);
+                case "themed:tide_pressure_jet":  // Icicle's body: the lance bolt becomes a pressure jet (a straight column of water)
+                    return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Jet(JetSpec.Pressure(4)).Timing(.8f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 4.8f, 5.5f, PilotExit.Peel).Volleys(2);
+                case "themed:tide_surf_wave":     // Pyre's body (Hammerhead's stand-in): the ring of eight becomes a surf wave with a 1.6 u gap turned 1 u off the pilot; volleys 3 -> 2
+                    return new EnemyBehaviour { key = "ember_fighter_4" }.Track(.5f, .4f).Brake(1.8f, .65f).Wave(SurfWithOffset()).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(2);
+                case "themed:space_scan_line":    // Twin Claw's body: the Archon's scan line (a thin neon wave, 3 u/s) -- a NEW boss attack with no roster predecessor, held to the Space fighters' middle tier
+                    return new EnemyBehaviour { key = "space_fighter_3" }.Sway(.7f, 2.6f).Wave(ScanWithOffset()).Timing(1.0f, 3.0f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(2);
                 default: return null;
             }
         }
+
+        static WaveSpec SurfWithOffset() { var s = WaveSpec.Surf(4); s.gapOffset = 1f; return s; }   // (a gap on the pilot would make standing still safe)
+        static WaveSpec ScanWithOffset() { var s = WaveSpec.Scan(0); s.gapOffset = 1f; return s; }
     }
 
     // The shape of a roster attack as the table says it (volleys, cooldown, count): pinned beside the hit rate.
@@ -194,9 +223,62 @@ public static class AttackBudgetScenarios
         {
             var hz = all[h];
             if (hz == null || !hz.Active || hz.State == AttackHazard.Phase.After) continue;
-            int baseId = 1000 + h * 40;
+            int baseId = 1000 + h * 48;
             var blast = hz as AttackBlast;
             var strike = hz as AttackStrike;
+            var jet = hz as AttackJet;
+            var wave = hz as AttackWave;
+            if (jet != null)
+            {
+                // a cone / column as eight capsules along its axis, each as wide as the jet is at its middle. That is where the jet IS (the current
+                // direction). The preview shows the whole swept area (start footprint, end footprint, the arc), so the bot also KNOWS the sector from
+                // the first frame of the tell (copies at the start, the middle and the end of the sweep, flagged planOnly: avoided, never scored):
+                // a human steers clear of the swept sector, not of where the tip is now.
+                bool tellJ = jet.State == AttackHazard.Phase.Tell;
+                float jIn = tellJ ? jet.TellLeft : 0f;
+                float jFor = tellJ ? jet.LiveSeconds : Mathf.Max(0f, jet.LiveSeconds - jet.Age);
+                float dirNow = tellJ ? jet.StartRad : jet.Direction, dirEnd = jet.StartRad + jet.SweepRadians;
+                bool sweeps = Mathf.Abs(jet.SweepRadians) > .02f;
+                int copies = sweeps ? 4 : 1;   // 0 = where it is; 1..3 = the sector (start, middle, end)
+                for (int c = 0; c < copies; c++)
+                {
+                    float dir = c == 0 ? dirNow : Mathf.Lerp(jet.StartRad, dirEnd, (c - 1) / 2f);
+                    Vector2 u = AttackJet.Dir(dir);
+                    for (int k = 0; k < 8; k++)
+                    {
+                        float s0 = jet.Length * k / 8f, s1 = jet.Length * (k + 1) / 8f;
+                        float half = Mathf.Lerp(jet.BaseHalf, jet.TipHalf, (k + .5f) / 8f);
+                        var hz1 = Hz.Segment(baseId + c * 8 + k, jet.Origin + u * s0, jet.Origin + u * s1, half, jIn, jFor);
+                        hz1.hasV = true; hz1.va = hz1.vb = new Vector2(0f, -EliteSystem.Scroll * jet.Spec.ride);   // (it is where the outline is drawn: the bot extrapolates nothing)
+                        hz1.planOnly = c > 0;
+                        into.Add(hz1);
+                    }
+                }
+                continue;
+            }
+            if (wave != null)
+            {
+                // two bars either side of the gap, falling at the world speed (known from the tell: back-projected to now)
+                bool tellW = wave.State == AttackHazard.Phase.Tell;
+                float v = wave.FallSpeed + EliteSystem.Scroll * wave.Spec.ride;
+                float jIn = tellW ? wave.TellLeft : 0f;
+                float y0 = tellW ? wave.StartHeight + v * jIn : wave.Y;
+                float jFor = Mathf.Max(0f, (tellW ? wave.StartHeight : wave.Y) - wave.EndHeight) / v;
+                AttackWave.Extents(wave.GapX, wave.GapWidth, wave.HalfWidth, out float leftTo, out float rightFrom);
+                if (wave.HasLeft)
+                {
+                    var l = Hz.Segment(baseId, new Vector2(-wave.HalfWidth, y0), new Vector2(leftTo, y0), wave.HitHalf, jIn, jFor);
+                    l.hasV = true; l.va = l.vb = new Vector2(0f, -v);
+                    into.Add(l);
+                }
+                if (wave.HasRight)
+                {
+                    var rb = Hz.Segment(baseId + 1, new Vector2(rightFrom, y0), new Vector2(wave.HalfWidth, y0), wave.HitHalf, jIn, jFor);
+                    rb.hasV = true; rb.va = rb.vb = new Vector2(0f, -v);
+                    into.Add(rb);
+                }
+                continue;
+            }
             if (strike != null)
             {
                 AttackStrike.Column(strike.Spec, strike.LaneX, strike.ImpactY, out Vector2 foot, out Vector2 top);

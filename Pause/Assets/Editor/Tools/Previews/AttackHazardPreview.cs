@@ -6,14 +6,18 @@ using UnityEngine;
 // Frames for review of the themed area hazards (plan phases 1c AttackBlast, 1d AttackStrike): the
 // cold-blast ring and the strike patterns over a Frost and an Ember backdrop, each at its tell (dotted
 // footprint, glyphs, crack edges), live and burst, plus the bold keyline on a bright backdrop.
+// Phases 1a / 1b (AttackJet, AttackWave): the world's jet (Ember's flame cone, Tide's pressure jet, Frost's ray, Space's lance)
+// and the surf wave / scan line over each world's backdrop (Tide's is Backdrop3, the dark water), at the tell (outline, flare, gap
+// chevrons), live and fading, plus a bold pair over a bright day.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod AttackHazardPreview.Run
+//   ... -executeMethod AttackHazardPreview.RunJetWave   (only the jet and the wave frames)
 //   (writes to $ATTACKHAZ_PREVIEW_DIR, else Builds/AttackHazardPreview; PNGs at 540 x 1080, named <world>-<what>.png)
 public static class AttackHazardPreview
 {
     const int Width = 540, Height = 1080;
     const float Dt = 1f / 60f;
-    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember" };
+    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide" };
 
     public static void Run()
     {
@@ -26,6 +30,30 @@ public static class AttackHazardPreview
             {
                 foreach (int w in new[] { 1, 3 }) Show(dir, w);
                 Bold(dir);
+                foreach (int w in new[] { 0, 1, 3, 4 }) JetWave(dir, w);
+                BoldJetWave(dir);
+            }
+            finally
+            {
+                AttackTestKit.Cleanup();
+                ShotOutline.Bold = null;
+            }
+        }
+        EditorApplication.Exit(0);
+    }
+
+    // Only the phase 1a / 1b frames.
+    public static void RunJetWave()
+    {
+        string dir = System.Environment.GetEnvironmentVariable("ATKHAZ_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "Builds/AttackHazardPreview";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            try
+            {
+                foreach (int w in new[] { 0, 1, 3, 4 }) JetWave(dir, w);
+                BoldJetWave(dir);
             }
             finally
             {
@@ -149,6 +177,67 @@ public static class AttackHazardPreview
         for (int i = 0; i < n; i++) AttackStrike.Arm(StrikeSpec.Standard(2), lanes[i] + 1.1f, pilot.y + 3f, 1f, null).Ignite();
         Tick(.06f);
         Shoot(dir, "verdant-bold-ring-and-column");
+        EliteSystem.Clear();
+    }
+
+    // ---- phases 1a / 1b: the world's jet and wave -------------------------------------------------------------------
+
+    static void JetWave(string dir, int world)
+    {
+        string name = Worlds[world].ToLower();
+        Scene(world);
+        Vector2 pilot = new Vector2(.7f, -2.6f), nozzle = new Vector2(-.3f, 2.3f);
+        Pilot(pilot);
+        var spec = JetSpec.Standard(world);
+        if (spec.style == JetStyle.Flame) spec.sweepDeg = 14f;   // (a little more than the roster's 10 so the sweep reads on a still frame)
+        var jet = AttackJet.Arm(spec, nozzle, pilot, 1.1f, null);
+        Tick(.3f); Shoot(dir, name + "-jet-1-tell-early");
+        Tick(.6f); Shoot(dir, name + "-jet-2-tell-late");
+        jet.Ignite();
+        Tick(.08f); Shoot(dir, name + "-jet-3-live-start");
+        Tick(Mathf.Max(.1f, jet.LiveSeconds * .6f)); Shoot(dir, name + "-jet-4-live-late");
+        AdvanceThrough(jet);
+        Tick(.05f); Shoot(dir, name + "-jet-5-fading");
+        EliteSystem.Clear();
+
+        // the wave: a gap turned off the pilot, seen in the tell and falling
+        var ws = WaveSpec.Standard(world);
+        ws.gapOffset = 1f;
+        Vector2 muzzle = new Vector2(0f, 3.2f);
+        var wave = AttackWave.Arm(ws, muzzle, pilot, 1.1f, null);
+        Tick(.5f); Shoot(dir, name + "-wave-1-tell");
+        Tick(.55f);
+        wave.Ignite();
+        Tick(.25f);
+        Shoot(dir, name + "-wave-2-live-high");
+        while (wave.State == AttackHazard.Phase.Live && wave.Y > pilot.y + 2f) Tick(Dt);
+        Shoot(dir, name + "-wave-3-live-near");
+        while (wave.State == AttackHazard.Phase.Live && wave.Y > pilot.y - .3f) Tick(Dt);
+        Shoot(dir, name + "-wave-4-live-past");
+        EliteSystem.Clear();
+    }
+
+    static void AdvanceThrough(AttackJet jet)
+    {
+        int n = 0;
+        while (jet.State == AttackHazard.Phase.Live && n++ < 300) Tick(Dt);
+    }
+
+    // A bright backdrop (Verdant's day) forces the bold keyline: a flame and a surf wave over it.
+    static void BoldJetWave(string dir)
+    {
+        Scene(2);
+        ShotOutline.Bold = true;
+        Vector2 pilot = new Vector2(-.6f, -2.6f);
+        Pilot(pilot);
+        var jet = AttackJet.Arm(JetSpec.Flame(2), new Vector2(1.1f, 2.3f), pilot, 1f, null);
+        jet.Ignite();
+        var ws = WaveSpec.Surf(2);
+        ws.gapOffset = 1f;
+        var wave = AttackWave.Arm(ws, new Vector2(0f, 1.6f), pilot, 1f, null);
+        wave.Ignite();
+        Tick(.25f);
+        Shoot(dir, "verdant-bold-jet-and-wave");
         EliteSystem.Clear();
     }
 }

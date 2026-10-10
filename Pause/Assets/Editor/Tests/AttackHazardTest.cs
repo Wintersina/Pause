@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using static AttackTestKit;
 
-// The themed area hazards' cores (plan phases 1c AttackBlast + 1d AttackStrike; docs/world-attacks-design.md 0.2):
+// The themed area hazards' cores (plan phases 1c AttackBlast + 1d AttackStrike; the jet and the wave are in AttackHazardTestJetWave.cs; docs/world-attacks-design.md 0.2):
 //
 //   * geometry: the ring is an annulus of bars with a crack (aimed at the pilot), grows at its speed, never past
 //     the speed cap; the strike is a .36 wide column from just under the impact up; both against sample points
@@ -15,7 +15,7 @@ using static AttackTestKit;
 //   * friendly fire (once a pulse, never the shooter), burning of crossing shots (IHostileZone), pause
 //     (Step only, no Update / Time.deltaTime), pooling (fixed mass, nothing allocated per cycle), cleanup
 //     (EliteSystem.Clear, Planetfall.ClearBoard, a death) and registration with HostileShots
-public static class AttackHazardTest
+public static partial class AttackHazardTest
 {
     static int fails;
     static void Check(string what, bool ok)
@@ -45,6 +45,7 @@ public static class AttackHazardTest
                 PoolsAndAllocation();
                 Cleanup_();
                 BehaviourKinds();
+                JetWaveSuite();   // AttackHazardTestJetWave.cs: phases 1a (AttackJet) and 1b (AttackWave)
             }
             finally { AttackTestKit.Cleanup(); AttackHazard.HurtsOtherEnemies = true; }
         }
