@@ -28,7 +28,7 @@ ADB_DEVICE = $(ADB) $(if $(ANDROID_SERIAL),-s $(ANDROID_SERIAL))
 UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 
 .PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
-	android-build android-deploy android-run android-dev-build android-dev-deploy android-log \
+	android-build android-release android-deploy android-run android-dev-build android-dev-deploy android-log \
 	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices
 
 help:
@@ -39,6 +39,7 @@ help:
 	@echo "  make mac-dev-run          Build and launch the developer Mac app"
 	@echo "  make android-deploy       Build, install, and launch on an Android device"
 	@echo "  make android-dev-deploy   Same, with the PAUSE_DEV developer build"
+	@echo "  make android-release      Signed Play AAB + APK in Builds/Android/Release (needs PAUSE_KEYSTORE_PASS, PAUSE_KEYALIAS_PASS)"
 	@echo "  make android-log          Stream Unity logs from the Android device"
 	@echo "  make ios-deploy           Build, install, and launch on a connected iPhone"
 	@echo "  make ios-dev-deploy       Same, with the PAUSE_DEV developer build"
@@ -76,6 +77,9 @@ android-deploy: android-build
 android-run:
 	$(ADB_DEVICE) wait-for-device
 	$(ADB_DEVICE) shell monkey -p "$(ANDROID_PACKAGE)" 1
+
+android-release:
+	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroidRelease
 
 android-dev-build:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroidDev

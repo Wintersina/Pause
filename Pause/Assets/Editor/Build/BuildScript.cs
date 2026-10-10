@@ -80,6 +80,57 @@ public static class BuildScript
         Run(BuildTarget.Android, Path.Combine(OutputRoot, "Android/Pause-dev.apk"), DevDefine);
     }
 
+
+    // Play Store release: a signed AAB (upload) and a signed APK (sideload
+    // test) in Builds/Android/Release/. No PAUSE_DEV, no development flag.
+    //
+    //   PAUSE_KEYSTORE_PASS=... PAUSE_KEYALIAS_PASS=... make android-release
+    //   (PAUSE_KEYSTORE_PATH overrides the keystore file; default is
+    //    Pause/PauseKey.keystore, alias pausealias.)
+    //
+    // Without the passwords it still builds, signed with the debug key, into
+    // Pause-DEBUGSIGNED.* so the manifest and sizes can be audited; those
+    // files must never be uploaded.
+    public static void BuildAndroidRelease()
+    {
+        string dir = Path.Combine(OutputRoot, "Android/Release");
+        Directory.CreateDirectory(dir);
+        bool signed = ConfigureReleaseSigning();
+        string stem = signed ? "Pause" : "Pause-DEBUGSIGNED";
+        bool bundleWas = EditorUserBuildSettings.buildAppBundle;
+        try
+        {
+            EditorUserBuildSettings.buildAppBundle = true;
+            if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".aab"))) { EditorApplication.Exit(1); return; }
+            EditorUserBuildSettings.buildAppBundle = false;
+            if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".apk"))) { EditorApplication.Exit(1); return; }
+        }
+        finally { EditorUserBuildSettings.buildAppBundle = bundleWas; }
+        EditorApplication.Exit(0);
+    }
+
+    static bool ConfigureReleaseSigning()
+    {
+        string storePass = Environment.GetEnvironmentVariable("PAUSE_KEYSTORE_PASS");
+        string aliasPass = Environment.GetEnvironmentVariable("PAUSE_KEYALIAS_PASS");
+        string path = Environment.GetEnvironmentVariable("PAUSE_KEYSTORE_PATH");
+        if (string.IsNullOrEmpty(path))
+            path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "PauseKey.keystore");
+        if (!string.IsNullOrEmpty(storePass) && !string.IsNullOrEmpty(aliasPass) && File.Exists(path))
+        {
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = path;
+            PlayerSettings.Android.keyaliasName = "pausealias";
+            PlayerSettings.Android.keystorePass = storePass;
+            PlayerSettings.Android.keyaliasPass = aliasPass;
+            Debug.Log("[BUILD] release signing with " + path);
+            return true;
+        }
+        PlayerSettings.Android.useCustomKeystore = false;
+        Debug.LogWarning("[BUILD] keystore passwords/file missing; DEBUG-signed audit build (never upload)");
+        return false;
+    }
+
     public static void BuildMacDev()
     {
         Run(BuildTarget.StandaloneOSX, Path.Combine(OutputRoot, "Mac/Pause-dev.app"), DevDefine);
@@ -99,6 +150,11 @@ public static class BuildScript
     }
 
     static void Run(BuildTarget target, string outputPath, params string[] extraDefines)
+    {
+        EditorApplication.Exit(Build(target, outputPath, extraDefines) ? 0 : 1);
+    }
+
+    static bool Build(BuildTarget target, string outputPath, params string[] extraDefines)
     {
         var scenes = Scenes;
         if (scenes.Length == 0)
@@ -133,9 +189,9 @@ public static class BuildScript
                     if (msg.type == LogType.Error || msg.type == LogType.Exception)
                         Debug.LogError("[BUILD] " + step.name + ": " + msg.content);
 
-            EditorApplication.Exit(1);
+            return false;
         }
 
-        EditorApplication.Exit(0);
+        return true;
     }
 }

@@ -24,7 +24,9 @@ public static class DeveloperUnlocks
     // mode on unless that choice was made in this very build.
     public const string ChoiceBuildKey = "developerModeChoiceBuild";
 
-    public static bool Enabled { get { return PlayerPrefs.GetInt(EnabledKey, 0) == 1; } }
+    // Release builds can never be in developer mode, even if the pref was left
+    // behind (a PAUSE_DEV build installed over the release, a restored backup).
+    public static bool Enabled { get { return Available && PlayerPrefs.GetInt(EnabledKey, 0) == 1; } }
 
     // Whether this binary offers the developer switch at all. Release builds
     // never show it, so players can't unlock everything from Options.
