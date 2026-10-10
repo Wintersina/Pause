@@ -26,7 +26,8 @@ public static class RailTransparencyTest
     public const int W = 1170, H = 2532, HaloPx = 16;
     public const float LeakMax = .0002f, HaloMax = .01f, HaloSlack = .004f;
 
-    struct Result { public float transparentShare, leak, halo; }
+    struct Result { public float transparentShare, leak, halo, widthMedian, widthMax; }
+    public const float WidthTolPx = 1f;
 
     public static int Execute()
     {
@@ -53,6 +54,11 @@ public static class RailTransparencyTest
             Check(kv.Key + ": no dark halo around the rail (drop " + kv.Value.halo.ToString("F4") + " <= " + HaloMax + ", Space " + res["Space"].halo.ToString("F4") + " + " + HaloSlack + ")",
                   kv.Value.halo <= HaloMax && kv.Value.halo <= res["Space"].halo + HaloSlack);
         }
+        foreach (var kv in res)
+            Debug.Log("[RAILTRANSP] width " + kv.Key + ": median " + kv.Value.widthMedian.ToString("F1") + " px, max " + kv.Value.widthMax.ToString("F1") + " px (visible art, 1170 wide screen, one rail)");
+        float wmin = float.MaxValue, wmaxv = 0;
+        foreach (var kv in res) { wmin = Mathf.Min(wmin, kv.Value.widthMedian); wmaxv = Mathf.Max(wmaxv, kv.Value.widthMedian); }
+        Check("all worlds' rail opaque width (median per row) within " + WidthTolPx + " px of each other (" + wmin + ".." + wmaxv + ")", wmaxv - wmin <= WidthTolPx);
         Debug.Log("[RAILTRANSP] failures: " + fails);
         return fails;
     }
@@ -143,12 +149,43 @@ public static class RailTransparencyTest
                 else if (x > W * .35f && x < W * .65f) { farSum += drop; farN++; }
             }
         }
+        WallWidthPx(theme, walls[0], cam, out float wMed, out float wMx);
         return new Result
         {
+            widthMedian = wMed, widthMax = wMx,
             transparentShare = foot > 0 ? footTrans / (float)foot : 0f,
             leak = leak / (float)n,
             halo = (float)(nearSum / Mathf.Max(1, nearN) - farSum / Mathf.Max(1, farN))
         };
+    }
+
+    // The rail's visible width as it is drawn, in screen px of the W-wide test frame: per texture row, the
+    // columns the shader keeps (alpha > .5 and not the black matte), median and max over the rows, times the
+    // wall's world width per texture column. Measured on the art, not the frame: on a phone the outer edge
+    // of the wider rails runs off the screen, which hides exactly what this test is after.
+    static void WallWidthPx(WorldTheme theme, GameObject wall, Camera cam, out float median, out float max)
+    {
+        string folder = string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Worlds/" + folder + "/" + WorldPainter.RailTextureName(theme.displayName) + ".png"));
+        var px = tex.GetPixels32();
+        var counts = new List<int>(); int mx = 0;
+        for (int y = 0; y < tex.height; y++)
+        {
+            int c = 0;
+            for (int x = 0; x < tex.width; x++)
+            {
+                var p = px[y * tex.width + x];
+                if (p.a > 128 && Mathf.Max(p.r, Mathf.Max(p.g, p.b)) > 3) c++;
+            }
+            if (c > 0) { counts.Add(c); mx = Mathf.Max(mx, c); }
+        }
+        counts.Sort();
+        float worldPerCol = wall.GetComponent<MeshFilter>().sharedMesh.bounds.size.x * wall.transform.lossyScale.x / tex.width;
+        float pxPerUnit = W / (cam.orthographicSize * cam.aspect * 2f);
+        median = counts[counts.Count / 2] * worldPerCol * pxPerUnit;
+        max = mx * worldPerCol * pxPerUnit;
+        Object.DestroyImmediate(tex);
     }
 
     static float Lum(Color32 c) { return (.299f * c.r + .587f * c.g + .114f * c.b) / 255f; }

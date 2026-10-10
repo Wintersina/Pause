@@ -160,7 +160,16 @@ public static class WorldPainter
         // Measure visible silhouette boundaries, excluding transparent/black
         // padding. Frost's approved 1.25x presentation is the common standard.
         RailBounds(world, out float min, out float max);
-        return 1.25f * (443f / 725f) / (max - min);
+        return 1.25f * (443f / 725f) * RailThickness(world) / (max - min);
+    }
+
+    // Per-row median of lit (non-black) art columns: Space/Tide 261, Ember 259, Verdant 338, Frost 356.
+    // The bounds-based factor left Frost drawing ~4.8% thicker than the rest (ice crust inside its bounds).
+    // This trims Frost back to the common visible width (RailTransparencyTest asserts it).
+    // Ember's rail is 0.8% narrower than Space/Tide, nudged to match. Verdant, Space and Tide already agree.
+    public static float RailThickness(string world)
+    {
+        return world == "Frost" ? .955f : world == "Ember" ? 1.008f : 1f;
     }
 
     static void RailBounds(string world, out float min, out float max)
@@ -210,9 +219,8 @@ public static class WorldPainter
         RailBounds(world, out float min, out float max);
         // Match both visible edges to Frost as well as its thickness; this
         // prevents asymmetric canvas padding from shifting the flight lane.
-        float frostCentre = (140f + 583f) / (2f * 725f) - 0.5f;
-        float centre = (min + max) * 0.5f - 0.5f;
-        float shift = 1.25f * frostCentre - factor * centre;
+        // The lane-facing (inner) edge stays put; only the outer edge moves in.
+        float shift = 1.25f * (583f / 725f - 0.5f) - factor * (max - 0.5f);
         // Out toward the screen edges where the screen has room (RailInset).
         float inset = RailInset.Shift;
         laidOutWorld = world;
