@@ -26,7 +26,7 @@ public sealed class AttackPreview
     public const float DotSize = .09f;
     public const float Alpha = .5f;
     public const float BlinkFps = 8f;
-    public const int MaxDots = 420, MaxPreviews = 16;
+    public const int MaxDots = 720, MaxPreviews = 16;   // (a ring is ~150 dots, a column to the top of the view ~95: a ring and four columns fit)
     public const int SortingOrder = 6;
 
     // counters (tests, previews)

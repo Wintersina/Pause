@@ -113,6 +113,27 @@ public static class AttackHazardTest
         float stepDeg = AttackBlast.StepDeg(in spec);
         Check("the free gap between the two bars beside the crack is at least " + spec.gapDeg + " deg of arc (bars every " + stepDeg.ToString("F1") + " deg, " +
               (AttackBlast.BarFill * stepDeg).ToString("F1") + " deg long)", spec.gapDeg + stepDeg - AttackBlast.BarFill * stepDeg >= spec.gapDeg);
+        // the wall is closed: outside the crack no ship (r .28) slips between two bars, at any radius, for the standard and the wide ring
+        int open = 0, sampled = 0;
+        foreach (var sp in new[] { BlastSpec.Standard(1), BlastSpec.Wide(1) })
+            foreach (float rr in new[] { 1f, 2f, 3.4f, 4.5f, 6f })
+            {
+                if (rr > sp.reach) continue;
+                var wall = new AttackShape();
+                int n = AttackBlast.BarCount(in sp);
+                for (int k = 0; k < n; k++)
+                {
+                    AttackBlast.BarAt(in sp, Vector2.zero, 0f, rr, k, out Vector2 ba, out Vector2 bb, out float bang);
+                    wall.AddQuad(ba, bb, sp.barHalf, false);
+                }
+                float free = sp.gapDeg * .5f + AttackBlast.StepDeg(in sp);   // (the crack, plus the slot beside it)
+                for (float deg = free; deg <= 360f - free; deg += .5f)
+                {
+                    sampled++;
+                    if (!wall.Touches(Dir(deg * Mathf.Deg2Rad) * rr, DodgeBot.ShipRadius)) open++;
+                }
+            }
+        Check("outside the crack the ring is a closed wall for the ship at every radius (" + open + " open points of " + sampled + " sampled: standard 18 bars to 3.4 u, wide 32 bars to 6 u)", open == 0 && sampled > 1000);
         Pilot.position = new Vector3(0f, -3f, 0f);
         blast.Cancel();
         Check("cancelled: gone at once, preview and collider off, back in the pool",
@@ -276,6 +297,7 @@ public static class AttackHazardTest
         try
         {
             var ship = rig.ship.transform;
+            collisionDetection.MAXLIFE = 5;   // (a non-fatal hit: the hull's own hearts do not matter here)
             EliteSystem.PlayerOverride = ship;
             ship.position = new Vector3(0f, 0f, 0f);
             collisionDetection.lifeCounter = 0;
@@ -463,6 +485,15 @@ public static class AttackHazardTest
         int strikes = 0;
         for (int i = 0; i < AttackStrike.PoolSize + 2; i++) if (AttackStrike.Arm(StrikeSpec.Standard(1), -2f + i * .4f, 0f, 1f, null) != null) strikes++;
         Check("the strike pool holds " + AttackStrike.PoolSize + " (" + strikes + " armed of " + (AttackStrike.PoolSize + 2) + " asked)", strikes == AttackStrike.PoolSize);
+        EliteSystem.Clear();
+
+        // a ring and four columns telling at once: every outline is drawn in full (the dot pool is big enough)
+        Fresh();
+        AttackPreview.ResetCounters();
+        ArmBlast(new Vector2(0f, 3f), new Vector2(0f, -1.2f));
+        for (int i = 0; i < 4; i++) AttackStrike.Arm(StrikeSpec.Standard(1), -2.2f + i * 1.45f, -1.5f, 1f, null);
+        Check("a ring and four columns in their tell at once: all " + AttackPreview.ActiveCount + " previews are drawn in full (" + AttackPreview.DotsInUse + " dots, " + AttackPreview.Dropped + " dropped)",
+              AttackPreview.ActiveCount == 5 && AttackPreview.Dropped == 0 && AttackPreview.DotsInUse < AttackPreview.MaxDots);
         EliteSystem.Clear();
 
         // a whole life of each, twice to warm, then measured

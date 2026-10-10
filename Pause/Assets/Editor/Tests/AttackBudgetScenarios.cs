@@ -58,13 +58,21 @@ public static class AttackBudgetScenarios
             }
         }
 
+        static BlastSpec BlastForGolem()
+        {
+            var s = BlastSpec.Wide(1);   // (the standard 3.4 u ring never reaches a ship 5-6 u below a hovering Golem: 0% for the bot and for a ghost)
+            s.gapOffsetDeg = 40f;
+            return s;
+        }
+
         // Fresh each call (a brain mutates nothing of it, but a fixture must not leak between rolls).
         public static EnemyBehaviour Behaviour(string id)
         {
             switch (id)
             {
                 case "themed:frost_cold_blast":   // the Glacier Golem: the 3-shard fan becomes the cold blast; volleys 3 -> 2
-                    return new EnemyBehaviour { key = "frost_big" }.Sway(.3f, 4.5f).Blast(BlastSpec.Standard(1)).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
+                    // (the crack is turned 40 deg off the pilot, toward the lane's middle: he has to step into it, standing still is not safe)
+                    return new EnemyBehaviour { key = "frost_big" }.Sway(.3f, 4.5f).Blast(BlastForGolem()).Muzzle(.5f).Timing(.9f, 3.2f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Slow().Volleys(2);
                 case "themed:ember_eruption":     // Brand: the aimed bolt becomes an eruption of three columns
                     return new EnemyBehaviour { key = "ember_fighter_3" }.Drift(.75f, 1.5f).Strike(StrikeSpec.Standard(3), 3).Timing(.8f, 1.8f, 2, .15f)

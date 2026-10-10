@@ -155,8 +155,9 @@ public static class AttackFairnessTest
 
     // ---- FR4: the ring's crack -----------------------------------------------------------------------------------
 
-    // The free chord (u) through the crack at the ring's current radius, edge to edge between hazards, clipped by the rails.
-    static float FreeChord(AttackBlast hz, float rail)
+    // The free chord (u) through the crack at the ring's current radius, edge to edge between hazards, clipped by the rails;
+    // its two ends in `lo` / `hi` (world).
+    static float FreeChord(AttackBlast hz, float rail, out Vector2 lo, out Vector2 hi)
     {
         float r = hz.Radius;
         Vector2 o = hz.Origin;
@@ -167,23 +168,40 @@ public static class AttackFairnessTest
             Vector2 p = o + Dir(ang) * r;
             return sh.Touches(p, 0f) || Mathf.Abs(p.x) > rail;
         };
-        if (blocked(gap)) return 0f;
-        float hi = 0f, lo = 0f;
-        for (float a = 0f; a < 90f; a += .25f) { if (blocked(gap + a * Mathf.Deg2Rad)) break; hi = a; }
-        for (float a = 0f; a < 90f; a += .25f) { if (blocked(gap - a * Mathf.Deg2Rad)) break; lo = a; }
-        return Vector2.Distance(o + Dir(gap + hi * Mathf.Deg2Rad) * r, o + Dir(gap - lo * Mathf.Deg2Rad) * r);
+        // the longest free run of the circle within 60 deg of the crack's middle (the middle itself may lie outside the rails when the crack is turned)
+        lo = hi = o + Dir(gap) * r;
+        float best = 0f;
+        bool inRun = false;
+        Vector2 runStart = Vector2.zero, last = Vector2.zero;
+        for (float a = -60f; a <= 60.001f; a += .25f)
+        {
+            float ang = gap + a * Mathf.Deg2Rad;
+            Vector2 p = o + Dir(ang) * r;
+            if (blocked(ang))
+            {
+                if (inRun) { float c = Vector2.Distance(runStart, last); if (c > best) { best = c; lo = runStart; hi = last; } }
+                inRun = false;
+                continue;
+            }
+            if (!inRun) { inRun = true; runStart = p; }
+            last = p;
+        }
+        if (inRun) { float c = Vector2.Distance(runStart, last); if (c > best) { best = c; lo = runStart; hi = last; } }
+        return best;
     }
 
     static void BlastCorridor()
     {
         Fresh();
         float rail = BossRails.DrawnInnerEdge;
-        float least = 99f;
-        int rings = 0, frames = 0, bad = 0;
-        string worst = "";
+        float least = 99f, slowest = 0f;
+        int rings = 0, frames = 0, bad = 0, slow = 0, offsetRings = 0;
+        string worst = "", debug = "";
         float[] pilotX = { -rail + .3f, -1.2f, 0f, 1.2f, rail - .3f };
         float[] muzzleDx = { -1.1f, 0f, 1.1f };
-        float[] muzzleDy = { 1.8f, 2.6f, 3.3f };
+        float[] muzzleDy = { 1.8f, 2.6f, 3.3f, 4.6f, 5.6f };
+        float[] offsets = { 0f, 40f };
+        foreach (float offset in offsets)
         foreach (float px in pilotX)
             foreach (float dx in muzzleDx)
                 foreach (float dy in muzzleDy)
@@ -192,23 +210,46 @@ public static class AttackFairnessTest
                     float range = Vector2.Distance(muzzle, pilot);
                     if (range < EnemyBrain.MinFireDistance) continue;
                     Pilot.position = pilot;
-                    var b = AttackBlast.Arm(BlastSpec.Standard(1), muzzle, pilot, 1f, null);
+                    var spec = dy > 3.4f ? BlastSpec.Wide(1) : BlastSpec.Standard(1);   // (a pilot farther than 3.4 u is met by the wide ring)
+                    spec.gapOffsetDeg = offset;
+                    var b = AttackBlast.Arm(spec, muzzle, pilot, 1f, null);
                     b.Ignite();
                     rings++;
+                    if (offset != 0f) offsetRings++;
                     float upTo = Mathf.Min(b.Spec.reach, range + .3f);
+                    bool timed = false;
                     for (int i = 0; i < 400 && b.State == AttackHazard.Phase.Live; i++)
                     {
                         EliteSystem.Step(Dt);
-                        if (b.State != AttackHazard.Phase.Live || b.Radius < 1.8f || b.Radius > upTo) continue;
-                        float chord = FreeChord(b, rail);
+                        if (b.State != AttackHazard.Phase.Live || b.Radius < Mathf.Max(1.8f, range - 1f) || b.Radius > upTo) continue;   // (while the ring is within a unit of him)
+                        float chord = FreeChord(b, rail, out Vector2 lo, out Vector2 hi);
                         frames++;
-                        if (chord < least) { least = chord; worst = "pilot " + px.ToString("F1") + " muzzle " + muzzle.ToString("F1") + " r " + b.Radius.ToString("F2"); }
-                        if (chord < MinCorridor - .02f) bad++;
+                        if (chord < least) { least = chord; worst = "offset " + offset + " pilot " + px.ToString("F1") + " muzzle " + muzzle.ToString("F1") + " r " + b.Radius.ToString("F2"); }
+                        if (chord < MinCorridor - .02f)
+                        {
+                            bad++;
+                            if (debug.Length < 900)
+                                debug += "[offset " + offset + " pilot " + px.ToString("F2") + " muzzle " + muzzle.ToString("F2") + " range " + range.ToString("F2") + " r " + b.Radius.ToString("F2") + " gap " + (b.GapRad * Mathf.Rad2Deg).ToString("F1") +
+                                         " chord " + chord.ToString("F2") + " lo " + lo.ToString("F2") + " hi " + hi.ToString("F2") + " bars " + b.Bars + "] ";
+                        }
+                        // the moment the ring reaches the pilot's range: how far he has to fly to be inside the crack, bodily
+                        if (!timed && b.Radius >= range - .05f && range <= b.Spec.reach)
+                        {
+                            timed = true;
+                            float d = DistanceToSegment(pilot, lo, hi) + 0f;
+                            float need = Mathf.Max(0f, d + DodgeBot.ShipRadius + .05f);
+                            // the whole of the tell after his reaction, plus the ring's trip out to him
+                            float avail = 1f - DodgeBot.Reaction + (range - b.Spec.startRadius) / b.Spec.speed;
+                            float tFly = FlightSeconds(need);
+                            slowest = Mathf.Max(slowest, tFly);
+                            if (tFly > avail) slow++;
+                        }
                     }
                     b.Cancel();
                 }
-        Check("the ring's crack leaves a free chord of at least " + MinCorridor + " u (edge to edge between bars, inside the rails at " + rail.ToString("F2") + ") at every moment from 1.8 u out to the pilot's range, " +
-              "for pilots across the lane and rings of every range: " + rings + " rings, " + frames + " frames, least " + least.ToString("F2") + " u (" + worst + ")", rings >= 20 && frames > 200 && bad == 0);
+        Check("the ring's crack leaves a free chord of at least " + MinCorridor + " u (edge to edge between bars, inside the rails at " + rail.ToString("F2") + ") at every moment from a unit before the ring reaches the pilot (1.8 u out at least) to just past him, " +
+              "for pilots across the lane, rings of every range up to the wide ring's 6 u, the crack aimed at him or turned 40 deg off him: " + rings + " rings, " + frames + " frames, least " + least.ToString("F2") + " u (" + worst + ") " + debug, rings >= 60 && offsetRings >= 30 && frames > 600 && bad == 0);
+        Check("... and with the crack turned 40 deg off him he can fly into it, body clear of the bars, before the ring gets to him (slowest " + slowest.ToString("F2") + " s; " + slow + " too slow)", slow == 0);
         // the spec's own numbers satisfy the arithmetic the doc states
         var std = BlastSpec.Standard(1);
         Check("the standard cold blast: " + std.speed + " u/s (<= " + AttackBlast.MaxSpeed + "), reach " + std.reach + ", crack " + std.gapDeg + " deg: a chord of " +
@@ -216,6 +257,8 @@ public static class AttackFairnessTest
         Pilot.position = new Vector3(0f, -3f, 0f);
         EliteSystem.Clear();
     }
+
+    static float DistanceToSegment(Vector2 p, Vector2 a, Vector2 b) => Mathf.Sqrt(HostileShots.SegmentDistanceSq(a, b, p));
 
     // ---- FR4: the strike lanes -------------------------------------------------------------------------------------
 

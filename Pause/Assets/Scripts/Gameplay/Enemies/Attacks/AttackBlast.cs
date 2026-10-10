@@ -33,7 +33,7 @@ public struct BlastSpec
     public float reach;         // u: it ends here
     public float speed;         // u/s, capped at AttackBlast.MaxSpeed
     public float gapDeg;        // the crack, degrees of arc (>= AttackBlast.MinGapDeg)
-    public float gapOffsetDeg;  // turn the crack off the pilot by this much (0: aimed straight at him)
+    public float gapOffsetDeg;  // turn the crack off the pilot by this much, toward the lane's middle (0: aimed straight at him, so standing still is safe)
     public float barHalf;       // hit half-thickness (u)
     public float ride;          // share of the board's scroll the ring keeps (0: a pilot's, in world space)
     public int world;           // whose material it wears (AttackHazardArt.RampOf)
@@ -42,6 +42,15 @@ public struct BlastSpec
     {
         bars = 18, startRadius = .9f, reach = 3.4f, speed = 2.6f, gapDeg = 70f, gapOffsetDeg = 0f, barHalf = .09f, ride = 0f, world = world,
     };
+
+    // A ring that can reach a pilot far below a hovering shooter (a Golem holds 5-6 u above the ship, the standard ring ends at 3.4 u):
+    // 6 u of reach, a bar every ~11 deg so the wall stays closed (a gap under .35 u between bars at the rim, the ship is .56 wide), 2.7 u/s.
+    public static BlastSpec Wide(int world)
+    {
+        var s = Standard(world);
+        s.bars = 32; s.reach = 6f; s.speed = 2.7f;
+        return s;
+    }
 
     public float LiveSeconds => (Mathf.Max(reach, startRadius + .1f) - startRadius) / Mathf.Min(AttackBlast.MaxSpeed, Mathf.Max(.1f, speed));
 }
@@ -54,7 +63,7 @@ public sealed class AttackBlast : AttackHazard
     public const float BarFill = .82f;       // a bar spans this share of its slot (never touches its neighbour)
     public const float DrawThickness = .28f;
     public const float FadeSeconds = .2f;
-    public const int MaxBars = 24;
+    public const int MaxBars = 32;
     public const int PoolSize = 3;
     public const int SortBars = 12, SortGlyph = 13;
     public const float FlickerFps = 10f;
@@ -123,28 +132,51 @@ public sealed class AttackBlast : AttackHazard
         b = c + tg * (length * .5f);
     }
 
-    // The crack's world angle for a muzzle and a target: straight at the target (+ offset), then turned toward the
-    // lane's middle until BOTH ends of the free chord at the target's range lie between the rails (FR4: the corridor is
-    // a real one even when the pilot hugs a rail).
+    // The crack's world angle for a muzzle and a target: straight at the target (+ the offset, toward the lane's middle), then
+    // turned (at most MaxLaneTurnDeg, the smallest turn that does it) until the free chord at the target's range, clipped by the rails,
+    // is a real corridor of at least MinCorridor + a margin -- so a pilot hugging a rail still has room to stand in the crack (FR4).
+    public const float MinCorridor = 1.4f, CorridorMargin = .25f, MaxLaneTurnDeg = 40f;
+
     public static float AimGap(in BlastSpec spec, Vector2 muzzle, Vector2 target, float railEdge)
     {
         Vector2 to = target - muzzle;
         float range = Mathf.Max(1.2f, to.magnitude);
-        float aim = Mathf.Atan2(to.y, to.x) + spec.gapOffsetDeg * Mathf.Deg2Rad;
+        float aim = Mathf.Atan2(to.y, to.x);
+        if (spec.gapOffsetDeg != 0f)
+        {
+            // off the pilot, toward the lane's middle (never into a rail)
+            float off = Mathf.Abs(spec.gapOffsetDeg) * Mathf.Deg2Rad;
+            float xa = muzzle.x + Mathf.Cos(aim + off) * range, xb = muzzle.x + Mathf.Cos(aim - off) * range;
+            aim += Mathf.Abs(xa) <= Mathf.Abs(xb) ? off : -off;
+        }
         if (railEdge <= 0f) return aim;
         // the free chord at that range spans this half-angle either side of the crack's middle
         float half = (Mathf.Clamp(spec.gapDeg, MinGapDeg, 180f) * .5f + StepDeg(in spec) * .5f) * Mathf.Deg2Rad;
-        for (int i = 0; i <= 45; i++)
+        int steps = Mathf.RoundToInt(MaxLaneTurnDeg / 2f);
+        for (int i = 0; i <= steps; i++)
         {
             for (int s = 0; s < 2; s++)
             {
                 if (i == 0 && s == 1) continue;
                 float cand = aim + (s == 0 ? 1f : -1f) * i * 2f * Mathf.Deg2Rad;
-                float x1 = muzzle.x + Mathf.Cos(cand - half) * range, x2 = muzzle.x + Mathf.Cos(cand + half) * range;
-                if (Mathf.Abs(x1) <= railEdge && Mathf.Abs(x2) <= railEdge) return cand;   // the smallest turn that fits the lane
+                if (ClippedChord(muzzle, cand, half, range, railEdge) >= MinCorridor + CorridorMargin) return cand;   // the smallest turn that leaves a corridor
             }
         }
         return aim;
+    }
+
+    // Length (u) of the chord between the crack's two ends at `range`, the part of it that lies between the rails.
+    static float ClippedChord(Vector2 muzzle, float crackRad, float halfRad, float range, float rail)
+    {
+        Vector2 a = muzzle + new Vector2(Mathf.Cos(crackRad - halfRad), Mathf.Sin(crackRad - halfRad)) * range;
+        Vector2 b = muzzle + new Vector2(Mathf.Cos(crackRad + halfRad), Mathf.Sin(crackRad + halfRad)) * range;
+        float len = Vector2.Distance(a, b);
+        float dx = b.x - a.x;
+        if (Mathf.Abs(dx) < 1e-5f) return Mathf.Abs(a.x) <= rail ? len : 0f;
+        float t0 = (-rail - a.x) / dx, t1 = (rail - a.x) / dx;
+        if (t0 > t1) { float t = t0; t0 = t1; t1 = t; }
+        t0 = Mathf.Max(0f, t0); t1 = Mathf.Min(1f, t1);
+        return t1 > t0 ? (t1 - t0) * len : 0f;
     }
 
     // ---- instance ----
