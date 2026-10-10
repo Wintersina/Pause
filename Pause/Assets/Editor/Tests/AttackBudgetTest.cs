@@ -111,6 +111,10 @@ public static class AttackBudgetTest
         { "boss:Ember:fire breath", new Pin(498, 2000, 2000) },   // 24.9 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Ember:furnace slugs", new Pin(1161, 2000, 2000) },   // 58.1 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Ember:brow laser", new Pin(1195, 2000, 1722) },   // 59.8 % bot, 86.1 % standing; shown in 2000/2000;
+        // Iron Kraken placeholders (generic kinds, before its themed water attacks): the port fan is very hard (93.7 % bot) -- tune when themed.
+        { "boss:Tide:port cluster", new Pin(1873, 2000, 1989) },   // 93.7 % bot, 99.5 % standing; shown in 2000/2000;
+        { "boss:Tide:beak jet", new Pin(0, 2000, 1202) },   // 0.0 % bot, 60.1 % standing; shown in 2000/2000;
+        { "boss:Tide:starboard cluster", new Pin(624, 2000, 1990) },   // 31.2 % bot, 99.5 % standing; shown in 2000/2000;
     };
 
     // New attack id -> the old attack id it replaces. Later phases add rows here
