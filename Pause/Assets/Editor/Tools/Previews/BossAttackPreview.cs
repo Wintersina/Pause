@@ -27,9 +27,19 @@ public static class BossAttackPreview
         {
             try
             {
+                string only = null, onlyAtk = null;
+                var args = System.Environment.GetCommandLineArgs();
+                for (int i = 0; i < args.Length - 1; i++)
+                {
+                    if (args[i] == "-only") only = args[i + 1].ToLower();
+                    if (args[i] == "-attack") onlyAtk = args[i + 1];
+                }
                 for (int w = 0; w < BossCatalog.All.Length; w++)
+                {
+                    if (only != null && BossCatalog.All[w].artKey.ToLower() != only) continue;
                     for (int a = 0; a < BossCatalog.All[w].attacks.Length; a++)
-                        Attack(dir, w, a);
+                        if (onlyAtk == null || onlyAtk == a.ToString()) Attack(dir, w, a);
+                }
             }
             finally { BossEncounter.ResetRun(); }
         }
