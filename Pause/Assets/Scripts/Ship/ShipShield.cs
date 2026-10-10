@@ -519,7 +519,7 @@ public class ShipShield : MonoBehaviour
     {
         var hull = GetComponent<SpriteRenderer>();
         float halfWidth = contour.VisibleBounds.width * .5f * Mathf.Abs(transform.lossyScale.x);
-        ShieldShockwave.Release(transform.position, halfWidth,
+        ShieldShockwave.TryRelease(transform.position, halfWidth, life,
                                 hull != null ? hull.sortingLayerID : 0, (hull != null ? hull.sortingOrder : 0) + 3);
     }
 

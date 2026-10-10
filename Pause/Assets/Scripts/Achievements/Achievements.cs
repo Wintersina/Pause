@@ -8,6 +8,15 @@ public static class AchievementEvents
     // World time (Time.time) of the last hurt, for the dodge probe's "and survived a second".
     public static float LastHurtAt { get; private set; } = -1f;
 
+    // The shield let go and its shockwave fired (ShieldShockwave.TryRelease); the argument is how
+    // many bodies it moved. Informational: no achievement counts it, and it is not a kill or a hit.
+    public static event System.Action<int> ShieldReleased;
+    public static void RaiseShieldReleased(int moved)
+    {
+        var handler = ShieldReleased;
+        if (handler != null) handler(moved);
+    }
+
     public static void RaisePlayerHurt()
     {
         LastHurtAt = AchievementTracker.Clock();

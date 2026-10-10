@@ -11,12 +11,14 @@ public class EnemyDeathAudioImporter : AssetPostprocessor
 {
     public const string Folder = "Assets/Audio/Resources/Audio/EnemyDeath/";
 
+    public const string ShockwaveFolder = "Assets/Audio/Resources/Audio/Shockwave/";   // the shield release whump, same rules
+
     // Bump to reimport the folder after changing a rule below.
-    public override uint GetVersion() { return 1; }
+    public override uint GetVersion() { return 2; }
 
     void OnPreprocessAudio()
     {
-        if (!assetPath.StartsWith(Folder)) return;
+        if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(ShockwaveFolder)) return;
         var importer = (AudioImporter)assetImporter;
         importer.forceToMono = true;
         importer.loadInBackground = false;
