@@ -267,6 +267,29 @@ Built:
   (each behaviour: path, lifetime, children count / pooling / never again, rails, hit radius constant at draw scales 1 / 2 / 3.5, zero allocation, a frozen world, pink-cue pixels of the five bodies); both registered in `AllTests`.
   `AttackBudgetTest` gains four themed rows and `AttackBudgetTest.One -id <id> [-rolls N] [-trace]` (measure one attack or fixture); preview tool `Editor/Tools/Previews/AttackCoresDPreview.cs` (`ATTACKCORESD_PREVIEW_DIR`).
 
+Deviations from the plan and decisions a later phase should know:
+
+1. **No new `EliteShots.Kind` values** (the plan listed `Slash`, `Log`). Every behaviour is a `ShotMotion` flag on a world's skin for an existing kind: Streak on `Shell` / `Bolt`, Shatter on `Bolt` / `Shard`, Flutter and Slash on `Shard`,
+   Roll and Burst on `Glob` (a lobbed shot), so the six test suites that loop over every `Kind` stay as they were. The elite attack id `log_roll` is not built (it waits for the Timber Hauler art: it only needs `Lob(...)` + a `Roll` skin).
+2. **The lash's hit shape is a ribbon along the chain, not a swept polygon.** A thin ribbon at 25 u/s (tip speed) moves .42 u a frame at 60 fps, less than the ship's 2 x (.28 + .14); the preview outline is the whole swept area (start line, arc, end line:
+   a superset). Test: everything the whip ever burned lies inside that outline.
+3. **How the sweep stays fair** (`AttackLash.Aim`): the start line stands at the pilot's row `entry` u (1.5) beside him, clamped so that at least MinCorridor + margin (1.65 u) of floor stays open beyond it, and the sweep turns across him toward the other
+   side (the mirror image if it keeps him nearer `entry` inside the sweep); stepping out across the start line is the dodge and always reachable in the tell (test: 3 shooters x 47 pilot x positions x 5 depths). The whip is lengthened to the pilot's range + 1.6 u (at most 8.4):
+   a shorter one cannot reach a pilot 6-7 u below a hovering Hornet Queen (the same lesson as the Golem's ring).
+4. **Painted skins are drawn as they are.** `EliteShot.Launch` used to tint every body pink and lay a core copy on top; a skin with `procedural == false` (delivered art, or `ShotMotionArt`'s bodies) now wears its own pixels (white tint, no core copy; the
+   keyline is still `ShotOutline`'s). The landed pool does the same when it is the world's art cell. Procedural skins (every world today) are unchanged.
+5. **The dodge bot got three things** (shared infrastructure, no pinned rate moves): `Hz.noScore` (a prediction, never a hit), `Hz.segAt` (a segment that moves in a way the scenario knows, evaluated for the moment the bot asks) and four looks per plan step at such a
+   segment. Without the last one the first lash fixture scored 50% hits against a corridor that is guaranteed: a sweep covering .5-1 u per .05 s plan step slipped between two samples, so the bot parked on the edge of the swept area. The fixtures also give it
+   the weave of a Flutter leaf (a .12 u wide tube round the course) and the split of a Shatter spear (the spear until it splits, the three chips after), the way a pilot reads them.
+6. **Fixtures and what they replace** (`AttackBudgetScenarios.ThemedFixtures`, `AttackBudgetTest.Themed`; 2000 rolls, seed 1; no world's table uses them yet): `themed:verdant_vine_lash` (Hornet Queen body, `Lash`, tell .9 s, volleys 4 -> 2) vs `roster:verdant_fighter_4`
+   **0.2% (3/2000)** against 9.2%, a standing ghost 100%; `themed:space_rail_slug` (Warden, a `Streak` shell, tell .9 -> 1.1 s, volleys 4 -> 3) vs `roster:space_fighter_4` **0.0% (0/2000)** against 0.0%, ghost 100%; `themed:frost_splinter_pair` (Frost Kite, a `Shatter` pair,
+   volleys 3 -> 2) vs `roster:frost_fighter_3` **2.5% (50/2000)** against 6.9%, ghost 54%; `themed:verdant_leaf_volley` (Snap Sprout has no attack today; two `Flutter` leaves, volleys 2) vs `roster:space_fighter_3` **4.4% (87/2000)** against 4.2% (limit 6.8%), ghost 43%.
+   A Slash fixture is not in the budget: the bot's shots are circles (the capsule is tested in `ShotMotionTest`).
+7. **Sight line.** The Streak's hairline runs from the slug to the edge of the view for its whole flight (cheap, and it is what the doc calls the drawn line); the line shown *before* it fires (the charge of the cannon) belongs to the shooter's tell, as the Rift Lancer's does.
+8. A chip or a spore keeps its parent's `ShotAge` (`ageBias`): `HostileShots` tells one volley's shots from another's by owner and age, and a spore born at a pod that landed .8 s ago popped on its own pod (a fixed-mass shot) before this.
+9. Numbers a world phase may want to tune live in `ShotMotions` (EliteShots.cs) and `LashSpec.Standard`; the procedural bodies are fallbacks for Codex's art (the Verdant lash art slot is `verdant_attack_lash.png`, the shot bodies are the shots atlas cells `sigA` crescent, `sigB` pod and so on).
+10. Not done here: `BossAttackKind.Lash` / `Roll` executors (1g), per-world rows, the elite `log_roll`, `AtomClarityTest` / `ReadabilitySweep` items for the lash strips (the pixel pink-cue audit is in `AttackLashTest` and `ShotMotionTest`), sounds.
+
 ### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
 
 Pinned in `AttackBudgetTest.Pinned`. "bot" = rolls in which the bot was touched; "standing" = the ghost that never moves in the same rolls.
