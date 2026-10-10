@@ -7,8 +7,8 @@ using UnityEngine.UI;
 // four world backdrops, on a 1080x2400 phone:
 //
 //   1-not-started   speed at the cap for 0 s: no cue
-//   2-charging-8s   8 s in: the slim bar, half full
-//   3-active-x2     the x2 plate
+//   2-charging-8s   8 s in: the slim bar under the score, half full
+//   3-active-x2     the x2 plate beside the score
 //   4-just-lost     a heart lost: the plate dimming
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ScoreX2Preview.Run
@@ -62,12 +62,11 @@ public static class ScoreX2Preview
         var hud = styler.GetComponent<ScoreHud>();
 
         // some score on the clock, then the streak to the wanted state
-        for (int i = 0; i < 12; i++) RunScore.OnDust(true);
+        for (int i = 0; i < 40; i++) RunScore.OnDust(true);
         float seconds = state == 0 ? 0f : state == 1 ? 8f : 15.2f;
         int frames = Mathf.RoundToInt(seconds / Dt);
         for (int i = 0; i < frames; i++) RunScore.Tick(Dt, SpeedRamp.Cap);
-        var speedGo = SceneUtil.FindAny("SpeedText");
-        var cue = speedGo.GetComponent<ScoreX2Cue>();
+        var cue = SceneUtil.FindAny(ScoreHud.RowName).GetComponent<ScoreX2Cue>();
         float now = 1000f;
         cue.Refresh(now);
         if (state == 2) cue.Refresh(now += .6f);   // settled
@@ -107,6 +106,7 @@ public static class ScoreX2Preview
         styler.HudRoot.anchoredPosition = at;
         styler.HudRoot.localScale = new Vector3(fit, fit, 1f);
         Canvas.ForceUpdateCanvases();
+        cue.Remeasure();
         cue.Refresh(now);
 
         camera.Render();

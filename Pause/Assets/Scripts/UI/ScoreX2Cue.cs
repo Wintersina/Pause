@@ -2,25 +2,28 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // The HUD cue for the max-speed streak (ScoreMultiplier): hold the speed cap
-// without losing a heart and the score doubles.
+// without losing a heart and the score doubles. It lives on the SCORE row,
+// because it is the score that doubles.
 //
 //   hidden    nothing, until the streak has run CueShowAfterSeconds (2 s), so
 //             it never nags a pilot who is only passing through the cap
-//   charging  a slim cyan bar along the bottom of the SPEED row (the same strip
+//   charging  a slim cyan bar along the bottom of the SCORE row (the same strip
 //             and meter sprite as the pause bar and the resume spool bar)
 //             fills over the 15 s, in half-second steps
-//   active    a small "x2" plate on the SPEED row, between the speed figure
-//             and the SPD badge; it pops in on a stepped punch with a one-tick
+//   active    a small "x2" plate hugging the right edge of the score figure
+//             ("SCORE  12,345 [x2]"); it follows the figure's rendered width as
+//             digits are added, and pops in on a stepped punch with a one-tick
 //             BONE flash
 //   lost      the plate dims to MUTED and sinks a hair, in three steps, for
 //             LossCueSeconds, then goes -- no sound, no red (red is the pilot)
 //
-// Everything lives inside the SPEED row's own rect, so it cannot touch the
-// hearts, the score row, the shield timer or the quick actions at any screen
-// size, and the panel is already placed inside the safe area (HudStyler). The
-// bar yields to the resume slow-mo spool bar, which uses the same strip.
-// Runs on unscaled time (the HUD lives through a freeze) and allocates
-// nothing per frame.
+// Everything lives inside the SCORE row's own rect (the plate is clamped to it,
+// left of the kill-chain badge's column), so it cannot touch the hearts, the
+// shield timer, the SPEED row or the quick actions at any screen size, and the
+// panel is already placed inside the safe area (HudStyler). The bar yields to
+// the resume slow-mo spool bar, which uses the same strip. Runs on unscaled
+// time (the HUD lives through a freeze) and allocates nothing per frame (the
+// plate is re-measured only when the score string changes).
 public class ScoreX2Cue : MonoBehaviour
 {
     public enum CueState { Hidden, Charging, Active, Lost }
@@ -31,11 +34,11 @@ public class ScoreX2Cue : MonoBehaviour
     public const string Label = "x2";
     const string MeterSprite = "Hud/hud_meter";
 
-    // The plate: its size and how far its right edge sits in from the row's
-    // right edge (past the widest SPD badge, "SPD x2.5", at BadgeWidth).
+    // The plate: its size, and the gap between the score figure's last digit
+    // and the plate's left edge (the figure's outline reaches ~2 units).
     public const float PlateWidth = 32f;
     public const float PlateHeight = 18f;
-    public const float PlateRightInset = 118f;
+    public const float PlateGap = 6f;
     public const int LabelFontSize = 16;
 
     static readonly Color BarColour = AkiraPalette.Cyan;
@@ -45,7 +48,9 @@ public class ScoreX2Cue : MonoBehaviour
     static readonly Color InkColour = AkiraPalette.Ink;
     static readonly Color LostColour = AkiraPalette.Muted;
 
-    Text speedText;
+    Text scoreText, chainText;
+    string measuredFor, measuredChain;
+    float plateX;
     Image back, bar, plate;
     Text label;
     int seenStarted, seenLost;
@@ -58,11 +63,11 @@ public class ScoreX2Cue : MonoBehaviour
     public Text LabelText { get { return label; } }
     public CueState State { get { return state; } }
 
-    public static ScoreX2Cue Attach(Text speedText)
+    public static ScoreX2Cue Attach(Text scoreText)
     {
-        if (speedText == null) return null;
-        var cue = speedText.GetComponent<ScoreX2Cue>() ?? speedText.gameObject.AddComponent<ScoreX2Cue>();
-        cue.Init(speedText);
+        if (scoreText == null) return null;
+        var cue = scoreText.GetComponent<ScoreX2Cue>() ?? scoreText.gameObject.AddComponent<ScoreX2Cue>();
+        cue.Init(scoreText);
         return cue;
     }
 
@@ -75,6 +80,20 @@ public class ScoreX2Cue : MonoBehaviour
         if (active) return CueState.Active;
         if (sinceLost >= 0f && sinceLost < ScoreMultiplier.LossCueSeconds) return CueState.Lost;
         return streakSeconds >= ScoreMultiplier.CueShowAfterSeconds ? CueState.Charging : CueState.Hidden;
+    }
+
+    public const float NoRoom = -1f;
+
+    // Where the plate's left edge sits on the row: just past the score figure
+    // (`textWidth`, its rendered width), in whole units for crisp pixels.
+    // `rightReserve` is what the kill-chain badge takes on the right while a
+    // chain is alive (0 when it is empty). NoRoom when the plate would not fit
+    // between the two (a 7-digit score under a live chain): the plate waits
+    // rather than cover a digit or the chain multiplier.
+    public static float PlateLeftFor(float textWidth, float rowWidth, float rightReserve)
+    {
+        float x = Mathf.Round(Mathf.Max(0f, textWidth) + PlateGap);
+        return x + PlateWidth <= rowWidth - rightReserve ? x : NoRoom;
     }
 
     // The bar's fill: the streak in CueStepSeconds steps, 0..1.
@@ -94,11 +113,13 @@ public class ScoreX2Cue : MonoBehaviour
 
     // ---- build ----
 
-    void Init(Text speed)
+    void Init(Text score)
     {
-        speedText = speed;
+        scoreText = score;
+        var chain = score.transform.Find(ScoreHud.ChainName);
+        chainText = chain != null ? chain.GetComponent<Text>() : null;
         if (plate != null) return;
-        var rowRect = speed.transform;
+        var rowRect = score.transform;
 
         var existingBack = rowRect.Find(BackName);
         if (existingBack != null)
@@ -112,7 +133,7 @@ public class ScoreX2Cue : MonoBehaviour
         {
             back = BuildBar(rowRect, BackName);
             bar = BuildBar(rowRect, BarName);
-            plate = BuildPlate(rowRect, speed.font, out label);
+            plate = BuildPlate(rowRect, score.font, out label);
         }
         back.color = BackColour;
         bar.color = BarColour;
@@ -145,10 +166,10 @@ public class ScoreX2Cue : MonoBehaviour
         var go = new GameObject(PlateName, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(row, false);
         var rt = (RectTransform)go.transform;
-        rt.anchorMin = rt.anchorMax = new Vector2(1f, .5f);
-        rt.pivot = new Vector2(1f, .5f);
+        rt.anchorMin = rt.anchorMax = new Vector2(0f, .5f);
+        rt.pivot = new Vector2(0f, .5f);
         rt.sizeDelta = new Vector2(PlateWidth, PlateHeight);
-        rt.anchoredPosition = new Vector2(-PlateRightInset, 0f);
+        rt.anchoredPosition = Vector2.zero;
         var img = go.GetComponent<Image>();   // a flat rect: crisp pixel edges
         img.color = PlateColour;
         img.raycastTarget = false;
@@ -199,6 +220,7 @@ public class ScoreX2Cue : MonoBehaviour
         state = next;
 
         var rt = plate.rectTransform;
+        if (state == CueState.Active || state == CueState.Lost) Measure();
         switch (state)
         {
             case CueState.Charging:
@@ -218,16 +240,44 @@ public class ScoreX2Cue : MonoBehaviour
                     float s = k < 1f ? .7f : k < 3f ? 1.15f : 1f;
                     SetScale(rt, s);
                     SetColour(plate, k < 1f ? FlashColour : PlateColour);
-                    rt.anchoredPosition = new Vector2(-PlateRightInset, 0f);
+                    rt.anchoredPosition = new Vector2(Mathf.Max(0f, plateX), 0f);
                     break;
                 }
             case CueState.Lost:
                 {
                     SetScale(rt, .9f);
                     SetColour(plate, AkiraPalette.WithAlpha(LostColour, LostAlpha(sinceLost)));
-                    rt.anchoredPosition = new Vector2(-PlateRightInset, -2f);
+                    rt.anchoredPosition = new Vector2(Mathf.Max(0f, plateX), -2f);
                     break;
                 }
+        }
+    }
+
+    public float PlateX { get { return plateX; } }
+
+    // Measures now (the plate's x is also kept up to date in Refresh).
+    public void Remeasure()
+    {
+        measuredFor = null; measuredChain = null;
+        if (scoreText != null) Measure();
+    }
+
+    // Re-measures the score figure only when its string changed.
+    void Measure()
+    {
+        string now = scoreText.text;
+        string chain = chainText != null ? chainText.text : "";
+        if (ReferenceEquals(now, measuredFor) && ReferenceEquals(chain, measuredChain)) return;
+        if (scoreText.rectTransform.rect.width <= 0f) return;   // not laid out yet: try next frame
+        measuredFor = now;
+        measuredChain = chain;
+        float reserve = string.IsNullOrEmpty(chain) ? 0f : chainText.preferredWidth + 3f;
+        plateX = PlateLeftFor(scoreText.preferredWidth, scoreText.rectTransform.rect.width, reserve);
+        bool room = plateX >= 0f;
+        if (plate.enabled != room && (state == CueState.Active || state == CueState.Lost))
+        {
+            plate.enabled = room;
+            label.enabled = room;
         }
     }
 
@@ -237,6 +287,7 @@ public class ScoreX2Cue : MonoBehaviour
 
     void SetShown(CueState s)
     {
+        measuredFor = null; measuredChain = null;   // re-measure the figure as the plate comes up
         bool bars = s == CueState.Charging;
         bool badge = s == CueState.Active || s == CueState.Lost;
         back.enabled = bars;
