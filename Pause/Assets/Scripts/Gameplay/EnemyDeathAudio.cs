@@ -159,6 +159,20 @@ public static class EnemyDeathAudio
         return ok;
     }
 
+    // A boss going down (BossActor.BeginOutro, the codex's tapped boss). Authored
+    // clips boss_<artKey lowercase>_0.. (and boss_<..>_scream_0.. for the living
+    // bosses) in Resources/Audio/EnemyDeath/; none dropped in yet = silent.
+    public static float BossVolume = 1f;
+    public static string BossKey(string artKey) { return string.IsNullOrEmpty(artKey) ? null : "boss_" + artKey.ToLowerInvariant(); }
+    public static bool PlayBossDeath(string artKey, bool forceScream = false)
+    {
+        if (!(Application.isPlaying || Simulate)) return false;
+        string key = BossKey(artKey);
+        return key != null && PlayAuthored(key, BossVolume, forceScream);
+    }
+    // Bosses whose death carries a creature cry layer.
+    public static bool BossScreams(string artKey) { return artKey == "Frost" || artKey == "Verdant"; }
+
     // Editor safety net: a roster / elite key that resolves no clip is a
     // content bug (a new enemy added without a sound pass). Warn once per key.
     static readonly HashSet<string> warned = new HashSet<string>();

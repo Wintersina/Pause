@@ -196,7 +196,7 @@ public static class BossCatalog
             // two engine pods hanging off its shoulders.
             new BossDef
             {
-                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space", expandedCombat = true,
+                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space", deathKey = "Space", expandedCombat = true,
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
@@ -229,7 +229,7 @@ public static class BossCatalog
             // blowhole crown on top.
             new BossDef
             {
-                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost", damageKey = "Frost",
+                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost", damageKey = "Frost", deathKey = "Frost",
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
                        "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
@@ -263,7 +263,7 @@ public static class BossCatalog
             // petal tips, two acid cannons on its flanks.
             new BossDef
             {
-                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant",
+                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant", deathKey = "Verdant",
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
                        "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",
