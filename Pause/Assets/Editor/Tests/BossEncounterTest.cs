@@ -112,7 +112,7 @@ public static class BossEncounterTest
             Check(boss.artKey + " belongs to " + WorldManager.Worlds[w].displayName,
                   boss.artKey == WorldManager.Worlds[w].displayName);
             Check(boss.artKey + " has a distinct name", names.Add(boss.name));
-            Check(boss.artKey + " has 2-3 attack patterns", boss.attacks.Length >= 2 && boss.attacks.Length <= 3);
+            Check(boss.artKey + " has 2-5 attack patterns", boss.attacks.Length >= 2 && boss.attacks.Length <= 5);
             bool tells = true;
             foreach (var a in boss.attacks) tells &= a.tellSeconds >= .5f;
             Check(boss.artKey + " telegraphs every attack (>= 0.5s)", tells);

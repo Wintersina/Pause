@@ -69,6 +69,9 @@ public static class ShipReachTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // the boss projectile / laser reach is measured on the default tables; the themed hazards are BossThemedTest's
+        var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
+        foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
         try
         {
             EditorSceneLoader.Open("gameS1");
@@ -101,6 +104,7 @@ public static class ShipReachTest
         }
         finally
         {
+            foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value;
             Use(null);
             NoDpi = false;
             ShipReach.FitToView = true;

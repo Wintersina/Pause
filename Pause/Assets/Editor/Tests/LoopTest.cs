@@ -507,8 +507,8 @@ public static class LoopTest
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("loop 2 boss: cooldowns x" + LoopRules.BossCooldownScale(1) + ", one more pattern from the start",
               e.Actor != null && Mathf.Approximately(e.Actor.CooldownScale, LoopRules.BossCooldownScale(1)) &&
-              BossCatalog.UnlockedAttacks(e.Boss, e.Actor.PatternHeadStart) == Mathf.Min(2, e.Boss.attacks.Length) &&
-              BossCatalog.UnlockedAttacks(e.Boss, 0f) == 1);
+              BossCatalog.UnlockedAttacks(e.Boss, e.Actor.PatternHeadStart) == System.Array.FindAll(e.Boss.attacks, x => x.minPhase <= 2).Length &&   // (the phase-2 set: 2 of today's, 3 of a themed table)
+              BossCatalog.UnlockedAttacks(e.Boss, 0f) == System.Array.FindAll(e.Boss.attacks, x => x.minPhase <= 1).Length);
         BossEncounter.ResetRun();
         RunLoop.Reset();
         BossEncounter.Begin(Ember, null);
