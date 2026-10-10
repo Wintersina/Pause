@@ -5,9 +5,12 @@ using UnityEngine.SceneManagement;
 //
 // Every hull is normalised to shopingShips.ReferenceHullSize (0.58 u across
 // its longest side) by spawnShips.ApplyHull / lifeControler. In the main game
-// scene (gameS1) the flown ship is then drawn Main times bigger; everywhere
-// else -- the tutorial, the title screen's traffic, the dock, the codex, the
-// shop and death-panel renders -- it stays at the normalised size.
+// scene (gameS1) AND in the tutorial (tutorialS5: it teaches on the ship the
+// run will fly, so it must look exactly as big) the flown ship is drawn Main
+// times bigger; everywhere else -- the title screen's traffic, the dock, the
+// codex, the shop and death-panel renders -- it stays at the normalised size.
+// (The tutorial used to be left out, so its ship was visibly 26% smaller than
+// the run's.)
 //
 // The factor goes on the ship's root transform, so everything that lives in
 // the hull's own space follows by itself: the art, the baked hull / shield
@@ -26,15 +29,16 @@ public static class ShipScale
     // The flown ship's size in the main game scene, x the normalised hull.
     public const float Main = 1.35f;
     public const string MainScene = "gameS1";
+    public const string TutorialScene = "tutorialS5";
 
     public static float For(string sceneName)
     {
-        return sceneName == MainScene ? Main : 1f;
+        return sceneName == MainScene || sceneName == TutorialScene ? Main : 1f;
     }
 
     public static float ForScene(Scene scene)
     {
-        return scene.IsValid() && scene.name == MainScene ? Main : 1f;
+        return scene.IsValid() ? For(scene.name) : 1f;
     }
 
     // The active scene's factor. Cached on the scene's handle: reading a

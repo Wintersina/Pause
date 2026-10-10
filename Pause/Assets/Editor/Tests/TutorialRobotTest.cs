@@ -71,7 +71,8 @@ public static class TutorialRobotTest
                   Regex.IsMatch(s.line, @"^[\x20-\x7E]+$"));
             Check("\"" + s.id + "\" highlight markers are balanced", s.line.Split('*').Length % 2 == 1);
             Check("\"" + s.id + "\" id is unique", ids.Add(s.id));
-            Check("\"" + s.id + "\" asks for a positive amount", s.amount > 0f);
+            Check("\"" + s.id + "\" asks for a positive amount", s.amount > 0f || s.advance == TutorialAdvance.Read);
+            Check("\"" + s.id + "\" has a timeout beyond its competent time (" + s.par + " / " + s.timeout + " s)", s.timeout > s.par && s.timeout >= 2f);
         }
 
         // The order the brief asks for.
@@ -89,10 +90,10 @@ public static class TutorialRobotTest
         int powerAt = IndexOf(TutorialAdvance.FirePower);
         Check("a power step comes after the atoms are taught", powerAt > atomAt
               && powerAt > IndexOf(TutorialAdvance.CollectGreenAtom) && powerAt > IndexOf(TutorialAdvance.CollectBlueAtom));
-        Check("it keeps charge atoms coming and waits for the weapon to go off once",
-              powerAt >= 0 && steps[powerAt].cue == TutorialCue.SpawnChargeAtoms && steps[powerAt].amount == 1f);
-        Check("its charge takes a few atoms (" + TutorialScript.PowerAtoms + ")",
-              TutorialScript.PowerAtoms >= 2 && TutorialScript.PowerAtoms <= 4);
+        Check("it drops the one violet atom in and waits for the weapon to go off once",
+              powerAt >= 0 && steps[powerAt].cue == TutorialCue.SpawnCapacitorAtom && steps[powerAt].amount == 1f);
+        Check("its charge is exactly what that atom cuts (" + TutorialScript.ArmSeconds + " s)",
+              Mathf.Approximately(TutorialScript.ArmSeconds, ShipPowerController.CooldownAtomCutSeconds));
     }
 
     static int IndexOf(TutorialAdvance a)
@@ -131,7 +132,8 @@ public static class TutorialRobotTest
         foreach (var s in TutorialScript.Steps)
         {
             var start = new TutorialSignals { worldMoving = true, pressed = true };
-            Check("\"" + s.id + "\" is not already met when it starts", !TutorialScript.IsMet(s, start, start));
+            if (s.advance != TutorialAdvance.Read)
+                Check("\"" + s.id + "\" is not already met when it starts", !TutorialScript.IsMet(s, start, start));
             var after = Perform(s, start);
             Check("\"" + s.id + "\" is met once the player " + s.advance + " x" + s.amount,
                   TutorialScript.IsMet(s, start, after));
@@ -184,6 +186,7 @@ public static class TutorialRobotTest
             (TutorialAdvance.CollectGreenAtom, TutorialCue.SpawnGreenAtom, TutorialAtom.Green, "green heal atom"),
             (TutorialAdvance.CollectBlueAtom, TutorialCue.SpawnBlueAtom, TutorialAtom.Blue, "blue shield atom"),
             (TutorialAdvance.CollectRedAtom, TutorialCue.SpawnRedAtom, TutorialAtom.Red, "red pause atom"),
+            (TutorialAdvance.FirePower, TutorialCue.SpawnCapacitorAtom, TutorialAtom.Cooldown, "violet capacitor atom"),
         };
         foreach (var k in kinds)
         {
@@ -198,12 +201,11 @@ public static class TutorialRobotTest
         if (spawner == null) return;
         Check("the blue atom prefab is the shield atom collisionDetection credits",
               spawner.Atom != null && PrefabName.Is(spawner.Atom, "atom3a"));
-        var spawn = typeof(spawnGoodStuffTut).GetMethod("spawnAtom", BindingFlags.Instance | BindingFlags.NonPublic);
         foreach (var k in kinds)
         {
-            spawn.Invoke(spawner, new object[] { k.Item3 });
+            spawner.SpawnIntro(k.Item3);
             var live = spawnGoodStuffTut.LiveAtom;
-            string expected = k.Item3 == TutorialAtom.Green ? HealAtom.ObjectName : k.Item3 == TutorialAtom.Blue ? "atom3a" : "pauseAtom";
+            string expected = k.Item3 == TutorialAtom.Green ? HealAtom.ObjectName : k.Item3 == TutorialAtom.Blue ? "atom3a" : k.Item3 == TutorialAtom.Cooldown ? "cooldownAtom" : "pauseAtom";
             Check("the tutorial spawns a real " + k.Item4 + " (" + (live != null ? live.name : "nothing") + ")",
                   live != null && PrefabName.Is(live.gameObject, expected));
             if (live != null) Object.DestroyImmediate(live.gameObject);
@@ -521,18 +523,15 @@ public static class TutorialRobotTest
             typeof(Hints).GetMethod("BeginStep", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(hints, new object[] { powerAt });
             Check("the power step arms it: only pickups fill it",
                   power.chargeMode == ShipPowerController.ChargeMode.PickupsOnly && power.Charge01 < .01f);
-            Check("the power step keeps charge atoms coming", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Charge);
+            Check("the power step drops in the violet atom", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Cooldown && spawnGoodStuffTut.LiveAtom != null);
             for (int i = 0; i < 600; i++) power.SendMessage("Update");
             Check("armed: time alone never fires it", power.UltimatesFired == 0);
 
-            for (int i = 0; i < TutorialScript.PowerAtoms; i++)
-            {
-                Check("atom " + (i + 1) + " of " + TutorialScript.PowerAtoms + ": not fired yet", power.UltimatesFired == 0);
-                power.ReduceTimer(power.secondsPerAtom);
-                power.SendMessage("Update");
-            }
-            Check("after exactly " + TutorialScript.PowerAtoms + " atoms the weapon goes off once (" + power.UltimatesFired + ")",
-                  power.UltimatesFired == 1);
+            Check("before the atom: not fired yet", power.UltimatesFired == 0);
+            string word = power.CollectCooldownAtom();   // what collisionDetection does on the violet atom
+            power.SendMessage("Update");
+            Check("the one violet atom charges it and the weapon goes off once (" + word + ", " + power.UltimatesFired + ")",
+                  power.UltimatesFired == 1 && word == ShipPowerController.WeaponChargedLabel);
         }
         finally
         {
@@ -595,8 +594,7 @@ public static class TutorialRobotTest
         var panel = TutorialCompletePanel.PanelRect;
         var inner = new Rect(panel.xMin + 16f, panel.yMin + 16f, panel.width - 32f, panel.height - 32f);
         var rows = new[] { TutorialCompletePanel.HeaderRect, TutorialCompletePanel.DividerRect,
-                           TutorialCompletePanel.CardRects[0], TutorialCompletePanel.CardRects[1],
-                           TutorialCompletePanel.FooterRect, TutorialCompletePanel.PlayRect, TutorialCompletePanel.MenuRect };
+                           TutorialCompletePanel.LiftOffRect, TutorialCompletePanel.HomeRect };
         bool insideAll = true, noOverlap = true;
         for (int i = 0; i < rows.Length; i++)
         {
@@ -625,20 +623,20 @@ public static class TutorialRobotTest
         }
 
         EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
-        var view = TutorialCompletePanel.Show(3.5f, score.RealRunPauses);
+        var view = TutorialCompletePanel.Show();
         Check("end card builds in tutorialS5", view != null);
         if (view == null) return;
         view.Skip();
 
         var play = SceneUtil.FindAny(TutorialCompletePanel.PlayButtonName);
         var menu = SceneUtil.FindAny(TutorialCompletePanel.MenuButtonName);
-        Check("PLAY is the scene's own button, moved into the card",
-              play != null && play.transform.IsChildOf(view.PlaySlot));
-        Check("MENU is the scene's own button, moved into the card",
-              menu != null && menu.transform.IsChildOf(view.MenuSlot));
-        Check("PLAY still calls tutButtonClicks.replay", Wired(play, "replay"));
-        Check("MENU still calls tutButtonClicks.mainMenuButton", Wired(menu, "mainMenuButton"));
-        Check("PLAY is visible and clickable", play != null && play.activeInHierarchy && play.GetComponent<Button>().interactable);
+        Check("LIFT OFF is the scene's own button, moved into the card",
+              play != null && play.transform.IsChildOf(view.LiftOffSlot));
+        Check("HOME is the scene's own button, moved into the card",
+              menu != null && menu.transform.IsChildOf(view.HomeSlot));
+        Check("LIFT OFF calls tutButtonClicks.replay (the portal lift-off)", Wired(play, "replay"));
+        Check("HOME calls tutButtonClicks.mainMenuButton", Wired(menu, "mainMenuButton"));
+        Check("LIFT OFF is visible and clickable", play != null && play.activeInHierarchy && play.GetComponent<Button>().interactable);
         var legacy = SceneUtil.FindAny(TutorialCompletePanel.LegacyDialogName);
         Check("the old \"End of tutorial\" dialog is switched off", legacy == null || !legacy.activeSelf);
         Check("intro settles", view.IntroFinished);

@@ -132,6 +132,34 @@ public class PortalArrival : MonoBehaviour
     public SpriteRenderer WaveRenderer { get { return wave; } }
 
     // WorldEntry: the portal opens at the ship's start. Null: no ship.
+    // The same gateway played backwards: it opens ahead of the ship, the ship
+    // flies into it (shrinking away) and it closes. How the tutorial's LIFT
+    // OFF leaves for the first level (TutorialLiftOff); the run then begins
+    // with the usual arrival. It is driven from outside (Step) and takes
+    // no part in the run-start hand-off (Live / Active stay untouched).
+    public static PortalArrival SpawnDeparture(Transform shipTransform, Color portalColor, Vector3 portalAt)
+    {
+        if (shipTransform == null) return null;
+        var go = new GameObject("~PortalDeparture");
+        var p = go.AddComponent<PortalArrival>();
+        p.departing = true;
+        p.ship = shipTransform;
+        p.color = portalColor;
+        p.cam = Camera.main;
+        p.shipScale0 = shipTransform.localScale;
+        p.shipFrom = shipTransform.position;
+        p.centre = portalAt;
+        go.transform.position = p.centre;
+        p.Build();
+        p.Lift(true);
+        p.Apply();
+        return p;
+    }
+
+    bool departing;
+    Vector3 shipFrom;
+    public bool Departing { get { return departing; } }
+
     public static PortalArrival Spawn(Transform shipTransform, Color portalColor)
     {
         if (shipTransform == null) return null;
@@ -195,7 +223,7 @@ public class PortalArrival : MonoBehaviour
     void Update()
     {
         // Only while the world is actually moving: a paused game holds it.
-        if (WorldManager.Flying) Step(Time.deltaTime);
+        if (!departing && WorldManager.Flying) Step(Time.deltaTime);
     }
 
     // One running frame. Public so edit-mode tests and the preview can step
@@ -211,7 +239,7 @@ public class PortalArrival : MonoBehaviour
     void Apply()
     {
         if (cam == null) cam = Camera.main;
-        float tl = t;
+        float tl = departing ? PortalArrivalTimeline.Seconds - t : t;
         float scale = PortalArrivalTimeline.PortalScale(tl);
         float alpha = PortalArrivalTimeline.PortalAlpha(tl);
         float spin = tl * 90f;
@@ -252,7 +280,7 @@ public class PortalArrival : MonoBehaviour
         if (ship != null)
         {
             float e = PortalArrivalTimeline.Emerge01(tl);
-            Vector3 to = Planetfall.HandBack(cam, ViewCentre(), Vector3.zero, ship.position.z);
+            Vector3 to = departing ? shipFrom : Planetfall.HandBack(cam, ViewCentre(), Vector3.zero, ship.position.z);
             ship.position = Vector3.Lerp(centre + new Vector3(0f, EmergeRise, 0f), to, e);
             ship.localScale = shipScale0 * PortalArrivalTimeline.ShipScale(tl);
         }
@@ -262,6 +290,14 @@ public class PortalArrival : MonoBehaviour
     void Finish()
     {
         state = Stage.Done;
+        if (departing)
+        {
+            // the ship went in: it stays gone, the scene is about to change
+            if (ship != null) ship.localScale = shipScale0 * PortalArrivalTimeline.ShipFromScale * .5f;
+            Lift(false);
+            BossUtil.Kill(gameObject);
+            return;
+        }
         if (ship != null)
         {
             ship.localScale = shipScale0;

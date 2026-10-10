@@ -54,7 +54,7 @@ public static class TutorialAtomFlowTest
         Debug.Log("[TAF] view y " + bottom + " .. " + top);
         Check("the old spawn point is above the view (why atoms got stuck)", spawner.transform.position.y > top);
 
-        foreach (var kind in new[] { TutorialAtom.Green, TutorialAtom.Blue, TutorialAtom.Red })
+        foreach (var kind in new[] { TutorialAtom.Green, TutorialAtom.Blue, TutorialAtom.Red, TutorialAtom.Cooldown })
         {
             // The ship in its usual low lane, and up high / at the very bottom.
             foreach (float shipY in new[] { shipStart.y, -3f, -4.15f, 2f })
@@ -68,8 +68,7 @@ public static class TutorialAtomFlowTest
 
         DriftsTowardTheShip(spawner, ship);
         WorldSpeedNeverSlowsItBelowTheFloor(spawner);
-        KeepsComingUntilCaught(spawner);
-        ChargeAtomsTakeTurns(spawner);
+        NoAtomRespawns(spawner);
         TheAlienDropsThroughTheShipsLane(ship);
         TeleportingOntoTheAlienErasesIt(ship);
         RealGameAtomsUnchanged();
@@ -83,12 +82,9 @@ public static class TutorialAtomFlowTest
         return fails;
     }
 
-    static readonly MethodInfo SpawnAtom =
-        typeof(spawnGoodStuffTut).GetMethod("spawnAtom", BindingFlags.Instance | BindingFlags.NonPublic);
-
     static TutorialAtomDrift Spawn(spawnGoodStuffTut spawner, TutorialAtom kind)
     {
-        SpawnAtom.Invoke(spawner, new object[] { kind });
+        spawner.SpawnIntro(kind);
         var live = spawnGoodStuffTut.LiveAtom;
         return live != null ? live.GetComponent<TutorialAtomDrift>() : null;
     }
@@ -208,61 +204,26 @@ public static class TutorialAtomFlowTest
         moveBackGround.speed = 0f;
     }
 
-    static void KeepsComingUntilCaught(spawnGoodStuffTut spawner)
+    // Each atom is introduced once: the spawner never brings another by
+    // itself, however long the world runs and whatever is caught or missed.
+    static void NoAtomRespawns(spawnGoodStuffTut spawner)
     {
         var spawn = typeof(spawnGoodStuffTut).GetMethod("spawn", BindingFlags.Instance | BindingFlags.NonPublic);
-        var delay = typeof(spawnGoodStuffTut).GetField("atomDelay", BindingFlags.Static | BindingFlags.NonPublic);
         spawnGoodStuffTut.smStarTimer = 1000f;
         spawnGoodStuffTut.midStarTimer = 1000f;
-        spawnGoodStuffTut.keepAtomComing = TutorialAtom.Green;
-
-        delay.SetValue(null, 0f);
-        spawn.Invoke(spawner, null);
+        spawner.SendMessage("Start");
+        spawner.SpawnIntro(TutorialAtom.Green);
         var first = spawnGoodStuffTut.LiveAtom;
         Check("an atom step spawns its atom", first != null && first.GetComponent<TutorialAtomDrift>() != null);
-
-        delay.SetValue(null, 0f);
-        spawn.Invoke(spawner, null);
-        Check("only one at a time while it is still uncaught", spawnGoodStuffTut.LiveAtom == first);
-
+        int total = spawnGoodStuffTut.SpawnedTotal;
+        for (int i = 0; i < 600; i++) spawn.Invoke(spawner, null);
+        Check("nothing else spawns while it waits", spawnGoodStuffTut.SpawnedTotal == total && spawnGoodStuffTut.LiveAtom == first);
         if (first != null) Object.DestroyImmediate(first.gameObject);   // caught
-        delay.SetValue(null, 0f);
-        spawn.Invoke(spawner, null);
-        var second = spawnGoodStuffTut.LiveAtom;
-        Check("a new one drops in after the last is caught", second != null && second != first
-              && second.GetComponent<TutorialAtomDrift>() != null);
-        if (second != null) Object.DestroyImmediate(second.gameObject);
-        spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
-    }
-
-    // The power step keeps green and blue atoms coming in turn, quicker after
-    // each catch than a single-atom step, until the weapon goes off.
-    static void ChargeAtomsTakeTurns(spawnGoodStuffTut spawner)
-    {
-        var spawn = typeof(spawnGoodStuffTut).GetMethod("spawn", BindingFlags.Instance | BindingFlags.NonPublic);
-        var delay = typeof(spawnGoodStuffTut).GetField("atomDelay", BindingFlags.Static | BindingFlags.NonPublic);
-        spawnGoodStuffTut.smStarTimer = 1000f;
-        spawnGoodStuffTut.midStarTimer = 1000f;
-        spawnGoodStuffTut.keepAtomComing = Hints.AtomFor(TutorialCue.SpawnChargeAtoms);
-        Check("the power step's cue asks for charge atoms", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Charge);
-
-        int green = 0, blue = 0, other = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            delay.SetValue(null, 0f);
-            spawn.Invoke(spawner, null);
-            var live = spawnGoodStuffTut.LiveAtom;
-            if (live == null) { other++; continue; }
-            if (PrefabName.Is(live.gameObject, HealAtom.ObjectName)) green++;
-            else if (PrefabName.Is(live.gameObject, "atom3a")) blue++;
-            else other++;
-            Check("charge atom " + (i + 1) + " flows down to the ship (TutorialAtomDrift)", live.GetComponent<TutorialAtomDrift>() != null);
-            Check("the next charge atom follows the catch after " + spawnGoodStuffTut.ChargeRespawnSeconds + " s",
-                  Mathf.Approximately((float)delay.GetValue(null), spawnGoodStuffTut.ChargeRespawnSeconds));
-            Object.DestroyImmediate(live.gameObject);   // caught
-        }
-        Check("charge atoms alternate green and blue (" + green + " green, " + blue + " blue, " + other + " other)",
-              green == 2 && blue == 2 && other == 0);
+        for (int i = 0; i < 600; i++) spawn.Invoke(spawner, null);
+        Check("and no new atom drops in after it is caught", spawnGoodStuffTut.SpawnedTotal == total && spawnGoodStuffTut.LiveAtom == null);
+        spawner.SpawnIntro(TutorialAtom.Blue);
+        spawnGoodStuffTut.RemoveLiveAtom();
+        Check("an atom still out when its step ends is removed", spawnGoodStuffTut.LiveAtom == null);
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
     }
 

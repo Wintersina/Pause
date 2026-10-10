@@ -5,6 +5,8 @@ using UnityEngine.UI;
 //
 //  - a pulsing "touch here" ring in the lower middle of the screen, shown only
 //    while the world is frozen and the step wants a finger down;
+//  - one small arrow above every star-dust piece on screen (PointAtStars),
+//    the same chevrons the atoms get on an amber glow, gone with the piece;
 //  - a sodium-orange double-chevron hint arrow that points at a HUD readout (another
 //    canvas's Text) or at something in the world (the red atom), bobbing
 //    toward it.
@@ -26,6 +28,13 @@ public class TutorialGuides : MonoBehaviour
     Image touchDot;
     RectTransform arrow;
     Image arrowImage;
+
+    // One arrow (and amber glow) per star-dust piece on screen, pooled.
+    public const int MaxStarArrows = 16;
+    readonly System.Collections.Generic.List<Image> starArrows = new System.Collections.Generic.List<Image>();
+    readonly System.Collections.Generic.List<Image> starGlows = new System.Collections.Generic.List<Image>();
+    System.Collections.Generic.IReadOnlyList<Transform> stars;
+    int starArrowsShown;
 
     bool touchWanted;
     float touchAlpha, arrowAlpha;
@@ -95,10 +104,22 @@ public class TutorialGuides : MonoBehaviour
         worldTarget = null;
     }
 
+    // Arrows over every star-dust piece in `live` (null stops them). The list
+    // is read each frame, so pieces that are collected or leave the screen
+    // lose their arrow by themselves.
+    public void PointAtStars(System.Collections.Generic.IReadOnlyList<Transform> live)
+    {
+        stars = live;
+    }
+
+    // How many star arrows are showing right now (tests).
+    public int StarArrowsShown { get { return starArrowsShown; } }
+
     public void Clear()
     {
         ShowTouch(false);
         ClearArrow();
+        stars = null;
     }
 
     void Update()
@@ -122,6 +143,67 @@ public class TutorialGuides : MonoBehaviour
             arrow.localRotation = Quaternion.Euler(0f, 0f, angle);
         }
         Apply(now, touchAlpha);
+        UpdateStarArrows(now);
+    }
+
+    void UpdateStarArrows(float now)
+    {
+        int shown = 0;
+        if (stars != null)
+        {
+            float bob = (Mathf.FloorToInt(now / RobotSpeaker.SlowStep) & 1) * 8f;
+            for (int i = 0; i < stars.Count && shown < MaxStarArrows; i++)
+            {
+                var t = stars[i];
+                if (t == null) continue;
+                Vector2 tip;
+                if (!WorldTip(t, out tip)) continue;
+                while (starArrows.Count <= shown) AddStarArrow();
+                var glow = starGlows[shown];
+                var img = starArrows[shown];
+                const float size = ArrowSize * .7f;
+                // tip pointing down at the piece, like the atoms' arrow
+                var centre = tip + Vector2.up * (ArrowGap * .6f + bob + size * .5f);
+                img.rectTransform.anchoredPosition = centre;
+                glow.rectTransform.anchoredPosition = centre;
+                SetAlpha(img, 1f);
+                SetAlpha(glow, .85f);
+                shown++;
+            }
+        }
+        for (int i = shown; i < starArrows.Count; i++)
+        {
+            SetAlpha(starArrows[i], 0f);
+            SetAlpha(starGlows[i], 0f);
+        }
+        starArrowsShown = shown;
+    }
+
+    void AddStarArrow()
+    {
+        const float size = ArrowSize * .7f;
+        var glow = NewImage("StarGlow", root, Resources.Load<Sprite>("Tutorial/tut_glow"), new Color(1f, .72f, .24f, 0f));
+        glow.rectTransform.sizeDelta = new Vector2(size * 1.9f, size * 1.9f);
+        var arrowImg = NewImage("StarArrow", root, Resources.Load<Sprite>("Tutorial/tut_arrow"), new Color(1f, 1f, 1f, 0f));
+        arrowImg.rectTransform.sizeDelta = new Vector2(size, size);
+        arrowImg.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 180f);   // art points up; these point down at the dust
+        starGlows.Add(glow);
+        starArrows.Add(arrowImg);
+        // under the robot and its bubble, over the other guides' backing
+        glow.rectTransform.SetSiblingIndex(1);
+        arrowImg.rectTransform.SetSiblingIndex(2);
+    }
+
+    // Canvas-local point just above a world object, if it is on screen.
+    bool WorldTip(Transform target, out Vector2 local)
+    {
+        local = Vector2.zero;
+        var cam = Camera.main;
+        if (cam == null) return false;
+        Vector3 sp = cam.WorldToScreenPoint(target.position);
+        if (sp.z < 0f || sp.y > ScreenInfo.Height || sp.y < 0f || sp.x < 0f || sp.x > ScreenInfo.Width) return false;
+        var screen = new Vector2(sp.x, sp.y + 28f * Mathf.Max(.0001f, ScaleFactor()));
+        return RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, null, out local);
     }
 
     void Apply(float now, float tAlpha)

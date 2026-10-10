@@ -2,84 +2,74 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// The end-of-tutorial card. Same layout grammar as the Flight Complete panel
-// (DeathPanelView): header, divider, accent stat cards and two equal-width
-// buttons, built on its own root and fitted to the safe area below the
-// quick actions. Drawn in the tutorial's low-res cyberpunk pixel style (navy
-// panels with cyan edges and corner brackets, ink outlines, TutorialPalette) with limited
-// animation: held poses that snap on whole steps.
+// The end-of-tutorial card: "TUTORIAL COMPLETE" and two choices, LIFT OFF
+// (into the game, through the portal: TutorialLiftOff) and HOME. Nothing else.
 //
-// It replaces the scene's grey "End of tutorial" dialog (Model Panel, which
-// still pointed players at an OPTIONS menu that no longer exists) and the
-// loose blue "CONTINUE TO GAME" button TutorialFinishContinue used to float
-// over it. Like DeathPanelView it moves the scene's own buttons into the new
+// It is the Flight Complete panel's smaller sibling (DeathPanelView): the same
+// frame (dp_panel), red title slab, divider, button plates and glow, the same
+// Akira palette (docs/art-style.md), HUD font, button size, safe-area fit and
+// pop-in on whole steps -- built on its own root under the scene's
+// PopUpCanvas. Like DeathPanelView it moves the scene's own buttons into the
 // panel, so their persistent onClick wiring (tutButtonClicks.replay and
-// tutButtonClicks.mainMenuButton) is untouched, then switches the old dialog
+// tutButtonClicks.mainMenuButton) is untouched, and switches the old dialog
 // off.
 public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 {
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
 
-    public const float Width = 680f, Height = 600f;
-    public const float FrameMargin = 6f;      // tut_bubble's drop shadow outside the body
-    public const float CardWidth = 600f;
-    public const float ButtonWidth = 288f, ButtonHeight = 100f;
-    const float LabelLeft = -CardWidth * .5f + 44f;
-    const float ValueRight = CardWidth * .5f - 28f;
+    public const float Width = 680f, Height = 340f;
+    public const float FrameMargin = DeathPanelView.GlowMargin;   // the frame's glow outside the body
+    public const float ButtonWidth = DeathPanelView.ButtonWidth, ButtonHeight = DeathPanelView.ButtonHeight;
 
-    public static readonly Rect HeaderRect = Centered(0f, 236f, 600f, 56f);
-    public static readonly Rect DividerRect = Centered(0f, 196f, 440f, 6f);
-    public static readonly Rect[] CardRects =
-    {
-        Centered(0f, 110f, CardWidth, 112f),   // practice star dust
-        Centered(0f, -14f, CardWidth, 112f),   // pauses in a real run
-    };
-    public static readonly Rect FooterRect = Centered(0f, -104f, 600f, 40f);
-    public static readonly Rect PlayRect = Centered(-156f, -214f, ButtonWidth, ButtonHeight);
-    public static readonly Rect MenuRect = Centered(156f, -214f, ButtonWidth, ButtonHeight);
+    public static readonly Rect HeaderRect = Centered(0f, 116f, 600f, 56f);
+    public static readonly Rect DividerRect = Centered(0f, 70f, 440f, 16f);
+    public static readonly Rect LiftOffRect = Centered(-156f, -92f, ButtonWidth, ButtonHeight);
+    public static readonly Rect HomeRect = Centered(156f, -92f, ButtonWidth, ButtonHeight);
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }
 
     public const string PlayButtonName = "playMainGameButton";
     public const string MenuButtonName = "MainMenuButton";
     public const string LegacyDialogName = "Model Panel";
+    public const string TitleText = "TUTORIAL COMPLETE", LiftOffText = "LIFT OFF", HomeText = "HOME";
 
     // ---- Timeline (unscaled seconds since shown), in whole steps ----
 
     const float Step = RobotSpeaker.Step;
-    public const float IntroDuration = 14f * Step;
-    const int CardStep = 3, CardStagger = 1, FooterStep = 6, ButtonStep = 7, ButtonStagger = 1;
-    const int DustCountFrom = 4, DustCountSteps = 6;
+    public const float IntroDuration = 8f * Step;
+    const int DividerStep = 1, ButtonStep = 3, ButtonStagger = 1;
 
-    static readonly Color Accent = TutorialPalette.Orange;
+    static readonly Color Cyan = AkiraPalette.Cyan;
+    static readonly Color Coral = AkiraPalette.Red;
+    static readonly Color Gold = AkiraPalette.Amber;
+    static readonly Color Ink = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
+    static readonly Color Bone = AkiraPalette.Bone;
+    const string SpriteRoot = "DeathPanel/";
 
-    float practiceDust;
-    int realRunPauses;
     Font font;
     RectTransform panel;
-    Image scrim;
-    RectTransform divider;
+    CanvasGroup panelGroup;
+    Image scrim, divider, slab;
     readonly RectTransform[] sparkles = new RectTransform[2];
-    readonly RectTransform[] cards = new RectTransform[2];
-    readonly CanvasGroup[] cardGroups = new CanvasGroup[2];
-    Text dustValue;
-    CanvasGroup footer;
     readonly RectTransform[] buttonSlots = new RectTransform[2];
     readonly CanvasGroup[] buttonGroups = new CanvasGroup[2];
-    CanvasGroup panelGroup;
+    readonly Image[] buttonGlows = new Image[2];
+    readonly Text[] buttonLabels = new Text[2];
 
     float startedAt = -1f;
     bool finalApplied;
     float fitScale = 1f;
     int lastScreenW, lastScreenH;
-    int shownDustCents = -1;
 
     public RectTransform Panel { get { return panel; } }
-    public RectTransform PlaySlot { get { return buttonSlots[0]; } }
-    public RectTransform MenuSlot { get { return buttonSlots[1]; } }
+    public RectTransform LiftOffSlot { get { return buttonSlots[0]; } }
+    public RectTransform HomeSlot { get { return buttonSlots[1]; } }
     public bool IntroFinished { get { return finalApplied; } }
+    public string LiftOffLabel { get { return buttonLabels[0] != null ? buttonLabels[0].text : null; } }
+    public string HomeLabel { get { return buttonLabels[1] != null ? buttonLabels[1].text : null; } }
+    public string TitleLabel { get { var t = panel != null ? panel.Find("Title") : null; return t != null ? t.GetComponent<Text>().text : null; } }
 
     // Builds the panel under the scene's PopUpCanvas. Safe to call twice.
-    public static TutorialCompletePanel Show(float practiceDust, int realRunPauses)
+    public static TutorialCompletePanel Show()
     {
         var canvasGo = SceneUtil.FindAny("PopUpCanvas");
         if (canvasGo == null) return null;
@@ -89,18 +79,16 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
         var playGo = SceneUtil.FindAny(PlayButtonName);
         var menuGo = SceneUtil.FindAny(MenuButtonName);
-        // The HUD's Orbitron (the dialog's own button labels use the legacy
-        // default font).
+        // The HUD's Orbitron (the dialog's own button labels use the legacy default font).
         var hud = Object.FindFirstObjectByType<score>();
         Font font = hud != null && hud.speedValue != null ? hud.speedValue.font : null;
         return Build(canvasGo.transform,
                      playGo != null ? playGo.GetComponent<Button>() : null,
                      menuGo != null ? menuGo.GetComponent<Button>() : null,
-                     font, practiceDust, realRunPauses);
+                     font);
     }
 
-    public static TutorialCompletePanel Build(Transform canvasRoot, Button play, Button menu, Font font,
-                                              float practiceDust, int realRunPauses)
+    public static TutorialCompletePanel Build(Transform canvasRoot, Button liftOff, Button home, Font font)
     {
         var root = new GameObject("TutorialComplete", typeof(RectTransform));
         root.transform.SetParent(canvasRoot, false);
@@ -110,17 +98,14 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         root.transform.SetAsLastSibling();
 
         var view = root.AddComponent<TutorialCompletePanel>();
-        view.practiceDust = practiceDust;
-        view.realRunPauses = realRunPauses;
         view.font = font != null ? font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         var legacy = canvasRoot.Find(LegacyDialogName);
 
         view.BuildScrim(rootRt);
-        view.BuildPanel();
+        view.BuildPanel(rootRt);
         view.BuildHeader();
-        view.BuildCards();
-        view.BuildButtons(play, menu);
+        view.BuildButtons(liftOff, home);
 
         if (legacy != null) legacy.gameObject.SetActive(false);
         view.ApplyAt(0f);
@@ -129,20 +114,20 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void BuildScrim(RectTransform root)
     {
-        scrim = NewImage("Scrim", root, null, new Color(TutorialPalette.Night.r, TutorialPalette.Night.g, TutorialPalette.Night.b, 0f));
+        scrim = NewImage("Scrim", root, null, AkiraPalette.WithAlpha(AkiraPalette.Night0, 0f));
         Stretch(scrim.rectTransform);
         scrim.raycastTarget = true;   // blocks the frozen game; a tap skips the intro
     }
 
-    void BuildPanel()
+    void BuildPanel(RectTransform root)
     {
         var go = new GameObject("Panel", typeof(RectTransform), typeof(CanvasGroup));
-        go.transform.SetParent(transform, false);
+        go.transform.SetParent(root, false);
         panel = (RectTransform)go.transform;
         Place(panel, PanelRect);
         panelGroup = go.GetComponent<CanvasGroup>();
 
-        var frame = NewImage("Frame", panel, Load("tut_bubble"), Color.white);
+        var frame = NewImage("Frame", panel, Load("dp_panel"), Color.white);
         frame.type = Image.Type.Sliced;
         frame.raycastTarget = true;
         var r = PanelRect;
@@ -152,75 +137,46 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
     void BuildHeader()
     {
-        var title = NewText("Title", panel, "TUTORIAL COMPLETE", 40, Accent, TextAnchor.MiddleCenter);
+        // The Akira title-card stripe: a red slab behind the heading.
+        slab = NewImage("TitleSlab", panel, Load("dp_slab"), Color.white);
+        Place(slab.rectTransform, Centered(0f, HeaderRect.center.y + 2f, 640f, 88f));
+
+        var title = NewText("Title", panel, TitleText, 40, Bone, TextAnchor.MiddleCenter);
         Place(title.rectTransform, HeaderRect);
-        AddOutline(title.gameObject, TutorialPalette.Ink, 3f);
+        AddOutline(title.gameObject, Ink, 2f);
 
         float half = Mathf.Min(title.preferredWidth, HeaderRect.width - 80f) * .5f + 28f;
         for (int i = 0; i < 2; i++)
         {
-            var spark = NewImage(i == 0 ? "SparkLeft" : "SparkRight", panel, Load("tut_glow"), TutorialPalette.Red);
-            Place(spark.rectTransform, Centered(i == 0 ? -half : half, HeaderRect.center.y, 30f, 30f));
-            sparkles[i] = spark.rectTransform;
+            var sparkle = NewImage(i == 0 ? "SparkleLeft" : "SparkleRight", panel, Load("dp_sparkle"), Gold);
+            Place(sparkle.rectTransform, Centered(i == 0 ? -half : half, HeaderRect.center.y, 30f, 30f));
+            sparkles[i] = sparkle.rectTransform;
         }
 
-        // A flat orange rule with an ink edge.
-        var rule = NewImage("Divider", panel, null, Accent);
-        Place(rule.rectTransform, DividerRect);
-        AddOutline(rule.gameObject, TutorialPalette.Ink, 2f);
-        divider = rule.rectTransform;
+        divider = NewImage("Divider", panel, Load("dp_divider"), Color.white);
+        divider.preserveAspect = true;
+        Place(divider.rectTransform, DividerRect);
     }
 
-    void BuildCards()
+    void BuildButtons(Button liftOff, Button home)
     {
-        Text pausesValue;
-        cards[0] = BuildCard(0, "STAR DUST", "PRACTICE, NOT SAVED", TutorialPalette.Orange, out dustValue);
-        cards[1] = BuildCard(1, "PAUSES", "PER REAL RUN", TutorialPalette.Cyan, out pausesValue);
-        pausesValue.text = realRunPauses.ToString();
-
-        var footerText = NewText("Footer", panel, "Replay this anytime from the leaderboard.", 20, TutorialPalette.Muted, TextAnchor.MiddleCenter);
-        Place(footerText.rectTransform, FooterRect);
-        footer = footerText.gameObject.AddComponent<CanvasGroup>();
-    }
-
-    RectTransform BuildCard(int index, string label, string sub, Color accent, out Text value)
-    {
-        var go = new GameObject("Card" + index, typeof(RectTransform), typeof(CanvasGroup));
-        go.transform.SetParent(panel, false);
-        var card = (RectTransform)go.transform;
-        Place(card, CardRects[index]);
-        cardGroups[index] = go.GetComponent<CanvasGroup>();
-
-        var bg = NewImage("Background", card, Load("tut_card"), Color.white);   // pixel HUD card, accent is the label
-        bg.type = Image.Type.Sliced;
-        Stretch(bg.rectTransform);
-
-        var title = NewText("Label", card, label, 26, accent, TextAnchor.MiddleLeft);
-        Place(title.rectTransform, Centered(LabelLeft + 150f, 18f, 300f, 36f));
-        AddOutline(title.gameObject, TutorialPalette.Ink, 2f);
-        var subText = NewText("Sub", card, sub, 18, TutorialPalette.Muted, TextAnchor.MiddleLeft);
-        Place(subText.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
-
-        value = NewText("Value", card, "", 56, TutorialPalette.Paper, TextAnchor.MiddleRight);
-        Place(value.rectTransform, Centered(ValueRight - 130f, 0f, 260f, 80f));
-        AddOutline(value.gameObject, TutorialPalette.Ink, 3f);
-        return card;
-    }
-
-    void BuildButtons(Button play, Button menu)
-    {
-        // PLAY is the hero action: amber label. MENU is secondary: paper label.
-        buttonSlots[0] = BuildButton(0, play, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), "PLAY", TutorialPalette.Orange, PlayRect);
-        buttonSlots[1] = BuildButton(1, menu, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), "MENU", TutorialPalette.Paper, MenuRect);
+        // LIFT OFF goes on (the play glyph, cyan); HOME leaves (the home glyph, red), as MENU does on Flight Complete.
+        buttonSlots[0] = BuildButton(0, liftOff, Resources.Load<Sprite>("QuickActions/QuickAction_play" + DeathPanelView.GlyphSuffix), LiftOffText, Cyan, LiftOffRect);
+        buttonSlots[1] = BuildButton(1, home, Resources.Load<Sprite>(PauseQuickActions.HomeIconPath + DeathPanelView.GlyphSuffix), HomeText, Coral, HomeRect);
     }
 
     RectTransform BuildButton(int index, Button button, Sprite glyph, string label, Color accent, Rect rect)
     {
-        var slotGo = new GameObject(label == "PLAY" ? "PlaySlot" : "MenuSlot", typeof(RectTransform), typeof(CanvasGroup));
+        var slotGo = new GameObject(index == 0 ? "LiftOffSlot" : "HomeSlot", typeof(RectTransform), typeof(CanvasGroup));
         slotGo.transform.SetParent(panel, false);
         var slot = (RectTransform)slotGo.transform;
         Place(slot, rect);
         buttonGroups[index] = slotGo.GetComponent<CanvasGroup>();
+
+        var glow = NewImage("Glow", slot, Load("dp_glow"), new Color(accent.r, accent.g, accent.b, 0f));
+        glow.type = Image.Type.Sliced;
+        Place(glow.rectTransform, Centered(0f, 0f, rect.width + 40f, rect.height + 40f));
+        buttonGlows[index] = glow;
 
         if (button == null) return slot;
 
@@ -235,30 +191,28 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         foreach (var le in button.GetComponents<LayoutElement>()) le.ignoreLayout = true;
         button.gameObject.SetActive(true);
         button.interactable = true;
-        button.transition = Selectable.Transition.None;
+        button.transition = Selectable.Transition.None;   // press feedback is DeathPanelPress
 
         var frame = button.GetComponent<Image>();
         if (frame != null)
         {
-            frame.sprite = Load("tut_button");
+            frame.sprite = Load("dp_button");
             frame.type = Image.Type.Sliced;
             frame.preserveAspect = false;
-            frame.color = Color.white;   // pixel plate; the label carries the colour
+            frame.color = accent;
             frame.raycastTarget = true;
             button.targetGraphic = frame;
-            // The scene buttons used a colour-tint transition whose normal
-            // colour is transparent; an inactive button keeps that tint on
-            // its renderer even after the transition is switched off.
+            // the scene buttons' tint transition left a transparent colour on the renderer
             frame.canvasRenderer.SetColor(Color.white);
         }
 
         var text = button.GetComponentInChildren<Text>(true);
-        if (text == null) text = NewText("Label", rt, label, 28, TutorialPalette.Paper, TextAnchor.MiddleLeft);
+        if (text == null) text = NewText("Label", rt, label, 28, Bone, TextAnchor.MiddleLeft);
         text.text = label;
         text.font = font;
         text.fontSize = 28;
         text.fontStyle = FontStyle.Bold;
-        text.color = accent;   // the plates are identical: PLAY reads amber, MENU paper
+        text.color = Bone;
         text.alignment = TextAnchor.MiddleLeft;
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -266,21 +220,22 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
         text.raycastTarget = false;
         text.gameObject.SetActive(true);
         foreach (var le in text.GetComponents<LayoutElement>()) le.ignoreLayout = true;
-        AddOutline(text.gameObject, TutorialPalette.Ink, 2f);
+        AddOutline(text.gameObject, Ink, 1.5f);
+        buttonLabels[index] = text;
 
         const float iconSize = 40f, gap = 14f;
         float textWidth = Mathf.Ceil(text.preferredWidth);
-        float group = textWidth + (glyph != null ? iconSize + gap : 0f);
+        bool showIcon = glyph != null;
+        float group = textWidth + (showIcon ? iconSize + gap : 0f);
         float x = -group * .5f;
-        if (glyph != null)
+        if (showIcon)
         {
             var icon = NewImage("Icon", rt, glyph, Color.white);
             icon.preserveAspect = true;
-            Place(icon.rectTransform, Centered(x + iconSize * .5f, 4f, iconSize, iconSize));
+            Place(icon.rectTransform, Centered(x + iconSize * .5f, 0f, iconSize, iconSize));
             x += iconSize + gap;
         }
-        // Nudged up a little: the button art's bottom band is its shade.
-        Place(text.rectTransform, new Rect(x, -20f, textWidth + 4f, 48f));
+        Place(text.rectTransform, new Rect(x, -24f, textWidth + 4f, 48f));
 
         var press = button.GetComponent<DeathPanelPress>() ?? button.gameObject.AddComponent<DeathPanelPress>();
         press.target = rt;
@@ -328,29 +283,14 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     {
         SetAlpha(scrim, k <= 0 ? .3f : .55f);
         panelGroup.alpha = 1f;
-        float pop = k <= 0 ? .8f : k == 1 ? 1.06f : 1f;
+        float pop = k <= 0 ? .86f : k == 1 ? 1.04f : 1f;
         panel.localScale = Vector3.one * (fitScale * pop);
 
-        var d = divider.localScale;
-        d.x = k < 1 ? 0f : k == 1 ? .4f : k == 2 ? .8f : 1f;
-        divider.localScale = d;
-
-        for (int i = 0; i < cards.Length; i++)
-        {
-            int c = k - (CardStep + i * CardStagger);
-            cardGroups[i].alpha = c < 0 ? 0f : 1f;
-            float slide = c < 0 ? 48f : c == 0 ? 20f : c == 1 ? -4f : 0f;
-            cards[i].anchoredPosition = CardRects[i].center + new Vector2(slide, 0f);
-        }
-        footer.alpha = k < FooterStep ? 0f : 1f;
-
-        float p = Mathf.Clamp01((k - DustCountFrom) / (float)DustCountSteps);
-        int cents = Mathf.RoundToInt(practiceDust * p * 100f);
-        if (cents != shownDustCents)
-        {
-            shownDustCents = cents;
-            dustValue.text = "+" + (cents / 100f).ToString("F2");
-        }
+        float slabScale = k < 0 ? 0f : k == 0 ? .5f : 1f;
+        slab.rectTransform.localScale = new Vector3(slabScale, 1f, 1f);
+        var d = divider.rectTransform.localScale;
+        d.x = k < DividerStep ? 0f : k == DividerStep ? .5f : 1f;
+        divider.rectTransform.localScale = d;
 
         for (int i = 0; i < 2; i++)
         {
@@ -358,13 +298,16 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
             buttonGroups[i].alpha = b < 0 ? 0f : 1f;
             buttonGroups[i].interactable = b >= 0;
             float drop = b < 0 ? -24f : b == 0 ? 6f : 0f;
-            buttonSlots[i].anchoredPosition = (i == 0 ? PlayRect : MenuRect).center + new Vector2(0f, drop);
+            buttonSlots[i].anchoredPosition = (i == 0 ? LiftOffRect : HomeRect).center + new Vector2(0f, drop);
+            var gc = buttonGlows[i].color;
+            gc.a = b < 0 ? 0f : .35f;
+            buttonGlows[i].color = gc;
         }
     }
 
     void AnimateIdle(int slowStep)
     {
-        // Header sparks alternate between two held sizes.
+        // Header sparkles alternate between two held sizes.
         bool big = (slowStep & 2) == 0;
         sparkles[0].localScale = Vector3.one * (big ? 1.15f : .85f);
         sparkles[1].localScale = Vector3.one * (big ? .85f : 1.15f);
@@ -440,7 +383,7 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
     // Helpers
     // ---------------------------------------------------------------------
 
-    static Sprite Load(string name) { return Resources.Load<Sprite>("Tutorial/" + name); }
+    static Sprite Load(string name) { return Resources.Load<Sprite>(SpriteRoot + name); }
 
     static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
     {

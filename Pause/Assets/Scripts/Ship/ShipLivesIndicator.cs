@@ -104,11 +104,20 @@ public class ShipLivesIndicatorAttach : MonoBehaviour
 
     void Update()
     {
-        var player = Object.FindFirstObjectByType<movePlayer>();
+        // gameS1's ship (movePlayer) or the tutorial's (movePlayerInTut): the
+        // tutorial flies with orbiting hearts too.
+        GameObject player = null;
+        var main = Object.FindFirstObjectByType<movePlayer>();
+        if (main != null) player = main.gameObject;
+        else
+        {
+            var tut = Object.FindFirstObjectByType<movePlayerInTut>();
+            if (tut != null) player = tut.gameObject;
+        }
         if (player != null)
         {
             if (player.GetComponent<ShipLivesIndicator>() == null)
-                player.gameObject.AddComponent<ShipLivesIndicator>();
+                player.AddComponent<ShipLivesIndicator>();
             Destroy(gameObject);
             return;
         }

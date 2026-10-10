@@ -64,7 +64,7 @@ public class movePlayerInTut : MonoBehaviour
         if (fingerPos.x <= reach && fingerPos.x > -reach)
         {
             this.transform.position = new Vector3(fingerPos.x,
-                ShipReach.ClampY(fingerPos.y + 1.5f));
+                ShipReach.ClampY(fingerPos.y + ShipReach.FingerOffset));
 
             // Allow text to follow player----------------------------
 
@@ -78,7 +78,7 @@ public class movePlayerInTut : MonoBehaviour
         else
         {
             this.transform.position = new Vector3(ShipReach.ClampX(fingerPos.x),
-                ShipReach.ClampY(fingerPos.y + 1.5f));
+                ShipReach.ClampY(fingerPos.y + ShipReach.FingerOffset));
         }
 
     }
