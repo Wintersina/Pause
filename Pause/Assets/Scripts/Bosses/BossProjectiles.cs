@@ -533,7 +533,7 @@ public class BossBeam : MonoBehaviour
         if (art != null) PaintedBeam(w); else Span(beam.transform, w, length);
         // the sheath: the same wrapper as a shot, along the beam's length
         sheath.transform.localPosition = new Vector3(0f, length * .5f, 0f);
-        sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
+        sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * (art != null ? BossConfig.BeamHitFraction : 1f) * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
                                                   Mathf.Max(.001f, length) / HostileGlow.SheathHeight, 1f);
         var sc = sheathTint;
         sc.a = HostileGlow.PulseAlphaAt(age);
