@@ -70,7 +70,7 @@ using UnityEngine;
 // the world while the board pours past it. Stepped by EliteSystem on the
 // world's clock -- frozen at timeScale 0 -- with no per-frame allocation.
 public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
-public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino, Combo }   // Combo: a DEATH COMBO link (DeathCombo), one heart, respects grace
+public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino, Combo, ShoveCrash }   // Combo: a DEATH COMBO link (DeathCombo), one heart, respects grace; ShoveCrash: a body the shield shockwave shoved crashed into it (ShoveCrash), one heart, respects grace
 
 [DisallowMultipleComponent]
 public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, ISpawnShadow

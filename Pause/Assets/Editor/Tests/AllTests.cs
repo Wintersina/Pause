@@ -135,6 +135,7 @@ public static class AllTests
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
+        ("ShoveCrashTest", ShoveCrashTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ScreenFitTest", ScreenFitTest.Execute),
         ("PlayerZoneTopTest", PlayerZoneTopTest.Execute),

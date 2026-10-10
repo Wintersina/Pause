@@ -126,7 +126,8 @@ public static class AchievementTracker
     static bool PilotKill(EliteDamage cause)
     {
         return cause == EliteDamage.PlayerWeapon || cause == EliteDamage.Teleport || cause == EliteDamage.ShieldRam ||
-               cause == EliteDamage.PlayerContact || cause == EliteDamage.Combo;
+               cause == EliteDamage.PlayerContact || cause == EliteDamage.Combo ||
+               cause == EliteDamage.Domino || cause == EliteDamage.ShoveCrash;   // (the domino and a shoved body's crash are the pilot's kills too)
     }
 
     static void OnEliteDied(EliteShip elite, EliteDamage cause, string killer)

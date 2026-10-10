@@ -137,7 +137,7 @@ public static class DeathCombo
     // when it did.
     public static bool OnPlayerKill(GameObject target)
     {
-        if (target == null || Resolving || !Allowed || FriendlyFire.HostileKillInProgress) return false;
+        if (target == null || Resolving || !Allowed || FriendlyFire.HostileKillInProgress || ShoveCrash.Killing) return false;
         if (BossPart(target)) return false;
         TriggerRolls++;
         if (!Roll(TriggerChance, ForceTrigger)) return false;

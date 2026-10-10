@@ -37,7 +37,29 @@ public static class ShockwavePreview
         EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 
-    static void One(string dir, int world)
+    // SHOCKWAVE_PREVIEW_DIR=<dir> ... -executeMethod ShockwavePreview.RunCrash
+    // Three heavy rocks shoved into a pack of fighters: frames at 0, .15, .3 and .5 s (shockwave-crash-strip.png,
+    // the whole screen at .3 s as shockwave-crash-full-0.3.png).
+    public static void RunCrash()
+    {
+        string dir = System.Environment.GetEnvironmentVariable("SHOCKWAVE_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "Builds/ShockwavePreview";
+        Directory.CreateDirectory(dir);
+        int failures = 0;
+        using (new TestHarness.Sandbox())
+        {
+            try { One(dir, 0, true); }
+            catch (System.Exception e) { Debug.LogException(e); failures++; }
+            EnemyShove.Clear();
+            EliteSystem.PlayerOverride = null;
+            EliteSystem.Clear();
+            PlayField.Reset();
+            ScreenInfo.ClearOverride();
+        }
+        EditorApplication.Exit(failures == 0 ? 0 : 1);
+    }
+
+    static void One(string dir, int world, bool crash = false)
     {
         string name = Worlds[world];
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity");
@@ -84,6 +106,7 @@ public static class ShockwavePreview
         shield.Show();
         for (int i = 0; i < 40; i++) shield.Tick(Dt);
 
+        if (crash) { CrashScene(dir, name, cam, ship); return; }
         // real enemies: around the ship, in its column, beyond the ring
         Vector2[] spots = { new Vector2(1.3f, -1.2f), new Vector2(-1.4f, -2.3f), new Vector2(.1f, .3f), new Vector2(-.9f, 1.3f), new Vector2(1.5f, 2.2f), new Vector2(-2.2f, -.4f) };
         int placed = 0;
@@ -120,6 +143,55 @@ public static class ShockwavePreview
         File.WriteAllBytes(Path.Combine(dir, "shockwave-" + name + "-strip.png"), strip.EncodeToPNG());
         Object.DestroyImmediate(strip);
         Object.DestroyImmediate(wb.gameObject);
+    }
+
+    static void CrashScene(string dir, string name, Camera cam, GameObject ship)
+    {
+        ShoveCrash.Clear();
+        ShoveCrash.ResetCounters();
+        EliteSystem.PlayerOverride = ship.transform;
+        Vector2 at = ship.transform.position;
+        // three heavy rocks hugging the ship (left, right, above), a pack of fighters just beyond each
+        var rockDef = EnemyRoster.One(0, EnemyRole.Rock);
+        var fightDef = EnemyRoster.One(0, EnemyRole.Fighter);
+        Vector2[] rocks = { new Vector2(.85f, .15f), new Vector2(-.85f, -.1f), new Vector2(.1f, .95f) };
+        Vector2[] dirs = { new Vector2(1f, .15f).normalized, new Vector2(-1f, -.1f).normalized, new Vector2(.1f, 1f).normalized };
+        for (int k = 0; k < 3; k++)
+        {
+            var rock = EnemyFactory.Create(rockDef, at + rocks[k], Quaternion.identity);
+            if (rock.TryGetComponent(out EnemyIdentity id)) id.SetScale(1.4f);
+            Vector2 perp = new Vector2(-dirs[k].y, dirs[k].x);
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2 p = at + rocks[k] + dirs[k] * (.5f + (i / 2) * .45f) + perp * ((i % 2 == 0 ? -1 : 1) * .18f);
+                EnemyFactory.Create(fightDef, new Vector3(p.x, p.y, 0f), Quaternion.identity);
+            }
+        }
+        var shield = ShipShield.For(ship);
+        shield.Hide();
+        Vector3 vp = cam.WorldToViewportPoint(ship.transform.position);
+        Vector3 sp = new Vector3(vp.x * W, vp.y * H, 0f);
+        int cx = Mathf.Clamp(Mathf.RoundToInt(sp.x) - Crop / 2, 0, W - Crop), cy = Mathf.Clamp(Mathf.RoundToInt(sp.y) - Crop / 2, 0, H - Crop);
+        var times = new[] { 0f, .15f, .3f, .5f };
+        var strip = new Texture2D(Crop * times.Length, Crop, TextureFormat.RGB24, false);
+        float t = 0f;
+        for (int k = 0; k < times.Length; k++)
+        {
+            while (t < times[k] - 1e-4f)
+            {
+                ShieldShockwaveFx.Instance.Tick(Dt);   // the shoves and the crashes
+                EliteSystem.Step(Dt);                  // the sparks
+                if (ShieldShards.Instance != null) ShieldShards.Instance.Tick(Dt);
+                t += Dt;
+            }
+            var full = Render(cam);
+            strip.SetPixels(Crop * k, 0, Crop, Crop, full.GetPixels(cx, cy, Crop, Crop));
+            if (k == 2) File.WriteAllBytes(Path.Combine(dir, "shockwave-crash-full-0.3.png"), full.EncodeToPNG());
+            Object.DestroyImmediate(full);
+        }
+        File.WriteAllBytes(Path.Combine(dir, "shockwave-crash-strip.png"), strip.EncodeToPNG());
+        Object.DestroyImmediate(strip);
+        Debug.Log("[CRASHPREVIEW] hits " + ShoveCrash.Hits + ", kills " + ShoveCrash.Kills + ", recoils " + ShoveCrash.Recoils);
     }
 
     static Texture2D Render(Camera cam)

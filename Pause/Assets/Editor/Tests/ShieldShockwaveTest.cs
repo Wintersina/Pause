@@ -75,6 +75,7 @@ public static class ShieldShockwaveTest
         finally
         {
             EnemyShove.Clear();
+            ShoveCrash.Enabled = true;
             EnemyThreat.ForceShooting = false;
             EnemyThreat.Reset();
             SpawnSpace.ClockOverride = null;
@@ -99,6 +100,7 @@ public static class ShieldShockwaveTest
         Clear();
         EliteSystem.Clear();
         EnemyShove.Clear();
+        ShoveCrash.Enabled = false;   // this suite is the push alone; ShoveCrashTest covers the crashes
         EnemyThreat.Reset();
         PilotAirspace.Clear();
         buttonClicks.playerDied = false;

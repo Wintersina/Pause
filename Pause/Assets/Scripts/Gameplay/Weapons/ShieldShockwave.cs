@@ -12,7 +12,9 @@ using UnityEngine;
 //            strip the hull's width plus ColumnMargin, up to the top of the
 //            view) is pushed up-screen by ColumnPush, however far away it is
 //
-// It is a push, not damage: nothing is hit, killed or scored by it.
+// The wave itself does no damage: nothing is hit, killed or scored by it. The
+// BODIES it shoves can crash into other enemies for a moment (ShoveCrash: crash
+// damage by size class, kills are the pilot's, capped per release).
 //
 // HOW A PUSH COMPOSES. Every board mover is relative -- the scrollers
 // Translate from where the body is, EnemyBrain adds the frame's change of its
@@ -230,12 +232,17 @@ public static class ShieldShockwave
             n++;
         }
 
+        ShoveCrash.BeginWave();
         KeepApart(n);
 
         int pushed = 0;
         for (int i = 0; i < n; i++)
         {
-            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds, pilots[i])) pushed++;
+            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds, pilots[i]))
+            {
+                pushed++;
+                ShoveCrash.Carry(who[i]);   // a shoved body is a battering ram for a moment
+            }
             who[i] = null; mounts[i] = null; prints[i] = null;
         }
         LastPushed = pushed;
@@ -274,6 +281,7 @@ public static class ShieldShockwave
                         if (prints[m] == other) { otherAfter = Body(at + push[m], other.half); otherPush = push[m].sqrMagnitude; break; }
                     if (!Touch(after, otherAfter) || Touch(before, otherBefore)) continue;
                     if (otherPush > push[i].sqrMagnitude) continue;   // its turn will shorten it
+                    if (ShoveCrash.WouldBreak(prints[i].gameObject, other.gameObject)) continue;   // a crash is allowed to land (ShoveCrash)
                     push[i] *= .5f;
                     if (round == Rounds || push[i].sqrMagnitude < .0025f) push[i] = Vector2.zero;
                     changed = true;
@@ -376,6 +384,7 @@ public static class EnemyShove
             }
             if (k >= 1f) Remove(i); else entries[i] = e;
         }
+        ShoveCrash.Step(dt);
     }
 
     static void Remove(int i)
@@ -389,6 +398,7 @@ public static class EnemyShove
     {
         for (int i = 0; i < count; i++) entries[i] = default;
         count = 0;
+        ShoveCrash.Clear();
     }
 }
 
