@@ -36,6 +36,9 @@ public static class EmberBackdropPreview
                 if (only == "" || only.Contains("handoff")) Handoff(dir);
                 if (only == "" || only.Contains("variants")) Variants(dir);
                 if (only == "" || only.Contains("pieces")) Pieces(dir);
+                if (only.Contains("smoke")) Smoke(dir);
+                if (only.Contains("pools")) Pools(dir);
+                if (only.Contains("occlusion")) Occlusion(dir);
             }
             catch (System.Exception e) { Debug.LogException(e); failures++; }
             finally
@@ -234,6 +237,186 @@ public static class EmberBackdropPreview
             for (int k = 0; k < 40; k++) wb.Step(Dt);
             Crop(cam, p.root.position, 1.7f * 1.6f, Path.Combine(dir, "piece-" + n + ".png"));
             i++;
+        }
+        Object.DestroyImmediate(wb.gameObject);
+    }
+
+    // ---- plume bases on their craters, measured on the render -------------------------------
+    //
+    //   smoke-<piece>-m<0|1>.png   8 consecutive loop frames, 4x zoom on the emitter point
+    //   [SMOKE] lines              per piece / mirror / loop / frame: the rendered plume's base
+    //                              (the diff of the frame with and without that emitter) against
+    //                              the host point, in screen px, plus whether the plume reaches
+    //                              the top of the render
+    static void Smoke(string dir)
+    {
+        var cam = Scene(3, 3);
+        var wb = WorldBackdrop.Create("Ember");
+        BackdropVariants.For("Ember").Force = 1;
+        wb.Show("Ember", false);
+        var d = (EmberDirector)wb.Current.Director;
+        while (d.Clock < 16f) wb.Step(Dt);
+        string only = System.Environment.GetEnvironmentVariable("EMBER_PREVIEW_PIECES") ?? "";
+        float showY = float.TryParse(System.Environment.GetEnvironmentVariable("EMBER_PREVIEW_Y"), out var yy) ? yy : 1f;
+        foreach (var piece in EmberAmbientCatalog.Pieces)
+        {
+            if (piece.emit == null) continue;
+            if (only != "" && !only.Contains(piece.name)) continue;
+            bool any = false;
+            foreach (var e in piece.emit) any |= EmberAmbientCatalog.Plume(e.loop);
+            if (!any) continue;
+            for (int mirror = 0; mirror < 2; mirror++)
+            {
+                var p = d.Showcase(piece.name, 1.7f, 0f, showY, mirror == 1);
+                if (p == null) continue;
+                for (int k = 0; k < 40; k++) wb.Step(Dt);
+                for (int slot = 0; slot < piece.emit.Length && slot < EmberAmbientCatalog.MaxPerPiece; slot++)
+                {
+                    string loop; Vector3 a, h;
+                    if (!d.Ambient.Probe(p, slot, out loop, out a, out h) || !EmberAmbientCatalog.Plume(loop)) continue;
+                    var sr = p.body.Find("ambient" + slot).GetComponent<SpriteRenderer>();
+                    Vector3 hv = cam.WorldToViewportPoint(h);
+                    float hx = hv.x * W, hy = hv.y * H;       // y up from the bottom of the render
+                    var crops = new List<Texture2D>();
+                    for (int f = 0; f < 8; f++)
+                    {
+                        for (int k = 0; k < 8; k++) wb.Step(Dt);
+                        var full = Render(cam, W, H);
+                        sr.enabled = false;
+                        var without = Render(cam, W, H);
+                        sr.enabled = true;
+                        var A = full.GetPixels32(); var B = without.GetPixels32();
+                        int minX = W, maxX = -1, minY = H, maxY = -1;
+                        for (int i = 0; i < A.Length; i++)
+                        {
+                            int dd = Mathf.Abs(A[i].r - B[i].r) + Mathf.Abs(A[i].g - B[i].g) + Mathf.Abs(A[i].b - B[i].b);
+                            if (dd < 24) continue;
+                            int x = i % W, y = i / W;
+                            if (x < minX) minX = x; if (x > maxX) maxX = x;
+                            if (y < minY) minY = y; if (y > maxY) maxY = y;
+                        }
+                        // the base: the weighted centre of the diff in the lowest 14 px of the plume
+                        double sw = 0, sx = 0;
+                        for (int y = minY; maxY >= 0 && y < minY + 14; y++)
+                            for (int x = minX; x <= maxX; x++)
+                            {
+                                int i = y * W + x;
+                                int dd = Mathf.Abs(A[i].r - B[i].r) + Mathf.Abs(A[i].g - B[i].g) + Mathf.Abs(A[i].b - B[i].b);
+                                if (dd < 24) continue;
+                                sw += dd; sx += dd * (double)x;
+                            }
+                        float bx = sw > 0 ? (float)(sx / sw) : -1f;
+                        Debug.Log("[SMOKE] " + piece.name + " m" + mirror + " " + loop + " f" + f + " host " + hx.ToString("F1") + "," + hy.ToString("F1") +
+                                  " baseX " + bx.ToString("F1") + " baseY " + minY + " offX " + (bx - hx).ToString("F1") + " offY " + (minY - hy).ToString("F1") +
+                                  " bbox x " + minX + ".." + maxX + " y " + minY + ".." + maxY + " top " + (maxY >= H - 3 ? "CUT" : "ok") +
+                                  " sides " + (minX <= 2 || maxX >= W - 3 ? "CUT" : "ok"));
+                        const int half = 70;
+                        int cx = Mathf.Clamp(Mathf.RoundToInt(hx) - half, 0, W - 2 * half), cy = Mathf.Clamp(Mathf.RoundToInt(hy) - half + 30, 0, H - 2 * half);
+                        var c = new Texture2D(2 * half, 2 * half, TextureFormat.RGB24, false);
+                        c.SetPixels(full.GetPixels(cx, cy, 2 * half, 2 * half)); c.Apply();
+                        crops.Add(c);
+                        Object.DestroyImmediate(full); Object.DestroyImmediate(without);
+                    }
+                    const int Z = 3, cs = 140 * Z;
+                    var sheet = new Texture2D(cs * 4, cs * 2, TextureFormat.RGB24, false);
+                    for (int f = 0; f < crops.Count; f++)
+                    {
+                        var src = crops[f].GetPixels32();
+                        for (int y = 0; y < cs; y++)
+                            for (int x = 0; x < cs; x++)
+                                sheet.SetPixel((f % 4) * cs + x, (1 - f / 4) * cs + y, src[(y / Z) * 140 + x / Z]);
+                        Object.DestroyImmediate(crops[f]);
+                    }
+                    sheet.Apply();
+                    File.WriteAllBytes(Path.Combine(dir, "smoke-" + piece.name + "-s" + slot + "-m" + mirror + ".png"), sheet.EncodeToPNG());
+                    Object.DestroyImmediate(sheet);
+                }
+            }
+        }
+        Object.DestroyImmediate(wb.gameObject);
+    }
+
+    // Which pool draws what: at 2 / 4 s of each ground set, the screen with each pool alone hidden.
+    static void Pools(string dir)
+    {
+        var cam = Scene(3, 3);
+        var wb = WorldBackdrop.Create("Ember");
+        for (int v = 1; v <= 4; v++)
+        {
+            BackdropVariants.For("Ember").Force = v;
+            wb.Show("Space", false);
+            wb.Show("Ember", false);
+            var d = (EmberDirector)wb.Current.Director;
+            foreach (float at in new[] { 2f, 4f })
+            {
+                while (d.Clock < at) wb.Step(Dt);
+                var full = Render(cam, W, H);
+                var A = full.GetPixels32();
+                foreach (var pool in d.Pools)
+                {
+                    var on = new List<BackdropPiece>();
+                    foreach (var q in pool.items) if (q.active && q.root.gameObject.activeSelf) { on.Add(q); q.root.gameObject.SetActive(false); }
+                    var without = Render(cam, W, H);
+                    foreach (var q in on) q.root.gameObject.SetActive(true);
+                    var B = without.GetPixels32();
+                    int minX = W, maxX = -1, minY = H, maxY = -1, n = 0;
+                    for (int i = 0; i < A.Length; i++)
+                    {
+                        int dd = Mathf.Abs(A[i].r - B[i].r) + Mathf.Abs(A[i].g - B[i].g) + Mathf.Abs(A[i].b - B[i].b);
+                        if (dd < 12) continue;
+                        n++;
+                        int x = i % W, y = i / W;
+                        if (x < minX) minX = x; if (x > maxX) maxX = x;
+                        if (y < minY) minY = y; if (y > maxY) maxY = y;
+                    }
+                    Debug.Log("[POOLS] v" + v + " " + at + "s " + pool.name + " pieces " + on.Count + " px " + n + " bbox x " + minX + ".." + maxX + " y " + minY + ".." + maxY);
+                    if (pool.name == "ceiling" || pool.name == "palls")
+                    {
+                        var diff = new Texture2D(W, H, TextureFormat.RGB24, false);
+                        var o = new Color32[A.Length];
+                        for (int i = 0; i < A.Length; i++)
+                        {
+                            int dd = Mathf.Abs(A[i].r - B[i].r) + Mathf.Abs(A[i].g - B[i].g) + Mathf.Abs(A[i].b - B[i].b);
+                            o[i] = dd >= 12 ? new Color32(255, 0, 255, 255) : B[i];
+                        }
+                        diff.SetPixels32(o); diff.Apply();
+                        File.WriteAllBytes(Path.Combine(dir, "pool-" + pool.name + "-v" + v + "-" + at.ToString("00") + "s.png"), diff.EncodeToPNG());
+                        Object.DestroyImmediate(diff);
+                    }
+                    Object.DestroyImmediate(without);
+                }
+                Object.DestroyImmediate(full);
+            }
+        }
+        Object.DestroyImmediate(wb.gameObject);
+    }
+
+    // The same frame with every ground plate hidden (the loops stay): where a plume vanishes behind another piece's plate.
+    static void Occlusion(string dir)
+    {
+        var cam = Scene(3, 3);
+        var wb = WorldBackdrop.Create("Ember");
+        for (int v = 1; v <= 4; v++)
+        {
+            BackdropVariants.For("Ember").Force = v;
+            wb.Show("Space", false);
+            wb.Show("Ember", false);
+            var d = (EmberDirector)wb.Current.Director;
+            foreach (float at in new[] { 20f, 40f, 70f })
+            {
+                while (d.Clock < at) wb.Step(Dt);
+                Capture(cam, Path.Combine(dir, "occ-v" + v + "-" + at.ToString("00") + "s-normal.png"));
+                var hid = new List<SpriteRenderer>();
+                foreach (var pool in new[] { d.Ground, d.Fires, d.Pipes, d.Sites })
+                    foreach (var q in pool.items)
+                        if (q.active && q.sr.enabled) { q.sr.enabled = false; hid.Add(q.sr); }
+                Capture(cam, Path.Combine(dir, "occ-v" + v + "-" + at.ToString("00") + "s-plates-hidden.png"));
+                foreach (var sr in hid) sr.enabled = true;
+                var order = new System.Text.StringBuilder();
+                foreach (var pool in new[] { d.Pipes, d.Fires, d.Ground, d.Sites })
+                    if (pool.items.Count > 0) order.Append(" " + pool.name + "=" + pool.items[0].sr.sortingOrder);
+                Debug.Log("[OCC] v" + v + " " + at + "s plate sorting orders" + order);
+            }
         }
         Object.DestroyImmediate(wb.gameObject);
     }

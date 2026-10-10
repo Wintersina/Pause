@@ -266,8 +266,12 @@ public class TideDirector : PlanetDirector
         fires = LandmarkPool("ground", 6, -2);
         ground = LandmarkPool("ground", 8);
         sites = LandmarkPool("ground", 3);
-        ambient.Rig(pipes, 1);
-        ambient.Rig(fires, 1);
+        // Every pool's loops draw above EVERY pool's plates (pipes -4, fires -2,
+        // ground / sites 0 of the layer's order): a fire's or pipe's plume rises
+        // through the ground, so a landmark plate higher up the screen must not
+        // slice it off flat (the "smoke cut off at the top" report).
+        ambient.Rig(pipes, 5);
+        ambient.Rig(fires, 3);
         ambient.Rig(ground, 1);
         ambient.Rig(sites, 1);
         for (int i = 0; i < sites.items.Count; i++)
