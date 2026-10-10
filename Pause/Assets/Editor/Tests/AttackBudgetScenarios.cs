@@ -100,7 +100,7 @@ public static class AttackBudgetScenarios
                 case "themed:tide_pressure_jet":  // Icicle's body: the lance bolt becomes a pressure jet (a straight column of water)
                     return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Jet(JetSpec.Pressure(4)).Timing(.8f, 2.4f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 4.8f, 5.5f, PilotExit.Peel).Volleys(2);
-                case "themed:tide_surf_wave":     // Pyre's body (Hammerhead's stand-in): the ring of eight becomes a surf wave with a 1.6 u gap turned 1 u off the pilot; volleys 3 -> 2
+                case "themed:tide_surf_wave":     // Pyre's body (Hammerhead's stand-in): the ring of eight becomes a surf wave with a 1.6 u gap turned .8 u off the pilot; volleys 3 -> 2
                     return new EnemyBehaviour { key = "ember_fighter_4" }.Track(.5f, .4f).Brake(1.8f, .65f).Wave(SurfWithOffset()).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(2);
                 case "themed:space_scan_line":    // Twin Claw's body: the Archon's scan line (a thin neon wave, 3 u/s) -- a NEW boss attack with no roster predecessor, held to the Space fighters' middle tier
@@ -110,7 +110,7 @@ public static class AttackBudgetScenarios
             }
         }
 
-        static WaveSpec SurfWithOffset() { var s = WaveSpec.Surf(4); s.gapOffset = 1f; return s; }   // (a gap on the pilot would make standing still safe)
+        static WaveSpec SurfWithOffset() { var s = WaveSpec.Surf(4); s.gapOffset = .8f; return s; }   // (a gap on the pilot would make standing still safe)
         static WaveSpec ScanWithOffset() { var s = WaveSpec.Scan(0); s.gapOffset = 1f; return s; }
     }
 

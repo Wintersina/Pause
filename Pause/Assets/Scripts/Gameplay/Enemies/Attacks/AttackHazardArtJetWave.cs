@@ -117,7 +117,7 @@ public static partial class AttackHazardArt
                     if (side < 1f) continue;
                     Color32 c;
                     // the hot core: a fire is white-hot at the nozzle and cools toward the tip; the other jets keep a slim, steady core. Two widths (the flicker).
-                    float coreF = style == JetStyle.Flame ? Mathf.Lerp(.46f, .2f, k) : .26f;
+                    float coreF = style == JetStyle.Flame ? Mathf.Lerp(.5f, .28f, k) : .26f;
                     int coreHalf = Mathf.Max(1, Mathf.RoundToInt(hw * coreF)) + (f & 1);
                     if (u <= 2f) c = edge;                        // two px of pink-white stroke
                     else if (u <= 3f) c = body;                   // one px of pink body
