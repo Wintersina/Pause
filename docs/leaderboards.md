@@ -1,14 +1,12 @@
 # Leaderboards
 
-Status: **foundation in place, not live yet.** The code submits, queues and displays scores. Nothing
-reaches a store until the boards exist in Play Console and App Store Connect (see "Store setup").
+Status: **live on Android once the Play Games project is published** (the three boards exist as drafts in the `me.hapticgate.pause` project,
+Cloud project 528367766818; Review and publish is still to do). **iOS: only Top Score has an id**; the Game Center boards are still to create.
 
 **2026-10: the Top Speed board is retired.** Speed is now capped at HUD 35 (`SpeedRamp.Cap`,
 `docs/speed-and-loops.md`), so a best speed ranks nothing. The board is gone from the table, nothing
 is submitted to it, and a value an older build left queued under `top_speed` is dropped the next time
-the queue is sent. Until Top Score's Play Console id is filled in, **no board is enabled**: the panel
-shows its "no boards configured" state and nothing is submitted. See "Retiring Top Speed" below for
-the console steps.
+the queue is sent. See "Top Speed (retired)" below.
 
 ## Architecture
 
@@ -24,7 +22,7 @@ All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `S
 | `LeaderboardPlatforms.CreateForPlatform()` | Picks the platform from `Application.platform`, the same way `PlayerAccounts` does. |
 | `LeaderboardBoards` | **The board table**: logical id, Android id, iOS id, name, description, sort order, formatter and run metric. |
 | `LeaderboardService` | The submission pipeline, the loading done for the panel, and native UI. `Instance` can be swapped out in tests. |
-| `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run score (`RunScore.Total`), star dust and furthest world, and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
+| `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run score (`RunScore.Total`), star dust and the furthest loop (`RunLoop.DisplayNumber`), and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
 | `LeaderboardPanel` | The in-game panel, opened by Options → LeaderBoard (`leaderboard.pull_up_leaderboard`). It's built at runtime on its own overlay canvas, so `leaderboardS3.unity` is unchanged. |
 
 Sign-in still belongs to `CloudSync`/`IPlayerAccount`. The interactive sign-in is `AccountLink.SignIn`
@@ -39,13 +37,20 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 
 | Logical id | Name | Android id | iOS id | Sort | Format | Status |
 |---|---|---|---|---|---|---|
-| `top_score` | Top Score | empty (create it in Play Console, then paste the id) | `me.sinaserati.Pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | **disabled until the Play Console id is filled in** |
-| ~~`top_speed`~~ | ~~Top Speed~~ | (was `CgkI3eXNjrQcEAIQAA`) | (was `me.sinaserati.Pause.highest_speed`) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
-| `run_star_dust` | Star Dust | empty | empty (proposed `me.sinaserati.Pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | placeholder, disabled |
-| `furthest_world` | Furthest World | empty | empty (proposed `me.sinaserati.Pause.furthest_world`) | higher is better | 1 = Space ... 5 = Tide, shown as the world name | placeholder, disabled |
+| `top_score` | Top Score | `CgkIopqxqbAPEAIQPg` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
+| ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
+| `run_star_dust` | Star Dust | `CgkIopqxqbAPEAIQPw` | empty (proposed `me.hapticgate.pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | enabled on Android; off on iOS until its Game Center id is filled in |
+| `furthest_world` | **Furthest Loop** (logical id kept) | `CgkIopqxqbAPEAIQQA` (lowest 1, no upper limit) | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `Loop N` (no world names) | enabled on Android; off on iOS until its Game Center id is filled in |
 
-A board is **enabled only when both ids are filled in**. A disabled board gets no tab, nothing
-submitted and nothing queued.
+**Furthest Loop value.** The submitted number is the loop the run reached: 1 while still on the first pass through the worlds, 2 once the
+run flew the last live world's portal (or its auto-loop lift-off), 3 on the next, and so on with no cap. It is `RunLoop.DisplayNumber`
+(`RunLoop.Index + 1`, `Scripts/Worlds/LoopRules.cs`), the same counter that drives loop difficulty and the "LOOP 2" HUD, and
+`LeaderboardRunTracker` keeps the maximum seen in the run. The loop boundary is therefore wherever the game itself loops (after
+`WorldManager.LastLiveWorld`, so enabling Tide, Storm or Desert later changes how far a pass goes but never rewrites a loop number already
+stored in a score: a score is a loop count, not a planet count).
+
+A board is **enabled on a platform when that platform's id is filled in** (`LeaderboardBoard.EnabledOn`): Android needs only its Play Games id,
+iOS only its Game Center id. A board with no id on the running platform gets no tab, nothing submitted and nothing queued.
 
 ### Submission rules
 
@@ -110,15 +115,14 @@ Play Console id: its iOS id is already in.
      `Pause/Assets/Scripts/Core/Leaderboards/LeaderboardBoards.cs`. Don't reuse the
      speed board's id: it is a different metric. The board turns on, and becomes the first tab, as soon
      as that string is filled in. Run `AllTests.RunAll`.
-3. Retire Top Speed (`CgkI3eXNjrQcEAIQAA`, "Highest Speed Reached"): see "Retiring Top Speed".
-4. For each placeholder you want live, choose **Add leaderboard**:
+3. For each placeholder you want live, choose **Add leaderboard**:
    * Star Dust: Numeric, **2 decimal places**, larger is better. The game sends hundredths, so 1234
      shows as 12.34.
-   * Furthest World: Numeric, 0 decimals, larger is better, limits 1 to 4 (or Custom/text units if
+   * Furthest Loop: Numeric, 0 decimals, larger is better, lowest 1 and no upper limit (or Custom/text units if
      you want "World").
    * Turn tamper protection on for each one.
-5. Copy each new id (*Get resources*) into `LeaderboardBoards`.
-6. **Publish** the Play Games Services changes. Until they're published, only the tester accounts
+4. Copy each new id (*Get resources*) into `LeaderboardBoards`.
+5. **Publish** the Play Games Services changes. Until they're published, only the tester accounts
    listed in *Testers* can see the boards.
 
 ### App Store Connect (Game Center)
@@ -128,54 +132,32 @@ Play Console id: its iOS id is already in.
 2. **Create Top Score** first. Under **Leaderboards**, choose **+** → **Classic leaderboard** →
    *Single leaderboard*:
    * **Reference name:** Top Score
-   * **Leaderboard ID:** `me.sinaserati.Pause.top_score` (**exactly** this; the id can't be changed later)
+   * **Leaderboard ID:** `me.hapticgate.pause.top_score` (**exactly** this; the id can't be changed later)
    * **Score format type:** Integer
    * **Score submission type:** Best score
    * **Sort order:** High to low
    * **Score range** (optional, works as tamper protection): 0 to 1000000
    * Add an **English localization**: display name "Top Score", format "Integer", suffix " pts" (or none).
    The game already sends to this id; nothing needs changing in code for iOS. (The board stays off in
-   the game until the Play Console id is in too, because a board is enabled only with both ids.)
-3. Retire Top Speed (`me.sinaserati.Pause.highest_speed`): see "Retiring Top Speed".
-4. For each placeholder, create a leaderboard the same way:
-   * `me.sinaserati.Pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
-   * `me.sinaserati.Pause.furthest_world`: Integer, High to low, range 1 to 5 (Tide is world 5; raise it from 1-4 BEFORE WorldManager.TideEnabled ships; a sixth world needs 1-6)
+   the game until the Play Console id is in too, because a board is enabled per platform by that platform's own id.)
+3. For each placeholder, create a leaderboard the same way:
+   * `me.hapticgate.pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
+   * `me.hapticgate.pause.furthest_world` ("Furthest Loop"): Integer, High to low, lowest 1, no upper limit (the value is the loop number, not a world index)
    Then copy the ids into `LeaderboardBoards`.
-5. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
+4. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
    submit them with the next build. Sandbox/TestFlight accounts can use them before release.
 
-## Retiring Top Speed (2026-10)
+## Top Speed (retired)
 
-The game no longer sends anything to the speed board; these steps only tidy the stores.
-
-* **Play Console** (Play Games Services → Leaderboards → "Highest Speed Reached", `CgkI3eXNjrQcEAIQAA`):
-  a published leaderboard cannot be deleted. Either leave it (no new scores arrive) or hide it from
-  players by moving it out of the published set: edit it, and in the next Play Games Services
-  publish leave it unpublished / mark it hidden where the console offers it. Do **not** reuse its id
-  for Top Score.
-* **App Store Connect** (Game Center → Leaderboards → `me.sinaserati.Pause.highest_speed`): remove it
-  from the app version's Game Center section (detach it) so the native Game Center screen stops
-  listing it, then submit with the next build. A leaderboard that has been live can't be deleted, only
-  detached / archived.
-* **Achievements (superseded):** the 28 legacy achievements were replaced by the 60 in
-  `docs/achievements-redesign.md` (Flash / Speedster / Super Sonic live on as `speed_flash`,
-  `speed_speedster`, `speed_super_sonic`, same legacy Android ids). The text below is the original note.
-  "Speedster" (`achievement_speedster`, iOS `speedster`) is repurposed: it now unlocks
-  on the first **limit break** (speed past 35 on the blue atom's boost shield). Re-word its
-  description in both consoles, e.g. "Break the speed limit: pass 35 on a boost shield". "Flash"
-  (`achievement_flash`) now unlocks when natural speed reaches the cap (35): suggested text "Reach
-  the speed limit". "Super Sonic" (`achievement_super_sonic`) unlocks on a full limit break (the
-  boost at its maximum, HUD 45): suggested text "Push a limit break to the max". None of the three
-  was ever unlocked by code before, so no player holds them under the old meaning.
-* The retired speed board's Play id (`CgkI3eXNjrQcEAIQAA`) is no longer in the code at all
-  (`StringHolder` was removed); nothing in the game uses it.
+The game no longer has a speed board, and the old Play Games / Game Center projects (`me.sinaserati.Pause`) are gone. Do not create a speed
+leaderboard in the new `me.hapticgate.pause` projects; there is nothing to retire.
 
 ## Verified vs. not verifiable yet
 
 **Verified here** (editor tests in `LeaderboardTest`, run through `AllTests.RunAll`, plus Mac, Android
 and iOS-project builds):
 
-* Registry rules: unique ids, enabled boards have both ids, placeholders are disabled and skipped,
+* Registry rules: unique ids, enabled boards have an id on the running platform, placeholders are disabled and skipped,
   Top Score is first and becomes the first tab once its Play Console id is in (`ScoringTest`).
 * Submission: improvement only, debounce, one best pending value per board, persisted and surviving a
   relaunch, a failed send stays queued, flushed exactly once on sign-in, and nothing sent from

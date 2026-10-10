@@ -11,7 +11,7 @@ using UnityEditor.iOS.Xcode;
 //   iCloud       - iCloud Documents with the default container, which Game
 //                  Center saved games (GKSavedGame, the cloud save) live in
 //
-// The App ID (me.sinaserati.Pause) must have Game Center and iCloud enabled in
+// The App ID (me.hapticgate.pause) must have Game Center and iCloud enabled in
 // the Apple Developer portal, with a provisioning profile that includes them;
 // signing itself is left to Xcode.
 public static class IOSCapabilitiesPostProcess

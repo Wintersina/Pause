@@ -7,8 +7,8 @@ depends on (star dust, Codex, saves, store plugins). Nothing here was run; all n
 
 | Area | File | Role |
 |---|---|---|
-| Store ids (Android) | `Pause/Assets/Scripts/Core/StringHolder.cs` | 28 `achievement_*` consts + 1 stale `leaderboard_highest_speed_reached`. Looks like the old generated `GPGSIds` (class renamed). Ids are real-looking Play Console ids (`CgkI3eXNjrQcEAIQ..`, app id 976061952733). |
-| Android/iOS id table | `Core/AchievementIds.cs` | `AchievementIds.All` (28 `Entry`: android id, iOS id = `me.sinaserati.Pause.` + suffix, title, points). iOS ids are a PROPOSED scheme, none exists in App Store Connect. Points sum to 955. `Resolve(androidId, ios)` returns null for unknown ids on iOS. |
+| Store ids (Android) | `Pause/Assets/Scripts/Core/StringHolder.cs` | 28 `achievement_*` consts + 1 stale `leaderboard_highest_speed_reached`. Looks like the old generated `GPGSIds` (class renamed). Ids are real-looking Play Console ids (`CgkI3eXNjrQcEAIQ..`, app id 528367766818). |
+| Android/iOS id table | `Core/AchievementIds.cs` | `AchievementIds.All` (28 `Entry`: android id, iOS id = `me.hapticgate.pause.` + suffix, title, points). iOS ids are a PROPOSED scheme, none exists in App Store Connect. Points sum to 955. `Resolve(androidId, ios)` returns null for unknown ids on iOS. |
 | Call sites | `Core/achievementAPICalls.cs` | One static method per one-shot achievement + tiered "event" methods (`star_collected`, `alien_killed`, `asteroid_destroyed`, `player_died`) + `SpeedMilestones`. |
 | Tier counters | `Core/AchievementTiers.cs` | Four lifetime counters (`AchievementCategory`: Aliens, Asteroids, Deaths, Stars), thresholds per tier, `Record()`, deferred `FlushReports()`. |
 | Re-sync | `Core/AchievementSync.cs` | After sign-in re-reports tiers that are not confirmed (`achv_synced_<cat>`). Called from `CloudSync.cs:219`; marks cleared on account switch (`CloudSync.cs:203`). |
@@ -107,6 +107,6 @@ None. There is no daily reward, streak, or claim UI (`grep -i 'daily|claim|strea
 ## 8. Store setup state (what the code expects)
 
 * Android: 28 real-looking ids in `StringHolder`. Whether the Play Console game is configured/published with those 28 is not knowable from the repo (memory notes say SHA-1 credentials and Saved Games still had to be configured). **Assume the 28 exist in the console, unpublished or published; see the store setup doc for both cases.**
-* iOS: 0 ids exist. `AchievementIds.IosPrefix + suffix` (28 proposed ids); the 3 leaderboards in `LeaderboardBoards` have empty id strings except `TopScore` iOS `me.sinaserati.Pause.top_score`.
+* iOS: 0 ids exist. `AchievementIds.IosPrefix + suffix` (28 proposed ids); the 3 leaderboards in `LeaderboardBoards` have empty id strings except `TopScore` iOS `me.hapticgate.pause.top_score`.
 * Placeholders: none in the achievement code (ids are concrete strings), but nothing yet checks them against the consoles.
-* Plugin: Google Play Games Plugin for Unity v2.3.0 (`Assets/GooglePlayGames`), APP_ID 976061952733; Game Center via `Plugins/iOS/PauseGameCenter.mm` (never compiled for iOS on this Mac).
+* Plugin: Google Play Games Plugin for Unity v2.3.0 (`Assets/GooglePlayGames`), APP_ID 528367766818; Game Center via `Plugins/iOS/PauseGameCenter.mm` (never compiled for iOS on this Mac).

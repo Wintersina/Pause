@@ -144,8 +144,8 @@ public static class AchievementCatalogTest
         var ios = defs.Select(AchievementIds.IosId).ToList();
         Check("store ids: 60 unique Android ids", android.Distinct().Count() == 60 && android.All(s => !string.IsNullOrEmpty(s)));
         Check("store ids: 60 unique iOS ids", ios.Distinct().Count() == 60);
-        Check("store ids: legacy real Android ids are kept (13)", android.Count(s => s.StartsWith("CgkI")) == 13);
-        Check("store ids: all others are placeholders", android.Count(AchievementIds.IsPlaceholder) == 47);
+        Check("store ids: all 60 have a real Android id from AchievementStoreIds.csv", android.Count(s => s.StartsWith("CgkI")) == 60);
+        Check("store ids: none is a placeholder", android.Count(AchievementIds.IsPlaceholder) == 0);
         Check("store ids: the override table fills in real ids and ignores junk",
               Override("loop_1,CgkIfake\nunknown_id,CgkIx\n#c\nloop_2,TODO_x\n").Equals("CgkIfake|" + AchievementIds.Placeholder("loop_2")));
         Check("store ids: no clash between iOS and Android namespaces", !android.Intersect(ios).Any());
@@ -193,7 +193,7 @@ public static class AchievementCatalogTest
         Check("export: quotes commas (Hundredfold)", play.Contains("\"Destroy 1,000 enemies.\""));
         Check("export: hidden rows (3 + 2 dormant)", playLines.Count(l => l.Contains(",Hidden,")) == 5 && gcLines.Count(l => l.Contains(",Yes,No,")) == 5);
         Check("export: incremental steps for kills_1000", playLines.Any(l => l.Contains("Hundredfold") && l.Contains(",10,1000,Revealed,kills_1000.png")));
-        Check("export: Game Center ids use the ach_ scheme", gcLines.Skip(1).All(l => l.Contains("me.sinaserati.Pause.ach_")));
+        Check("export: Game Center ids use the ach_ scheme", gcLines.Skip(1).All(l => l.Contains("me.hapticgate.pause.ach_")));
         string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", AchievementStoreExport.Folder));
         Check("export: docs/achievements-export holds the generated files (run Pause > Achievements > Export store CSV)",
               File.Exists(Path.Combine(dir, "play-console.csv")) && File.Exists(Path.Combine(dir, "game-center.csv")) &&

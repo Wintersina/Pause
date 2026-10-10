@@ -5,8 +5,10 @@ using System.Collections.Generic;
 //
 // The game refers to a board by its LOGICAL id; each store has its own id for
 // it (Play Console generates one, App Store Connect takes the one you type).
-// A board is Enabled only when BOTH store ids are filled in. Disabled boards
-// are skipped everywhere: no tab, no submission, nothing queued.
+// A board is Enabled on a platform when THAT platform's store id is filled in
+// (Android needs only its Play Games id, iOS only its Game Center id), so a
+// board that exists on one store works there while the other is still pending.
+// Disabled boards are skipped everywhere: no tab, no submission, nothing queued.
 public enum LeaderboardSort
 {
     HigherIsBetter,   // Play Console "Larger is better" / App Store Connect "High to Low"
@@ -18,7 +20,11 @@ public struct LeaderboardRunStats
 {
     public long score;         // the run score (RunScore.Total)
     public float starDust;    // star dust earned in this run
-    public int worldIndex;     // furthest world reached (0 = Space)
+    // The loop the run reached: 1 while still on the first pass through the
+    // worlds, 2 once it flew the last live world's portal, and so on (no cap).
+    // RunLoop.DisplayNumber is the game's own counter, so the boundary is
+    // whatever the last live world was when the loop happened.
+    public int loop;
 }
 
 public sealed class LeaderboardBoard
@@ -45,12 +51,15 @@ public sealed class LeaderboardBoard
         this.measure = measure;
     }
 
-    public bool Enabled { get { return androidId.Length > 0 && iosId.Length > 0; } }
+    // Enabled on the platform the game is running on.
+    public bool Enabled { get { return EnabledOn(AchievementIds.IsIOS); } }
+
+    public bool EnabledOn(bool ios) { return (ios ? iosId : androidId).Length > 0; }
 
     // The id for the given store, or null when the board can't be used there.
     public string PlatformId(bool ios)
     {
-        if (!Enabled) return null;
+        if (!EnabledOn(ios)) return null;
         return ios ? iosId : androidId;
     }
 
@@ -89,10 +98,9 @@ public static class LeaderboardBoards
 
     static readonly LeaderboardBoard[] table =
     {
-        // The primary board. Disabled until the Play Console board exists:
-        // paste its generated id (Get resources) into the empty string.
+        // The primary board. Android id from Play Console (Get resources).
         new LeaderboardBoard(TopScore,
-            "",   // Play Console id
+            "CgkIopqxqbAPEAIQPg",   // Play Console id
             AchievementIds.IosPrefix + "top_score",
             "Top Score",
             "Best score in a single run.",
@@ -100,10 +108,10 @@ public static class LeaderboardBoards
             FormatScore,
             run => run.score),
 
-        // Placeholders: fill in both ids once the boards exist in the consoles.
+        // Live on Android; the Game Center ids are still to be created (empty = off on iOS).
         new LeaderboardBoard(RunStarDust,
-            "",   // Play Console id
-            "",   // proposed: me.sinaserati.Pause.run_star_dust
+            "CgkIopqxqbAPEAIQPw",   // Play Console id
+            "",   // proposed: me.hapticgate.pause.run_star_dust
             "Star Dust",
             "Most star dust collected in a single run.",
             LeaderboardSort.HigherIsBetter,
@@ -111,13 +119,13 @@ public static class LeaderboardBoards
             run => (long)Math.Round(run.starDust * 100.0)),   // stored in hundredths (2 decimals)
 
         new LeaderboardBoard(FurthestWorld,
-            "",   // Play Console id
-            "",   // proposed: me.sinaserati.Pause.furthest_world
-            "Furthest World",
-            "Furthest world reached in a single run.",
+            "CgkIopqxqbAPEAIQQA",   // Play Console id (lowest 1, no upper limit)
+            "",   // proposed: me.hapticgate.pause.furthest_world
+            "Furthest Loop",
+            "Furthest loop reached in a single run.",
             LeaderboardSort.HigherIsBetter,
-            FormatWorld,
-            run => run.worldIndex + 1),                      // 1 = Space
+            FormatLoop,
+            run => Math.Max(1, run.loop)),                   // 1 = first pass, no cap
     };
 
     public static LeaderboardBoard Get(string id)
@@ -143,10 +151,8 @@ public static class LeaderboardBoards
         return (v / 100) + "." + Math.Abs(v % 100).ToString("00");
     }
 
-    public static string FormatWorld(long v)
+    public static string FormatLoop(long v)
     {
-        int i = (int)v - 1;
-        if (i < 0 || i >= WorldManager.Worlds.Length) return v.ToString();
-        return WorldManager.Worlds[i].displayName;
+        return "Loop " + v;
     }
 }

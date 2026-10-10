@@ -42,7 +42,8 @@ public static class AchievementReportingTest
     {
         AchievementStores.Current = null;
         Check("the editor's store is the no-op", AchievementStores.Current.Name == "none" && !AchievementStores.Current.Available);
-        var legacy = AchievementCatalog.Find("meta_first_flight");    // has a real (legacy) Android id
+        AchievementIds.SetAndroidIdForTest("loop_1", AchievementIds.Placeholder("loop_1"));
+        var legacy = AchievementCatalog.Find("meta_first_flight");    // has a real Android id
         var fresh = AchievementCatalog.Find("loop_1");                // placeholder
         var play = new PlayGamesAchievementStore();
         var gc = new GameCenterAchievementStore();
@@ -55,8 +56,8 @@ public static class AchievementReportingTest
         play.Report(fresh, 100.0, ok => { called = true; result = ok; });
         Check("a placeholder is never sent: the callback fails at once", called && !result);
         Check("platform id mapping: Android real id verbatim, iOS = prefix + ach_ + id",
-              AchievementIds.AndroidId(legacy) == "CgkI3eXNjrQcEAIQBw" && AchievementIds.IosId(fresh) == "me.sinaserati.Pause.ach_loop_1");
-        Check("PlatformPercent is exact below 100", SocialBridge.PlatformPercent(100.0) == 100.0);
+              AchievementIds.AndroidId(legacy).StartsWith("CgkI") && AchievementIds.IosId(fresh) == "me.hapticgate.pause.ach_loop_1");
+        Check("PlatformPercent is exact below 100", SocialBridge.PlatformPercent(100.0) == 100.0);        AchievementIds.Reload();
     }
 
     static void Offline()

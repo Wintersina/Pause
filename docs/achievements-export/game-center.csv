@@ -1,61 +1,61 @@
 Reference name,Achievement ID,Point value,Hidden,Achievable more than once,Title,Pre-earned description,Earned description,Image
-Pause meta_first_flight,me.sinaserati.Pause.ach_meta_first_flight,5,No,No,First Flight,Finish the tutorial and take your first real run.,Finish the tutorial and take your first real run.,meta_first_flight_1024.png
-Pause meta_logged_on,me.sinaserati.Pause.ach_meta_logged_on,5,No,No,Logged On,Sign in to Google Play Games or Game Center.,Sign in to Google Play Games or Game Center.,meta_logged_on_1024.png
-Pause world_frost_reached,me.sinaserati.Pause.ach_world_frost_reached,10,No,No,Cold Front,Reach the Frost world.,Reach the Frost world.,world_frost_reached_1024.png
-Pause world_verdant_reached,me.sinaserati.Pause.ach_world_verdant_reached,10,No,No,Into the Green,Reach the Verdant world.,Reach the Verdant world.,world_verdant_reached_1024.png
-Pause world_ember_reached,me.sinaserati.Pause.ach_world_ember_reached,15,No,No,Trial by Fire,Reach the Ember world.,Reach the Ember world.,world_ember_reached_1024.png
-Pause world_tide_reached,me.sinaserati.Pause.ach_world_tide_reached,20,Yes,No,Deep Water,Reach the Tide world.,Reach the Tide world.,world_tide_reached_1024.png
-Pause loop_1,me.sinaserati.Pause.ach_loop_1,25,No,No,Full Circle,Complete a full loop of every world.,Complete a full loop of every world.,loop_1_1024.png
-Pause loop_2,me.sinaserati.Pause.ach_loop_2,25,No,No,Second Lap,Complete two loops in a single run.,Complete two loops in a single run.,loop_2_1024.png
-Pause loop_5,me.sinaserati.Pause.ach_loop_5,40,No,No,Orbit Lifer,Complete five loops in a single run.,Complete five loops in a single run.,loop_5_1024.png
-Pause boss_space,me.sinaserati.Pause.ach_boss_space,10,No,No,Archon Down,Defeat the Void Archon.,Defeat the Void Archon.,boss_space_1024.png
-Pause boss_frost,me.sinaserati.Pause.ach_boss_frost,15,No,No,Leviathan Slain,Defeat the Hoarfrost Leviathan.,Defeat the Hoarfrost Leviathan.,boss_frost_1024.png
-Pause boss_verdant,me.sinaserati.Pause.ach_boss_verdant,20,No,No,Bloom Queen Felled,Defeat the Bloom Queen.,Defeat the Bloom Queen.,boss_verdant_1024.png
-Pause boss_ember,me.sinaserati.Pause.ach_boss_ember,25,No,No,Drake Slayer,Defeat the Cinder Drake.,Defeat the Cinder Drake.,boss_ember_1024.png
-Pause boss_tide,me.sinaserati.Pause.ach_boss_tide,25,Yes,No,Tide Turner,Defeat the Tide boss.,Defeat the Tide boss.,boss_tide_1024.png
-Pause boss_no_hit,me.sinaserati.Pause.ach_boss_no_hit,25,No,No,Untouchable,Defeat a boss without losing a heart.,Defeat a boss without losing a heart.,boss_no_hit_1024.png
-Pause boss_all,me.sinaserati.Pause.ach_boss_all,35,No,No,Boss Collector,Defeat every live world's boss.,Defeat every live world's boss.,boss_all_1024.png
-Pause elite_first,me.sinaserati.Pause.ach_elite_first,10,No,No,Elite Hunter,Destroy your first elite ship.,Destroy your first elite ship.,elite_first_1024.png
-Pause elite_10,me.sinaserati.Pause.ach_elite_10,10,No,No,Veteran Hunter,Destroy 10 elite ships.,Destroy 10 elite ships.,elite_10_1024.png
-Pause elite_50,me.sinaserati.Pause.ach_elite_50,25,No,No,Elite Exterminator,Destroy 50 elite ships.,Destroy 50 elite ships.,elite_50_1024.png
-Pause elite_space_all,me.sinaserati.Pause.ach_elite_space_all,15,No,No,Space Elites,Down every Space elite.,Down every Space elite.,elite_space_all_1024.png
-Pause elite_frost_all,me.sinaserati.Pause.ach_elite_frost_all,20,No,No,Frost Elites,Down every Frost elite.,Down every Frost elite.,elite_frost_all_1024.png
-Pause elite_verdant_all,me.sinaserati.Pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down the Verdant elite.,Down the Verdant elite.,elite_verdant_all_1024.png
-Pause elite_ember_all,me.sinaserati.Pause.ach_elite_ember_all,25,No,No,Ember Elites,Down every Ember elite.,Down every Ember elite.,elite_ember_all_1024.png
-Pause elite_blink,me.sinaserati.Pause.ach_elite_blink,10,No,No,Blink Strike,Destroy an elite with a pause blink.,Destroy an elite with a pause blink.,elite_blink_1024.png
-Pause kills_100,me.sinaserati.Pause.ach_kills_100,5,No,No,Gunner,Destroy 100 enemies.,Destroy 100 enemies.,kills_100_1024.png
-Pause kills_1000,me.sinaserati.Pause.ach_kills_1000,10,No,No,Hundredfold,"Destroy 1,000 enemies.","Destroy 1,000 enemies.",kills_1000_1024.png
-Pause kills_5000,me.sinaserati.Pause.ach_kills_5000,25,No,No,Warlord,"Destroy 5,000 enemies.","Destroy 5,000 enemies.",kills_5000_1024.png
-Pause rocks_500,me.sinaserati.Pause.ach_rocks_500,10,No,No,Rock Breaker,Destroy 500 asteroids and rocks.,Destroy 500 asteroids and rocks.,rocks_500_1024.png
-Pause mines_25,me.sinaserati.Pause.ach_mines_25,10,No,No,Minesweeper,Destroy 25 rail mines.,Destroy 25 rail mines.,mines_25_1024.png
-Pause chain_10,me.sinaserati.Pause.ach_chain_10,10,No,No,Chain Reaction,Reach a 10-kill chain.,Reach a 10-kill chain.,chain_10_1024.png
-Pause mega_domino,me.sinaserati.Pause.ach_mega_domino,15,Yes,No,MEGA DOMINO,Trigger a MEGA DOMINO.,Trigger a MEGA DOMINO.,mega_domino_1024.png
-Pause codex_10,me.sinaserati.Pause.ach_codex_10,5,No,No,Curious Pilot,Discover 10 Codex entries.,Discover 10 Codex entries.,codex_10_1024.png
-Pause codex_50,me.sinaserati.Pause.ach_codex_50,10,No,No,Cartographer,Discover 50 Codex entries.,Discover 50 Codex entries.,codex_50_1024.png
-Pause codex_field_guide,me.sinaserati.Pause.ach_codex_field_guide,15,No,No,Field Guide,Fully catalogue one world's enemies and hazards.,Fully catalogue one world's enemies and hazards.,codex_field_guide_1024.png
-Pause codex_complete,me.sinaserati.Pause.ach_codex_complete,35,No,No,Completionist,Discover every Codex entry.,Discover every Codex entry.,codex_complete_1024.png
-Pause ship_first,me.sinaserati.Pause.ach_ship_first,5,No,No,Hangar Debut,Buy your first ship.,Buy your first ship.,ship_first_1024.png
-Pause ship_half,me.sinaserati.Pause.ach_ship_half,15,No,No,Squadron,Own half the hangar.,Own half the hangar.,ship_half_1024.png
-Pause ship_all,me.sinaserati.Pause.ach_ship_all,40,No,No,Fleet Admiral,Own every ship.,Own every ship.,ship_all_1024.png
-Pause skin_first,me.sinaserati.Pause.ach_skin_first,5,No,No,Fresh Paint,Buy your first ship skin.,Buy your first ship skin.,skin_first_1024.png
-Pause skin_special,me.sinaserati.Pause.ach_skin_special,10,No,No,Special Edition,Buy a Special skin.,Buy a Special skin.,skin_special_1024.png
-Pause skin_full_set,me.sinaserati.Pause.ach_skin_full_set,25,No,No,Full Wardrobe,Own all skins for one ship.,Own all skins for one ship.,skin_full_set_1024.png
-Pause secret_power_first,me.sinaserati.Pause.ach_secret_power_first,10,No,No,Secret Power,Unleash a ship's secret power.,Unleash a ship's secret power.,secret_power_first_1024.png
-Pause stars_150,me.sinaserati.Pause.ach_stars_150,10,No,No,Dust Gatherer,Collect 150 star dust pickups.,Collect 150 star dust pickups.,stars_150_1024.png
-Pause stars_1000,me.sinaserati.Pause.ach_stars_1000,20,No,No,Dust Hoarder,"Collect 1,000 star dust pickups.","Collect 1,000 star dust pickups.",stars_1000_1024.png
-Pause stars_5000,me.sinaserati.Pause.ach_stars_5000,25,No,No,Dust Baron,"Collect 5,000 star dust pickups.","Collect 5,000 star dust pickups.",stars_5000_1024.png
-Pause dust_spent_10000,me.sinaserati.Pause.ach_dust_spent_10000,15,No,No,Big Spender,"Spend 10,000 star dust in the shop.","Spend 10,000 star dust in the shop.",dust_spent_10000_1024.png
-Pause score_10k,me.sinaserati.Pause.ach_score_10k,10,No,No,Rookie Score,"Score 2,500 points in a run.","Score 2,500 points in a run.",score_10k_1024.png
-Pause score_50k,me.sinaserati.Pause.ach_score_50k,20,No,No,Ace Score,"Score 8,000 points in a run.","Score 8,000 points in a run.",score_50k_1024.png
-Pause score_150k,me.sinaserati.Pause.ach_score_150k,35,No,No,Legend Score,"Score 30,000 points in a run.","Score 30,000 points in a run.",score_150k_1024.png
-Pause speed_flash,me.sinaserati.Pause.ach_speed_flash,15,No,No,Flash,Reach the speed cap.,Reach the speed cap.,speed_flash_1024.png
-Pause speed_speedster,me.sinaserati.Pause.ach_speed_speedster,20,No,No,Speedster,Break the speed limit.,Break the speed limit.,speed_speedster_1024.png
-Pause speed_super_sonic,me.sinaserati.Pause.ach_speed_super_sonic,35,No,No,Super Sonic,Max out the limit break.,Max out the limit break.,speed_super_sonic_1024.png
-Pause deaths_10,me.sinaserati.Pause.ach_deaths_10,5,No,No,Crash Course,Crash 10 times.,Crash 10 times.,deaths_10_1024.png
-Pause deaths_100,me.sinaserati.Pause.ach_deaths_100,10,Yes,No,Frequent Flyer,Crash 100 times.,Crash 100 times.,deaths_100_1024.png
-Pause pause_first,me.sinaserati.Pause.ach_pause_first,5,No,No,Paused,Spend your first pause.,Spend your first pause.,pause_first_1024.png
-Pause pause_blink_kill,me.sinaserati.Pause.ach_pause_blink_kill,10,No,No,Correct Pause,Destroy an enemy by blinking onto it.,Destroy an enemy by blinking onto it.,pause_blink_kill_1024.png
-Pause pause_blink_100,me.sinaserati.Pause.ach_pause_blink_100,10,No,No,Blink Master,Blink 100 times.,Blink 100 times.,pause_blink_100_1024.png
-Pause pause_no_pause_world,me.sinaserati.Pause.ach_pause_no_pause_world,20,No,No,Hold Your Breath,Clear a world without spending a pause.,Clear a world without spending a pause.,pause_no_pause_world_1024.png
-Pause pause_hoarder,me.sinaserati.Pause.ach_pause_hoarder,10,No,No,Time Banker,Hold 15 pauses at once.,Hold 15 pauses at once.,pause_hoarder_1024.png
-Pause pause_perfect_dodge,me.sinaserati.Pause.ach_pause_perfect_dodge,25,Yes,No,Perfect Pause,Blink out of a hostile shot's path.,Blink out of a hostile shot's path.,pause_perfect_dodge_1024.png
+Pause meta_first_flight,me.hapticgate.pause.ach_meta_first_flight,5,No,No,First Flight,Finish the tutorial and take your first real run.,Finish the tutorial and take your first real run.,meta_first_flight_1024.png
+Pause meta_logged_on,me.hapticgate.pause.ach_meta_logged_on,5,No,No,Logged On,Sign in to Google Play Games or Game Center.,Sign in to Google Play Games or Game Center.,meta_logged_on_1024.png
+Pause world_frost_reached,me.hapticgate.pause.ach_world_frost_reached,10,No,No,Cold Front,Reach the Frost world.,Reach the Frost world.,world_frost_reached_1024.png
+Pause world_verdant_reached,me.hapticgate.pause.ach_world_verdant_reached,10,No,No,Into the Green,Reach the Verdant world.,Reach the Verdant world.,world_verdant_reached_1024.png
+Pause world_ember_reached,me.hapticgate.pause.ach_world_ember_reached,15,No,No,Trial by Fire,Reach the Ember world.,Reach the Ember world.,world_ember_reached_1024.png
+Pause world_tide_reached,me.hapticgate.pause.ach_world_tide_reached,20,Yes,No,Deep Water,Reach the Tide world.,Reach the Tide world.,world_tide_reached_1024.png
+Pause loop_1,me.hapticgate.pause.ach_loop_1,25,No,No,Full Circle,Complete a full loop of every world.,Complete a full loop of every world.,loop_1_1024.png
+Pause loop_2,me.hapticgate.pause.ach_loop_2,25,No,No,Second Lap,Complete two loops in a single run.,Complete two loops in a single run.,loop_2_1024.png
+Pause loop_5,me.hapticgate.pause.ach_loop_5,40,No,No,Orbit Lifer,Complete five loops in a single run.,Complete five loops in a single run.,loop_5_1024.png
+Pause boss_space,me.hapticgate.pause.ach_boss_space,10,No,No,Archon Down,Defeat the Void Archon.,Defeat the Void Archon.,boss_space_1024.png
+Pause boss_frost,me.hapticgate.pause.ach_boss_frost,15,No,No,Leviathan Slain,Defeat the Hoarfrost Leviathan.,Defeat the Hoarfrost Leviathan.,boss_frost_1024.png
+Pause boss_verdant,me.hapticgate.pause.ach_boss_verdant,20,No,No,Bloom Queen Felled,Defeat the Bloom Queen.,Defeat the Bloom Queen.,boss_verdant_1024.png
+Pause boss_ember,me.hapticgate.pause.ach_boss_ember,25,No,No,Drake Slayer,Defeat the Cinder Drake.,Defeat the Cinder Drake.,boss_ember_1024.png
+Pause boss_tide,me.hapticgate.pause.ach_boss_tide,25,Yes,No,Tide Turner,Defeat the Tide boss.,Defeat the Tide boss.,boss_tide_1024.png
+Pause boss_no_hit,me.hapticgate.pause.ach_boss_no_hit,25,No,No,Untouchable,Defeat a boss without losing a heart.,Defeat a boss without losing a heart.,boss_no_hit_1024.png
+Pause boss_all,me.hapticgate.pause.ach_boss_all,35,No,No,Boss Collector,Defeat every live world's boss.,Defeat every live world's boss.,boss_all_1024.png
+Pause elite_first,me.hapticgate.pause.ach_elite_first,10,No,No,Elite Hunter,Destroy your first elite ship.,Destroy your first elite ship.,elite_first_1024.png
+Pause elite_10,me.hapticgate.pause.ach_elite_10,10,No,No,Veteran Hunter,Destroy 10 elite ships.,Destroy 10 elite ships.,elite_10_1024.png
+Pause elite_50,me.hapticgate.pause.ach_elite_50,25,No,No,Elite Exterminator,Destroy 50 elite ships.,Destroy 50 elite ships.,elite_50_1024.png
+Pause elite_space_all,me.hapticgate.pause.ach_elite_space_all,15,No,No,Space Elites,Down every Space elite.,Down every Space elite.,elite_space_all_1024.png
+Pause elite_frost_all,me.hapticgate.pause.ach_elite_frost_all,20,No,No,Frost Elites,Down every Frost elite.,Down every Frost elite.,elite_frost_all_1024.png
+Pause elite_verdant_all,me.hapticgate.pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down the Verdant elite.,Down the Verdant elite.,elite_verdant_all_1024.png
+Pause elite_ember_all,me.hapticgate.pause.ach_elite_ember_all,25,No,No,Ember Elites,Down every Ember elite.,Down every Ember elite.,elite_ember_all_1024.png
+Pause elite_blink,me.hapticgate.pause.ach_elite_blink,10,No,No,Blink Strike,Destroy an elite with a pause blink.,Destroy an elite with a pause blink.,elite_blink_1024.png
+Pause kills_100,me.hapticgate.pause.ach_kills_100,5,No,No,Gunner,Destroy 100 enemies.,Destroy 100 enemies.,kills_100_1024.png
+Pause kills_1000,me.hapticgate.pause.ach_kills_1000,10,No,No,Hundredfold,"Destroy 1,000 enemies.","Destroy 1,000 enemies.",kills_1000_1024.png
+Pause kills_5000,me.hapticgate.pause.ach_kills_5000,25,No,No,Warlord,"Destroy 5,000 enemies.","Destroy 5,000 enemies.",kills_5000_1024.png
+Pause rocks_500,me.hapticgate.pause.ach_rocks_500,10,No,No,Rock Breaker,Destroy 500 asteroids and rocks.,Destroy 500 asteroids and rocks.,rocks_500_1024.png
+Pause mines_25,me.hapticgate.pause.ach_mines_25,10,No,No,Minesweeper,Destroy 25 rail mines.,Destroy 25 rail mines.,mines_25_1024.png
+Pause chain_10,me.hapticgate.pause.ach_chain_10,10,No,No,Chain Reaction,Reach a 10-kill chain.,Reach a 10-kill chain.,chain_10_1024.png
+Pause mega_domino,me.hapticgate.pause.ach_mega_domino,15,Yes,No,MEGA DOMINO,Trigger a MEGA DOMINO.,Trigger a MEGA DOMINO.,mega_domino_1024.png
+Pause codex_10,me.hapticgate.pause.ach_codex_10,5,No,No,Curious Pilot,Discover 10 Codex entries.,Discover 10 Codex entries.,codex_10_1024.png
+Pause codex_50,me.hapticgate.pause.ach_codex_50,10,No,No,Cartographer,Discover 50 Codex entries.,Discover 50 Codex entries.,codex_50_1024.png
+Pause codex_field_guide,me.hapticgate.pause.ach_codex_field_guide,15,No,No,Field Guide,Fully catalogue one world's enemies and hazards.,Fully catalogue one world's enemies and hazards.,codex_field_guide_1024.png
+Pause codex_complete,me.hapticgate.pause.ach_codex_complete,35,No,No,Completionist,Discover every Codex entry.,Discover every Codex entry.,codex_complete_1024.png
+Pause ship_first,me.hapticgate.pause.ach_ship_first,5,No,No,Hangar Debut,Buy your first ship.,Buy your first ship.,ship_first_1024.png
+Pause ship_half,me.hapticgate.pause.ach_ship_half,15,No,No,Squadron,Own half the hangar.,Own half the hangar.,ship_half_1024.png
+Pause ship_all,me.hapticgate.pause.ach_ship_all,40,No,No,Fleet Admiral,Own every ship.,Own every ship.,ship_all_1024.png
+Pause skin_first,me.hapticgate.pause.ach_skin_first,5,No,No,Fresh Paint,Buy your first ship skin.,Buy your first ship skin.,skin_first_1024.png
+Pause skin_special,me.hapticgate.pause.ach_skin_special,10,No,No,Special Edition,Buy a Special skin.,Buy a Special skin.,skin_special_1024.png
+Pause skin_full_set,me.hapticgate.pause.ach_skin_full_set,25,No,No,Full Wardrobe,Own all skins for one ship.,Own all skins for one ship.,skin_full_set_1024.png
+Pause secret_power_first,me.hapticgate.pause.ach_secret_power_first,10,No,No,Secret Power,Unleash a ship's secret power.,Unleash a ship's secret power.,secret_power_first_1024.png
+Pause stars_150,me.hapticgate.pause.ach_stars_150,10,No,No,Dust Gatherer,Collect 150 star dust pickups.,Collect 150 star dust pickups.,stars_150_1024.png
+Pause stars_1000,me.hapticgate.pause.ach_stars_1000,20,No,No,Dust Hoarder,"Collect 1,000 star dust pickups.","Collect 1,000 star dust pickups.",stars_1000_1024.png
+Pause stars_5000,me.hapticgate.pause.ach_stars_5000,25,No,No,Dust Baron,"Collect 5,000 star dust pickups.","Collect 5,000 star dust pickups.",stars_5000_1024.png
+Pause dust_spent_10000,me.hapticgate.pause.ach_dust_spent_10000,15,No,No,Big Spender,"Spend 10,000 star dust in the shop.","Spend 10,000 star dust in the shop.",dust_spent_10000_1024.png
+Pause score_10k,me.hapticgate.pause.ach_score_10k,10,No,No,Rookie Score,"Score 2,500 points in a run.","Score 2,500 points in a run.",score_10k_1024.png
+Pause score_50k,me.hapticgate.pause.ach_score_50k,20,No,No,Ace Score,"Score 8,000 points in a run.","Score 8,000 points in a run.",score_50k_1024.png
+Pause score_150k,me.hapticgate.pause.ach_score_150k,35,No,No,Legend Score,"Score 30,000 points in a run.","Score 30,000 points in a run.",score_150k_1024.png
+Pause speed_flash,me.hapticgate.pause.ach_speed_flash,15,No,No,Flash,Reach the speed cap.,Reach the speed cap.,speed_flash_1024.png
+Pause speed_speedster,me.hapticgate.pause.ach_speed_speedster,20,No,No,Speedster,Break the speed limit.,Break the speed limit.,speed_speedster_1024.png
+Pause speed_super_sonic,me.hapticgate.pause.ach_speed_super_sonic,35,No,No,Super Sonic,Max out the limit break.,Max out the limit break.,speed_super_sonic_1024.png
+Pause deaths_10,me.hapticgate.pause.ach_deaths_10,5,No,No,Crash Course,Crash 10 times.,Crash 10 times.,deaths_10_1024.png
+Pause deaths_100,me.hapticgate.pause.ach_deaths_100,10,Yes,No,Frequent Flyer,Crash 100 times.,Crash 100 times.,deaths_100_1024.png
+Pause pause_first,me.hapticgate.pause.ach_pause_first,5,No,No,Paused,Spend your first pause.,Spend your first pause.,pause_first_1024.png
+Pause pause_blink_kill,me.hapticgate.pause.ach_pause_blink_kill,10,No,No,Correct Pause,Destroy an enemy by blinking onto it.,Destroy an enemy by blinking onto it.,pause_blink_kill_1024.png
+Pause pause_blink_100,me.hapticgate.pause.ach_pause_blink_100,10,No,No,Blink Master,Blink 100 times.,Blink 100 times.,pause_blink_100_1024.png
+Pause pause_no_pause_world,me.hapticgate.pause.ach_pause_no_pause_world,20,No,No,Hold Your Breath,Clear a world without spending a pause.,Clear a world without spending a pause.,pause_no_pause_world_1024.png
+Pause pause_hoarder,me.hapticgate.pause.ach_pause_hoarder,10,No,No,Time Banker,Hold 15 pauses at once.,Hold 15 pauses at once.,pause_hoarder_1024.png
+Pause pause_perfect_dodge,me.hapticgate.pause.ach_pause_perfect_dodge,25,Yes,No,Perfect Pause,Blink out of a hostile shot's path.,Blink out of a hostile shot's path.,pause_perfect_dodge_1024.png

@@ -170,11 +170,11 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: me.sinaserati.Pause
+    Android: me.hapticgate.pause
     Standalone: unity.WinterPeace.Pause
-    VisionOS: me.sinaserati.Pause
-    iPhone: me.sinaserati.Pause
-    tvOS: me.sinaserati.Pause
+    VisionOS: me.hapticgate.pause
+    iPhone: me.hapticgate.pause
+    tvOS: me.hapticgate.pause
   buildNumber:
     Standalone: 0
     VisionOS: 0

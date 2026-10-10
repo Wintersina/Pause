@@ -420,7 +420,7 @@ public static class ScoringTest
         {
             Check("developer run: submission blocked", LeaderboardService.SubmissionBlocked());
             Check("developer run: SubmitRun queues nothing",
-                  service.SubmitRun(new LeaderboardRunStats { score = 99999, worldIndex = 3 }) == 0 && fake.Submissions.Count == 0);
+                  service.SubmitRun(new LeaderboardRunStats { score = 99999, loop = 3 }) == 0 && fake.Submissions.Count == 0);
         }
         LeaderboardService.Instance = prev;
         Object.DestroyImmediate(s.gameObject);
@@ -741,31 +741,31 @@ public static class ScoringTest
 
     // ---- 11. leaderboard registry ------------------------------------------------------------
 
-    // Fills Top Score's empty Play Console id for the scope, as pasting the
-    // real id would.
+    // Sets Top Score's Play Console id for the scope (blank: the board is off on Android).
     sealed class TopScoreEnabled : System.IDisposable
     {
         readonly FieldInfo field = typeof(LeaderboardBoard).GetField("androidId");
         readonly LeaderboardBoard board = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
         readonly string was;
-        public TopScoreEnabled() { was = (string)field.GetValue(board); field.SetValue(board, "CgkI_test_top_score"); }
+        public TopScoreEnabled(string id) { was = (string)field.GetValue(board); field.SetValue(board, id); }
         public void Dispose() { field.SetValue(board, was); }
     }
 
-    static System.IDisposable EnableTopScoreForTest() { return new TopScoreEnabled(); }
+    static System.IDisposable EnableTopScoreForTest() { return new TopScoreEnabled("CgkI_test_top_score"); }
+    static System.IDisposable BlankTopScoreForTest() { return new TopScoreEnabled(""); }
 
     static void LeaderboardRegistry()
     {
         var all = LeaderboardBoards.All;
         var top = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
         Check("top_score is the first (primary) board", all.Length > 0 && all[0].id == LeaderboardBoards.TopScore);
-        Check("Top Score: iOS id me.sinaserati.Pause.top_score", top != null && top.iosId == "me.sinaserati.Pause.top_score");
-        Check("Top Score: no Play Console id yet, so disabled", top != null && top.androidId == "" && !top.Enabled &&
-              top.PlatformId(true) == null && top.PlatformId(false) == null);
+        Check("Top Score: iOS id me.hapticgate.pause.top_score", top != null && top.iosId == "me.hapticgate.pause.top_score");
+        Check("Top Score: Play Console id filled in, enabled on both platforms", top != null && top.androidId == "CgkIopqxqbAPEAIQPg" && top.Enabled &&
+              top.PlatformId(true) == top.iosId && top.PlatformId(false) == top.androidId);
         Check("Top Score never reuses the retired speed board's ids",
               !top.iosId.EndsWith("highest_speed") && top.androidId != "CgkI3eXNjrQcEAIQAA");
-        Check("the speed board is retired: not in the table, no board enabled until Top Score's id is in",
-              LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null && LeaderboardBoards.Enabled().Count == 0);
+        Check("the speed board is retired: not in the table; Top Score, Star Dust and Furthest Loop are enabled on Android",
+              LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null && LeaderboardBoards.Enabled().Count == 3);
         Check("Top Score: higher is better, measures the run score, formats 1,234,567",
               top.sort == LeaderboardSort.HigherIsBetter && top.Measure(new LeaderboardRunStats { score = 1234567 }) == 1234567 &&
               top.Format(1234567) == "1,234,567");
@@ -777,16 +777,18 @@ public static class ScoringTest
         var service = new LeaderboardService(fake, () => 0f) { Ios = false };
         var prev = LeaderboardService.Instance;
         LeaderboardService.Instance = service;
-        Check("disabled: no tab and nothing queued for Top Score",
-              !service.UsableBoards().Exists(b => b.id == LeaderboardBoards.TopScore) &&
-              !service.Offer(LeaderboardBoards.TopScore, 5000));
+        using (BlankTopScoreForTest())
+            Check("disabled (no id on the platform): no tab and nothing queued for Top Score",
+                  !service.UsableBoards().Exists(b => b.id == LeaderboardBoards.TopScore) &&
+                  !service.Offer(LeaderboardBoards.TopScore, 5000));
         using (EnableTopScoreForTest())
         {
-            Check("once its Play Console id is in, Top Score is the first (and only) tab",
-                  service.UsableBoards().Count == 1 && service.UsableBoards()[0].id == LeaderboardBoards.TopScore);
-            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, starDust = 3f, worldIndex = 2 });
+            Check("with its Play Console id in, Top Score is the first tab of three",
+                  service.UsableBoards().Count == 3 && service.UsableBoards()[0].id == LeaderboardBoards.TopScore);
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, starDust = 3f, loop = 2 });
             long v;
-            Check("a run end queues the score, and nothing for speed", accepted == 1 &&
+            Check("a run end queues score, star dust and loop, and nothing for speed", accepted == 3 &&
+                  service.HasPending(LeaderboardBoards.FurthestWorld, out v) && v == 2 &&
                   service.HasPending(LeaderboardBoards.TopScore, out v) && v == 15451 &&
                   !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));
             Check("improvement only: a lower score is dropped", !service.Offer(LeaderboardBoards.TopScore, 9000));
