@@ -63,11 +63,11 @@
   {"name": "lights_on", "atlas": "sites", "box": [14, 104, 241, 227], "emit": [], "ends": []}
  ],
  "loops": [
-  {"name": "smoke_a", "x": 128.6, "y": 229.0, "spread": 4.0, "kind": "base"},
-  {"name": "smoke_b", "x": 128.2, "y": 234.0, "spread": 0.6, "kind": "base"},
+  {"name": "smoke_a", "x": 128.8, "y": 236.0, "spread": 0.6, "kind": "base"},
+  {"name": "smoke_b", "x": 127.9, "y": 235.8, "spread": 0.8, "kind": "base"},
   {"name": "flare", "x": 131.9, "y": 234.0, "spread": 0.5, "kind": "base"},
   {"name": "fountain", "x": 123.9, "y": 234.0, "spread": 3.6, "kind": "base"},
-  {"name": "eruptsmoke_a", "x": 128.6, "y": 233.0, "spread": 0.7, "kind": "base"},
+  {"name": "eruptsmoke_a", "x": 128.8, "y": 235.0, "spread": 0.9, "kind": "base"},
   {"name": "eruptsmoke_b", "x": 128.1, "y": 234.0, "spread": 0.9, "kind": "base"},
   {"name": "steam_vent", "x": 127.5, "y": 233.0, "spread": 0.0, "kind": "base"},
   {"name": "pipe_drip", "x": 132.9, "y": 234.0, "spread": 0.1, "kind": "base"},
