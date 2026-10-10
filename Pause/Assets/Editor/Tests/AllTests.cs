@@ -115,6 +115,7 @@ public static class AllTests
         ("LiftoffTest", LiftoffTest.Execute),
         ("LoopTest", LoopTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),
+        ("NoAdsGuardTest", NoAdsGuardTest.Execute),
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("OpenPortalTest", OpenPortalTest.Execute),
         ("PlanetfallTest", PlanetfallTest.Execute),
