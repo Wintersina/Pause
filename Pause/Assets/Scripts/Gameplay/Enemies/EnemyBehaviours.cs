@@ -7,8 +7,9 @@ using UnityEngine;
 //
 //   lateral   None / Drift / Glide / Sway / Orbit / Track / March
 //   vertical  None / Bob / Pulse / Brake / Sink / Patrol / Creep
-//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike
-//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns -- themed area hazards)
+//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike / Lash
+//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns; Lash: AttackLash's arc sweep of a
+//             segment chain -- themed area hazards)
 //
 // Everything a brain adds is an OFFSET in board space on top of the enemy's
 // mover, bounded by the behaviour's envelope (bandX either side, Up above,
@@ -16,7 +17,7 @@ using UnityEngine;
 // patterns can never meet.
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
-public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike }
+public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Lash }
 public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
@@ -82,6 +83,7 @@ public sealed class EnemyBehaviour
     public StrikeSpec strike = StrikeSpec.Standard(0);
     public int strikeLanes = 1;        // Strike: columns in one pattern
     public float laneSpacing = AttackStrike.MinLaneSpacing;
+    public LashSpec lash = LashSpec.Standard(0);   // Lash: AttackLash's whip (vine / tentacle by the enemy's world)
 
     // ---- presence (pilots: EnemyBrain's engagement script) ----
     public EnemyPresence presence = EnemyPresence.Hazard;
@@ -103,11 +105,11 @@ public sealed class EnemyBehaviour
 
     public bool Shoots => attack == EnemyAttack.Shot || attack == EnemyAttack.Ring ||
                           attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser ||
-                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
+                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Lash;
     // An area hazard (AttackHazard): told for at least AttackHazard.MinTellSeconds, never a projectile.
-    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
-    // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a strike 1 a lane).
-    public int ThreatCount => attack == EnemyAttack.Blast ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
+    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike || attack == EnemyAttack.Lash;
+    // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a lash 1.5 -> 2, a strike 1 a lane).
+    public int ThreatCount => attack == EnemyAttack.Blast || attack == EnemyAttack.Lash ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
     public bool Attacks => attack != EnemyAttack.None;
 
     // The envelope: how far the brain's offset can ever reach.
@@ -215,6 +217,18 @@ public sealed class EnemyBehaviour
     {
         attack = EnemyAttack.Strike; strike = spec; strikeLanes = Mathf.Max(1, lanes); laneSpacing = spacing; shotCount = 1; ride = 1f;
         return this;
+    }
+    // A whip: AttackLash sweeps a chain of segments in an arc from the muzzle (LashSpec.Standard(world) is the vine / tentacle lash).
+    public EnemyBehaviour Lash(LashSpec spec)
+    {
+        attack = EnemyAttack.Lash; lash = spec; shotCount = 1; ride = 1f;
+        return this;
+    }
+    public EnemyBehaviour Lash(float length, float arcDeg, float sweepSeconds, float hitHalf = .14f)
+    {
+        var s = LashSpec.Standard(0);
+        s.length = length; s.arcDeg = arcDeg; s.sweepSeconds = sweepSeconds; s.hitHalf = hitHalf;
+        return Lash(s);
     }
     public EnemyBehaviour Lob(float size, float pool)
     {

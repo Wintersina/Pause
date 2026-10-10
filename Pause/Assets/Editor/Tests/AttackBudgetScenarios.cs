@@ -45,7 +45,15 @@ public static class AttackBudgetScenarios
     // pinned attack it must stay within 1.15x (+2 points) of.
     public static class ThemedFixtures
     {
-        public static readonly string[] Ids = { "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop" };
+        public static readonly string[] Ids =
+        {
+            "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop",
+            "themed:verdant_vine_lash",                                                          // plan phase 1e
+            "themed:space_rail_slug", "themed:frost_splinter_pair", "themed:verdant_leaf_volley",   // plan phase 1f (Streak, Shatter, Flutter)
+        };
+
+        // the fixtures whose attack is an area hazard (AttackHazard): the fairness suite reads their tells from the real brain
+        public static readonly string[] HazardIds = { "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop", "themed:verdant_vine_lash" };
 
         public static string BaseKey(string id)
         {
@@ -54,6 +62,10 @@ public static class AttackBudgetScenarios
                 case "themed:frost_cold_blast": return "frost_big";
                 case "themed:ember_eruption": return "ember_fighter_3";
                 case "themed:frost_icicle_drop": return "frost_fighter_2";
+                case "themed:verdant_vine_lash": return "verdant_fighter_4";
+                case "themed:space_rail_slug": return "space_fighter_4";
+                case "themed:frost_splinter_pair": return "frost_fighter_3";
+                case "themed:verdant_leaf_volley": return "verdant_alien";
                 default: return null;
             }
         }
@@ -63,6 +75,17 @@ public static class AttackBudgetScenarios
             var s = BlastSpec.Wide(1);   // (the standard 3.4 u ring never reaches a ship 5-6 u below a hovering Golem: 0% for the bot and for a ghost)
             s.gapOffsetDeg = 40f;
             return s;
+        }
+
+        // The skin a phase-1f fixture shoots with (ShotMotion flags are read from the shot's skin): installed for the roll, removed by Reset / Cleanup.
+        public static void InstallSkin(string id)
+        {
+            switch (id)
+            {
+                case "themed:space_rail_slug": ShotSkins.Override(0, EliteShots.Kind.Shell, ShotMotionArt.Skin(0, EliteShots.Kind.Shell, ShotMotion.Streak)); break;
+                case "themed:frost_splinter_pair": ShotSkins.Override(1, EliteShots.Kind.Shard, ShotMotionArt.Skin(1, EliteShots.Kind.Shard, ShotMotion.Shatter)); break;
+                case "themed:verdant_leaf_volley": ShotSkins.Override(2, EliteShots.Kind.Shard, ShotMotionArt.Skin(2, EliteShots.Kind.Shard, ShotMotion.Flutter)); break;
+            }
         }
 
         // Fresh each call (a brain mutates nothing of it, but a fixture must not leak between rolls).
@@ -80,6 +103,18 @@ public static class AttackBudgetScenarios
                 case "themed:frost_icicle_drop":  // Icicle: the lance bolt becomes an icicle drop on three lanes
                     return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Strike(StrikeSpec.Standard(1), 3).Timing(.8f, 2.4f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 2.4f, 5.5f, PilotExit.Peel).Volleys(2);
+                case "themed:verdant_vine_lash":  // Hornet Queen: the fan of three stingers becomes a vine lash (volleys 4 -> 2)
+                    return new EnemyBehaviour { key = "verdant_fighter_4" }.Track(.5f, .6f).Brake(1.8f, .65f).Lash(LashSpec.Standard(2)).Muzzle(.4f).Timing(.9f, 2.8f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(2);
+                case "themed:space_rail_slug":    // Warden: the heavy shell becomes a rail-gun slug (Streak: 6 u/s, a longer charge 1.1 s, volleys 4 -> 3)
+                    return new EnemyBehaviour { key = "space_fighter_4" }.Track(.5f, .5f).Brake(1.8f, .65f).Shot(EliteShots.Kind.Shell, 1, 0f, 3.4f, .3f, 28f).Muzzle(.4f).Timing(1.1f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(3);
+                case "themed:frost_splinter_pair": // Frost Kite: the splayed pair of shards splits once in flight (Shatter; volleys 3 -> 2)
+                    return new EnemyBehaviour { key = "frost_fighter_3" }.Orbit(.5f, 1.5f).Shot(EliteShots.Kind.Shard, 2, 34f, 3f, .18f).Timing(.55f, 2.2f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2.6f, 7f, PilotExit.Run).Volleys(2);
+                case "themed:verdant_leaf_volley": // Snap Sprout: a pair of fluttering leaves, in the place of a Twin Claw's pair of bolts (compared with roster:space_fighter_3)
+                    return new EnemyBehaviour { key = "verdant_alien" }.Sway(.5f, 2.2f).Shot(EliteShots.Kind.Shard, 2, 20f, 1.8f, .2f).Timing(.6f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(3);
                 default: return null;
             }
         }
@@ -118,6 +153,7 @@ public static class AttackBudgetScenarios
         AttackPools.Forget();
         AttackHazard.ForgetAll();
         AttackHazardArt.Forget();
+        ShotSkins.ResetForTests();
         ShotOutline.Bold = false;
         EnemyThreat.ForceShooting = true;
         BossEncounter.ResetRun();
@@ -147,6 +183,7 @@ public static class AttackBudgetScenarios
     public static void Cleanup()
     {
         EliteSystem.Clear();
+        ShotSkins.ResetForTests();
         EnemyBehaviours.ClearOverrides();
         ShotOutline.Bold = null;
         EliteSystem.PlayerOverride = null;
@@ -187,6 +224,8 @@ public static class AttackBudgetScenarios
 
     // The themed area hazards as the bot sees them: a ring's bars (segments, the expansion known during the tell: the
     // preview shows the first ring and the crack), a strike's column (a segment, live from the end of its tell).
+    static readonly Vector2[] lashJoints = new Vector2[AttackLash.MaxLinks + 1];
+
     static void CollectHazards(List<Hz> into)
     {
         var all = AttackHazard.All;
@@ -197,6 +236,25 @@ public static class AttackBudgetScenarios
             int baseId = 1000 + h * 40;
             var blast = hz as AttackBlast;
             var strike = hz as AttackStrike;
+            var lash = hz as AttackLash;
+            if (lash != null)
+            {
+                // the sweep is drawn from the first frame of the tell: the bot knows where the whip will be in every slice of it
+                // (a static segment root -> tip for each slice, live in its own moment; the chain bends back a little, so a margin)
+                bool tell = lash.State == AttackHazard.Phase.Tell;
+                float sweep = lash.SweepSeconds, done = tell ? 0f : lash.Age, left = tell ? lash.TellLeft : 0f;
+                const int slices = 20;
+                for (int sl = 0; sl < slices; sl++)
+                {
+                    float t0 = sweep * sl / slices, t1 = sweep * (sl + 1) / slices;
+                    if (t1 <= done) continue;
+                    AttackLash.Chain(lash.Spec, lash.Links, lash.Length, lash.Root, lash.StartRad, lash.Dir, (t0 + t1) * .5f, lashJoints);
+                    var hzd = Hz.Segment(baseId + sl, lash.Root, lashJoints[lash.Links], lash.HitHalf + .08f, left + Mathf.Max(0f, t0 - done), t1 - Mathf.Max(t0, done));
+                    hzd.hasV = true;
+                    into.Add(hzd);
+                }
+                continue;
+            }
             if (strike != null)
             {
                 AttackStrike.Column(strike.Spec, strike.LaneX, strike.ImpactY, out Vector2 foot, out Vector2 top);
@@ -252,7 +310,7 @@ public static class AttackBudgetScenarios
             def = EnemyRoster.Find(themed ? ThemedFixtures.BaseKey(id) : id.Substring(7));
             b = themed ? ThemedFixtures.Behaviour(id) : EnemyBehaviours.For(def.key);
             Name = id;
-            if (themed) fixture = b;
+            if (themed) { fixture = b; ThemedFixtures.InstallSkin(id); }
         }
         readonly EnemyBehaviour fixture;
         public string Name { get; }

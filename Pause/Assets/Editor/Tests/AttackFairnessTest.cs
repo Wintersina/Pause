@@ -72,7 +72,7 @@ public static class AttackFairnessTest
 
     static void TellsFromTheRealBrain()
     {
-        foreach (string id in AttackBudgetScenarios.ThemedFixtures.Ids)
+        foreach (string id in AttackBudgetScenarios.ThemedFixtures.HazardIds)
         {
             AttackBudgetScenarios.Reset();
             AttackPreview.ResetCounters();

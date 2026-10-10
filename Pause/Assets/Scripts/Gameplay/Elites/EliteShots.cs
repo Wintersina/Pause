@@ -37,6 +37,22 @@ using UnityEngine;
 // all the way, then flies straight on.
 // A def's shotBounces lets its shots glance off the side rails that many
 // times (the Rimebreaker's frost shards) instead of breaking there.
+// PROJECTILE BEHAVIOURS (plan phase 1f; ShotMotion flags read from the shot's skin, ShotSkin.motion -- None for every world until
+// its phase calls ShotSkins.Enable(world), so nothing below changes today's shots). Numbers: ShotMotions.
+//   Streak   a fast thin slug: speed fixed at ShotMotions.StreakSpeed, a hairline sight line from the shot to the edge of the view
+//            and an afterimage of ghosts behind it
+//   Shatter  an ice shard that splits into ShatterChips smaller chips (a fan ahead of it) on a rail, on a hazard it hits, or
+//            at ShatterSeconds of flight; shot down, it just pops
+//   Flutter  a leaf: spins in 45 degree steps and weaves on a sine path (ShotMotions.FlutterAmp at FlutterHz) round its straight
+//            course; the two leaves of a volley weave in opposite phase
+//   Slash    a crescent that crosses the lane lengthwise: drawn SlashLength long, hit as a capsule along its length
+//            (thickness = the kind's own hit radius), speed capped at SlashSpeed
+//   Roll     a lobbed heavy log (Lob): it lands, then rolls down the board on a diagonal at RollSpeed, spinning in steps, bouncing off a
+//            rail once, RollSeconds of life; heavy mass
+//   Burst    a pod that opens into BurstSpores spores (a ring of small shots) after BurstSeconds of flight, on a rail or a hazard;
+//            a lobbed pod does it on landing and still leaves its cloud pool
+// The hit radius is the kind's own whatever is drawn; every child is a pooled shot (nothing allocates).
+//
 // All drawn in the hostile family (HostileShotPalette: the def's shotColor
 // pulled to magenta-pink, a pink-white flickering core), as arrows, arrowheads
 // and spiked mines (EliteFxArt) -- never an atom's colour or shape. Was:
@@ -180,6 +196,18 @@ public class EliteShot : MonoBehaviour, IHostileShot
     bool afloat;   // a slab out of its glide: it rides the board
     // an orb's fuse (frost_bloom): seconds left, and the whole of it
     float fuse, fuseTotal;
+    // the projectile behaviours of the skin (ShotMotion): see the header
+    ShotMotion mot;
+    int generation;                 // 0 a shot, 1 a chip / spore (never splits again)
+    Vector2 baseP;                  // Flutter: the straight course the leaf weaves round
+    float flutterPhase;
+    bool rolling;                   // Roll: landed, rolling
+    bool slashShape;                // Slash: the capsule is the hitbox
+    CapsuleCollider2D slashCol;
+    SpriteRenderer[] ghosts;        // Streak: the afterimage
+    float chipLife;                 // a chip's own life (0: the kind's)
+    int lastSpawned;
+    float ageBias;                  // a chip / spore: its parent's age at the split (HostileShots tells a volley's shots apart by age)
 
     public bool Active { get; private set; }
     public EliteShots.Kind Kind { get; private set; }
@@ -196,7 +224,18 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public GameObject Shooter => shooter;
     public float Ride => ride;
     public float Age => age;
-    public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne;
+    public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne && !rolling;
+    public ShotMotion Motion => mot;
+    public bool Rolling => Active && rolling;
+    public bool IsChip => generation > 0;
+    public int Splits { get; private set; }           // times this pooled object split into chips / spores (all lives)
+    public int LastSpawned => lastSpawned;            // children the last split made
+    public bool SightShown => mark != null && mark.enabled && (mot & ShotMotion.Streak) != 0;
+    public float SightLength { get; private set; }
+    public int GhostsShown { get { int n = 0; if (ghosts != null) for (int i = 0; i < ghosts.Length; i++) if (ghosts[i] != null && ghosts[i].enabled) n++; return n; } }
+    public bool SlashCapsule => slashShape && slashCol != null && slashCol.enabled;
+    public Vector2 SlashAxis => transform.right;
+    public float HitRadiusOfCollider => slashShape && slashCol != null ? slashCol.size.y * .5f * transform.lossyScale.x : (hitCol != null ? hitCol.radius * transform.lossyScale.x : 0f);
     public Vector2 LobTarget => lobTo;
     public bool Slung => Active && slung;
     public Vector2 SlingTarget => slingTo;
@@ -218,12 +257,13 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public SpriteRenderer Glow => glow;
 
     // IHostileShot (HostileShots: shot vs shot)
-    public bool ShotCollidable => Active && !airborne && hitbox != null && hitCol != null && hitCol.enabled;
+    public bool ShotCollidable => Active && !airborne && hitbox != null && hitCol != null && (hitCol.enabled || SlashCapsule);
     public Vector2 ShotPosition => transform.position;
     public float ShotRadius => radius;
     public int ShotOwner => ownerId;
-    public float ShotAge => age;
-    public int ShotMass => Kind == EliteShots.Kind.Glob || Kind == EliteShots.Kind.Slab ? HostileShots.Fixed
+    public float ShotAge => age + ageBias;   // (a chip keeps its parent's age, so it never clashes with the volley it came from)
+    public int ShotMass => rolling ? HostileShots.Heavy
+                         : Kind == EliteShots.Kind.Glob || Kind == EliteShots.Kind.Slab ? HostileShots.Fixed
                          : Kind == EliteShots.Kind.Orb ? HostileShots.Heavy
                          : Kind == EliteShots.Kind.Slag || Kind == EliteShots.Kind.Shell ? HostileShots.Heavy
                          : HostileShots.Light;
@@ -272,6 +312,16 @@ public class EliteShot : MonoBehaviour, IHostileShot
         s.mark.sortingOrder = 4;
         s.mark.enabled = false;
         s.EnsureHitbox();
+        // the Streak afterimage: four ghosts of the body, built up front (firing never allocates)
+        s.ghosts = new SpriteRenderer[ShotMotions.GhostCount];
+        for (int i = 0; i < s.ghosts.Length; i++)
+        {
+            var g = new GameObject("Ghost" + i).AddComponent<SpriteRenderer>();
+            g.transform.SetParent(go.transform, false);
+            g.sortingOrder = 29;
+            g.enabled = false;
+            s.ghosts[i] = g;
+        }
         go.SetActive(false);
         return s;
     }
@@ -295,6 +345,14 @@ public class EliteShot : MonoBehaviour, IHostileShot
         rosterShot = false;
         shooter = from != null ? from.gameObject : null;
         ride = 0f;
+        mot = ShotMotion.None;
+        generation = 0;
+        rolling = false;
+        slashShape = false;
+        chipLife = 0f;
+        lastSpawned = 0;
+        ageBias = 0f;
+        SightLength = 0f;
         bounces = Mathf.Max(0, d.shotBounces);
         Bounced = 0;
         if (mark != null) mark.enabled = false;
@@ -324,7 +382,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
         core.enabled = !slab;
         // a big white-hot core: the thin arrows still read on the bright skies (Frost)
         core.transform.localScale = Vector3.one * .62f;
+        mot = skin.motion;
         float k = size * skin.drawScale / Mathf.Max(.01f, sprite.bounds.size.y);
+        // a crescent is drawn lengthwise (its art is horizontal): SlashLength long whatever the shot's size
+        if ((mot & ShotMotion.Slash) != 0) k = ShotMotions.SlashLength / Mathf.Max(.01f, sprite.bounds.size.x);
         transform.localScale = Vector3.one * k;
         transform.position = new Vector3(at.x, at.y, 0f);
         Face();
@@ -344,8 +405,48 @@ public class EliteShot : MonoBehaviour, IHostileShot
         frameB = skin.b;
         rimB = framed ? ShotOutline.For(frameB, frameB.bounds.size.y * k) : null;
         Pulse();
+        SetupMotion(k);
         Active = true;
         gameObject.SetActive(true);
+    }
+
+    // The skin's behaviour flags take hold: what a Streak, Slash or Flutter shot needs from its first frame.
+    void SetupMotion(float k)
+    {
+        for (int i = 0; i < ghosts.Length; i++) ghosts[i].enabled = false;
+        if (mark != null) mark.enabled = false;
+        if (slashCol != null) slashCol.enabled = false;
+        if ((mot & ShotMotion.Streak) != 0)
+        {
+            // a fast thin slug: the speed is the design's, along the aimed line; a hairline sight line runs to the edge of the view
+            if (velocity.sqrMagnitude > 1e-6f) velocity = velocity.normalized * ShotMotions.StreakSpeed;
+            Face();
+            for (int i = 0; i < ghosts.Length; i++) { ghosts[i].sprite = body.sprite; ghosts[i].enabled = true; }
+            PlaceStreak();
+        }
+        if ((mot & ShotMotion.Slash) != 0)
+        {
+            float sp = velocity.magnitude;
+            if (sp > ShotMotions.SlashSpeed) velocity *= ShotMotions.SlashSpeed / sp;
+            slashShape = true;
+            // a capsule along the crescent: ShotMotions.SlashLength long, twice the kind's hit radius thick (local units: the shot is scaled by k)
+            slashCol.size = new Vector2(ShotMotions.SlashLength / k, Mathf.Max(radius * 2f, .02f) / k);
+            slashCol.enabled = true;
+            hitCol.enabled = false;
+            Face();
+        }
+        if ((mot & ShotMotion.Flutter) != 0)
+        {
+            baseP = transform.position;
+            flutterPhase = (pool != null && (pool.Launched & 1) == 1) ? Mathf.PI : 0f;
+        }
+    }
+
+    // The hit shape is on or off (a lob has none in the air): the circle, or the crescent's capsule.
+    void HitOn(bool on)
+    {
+        if (slashShape && slashCol != null) { slashCol.enabled = on; hitCol.enabled = false; }
+        else hitCol.enabled = on;
     }
 
     // Marks a just-fired shot as a roster enemy's (EnemyVolley): `source` is
@@ -369,7 +470,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         lobTime = 0f;
         lobTotal = Mathf.Max(.1f, seconds);
         velocity = (to - lobFrom) / lobTotal;
-        hitCol.enabled = false;
+        HitOn(false);
         mark.sprite = EliteFxArt.Ring;
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
@@ -466,6 +567,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Vector3 p = new Vector3(lobTo.x, lobTo.y, 0f);
         transform.position = p;
         transform.rotation = Quaternion.identity;
+        if ((mot & ShotMotion.Roll) != 0) { StartRolling(p); return; }
         Sprite poolB;
         Sprite pool = ShotSkins.PoolSprite(ShotSkins.WorldOf(def), out poolB);
         body.sprite = pool;
@@ -475,7 +577,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         transform.localScale = Vector3.one * k;
         radius = size * .42f;
         hitCol.radius = radius / k;
-        hitCol.enabled = true;
+        HitOn(true);
         rimA = Outline(pool, k);
         frameA = pool;
         frameB = poolB;
@@ -486,6 +588,28 @@ public class EliteShot : MonoBehaviour, IHostileShot
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, tint, 5);
+        Physics2D.SyncTransforms();
+        // a pod opens as it lands: the cloud pool stays, spores scatter out of it
+        if ((mot & ShotMotion.Burst) != 0 && generation == 0)
+        {
+            lastSpawned = SpawnRing(p, ShotMotions.BurstSpores, ShotMotions.SporeSpeed, ShotMotions.SporeScale, ShotMotions.SporeSeconds);
+            Splits++;
+            mot &= ~ShotMotion.Burst;   // (the cloud that stays is the pool: it does not burst again at a rail)
+        }
+    }
+
+    // Roll: the log has come down; it rolls on down the board on a diagonal, bouncing off a rail once.
+    void StartRolling(Vector3 p)
+    {
+        rolling = true;
+        mark.enabled = false;
+        HitOn(true);
+        float dirX = p.x > .25f ? 1f : (p.x < -.25f ? -1f : ((pool != null && (pool.Launched & 1) == 1) ? -1f : 1f));   // toward the nearer rail
+        velocity = new Vector2(dirX * ShotMotions.RollSpeed * .65f, -EliteSystem.Scroll - ShotMotions.RollSpeed * .76f);
+        bounces = 1;
+        age = 0f;
+        life = ShotMotions.RollSeconds;
+        EliteSystem.Fx.Sparks(p, tint, 6);
         Physics2D.SyncTransforms();
     }
 
@@ -523,6 +647,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         hitCol = hitbox.AddComponent<CircleCollider2D>();
         hitCol.isTrigger = true;
         hitbox.AddComponent<EliteShotHitbox>().shot = this;
+        // the crescent's capsule (Slash), built with the hitbox and off: firing never adds a collider
+        slashCol = hitbox.AddComponent<CapsuleCollider2D>();
+        slashCol.isTrigger = true;
+        slashCol.direction = CapsuleDirection2D.Horizontal;
+        slashCol.enabled = false;
     }
 
     void Face()
@@ -530,7 +659,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // (slabs and orbs float upright)
         if (Kind == EliteShots.Kind.Slab || Kind == EliteShots.Kind.Orb) { transform.rotation = Quaternion.identity; return; }
         if (velocity.sqrMagnitude < 1e-6f) return;
-        float deg = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg - 90f;
+        // (a crescent's art is horizontal: its length runs along the course)
+        float deg = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg - ((mot & ShotMotion.Slash) != 0 ? 0f : 90f);
         transform.rotation = Quaternion.Euler(0f, 0f, deg);
     }
 
@@ -563,7 +693,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             if (k >= 1f) Land();
             return;
         }
-        if (Kind == EliteShots.Kind.Glob)
+        if (Kind == EliteShots.Kind.Glob && !rolling)
         {
             // a pool: rides the board, wobbling a little, then dries up
             velocity = new Vector2(0f, -EliteSystem.Scroll);
@@ -638,29 +768,59 @@ public class EliteShot : MonoBehaviour, IHostileShot
             }
             else velocity.y -= EliteSystem.Scroll;
         }
+        else if ((mot & ShotMotion.Flutter) != 0 && !airborne)
+        {
+            // the leaf: its straight course, and a sine weave across it; spinning in 45 degree steps (stepped, never a smooth turn: PC5)
+            baseP.x += velocity.x * dt;
+            baseP.y += velocity.y * dt;
+            if (ride != 0f) baseP.y -= EliteSystem.Scroll * ride * dt;
+            Vector2 dv = velocity.sqrMagnitude > 1e-6f ? velocity.normalized : Vector2.down;
+            float w = Mathf.Sin(age * Mathf.PI * 2f * ShotMotions.FlutterHz + flutterPhase) * ShotMotions.FlutterAmp;
+            p.x = baseP.x - dv.y * w;
+            p.y = baseP.y + dv.x * w;
+            transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Floor(age * 10f) * 45f);
+        }
         else
         {
+            if (rolling)
+            {
+                // the log keeps its pace down the board and turns in 30 degree steps
+                velocity.y = -EliteSystem.Scroll - ShotMotions.RollSpeed * .76f;
+                transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Floor(age * 10f) * 30f * (velocity.x >= 0f ? -1f : 1f));
+            }
             p.x += velocity.x * dt;
             p.y += velocity.y * dt;
             if (ride != 0f) p.y -= EliteSystem.Scroll * ride * dt;
         }
         transform.position = p;
+        if ((mot & ShotMotion.Streak) != 0) PlaceStreak();
 
         // the rails
         float edge = EliteSystem.RailEdge;
-        if (Mathf.Abs(p.x) + radius > edge)
+        // a crescent crosses the lane: it ends when its centre reaches the rail (a blade's end may lap over it)
+        float reach = slashShape ? radius + ShotMotions.SlashRailLap : radius;
+        if (Mathf.Abs(p.x) + reach > edge)
         {
             EliteSystem.Fx.Sparks(new Vector2(Mathf.Sign(p.x) * edge, p.y), tint, 4);
+            // an ice shard shatters on the rail, a pod bursts on it
+            if (CanScatter)
+            {
+                p.x = Mathf.Sign(p.x) * (edge - reach - .01f);
+                transform.position = p;
+                EndReason = 2;
+                if (Scatter(p)) return;
+            }
             if (bounces > 0 && Mathf.Sign(velocity.x) == Mathf.Sign(p.x))
             {
                 // glances off the rail, back across the board
                 bounces--;
                 Bounced++;
-                velocity.x = -velocity.x * (Kind == EliteShots.Kind.Slab ? 1f : .85f);
+                velocity.x = -velocity.x * (Kind == EliteShots.Kind.Slab ? 1f : (rolling ? 1f : .85f));
                 if (Kind == EliteShots.Kind.Slab) drift = velocity.x;
-                p.x = Mathf.Sign(p.x) * (edge - radius - .01f);
+                p.x = Mathf.Sign(p.x) * (edge - reach - .01f);
                 transform.position = p;
-                Face();
+                baseP = p;
+                if (!rolling) Face();
             }
             else if (bounces <= 0)
             {
@@ -678,20 +838,154 @@ public class EliteShot : MonoBehaviour, IHostileShot
             var t = live[i];
             if (t == null || !t.isActiveAndEnabled) continue;
             float R = radius + t.Radius * FriendlyFire.HostileFireReach;
-            if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
+            if (slashShape)
+            {
+                // along the crescent: the distance to its centre line
+                Vector2 ax = transform.right * (ShotMotions.SlashLength * .5f);
+                if (HostileShots.SegmentDistanceSq(at - ax, at + ax, t.transform.position) > R * R) continue;
+            }
+            else if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
             if (!FriendlyFire.HostileFireCanHit(t, shooter)) continue;   // its shooter, the boss, a target just come in
-            string by = Kind == EliteShots.Kind.Glob ? "resin pool" : Kind == EliteShots.Kind.Slab ? "ice slab" : rosterShot ? "enemy shot" : "elite shot";
+            string by = Kind == EliteShots.Kind.Glob ? (rolling ? "rolling log" : "resin pool") : Kind == EliteShots.Kind.Slab ? "ice slab" : rosterShot ? "enemy shot" : "elite shot";
             if (!FriendlyFire.HostileHit(t, p, by)) continue;   // the frame's kill cap: not spent, next frame
             pool.CountFriendly();
-            if (pierce-- <= 0) { EndReason = 4; Recycle(); return; }
+            if (pierce-- <= 0) { EndReason = 4; if (!Scatter(p)) Recycle(); return; }
             break;   // the registry may have changed
         }
 
+        // an ice shard splits, a pod bursts, once it has flown far enough
+        if (CanScatter && !airborne && ((mot & ShotMotion.Shatter) != 0 ? age >= ShotMotions.ShatterSeconds : age >= ShotMotions.BurstSeconds) && Kind != EliteShots.Kind.Glob)
+        {
+            EndReason = 6;
+            if (Scatter(p)) return;
+        }
         if (age > life || p.y < EliteSystem.ViewBottom - 1f || p.y > EliteSystem.ViewTop + 1.5f)
         {
             EndReason = 1;
             Recycle();
         }
+    }
+
+    // ---- the projectile behaviours: children, the sight line ------------------------------------------------
+
+    // Shatter / Burst apply to a first-generation shot of that skin (a chip or a spore never splits again).
+    bool CanScatter => generation == 0 && (mot & (ShotMotion.Shatter | ShotMotion.Burst)) != 0;
+
+    // The shot splits where it is -- chips in a fan ahead (Shatter) or spores in a ring (Burst) -- and is gone.
+    // False when it is not that kind of shot (the caller carries on).
+    bool Scatter(Vector2 at)
+    {
+        if (!CanScatter) return false;
+        if ((mot & ShotMotion.Shatter) != 0)
+        {
+            Vector2 dir = velocity.sqrMagnitude > 1e-6f ? velocity.normalized : Vector2.down;
+            float sp = Mathf.Max(ShotMotions.ChipMinSpeed, velocity.magnitude * ShotMotions.ChipSpeedShare);
+            EliteSystem.Fx.Sparks(at, tint, 5);
+            lastSpawned = SpawnFan(at, dir, sp);
+        }
+        else
+        {
+            EliteSystem.Fx.Sparks(at, tint, 6);
+            lastSpawned = SpawnRing(at, ShotMotions.BurstSpores, ShotMotions.SporeSpeed, ShotMotions.SporeScale, ShotMotions.SporeSeconds);
+        }
+        Splits++;
+        if (EndReason == 0) EndReason = 6;
+        Recycle();
+        return true;
+    }
+
+    int SpawnFan(Vector2 at, Vector2 dir, float speed)
+    {
+        int n = ShotMotions.ShatterChips, made = 0;
+        for (int i = 0; i < n; i++)
+        {
+            float a = n > 1 ? Mathf.Lerp(-ShotMotions.ChipSpreadDeg, ShotMotions.ChipSpreadDeg, i / (float)(n - 1)) : 0f;
+            Vector2 v = Rotated(dir, a) * speed;
+            if (Child(at, v, ShotMotions.ChipScale, ShotMotions.ChipSeconds)) made++;
+        }
+        return made;
+    }
+
+    int SpawnRing(Vector2 at, int n, float speed, float scale, float seconds)
+    {
+        int made = 0;
+        float spin = Mathf.Repeat(age * 37f, 360f / Mathf.Max(1, n));
+        for (int i = 0; i < n; i++)
+        {
+            float r = (spin + i * 360f / n) * Mathf.Deg2Rad;
+            if (Child(at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed, scale, seconds)) made++;
+        }
+        return made;
+    }
+
+    static Vector2 Rotated(Vector2 v, float deg)
+    {
+        float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r);
+        return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c);
+    }
+
+    bool Child(Vector2 at, Vector2 v, float scale, float seconds)
+    {
+        if (pool == null) return false;
+        var c = pool.Fire(owner, def, EliteShots.Kind.Shard, at, v);
+        if (c == null) return false;
+        c.BecomeChip(scale, seconds, rosterShot, shooter, ride, ownerId, age + ageBias);
+        return true;
+    }
+
+    // A chip / spore: a small plain shard of its parent's shooter and side; never splits, ghosts or flutters.
+    void BecomeChip(float scale, float seconds, bool fromRoster, GameObject by, float rideBoard, int owningId, float parentAge)
+    {
+        generation = 1;
+        ageBias = parentAge;
+        mot = ShotMotion.None;
+        slashShape = false;
+        rolling = false;
+        rosterShot = fromRoster;
+        shooter = by;
+        ride = rideBoard;
+        ownerId = owningId;
+        for (int i = 0; i < ghosts.Length; i++) ghosts[i].enabled = false;
+        mark.enabled = false;
+        if (slashCol != null) slashCol.enabled = false;
+        hitCol.enabled = true;
+        transform.localScale *= scale;
+        radius *= scale;
+        life = seconds;
+        Face();
+    }
+
+    // Streak: the afterimage behind the slug, and a hairline from it to the edge of the view along its course.
+    void PlaceStreak()
+    {
+        Vector2 p = transform.position;
+        Vector2 d = velocity.sqrMagnitude > 1e-6f ? velocity.normalized : Vector2.down;
+        for (int i = 0; i < ghosts.Length; i++)
+        {
+            var g = ghosts[i];
+            g.enabled = true;
+            g.sprite = body.sprite;
+            g.transform.position = new Vector3(p.x - d.x * ShotMotions.GhostGap * (i + 1), p.y - d.y * ShotMotions.GhostGap * (i + 1), 0f);
+            g.transform.rotation = transform.rotation;
+            var c = tint;
+            c.a = ShotMotions.GhostAlpha / (i + 1.4f);
+            g.color = c;
+        }
+        // the distance along the course to the rails or the top / bottom of the view
+        float t = 40f;
+        float edge = EliteSystem.RailEdge;
+        if (d.x > 1e-4f) t = Mathf.Min(t, (edge - p.x) / d.x); else if (d.x < -1e-4f) t = Mathf.Min(t, (-edge - p.x) / d.x);
+        if (d.y > 1e-4f) t = Mathf.Min(t, (EliteSystem.ViewTop + 1f - p.y) / d.y); else if (d.y < -1e-4f) t = Mathf.Min(t, (EliteSystem.ViewBottom - 1f - p.y) / d.y);
+        t = Mathf.Max(0f, t);
+        SightLength = t;
+        mark.enabled = t > .05f;
+        mark.sprite = AttackHazardArt.Band();
+        var mc = tint;
+        mc.a = (Mathf.FloorToInt(age * 12f) & 1) == 0 ? .6f : .32f;   // (stepped)
+        mark.color = mc;
+        mark.transform.position = new Vector3(p.x + d.x * t * .5f, p.y + d.y * t * .5f, 0f);
+        mark.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+        mark.transform.localScale = new Vector3(t, ShotMotions.SightThickness, 1f);
     }
 
     public void Recycle()
@@ -704,7 +998,45 @@ public class EliteShot : MonoBehaviour, IHostileShot
         fuse = 0f;
         shooter = null;
         framed = false;
+        rolling = false;
         if (mark != null) mark.enabled = false;
+        if (ghosts != null) for (int i = 0; i < ghosts.Length; i++) if (ghosts[i] != null) ghosts[i].enabled = false;
         gameObject.SetActive(false);
     }
+}
+
+// The numbers of the projectile behaviours (EliteShot, ShotMotion flags read from the skin). Budgets are the design doc's
+// (docs/world-attacks-design.md section 3): the Warden's slug is 6.0 u/s, the Mantis's crescent 4.5 u/s and 1.1 u long, the Snap
+// Sprout's leaf weaves .12 u at 2 Hz, the Timber Hauler's log rolls 1.4 u/s with five seconds of life.
+public static class ShotMotions
+{
+    public const float StreakSpeed = 6f;       // u/s
+    public const int GhostCount = 4;
+    public const float GhostGap = .35f;        // u between afterimages: 1.4 u in all
+    public const float GhostAlpha = .6f;
+    public const float SightThickness = .03f;  // the hairline
+
+    public const float ShatterSeconds = 1.2f;  // flight before an ice shard splits by itself
+    public const int ShatterChips = 3;
+    public const float ChipSpreadDeg = 14f;    // the fan: -14, 0, +14 round the heading
+    public const float ChipSpeedShare = .9f;
+    public const float ChipMinSpeed = 1.2f;
+    public const float ChipScale = .6f;        // drawn and hit at 60% of the spear (r .054 -> .032)
+    public const float ChipSeconds = 1.6f;
+
+    public const float FlutterAmp = .12f;      // u across the course
+    public const float FlutterHz = 2f;
+
+    public const float SlashLength = 1.1f;     // u, drawn and hit lengthwise
+    public const float SlashSpeed = 4.5f;      // u/s cap
+    public const float SlashRailLap = .15f;    // u past the rail's face the centre may go before the blade ends
+
+    public const float RollSpeed = 1.4f;       // u/s along the ground relative to the board
+    public const float RollSeconds = 5f;
+
+    public const float BurstSeconds = 1.3f;    // flight before a (non-lobbed) pod bursts by itself
+    public const int BurstSpores = 6;
+    public const float SporeSpeed = 1.6f;
+    public const float SporeScale = .55f;
+    public const float SporeSeconds = .9f;
 }

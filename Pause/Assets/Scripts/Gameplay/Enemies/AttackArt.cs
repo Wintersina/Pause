@@ -110,6 +110,13 @@ public static class AttackArt
     public static Sprite StrikeGlyph(int world, int i) => Cell(world, "strike", Mathf.Clamp(i, 0, 1), 3, 128, 128);
     public static Sprite StrikeBurst(int world, int i) => Cell(world, "strike", 2 + Mathf.Clamp(i, 0, 2), 3, 128, 128);
 
+    // <w>_attack_lash.png (1024 x 128, 8 cells; Verdant vine, Tide tentacle; phase 1e): link a,b (one 128 px section of the whip pointing down,
+    // tiled end to end), tip a,b (the thorn / barnacled tip), root a,b (the bud / hatch collar), dash a,b (a dotted arc-preview segment)
+    public static Sprite LashLink(int world, int i) => Cell(world, "lash", Mathf.Clamp(i, 0, 1), 0);
+    public static Sprite LashTip(int world, int i) => Cell(world, "lash", 2 + Mathf.Clamp(i, 0, 1), 0);
+    public static Sprite LashRoot(int world, int i) => Cell(world, "lash", 4 + Mathf.Clamp(i, 0, 1), 0);
+    public static Sprite LashDash(int world, int i) => Cell(world, "lash", 6 + Mathf.Clamp(i, 0, 1), 0);
+
     // ---- tests --------------------------------------------------------------------
 
     public static void Inject(int world, string file, Texture2D tex) { injected[PathOf(world, file)] = tex; }

@@ -619,7 +619,7 @@ public static class HostileFireTest
         string volley = classes.ContainsKey("EnemyVolley") ? classes["EnemyVolley"] : "";
         // (Laser is a rail mine's beam, RailMineLaser, not a volley of shots: checked just below)
         var firing = System.Enum.GetValues(typeof(EnemyAttack)).Cast<EnemyAttack>()
-            .Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge && a != EnemyAttack.Laser && a != EnemyAttack.Blast && a != EnemyAttack.Strike).ToList();
+            .Where(a => a != EnemyAttack.None && a != EnemyAttack.Lunge && a != EnemyAttack.Laser && a != EnemyAttack.Blast && a != EnemyAttack.Strike && a != EnemyAttack.Lash).ToList();
         bool cased = firing.All(a => volley.Contains("case EnemyAttack." + a + ":"));
         int fires = Regex.Matches(volley, @"pool\.Fire\(").Count, marks = Regex.Matches(volley, @"AsRosterShot\(source").Count;
         Check("every firing roster attack (" + string.Join(", ", firing) + ") goes through EnemyVolley's pool, each shot marked with its shooter (" +
