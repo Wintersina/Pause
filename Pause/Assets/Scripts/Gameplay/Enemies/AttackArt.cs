@@ -138,6 +138,44 @@ public static class AttackArt
         return a;
     }
 
+    // space_attack_laser (1024 x 384, 8 x 3 cells of 128), space_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)
+    // and space_attack_lasertell (512 x 128: sight a,b then lock a,b). Null when any of the three files is missing (BossBeam then draws
+    // the generic boss beam).
+    //   laser row 0: windup 1-8 (energy gathering at the pod); row 1: muzzle a-d (loop) then fade 1-4; row 2: impact 1-4 then spark a-d
+    public sealed class SpaceLaserArt
+    {
+        public readonly Sprite[] windup = new Sprite[8], muzzle = new Sprite[4], fade = new Sprite[4], impact = new Sprite[4],
+                                 spark = new Sprite[4], body = new Sprite[4], sight = new Sprite[2], lockOn = new Sprite[2];
+    }
+
+    public const int SpaceLaserBodyOpaquePx = 72;   // the opaque columns of a 128 px wide beam frame (px 28..99): the part that stays in the hit shape
+
+    static SpaceLaserArt spaceLaser;
+
+    public static SpaceLaserArt SpaceLaser(int world = 0)
+    {
+        if (spaceLaser != null && spaceLaser.body[0] != null) return spaceLaser;
+        if (!Has(world, "laser") || !Has(world, "laserbody") || !Has(world, "lasertell")) return null;
+        var a = new SpaceLaserArt();
+        for (int i = 0; i < 8; i++) if ((a.windup[i] = Cell(world, "laser", i, 0)) == null) return null;
+        for (int i = 0; i < 4; i++)
+        {
+            a.muzzle[i] = Cell(world, "laser", i, 1);
+            a.fade[i] = Cell(world, "laser", 4 + i, 1);
+            a.impact[i] = Cell(world, "laser", i, 2);
+            a.spark[i] = Cell(world, "laser", 4 + i, 2);
+            a.body[i] = Cell(world, "laserbody", i, 0, 128, 256);
+            if (a.muzzle[i] == null || a.fade[i] == null || a.impact[i] == null || a.spark[i] == null || a.body[i] == null) return null;
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            a.sight[i] = Cell(world, "lasertell", i, 0);
+            a.lockOn[i] = Cell(world, "lasertell", 2 + i, 0);
+            if (a.sight[i] == null || a.lockOn[i] == null) return null;
+        }
+        return spaceLaser = a;
+    }
+
     // ---- the cores' slots (plan phases 1c / 1d) --------------------------------------------------------
     // frost_attack_ring.png (8 x 128): bar x4, gapMarker a,b, glyph a,b
     public static Sprite RingBar(int world, int i) => Cell(world, "ring", Mathf.Clamp(i, 0, 3), 0);
@@ -182,6 +220,7 @@ public static class AttackArt
     public static void Clear()
     {
         injected.Clear();
+        spaceLaser = null;
         cells.Clear();
         atlases.Clear();
     }

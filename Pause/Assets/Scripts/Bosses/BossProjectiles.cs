@@ -288,7 +288,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
 // hurts.
 public class BossBeam : MonoBehaviour
 {
-    SpriteRenderer sight, beam, flash, impact, sheath, spark;   // sheath: the glow along its length (HostileGlow)
+    SpriteRenderer sight, beam, flash, impact, sheath, spark, lockOn;   // sheath: the glow along its length (HostileGlow)
     Color sheathTint;
     BossProjectilePool pool;
     GameObject hitbox;
@@ -299,7 +299,8 @@ public class BossBeam : MonoBehaviour
     float startDeg, sweepDeg, tellLeft, tellTotal, holdLeft, holdTotal, fadeLeft, age, width;
     float length;            // current drawn length
     float reach;             // to the rail or past the view's bottom, this frame
-    bool live, fading, railHit, fancy;   // fancy: the Archon's procedural laser (SpaceBeamFx)
+    bool live, fading, railHit;
+    AttackArt.SpaceLaserArt art;   // the Archon's painted pod laser (space_attack_laser*); null: the generic boss beam
     Vector3 origin;
 
     public bool Active { get; private set; }
@@ -352,6 +353,8 @@ public class BossBeam : MonoBehaviour
         b.impact = Piece(go.transform, "Impact", 31);
         b.spark = Piece(go.transform, "ImpactSpark", 32);
         b.spark.enabled = false;
+        b.lockOn = Piece(go.transform, "Lock", 25);
+        b.lockOn.enabled = false;
         go.SetActive(false);
         return b;
     }
@@ -390,16 +393,19 @@ public class BossBeam : MonoBehaviour
         beam.sprite = BossArt.Shot(boss, BossArt.Beam0);
         flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0);
         impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0);
-        fancy = SpaceBeamFx.Applies(boss);
+        art = boss != null && boss.artKey == "Space" ? AttackArt.SpaceLaser() : null;
         flash.color = impact.color = Color.white;
-        if (fancy)
+        ResetPiece(sight); ResetPiece(beam); ResetPiece(flash); ResetPiece(impact); ResetPiece(spark); ResetPiece(lockOn);
+        if (art != null)
         {
-            beam.sprite = SpaceBeamFx.Beam(0f);
-            flash.sprite = impact.sprite = SpaceBeamFx.Glow();
-            spark.sprite = SpaceBeamFx.Star();
+            sight.sprite = art.sight[0];
+            beam.sprite = art.body[0];
+            lockOn.sprite = art.lockOn[0];
+            Tile(sight);
+            Tile(beam);
         }
         sight.enabled = true;
-        beam.enabled = flash.enabled = impact.enabled = spark.enabled = false;
+        beam.enabled = flash.enabled = impact.enabled = spark.enabled = lockOn.enabled = false;
         sheath.enabled = false;
         sheathTint = HostileGlow.Tint(boss != null ? boss.flash : Color.white);
 
@@ -477,6 +483,7 @@ public class BossBeam : MonoBehaviour
         length = 0f;
         Angle = startDeg;
         sight.enabled = false;
+        lockOn.enabled = false;
         beam.enabled = flash.enabled = true;
         sheath.enabled = true;
         hitbox = BossHitbox.Box(transform, "BossBeamHit", new Vector2(width * BossConfig.BeamHitFraction, .01f));
@@ -510,8 +517,8 @@ public class BossBeam : MonoBehaviour
         {
             int blink = Mathf.FloorToInt(age / (BossArt.TelegraphBlinkTicks * BossArt.Tick));
             sight.enabled = blink % 2 == 0 && length > 0f;
-            Span(sight.transform, width * BossConfig.BeamSightWidth, length);
-            if (fancy) WindupFlare();
+            if (art != null) PaintedSight(); else Span(sight.transform, width * BossConfig.BeamSightWidth, length);
+            if (art != null) Windup();
             return;
         }
 
@@ -519,35 +526,37 @@ public class BossBeam : MonoBehaviour
         if (fading) w *= Mathf.Clamp01(fadeLeft / Mathf.Max(.01f, BossConfig.BeamFadeSeconds));
         else
         {
-            // a hot flicker on twos, never a smooth pulse
+            // a hot flicker on twos, never a smooth pulse (the painted beam animates itself)
             int step = Mathf.FloorToInt(age / (2f * BossArt.Tick));
-            w *= step % 2 == 0 ? 1f : .85f;
+            if (art == null) w *= step % 2 == 0 ? 1f : .85f;
         }
-        Span(beam.transform, w, length);
+        if (art != null) PaintedBeam(w); else Span(beam.transform, w, length);
         // the sheath: the same wrapper as a shot, along the beam's length
         sheath.transform.localPosition = new Vector3(0f, length * .5f, 0f);
-        sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
+        sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * (art != null ? BossConfig.BeamHitFraction : 1f) * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
                                                   Mathf.Max(.001f, length) / HostileGlow.SheathHeight, 1f);
         var sc = sheathTint;
         sc.a = HostileGlow.PulseAlphaAt(age);
         sheath.color = sc;
-        beam.sprite = fancy ? SpaceBeamFx.Beam(age) : BossArt.Shot(boss, BossArt.Beam0 + BossArt.FrameAt(BossArt.BeamTicks, age, true));
-
-        int f = BossArt.FrameAt(BossAttackFx.FlashTickTable, age, true);
-        flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0 + Mathf.Min(f, BossAttackFx.FlashFrames - 1));
-        flash.transform.localPosition = Vector3.zero;
-        flash.transform.localScale = Vector3.one * BossConfig.BeamFlashSize * (fading ? .6f : 1f);
-        if (fancy) LiveFlare(w);
+        if (art != null) { Muzzle(); }
+        else
+        {
+            beam.sprite = BossArt.Shot(boss, BossArt.Beam0 + BossArt.FrameAt(BossArt.BeamTicks, age, true));
+            int f = BossArt.FrameAt(BossAttackFx.FlashTickTable, age, true);
+            flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0 + Mathf.Min(f, BossAttackFx.FlashFrames - 1));
+            flash.transform.localPosition = Vector3.zero;
+            flash.transform.localScale = Vector3.one * BossConfig.BeamFlashSize * (fading ? .6f : 1f);
+        }
 
         bool touching = railHit && length >= reach - 1e-3f;
         impact.enabled = touching && !fading;
-        if (impact.enabled)
+        if (impact.enabled && art != null) RailImpact();
+        else if (impact.enabled)
         {
             int s = Mathf.FloorToInt(age / BossArt.Tick) % 2;
             impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0 + 1 + s);
             impact.transform.localPosition = new Vector3(0f, length, 0f);
             impact.transform.localScale = Vector3.one * BossConfig.RailSparkSize;
-            if (fancy) RailImpact(w);
         }
         else spark.enabled = false;
 
@@ -559,43 +568,101 @@ public class BossBeam : MonoBehaviour
         }
     }
 
-    // ---- the Archon's laser: visual only (SpaceBeamFx) ----
+    // ---- the Archon's painted pod laser (AttackArt.SpaceLaser): visual only ----
+    //
+    // Every size below derives from the beam body: its 128 px frame is drawn at BodyScale so that its opaque columns
+    // (AttackArt.SpaceLaserBodyOpaquePx) are exactly the hit shape's width (width x BeamHitFraction). The hit shape,
+    // tell and timings are the generic beam's, untouched.
 
-    // The pod gathers light during the tell: a flare that swells and flickers, brightest just before it fires.
-    void WindupFlare()
+    const float WindupFps = 12f, LoopFps = 12f, SparkFps = 15f;
+    const float SightScale = 2.4f;     // the aim line's 128 px tile: its 2 px dashes are ~.04 u wide
+    const float LockScale = 1f;        // the reticle's 128 px cell
+    const float FlareToBody = 1.5f;    // muzzle / windup / impact cells vs the body frame
+
+    float BodyScale => width * BossConfig.BeamHitFraction * 128f / AttackArt.SpaceLaserBodyOpaquePx;
+
+    static void ResetPiece(SpriteRenderer r)
     {
-        float k = tellTotal > 0f ? Mathf.Clamp01(1f - tellLeft / tellTotal) : 1f;
-        float flick = .88f + .12f * Mathf.Sin(age * 55f);
-        flash.enabled = true;
-        flash.sprite = SpaceBeamFx.Glow();
-        flash.transform.localPosition = Vector3.zero;
-        flash.transform.localScale = Vector3.one * Mathf.Lerp(.18f, .85f, k * k) * flick;
-        var c = sheathTint; c.a = Mathf.Lerp(.35f, 1f, k);
-        flash.color = Color.Lerp(c, Color.white, k * k);
+        r.drawMode = SpriteDrawMode.Simple;
+        r.transform.localRotation = Quaternion.identity;
+        r.transform.localPosition = Vector3.zero;
+        r.transform.localScale = Vector3.one;
+        r.color = Color.white;
     }
 
-    // Live: the muzzle is a hot, throbbing bloom, flaring on ignition and shrinking as it fades.
-    void LiveFlare(float w)
+    // A strip tiled down its length (the sprite is one tile; the draw size is set per frame by TileTo).
+    static void Tile(SpriteRenderer r)
     {
-        float ignite = Mathf.Clamp01(1f - age / .18f);
-        float size = (BossConfig.BeamFlashSize * 1.9f + .35f * ignite) * (.92f + .08f * Mathf.Sin(age * 48f)) * (fading ? .6f : 1f);
-        flash.sprite = SpaceBeamFx.Glow();
-        flash.transform.localScale = Vector3.one * size;
+        r.drawMode = SpriteDrawMode.Tiled;
+        r.tileMode = SpriteTileMode.Continuous;
+    }
+
+    // `r` (a Tiled renderer of a sprite 1 u wide) spans `len` along the beam from the root, tile scale `scale`.
+    // flip: the art's TOP is the root, and sprite +y runs down the beam, so the strip is turned half a circle.
+    static void TileTo(SpriteRenderer r, float scale, float len, bool turned)
+    {
+        r.transform.localPosition = new Vector3(0f, len * .5f, 0f);
+        r.transform.localRotation = Quaternion.Euler(0f, 0f, turned ? 180f : 0f);
+        r.transform.localScale = new Vector3(scale, scale, 1f);
+        r.size = new Vector2(1f, Mathf.Max(.001f, len) / scale);
+    }
+
+    // The aim line (the tell sheet's sight a,b) and its lock reticle where the line ends.
+    void PaintedSight()
+    {
+        int f = Mathf.FloorToInt(age / (3f * BossArt.Tick)) % 2;
+        sight.sprite = art.sight[f];
+        TileTo(sight, SightScale, length, false);
+        lockOn.enabled = sight.enabled;
+        lockOn.sprite = art.lockOn[Mathf.FloorToInt(age / (2f * BossArt.Tick)) % 2];
+        lockOn.transform.localPosition = new Vector3(0f, length, 0f);
+        lockOn.transform.rotation = Quaternion.identity;
+        lockOn.transform.localScale = Vector3.one * LockScale;
+    }
+
+    // The pod gathers light through the tell: windup 1-8 spread over the tell's length, the last held.
+    void Windup()
+    {
+        float k = tellTotal > 0f ? Mathf.Clamp01(1f - tellLeft / tellTotal) : 1f;
+        flash.enabled = true;
+        flash.sprite = art.windup[Mathf.Min(7, Mathf.FloorToInt(k * 8f))];
+        flash.transform.localPosition = Vector3.zero;
+        flash.transform.localScale = Vector3.one * BodyScale * FlareToBody;
         flash.color = Color.white;
     }
 
-    // Where it meets a rail: a glow and a spinning spark star.
-    void RailImpact(float w)
+    // The live beam: the body's four frames (12 fps), tiled down its length from the root; the width shrinks as it fades.
+    void PaintedBeam(float w)
     {
-        float pulse = .85f + .15f * Mathf.Sin(age * 40f);
-        impact.sprite = SpaceBeamFx.Glow();
-        impact.transform.localScale = Vector3.one * (BossConfig.RailSparkSize * 1.6f) * pulse;
+        beam.sprite = art.body[Mathf.FloorToInt(age * LoopFps) % 4];
+        float s = BodyScale * (w / width);
+        TileTo(beam, s, length, true);
+    }
+
+    // Live: muzzle a-d looping at the root; fading: fade 1-4 across the fade.
+    void Muzzle()
+    {
+        float fade = Mathf.Clamp01(1f - fadeLeft / Mathf.Max(.01f, BossConfig.BeamFadeSeconds));
+        flash.sprite = fading ? art.fade[Mathf.Min(3, Mathf.FloorToInt(fade * 4f))] : art.muzzle[Mathf.FloorToInt(age * LoopFps) % 4];
+        flash.transform.localPosition = Vector3.zero;
+        flash.transform.localScale = Vector3.one * BodyScale * FlareToBody;
+        flash.color = Color.white;
+    }
+
+    // Where it meets a rail: the impact burst (its base on the rail, spraying back along the beam) with sparks over it.
+    void RailImpact()
+    {
+        float size = BodyScale * FlareToBody;
+        impact.sprite = art.impact[Mathf.FloorToInt(age * LoopFps) % 4];
+        impact.transform.localRotation = Quaternion.Euler(0f, 0f, 180f);
+        impact.transform.localPosition = new Vector3(0f, length - size * 47f / 128f, 0f);   // the burst's base sits 47 px below its cell centre
+        impact.transform.localScale = Vector3.one * size;
         impact.color = Color.white;
         spark.enabled = true;
-        spark.sprite = SpaceBeamFx.Star();
+        spark.sprite = art.spark[Mathf.FloorToInt(age * SparkFps) % 4];
         spark.transform.localPosition = new Vector3(0f, length, 0f);
-        spark.transform.localRotation = Quaternion.Euler(0f, 0f, age * 140f);
-        spark.transform.localScale = Vector3.one * (BossConfig.RailSparkSize * 1.3f) * (.8f + .4f * Mathf.Abs(Mathf.Sin(age * 23f)));
+        spark.transform.rotation = Quaternion.identity;
+        spark.transform.localScale = Vector3.one * size;
     }
 
     // Friendly fire: everything the live beam crosses -- rocks, enemies,
