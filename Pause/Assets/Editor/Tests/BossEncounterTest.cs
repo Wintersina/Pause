@@ -167,9 +167,8 @@ public static class BossEncounterTest
         Check("the other bosses keep the four-cell idle and the base tells",
               BossArt.IdleStart(BossCatalog.All[1]) == 0 && BossArt.IdleCount(BossCatalog.All[3]) == 4 &&
               BossArt.FireFrame(BossCatalog.All[3], 0) == BossArt.Fire);
-        Check("no damage or death art yet: it fights pristine, the atlas death stays",
-              !BossArt.HasDamageArt(tide) && !BossArt.HasDeathArt(tide) && BossArt.DeathStrip(tide, 0) == null &&
-              BossArt.DamageIdleCell(tide, 20, 3, 0f) == -1);
+        Check("it has damage and death art now (Tide_damage, Tide_damage_fx, Tide_death: BossDamageTest covers them)",
+              BossArt.HasDamageArt(tide) && BossArt.HasDeathArt(tide) && BossArt.DeathStrip(tide, 0) != null);
         bool muzzles = BossEmitterTable.FrameCount(BossEmitters.World(tide)) == 35;
         foreach (var a in tide.attacks)
             foreach (int part in a.parts)
