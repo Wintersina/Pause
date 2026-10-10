@@ -254,16 +254,29 @@ public static class CodexAnimations
 
         // Detail view: one "tell" that shows off every other colour in turn
         // (ShipSkins), each for ShipColourLoops idle loops, then back to stock.
+        // The colour sheets are decoded on demand and freed whenever nothing
+        // wears them (ShipHullArt.ReleaseUnusedSkins, which destroys the
+        // sprites too), so the tell re-cuts its drawings if they went.
         var colourSteps = new List<Sprite>();
         var colourHolds = new List<float>();
-        for (int skin = 1; skin < ShipSkins.CountFor(id); skin++)
-            for (int k = 0; k < ShipColourLoops; k++) IdleLoop(id, skin, colourSteps, colourHolds);
+        ColourLoops(id, colourSteps, colourHolds);
         if (colourSteps.Count > 0)
         {
-            a.AddTell(colourSteps.ToArray(), colourHolds.ToArray());
+            a.AddTell(colourSteps.ToArray(), colourHolds.ToArray(), () =>
+            {
+                var s = new List<Sprite>();
+                ColourLoops(id, s, new List<float>());
+                return s.ToArray();
+            });
             a.tellGap = ShipColourGap;
         }
         return a.Finish();
+    }
+
+    static void ColourLoops(int id, List<Sprite> steps, List<float> holds)
+    {
+        for (int skin = 1; skin < ShipSkins.CountFor(id); skin++)
+            for (int k = 0; k < ShipColourLoops; k++) IdleLoop(id, skin, steps, holds);
     }
 
     // How many idle loops each extra colour shows for in the detail view,

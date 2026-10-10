@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,6 +35,10 @@ public sealed class CodexAnimation
     public float[][] tellHolds;
     public int tellRepeats = 1;
     public Vector2 tellGap = new Vector2(3f, 6f);
+    // Per tell: re-cuts its drawings when some were destroyed underneath us
+    // (a ship's colour sheets are freed whenever nothing wears them). Null:
+    // the drawings are permanent.
+    public Func<Sprite[]>[] tellRefresh;
 
     // Whole-sprite motion.
     public float spinDegreesPerSecond;
@@ -76,8 +81,14 @@ public sealed class CodexAnimation
         get
         {
             if (!hadArt) return false;
-            if (idle == null || idle.Length == 0 || idle[0] == null) return true;
-            return hadUnder && under == null;
+            if (idle == null || idle.Length == 0) return true;
+            foreach (var s in idle) if (s == null) return true;
+            if (hadUnder && under == null) return true;
+            // Tells that can't re-cut themselves must still be whole.
+            if (tells != null)
+                for (int i = 0; i < tells.Length; i++)
+                    if (!TellAlive(i) && !(tellRefresh != null && tellRefresh[i] != null)) return true;
+            return false;
         }
     }
     bool hadUnder;
@@ -114,18 +125,41 @@ public sealed class CodexAnimation
     }
 
     // Adds a tell variant (skipped if any of its drawings is missing).
-    public void AddTell(Sprite[] steps, float[] holds)
+    public void AddTell(Sprite[] steps, float[] holds, Func<Sprite[]> refresh = null)
     {
         if (steps == null || holds == null || steps.Length == 0 || steps.Length != holds.Length) return;
         foreach (var s in steps) if (s == null) return;
         int n = tells == null ? 0 : tells.Length;
         var t = new Sprite[n + 1][];
         var h = new float[n + 1][];
-        for (int i = 0; i < n; i++) { t[i] = tells[i]; h[i] = tellHolds[i]; }
+        var r = new Func<Sprite[]>[n + 1];
+        for (int i = 0; i < n; i++) { t[i] = tells[i]; h[i] = tellHolds[i]; r[i] = tellRefresh != null ? tellRefresh[i] : null; }
         t[n] = steps;
         h[n] = holds;
+        r[n] = refresh;
         tells = t;
         tellHolds = h;
+        tellRefresh = r;
+    }
+
+    // Every drawing of tell `v` still exists.
+    public bool TellAlive(int v)
+    {
+        if (tells == null || v < 0 || v >= tells.Length) return false;
+        foreach (var s in tells[v]) if (s == null) return false;
+        return true;
+    }
+
+    // Re-cuts tell `v` if it lost drawings; false when it can't be made whole.
+    public bool EnsureTell(int v)
+    {
+        if (TellAlive(v)) return true;
+        if (tellRefresh == null || tellRefresh[v] == null) return false;
+        var fresh = tellRefresh[v]();
+        if (fresh == null || fresh.Length != tells[v].Length) return false;
+        foreach (var s in fresh) if (s == null) return false;
+        tells[v] = fresh;
+        return TellAlive(v);
     }
 
     public void SetUnder(Sprite sprite)
@@ -305,6 +339,7 @@ public class CodexAnimator : MonoBehaviour
         if (anim == null || dt <= 0f) return;
         if (dt > MaxStep) dt = MaxStep;
         if (death != DeathPhase.None) { AdvanceDeath(dt); if (death == DeathPhase.Strip || death == DeathPhase.Gap) return; }
+        Heal();
         if (!anim.Animates) return;
         clock += dt;
         Run(dt, detail && anim.HasTell);
@@ -420,6 +455,34 @@ public class CodexAnimator : MonoBehaviour
         }
     }
 
+    // The drawing on screen was destroyed under us (an Image with no sprite
+    // draws a plain white box): put back what should be showing.
+    void Heal()
+    {
+        if (death != DeathPhase.None) return;
+        var target = anim.under != null ? overlay : image;
+        if (target == null || target.sprite != null || !target.enabled) return;
+        if (telling && anim.EnsureTell(tellVariant) && tellStep < anim.tells[tellVariant].Length)
+        {
+            Show(anim.tells[tellVariant][tellStep], true);
+            return;
+        }
+        if (telling) EndTell();
+        else if (anim.idle[step] != null) Show(anim.idle[step], true);
+    }
+
+    // Back to the idle loop from its first drawing.
+    void EndTell()
+    {
+        telling = false;
+        tellStep = tellLoop = 0;
+        tellVariant = (tellVariant + 1) % anim.tells.Length;
+        untilTell = UnityEngine.Random.Range(anim.tellGap.x, anim.tellGap.y);
+        step = 0;
+        hold = anim.idleHold[0];
+        Show(anim.idle[0], true);
+    }
+
     void Run(float dt, bool canTell)
     {
         int idleN = anim.idle.Length;
@@ -431,6 +494,7 @@ public class CodexAnimator : MonoBehaviour
         {
             if (telling)
             {
+                if (!anim.EnsureTell(tellVariant)) { EndTell(); continue; }
                 var seq = anim.tells[tellVariant];
                 tellStep++;
                 if (tellStep >= seq.Length)
@@ -441,7 +505,7 @@ public class CodexAnimator : MonoBehaviour
                     {
                         telling = false;
                         tellVariant = (tellVariant + 1) % anim.tells.Length;
-                        untilTell = Random.Range(anim.tellGap.x, anim.tellGap.y);
+                        untilTell = UnityEngine.Random.Range(anim.tellGap.x, anim.tellGap.y);
                         step = 0;
                         hold += anim.idleHold[0];
                         Show(anim.idle[0], false);
@@ -456,6 +520,13 @@ public class CodexAnimator : MonoBehaviour
             // The tell waits for the loop to come back round to its key pose.
             if (canTell && untilTell <= 0f && step == idleN - 1)
             {
+                if (!anim.EnsureTell(tellVariant))
+                {
+                    // Nothing to show this round: look again later.
+                    tellVariant = (tellVariant + 1) % anim.tells.Length;
+                    untilTell = UnityEngine.Random.Range(anim.tellGap.x, anim.tellGap.y);
+                    continue;
+                }
                 telling = true;
                 tellStep = 0;
                 tellLoop = 0;

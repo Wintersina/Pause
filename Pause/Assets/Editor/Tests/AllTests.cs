@@ -78,6 +78,7 @@ public static class AllTests
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
         ("CloakShieldTest", CloakShieldTest.Execute),
         ("CodexTest", CodexTest.Execute),
+        ("CodexWhiteSpriteTest", CodexWhiteSpriteTest.Execute),
         ("CooldownAtomTest", CooldownAtomTest.Execute),
         ("CreditsTest", CreditsTest.Execute),
         ("DeathCrashTest", DeathCrashTest.Execute),
