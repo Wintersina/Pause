@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember, Tide) shows
-// its battle damage as it loses hearts; Verdant has none yet. A boss with a
+// Feature: a boss with damage art (BossDef.damageKey: all five bosses) shows
+// its battle damage as it loses hearts. A boss with a
 // BossDef.deathKey (all five) plays its <Key>_death.png strip over the body as it
 // blows up.
 //
@@ -37,19 +37,24 @@ public static class BossDamageTest
             StageFollowsHeartsLost();
             ArtSlicesIntoItsCells(0);
             ArtSlicesIntoItsCells(1);
+            ArtSlicesIntoItsCells(2);
             ArtSlicesIntoItsCells(3);
             ArtSlicesIntoItsCells(4);
             OnlyKeyedBossesHaveDamage();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
+            FightShowsTheDamage(2);
             FightShowsTheDamage(3);
             FightShowsTheDamage(4);
             OtherBossesUnchangedInAFight();
             OverlayGoesWithTheBoss(0);
             OverlayGoesWithTheBoss(1);
+            OverlayGoesWithTheBoss(2);
             OverlayGoesWithTheBoss(3);
             OverlayGoesWithTheBoss(4);
+            DamageRegistration(2);
+            DamageLoopsAnimate(2);
             DeathStripArt(0, "Space");
             DeathStripArt(1, "Frost");
             DeathStripArt(2, "Verdant");
@@ -197,7 +202,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant";
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
@@ -207,7 +212,7 @@ public static class BossDamageTest
             }
             if (!space) ok &= BossArt.DamageBody(b, 0) == null && BossArt.DamageFx(b, 0) == null;
         }
-        Check("damaged idle frames resolve for Space, Frost, Ember and Tide (by damageKey); Verdant gets none", ok);
+        Check("damaged idle frames resolve for every boss (by damageKey)", ok);
 
         // Frost's idle is the 4-frame Idle0 loop: the damaged loop spans it
         var fr = BossCatalog.ForWorld(1);
@@ -315,6 +320,53 @@ public static class BossDamageTest
     {
         for (int c = 0; c < BossArt.DeathStripCells; c++) if (sp == BossArt.DeathStrip(b, c)) return true;
         return false;
+    }
+
+    // Verdant damage art: every hull cell has art, stays inside the pristine idle cell's box (+6 px),
+    // stages differ, and the 2-frame idle loops and fx loops animate.
+    static void DamageRegistration(int world)
+    {
+        var b = BossCatalog.ForWorld(world);
+        var ibox = Box(BossArt.Body(b, BossArt.IdleFrame(b, 0f)));
+        bool nonEmpty = true, reg = ibox != null;
+        for (int i = 0; i < BossArt.DamageCells; i++)
+        {
+            var bx = Box(BossArt.DamageBody(b, i));
+            if (bx == null) { nonEmpty = false; continue; }
+            if (ibox != null && (bx[0] < ibox[0] - 6 || bx[1] < ibox[1] - 6 || bx[2] > ibox[2] + 6 || bx[3] > ibox[3] + 6)) reg = false;
+        }
+        Check(b.artKey + ": all 8 damage hull cells non-empty", nonEmpty);
+        Check(b.artKey + ": every damage cell sits within the pristine idle cell's box + 6 px", reg);
+        bool fxOk = true;
+        for (int i = 0; i < BossArt.DamageFxCells; i++) fxOk &= Box(BossArt.DamageFx(b, i)) != null;
+        Check(b.artKey + ": all 12 fx cells non-empty", fxOk);
+        bool differ = true;
+        for (int st = 1; st < 4; st++) differ &= !SamePixels(BossArt.DamageBody(b, (st - 1) * 2), BossArt.DamageBody(b, st * 2));
+        Check(b.artKey + ": damage stages differ from each other", differ);
+    }
+
+    static bool SamePixels(Sprite a, Sprite b)
+    {
+        int w1, h1, w2, h2;
+        var p = Pixels(a, out w1, out h1); var q = Pixels(b, out w2, out h2);
+        if (p == null || q == null || w1 != w2 || h1 != h2) return false;
+        for (int i = 0; i < p.Length; i++) if (p[i].r != q[i].r || p[i].g != q[i].g || p[i].b != q[i].b || p[i].a != q[i].a) return false;
+        return true;
+    }
+
+    static void DamageLoopsAnimate(int world)
+    {
+        var b = BossCatalog.ForWorld(world);
+        bool frames = true;
+        for (int st = 0; st < 4; st++) frames &= !SamePixels(BossArt.DamageBody(b, st * 2), BossArt.DamageBody(b, st * 2 + 1));
+        Check(b.artKey + ": each stage's two idle frames differ (loop animates)", frames);
+        bool smoke = true, arcs = true;
+        for (int i = 0; i < BossArt.DamageFxColumns - 1; i++)
+        {
+            smoke &= !SamePixels(BossArt.DamageFx(b, BossArt.Smoke0 + i), BossArt.DamageFx(b, BossArt.Smoke0 + i + 1));
+            arcs &= !SamePixels(BossArt.DamageFx(b, BossArt.Arc0 + i), BossArt.DamageFx(b, BossArt.Arc0 + i + 1));
+        }
+        Check(b.artKey + ": smoke and electrical loops change frame to frame", smoke && arcs);
     }
 
     static void OtherBossesUnchangedInAFight()

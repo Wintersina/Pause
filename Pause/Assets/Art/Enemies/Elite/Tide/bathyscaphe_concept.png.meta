@@ -1,0 +1,1443 @@
+fileFormatVersion: 2
+guid: 69bbc8929f58a446aa77d60b444ec62a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5719647949034425847
+    second: bathyscaphe_concept_0
+  - first:
+      213: 1606602268893703253
+    second: bathyscaphe_concept_1
+  - first:
+      213: -1767324675959151044
+    second: bathyscaphe_concept_2
+  - first:
+      213: 1386978343866921763
+    second: bathyscaphe_concept_3
+  - first:
+      213: 2004916474840768826
+    second: bathyscaphe_concept_4
+  - first:
+      213: -6512043769460719777
+    second: bathyscaphe_concept_5
+  - first:
+      213: -4759535049326831586
+    second: bathyscaphe_concept_6
+  - first:
+      213: -1889889880817917581
+    second: bathyscaphe_concept_7
+  - first:
+      213: -6830654254326464927
+    second: bathyscaphe_concept_8
+  - first:
+      213: -6158131021821052235
+    second: bathyscaphe_concept_9
+  - first:
+      213: 83495982740606449
+    second: bathyscaphe_concept_10
+  - first:
+      213: -5869409412861114153
+    second: bathyscaphe_concept_11
+  - first:
+      213: -8341043832793898802
+    second: bathyscaphe_concept_12
+  - first:
+      213: 6643954279591743037
+    second: bathyscaphe_concept_13
+  - first:
+      213: 6618231465246390992
+    second: bathyscaphe_concept_14
+  - first:
+      213: -1018576247266433513
+    second: bathyscaphe_concept_15
+  - first:
+      213: -5421919037039877900
+    second: bathyscaphe_concept_16
+  - first:
+      213: 7722805460949128288
+    second: bathyscaphe_concept_17
+  - first:
+      213: -7882572150117198815
+    second: bathyscaphe_concept_18
+  - first:
+      213: 7362647906790097425
+    second: bathyscaphe_concept_19
+  - first:
+      213: -5729569830949338407
+    second: bathyscaphe_concept_20
+  - first:
+      213: 2201432034392173595
+    second: bathyscaphe_concept_21
+  - first:
+      213: -5854797163651891172
+    second: bathyscaphe_concept_22
+  - first:
+      213: 2051750402924245718
+    second: bathyscaphe_concept_23
+  - first:
+      213: -2726356942441520116
+    second: bathyscaphe_concept_24
+  - first:
+      213: -3448262366221633452
+    second: bathyscaphe_concept_25
+  - first:
+      213: -522476044802818213
+    second: bathyscaphe_concept_26
+  - first:
+      213: -7017869335707578529
+    second: bathyscaphe_concept_27
+  - first:
+      213: 5047080497449823654
+    second: bathyscaphe_concept_28
+  - first:
+      213: 356559803530779629
+    second: bathyscaphe_concept_29
+  - first:
+      213: -7812663854873727607
+    second: bathyscaphe_concept_30
+  - first:
+      213: -627124886703083534
+    second: bathyscaphe_concept_31
+  - first:
+      213: 3843056637744755107
+    second: bathyscaphe_concept_32
+  - first:
+      213: 4106430233469669272
+    second: bathyscaphe_concept_33
+  - first:
+      213: -123333523496625569
+    second: bathyscaphe_concept_34
+  - first:
+      213: -41451535760240251
+    second: bathyscaphe_concept_35
+  - first:
+      213: -6142097542514568047
+    second: bathyscaphe_concept_36
+  - first:
+      213: -5850678470275127125
+    second: bathyscaphe_concept_37
+  - first:
+      213: -4485999958076775294
+    second: bathyscaphe_concept_38
+  - first:
+      213: 3455164043404863009
+    second: bathyscaphe_concept_39
+  - first:
+      213: -2727044130919734894
+    second: bathyscaphe_concept_40
+  - first:
+      213: 5241994912632093512
+    second: bathyscaphe_concept_41
+  - first:
+      213: -8254154564955748501
+    second: bathyscaphe_concept_42
+  - first:
+      213: 6855605964082267864
+    second: bathyscaphe_concept_43
+  - first:
+      213: 3176354155719538892
+    second: bathyscaphe_concept_44
+  - first:
+      213: -2868293260984281598
+    second: bathyscaphe_concept_45
+  - first:
+      213: -8332289630573154117
+    second: bathyscaphe_concept_46
+  - first:
+      213: -5571492383999627460
+    second: bathyscaphe_concept_47
+  - first:
+      213: 2124797125675014308
+    second: bathyscaphe_concept_48
+  - first:
+      213: -1621389994826988888
+    second: bathyscaphe_concept_49
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: bathyscaphe_concept_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1242
+        height: 1236
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 902f28d8e7abf90b0800000000000000
+      internalID: -5719647949034425847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_1
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 1235
+        width: 34
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55ceebc504ccb4610800000000000000
+      internalID: 1606602268893703253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_2
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 1203
+        width: 31
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c362ca622933977e0800000000000000
+      internalID: -1767324675959151044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_3
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 1231
+        width: 19
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 323f85984798f3310800000000000000
+      internalID: 1386978343866921763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_4
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 1231
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a31663f49e4e2db10800000000000000
+      internalID: 2004916474840768826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_5
+      rect:
+        serializedVersion: 2
+        x: 858
+        y: 1201
+        width: 45
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5f7f77a1b290a5a0800000000000000
+      internalID: -6512043769460719777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_6
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 1233
+        width: 35
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e185ad8f61cb2fdb0800000000000000
+      internalID: -4759535049326831586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_7
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 1227
+        width: 22
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3712e3d9a23c5c5e0800000000000000
+      internalID: -1889889880817917581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_8
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 1207
+        width: 46
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16e3c536524a431a0800000000000000
+      internalID: -6830654254326464927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_9
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 1203
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bafa0c767ce98aa0800000000000000
+      internalID: -6158131021821052235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_10
+      rect:
+        serializedVersion: 2
+        x: 1240
+        y: 901
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fd0d676723a82100800000000000000
+      internalID: 83495982740606449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 660
+        width: 6
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d844198c3bab8ea0800000000000000
+      internalID: -5869409412861114153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_12
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 87
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec06b5aa3d8ae3c80800000000000000
+      internalID: -8341043832793898802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_13
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 97
+        width: 9
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3e80035731143c50800000000000000
+      internalID: 6643954279591743037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_14
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 31
+        width: 106
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0daf257e37ea8db50800000000000000
+      internalID: 6618231465246390992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_15
+      rect:
+        serializedVersion: 2
+        x: 151
+        y: 100
+        width: 17
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 716a80dbc4a4dd1f0800000000000000
+      internalID: -1018576247266433513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_16
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 21
+        width: 105
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f06f44cc5971c4b0800000000000000
+      internalID: -5421919037039877900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_17
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 97
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 064d15946aaec2b60800000000000000
+      internalID: 7722805460949128288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_18
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 81
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12490e3a46a7b9290800000000000000
+      internalID: -7882572150117198815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_19
+      rect:
+        serializedVersion: 2
+        x: 633
+        y: 18
+        width: 102
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1124f7223416d2660800000000000000
+      internalID: 7362647906790097425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_20
+      rect:
+        serializedVersion: 2
+        x: 1009
+        y: 55
+        width: 51
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d24876689a7c70b0800000000000000
+      internalID: -5729569830949338407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_21
+      rect:
+        serializedVersion: 2
+        x: 1117
+        y: 101
+        width: 34
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1c6c1785ce0d8e10800000000000000
+      internalID: 2201432034392173595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_22
+      rect:
+        serializedVersion: 2
+        x: 1214
+        y: 95
+        width: 7
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c10809ceff49fbea0800000000000000
+      internalID: -5854797163651891172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_23
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 69
+        width: 29
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d2701eee18497c10800000000000000
+      internalID: 2051750402924245718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_24
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 77
+        width: 26
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c046ad24ec80a2ad0800000000000000
+      internalID: -2726356942441520116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_25
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 79
+        width: 17
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 458f209c5af4520d0800000000000000
+      internalID: -3448262366221633452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_26
+      rect:
+        serializedVersion: 2
+        x: 739
+        y: 73
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5f70e13ecacfb8f0800000000000000
+      internalID: -522476044802818213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_27
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 79
+        width: 16
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5f0b0d75058b9e90800000000000000
+      internalID: -7017869335707578529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_28
+      rect:
+        serializedVersion: 2
+        x: 1055
+        y: 47
+        width: 27
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ad6c4bc8f4da0640800000000000000
+      internalID: 5047080497449823654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_29
+      rect:
+        serializedVersion: 2
+        x: 1109
+        y: 59
+        width: 68
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deb92ae8041c2f400800000000000000
+      internalID: 356559803530779629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_30
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 52
+        width: 17
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98da7b40e97d39390800000000000000
+      internalID: -7812663854873727607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_31
+      rect:
+        serializedVersion: 2
+        x: 999
+        y: 69
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ff614afc310c47f0800000000000000
+      internalID: -627124886703083534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_32
+      rect:
+        serializedVersion: 2
+        x: 1005
+        y: 65
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a1bb7096a7455530800000000000000
+      internalID: 3843056637744755107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_33
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 45
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89f42e06a88fcf830800000000000000
+      internalID: 4106430233469669272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_34
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 49
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5a161750d4d94ef0800000000000000
+      internalID: -123333523496625569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_35
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 51
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 581dd9f3c0cbc6ff0800000000000000
+      internalID: -41451535760240251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_36
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 30
+        width: 42
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1949e9ac3d2e2caa0800000000000000
+      internalID: -6142097542514568047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_37
+      rect:
+        serializedVersion: 2
+        x: 838
+        y: 12
+        width: 37
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba8a934fde63ecea0800000000000000
+      internalID: -5850678470275127125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_38
+      rect:
+        serializedVersion: 2
+        x: 277
+        y: 31
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 284aa645ec68eb1c0800000000000000
+      internalID: -4485999958076775294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_39
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 7
+        width: 52
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12669d7246533ff20800000000000000
+      internalID: 3455164043404863009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_40
+      rect:
+        serializedVersion: 2
+        x: 740
+        y: 17
+        width: 35
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29127b9bfc7972ad0800000000000000
+      internalID: -2727044130919734894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_41
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 23
+        width: 23
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84b37d9899e4fb840800000000000000
+      internalID: 5241994912632093512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_42
+      rect:
+        serializedVersion: 2
+        x: 1200
+        y: 35
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b67c4a2d72a537d80800000000000000
+      internalID: -8254154564955748501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_43
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 25
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d64c214d41042f50800000000000000
+      internalID: 6855605964082267864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_44
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 17
+        width: 23
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc8bf7c864da41c20800000000000000
+      internalID: 3176354155719538892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_45
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 22
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 206926bd976c138d0800000000000000
+      internalID: -2868293260984281598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_46
+      rect:
+        serializedVersion: 2
+        x: 520
+        y: 13
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb034043ab2cd5c80800000000000000
+      internalID: -8332289630573154117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_47
+      rect:
+        serializedVersion: 2
+        x: 721
+        y: 17
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3f68ee12351ea2b0800000000000000
+      internalID: -5571492383999627460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_48
+      rect:
+        serializedVersion: 2
+        x: 731
+        y: 25
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a851a76abbcc7d10800000000000000
+      internalID: 2124797125675014308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bathyscaphe_concept_49
+      rect:
+        serializedVersion: 2
+        x: 732
+        y: 17
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a207f3e36aaf79e0800000000000000
+      internalID: -1621389994826988888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      bathyscaphe_concept_0: -5719647949034425847
+      bathyscaphe_concept_1: 1606602268893703253
+      bathyscaphe_concept_10: 83495982740606449
+      bathyscaphe_concept_11: -5869409412861114153
+      bathyscaphe_concept_12: -8341043832793898802
+      bathyscaphe_concept_13: 6643954279591743037
+      bathyscaphe_concept_14: 6618231465246390992
+      bathyscaphe_concept_15: -1018576247266433513
+      bathyscaphe_concept_16: -5421919037039877900
+      bathyscaphe_concept_17: 7722805460949128288
+      bathyscaphe_concept_18: -7882572150117198815
+      bathyscaphe_concept_19: 7362647906790097425
+      bathyscaphe_concept_2: -1767324675959151044
+      bathyscaphe_concept_20: -5729569830949338407
+      bathyscaphe_concept_21: 2201432034392173595
+      bathyscaphe_concept_22: -5854797163651891172
+      bathyscaphe_concept_23: 2051750402924245718
+      bathyscaphe_concept_24: -2726356942441520116
+      bathyscaphe_concept_25: -3448262366221633452
+      bathyscaphe_concept_26: -522476044802818213
+      bathyscaphe_concept_27: -7017869335707578529
+      bathyscaphe_concept_28: 5047080497449823654
+      bathyscaphe_concept_29: 356559803530779629
+      bathyscaphe_concept_3: 1386978343866921763
+      bathyscaphe_concept_30: -7812663854873727607
+      bathyscaphe_concept_31: -627124886703083534
+      bathyscaphe_concept_32: 3843056637744755107
+      bathyscaphe_concept_33: 4106430233469669272
+      bathyscaphe_concept_34: -123333523496625569
+      bathyscaphe_concept_35: -41451535760240251
+      bathyscaphe_concept_36: -6142097542514568047
+      bathyscaphe_concept_37: -5850678470275127125
+      bathyscaphe_concept_38: -4485999958076775294
+      bathyscaphe_concept_39: 3455164043404863009
+      bathyscaphe_concept_4: 2004916474840768826
+      bathyscaphe_concept_40: -2727044130919734894
+      bathyscaphe_concept_41: 5241994912632093512
+      bathyscaphe_concept_42: -8254154564955748501
+      bathyscaphe_concept_43: 6855605964082267864
+      bathyscaphe_concept_44: 3176354155719538892
+      bathyscaphe_concept_45: -2868293260984281598
+      bathyscaphe_concept_46: -8332289630573154117
+      bathyscaphe_concept_47: -5571492383999627460
+      bathyscaphe_concept_48: 2124797125675014308
+      bathyscaphe_concept_49: -1621389994826988888
+      bathyscaphe_concept_5: -6512043769460719777
+      bathyscaphe_concept_6: -4759535049326831586
+      bathyscaphe_concept_7: -1889889880817917581
+      bathyscaphe_concept_8: -6830654254326464927
+      bathyscaphe_concept_9: -6158131021821052235
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

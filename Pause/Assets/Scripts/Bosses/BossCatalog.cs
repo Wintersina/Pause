@@ -263,7 +263,7 @@ public static class BossCatalog
             // petal tips, two acid cannons on its flanks.
             new BossDef
             {
-                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant", deathKey = "Verdant",
+                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant", damageKey = "Verdant", deathKey = "Verdant",
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
                        "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",

@@ -1,0 +1,637 @@
+fileFormatVersion: 2
+guid: ea16f3904c8ac4855ae47185ca438e5d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4053203985116786856
+    second: tide_elite_trawler_death_0
+  - first:
+      213: -2379015589037339066
+    second: tide_elite_trawler_death_1
+  - first:
+      213: 1781203371365274313
+    second: tide_elite_trawler_death_2
+  - first:
+      213: -7954083519578287555
+    second: tide_elite_trawler_death_3
+  - first:
+      213: -5088101335592209071
+    second: tide_elite_trawler_death_4
+  - first:
+      213: 5725839043929497607
+    second: tide_elite_trawler_death_5
+  - first:
+      213: 2759727354314554221
+    second: tide_elite_trawler_death_6
+  - first:
+      213: -4481401638257569398
+    second: tide_elite_trawler_death_7
+  - first:
+      213: -3936919734247608044
+    second: tide_elite_trawler_death_8
+  - first:
+      213: 5724263152422577879
+    second: tide_elite_trawler_death_9
+  - first:
+      213: -8460739548251785905
+    second: tide_elite_trawler_death_10
+  - first:
+      213: -1037082412891641040
+    second: tide_elite_trawler_death_11
+  - first:
+      213: -2562276507318050799
+    second: tide_elite_trawler_death_12
+  - first:
+      213: -7340058219427802965
+    second: tide_elite_trawler_death_13
+  - first:
+      213: -6210980684329550152
+    second: tide_elite_trawler_death_14
+  - first:
+      213: 2500254380497337178
+    second: tide_elite_trawler_death_15
+  - first:
+      213: 3981893212556441270
+    second: tide_elite_trawler_death_16
+  - first:
+      213: -2834641904088332744
+    second: tide_elite_trawler_death_17
+  - first:
+      213: -4993904834754107183
+    second: tide_elite_trawler_death_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_0
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 35
+        width: 140
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a07517bc8fdf3830800000000000000
+      internalID: 4053203985116786856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_1
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 134
+        width: 75
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64e00542de90cfed0800000000000000
+      internalID: -2379015589037339066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_2
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 160
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c294fe670b18b810800000000000000
+      internalID: 1781203371365274313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_3
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 155
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d325fb57e2b6d9190800000000000000
+      internalID: -7954083519578287555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_4
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 38
+        width: 126
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 155f5de0bce6369b0800000000000000
+      internalID: -5088101335592209071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_5
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 132
+        width: 44
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 700ea7e0644467f40800000000000000
+      internalID: 5725839043929497607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_6
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 146
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6bf8d638658c4620800000000000000
+      internalID: 2759727354314554221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_7
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 124
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a81ddc714fcdec1c0800000000000000
+      internalID: -4481401638257569398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_8
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 130
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41132f24c504d59c0800000000000000
+      internalID: -3936919734247608044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_9
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 121
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d66109320ba07f40800000000000000
+      internalID: 5724263152422577879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_10
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 120
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f457a51353a659a80800000000000000
+      internalID: -8460739548251785905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_11
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 122
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03be9c84a0b8b91f0800000000000000
+      internalID: -1037082412891641040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_12
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 114
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 110aaf49717f07cd0800000000000000
+      internalID: -2562276507318050799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_13
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 96
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba0d15050ffd22a90800000000000000
+      internalID: -7340058219427802965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_14
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 83
+        width: 76
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8be79bb89f92ec9a0800000000000000
+      internalID: -6210980684329550152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_15
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 92
+        width: 60
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5b78a5bc10b2b220800000000000000
+      internalID: 2500254380497337178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_16
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 100
+        width: 48
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b637f3a7c6824730800000000000000
+      internalID: 3981893212556441270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_17
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 74
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 836c061f43459a8d0800000000000000
+      internalID: -2834641904088332744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_trawler_death_18
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 75
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d8206af20612bab0800000000000000
+      internalID: -4993904834754107183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      tide_elite_trawler_death_0: 4053203985116786856
+      tide_elite_trawler_death_1: -2379015589037339066
+      tide_elite_trawler_death_10: -8460739548251785905
+      tide_elite_trawler_death_11: -1037082412891641040
+      tide_elite_trawler_death_12: -2562276507318050799
+      tide_elite_trawler_death_13: -7340058219427802965
+      tide_elite_trawler_death_14: -6210980684329550152
+      tide_elite_trawler_death_15: 2500254380497337178
+      tide_elite_trawler_death_16: 3981893212556441270
+      tide_elite_trawler_death_17: -2834641904088332744
+      tide_elite_trawler_death_18: -4993904834754107183
+      tide_elite_trawler_death_2: 1781203371365274313
+      tide_elite_trawler_death_3: -7954083519578287555
+      tide_elite_trawler_death_4: -5088101335592209071
+      tide_elite_trawler_death_5: 5725839043929497607
+      tide_elite_trawler_death_6: 2759727354314554221
+      tide_elite_trawler_death_7: -4481401638257569398
+      tide_elite_trawler_death_8: -3936919734247608044
+      tide_elite_trawler_death_9: 5724263152422577879
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
