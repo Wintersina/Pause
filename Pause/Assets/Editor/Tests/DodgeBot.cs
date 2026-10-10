@@ -58,6 +58,8 @@ public static class DodgeBot
         public bool hasV;              // the scenario supplies va / vb (a telegraphed beam's known sweep)
         public Vector2 vbExtra;        // (hasV) extra velocity of the far end b only, from moveFrom on (a beam's swing once it is live)
         public float moveFrom;         // seconds from the snapshot at which vbExtra starts
+        public bool noScore;           // for the bot's planning only: never counted as a hit (a prediction of a sweep)
+        public Func<float, Vector4> segAt;   // a segment that moves in a way the bot knows (a sweep drawn in the tell): its ends (a.xy, b.xy) `since` seconds after the snapshot; replaces a / b / va / vb
 
         public static Hz Circle(int id, Vector2 c, float r, float liveIn = 0f, float liveFor = float.PositiveInfinity)
         { return new Hz { id = id, a = c, b = c, r = r, liveIn = liveIn, liveFor = liveFor }; }
@@ -161,7 +163,7 @@ public static class DodgeBot
                 for (int i = 0; i < now.Count && !(hit && ghostHit); i++)
                 {
                     var h = now[i];
-                    if (!h.HarmfulNow) continue;
+                    if (!h.HarmfulNow || h.noScore) continue;
                     float reach = h.r + ShipRadius;
                     if (!hit && Touches(h, pos, reach)) hit = true;
                     if (!ghostHit && Touches(h, ghost, reach)) ghostHit = true;
@@ -259,6 +261,17 @@ public static class DodgeBot
                 {
                     Vector2 c = h.a + err + h.va * since;
                     if ((c - p).sqrMagnitude < reach * reach) return false;
+                }
+                else if (h.segAt != null)
+                {
+                    // (a fast sweep passes a spot between two plan steps: look at it four times a step)
+                    for (int sub = 0; sub < 4; sub++)
+                    {
+                        float at = since + sub * PlanStep * .25f;
+                        if (at < h.liveIn || at > h.liveIn + h.liveFor) continue;
+                        Vector4 e = h.segAt(at);
+                        if (HostileShots.SegmentDistanceSq(new Vector2(e.x, e.y) + err, new Vector2(e.z, e.w) + err, p) < reach * reach) return false;
+                    }
                 }
                 else
                 {

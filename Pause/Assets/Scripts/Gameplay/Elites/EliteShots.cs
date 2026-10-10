@@ -226,6 +226,17 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float Age => age;
     public bool Pooled => Active && Kind == EliteShots.Kind.Glob && !airborne && !rolling;
     public ShotMotion Motion => mot;
+    // The straight course a Flutter leaf weaves round (its position otherwise): what a pilot reads the leaf's heading from.
+    public Vector2 CoursePosition => (mot & ShotMotion.Flutter) != 0 && !airborne ? baseP : (Vector2)transform.position;
+    // Seconds until a Shatter spear splits by itself (-1: it will not).
+    public float SplitIn => Active && generation == 0 && (mot & ShotMotion.Shatter) != 0 && !airborne ? Mathf.Max(0f, ShotMotions.ShatterSeconds - age) : -1f;
+    // The chip `i` of `n` a split at heading `v` makes: its velocity (the board's pull on a roster shot's chips included).
+    public static Vector2 ChipVelocity(Vector2 v, int i, int n, float rideBoard)
+    {
+        Vector2 dir = v.sqrMagnitude > 1e-6f ? v.normalized : Vector2.down;
+        float a = n > 1 ? Mathf.Lerp(-ShotMotions.ChipSpreadDeg, ShotMotions.ChipSpreadDeg, i / (float)(n - 1)) : 0f;
+        return Rotated(dir, a) * Mathf.Max(ShotMotions.ChipMinSpeed, v.magnitude * ShotMotions.ChipSpeedShare) + new Vector2(0f, -EliteSystem.Scroll * rideBoard);
+    }
     public bool Rolling => Active && rolling;
     public bool IsChip => generation > 0;
     public int Splits { get; private set; }           // times this pooled object split into chips / spores (all lives)

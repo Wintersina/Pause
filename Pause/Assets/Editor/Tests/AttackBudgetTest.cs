@@ -327,10 +327,13 @@ public static class AttackBudgetTest
         for (int i = 0; i < args.Length; i++) if (args[i] == "-trace") DodgeBot.Trace = true;
         try
         {
-            var r = Measure(id, rolls);
-            string why;
-            bool ok = WithinBudget(id, r, out why);
-            Debug.Log("[ATKBUD] ONE " + (ok ? "WITHIN " : "OVER   ") + why + "; standing still " + r.GhostRate.ToString("P1") + "; shown in " + r.attacked + "/" + r.rolls);
+            foreach (string one in id.Split(','))   // (several ids, comma separated)
+            {
+                var r = Measure(one, rolls);
+                string why;
+                bool ok = WithinBudget(one, r, out why);
+                Debug.Log("[ATKBUD] ONE " + (ok ? "WITHIN " : "OVER   ") + why + "; standing still " + r.GhostRate.ToString("P1") + "; shown in " + r.attacked + "/" + r.rolls);
+            }
         }
         finally { AttackBudgetScenarios.Cleanup(); }
         TestHarness.Exit(0);

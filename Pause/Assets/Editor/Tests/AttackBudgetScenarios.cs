@@ -114,7 +114,7 @@ public static class AttackBudgetScenarios
                         .Pilot(PilotEntry.Drop, 2.6f, 7f, PilotExit.Run).Volleys(2);
                 case "themed:verdant_leaf_volley": // Snap Sprout: a pair of fluttering leaves, in the place of a Twin Claw's pair of bolts (compared with roster:space_fighter_3)
                     return new EnemyBehaviour { key = "verdant_alien" }.Sway(.5f, 2.2f).Shot(EliteShots.Kind.Shard, 2, 20f, 1.8f, .2f).Timing(.6f, 2.4f, 2, .15f)
-                        .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(3);
+                        .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(2);
                 default: return null;
             }
         }
@@ -154,6 +154,7 @@ public static class AttackBudgetScenarios
         AttackHazard.ForgetAll();
         AttackHazardArt.Forget();
         ShotSkins.ResetForTests();
+        lashRoots.Clear();
         ShotOutline.Bold = false;
         EnemyThreat.ForceShooting = true;
         BossEncounter.ResetRun();
@@ -208,8 +209,28 @@ public static class AttackBudgetScenarios
         {
             var s = all[i];
             if (s == null || !s.Active) continue;
-            if (s.Airborne) into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds));
-            else into.Add(Hz.Circle(100 + i, s.transform.position, s.Radius));
+            if (s.Airborne) { into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds)); continue; }
+            // a Flutter leaf is read by its course: the bot follows the straight line and keeps the weave's width clear
+            if ((s.Motion & ShotMotion.Flutter) != 0) { into.Add(Hz.Circle(100 + i, s.CoursePosition, s.Radius + ShotMotions.FlutterAmp)); continue; }
+            float splitIn = s.SplitIn;
+            if (splitIn >= 0f)
+            {
+                // a Shatter spear splits at a known moment: the bot sees the spear until then and the three chips after
+                Vector2 va = s.Velocity + new Vector2(0f, -EliteSystem.Scroll * s.Ride);
+                var spear = Hz.Circle(100 + i, s.transform.position, s.Radius, 0f, splitIn);
+                spear.hasV = true; spear.va = spear.vb = va;
+                into.Add(spear);
+                Vector2 at = (Vector2)s.transform.position + va * splitIn;
+                for (int c = 0; c < ShotMotions.ShatterChips; c++)
+                {
+                    Vector2 cv = EliteShot.ChipVelocity(s.Velocity, c, ShotMotions.ShatterChips, s.Ride);
+                    var chip = Hz.Circle(2000 + i * 3 + c, at - cv * splitIn, s.Radius * ShotMotions.ChipScale, splitIn, ShotMotions.ChipSeconds);
+                    chip.hasV = true; chip.va = chip.vb = cv;
+                    into.Add(chip);
+                }
+                continue;
+            }
+            into.Add(Hz.Circle(100 + i, s.transform.position, s.Radius));
         }
     }
 
@@ -225,6 +246,7 @@ public static class AttackBudgetScenarios
     // The themed area hazards as the bot sees them: a ring's bars (segments, the expansion known during the tell: the
     // preview shows the first ring and the crack), a strike's column (a segment, live from the end of its tell).
     static readonly Vector2[] lashJoints = new Vector2[AttackLash.MaxLinks + 1];
+    static readonly Dictionary<AttackLash, Vector2> lashRoots = new Dictionary<AttackLash, Vector2>();
 
     static void CollectHazards(List<Hz> into)
     {
@@ -239,19 +261,42 @@ public static class AttackBudgetScenarios
             var lash = hz as AttackLash;
             if (lash != null)
             {
-                // the sweep is drawn from the first frame of the tell: the bot knows where the whip will be in every slice of it
-                // (a static segment root -> tip for each slice, live in its own moment; the chain bends back a little, so a margin)
+                // the sweep is drawn from the first frame of the tell: the bot knows where every link of the chain will be, at any moment of it
+                // (Hz.segAt: the chain is evaluated for the moment the bot asks about; the root end of it lies on the start line while the tip runs ahead)
+                int lb = 4000 + h * 100;
                 bool tell = lash.State == AttackHazard.Phase.Tell;
                 float sweep = lash.SweepSeconds, done = tell ? 0f : lash.Age, left = tell ? lash.TellLeft : 0f;
-                const int slices = 20;
-                for (int sl = 0; sl < slices; sl++)
+                int n = lash.Links;
+                var lspec = lash.Spec;
+                float length = lash.Length, startRad = lash.StartRad;
+                int dir = lash.Dir;
+                Vector2 root = lash.Root, vRoot = Vector2.zero;
+                // (the root rides its shooter: the bot reads the shooter's drift off two frames, as it does a shot's speed)
+                if (lashRoots.TryGetValue(lash, out Vector2 was)) vRoot = (root - was) / DodgeBot.Dt;
+                lashRoots[lash] = root;
+                for (int li = 0; li < n; li++)
                 {
-                    float t0 = sweep * sl / slices, t1 = sweep * (sl + 1) / slices;
-                    if (t1 <= done) continue;
-                    AttackLash.Chain(lash.Spec, lash.Links, lash.Length, lash.Root, lash.StartRad, lash.Dir, (t0 + t1) * .5f, lashJoints);
-                    var hzd = Hz.Segment(baseId + sl, lash.Root, lashJoints[lash.Links], lash.HitHalf + .08f, left + Mathf.Max(0f, t0 - done), t1 - Mathf.Max(t0, done));
-                    hzd.hasV = true;
+                    int link = li;
+                    var hzd = Hz.Segment(lb + li, root, root, lash.HitHalf + .04f, left, sweep - done);
+                    hzd.noScore = true;
+                    hzd.segAt = since =>
+                    {
+                        var j = new Vector2[AttackLash.MaxLinks + 1];
+                        AttackLash.Chain(in lspec, n, length, root + vRoot * since, startRad, dir, Mathf.Clamp(since - left + done, 0f, sweep), j);
+                        return new Vector4(j[link].x, j[link].y, j[link + 1].x, j[link + 1].y);
+                    };
                     into.Add(hzd);
+                }
+                if (!tell)
+                {
+                    // what actually burns this frame: the links of the chain now, scored; they are gone from the bot's plan a moment later
+                    AttackLash.Chain(lash.Spec, n, lash.Length, lash.Root, lash.StartRad, lash.Dir, done, lashJoints);
+                    for (int li = 0; li < n; li++)
+                    {
+                        var now = Hz.Segment(lb + 50 + li, lashJoints[li], lashJoints[li + 1], lash.HitHalf, 0f, .001f);
+                        now.hasV = true;
+                        into.Add(now);
+                    }
                 }
                 continue;
             }
