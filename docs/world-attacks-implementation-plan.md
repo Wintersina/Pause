@@ -234,7 +234,13 @@ Deviations from the plan and decisions a later phase should know:
    board with `ride` (1 for a hazard, 0 for a pilot). One strike is one lane; a pattern is several armed in the same tell (`EnemyBehaviour.Strike(spec, lanes)`; one armed strike per lane, 4 at most per brain).
 7. **Art slots, not art**: the ring reads `frost_attack_ring.png` cells 0-3 (bar, two flicker pairs), 4-5 (gapMarker), 6-7 (glyph); the strike reads `<w>_attack_strike.png` row 0 (column, 24 fps), row 1 from y 384 (glyph a,b, burst x3).
    Art cells carry their own stroke; only the procedural fallback has the bold ring (`ShotOutline.For` is not applied to stretched strips).
-8. **Not done here (later phases)**: `BossAttackKind.Blast / Strike` and the boss executors (1g), elite attack ids, sounds (1h), the `ReadabilitySweep` and `AtomClarityTest` items for the new strips,
+8. **Measured (2000 rolls, seed 1, the dodge bot)**: `themed:frost_cold_blast` (Wide ring, crack 40 deg off) bot 1.2% (23/2000), a ghost that never moves 79% vs `roster:frost_big` 4.2%; `themed:ember_eruption`
+   (3 columns, 1.9 u apart) bot 0.0% (0/2000), ghost 100% vs `roster:ember_fighter_3` 0.7%; `themed:frost_icicle_drop` bot 0.0% (0/2000), ghost 100% vs `roster:frost_fighter_2` 0.0%. All within the budget. Standing still is
+   fatal for the strikes (the lane is aimed at the pilot), as designed; the bot, which sees the footprint from the first frame of the tell, never loses a heart to them.
+9. **`HostileFireTest`** counted every `EnemyAttack` that shoots as an `EnemyVolley` case: Blast / Strike are excluded from that list and get their own guard (`AttackHazard` calls `HostileFireCanHit` + `HostileHit`, never hurts `shooter`).
+10. **Full `RunAll` on this branch vs a control at the base (`ea03dc52`)**: the only failures are the known ones (`BossAttackTest` Space pod lasers, `RailMineLaserTest` x3, `UnusedAssetGuardTest` HapticGate,
+   `WorldBackdropTest` texture memory x3 -- all identical on the control); `VerdantBackdropTest`'s allocation meter failed once inside the full run (a blind meter, 750 B control) and passes alone on the branch and on the control.
+11. **Not done here (later phases)**: `BossAttackKind.Blast / Strike` and the boss executors (1g), elite attack ids, sounds (1h), the `ReadabilitySweep` and `AtomClarityTest` items for the new strips,
    the per-world rows. `BossBeam` is still not an `IHostileZone`.
 
 ### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
