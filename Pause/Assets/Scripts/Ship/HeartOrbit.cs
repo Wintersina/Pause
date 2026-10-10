@@ -259,6 +259,16 @@ public abstract class HeartOrbit : MonoBehaviour
     // is frozen) instead of gameplay time.
     protected virtual bool PopOnRealTime { get { return false; } }
 
+    // The hull's size the hearts are sized against (a heart is heartSize
+    // across in the world at that size; it then follows the hull's scale as
+    // a child). The hull's scale as it is now, unless the owner animates it:
+    // hearts built while the hull is mid-animation must not bake that moment
+    // in (ShipLivesIndicator: the portal arrival's tiny ship).
+    protected virtual float HullScale()
+    {
+        return Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+    }
+
     public void BuildHearts(int count)
     {
         hull = HullRenderer();
@@ -300,7 +310,7 @@ public abstract class HeartOrbit : MonoBehaviour
         slotOf = new int[count];
         aheadOf = new int[count];
         haveHullAngle = false;
-        float parentScale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y), 0.0001f);
+        float parentScale = Mathf.Max(HullScale(), 0.0001f);
         float localSize = heartSize / parentScale;
         int hullOrder = hull != null ? hull.sortingOrder : 0;
         SortOrders(hullOrder, out frontOrder, out backOrder);
