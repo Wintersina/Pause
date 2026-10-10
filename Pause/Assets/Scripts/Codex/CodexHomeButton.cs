@@ -19,7 +19,7 @@ public class CodexHomeButton : MonoBehaviour
     Button button;
     Text label, counter;
     Font font;
-    // The notification bubble: unclaimed achievements (25 star dust each),
+    // The notification bubble: unclaimed achievements (25 star dust each) plus NEW codex entries,
     // riding the top-right corner of the "Codex" word (measured from the rendered text). A small amber pixel disc with
     // the count in ink; hidden at 0, "9+" above 9. Art slot: a sprite named
     // Resources/Codex/cx_badge (13x13 px, point filtered) replaces the
@@ -45,7 +45,7 @@ public class CodexHomeButton : MonoBehaviour
 
     // A 13x13 pixel disc: ink outline, amber fill, one shadow row along the
     // bottom. Point filtered, so it stays crisp at any scale.
-    static Sprite BadgeSprite()
+    public static Sprite BadgeSprite()
     {
         var art = CodexUi.CodexSprite(BadgeArtSlot);
         if (art != null) return art;
@@ -83,6 +83,7 @@ public class CodexHomeButton : MonoBehaviour
         DeveloperUnlocks.Changed += Refresh;   // N/N while developer mode is on
         AchievementStore.Unlocked += OnAchievementChanged;
         AchievementStore.Claimed += Refresh;
+        Codex.NewChanged += Refresh;
         Refresh();
     }
 
@@ -92,6 +93,7 @@ public class CodexHomeButton : MonoBehaviour
         DeveloperUnlocks.Changed -= Refresh;
         AchievementStore.Unlocked -= OnAchievementChanged;
         AchievementStore.Claimed -= Refresh;
+        Codex.NewChanged -= Refresh;
     }
 
     // Idempotent; public so the edit-mode tests can build it without Play mode.
@@ -184,12 +186,19 @@ public class CodexHomeButton : MonoBehaviour
         return Codex.DiscoveredCount + "/" + Codex.Total + " DISCOVERED";
     }
 
+    // What the bubble counts: star dust waiting to be claimed plus NEW codex entries
+    // whose tab has not been opened yet.
+    public static int Total()
+    {
+        return AchievementStore.ClaimableCount + Codex.UnackedNewCount;
+    }
+
     public void Refresh()
     {
         if (counter != null) counter.text = CounterText();
         if (badge != null)
         {
-            int n = AchievementStore.ClaimableCount;
+            int n = Total();
             badge.gameObject.SetActive(n > 0);
             badgeText.text = n > 0 ? BadgeLabel(n) : "";
             PlaceBadge(true);

@@ -30,6 +30,15 @@ using UnityEngine.SceneManagement;
 public static class Codex
 {
     public const string PrefsKey = "codexSeen";
+    // NEW markers: ids discovered but whose detail view has not been opened yet, and
+    // the ids whose TAB dot the player has dismissed by opening the tab. Both are
+    // comma-separated id lists; an install that already had discoveries starts with
+    // neither key, so nothing old lights up (only discoveries made from now on).
+    public const string NewKey = "codexNew", AckKey = "codexNewAck";
+    public const string AchievementAckPrefix = "ach:";
+
+    // Raised whenever a NEW marker appears or is cleared (the home bubble listens).
+    public static event Action NewChanged;
 
     // Raised once per entry, the first time it is discovered.
     public static event Action<CodexEntry> Discovered;
@@ -159,7 +168,14 @@ public static class Codex
         if (!seen.Add(id)) return false;
         seenOrder.Add(id);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
+        var found = Find(id);
+        if (found.category != CodexCategory.Log)
+        {
+            LoadNew();
+            if (unseen.Add(id)) { acked.Remove(id); SaveNew(); }
+        }
         PrefsSaver.MarkDirty();
+        RaiseNewChanged();
 
         var handler = Discovered;
         if (handler != null) handler(Find(id));
@@ -218,6 +234,135 @@ public static class Codex
     {
         seen = null;
         seenOrder = null;
+        unseen = null;
+        acked = null;
+    }
+
+    // ---------------------------------------------------------------------
+    // NEW markers
+    // ---------------------------------------------------------------------
+
+    static HashSet<string> unseen, acked;
+
+    static void LoadNew()
+    {
+        if (unseen != null) return;
+        unseen = ReadSet(NewKey);
+        acked = ReadSet(AckKey);
+    }
+
+    static HashSet<string> ReadSet(string key)
+    {
+        var set = new HashSet<string>();
+        string raw = PlayerPrefs.GetString(key, string.Empty);
+        if (string.IsNullOrEmpty(raw)) return set;
+        foreach (string part in raw.Split(','))
+        {
+            string id = part.Trim();
+            if (id.Length > 0) set.Add(id);
+        }
+        return set;
+    }
+
+    static void SaveNew()
+    {
+        PlayerPrefs.SetString(NewKey, string.Join(",", unseen));
+        PlayerPrefs.SetString(AckKey, string.Join(",", acked));
+        PrefsSaver.MarkDirty();
+    }
+
+    static void RaiseNewChanged()
+    {
+        var handler = NewChanged;
+        if (handler != null) handler();
+    }
+
+    // Developer mode shows every entry already: no markers while it is on.
+    static bool NewActive { get { return !DeveloperUnlocks.Enabled; } }
+
+    // The entry is discovered and its detail view has not been opened since.
+    public static bool IsNew(string id)
+    {
+        if (id == null || !NewActive) return false;
+        LoadNew();
+        var e = Find(id);
+        return e != null && e.category != CodexCategory.Log && unseen.Contains(id);
+    }
+
+    // Entries of a category still marked NEW (cards show their dot).
+    public static int NewIn(CodexCategory category)
+    {
+        if (!NewActive) return 0;
+        LoadNew();
+        int n = 0;
+        foreach (string id in unseen) { var e = Find(id); if (e != null && e.category == category) n++; }
+        return n;
+    }
+
+    // The category's tab shows a dot: something NEW in it, and the tab not opened since.
+    public static bool TabHasNew(CodexCategory category)
+    {
+        if (!NewActive) return false;
+        LoadNew();
+        foreach (string id in unseen) { var e = Find(id); if (e != null && e.category == category && !acked.Contains(id)) return true; }
+        return false;
+    }
+
+    // NEW entries whose tab has not been opened: what the home bubble adds to the claimable count.
+    public static int UnackedNewCount
+    {
+        get
+        {
+            if (!NewActive) return 0;
+            LoadNew();
+            int n = 0;
+            foreach (string id in unseen) { var e = Find(id); if (e != null && !acked.Contains(id)) n++; }
+            return n;
+        }
+    }
+
+    // The player opened the entry's detail view.
+    public static void MarkSeen(string id)
+    {
+        if (id == null) return;
+        LoadNew();
+        if (!unseen.Remove(id)) return;
+        acked.Remove(id);
+        SaveNew();
+        RaiseNewChanged();
+    }
+
+    // The player opened the category's tab: its tab dot (and its share of the home count) goes.
+    public static void AckTab(CodexCategory category)
+    {
+        LoadNew();
+        bool changed = false;
+        foreach (string id in unseen) { var e = Find(id); if (e != null && e.category == category && acked.Add(id)) changed = true; }
+        if (!changed) return;
+        SaveNew();
+        RaiseNewChanged();
+    }
+
+    // The ACHIEVEMENTS tab shows a dot while something claimable has not been seen by opening it.
+    public static bool AchievementsTabHasNew()
+    {
+        if (!NewActive) return false;
+        LoadNew();
+        foreach (var d in AchievementCatalog.All)
+            if (AchievementStore.IsClaimable(d) && !acked.Contains(AchievementAckPrefix + d.id)) return true;
+        return false;
+    }
+
+    // Opening ACHIEVEMENTS clears its tab dot; the claimable count (home bubble) stays until claimed.
+    public static void AckAchievements()
+    {
+        LoadNew();
+        bool changed = false;
+        foreach (var d in AchievementCatalog.All)
+            if (AchievementStore.IsClaimable(d) && acked.Add(AchievementAckPrefix + d.id)) changed = true;
+        if (!changed) return;
+        SaveNew();
+        RaiseNewChanged();
     }
 
     static void EnsureLoaded()

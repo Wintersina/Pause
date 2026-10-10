@@ -31,6 +31,7 @@ public static class CodexBadgePreview
             using (new TestHarness.Sandbox())
                 ScreenFitRunner.Run(screen, FitDevice.Find("and-1080x2340-notch"), Path.Combine(dir, "home_" + n + ".png"), 2340);
         }
+        CodexPreview.NewDotsShot(dir);
         UnityEditor.EditorApplication.Exit(0);
     }
 }

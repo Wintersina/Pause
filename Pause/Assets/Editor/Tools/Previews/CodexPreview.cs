@@ -160,6 +160,45 @@ public static class CodexPreview
         EditorApplication.Exit(code);
     }
 
+    // The Enemies grid with a few NEW dots (and dots on the HAZARDS / ATOMS / ACHIEVEMENTS tabs)
+    // on a 1080 x 2340 phone: codex_new_dots.png in dir.
+    public static void NewDotsShot(string dir)
+    {
+        using (new TestHarness.Sandbox())
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            DeveloperUnlocks.SetEnabled(false);
+            PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
+            PlayerPrefs.SetString(Codex.PrefsKey, "");
+            PlayerPrefs.DeleteKey(Codex.NewKey); PlayerPrefs.DeleteKey(Codex.AckKey);
+            AchievementStore.ResetAll();
+            PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
+            Codex.Reload();
+            WorldManager.TideEnabled = false;
+            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && !Codex.InFutureWorld(e)).ToList();
+            foreach (var e in open.Where(e => e.category == CodexCategory.Enemies).Take(5)) Codex.Discover(e.id);
+            // the first one has been looked at already: three NEW + one seen
+            var seenOne = open.First(e => e.category == CodexCategory.Enemies);
+            Codex.MarkSeen(seenOne.id);
+            foreach (var e in open.Where(e => e.category == CodexCategory.Hazards).Take(1)) Codex.Discover(e.id);
+            foreach (var e in open.Where(e => e.category == CodexCategory.Atoms).Take(1)) Codex.Discover(e.id);
+            AchievementStore.Unlock(AchievementCatalog.All.First(d => AchievementCatalog.IsActive(d)));
+            var panel = CodexPanel.Open(null);
+            panel.SkipAnimations();
+            float sf = PhoneW / 800f;
+            var tex = Capture(panel, 1080, 2340, () =>
+            {
+                panel.ApplyLayout(new Rect(-400f, -866f, 800f, 1733f));
+                panel.ShowCategory(CodexCategory.Enemies);
+                panel.SkipAnimations();
+            }, 1, 1080f / 800f);
+            File.WriteAllBytes(Path.Combine(dir, "codex_new_dots.png"), tex.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(tex);
+            panel.Close();
+            panel.SkipAnimations();
+        }
+    }
+
     static void Shot(CodexPanel panel, string path, float sf, Action setup, int w = PhoneW, int h = PhoneH)
     {
         var tex = Capture(panel, w, h, () =>
@@ -310,7 +349,7 @@ public static class CodexPreview
 
     // Renders the panel's canvas at w x h pixels (sf pixels per canvas unit, 1 by default),
     // laid out for that whole area, after `setup`; downscaled by `scale`.
-    static Texture2D Capture(CodexPanel panel, int w, int h, Action setup, int scale = 1, float sf = 1f)
+    internal static Texture2D Capture(CodexPanel panel, int w, int h, Action setup, int scale = 1, float sf = 1f)
     {
         var canvas = panel.GetComponent<Canvas>();
         var scaler = panel.GetComponent<CanvasScaler>();
