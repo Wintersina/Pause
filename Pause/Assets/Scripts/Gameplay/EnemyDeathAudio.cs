@@ -52,13 +52,39 @@ public static class EnemyDeathAudio
     // volume x DuckFactor per recent repeat, never below DuckFloor.
     public static float DuckWindow = .3f, DuckFactor = .8f, DuckFloor = .5f;
 
-    // Scream reuse: a key without scream clips of its own may borrow a donor
-    // key's screams at a pitch (e.g. a small unit voiced by a bigger one's
-    // cry, pitched up). Empty by default. A borrowed scream plays at
-    // BorrowVolume x the normal scream volume and is subject to the same
-    // ScreamChance / voice cap. Keys that own screams never borrow.
+    // Scream reuse: a key without scream clips of its own borrows a donor
+    // key's screams at a pitch (a smaller unit voiced by a bigger one's cry,
+    // pitched up). A borrowed scream plays at BorrowVolume x the normal scream
+    // volume and is subject to the same ScreamChance / voice cap. Keys that
+    // own screams never borrow. Only living / crewed units borrow (never rocks,
+    // mines, drones, bigs or machine elites), and a donor owns screams.
     public struct Borrow { public string donor; public float pitch; public Borrow(string donor, float pitch) { this.donor = donor; this.pitch = pitch; } }
-    public static readonly Dictionary<string, Borrow> ScreamBorrow = new Dictionary<string, Borrow>();
+
+    // key, donor, pitch (playback speed relative to the donor clip)
+    public static readonly string[][] BorrowTable =
+    {
+        // Space: pilots and the Bile Mite are voiced by other worlds' crews and creatures
+        new[] { "space_fighter_1", "ember_fighter_1",   "1.25" },   // Needle: small scout, startled high cry
+        new[] { "space_fighter_2", "verdant_fighter_2", "1.20" },   // Steel Claw: tense nasal cry
+        new[] { "space_fighter_3", "ember_fighter_3",   "1.16" },   // Twin Claw: strained breathy cry
+        new[] { "space_alien",     "verdant_alien",     "1.32" },   // Bile Mite: wet creature voice
+        // Frost: the one living unit
+        new[] { "frost_alien",     "ember_alien",       "1.38" },   // Cryo Jelly: reedy creature voice
+        // Verdant: the gnat is the queen's voice pitched up; the dragonfly buzzes like the mantis
+        new[] { "verdant_fighter_1", "verdant_fighter_4", "1.50" }, // Gnat: tiny strained cry
+        new[] { "verdant_chaser",    "verdant_fighter_3", "1.15" }, // Dragonsting: insect rasp
+        // Ember: the salamander hisses like the brass vulture, smaller
+        new[] { "ember_chaser",      "ember_elite_brass_vulture", "1.15" },   // Cinder Fang: raspy creature cry
+    };
+    public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
+    static Dictionary<string, Borrow> BuildBorrows()
+    {
+        var d = new Dictionary<string, Borrow>();
+        foreach (var r in BorrowTable) d[r[0]] = new Borrow(r[1], float.Parse(r[2], System.Globalization.CultureInfo.InvariantCulture));
+        return d;
+    }
+    // Put the table back to BorrowTable (tests clear and edit it).
+    public static void ResetBorrows() { ScreamBorrow.Clear(); foreach (var kv in BuildBorrows()) ScreamBorrow[kv.Key] = kv.Value; }
     public static float BorrowVolume = .7f;
     public static float LastScreamPitch { get; private set; }
     public static float LastScreamVolume { get; private set; }

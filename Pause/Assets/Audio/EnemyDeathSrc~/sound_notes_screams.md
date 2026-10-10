@@ -57,3 +57,7 @@ Centroid is spectral centroid. HF is the energy share above 3.5 kHz. Tonal is th
 A later game-code change must load `*_scream_0/1/2.wav`, select a variant and play it probabilistically at 0.50 volume after the specified delay. No C# or .meta files were edited here. Probability is intentionally left for game tuning.
 
 These are synthesized approximations of distant vocal cries, not recorded performances. Ear-tune Bile Mite first for an organic rather than electronic edge, then Needle for pitch, and Twin Claw for two voices remaining distinct beneath the double impact.
+
+## Trimmed (scream-borrow)
+
+Shipped scream layers were cut to 2 variants per key (`_0`, `_1`), and Needle, Steel Claw, Twin Claw, Bile Mite, Cryo Jelly and Gnat lost theirs: they borrow a donor's scream pitched up (`EnemyDeathAudio.BorrowTable`). The master files for the deleted variants can be regenerated with `build_space_screams.py` and the verdant/ember/frost build scripts.
