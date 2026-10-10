@@ -161,3 +161,94 @@ Definition of done per phase = the new/extended tests green **vs a master contro
 2. The first Codex sheets: Frost and Ember shots + fx (opened by the coordinator, critique attached).
 3. A short gameplay preview per world after its phase (previews, not a build) and the pink-cue sweep.
 4. A phone build only at the release gate (phase 8), after the user says yes to the previews.
+
+## 8. Deviations from this plan, and what phases 0a and 0b built (log)
+
+Branch `feature/attacks-foundations` (worktree `attacks-found`), phases 0a + 0b. Later phases append here.
+
+### 8.1 Built
+
+* **0a** `Editor/Tests/DodgeBot.cs` (the bot), `AttackBudgetScenarios.cs` (one fixture per roster attacker, rail mine, elite and boss attack, driven by the real
+  `EnemyBrain`/`EnemyVolley`, `RailMineLaser`, `EliteShip`, `BossEncounter`), `AttackBudgetTest.cs` (pins, `WithinBudget`, `Themed` table, `Sweep`).
+* **0b** `Gameplay/Enemies/ShotSkins.cs` (`ShotSkin`, `ShotMotion`, `ShotSkins`), `AttackArt.cs`, `Attacks/HostileZone.cs` (`IHostileZone`), `Attacks/AttackShape.cs`,
+  `Attacks/AttackPreview.cs`, `Attacks/AttackPools.cs`; `HostileShots` zone registry; `EliteShot.Launch` reads the skin; `EnemyBehaviour.ShotStyle` carries the shooter's world;
+  `.claude/skills/add-world/scripts/verify_attack_art.py`; `ShotSkinTest`. Behaviour is unchanged: every skin is today's procedural shot until a phase calls `ShotSkins.Enable(world)`.
+
+### 8.2 Deviations
+
+1. **Rolls.** 2000 seeded rolls per attack, as planned, but `AttackBudgetTest.Execute` re-measures only five pinned attacks (about a minute); the full 52-attack sweep
+   (`scripts/unity-batch.sh -executeMethod AttackBudgetTest.Sweep [-rolls N] [-only substring] [-trace]`) takes about 45 minutes of editor time. A spot check passes within +-1.5 points (a few rolls differ run to run: one brain's drift direction).
+2. **The budget has an absolute slack.** `rate(new) <= rate(old) * 1.15 + 0.02`. Most single-shooter baselines are 0-5%, where "1.15 x" alone is meaningless noise; `AttackedShare >= 50%` is also required (an attack that barely shows is broken, not easy).
+3. **The bot is not a perfect dodger** (a perfect one scores 0% on everything and pins nothing): it sees the world .25 s late, misjudges each hazard by up to .12 u, takes .175 s to reach 7 u/s, sidesteps 1.2 u when it sees a windup begin
+   (before it knows the line; "moving after the tell starts always dodges"), and then plans the nearest clear path over 1.5 s. It knows telegraphs (a laser's aim line, a lunge's tell, a boss beam's scanned arc and sweep, a lob's landing spot).
+   A ghost ship that never moves is scored in the same rolls (information only).
+4. **What is not measured.** Chasers (no attack object, contact only); rocks; the elites' own tell lines (Rift Lancer's sight line, Orbit Reaver's circle): their rates are high (up to 90-97%) and only mean "no worse than today" when an attack is re-themed in place;
+   an elite is rolled for ONE attack (its second is held back); a boss attack for up to three of its own starts.
+5. **`ShotSkins.Enable(world)` gate** (not in the plan): art dropped into `Resources/Attacks/<World>/` does nothing until the world's phase enables it, so no skin switches on by accident. Enabling a world whose art covers only some kinds keeps the others procedural.
+6. **Landed pools** use the world's `pool` cells (`ShotSkins.PoolSprite`); a lobbed glob in the air wears the world's `slag` cells (the art list's pool cell is the landed look).
+7. **Files added** that the plan did not list: `AttackShape.cs` (one footprint object = hitbox + preview outline, FR2), `AttackBudgetScenarios.cs`, `DodgeBot.cs`. Previews are pooled `SpriteRenderer` dots (no `LineRenderer`, no shader dependency).
+8. **Zones sit next to beams in `HostileShots`**, not instead of them: `BossBeam` was not converted to `IHostileZone` (untouched behaviour, untouched tests). A later phase may fold it in.
+9. **Read-only accessors** added to `BossBeam` (`TellLeft`, `HoldLeft`, `HoldTotal`, `SweepDeg`, `StartDeg`) for the bot; no behaviour change.
+10. **Gotchas for later phases.** `TestHarness.Sandbox` snapshots every static readonly collection of the game: a static 2-D array makes it throw `RankException` (use a flat array). Sprites made at run time can be unloaded with a scene: never cache one in a skin without a `== null` re-check (done in `ShotSkins`).
+11. **Tide.** `ShotSkins` has five worlds (Tide is index 4); `EnemyRoster.WorldKeys` still has four. Tide's rows wait for its roster (phase 7).
+12. `EliteSystem.Clear()` now also calls `AttackPools.ClearAll()` (ends every pooled hazard and preview): the one line in an existing teardown path.
+
+### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
+
+Pinned in `AttackBudgetTest.Pinned`. "bot" = rolls in which the bot was touched; "standing" = the ghost that never moves in the same rolls.
+
+| attack | bot hit rate | standing ghost | shown in | table shape |
+| --- | --- | --- | --- | --- |
+| `roster:space_mine` | 1.3% (26/2000) | 59.7% | 2000/2000 | Laser x1 volleys 2 cooldown 1.0 tell 0.9 |
+| `roster:space_big` | 2.8% (55/2000) | 26.1% | 2000/2000 | Shot x2 volleys 3 cooldown 2.6 tell 0.8 |
+| `roster:space_fighter_1` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 0 cooldown 2.0 tell 0.45 |
+| `roster:space_fighter_2` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 1 cooldown 1.6 tell 0.55 |
+| `roster:space_fighter_3` | 4.2% (83/2000) | 49.4% | 2000/2000 | Shot x2 volleys 3 cooldown 2.2 tell 0.6 |
+| `roster:space_fighter_4` | 0.0% (0/2000) | 100.0% | 2000/2000 | Shot x1 volleys 4 cooldown 2.4 tell 0.9 |
+| `roster:space_alien` | 0.6% (11/2000) | 15.7% | 2000/2000 | Shot x1 volleys 2 cooldown 3.5 tell 0.55 |
+| `roster:frost_mine` | 0.9% (18/2000) | 59.9% | 2000/2000 | Laser x1 volleys 2 cooldown 1.0 tell 0.9 |
+| `roster:frost_big` | 4.2% (83/2000) | 54.3% | 2000/2000 | Shot x3 volleys 3 cooldown 3.2 tell 0.9 |
+| `roster:frost_fighter_1` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 0 cooldown 2.0 tell 0.55 |
+| `roster:frost_fighter_2` | 0.0% (0/2000) | 99.9% | 2000/2000 | Shot x1 volleys 3 cooldown 2.0 tell 0.55 |
+| `roster:frost_fighter_3` | 6.9% (138/2000) | 45.6% | 2000/2000 | Shot x2 volleys 3 cooldown 2.2 tell 0.55 |
+| `roster:frost_fighter_4` | 2.5% (50/2000) | 27.4% | 2000/2000 | Shot x5 volleys 3 cooldown 3.4 tell 1.0 |
+| `roster:verdant_mine` | 1.5% (29/2000) | 59.8% | 2000/2000 | Laser x1 volleys 2 cooldown 1.0 tell 1.0 |
+| `roster:verdant_big` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lob x1 volleys 3 cooldown 3.5 tell 0.9 |
+| `roster:verdant_fighter_2` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 1 cooldown 2.0 tell 0.5 |
+| `roster:verdant_fighter_3` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 3 cooldown 1.3 tell 0.6 |
+| `roster:verdant_fighter_4` | 9.2% (184/2000) | 100.0% | 2000/2000 | Shot x3 volleys 4 cooldown 2.6 tell 0.8 |
+| `roster:ember_mine` | 3.0% (60/2000) | 59.9% | 2000/2000 | Laser x1 volleys 2 cooldown 1.0 tell 1.1 |
+| `roster:ember_big` | 4.1% (82/2000) | 38.5% | 2000/2000 | Shot x2 volleys 3 cooldown 3.6 tell 1.0 |
+| `roster:ember_fighter_1` | 0.0% (0/2000) | 0.0% | 2000/2000 | Lunge x1 volleys 0 cooldown 2.0 tell 0.45 |
+| `roster:ember_fighter_2` | 1.0% (19/2000) | 42.0% | 2000/2000 | Shot x1 volleys 4 cooldown 1.4 tell 0.5 |
+| `roster:ember_fighter_3` | 0.7% (14/2000) | 99.5% | 2000/2000 | Shot x1 volleys 3 cooldown 1.8 tell 0.5 |
+| `roster:ember_fighter_4` | 0.3% (6/2000) | 8.7% | 2000/2000 | Ring x8 volleys 3 cooldown 3.8 tell 1.1 |
+| `elite:ember_elite_ash_wraith` | 97.0% (1940/2000) | 3.2% | 2000/2000 |  |
+| `elite:ember_elite_brass_vulture` | 66.4% (1098/1654) | 66.4% | 1654/2000 |  |
+| `elite:ember_elite_cauterizer` | 0.0% (0/2000) | 35.3% | 2000/2000 |  |
+| `elite:ember_elite_coalrunner` | 96.9% (1938/2000) | 99.6% | 2000/2000 |  |
+| `elite:ember_elite_kilnback` | 0.1% (2/2000) | 60.0% | 2000/2000 |  |
+| `elite:ember_elite_sunstoke` | 88.5% (1542/1743) | 88.5% | 1743/2000 |  |
+| `elite:frost_elite_cryo_siren` | 4.9% (98/2000) | 42.6% | 2000/2000 |  |
+| `elite:frost_elite_floe_harrower` | 77.5% (1550/2000) | 100.0% | 2000/2000 |  |
+| `elite:frost_elite_glacier_tender` | 0.0% (0/2000) | 0.0% | 2000/2000 |  |
+| `elite:frost_elite_rimebreaker` | 83.3% (1665/2000) | 100.0% | 2000/2000 |  |
+| `elite:frost_elite_whiteout_sentinel` | 0.0% (0/2000) | 0.0% | 2000/2000 |  |
+| `elite:space_elite_eventide_bastion` | 10.1% (202/2000) | 100.0% | 2000/2000 |  |
+| `elite:space_elite_orbit_reaver` | 0.0% (0/2000) | 100.0% | 2000/2000 |  |
+| `elite:space_elite_rift_lancer` | 90.1% (1802/2000) | 0.0% | 2000/2000 |  |
+| `elite:space_elite_singularity_hauler` | 85.9% (1717/2000) | 49.5% | 2000/2000 |  |
+| `elite:verdant_elite_resin_warden` | 1.0% (20/2000) | 25.8% | 2000/2000 |  |
+| `boss:Space:chin cannon` | 4.9% (97/2000) | 2.8% | 2000/2000 |  |
+| `boss:Space:core burst` | 31.9% (638/2000) | 100.0% | 2000/2000 |  |
+| `boss:Space:pod lasers` | 5.7% (113/2000) | 93.7% | 2000/2000 |  |
+| `boss:Frost:icicle spray` | 74.1% (1481/2000) | 100.0% | 2000/2000 |  |
+| `boss:Frost:glare beams` | 37.6% (751/2000) | 100.0% | 2000/2000 |  |
+| `boss:Frost:blowhole hail` | 22.0% (440/2000) | 98.3% | 2000/2000 |  |
+| `boss:Verdant:stinger thorns` | 1.6% (31/2000) | 9.5% | 2000/2000 |  |
+| `boss:Verdant:spore bloom` | 8.3% (166/2000) | 87.7% | 2000/2000 |  |
+| `boss:Verdant:acid cannons` | 23.3% (465/2000) | 100.0% | 2000/2000 |  |
+| `boss:Ember:fire breath` | 24.9% (498/2000) | 100.0% | 2000/2000 |  |
+| `boss:Ember:furnace slugs` | 58.1% (1161/2000) | 100.0% | 2000/2000 |  |
+| `boss:Ember:brow laser` | 59.8% (1195/2000) | 86.1% | 2000/2000 |  |
+

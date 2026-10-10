@@ -29,6 +29,10 @@ public interface IHostileShot
 //   * A live laser burns through every shot crossing it (bar its own
 //     volley's) and is never stopped by one. Pools and lasers ignore each
 //     other.
+//   * An area hazard (IHostileZone: a jet, a wave band, a blast ring, a
+//     strike column, a lash) does the same while it is live: it burns the
+//     light and heavy shots crossing it (bar its own volley's), is never
+//     stopped by one, and is not shot down by the player's weapons.
 //   * A player weapon projectile (AttackProjectile) shoots down every
 //     hostile shot it passes through and flies on: defensive play, no
 //     score, its kills and its budget against the boss unchanged. Pools
@@ -43,9 +47,10 @@ public static class HostileShots
 
     static readonly List<IHostileShot> shots = new List<IHostileShot>(128);
     static readonly List<BossBeam> beams = new List<BossBeam>(8);
+    static readonly List<IHostileZone> zones = new List<IHostileZone>(16);
 
     // Counters (tests, previews).
-    public static int Clashes, Pops, BeamBurns, ShotDown;
+    public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns;
 
     public static IReadOnlyList<IHostileShot> All => shots;
 
@@ -53,8 +58,11 @@ public static class HostileShots
     public static void Unregister(IHostileShot s) { shots.Remove(s); }
     public static void Register(BossBeam b) { if (b != null && !beams.Contains(b)) beams.Add(b); }
     public static void Unregister(BossBeam b) { beams.Remove(b); }
+    public static void Register(IHostileZone z) { if (z != null && !zones.Contains(z)) zones.Add(z); }
+    public static void Unregister(IHostileZone z) { zones.Remove(z); }
+    public static IReadOnlyList<IHostileZone> Zones => zones;
 
-    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = 0; }
+    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = 0; }
 
     static bool Dead(IHostileShot s) => s == null || (Object)s == null;
 
@@ -78,6 +86,7 @@ public static class HostileShots
         if (DeathCrash.Running) return;   // a player death: the domino has the board
         for (int i = shots.Count - 1; i >= 0; i--) if (Dead(shots[i])) shots.RemoveAt(i);
         for (int i = beams.Count - 1; i >= 0; i--) if (beams[i] == null) beams.RemoveAt(i);
+        for (int i = zones.Count - 1; i >= 0; i--) if (zones[i] == null || (zones[i] is Object zo && zo == null)) zones.RemoveAt(i);
 
         for (int i = 0; i < shots.Count; i++)
         {
@@ -104,6 +113,17 @@ public static class HostileShots
                 if (SameVolley(a.ShotOwner, a.ShotAge, beam.OwnerId, beam.LiveAge)) continue;
                 if (!beam.Touches(pa, ra)) continue;
                 BeamBurns++;
+                Pop(a, pa);
+                break;
+            }
+            if (!a.ShotCollidable) continue;
+            for (int k = 0; k < zones.Count; k++)
+            {
+                var z = zones[k];
+                if (!z.ZoneLive) continue;
+                if (SameVolley(a.ShotOwner, a.ShotAge, z.ZoneOwner, z.ZoneAge)) continue;
+                if (!z.ZoneTouches(pa, ra)) continue;
+                ZoneBurns++;
                 Pop(a, pa);
                 break;
             }

@@ -150,6 +150,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     CircleCollider2D hitCol;
     EliteShip owner;
     EliteDef def;
+    // its skin (ShotSkins): the drawing, its second frame, how big it is drawn; a still procedural one today
+    ShotSkin skin;
+    Sprite frameA, frameB, rimA, rimB;
+    bool framed;
     Vector2 velocity;
     float age, radius, life;
     int pierce, bounces;
@@ -179,6 +183,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
 
     public bool Active { get; private set; }
     public EliteShots.Kind Kind { get; private set; }
+    public ShotSkin Skin => skin;
+    public bool Framed => framed;
+    public Sprite BodySprite => body != null ? body.sprite : null;
     public Vector2 Velocity => velocity;
     public Vector2 LaunchedAt { get; private set; }
     public EliteShip Owner => owner;
@@ -292,16 +299,19 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Bounced = 0;
         if (mark != null) mark.enabled = false;
         float size = Mathf.Max(.06f, kind == EliteShots.Kind.Slab || kind == EliteShots.Kind.Orb ? d.hazardSize : d.shotSize);
-        Sprite sprite;
+        // the drawing comes from the shot's skin (its world's, once that world is themed: ShotSkins);
+        // the hit radius below never depends on it
+        skin = ShotSkins.For(d, kind);
+        Sprite sprite = skin.a;
         switch (kind)
         {
-            case EliteShots.Kind.Shard: sprite = EliteFxArt.Shard; radius = size * .32f; life = 4f; pierce = 0; break;
-            case EliteShots.Kind.Slag: sprite = EliteFxArt.Slag; radius = size * .42f; life = 7f; pierce = 0; break;
-            case EliteShots.Kind.Shell: sprite = EliteFxArt.Shell; radius = size * .36f; life = 4f; pierce = 2; break;
-            case EliteShots.Kind.Glob: sprite = EliteFxArt.Slag; radius = size * .4f; life = d.lobSeconds + d.poolSeconds; pierce = 0; break;
-            case EliteShots.Kind.Slab: sprite = EliteFxArt.Slab; radius = size * .42f; life = 12f; pierce = 3; bounces = 99; armour = Mathf.Max(1, d.hazardArmour); break;
-            case EliteShots.Kind.Orb: sprite = EliteFxArt.Orb; radius = size * .4f; life = 6f; pierce = 0; break;
-            default: sprite = EliteFxArt.Bolt; radius = size * .3f; life = 4f; pierce = 0; break;
+            case EliteShots.Kind.Shard: radius = size * .32f; life = 4f; pierce = 0; break;
+            case EliteShots.Kind.Slag: radius = size * .42f; life = 7f; pierce = 0; break;
+            case EliteShots.Kind.Shell: radius = size * .36f; life = 4f; pierce = 2; break;
+            case EliteShots.Kind.Glob: radius = size * .4f; life = d.lobSeconds + d.poolSeconds; pierce = 0; break;
+            case EliteShots.Kind.Slab: radius = size * .42f; life = 12f; pierce = 3; bounces = 99; armour = Mathf.Max(1, d.hazardArmour); break;
+            case EliteShots.Kind.Orb: radius = size * .4f; life = 6f; pierce = 0; break;
+            default: radius = size * .3f; life = 4f; pierce = 0; break;
         }
         body.sprite = sprite;
         core.sprite = sprite;
@@ -314,12 +324,12 @@ public class EliteShot : MonoBehaviour, IHostileShot
         core.enabled = !slab;
         // a big white-hot core: the thin arrows still read on the bright skies (Frost)
         core.transform.localScale = Vector3.one * .62f;
-        float k = size / Mathf.Max(.01f, sprite.bounds.size.y);
+        float k = size * skin.drawScale / Mathf.Max(.01f, sprite.bounds.size.y);
         transform.localScale = Vector3.one * k;
         transform.position = new Vector3(at.x, at.y, 0f);
         Face();
         EnsureHitbox();
-        hitCol.radius = radius / k;
+        hitCol.radius = radius / k;   // (the hit radius is the nominal one whatever the drawn size)
         hitCol.enabled = true;
         ownerId = from != null ? from.GetInstanceID() : 0;
         // the outline's light trace: the hostile pink only a little paled
@@ -328,7 +338,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // (bold, on a bright world: paled further, ShotOutline.BoldTrace, so the
         // light ring reads over the mid-dark patches the dark keyline can't)
         glowTint = ShotOutline.UseBold ? ShotOutline.BoldTrace(HostileShotPalette.Trace(tint)) : HostileShotPalette.Trace(tint);
-        Outline(sprite, k);
+        rimA = Outline(sprite, k);
+        framed = skin.TwoFrames;
+        frameA = skin.a;
+        frameB = skin.b;
+        rimB = framed ? ShotOutline.For(frameB, frameB.bounds.size.y * k) : null;
         Pulse();
         Active = true;
         gameObject.SetActive(true);
@@ -452,15 +466,21 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Vector3 p = new Vector3(lobTo.x, lobTo.y, 0f);
         transform.position = p;
         transform.rotation = Quaternion.identity;
-        body.sprite = EliteFxArt.Pool;
-        core.sprite = EliteFxArt.Pool;
+        Sprite poolB;
+        Sprite pool = ShotSkins.PoolSprite(ShotSkins.WorldOf(def), out poolB);
+        body.sprite = pool;
+        core.sprite = pool;
         float size = def.shotSize * 2.1f;
-        float k = size / Mathf.Max(.01f, EliteFxArt.Pool.bounds.size.x);
+        float k = size / Mathf.Max(.01f, pool.bounds.size.x);
         transform.localScale = Vector3.one * k;
         radius = size * .42f;
         hitCol.radius = radius / k;
         hitCol.enabled = true;
-        Outline(EliteFxArt.Pool, k);
+        rimA = Outline(pool, k);
+        frameA = pool;
+        frameB = poolB;
+        framed = poolB != null;
+        rimB = framed ? ShotOutline.For(poolB, poolB.bounds.size.y * k) : null;
         Pulse();
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
@@ -471,12 +491,27 @@ public class EliteShot : MonoBehaviour, IHostileShot
 
     // The outline traced from `art`, drawn at the shot's scale `k` (cached
     // per drawing and size: nothing is built per shot after the first).
-    void Outline(Sprite art, float k)
+    Sprite Outline(Sprite art, float k)
     {
         var rim = ShotOutline.For(art, art.bounds.size.y * k);
         glow.sprite = rim;
         glow.enabled = rim != null;
         glow.transform.localScale = Vector3.one;
+        return rim;
+    }
+
+    // A two-frame skin flips between its drawings at the skin's fps (stepped, never a smooth breath: PC5);
+    // the outline follows. Nothing is made here: both rims were built when the shot launched.
+    void SwapFrame()
+    {
+        bool second = (Mathf.FloorToInt(age * skin.frameFps) & 1) == 1;
+        var f = second ? frameB : frameA;
+        if (body.sprite == f) return;
+        body.sprite = f;
+        core.sprite = f;
+        var rim = second ? rimB : rimA;
+        glow.sprite = rim;
+        glow.enabled = rim != null;
     }
 
     void EnsureHitbox()
@@ -506,6 +541,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         if (dt <= 0f) return;
         age += dt;
         Pulse();
+        if (framed) SwapFrame();
         // the danger tell: the core flickers hard, white-hot and back
         core.color = HostileShotPalette.FlickerHot(age) ? Color.white : coreTint;
         Vector3 p = transform.position;
@@ -518,7 +554,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             Vector2 g = Vector2.Lerp(lobFrom, lobTo, k);
             float height = Mathf.Sin(k * Mathf.PI);
             transform.position = new Vector3(g.x, g.y + height * .35f, 0f);
-            transform.localScale = Vector3.one * (def.shotSize / Mathf.Max(.01f, EliteFxArt.Slag.bounds.size.y)) * (1f + .9f * height);
+            transform.localScale = Vector3.one * (def.shotSize * skin.drawScale / Mathf.Max(.01f, skin.a.bounds.size.y)) * (1f + .9f * height);
             transform.rotation = Quaternion.Euler(0f, 0f, age * 240f);
             mark.transform.position = new Vector3(lobTo.x, lobTo.y, 0f);
             Color mc = tint;
@@ -667,6 +703,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         gliding = false;
         fuse = 0f;
         shooter = null;
+        framed = false;
         if (mark != null) mark.enabled = false;
         gameObject.SetActive(false);
     }
