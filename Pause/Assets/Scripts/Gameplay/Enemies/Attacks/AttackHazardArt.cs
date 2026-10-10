@@ -71,7 +71,7 @@ public static partial class AttackHazardArt
     // call allocates nothing (the string keys above are only built when a sprite is first made).
     static readonly Dictionary<int, Sprite> resolved = new Dictionary<int, Sprite>();
     static readonly Dictionary<int, bool> flags = new Dictionary<int, bool>();
-    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Jet, Nozzle, JetTip, Wave, WaveMarker, Link, LTip, Root, Dash }
+    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Jet, Nozzle, JetTip, Wave, WaveMarker, Link, LTip, Root, Dash, Log }
     static int Key(Kind k, int world, int style, int frame, bool bold) =>
         ((((int)k * 8 + world) * 4 + style) * 8 + frame) * 2 + (bold ? 1 : 0);
     static bool Cached(int key, out Sprite s) => resolved.TryGetValue(key, out s) && s != null && s.texture != null;
@@ -437,6 +437,30 @@ public static partial class AttackHazardArt
         Sprite s;
         if (Cached(key, out s)) return s;
         s = AttackArt.LashLink(world, frame & 1) ?? LinkProcedural(world, frame, bold);
+        resolved[key] = s;
+        return s;
+    }
+
+    // ---- the thrown trunk (AttackLog; art spec 3.9) ----
+    // <w>_attack_log.png (4 x 2 cells of 256 x 128, eight frames of a trunk rolling, lying horizontal) when delivered, else ShotMotionArt's procedural log (two stepped frames, standing).
+    public static bool LogArt(int world)
+    {
+        int key = -200 - world;
+        bool b;
+        if (flags.TryGetValue(key, out b)) return b;
+        b = AttackArt.LogFrame(world, 0) != null;
+        flags[key] = b;
+        return b;
+    }
+
+    public static Sprite LogBody(int world, int frame)
+    {
+        int f = ((frame % 8) + 8) % 8;
+        if (!LogArt(world)) f &= 1;
+        int key = Key(Kind.Log, world, 0, f, false);
+        Sprite s;
+        if (Cached(key, out s)) return s;
+        s = AttackArt.LogFrame(world, f) ?? ShotMotionArt.Sprite_(ShotMotionArt.Piece.Log, world, f);
         resolved[key] = s;
         return s;
     }

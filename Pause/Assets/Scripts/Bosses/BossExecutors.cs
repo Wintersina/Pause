@@ -13,6 +13,8 @@ using UnityEngine;
 //   Strike  `count` lanes round the ship's x at its row, `spacing` apart
 //   Jet     one jet per part per volley, each aimed at the ship's x +- aimSpreadX towards its own side
 //   Wave    one band per volley falling from the first part; the gap on alternate sides
+//   Lash    one whip per volley from the parts in turn (the flanks), swept across the ship's place, aimed once at the start of the tell
+//   Roll    one trunk per volley thrown from the parts in turn onto the ship's lane (then the other side of it), rolling toward the nearer rail
 //
 // The muzzle of a part comes from BossEmitters in the drawing the tell ends on (BossActor.TellMuzzle), so it is the
 // real mouth / nozzle of the real art; a ring and a jet ride the boss until the last stretch of their tell.
@@ -38,6 +40,8 @@ public static class BossExecutors
             Register(BossAttackKind.Strike, new StrikeExecutor());
             Register(BossAttackKind.Jet, new JetExecutor());
             Register(BossAttackKind.Wave, new WaveExecutor());
+            Register(BossAttackKind.Lash, new LashExecutor());
+            Register(BossAttackKind.Roll, new RollExecutor());
             return table;
         }
     }
@@ -59,6 +63,25 @@ public static class BossExecutors
     }
 
     public static bool IsHazardKind(BossAttackKind kind) => For(kind) != null;
+
+    // Builds the pools a boss's attacks arm, as the fight starts (the first take of a pool makes its pieces: not in the middle of a volley).
+    public static void WarmPools(BossDef boss)
+    {
+        var table = boss.attacks;
+        if (table == null) return;
+        for (int i = 0; i < table.Length; i++)
+        {
+            switch (table[i].kind)
+            {
+                case BossAttackKind.Blast: { var p = AttackBlast.Pool; } break;
+                case BossAttackKind.Strike: { var p = AttackStrike.Pool; } break;
+                case BossAttackKind.Jet: { var p = AttackJet.Pool; } break;
+                case BossAttackKind.Wave: { var p = AttackWave.Pool; } break;
+                case BossAttackKind.Lash: { var p = AttackLash.Pool; } break;
+                case BossAttackKind.Roll: { var p = AttackLog.Pool; } break;
+            }
+        }
+    }
 
     // ---- the shared body: volleys ----
 
@@ -160,6 +183,50 @@ public static class BossExecutors
             Vector2 target = player;
             if (k % 2 == 1) target.x = -player.x * .6f;
             Add(into, ref n, AttackWave.Arm(spec, muzzle, target, tell, boss.gameObject));
+        }
+    }
+
+    sealed class LashExecutor : VolleyExecutor
+    {
+        protected override void ArmVolley(BossActor boss, BossAttack a, int k, float tell, Vector3 player, AttackHazard[] into, ref int n)
+        {
+            int part = PartOf(a, k);
+            if (part < 0) return;
+            Vector2 local;
+            Vector2 muzzle = boss.TellMuzzle(a, part, out local);
+            var spec = a.lash;
+            spec.world = boss.World;
+            spec.ride = 0f;
+            // each whip is aimed ONCE, now, at where the ship is; the second sweeps the other side of the lane (a re-step, not a sprint)
+            Vector2 target = player;
+            if (k % 2 == 1) target.x = Mathf.Clamp(player.x + (player.x >= 0f ? -1f : 1f) * a.spacing, -2.1f, 2.1f);
+            var lash = AttackLash.Arm(spec, muzzle, target, tell, boss.gameObject);
+            if (lash != null) lash.Follow(boss.transform, local);
+            Add(into, ref n, lash);
+        }
+    }
+
+    sealed class RollExecutor : VolleyExecutor
+    {
+        protected override void ArmVolley(BossActor boss, BossAttack a, int k, float tell, Vector3 player, AttackHazard[] into, ref int n)
+        {
+            int part = PartOf(a, k);
+            if (part < 0) return;
+            Vector2 local;
+            Vector2 muzzle = boss.TellMuzzle(a, part, out local);
+            var spec = a.log;
+            spec.world = boss.World;
+            // the first trunk lands on the ship's lane; the next one a step across it (a.spacing), so one place is not safe for both
+            float limit = Mathf.Max(0f, BossRails.DrawnInnerEdge - spec.hitHalf - .25f);
+            float x = player.x;
+            if (k % 2 == 1) x += (player.x >= 0f ? -1f : 1f) * a.spacing;
+            x = Mathf.Clamp(x, -limit, limit);
+            // it comes down a fixed way above the ship's row (a.heightAbove): the trunk has the board to roll over before it reaches him
+            float y = Mathf.Min(player.y + Mathf.Max(1f, a.heightAbove), CameraFit.ViewTop - 1.2f);
+            float dir = AttackLog.DirFor(x, k);
+            var log = AttackLog.Arm(spec, muzzle, new Vector2(x, y), dir, tell, boss.gameObject);
+            if (log != null) log.Follow(boss.transform, local);
+            Add(into, ref n, log);
         }
     }
 }

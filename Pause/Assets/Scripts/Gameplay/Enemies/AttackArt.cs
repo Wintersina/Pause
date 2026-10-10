@@ -214,6 +214,8 @@ public static class AttackArt
     public static Sprite LashTip(int world, int i) => Cell(world, "lash", 2 + Mathf.Clamp(i, 0, 1), 0);
     public static Sprite LashRoot(int world, int i) => Cell(world, "lash", 4 + Mathf.Clamp(i, 0, 1), 0);
     public static Sprite LashDash(int world, int i) => Cell(world, "lash", 6 + Mathf.Clamp(i, 0, 1), 0);
+    // verdant_attack_log.png (1024 x 256, 4 x 2 cells of 256 x 128, art spec 3.9): eight frames of a trunk rolling, lying horizontal (1.1 u long); the Roll hazard's body (AttackLog)
+    public static Sprite LogFrame(int world, int i) { i = ((i % 8) + 8) % 8; return Cell(world, "log", i % 4, i / 4, 256, 128); }
     // <w>_attack_jet.png (768 x (body + 128)): row 0 six body frames 128 x body (Ember 256, Tide 320; apex at the TOP centre, 12 fps loop);
     // row 1 (from y = body) six 128 x 128 cells: nozzle x3 (the flare that grows through the tell) then tip x3 (sparks / splash at the far end)
     public static int JetBodyPx(int world)

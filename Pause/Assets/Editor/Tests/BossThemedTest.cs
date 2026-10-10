@@ -7,7 +7,7 @@ using UnityEngine;
 //
 //   * the tables: every default table has minPhase 1, 2, 3 and unlocks 1 / 2 / 3 attacks by phase (what the thirds of the
 //     fight always did); a themed table has five attacks sorted by minPhase (1, 1, 2, 3, 3) and unlocks 2 / 3 / 5;
-//     Verdant has none yet (Lash + Roll); the flag decides which one `attacks` is; which bosses fight themed;
+//     the flag decides which one `attacks` is; which bosses fight themed (Frost, Ember, Verdant);
 //   * every new attack: kind has an executor, parts resolve, tell >= .7 s (FR1), a tell pose 0..2 whose frames the boss
 //     shows, a muzzle on an opaque pixel of its tell drawing;
 //   * each new attack through BossEncounter headless (BossAttackTest patterns), the flag on in a sandbox:
@@ -109,7 +109,7 @@ public static class BossThemedTest
         return e;
     }
 
-    static readonly int[] ThemedWorlds = { 0, 1, 3, 4 };   // Space, Frost, Ember, Tide (Verdant waits for Lash + Roll)
+    static readonly int[] ThemedWorlds = { 0, 1, 2, 3, 4 };   // Space, Frost, Verdant, Ember, Tide
 
     static bool IsNew(BossDef b, BossAttack a) => System.Array.IndexOf(b.DefaultAttacks, a) < 0;
 
@@ -148,9 +148,13 @@ public static class BossThemedTest
             Check(b.artKey + ": two new attacks, today's three kept in order", news == 2 && t[0] == d[0] && t[2] == d[1] && t[3] == d[2]);
             b.themedAttacks = was;
         }
-        Check("BossDef.themedAttacks defaults: Frost and Ember fight themed, Space / Verdant / Tide do not",
+        Check("BossDef.themedAttacks defaults: Frost and Ember fight themed; Space, Verdant (table built, budget run pending) and Tide do not",
               BossCatalog.ForWorld(1).themedAttacks && BossCatalog.ForWorld(3).themedAttacks &&
               !BossCatalog.ForWorld(0).themedAttacks && !BossCatalog.ForWorld(2).themedAttacks && !BossCatalog.ForWorld(4).themedAttacks);
+        var verdant = BossCatalog.ForWorld(2);
+        Check("Verdant's themed table: stinger thorns, vine lash, spore bloom, acid cannons, trunk toss (Lash + Roll)",
+              verdant.themed != null && verdant.themed.Length == 5 && verdant.themed[1].name == "vine lash" && verdant.themed[1].kind == BossAttackKind.Lash &&
+              verdant.themed[4].name == "trunk toss" && verdant.themed[4].kind == BossAttackKind.Roll);
     }
 
     // ---- the new attacks, as data ----
@@ -184,14 +188,20 @@ public static class BossThemedTest
                 if (a.kind == BossAttackKind.Blast) Check(tag + "ring speed " + a.blast.speed + " u/s <= " + AttackBlast.MaxSpeed + " (FR3)", a.blast.speed <= AttackBlast.MaxSpeed + 1e-4f);
                 if (a.kind == BossAttackKind.Wave) Check(tag + "band speed " + a.wave.speed + " u/s <= " + AttackWave.MaxSpeed + ", gap " + a.wave.gapWidth + " u >= " + AttackWave.MinGap, a.wave.speed <= AttackWave.MaxSpeed + 1e-4f && a.wave.gapWidth >= AttackWave.MinGap - 1e-4f);
                 if (a.kind == BossAttackKind.Jet) Check(tag + "live " + a.jet.liveSeconds + " s <= " + AttackJet.MaxLiveSeconds + " (FR3)", a.jet.liveSeconds <= AttackJet.MaxLiveSeconds + 1e-4f);
+                if (a.kind == BossAttackKind.Lash) Check(tag + "sweep " + a.lash.sweepSeconds + " s in " + AttackLash.MinSweep + ".." + AttackLash.MaxSweep + " (FR3), arc " + a.lash.arcDeg + " deg, 2 volleys fit the pool of " + AttackLash.PoolSize,
+                                                        a.lash.sweepSeconds >= AttackLash.MinSweep - 1e-4f && a.lash.sweepSeconds <= AttackLash.MaxSweep + 1e-4f && a.lash.arcDeg >= AttackLash.MinArcDeg && a.lash.arcDeg <= AttackLash.MaxArcDeg && a.volleys <= AttackLash.PoolSize);
+                if (a.kind == BossAttackKind.Roll) Check(tag + "roll " + a.log.speed + " u/s in " + AttackLog.MinSpeed + ".." + AttackLog.MaxSpeed + " (FR3), " + a.log.rollSeconds + " s, 2 trunks fit the pool of " + AttackLog.PoolSize,
+                                                        a.log.speed >= AttackLog.MinSpeed - 1e-4f && a.log.speed <= AttackLog.MaxSpeed + 1e-4f && a.log.rollSeconds >= AttackLog.MinRoll && a.log.rollSeconds <= AttackLog.MaxRoll && a.volleys <= AttackLog.PoolSize);
             }
         }
     }
 
     static void Executors()
     {
-        Check("Jet / Wave / Blast / Strike have executors", BossExecutors.For(BossAttackKind.Jet) != null && BossExecutors.For(BossAttackKind.Wave) != null &&
-                                                            BossExecutors.For(BossAttackKind.Blast) != null && BossExecutors.For(BossAttackKind.Strike) != null);
+        Check("Jet / Wave / Blast / Strike / Lash / Roll have executors", BossExecutors.For(BossAttackKind.Jet) != null && BossExecutors.For(BossAttackKind.Wave) != null &&
+                                                            BossExecutors.For(BossAttackKind.Blast) != null && BossExecutors.For(BossAttackKind.Strike) != null &&
+                                                            BossExecutors.For(BossAttackKind.Lash) != null && BossExecutors.For(BossAttackKind.Roll) != null);
+        Check("Lash and Roll are appended at the end of the enum (Strike < Lash < Roll)", (int)BossAttackKind.Lash == (int)BossAttackKind.Strike + 1 && (int)BossAttackKind.Roll == (int)BossAttackKind.Lash + 1);
         Check("Aimed / Fan / Lob / Beam stay with BossActor (no executor)", BossExecutors.For(BossAttackKind.Aimed) == null && BossExecutors.For(BossAttackKind.Fan) == null &&
                                                                             BossExecutors.For(BossAttackKind.Lob) == null && BossExecutors.For(BossAttackKind.Beam) == null);
         Check("an unknown kind has no executor", BossExecutors.For((BossAttackKind)200) == null);
@@ -237,6 +247,14 @@ public static class BossThemedTest
         }
     }
 
+    static float AimLock(AttackHazard h)
+    {
+        var lash = h as AttackLash; var log = h as AttackLog;
+        if (lash != null) return lash.StartRad * 1000f + lash.Dir * 10f + lash.Length;
+        if (log != null) return log.Landing.x * 1000f + log.Landing.y * 100f + log.RollVelocity.x * 10f + log.RollVelocity.y;
+        return 0f;
+    }
+
     static void FightOne(BossDef def, int ai, BossAttack a, float shipX)
     {
         var e = StartFight(BossCatalog.All.Length > 0 ? System.Array.IndexOf(BossCatalog.All, def) : 0, ai, shipX);
@@ -256,10 +274,12 @@ public static class BossThemedTest
             tellState &= h.State == AttackHazard.Phase.Tell;
             tellLong &= h.TellSeconds >= AttackHazard.MinTellSeconds - 1e-4f;
             preview &= h.Preview != null;
-            var blast = h as AttackBlast; var jet = h as AttackJet;
+            var blast = h as AttackBlast; var jet = h as AttackJet; var lashH = h as AttackLash; var logH = h as AttackLog;
             Vector2 origin = Vector2.zero; bool has = false;
             if (blast != null) { origin = blast.Origin; has = true; }
             if (jet != null) { origin = jet.Origin; has = true; }
+            if (lashH != null) { origin = lashH.Root; has = true; }
+            if (logH != null) { origin = logH.Origin; has = true; }
             if (has)
             {
                 float best = float.MaxValue;
@@ -268,8 +288,12 @@ public static class BossThemedTest
             }
         }
         Check(tag + "they are the boss's own, in their tell (FR1: >= .7 s) and draw their footprint from the first frame (FR2)", shooter && tellState && tellLong && preview);
-        Check(tag + "a ring / jet starts at the real muzzle of its part", muzzle);
+        Check(tag + "a ring / jet / whip / trunk starts at the real muzzle of its part", muzzle);
 
+        // the aim of a whip / a trunk is locked at the start of the tell: its heading, spot and track never change after it
+        var locks = new float[armed];
+        for (int i = 0; i < armed; i++) locks[i] = AimLock(actor.ArmedHazard(i));
+        bool aimLocked = true;
         // run the attack out
         float tellStart = t, firstLive = -1f, lastLive = 0f, leastCorridor = 99f;
         bool earlyLive = false, caps = true, frameOk = true, previewLate = true, damaged = false;
@@ -285,12 +309,15 @@ public static class BossThemedTest
             {
                 var h = actor.ArmedHazard(k);
                 if (h == null) continue;
+                if (k < locks.Length && h.State != AttackHazard.Phase.Off && ReferenceEquals(h.Shooter, actor.gameObject)) aimLocked &= Mathf.Abs(AimLock(h) - locks[k]) < 1e-3f;
                 if (h.Live)
                 {
                     anyLive = true;
                     if (firstLive < 0f) firstLive = t - tellStart;
                     if (t - tellStart < a.tellSeconds - .03f) earlyLive = true;
-                    var jet = h as AttackJet; var strike = h as AttackStrike; var blast = h as AttackBlast; var wave = h as AttackWave;
+                    var jet = h as AttackJet; var strike = h as AttackStrike; var blast = h as AttackBlast; var wave = h as AttackWave; var lashL = h as AttackLash; var logL = h as AttackLog;
+                    if (lashL != null) caps &= lashL.SweepSeconds <= AttackLash.MaxSweep + 1e-3f && lashL.SweepSeconds >= AttackLash.MinSweep - 1e-3f;
+                    if (logL != null) caps &= logL.RollVelocity.magnitude <= AttackLog.MaxSpeed + 1e-3f;
                     if (jet != null) caps &= jet.LiveSeconds <= AttackJet.MaxLiveSeconds + 1e-3f;
                     if (strike != null) caps &= strike.LiveSeconds <= AttackStrike.MaxLiveSeconds + 1e-3f;
                     if (blast != null) caps &= blast.RadialSpeed <= AttackBlast.MaxSpeed + 1e-3f;
@@ -309,6 +336,7 @@ public static class BossThemedTest
         Check(tag + "no hazard goes live before the tell is up (first live " + firstLive.ToString("0.00") + " s, tell " + a.tellSeconds + " s)", !earlyLive && firstLive >= a.tellSeconds - .05f);
         Check(tag + "the footprint preview is still drawn in the last .4 s of the tell", previewLate);
         Check(tag + "FR3 caps hold (live time / speeds)", caps);
+        if (a.kind == BossAttackKind.Lash || a.kind == BossAttackKind.Roll) Check(tag + "the aim is locked at the start of the tell (the whip's start line and turn, the trunk's spot and heading never move)", aimLocked);
         Check(tag + "FR4: a free corridor >= 1.4 u at every sampled moment of the live hazards (least " + leastCorridor.ToString("0.00") + " u)", leastCorridor >= 1.4f);
         Check(tag + "the boss shows its tell pose " + a.tell + " through the tell", frameOk);
         Check(tag + "its own hazards never hurt the boss or its hearts (FR9)", !damaged);
@@ -380,7 +408,7 @@ public static class BossThemedTest
 
     static void DeathTakesHazardsAway()
     {
-        foreach (int w in new[] { 1, 3 })
+        foreach (int w in new[] { 1, 2, 3 })
         {
             var def = BossCatalog.ForWorld(w);
             def.themedAttacks = true;

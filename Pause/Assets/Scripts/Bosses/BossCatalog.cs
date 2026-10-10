@@ -33,6 +33,8 @@ public enum BossAttackKind
     Wave,   // a band falling down the lane with a gap: AttackWave (surf, scan line)
     Blast,  // an expanding ring with a crack from the part: AttackBlast (cold blast)
     Strike, // telegraphed lane columns at the ship's row: AttackStrike (icicle drop, eruption, thunder)
+    Lash,   // a whip swept across the ship's place from a part: AttackLash (the Bloom Queen's vine lash)
+    Roll,   // trunks lobbed onto marked spots that land and roll with one rail bounce: AttackLog (the Bloom Queen's trunk toss)
 }
 
 public enum BossShotStyle { Bolt, Shard }
@@ -103,7 +105,10 @@ public sealed class BossAttack
     public JetSpec jet;
     public StrikeSpec strike;
     public WaveSpec wave;
-    public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing)
+    public LashSpec lash;           // Lash: one whip per volley, from the parts in turn
+    public LogSpec log;             // Roll: one trunk per volley, thrown from the parts in turn
+    public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing); lash / roll: how far across the ship the second volley is aimed
+    public float heightAbove = 2.6f; // roll: how far above the ship's row the trunk lands
     public float aimSpreadX;        // jet: each part aims this far to its own side of the ship (0: straight at it)
 }
 
@@ -368,8 +373,8 @@ public static class BossCatalog
             // minPhase of the default tables: attack n joins at phase n + 1 (what the thirds of the fight always did)
             for (int i = 0; i < b.DefaultAttacks.Length; i++) b.DefaultAttacks[i].minPhase = i + 1;
             b.themed = BossThemed.TableFor(b);
-            // Fighting themed: Frost (icicle drop, cold blast) and Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
-            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Verdant Lash + Roll, Tide its water art and sounds.
+            // Fighting themed: Frost (icicle drop, cold blast), Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
+            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Tide its water art and sounds, Verdant (built, flag OFF) awaits a verified budget run of the final table (plan 8.2e).
             b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember");
             Resolve(b, b.DefaultAttacks);
             Resolve(b, b.themed);
