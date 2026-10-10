@@ -19,14 +19,52 @@ public class CodexHomeButton : MonoBehaviour
     Button button;
     Text label, counter;
     Font font;
-    // The "something to collect" dot (achievements waiting): a magenta disc with the count.
-    Image dot;
-    Text dotText;
-    public const float DotSize = 40f;
+    // The notification bubble: unclaimed achievements (25 star dust each),
+    // pinned to the button's top-right corner. A small amber pixel disc with
+    // the count in ink; hidden at 0, "9+" above 9. Art slot: a sprite named
+    // Resources/Codex/cx_badge (13x13 px, point filtered) replaces the
+    // procedural disc when Codex paints one.
+    Image badge;
+    Text badgeText;
+    public const float BadgeSize = 32f, BadgeInset = 6f;
+    public const int BadgeMax = 9;
+    public const string BadgeArtSlot = "cx_badge";
 
-    public Image Dot { get { return dot; } }
-    public Text DotText { get { return dotText; } }
-    public bool DotVisible { get { return dot != null && dot.gameObject.activeSelf; } }
+    public Image Badge { get { return badge; } }
+    public Text BadgeText { get { return badgeText; } }
+    public bool BadgeVisible { get { return badge != null && badge.gameObject.activeSelf; } }
+
+    public static string BadgeLabel(int n)
+    {
+        return n > BadgeMax ? BadgeMax + "+" : n.ToString();
+    }
+
+    static Sprite procBadge;
+
+    // A 13x13 pixel disc: ink outline, amber fill, one shadow row along the
+    // bottom. Point filtered, so it stays crisp at any scale.
+    static Sprite BadgeSprite()
+    {
+        var art = CodexUi.CodexSprite(BadgeArtSlot);
+        if (art != null) return art;
+        if (procBadge != null) return procBadge;
+        const int n = 13;
+        var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "cx_badge_proc" };
+        float c = (n - 1) * .5f;
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                Color col = new Color(0, 0, 0, 0);
+                if (d <= 6.3f) col = CodexPalette.Ink;
+                if (d <= 5.2f) col = y <= 2 ? CodexPalette.SodiumShadow : CodexPalette.Amber;
+                tex.SetPixel(x, y, col);
+            }
+        tex.Apply(false, false);
+        procBadge = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(.5f, .5f), n);
+        procBadge.name = "cx_badge_proc";
+        return procBadge;
+    }
 
     public Button Button { get { return button; } }
     public Text Counter { get { return counter; } }
@@ -116,20 +154,23 @@ public class CodexHomeButton : MonoBehaviour
         crt.anchorMax = new Vector2(1f, 1f - LabelShare + .04f);
         crt.offsetMin = crt.offsetMax = Vector2.zero;
 
-        // The dot: only there while something is waiting to be collected. It
-        // takes no touches (the whole row opens the codex).
-        dot = CodexUi.NewImage("CollectDot", transform, CodexUi.CodexSprite("cx_circle"), CodexPalette.Magenta);
-        var drt = dot.rectTransform;
-        drt.anchorMin = drt.anchorMax = new Vector2(1f, 1f);
-        drt.pivot = new Vector2(1f, 1f);
-        drt.anchoredPosition = new Vector2(-14f, -10f);
-        drt.sizeDelta = new Vector2(DotSize, DotSize);
-        dotText = CodexUi.NewText("Count", drt, font, "", 22, Color.white, TextAnchor.MiddleCenter);
-        dotText.resizeTextForBestFit = true;
-        dotText.resizeTextMinSize = 10;
-        dotText.resizeTextMaxSize = 22;
-        CodexUi.AddOutline(dotText.gameObject, CodexUi.Ink, 1.5f);
-        CodexUi.Stretch(dotText.rectTransform);
+        // The bubble: only there while something is waiting to be collected.
+        // It takes no touches (the whole row opens the codex).
+        badge = CodexUi.NewImage("CollectBadge", transform, BadgeSprite(), Color.white);
+        badge.raycastTarget = false;
+        var brt = badge.rectTransform;
+        brt.anchorMin = brt.anchorMax = new Vector2(1f, 1f);
+        brt.pivot = new Vector2(1f, 1f);
+        brt.anchoredPosition = new Vector2(-BadgeInset, -BadgeInset);
+        brt.sizeDelta = new Vector2(BadgeSize, BadgeSize);
+        badgeText = CodexUi.NewText("Count", brt, font, "", 18, CodexPalette.Ink, TextAnchor.MiddleCenter);
+        badgeText.resizeTextForBestFit = true;
+        badgeText.resizeTextMinSize = 10;
+        badgeText.resizeTextMaxSize = 18;
+        var trt = badgeText.rectTransform;
+        trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+        trt.offsetMin = new Vector2(3f, 5f); trt.offsetMax = new Vector2(-3f, -1f);
+        badge.gameObject.SetActive(false);
 
         Refresh();
     }
@@ -144,11 +185,11 @@ public class CodexHomeButton : MonoBehaviour
     public void Refresh()
     {
         if (counter != null) counter.text = CounterText();
-        if (dot != null)
+        if (badge != null)
         {
             int n = AchievementStore.ClaimableCount;
-            dot.gameObject.SetActive(n > 0);
-            dotText.text = n > 99 ? "99+" : n.ToString();
+            badge.gameObject.SetActive(n > 0);
+            badgeText.text = n > 0 ? BadgeLabel(n) : "";
         }
     }
 

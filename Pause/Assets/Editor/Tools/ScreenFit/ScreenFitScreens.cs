@@ -155,7 +155,7 @@ public static class ScreenFitScreens
 
     // ---- home -------------------------------------------------------------------
 
-    static startMenu HomeBase(ScreenFitRig rig)
+    public static startMenu HomeBase(ScreenFitRig rig)
     {
         PlayerPrefs.SetString("HasDoneTut", "true");
         MenuStyler.StyleScene();
