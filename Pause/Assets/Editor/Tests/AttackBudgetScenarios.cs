@@ -327,6 +327,34 @@ public static class AttackBudgetScenarios
                 }
                 continue;
             }
+            var log = hz as AttackLog;
+            if (log != null)
+            {
+                // the trunk's whole track is drawn from the first frame (landing ring, rolling line, the bounce): the bot knows where the disc will be
+                // at any moment of it. Two legs (to the rail, off it), each a disc moving at a known velocity, back-projected from where it starts.
+                bool tellL = log.State == AttackHazard.Phase.Tell;
+                Vector2 land = log.Landing, lv = log.RollVelocity;
+                float lim = log.XLimit, total = log.RollSeconds;
+                float tbL = AttackLog.BounceTime(land, lv, lim);
+                float inL = tellL ? log.TellLeft : 0f, tau0 = tellL ? 0f : log.Age;
+                if (tau0 < Mathf.Min(tbL, total))
+                {
+                    Vector2 p0 = tellL ? land : log.Position;
+                    var c1 = Hz.Circle(baseId, p0 - lv * inL, log.HitHalf, inL, Mathf.Min(tbL, total) - tau0);
+                    c1.hasV = true; c1.va = c1.vb = lv;
+                    into.Add(c1);
+                }
+                if (tbL < total)
+                {
+                    float st = Mathf.Max(tau0, tbL);
+                    Vector2 p1 = AttackLog.PositionAt(land, lv, lim, st), v2 = new Vector2(-lv.x, lv.y);
+                    float in2 = inL + (st - tau0);
+                    var c2 = Hz.Circle(baseId + 1, p1 - v2 * in2, log.HitHalf, in2, total - st);
+                    c2.hasV = true; c2.va = c2.vb = v2;
+                    into.Add(c2);
+                }
+                continue;
+            }
             var jet = hz as AttackJet;
             var wave = hz as AttackWave;
             if (jet != null)
@@ -653,7 +681,7 @@ public static class AttackBudgetScenarios
         public string Name { get; }
         public float MaxSeconds => themedBoss ? 26f : 12f;
         public bool Attacked => e != null && e.Actor != null && e.Actor.AttacksStarted > 0;
-        public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;
+        public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;   // (the lash and the trunk are told the same way)
         public bool Done => e != null && e.Actor != null && e.Actor.AttacksStarted >= 3 && e.Pool.ActiveShots == 0 && e.Pool.ActiveBeams == 0 && AttackHazard.ActiveCount == 0 && !e.Actor.HazardPhase;
 
         public Transform Begin(System.Random rng, Vector2 start)

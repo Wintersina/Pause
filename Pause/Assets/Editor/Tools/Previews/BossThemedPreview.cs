@@ -26,7 +26,7 @@ public static class BossThemedPreview
         {
             try
             {
-                foreach (int w in new[] { 1, 3, 0, 4 })
+                foreach (int w in new[] { 1, 3, 0, 4, 2 })
                 {
                     var boss = BossCatalog.ForWorld(w);
                     if (only != null && boss.artKey.ToLower() != only) continue;
@@ -42,8 +42,12 @@ public static class BossThemedPreview
         EditorApplication.Exit(0);
     }
 
+    static WorldBackdrop backdrop;
+    static readonly string[] WorldNames = { "Space", "Frost", "Verdant", "Ember", "Tide" };
+
     static Camera Scene(int world, out Transform ship)
     {
+        backdrop = null;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         EliteSystem.Clear();
         AttackPools.Forget();
@@ -66,6 +70,14 @@ public static class BossThemedPreview
         Time.timeScale = 1f;
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
+        if (world == 2)
+        {
+            // the Verdant attacks are judged over the world's own backdrop (the pink cue has to read against green)
+            var bgGo = new GameObject("~Backdrop");
+            backdrop = bgGo.AddComponent<WorldBackdrop>();
+            backdrop.Show(WorldNames[world], false);
+            for (int i = 0; i < 600; i++) backdrop.Step(Dt);
+        }
         var white = Texture2D.whiteTexture;
         var sprite = Sprite.Create(white, new Rect(0, 0, white.width, white.height), new Vector2(.5f, .5f), white.width);
         foreach (float side in new[] { -1f, 1f })
@@ -73,7 +85,7 @@ public static class BossThemedPreview
             var wall = new GameObject(side < 0 ? "leftPipe" : "rightPipe");
             var sr = wall.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
-            sr.color = new Color(.16f, .17f, .26f);
+            sr.color = world == 2 ? new Color(.12f, .14f, .12f, .55f) : new Color(.16f, .17f, .26f);
             sr.sortingOrder = -10;
             wall.transform.position = new Vector3(side * 3.15f, 0f, 1f);
             wall.transform.localScale = new Vector3(1.43f, 30f, 1f);
@@ -116,7 +128,7 @@ public static class BossThemedPreview
         float t = 0f;
         for (int k = 0; k < at.Length; k++)
         {
-            while (t < at[k] && e.State == BossEncounter.Phase.Fight) { e.Step(Dt, 1f); t += Dt; }
+            while (t < at[k] && e.State == BossEncounter.Phase.Fight) { e.Step(Dt, 1f); t += Dt; if (backdrop != null) backdrop.Step(Dt); }
             cam.Render();
             var old = RenderTexture.active;
             RenderTexture.active = rt;

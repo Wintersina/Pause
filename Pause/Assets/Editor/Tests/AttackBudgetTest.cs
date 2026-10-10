@@ -154,6 +154,8 @@ public static class AttackBudgetTest
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
+        { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)
+        { "themed:boss_verdant_trunk_toss", "boss:Verdant:acid cannons" },   // slot 5 (phase 3), against the phase-3 pinned attack
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)
