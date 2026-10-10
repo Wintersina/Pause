@@ -50,7 +50,12 @@ public static class AttackBudgetScenarios
         {
             "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop",
             "themed:ember_flame_jet", "themed:frost_ray", "themed:tide_pressure_jet", "themed:tide_surf_wave", "themed:space_scan_line",
+            "themed:verdant_vine_lash", "themed:space_rail_slug", "themed:frost_splinter_pair", "themed:verdant_leaf_volley",   // phases 1e / 1f
         };
+
+
+        // the fixtures whose attack is an area hazard (AttackHazard): the fairness suite reads their tells from the real brain
+        public static readonly string[] HazardIds = { "themed:frost_cold_blast", "themed:ember_eruption", "themed:frost_icicle_drop", "themed:ember_flame_jet", "themed:frost_ray", "themed:tide_pressure_jet", "themed:tide_surf_wave", "themed:space_scan_line", "themed:verdant_vine_lash" };
 
         public static string BaseKey(string id)
         {
@@ -59,6 +64,10 @@ public static class AttackBudgetScenarios
                 case "themed:frost_cold_blast": return "frost_big";
                 case "themed:ember_eruption": return "ember_fighter_3";
                 case "themed:frost_icicle_drop": return "frost_fighter_2";
+                case "themed:verdant_vine_lash": return "verdant_fighter_4";
+                case "themed:space_rail_slug": return "space_fighter_4";
+                case "themed:frost_splinter_pair": return "frost_fighter_3";
+                case "themed:verdant_leaf_volley": return "verdant_alien";
                 case "themed:ember_flame_jet": return "ember_fighter_3";
                 case "themed:frost_ray": return "frost_fighter_3";
                 case "themed:tide_pressure_jet": return "frost_fighter_2";
@@ -73,6 +82,17 @@ public static class AttackBudgetScenarios
             var s = BlastSpec.Wide(1);   // (the standard 3.4 u ring never reaches a ship 5-6 u below a hovering Golem: 0% for the bot and for a ghost)
             s.gapOffsetDeg = 40f;
             return s;
+        }
+
+        // The skin a phase-1f fixture shoots with (ShotMotion flags are read from the shot's skin): installed for the roll, removed by Reset / Cleanup.
+        public static void InstallSkin(string id)
+        {
+            switch (id)
+            {
+                case "themed:space_rail_slug": ShotSkins.Override(0, EliteShots.Kind.Shell, ShotMotionArt.Skin(0, EliteShots.Kind.Shell, ShotMotion.Streak)); break;
+                case "themed:frost_splinter_pair": ShotSkins.Override(1, EliteShots.Kind.Shard, ShotMotionArt.Skin(1, EliteShots.Kind.Shard, ShotMotion.Shatter)); break;
+                case "themed:verdant_leaf_volley": ShotSkins.Override(2, EliteShots.Kind.Shard, ShotMotionArt.Skin(2, EliteShots.Kind.Shard, ShotMotion.Flutter)); break;
+            }
         }
 
         // Fresh each call (a brain mutates nothing of it, but a fixture must not leak between rolls).
@@ -90,6 +110,18 @@ public static class AttackBudgetScenarios
                 case "themed:frost_icicle_drop":  // Icicle: the lance bolt becomes an icicle drop on three lanes
                     return new EnemyBehaviour { key = "frost_fighter_2" }.Track(.55f, .9f).Strike(StrikeSpec.Standard(1), 3).Timing(.8f, 2.4f, 2, .15f)
                         .Pilot(PilotEntry.Drop, 2.4f, 5.5f, PilotExit.Peel).Volleys(2);
+                case "themed:verdant_vine_lash":  // Hornet Queen: the fan of three stingers becomes a vine lash (volleys 4 -> 2)
+                    return new EnemyBehaviour { key = "verdant_fighter_4" }.Track(.5f, .6f).Brake(1.8f, .65f).Lash(LashSpec.Standard(2)).Muzzle(.4f).Timing(.9f, 2.8f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(2);
+                case "themed:space_rail_slug":    // Warden: the heavy shell becomes a rail-gun slug (Streak: 6 u/s, a longer charge 1.1 s, volleys 4 -> 3)
+                    return new EnemyBehaviour { key = "space_fighter_4" }.Track(.5f, .5f).Brake(1.8f, .65f).Shot(EliteShots.Kind.Shell, 1, 0f, 3.4f, .3f, 28f).Muzzle(.4f).Timing(1.1f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 1.6f, 9f, PilotExit.Climb).Volleys(3);
+                case "themed:frost_splinter_pair": // Frost Kite: the splayed pair of shards splits once in flight (Shatter; volleys 3 -> 2)
+                    return new EnemyBehaviour { key = "frost_fighter_3" }.Orbit(.5f, 1.5f).Shot(EliteShots.Kind.Shard, 2, 34f, 3f, .18f).Timing(.55f, 2.2f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2.6f, 7f, PilotExit.Run).Volleys(2);
+                case "themed:verdant_leaf_volley": // Snap Sprout: a pair of fluttering leaves, in the place of a Twin Claw's pair of bolts (compared with roster:space_fighter_3)
+                    return new EnemyBehaviour { key = "verdant_alien" }.Sway(.5f, 2.2f).Shot(EliteShots.Kind.Shard, 2, 20f, 1.8f, .2f).Timing(.6f, 2.4f, 2, .15f)
+                        .Pilot(PilotEntry.Drop, 2f, 7f, PilotExit.Peel).Volleys(2);
                 // ---- phases 1a / 1b: the jet and the wave. A jet reaches its locked target, so the fixtures hold their shooters
                 // lower on the screen (station 4.8 u below the top of the view = 3.6-4.6 u above the bot's ship) than the table's, as the Golem's wide ring did.
                 case "themed:ember_flame_jet":    // Brand: the aimed bolt becomes a flamethrower cone swept 10 deg (design: cooldown 1.8 -> 2.6, volleys 3 -> 2)
@@ -148,6 +180,8 @@ public static class AttackBudgetScenarios
         AttackPools.Forget();
         AttackHazard.ForgetAll();
         AttackHazardArt.Forget();
+        ShotSkins.ResetForTests();
+        lashRoots.Clear();
         ShotOutline.Bold = false;
         EnemyThreat.ForceShooting = true;
         BossEncounter.ResetRun();
@@ -177,6 +211,7 @@ public static class AttackBudgetScenarios
     public static void Cleanup()
     {
         EliteSystem.Clear();
+        ShotSkins.ResetForTests();
         EnemyBehaviours.ClearOverrides();
         ShotOutline.Bold = null;
         EliteSystem.PlayerOverride = null;
@@ -201,8 +236,28 @@ public static class AttackBudgetScenarios
         {
             var s = all[i];
             if (s == null || !s.Active) continue;
-            if (s.Airborne) into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds));
-            else into.Add(Hz.Circle(100 + i, s.transform.position, s.Radius));
+            if (s.Airborne) { into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds)); continue; }
+            // a Flutter leaf is read by its course: the bot follows the straight line and keeps the weave's width clear
+            if ((s.Motion & ShotMotion.Flutter) != 0) { into.Add(Hz.Circle(100 + i, s.CoursePosition, s.Radius + ShotMotions.FlutterAmp)); continue; }
+            float splitIn = s.SplitIn;
+            if (splitIn >= 0f)
+            {
+                // a Shatter spear splits at a known moment: the bot sees the spear until then and the three chips after
+                Vector2 va = s.Velocity + new Vector2(0f, -EliteSystem.Scroll * s.Ride);
+                var spear = Hz.Circle(100 + i, s.transform.position, s.Radius, 0f, splitIn);
+                spear.hasV = true; spear.va = spear.vb = va;
+                into.Add(spear);
+                Vector2 at = (Vector2)s.transform.position + va * splitIn;
+                for (int c = 0; c < ShotMotions.ShatterChips; c++)
+                {
+                    Vector2 cv = EliteShot.ChipVelocity(s.Velocity, c, ShotMotions.ShatterChips, s.Ride);
+                    var chip = Hz.Circle(2000 + i * 3 + c, at - cv * splitIn, s.Radius * ShotMotions.ChipScale, splitIn, ShotMotions.ChipSeconds);
+                    chip.hasV = true; chip.va = chip.vb = cv;
+                    into.Add(chip);
+                }
+                continue;
+            }
+            into.Add(Hz.Circle(100 + i, s.transform.position, s.Radius));
         }
     }
 
@@ -217,6 +272,9 @@ public static class AttackBudgetScenarios
 
     // The themed area hazards as the bot sees them: a ring's bars (segments, the expansion known during the tell: the
     // preview shows the first ring and the crack), a strike's column (a segment, live from the end of its tell).
+    static readonly Vector2[] lashJoints = new Vector2[AttackLash.MaxLinks + 1];
+    static readonly Dictionary<AttackLash, Vector2> lashRoots = new Dictionary<AttackLash, Vector2>();
+
     static void CollectHazards(List<Hz> into)
     {
         var all = AttackHazard.All;
@@ -227,6 +285,48 @@ public static class AttackBudgetScenarios
             int baseId = 1000 + h * 48;
             var blast = hz as AttackBlast;
             var strike = hz as AttackStrike;
+            var lash = hz as AttackLash;
+            if (lash != null)
+            {
+                // the sweep is drawn from the first frame of the tell: the bot knows where every link of the chain will be, at any moment of it
+                // (Hz.segAt: the chain is evaluated for the moment the bot asks about; the root end of it lies on the start line while the tip runs ahead)
+                int lb = 4000 + h * 100;
+                bool tell = lash.State == AttackHazard.Phase.Tell;
+                float sweep = lash.SweepSeconds, done = tell ? 0f : lash.Age, left = tell ? lash.TellLeft : 0f;
+                int n = lash.Links;
+                var lspec = lash.Spec;
+                float length = lash.Length, startRad = lash.StartRad;
+                int dir = lash.Dir;
+                Vector2 root = lash.Root, vRoot = Vector2.zero;
+                // (the root rides its shooter: the bot reads the shooter's drift off two frames, as it does a shot's speed)
+                if (lashRoots.TryGetValue(lash, out Vector2 was)) vRoot = (root - was) / DodgeBot.Dt;
+                lashRoots[lash] = root;
+                for (int li = 0; li < n; li++)
+                {
+                    int link = li;
+                    var hzd = Hz.Segment(lb + li, root, root, lash.HitHalf + .04f, left, sweep - done);
+                    hzd.planOnly = true;
+                    hzd.segAt = since =>
+                    {
+                        var j = new Vector2[AttackLash.MaxLinks + 1];
+                        AttackLash.Chain(in lspec, n, length, root + vRoot * since, startRad, dir, Mathf.Clamp(since - left + done, 0f, sweep), j);
+                        return new Vector4(j[link].x, j[link].y, j[link + 1].x, j[link + 1].y);
+                    };
+                    into.Add(hzd);
+                }
+                if (!tell)
+                {
+                    // what actually burns this frame: the links of the chain now, scored; they are gone from the bot's plan a moment later
+                    AttackLash.Chain(lash.Spec, n, lash.Length, lash.Root, lash.StartRad, lash.Dir, done, lashJoints);
+                    for (int li = 0; li < n; li++)
+                    {
+                        var now = Hz.Segment(lb + 50 + li, lashJoints[li], lashJoints[li + 1], lash.HitHalf, 0f, .001f);
+                        now.hasV = true;
+                        into.Add(now);
+                    }
+                }
+                continue;
+            }
             var jet = hz as AttackJet;
             var wave = hz as AttackWave;
             if (jet != null)
@@ -335,7 +435,7 @@ public static class AttackBudgetScenarios
             def = EnemyRoster.Find(themed ? ThemedFixtures.BaseKey(id) : id.Substring(7));
             b = themed ? ThemedFixtures.Behaviour(id) : EnemyBehaviours.For(def.key);
             Name = id;
-            if (themed) fixture = b;
+            if (themed) { fixture = b; ThemedFixtures.InstallSkin(id); }
         }
         readonly EnemyBehaviour fixture;
         public string Name { get; }

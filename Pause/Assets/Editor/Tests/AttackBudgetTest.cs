@@ -133,6 +133,11 @@ public static class AttackBudgetTest
         { "themed:frost_cold_blast", "roster:frost_big" },          // Glacier Golem: the 3-shard fan -> the cold blast ring (volleys 3 -> 2)
         { "themed:ember_eruption", "roster:ember_fighter_3" },      // Brand: the aimed bolt -> an eruption of three columns
         { "themed:frost_icicle_drop", "roster:frost_fighter_2" },   // Icicle: the lance bolt -> an icicle drop on three lanes
+        // plan phases 1e / 1f: the lash and the projectile behaviours on TEST-ONLY fixtures (skins installed by the fixture; no world's table uses them yet)
+        { "themed:verdant_vine_lash", "roster:verdant_fighter_4" },     // Hornet Queen: the fan of three stingers -> a vine lash (volleys 4 -> 2)
+        { "themed:space_rail_slug", "roster:space_fighter_4" },         // Warden: the heavy shell -> the rail-gun slug (Streak; tell .9 -> 1.1 s, volleys 4 -> 3)
+        { "themed:frost_splinter_pair", "roster:frost_fighter_3" },     // Frost Kite: the splayed pair -> a splinter pair (Shatter; volleys 3 -> 2)
+        { "themed:verdant_leaf_volley", "roster:space_fighter_3" },     // Snap Sprout (no attack today): a leaf volley (Flutter), held to a Twin Claw pair's rate
         // plan phases 1a / 1b: the jet and the wave on TEST-ONLY fixtures too
         { "themed:ember_flame_jet", "roster:ember_fighter_3" },     // Brand: the aimed bolt -> a flamethrower cone (swept 10 deg); cooldown 1.8 -> 2.6, volleys 3 -> 2
         { "themed:frost_ray", "roster:frost_fighter_3" },           // Frost Kite: the splayed shard pair -> a thin frost ray
@@ -359,6 +364,32 @@ public static class AttackBudgetTest
         }
         finally { AttackBudgetScenarios.Cleanup(); }
         Debug.Log("[ATKBUD] sweep done in " + sw.Elapsed.TotalSeconds.ToString("0") + " s; attacks that barely show: " + bad);
+        TestHarness.Exit(0);
+    }
+
+    // -executeMethod AttackBudgetTest.One -id themed:verdant_vine_lash [-rolls N] [-trace]: measure one attack (any id, themed fixtures too) and print its row.
+    public static void One()
+    {
+        int rolls = Rolls;
+        string id = null;
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == "-rolls") int.TryParse(args[i + 1], out rolls);
+            if (args[i] == "-id") id = args[i + 1];
+        }
+        for (int i = 0; i < args.Length; i++) if (args[i] == "-trace") DodgeBot.Trace = true;
+        try
+        {
+            foreach (string one in id.Split(','))   // (several ids, comma separated)
+            {
+                var r = Measure(one, rolls);
+                string why;
+                bool ok = WithinBudget(one, r, out why);
+                Debug.Log("[ATKBUD] ONE " + (ok ? "WITHIN " : "OVER   ") + why + "; standing still " + r.GhostRate.ToString("P1") + "; shown in " + r.attacked + "/" + r.rolls);
+            }
+        }
+        finally { AttackBudgetScenarios.Cleanup(); }
         TestHarness.Exit(0);
     }
 }

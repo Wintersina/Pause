@@ -20,6 +20,7 @@ using UnityEngine;
 // Sprites are made once per (kind, world, frame, bold) and cached; a scene change that unloaded
 // one is rebuilt. Nothing is made per frame.
 public enum StrikeStyle { Icicle, Eruption, Thunder }
+public enum LashLook { Vine, Tentacle }
 
 public static partial class AttackHazardArt
 {
@@ -55,13 +56,13 @@ public static partial class AttackHazardArt
         }
     }
 
-    static Color32 Hsv(float deg, float s, float v) => (Color32)Color.HSVToRGB(deg / 360f, s, v);
+    public static Color32 Hsv(float deg, float s, float v) => (Color32)Color.HSVToRGB(deg / 360f, s, v);
 
     // the pink the whole family wears (HostileShotPalette)
-    static Color32 PinkBody => (Color32)HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
-    static Color32 PinkEdge => (Color32)HostileShotPalette.Trace(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
-    static Color32 CoreA => (Color32)HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
-    static Color32 CoreB => (Color32)Color.Lerp(HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot)), Color.white, .8f);
+    public static Color32 PinkBody => (Color32)HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
+    public static Color32 PinkEdge => (Color32)HostileShotPalette.Trace(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
+    public static Color32 CoreA => (Color32)HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
+    public static Color32 CoreB => (Color32)Color.Lerp(HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot)), Color.white, .8f);
 
     // ---- the cache --------------------------------------------------------------------------------
 
@@ -70,14 +71,14 @@ public static partial class AttackHazardArt
     // call allocates nothing (the string keys above are only built when a sprite is first made).
     static readonly Dictionary<int, Sprite> resolved = new Dictionary<int, Sprite>();
     static readonly Dictionary<int, bool> flags = new Dictionary<int, bool>();
-    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Jet, Nozzle, JetTip, Wave, WaveMarker }
+    enum Kind { Bar, Gap, Glyph, Col, Tip, Burst, Jet, Nozzle, JetTip, Wave, WaveMarker, Link, LTip, Root, Dash }
     static int Key(Kind k, int world, int style, int frame, bool bold) =>
         ((((int)k * 8 + world) * 4 + style) * 8 + frame) * 2 + (bold ? 1 : 0);
     static bool Cached(int key, out Sprite s) => resolved.TryGetValue(key, out s) && s != null && s.texture != null;
 
     // `seam`: a tile that stacks (a column body): the keyline pads left and right only, so no dark line crosses a seam;
     // `tipBottom`: the spear point, which pads left, right and bottom (its top meets a body tile).
-    static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold, bool seam = false, bool tipBottom = false, bool hSeam = false)
+    public static Sprite Made(string key, int w, int h, float ppu, Vector2 pivot, System.Action<Color32[], int, int> paint, bool bold, bool seam = false, bool tipBottom = false, bool hSeam = false)
     {
         Sprite s;
         if (cache.TryGetValue(key, out s) && s != null && s.texture != null) return s;
@@ -393,6 +394,189 @@ public static partial class AttackHazardArt
                 }
             }
             if (f < 2) for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) Dot(px, w, h, (int)c + dx, (int)c + dy, hot);
+        }, bold);
+    }
+
+    // ---- the lash (plan phase 1e; docs/world-attacks-art.md 3.8) --------------------------------------------
+    // A whip is a chain of link tiles ending in a pink thorn / sucker tip, a bud at its root and a dotted arc for the tell.
+    // <w>_attack_lash.png cells (link a,b / tip a,b / root a,b / dash a,b) take the place of each when present; otherwise:
+    //   vine      a green chain (the Verdant ramp) with pink thorns on alternating sides, a pink-white edge stroke and core
+    //   tentacle  brass-teal segments with pink sucker dots (Tide)
+    public const int LinkW = 18, LinkH = 20, LashTipW = 18, LashTipH = 24, LashRootSize = 20, LashDashSize = 6;
+    public const float LinkLength = LinkH / Ppu;        // .625 u: the length an unscaled procedural link has
+    public const float LashBodyWidth = 14f / Ppu;       // .44 u drawn (the hit is .28)
+
+    public static LashLook LookOf(int world) => world == 4 ? LashLook.Tentacle : LashLook.Vine;
+
+    // the tentacle's brass-teal pair: a sea teal at hue 150-154 (24+ deg from the pickup cyan 178) and a pale brass (saturation .33, under the audit's .35)
+    static Color32 TealLight => Hsv(154, .45f, .58f);
+    static Color32 TealDark => Hsv(150, .5f, .36f);
+    static Color32 Brass => Hsv(44, .33f, .72f);
+
+    static Color32 Material(LashLook look, int world, int band, bool light)
+    {
+        if (look == LashLook.Tentacle) return (band % 3) == 2 ? Brass : (light ? TealLight : TealDark);
+        var r = RampOf(2);   // (a vine is always the deep leaf ramp)
+        return light ? r.light : r.dark;
+    }
+
+    public static bool LashArt(int world)
+    {
+        int key = -100 - world;
+        bool b;
+        if (flags.TryGetValue(key, out b)) return b;
+        b = AttackArt.LashLink(world, 0) != null;
+        flags[key] = b;
+        return b;
+    }
+
+    // one section of the chain, pointing down (frame 0 / 1: the core's flicker and the thorn's side)
+    public static Sprite LashLink(int world, int frame, bool bold)
+    {
+        int key = Key(Kind.Link, world, 0, frame & 1, bold);
+        Sprite s;
+        if (Cached(key, out s)) return s;
+        s = AttackArt.LashLink(world, frame & 1) ?? LinkProcedural(world, frame, bold);
+        resolved[key] = s;
+        return s;
+    }
+
+    public static Sprite LinkProcedural(int world, int frame, bool bold)
+    {
+        var look = LookOf(world);
+        int f = frame & 1;
+        return Made("AtkLink" + (int)look + "_" + f + (bold ? "b" : ""), LinkW, LinkH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        {
+            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float dx = Mathf.Abs(x + .5f - w * .5f);
+                    if (dx >= 7f) continue;
+                    float u = 7f - dx;
+                    Color32 c;
+                    if (u <= 2f) c = edge;
+                    else if (u <= 3f || y == 0 || y == h - 1) c = body;
+                    else if (dx <= .99f) c = core;                    // a two pixel core line (its colour flickers between the frames)
+                    else if (look == LashLook.Tentacle && (y == 9 || y == 10) && (x == 6 || x == 11)) c = edge;   // a sucker
+                    else c = Material(look, world, y / 3, ((y / 3) & 1) == 0);
+                    px[y * w + x] = c;
+                }
+            if (look == LashLook.Vine)
+            {
+                // a thorn, pink-white, on the left on one frame and the right on the other (stepped, not a smooth sway: PC5)
+                int xs = f == 0 ? 2 : w - 3, step = f == 0 ? -1 : 1;
+                for (int k = 0; k < 3; k++)
+                {
+                    Dot(px, w, h, xs + step * k, 10, edge); Dot(px, w, h, xs + step * k, 9, k < 2 ? body : edge); Dot(px, w, h, xs + step * k, 11, k < 2 ? body : edge);
+                }
+                Dot(px, w, h, xs + step * 3, 10, edge);
+            }
+        }, bold, true);
+    }
+
+    // the tip at the end of the chain (attaches at its top, points down): a pink thorn (vine) or a barbed sucker tip (tentacle)
+    public static Sprite LashTip(int world, int frame, bool bold)
+    {
+        int key = Key(Kind.LTip, world, 0, frame & 1, bold);
+        Sprite s;
+        if (Cached(key, out s)) return s;
+        s = AttackArt.LashTip(world, frame & 1) ?? TipProcedural(world, frame, bold);
+        resolved[key] = s;
+        return s;
+    }
+
+    static Sprite TipProcedural(int world, int frame, bool bold)
+    {
+        var look = LookOf(world);
+        int f = frame & 1;
+        return Made("AtkLTip" + (int)look + "_" + f + (bold ? "b" : ""), LashTipW, LashTipH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        {
+            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            for (int y = 0; y < h; y++)
+            {
+                float hw = 1f + 6f * Mathf.Min(1f, y / 15f);              // y = 0 is the point (14 px wide at the base, like a link)
+                if (look == LashLook.Tentacle && y >= 9 && y <= 11) hw += 2f;   // a barb either side
+                for (int x = 0; x < w; x++)
+                {
+                    float dx = Mathf.Abs(x + .5f - w * .5f);
+                    float u = hw - dx;
+                    if (u <= 0f) continue;
+                    Color32 c;
+                    if (u <= 2f) c = edge;
+                    else if (u <= 3f) c = body;
+                    else if (dx <= (f == 0 ? 1f : 1.99f)) c = core;
+                    else c = Material(look, world, y / 3, (x + y) % 2 == 0);
+                    if (look == LashLook.Vine && y < 5 && u > 0f) c = (u <= 3f) ? edge : core;   // the point itself is all pink-white
+                    px[y * w + x] = c;
+                }
+            }
+        }, bold);
+    }
+
+    // the bud / hatch collar at the root (shown while it telegraphs and at the root of the live whip)
+    public static Sprite LashRoot(int world, int frame, bool bold)
+    {
+        int key = Key(Kind.Root, world, 0, frame & 1, bold);
+        Sprite s;
+        if (Cached(key, out s)) return s;
+        s = AttackArt.LashRoot(world, frame & 1) ?? RootProcedural(world, frame, bold);
+        resolved[key] = s;
+        return s;
+    }
+
+    static Sprite RootProcedural(int world, int frame, bool bold)
+    {
+        var look = LookOf(world);
+        int f = frame & 1;
+        return Made("AtkRoot" + (int)look + "_" + f + (bold ? "b" : ""), LashRootSize, LashRootSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        {
+            Color32 edge = PinkEdge, body = PinkBody, hot = f == 0 ? CoreA : CoreB;
+            float c = (w - 1) * .5f;
+            // eight pink spikes (PC4: a spiked rim, never a smooth disc) round a small material hub
+            for (int k = 0; k < 8; k++)
+            {
+                float a = (k * 45f + f * 22.5f) * Mathf.Deg2Rad;
+                for (float d = 3f; d <= 9.2f; d += .5f)
+                {
+                    Color32 col = d > 6.5f ? edge : (d > 4.5f ? body : hot);
+                    Dot(px, w, h, Mathf.RoundToInt(c + Mathf.Cos(a) * d), Mathf.RoundToInt(c + Mathf.Sin(a) * d), col);
+                }
+            }
+            for (int y = -3; y <= 3; y++)
+                for (int x = -3; x <= 3; x++)
+                {
+                    if (x * x + y * y > 11) continue;
+                    Dot(px, w, h, (int)c + x, (int)c + y, (x * x + y * y <= 2) ? hot : (x * x + y * y >= 8 ? body : Material(look, world, (x + y + 8) / 2, (x + y) % 2 == 0)));
+                }
+        }, bold);
+    }
+
+    // one dot of the dotted arc (the tell's sweep line), pink-white
+    public static Sprite LashDash(int world, int frame, bool bold)
+    {
+        int key = Key(Kind.Dash, world, 0, frame & 1, bold);
+        Sprite s;
+        if (Cached(key, out s)) return s;
+        s = AttackArt.LashDash(world, frame & 1) ?? DashProcedural(frame, bold);
+        resolved[key] = s;
+        return s;
+    }
+
+    static Sprite DashProcedural(int frame, bool bold)
+    {
+        int f = frame & 1;
+        return Made("AtkDash" + f + (bold ? "b" : ""), LashDashSize, LashDashSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        {
+            Color32 a = f == 0 ? CoreB : PinkEdge, b = PinkBody;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    int d = Mathf.Abs(x - 2) + Mathf.Abs(y - 2);
+                    int d2 = Mathf.Abs(x - 3) + Mathf.Abs(y - 3);
+                    int m = Mathf.Min(d, d2);
+                    if (m <= 1) px[y * w + x] = a; else if (m == 2) px[y * w + x] = b;
+                }
         }, bold);
     }
 }
