@@ -193,6 +193,50 @@ Branch `feature/attacks-foundations` (worktree `attacks-found`), phases 0a + 0b.
 11. **Tide.** `ShotSkins` has five worlds (Tide is index 4); `EnemyRoster.WorldKeys` still has four. Tide's rows wait for its roster (phase 7).
 12. `EliteSystem.Clear()` now also calls `AttackPools.ClearAll()` (ends every pooled hazard and preview): the one line in an existing teardown path.
 
+### 8.2b Phases 1c + 1d: the AttackBlast and AttackStrike cores (branch `feature/attacks-cores-blast-strike`, worktree `attacks-cores-b`)
+
+Built (all under `Gameplay/Enemies/Attacks/` unless noted):
+
+* `AttackHazard.cs` -- the shared body of every themed area hazard (a jet, a band and a lash derive from it too): Off -> Tell -> Live -> After -> pool, `IHostileZone`, one trigger
+  `PolygonCollider2D` tagged "Enimey" (child `AttackHazardHit`, marker `AttackHazardHitbox`) refilled from the live `AttackShape` every frame, friendly fire once per pulse, `AttackHazard.LiveThreat`
+  (blast 2, strike 1 per FR7), `IsHitbox / EraseHitbox / BlinkStrike` for the ship's code. **Steps only through `Step(dt)`** (`AttackPools.StepAll`, called from `EliteSystem.Step`).
+* `AttackBlast.cs` + `BlastSpec` -- the expanding ring. `BlastSpec.Standard(world)` = the doc's cold blast (18-bar circle, 70 deg crack, 2.6 u/s from .9 u to 3.4 u, bar half .09);
+  `BlastSpec.Wide(world)` = 32 bars to 6 u at 2.7 u/s for a shooter that hovers 5-6 u above the ship. `AttackBlast.Arm(spec, muzzle, target, tell, shooter)`; `.Follow(transform, offset)` rides the
+  shooter until it ignites; `.Ignite()` is the brain's Release (a hazard also ignites itself when its tell is up).
+* `AttackStrike.cs` + `StrikeSpec` + `StrikeLanes` -- lane glyph, translucent footprint band, column (.36 wide, <= .25 s), ground burst. `StrikeSpec.Standard(world)` picks the style
+  (`Icicle` Frost, `Eruption` Ember with a 4.2 u geyser, `Thunder` for the rest); `StrikeLanes.Pick(pilotX, count, spacing, railEdge, hitHalf, buffer)` spreads a pattern.
+* `AttackHazardArt.cs` -- procedural pixel art for both (ring bar, gap marker, lane glyph, column tile, spear tip, ground burst), pink keyline / hot core / material ramp per world
+  (`RampOf`), a near-black bold ring when `ShotOutline.UseBold`; every look-up tries the `AttackArt` slot first (`AttackArt.RingBar / RingGlyph / RingGapMarker`, `StrikeBody / StrikeGlyph / StrikeBurst`:
+  `frost_attack_ring.png` P6, `<w>_attack_strike.png` P3) and caches by an int key, so nothing allocates per take or per frame.
+* `EnemyAttack.Blast` / `EnemyAttack.Strike` + builders `EnemyBehaviour.Blast(BlastSpec)` / `.Blast(bars, reach, speed, gapDeg)` / `.Strike(StrikeSpec, lanes, spacing)`; `EnemyBrain` arms the hazard(s)
+  with the windup (`EnemyBrain.TellFor`: >= .7 s for an area hazard), ignites them at Release, cancels them if the enemy dies in its tell; `EnemyBehaviour.ThreatCount` reserves the shot budget
+  (blast 2, strike one a lane); `EnemyThreat.LiveShots` counts live hazards. **No world's table uses either yet.**
+* Tests: `AttackHazardTest` (geometry, life, collider == shape, heart / shield / blink / destroyed hitbox, friendly fire once a pulse, burns shots, pause, pools + zero allocation, cleanup),
+  `AttackFairnessTest` (FR1 tells through the real brain, FR3, FR4 corridors, FR7, pixel pink cue, bold keyline on a bright world, hit box vs drawing, art slots, dodge-bot rows),
+  `AttackBudgetTest` gains three `themed:` rows; tool `Editor/Tools/Previews/AttackHazardPreview.cs` (`ATTACKHAZ_PREVIEW_DIR`).
+
+Deviations from the plan and decisions a later phase should know:
+
+1. **A shared `AttackHazard` base** (not in the plan's file list) so the next cores (jet, band, lash) are ~150 lines each; it is where the "ship's code" hooks live.
+   Touched shared files, one line each: `collisionDetection` (a themed hitbox is not spent on the hull), `EliteShip.ShieldRam / TeleportStrike`, `RamKill.NotAHazardBody`, `DeathCrash.Classify`,
+   `EliteSystem.Step` (`AttackPools.StepAll`), `Planetfall.ClearBoard` and `EliteDirector.Update` (world change / player death clear the hazards), `EnemyBrain` (windup / release / threat), `EnemyThreat.LiveShots`.
+   Expect trivial merge conflicts with phases 1a / 1b / 1e in those lines.
+2. **Pool plumbing.** `IAttackPool.Step`, `IAttackStep`, `IAttackReleased` (the pool tells a taken-back item; Unity runs `OnDisable` only in play mode and the suites run in edit mode, so nothing relies on it),
+   `AttackPools.StepAll / Find`, `AttackShape.PolyLength / PolyAt`. `AttackPreview.MaxDots` 420 -> 720 (a ring is ~150 dots, a column to the top of the view ~95).
+3. **The standard 3.4 u ring cannot touch a ship 5-6 u below a hovering Golem.** The first fixture measured 0% for the bot AND for a ghost that never moves (the attack was a no-op). Hence `BlastSpec.Wide`
+   (32 bars to 6 u so the wall stays closed: a test asserts no ship-wide hole outside the crack at any radius) and the fixture uses it; the Golem's phase must pick Wide, or a lower `stationDepth`.
+4. **`gapOffsetDeg`**: a crack aimed straight at the pilot makes standing still safe. The spec turns it off the pilot by this many degrees toward the lane's middle; the fixture uses 40 (5 deg past the 35 deg
+   half-crack). `AimGap` also turns the crack (at most 40 deg) until the free chord at the pilot's range, clipped by the rails, is >= 1.65 u, so a pilot hugging a rail still has a corridor.
+5. **Fixtures.** `AttackBudgetScenarios.ThemedFixtures` (ids `themed:frost_cold_blast` -> `roster:frost_big`, `themed:ember_eruption` -> `roster:ember_fighter_3`, `themed:frost_icicle_drop` -> `roster:frost_fighter_2`)
+   run a real brain on a behaviour injected through `EnemyBehaviours.TestOverride` (cleared by `ClearOverrides`); a per-world phase adds its own row there and in `AttackBudgetTest.Themed`, never edits the cores.
+   The bot sees a ring's bars and a column from the first frame of the tell (the preview shows them), with their known expansion / `liveIn`.
+6. **Strike geometry choices**: the column spans from just under the impact point (the pilot's y at the tell) up out of the view (eruption: a finite geyser); below the impact point is safe. The glyph and the ground ride the
+   board with `ride` (1 for a hazard, 0 for a pilot). One strike is one lane; a pattern is several armed in the same tell (`EnemyBehaviour.Strike(spec, lanes)`; one armed strike per lane, 4 at most per brain).
+7. **Art slots, not art**: the ring reads `frost_attack_ring.png` cells 0-3 (bar, two flicker pairs), 4-5 (gapMarker), 6-7 (glyph); the strike reads `<w>_attack_strike.png` row 0 (column, 24 fps), row 1 from y 384 (glyph a,b, burst x3).
+   Art cells carry their own stroke; only the procedural fallback has the bold ring (`ShotOutline.For` is not applied to stretched strips).
+8. **Not done here (later phases)**: `BossAttackKind.Blast / Strike` and the boss executors (1g), elite attack ids, sounds (1h), the `ReadabilitySweep` and `AtomClarityTest` items for the new strips,
+   the per-world rows. `BossBeam` is still not an `IHostileZone`.
+
 ### 8.3 Baseline: today's attacks against the dodge bot (2000 rolls, seed 1)
 
 Pinned in `AttackBudgetTest.Pinned`. "bot" = rolls in which the bot was touched; "standing" = the ghost that never moves in the same rolls.
