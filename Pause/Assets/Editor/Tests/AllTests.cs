@@ -133,6 +133,7 @@ public static class AllTests
         ("RailsVettingTest", RailsVettingTest.Execute),
         ("RamKillTest", RamKillTest.Execute),
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),
+        ("ReleaseReadinessTest", ReleaseReadinessTest.Execute),
         ("ReplayTest", ReplayTest.Execute),
         ("ResumeFxTest", ResumeFxTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
