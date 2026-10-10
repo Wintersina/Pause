@@ -1,0 +1,208 @@
+{
+  "storm_planet.png": {
+    "visible_pixels": 539505,
+    "distinct_rgb_colors": 41166,
+    "p95_value": 0.596,
+    "bright_pixel_percent": 18.365,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_planet_limb.png": {
+    "visible_pixels": 1098046,
+    "distinct_rgb_colors": 50634,
+    "p95_value": 0.627,
+    "bright_pixel_percent": 27.516,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_cloud_deck.png": {
+    "visible_pixels": 2097152,
+    "distinct_rgb_colors": 13414,
+    "p95_value": 0.294,
+    "bright_pixel_percent": 1.054,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_cloud_deck_dark.png": {
+    "visible_pixels": 2097152,
+    "distinct_rgb_colors": 3796,
+    "p95_value": 0.165,
+    "bright_pixel_percent": 0.0,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_entry_fx.png": {
+    "visible_pixels": 1144233,
+    "distinct_rgb_colors": 135602,
+    "p95_value": 0.992,
+    "bright_pixel_percent": 99.846,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_breakthrough.png": {
+    "visible_pixels": 1181599,
+    "distinct_rgb_colors": 54973,
+    "p95_value": 0.831,
+    "bright_pixel_percent": 38.934,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "storm_entry_streaks.png": {
+    "visible_pixels": 2097152,
+    "distinct_rgb_colors": 20149,
+    "p95_value": 0.639,
+    "bright_pixel_percent": 10.058,
+    "forbidden_hue_share_percent": {
+      "space_violet_259_330": 0.0,
+      "shield_cyan_174_185": 0.0,
+      "repair_lime_78_92": 0.0,
+      "orange_fire_15_30": 0.0,
+      "tide_mint_150_170": 0.0,
+      "pink_312_326": 0.0,
+      "player_red_345_15": 0.0,
+      "pickup_amber_33_42": 0.0
+    }
+  },
+  "planet_measurement": {
+    "center_px": [
+      512.4,
+      482.8
+    ],
+    "disc_radius_px": 413.1,
+    "rays_measured": 360,
+    "rays_used_in_fit": 349,
+    "ray_distance_p10_p50_p90_px": [
+      398.0,
+      419.0,
+      422.0
+    ],
+    "residual_p90_px": 5.6,
+    "alpha_margin_lrtb_px": [
+      95,
+      93,
+      76,
+      84
+    ]
+  },
+  "limb_horizon_lcr_px": [
+    720,
+    355,
+    720
+  ],
+  "entry_opening_per_frame": [
+    {
+      "center_px": [
+        256.0,
+        338.0
+      ],
+      "size_px": [
+        149,
+        167
+      ],
+      "area_px": 19279
+    },
+    {
+      "center_px": [
+        258.0,
+        339.0
+      ],
+      "size_px": [
+        147,
+        169
+      ],
+      "area_px": 19259
+    },
+    {
+      "center_px": [
+        254.0,
+        337.0
+      ],
+      "size_px": [
+        149,
+        165
+      ],
+      "area_px": 19045
+    },
+    {
+      "center_px": [
+        259.0,
+        339.0
+      ],
+      "size_px": [
+        151,
+        169
+      ],
+      "area_px": 19767
+    },
+    {
+      "center_px": [
+        255.0,
+        338.0
+      ],
+      "size_px": [
+        147,
+        167
+      ],
+      "area_px": 19017
+    },
+    {
+      "center_px": [
+        257.0,
+        337.0
+      ],
+      "size_px": [
+        149,
+        167
+      ],
+      "area_px": 19279
+    }
+  ]
+}

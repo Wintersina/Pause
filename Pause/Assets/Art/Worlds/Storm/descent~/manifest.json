@@ -1,0 +1,479 @@
+{
+  "world": "Storm",
+  "palette": "Ink-blue slate and steel-grey storm bands (205\u2013220\u00b0), subtle dusty bronze-grey haze (28\u201340\u00b0), sparse pale-yellow-white lightning (52\u201358\u00b0), cool white-blue atmosphere rim; gunmetal and brass structures with tiny amber lamps.",
+  "camera": "Atmosphere-level, straight down from under the cloud ceiling. Only storm_planet.png is an orbital view.",
+  "ceiling_match": "Paint later backdrop ceiling cloud banks to match storm_cloud_deck.png: dark slate-blue/steel-grey thunderhead bodies, ink-blue cyclone gaps, muted bronze-grey haze and very sparse pale-yellow-white lightning flecks. Deeper banks match storm_cloud_deck_dark.png. No stars or orbital objects.",
+  "files": {
+    "storm_planet.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Space backdrop approach; sole orbital view",
+      "pivot_px": [
+        512,
+        512
+      ],
+      "disc_radius_px": 413.1,
+      "atmosphere_outer_radius_px": 422,
+      "measurement": "360 radial alpha ray exits, robust circle fit excluding thin skyhook outliers",
+      "measurement_detail": {
+        "center_px": [
+          512.4,
+          482.8
+        ],
+        "disc_radius_px": 413.1,
+        "rays_measured": 360,
+        "rays_used_in_fit": 349,
+        "ray_distance_p10_p50_p90_px": [
+          398.0,
+          419.0,
+          422.0
+        ],
+        "residual_p90_px": 5.6,
+        "alpha_margin_lrtb_px": [
+          95,
+          93,
+          76,
+          84
+        ]
+      }
+    },
+    "storm_planet_limb.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Close approach curved gas-giant horizon",
+      "pivot_px": [
+        1024,
+        355
+      ],
+      "horizon_y_at_center_px": 355,
+      "horizon_y_at_edges_px": 720,
+      "horizon_y_at_left_right_px": [
+        720,
+        720
+      ]
+    },
+    "storm_cloud_deck.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Fast scrolling upper thunderhead layer",
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "storm_cloud_deck_dark.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Deep ink-blue storm-cloud parallax",
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "storm_entry_fx.png": {
+      "size": [
+        3072,
+        1024
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "intended_use": "Looping ship-centered wide lightning-plasma shroud",
+      "pivot_px": [
+        256,
+        300
+      ],
+      "cell_size": [
+        512,
+        1024
+      ],
+      "ship_clear_radius_px": 44,
+      "hole_center_px": [
+        256,
+        338
+      ],
+      "hole_size_px": [
+        146,
+        166
+      ],
+      "hole_center_px_per_frame": [
+        [
+          256.0,
+          338.0
+        ],
+        [
+          258.0,
+          339.0
+        ],
+        [
+          254.0,
+          337.0
+        ],
+        [
+          259.0,
+          339.0
+        ],
+        [
+          255.0,
+          338.0
+        ],
+        [
+          257.0,
+          337.0
+        ]
+      ],
+      "hole_size_px_per_frame": [
+        [
+          149,
+          167
+        ],
+        [
+          147,
+          169
+        ],
+        [
+          149,
+          165
+        ],
+        [
+          151,
+          169
+        ],
+        [
+          147,
+          167
+        ],
+        [
+          149,
+          167
+        ]
+      ]
+    },
+    "storm_breakthrough.png": {
+      "size": [
+        5120,
+        1024
+      ],
+      "cell_grid": [
+        5,
+        1
+      ],
+      "frame_count": 5,
+      "intended_use": "One-shot expanding thunderhead and lightning burst",
+      "pivot_px": [
+        512,
+        512
+      ],
+      "cell_size": [
+        1024,
+        1024
+      ]
+    },
+    "storm_entry_streaks.png": {
+      "size": [
+        1024,
+        2048
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "Vertically repeating rain-fine dive streaks",
+      "pivot_px": [
+        512,
+        1024
+      ],
+      "wrap_y": true
+    },
+    "preview.png": {
+      "size": [
+        4096,
+        4096
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "intended_use": "2x contact sheet on #0b0b1a",
+      "pivot_px": [
+        2048,
+        2048
+      ]
+    },
+    "preview.gif": {
+      "size": [
+        256,
+        512
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "intended_use": "Six-frame entry shroud loop preview",
+      "pivot_px": [
+        128,
+        150
+      ]
+    }
+  },
+  "verification": {
+    "storm_planet.png": {
+      "visible_pixels": 539505,
+      "distinct_rgb_colors": 41166,
+      "p95_value": 0.596,
+      "bright_pixel_percent": 18.365,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_planet_limb.png": {
+      "visible_pixels": 1098046,
+      "distinct_rgb_colors": 50634,
+      "p95_value": 0.627,
+      "bright_pixel_percent": 27.516,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_cloud_deck.png": {
+      "visible_pixels": 2097152,
+      "distinct_rgb_colors": 13414,
+      "p95_value": 0.294,
+      "bright_pixel_percent": 1.054,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_cloud_deck_dark.png": {
+      "visible_pixels": 2097152,
+      "distinct_rgb_colors": 3796,
+      "p95_value": 0.165,
+      "bright_pixel_percent": 0.0,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_entry_fx.png": {
+      "visible_pixels": 1144233,
+      "distinct_rgb_colors": 135602,
+      "p95_value": 0.992,
+      "bright_pixel_percent": 99.846,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_breakthrough.png": {
+      "visible_pixels": 1181599,
+      "distinct_rgb_colors": 54973,
+      "p95_value": 0.831,
+      "bright_pixel_percent": 38.934,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    },
+    "storm_entry_streaks.png": {
+      "visible_pixels": 2097152,
+      "distinct_rgb_colors": 20149,
+      "p95_value": 0.639,
+      "bright_pixel_percent": 10.058,
+      "forbidden_hue_share_percent": {
+        "space_violet_259_330": 0.0,
+        "shield_cyan_174_185": 0.0,
+        "repair_lime_78_92": 0.0,
+        "orange_fire_15_30": 0.0,
+        "tide_mint_150_170": 0.0,
+        "pink_312_326": 0.0,
+        "player_red_345_15": 0.0,
+        "pickup_amber_33_42": 0.0
+      }
+    }
+  },
+  "frame_measurements": {
+    "planet_disc_360_rays": {
+      "center_px": [
+        512.4,
+        482.8
+      ],
+      "disc_radius_px": 413.1,
+      "rays_measured": 360,
+      "rays_used_in_fit": 349,
+      "ray_distance_p10_p50_p90_px": [
+        398.0,
+        419.0,
+        422.0
+      ],
+      "residual_p90_px": 5.6,
+      "alpha_margin_lrtb_px": [
+        95,
+        93,
+        76,
+        84
+      ]
+    },
+    "limb_horizon_left_center_right_px": [
+      720,
+      355,
+      720
+    ],
+    "entry_openings": [
+      {
+        "center_px": [
+          256.0,
+          338.0
+        ],
+        "size_px": [
+          149,
+          167
+        ],
+        "area_px": 19279
+      },
+      {
+        "center_px": [
+          258.0,
+          339.0
+        ],
+        "size_px": [
+          147,
+          169
+        ],
+        "area_px": 19259
+      },
+      {
+        "center_px": [
+          254.0,
+          337.0
+        ],
+        "size_px": [
+          149,
+          165
+        ],
+        "area_px": 19045
+      },
+      {
+        "center_px": [
+          259.0,
+          339.0
+        ],
+        "size_px": [
+          151,
+          169
+        ],
+        "area_px": 19767
+      },
+      {
+        "center_px": [
+          255.0,
+          338.0
+        ],
+        "size_px": [
+          147,
+          167
+        ],
+        "area_px": 19017
+      },
+      {
+        "center_px": [
+          257.0,
+          337.0
+        ],
+        "size_px": [
+          149,
+          167
+        ],
+        "area_px": 19279
+      }
+    ]
+  },
+  "source_selection": {
+    "planet": "planet_candidate_a.png preferred to planet_candidate_b.png and planet_candidate_c.png: strongest night-side terminator, compact disc and three readable skyhooks",
+    "cloud": "cloud_source.png preferred to cloud_candidate_b.png: darker gameplay-safe values and better match to approved backdrop density",
+    "other_painted_sources": [
+      "limb_source.png",
+      "cloud_dark_source.png",
+      "entry_source.png",
+      "entry_candidate_b.png",
+      "breakthrough_source.png",
+      "streaks_source.png"
+    ]
+  },
+  "production": "Painted image-generation sources in src~/; nearest-neighbour placement and grading in src~/build.py, no blur or global palette reduction."
+}
