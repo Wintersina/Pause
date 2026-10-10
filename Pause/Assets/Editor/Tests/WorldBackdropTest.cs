@@ -675,8 +675,12 @@ public static class WorldBackdropTest
                           spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
-            Check(spec.world + " texture memory " + (bytes / 1024) + " KB <= " + (budget / 1024) + " KB",
-                  bytes <= budget);
+            // The budget is the phone's (ASTC) size. `bytes` is only that while the
+            // Library's active target is Android; a Library last used as Standalone
+            // reports the desktop format (~2x), so measure the ASTC figure then.
+            long measured = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android ? bytes : astc;
+            Check(spec.world + " texture memory " + (measured / 1024) + " KB <= " + (budget / 1024) + " KB",
+                  measured <= budget);
         }
     }
 
