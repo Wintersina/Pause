@@ -17,7 +17,7 @@ using UnityEngine;
 public class BossActor : MonoBehaviour
 {
     public enum Mode { Hidden, Arriving, Fighting, Dying, Retreating, Gone }
-    enum AttackPhase { Cooldown, Tell, Volleys, Beams }
+    enum AttackPhase { Cooldown, Tell, Volleys, Beams, Hazards }
 
     // The most parts one attack fires from (the Bloom Queen's six petals).
     public const int MaxParts = 8;
@@ -56,6 +56,12 @@ public class BossActor : MonoBehaviour
     int firedMask;          // parts that fired in the last volley (muzzle flashes)
     float bodyRespawn;
     readonly int[] laneOrder = new int[16];
+    // The themed area hazards of the attack in progress (BossExecutors), and how long the boss has waited on them.
+    readonly AttackHazard[] armed = new AttackHazard[BossExecutors.MaxHazards];
+    int armedCount;
+    float hazardClock;
+    // Safety: a hazard nobody steps (a scene without the elite system) must not hold the boss forever.
+    public const float MaxHazardSeconds = 9f;
 
     public BossDef Boss => boss;
     public Mode State => mode;
@@ -72,6 +78,11 @@ public class BossActor : MonoBehaviour
     public SpriteRenderer DamageArcs => arcs;
     public int AttacksStarted { get; private set; }
     public int VolleysFired => volleysFired;
+    public bool HazardPhase => phase == AttackPhase.Hazards;
+    public int ArmedHazards => armedCount;
+    public AttackHazard ArmedHazard(int i) => i >= 0 && i < armedCount ? armed[i] : null;
+    // The world this boss belongs to (its art key's index: Space 0 ... Tide 4).
+    public int World => Mathf.Max(0, BossEmitters.World(boss));
 
     // Tests / previews: the next attack picked is this one (index into
     // boss.attacks), whatever is unlocked; -1 for the normal rotation.
@@ -110,6 +121,8 @@ public class BossActor : MonoBehaviour
         SetFrame(BossArt.Idle0);
         body.enabled = false;
     }
+
+    void OnDestroy() { ClearArmed(); }
 
     SpriteRenderer Glow(string name, int order)
     {
@@ -180,6 +193,15 @@ public class BossActor : MonoBehaviour
         Vector2 local = BossEmitters.Local(boss, part, frame);
         Vector3 p = transform.position;
         return new Vector3(p.x + local.x, p.y + local.y, 0f);
+    }
+
+    // The muzzle of `part` for a themed hazard of `attack`: in the drawing the attack's tell ends on (world space; `local`
+    // is the same point relative to the boss, for a hazard that rides it).
+    public Vector2 TellMuzzle(BossAttack attack, int part, out Vector2 local)
+    {
+        local = BossEmitters.Local(boss, part, BossArt.TellFrame(boss, attack.tell, 1f));
+        Vector3 p = transform.position;
+        return new Vector2(p.x + local.x, p.y + local.y);
     }
 
     // ... in the drawing on screen now.
@@ -287,7 +309,7 @@ public class BossActor : MonoBehaviour
         animClock += dt;
         // It all but holds still while it aims and while its lasers burn,
         // so a beam's root (and its sight line) doesn't skate about.
-        bool steady = phase == AttackPhase.Tell || phase == AttackPhase.Beams;
+        bool steady = phase == AttackPhase.Tell || phase == AttackPhase.Beams || phase == AttackPhase.Hazards;
         moveClock += dt * (steady ? .35f : 1f);
         float x = boss.swayX * Mathf.Sin(moveClock * boss.freqX * Mathf.PI * 2f);
         float y = BossConfig.BossY + boss.swayY * Mathf.Sin(moveClock * boss.freqY * Mathf.PI * 2f);
@@ -324,6 +346,11 @@ public class BossActor : MonoBehaviour
                 firedMask = 0;
                 AttacksStarted++;
                 if (current.kind == BossAttackKind.Beam) phaseTimer = current.tellSeconds + SpawnBeams(player, pool);
+                else
+                {
+                    var exec = BossExecutors.For(current.kind);
+                    if (exec != null) { ClearArmed(); armedCount = exec.Arm(this, current, player, armed); }
+                }
                 return;
 
             case AttackPhase.Tell:
@@ -334,6 +361,14 @@ public class BossActor : MonoBehaviour
                     return;
                 }
                 if (phaseTimer > 0f) return;
+                if (BossExecutors.IsHazardKind(current.kind))
+                {
+                    // the hazards ignite on their own tell; the boss holds its pose until the last one is over
+                    phase = AttackPhase.Hazards;
+                    hazardClock = 0f;
+                    Fire();
+                    return;
+                }
                 phase = AttackPhase.Volleys;
                 volleysFired = 0;
                 Volley(player, pool);
@@ -354,7 +389,37 @@ public class BossActor : MonoBehaviour
             case AttackPhase.Beams:
                 if (phaseTimer <= 0f) EndAttack(progress01);
                 return;
+
+            case AttackPhase.Hazards:
+                hazardClock += dt;
+                if (HazardsBusy() && hazardClock < MaxHazardSeconds) return;
+                ClearArmed();
+                EndAttack(progress01);
+                return;
         }
+    }
+
+    // Some hazard this attack armed has not ended yet (a taken-back pool item that someone else re-armed does not count).
+    bool HazardsBusy()
+    {
+        for (int i = 0; i < armedCount; i++)
+        {
+            var h = armed[i];
+            if (h != null && h.State != AttackHazard.Phase.Off && ReferenceEquals(h.Shooter, gameObject)) return true;
+        }
+        return false;
+    }
+
+    // Forgets (and, still in their tell or burning, ends) the hazards of the attack in progress.
+    void ClearArmed()
+    {
+        for (int i = 0; i < armedCount; i++)
+        {
+            var h = armed[i];
+            if (h != null && ReferenceEquals(h.Shooter, gameObject) && h.State != AttackHazard.Phase.Off) h.Cancel();
+            armed[i] = null;
+        }
+        armedCount = 0;
     }
 
     void EndAttack(float progress01)
@@ -546,7 +611,7 @@ public class BossActor : MonoBehaviour
         else if (fireLeft > 0f && current != null && current.fireFrame && phase == AttackPhase.Volleys) SetFrame(BossArt.FireFrame(boss, current.tell));
         else if (phase == AttackPhase.Tell && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, tellAge / Mathf.Max(.01f, current.tellSeconds)));
-        else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams) && current != null)
+        else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams || phase == AttackPhase.Hazards) && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, 1f));
         else SetFrame(BossArt.IdleFrame(boss, animClock));
         RefreshGlows();
@@ -621,6 +686,7 @@ public class BossActor : MonoBehaviour
         hasDeathArt = explode && BossArt.HasDeathArt(boss);
         if (hasDeathArt && body != null) body.sprite = BossArt.DeathStrip(boss, 0);
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
+        ClearArmed();   // a hazard of the attack in progress goes with the boss
         HideDamage();
         flashLeft = 0f;
         if (bodyHit != null) { BossUtil.Kill(bodyHit); bodyHit = null; }

@@ -119,14 +119,14 @@ public static class BossAttackTest
 
     // The decoded atlases are 12-20 MB each; a static cache outlives the
     // suite (and the whole RunAll) unless it is emptied.
-    static void ReleaseAtlases()
+    internal static void ReleaseAtlases()
     {
         foreach (var t in atlases.Values) if (t != null) Object.DestroyImmediate(t);
         atlases.Clear();
     }
 
     // Alpha of the boss's drawing `frame` at cell pixel (x right, y down).
-    static float Alpha(BossDef boss, int frame, int px, int py)
+    internal static float Alpha(BossDef boss, int frame, int px, int py)
     {
         var t = Atlas(boss);
         int cell = BossEmitterTable.CellPixels;

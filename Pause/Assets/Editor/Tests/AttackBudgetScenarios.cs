@@ -25,12 +25,13 @@ public static class AttackBudgetScenarios
         for (int w = 0; w < BossCatalog.All.Length; w++)
         {
             var boss = BossCatalog.ForWorld(w);
-            foreach (var a in boss.attacks) yield return "boss:" + boss.artKey + ":" + a.name;
+            foreach (var a in boss.DefaultAttacks) yield return "boss:" + boss.artKey + ":" + a.name;   // (today's table, whether or not the boss fights with its themed one)
         }
     }
 
     public static IScenario Make(string id)
     {
+        if (id.StartsWith("themed:boss_")) return new Boss(id);   // a NEW boss attack of the themed table (BossThemed), fought with BossDef.themedAttacks on
         if (id.StartsWith("roster:") || id.StartsWith("themed:")) return new Roster(id);
         if (id.StartsWith("elite:")) return new Elite(id);
         if (id.StartsWith("boss:")) return new Boss(id);
@@ -500,9 +501,26 @@ public static class AttackBudgetScenarios
 
     // ---- bosses ---------------------------------------------------------------
 
+    // "themed:boss_<artkey>_<attack name with underscores>" for each NEW attack of BossThemed's tables (plan phase 1g).
+    public static IEnumerable<string> ThemedBossIds()
+    {
+        for (int w = 0; w < BossCatalog.All.Length; w++)
+        {
+            var boss = BossCatalog.ForWorld(w);
+            if (boss.themed == null) continue;
+            foreach (var a in boss.themed)
+                if (System.Array.IndexOf(boss.DefaultAttacks, a) < 0) yield return ThemedBossId(boss, a);
+        }
+    }
+
+    public static string ThemedBossId(BossDef boss, BossAttack a) => "themed:boss_" + boss.artKey.ToLower() + "_" + a.name.Replace(' ', '_');
+
     sealed class Boss : IScenario
     {
         readonly int world, attackIndex;
+        readonly bool themedBoss;
+        BossDef themedDef;
+        bool wasThemed;
         BossEncounter e;
         float t;
         static readonly FieldInfo PlayerField = typeof(BossEncounter).GetField("player", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -511,26 +529,40 @@ public static class AttackBudgetScenarios
         {
             Name = id;
             string[] parts = id.Split(new[] { ':' }, 3);
+            if (id.StartsWith("themed:boss_"))
+            {
+                themedBoss = true;
+                for (int w = 0; w < BossCatalog.All.Length; w++)
+                {
+                    var boss = BossCatalog.ForWorld(w);
+                    if (boss.themed == null) continue;
+                    for (int i = 0; i < boss.themed.Length; i++)
+                        if (ThemedBossId(boss, boss.themed[i]) == id) { world = w; attackIndex = i; themedDef = boss; }
+                }
+                return;
+            }
             for (int w = 0; w < BossCatalog.All.Length; w++)
             {
                 var boss = BossCatalog.ForWorld(w);
                 if (boss.artKey != parts[1]) continue;
-                for (int i = 0; i < boss.attacks.Length; i++)
-                    if (boss.attacks[i].name == parts[2]) { world = w; attackIndex = i; }
+                for (int i = 0; i < boss.DefaultAttacks.Length; i++)
+                    if (boss.DefaultAttacks[i].name == parts[2]) { world = w; attackIndex = i; themedDef = boss; }
             }
         }
 
         public string Name { get; }
-        public float MaxSeconds => 12f;
+        public float MaxSeconds => themedBoss ? 26f : 12f;
         public bool Attacked => e != null && e.Actor != null && e.Actor.AttacksStarted > 0;
         public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;
-        public bool Done => e != null && e.Actor != null && e.Actor.AttacksStarted >= 3 && e.Pool.ActiveShots == 0 && e.Pool.ActiveBeams == 0;
+        public bool Done => e != null && e.Actor != null && e.Actor.AttacksStarted >= 3 && e.Pool.ActiveShots == 0 && e.Pool.ActiveBeams == 0 && AttackHazard.ActiveCount == 0 && !e.Actor.HazardPhase;
 
         public Transform Begin(System.Random rng, Vector2 start)
         {
             var ship = EnsureShip(start);
             BossEncounter.ResetRun();
             BossRails.Reset();
+            // (a pinned "boss:" id is today's attack in today's table even for a boss that now fights themed; a "themed:boss_" id is the new table)
+            if (themedDef != null) { wasThemed = themedDef.themedAttacks; themedDef.themedAttacks = themedBoss; }
             if (Camera.main == null)
             {
                 var camGo = new GameObject("Main Camera", typeof(Camera));
@@ -560,6 +592,7 @@ public static class AttackBudgetScenarios
         public void Collect(List<Hz> into)
         {
             if (e == null || e.Pool == null) return;
+            CollectHazards(into);
             var shots = e.Pool.Shots;
             for (int i = 0; i < shots.Count; i++)
             {
@@ -601,6 +634,7 @@ public static class AttackBudgetScenarios
         {
             BossEncounter.ResetRun();
             BossRails.Reset();
+            if (themedDef != null) themedDef.themedAttacks = wasThemed;
             for (int i = 0; i < hadOrigin.Length; i++) hadOrigin[i] = false;
         }
     }

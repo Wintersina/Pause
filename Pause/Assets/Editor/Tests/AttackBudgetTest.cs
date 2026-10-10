@@ -139,6 +139,16 @@ public static class AttackBudgetTest
         { "themed:tide_pressure_jet", "roster:frost_fighter_2" },   // a pressure jet (water column) in place of the lance bolt
         { "themed:tide_surf_wave", "roster:ember_fighter_4" },      // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap; volleys 3 -> 2
         { "themed:space_scan_line", "roster:space_fighter_3" },     // Void Archon's scan line (a thin neon wave): a NEW boss attack, held to Twin Claw's (the middle Space fighter) rate
+        // plan phase 1g: the NEW attacks of the bosses' themed tables (BossThemed), fought through BossEncounter with BossDef.themedAttacks on.
+        // Each is held to the attack of its boss that joins the rotation in the same phase (same slot in the fight).
+        { "themed:boss_frost_icicle_drop", "boss:Frost:glare beams" },
+        { "themed:boss_frost_cold_blast", "boss:Frost:blowhole hail" },
+        { "themed:boss_ember_flame_sweep", "boss:Ember:fire breath" },
+        { "themed:boss_ember_eruption_columns", "boss:Ember:brow laser" },
+        { "themed:boss_space_ion_arcs", "boss:Space:core burst" },
+        { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
+        { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
+        { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)

@@ -26,6 +26,13 @@ public enum BossAttackKind
     Fan,    // even fans out of the part(s), turning a little between volleys
     Lob,    // arcs up out of the part and rains down on chosen columns
     Beam,   // a laser that grows out of the part(s), then sweeps
+    // The themed area hazards (docs/world-attacks-design.md). They have no projectiles: the attack arms pooled
+    // hazards (Gameplay/Enemies/Attacks) during its tell and the boss waits for them to end (BossExecutors).
+    // New kinds are APPENDED here and registered in BossExecutors; nothing else switches on them.
+    Jet,    // a flame cone / water column / lance pulse out of the part(s): AttackJet
+    Wave,   // a band falling down the lane with a gap: AttackWave (surf, scan line)
+    Blast,  // an expanding ring with a crack from the part: AttackBlast (cold blast)
+    Strike, // telegraphed lane columns at the ship's row: AttackStrike (icicle drop, eruption, thunder)
 }
 
 public enum BossShotStyle { Bolt, Shard }
@@ -84,6 +91,20 @@ public sealed class BossAttack
     public float beamWidth = .3f;   // world units
     public float hold = .7f;        // seconds a beam stays live
     public float cooldown = 1.2f;   // idle time after the attack
+
+    // The phase of the fight (1..3) from which the attack is in rotation (BossCatalog.UnlockedAttacks). A table is
+    // kept sorted by it, so "the unlocked attacks" is a prefix: phase 1 = 2 attacks, phase 2 = 3, phase 3 = all five.
+    public int minPhase = 1;
+
+    // The area hazard kinds (Jet / Wave / Blast / Strike; BossExecutors). `count` is a strike's lanes; `volleys` /
+    // `volleyGap` is how many times the hazard comes, each one `volleyGap` after the last (all armed at the start of
+    // the tell, so every outline shows from the start of it and each aims where the ship was then).
+    public BlastSpec blast;
+    public JetSpec jet;
+    public StrikeSpec strike;
+    public WaveSpec wave;
+    public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing)
+    public float aimSpreadX;        // jet: each part aims this far to its own side of the ship (0: straight at it)
 }
 
 public sealed class BossDef
@@ -95,7 +116,21 @@ public sealed class BossDef
     public string lore;
     // Movement: a Lissajous drift around (0, BossConfig.BossY).
     public float swayX, swayY, freqX, freqY;
-    public BossAttack[] attacks;
+    // The attacks in rotation: the default table, or (BossDef.themedAttacks) the themed one -- everything that reads
+    // `attacks` follows the switch. Sorted by minPhase.
+    public BossAttack[] attacks
+    {
+        get { return themedAttacks && themed != null ? themed : baseAttacks; }
+        set { baseAttacks = value; }
+    }
+    BossAttack[] baseAttacks;
+    // Five attacks: today's three plus the world's two new ones (docs/world-attacks-design.md section 7). Null: the
+    // boss has no themed table yet (it needs a primitive that is not built).
+    public BossAttack[] themed;
+    // Fights with `themed` instead of the default table. Default false; a world's phase turns it on.
+    public bool themedAttacks;
+    // The default table, whatever themedAttacks says (tests).
+    public BossAttack[] DefaultAttacks => baseAttacks;
     // Colour the hit flash and ring are tinted with (never the player's red).
     public Color flash;
     // Its hearts (BossHearts), tinting the white elite heart: a colour of
@@ -329,22 +364,38 @@ public static class BossCatalog
         };
 
         foreach (var b in bosses)
-            foreach (var a in b.attacks)
-            {
-                a.parts = BossEmitters.Resolve(b, a.emitters);
-                a.radialPart = string.IsNullOrEmpty(a.radialFrom) ? -1 : BossEmitters.Part(b, a.radialFrom);
-            }
+        {
+            // minPhase of the default tables: attack n joins at phase n + 1 (what the thirds of the fight always did)
+            for (int i = 0; i < b.DefaultAttacks.Length; i++) b.DefaultAttacks[i].minPhase = i + 1;
+            b.themed = BossThemed.TableFor(b);
+            Resolve(b, b.DefaultAttacks);
+            Resolve(b, b.themed);
+        }
         return bosses;
     }
 
-    // Which attacks are in rotation at a point of the fight (0..1 of the
-    // fight's length): the first alone, then the first two, then all.
+    static void Resolve(BossDef b, BossAttack[] table)
+    {
+        if (table == null) return;
+        foreach (var a in table)
+        {
+            a.parts = BossEmitters.Resolve(b, a.emitters);
+            a.radialPart = string.IsNullOrEmpty(a.radialFrom) ? -1 : BossEmitters.Part(b, a.radialFrom);
+        }
+    }
+
+    // The phase of the fight (1..3) at a point of it (0..1 of its length): thirds, as BossEncounter.FightPhase.
+    public static int PhaseOf(float fightProgress01) => fightProgress01 >= 2f / 3f ? 3 : fightProgress01 >= 1f / 3f ? 2 : 1;
+
+    // How many of the boss's attacks are in rotation at a point of the fight: those whose minPhase has come (the
+    // table is sorted by it, so they are the first n). The default tables are 1, 2, 3 attacks by phase; a themed
+    // table is 2, 3, 5 (docs/world-attacks-design.md section 7).
     public static int UnlockedAttacks(BossDef boss, float fightProgress01)
     {
-        int n = boss.attacks.Length;
-        if (fightProgress01 < 1f / 3f) return Mathf.Min(1, n);
-        if (fightProgress01 < 2f / 3f) return Mathf.Min(2, n);
-        return n;
+        var table = boss.attacks;
+        int phase = PhaseOf(fightProgress01), n = 0;
+        while (n < table.Length && table[n].minPhase <= phase) n++;
+        return Mathf.Max(n, Mathf.Min(1, table.Length));
     }
 
     public static bool FinalPhase(float fightProgress01) => fightProgress01 >= 2f / 3f;

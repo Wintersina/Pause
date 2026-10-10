@@ -211,6 +211,9 @@ public class BossEncounter : MonoBehaviour
             case Phase.Outro: TickOutro(dt); break;
         }
         if (pool != null) pool.Step(dt);
+        // The themed area hazards a boss attack arms are stepped by the elite system (EliteDirector -> EliteSystem.Step) in the
+        // game; a scene without it (tests, previews) has the encounter step them.
+        if (EliteDirector.Instance == null && dt > 0f) AttackPools.StepAll(dt);
     }
 
     // ---- intro ------------------------------------------------------------
