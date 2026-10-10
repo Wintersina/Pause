@@ -1,0 +1,8 @@
+{
+  "method": "built-in image_gen",
+  "selected_sources": "See manifest.json source_selection; two new alternatives were generated and inspected after staged candidates.",
+  "new_candidates": {
+    "planet_candidate_c.png": "Square transparent stylized-concept storm gas giant, slate-blue and dusty bronze-grey churning bands, huge dark cyclone eye, thin pale blue-white rim, three long skyhooks, sparse pale-yellow-white night-side lightning; no stars, rings, red, violet, cyan, teal or text.",
+    "cloud_candidate_b.png": "Straight-down storm gas giant cloud deck, ink-blue/slate-grey cyclone thunderheads, subtle bronze-grey haze, sparse pale lightning, dark pixel-art game backdrop; no horizon, stars, red, magenta, purple, cyan, teal, green, saturated orange or text."
+  }
+}
