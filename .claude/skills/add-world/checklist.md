@@ -152,22 +152,45 @@ control; real-frame previews for all 4 variants at 2/10/40 s.
 
 ## F. Tide scaffold status (what is real, what is a stand-in) -- remove a line as its phase lands
 
-Real: `Worlds[4]` ("Tide", ramp .00385 / enemyRampScale 1.50, mint portal), the backdrop (`TideBackdrop.cs` director + tuning, `TideAmbient.cs`, `Backdrop3/` art, five `LandingKind.Tide*` sites; run C loop atlases still to land: `TideAmbientCatalog.Missing()`), `PlanetfallCatalog.Tide`,
-`LiftoffCatalog.Tide` (`autoLoop`), the planetfall art in `Backgrounds/Resources/Worlds/Tide/Planetfall/`, the
-loop rewiring, `EnemyDensity` entry, `CodexPanel.MaxSections = 7`, `DeveloperUnlocks` F5, `TideLoopSoakTest`.
+Real (branch `feature/tide-install2`, 2026-10-10): `Worlds[4]` ("Tide", ramp .00385 / enemyRampScale 1.50, mint portal,
+`resourceFolder "Tide"`), the backdrop (`TideBackdrop.cs`, `TideAmbient.cs`, `Backdrop3/`, five `LandingKind.Tide*` sites; run C
+loop atlases still to land: `TideAmbientCatalog.Missing()`), `PlanetfallCatalog.Tide`, `LiftoffCatalog.Tide` (`autoLoop`),
+the loop rewiring, `CodexPanel.MaxSections = 7`, `DeveloperUnlocks` F5, `TideLoopSoakTest`, and since the install:
 
-Stand-ins (all resolve "Tide" to **Ember**'s; delete each when its phase lands):
+- **rails**: `Resources/Worlds/Tide/rail_tide_wide_v1.png` (`WorldPainter.RailTextureName`, `RailBounds` 159/499 of 725, `VisibleRailEdges`);
+  `RailMatchTest` holds Tide to Space's footprint and visibility, `RailTransparencyTest` (no leak, no halo), outer darkening shared;
+- **roster**: `EnemyRoster.WorldKeys` has `"tide"` with 12 defs (rocks Brain Coral / Staghorn Spire / Spine Urchin / Kelp Islet
+  (floating), Limpet Mine, Nautilus Bulwark, Remora, Needlefish, Lantern Angler, Hammerhead, Wire Eel, Glow Jelly), behaviours at
+  Ember's budgets (`roster:tide_*` pins in `AttackBudgetTest`), `EnemyPalette.ThemeFor(4)` (barnacle / brass / mint; `palette.env`
+  tokens), `ChaserStyle.Slither` (sinusoidal lunges), `EnemyDensity` entry (Ember's numbers on purpose), idle + death strips,
+  `EnemyDef.frameScale` (the Glow Jelly draws small: 1.17);
+- **mine**: Tide's Limpet Mine is the one row of a SECOND atlas file `Enemies/Mines/rail_mines_neon_tide.png` (1254x314);
+  `RailMineArt.AtlasPathFor(world)` routes, the original atlas is untouched (`RailMineArtTest` pins its SHA-1);
+- **boss damage + death**: `BossDef.damageKey/deathKey = "Tide"` (`Tide_damage`, `Tide_damage_fx`, `Tide_death`), `BossDamageTest` covers
+  Space, Frost, Ember and Tide;
+- **codex**: `world_tide` entry + the TIDE section exist but stay unlisted while `WorldManager.TideEnabled` is false
+  (`Codex.InFutureWorld`); triple-tap death plays the strips for all 12 + the boss strip.
 
-| Piece | Stand-in | Where | Phase |
+Still stand-ins / TODO (all resolve independently of the release switch except where noted):
+
+| Piece | State | Where | Phase |
 | --- | --- | --- | --- |
-| rails (texture, bounds, edge) | Ember's | `WorldPainter.RailArtWorld`, `Worlds[4].resourceFolder = "Ember"` | 5 |
-| roster, rail mine row, palette, density | Ember's (`EnemyRoster.For` clamps to the last key; `EnemyPalette.ThemeFor(4)`; `EnemyDensity` 5th entry) | add `"tide"` to `EnemyRoster.WorldKeys` with the 12 defs | 12 |
-| explosion | Ice for elites by name, Ember's Magma for the roster | `TargetExplosion.KindForWorld("tide")` | 12 |
-| boss | **real**: Iron Kraken (`BossCatalog` 5th `BossDef`, `expandedCombat` 35-cell atlas, emitters / hearts / warning / fx row). **TODO: Tide boss damage + death** (no `damageKey` / `deathKey` yet: it fights pristine and keeps the atlas death; Codex job pending: `Tide_damage.png`, `_damage_fx.png`, `_death.png`, then set the keys and extend `BossDamageTest`) | damage + death art | 13 |
-| codex world entry / enemies | none (`Codex.WorldId(4)` is null, discovery skips) | `CodexCatalogue.WorldIds` + entry | 16 |
-| `BossWarning.Accents`, `BossHearts.Body`, `BossAttackFx` rows | **real** (mint; attacks are placeholders on the existing kinds: beak = beam, left cluster = fan, right = lob; themed water attacks still **TODO**, phase 12b) | each file | 13 |
-| elites, sounds | none for Tide | `add-elite-ship`, phase 8/15 | 14, 15 |
+| elites | none for Tide (the six briefed in `world-5-6-briefs.md`) | `add-elite-ship` | 14 |
+| **death sounds** | **TODO list: all 12 roster keys `tide_*` (3 variants each; screams for Remora, Needlefish, Lantern Angler, Hammerhead, Glow Jelly only) + boss damage / death cues. `EnemyDeathAudio` stays silent for `tide_*` (its missing-clip warning is skipped, `EnemyDeathAudioTest` counts them as a known gap); delete both exemptions when the clips land** | Codex sound job, `Audio/Resources/Audio/EnemyDeath/` | 8, 15 |
+| themed attacks | the roster / mine / boss use the GENERIC shots and the mine's laser; jets, waves and strikes in `docs/world-attacks-design.md` are not switched on (the `AttackStrike` / `AttackBlast` cores exist) | `EnemyBehaviours.cs` Tide rows, `ShotSkins.Enable(4)`, `AttackArt` | 12b |
+| explosion kind | Tide enemies burst as **Ice** (`EnemyDef.explosion`, `TargetExplosion.KindForWorld("tide")`, `ThemeFor(4).explosion`); a Water row in `Explosions.png` is still to come | `TargetExplosion.cs` | 12 |
+| codex world entry | text + the backdrop tile only; the entry needs a hand-polished blurb and a world card once the user sees it | `CodexCatalogue.cs` | 16 |
+| `TideTuning.VariantBrightness` | still the darkening curve made for Ember's stand-in hull (value .42); Tide's own hull is lighter (`Barnacle` .56): re-check, the lanes may come back up | `TideBackdrop.cs`, `TideBackdropTest` | 11 |
+| mine laser art / rail-mine laser tests | `RailMineLaserTest` still loops 4 worlds and the original atlas (the Tide mine shows the generic beam) | `RailMineLaser.cs`, `MineLaserArt` | 12b |
+| `BossWarning.Accents`, `BossHearts.Body`, `BossAttackFx` rows | **real** (mint); boss attacks are placeholders on the existing kinds: beak = beam, left cluster = fan, right = lob | each file | 12b, 13 |
+| music | `musicResource ""` | user | -- |
 | leaderboard `furthest_world` store range | still 1-4 in the stores | user: Play Console / Game Center, set 1-5 before the switch ships (`docs/leaderboards.md`) | 17 |
 
+Art notes from the install (not defects the tests flag): the Limpet Mine's dormant eye is dim by design (234 lit mint px; the
+original rows have 500+: `RailMineArtTest` uses a floor of 200 for it); its brass brackets put 7% of the dormant frame inside
+the player's red band (`RailsVettingTest` tracks it like Ember's 42% and Verdant's 14%); the Glow Jelly's strip draws 0.53 u of its
+cell (`frameScale` 1.17 compensates).
+
 Test convention: tests that mean "every world that is live" use `WorldManager.LiveWorldCount` /
-`LastLiveWorld`; the few that mean the whole list (dev picker, `DeveloperUnlocks`, clamps) use `Worlds.Length`.
+`LastLiveWorld`; the few that mean the whole list (dev picker, `DeveloperUnlocks`, clamps, `EnemyRosterTest`, `EnemyBehaviourTest`,
+`WorldLeakTest`, `BossDamageTest`) use `WorldManager.Worlds.Length` so Tide's real cast is held to the same floors before it is live.
