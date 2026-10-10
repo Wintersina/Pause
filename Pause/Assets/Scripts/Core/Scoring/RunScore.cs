@@ -47,6 +47,8 @@ public static class RunScore
         // The highest multiplier any points were earned at: speed on flight,
         // chain x speed on kills (within ScoreRules.MaxTotalMultiplier).
         public float bestMultiplier;
+        // Seconds spent with the max-speed streak's x2 on (ScoreMultiplier).
+        public float secondsIn2x;
 
         public long Total { get { return distance + kills + dust + atoms + teleports + bosses + worlds + deathCombo; } }
     }
@@ -93,6 +95,7 @@ public static class RunScore
         {
             var b = parts;
             b.distance = (long)Math.Floor(distance);
+            b.secondsIn2x = ScoreMultiplier.SecondsIn2x;
             return b;
         }
     }
@@ -132,6 +135,7 @@ public static class RunScore
         chainLeft = 0f;
         teleportsThisWorld = 0;
         shieldedShotsThisShield = 0;
+        ScoreMultiplier.Reset();
         // The loop is part of the run: a new run is always on its first pass.
         RunLoop.Reset();
         return runId;
@@ -185,10 +189,13 @@ public static class RunScore
     public static void Tick(float dt, float speed)
     {
         if (!Live || dt <= 0f) return;
+        // The max-speed streak runs on every live running frame, even while a
+        // waiting portal has closed earnings (the pilot is still flying).
+        ScoreMultiplier.Tick(dt, speed);
         if (Earning)
         {
             float m = ScoreRules.SpeedMultiplierFor(speed);
-            distance += ScoreRules.DistancePoints(speed, dt) * m * LoopRules.ScoreScale(RunLoop.Index);
+            distance += ScoreMultiplier.Gain(ScoreRules.DistancePoints(speed, dt) * m * LoopRules.ScoreScale(RunLoop.Index));
             if (speed > 0f) NoteMultiplier(m);
         }
         if (chainLeft > 0f)
@@ -213,8 +220,9 @@ public static class RunScore
             // Boss parts: a shot-down projectile is worth a little; the
             // body hitbox and lane beams nothing.
             if (!name.StartsWith("BossShot")) return 0;
-            parts.kills += ScoreRules.BossShot;
-            return ScoreRules.BossShot;
+            int shot = ScoreMultiplier.Gain(ScoreRules.BossShot);
+            parts.kills += shot;
+            return shot;
         }
 
         int basePoints = BasePoints(target) + Mathf.Max(0, bonusPoints);
@@ -225,7 +233,7 @@ public static class RunScore
         float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
         NoteMultiplier(m);
-        int points = Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index));
+        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index)));
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -238,6 +246,7 @@ public static class RunScore
     public static int OnElite(Vector3 at, int points)
     {
         if (!Earning || points <= 0) return 0;
+        points = ScoreMultiplier.Gain(points);
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);
@@ -278,9 +287,10 @@ public static class RunScore
         bool boss = !shot.TryGetComponent(out EliteShotHitbox _);
         int points = Mathf.Max(0, ScoreRules.ShieldedShot - (boss ? ScoreRules.BossShot : 0));
         if (points <= 0) return 0;
+        points = ScoreMultiplier.Gain(points);
         parts.kills += points;
         parts.shieldedShots++;
-        Raise(ScoreRules.ShieldedShot, at, Source.Shield);
+        Raise(ScoreMultiplier.Gain(ScoreRules.ShieldedShot), at, Source.Shield);
         return points;
     }
 
@@ -291,6 +301,7 @@ public static class RunScore
     public static int OnDeathCombo(int points, int kills, bool mega)
     {
         if (!Earning || points <= 0) return 0;
+        points = ScoreMultiplier.Gain(points);
         parts.deathCombo += points;
         parts.deathComboKills += Mathf.Max(0, kills);
         if (mega) parts.megaDominos++;
@@ -313,7 +324,7 @@ public static class RunScore
     public static int OnDust(bool large, Vector3? at = null)
     {
         if (!Earning) return 0;
-        int points = large ? ScoreRules.LargeDust : ScoreRules.SmallDust;
+        int points = ScoreMultiplier.Gain(large ? ScoreRules.LargeDust : ScoreRules.SmallDust);
         parts.dust += points;
         parts.dustCount++;
         if (at.HasValue) Raise(points, at.Value, Source.Dust);
@@ -336,7 +347,7 @@ public static class RunScore
     public static int OnAtom(Atom kind, Vector3? at = null)
     {
         if (!Earning) return 0;
-        int points = AtomPoints(kind);
+        int points = ScoreMultiplier.Gain(AtomPoints(kind));
         parts.atoms += points;
         parts.atomCount++;
         if (at.HasValue) Raise(points, at.Value, Source.Atom);
@@ -349,6 +360,7 @@ public static class RunScore
         if (teleportsThisWorld >= ScoreRules.TeleportsScoredPerWorld) return 0;
         int points = ScoreRules.TeleportPoints(Vector2.Distance(from, to));
         if (points <= 0) return 0;
+        points = ScoreMultiplier.Gain(points);
         teleportsThisWorld++;
         parts.teleports += points;
         parts.teleportCount++;
@@ -359,7 +371,7 @@ public static class RunScore
     public static int OnBoss(bool destroyed, float secondsLeft, bool hitPointsRule, Vector3 at)
     {
         if (!Live) return 0;
-        int points = ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule, RunLoop.Index);
+        int points = ScoreMultiplier.Gain(ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule, RunLoop.Index));
         parts.bosses += points;
         parts.bossCount++;
         Raise(points, at, Source.Boss);
@@ -370,7 +382,7 @@ public static class RunScore
     public static int OnWorldCleared(int clearedWorld)
     {
         if (!Live) return 0;
-        int points = ScoreRules.WorldClearedPoints(clearedWorld, RunLoop.Index);
+        int points = ScoreMultiplier.Gain(ScoreRules.WorldClearedPoints(clearedWorld, RunLoop.Index));
         parts.worlds += points;
         parts.worldCount++;
         teleportsThisWorld = 0;

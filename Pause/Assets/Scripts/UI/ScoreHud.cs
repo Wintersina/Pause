@@ -130,6 +130,7 @@ public class ScoreHud : MonoBehaviour
         hud.speedBadge = Badge(speedText.transform, SpeedBadgeName, hud.font);
         var loopRow = rows.Find(LoopRowName);
         hud.loopBadge = Badge(loopRow != null ? loopRow : speedText.transform, LoopBadgeName, hud.font);
+        ScoreX2Cue.Attach(speedText);   // the max-speed streak's bar and x2 plate
         hud.lastSpeedMultiplier = 1f;
         hud.lastLoop = 0;
 

@@ -290,6 +290,7 @@ public class collisionDetection : MonoBehaviour {
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
+                ScoreMultiplier.OnHeartLost();   // the max-speed streak ends with the heart
                 AchievementEvents.RaisePlayerHurt();   // boss_no_hit, the blink-dodge probe
                 // the heart this costs darts out to shield against it
                 ShipLivesIndicator.Impact(hit.transform.position);
