@@ -338,7 +338,8 @@ public static class RailsShipSizeTest
                   "%, outer half " + outerSame + "/" + outerN + " untouched, mirror mismatches " + mirrorBad);
         Check(world + ": the inner edge band renders darker (" + (bandK * 100).ToString("F0") + "% of before, " + bandN + " px)", bandN > 100 && bandK < .75);
         Check(world + ": the neon lamps keep their light (" + (lampK * 100).ToString("F0") + "%, " + lampN + " px)", lampN == 0 || lampK > .85);
-        Check(world + ": the gaps and the strip past the edge fade to dark (" + (gapK * 100).ToString("F0") + "%)", gapN > 50 && gapK < .8);
+        // no near-black shadow fill any more: transparent art stays transparent (RailTransparencyTest)
+        Check(world + ": the gaps and the strip past the edge are not shadowed (" + (gapK * 100).ToString("F0") + "% of before)", gapN > 50 && gapK > .98);
         Check(world + ": the outer half of the rail (against the screen edge) is untouched (" + outerSame + "/" + outerN + ")", outerN > 0 && outerSame == outerN);
         Check(world + ": the right rail is the left one mirrored (" + mirrorBad + " px differ)", mirrorBad < w * h / 500);
         Object.DestroyImmediate(source);

@@ -24,10 +24,10 @@ public static class WorldPainter
 
     // ---- dark inner edge (WorldRailRepeat's _Edge* properties) ----
     // The lane-facing band of every reinforced rail is shaded toward
-    // near-black in stepped bands, and its cable gaps plus a thin strip past
-    // the silhouette fill with a near-black shadow: the rails read as dark,
-    // recessed walls with a dark transition into the starfield (the approved
-    // 900x1600 reference). The outer edge (against the screen border) fades
+    // near-black in stepped bands (RGB of the painted pixels only). The old
+    // near-black fill in the cable gaps / past the silhouette (shadow) is OFF:
+    // it painted opaque shadow over the art's transparent gaps, which a pale
+    // backdrop (Frost) showed as a dark halo. Transparent art stays transparent. The outer edge (against the screen border) fades
     // darker too (outerDark; same in every world), and saturated neon lamps keep their light (lampKeep).
     // Tune here; per world in EdgeFor. Costs nothing per frame: a handful of
     // ALU ops in the rail's own fragment shader, no extra draw.
@@ -45,7 +45,7 @@ public static class WorldPainter
 
     public static readonly RailEdge DefaultEdge = new RailEdge
     {
-        dark = .55f, width = .16f, steps = 4f, shadow = .6f, shadowWidth = .05f, lampKeep = .85f,
+        dark = .55f, width = .16f, steps = 4f, shadow = 0f, shadowWidth = .05f, lampKeep = .85f,
         outerDark = .6f, outerStart = .4f
     };
 
