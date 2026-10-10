@@ -388,9 +388,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         bool slab = kind == EliteShots.Kind.Slab;
         tint = HostileShotPalette.Body(d.ShotColor);
         coreTint = HostileShotPalette.Core(tint);
-        body.color = slab ? Color.white : tint;
+        // (a painted skin -- art or a behaviour's own body -- carries its pink cue in its pixels: drawn as it is, no tint and no core copy on top)
+        bool painted = slab || !skin.procedural;
+        body.color = painted ? Color.white : tint;
         core.color = coreTint;
-        core.enabled = !slab;
+        core.enabled = !painted;
         // a big white-hot core: the thin arrows still read on the bright skies (Frost)
         core.transform.localScale = Vector3.one * .62f;
         mot = skin.motion;
@@ -583,6 +585,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         Sprite pool = ShotSkins.PoolSprite(ShotSkins.WorldOf(def), out poolB);
         body.sprite = pool;
         core.sprite = pool;
+        bool poolArt = pool != EliteFxArt.Pool;   // (the world's own painted pool is drawn as it is; today's puddle is tinted)
+        body.color = poolArt ? Color.white : tint;
+        core.enabled = !poolArt;
         float size = def.shotSize * 2.1f;
         float k = size / Mathf.Max(.01f, pool.bounds.size.x);
         transform.localScale = Vector3.one * k;
