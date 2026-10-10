@@ -1,0 +1,9 @@
+# Frost laser painted source
+
+Method: built-in image generation, transparent background. Three candidate plates were generated and inspected; `painted_candidate_selected.png` was chosen for its charge cross, rolling muzzle, narrow ray, and clear ice-spike impact. The other two plates remain for review. `build.py` samples the selected paint at native resolution, cleans it to the approved ramps, creates the animation poses, and exports only by 2x nearest-neighbour.
+
+## Selected candidate prompt
+
+> Use case: stylized-concept. Asset type: transparent painted source plate for a final-boss cryo laser pixel-art kit in a vertical shooter. Make four SEPARATE unconnected clean motifs with generous empty transparent spacing: upper left: small eye-like pink-white charge with a 4-point lens cross and orbital sparks; upper right: circular jagged muzzle flare, white hot disc with rolling magenta petals; lower left: isolated VERTICAL ray column with a thin white-hot core, hot pink body, pale lilac ice splinters and crawling magenta arcs along the sides, visibly varied and turbulent along its height; lower right: a fan of sharp ice spikes erupting from a floor contact point with pink-white blast and sparks flying UP and out. Match dense neon game pixel art quality of the shown Frost boss sheet and Space laser reference. Palette strictly #FFE0F8 #FF8AE6 #FF4FD8 dominant; pale ice #EAF2FF #CFDDF2 #A9BFE0 #7E96C4 secondary; tiny ink #0B0B1A. Distinct hand-painted 5-7 tone ramps, irregular facets, no smooth vector gradients. Transparent background, crisp chunky pixels. No text, no boss hardware, no rails, no cyan, no red, no purple.
+
+The alternate focused on a large charge vortex and icy impact. The third explored smaller facets and more pink plasma. Both were less legible when reduced to a 64 px game cell.
