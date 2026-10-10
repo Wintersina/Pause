@@ -26,7 +26,7 @@ generators and source art that render the PNGs next to them.
 | `Plugins/` | Android Gradle templates / manifest lib, iOS Game Center bridge. |
 | `GooglePlayGames/`, `ExternalDependencyManager/` | Third-party SDKs; leave in place (they locate their own files). |
 
-Licences for bundled third-party art are in `docs/licenses/`.
+Licences for bundled third-party art are in `docs/licenses/` (Kenney CC0 needs no attribution, so the credits screen lists only "Made by Sina Serati" and the Special thanks names).
 
 `Pause/Library` is Unity's generated import cache (git-ignored). Deleting it is
 safe but costs a full reimport on the next editor launch.
