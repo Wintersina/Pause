@@ -110,6 +110,10 @@ public sealed class AttackShape
 
     // ---- reading ----------------------------------------------------------------
 
+    // The hit polygons (a pooled hazard copies them into its trigger collider).
+    public int PolyLength(int poly) => hitCount[poly];
+    public Vector2 PolyAt(int poly, int i) => hit[hitStart[poly] + i];
+
     public Vector2 LoopAt(int loopIndex, int i) => loop[loopIndex * MaxLoopPoints + i];
     public int LoopLength(int loopIndex) => loopCount[loopIndex];
 

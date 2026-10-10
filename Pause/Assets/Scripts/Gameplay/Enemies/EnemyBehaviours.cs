@@ -7,7 +7,8 @@ using UnityEngine;
 //
 //   lateral   None / Drift / Glide / Sway / Orbit / Track / March
 //   vertical  None / Bob / Pulse / Brake / Sink / Patrol / Creep
-//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser
+//   attack    None / Lunge / Shot / Ring / Cross / Lob / Laser / Blast / Strike
+//             (Blast: AttackBlast's expanding ring with a crack; Strike: AttackStrike's lane columns -- themed area hazards)
 //
 // Everything a brain adds is an OFFSET in board space on top of the enemy's
 // mover, bounded by the behaviour's envelope (bandX either side, Up above,
@@ -15,7 +16,7 @@ using UnityEngine;
 // patterns can never meet.
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
-public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser }
+public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike }
 public enum ChaserStyle { Hound, Lancer, Weaver, Burner }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
@@ -75,6 +76,12 @@ public sealed class EnemyBehaviour
     public float ride = 1f;           // share of the board's scroll the shot keeps
     public float muzzle = .3f;        // how far below the centre a shot leaves (u)
     public float poolSeconds = 2.5f;  // Lob: how long the pool lingers
+    // Blast / Strike (the themed area hazards: Attacks/AttackBlast.cs, AttackStrike.cs). The spec's `world` is filled from the
+    // enemy's own world when the attack is armed; `ride` is the behaviour's `ride` for a hazard and 0 for a pilot.
+    public BlastSpec blast = BlastSpec.Standard(0);
+    public StrikeSpec strike = StrikeSpec.Standard(0);
+    public int strikeLanes = 1;        // Strike: columns in one pattern
+    public float laneSpacing = AttackStrike.MinLaneSpacing;
 
     // ---- presence (pilots: EnemyBrain's engagement script) ----
     public EnemyPresence presence = EnemyPresence.Hazard;
@@ -95,7 +102,12 @@ public sealed class EnemyBehaviour
     public float chaseSeconds = 3.5f, chaseSpeed = 2.4f, chaseStart = .9f, wanderSpeed = 1.1f, wanderRadius = .7f;
 
     public bool Shoots => attack == EnemyAttack.Shot || attack == EnemyAttack.Ring ||
-                          attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser;
+                          attack == EnemyAttack.Cross || attack == EnemyAttack.Lob || attack == EnemyAttack.Laser ||
+                          attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
+    // An area hazard (AttackHazard): told for at least AttackHazard.MinTellSeconds, never a projectile.
+    public bool IsAreaHazard => attack == EnemyAttack.Blast || attack == EnemyAttack.Strike;
+    // Shots' worth of the roster budget the volley reserves while it is told (FR7: a blast is 2, a strike 1 a lane).
+    public int ThreatCount => attack == EnemyAttack.Blast ? 2 : (attack == EnemyAttack.Strike ? Mathf.Max(1, strikeLanes) : shotCount);
     public bool Attacks => attack != EnemyAttack.None;
 
     // The envelope: how far the brain's offset can ever reach.
@@ -186,6 +198,24 @@ public sealed class EnemyBehaviour
         attack = EnemyAttack.Laser; shotCount = 1;
         return this;
     }
+    // A ring of bars with a crack, from the muzzle: AttackBlast (BlastSpec.Standard(world) is the Frost cold blast).
+    public EnemyBehaviour Blast(BlastSpec spec)
+    {
+        attack = EnemyAttack.Blast; blast = spec; shotCount = 1; ride = 1f;
+        return this;
+    }
+    public EnemyBehaviour Blast(int bars, float reach, float speed, float gapDeg, float barHalf = .09f)
+    {
+        var s = BlastSpec.Standard(0);
+        s.bars = bars; s.reach = reach; s.speed = speed; s.gapDeg = gapDeg; s.barHalf = barHalf;
+        return Blast(s);
+    }
+    // Lane columns on the pilot's lane and around it: AttackStrike (StrikeSpec.Standard(world) picks the world's style).
+    public EnemyBehaviour Strike(StrikeSpec spec, int lanes = 1, float spacing = AttackStrike.MinLaneSpacing)
+    {
+        attack = EnemyAttack.Strike; strike = spec; strikeLanes = Mathf.Max(1, lanes); laneSpacing = spacing; shotCount = 1; ride = 1f;
+        return this;
+    }
     public EnemyBehaviour Lob(float size, float pool)
     {
         attack = EnemyAttack.Lob; shotKind = EliteShots.Kind.Glob; shotCount = 1; shotSize = size; poolSeconds = pool;
@@ -240,9 +270,20 @@ public static class EnemyBehaviours
 
     static Dictionary<string, EnemyBehaviour> table;
 
+    // Tests: a behaviour served in place of the table's (a fixture for an attack no world uses yet). ClearOverrides() puts the table back.
+    static Dictionary<string, EnemyBehaviour> overrides;
+    public static void TestOverride(string key, EnemyBehaviour b)
+    {
+        if (overrides == null) overrides = new Dictionary<string, EnemyBehaviour>();
+        if (b == null) overrides.Remove(key); else overrides[key] = b;
+    }
+    public static void ClearOverrides() { if (overrides != null) overrides.Clear(); }
+
     public static EnemyBehaviour For(string key)
     {
         if (string.IsNullOrEmpty(key)) return null;
+        EnemyBehaviour over;
+        if (overrides != null && overrides.Count > 0 && overrides.TryGetValue(key, out over)) return over;
         if (table == null) table = Build();
         EnemyBehaviour b;
         return table.TryGetValue(key, out b) ? b : null;

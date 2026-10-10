@@ -76,6 +76,7 @@ public static class EliteSystem
             if (stepping[i] != null && stepping[i].State != EliteState.Dead) stepping[i].Step(dt);
         if (shots != null && shots.Alive) shots.Step(dt);
         if (fx != null && fx.Alive) fx.Step(dt);
+        AttackPools.StepAll(dt);   // the themed hazards (rings, strikes, ...) on the same clock
     }
 
     // Everything gone (scene change, tests).

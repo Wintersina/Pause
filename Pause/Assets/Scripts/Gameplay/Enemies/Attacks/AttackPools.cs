@@ -25,7 +25,15 @@ public interface IAttackPool
     int ActiveCount { get; }
     bool Alive { get; }
     void ReleaseAll();
+    void Step(float dt);      // steps every taken item that is an IAttackStep (EliteSystem.Step, running frames only)
 }
+
+// A pooled hazard stepped by its pool on the world's clock (a frozen world freezes it).
+public interface IAttackStep { void Step(float dt); }
+
+// A pooled item told when its pool takes it back (Release / ReleaseAll). Unity calls OnDisable only in play mode, so the pool
+// does not rely on it: edit-mode tests and previews step the same code.
+public interface IAttackReleased { void Released(); }
 
 public sealed class AttackPool<T> : IAttackPool where T : Component
 {
@@ -78,8 +86,20 @@ public sealed class AttackPool<T> : IAttackPool where T : Component
             if (!ReferenceEquals(items[i], item) || !taken[i]) continue;
             taken[i] = false;
             ActiveCount--;
+            var r = item as IAttackReleased;
+            if (r != null) r.Released();
             item.gameObject.SetActive(false);
             return;
+        }
+    }
+
+    public void Step(float dt)
+    {
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (!taken[i] || items[i] == null) continue;
+            var s = items[i] as IAttackStep;
+            if (s != null) s.Step(dt);
         }
     }
 
@@ -89,7 +109,10 @@ public sealed class AttackPool<T> : IAttackPool where T : Component
         {
             if (!taken[i]) continue;
             taken[i] = false;
-            if (items[i] != null) items[i].gameObject.SetActive(false);
+            if (items[i] == null) continue;
+            var r = items[i] as IAttackReleased;
+            if (r != null) r.Released();
+            items[i].gameObject.SetActive(false);
         }
         ActiveCount = 0;
     }
@@ -114,6 +137,14 @@ public static class AttackPools
         return pool;
     }
 
+    // The named pool if it has been built and is still alive; never builds one (a hazard giving itself back
+    // while its scene is torn down must not make a new pool).
+    public static AttackPool<T> Find<T>(string name) where T : Component
+    {
+        IAttackPool p;
+        return byName.TryGetValue(name, out p) && p.Alive ? p as AttackPool<T> : null;
+    }
+
     public static int ActiveCount
     {
         get
@@ -122,6 +153,13 @@ public static class AttackPools
             for (int i = 0; i < all.Count; i++) if (all[i].Alive) n += all[i].ActiveCount;
             return n;
         }
+    }
+
+    // One running frame of every pooled hazard (EliteSystem.Step).
+    public static void StepAll(float dt)
+    {
+        if (dt <= 0f) return;
+        for (int i = 0; i < all.Count; i++) if (all[i].Alive) all[i].Step(dt);
     }
 
     public static void ClearAll()

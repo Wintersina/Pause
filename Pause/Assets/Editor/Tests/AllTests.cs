@@ -55,6 +55,8 @@ public static class AllTests
         ("AsteroidDriftTest", AsteroidDriftTest.Execute),
         ("AtomClarityTest", AtomClarityTest.Execute),
         ("AttackBudgetTest", AttackBudgetTest.Execute),
+        ("AttackHazardTest", AttackHazardTest.Execute),
+        ("AttackFairnessTest", AttackFairnessTest.Execute),
         ("ShotSkinTest", ShotSkinTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("AtomSpacingTest", AtomSpacingTest.Execute),

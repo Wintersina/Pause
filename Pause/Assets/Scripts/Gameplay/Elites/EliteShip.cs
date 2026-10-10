@@ -1066,7 +1066,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             return true;
         }
         // (a rail mine's laser only where the hull lands on it: RailMineLaser.BlinkStrike)
-        return EliteShots.EraseHitbox(go) || RailMineLaser.BlinkStrike(go, at);
+        return EliteShots.EraseHitbox(go) || RailMineLaser.BlinkStrike(go, at) || AttackHazard.BlinkStrike(go, at);
     }
 
     // collisionDetection, shielded (blue atom / Cloak): the ram takes both
@@ -1081,7 +1081,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             return true;
         }
         // (a rail mine's laser is absorbed the same way: RailMineLaser)
-        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go);
+        return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go) || AttackHazard.EraseHitbox(go);
     }
 
     // collisionDetection, unshielded: the pilot pays a heart as for any
