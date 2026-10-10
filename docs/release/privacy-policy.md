@@ -1,8 +1,14 @@
 # Privacy Policy for Pause
 
-Effective date: [EFFECTIVE DATE]
-Developer: Sina Serati (WinterPeace / HapticGate)
-Contact: [CONTACT EMAIL]
+Hosted at https://sinaserati.com/hapticgate/privacy/ (the URL entered in Play Console). The hosted page currently says the game "does not collect your personal information", which conflicts with the Data safety form (User IDs and App interactions declared). Add the paragraph in the next section to the hosted page; the rest of this file is the full text this repo recommends.
+
+## Replacement paragraph for the hosted policy (owner to paste)
+
+> Pause does not collect your personal information on any server of ours, and HapticGate receives none of your data. If you choose to sign in with Google Play Games, the game uses Google's Play Games Services, and your Play Games player ID, your Play Games display name, one saved game ("Pause progress"), your scores and your achievements are sent to and stored by Google, not by us, under Google's Privacy Policy. This happens only after you sign in, which is optional; without signing in, nothing leaves your device and the game works fully offline. Pause contains no ads, no analytics, no crash reporting and no tracking, and does not use your advertising ID. To delete data held by Google, use Google Play Games > Settings > Delete Play Games account & data, or contact hapticgate@gmail.com for help with the request.
+
+Effective date: October 2026
+Developer: Sina Serati (HapticGate)
+Contact: hapticgate@gmail.com
 
 This policy explains what the Android game Pause (package `me.hapticgate.pause`) does with your information. Short version: Pause has no ads, no analytics, no crash-reporting service and no in-app purchases, and it never asks for your name, email, location, contacts, microphone or camera. The only data that leaves your phone goes to Google Play Games Services, and only if you sign in.
 
@@ -40,7 +46,7 @@ We do not sell your data and we do not share it with anyone. Google (Play Games 
 ## Deleting your data
 
 - **On the device:** clear the game's storage in Android settings or uninstall it.
-- **Play Games data (cloud save, achievements, leaderboard scores):** open the Google Play Games app, go to Settings, and use "Delete Play Games account & data", or delete just this game's data there. You can also contact us at [CONTACT EMAIL] and we will help with the request, although the data lives with Google.
+- **Play Games data (cloud save, achievements, leaderboard scores):** open the Google Play Games app, go to Settings, and use "Delete Play Games account & data", or delete just this game's data there. You can also contact us at hapticgate@gmail.com and we will help with the request, although the data lives with Google.
 
 ## Children
 
@@ -52,4 +58,4 @@ If this policy changes we will update the effective date above and publish the n
 
 ## Contact
 
-Questions or requests: [CONTACT EMAIL]
+Questions or requests: hapticgate@gmail.com

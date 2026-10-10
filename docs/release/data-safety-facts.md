@@ -30,19 +30,40 @@ Play Console > App content > Data safety. Answers below assume Play Games sign-i
 
 **Is all of the user data collected by your app encrypted in transit?** Yes (Play Games Services uses TLS).
 
-**Do you provide a way for users to request that their data be deleted?** Yes. Data lives on the device (clear storage or uninstall) and in the player's Play Games account (Play Games app > Settings > Delete Play Games account and data, which lists per-game deletion). There is no developer-side account. Provide the deletion help text and the contact email in the privacy policy (done: `privacy-policy.md`). A web "delete data" URL is only required for apps that let users create an account inside the app; Pause does not.
+**Do you provide a way for users to request that their data be deleted?** Yes. Data lives on the device (clear storage or uninstall) and in the player's Play Games account (Play Games app > Settings > Delete Play Games account and data, which lists per-game deletion). There is no developer-side account. The deletion link entered is the privacy policy URL, so the hosted policy must contain the deletion instructions (see `privacy-policy.md`). A web "delete data" URL is only required for apps that let users create an account inside the app; Pause does not.
 
-### Data types
+### As entered in Play Console (owner, October 2026)
+
+| Field | Entered |
+|---|---|
+| Collects user data | Yes |
+| Personal info > User IDs | Collected, not shared, optional, purpose App functionality |
+| App activity > App interactions | Collected, not shared, optional, purpose App functionality (covers scores, achievements, saved game, progress) |
+| Advertising ID | No |
+| Encrypted in transit | Yes |
+| Deletion | Yes, link = privacy policy URL https://sinaserati.com/hapticgate/privacy/ |
+| Ads | None |
+| Target age | 13+ |
+| IARC / ESRB | Everyone 10+ (E10+) |
+| Contact email | hapticgate@gmail.com |
+| Category | Games > Arcade |
+
+Differences from the table below, and recommendations:
+
+- The form declared **App interactions**; the table below suggested **Other in-app activity**. Both live under "App activity". App interactions ("how a user interacts with the app, e.g. taps") is acceptable and cheaper to leave as is; scores, achievements and a saved game fit "Other in-app activity" more exactly. Optional tidy-up: add Other in-app activity as well. Not blocking.
+- The form **omitted Name**. Recommend adding **Personal info > Name** (Play Games display name, shown on public leaderboards): collected, not shared, optional, App functionality. Reason: the game reads and displays the Play Games display name (`GetUserDisplayName`), and an under-declaration is the usual cause of a Data safety rejection while a harmless over-declaration is not. Do this together with the policy paragraph below.
+- The live policy at sinaserati.com says it "does not collect your personal information"; that contradicts User IDs being declared. Replace with the paragraph at the top of `privacy-policy.md`.
+
+### Data types (full table, recommended)
 
 | Category / type | Collected | Shared | Optional | Purpose | Notes |
 |---|---|---|---|---|---|
-| Personal info > User IDs (Play Games player id) | Yes | No | Yes (only if the player signs in) | App functionality | Account-level id from Google; not sent to the developer |
-| Personal info > Name (Play Games display name shown on leaderboards) | Yes | No | Yes | App functionality | Shown on public leaderboards per the player's Play Games profile settings. Declare it if the form lists "Name" for Play Games display names; Google's examples treat the Play Games gamer name as user-visible profile data |
-| App activity > Other in-app activity (scores, achievements, progress counters) | Yes | No | Yes | App functionality | Leaderboards, achievements |
+| Personal info > User IDs (Play Games player id) | Yes | No | Yes (only if the player signs in) | App functionality | Entered. Account-level id from Google; not sent to the developer |
+| Personal info > Name (Play Games display name shown on leaderboards) | Yes | No | Yes | App functionality | NOT entered; recommended to add (see above) |
+| App activity > App interactions (scores, achievements, progress counters, saved game) | Yes | No | Yes | App functionality | Entered. Could also tick Other in-app activity |
 | App info and performance > any | No | n/a | n/a | n/a | No crash logs, diagnostics or performance data collected |
 | Device or other IDs | No | n/a | n/a | n/a | No advertising ID, no Android ID read by the game |
 | Location, Contacts, Photos and videos, Audio, Files and docs, Calendar, Messages, Health, Financial info, Web browsing, Search history | No | n/a | n/a | n/a | |
-| Saved game data (cloud save) | Yes, under "App activity > Other in-app activity" | No | Yes | App functionality (continue on another device) | Stored in Google Play Games saved games, not on our servers |
 
 "Shared" is No because the data goes only to Google as the service provider the player chose to sign in with (Google's own Play Games service), not to a third party.
 
