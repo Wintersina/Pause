@@ -1,0 +1,1217 @@
+{
+  "death": {
+    "tide_alien": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.511,
+      "frames": [
+        {
+          "area": 6389,
+          "tones": 6103,
+          "boundaries": 9858,
+          "margins": [
+            58,
+            21,
+            59,
+            20
+          ],
+          "bright_margins": [
+            58,
+            22,
+            60,
+            20
+          ],
+          "centroid": [
+            95.49,
+            86.96
+          ],
+          "red_share": 0.00226,
+          "lime_share": 0.00045,
+          "cyan_share": 0.0006
+        },
+        {
+          "area": 10971,
+          "tones": 12086,
+          "boundaries": 19889,
+          "margins": [
+            26,
+            11,
+            25,
+            11
+          ],
+          "bright_margins": [
+            27,
+            13,
+            26,
+            12
+          ],
+          "centroid": [
+            96.85,
+            87.42
+          ],
+          "red_share": 0.00015,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 3263,
+          "tones": 3892,
+          "boundaries": 5438,
+          "margins": [
+            29,
+            22,
+            29,
+            22
+          ],
+          "bright_margins": [
+            29,
+            22,
+            30,
+            25
+          ],
+          "centroid": [
+            95.24,
+            94.83
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_chaser": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.0,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.414,
+      "frames": [
+        {
+          "area": 4218,
+          "tones": 3819,
+          "boundaries": 6846,
+          "margins": [
+            64,
+            12,
+            65,
+            12
+          ],
+          "bright_margins": [
+            65,
+            16,
+            67,
+            16
+          ],
+          "centroid": [
+            95.41,
+            95.86
+          ],
+          "red_share": 0.01495,
+          "lime_share": 0.00046,
+          "cyan_share": 0.00092
+        },
+        {
+          "area": 6101,
+          "tones": 6688,
+          "boundaries": 11537,
+          "margins": [
+            44,
+            11,
+            45,
+            11
+          ],
+          "bright_margins": [
+            45,
+            17,
+            46,
+            19
+          ],
+          "centroid": [
+            95.32,
+            97.44
+          ],
+          "red_share": 0.00014,
+          "lime_share": 0.00027,
+          "cyan_share": 0.00014
+        },
+        {
+          "area": 1746,
+          "tones": 2316,
+          "boundaries": 3054,
+          "margins": [
+            42,
+            22,
+            43,
+            22
+          ],
+          "bright_margins": [
+            42,
+            22,
+            47,
+            30
+          ],
+          "centroid": [
+            94.81,
+            104.49
+          ],
+          "red_share": 0.00042,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_big": {
+      "size": [
+        768,
+        256
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 97,
+      "debris_to_intact_area": 0.531,
+      "frames": [
+        {
+          "area": 17120,
+          "tones": 14271,
+          "boundaries": 26091,
+          "margins": [
+            72,
+            18,
+            72,
+            20
+          ],
+          "bright_margins": [
+            73,
+            19,
+            74,
+            22
+          ],
+          "centroid": [
+            127.65,
+            127.3
+          ],
+          "red_share": 0.00875,
+          "lime_share": 0.0,
+          "cyan_share": 0.00017
+        },
+        {
+          "area": 29157,
+          "tones": 27949,
+          "boundaries": 50203,
+          "margins": [
+            18,
+            11,
+            17,
+            11
+          ],
+          "bright_margins": [
+            19,
+            12,
+            18,
+            12
+          ],
+          "centroid": [
+            131.03,
+            131.65
+          ],
+          "red_share": 0.00013,
+          "lime_share": 0.0,
+          "cyan_share": 0.00088
+        },
+        {
+          "area": 9083,
+          "tones": 10294,
+          "boundaries": 15348,
+          "margins": [
+            30,
+            32,
+            29,
+            33
+          ],
+          "bright_margins": [
+            30,
+            32,
+            30,
+            39
+          ],
+          "centroid": [
+            128.46,
+            129.98
+          ],
+          "red_share": 0.00045,
+          "lime_share": 0.0,
+          "cyan_share": 0.00081
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_fighter_1": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.32,
+      "frames": [
+        {
+          "area": 6285,
+          "tones": 5500,
+          "boundaries": 9445,
+          "margins": [
+            53,
+            16,
+            52,
+            16
+          ],
+          "bright_margins": [
+            53,
+            16,
+            53,
+            19
+          ],
+          "centroid": [
+            95.11,
+            105.75
+          ],
+          "red_share": 0.00812,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 8450,
+          "tones": 8918,
+          "boundaries": 15104,
+          "margins": [
+            31,
+            11,
+            31,
+            11
+          ],
+          "bright_margins": [
+            32,
+            14,
+            32,
+            19
+          ],
+          "centroid": [
+            94.22,
+            103.18
+          ],
+          "red_share": 0.0003,
+          "lime_share": 0.0002,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 2014,
+          "tones": 2763,
+          "boundaries": 3619,
+          "margins": [
+            32,
+            22,
+            32,
+            22
+          ],
+          "bright_margins": [
+            36,
+            28,
+            34,
+            23
+          ],
+          "centroid": [
+            93.07,
+            105.63
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_fighter_2": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.24,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.634,
+      "frames": [
+        {
+          "area": 3284,
+          "tones": 2936,
+          "boundaries": 5326,
+          "margins": [
+            61,
+            11,
+            63,
+            10
+          ],
+          "bright_margins": [
+            61,
+            16,
+            64,
+            41
+          ],
+          "centroid": [
+            95.83,
+            86.02
+          ],
+          "red_share": 0.0095,
+          "lime_share": 0.0,
+          "cyan_share": 0.00178
+        },
+        {
+          "area": 4990,
+          "tones": 5477,
+          "boundaries": 9256,
+          "margins": [
+            47,
+            11,
+            47,
+            12
+          ],
+          "bright_margins": [
+            48,
+            15,
+            50,
+            33
+          ],
+          "centroid": [
+            94.77,
+            87.97
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 2082,
+          "tones": 2693,
+          "boundaries": 3795,
+          "margins": [
+            43,
+            22,
+            43,
+            23
+          ],
+          "bright_margins": [
+            48,
+            26,
+            60,
+            24
+          ],
+          "centroid": [
+            95.47,
+            101.05
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_fighter_3": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.32,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.252,
+      "frames": [
+        {
+          "area": 12603,
+          "tones": 9596,
+          "boundaries": 18128,
+          "margins": [
+            12,
+            19,
+            13,
+            19
+          ],
+          "bright_margins": [
+            12,
+            19,
+            16,
+            22
+          ],
+          "centroid": [
+            99.73,
+            100.36
+          ],
+          "red_share": 0.00463,
+          "lime_share": 0.00024,
+          "cyan_share": 0.00047
+        },
+        {
+          "area": 15017,
+          "tones": 14680,
+          "boundaries": 26031,
+          "margins": [
+            11,
+            12,
+            11,
+            11
+          ],
+          "bright_margins": [
+            14,
+            13,
+            13,
+            11
+          ],
+          "centroid": [
+            99.18,
+            96.87
+          ],
+          "red_share": 0.00023,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 3177,
+          "tones": 4323,
+          "boundaries": 6193,
+          "margins": [
+            30,
+            22,
+            25,
+            23
+          ],
+          "bright_margins": [
+            30,
+            22,
+            26,
+            23
+          ],
+          "centroid": [
+            98.5,
+            97.13
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_fighter_4": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.0,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.339,
+      "frames": [
+        {
+          "area": 5448,
+          "tones": 4846,
+          "boundaries": 8390,
+          "margins": [
+            54,
+            15,
+            55,
+            15
+          ],
+          "bright_margins": [
+            54,
+            15,
+            59,
+            23
+          ],
+          "centroid": [
+            95.24,
+            115.39
+          ],
+          "red_share": 0.00343,
+          "lime_share": 0.00018,
+          "cyan_share": 0.00216
+        },
+        {
+          "area": 7681,
+          "tones": 8202,
+          "boundaries": 13944,
+          "margins": [
+            33,
+            11,
+            33,
+            11
+          ],
+          "bright_margins": [
+            34,
+            15,
+            33,
+            14
+          ],
+          "centroid": [
+            94.85,
+            105.82
+          ],
+          "red_share": 0.00022,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 1845,
+          "tones": 2436,
+          "boundaries": 3178,
+          "margins": [
+            40,
+            22,
+            40,
+            22
+          ],
+          "bright_margins": [
+            41,
+            22,
+            41,
+            22
+          ],
+          "centroid": [
+            91.34,
+            109.11
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_rock_brain": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.0,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.388,
+      "frames": [
+        {
+          "area": 13026,
+          "tones": 11335,
+          "boundaries": 19370,
+          "margins": [
+            31,
+            21,
+            31,
+            21
+          ],
+          "bright_margins": [
+            32,
+            21,
+            40,
+            33
+          ],
+          "centroid": [
+            95.6,
+            92.71
+          ],
+          "red_share": 0.00273,
+          "lime_share": 0.0003,
+          "cyan_share": 0.0003
+        },
+        {
+          "area": 16267,
+          "tones": 14762,
+          "boundaries": 26476,
+          "margins": [
+            11,
+            19,
+            11,
+            19
+          ],
+          "bright_margins": [
+            12,
+            20,
+            12,
+            28
+          ],
+          "centroid": [
+            93.86,
+            95.2
+          ],
+          "red_share": 0.00012,
+          "lime_share": 6e-05,
+          "cyan_share": 6e-05
+        },
+        {
+          "area": 5059,
+          "tones": 5567,
+          "boundaries": 8073,
+          "margins": [
+            25,
+            28,
+            22,
+            27
+          ],
+          "bright_margins": [
+            25,
+            29,
+            25,
+            28
+          ],
+          "centroid": [
+            96.63,
+            93.57
+          ],
+          "red_share": 0.00017,
+          "lime_share": 0.00017,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_rock_staghorn": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.701,
+      "frames": [
+        {
+          "area": 4533,
+          "tones": 4283,
+          "boundaries": 7765,
+          "margins": [
+            62,
+            18,
+            61,
+            18
+          ],
+          "bright_margins": [
+            63,
+            18,
+            61,
+            20
+          ],
+          "centroid": [
+            94.83,
+            113.36
+          ],
+          "red_share": 0.00802,
+          "lime_share": 0.00062,
+          "cyan_share": 0.00123
+        },
+        {
+          "area": 9595,
+          "tones": 10243,
+          "boundaries": 17658,
+          "margins": [
+            32,
+            11,
+            33,
+            11
+          ],
+          "bright_margins": [
+            33,
+            12,
+            34,
+            15
+          ],
+          "centroid": [
+            95.01,
+            107.4
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 3177,
+          "tones": 4618,
+          "boundaries": 6309,
+          "margins": [
+            24,
+            22,
+            24,
+            22
+          ],
+          "bright_margins": [
+            25,
+            22,
+            26,
+            22
+          ],
+          "centroid": [
+            92.85,
+            95.94
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_rock_urchin": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.0,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.463,
+      "frames": [
+        {
+          "area": 8236,
+          "tones": 7286,
+          "boundaries": 13355,
+          "margins": [
+            34,
+            20,
+            34,
+            20
+          ],
+          "bright_margins": [
+            35,
+            22,
+            34,
+            22
+          ],
+          "centroid": [
+            97.02,
+            95.13
+          ],
+          "red_share": 0.00706,
+          "lime_share": 0.00177,
+          "cyan_share": 0.00577
+        },
+        {
+          "area": 11283,
+          "tones": 11599,
+          "boundaries": 21492,
+          "margins": [
+            12,
+            11,
+            12,
+            11
+          ],
+          "bright_margins": [
+            13,
+            12,
+            14,
+            14
+          ],
+          "centroid": [
+            95.54,
+            97.95
+          ],
+          "red_share": 0.00081,
+          "lime_share": 0.0,
+          "cyan_share": 7e-05
+        },
+        {
+          "area": 3810,
+          "tones": 4971,
+          "boundaries": 7834,
+          "margins": [
+            25,
+            22,
+            25,
+            23
+          ],
+          "bright_margins": [
+            25,
+            22,
+            26,
+            24
+          ],
+          "centroid": [
+            92.37,
+            98.78
+          ],
+          "red_share": 0.00073,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_rock_islet": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.54,
+      "frames": [
+        {
+          "area": 5054,
+          "tones": 3526,
+          "boundaries": 8272,
+          "margins": [
+            63,
+            18,
+            60,
+            18
+          ],
+          "bright_margins": [
+            63,
+            19,
+            61,
+            19
+          ],
+          "centroid": [
+            93.8,
+            89.43
+          ],
+          "red_share": 0.00094,
+          "lime_share": 0.00168,
+          "cyan_share": 0.00112
+        },
+        {
+          "area": 8432,
+          "tones": 8691,
+          "boundaries": 15625,
+          "margins": [
+            32,
+            11,
+            31,
+            11
+          ],
+          "bright_margins": [
+            35,
+            12,
+            32,
+            27
+          ],
+          "centroid": [
+            97.1,
+            91.7
+          ],
+          "red_share": 0.0001,
+          "lime_share": 0.0001,
+          "cyan_share": 0.0001
+        },
+        {
+          "area": 2731,
+          "tones": 3480,
+          "boundaries": 5044,
+          "margins": [
+            29,
+            22,
+            25,
+            22
+          ],
+          "bright_margins": [
+            29,
+            22,
+            26,
+            26
+          ],
+          "centroid": [
+            96.47,
+            97.07
+          ],
+          "red_share": 0.0,
+          "lime_share": 0.0,
+          "cyan_share": 0.0
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    },
+    "tide_mine": {
+      "size": [
+        576,
+        192
+      ],
+      "cell0_anchor_drift_px": 0.01,
+      "cell0_changed_pixels": 81,
+      "debris_to_intact_area": 0.243,
+      "frames": [
+        {
+          "area": 17287,
+          "tones": 14374,
+          "boundaries": 22037,
+          "margins": [
+            8,
+            17,
+            14,
+            17
+          ],
+          "bright_margins": [
+            10,
+            18,
+            18,
+            30
+          ],
+          "centroid": [
+            100.16,
+            92.96
+          ],
+          "red_share": 0.00074,
+          "lime_share": 0.00011,
+          "cyan_share": 0.0
+        },
+        {
+          "area": 16208,
+          "tones": 15533,
+          "boundaries": 27743,
+          "margins": [
+            11,
+            16,
+            11,
+            16
+          ],
+          "bright_margins": [
+            13,
+            16,
+            12,
+            17
+          ],
+          "centroid": [
+            95.65,
+            93.45
+          ],
+          "red_share": 0.00011,
+          "lime_share": 6e-05,
+          "cyan_share": 0.0042
+        },
+        {
+          "area": 4207,
+          "tones": 4672,
+          "boundaries": 7183,
+          "margins": [
+            23,
+            22,
+            22,
+            23
+          ],
+          "bright_margins": [
+            23,
+            22,
+            23,
+            23
+          ],
+          "centroid": [
+            92.68,
+            93.09
+          ],
+          "red_share": 0.0002,
+          "lime_share": 0.0,
+          "cyan_share": 0.00434
+        }
+      ],
+      "rules": {
+        "intact_flash": true,
+        "rupture_changed": true,
+        "hull_gone_area_proxy": true,
+        "bright_margin": true,
+        "alpha_margin": true,
+        "no_red": true
+      }
+    }
+  },
+  "mine": {
+    "size": [
+      1254,
+      314
+    ],
+    "poses": [
+      {
+        "area": 34736,
+        "tones": 26905,
+        "boundaries": 39318,
+        "margins": [
+          58,
+          50,
+          14,
+          39
+        ],
+        "bright_margins": [
+          61,
+          52,
+          19,
+          57
+        ],
+        "centroid": [
+          188.99,
+          157.94
+        ],
+        "red_share": 0.00051,
+        "lime_share": 6e-05,
+        "cyan_share": 0.0
+      },
+      {
+        "area": 37651,
+        "tones": 31479,
+        "boundaries": 45221,
+        "margins": [
+          48,
+          36,
+          10,
+          32
+        ],
+        "bright_margins": [
+          51,
+          39,
+          11,
+          33
+        ],
+        "centroid": [
+          180.28,
+          157.13
+        ],
+        "red_share": 0.00028,
+        "lime_share": 5e-05,
+        "cyan_share": 8e-05
+      },
+      {
+        "area": 49590,
+        "tones": 41732,
+        "boundaries": 63677,
+        "margins": [
+          32,
+          24,
+          8,
+          18
+        ],
+        "bright_margins": [
+          35,
+          24,
+          8,
+          18
+        ],
+        "centroid": [
+          168.9,
+          160.22
+        ],
+        "red_share": 0.00015,
+        "lime_share": 6e-05,
+        "cyan_share": 0.00583
+      },
+      {
+        "area": 56958,
+        "tones": 46678,
+        "boundaries": 72387,
+        "margins": [
+          24,
+          6,
+          8,
+          8
+        ],
+        "bright_margins": [
+          27,
+          6,
+          8,
+          9
+        ],
+        "centroid": [
+          167.5,
+          159.26
+        ],
+        "red_share": 5e-05,
+        "lime_share": 0.00013,
+        "cyan_share": 0.00825
+      }
+    ],
+    "reference_core_pivot": [
+      234.77,
+      155.19
+    ],
+    "tide_core_pivot": [
+      230.51,
+      150.19
+    ],
+    "pivot_drift_px": 6.57,
+    "clamp_reach_world_units_estimate": 0.324,
+    "rules": {
+      "dimensions": true,
+      "pivot": true,
+      "bright_margins": true,
+      "no_red": true
+    }
+  },
+  "failures": []
+}
