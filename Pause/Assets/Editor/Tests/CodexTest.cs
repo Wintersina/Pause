@@ -1533,13 +1533,13 @@ public static class CodexTest
         string seen = PlayerPrefs.GetString(Codex.PrefsKey);
         DeveloperUnlocks.SetEnabled(true);
         panel.SkipAnimations();
-        // (dev mode discovers everything, so Tide's section is listed too: SPACE..TIDE, then BOSSES)
+        // (dev mode discovers everything, so Tide's and Storm's sections are listed too: SPACE..STORM, then BOSSES)
         int bi = WorldManager.Worlds.Length;
         bool allBosses = panel.SectionCount == bi + 1 && panel.SectionAt(bi).entries.Count == BossCatalog.All.Length;
         for (int b = 0; allBosses && b < BossCatalog.All.Length; b++)
             allBosses &= panel.SectionAt(bi).entries[b].id == BossCatalog.All[b].id &&
                          panel.CardName(panel.SectionStart(bi) + b).text == Codex.Find(BossCatalog.All[b].id).name;
-        Check("dev mode: BOSSES shows all five bosses, named, after Tide's section", allBosses && panel.ChipLabel(bi - 1).text == "TIDE");
+        Check("dev mode: BOSSES shows all six bosses, named, after Storm's section", allBosses && BossCatalog.All.Length == 6 && panel.ChipLabel(bi - 1).text == "STORM");
         Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(bi).text == BossCatalog.All.Length.ToString());
         CheckWorldSections(panel, true);
         DeveloperUnlocks.SetEnabled(false);
