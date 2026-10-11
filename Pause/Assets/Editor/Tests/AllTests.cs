@@ -218,6 +218,7 @@ public static class AllTests
         ("TideBackdropTest", TideBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLeakTest", WorldLeakTest.Execute),
+        ("SpaceLegSpawnTest", SpaceLegSpawnTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),
         ("RowHeartsTest", RowHeartsTest.Execute),

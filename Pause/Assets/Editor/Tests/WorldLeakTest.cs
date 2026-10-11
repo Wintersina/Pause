@@ -41,7 +41,7 @@ public static class WorldLeakTest
     static readonly MethodInfo Select = typeof(enmiesOnBoard).GetMethod("SelectPhase", BindingFlags.NonPublic | BindingFlags.Instance);
     static readonly FieldInfo Elapsed = typeof(enmiesOnBoard).GetField("elapsedFlightSeconds", BindingFlags.NonPublic | BindingFlags.Instance);
     static int Worlds => WorldManager.LiveWorldCount;   // (the walk needs live transitions; TideLoopSoakTest audits Tide's own cast with the switch on)
-    static string W(int w) => WorldManager.Worlds[w].displayName;
+    internal static string W(int w) => WorldManager.Worlds[w].displayName;
 
     // The shared types: live objects that belong to no single world. No
     // roster enemy and no elite is shared (WorldGatingTest); the only shared
@@ -50,20 +50,20 @@ public static class WorldLeakTest
 
     // ---- fixtures -------------------------------------------------------------
 
-    static Transform pilot;
-    static WorldManager wm;
-    static enmiesOnBoard board;
-    static EliteDirector dir;
-    static int audited;
-    static readonly List<string> firstForeign = new List<string>();
-    static float simClock;
+    internal static Transform pilot;
+    internal static WorldManager wm;
+    internal static enmiesOnBoard board;
+    internal static EliteDirector dir;
+    internal static int audited;
+    internal static readonly List<string> firstForeign = new List<string>();
+    internal static float simClock;
 
-    static void SetWorldManager(WorldManager m)
+    internal static void SetWorldManager(WorldManager m)
     {
         typeof(WorldManager).GetField("<Instance>k__BackingField", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, m);
     }
 
-    static void Prefs(int highest)
+    internal static void Prefs(int highest)
     {
         WorldManager.ClearReplayWorld();
         PlayerPrefs.SetString("HasDoneTut", "true");
@@ -76,7 +76,7 @@ public static class WorldLeakTest
     // A run's scene loading, in the order Unity runs it: the old scene gone,
     // score.Awake begins the run, the spawners' Start, WorldManager.Start
     // picks the world. `wmFirst`: WorldManager.Start before the spawners'.
-    static void LoadRun(bool startAtHighest)
+    internal static void LoadRun(bool startAtHighest)
     {
         TearDown();
         EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
@@ -121,7 +121,7 @@ public static class WorldLeakTest
         simClock = 0f;
     }
 
-    static void TearDown()
+    internal static void TearDown()
     {
         EliteSystem.Clear();
         foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) if (f != null) Object.DestroyImmediate(f.gameObject);
@@ -135,7 +135,7 @@ public static class WorldLeakTest
 
     // One simulated frame of the run: the level clock, the spawner, the
     // elite director, the board scrolling (enemies leave below).
-    static void Step(float dt)
+    internal static void Step(float dt)
     {
         simClock += dt;
         SpawnSpace.ClockOverride = simClock;
@@ -163,7 +163,7 @@ public static class WorldLeakTest
     }
 
     // Every live object against the world the run is in.
-    static int Audit(int expect, string where)
+    internal static int Audit(int expect, string where)
     {
         int foreign = 0;
         foreach (var id in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
@@ -186,10 +186,10 @@ public static class WorldLeakTest
     }
 
     static void Note(string s) { if (firstForeign.Count < 6 && !firstForeign.Contains(s)) firstForeign.Add(s); }
-    static string Examples() { return firstForeign.Count > 0 ? "; e.g. " + string.Join(" | ", firstForeign) : ""; }
+    internal static string Examples() { return firstForeign.Count > 0 ? "; e.g. " + string.Join(" | ", firstForeign) : ""; }
 
     // Fly `seconds`, auditing each second against world `expect`.
-    static int Fly(float seconds, int expect, string where)
+    internal static int Fly(float seconds, int expect, string where)
     {
         const float dt = 1f / 30f;
         int foreign = 0;
