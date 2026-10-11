@@ -148,9 +148,9 @@ public static class BossThemedTest
             Check(b.artKey + ": two new attacks, today's three kept in order", news == 2 && t[0] == d[0] && t[2] == d[1] && t[3] == d[2]);
             b.themedAttacks = was;
         }
-        Check("BossDef.themedAttacks defaults: Frost and Ember fight themed; Space, Verdant (table built, budget run pending) and Tide do not",
-              BossCatalog.ForWorld(1).themedAttacks && BossCatalog.ForWorld(3).themedAttacks &&
-              !BossCatalog.ForWorld(0).themedAttacks && !BossCatalog.ForWorld(2).themedAttacks && !BossCatalog.ForWorld(4).themedAttacks);
+        Check("BossDef.themedAttacks defaults: Frost, Verdant and Ember fight themed; Space and Tide do not",
+              BossCatalog.ForWorld(1).themedAttacks && BossCatalog.ForWorld(2).themedAttacks && BossCatalog.ForWorld(3).themedAttacks &&
+              !BossCatalog.ForWorld(0).themedAttacks && !BossCatalog.ForWorld(4).themedAttacks);
         var verdant = BossCatalog.ForWorld(2);
         Check("Verdant's themed table: stinger thorns, vine lash, spore bloom, acid cannons, trunk toss (Lash + Roll)",
               verdant.themed != null && verdant.themed.Length == 5 && verdant.themed[1].name == "vine lash" && verdant.themed[1].kind == BossAttackKind.Lash &&
