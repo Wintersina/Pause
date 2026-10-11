@@ -73,7 +73,7 @@ public static class CodexNewDotsTest
             Codex.Discover(inA[0].id); Codex.Discover(inA[1].id); Codex.Discover(inB.id);
             Codex.NewChanged -= count;
             Check("discover: NEW raised for every discovery and recorded", raised == 3 && Codex.IsNew(inA[0].id) && Codex.IsNew(inB.id) && Codex.NewIn(catA) == 2);
-            Check("discover: the home bubble shows 3 live (no manual refresh)", home.BadgeVisible && home.BadgeText.text == "3");
+            Check("discover: the home bubble shows 3 live (no manual refresh)", home.BadgeVisible && home.BadgeShown == "3");
             panel.Refresh();
             Check("discover: both category tabs carry a dot", panel.TabNewDot(tabA).gameObject.activeSelf && panel.TabNewDot(tabB).gameObject.activeSelf &&
                   !panel.TabNewDot(CodexPanel.AchievementsTab).gameObject.activeSelf);
@@ -81,14 +81,15 @@ public static class CodexNewDotsTest
             // open tab A: its dot goes, the cards keep theirs, home drops by that tab's entries
             panel.ShowCategory(catA);
             int ia = CardOf(panel, inA[0].id), ib = CardOf(panel, inA[1].id);
+            Check("dots: tab and card NEW dots carry no Text", panel.TabNewDot(tabA).GetComponentsInChildren<Text>(true).Length == 0 && panel.TabNewDot(tabB).GetComponentsInChildren<Text>(true).Length == 0 );
             Check("open tab: the tab's dot is gone and the other tab's stays", !panel.TabNewDot(tabA).gameObject.activeSelf && panel.TabNewDot(tabB).gameObject.activeSelf);
-            Check("open tab: home count dropped by the tab's NEW entries (3 -> 1)", home.BadgeVisible && home.BadgeText.text == "1" && CodexHomeButton.Total() == 1);
+            Check("open tab: home count dropped by the tab's NEW entries (3 -> 1)", home.BadgeVisible && home.BadgeShown == "1" && CodexHomeButton.Total() == 1);
             Check("open tab: the entry cards still carry their NEW dot", ia >= 0 && ib >= 0 && panel.CardNewDot(ia).gameObject.activeSelf && panel.CardNewDot(ib).gameObject.activeSelf);
 
             // open an entry: its card dot clears
             panel.ShowDetail(inA[0]);
             Check("open entry: its card dot clears, the sibling keeps its dot", !Codex.IsNew(inA[0].id) && !panel.CardNewDot(ia).gameObject.activeSelf && panel.CardNewDot(ib).gameObject.activeSelf);
-            Check("open entry: home count unchanged (its tab was already opened)", home.BadgeText.text == "1");
+            Check("open entry: home count unchanged (its tab was already opened)", home.BadgeShown == "1");
             panel.Back();
 
             // persistence

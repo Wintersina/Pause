@@ -25,15 +25,18 @@ public class CodexHomeButton : MonoBehaviour
     // Resources/Codex/cx_badge (13x13 px, point filtered) replaces the
     // procedural disc when Codex paints one.
     Image badge;
-    Text badgeText;
+    Image badgeGlyphs;
+    string badgeShown = "";
     public const float BadgeSize = 14f, BadgeOverlapX = 2f, BadgeOverlapY = 2f;
     // size/position are recomputed when the label's rendered text or the canvas scale changes
     string badgeSig;
-    public const int BadgeMax = 9, BadgeFont = 11;
+    public const int BadgeMax = 9;
     public const string BadgeArtSlot = "cx_badge";
 
     public Image Badge { get { return badge; } }
-    public Text BadgeText { get { return badgeText; } }
+    // The count as drawn: "", "1".."9" or "9+". Pixel art, no Text anywhere in the bubble.
+    public string BadgeShown { get { return badgeShown; } }
+    public Image BadgeGlyphs { get { return badgeGlyphs; } }
     public bool BadgeVisible { get { return badge != null && badge.gameObject.activeSelf; } }
 
     public static string BadgeLabel(int n)
@@ -45,6 +48,59 @@ public class CodexHomeButton : MonoBehaviour
 
     // A 13x13 pixel disc: ink outline, amber fill, one shadow row along the
     // bottom. Point filtered, so it stays crisp at any scale.
+    // ---- pixel-art count: 3x5 digits (+ a 3x3 plus) drawn 1 glyph pixel = 1 disc pixel ----
+    // Rows top to bottom, '#' = ink.
+    public static readonly string[][] Glyphs =
+    {
+        new[] { "###", "#.#", "#.#", "#.#", "###" },   // 0
+        new[] { ".#.", "##.", ".#.", ".#.", "###" },   // 1
+        new[] { "###", "..#", "###", "#..", "###" },   // 2
+        new[] { "###", "..#", ".##", "..#", "###" },   // 3
+        new[] { "#.#", "#.#", "###", "..#", "..#" },   // 4
+        new[] { "###", "#..", "###", "..#", "###" },   // 5
+        new[] { "###", "#..", "###", "#.#", "###" },   // 6
+        new[] { "###", "..#", ".#.", ".#.", ".#." },   // 7
+        new[] { "###", "#.#", "###", "#.#", "###" },   // 8
+        new[] { "###", "#.#", "###", "..#", "###" },   // 9
+    };
+    public static readonly string[] PlusGlyph = { "...", ".#.", "###", ".#.", "..." };
+    public const int DiscPx = 13, GlyphRowBottom = 4;   // glyph rows 4..8 centre on the disc's middle row
+
+    static readonly System.Collections.Generic.Dictionary<string, Sprite> countSprites = new System.Collections.Generic.Dictionary<string, Sprite>();
+
+    // 13x13 transparent texture with the label's glyphs in ink, centred in the disc.
+    public static Texture2D CountTexture(string label)
+    {
+        var tex = new Texture2D(DiscPx, DiscPx, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "cx_badge_count_" + label };
+        var clear = new Color32[DiscPx * DiscPx];
+        tex.SetPixels32(clear);
+        if (!string.IsNullOrEmpty(label))
+        {
+            int width = label.Length * 3 + (label.Length - 1);
+            int x0 = (DiscPx - width) / 2;
+            for (int i = 0; i < label.Length; i++)
+            {
+                var g = label[i] == '+' ? PlusGlyph : Glyphs[label[i] - '0'];
+                for (int r = 0; r < 5; r++)
+                    for (int c = 0; c < 3; c++)
+                        if (g[r][c] == '#') tex.SetPixel(x0 + i * 4 + c, GlyphRowBottom + (4 - r), CodexPalette.Ink);
+            }
+        }
+        tex.Apply(false, false);
+        return tex;
+    }
+
+    static Sprite CountSprite(string label)
+    {
+        Sprite sp;
+        if (countSprites.TryGetValue(label, out sp) && sp != null) return sp;
+        var tex = CountTexture(label);
+        sp = Sprite.Create(tex, new Rect(0, 0, DiscPx, DiscPx), new Vector2(.5f, .5f), DiscPx);
+        sp.name = tex.name;
+        countSprites[label] = sp;
+        return sp;
+    }
+
     public static Sprite BadgeSprite()
     {
         var art = CodexUi.CodexSprite(BadgeArtSlot);
@@ -166,14 +222,11 @@ public class CodexHomeButton : MonoBehaviour
         brt.anchorMin = brt.anchorMax = new Vector2(.5f, .5f);
         brt.pivot = new Vector2(0f, 0f);
         brt.sizeDelta = new Vector2(BadgeSize, BadgeSize);
-        badgeText = CodexUi.NewText("Count", brt, font, "", 18, CodexPalette.Ink, TextAnchor.MiddleCenter);
-        badgeText.resizeTextForBestFit = false;
-        badgeText.fontSize = BadgeFont;
-        badgeText.horizontalOverflow = HorizontalWrapMode.Overflow;
-        badgeText.verticalOverflow = VerticalWrapMode.Overflow;
-        var trt = badgeText.rectTransform;
+        badgeGlyphs = CodexUi.NewImage("Count", brt, CountSprite("1"), Color.white);
+        badgeGlyphs.raycastTarget = false;
+        var trt = badgeGlyphs.rectTransform;
         trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-        trt.offsetMin = new Vector2(0f, 2f); trt.offsetMax = new Vector2(0f, 0f);
+        trt.offsetMin = trt.offsetMax = Vector2.zero;
         badge.gameObject.SetActive(false);
 
         Refresh();
@@ -200,7 +253,8 @@ public class CodexHomeButton : MonoBehaviour
         {
             int n = Total();
             badge.gameObject.SetActive(n > 0);
-            badgeText.text = n > 0 ? BadgeLabel(n) : "";
+            badgeShown = n > 0 ? BadgeLabel(n) : "";
+            if (n > 0) badgeGlyphs.sprite = CountSprite(badgeShown);
             PlaceBadge(true);
         }
     }
