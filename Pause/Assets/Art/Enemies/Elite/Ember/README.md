@@ -15,3 +15,7 @@ four idle frames, wind-up/tell, action, then hit/damage. Final silhouettes stay 
 | `ember_elite_cauterizer.png` | siege craft | Wide six-vent catamaran, central pressure cannon and layered heat shields. |
 
 Shared Ember materials: soot-black forged steel, basalt armor, weathered copper clamps and ducting, sodium-orange furnace vents, and controlled magenta pressure cores. These are elite player-inspired forgecraft, not enemy recolors and not player-hull edits.
+
+## Refresh 2026-10-11
+
+All six ships were redrawn in the Tide/Storm/Desert direction (top-down, nose up, restrained light, no pink core). Cells: 0-3 idle, 4 tell, 5 action, 6 hit. The death strips are scripted from each hull (`Art/Enemies/src~/build_ember_enemy_death.py`). Old art: `Art/Enemies/src~/ember_old/elites/`. Sources: `Art/Enemies/src~/ember_elites_refresh/`.

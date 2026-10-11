@@ -16,7 +16,7 @@
   "brain": "siege",
   "attack": "siege_cannon",
   "lore": "A six-vent siege catamaran that hangs at the top of the sky. It tracks your lane, paints it with a sight line and fires one pressure shell straight down it. The shell punches through anything in the way.",
-  "cellWorldSize": 1.7,
+  "cellWorldSize": 2.07,
   "hullRadius": 0.43,
   "noseDeg": 90,
   "turnsToFace": true,
@@ -39,22 +39,22 @@
   "muzzles": [
     {
       "name": "cannon",
-      "x": 92,
-      "y": 30,
+      "x": 96,
+      "y": 24,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 61,
-      "y": 150,
+      "x": 66,
+      "y": 163,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 131,
-      "y": 150,
+      "x": 126,
+      "y": 163,
       "dir": -1.0
     }
   ],

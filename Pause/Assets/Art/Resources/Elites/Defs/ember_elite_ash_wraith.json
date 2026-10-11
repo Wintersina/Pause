@@ -16,7 +16,7 @@
   "brain": "skirmisher",
   "attack": "blink_shards",
   "lore": "A crescent of soot with a magenta heart. It keeps its distance, blinks out of anything that comes near, then fans shards at you from its beak. Corner it against the rocks - it cannot blink forever.",
-  "cellWorldSize": 1.45,
+  "cellWorldSize": 1.85,
   "hullRadius": 0.29,
   "noseDeg": 90,
   "turnsToFace": true,
@@ -40,22 +40,22 @@
   "muzzles": [
     {
       "name": "beak",
-      "x": 102,
-      "y": 27,
+      "x": 96,
+      "y": 24,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 77,
-      "y": 151,
+      "x": 83,
+      "y": 164,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 119,
-      "y": 149,
+      "x": 109,
+      "y": 164,
       "dir": -1.0
     }
   ],
