@@ -1,0 +1,254 @@
+{
+  "world": "Desert",
+  "camera": "Atmosphere level, looking down beneath a thin high dust haze. Only desert_planet.png is orbital.",
+  "palette": "Pale desaturated bone-gold sand, dusty indigo shadow, matte oxidised copper traces, pale sun-white heat. No amber or orange emission.",
+  "ceiling_match": "Paint the later backdrop ceiling as thin high dust-haze banks matching desert_cloud_deck.png: bone-gold sheets on dusty brown-grey, long wind striations, muted indigo-brown gaps. Deeper banks match desert_cloud_deck_dark.png. No stars or orbital objects.",
+  "files": {
+    "desert_planet.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        512,
+        512
+      ],
+      "disc_center_px": [
+        553.1,
+        544.4
+      ],
+      "disc_radius_px": 386.7,
+      "measurement": "360 radial alpha exits, least-squares fit after excluding high and low ring/plume outliers",
+      "measurement_detail": {
+        "rays_measured": 360,
+        "rays_used_in_fit": 335,
+        "ray_distance_p10_p50_p90_px": [
+          369,
+          391,
+          401
+        ],
+        "alpha_margin_lrtb_px": [
+          77,
+          77,
+          63,
+          93
+        ]
+      }
+    },
+    "desert_planet_limb.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        1024,
+        355
+      ],
+      "horizon_y_at_center_px": 355,
+      "horizon_y_at_edges_px": 720,
+      "horizon_y_at_left_right_px": [
+        720,
+        719
+      ]
+    },
+    "desert_cloud_deck.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "desert_cloud_deck_dark.png": {
+      "size": [
+        2048,
+        1024
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        1024,
+        512
+      ],
+      "wrap_x": true,
+      "wrap_y": true
+    },
+    "desert_entry_fx.png": {
+      "size": [
+        3072,
+        1024
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "pivot_px": [
+        256,
+        300
+      ],
+      "cell_size": [
+        512,
+        1024
+      ],
+      "hole_center_px": [
+        256,
+        338
+      ],
+      "hole_size_px": [
+        146,
+        165
+      ],
+      "hole_center_px_per_frame": [
+        [
+          256,
+          338
+        ],
+        [
+          259,
+          339
+        ],
+        [
+          253,
+          337
+        ],
+        [
+          260,
+          339
+        ],
+        [
+          254,
+          338
+        ],
+        [
+          258,
+          337
+        ]
+      ],
+      "hole_size_px_per_frame": [
+        [
+          147,
+          165
+        ],
+        [
+          149,
+          167
+        ],
+        [
+          147,
+          163
+        ],
+        [
+          151,
+          167
+        ],
+        [
+          147,
+          165
+        ],
+        [
+          149,
+          165
+        ]
+      ]
+    },
+    "desert_breakthrough.png": {
+      "size": [
+        5120,
+        1024
+      ],
+      "cell_grid": [
+        5,
+        1
+      ],
+      "frame_count": 5,
+      "pivot_px": [
+        512,
+        512
+      ],
+      "cell_size": [
+        1024,
+        1024
+      ]
+    },
+    "desert_entry_streaks.png": {
+      "size": [
+        1024,
+        2048
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        512,
+        1024
+      ],
+      "wrap_y": true
+    },
+    "preview.png": {
+      "size": [
+        4096,
+        4096
+      ],
+      "cell_grid": [
+        1,
+        1
+      ],
+      "frame_count": 1,
+      "pivot_px": [
+        2048,
+        2048
+      ]
+    },
+    "preview.gif": {
+      "size": [
+        256,
+        512
+      ],
+      "cell_grid": [
+        6,
+        1
+      ],
+      "frame_count": 6,
+      "pivot_px": [
+        128,
+        150
+      ]
+    }
+  },
+  "source_selection": {
+    "planet": "planet_a_source.png chosen over planet_b_source.png for its readable crescent scar and snapped ring",
+    "entry": "entry_b_source.png chosen over entry_a_source.png for its broad shroud and clean opening",
+    "other_painted_sources": [
+      "limb_source.png",
+      "cloud_source.png",
+      "breakthrough_source.png",
+      "streaks_source.png"
+    ]
+  },
+  "production": "Built-in image generation painted every motif; src~/build.py performs nearest-neighbour placement, local HSV gamut restriction, and exact registration/seam work without blur or global palette reduction."
+}
