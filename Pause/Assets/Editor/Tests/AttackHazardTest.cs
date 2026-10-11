@@ -569,8 +569,9 @@ public static partial class AttackHazardTest
         foreach (var def in EnemyRoster.All)
         {
             var b = EnemyBehaviours.For(def.key);
-            if (b != null && b.IsAreaHazard && def.world < 5) used++;   // Storm (5) fights with Strike: its themed phase
+            if (b != null && (b.attack == EnemyAttack.Blast || b.attack == EnemyAttack.Strike) && def.world < 5) used++;   // Storm (5) fights with Strike: its themed phase
         }
-        Check("no world's roster uses Blast or Strike yet (behaviour unchanged until the per-world phases): " + used, used == 0);
+        Check("only Tide's Lantern Angler of the rosters uses Blast or Strike (thunder lure; the other worlds' phases are not built): " + used,
+              used == 1 && EnemyBehaviours.For("tide_fighter_3").attack == EnemyAttack.Strike);
     }
 }

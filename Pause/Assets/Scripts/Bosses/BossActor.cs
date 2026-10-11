@@ -281,8 +281,11 @@ public class BossActor : MonoBehaviour
     // BossEncounter: `left` hearts are left after a hit at `at`.
     public void SetHearts(int left, Vector3 at)
     {
+        int before = hearts != null ? hearts.Left : left;
         if (hearts != null) hearts.SetLeft(left, at);
         SetDamage(left);
+        // a blow that costs a heart (not the last one: BeginOutro plays the death cue) is heard on the boss's own material
+        if (mode == Mode.Fighting && left < before && left > 0 && boss != null) EnemyDeathAudio.PlayBossHurt(boss.artKey);
         if (mode == Mode.Fighting) RefreshFrame();
     }
 

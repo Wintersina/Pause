@@ -150,6 +150,22 @@ public static class VerdantAttackArtTest
         Check("enabled, Verdant's bolt / shard / shell / slag / glob wear thorn dart / leaf / log chunk / sap atlas cells", themed);
         Sprite pb; var pool = ShotSkins.PoolSprite(2, out pb);
         Check("the landed pod pool is the painted cloud pair", pool == AttackArt.ShotCell(2, AttackArt.ShotCellName.PoolA) && pb == AttackArt.ShotCell(2, AttackArt.ShotCellName.PoolB));
+        // the pod burst: the open husk (sigC a,b) is left where a pod bursts or lands, for HuskSeconds, only with the world's skins on
+        Check("the open pod husk (sigC) pair animates", Changed(Rgba(shots, 6 * 128, 128, 128, 128), Rgba(shots, 7 * 128, 128, 128, 128)) >= .03f);
+        var fxHost = new GameObject("~HuskTest");
+        try
+        {
+            var fx = new EliteFx(fxHost.transform);
+            int before = fx.LiveCount;
+            bool emitted = fx.PodHusk(2, Vector2.zero, 1f);
+            Check("a burst pod leaves the painted husk (" + before + " -> " + fx.LiveCount + " live fx)", emitted && fx.LiveCount == before + 1);
+            bool frost = fx.PodHusk(1, Vector2.zero, 1f);
+            ShotSkins.Enable(2, false);
+            bool off = fx.PodHusk(2, Vector2.zero, 1f);
+            Check("the husk is a Verdant thing: none for Frost, none with the skins off", !frost && !off);
+            ShotSkins.Enable(2);
+        }
+        finally { Object.DestroyImmediate(fxHost); }
         ShotSkins.Enable(2, false);
         Check("disabled, Verdant's shots are the procedural default again", ShotSkins.For(2, EliteShots.Kind.Bolt).procedural);
         // missing atlas: the procedural body answers

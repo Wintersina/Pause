@@ -238,6 +238,9 @@ public static class HostileProjectileTest
             foreach (var r in s.GetComponentsInChildren<SpriteRenderer>(true))
                 if (r.sprite == HostileGlow.Halo || r.sprite == HostileGlow.Sheath) roundHalos++;
             float past = Mathf.Max(g.bounds.size.x - art.bounds.size.x, g.bounds.size.y - art.bounds.size.y) * .5f;
+            // the drawn size is the def's shotSize times its skin's drawScale (themed art and the motion bodies draw 2x; the hit radius never
+            // changes), or SlashLength for a crescent drawn along its length
+            float wantDrawn = (s.Skin.motion & ShotMotion.Slash) != 0 ? ShotMotions.SlashLength : d.shotSize * s.Skin.drawScale;
             string hug;
             bool hugs = OutlineHugsArt(art.sprite, g.sprite, out hug);
             bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn) &&
@@ -247,8 +250,8 @@ public static class HostileProjectileTest
                       HueGap(g.color, PlayerRed) >= 20f && !HostileGlow.IsPlayerRed(g.color);
             if (ok) outlined++;
             else Check(key + " " + kind + ": a thin outline traced from its drawing (" + (g.sprite != null ? g.sprite.name : "none") +
-                       ", sprite " + past.ToString("F3") + " wu past the art incl. its clear pad; " + hug + "), drawn at its shotSize " +
-                       d.shotSize + " (" + drawn.ToString("F2") + "), hitbox " + WorldRadius(col).ToString("F3") + " (" +
+                       ", sprite " + past.ToString("F3") + " wu past the art incl. its clear pad; " + hug + "), drawn at its shotSize x drawScale " +
+                       wantDrawn + " (" + drawn.ToString("F2") + "), hitbox " + WorldRadius(col).ToString("F3") + " (" +
                        s.Radius.ToString("F3") + "), tinted " + Hex(g.color), false);
             if (kind == EliteShots.Kind.Glob)
             {

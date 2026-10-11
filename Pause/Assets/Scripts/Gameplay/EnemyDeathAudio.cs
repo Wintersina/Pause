@@ -242,6 +242,16 @@ public static class EnemyDeathAudio
         string key = BossKey(artKey);
         return key != null && PlayAuthored(key, BossVolume, forceScream);
     }
+    // A boss losing a heart (BossActor.SetHearts): an authored boss_<artKey>_hurt_<n> blow (a short hit on the boss's own material, 0.5-0.7 s, a
+    // few dB under its death cue); silent without clips. Never the last heart: that is the death cue.
+    public static float BossHurtVolume = .7f;
+    public static string BossHurtKey(string artKey) { return string.IsNullOrEmpty(artKey) ? null : BossKey(artKey) + "_hurt"; }
+    public static bool PlayBossHurt(string artKey)
+    {
+        if (!(Application.isPlaying || Simulate)) return false;
+        string key = BossHurtKey(artKey);
+        return key != null && PlayAuthored(key, BossHurtVolume);
+    }
     // Bosses whose death carries a creature cry layer.
     public static bool BossScreams(string artKey) { return artKey == "Frost" || artKey == "Verdant"; }
 

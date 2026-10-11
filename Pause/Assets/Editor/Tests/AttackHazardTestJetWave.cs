@@ -637,6 +637,7 @@ public static partial class AttackHazardTest
             var b = EnemyBehaviours.For(def.key);
             if (b != null && (b.attack == EnemyAttack.Jet || b.attack == EnemyAttack.Wave)) used++;
         }
-        Check("no world's roster uses Jet or Wave yet (behaviour unchanged until the per-world phases): " + used, used == 0);
+        Check("only Tide's Hammerhead of the rosters uses Jet or Wave (surf wave; the other worlds' phases are not built): " + used,
+              used == 1 && EnemyBehaviours.For("tide_fighter_4").attack == EnemyAttack.Wave);
     }
 }

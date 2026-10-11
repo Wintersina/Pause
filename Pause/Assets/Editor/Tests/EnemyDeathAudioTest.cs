@@ -563,7 +563,17 @@ public static class EnemyDeathAudioTest
                 v0 = v;
             }
             Check(key + " never repeats a variant back to back", repeats == 0);
+
+            // the hurt blow (a heart lost): its own two short clips, quieter than the death cue, no scream
+            string hurt = EnemyDeathAudio.BossHurtKey(b.artKey);
+            Check(hurt + " has 2 short variants (" + EnemyDeathAudio.Variants(hurt) + ")", EnemyDeathAudio.Variants(hurt) == 2 && EnemyDeathAudio.AuthoredClip(hurt, 0) != null && EnemyDeathAudio.AuthoredClip(hurt, 1) != null &&
+                  EnemyDeathAudio.AuthoredClip(hurt, 0).length < 1f && EnemyDeathAudio.AuthoredClip(hurt, 0).length < EnemyDeathAudio.AuthoredClip(key, 0).length * .5f);
+            clock += 5; EnemyDeathAudio.ResetVoices();
+            bool hurtPlayed = EnemyDeathAudio.PlayBossHurt(b.artKey);
+            Check(hurt + " PlayBossHurt plays it under the death cue's volume, without a scream", hurtPlayed && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == hurt &&
+                  EnemyDeathAudio.LastVolume < EnemyDeathAudio.BossVolume * EnemyDeathAudio.AuthoredGain && EnemyDeathAudio.Screams == 0);
         }
+        Check("PlayBossHurt for an unknown boss is harmless", !EnemyDeathAudio.PlayBossHurt("Nope") && !EnemyDeathAudio.PlayBossHurt(""));
         Check("unknown boss key is harmless", !EnemyDeathAudio.PlayBossDeath("Nope", true) && !EnemyDeathAudio.PlayBossDeath("", true));
         EnemyDeathAudio.ResetVoices();
     }

@@ -612,6 +612,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // a pod opens as it lands: the cloud pool stays, spores scatter out of it
         if ((mot & ShotMotion.Burst) != 0 && generation == 0)
         {
+            EliteSystem.Fx.PodHusk(ShotSkins.WorldOf(def), new Vector2(p.x, p.y), def.shotSize * AttackArt.ThemedDrawScale * 1.1f);
             lastSpawned = SpawnRing(p, ShotMotions.BurstSpores, ShotMotions.SporeSpeed, ShotMotions.SporeScale, ShotMotions.SporeSeconds);
             Splits++;
             mot &= ~ShotMotion.Burst;   // (the cloud that stays is the pool: it does not burst again at a rail)
@@ -906,6 +907,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         else
         {
             EliteSystem.Fx.Sparks(at, tint, 6);
+            EliteSystem.Fx.PodHusk(ShotSkins.WorldOf(def), at, def.shotSize * AttackArt.ThemedDrawScale * 1.1f);
             lastSpawned = SpawnRing(at, ShotMotions.BurstSpores, ShotMotions.SporeSpeed, ShotMotions.SporeScale, ShotMotions.SporeSeconds);
         }
         Splits++;
