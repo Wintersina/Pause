@@ -159,7 +159,7 @@ public static class AchievementCatalog
     // Live now (a dormant Tide achievement is not).
     public static bool IsActive(AchievementDef def)
     {
-        return def != null && (!def.requiresTide || WorldManager.TideEnabled || WorldManager.StormEnabled);
+        return def != null && (!def.requiresTide || WorldManager.TideEnabled);
     }
 
     // The achievements the player can see and earn right now.

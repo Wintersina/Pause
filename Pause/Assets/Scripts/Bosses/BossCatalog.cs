@@ -193,6 +193,13 @@ public static class BossCatalog
     static readonly Color Mint = new Color(.45f, 1f, .82f);
     static readonly Color StormYellow = new Color(1f, .95f, .63f);
 
+    // The Tempest Engine's battle-damage and death art keys. TODO(storm-boss-damage): Codex's Storm_damage.png, Storm_damage_fx.png
+    // and Storm_death.png are still being painted (art/storm-boss-damage); until they are installed under Resources/Bosses the engine
+    // wears the Iron Kraken's damage smoke / arcs and death strip. Swapping is this one line each: "Storm" (BossDamageTest then
+    // requires exactly that as soon as Storm_damage.png exists).
+    public const string StormDamageKey = "Storm";
+    public const string StormDeathKey = "Storm";
+
     static BossDef[] Build()
     {
         var bosses = new[]
@@ -346,17 +353,43 @@ public static class BossCatalog
                 attacks = TideAttacks(),
             },
             // ----------------------------------------------------------- Storm
-            // PLACEHOLDER until Storm's own boss (add-world phase 13): the Tempest
-            // Engine flies the Iron Kraken's art, emitters and attacks (artKey
-            // "Tide": BossEmitters.World reads it, so the Storm row of the emitter
-            // table stays empty). BossEncounterTest's "one boss per world" holds.
+            // A weather-factory turbine: a white-hot core drum, a crown of
+            // lightning rods between two Tesla coil towers. Tells: core flare
+            // (0), crown arcs (1), coil towers charging (2). The core fan and
+            // the coil beams are its default pattern; the crown's hail is its
+            // third; the themed table (BossThemed) adds its lane strike and
+            // chain-lightning sweep.
             new BossDef
             {
-                id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Tide", damageKey = "Tide", deathKey = "Tide", expandedCombat = true,
-                lore = "A floating turbine the size of a city block that makes the weather it hides in. " +
-                       "Its drum spits arcs, its crown calls the lightning down and its twin coils cut the sky in half.",
-                swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = StormYellow, heartColor = StormYellow,
-                attacks = TideAttacks(),
+                id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Storm",
+                damageKey = StormDamageKey, deathKey = StormDeathKey,
+                lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
+                       "Its drum spits arcs the moment the core flares white, its crown calls the lightning down on your lane after the rods spark, and its twin coils cut the sky in half. " +
+                       "Watch which part lights up first, then leave the gap between the towers.",
+                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = StormYellow, smokeStrength = .85f,
+                attacks = new[]
+                {
+                    // The drum's core flares white, then it vents fans of
+                    // arc bolts that ricochet once off the rails.
+                    new BossAttack { name = "core arc fan", kind = BossAttackKind.Fan, tell = 0, tellSeconds = 1f,
+                                     emitters = new[] { "Core" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
+                                     speed = 2.6f, style = BossShotStyle.Bolt,
+                                     rail = BossRailMode.Absorb, cooldown = 1.2f },
+                    // The rods spark, then hail is flung up out of the crown
+                    // and rains down on four of five columns.
+                    new BossAttack { name = "crown hail", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,
+                                     emitters = new[] { "Rods" },
+                                     volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Shard,
+                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.4f,
+                                     rail = BossRailMode.Absorb, cooldown = 1.4f },
+                    // Both coil towers charge, then burn two beams straight
+                    // down that swing outward: the lane between them is safe.
+                    new BossAttack { name = "coil beams", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
+                                     emitters = new[] { "CoilL", "CoilR" },
+                                     aim = BossBeamAim.Down, aimDeg = 6f, sweepDeg = 14f, beamWidth = .28f, hold = .8f,
+                                     cooldown = 1.4f },
+                },
             },
         };
 
@@ -374,7 +407,7 @@ public static class BossCatalog
         return bosses;
     }
 
-    // The Iron Kraken's three attacks (Tide's boss, and Storm's placeholder).
+    // The Iron Kraken's three attacks.
     static BossAttack[] TideAttacks()
     {
         return new[]

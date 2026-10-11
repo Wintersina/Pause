@@ -40,6 +40,14 @@ Hostile attacks keep the pink core cue (hue 312-326 core/fringe) with Storm mate
 ## Boss: TEMPEST ENGINE, "STORM-MAKING TURBINE"
 Floating turbine engine. Parts: 1 core drum (arc fan), 2 lightning-rod crown (lane strike, crown flares first), 3 twin coil
 towers (coil beams). Signature chain-lightning sweep (`Wave`). Flash white-yellow, heart pale yellow.
+STATUS (branch feature/storm-boss-wire): installed. Storm.png / Storm_shots.png / Storm_card.png live in
+`Art/Resources/Bosses/` (staged originals stay in `Art/Bosses/Storm~/`); BossCatalog entry (artKey "Storm", 20-cell base atlas,
+not expanded); emitters Core / Rods / CoilL / CoilR measured by `measure_emitters.py` into BossEmitterTable row 5; BossHearts
+ellipse, BossAttackFx row 5 (storm-white / pale yellow / slate), codex part words. Default table: core arc fan (Fan, tell 0),
+crown hail (Lob, tell 1), coil beams (Beam, tell 2). Themed table (BossThemed, off until Storm is live): + crown strike (Strike,
+tell 1, phase 1) and chain-lightning sweep (Wave Scan band, tell 0, phase 3). PENDING: Storm_damage / _damage_fx / _death art
+(art/storm-boss-damage); until delivered `BossCatalog.StormDamageKey` / `StormDeathKey` = "Tide" (one-line swap to "Storm";
+BossEncounterTest / BossDamageTest require the swap as soon as the files exist). The 35-cell expanded combat atlas is optional later.
 
 ## Elites (5)
 Skyhook Harrier (interceptor, hook lance), Refinery Tender (hauler, sinking canisters), Rod Dancer (skirmisher, blink + arc fan),

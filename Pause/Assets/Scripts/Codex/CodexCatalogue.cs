@@ -321,6 +321,8 @@ public static class CodexCatalogue
             case "Furnace": return "its chest furnace";
             case "Brow": return "the gem on its brow";
             case "Beak": return "its beak";
+            case "Rods": return "its lightning-rod crown";
+            case "Coil": return "its twin coil towers";
             case "LeftA": case "LeftB": return "its port cannon arms";
             case "RightA": case "RightB": return "its starboard cannon arms";
             default: return null;

@@ -133,6 +133,10 @@ public static class AttackBudgetTest
         { "boss:Tide:port cluster", new Pin(1873, 2000, 1989) },   // 93.7 % bot, 99.5 % standing; shown in 2000/2000;
         { "boss:Tide:beak jet", new Pin(0, 2000, 1202) },   // 0.0 % bot, 60.1 % standing; shown in 2000/2000;
         { "boss:Tide:starboard cluster", new Pin(624, 2000, 1990) },   // 31.2 % bot, 99.5 % standing; shown in 2000/2000;
+        // Tempest Engine (default table; the core fan was retuned to a fair rate, see its Pin)
+        { "boss:Storm:core arc fan", new Pin(91, 2000, 1570) },   // 4.6 % bot, 78.5 % standing; shown in 2000/2000; (the first tuning, 5 bolts / 70 deg / ricochet, was 63 %)
+        { "boss:Storm:crown hail", new Pin(227, 2000, 1877) },   // 11.4 % bot, 93.9 % standing; shown in 2000/2000;
+        { "boss:Storm:coil beams", new Pin(0, 2000, 1155) },   // 0.0 % bot, 57.8 % standing; shown in 2000/2000;
     };
 
     // New attack id -> the old attack id it replaces. Later phases add rows here
@@ -171,6 +175,8 @@ public static class AttackBudgetTest
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
+        { "themed:boss_storm_crown_strike", "boss:Storm:crown hail" },
+        { "themed:boss_storm_chain_lightning", "boss:Storm:crown hail" },   // held to the crown hail (the coil beams of its slot are 0 % and the core fan 4.6 %; measured 9.2 %)
         { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)
         { "themed:boss_verdant_trunk_toss", "boss:Verdant:acid cannons" },   // slot 5 (phase 3), against the phase-3 pinned attack
     };

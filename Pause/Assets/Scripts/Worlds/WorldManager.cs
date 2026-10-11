@@ -151,6 +151,10 @@ public class WorldManager : MonoBehaviour
     // ======================================================================
     public static bool StormEnabled { get; set; } = false;
 
+    // The flags chain in world order: Storm is reachable only when Tide is ALSO on
+    // (Ember -> Tide -> Storm). StormEnabled alone changes nothing.
+    public static bool StormLive { get { return TideEnabled && StormEnabled; } }
+
     // How many worlds the chain reaches (Worlds.Length with the switch on). The
     // tests that walk "every world" walk this many, so Tide joins them (and
     // the checks that need its real art / roster) the moment the switch flips.
@@ -161,7 +165,7 @@ public class WorldManager : MonoBehaviour
     // Past it the next stop is the loop, not another planet.
     public static int LastLiveWorld
     {
-        get { return StormEnabled ? Worlds.Length - 1 : TideEnabled ? Worlds.Length - 2 : Worlds.Length - 3; }
+        get { return StormLive ? Worlds.Length - 1 : TideEnabled ? Worlds.Length - 2 : Worlds.Length - 3; }
     }
 
     // The world the live run is on. Once this manager has set it (Start,

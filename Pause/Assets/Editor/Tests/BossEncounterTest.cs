@@ -33,6 +33,7 @@ public static class BossEncounterTest
         {
             EveryWorldHasCompleteArt();
             TideBossUsesItsExpandedCells();
+            StormBossIsWired();
             LevelEndStartsTheBossThenThePortal();
             EmberHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
@@ -138,7 +139,7 @@ public static class BossEncounterTest
         // rendered atlases, so hold those and the generator itself.
         Check("the boss generator exists", File.Exists("Assets/Art/Bosses/src~/bosses.py"));
         Check("the warning slab is rendered", File.Exists("Assets/Art/Resources/Bosses/warning.png"));
-        foreach (var dir in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })
+        foreach (var dir in new[] { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" })
             foreach (var suffix in new[] { "", "_shots", "_card" })
                 Check(dir + suffix + ".png is rendered", File.Exists("Assets/Art/Resources/Bosses/" + dir + suffix + ".png"));
     }
@@ -150,10 +151,11 @@ public static class BossEncounterTest
     static void TideBossUsesItsExpandedCells()
     {
         var tide = BossCatalog.Find("boss_tide");
-        Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 5 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
+        Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 6 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
         Check("... named IRON KRAKEN, TYRANT OF THE DEEP", tide != null && tide.name == "IRON KRAKEN" && tide.title == "TYRANT OF THE DEEP");
         Check("expandedCombat: Space and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
-              !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && !BossCatalog.All[3].expandedCombat);
+              !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && !BossCatalog.All[3].expandedCombat &&
+              !BossCatalog.All[5].expandedCombat);
         Check("Tide's atlas holds 35 cells", BossArt.BodyFrameCount(tide) == BossArt.BodyFrames);
         Check("its idle is the six tentacle cells at 20..25", BossArt.IdleStart(tide) == 20 && BossArt.IdleCount(tide) == 6 &&
               BossArt.IdleFrame(tide, 0f) == 20 && BossArt.IdleFrame(tide, 5.5f * 2 * BossArt.Tick) == 25);
@@ -180,6 +182,37 @@ public static class BossEncounterTest
         Check("every attack's muzzles resolve in all 15 expanded drawings", muzzles);
         Check("a mint accent and heart colour of its own", BossWarningConfig.Accent(4) != BossWarningConfig.Accent(3) && tide.heartColor == tide.flash);
         Check("the attack fx sheet has its row", BossAttackFx.Row(tide) == 4 && BossAttackFx.Get(tide, BossAttackFx.Ring) != null);
+    }
+
+    // The Tempest Engine (Storm): the sixth boss on its own 20-cell atlas, its own emitters / hearts / fx row, and the damage
+    // and death keys behind the one named constant (BossCatalog.StormDamageKey / StormDeathKey) until Codex's art is installed.
+    static void StormBossIsWired()
+    {
+        var storm = BossCatalog.Find("boss_storm");
+        Check("the Tempest Engine is the sixth boss, on the Storm art", storm != null && BossCatalog.All.Length == 6 && BossCatalog.All[5] == storm && storm.artKey == "Storm");
+        Check("... named TEMPEST ENGINE, STORM-MAKING TURBINE", storm != null && storm.name == "TEMPEST ENGINE" && storm.title == "STORM-MAKING TURBINE");
+        Check("its atlas is the 20-cell base one, four idle cells", !storm.expandedCombat && BossArt.BodyFrameCount(storm) == BossArt.BaseBodyFrames &&
+              BossArt.IdleStart(storm) == 0 && BossArt.IdleCount(storm) == 4);
+        Check("it has its own atlas, shots and card (not the Kraken's)", storm.artKey != "Tide" && BossArt.Body(storm, BossArt.Idle0) != BossArt.Body(BossCatalog.Find("boss_tide"), BossArt.Idle0));
+        var tide = BossCatalog.Find("boss_tide");
+        Check("its emitter row has Core, Rods, CoilL, CoilR over the 12 base drawings", BossEmitters.World(storm) == 5 &&
+              string.Join(",", BossEmitterTable.Parts[5]) == "Core,Rods,CoilL,CoilR" && BossEmitterTable.FrameCount(5) == BossEmitterTable.Frames);
+        bool parts = storm.attacks.Length == 3 && storm.themed != null && storm.themed.Length == 5;
+        foreach (var a in storm.themed) foreach (int part in a.parts) parts &= part >= 0;
+        Check("three default attacks (core arc fan, crown hail, coil beams) and a themed table of five that ends in the chain-lightning sweep", parts &&
+              storm.themed[1].kind == BossAttackKind.Strike && storm.themed[4].kind == BossAttackKind.Wave && storm.themed[4].minPhase == 3);
+        Check("it does not fight themed yet (Storm is not live)", !storm.themedAttacks);
+        Check("a pale-yellow flash and heart colour, an accent of its own", storm.heartColor == storm.flash && BossWarningConfig.Accent(5) != BossWarningConfig.Accent(4));
+        Check("the attack fx sheet has its row", BossAttackFx.Row(storm) == 5 && BossAttackFx.Get(storm, BossAttackFx.Ring) != null &&
+              BossAttackFx.Get(storm, BossAttackFx.Ring) != BossAttackFx.Get(tide, BossAttackFx.Ring));
+        // Damage / death art: Codex's Storm_damage*.png and Storm_death.png are staged elsewhere. Until they are installed the keys are the
+        // Kraken's stand-in; the moment Storm_damage.png exists the keys must be "Storm" (the swap is BossCatalog.StormDamageKey).
+        bool own = File.Exists("Assets/Art/Resources/Bosses/Storm_damage.png") && File.Exists("Assets/Art/Resources/Bosses/Storm_damage_fx.png");
+        bool ownDeath = File.Exists("Assets/Art/Resources/Bosses/Storm_death.png");
+        Check("damage art keys: " + (own ? "Storm's own" : "the stand-in (" + BossCatalog.StormDamageKey + ")"),
+              storm.damageKey == (own ? "Storm" : BossCatalog.StormDamageKey) && BossArt.HasDamageArt(storm));
+        Check("death art key: " + (ownDeath ? "Storm's own" : "the stand-in (" + BossCatalog.StormDeathKey + ")"),
+              storm.deathKey == (ownDeath ? "Storm" : BossCatalog.StormDeathKey) && BossArt.HasDeathArt(storm) && BossArt.DeathStrip(storm, 0) != null);
     }
 
     static void LevelEndStartsTheBossThenThePortal()

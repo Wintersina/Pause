@@ -42,6 +42,7 @@ public static partial class AttackHazardArt
             case 2: return new Ramp { light = Hsv(108, .5f, .6f), dark = Hsv(112, .55f, .42f) };    // verdant: deep leaf, never repair-green
             case 3: return new Ramp { light = Hsv(27, .6f, 1f), dark = Hsv(23, .62f, .9f) };         // ember: hot orange, never amber 37
             case 4: return new Ramp { light = Hsv(205, .2f, 1f), dark = Hsv(212, .4f, .9f) };        // tide: white water
+            case 5: return new Ramp { light = Hsv(58, .3f, 1f), dark = Hsv(214, .28f, .9f) };         // storm: pale-yellow arc edge on storm-white, never lilac
             default: return new Ramp { light = Hsv(285, .25f, 1f), dark = Hsv(288, .4f, .9f) };      // space: lilac neon
         }
     }

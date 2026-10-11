@@ -60,6 +60,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
 
     protected readonly AttackShape shape = new AttackShape();
     protected int world;
+    int audioWorld;                                         // the unclamped-by-skins world (Storm = 5) so its own cues play
     protected GameObject shooter;
     protected int ownerId;
     protected float t, age, tellTotal;
@@ -129,6 +130,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
     protected void BeginTell(float tellSeconds, GameObject by, int worldIndex)
     {
         world = Mathf.Clamp(worldIndex, 0, ShotSkins.Worlds - 1);
+        audioWorld = Mathf.Clamp(worldIndex, 0, AttackAudio.WorldFolders.Length - 1);
         shooter = by;
         ownerId = by != null ? by.GetInstanceID() : 0;
         tellTotal = Mathf.Max(MinTellSeconds, tellSeconds);
@@ -153,7 +155,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
         hitCount = 0;
         if (preview != null) { preview.GoLive(); preview = null; }
         OnIgnited();
-        AttackAudio.Play(world, AttackAudio.CueOf(Label));
+        AttackAudio.Play(audioWorld, AttackAudio.CueOf(Label));
         if (hitbox == null) { EndLive(); return; }
         SyncHitbox();
         poly.enabled = true;
