@@ -197,8 +197,8 @@ public static class BossCatalog
     // and Storm_death.png are still being painted (art/storm-boss-damage); until they are installed under Resources/Bosses the engine
     // wears the Iron Kraken's damage smoke / arcs and death strip. Swapping is this one line each: "Storm" (BossDamageTest then
     // requires exactly that as soon as Storm_damage.png exists).
-    public const string StormDamageKey = "Tide";
-    public const string StormDeathKey = "Tide";
+    public const string StormDamageKey = "Storm";
+    public const string StormDeathKey = "Storm";
 
     static BossDef[] Build()
     {
