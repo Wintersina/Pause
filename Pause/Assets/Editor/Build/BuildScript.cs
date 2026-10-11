@@ -176,6 +176,13 @@ public static class BuildScript
 
         Debug.Log("[BUILD] " + target + " -> " + outputPath + " (" + scenes.Length + " scenes)"
             + (extraDefines.Length > 0 ? " defines=" + string.Join(",", extraDefines) : ""));
+        if (target == BuildTarget.Android)
+        {
+            var grp = UnityEditor.Build.NamedBuildTarget.Android;
+            Debug.Log("[BUILD] stripping=" + PlayerSettings.GetManagedStrippingLevel(grp)
+                + " il2cppCodeGen=" + PlayerSettings.GetIl2CppCodeGeneration(grp)
+                + " minifyRelease=" + EditorUserBuildSettings.androidReleaseMinification);
+        }
         BuildReport report = BuildPipeline.BuildPlayer(options);
         BuildSummary summary = report.summary;
 

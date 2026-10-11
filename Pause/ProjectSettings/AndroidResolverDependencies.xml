@@ -1,7 +1,6 @@
 <dependencies>
   <packages>
     <package>com.google.android.gms:play-services-games-v2:22.1.0</package>
-    <package>com.google.android.gms:play-services-nearby:18.5.0</package>
   </packages>
   <files />
   <settings>

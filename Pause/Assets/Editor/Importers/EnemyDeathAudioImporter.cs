@@ -16,7 +16,27 @@ public class EnemyDeathAudioImporter : AssetPostprocessor
     public const string GateFolder = "Assets/Audio/Resources/Audio/Gate/";   // HapticGate splash cues (GateAudio), same rules
 
     // Bump to reimport the folder after changing a rule below.
-    public override uint GetVersion() { return 3; }
+    public override uint GetVersion() { return 4; }
+
+    public const float ShortClipSeconds = 0.5f;
+    public const float AndroidVorbisQuality = 0.6f;
+
+    // Duration from the WAV header (mono / stereo, 16 bit PCM); 1 s when unreadable.
+    public static float ClipSeconds(string path)
+    {
+        try
+        {
+            using (var f = System.IO.File.OpenRead(path))
+            {
+                var h = new byte[44];
+                if (f.Read(h, 0, 44) < 44) return 1f;
+                int ch = System.BitConverter.ToInt16(h, 22), sr = System.BitConverter.ToInt32(h, 24), bits = System.BitConverter.ToInt16(h, 34);
+                if (ch <= 0 || sr <= 0 || bits <= 0) return 1f;
+                return (f.Length - 44f) / (sr * ch * (bits / 8f));
+            }
+        }
+        catch { return 1f; }
+    }
 
     void OnPreprocessAudio()
     {
@@ -31,7 +51,15 @@ public class EnemyDeathAudioImporter : AssetPostprocessor
         s.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
         s.preloadAudioData = true;
         importer.defaultSampleSettings = s;
-        importer.ClearSampleSettingOverride("Android");
+        // Android only: the editor, desktop and iOS keep the PCM default above.
+        // Clips <= ShortClipSeconds are the punchy hits (ADPCM, 4:1, stays cheap to
+        // start); longer ones (screams, boss and gate tails) go Vorbis. Both stay
+        // DecompressOnLoad + preloaded, so there is no first-kill decode stall.
+        var a = s;
+        bool shortClip = ClipSeconds(assetPath) <= ShortClipSeconds;
+        a.compressionFormat = shortClip ? AudioCompressionFormat.ADPCM : AudioCompressionFormat.Vorbis;
+        a.quality = AndroidVorbisQuality;
+        importer.SetOverrideSampleSettings("Android", a);
         importer.ClearSampleSettingOverride("iOS");
     }
 }

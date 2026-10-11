@@ -1,0 +1,8 @@
+<linker>
+  <!-- Managed stripping is Medium on Android. Keep the game's own code whole
+       (JsonUtility save/cloud types, reflection-built name tables, Resources
+       loaded MonoBehaviours) and the Google Play Games plugin whole (it reaches
+       Java through AndroidJavaObject / reflection-style callbacks). -->
+  <assembly fullname="Assembly-CSharp" preserve="all"/>
+  <assembly fullname="Google.Play.Games" preserve="all"/>
+</linker>

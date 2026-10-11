@@ -188,6 +188,7 @@ public static class UnusedAssetGuardTest
         if (path.EndsWith(".cs") || path.EndsWith(".md") || path.EndsWith(".txt") ||
             path.EndsWith(".asmdef") || path.Contains("/Editor/"))
             return true;
+        if (path == "Assets/link.xml") return true;   // the IL2CPP linker reads it, nothing references it
         if (path.Contains("/Staging/") || path.Contains("/staging/")) return true;
         foreach (string prefix in ExemptPrefixes)
             if (path.StartsWith(prefix)) return true;
