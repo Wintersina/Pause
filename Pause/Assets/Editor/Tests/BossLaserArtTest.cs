@@ -94,7 +94,7 @@ public static class BossLaserArtTest
             var tex = AttackArt.Atlas(kit.world, Names[i].Substring(Pre.Length));
             Check(Names[i] + ": served by AttackArt as Attacks/" + kit.name + "/" + Names[i] + " at " + Sizes[i].x + " x " + Sizes[i].y,
                   tex != null && tex.width == Sizes[i].x && tex.height == Sizes[i].y);
-            if (tex != null) bytes += tex.width * tex.height * (tex.format == TextureFormat.RGBA32 ? 4 : 99);   // the GPU copy (the editor's runtime-size figure also counts its CPU copy)
+            if (tex != null) bytes += tex.width * tex.height * (tex.format == TextureFormat.RGBA32 ? 4 : 1);   // the GPU copy (the size diet ships these as ASTC on Android, at most 1 byte per texel) (the editor's runtime-size figure also counts its CPU copy)
         }
         Debug.Log("[BOSSLASER] " + tag + "texture memory " + (bytes / 1024) + " KB (budget " + (MemoryBudget / 1024) + " KB)");
         Check("texture memory " + (bytes / 1024) + " KB <= " + (MemoryBudget / 1024) + " KB", bytes > 0 && bytes <= MemoryBudget);

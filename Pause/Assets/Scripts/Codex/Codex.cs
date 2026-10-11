@@ -64,6 +64,18 @@ public static class Codex
         }
     }
 
+    // Every entry the player can discover today: all but the entries of worlds the loop cannot reach yet (Completionist's target;
+    // developer mode, which discovers those too, only overshoots it).
+    public static int ReachableCount
+    {
+        get
+        {
+            int n = 0;
+            foreach (var e in Entries) if (!InFutureWorld(e)) n++;
+            return n;
+        }
+    }
+
     public static int DiscoveredCount
     {
         get

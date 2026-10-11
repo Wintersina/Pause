@@ -242,7 +242,7 @@ public static class HostileProjectileTest
             bool hugs = OutlineHugsArt(art.sprite, g.sprite, out hug);
             bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn) &&
                       g.sortingOrder < 30 && g.GetComponent<Collider2D>() == null &&
-                      g.transform.localScale == Vector3.one && Mathf.Abs(drawn - d.shotSize) < .02f &&
+                      g.transform.localScale == Vector3.one && DrawnAtItsSize(s, drawn, d.shotSize) &&
                       Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f && past <= .06f && hugs &&
                       HueGap(g.color, PlayerRed) >= 20f && !HostileGlow.IsPlayerRed(g.color);
             if (ok) outlined++;
@@ -258,7 +258,8 @@ public static class HostileProjectileTest
                 var poolArt = s.GetComponent<SpriteRenderer>();
                 Check(key + ": the glob is outlined in the air and as a pool (" + (g.sprite != null ? g.sprite.name : "none") +
                       "; hitbox " + WorldRadius(col).ToString("F3") + ")",
-                      glowedInAir && s.Pooled && g.enabled && g.sprite == ShotOutline.For(EliteFxArt.Pool, poolArt.bounds.size.y) &&
+                      glowedInAir && (s.Pooled || (s.Skin.motion & ShotMotion.Roll) != 0 && !s.Airborne) && g.enabled && g.sprite != null &&   // (the Timber Hauler's log lands rolling, not as a pool)
+                      (!s.Skin.procedural || g.sprite == ShotOutline.For(EliteFxArt.Pool, poolArt.bounds.size.y)) &&   // (a behaviour's painted skin lands as its own second frame)
                       Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f);
             }
             s.Recycle();
@@ -686,6 +687,15 @@ public static class HostileProjectileTest
                " of the cell over art x " + solid.x.ToString("F2") + ".." + solid.z.ToString("F2") + " y " + solid.y.ToString("F2") + ".." +
                solid.w.ToString("F2") + ", off by " + off.ToString("F3");
         return clearEdges && lit > 0 && lit < px.Length / 2 && Mathf.Abs(most - 255f * BossArt.ShotRimAlpha) <= 2f && off <= RimFit;
+    }
+
+    // A plain shot is drawn at its nominal size. A painted / behaviour skin (the Verdant elites' leaf, spore pod and log, drawn through
+    // EliteDef.MotionSkinFor whatever ShotSkins.Enable says) is drawn up to ThemedDrawScale times that, and a turned or slashing one
+    // measures a little more across its rotated bounds.
+    static bool DrawnAtItsSize(EliteShot s, float drawn, float shotSize)
+    {
+        if (s.Skin == null || s.Skin.procedural) return Mathf.Abs(drawn - shotSize) < .02f;
+        return drawn >= shotSize * .98f && drawn <= shotSize * s.Skin.drawScale * 1.25f;
     }
 
     // An elite / enemy shot's outline (ShotOutline) against its drawing:

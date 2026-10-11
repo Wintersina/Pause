@@ -70,7 +70,7 @@ public static class AchievementMigrationTest
         PlayerPrefs.SetString("boughtship2", "True");
         PlayerPrefs.SetString("boughtship3", "True");
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(2, 1), 1);
-        PlayerPrefs.SetInt(RunScore.BestScoreKey, 3000);
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, AchievementCatalog.ScoreRookie + 1000);
         PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1,enemy_frost_alien,hazard_mine,hazard_ember_mine,atom_violet,world_portal");
         Codex.Reload();
 

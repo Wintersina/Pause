@@ -22,7 +22,7 @@ public static class TitleScreenTrafficTest
 
     const string LogoPath = "Assets/Art/UI/Title/pause_title_2.png";
     const string LogoSha256 = "fbc73021f06f4dd3a79d8d42e1bd22870723f49d8d16a2474df8896b1ab7d305";
-    const string LogoMetaSha256 = "005e199d4579224cc74902d945901813061003e2979944897b6354f5f3a382a8";
+    const string LogoMetaSha256 = "6fdfe7b00562737f0ff69d4f4ce35c4dde830193d434532b08037ff752f2e5b6";
     // startS4's authored menuTitle transform / renderer
     static readonly Vector3 LogoPos = new Vector3(-0.04f, 2.72f, 0f);
     static readonly Vector3 LogoScale = new Vector3(0.4176109f, 0.46091294f, 1f);

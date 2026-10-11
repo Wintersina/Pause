@@ -707,6 +707,7 @@ public static class RailMineLaserTest
         Fresh();
         Object.DestroyImmediate(ship.gameObject);
         var rig = new DeathCrashTest.Rig(FirstShip);
+        collisionDetection.MAXLIFE = 3;   // (the first dock row flies one base heart now: a touch would be fatal; these tests are about the non-fatal path)
         try
         {
             ship = rig.ship.transform;
@@ -868,6 +869,7 @@ public static class RailMineLaserTest
         Fresh();
         Object.DestroyImmediate(ship.gameObject);
         var rig = new DeathCrashTest.Rig(FirstShip);
+        collisionDetection.MAXLIFE = 3;   // (the first dock row flies one base heart now: a touch would be fatal; these tests are about the non-fatal path)
         try
         {
             ship = rig.ship.transform;
