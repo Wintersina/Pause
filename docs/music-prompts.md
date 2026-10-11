@@ -66,6 +66,19 @@ For Suno / Udio style generators. No artist names. Each background track starts 
 
 > Instrumental cyberpunk boss battle. Intense 150 BPM, with a pounding four-on-the-floor kick, a growling distorted bass, a screaming synth lead, industrial percussion and brass-like synth stabs. A dark minor-key riff, a heavy dubstep drop with a wobble bass, and a rising build back into the riff. Epic, relentless and loopable.
 
+## Boost music (replaces BoostingMusic.wav, the track that plays while the ship is boosting)
+
+The current file (`Assets/Audio/Music/BoostingMusic.wav`, about 40 s, loops while boosting) is a layer over the world track, so the replacement should be a short, tight loop that adds speed without being shrill or repetitive. Use the shared style line, then:
+
+> Instrumental, no vocals. A short seamless loop of 16 bars at 150 BPM that adds speed and adrenaline to a game, without a lead melody. A driving rolling bassline, a tight four-on-the-floor kick, fast closed hi-hats, a filtered rising arpeggio underneath and a subtle riser tail. Smooth, warm, analog tone, with no harsh high-pitched squeals or sirens, no sharp saw leads, no repeated stabs and no sudden loud hits. Sidechained pads breathing with the kick, a feeling of acceleration, wind rush and a hyperspace-like tunnel. Moderate loudness, mixed to sit under gameplay sounds. Ends on the same chord it starts on so that it loops with no gap.
+
+Variants to try if the first one is still annoying:
+- **Softer:** "same as above, but with no hi-hats and a low-pass filtered arpeggio, more pad and sub bass, like a calm cruise at light speed."
+- **More tension:** "add a pulsing 8th-note sub bass and a slow filter sweep that opens over the 16 bars, and keep the lead out."
+- **World-neutral:** it plays over every world's track, so avoid a strong key or melody. Ask for "key-neutral, drone-based" so it never clashes with the world music.
+
+Tips for this one: generate 30-60 s and loop-trim to a whole number of bars; keep it quieter than the world tracks (about -6 dB); no vocals or spoken words.
+
 ## Tips
 
 - **Loops:** Generators rarely make perfect loops. Ask for "ends on the same chord it starts on", or trim in an editor.
