@@ -237,7 +237,10 @@ public static class WorldLogicTest
             WorldManager.TideEnabled = true; WorldManager.StormEnabled = false;
             Check("Tide on, Storm off: Tide is last (5 live)", WorldManager.LastLiveWorld == Tide && WorldManager.LiveWorldCount == 5);
             WorldManager.StormEnabled = true; WorldManager.TideEnabled = false;
-            Check("Storm on implies Tide on: Storm is the last live world (6 live)", WorldManager.LastLiveWorld == Storm && WorldManager.LiveWorldCount == 6);
+            Check("flags chain: Storm on alone changes nothing (Ember stays last, 4 live, production loop Space-Frost-Verdant-Ember-Space)",
+                  WorldManager.LastLiveWorld == Ember && WorldManager.LiveWorldCount == 4 && !WorldManager.StormLive);
+            WorldManager.TideEnabled = true;
+            Check("Tide and Storm both on: Storm is the last live world (6 live)", WorldManager.LastLiveWorld == Storm && WorldManager.LiveWorldCount == 6 && WorldManager.StormLive);
             WorldManager.CurrentIndex = Ember;
             Check("Storm on: Ember -> Tide -> Storm", WorldManager.HasNext && WorldManager.PortalDestination == Tide);
             WorldManager.CurrentIndex = Tide;
