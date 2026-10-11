@@ -20,8 +20,11 @@ using Object = UnityEngine.Object;
 //     station is pushed (the column push included), keeps its station, flies
 //     back to it over time and finishes its script; a windup carries on
 //   - rail mines slide along their rail and stay on it
-//   - bosses, parked elites and hostile shots do not move; an elite in play
+//   - bosses, parked elites and shot hitboxes do not move; an elite in play
 //     is kicked away
+//   - projectiles in flight (boss, elite and roster shots, and the player's
+//     own) are displaced like bodies, ease out, keep flying on their own
+//     course (a scripted flutter included) and never snap back
 //   - pushed bodies do not land on each other
 //   - nothing moves while the world is frozen; the push plays out on resume
 //   - nothing is scored or destroyed, and a release allocates nothing
@@ -70,6 +73,7 @@ public static class ShieldShockwaveTest
             NoScoreNoKills();
             ReleaseAllocatesNothing();
             TheRingIsOnlyACircumference();
+            ProjectilesArePushed();
             GuardsAndFeel();
         }
         finally
@@ -706,6 +710,110 @@ public static class ShieldShockwaveTest
         Check("... and is carried off by it (" + farthest.ToString("F2") + " u further away), still in play, hearts intact",
               farthest > .03f && flying.InPlay && flying.Hearts == def.hearts);
         EliteSystem.Clear();
+    }
+
+    // ---- 6b: projectiles -------------------------------------------------------
+
+    static void ProjectilesArePushed()
+    {
+        Fresh();
+        var boss = BossCatalog.ForWorld(0);
+        var pool = new BossProjectilePool(8, 1);
+        var def = new EliteDef { key = "test_wave", world = "verdant", shotSize = .22f, shotColor = "#FF4FD8", shotCore = "#FFFFFF",
+                                 lobSeconds = .8f, poolSeconds = 2.5f, hazardCount = 6, hazardSpeed = 1.5f };
+        def.Resolve();
+        try
+        {
+            ShotSkins.ResetForTests();
+            ShotSkins.Override(2, EliteShots.Kind.Shard, ShotMotionArt.Skin(2, EliteShots.Kind.Shard, ShotMotion.Flutter));
+
+            Vector3 bossAt = Ship + new Vector2(.9f, .5f);
+            Vector3 eliteAt = Ship + new Vector2(-.8f, .9f);
+            Vector3 leafAt = Ship + new Vector2(.5f, -.9f);
+            Vector3 columnAt = Ship + new Vector2(0f, 3.5f);
+            Vector3 farAt = Ship + new Vector2(3.6f, 0f);
+            Vector3 mineAt = Ship + new Vector2(-1.2f, -.4f);
+            var bossShot = pool.Fire(boss, BossShotStyle.Bolt, bossAt, new Vector2(0f, -.5f));
+            var eliteShot = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Bolt, eliteAt, new Vector2(0f, -.5f));
+            var leaf = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Shard, leafAt, new Vector2(0f, -.5f));
+            var inColumn = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Bolt, columnAt, Vector2.zero);
+            var far = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Bolt, farAt, Vector2.zero);
+            var rosterShot = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Bolt, mineAt, new Vector2(0f, -.5f));
+            var shooter = new GameObject("~waveShooter");
+            made.Add(shooter);
+            rosterShot.AsRosterShot(shooter, 0f);
+            var landed = EliteSystem.Shots.Fire(null, def, EliteShots.Kind.Glob, Ship + new Vector2(.4f, 1f), Vector2.zero);
+
+            var mine = AttackPool.Projectile();
+            Vector3 mineShotAt = Ship + new Vector2(1.7f, 1.2f);   // clear of the others: a player shot shoots down the hostile shots it passes
+            mine.Launch(null, null, AttackProjectile.Kind.Straight, 0, mineShotAt, Vector3.up, 2f, .2f, .3f, null, .5f);
+
+            bool leafOk = leaf != null && (leaf.Motion & ShotMotion.Flutter) != 0;
+            Check("fixture: boss, elite, roster, flutter, column, far, player shots in flight", bossShot != null && eliteShot != null && leaf != null &&
+                  inColumn != null && far != null && rosterShot != null && mine != null && mine.Active);
+            Check("fixture: the leaf really flutters (" + (leaf != null ? leaf.Motion.ToString() : "null") + ")", leafOk);
+
+            int bodies = Release();
+            Check("the release moves no bodies here, only shots (" + bodies + ")", bodies == 0);
+            Check("... and counts the shots it pushed (" + ShieldShockwave.LastShotsPushed + ": boss, elite, roster, leaf, column, player; not the far one, not the landed pool)",
+                  ShieldShockwave.LastShotsPushed == 6 && ProjectileShove.Active == 6);
+
+            Vector2 bv = bossShot.Velocity, ev = eliteShot.Velocity, mv = mine.Velocity;
+            const int Frames = 17;   // PushSeconds
+            for (int i = 0; i < Frames + 4; i++)
+            {
+                EnemyShove.Step(Dt);
+                pool.Shots[0].Step(Dt);
+                EliteSystem.Step(Dt);
+                mine.Tick(Dt);
+            }
+            float t = (Frames + 4) * Dt;
+            Check("the push is done and nothing is left running (" + ProjectileShove.Active + ")", ProjectileShove.Active == 0);
+
+            Vector2 bossPush = (Vector2)bossShot.transform.position - (Vector2)bossAt - bv * t;
+            Vector2 awayBoss = ((Vector2)bossAt - Ship).normalized;
+            Check("a boss shot is displaced away from the ship (" + bossPush.ToString("F2") + ") and keeps its velocity",
+                  bossPush.magnitude > .3f && Vector2.Dot(bossPush.normalized, awayBoss) > .98f && bossShot.Velocity == bv);
+            Vector2 elitePush = (Vector2)eliteShot.transform.position - (Vector2)eliteAt - ev * t;
+            Check("an elite shot is displaced away from the ship (" + elitePush.ToString("F2") + ") and keeps its velocity",
+                  elitePush.magnitude > .3f && Vector2.Dot(elitePush.normalized, ((Vector2)eliteAt - Ship).normalized) > .98f && eliteShot.Velocity == ev);
+            Vector2 rosterPush = (Vector2)rosterShot.transform.position - (Vector2)mineAt - new Vector2(0f, -.5f) * t;
+            Check("a roster / mine shot is displaced away from the ship (" + rosterPush.ToString("F2") + ")",
+                  rosterPush.magnitude > .3f && Vector2.Dot(rosterPush.normalized, ((Vector2)mineAt - Ship).normalized) > .9f);
+            Vector2 minePush = (Vector2)mine.transform.position - (Vector2)mineShotAt - mv * t;
+            Check("the player's own projectile is pushed too (friendly fire) (" + minePush.ToString("F2") + "), heading and speed unchanged",
+                  minePush.magnitude > .2f && Vector2.Dot(minePush.normalized, ((Vector2)mineShotAt - Ship).normalized) > .98f && Vector2.Distance(mine.Velocity, mv) < 1e-4f);
+            Vector2 colPush = (Vector2)inColumn.transform.position - (Vector2)columnAt;
+            Check("a shot far up the ship's column is pushed up-screen by ColumnPush (" + colPush.ToString("F2") + ")",
+                  Mathf.Abs(colPush.x) < .01f && Mathf.Abs(colPush.y - ShieldShockwave.ColumnPush) < .05f);
+            Check("a shot beyond the ring is left where it was", far.transform.position == farAt);
+
+            // the scripted course: a leaf's weave is rewritten from its course every step
+            // -- a displaced position alone would snap back to the old course
+            Vector2 expectedCourse = (Vector2)leafAt + new Vector2(0f, -.5f) * t;
+            Vector2 leafPush = leaf.CoursePosition - expectedCourse;
+            Vector2 awayLeaf = ((Vector2)leafAt - Ship).normalized;
+            Check("a fluttering leaf's course is displaced (" + leafPush.ToString("F2") + "), its body follows within the weave, never snapped back",
+                  leafPush.magnitude > .3f && Vector2.Dot(leafPush.normalized, awayLeaf) > .98f &&
+                  Vector2.Distance(leaf.transform.position, leaf.CoursePosition) <= ShotMotions.FlutterAmp + .02f);
+
+            // a shot recycled mid-push (shot down) is simply dropped
+            Release();
+            Check("a second release (cooldown aside) queues pushes again", ProjectileShove.Active > 0);
+            EnemyShove.Step(Dt);
+            bossShot.Recycle();
+            mine.gameObject.SetActive(false);
+            EliteSystem.Clear();
+            for (int i = 0; i < 30; i++) EnemyShove.Step(Dt);
+            Check("shots that ended mid-push are dropped without a trace (" + ProjectileShove.Active + " left)", ProjectileShove.Active == 0);
+        }
+        finally
+        {
+            ShotSkins.ResetForTests();
+            EliteSystem.Clear();
+            ProjectileShove.Clear();
+            AttackTestKit.Cleanup();
+        }
     }
 
     // ---- 7 -------------------------------------------------------------------

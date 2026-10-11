@@ -45,8 +45,21 @@ using UnityEngine;
 //   elites take EliteResist (25%) of the kick. TryRelease (the shield's entry)
 //   refuses a shield held under MinHeldSeconds, a second release within
 //   Cooldown, and any release in the tutorial or a world entry.
-//   bosses, hostile shots         not moved (the shield already eats the
-//                                 shots it touches)
+//   bosses                        not moved
+//   projectiles                   every shot in flight, the enemies', the
+//                                 mines', the elites', the bosses' AND the
+//                                 player's own (friendly fire stays as it is),
+//                                 gets the same radial / column displacement as
+//                                 a body (mass 1), eased over PushSeconds by
+//                                 ProjectileShove. Each shot moves itself
+//                                 (IHostileShot.ShotShove / AttackProjectile.
+//                                 Shove): a scripted course (a flutter's
+//                                 weave, a lob, a sling, a glide) shifts its
+//                                 anchors too, so nothing snaps back, and a
+//                                 shot that rails would stop stays inside them.
+//                                 Landed pools are not projectiles: left alone.
+//                                 Counted in LastShotsPushed, not in the
+//                                 bodies Release returns
 //
 // Targets are capped where they would leave the lane or land on another body
 // (bodies that did not overlap before are not made to), and everything runs on
@@ -106,6 +119,7 @@ public static class ShieldShockwave
     public static int LastPushed { get; private set; }     // bodies given a displacement
     public static int LastKicked { get; private set; }     // elites given a kick
     public static float LastColumnHalf { get; private set; }
+    public static int LastShotsPushed { get; private set; }   // projectiles (hostile and the player's) given a displacement
 
     const int Capacity = EnemyShove.Capacity;
     static readonly Transform[] who = new Transform[Capacity];
@@ -247,9 +261,46 @@ public static class ShieldShockwave
         }
         LastPushed = pushed;
         LastKicked = kicked;
+        LastShotsPushed = PushShots(ship, columnHalf, top);
 
         ShieldShockwaveFx.Play(ship, Radius, columnHalf, top, sortingLayer, sortingOrder);
         return pushed + kicked;
+    }
+
+    // Every projectile in flight, hostile or the player's, takes the radial and
+    // column push of a mass-1 body (its own radius as its extent).
+    static int PushShots(Vector2 ship, float columnHalf, float top)
+    {
+        int n = 0;
+        var hostile = HostileShots.All;
+        for (int i = 0; i < hostile.Count; i++)
+        {
+            var s = hostile[i];
+            if (s == null || (Object)s == null || !s.ShotShovable) continue;
+            if (ShotPush(ship, s.ShotPosition, s.ShotRadius, columnHalf, top, out Vector2 move) && ProjectileShove.Add((MonoBehaviour)s, move, PushSeconds)) n++;
+        }
+        var mine = AttackProjectile.Flying;
+        for (int i = 0; i < mine.Count; i++)
+        {
+            var a = mine[i];
+            if (a == null || !a.Active) continue;
+            if (ShotPush(ship, a.transform.position, a.HitRadius, columnHalf, top, out Vector2 move) && ProjectileShove.Add(a, move, PushSeconds)) n++;
+        }
+        return n;
+    }
+
+    // The displacement the wave gives a shot at `p` of radius `r` (false: none).
+    public static bool ShotPush(Vector2 ship, Vector2 p, float r, float columnHalf, float top, out Vector2 move)
+    {
+        Vector2 d = p - ship;
+        float centre = d.magnitude;
+        float edge = Mathf.Max(0f, centre - r);
+        float k = edge < Radius ? Mathf.Pow(1f - edge / Radius, Mathf.Max(.01f, RadialFalloff)) : 0f;
+        Vector2 away = centre > 1e-4f ? d / centre : Vector2.up;
+        bool inColumn = p.y > ship.y && p.y - r <= top && Mathf.Abs(d.x) <= columnHalf + r;
+        move = away * (RadialPush * k);
+        if (inColumn) move = new Vector2(0f, Mathf.Max(move.y, ColumnPush));
+        return k > 0f || inColumn;
     }
 
     // Shortens pushes that would land a body on another one (at its own
@@ -385,6 +436,7 @@ public static class EnemyShove
             if (k >= 1f) Remove(i); else entries[i] = e;
         }
         ShoveCrash.Step(dt);
+        ProjectileShove.Step(dt);
     }
 
     static void Remove(int i)
@@ -399,6 +451,75 @@ public static class EnemyShove
         for (int i = 0; i < count; i++) entries[i] = default;
         count = 0;
         ShoveCrash.Clear();
+        ProjectileShove.Clear();
+    }
+}
+
+// Projectile displacements in progress: each hands its shot the next slice of
+// its push every running frame (ease-out, EnemyShove's curve), through the
+// shot's own Shove -- which knows its own course (anchors, rails). A fixed
+// array; nothing allocates. Stepped by EnemyShove.Step, on the world's clock.
+public static class ProjectileShove
+{
+    public const int Capacity = 192;
+
+    struct Entry { public MonoBehaviour shot; public Vector2 total; public float seconds, time, done; }
+
+    static readonly Entry[] entries = new Entry[Capacity];
+    static int count;
+
+    public static int Active => count;
+
+    // `shot` is an IHostileShot or an AttackProjectile. A shot already being
+    // pushed takes the new push on top of what is left of the old one.
+    public static bool Add(MonoBehaviour shot, Vector2 total, float seconds)
+    {
+        if (shot == null) return false;
+        for (int i = 0; i < count; i++)
+        {
+            if (entries[i].shot != shot) continue;
+            var e = entries[i];
+            e.total = e.total * (1f - e.done) + total;
+            e.time = 0f; e.done = 0f; e.seconds = Mathf.Max(.01f, seconds);
+            entries[i] = e;
+            return true;
+        }
+        if (count >= Capacity) return false;
+        entries[count++] = new Entry { shot = shot, total = total, seconds = Mathf.Max(.01f, seconds) };
+        return true;
+    }
+
+    public static void Step(float dt)
+    {
+        if (dt <= 0f) return;
+        for (int i = count - 1; i >= 0; i--)
+        {
+            var e = entries[i];
+            var hostile = e.shot as IHostileShot;
+            var mine = e.shot as AttackProjectile;
+            // gone, recycled, or landed since: nothing left to push
+            if (e.shot == null || (hostile != null && !hostile.ShotShovable) || (mine != null && !mine.Active)) { Remove(i); continue; }
+            e.time += dt;
+            float k = Mathf.Clamp01(e.time / e.seconds);
+            float eased = 1f - (1f - k) * (1f - k) * (1f - k);
+            Vector2 step = e.total * (eased - e.done);
+            e.done = eased;
+            if (hostile != null) hostile.ShotShove(step); else mine.Shove(step);
+            if (k >= 1f) Remove(i); else entries[i] = e;
+        }
+    }
+
+    static void Remove(int i)
+    {
+        count--;
+        entries[i] = entries[count];
+        entries[count] = default;
+    }
+
+    public static void Clear()
+    {
+        for (int i = 0; i < count; i++) entries[i] = default;
+        count = 0;
     }
 }
 

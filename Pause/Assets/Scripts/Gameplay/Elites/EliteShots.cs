@@ -279,6 +279,26 @@ public class EliteShot : MonoBehaviour, IHostileShot
                          : Kind == EliteShots.Kind.Slag || Kind == EliteShots.Kind.Shell ? HostileShots.Heavy
                          : HostileShots.Light;
     public Color ShotTint => def != null ? tint : Color.white;
+    public bool ShotShovable => Active && hitbox != null && ShotMass != HostileShots.Fixed;
+
+    // The shield's shockwave (ShieldShockwave): displaced by `by`. Several
+    // motions are not "position + velocity" but a curve or a weave round an
+    // anchor, rewritten into the position every step -- so every anchor moves
+    // with the shot (a flutter's course, a lob's and a sling's and a glide's
+    // end points) or the next step would snap it back. Kept inside the rails.
+    public void ShotShove(Vector2 by)
+    {
+        if (!Active) return;
+        Vector3 p = transform.position;
+        float lim = Mathf.Max(Mathf.Abs(p.x), EliteSystem.RailEdge - radius - .01f);
+        by.x = Mathf.Clamp(p.x + by.x, -lim, lim) - p.x;
+        transform.position = new Vector3(p.x + by.x, p.y + by.y, p.z);
+        baseP += by;
+        lobFrom += by; lobTo += by;
+        slingFrom += by; slingBend += by; slingTo += by;
+        glideFrom += by; glideTo += by;
+        if (mark != null && mark.enabled) mark.transform.position += (Vector3)by;
+    }
     public Color BodyTint => tint;
     public Color CoreTint => coreTint;
 

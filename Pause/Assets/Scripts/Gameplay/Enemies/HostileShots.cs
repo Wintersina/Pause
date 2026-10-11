@@ -13,6 +13,8 @@ public interface IHostileShot
     int ShotMass { get; }          // HostileShots.Light / Heavy / Fixed
     Color ShotTint { get; }
     void ShotPop(Vector2 at);      // destroyed by another shot / a player shot
+    bool ShotShovable { get; }     // in flight and movable by the shield's shockwave (not a landed pool)
+    void ShotShove(Vector2 by);    // displaced by `by` (world), its whole course with it, so it never snaps back
 }
 
 // PROJECTILE vs PROJECTILE.
