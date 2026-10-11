@@ -1,0 +1,14 @@
+ember_alien.png  1344x192  cell 192  -> ok (severity 0)
+ember_big.png  1792x256  cell 256  -> ok (severity 0)
+ember_chaser.png  1344x192  cell 192  -> ok (severity 0)
+ember_fighter_1.png  1344x192  cell 192  -> ok (severity 0)
+ember_fighter_2.png  1344x192  cell 192  -> ok (severity 0)
+ember_fighter_3.png  1344x192  cell 192  -> ok (severity 0)
+ember_fighter_4.png  1344x192  cell 192  -> ok (severity 0)
+ember_rock_cinder.png  1344x192  cell 192  -> ok (severity 0)
+ember_rock_islet.png  1344x192  cell 192  -> ok (severity 0)
+ember_rock_magma.png  1344x192  cell 192  -> ok (severity 0)
+ember_rock_obsidian.png  1344x192  cell 192  -> ok (severity 0)
+
+ranked by severity:
+  11 of 11 strips clean
