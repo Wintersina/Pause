@@ -1,0 +1,298 @@
+{
+  "run_c": {
+    "loops": [
+      {
+        "name": "smoke_a",
+        "atlas": "smoke.png",
+        "frames": 8,
+        "fps": 6,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "refinery stacks; buried hull vents",
+        "draw_alpha": 0.65,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "smoke_b",
+        "atlas": "smoke.png",
+        "frames": 8,
+        "fps": 7,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "pipe vents; dry wells",
+        "draw_alpha": 0.65,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "dustdevil",
+        "atlas": "dust.png",
+        "frames": 8,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "open dune sea; worm-ridge wake",
+        "draw_alpha": 0.6,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "sandplume",
+        "atlas": "dust.png",
+        "frames": 8,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "dune crests; buried gantries",
+        "draw_alpha": 0.6,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "sandfall",
+        "atlas": "dust_2.png",
+        "frames": 8,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "canyon ledges; refinery walls",
+        "draw_alpha": 0.68,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "grit_gust",
+        "atlas": "dust_2.png",
+        "frames": 8,
+        "fps": 10,
+        "anchor_px_top_left": [
+          128,
+          128
+        ],
+        "ground_attached": false,
+        "base_rule": "free drifting overlay",
+        "intended_use": "dune sea; crawler caravan",
+        "draw_alpha": 0.43,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "heat_vent",
+        "atlas": "dust_3.png",
+        "frames": 8,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "heat vents; glass flats",
+        "draw_alpha": 0.28,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "heat_shimmer",
+        "atlas": "shimmer.png",
+        "frames": 8,
+        "fps": 7,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "dune crests; machine exhaust",
+        "draw_alpha": 0.2,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "mirage_glint",
+        "atlas": "shimmer.png",
+        "frames": 8,
+        "fps": 6,
+        "anchor_px_top_left": [
+          128,
+          128
+        ],
+        "ground_attached": false,
+        "base_rule": "free drifting overlay",
+        "intended_use": "salt flats; glass pans",
+        "draw_alpha": 0.27,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "glass_sparkle",
+        "atlas": "shimmer_2.png",
+        "frames": 8,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          128
+        ],
+        "ground_attached": false,
+        "base_rule": "free drifting overlay",
+        "intended_use": "fused glass; dead solar farms",
+        "draw_alpha": 0.55,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "steam_vent",
+        "atlas": "leaks.png",
+        "frames": 4,
+        "fps": 7,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "pipe vents; drill heads",
+        "draw_alpha": 0.65,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "pipe_drip_sand",
+        "atlas": "leaks.png",
+        "frames": 4,
+        "fps": 8,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "broken pipes; refineries",
+        "draw_alpha": 0.66,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "grit_rain",
+        "atlas": "leaks.png",
+        "frames": 4,
+        "fps": 10,
+        "anchor_px_top_left": [
+          128,
+          128
+        ],
+        "ground_attached": false,
+        "base_rule": "free drifting overlay",
+        "intended_use": "gantry underhangs; canyon walls",
+        "draw_alpha": 0.45,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "sand_slide",
+        "atlas": "leaks.png",
+        "frames": 4,
+        "fps": 7,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "dune lee; worm trail",
+        "draw_alpha": 0.68,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "beacon_white",
+        "atlas": "lights.png",
+        "frames": 4,
+        "fps": 5,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "mast beacons; ruined towers",
+        "draw_alpha": 1.0,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "beacon_pale_gold",
+        "atlas": "lights.png",
+        "frames": 4,
+        "fps": 5,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "crawler masts; dry wells",
+        "draw_alpha": 1.0,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "window_lights",
+        "atlas": "lights.png",
+        "frames": 4,
+        "fps": 5,
+        "anchor_px_top_left": [
+          128,
+          128
+        ],
+        "ground_attached": false,
+        "base_rule": "free drifting overlay",
+        "intended_use": "refinery windows; buried hulls",
+        "draw_alpha": 1.0,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "strobe_white",
+        "atlas": "lights_2.png",
+        "frames": 4,
+        "fps": 7,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "drill heads; solar array posts",
+        "draw_alpha": 1.0,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      },
+      {
+        "name": "work_lamp_flicker",
+        "atlas": "lights_2.png",
+        "frames": 4,
+        "fps": 6,
+        "anchor_px_top_left": [
+          128,
+          236
+        ],
+        "ground_attached": true,
+        "base_rule": "every frame's emitter/base remains at (128,236), no sideways offset or wobble",
+        "intended_use": "pipe runs; crawler bay",
+        "draw_alpha": 1.0,
+        "source": "painted generated key frames; nearest-neighbour x2; animated detail and blink states"
+      }
+    ],
+    "sources": [
+      "src~/candidate_c_smoke.png",
+      "src~/candidate_c_sand.png",
+      "src~/candidate_c_lights.png"
+    ],
+    "atlas_convention": "1024x1024 RGBA, 256 cells, JSON y from bottom",
+    "selection": "Three generated candidates inspected; smoke source selected for vapor/dust devil, sand source for grain/ledge/pipe, lights source for fixtures/shimmer. Saturated generated edge artifacts removed."
+  }
+}
