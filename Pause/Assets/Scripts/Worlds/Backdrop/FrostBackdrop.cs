@@ -40,8 +40,12 @@ public static class FrostTuning
     // midtones by ~+50% (shadows x1.7, highlights rolling off below white,
     // hue kept). The sky / far layers, mist, wisps, aurora and plumes take a
     // share of it (BackdropCatalog's .Graded); lights are never lifted.
-    // "A bit brighter / darker" = change this one number (1.5 .. 2.0).
-    public static float Brightness = 1.7f;
+    // "A bit brighter / darker" = change this one number. History: 1.7 (user,
+    // 2026-10-08 "too dark"), 1.95 (2026-10-11 "too night-timey"). Ceiling: the
+    // drawn-art caps in WorldBackdropTest (value p90 .55, tile luminance .24,
+    // chroma .26) hold up to ~1.95; 2.3 = +15% frame luminance, 2.55 = +21%
+    // need those caps raised (and Saturation eased to 1.0 for chroma).
+    public static float Brightness = 1.95f;
     public static float Saturation = 1.05f;        // nudge on the lifted tones so the ice stays blue-cyan
     public static float PlumeShare = .6f;          // smoke / steam loops' share of the lift
     // The cloud ceiling's banks are painted translucent (alpha ~.28 at their
