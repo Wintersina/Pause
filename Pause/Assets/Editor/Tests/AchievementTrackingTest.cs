@@ -255,14 +255,14 @@ public static class AchievementTrackingTest
     static void Score()
     {
         Fresh();
-        AchievementTracker.OnScore(2499);
-        Check("2,499: not yet", !U("score_10k"));
-        AchievementTracker.OnScore(2500);
-        Check("2,500: Rookie Score", U("score_10k") && !U("score_50k"));
-        AchievementTracker.OnScore(9000);
-        Check("9,000: Ace Score", U("score_50k") && !U("score_150k"));
-        AchievementTracker.OnScore(31000);
-        Check("31,000: Legend Score", U("score_150k"));
+        AchievementTracker.OnScore(4999);
+        Check("4,999: not yet", !U("score_10k"));
+        AchievementTracker.OnScore(5000);
+        Check("5,000: Rookie Score", U("score_10k") && !U("score_50k"));
+        AchievementTracker.OnScore(20000);
+        Check("20,000: Ace Score", U("score_50k") && !U("score_150k"));
+        AchievementTracker.OnScore(80000);
+        Check("80,000: Legend Score", U("score_150k"));
         // the real event path: RunScore raises Scored while a scoring run is live
         AchievementStore.ResetAll();
         AchievementTracker.Enable();

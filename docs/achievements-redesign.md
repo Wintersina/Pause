@@ -44,7 +44,7 @@ Columns: id (stable snake_case, also the file name of the art), title (max 24), 
 | 19 | `elite_50` | Elite Exterminator | Destroy 50 elite ships. | 25 | Gold | Elite | 50 |  | Rare |
 | 20 | `elite_space_all` | Space Elites | Down every Space elite. | 15 | Silver | Elite | 4 |  | Uncommon |
 | 21 | `elite_frost_all` | Frost Elites | Down every Frost elite. | 20 | Silver | Elite | 5 |  | Rare |
-| 22 | `elite_verdant_all` | Verdant Elites | Down the Verdant elite. | 15 | Silver | Elite | - |  | Uncommon |
+| 22 | `elite_verdant_all` | Verdant Elites | Down every Verdant elite. | 15 | Silver | Elite | 5 |  | Uncommon |
 | 23 | `elite_ember_all` | Ember Elites | Down every Ember elite. | 25 | Gold | Elite | 6 |  | Rare |
 | 24 | `elite_blink` | Blink Strike | Destroy an elite with a pause blink. | 10 | Silver | Elite | - |  | Uncommon |
 | 25 | `kills_100` | Gunner | Destroy 100 enemies. | 5 | Bronze | Enemy | 100 |  | Common |
@@ -69,9 +69,9 @@ Columns: id (stable snake_case, also the file name of the art), title (max 24), 
 | 44 | `stars_1000` | Dust Hoarder | Collect 1,000 star dust pickups. | 20 | Silver | Dust | 1000 |  | Uncommon |
 | 45 | `stars_5000` | Dust Baron | Collect 5,000 star dust pickups. | 25 | Gold | Dust | 5000 |  | Epic |
 | 46 | `dust_spent_10000` | Big Spender | Spend 10,000 star dust in the shop. | 15 | Silver | Dust | 10000 |  | Rare |
-| 47 | `score_10k` | Rookie Score | Score 10,000 points in a run. | 10 | Bronze | Skill | - |  | Common |
-| 48 | `score_50k` | Ace Score | Score 50,000 points in a run. | 20 | Silver | Skill | - |  | Rare |
-| 49 | `score_150k` | Legend Score | Score 150,000 points in a run. | 35 | Platinum | Skill | - |  | Epic |
+| 47 | `score_10k` | Rookie Score | Score 5,000 points in a run. | 10 | Bronze | Skill | - |  | Common |
+| 48 | `score_50k` | Ace Score | Score 20,000 points in a run. | 20 | Silver | Skill | - |  | Rare |
+| 49 | `score_150k` | Legend Score | Score 80,000 points in a run. | 35 | Platinum | Skill | - |  | Epic |
 | 50 | `speed_flash` | Flash | Reach the speed cap. | 15 | Silver | Skill | - |  | Uncommon |
 | 51 | `speed_speedster` | Speedster | Break the speed limit. | 20 | Silver | Skill | - |  | Rare |
 | 52 | `speed_super_sonic` | Super Sonic | Max out the limit break. | 35 | Platinum | Skill | - |  | Epic |
@@ -116,7 +116,7 @@ entry point (see implementation plan): `Achievements.Report(string id)` for one-
 | `elite_50` | 50 elite kills | EliteShip.Died |
 | `elite_space_all` | All 4 Space elite codex ids killed at least once | EliteShip.Died + EliteCatalog.ForWorld(0) (Gameplay/Elites/EliteDef.cs:279) |
 | `elite_frost_all` | All 5 Frost elites killed | EliteShip.Died + EliteCatalog world list |
-| `elite_verdant_all` | All Verdant elites killed (1 defined today: resin_warden; counter auto-grows when more arrive) | EliteShip.Died + EliteCatalog world list |
+| `elite_verdant_all` | All Verdant elites killed (5 defined: resin_warden, timber_hauler, thornlash, sporebloom, leafblade; the counter follows the catalog) | EliteShip.Died + EliteCatalog world list |
 | `elite_ember_all` | All 6 Ember elites killed | EliteShip.Died + EliteCatalog world list |
 | `elite_blink` | Elite killed with cause EliteDamage.Teleport | EliteShip.Died (cause == EliteDamage.Teleport; EliteShip.TeleportStrike) |
 | `kills_100` | 100 enemy kills (tag Enimey, any world, not rocks) | collisionDetection.AwardDestroyedTarget -> RecordKillAchievement (extend: all Enimey, not only alien1); seed from old Aliens counter |
@@ -141,9 +141,9 @@ entry point (see implementation plan): `Achievements.Report(string id)` for one-
 | `stars_1000` | 1,000 star pickups | Same |
 | `stars_5000` | 5,000 star pickups | Same |
 | `dust_spent_10000` | Lifetime spend >= 10,000 (new counter) | NEW counter in shopingShips.TryPurchase and ShipSkins.TryPurchase (both subtract from StarDustLedger.CurrencyKey) |
-| `score_10k` | Run total >= 10,000 (calibrate vs ScoreRules) | score.SettleCurrentRun / RunScore.Total at bank |
-| `score_50k` | Run total >= 50,000 (calibrate) | Same |
-| `score_150k` | Run total >= 150,000 (calibrate) | Same |
+| `score_10k` | Run total >= 5,000 (calibrated, see implementation plan deviation 2) | score.SettleCurrentRun / RunScore.Total at bank |
+| `score_50k` | Run total >= 20,000 | Same |
+| `score_150k` | Run total >= 80,000 | Same |
 | `speed_flash` | Natural speed at the cap (HUD 35) | achievementAPICalls.SpeedMilestones.Step (reported==1) |
 | `speed_speedster` | First limit break (boost above cap) | SpeedMilestones.Step (reported==2) |
 | `speed_super_sonic` | Boost at max at the cap | SpeedMilestones.Step (reported==3) |

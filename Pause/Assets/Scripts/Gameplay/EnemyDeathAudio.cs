@@ -75,6 +75,11 @@ public static class EnemyDeathAudio
         new[] { "verdant_chaser",    "verdant_fighter_3", "1.15" }, // Dragonsting: insect rasp
         // Ember: the salamander hisses like the brass vulture, smaller
         new[] { "ember_chaser",      "ember_elite_brass_vulture", "1.15" },   // Cinder Fang: raspy creature cry
+        // Verdant's three living elites (the Timber Hauler is a machine: none). Heard once their death cues are authored (PendingClips):
+        // the scream layers on a death cue, so until then they are silent. Pitched down: a bigger body than its donor's.
+        new[] { "verdant_elite_thornlash",  "verdant_fighter_4", "0.90" },   // Thornlash: the Hornet Queen's cry, lower and slower
+        new[] { "verdant_elite_sporebloom", "verdant_alien",     "0.90" },   // Sporebloom: the Snap Sprout's wet voice, a size up
+        new[] { "verdant_elite_leafblade",  "verdant_fighter_4", "1.10" },   // Leafblade: a sharper, quicker queen
     };
     public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
     static Dictionary<string, Borrow> BuildBorrows()
@@ -86,6 +91,14 @@ public static class EnemyDeathAudio
     // Put the table back to BorrowTable (tests clear and edit it).
     public static void ResetBorrows() { ScreamBorrow.Clear(); foreach (var kv in BuildBorrows()) ScreamBorrow[kv.Key] = kv.Value; }
     public static float BorrowVolume = .7f;
+
+    // Codex-only (forceScream == true): the scream is the point of the triple-tap,
+    // so it must cut through other sounds. Its volume is the UNDUCKED cue volume x
+    // CodexScreamBoost (clamped to 1 on the AudioSource), the death cue itself is
+    // ducked by CodexDeathDuck (0.5 ~ -6 dB) so the scream stays on top, the delay
+    // is 0..CodexScreamDelayMax and a borrowed scream skips BorrowVolume. In-game
+    // deaths (forceScream == false) are untouched.
+    public static float CodexScreamBoost = 2.6f, CodexDeathDuck = .5f, CodexScreamDelayMax = .02f;
     public static float LastScreamPitch { get; private set; }
     public static float LastScreamVolume { get; private set; }
 
@@ -151,15 +164,34 @@ public static class EnemyDeathAudio
         return ok;
     }
 
+    // A boss going down (BossActor.BeginOutro, the codex's tapped boss). Authored
+    // clips boss_<artKey lowercase>_0.. (and boss_<..>_scream_0.. for the living
+    // bosses) in Resources/Audio/EnemyDeath/; none dropped in yet = silent.
+    public static float BossVolume = 1f;
+    public static string BossKey(string artKey) { return string.IsNullOrEmpty(artKey) ? null : "boss_" + artKey.ToLowerInvariant(); }
+    public static bool PlayBossDeath(string artKey, bool forceScream = false)
+    {
+        if (!(Application.isPlaying || Simulate)) return false;
+        string key = BossKey(artKey);
+        return key != null && PlayAuthored(key, BossVolume, forceScream);
+    }
+    // Bosses whose death carries a creature cry layer.
+    public static bool BossScreams(string artKey) { return artKey == "Frost" || artKey == "Verdant"; }
+
     // Editor safety net: a roster / elite key that resolves no clip is a
     // content bug (a new enemy added without a sound pass). Warn once per key.
     static readonly HashSet<string> warned = new HashSet<string>();
+    // Keys whose authored death cues are still to come (the sound job): silent until then, never an error or a warning.
+    public static readonly string[] PendingClips =
+    {
+        "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
+    };
     static void WarnMissing(string key)
     {
 #if UNITY_EDITOR
         if (!AuthoredEnabled || Variants(key) > 0) return;
         if (EnemyRoster.Find(key) == null && EliteCatalog.Find(key) == null) return;   // hitboxes etc. are silent by design
-        if (key.StartsWith("tide_")) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
+        if (key.StartsWith("tide_") || System.Array.IndexOf(PendingClips, key) >= 0) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
         if (warned.Add(key)) Debug.LogWarning("[EnemyDeathAudio] no authored death clips for '" + key + "' (Resources/" + ResourceFolder + key + "_0)");
 #endif
     }
@@ -177,6 +209,8 @@ public static class EnemyDeathAudio
         k.repeats = now - k.lastTime < DuckWindow ? k.repeats + 1 : 0;
         k.lastTime = now;
         float volume = baseVolume * AuthoredGain * Mathf.Max(DuckFloor, Mathf.Pow(DuckFactor, k.repeats));
+        float fullVolume = volume;
+        if (forceScream) volume *= CodexDeathDuck;
 
         int slot = PickSlot(voices, now, volume);
         if (slot < 0) { Dropped++; return true; }
@@ -196,7 +230,7 @@ public static class EnemyDeathAudio
             if (ScreamBorrow.TryGetValue(key, out b) && b.donor != key)
             {
                 var d = Clips(b.donor);
-                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = BorrowVolume; }
+                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = forceScream ? 1f : BorrowVolume; }
             }
         }
         if (sk.screams.Length > 0 && (forceScream || Next01() < ScreamChance))
@@ -206,8 +240,8 @@ public static class EnemyDeathAudio
             {
                 int sv = PickVariant(sk.screams.Length, sk.lastScream);
                 sk.lastScream = sv;
-                float delay = Range(ScreamDelayMin, ScreamDelayMax);
-                float sVol = volume * ScreamVolume * screamGain;
+                float delay = forceScream ? Range(0f, CodexScreamDelayMax) : Range(ScreamDelayMin, ScreamDelayMax);
+                float sVol = forceScream ? Mathf.Min(1f, fullVolume * CodexScreamBoost * screamGain) : volume * ScreamVolume * screamGain;
                 float sPitch = screamPitch * (1f + Range(-PitchJitter, PitchJitter));
                 Start(ref screamVoices[s], sk.screams[sv], now, delay, sVol, sPitch);
                 Screams++;

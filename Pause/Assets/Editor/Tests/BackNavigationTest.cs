@@ -373,11 +373,10 @@ public static class BackNavigationTest
         loads.Clear();
         buttonClicks.playerDied = true;
         Time.timeScale = 0f;
-        AdMob.show();
         BackNavigator.Back();
         Check("run: Back on the death panel goes home", LastLoad == BackNavigator.HomeScene);
-        Check("run: ...like MENU (ad hidden, run state cleared)",
-              !AdMob.isAdsShowwing && !buttonClicks.playerDied && Time.timeScale == 1f);
+        Check("run: ...like MENU (run state cleared)",
+              !buttonClicks.playerDied && Time.timeScale == 1f);
 
         var clicks = Object.FindFirstObjectByType<buttonClicks>();
         if (clicks != null)

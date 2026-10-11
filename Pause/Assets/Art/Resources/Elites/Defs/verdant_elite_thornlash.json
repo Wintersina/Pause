@@ -1,0 +1,96 @@
+{
+  "key": "verdant_elite_thornlash",
+  "displayName": "Thornlash",
+  "world": "verdant",
+  "role": "vine whip",
+  "codexId": "elite_verdant_thornlash",
+  "lore": "A long-legged thorn crawler that docks in the old vine towers. It slides in beside you, swells a whip root and draws the whole swept fan in dots before it cracks the vine across your spot. Step out over the start line while the dots blink: the far side is always left open.",
+  "brain": "thorn",
+  "attack": "vine_lash",
+  "launchFrom": "towerbay",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.35,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 2.1,
+  "accel": 4.0,
+  "turnRate": 150,
+  "followDistance": 2.0,
+  "laneOffset": 1.4,
+  "topMargin": 1.6,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 3.8,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.8,
+  "shotCount": 1,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotInterval": 0.2,
+  "shotSize": 0.3,
+  "shotKind": "bolt",
+  "lobSeconds": 0.95,
+  "lobSpacing": 1.1,
+  "lobAhead": 1.8,
+  "poolSeconds": 4.5,
+  "heartColor": "#E05CFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FF5CE0",
+  "engineColor": "#FFB45A",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lroot",
+      "x": 67,
+      "y": 68,
+      "dir": -1.0
+    },
+    {
+      "name": "rroot",
+      "x": 125,
+      "y": 68,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 86,
+      "y": 134,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 106,
+      "y": 134,
+      "dir": -1.0
+    }
+  ],
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 4.6
+}

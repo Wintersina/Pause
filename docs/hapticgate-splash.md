@@ -53,7 +53,7 @@ slot is missing, `GateArt.Load` returns null and the card shows just the mark.
 
 | Resources path | spec |
 |---|---|
-| `HapticGate/industrial_gate_v2` | 1536x1024 two-leaf door; crop contract left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
+| `HapticGate/industrial_gate_v3` | 1536x1024 two-leaf door; crop contract left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
 | `HapticGate/gate_cracks_1` `_2` `_3` | 1536x1024 RGBA cumulative crack overlays, cut with the same leaf rects |
 | `HapticGate/gate_debris` | 1024x512, 8x4 cells of 128 px (drawn at 1.8x: the shard fills about half a cell) |
 | `HapticGate/gate_steam` | 1024x1024, 4x4 cells of 256 px: columns are growth stages (stepped with the puff's age), rows are variants |
@@ -66,9 +66,7 @@ settings. If the crop contract changes, edit the constants at the top of
 `GateArt.cs`; vent and crack anchor points in `GateView.cs` (`LeafPoint(...)`) are
 leaf-relative (u across, v up).
 
-Known art note: `industrial_gate_v2.png` has an opaque navy backdrop (RGB, no
-alpha), so each leaf carries a faint dark-blue box against the black card. Ask
-Codex for an alpha cut-out if that bothers.
+Art note: `industrial_gate_v3.png` is the alpha cut-out of the v2 door (leaves pixel-identical, transparent outside), so no backdrop box shows against the black card.
 
 ## Sounds
 

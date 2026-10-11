@@ -14,7 +14,7 @@ using UnityEngine.UI;
 //
 // The ship carries the real weapon (ShipPowerController), held -- no
 // countdown, no firing, no red-atom free shot -- until the power step arms
-// it for TutorialScript.PowerAtoms atoms, so the player sees it go off once.
+// it for the one violet atom, so the player sees it go off once.
 //
 // Everything here runs on unscaled time: the world sits at timeScale 0 every
 // time the player lifts their finger, and that is exactly when the robot has
@@ -23,14 +23,14 @@ public class Hints : MonoBehaviour {
 
     [Tooltip("Minimum time a line stays up after it has been fully spoken, " +
              "even if the player already did what it asks.")]
-    public float readSeconds = .7f;
+    public float readSeconds = .6f;
 
     [Tooltip("Delay before the robot pops in and says the first line.")]
-    public float introDelay = .6f;
+    public float introDelay = TutorialScript.IntroSeconds;
 
     [Tooltip("How long the ship flies off toward LiftOffLeft before the " +
              "Tutorial Complete card appears.")]
-    public float liftOffSeconds = 1.4f;
+    public float liftOffSeconds = TutorialScript.EndingSeconds;
 
     public static bool reachedTheEndOfTut;
 
@@ -54,6 +54,7 @@ public class Hints : MonoBehaviour {
     readonly Vector3[] corners = new Vector3[4];
 
     int step = -1;
+    float stepClock;   // unscaled seconds since the step began (its timeout)
     TutorialSignals signals, stepStart;
     bool sampling;
     bool lastPressed;
@@ -125,9 +126,12 @@ public class Hints : MonoBehaviour {
         var current = TutorialScript.Steps[step];
         if (AtomFor(current.cue) != TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
         else if (current.cue == TutorialCue.SpawnEnemy) guides.PointAt(TutorialEnemy.Live);
+        guides.PointAtStars(StarArrowsAllowed(current.cue) ? spawnGoodStuffTut.LiveStars : null);
+        TickDust(Time.unscaledDeltaTime);
+        KeepHeartsUp();
 
-        if (speaker.LineFinished && speaker.SinceLineFinished >= readSeconds
-            && TutorialScript.IsMet(current, stepStart, signals))
+        stepClock += Time.unscaledDeltaTime;
+        if (TutorialScript.CanAdvance(current, stepStart, signals, speaker.LineFinished, speaker.SinceLineFinished, readSeconds, stepClock))
         {
             EndStep(current);
             if (step + 1 < TutorialScript.Steps.Length) BeginStep(step + 1);
@@ -186,16 +190,74 @@ public class Hints : MonoBehaviour {
         }
     }
 
+    // ---- Star dust: the rush and its arrows ----
+
+    // Every star-dust piece wears an arrow, except while another prompt owns
+    // the arrow (a HUD readout, an atom, the alien).
+    public static bool StarArrowsAllowed(TutorialCue cue)
+    {
+        return cue != TutorialCue.PointAtPauses && cue != TutorialCue.SpawnEnemy && AtomFor(cue) == TutorialAtom.None;
+    }
+
+    public const float RushAgainSeconds = .6f;
+    float noRushedDust;
+
+    // Puts a short stream of dust right in front of the ship (a handful of
+    // pieces, on it within about a second). Returns how many.
+    public int RushDust()
+    {
+        var spawner = FindFirstObjectByType<spawnGoodStuffTut>();
+        if (spawner == null) return 0;
+        float bottom, top;
+        TutorialAtomDrift.View(out bottom, out top);
+        Vector3 at = ship != null ? ship.transform.position : new Vector3(0f, bottom + (top - bottom) * .3f, 0f);
+        noRushedDust = 0f;
+        return spawner.RushStars(at, top);
+    }
+
+    // During the dust step: if every rushed piece was missed and has fallen
+    // away, rush a fresh stream so the step can always be finished. dt is
+    // unscaled seconds.
+    public void TickDust(float dt)
+    {
+        if (step < 0 || TutorialScript.Steps[step].cue != TutorialCue.SpawnStars) return;
+        var live = spawnGoodStuffTut.LiveStars;
+        bool rushed = false;
+        for (int i = 0; i < live.Count && !rushed; i++)
+            rushed = live[i] != null && live[i].GetComponent<TutorialStarDrift>() != null;
+        if (rushed) { noRushedDust = 0f; return; }
+        noRushedDust += dt;
+        if (noRushedDust >= RushAgainSeconds && signals.starsCollected - stepStart.starsCollected < 1) RushDust();
+    }
+
+    // ---- Hearts: the tutorial can never end in a death ----
+
+    // The tutorial's hearts are all back (the crash cost one: lifeCounter 1).
+    public static void TopUpHearts()
+    {
+        if (collisionDetection.lifeCounter > 0) collisionDetection.lifeCounter = 0;
+    }
+
+    // Safety net between beats: never down to the last heart.
+    void KeepHeartsUp()
+    {
+        if (collisionDetection.MAXLIFE > 0 && collisionDetection.lifeCounter >= collisionDetection.MAXLIFE - 1
+            && collisionDetection.lifeCounter > 0)
+            collisionDetection.lifeCounter = Mathf.Max(0, collisionDetection.MAXLIFE - 2);
+    }
+
     // ---- Steps ----
 
     void BeginStep(int index)
     {
         step = index;
+        stepClock = 0f;
         stepStart = signals;
         var s = TutorialScript.Steps[index];
         speaker.Say(lines[index]);
 
         guides.Clear();
+        TopUpHearts();   // whatever the last beat cost, the next one starts with every heart
         switch (s.cue)
         {
             case TutorialCue.TouchPulse:
@@ -206,25 +268,35 @@ public class Hints : MonoBehaviour {
                 guides.PointAt(pauseReadout);
                 break;
             case TutorialCue.SpawnStars:
-                // No arrow: the HUD has no star dust read-out any more (the
-                // run's dust shows on the Tutorial Complete card).
+                // The HUD has no star dust read-out any more (the run's dust
+                // shows on the Tutorial Complete card): every piece wears its
+                // own arrow instead (PointAtStars).
                 spawnGoodStuffTut.StartStars();
+                // ...but the dust itself comes right now, in the ship's lane
+                if (RushDust() == 0) noRushedDust = 0f;
+                break;
+            case TutorialCue.GrantHearts:
+                guides.ShowTouch(true);
                 break;
             case TutorialCue.SpawnGreenAtom:
+                // the ship takes a dent first, so the repair is seen working
+                DentShip();
+                IntroduceAtom(AtomFor(s.cue));
+                break;
             case TutorialCue.SpawnBlueAtom:
             case TutorialCue.SpawnRedAtom:
-                spawnGoodStuffTut.keepAtomComing = AtomFor(s.cue);
+                IntroduceAtom(AtomFor(s.cue));
                 break;
             case TutorialCue.SpawnEnemy:
                 // straight down at where the ship is: dodge it or blink onto it
                 enemyOut = TutorialEnemy.Spawn(ship != null ? ship.transform.position.x : 0f) != null;
                 if (!enemyOut) signals.enemiesGone++;   // no alien to show: never stall here
                 break;
-            case TutorialCue.SpawnChargeAtoms:
-                // an empty charge that PowerAtoms green / blue atoms fill
-                if (power != null) power.Arm(TutorialScript.PowerAtoms * power.secondsPerAtom);
+            case TutorialCue.SpawnCapacitorAtom:
+                // an empty charge that the one violet atom fills
+                if (power != null) power.Arm(TutorialScript.ArmSeconds);
                 else signals.powersFired++;   // no weapon to charge: never stall here
-                spawnGoodStuffTut.keepAtomComing = AtomFor(s.cue);
+                IntroduceAtom(AtomFor(s.cue));
                 break;
         }
     }
@@ -232,7 +304,33 @@ public class Hints : MonoBehaviour {
     void EndStep(TutorialStep s)
     {
         guides.Clear();
+        // an atom nobody caught goes with its step: nothing stray is left to
+        // be picked up unexplained later
+        spawnGoodStuffTut.RemoveLiveAtom();
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+    }
+
+    // Drops the step's one atom in (see spawnGoodStuffTut.SpawnIntro). With
+    // no atom to show (a missing prefab) the step is not left waiting.
+    void IntroduceAtom(TutorialAtom kind)
+    {
+        var spawner = FindFirstObjectByType<spawnGoodStuffTut>();
+        if (spawner != null && spawner.SpawnIntro(kind) != null) return;
+        switch (kind)
+        {
+            case TutorialAtom.Green: signals.greenAtomsCollected++; break;
+            case TutorialAtom.Blue: signals.blueAtomsCollected++; break;
+            case TutorialAtom.Red: signals.redAtomsCollected++; break;
+        }
+    }
+
+    // One hit taken, shown on the orbiting hearts: the green atom has a heart to repair.
+    void DentShip()
+    {
+        if (collisionDetection.MAXLIFE < 2) return;
+        collisionDetection.lifeCounter = 1;
+        Vector3 at = ship != null ? ship.transform.position : Vector3.zero;
+        ShipLivesIndicator.Impact(at + Vector3.up * .6f);
     }
 
     // Which atom a step's cue introduces (None for the other cues).
@@ -243,7 +341,7 @@ public class Hints : MonoBehaviour {
             case TutorialCue.SpawnGreenAtom: return TutorialAtom.Green;
             case TutorialCue.SpawnBlueAtom: return TutorialAtom.Blue;
             case TutorialCue.SpawnRedAtom: return TutorialAtom.Red;
-            case TutorialCue.SpawnChargeAtoms: return TutorialAtom.Charge;
+            case TutorialCue.SpawnCapacitorAtom: return TutorialAtom.Cooldown;
             default: return TutorialAtom.None;
         }
     }
@@ -263,7 +361,9 @@ public class Hints : MonoBehaviour {
         reachedTheEndOfTut = true;
         speaker.HideAll();
         guides.Clear();
+        spawnGoodStuffTut.RemoveLiveAtom();
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
+        TopUpHearts();
         if (power != null) power.chargeMode = ShipPowerController.ChargeMode.Held;
         TutorialEnemy.Clear();   // a Skip mid-step leaves nothing to fly into
         enemyOut = false;
@@ -280,20 +380,16 @@ public class Hints : MonoBehaviour {
 
     void RunEnding()
     {
-        if (ship != null && liftOffLeft != null)
-            ship.transform.position = Vector3.MoveTowards(ship.transform.position, liftOffLeft.transform.position,
-                                                          3.2f * Time.unscaledDeltaTime);
-
+        // (the ship stays where it is: LIFT OFF flies it into the portal, TutorialLiftOff)
         if (panelShown || Time.unscaledTime - endedAt < liftOffSeconds) return;
         panelShown = true;
 
         if (pausedIcon != null) Destroy(pausedIcon);
-        float practiceDust = score.tutorialCurrency;
         score.totalCurrency = 0;
         moveBackGround.speed = 0;
         startMenu.youAreInTutorial = false;
         if (tutButtonClicks.activeCanvis != null) tutButtonClicks.activeCanvis.gameObject.SetActive(true);
-        TutorialCompletePanel.Show(practiceDust, score.RealRunPauses);
+        TutorialCompletePanel.Show();
     }
 
     // ---- Layout: keep the robot under the HUD and the skip button ----

@@ -1,0 +1,101 @@
+{
+  "key": "verdant_elite_sporebloom",
+  "displayName": "Sporebloom",
+  "world": "verdant",
+  "role": "spore burster",
+  "codexId": "elite_verdant_sporebloom",
+  "lore": "A slow armoured flower that drifts high over the canopy and breathes out seed pods. Each pod flies to a ringed spot, pops, and a ring of six spores drifts outward. Stay out of the dotted rings, or slip between the spores.",
+  "brain": "drifter",
+  "attack": "spore_burst",
+  "launchFrom": "podpad",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.33,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.6,
+  "accel": 3.0,
+  "turnRate": 120,
+  "followDistance": 2.6,
+  "laneOffset": 1.2,
+  "topMargin": 1.5,
+  "aggression": 0.4,
+  "tellSeconds": 1.0,
+  "attackGap": 4.0,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 1.8,
+  "actionSeconds": 0.9,
+  "shotCount": 2,
+  "shotSpeed": 2.0,
+  "shotSpread": 0,
+  "shotInterval": 0.35,
+  "shotSize": 0.32,
+  "shotKind": "shard",
+  "lobSeconds": 0.95,
+  "lobSpacing": 1.6,
+  "lobAhead": 0.3,
+  "poolSeconds": 4.5,
+  "heartColor": "#9C6BFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FF5CE0",
+  "engineColor": "#FFB45A",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lvent",
+      "x": 49,
+      "y": 89,
+      "dir": -1.0
+    },
+    {
+      "name": "rvent",
+      "x": 143,
+      "y": 89,
+      "dir": -1.0
+    },
+    {
+      "name": "pod",
+      "x": 96,
+      "y": 68,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 82,
+      "y": 158,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 110,
+      "y": 158,
+      "dir": -1.0
+    }
+  ],
+  "armored": false,
+  "shotMotion": "burst"
+}

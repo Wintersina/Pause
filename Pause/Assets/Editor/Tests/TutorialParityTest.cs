@@ -105,7 +105,7 @@ public static class TutorialParityTest
 
         lc.SendMessage("Start");
         var sprite = shopingShips.SpriteFor(1, 0); // Proteus, intact
-        float expected = shopingShips.NormalizedHullScale(sprite);
+        float expected = shopingShips.NormalizedHullScale(sprite) * ShipScale.Main;
         float actual = mp.transform.localScale.x;
 
         Check("tutorial ship1 scale (" + actual.ToString("F3") +

@@ -29,12 +29,11 @@ public class tutButtonClicks : MonoBehaviour {
             showButton();
         }
     }
+    // LIFT OFF: the ship flies into a portal, then the first level loads and
+    // its run begins with the usual portal arrival (TutorialLiftOff).
     public void replay()
     {
-            startMenu.youAreInTutorial = false;
-            moveBackGround.speed = 0f;
-            score.totalCurrency = 0;
-            SceneManager.LoadScene("gameS1");
+        TutorialLiftOff.Begin();
     }
     public void quit()
     {
@@ -44,8 +43,13 @@ public class tutButtonClicks : MonoBehaviour {
     {
         activeCanvis.gameObject.SetActive(true);   
     }
+    // Swapped by tests; the game loads the start menu.
+    public static System.Action LoadMenu = () => SceneManager.LoadScene("startS4");
+
+    // HOME: the start menu.
     public void mainMenuButton()
     {
-        SceneManager.LoadScene("startS4");
+        if (TutorialLiftOff.Playing) return;   // already on the way to the level
+        LoadMenu();
     }
 }

@@ -64,7 +64,11 @@ public static class ShipReach
     public static float HullBelow => AuthoredHullBelow * ShipScale.Live;
     public static float HullAbove => AuthoredHullAbove * ShipScale.Live;
     // The ship's centre sits this far above the finger (HeartOrbit.ThumbBelow).
-    public const float FingerOffset = 1f;
+    // The one number every touch controller uses (movePlayer, the tutorial's
+    // movePlayerInTut, Planetfall's hand-back): 1.25 u, 25% above the 1.0 u it
+    // was, so the thumb sits further from the hull. The reach itself (rail
+    // clamps, floor, ceiling) does not depend on it.
+    public const float FingerOffset = 1.25f;
     // Sideways: the ship's centre stays within +/- this. It was the constant
     // 2.4 (LegacyHalfWidth), which let a 0.58 u hull poke 0.08 u into the
     // drawn rails (inner edge 2.61); now the hull's side stops on the rails'

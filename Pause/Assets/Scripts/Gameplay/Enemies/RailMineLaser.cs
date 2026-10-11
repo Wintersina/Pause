@@ -400,7 +400,9 @@ public class RailMineLaser : MonoBehaviour
             {
                 bool on = t >= aimDelay && Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick)) % 2 == 0;
                 sight.enabled = on && sightSprite != null;
-                Span(sight.transform, SightWidth, length, dir, flame != null ? sightSprite : null);
+                // the painted aim line has two drawings (aim a, b): one per blink
+                if (flame != null && flame.sightB != null) sight.sprite = Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) % 2 == 0 ? sightSprite : flame.sightB;
+                Span(sight.transform, SightWidth, length, dir, flame != null ? sight.sprite : null);
                 if (flame != null) PlacePilot();
                 break;
             }

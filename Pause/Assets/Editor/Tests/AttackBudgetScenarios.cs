@@ -236,7 +236,36 @@ public static class AttackBudgetScenarios
         {
             var s = all[i];
             if (s == null || !s.Active) continue;
-            if (s.Airborne) { into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds)); continue; }
+            if (s.Airborne)
+            {
+                // a lobbed trunk (Roll): harmful where it comes down for an instant, then it rolls on (its own circle, below); the dotted lane it rolls along is known
+                if ((s.Motion & ShotMotion.Roll) != 0)
+                {
+                    into.Add(Hz.Circle(100 + i, s.LobTarget, s.Radius + .05f, s.LobRemaining, .3f));
+                    Vector2 rd = LogRollAttack.RollDir(s.LobTarget.x);
+                    var lane = Hz.Segment(2400 + i, s.LobTarget, s.LobTarget + rd * LogRollAttack.LaneLength, s.Radius + LogRollAttack.PathHalf, s.LobRemaining, 4f);
+                    lane.planOnly = true; lane.hasV = true; lane.va = lane.vb = new Vector2(0f, -EliteSystem.Scroll);
+                    into.Add(lane);
+                    continue;
+                }
+                into.Add(Hz.Circle(100 + i, s.LobTarget, s.PoolRadius, s.LobRemaining, s.PoolSeconds)); continue;
+            }
+            // a crescent (Slash) is hit along its whole length
+            if (s.SlashCapsule)
+            {
+                Vector2 ax = s.SlashAxis * (ShotMotions.SlashLength * .5f), c0 = s.transform.position;
+                into.Add(Hz.Segment(100 + i, c0 - ax, c0 + ax, s.HitRadiusOfCollider));
+                continue;
+            }
+            // a spore pod (Burst): the ring its spores will cover is drawn, so the bot knows it
+            if ((s.Motion & ShotMotion.Burst) != 0 && !s.IsChip && s.Age < ShotMotions.BurstSeconds)
+            {
+                float left = ShotMotions.BurstSeconds - s.Age;
+                Vector2 at = (Vector2)s.transform.position + s.Velocity * left;
+                var ring = Hz.Circle(2500 + i, at, SporeBurstAttack.Reach + .2f, left, ShotMotions.SporeSeconds);
+                ring.planOnly = true;
+                into.Add(ring);
+            }
             // a Flutter leaf is read by its course: the bot follows the straight line and keeps the weave's width clear
             if ((s.Motion & ShotMotion.Flutter) != 0) { into.Add(Hz.Circle(100 + i, s.CoursePosition, s.Radius + ShotMotions.FlutterAmp)); continue; }
             float splitIn = s.SplitIn;
@@ -324,6 +353,34 @@ public static class AttackBudgetScenarios
                         now.hasV = true;
                         into.Add(now);
                     }
+                }
+                continue;
+            }
+            var log = hz as AttackLog;
+            if (log != null)
+            {
+                // the trunk's whole track is drawn from the first frame (landing ring, rolling line, the bounce): the bot knows where the disc will be
+                // at any moment of it. Two legs (to the rail, off it), each a disc moving at a known velocity, back-projected from where it starts.
+                bool tellL = log.State == AttackHazard.Phase.Tell;
+                Vector2 land = log.Landing, lv = log.RollVelocity;
+                float lim = log.XLimit, total = log.RollSeconds;
+                float tbL = AttackLog.BounceTime(land, lv, lim);
+                float inL = tellL ? log.TellLeft : 0f, tau0 = tellL ? 0f : log.Age;
+                if (tau0 < Mathf.Min(tbL, total))
+                {
+                    Vector2 p0 = tellL ? land : log.Position;
+                    var c1 = Hz.Circle(baseId, p0 - lv * inL, log.HitHalf, inL, Mathf.Min(tbL, total) - tau0);
+                    c1.hasV = true; c1.va = c1.vb = lv;
+                    into.Add(c1);
+                }
+                if (tbL < total)
+                {
+                    float st = Mathf.Max(tau0, tbL);
+                    Vector2 p1 = AttackLog.PositionAt(land, lv, lim, st), v2 = new Vector2(-lv.x, lv.y);
+                    float in2 = inL + (st - tau0);
+                    var c2 = Hz.Circle(baseId + 1, p1 - v2 * in2, log.HitHalf, in2, total - st);
+                    c2.hasV = true; c2.va = c2.vb = v2;
+                    into.Add(c2);
                 }
                 continue;
             }
@@ -564,7 +621,8 @@ public static class AttackBudgetScenarios
         public bool Telling => ship != null && ship.Telling && !Rams;
         // one attack per roll: once the first is over, no second is begun; done when its shots are gone too
         public bool Done => ship != null && ship.Attacks >= 1 && ship.State != EliteState.Attack && ActiveRosterShots() == 0 && t > 1f;
-        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_ram";
+        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_ram" || def.attack == "leaf_dive";
+        float tellLeft;
 
         public Transform Begin(System.Random rng, Vector2 start)
         {
@@ -586,11 +644,63 @@ public static class AttackBudgetScenarios
             t += dt;
             if (ship != null && ship.Attacks >= 1 && ship.State != EliteState.Attack) ship.AttackCooldown = 99f;
             EliteSystem.Step(dt);
+            tellLeft = ship != null && ship.Telling ? Mathf.Max(0f, ship.Attack.TellSeconds - ship.AttackClock) : 0f;
+        }
+
+        // What the wind-up draws (the dotted outline of the attack): known to the bot from the first frame, never scored
+        void CollectKnown(List<Hz> into)
+        {
+            if (ship == null || ship.State == EliteState.Dead) return;
+            // (the drawing stays on screen until the crescent is away: a dive's lane and row are still known while it dives)
+            var diving = ship.Attack as LeafDiveAttack;
+            if (!ship.Telling && !(ship.Acting && diving != null)) return;
+            var board = new Vector2(0f, -EliteSystem.Scroll);
+            var lr = ship.Attack as LogRollAttack;
+            if (lr != null)
+            {
+                for (int i = 0; i < Mathf.Max(1, def.shotCount); i++)
+                {
+                    Vector2 sp = lr.Spot(i);
+                    // (the spot is a place on screen; the board carries what lands on it: at the moment of landing it is at `sp`, then it rides down)
+                    float land = tellLeft + def.lobSeconds;
+                    Vector2 from = sp + Vector2.up * (EliteSystem.Scroll * land);
+                    var ring = Hz.Circle(2600 + i, from, def.shotSize * .4f + .05f, land, .3f);
+                    ring.planOnly = ring.hasV = true; ring.va = ring.vb = board;
+                    into.Add(ring);
+                    var lane = Hz.Segment(2610 + i, from, from + LogRollAttack.RollDir(sp.x) * LogRollAttack.LaneLength, def.shotSize * .4f + LogRollAttack.PathHalf, land, 4f);
+                    lane.planOnly = lane.hasV = true; lane.va = lane.vb = board;
+                    into.Add(lane);
+                }
+            }
+            var sb = ship.Attack as SporeBurstAttack;
+            if (sb != null)
+            {
+                for (int i = 0; i < Mathf.Max(1, def.shotCount); i++)
+                {
+                    var ring = Hz.Circle(2620 + i, sb.Burst(i), SporeBurstAttack.Reach + .2f, tellLeft + def.shotInterval * i + ShotMotions.BurstSeconds, ShotMotions.SporeSeconds);
+                    ring.planOnly = true;
+                    into.Add(ring);
+                }
+            }
+            var ld = ship.Attack as LeafDiveAttack;
+            if (ld != null)
+            {
+                Vector2 dd = (ld.Aim - ld.DiveFrom).sqrMagnitude > 1e-4f ? (ld.Aim - ld.DiveFrom).normalized : Vector2.down;
+                var dive = Hz.Segment(2640, ld.DiveFrom, ld.Aim + dd * .75f, def.hullRadius + LeafDiveAttack.DiveHalfPad, tellLeft, def.actionSeconds);
+                dive.planOnly = true;
+                into.Add(dive);
+                float edge = EliteSystem.RailEdge;
+                var row = Hz.Segment(2641, new Vector2(ld.Aim.x, ld.Aim.y), new Vector2(ld.SlashDeg > 90f ? -edge : edge, ld.Aim.y), LeafDiveAttack.SlashHalf, tellLeft + .1f, 3f);
+                row.planOnly = true;
+                into.Add(row);
+            }
         }
 
         public void Collect(List<Hz> into)
         {
             CollectShots(into);
+            CollectHazards(into);
+            CollectKnown(into);
             // the hull is a hazard only while it rams (a dash / dive / ram attack in its action phase)
             if (ship != null && ship.State != EliteState.Dead)
                 into.Add(Hz.Circle(300, ship.transform.position, def.hullRadius, ship.Acting && Rams ? 0f : float.PositiveInfinity));
@@ -653,7 +763,7 @@ public static class AttackBudgetScenarios
         public string Name { get; }
         public float MaxSeconds => themedBoss ? 26f : 12f;
         public bool Attacked => e != null && e.Actor != null && e.Actor.AttacksStarted > 0;
-        public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;
+        public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;   // (the lash and the trunk are told the same way)
         public bool Done => e != null && e.Actor != null && e.Actor.AttacksStarted >= 3 && e.Pool.ActiveShots == 0 && e.Pool.ActiveBeams == 0 && AttackHazard.ActiveCount == 0 && !e.Actor.HazardPhase;
 
         public Transform Begin(System.Random rng, Vector2 start)

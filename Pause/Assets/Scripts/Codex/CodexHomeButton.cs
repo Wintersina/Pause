@@ -19,19 +19,24 @@ public class CodexHomeButton : MonoBehaviour
     Button button;
     Text label, counter;
     Font font;
-    // The notification bubble: unclaimed achievements (25 star dust each),
-    // pinned to the button's top-right corner. A small amber pixel disc with
+    // The notification bubble: unclaimed achievements (25 star dust each) plus NEW codex entries,
+    // riding the top-right corner of the "Codex" word (measured from the rendered text). A small amber pixel disc with
     // the count in ink; hidden at 0, "9+" above 9. Art slot: a sprite named
     // Resources/Codex/cx_badge (13x13 px, point filtered) replaces the
     // procedural disc when Codex paints one.
     Image badge;
-    Text badgeText;
-    public const float BadgeSize = 32f, BadgeInset = 6f;
+    Image badgeGlyphs;
+    string badgeShown = "";
+    public const float BadgeSize = 14f, BadgeOverlapX = 2f, BadgeOverlapY = 2f;
+    // size/position are recomputed when the label's rendered text or the canvas scale changes
+    string badgeSig;
     public const int BadgeMax = 9;
     public const string BadgeArtSlot = "cx_badge";
 
     public Image Badge { get { return badge; } }
-    public Text BadgeText { get { return badgeText; } }
+    // The count as drawn: "", "1".."9" or "9+". Pixel art, no Text anywhere in the bubble.
+    public string BadgeShown { get { return badgeShown; } }
+    public Image BadgeGlyphs { get { return badgeGlyphs; } }
     public bool BadgeVisible { get { return badge != null && badge.gameObject.activeSelf; } }
 
     public static string BadgeLabel(int n)
@@ -43,7 +48,60 @@ public class CodexHomeButton : MonoBehaviour
 
     // A 13x13 pixel disc: ink outline, amber fill, one shadow row along the
     // bottom. Point filtered, so it stays crisp at any scale.
-    static Sprite BadgeSprite()
+    // ---- pixel-art count: 3x5 digits (+ a 3x3 plus) drawn 1 glyph pixel = 1 disc pixel ----
+    // Rows top to bottom, '#' = ink.
+    public static readonly string[][] Glyphs =
+    {
+        new[] { "###", "#.#", "#.#", "#.#", "###" },   // 0
+        new[] { ".#.", "##.", ".#.", ".#.", "###" },   // 1
+        new[] { "###", "..#", "###", "#..", "###" },   // 2
+        new[] { "###", "..#", ".##", "..#", "###" },   // 3
+        new[] { "#.#", "#.#", "###", "..#", "..#" },   // 4
+        new[] { "###", "#..", "###", "..#", "###" },   // 5
+        new[] { "###", "#..", "###", "#.#", "###" },   // 6
+        new[] { "###", "..#", ".#.", ".#.", ".#." },   // 7
+        new[] { "###", "#.#", "###", "#.#", "###" },   // 8
+        new[] { "###", "#.#", "###", "..#", "###" },   // 9
+    };
+    public static readonly string[] PlusGlyph = { "...", ".#.", "###", ".#.", "..." };
+    public const int DiscPx = 13, GlyphRowBottom = 4;   // glyph rows 4..8 centre on the disc's middle row
+
+    static readonly System.Collections.Generic.Dictionary<string, Sprite> countSprites = new System.Collections.Generic.Dictionary<string, Sprite>();
+
+    // 13x13 transparent texture with the label's glyphs in ink, centred in the disc.
+    public static Texture2D CountTexture(string label)
+    {
+        var tex = new Texture2D(DiscPx, DiscPx, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "cx_badge_count_" + label };
+        var clear = new Color32[DiscPx * DiscPx];
+        tex.SetPixels32(clear);
+        if (!string.IsNullOrEmpty(label))
+        {
+            int width = label.Length * 3 + (label.Length - 1);
+            int x0 = (DiscPx - width) / 2;
+            for (int i = 0; i < label.Length; i++)
+            {
+                var g = label[i] == '+' ? PlusGlyph : Glyphs[label[i] - '0'];
+                for (int r = 0; r < 5; r++)
+                    for (int c = 0; c < 3; c++)
+                        if (g[r][c] == '#') tex.SetPixel(x0 + i * 4 + c, GlyphRowBottom + (4 - r), CodexPalette.Ink);
+            }
+        }
+        tex.Apply(false, false);
+        return tex;
+    }
+
+    static Sprite CountSprite(string label)
+    {
+        Sprite sp;
+        if (countSprites.TryGetValue(label, out sp) && sp != null) return sp;
+        var tex = CountTexture(label);
+        sp = Sprite.Create(tex, new Rect(0, 0, DiscPx, DiscPx), new Vector2(.5f, .5f), DiscPx);
+        sp.name = tex.name;
+        countSprites[label] = sp;
+        return sp;
+    }
+
+    public static Sprite BadgeSprite()
     {
         var art = CodexUi.CodexSprite(BadgeArtSlot);
         if (art != null) return art;
@@ -81,6 +139,7 @@ public class CodexHomeButton : MonoBehaviour
         DeveloperUnlocks.Changed += Refresh;   // N/N while developer mode is on
         AchievementStore.Unlocked += OnAchievementChanged;
         AchievementStore.Claimed += Refresh;
+        Codex.NewChanged += Refresh;
         Refresh();
     }
 
@@ -90,6 +149,7 @@ public class CodexHomeButton : MonoBehaviour
         DeveloperUnlocks.Changed -= Refresh;
         AchievementStore.Unlocked -= OnAchievementChanged;
         AchievementStore.Claimed -= Refresh;
+        Codex.NewChanged -= Refresh;
     }
 
     // Idempotent; public so the edit-mode tests can build it without Play mode.
@@ -156,20 +216,17 @@ public class CodexHomeButton : MonoBehaviour
 
         // The bubble: only there while something is waiting to be collected.
         // It takes no touches (the whole row opens the codex).
-        badge = CodexUi.NewImage("CollectBadge", transform, BadgeSprite(), Color.white);
+        badge = CodexUi.NewImage("CollectBadge", label.transform, BadgeSprite(), Color.white);
         badge.raycastTarget = false;
         var brt = badge.rectTransform;
-        brt.anchorMin = brt.anchorMax = new Vector2(1f, 1f);
-        brt.pivot = new Vector2(1f, 1f);
-        brt.anchoredPosition = new Vector2(-BadgeInset, -BadgeInset);
+        brt.anchorMin = brt.anchorMax = new Vector2(.5f, .5f);
+        brt.pivot = new Vector2(0f, 0f);
         brt.sizeDelta = new Vector2(BadgeSize, BadgeSize);
-        badgeText = CodexUi.NewText("Count", brt, font, "", 18, CodexPalette.Ink, TextAnchor.MiddleCenter);
-        badgeText.resizeTextForBestFit = true;
-        badgeText.resizeTextMinSize = 10;
-        badgeText.resizeTextMaxSize = 18;
-        var trt = badgeText.rectTransform;
+        badgeGlyphs = CodexUi.NewImage("Count", brt, CountSprite("1"), Color.white);
+        badgeGlyphs.raycastTarget = false;
+        var trt = badgeGlyphs.rectTransform;
         trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-        trt.offsetMin = new Vector2(3f, 5f); trt.offsetMax = new Vector2(-3f, -1f);
+        trt.offsetMin = trt.offsetMax = Vector2.zero;
         badge.gameObject.SetActive(false);
 
         Refresh();
@@ -182,15 +239,107 @@ public class CodexHomeButton : MonoBehaviour
         return Codex.DiscoveredCount + "/" + Codex.Total + " DISCOVERED";
     }
 
+    // What the bubble counts: star dust waiting to be claimed plus NEW codex entries
+    // whose tab has not been opened yet.
+    public static int Total()
+    {
+        return AchievementStore.ClaimableCount + Codex.UnackedNewCount;
+    }
+
     public void Refresh()
     {
         if (counter != null) counter.text = CounterText();
         if (badge != null)
         {
-            int n = AchievementStore.ClaimableCount;
+            int n = Total();
             badge.gameObject.SetActive(n > 0);
-            badgeText.text = n > 0 ? BadgeLabel(n) : "";
+            badgeShown = n > 0 ? BadgeLabel(n) : "";
+            if (n > 0) badgeGlyphs.sprite = CountSprite(badgeShown);
+            PlaceBadge(true);
         }
+    }
+
+    void LateUpdate()
+    {
+        if (badge != null && badge.gameObject.activeSelf) PlaceBadge(false);
+    }
+
+    void OnRectTransformDimensionsChange() { badgeSig = null; }
+
+    static TextGenerator badgeGen;
+
+    // Rendered extent of the label's text in the label's local space: the
+    // right edge of the last glyph, the top of the tallest glyph and the top
+    // of the last glyph. False when there is nothing to measure.
+    public bool MeasureWord(out float right, out float top, out float lastTop)
+    {
+        right = top = lastTop = 0f;
+        if (label == null || string.IsNullOrEmpty(label.text)) return false;
+        var rect = label.rectTransform.rect.size;
+        if (rect.x <= 0f || rect.y <= 0f) return false;
+        if (badgeGen == null) badgeGen = new TextGenerator();
+        float ppu = Mathf.Max(.01f, label.pixelsPerUnit);
+        var settings = label.GetGenerationSettings(rect);
+        badgeGen.Populate(label.text, settings);
+        var v = badgeGen.verts;
+        int chars = badgeGen.characterCount;
+        if (v.Count < 4 || chars < 1) return false;
+        // 4 verts per visible glyph; the last visible one is the last letter
+        int glyphs = v.Count / 4;
+        right = float.MinValue; top = float.MinValue; lastTop = 0f;
+        for (int g = 0; g < glyphs; g++)
+        {
+            float gx = float.MinValue, gy = float.MinValue;
+            for (int k = 0; k < 4; k++) { gx = Mathf.Max(gx, v[g * 4 + k].position.x); gy = Mathf.Max(gy, v[g * 4 + k].position.y); }
+            if (g == glyphs - 1) { right = gx / ppu; lastTop = gy / ppu; }
+            top = Mathf.Max(top, gy / ppu);
+        }
+        return true;
+    }
+
+    // Integer pixel multiple of the 13 px art at the canvas scale, nearest to `units` (at least 1x).
+    public static float SnapToArt(Component c, float units)
+    {
+        var canvas = c != null ? c.GetComponentInParent<Canvas>() : null;
+        float scale = canvas != null ? Mathf.Max(.01f, canvas.rootCanvas.scaleFactor) : 1f;
+        if (scale < .7f) return units;   // canvas not scaled yet (edit-mode tests)
+        int mult = Mathf.Max(1, Mathf.RoundToInt(units * scale / 13f));
+        return mult * 13f / scale;
+    }
+
+    float BadgeUnits() { return SnapToArt(this, BadgeSize); }
+
+    // Pin the bubble to the top-right of the word: its bottom-left corner sits
+    // just inside the last letter's top-right, so it rides the cap line and
+    // never lands on the letter body.
+    public void PlaceBadge(bool force)
+    {
+        if (badge == null || label == null) return;
+        var canvas = GetComponentInParent<Canvas>();
+        float scale = canvas != null ? canvas.rootCanvas.scaleFactor : 1f;
+        var lr = label.rectTransform.rect;
+        string sig = label.text + "|" + lr.size + "|" + scale + "|" + label.cachedTextGenerator.fontSizeUsedForBestFit;
+        if (!force && sig == badgeSig) return;
+        float right, top, lastTop;
+        if (!MeasureWord(out right, out top, out lastTop)) return;
+        badgeSig = sig;
+        float size = BadgeUnits();
+        var brt = badge.rectTransform;
+        brt.sizeDelta = new Vector2(size, size);
+        // label-local point just above the last letter's top-right corner
+        var local = new Vector3(right - BadgeOverlapX, lastTop - BadgeOverlapY, 0f);
+        // keep it inside the button: on short rows the cap line is near the top edge, so
+        // slide it down and, to stay off the letter, right of the word's last glyph
+        var btn = (RectTransform)transform;
+        float topLimit = label.rectTransform.InverseTransformPoint(transform.TransformPoint(new Vector3(0f, btn.rect.yMax, 0f))).y;
+        float rightLimit = label.rectTransform.InverseTransformPoint(transform.TransformPoint(new Vector3(btn.rect.xMax, 0f, 0f))).x;
+        if (local.y + size > topLimit)
+        {
+            local.y = topLimit - size;
+            local.x = Mathf.Max(local.x, right + 1f);
+        }
+        local.x = Mathf.Min(local.x, rightLimit - size);
+        brt.anchoredPosition = new Vector2(local.x - lr.center.x, local.y - lr.center.y);
     }
 
     public void OpenCodex()

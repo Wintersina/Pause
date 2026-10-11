@@ -388,7 +388,7 @@ public static class TestHarness
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
             DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key, SoundSettings.Key,
-            Codex.PrefsKey,
+            Codex.PrefsKey, Codex.NewKey, Codex.AckKey,
         };
         for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
 

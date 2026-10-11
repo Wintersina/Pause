@@ -228,6 +228,7 @@ public class BossEncounter : MonoBehaviour
         actor = BossActor.Spawn(boss);
         BossRails.Measure();   // the walls boss shots ricochet off or splash on
         pool = new BossProjectilePool(BossConfig.ProjectilePoolMax, BossConfig.BeamPoolMax);
+        BossExecutors.WarmPools(boss);   // the pools of its hazards, built now and not in the middle of a volley
         BossArt.ShotRim(boss, BossArt.Bolt0);   // build the shots' rims now, not at the first volley
         if (Application.isPlaying) ui = BossIntroUI.Play(boss);
         WorldMusic.BeginBoss(WorldManager.Worlds[Mathf.Clamp(world, 0, WorldManager.Worlds.Length - 1)]);

@@ -4,10 +4,6 @@ public class leaderboard : MonoBehaviour {
 
 	// Use this for 
 
-    void Start()
-    {
-        AdMob.show();
-    }
 	// The LeaderBoard button: the in-game rankings panel. Its "View all"
 	// opens the store's own leaderboard screen.
 	public void pull_up_leaderboard () {
@@ -15,8 +11,6 @@ public class leaderboard : MonoBehaviour {
 	}
     public void playTut()
     {
-        if (AdMob.isAdsShowwing)
-            AdMob.hide();
         // Replaying used to skip this, so the tutorial ran as a real run: it
         // paid real star dust and handed out 5 pauses instead of 50.
         startMenu.PrepareTutorialRun();

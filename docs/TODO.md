@@ -15,3 +15,5 @@ Resources/WorldMusic/Boss_<World>.(wav|ogg); WorldMusic picks them up automatica
   the boss intro starts, and the world's own track comes back when the
   encounter ends. Until a file exists, the world's current track keeps
   playing at a slightly raised pitch (`BossFallbackPitch`).
+
+- Codex-only scream boost: when the Codex triple-taps a ship (`EnemyDeathAudio` forceScream), the scream plays at cue volume x `CodexScreamBoost` (2.6, clamped to 1, no BorrowVolume cut, 0-20 ms delay) over a death cue ducked by `CodexDeathDuck` (-6 dB); in-game deaths are unchanged.

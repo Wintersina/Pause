@@ -498,22 +498,23 @@ public static class CodexAchievementsTabTest
                   CodexHomeButton.BadgeLabel(10) == "9+" && CodexHomeButton.BadgeLabel(42) == "9+");
             var all = AchievementCatalog.All.Where(d => AchievementCatalog.IsActive(d)).ToList();
             AchievementStore.Unlock(all[0]);
-            Check("home: one unlock shows 1 live (no manual refresh)", home.BadgeVisible && home.BadgeText.text == "1");
+            Check("home: one unlock shows 1 live (no manual refresh)", home.BadgeVisible && home.BadgeShown == "1");
             for (int i = 1; i < 9; i++) AchievementStore.Unlock(all[i]);
-            Check("home: 9 shows 9", home.BadgeVisible && home.BadgeText.text == "9" && AchievementStore.ClaimableCount == 9);
+            Check("home: 9 shows 9", home.BadgeVisible && home.BadgeShown == "9" && AchievementStore.ClaimableCount == 9);
             AchievementStore.Unlock(all[9]);
-            Check("home: 10 shows 9+", home.BadgeText.text == "9+");
+            Check("home: 10 shows 9+", home.BadgeShown == "9+");
             AchievementStore.Unlock(all[10]);
             AchievementStore.Unlock(all[11]);
-            Check("home: 12 still shows 9+", home.BadgeText.text == "9+" && AchievementStore.ClaimableCount == 12);
+            Check("home: 12 still shows 9+", home.BadgeShown == "9+" && AchievementStore.ClaimableCount == 12);
             AchievementStore.Claim(all[0]);
-            Check("home: a claim updates it live (11 -> 9+)", home.BadgeText.text == "9+" && AchievementStore.ClaimableCount == 11);
+            Check("home: a claim updates it live (11 -> 9+)", home.BadgeShown == "9+" && AchievementStore.ClaimableCount == 11);
             AchievementStore.Claim(all[1]);
             AchievementStore.Claim(all[2]);
-            Check("home: 9 left shows 9", home.BadgeText.text == "9");
+            Check("home: 9 left shows 9", home.BadgeShown == "9");
             Check("home: the badge takes no touches, has no canvas, and the DISCOVERED counter is unchanged",
-                  !home.Badge.raycastTarget && !home.BadgeText.raycastTarget && home.Badge.GetComponent<Canvas>() == null &&
+                  !home.Badge.raycastTarget && !home.BadgeGlyphs.raycastTarget && home.Badge.GetComponent<Canvas>() == null &&
                   System.Text.RegularExpressions.Regex.IsMatch(home.Counter.text, @"^\d+/\d+ DISCOVERED$"));
+            BadgePixelChecks(home);
             Check("home: the badge sprite is point filtered", home.Badge.sprite != null && home.Badge.sprite.texture.filterMode == FilterMode.Point);
             AchievementStore.ClaimAll();
             Check("home: the badge goes once everything is collected", !home.BadgeVisible);
@@ -552,7 +553,7 @@ public static class CodexAchievementsTabTest
                 if (shot.error != null) { bad++; if (first == "") first = device.id + ": " + shot.error; }
             }
         }
-        Check("home: badge inside the Codex button's top-right, taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
+        Check("home: badge rides the Codex word's top-right (also for a longer word), taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
     }
 
     static void HomeBadgeStage(ScreenFitRig rig, ref int bad, ref string first)
@@ -565,25 +566,95 @@ public static class CodexAchievementsTabTest
         else
         {
             home.Refresh();
-            var br = rig.PixelRect(home.Badge.rectTransform);
-            var tr = rig.PixelRect((RectTransform)home.transform);
-            float e = 1.5f;
-            if (br.xMin < tr.xMin - e || br.xMax > tr.xMax + e || br.yMin < tr.yMin - e || br.yMax > tr.yMax + e) why = "badge outside button " + br + " vs " + tr;
-            else if (br.center.x < tr.center.x + tr.width * .25f || br.center.y < tr.center.y) why = "badge not in the top-right quadrant";
-            else if (home.BadgeText.text != "9+") why = "text " + home.BadgeText.text;
-            else if (br.width < 8f || br.width > tr.width * .4f) why = "badge size " + br.width + " in button " + tr.width;
-            else
+            why = BadgeRidesWord(rig, home, "Codex");
+            if (why == null) why = BadgeRidesWord(rig, home, "Discoveries");
+            if (why == null) why = BadgeRidesWord(rig, home, "Codex");
+            if (why == null)
             {
-                // a tap at the badge's centre must still land on the button
-                var p = br.center;
+                // a tap at the badge must still land on the button
                 bool onBadge = false;
                 foreach (var g in home.GetComponentsInChildren<Graphic>(false))
-                    if (g.raycastTarget && (g == home.Badge || g == home.BadgeText)) onBadge = true;
+                    if (g.raycastTarget && (g == home.Badge || g == home.BadgeGlyphs)) onBadge = true;
                 if (onBadge) why = "badge graphics catch raycasts";
                 else if (!home.Button.targetGraphic.raycastTarget) why = "button lost its raycast target";
             }
         }
         if (why != null) { bad++; if (first == "") first = rig.device.id + ": " + why; }
+    }
+
+
+    // Rect of a RectTransform in the button's local space.
+    static Rect LocalRect(Transform space, RectTransform rt)
+    {
+        var c = new Vector3[4];
+        rt.GetWorldCorners(c);
+        var lo = new Vector2(float.MaxValue, float.MaxValue); var hi = new Vector2(float.MinValue, float.MinValue);
+        foreach (var w in c) { var l = space.InverseTransformPoint(w); lo = Vector2.Min(lo, l); hi = Vector2.Max(hi, l); }
+        return Rect.MinMaxRect(lo.x, lo.y, hi.x, hi.y);
+    }
+
+    // The bubble rides the top-right of the rendered word: right of its last
+    // glyph (<= 10 units away), above the text's vertical centre, inside the
+    // button, clear of the DISCOVERED line, 9.5..22 units, whole 13 px multiples.
+    static string BadgeRidesWord(ScreenFitRig rig, CodexHomeButton home, string word)
+    {
+        home.Label.text = word;
+        Canvas.ForceUpdateCanvases();
+        home.PlaceBadge(true);
+        float right, top, lastTop;
+        if (!home.MeasureWord(out right, out top, out lastTop)) return word + ": word not measurable";
+        var lab = home.Label.rectTransform;
+        var wr = home.transform.InverseTransformPoint(lab.TransformPoint(new Vector3(right, lastTop, 0f)));
+        var btn = LocalRect(home.transform, (RectTransform)home.transform);
+        var bd = LocalRect(home.transform, home.Badge.rectTransform);
+        var cnt = LocalRect(home.transform, home.Counter.rectTransform);
+        var labR = LocalRect(home.transform, lab);
+        float e = 1.5f;
+        if (bd.xMin < btn.xMin - e || bd.xMax > btn.xMax + e || bd.yMin < btn.yMin - e || bd.yMax > btn.yMax + e) return word + ": badge outside button " + bd + " vs " + btn;
+        if (bd.xMin < wr.x - 4f) return word + ": badge covers the last glyph " + bd.xMin + " < " + wr.x;
+        if (bd.xMin - wr.x > 10f) return word + ": badge " + (bd.xMin - wr.x) + " units from the word";
+        if (bd.yMin < wr.y - 4f && bd.xMin < wr.x - .5f) return word + ": badge below the last glyph's top";
+        if (bd.center.y <= labR.center.y) return word + ": badge not above the text centre";
+        if (bd.Overlaps(cnt)) return word + ": badge overlaps the DISCOVERED line";
+        if (bd.width < 9.5f || bd.width > 22f) return word + ": badge size " + bd.width;
+        float scale = home.GetComponentInParent<Canvas>().rootCanvas.scaleFactor;
+        float px = bd.width * scale / 13f;
+        if (Mathf.Abs(px - Mathf.Round(px)) > .03f) return word + ": badge not a whole multiple of the 13 px art (" + px + ")";
+        if (home.BadgeShown != "9+") return word + ": text " + home.BadgeShown;
+        return null;
+    }
+
+    // Count is pixel art: no Text in the bubble, glyphs in ink only, inside the disc with >= 1 px margin, all glyphs distinct.
+    static void BadgePixelChecks(CodexHomeButton home)
+    {
+        Check("badge: no Text component in the bubble", home.Badge.GetComponentsInChildren<Text>(true).Length == 0 && home.Badge.GetComponent<Text>() == null);
+        var disc = CodexHomeButton.BadgeSprite().texture;
+        string bad = null;
+        foreach (var label in new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "9+" })
+        {
+            var t = CodexHomeButton.CountTexture(label);
+            int n = 0;
+            for (int y = 0; y < 13; y++)
+                for (int x = 0; x < 13; x++)
+                {
+                    var c = t.GetPixel(x, y);
+                    if (c.a < .5f) continue;
+                    n++;
+                    if (!((Color32)c).Equals((Color32)CodexPalette.Ink)) bad = label + ": non-ink pixel at " + x + "," + y;
+                    for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            int nx = x + dx, ny = y + dy;
+                            if (nx < 0 || ny < 0 || nx > 12 || ny > 12 || disc.GetPixel(nx, ny).a < .5f) bad = label + ": pixel " + x + "," + y + " closer than 1 px to the disc edge";
+                        }
+                }
+            if (n == 0) bad = label + ": nothing drawn";
+        }
+        Check("badge: digit pixels are ink only, inside the disc with >= 1 px margin (" + (bad ?? "ok") + ")", bad == null);
+        var seen = new System.Collections.Generic.HashSet<string>();
+        foreach (var g in CodexHomeButton.Glyphs) seen.Add(string.Join("/", g));
+        seen.Add(string.Join("/", CodexHomeButton.PlusGlyph));
+        Check("badge: the 10 digit bitmaps and '+' are all different", seen.Count == 11);
     }
 
     // ---- helpers (the same measuring rules as CodexTest) ----

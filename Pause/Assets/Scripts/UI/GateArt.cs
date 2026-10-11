@@ -5,7 +5,7 @@ using UnityEngine;
 // Each slot is a PNG in Resources/HapticGate/ (see docs/hapticgate-splash.md).
 // If any slot is missing Load returns null and the card shows just the mark.
 //
-//   industrial_gate_v2   1536x1024  two-leaf door, same crop contract as industrial_gate
+//   industrial_gate_v3   1536x1024  RGBA cut-out two-leaf door, same crop contract as industrial_gate
 //   gate_cracks_1..3     1536x1024  RGBA cumulative crack overlays aligned to the leaves
 //   gate_debris          1024x512   8x4 cells of 128 px debris sprites
 //   gate_steam           1024x1024  4x4 cells of 256 px steam puffs
@@ -14,7 +14,7 @@ using UnityEngine;
 // original door: left leaf x 0.055, right leaf x 0.51, width 0.44, y 0.05..0.95.
 public sealed class GateArt
 {
-    public const string DoorSlot = "HapticGate/industrial_gate_v2";
+    public const string DoorSlot = "HapticGate/industrial_gate_v3";
     public const string CrackSlotPrefix = "HapticGate/gate_cracks_";   // + 1..3
     public const string DebrisSlot = "HapticGate/gate_debris";
     public const string SteamSlot = "HapticGate/gate_steam";

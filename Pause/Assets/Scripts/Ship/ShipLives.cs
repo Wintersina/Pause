@@ -52,8 +52,12 @@ public static class ShipLives
         return Mathf.Clamp(Base(id) + SkinHearts.Bonus(id), 1, Most);
     }
 
-    // The tutorial teaches on the bare hull: no colour hearts.
-    public static int TutorialMax(int id) { return Base(id); }
+    // The tutorial teaches on the bare hull (no colour hearts) with two extra
+    // hearts orbiting it, so the alien's crash costs one and can never end the
+    // lesson (Hints tops them back up). Only the tutorial scene flies this;
+    // every real run uses Max.
+    public const int TutorialExtraHearts = 2;
+    public static int TutorialMax(int id) { return Mathf.Max(Base(id) + TutorialExtraHearts, TutorialExtraHearts + 1); }
 
     // The flown ship's maximum this run (falls back to the equipped ship's
     // before collisionDetection has set it).

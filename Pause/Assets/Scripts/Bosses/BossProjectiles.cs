@@ -300,7 +300,7 @@ public class BossBeam : MonoBehaviour
     float length;            // current drawn length
     float reach;             // to the rail or past the view's bottom, this frame
     bool live, fading, railHit;
-    AttackArt.SpaceLaserArt art;   // the Archon's painted pod laser (space_attack_laser*); null: the generic boss beam
+    AttackArt.LaserArt art;   // the boss's painted laser kit (<w>_attack_laser*: Space, Frost, Verdant, Ember); null: the generic boss beam
     Vector3 origin;
 
     public bool Active { get; private set; }
@@ -393,7 +393,7 @@ public class BossBeam : MonoBehaviour
         beam.sprite = BossArt.Shot(boss, BossArt.Beam0);
         flash.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0);
         impact.sprite = BossAttackFx.Get(boss, BossAttackFx.Spark0);
-        art = boss != null && boss.artKey == "Space" ? AttackArt.SpaceLaser() : null;
+        art = boss != null ? AttackArt.BossLaserFor(boss.artKey) : null;
         flash.color = impact.color = Color.white;
         ResetPiece(sight); ResetPiece(beam); ResetPiece(flash); ResetPiece(impact); ResetPiece(spark); ResetPiece(lockOn);
         if (art != null)
@@ -568,10 +568,10 @@ public class BossBeam : MonoBehaviour
         }
     }
 
-    // ---- the Archon's painted pod laser (AttackArt.SpaceLaser): visual only ----
+    // ---- a boss's painted laser kit (AttackArt.BossLaser): visual only ----
     //
     // Every size below derives from the beam body: its 128 px frame is drawn at BodyScale so that its opaque columns
-    // (AttackArt.SpaceLaserBodyOpaquePx) are exactly the hit shape's width (width x BeamHitFraction). The hit shape,
+    // (art.bodyOpaquePx) are exactly the hit shape's width (width x BeamHitFraction). The hit shape,
     // tell and timings are the generic beam's, untouched.
 
     const float WindupFps = 12f, LoopFps = 12f, SparkFps = 15f;
@@ -579,7 +579,7 @@ public class BossBeam : MonoBehaviour
     const float LockScale = 1f;        // the reticle's 128 px cell
     const float FlareToBody = 1.5f;    // muzzle / windup / impact cells vs the body frame
 
-    float BodyScale => width * BossConfig.BeamHitFraction * 128f / AttackArt.SpaceLaserBodyOpaquePx;
+    float BodyScale => width * BossConfig.BeamHitFraction * 128f / art.bodyOpaquePx;
 
     static void ResetPiece(SpriteRenderer r)
     {
@@ -655,7 +655,7 @@ public class BossBeam : MonoBehaviour
         float size = BodyScale * FlareToBody;
         impact.sprite = art.impact[Mathf.FloorToInt(age * LoopFps) % 4];
         impact.transform.localRotation = Quaternion.Euler(0f, 0f, 180f);
-        impact.transform.localPosition = new Vector3(0f, length - size * 47f / 128f, 0f);   // the burst's base sits 47 px below its cell centre
+        impact.transform.localPosition = new Vector3(0f, length - size * art.impactBasePx / 128f, 0f);   // the burst's base sits art.impactBasePx px below its cell centre
         impact.transform.localScale = Vector3.one * size;
         impact.color = Color.white;
         spark.enabled = true;

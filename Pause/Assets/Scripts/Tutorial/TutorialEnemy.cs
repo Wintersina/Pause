@@ -20,8 +20,9 @@ public class TutorialEnemy : MonoBehaviour
     // ---- Tuning (world units, seconds) ----
 
     public const string DefKey = "space_alien";
-    // Descent speed: slow enough to line up a teleport on it.
-    public const float Speed = 1.4f;
+    // Descent speed: slow enough to line up a teleport on it, quick enough
+    // that the whole beat (spawn, crash or dodge) takes a few seconds.
+    public const float Speed = 3.4f;
     // Spawn this far above the camera's top edge (just out of view).
     public const float SpawnAboveTop = .6f;
     // Gone once it is this far below the bottom edge.

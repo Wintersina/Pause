@@ -332,8 +332,10 @@ spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 
 * `RunScore.Total` is what leaderboards, the best score and score achievements read, so they see the
   doubled score automatically. `RunScore.Parts.secondsIn2x` records the time spent on x2 for a future
   achievement (none added).
-* HUD (`ScoreX2Cue`, on the SPEED row): after 2 s at the cap a slim cyan bar fills along the bottom of the
-  row over the 15 s; at 15 s a small teal "x2" plate pops in between the speed figure and the SPD badge;
+* HUD (`ScoreX2Cue`, on the SCORE row; the SPEED row is untouched): after 2 s at the cap a slim cyan bar
+  fills along the bottom of the score row over the 15 s (half-second steps); at 15 s a small teal "x2" plate
+  pops in hugging the right edge of the score figure ("SCORE  12,345 x2"), following the figure's rendered
+  width as digits are added and clamped left of the kill-chain badge column;
   when it ends the plate dims to muted grey and sinks for 0.6 s. No sound, no red, no allocation; the bar
   yields to the resume slow-mo spool bar, which uses the same strip.
 
@@ -341,9 +343,9 @@ spawner in the authored view, HUD 35 *(OpenPortalTest "BOARD")*: no portal peak 
 
 A stock ship reaches 35 only 120-140 s into a world (see the ramp table), so on a 3-minute level x2 is on
 for the last ~25-45 s before the boss, roughly +15-25% on a stock run; a fast-start ship holds the cap most of
-the level and can approach +80-90% when it avoids hits. Rookie 2,500 stays right (a first world is mostly
-before the streak). Ace 8,000 and Legend 30,000 are the ones to watch: if play-tests show fast-start
-ships clearing Legend in one pass, raise Ace to ~10,000 and Legend to ~40,000. The star-dust score bonus
+the level and can approach +80-90% when it avoids hits. Score achievements were raised to Rookie 5,000 / Ace 20,000 / Legend 80,000 (a full first pass is ~6,600
+before the streak, ~8-12k with it; loop passes scale x1.15 each, so Ace needs about two passes with the
+streak held and Legend four to five). The star-dust score bonus
 (`min(1.5, 0.02 sqrt(score))`, then x0.60) caps at 5,625 points, so it is already flat for the runs that
 double; no change needed.
 

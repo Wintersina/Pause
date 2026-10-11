@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: a boss with damage art (BossDef.damageKey: Space, Frost, Ember, Tide) shows
-// its battle damage as it loses hearts; Verdant has none yet. A boss with a
-// BossDef.deathKey (Ember, Tide) plays its <Key>_death.png strip over the body as it
+// Feature: a boss with damage art (BossDef.damageKey: all five bosses) shows
+// its battle damage as it loses hearts. A boss with a
+// BossDef.deathKey (all five) plays its <Key>_death.png strip over the body as it
 // blows up.
 //
 // Stage = hearts lost (0 pristine .. 4 one heart left). From stage 1 its idle
@@ -37,24 +37,32 @@ public static class BossDamageTest
             StageFollowsHeartsLost();
             ArtSlicesIntoItsCells(0);
             ArtSlicesIntoItsCells(1);
+            ArtSlicesIntoItsCells(2);
             ArtSlicesIntoItsCells(3);
             ArtSlicesIntoItsCells(4);
             OnlyKeyedBossesHaveDamage();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
+            FightShowsTheDamage(2);
             FightShowsTheDamage(3);
             FightShowsTheDamage(4);
             OtherBossesUnchangedInAFight();
             OverlayGoesWithTheBoss(0);
             OverlayGoesWithTheBoss(1);
+            OverlayGoesWithTheBoss(2);
             OverlayGoesWithTheBoss(3);
             OverlayGoesWithTheBoss(4);
+            DamageRegistration(2);
+            DamageLoopsAnimate(2);
+            DeathStripArt(0, "Space");
+            DeathStripArt(1, "Frost");
+            DeathStripArt(2, "Verdant");
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
-            DeathStripPlaysOnce(3);
-            DeathStripPlaysOnce(4);
-            OtherBossesKeepTheirDeath();
+            for (int w = 0; w < 5; w++) DeathStripPlaysOnce(w);
+            EveryBossHasDeathArt();
+            BossDeathSoundHook();
         }
         finally
         {
@@ -194,7 +202,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant";
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
@@ -204,7 +212,7 @@ public static class BossDamageTest
             }
             if (!space) ok &= BossArt.DamageBody(b, 0) == null && BossArt.DamageFx(b, 0) == null;
         }
-        Check("damaged idle frames resolve for Space, Frost, Ember and Tide (by damageKey); Verdant gets none", ok);
+        Check("damaged idle frames resolve for every boss (by damageKey)", ok);
 
         // Frost's idle is the 4-frame Idle0 loop: the damaged loop spans it
         var fr = BossCatalog.ForWorld(1);
@@ -312,6 +320,53 @@ public static class BossDamageTest
     {
         for (int c = 0; c < BossArt.DeathStripCells; c++) if (sp == BossArt.DeathStrip(b, c)) return true;
         return false;
+    }
+
+    // Verdant damage art: every hull cell has art, stays inside the pristine idle cell's box (+6 px),
+    // stages differ, and the 2-frame idle loops and fx loops animate.
+    static void DamageRegistration(int world)
+    {
+        var b = BossCatalog.ForWorld(world);
+        var ibox = Box(BossArt.Body(b, BossArt.IdleFrame(b, 0f)));
+        bool nonEmpty = true, reg = ibox != null;
+        for (int i = 0; i < BossArt.DamageCells; i++)
+        {
+            var bx = Box(BossArt.DamageBody(b, i));
+            if (bx == null) { nonEmpty = false; continue; }
+            if (ibox != null && (bx[0] < ibox[0] - 6 || bx[1] < ibox[1] - 6 || bx[2] > ibox[2] + 6 || bx[3] > ibox[3] + 6)) reg = false;
+        }
+        Check(b.artKey + ": all 8 damage hull cells non-empty", nonEmpty);
+        Check(b.artKey + ": every damage cell sits within the pristine idle cell's box + 6 px", reg);
+        bool fxOk = true;
+        for (int i = 0; i < BossArt.DamageFxCells; i++) fxOk &= Box(BossArt.DamageFx(b, i)) != null;
+        Check(b.artKey + ": all 12 fx cells non-empty", fxOk);
+        bool differ = true;
+        for (int st = 1; st < 4; st++) differ &= !SamePixels(BossArt.DamageBody(b, (st - 1) * 2), BossArt.DamageBody(b, st * 2));
+        Check(b.artKey + ": damage stages differ from each other", differ);
+    }
+
+    static bool SamePixels(Sprite a, Sprite b)
+    {
+        int w1, h1, w2, h2;
+        var p = Pixels(a, out w1, out h1); var q = Pixels(b, out w2, out h2);
+        if (p == null || q == null || w1 != w2 || h1 != h2) return false;
+        for (int i = 0; i < p.Length; i++) if (p[i].r != q[i].r || p[i].g != q[i].g || p[i].b != q[i].b || p[i].a != q[i].a) return false;
+        return true;
+    }
+
+    static void DamageLoopsAnimate(int world)
+    {
+        var b = BossCatalog.ForWorld(world);
+        bool frames = true;
+        for (int st = 0; st < 4; st++) frames &= !SamePixels(BossArt.DamageBody(b, st * 2), BossArt.DamageBody(b, st * 2 + 1));
+        Check(b.artKey + ": each stage's two idle frames differ (loop animates)", frames);
+        bool smoke = true, arcs = true;
+        for (int i = 0; i < BossArt.DamageFxColumns - 1; i++)
+        {
+            smoke &= !SamePixels(BossArt.DamageFx(b, BossArt.Smoke0 + i), BossArt.DamageFx(b, BossArt.Smoke0 + i + 1));
+            arcs &= !SamePixels(BossArt.DamageFx(b, BossArt.Arc0 + i), BossArt.DamageFx(b, BossArt.Arc0 + i + 1));
+        }
+        Check(b.artKey + ": smoke and electrical loops change frame to frame", smoke && arcs);
     }
 
     static void OtherBossesUnchangedInAFight()
@@ -492,25 +547,62 @@ public static class BossDamageTest
         Check("defeat flow completes: the boss is gone and the finished callback (world transition) fires", done);
     }
 
-    static void OtherBossesKeepTheirDeath()
+    static void EveryBossHasDeathArt()
     {
-        bool ok = true;
+        bool ok = BossCatalog.All.Length >= 5;
+        string miss = "";
         foreach (var b in BossCatalog.All)
         {
-            bool want = b.artKey == "Ember" || b.artKey == "Tide";
-            ok &= BossArt.HasDeathArt(b) == want && (want || string.IsNullOrEmpty(b.deathKey));
+            bool has = !string.IsNullOrEmpty(b.deathKey) && BossArt.HasDeathArt(b);
+            if (!has) miss += b.artKey + " ";
+            ok &= has;
         }
-        Check("only Ember and Tide have a death strip; Space / Frost / Verdant keep the atlas death", ok);
-        var e = StartFight(1);
-        var a = e.Actor;
-        var body = Body(a);
-        for (int i = 0; i < 20 && e.State == BossEncounter.Phase.Fight; i++) { e.OnShipAttackHit(1f); e.Step(Dt, 1f); }
-        bool atlas = true; int n = 0;
-        for (int i = 0; i < 200 && a != null && e.State == BossEncounter.Phase.Outro; i++)
+        Check("EVERY boss in BossCatalog.All has a death strip (missing: " + miss.Trim() + ")", ok);
+        // importer settings of each death strip match Ember's reference
+        var refImp = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Bosses/Ember_death.png") as UnityEditor.TextureImporter;
+        bool same = refImp != null;
+        foreach (var b in BossCatalog.All)
         {
-            if (a.State == BossActor.Mode.Dying && body.enabled) { n++; atlas &= body.sprite == BossArt.Body(a.Boss, a.BodyFrame); }
-            e.Step(Dt, 1f);
+            var imp = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Bosses/" + b.deathKey + "_death.png") as UnityEditor.TextureImporter;
+            same &= imp != null && refImp != null && imp.textureType == refImp.textureType &&
+                    imp.filterMode == refImp.filterMode && imp.mipmapEnabled == refImp.mipmapEnabled && imp.isReadable == refImp.isReadable &&
+                    imp.alphaIsTransparency == refImp.alphaIsTransparency && imp.maxTextureSize == refImp.maxTextureSize &&
+                    imp.textureCompression == refImp.textureCompression && imp.npotScale == refImp.npotScale &&
+                    imp.spritePixelsPerUnit == refImp.spritePixelsPerUnit && imp.sRGBTexture == refImp.sRGBTexture;
         }
-        Check("Frost still dies on its atlas death frames (" + n + " frames)", atlas && n > 0);
+        Check("every boss death strip has the same importer settings as Ember_death", same);
+    }
+
+    // The sound hook: keys are boss_<world>, silent (no throw) while no clips are authored.
+    static void BossDeathSoundHook()
+    {
+        bool keys = EnemyDeathAudio.BossKey("Space") == "boss_space" && EnemyDeathAudio.BossKey("Verdant") == "boss_verdant" && EnemyDeathAudio.BossKey("") == null;
+        Check("boss death sound hook: boss_<world> keys; screams for Frost/Verdant only",
+              keys && EnemyDeathAudio.BossScreams("Frost") && EnemyDeathAudio.BossScreams("Verdant") && !EnemyDeathAudio.BossScreams("Space"));
+
+        // the real fight path: BossActor.BeginOutro(true) plays the world's boss cue exactly once
+        bool sim = EnemyDeathAudio.Simulate;
+        var clock = EnemyDeathAudio.Clock;
+        double t = 1000;
+        EnemyDeathAudio.Simulate = true;
+        EnemyDeathAudio.Clock = () => t;
+        try
+        {
+            for (int w = 0; w < 5; w++)
+            {
+                EnemyDeathAudio.ResetVoices();
+                var e = StartFight(w);
+                var a = e.Actor;
+                string key = EnemyDeathAudio.BossKey(a.Boss.artKey);
+                int before = EnemyDeathAudio.Played;
+                t += 5;
+                a.BeginOutro(true);
+                Check(a.Boss.artKey + ": BeginOutro(true) plays " + key + " once (" + (EnemyDeathAudio.Played - before) + ")",
+                      EnemyDeathAudio.Played == before + 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null);
+                a.BeginOutro(false);
+                Check(a.Boss.artKey + ": a retreat (BeginOutro(false)) is silent", EnemyDeathAudio.Played == before + 1);
+            }
+        }
+        finally { EnemyDeathAudio.Simulate = sim; EnemyDeathAudio.Clock = clock; EnemyDeathAudio.ResetVoices(); }
     }
 }

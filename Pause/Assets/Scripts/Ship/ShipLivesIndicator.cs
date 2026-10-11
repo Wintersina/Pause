@@ -80,6 +80,26 @@ public class ShipLivesIndicator : HeartOrbit
         o = ShipHeartStyles.Orbit(s);
     }
 
+    // The hearts are sized against the ship's full size, never the moment
+    // they are built: every run begins with the portal arrival, which flies
+    // the ship out of the vortex from 6% of its size, and the hearts are
+    // built in that first frame. Sized against the tiny ship they came out
+    // ~16x too big once it grew. They follow the ship's scale as its
+    // children, so they grow out of the portal with it.
+    protected override float HullScale()
+    {
+        float now = base.HullScale();
+        var arrival = PortalArrival.Live;
+        if (arrival != null && PortalArrival.Active && arrival.Ship == transform)
+        {
+            Vector3 rest = arrival.RestScale, local = transform.localScale;
+            float cur = Mathf.Max(Mathf.Abs(local.x), Mathf.Abs(local.y));
+            float full = Mathf.Max(Mathf.Abs(rest.x), Mathf.Abs(rest.y));
+            if (cur > 1e-5f) now *= full / cur;
+        }
+        return now;
+    }
+
     protected override Bounds HullBounds() { return ShipUiSlots.HullBounds(transform, shipId); }
     protected override Rect ClampRect() { return ShipUiSlots.ScreenRect(null); }
     protected override bool AvoidThumb { get { return true; } }
@@ -104,11 +124,20 @@ public class ShipLivesIndicatorAttach : MonoBehaviour
 
     void Update()
     {
-        var player = Object.FindFirstObjectByType<movePlayer>();
+        // gameS1's ship (movePlayer) or the tutorial's (movePlayerInTut): the
+        // tutorial flies with orbiting hearts too.
+        GameObject player = null;
+        var main = Object.FindFirstObjectByType<movePlayer>();
+        if (main != null) player = main.gameObject;
+        else
+        {
+            var tut = Object.FindFirstObjectByType<movePlayerInTut>();
+            if (tut != null) player = tut.gameObject;
+        }
         if (player != null)
         {
             if (player.GetComponent<ShipLivesIndicator>() == null)
-                player.gameObject.AddComponent<ShipLivesIndicator>();
+                player.AddComponent<ShipLivesIndicator>();
             Destroy(gameObject);
             return;
         }

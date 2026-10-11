@@ -9,7 +9,7 @@ generators and source art that render the PNGs next to them.
 | Folder | What is in it |
 | --- | --- |
 | `Scenes/` | The 7 build scenes (`spashS7`, `startS4`, `gameS1`, `tutorialS5`, `shopS6`, `leaderboardS3`, `creditsS7`) and their lighting settings. |
-| `Scripts/` | Runtime C#, by domain: `Bosses`, `Codex`, `Core` (+ `CloudSave`, `Leaderboards`, `Scoring`), `Credits`, `Gameplay` (+ `Elites`, `Enemies`, `Pickups`, `Spawning`, `Weapons`), `Menu`, `Ship`, `Shop`, `Tutorial`, `UI` (+ `Leaderboard`), `Worlds` (+ `Backdrop`), `Audio`. |
+| `Scripts/` | Runtime C#, by domain: `Bosses`, `Codex`, `Core` (+ `CloudSave`, `Leaderboards`, `Scoring`), `Credits`, `Gameplay` (+ `Elites`, `Enemies`, `Pickups`, `Spawning`, `Weapons`), `Menu`, `Ship`, `Shop`, `Tutorial`, `UI` (+ `Leaderboard`; no ad code, see `docs/release/no-ads.md`), `Worlds` (+ `Backdrop`), `Audio`. |
 | `Editor/Build/` | `BuildScript` (the Makefile's `-executeMethod` targets) and the iOS post-process. |
 | `Editor/Importers/` | Asset importers and bakers keyed on art folders: boss / boss-attack / weapon / ship / resume-fx importers, `EliteArtSync` (Codex's elite strips -> `Art/Resources/Elites`), `ShipHitboxBaker`, `ShieldSilhouetteBaker`. |
 | `Editor/Tests/` | Editor test suites; every suite is registered in `AllTests.cs` (`AllTests.RunAll`). |
@@ -40,3 +40,17 @@ affected and un-muting resumes mid-track). PlayerPrefs int `soundMuted` (absent 
 and re-applied on scene load and focus change. Device-local: not in the cloud snapshot. Haptics are a separate matter
 and unaffected (there is no haptics option). Un-muting plays a short confirmation click. Tests: `SoundMuteTest`,
 ScreenFit screens `options-mute-on` / `options-mute-off`.
+
+## Cloud save: what is synced
+
+One JSON `ProgressSnapshot` (`Scripts/Core/CloudSave`), merged by `ProgressMerge`, uploaded debounced by `CloudSync`.
+Synced: star dust, owned ships, spawn ship, best speed / best score, current / highest / start world, tutorial flag,
+achievement counters and flags (`AchievementStore.SyncKeys`), hull skins, and the **Codex**: `codexSeen` (discovered
+entries), `codexNew` (discovered but detail not yet opened = NEW dot) and `codexNewAck` (NEW entries whose tab was
+opened, plus `ach:<id>` acknowledgements). Each is a sorted, de-duplicated id list, capped at 512 ids.
+Codex merge: discoveries = union; NEW = both sides' NEW minus any entry the other side already knows and does not list
+as NEW (cleared on either side stays cleared, so no dot is resurrected); acknowledged on either side stays acknowledged
+(only while the entry is still NEW). Restoring on a fresh install therefore lights nothing: only entries the cloud itself
+listed as NEW stay NEW. `Apply()` ends with `Codex.OnExternalChange()` so cached sets cannot overwrite the restore.
+Schema stays at 1: the fields are additive (old saves load as empty; old clients ignore them, though an old client's
+next upload drops them until a newer client uploads again). Device-local: settings, developer switches, cloud bookkeeping.

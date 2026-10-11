@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each boss with damage art (Space, Frost, Ember) over its backdrop at 5,
+// Renders each boss with damage art (all five) over its backdrop at 5,
 // 4, 3, 2 and 1 hearts left
 // (pristine, then battle damage stages 1..4: hull, smoke, arcs) side by side
 // in one PNG strip per boss (bossdamage-<key>-strip.png), for review.

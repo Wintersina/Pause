@@ -25,6 +25,7 @@ public sealed class AttackPreview
     public const float DotSpacing = .16f;
     public const float DotSize = .09f;
     public const float Alpha = .5f;
+    public const float BoldDotScale = 1.9f, BoldAlpha = .95f;
     public const float BlinkFps = 8f;
     public const int MaxDots = 720, MaxPreviews = 16;   // (a ring is ~150 dots, a column to the top of the view ~95: a ring and four columns fit)
     public const int SortingOrder = 6;
@@ -43,6 +44,7 @@ public sealed class AttackPreview
     readonly int[] mine = new int[MaxDots / 2];
     int mineCount;
     float shownFor, untilLive, tintAlpha = 1f;
+    float dotScale = 1f, alphaScale = 1f;   // a bold preview (the elites' on a bright world): bigger, denser dots
     Color tint = Color.white;
 
     public bool Active { get; private set; }
@@ -90,7 +92,7 @@ public sealed class AttackPreview
     public static void ResetCounters() { Shown = TooShort = Dropped = 0; MinShown = float.PositiveInfinity; }
 
     // Draws `shape`'s outline; the hazard goes live in `secondsUntilLive`. Null if all MaxPreviews are busy.
-    public static AttackPreview Show(AttackShape shape, float secondsUntilLive, Color tint)
+    public static AttackPreview Show(AttackShape shape, float secondsUntilLive, Color tint, bool bold = false)
     {
         EnsureRoot();
         AttackPreview p = null;
@@ -100,6 +102,8 @@ public sealed class AttackPreview
             if (!pool[i].Active) { p = pool[i]; break; }
         }
         if (p == null) return null;
+        p.dotScale = bold ? BoldDotScale : 1f;
+        p.alphaScale = bold ? BoldAlpha / Alpha : 1f;
         p.Begin(shape, secondsUntilLive, tint);
         return p;
     }
@@ -110,7 +114,7 @@ public sealed class AttackPreview
         Live = false;
         shownFor = 0f;
         untilLive = secondsUntilLive;
-        tint = HostileShotPalette.Core(pinkTint);
+        tint = dotScale > 1f ? pinkTint : HostileShotPalette.Core(pinkTint);   // (bold: the hot pink itself -- the pale core tint is lost on a bright canopy)
         node.position = Vector3.zero;
         node.gameObject.SetActive(true);
         mineCount = 0;
@@ -142,11 +146,11 @@ public sealed class AttackPreview
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = EliteFxArt.Spark;
             sr.sortingOrder = SortingOrder;
-            go.transform.localScale = Vector3.one * (DotSize / Mathf.Max(.01f, EliteFxArt.Spark.bounds.size.x));
             dots.Add(new Dot { sr = sr });
             idx = dots.Count - 1;
         }
         var d = dots[idx];
+        d.sr.transform.localScale = Vector3.one * (DotSize * dotScale / Mathf.Max(.01f, EliteFxArt.Spark.bounds.size.x));
         d.used = true;
         d.sr.transform.SetParent(node, false);
         d.sr.transform.localPosition = new Vector3(at.x, at.y, 0f);
@@ -159,7 +163,7 @@ public sealed class AttackPreview
     {
         bool on = (Mathf.FloorToInt(shownFor * BlinkFps) & 1) == 0;
         var c = tint;
-        c.a = on ? Alpha : Alpha * .6f;
+        c.a = Mathf.Min(1f, (on ? Alpha : Alpha * .6f) * alphaScale);
         for (int i = 0; i < mineCount; i++) dots[mine[i]].sr.color = c;
     }
 

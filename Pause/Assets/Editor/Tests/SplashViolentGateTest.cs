@@ -308,10 +308,10 @@ public static class SplashViolentGateTest
     static void SlotsAndFallbacks()
     {
         Check("slot names: " + GateArt.DoorSlot + ", " + GateArt.CrackSlotPrefix + "1..3, " + GateArt.DebrisSlot + ", " + GateArt.SteamSlot,
-              GateArt.DoorSlot == "HapticGate/industrial_gate_v2" && GateArt.CrackSlotPrefix == "HapticGate/gate_cracks_"
+              GateArt.DoorSlot == "HapticGate/industrial_gate_v3" && GateArt.CrackSlotPrefix == "HapticGate/gate_cracks_"
               && GateArt.DebrisSlot == "HapticGate/gate_debris" && GateArt.SteamSlot == "HapticGate/gate_steam");
         var door = Resources.Load<Texture2D>(GateArt.DoorSlot);
-        Check("door v2 is 1536x1024", door != null && door.width == 1536 && door.height == 1024);
+        Check("door v3 is 1536x1024", door != null && door.width == 1536 && door.height == 1024);
         for (int i = 1; i <= 3; i++)
         {
             var c = Resources.Load<Texture2D>(GateArt.CrackSlotPrefix + i);
@@ -342,6 +342,7 @@ public static class SplashViolentGateTest
               && Mathf.Abs(art.leftLeaf.rect.width - 1536 * 0.44f) < 0.5f);
         // every v2 leaf must be inside its crop (nothing of the door cut off): the dark margin at the crop edges
         Check("door art inside the crops (edge columns are background)", EdgesAreBackground(door));
+        Check("door v3 is a cut-out: the sheet's corners and top-centre are transparent (no navy backdrop box)", GateCutOutCorners);
         art.Release();
     }
 
@@ -352,6 +353,7 @@ public static class SplashViolentGateTest
     }
 
     // the leaf crops' outer columns must be the dark backdrop, i.e. the door isn't cut by the crop
+    static bool GateCutOutCorners;
     static bool EdgesAreBackground(Texture2D door)
     {
         var rt = RenderTexture.GetTemporary(door.width, door.height, 0);
@@ -360,13 +362,14 @@ public static class SplashViolentGateTest
         var copy = new Texture2D(door.width, door.height, TextureFormat.RGBA32, false);
         copy.ReadPixels(new Rect(0, 0, door.width, door.height), 0, 0);
         RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+        GateCutOutCorners = copy.GetPixel(0, 0).a < .01f && copy.GetPixel(1535, 1023).a < .01f && copy.GetPixel(768, 1023).a < .01f;
         float[] xs = { 1536 * 0.055f + 2, 1536 * 0.495f - 3, 1536 * 0.51f + 2, 1536 * 0.95f - 3 };
         bool ok = true;
         foreach (float x in xs)
             for (int y = 60; y < 960; y += 30)
             {
                 var c = copy.GetPixel((int)x, y);
-                if (c.r + c.g + c.b > 0.7f) ok = false;
+                if (c.a > 0.1f && c.r + c.g + c.b > 0.7f) ok = false;   // transparent (the v3 cut-out) or dark
             }
         UnityEngine.Object.DestroyImmediate(copy);
         return ok;

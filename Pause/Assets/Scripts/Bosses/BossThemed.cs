@@ -11,7 +11,7 @@ using UnityEngine;
 //
 //   Void Archon          chin cannon, ion arcs  | core burst | pod lasers, scan line
 //   Hoarfrost Leviathan  icicle spray, icicle drop | glare beams | blowhole hail, cold blast
-//   Bloom Queen          stinger thorns, vine lash | spore bloom | acid cannons, trunk toss     (needs Lash + Roll: no table yet)
+//   Bloom Queen          stinger thorns, vine lash | spore bloom | acid cannons, trunk toss
 //   Cinder Drake         fire breath, flame sweep | furnace slugs | brow laser, eruption columns
 //   Iron Kraken          port cluster, thunder strike | beak jet | starboard cluster, surf wave
 //
@@ -36,7 +36,9 @@ public static class BossThemed
                 return new[] { d[0], FlameSweep(w), d[1], d[2], Eruption(w) };
             case "Tide":    // the thunder arcs / ink skins are art; the beak spit, ink and tentacle attacks stay the placeholders
                 return new[] { d[0], ThunderStrike(w), d[1], d[2], SurfWave(w) };
-            default:        // Verdant: vine lash (Lash) and trunk toss (Roll) are not built
+            case "Verdant":
+                return new[] { d[0], VineLash(w), d[1], d[2], TrunkToss(w) };
+            default:
                 return null;
         }
     }
@@ -131,6 +133,30 @@ public static class BossThemed
         {
             name = "surf wave", kind = BossAttackKind.Wave, tell = 0, tellSeconds = 1.1f, emitters = new[] { "Beak" },
             wave = wave, volleys = 2, volleyGap = 1.7f, cooldown = 1.4f, minPhase = 3,
+        };
+    }
+
+    // ---- Verdant: vine lash (Lash), trunk toss (Roll) ------------------------------------------------------------
+
+    static BossAttack VineLash(int w)
+    {
+        // ONE whip from the left flank petal, 1.0 s tell with the dotted sweep drawn from the first frame (measured: two whips armed together hit the dodge bot 37-96 %, one 5.5 %)
+        return new BossAttack
+        {
+            name = "vine lash", kind = BossAttackKind.Lash, tell = 1, tellSeconds = 1f, emitters = new[] { "PetalL", "PetalR" },
+            lash = LashSpec.Standard(w), spacing = 1.9f, volleys = 1, volleyGap = 1f, cooldown = 1.3f, minPhase = 1,
+        };
+    }
+
+    static BossAttack TrunkToss(int w)
+    {
+        // two trunks from the lower petals, 1.2 s tell (= the flight), landing on the ship's lane and a step across it; each rolls toward the nearer rail and bounces once
+        var log = LogSpec.Standard(w);
+        log.rollSeconds = 3f;
+        return new BossAttack
+        {
+            name = "trunk toss", kind = BossAttackKind.Roll, tell = 1, tellSeconds = 1.2f, emitters = new[] { "PetalLL", "PetalLR" },
+            log = log, spacing = 1.9f, heightAbove = 2.6f, volleys = 2, volleyGap = .9f, cooldown = 1.4f, minPhase = 3,
         };
     }
 }

@@ -76,8 +76,8 @@ public static class RailsShipSizeTest
     static void ShipScaleInTheMainSceneOnly()
     {
         Check("ShipScale.Main is 1.35 (" + ShipScale.Main + ")", ShipScale.Main == 1.35f);
-        Check("1.35 in gameS1, 1 in the tutorial, title, dock, codex and shop scenes",
-              ShipScale.For("gameS1") == 1.35f && ShipScale.For("tutorialS5") == 1f && ShipScale.For("titleS0") == 1f &&
+        Check("1.35 in gameS1 and the tutorial, 1 in the title, dock, codex and shop scenes",
+              ShipScale.For("gameS1") == 1.35f && ShipScale.For("tutorialS5") == 1.35f && ShipScale.For("titleS0") == 1f &&
               ShipScale.For("shop") == 1f && ShipScale.For("CodexS9") == 1f && ShipScale.For("") == 1f);
         Check("the active scene (gameS1) reads 1.35", ShipScale.Live == 1.35f);
 

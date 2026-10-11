@@ -63,6 +63,19 @@ public class ProgressSnapshot
 
     public const int SkinCode = 100;
 
+    // Codex (Codex.PrefsKey / NewKey / AckKey), each a sorted, de-duplicated id
+    // list. Discovered entries; entries marked NEW (opened-detail not yet seen);
+    // and the NEW entries whose tab dot was dismissed, plus "ach:" claimable
+    // acknowledgements. Older saves lack all three (= nothing known). Merged
+    // by ProgressMerge.MergeCodex; no schema bump (additive, like skins).
+    public string[] codexSeen = new string[0];
+    public string[] codexNew = new string[0];
+    public string[] codexNewAck = new string[0];
+
+    // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
+    // only guards the cloud blob against a corrupt pref.
+    public const int MaxCodexIds = 512;
+
     // Highest ship index whose ownership is synced (inclusive).
     public static int MaxShipIndex { get { return shopingShips.shipTotal; } }
 
@@ -125,6 +138,10 @@ public class ProgressSnapshot
         s.ownedSkins = ownedSkins.ToArray();
         s.equippedSkins = equippedSkins.ToArray();
 
+        s.codexSeen = IdList(PlayerPrefs.GetString(Codex.PrefsKey, ""));
+        s.codexNew = IdList(PlayerPrefs.GetString(Codex.NewKey, ""));
+        s.codexNewAck = IdList(PlayerPrefs.GetString(Codex.AckKey, ""));
+
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
             if (PlayerPrefs.HasKey(key)) counters.Add(new Counter(key, PlayerPrefs.GetInt(key)));
@@ -172,6 +189,39 @@ public class ProgressSnapshot
         foreach (string key in CounterKeys())
             if (!values.ContainsKey(key)) PlayerPrefs.DeleteKey(key);
         foreach (var pair in values) PlayerPrefs.SetInt(pair.Key, pair.Value);
+
+        WriteIds(Codex.PrefsKey, codexSeen);
+        WriteIds(Codex.NewKey, codexNew);
+        WriteIds(Codex.AckKey, codexNewAck);
+        Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
+    }
+
+    // Sorted ordinal, trimmed, de-duplicated, capped: a compact, stable list
+    // (equal content gives equal JSON, so change detection stays quiet).
+    public static string[] IdList(IEnumerable<string> ids)
+    {
+        var set = new SortedSet<string>(StringComparer.Ordinal);
+        if (ids != null)
+            foreach (string raw in ids)
+            {
+                string id = raw == null ? "" : raw.Trim();
+                if (id.Length > 0 && id.IndexOf(',') < 0) set.Add(id);
+            }
+        var list = new List<string>(set);
+        if (list.Count > MaxCodexIds) list.RemoveRange(MaxCodexIds, list.Count - MaxCodexIds);
+        return list.ToArray();
+    }
+
+    public static string[] IdList(string csv)
+    {
+        return string.IsNullOrEmpty(csv) ? new string[0] : IdList(csv.Split(','));
+    }
+
+    static void WriteIds(string key, string[] ids)
+    {
+        var clean = IdList(ids);
+        if (clean.Length > 0) PlayerPrefs.SetString(key, string.Join(",", clean));
+        else PlayerPrefs.DeleteKey(key);
     }
 
     static void SetOrDelete(string key, int value)
@@ -259,6 +309,9 @@ public class ProgressSnapshot
         if (snapshot.counters == null) snapshot.counters = new Counter[0];
         if (snapshot.ownedSkins == null) snapshot.ownedSkins = new int[0];
         if (snapshot.equippedSkins == null) snapshot.equippedSkins = new int[0];
+        snapshot.codexSeen = IdList(snapshot.codexSeen);
+        snapshot.codexNew = IdList(snapshot.codexNew);
+        snapshot.codexNewAck = IdList(snapshot.codexNewAck);
         return ParseResult.Ok;
     }
 

@@ -21,9 +21,6 @@ public class startMenu : MonoBehaviour {
         aboutB.gameObject.SetActive(true);
         // iOS has no system back and apps must not quit themselves: no Quit.
         quitB.gameObject.SetActive(BackNavigator.QuitAllowed);
-        // if ads are showing in main menu, turn them off.
-        if (AdMob.isAdsShowwing)
-            AdMob.hide();
         LayoutHome();
     }
 

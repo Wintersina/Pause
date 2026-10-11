@@ -47,6 +47,7 @@ using UnityEngine;
 //   armour_shatter Whiteout Sentinel: ice plates soak hits and spray shards;
 //                 stripped, it charges
 // (the Frost four: FrostElites.cs)
+//   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs)
 //   gravity_sling Singularity Hauler: flings shots sideways out of both tow
 //                 claws that its core's gravity whips round, in curves
 //                 that close on a ringed well ahead of the pilot
@@ -172,7 +173,8 @@ public static class EliteAttacks
 {
     public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar",
                                             "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling",
-                                            "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter" };
+                                            "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter",
+                                            "log_roll", "vine_lash", "spore_burst", "leaf_dive" };
 
     public static EliteAttack Create(string id)
     {
@@ -193,6 +195,10 @@ public static class EliteAttacks
             case "frost_bloom": return new FrostBloomAttack();
             case "drone_deploy": return new DroneDeployAttack();
             case "armour_shatter": return new ArmourShatterAttack();
+            case "log_roll": return new LogRollAttack();
+            case "vine_lash": return new VineLashAttack();
+            case "spore_burst": return new SporeBurstAttack();
+            case "leaf_dive": return new LeafDiveAttack();
             default: return new LanceDashAttack();
         }
     }

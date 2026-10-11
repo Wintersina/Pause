@@ -144,6 +144,11 @@ public static class AttackBudgetTest
         { "themed:tide_pressure_jet", "roster:frost_fighter_2" },   // a pressure jet (water column) in place of the lance bolt
         { "themed:tide_surf_wave", "roster:ember_fighter_4" },      // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap; volleys 3 -> 2
         { "themed:space_scan_line", "roster:space_fighter_3" },     // Void Archon's scan line (a thin neon wave): a NEW boss attack, held to Twin Claw's (the middle Space fighter) rate
+        // the four new Verdant elites: each themed attack held to the pinned Verdant elite baseline (the Resin Warden's seed-pod mortar, 1.0 %: limit 3.2 %)
+        { "elite:verdant_elite_timber_hauler", "elite:verdant_elite_resin_warden" },   // log_roll: two trunks lobbed onto ringed spots, each rolls on a drawn lane. Measured 0.0 % (0/2000), standing still 37.6 %
+        { "elite:verdant_elite_thornlash", "elite:verdant_elite_resin_warden" },       // vine_lash: a whip sweep, its swept area drawn from the first frame of the tell. Measured 0.0 % (0/2000), standing still 78.0 %
+        { "elite:verdant_elite_sporebloom", "elite:verdant_elite_resin_warden" },      // spore_burst: pods that burst into rings of six spores, the rings drawn first. Measured 1.0 % (20/2000), standing still 100 %
+        { "elite:verdant_elite_leafblade", "elite:verdant_elite_resin_warden" },       // leaf_dive: a drawn dive lane, then a crescent along a drawn row. Measured 0.0 % (0/2000), standing still 68.2 %
         // plan phase 1g: the NEW attacks of the bosses' themed tables (BossThemed), fought through BossEncounter with BossDef.themedAttacks on.
         // Each is held to the attack of its boss that joins the rotation in the same phase (same slot in the fight).
         { "themed:boss_frost_icicle_drop", "boss:Frost:glare beams" },
@@ -154,6 +159,8 @@ public static class AttackBudgetTest
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
+        { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)
+        { "themed:boss_verdant_trunk_toss", "boss:Verdant:acid cannons" },   // slot 5 (phase 3), against the phase-3 pinned attack
     };
 
     public static bool WithinBudget(string id, DodgeBot.Result r, out string why)

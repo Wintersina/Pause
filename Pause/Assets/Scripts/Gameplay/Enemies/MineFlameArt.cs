@@ -4,7 +4,8 @@ using UnityEngine;
 // beam, its aim line, charge-up flare, muzzle burst, rail impact and heat
 // haze, drawn procedurally once (cached) until Codex paints
 // Resources/Attacks/Ember/ember_attack_mineflame.png (AttackArt.MineFlame),
-// which then takes over slot by slot.
+// which takes over slot by slot (installed: the painted cells are what plays; this stays the
+// fallback for any missing cell or file).
 //
 // PALETTE EXCEPTION (Ember mine only). The standing rule is "no red but the
 // player's" (HostileGlow.IsPlayerRed: hue within 28 deg of red). The user
@@ -42,6 +43,7 @@ public sealed class MineFlameArt
     public const int BeamW = 48, BeamH = 448, SightW = 16, SightH = 256;
 
     public Sprite sight;
+    public Sprite sightB;   // the painted aim line's second drawing (null: procedural, one drawing)
     public readonly Sprite[] beam = new Sprite[BeamFrames];
     public readonly Sprite[] pilot = new Sprite[PilotFrames];
     public readonly Sprite[] flash = new Sprite[FlashFramesN];

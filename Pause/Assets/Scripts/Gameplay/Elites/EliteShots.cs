@@ -371,6 +371,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // the drawing comes from the shot's skin (its world's, once that world is themed: ShotSkins);
         // the hit radius below never depends on it
         skin = ShotSkins.For(d, kind);
+        // (a def may name the behaviour its shots have: the Verdant elites' log, spore pod and leaf blade)
+        if (d.Motion != ShotMotion.None && skin.motion == ShotMotion.None) skin = d.MotionSkinFor(kind) ?? skin;
         Sprite sprite = skin.a;
         switch (kind)
         {

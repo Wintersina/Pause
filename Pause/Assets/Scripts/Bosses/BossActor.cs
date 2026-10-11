@@ -684,6 +684,7 @@ public class BossActor : MonoBehaviour
         explosionsFired = 0;
         retreatVy = 0f;
         hasDeathArt = explode && BossArt.HasDeathArt(boss);
+        if (explode && boss != null) EnemyDeathAudio.PlayBossDeath(boss.artKey, EnemyDeathAudio.BossScreams(boss.artKey));
         if (hasDeathArt && body != null) body.sprite = BossArt.DeathStrip(boss, 0);
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
         ClearArmed();   // a hazard of the attack in progress goes with the boss

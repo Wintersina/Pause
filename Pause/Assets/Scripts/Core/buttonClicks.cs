@@ -12,9 +12,6 @@ public class buttonClicks : MonoBehaviour {
         playerDied = false;
         popUpCanvas.gameObject.SetActive(false);
 
-        //hide the ads at the start
-        if (AdMob.isAdsShowwing)
-            AdMob.hide();
     }
 
     // Update is called once per frame
@@ -23,12 +20,9 @@ public class buttonClicks : MonoBehaviour {
         // The panel waits for the crash sequence (DeathCrash) to finish.
         if (playerDied && DeathCrash.PanelReady)
         {
-            //show the ads if the player dies
             showButton();
 
         }
-        else if (AdMob.isAdsShowwing)
-            AdMob.hide();
         // Back/Escape is BackNavigator's: in gameS1 it does mainMenuButton.
     }
     // The frame a replay was last asked for: a second request in the same
@@ -61,8 +55,6 @@ public class buttonClicks : MonoBehaviour {
     }
     void showButton()
     {
-        // save the highscore and speed
-        AdMob.show();
         popUpCanvas.gameObject.SetActive(true);
     }
     public void mainMenuButton()

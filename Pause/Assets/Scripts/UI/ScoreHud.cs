@@ -12,6 +12,9 @@ using UnityEngine.UI;
 //                         punches on a big gain. The chain badge shows the
 //                         current kill multiplier while a chain is alive and
 //                         fades as its window runs out.
+//                         The max-speed streak's cue (ScoreX2Cue) sits on this
+//                         row too: a slim bar along its bottom, then an "x2"
+//                         plate hugging the figure's right edge.
 //   SPEED  46   SPD x1.5  the speed multiplier (ScoreRules tiers) as a badge on
 //                         the SPEED row, coloured by tier; it punches, flashes
 //                         and calls out "SPD x2" under the read-out as it
@@ -130,7 +133,7 @@ public class ScoreHud : MonoBehaviour
         hud.speedBadge = Badge(speedText.transform, SpeedBadgeName, hud.font);
         var loopRow = rows.Find(LoopRowName);
         hud.loopBadge = Badge(loopRow != null ? loopRow : speedText.transform, LoopBadgeName, hud.font);
-        ScoreX2Cue.Attach(speedText);   // the max-speed streak's bar and x2 plate
+        ScoreX2Cue.Attach(hud.scoreText);   // the max-speed streak's bar and x2 plate, on the SCORE row
         hud.lastSpeedMultiplier = 1f;
         hud.lastLoop = 0;
 

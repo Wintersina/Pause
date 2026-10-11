@@ -76,6 +76,10 @@ public static class AchievementStoreExport
         return s.IndexOfAny(new[] { ',', '"', '\n' }) >= 0 ? "\"" + s.Replace("\"", "\"\"") + "\"" : s;
     }
 
+    // Google Play's CSV import forbids commas in names and descriptions: store text drops the thousands separator
+    // ("Score 5,000 points" -> "Score 5000 points"). The in-game text keeps it.
+    public static string StoreText(string s) { return s == null ? "" : s.Replace(",", ""); }
+
     static bool HiddenInStore(AchievementDef d) { return d.hidden || d.requiresTide; }
 
     public static string PlayConsoleCsv()
@@ -86,7 +90,7 @@ public static class AchievementStoreExport
         foreach (var d in AchievementCatalog.All)
         {
             n++;
-            sb.Append(n).Append(',').Append(Field(d.title)).Append(',').Append(Field(d.description)).Append(',')
+            sb.Append(n).Append(',').Append(Field(StoreText(d.title))).Append(',').Append(Field(StoreText(d.description))).Append(',')
               .Append(d.points).Append(',').Append(d.storeSteps > 0 ? d.storeSteps.ToString() : "").Append(',')
               .Append(HiddenInStore(d) ? "Hidden" : "Revealed").Append(',').Append(d.id).Append(".png\n");
         }
@@ -100,8 +104,8 @@ public static class AchievementStoreExport
         foreach (var d in AchievementCatalog.All)
         {
             sb.Append("Pause ").Append(d.id).Append(',').Append(AchievementIds.IosId(d)).Append(',').Append(d.points).Append(',')
-              .Append(HiddenInStore(d) ? "Yes" : "No").Append(",No,").Append(Field(d.title)).Append(',')
-              .Append(Field(d.description)).Append(',').Append(Field(d.description)).Append(',').Append(d.id).Append("_1024.png\n");
+              .Append(HiddenInStore(d) ? "Yes" : "No").Append(",No,").Append(Field(StoreText(d.title))).Append(',')
+              .Append(Field(StoreText(d.description))).Append(',').Append(Field(StoreText(d.description))).Append(',').Append(d.id).Append("_1024.png\n");
         }
         return sb.ToString();
     }

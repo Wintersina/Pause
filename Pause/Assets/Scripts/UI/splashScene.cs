@@ -78,7 +78,8 @@ public class splashScene : MonoBehaviour
     // Build the door while not playing (edit-mode tests and preview filmstrips).
     public static bool BuildGateInEditMode;
 
-    // Sound hooks: no authored cues exist yet, so the splash only names them.
+    // Sound hooks: the splash names each cue; GateAudio plays the authored clips,
+    // and the event lets tests / previews listen in.
     // Cues: gate_rattle (intro start), gate_step (each forced-open jolt),
     // gate_crack (tap 1 and 2), gate_smash (tap 3). See docs/hapticgate-splash.md.
     public static event System.Action<string> SoundCue;
@@ -266,7 +267,7 @@ public class splashScene : MonoBehaviour
         sim.Done += Leave;
     }
 
-    static void Cue(string name) { if (SoundCue != null) SoundCue(name); }
+    static void Cue(string name) { GateAudio.Play(name); if (SoundCue != null) SoundCue(name); }
 
     void Start() { Cue("gate_rattle"); }
 

@@ -153,7 +153,7 @@ old `AchievementIds`, `AchievementTiersTest` (and with them the five never-firin
    merge needs no new type: counters merge by max, flags by union; `AchievementStore.RecountDerived` reconciles after a restore).
    `ach_s_<id>` (the store-confirmed percent) is device-local and not synced; `ach_schema` is not synced either.
 2. *Score thresholds recalibrated* (open question 8 in the redesign): ScoreRules put a first pass Space -> Ember at ~6,600 and a second loop
-   at ~8,100, so 10k / 50k / 150k were out of reach. Now **2,500 / 8,000 / 30,000** (`AchievementCatalog.ScoreRookie/Ace/Legend`). The ids
+   at ~8,100, so 10k / 50k / 150k were out of reach. Raised again after the 2x streak (speed-and-loops.md) to **5,000 / 20,000 / 80,000** (`AchievementCatalog.ScoreRookie/Ace/Legend`; first set was 2,500 / 8,000 / 30,000). The ids
    (`score_10k` / `score_50k` / `score_150k`) are unchanged so the badge art names still match; titles are unchanged, descriptions show
    the real numbers. `docs/achievements-export/` is generated from the code and supersedes the CSV in `achievements-store-setup.md`.
 3. *Progress bars for max-style achievements.* `chain_10`, `loop_1/2/5` and the score ones are counters (`best_chain`, `best_loop`,

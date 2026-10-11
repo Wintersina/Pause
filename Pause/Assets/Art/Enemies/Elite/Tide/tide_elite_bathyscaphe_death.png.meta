@@ -1,0 +1,611 @@
+fileFormatVersion: 2
+guid: bd6c4110485784315951c627dd4e77cb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4045822957336743759
+    second: tide_elite_bathyscaphe_death_0
+  - first:
+      213: 5981039056336927714
+    second: tide_elite_bathyscaphe_death_1
+  - first:
+      213: -2542064591471310599
+    second: tide_elite_bathyscaphe_death_2
+  - first:
+      213: -3654706123107562266
+    second: tide_elite_bathyscaphe_death_3
+  - first:
+      213: -1151103039695842695
+    second: tide_elite_bathyscaphe_death_4
+  - first:
+      213: -4060474372325300724
+    second: tide_elite_bathyscaphe_death_5
+  - first:
+      213: -3489219596552890117
+    second: tide_elite_bathyscaphe_death_6
+  - first:
+      213: -4038632234812665300
+    second: tide_elite_bathyscaphe_death_7
+  - first:
+      213: -3164147857386105660
+    second: tide_elite_bathyscaphe_death_8
+  - first:
+      213: 5121400708186152642
+    second: tide_elite_bathyscaphe_death_9
+  - first:
+      213: -3653966985376482299
+    second: tide_elite_bathyscaphe_death_10
+  - first:
+      213: -957802762306517010
+    second: tide_elite_bathyscaphe_death_11
+  - first:
+      213: 6775452016164063270
+    second: tide_elite_bathyscaphe_death_12
+  - first:
+      213: -3840440484781131360
+    second: tide_elite_bathyscaphe_death_13
+  - first:
+      213: 1686218718836507640
+    second: tide_elite_bathyscaphe_death_14
+  - first:
+      213: 5112780914314411201
+    second: tide_elite_bathyscaphe_death_15
+  - first:
+      213: -7673789677198484987
+    second: tide_elite_bathyscaphe_death_16
+  - first:
+      213: 274065098849529415
+    second: tide_elite_bathyscaphe_death_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_0
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 37
+        width: 138
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b0b2dbb4795ad7c0800000000000000
+      internalID: -4045822957336743759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_1
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 153
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eb33b4355be00350800000000000000
+      internalID: 5981039056336927714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_2
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 40
+        width: 124
+        height: 111
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f80145f8b5c8bcd0800000000000000
+      internalID: -2542064591471310599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_3
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 134
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ec8abdf420e74dc0800000000000000
+      internalID: -3654706123107562266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_4
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 115
+        width: 75
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9729e0b52e57600f0800000000000000
+      internalID: -1151103039695842695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_5
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 123
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0629f9521c46a7c0800000000000000
+      internalID: -4060474372325300724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_6
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 111
+        width: 59
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf8122c734dc39fc0800000000000000
+      internalID: -3489219596552890117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_7
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 105
+        width: 48
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c229c894165e3f7c0800000000000000
+      internalID: -4038632234812665300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_8
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 114
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c410bfb940b614d0800000000000000
+      internalID: -3164147857386105660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_9
+      rect:
+        serializedVersion: 2
+        x: 447
+        y: 112
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ce9edb4fced21740800000000000000
+      internalID: 5121400708186152642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_10
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 101
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50c31a7e2608a4dc0800000000000000
+      internalID: -3653966985376482299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_11
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 96
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee705db567335b2f0800000000000000
+      internalID: -957802762306517010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_12
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 68
+        width: 60
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 628c928f5bd370e50800000000000000
+      internalID: 6775452016164063270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_13
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 91
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a977930ab304bac0800000000000000
+      internalID: -3840440484781131360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_14
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 59
+        width: 76
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f34dd5adf6a66710800000000000000
+      internalID: 1686218718836507640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_15
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 67
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cc7b14272f34f640800000000000000
+      internalID: 5112780914314411201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_16
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 36
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50a568132f8318590800000000000000
+      internalID: -7673789677198484987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tide_elite_bathyscaphe_death_17
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 42
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74e224e51ccadc300800000000000000
+      internalID: 274065098849529415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      tide_elite_bathyscaphe_death_0: -4045822957336743759
+      tide_elite_bathyscaphe_death_1: 5981039056336927714
+      tide_elite_bathyscaphe_death_10: -3653966985376482299
+      tide_elite_bathyscaphe_death_11: -957802762306517010
+      tide_elite_bathyscaphe_death_12: 6775452016164063270
+      tide_elite_bathyscaphe_death_13: -3840440484781131360
+      tide_elite_bathyscaphe_death_14: 1686218718836507640
+      tide_elite_bathyscaphe_death_15: 5112780914314411201
+      tide_elite_bathyscaphe_death_16: -7673789677198484987
+      tide_elite_bathyscaphe_death_17: 274065098849529415
+      tide_elite_bathyscaphe_death_2: -2542064591471310599
+      tide_elite_bathyscaphe_death_3: -3654706123107562266
+      tide_elite_bathyscaphe_death_4: -1151103039695842695
+      tide_elite_bathyscaphe_death_5: -4060474372325300724
+      tide_elite_bathyscaphe_death_6: -3489219596552890117
+      tide_elite_bathyscaphe_death_7: -4038632234812665300
+      tide_elite_bathyscaphe_death_8: -3164147857386105660
+      tide_elite_bathyscaphe_death_9: 5121400708186152642
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

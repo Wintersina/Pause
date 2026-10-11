@@ -64,6 +64,10 @@ public static class EnemyDeathAudioTest
         "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_alien",
         "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_coalrunner", "ember_elite_sunstoke",
     };
+    // Elites painted and wired whose death cues Codex has still to author (EnemyDeathAudio.PendingClips): silent until then.
+    static bool Pending(string key) => System.Array.IndexOf(EnemyDeathAudio.PendingClips, key) >= 0;
+    // Living elites that borrow a scream (the Timber Hauler is a machine and does not): their rows may pitch below 1.1 (a bigger body than the donor's).
+    static readonly string[] LivingElites = { "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade" };
     static string[] allKeys;
     public static string[] AllKeys
     {
@@ -98,6 +102,7 @@ public static class EnemyDeathAudioTest
             Resolution();
             NewWorlds();
             Borrow();
+            CodexForced();
             OtherWorlds();
             NoRepeats();
             ScreamOdds();
@@ -106,6 +111,7 @@ public static class EnemyDeathAudioTest
             Switch();
             Import();
             Elite();
+            Bosses();
         }
         finally
         {
@@ -151,7 +157,15 @@ public static class EnemyDeathAudioTest
             enemies++;
             if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key);
         }
-        foreach (var e in EliteCatalog.All) { elites++; if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key); }
+        int pendingElites = 0;
+        foreach (var e in EliteCatalog.All)
+        {
+            if (Pending(e.key)) { pendingElites++; continue; }   // (death cues still to be authored: silent, see below)
+            elites++;
+            if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
+        }
+        Check("the four new Verdant elites are listed as awaiting authored death cues and play silently, no error (" + pendingElites + ")",
+              pendingElites == 4 && EnemyDeathAudio.Variants("verdant_elite_timber_hauler") == 0 && !EnemyDeathAudio.PlayElite("verdant_elite_timber_hauler"));
         Check("every roster enemy (" + enemies + ") and elite (" + elites + ") of every live-art world has authored clips" +
               (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 16);
         Check("Tide's 12 roster keys are in the roster; their death sounds are still a TODO (" + tideSilent + " without clips) and playing one is silent, not an error",
@@ -167,6 +181,7 @@ public static class EnemyDeathAudioTest
         // the key the game passes for each roster body (EnemyIdentity.Set -> def.key) and for each elite (def.key)
         foreach (var e in EliteCatalog.All)
         {
+            if (Pending(e.key)) continue;
             EnemyDeathAudio.ResetVoices();
             clock += 2.0;
             Check("elite " + e.key + " PlayElite plays an authored clip", EnemyDeathAudio.PlayElite(e.key) && EnemyDeathAudio.LastKey == e.key);
@@ -198,7 +213,7 @@ public static class EnemyDeathAudioTest
         Check("all 35 Frost+Verdant+Ember roster enemies covered (" + rosterChecked + ")", rosterChecked == 35);
         int elites = 0;
         foreach (var e in EliteCatalog.All)
-            if (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_") || e.key.StartsWith("frost_"))
+            if (!Pending(e.key) && (e.key.StartsWith("verdant_") || e.key.StartsWith("ember_") || e.key.StartsWith("frost_")))
             {
                 elites++;
                 EnemyDeathAudio.ResetVoices();
@@ -243,6 +258,52 @@ public static class EnemyDeathAudioTest
         Check("Frost/Verdant/Ember burst: voices <= " + EnemyDeathAudio.MaxVoices + " (" + maxV + "), screams <= " + EnemyDeathAudio.MaxScreamVoices + " (" + maxS + ")",
               maxV <= EnemyDeathAudio.MaxVoices && maxS <= EnemyDeathAudio.MaxScreamVoices && maxV > 1);
         EnemyDeathAudio.ScreamChance = .65f;
+    }
+
+    // Codex-only boost: forced scream is louder than the (ducked) death cue, in-game is unchanged.
+    static void CodexForced()
+    {
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.ScreamChance = 0f;
+        try
+        {
+            var keys = new[] { "space_fighter_4", "space_elite_orbit_reaver", "ember_fighter_2", "space_fighter_1" /* borrower */, "frost_alien" /* borrower */ };
+            foreach (var key in keys)
+            {
+                foreach (var role in new[] { EnemyRole.Fighter, EnemyRole.Big })
+                {
+                    float baseVol = EnemyDeathAudio.Volume(role);
+                    clock += 2.0;
+                    EnemyDeathAudio.ResetVoices();
+                    EnemyDeathAudio.PlayAuthored(key, baseVol, true);
+                    float death = EnemyDeathAudio.LastVolume, scream = EnemyDeathAudio.LastScreamVolume;
+                    Check(key + " forced scream plays at chance 0", EnemyDeathAudio.Screams == 1);
+                    Check(key + " forced scream (" + scream + ") >= death cue (" + death + ")", scream >= death);
+                    Check(key + " forced scream in (0,1] (" + scream + ")", scream <= 1f && scream > 0f);
+                    Check(key + " forced delay in [0,0.02] (" + EnemyDeathAudio.LastScreamDelay + ")", EnemyDeathAudio.LastScreamDelay >= 0f && EnemyDeathAudio.LastScreamDelay <= .02f);
+                    Check(key + " forced death cue ducked", Mathf.Abs(death - baseVol * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexDeathDuck) < 1e-4f);
+                    EnemyDeathAudio.Borrow b;
+                    if (EnemyDeathAudio.ScreamBorrow.TryGetValue(key, out b))
+                        Check(key + " forced borrowed pitch kept (" + EnemyDeathAudio.LastScreamPitch + ")", Mathf.Abs(EnemyDeathAudio.LastScreamPitch - b.pitch) <= b.pitch * EnemyDeathAudio.PitchJitter + 1e-4f);
+                }
+            }
+            EnemyDeathAudio.ScreamChance = 1f;
+            clock += 2.0; EnemyDeathAudio.ResetVoices();
+            EnemyDeathAudio.PlayAuthored("space_fighter_4", .68f);
+            Check("in-game scream volume unchanged", Mathf.Abs(EnemyDeathAudio.LastScreamVolume - EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume) < 1e-4f
+                  && Mathf.Abs(EnemyDeathAudio.LastVolume - .68f * EnemyDeathAudio.AuthoredGain) < 1e-4f);
+            Check("in-game scream delay unchanged", EnemyDeathAudio.LastScreamDelay >= EnemyDeathAudio.ScreamDelayMin && EnemyDeathAudio.LastScreamDelay <= EnemyDeathAudio.ScreamDelayMax);
+            clock += 2.0; EnemyDeathAudio.ResetVoices();
+            EnemyDeathAudio.PlayAuthored("space_fighter_1", .68f);
+            Check("in-game borrowed scream keeps BorrowVolume", Mathf.Abs(EnemyDeathAudio.LastScreamVolume - EnemyDeathAudio.LastVolume * EnemyDeathAudio.ScreamVolume * EnemyDeathAudio.BorrowVolume) < 1e-4f);
+            EnemyDeathAudio.ScreamChance = 0f;
+            for (int i = 0; i < 20; i++) { clock += 2.0; EnemyDeathAudio.PlayAuthored(keys[i % keys.Length], .68f, true); }
+            long before = System.GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 100; i++) { clock += .02; EnemyDeathAudio.PlayAuthored(keys[i % keys.Length], .68f, true); }
+            long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
+            Check("zero allocations on the forced path (" + allocated + " bytes)", allocated == 0);
+        }
+        finally { EnemyDeathAudio.ResetBorrows(); EnemyDeathAudio.ScreamChance = .65f; }
     }
 
     static void Borrow()
@@ -295,11 +356,20 @@ public static class EnemyDeathAudioTest
             Check("borrow " + key + ": not from itself", key != donor);
             Check("borrow " + key + ": donor is not itself a borrower", !EnemyDeathAudio.ScreamBorrow.ContainsKey(donor));
             Check("borrow " + key + ": has no screams of its own (deleted)", EnemyDeathAudio.ScreamVariants(key) == 0);
-            Check("borrow " + key + ": has a death cue", EnemyDeathAudio.Variants(key) > 0);
-            Check("borrow " + key + ": pitched up 1.1-1.6 (" + kv.Value.pitch + ")", kv.Value.pitch >= 1.1f && kv.Value.pitch <= 1.6f);
+            // (a living elite of Verdant is the one other kind of borrower, and is pitched down or at the donor's pitch; its death cue is still to be authored)
+            bool livingElite = System.Array.IndexOf(LivingElites, key) >= 0;
+            bool pending = Pending(key);
+            Check("borrow " + key + ": has a death cue" + (pending ? " (still to be authored)" : ""), pending || EnemyDeathAudio.Variants(key) > 0);
+            float lo = livingElite ? .85f : 1.1f;
+            Check("borrow " + key + ": pitched " + lo + "-1.6 (" + kv.Value.pitch + ")", kv.Value.pitch >= lo && kv.Value.pitch <= 1.6f);
             bool nonLiving = key.EndsWith("_mine") || key.EndsWith("_big") || key.Contains("_rock_") || key.StartsWith("frost_fighter_") || key == "frost_chaser" ||
-                             key.Contains("_elite_") || key.Contains("_pod") || key.Contains("drone");
-            Check("borrow " + key + ": a living voice (no rock, mine, drone, machine or elite)", !nonLiving);
+                             (key.Contains("_elite_") && !livingElite) || key.Contains("_pod") || key.Contains("drone");
+            Check("borrow " + key + ": a living voice (no rock, mine, drone, machine or elite but a living one)", !nonLiving);
+            if (livingElite)
+            {
+                Check("borrow " + key + " is a Verdant elite def", EliteCatalog.Find(key) != null && EliteCatalog.Find(key).world == "verdant");
+                continue;   // (nothing to play yet: the scream layers on a death cue)
+            }
             var def = EnemyRoster.Find(key);
             Check("borrow " + key + " is a roster enemy", def != null && def.role != EnemyRole.Rock && def.role != EnemyRole.Mine && def.role != EnemyRole.Big);
             EnemyDeathAudio.ResetVoices();
@@ -309,6 +379,7 @@ public static class EnemyDeathAudioTest
             Check("borrow " + key + " plays a " + donor + " scream", EnemyDeathAudio.LastScream != null && EnemyDeathAudio.LastScream.name.StartsWith(donor + "_scream_"));
             EnemyDeathAudio.ScreamChance = .65f;
         }
+        Check("the Timber Hauler (a machine) borrows no scream", !EnemyDeathAudio.ScreamBorrow.ContainsKey("verdant_elite_timber_hauler"));
     }
 
     static void NoRepeats()
@@ -424,7 +495,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length >= 224;   // 186 death cues + 38 scream layers
+        bool ok = guids.Length >= 238;   // 186 death cues + 38 scream layers + 14 boss cues
         string bad = "";
         foreach (var g in guids)
         {
@@ -440,6 +511,46 @@ public static class EnemyDeathAudioTest
             if (!good) { ok = false; bad = path; break; }
         }
         Check("EnemyDeath clips (" + guids.Length + ") import mono / PCM / decompress-on-load / preload / 44.1 kHz" + (bad != "" ? " (bad: " + bad + ")" : ""), ok);
+    }
+
+    // Boss death cues (BossActor.BeginOutro / the codex): boss_<world>_0..1, plus
+    // boss_<world>_scream_0..1 for Frost and Verdant, the scream boosted on the codex path.
+    static void Bosses()
+    {
+        foreach (var b in BossCatalog.All)
+        {
+            string key = EnemyDeathAudio.BossKey(b.artKey);
+            bool screams = EnemyDeathAudio.BossScreams(b.artKey);
+            Check(key + " has 2 death variants (" + EnemyDeathAudio.Variants(key) + ")", EnemyDeathAudio.Variants(key) == 2 && EnemyDeathAudio.AuthoredClip(key, 0) != null && EnemyDeathAudio.AuthoredClip(key, 1) != null);
+            Check(key + " has " + (screams ? 2 : 0) + " scream variants (" + EnemyDeathAudio.ScreamVariants(key) + ")", EnemyDeathAudio.ScreamVariants(key) == (screams ? 2 : 0));
+
+            clock += 5; EnemyDeathAudio.ResetVoices();
+            float savedChance = EnemyDeathAudio.ScreamChance; EnemyDeathAudio.ScreamChance = 0f;
+            bool played = EnemyDeathAudio.PlayBossDeath(b.artKey, screams);
+            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null);
+            if (screams)
+            {
+                float death = EnemyDeathAudio.LastVolume, scream = EnemyDeathAudio.LastScreamVolume;
+                Check(key + " codex path layers the boosted scream (" + scream + " vs cue " + death + ")",
+                      EnemyDeathAudio.Screams == 1 && EnemyDeathAudio.LastScream != null && scream > death
+                      && Mathf.Abs(death - EnemyDeathAudio.BossVolume * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexDeathDuck) < 1e-4f
+                      && Mathf.Abs(scream - Mathf.Min(1f, EnemyDeathAudio.BossVolume * EnemyDeathAudio.AuthoredGain * EnemyDeathAudio.CodexScreamBoost)) < 1e-4f);
+            }
+            else Check(key + " has no scream layer", EnemyDeathAudio.Screams == 0);
+            EnemyDeathAudio.ScreamChance = savedChance;
+            // two variants alternate
+            int v0 = -1, repeats = 0;
+            for (int i = 0; i < 12; i++)
+            {
+                clock += 5; EnemyDeathAudio.PlayBossDeath(b.artKey, false);
+                int v = EnemyDeathAudio.LastClip == EnemyDeathAudio.AuthoredClip(key, 0) ? 0 : 1;
+                if (v == v0) repeats++;
+                v0 = v;
+            }
+            Check(key + " never repeats a variant back to back", repeats == 0);
+        }
+        Check("unknown boss key is harmless", !EnemyDeathAudio.PlayBossDeath("Nope", true) && !EnemyDeathAudio.PlayBossDeath("", true));
+        EnemyDeathAudio.ResetVoices();
     }
 
     static void Elite()

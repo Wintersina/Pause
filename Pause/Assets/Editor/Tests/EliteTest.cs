@@ -162,7 +162,11 @@ public static class EliteTest
         bool rime = false;
         foreach (var d in frost) rime |= d.key == "frost_elite_rimebreaker";
         Check("Frost has its five elites: the Rimebreaker and the four of FrostEliteTest (" + frost.Count + ")", frost.Count == 5 && rime);
-        Check("Verdant has its own elite: the Resin Warden (" + verdant.Count + ")", verdant.Count == 1 && verdant[0].key == "verdant_elite_resin_warden");
+        var verdantKeys = new HashSet<string>();
+        foreach (var d in verdant) verdantKeys.Add(d.key);
+        Check("Verdant has its five elites: the Resin Warden and the four of VerdantEliteTest (" + verdant.Count + ")",
+              verdant.Count == 5 && verdantKeys.Contains("verdant_elite_resin_warden") && verdantKeys.Contains("verdant_elite_timber_hauler") &&
+              verdantKeys.Contains("verdant_elite_thornlash") && verdantKeys.Contains("verdant_elite_sporebloom") && verdantKeys.Contains("verdant_elite_leafblade"));
         var space = new List<EliteDef>();
         EliteCatalog.ForWorld(0, space);
         bool spaceSet = space.Count == 4;
@@ -485,7 +489,7 @@ public static class EliteTest
         Step(.5f);
         Check("Ember: back on its idle loop after the hit (no damaged cell)", sun.CurrentFrame < 4 && !sun.Damaged);
 
-        foreach (string key in new[] { "frost_elite_rimebreaker", "verdant_elite_resin_warden" })
+        foreach (string key in new[] { "frost_elite_rimebreaker", "verdant_elite_resin_warden", "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade" })
         {
             var def = EliteCatalog.Find(key);
             if (def == null) { Check(key + " is defined", false); continue; }

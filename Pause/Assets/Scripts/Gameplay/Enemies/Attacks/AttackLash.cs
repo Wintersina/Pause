@@ -303,6 +303,7 @@ public sealed class AttackLash : AttackHazard
     {
         var tint = Color.white;
         tint.a = alpha;
+        float linkFill = AttackHazardArt.LinkFill(spec.world);
         for (int i = 0; i < links.Length; i++)
         {
             var sr = links[i];
@@ -318,7 +319,7 @@ public sealed class AttackLash : AttackHazard
             Vector2 c = (a + b) * .5f;
             tr.position = new Vector3(c.x, c.y, 0f);
             tr.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg + 90f);
-            tr.localScale = new Vector3(1f, spr != null ? Mathf.Max(.05f, len / Mathf.Max(.01f, spr.bounds.size.y)) : 1f, 1f);
+            tr.localScale = new Vector3(1f, spr != null ? Mathf.Max(.05f, len / Mathf.Max(.01f, spr.bounds.size.y * linkFill)) : 1f, 1f);
         }
         LinksShown = Mathf.Min(upTo, count);
         // the tip caps the chain (drawn only while the whole chain is)

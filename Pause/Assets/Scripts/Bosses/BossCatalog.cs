@@ -33,6 +33,8 @@ public enum BossAttackKind
     Wave,   // a band falling down the lane with a gap: AttackWave (surf, scan line)
     Blast,  // an expanding ring with a crack from the part: AttackBlast (cold blast)
     Strike, // telegraphed lane columns at the ship's row: AttackStrike (icicle drop, eruption, thunder)
+    Lash,   // a whip swept across the ship's place from a part: AttackLash (the Bloom Queen's vine lash)
+    Roll,   // trunks lobbed onto marked spots that land and roll with one rail bounce: AttackLog (the Bloom Queen's trunk toss)
 }
 
 public enum BossShotStyle { Bolt, Shard }
@@ -103,7 +105,10 @@ public sealed class BossAttack
     public JetSpec jet;
     public StrikeSpec strike;
     public WaveSpec wave;
-    public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing)
+    public LashSpec lash;           // Lash: one whip per volley, from the parts in turn
+    public LogSpec log;             // Roll: one trunk per volley, thrown from the parts in turn
+    public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing); lash / roll: how far across the ship the second volley is aimed
+    public float heightAbove = 2.6f; // roll: how far above the ship's row the trunk lands
     public float aimSpreadX;        // jet: each part aims this far to its own side of the ship (0: straight at it)
 }
 
@@ -196,7 +201,7 @@ public static class BossCatalog
             // two engine pods hanging off its shoulders.
             new BossDef
             {
-                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space", expandedCombat = true,
+                id = CodexPrefix + "space", name = "VOID ARCHON", title = "CAPITAL CARRIER", artKey = "Space", damageKey = "Space", deathKey = "Space", expandedCombat = true,
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
@@ -229,7 +234,7 @@ public static class BossCatalog
             // blowhole crown on top.
             new BossDef
             {
-                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost", damageKey = "Frost",
+                id = CodexPrefix + "frost", name = "HOARFROST LEVIATHAN", title = "CRYO FORTRESS", artKey = "Frost", damageKey = "Frost", deathKey = "Frost",
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
                        "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
@@ -263,7 +268,7 @@ public static class BossCatalog
             // petal tips, two acid cannons on its flanks.
             new BossDef
             {
-                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant",
+                id = CodexPrefix + "verdant", name = "THE BLOOM QUEEN", title = "HIVE MOTHER", artKey = "Verdant", damageKey = "Verdant", deathKey = "Verdant",
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
                        "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",
@@ -368,9 +373,9 @@ public static class BossCatalog
             // minPhase of the default tables: attack n joins at phase n + 1 (what the thirds of the fight always did)
             for (int i = 0; i < b.DefaultAttacks.Length; i++) b.DefaultAttacks[i].minPhase = i + 1;
             b.themed = BossThemed.TableFor(b);
-            // Fighting themed: Frost (icicle drop, cold blast) and Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
-            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Verdant Lash + Roll, Tide its water art and sounds.
-            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember");
+            // Fighting themed: Frost (icicle drop, cold blast), Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
+            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Tide its water art and sounds, Verdant (vine lash, trunk toss; one-whip lash 4.8 % vs 11.5 %, trunk toss 5.8 % vs 28.7 % at 500 seeds) fights themed too (plan 8.2e).
+            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Verdant");
             Resolve(b, b.DefaultAttacks);
             Resolve(b, b.themed);
         }

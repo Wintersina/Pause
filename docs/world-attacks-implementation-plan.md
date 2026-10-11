@@ -424,3 +424,28 @@ Pinned in `AttackBudgetTest.Pinned`. "bot" = rolls in which the bot was touched;
 | `boss:Ember:furnace slugs` | 58.1% (1161/2000) | 100.0% | 2000/2000 |  |
 | `boss:Ember:brow laser` | 59.8% (1195/2000) | 86.1% | 2000/2000 |  |
 
+### 8.2e Verdant boss table: Lash + Roll executors (branch `feature/verdant-boss`)
+
+Built: `BossAttackKind.Lash` and `.Roll` (appended after Strike), `LashExecutor` / `RollExecutor` in `BossExecutors` (one `Register` line each), `BossAttack.lash / log / heightAbove`,
+`BossExecutors.WarmPools(boss)` (called from `BossEncounter.StartIntro`: every hazard pool the boss's table uses is built at the intro, not at the first volley),
+`AttackLog` (Gameplay/Enemies/Attacks) + `LogSpec` + `AttackArt.LogFrame` / `AttackHazardArt.LogBody` (art slot `verdant_attack_log.png`, procedural `ShotMotionArt` log fallback),
+`BossThemed` Verdant table `{stinger thorns, vine lash, spore bloom, acid cannons, trunk toss}` (minPhase 1,1,2,3,3), tests `AttackLogTest` (new), `BossThemedTest` extended to Verdant
+(aim-lock check, executors, caps, corridor, death, pause), two `AttackBudgetTest` rows, `BossThemedPreview` Verdant over the Verdant backdrop, dodge-bot model of the trunk (`AttackBudgetScenarios`).
+
+Table: **vine lash** (Lash, tell pose 1, PetalL, tell 1.0 s, `LashSpec.Standard`, ONE whip, cooldown 1.3, phase 1); **trunk toss** (Roll, pose 1, PetalLL / PetalLR, tell 1.2 s, 2 trunks .9 s apart,
+the 2nd lands 1.9 u across the ship, 2.6 u above its row, rolls 3 s, cooldown 1.4, phase 3).
+
+Deviations:
+1. **The trunk is an `AttackHazard` (`AttackLog`), not an `EliteShot` Roll.** A shot has no AttackShape / preview and the boss's Hazards phase waits only for hazards. The roll reuses the Roll numbers
+   (`ShotMotions.RollSpeed` 1.4 u/s, the .65 / .76 diagonal, one rail bounce) and the Log art. The tell IS the flight: the trunk waits .3 s in the petal then arcs onto the spot, landing exactly when the tell is up;
+   the landing ring, the rolling track (both legs) and dashes along it are drawn from the first frame; spot, heading and track are locked at the arm. The roll ends at its life or at the far rail (one bounce only).
+2. **Leaf volley (Flutter / Burst) is not in the table**: the design's 5 slots are today's three plus lash + toss; the boss's own shots are `BossProjectiles`, not elite shots.
+3. **Vine lash is one whip.** Two whips armed together (from both flanks, the second aimed across) hit the bot 95.5 % (2000 rolls): a 60 deg, 8 u whip from a petal 7 u above the ship sweeps most of the lane, and two cover the way out of each other.
+   Variants measured at 400 rolls: 1 whip 60 deg 5.5 %; 1 whip 30 deg 7.5 %; 2 whips 60 deg same aim 44.8 %; 2 whips 30 deg 37.0 %; 2 whips 40 deg gap 1.3 s 76.5 %.
+
+Measured (dodge bot, seed 1): trunk toss **5.4 % (108/2000)** vs limit 28.7 % (acid cannons 23.3 %): within. Vine lash, final one-whip table: 5.5 % (22/400, a sample of the same seeded rolls) vs limit 11.5 % (spore bloom 8.3 %):
+within on the sample, **not yet re-run at 2000 rolls or through the full suite on the final table**.
+
+**Flag: `BossDef.themedAttacks` stays OFF for Verdant.** The final one-whip table has not been through a verified AttackBudgetTest / BossThemedTest run (the Unity queue took hours). To turn on: run BossThemedTest, AttackBudgetTest,
+BossAttackTest, AttackFairnessTest; if green add `|| b.artKey == "Verdant"` in `BossCatalog.Build` and flip the default check in `BossThemedTest.Tables`. Last green run before the one-whip change: AttackLogTest, BossThemedTest, BossAttackTest, AttackLashTest all 0 failures.
+Previews: `scratchpad/verdant_boss/bossthm-verdant-{vine_lash,trunk_toss}.png` (two-whip version of the lash).

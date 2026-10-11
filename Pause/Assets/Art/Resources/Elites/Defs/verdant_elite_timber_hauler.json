@@ -1,0 +1,101 @@
+{
+  "key": "verdant_elite_timber_hauler",
+  "displayName": "Timber Hauler",
+  "world": "verdant",
+  "role": "log thrower",
+  "codexId": "elite_verdant_timber_hauler",
+  "lore": "A hollow-log barge with two grabbing arms and a cargo of very heavy trunks. It plants itself over your lane, rings the spots it means to drop them on, and heaves. Each trunk lands, rolls down the board on a slant and bounces off a rail once: read the dotted line and leave it.",
+  "brain": "logger",
+  "attack": "log_roll",
+  "launchFrom": "riverbay",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "hullRadius": 0.32,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.5,
+  "accel": 3.0,
+  "turnRate": 120,
+  "followDistance": 2.3,
+  "laneOffset": 1.3,
+  "topMargin": 1.6,
+  "aggression": 0.4,
+  "tellSeconds": 0.9,
+  "attackGap": 4.2,
+  "avoidance": 0.45,
+  "lookAhead": 0.4,
+  "perception": 1.8,
+  "actionSeconds": 0.9,
+  "shotCount": 2,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotInterval": 0.35,
+  "shotSize": 0.5,
+  "shotKind": "glob",
+  "lobSeconds": 1.1,
+  "lobSpacing": 1.5,
+  "lobAhead": 1.8,
+  "poolSeconds": 4,
+  "heartColor": "#C05CFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FF5CE0",
+  "engineColor": "#FFB45A",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.8,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "muzzles": [
+    {
+      "name": "lgrab",
+      "x": 64,
+      "y": 67,
+      "dir": -1.0
+    },
+    {
+      "name": "rgrab",
+      "x": 135,
+      "y": 67,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 73,
+      "y": 136,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 96,
+      "y": 146,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 118,
+      "y": 136,
+      "dir": -1.0
+    }
+  ],
+  "armored": true,
+  "shotMotion": "roll"
+}
