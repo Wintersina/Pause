@@ -699,11 +699,12 @@ public static class HostileProjectileTest
         var rt = rim.texture;
         var at = art.texture;
         what = "outline or art not readable";
-        if (rt == null || at == null || !rt.isReadable || !at.isReadable) return false;
+        if (rt == null || at == null || !rt.isReadable) return false;
         int W = Mathf.RoundToInt(rim.rect.width), H = Mathf.RoundToInt(rim.rect.height);
         int aw = Mathf.RoundToInt(art.rect.width), ah = Mathf.RoundToInt(art.rect.height);
         var px = rt.GetPixels32();
-        var all = at.GetPixels32();
+        var all = at.isReadable ? at.GetPixels32() : ShieldContour.ReadFromSourceFile(at, 0, 0, at.width, at.height);   // (painted atlases are not readable)
+        if (all == null) return false;
         var src = new Color32[aw * ah];
         for (int y = 0; y < ah; y++)
             for (int x = 0; x < aw; x++)

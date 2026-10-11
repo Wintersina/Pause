@@ -25,7 +25,7 @@ public static class VerdantAttackArtTest
 
     const float Dt = 1f / 60f;
     const string Dir = "Assets/Art/Resources/Attacks/Verdant/";
-    public const long MemoryBudget = 2L * 1024 * 1024;   // lash 0.5 MB + log 1 MB uncompressed RGBA32 (1.5 MB)
+    public const long MemoryBudget = 3L * 1024 * 1024;   // lash 0.5 MB + log 1 MB + shots 1 MB uncompressed RGBA32 (2.5 MB)
 
     public static int Execute()
     {
@@ -40,6 +40,9 @@ public static class VerdantAttackArtTest
                 LashUsesIt();
                 LogUsesIt();
                 Allocation();
+                ShotsAtlas();
+                MineLit();
+                BossShots();
             }
             finally { AttackTestKit.Cleanup(); AttackBudgetScenarios.Cleanup(); AttackArt.Clear(); AttackHazardArt.Forget(); }
         }
@@ -89,9 +92,9 @@ public static class VerdantAttackArtTest
     {
         Fresh();
         long bytes = 0;
-        var sizes = new[] { new Vector2Int(1024, 128), new Vector2Int(1024, 256) };
-        var names = new[] { "verdant_attack_lash", "verdant_attack_log" };
-        for (int i = 0; i < 2; i++)
+        var sizes = new[] { new Vector2Int(1024, 128), new Vector2Int(1024, 256), new Vector2Int(1024, 256) };
+        var names = new[] { "verdant_attack_lash", "verdant_attack_log", "verdant_attack_shots" };
+        for (int i = 0; i < 3; i++)
         {
             var imp = AssetImporter.GetAtPath(Dir + names[i] + ".png") as TextureImporter;
             Check(names[i] + ": imported point-filtered, no mipmaps, uncompressed, not readable, no rescale",
@@ -113,6 +116,82 @@ public static class VerdantAttackArtTest
         for (int i = 0; i < 8; i++) logs &= AttackArt.LogFrame(2, i) != null;
         Check("log: 8 frames of 2.0 x 1.0 u", logs && Mathf.Approximately(AttackArt.LogFrame(2, 3).bounds.size.x, 2f) && Mathf.Approximately(AttackArt.LogFrame(2, 3).bounds.size.y, 1f));
         Check("the other worlds' lash and log slots stay empty (Frost and Ember keep their own)", !AttackArt.Has(1, "lash") && !AttackArt.Has(3, "log"));
+    }
+
+    // ---- the shots atlas, the lit mine, the brighter boss shots ----------------------------------------------
+
+    static void ShotsAtlas()
+    {
+        Fresh();
+        bool all = true;
+        for (int i = 0; i < 16; i++) all &= AttackArt.ShotCell(2, (AttackArt.ShotCellName)i) != null;
+        Check("shots: all 16 cells are served, 1 u square", all && Mathf.Approximately(AttackArt.ShotCell(2, AttackArt.ShotCellName.SigBA).bounds.size.x, 1f));
+        var shots = Read("verdant_attack_shots");
+        Check("the pod (sigB) and crescent (sigA) pairs animate", Changed(Rgba(shots, 4 * 128, 128, 128, 128), Rgba(shots, 5 * 128, 128, 128, 128)) >= .03f &&
+              Changed(Rgba(shots, 2 * 128, 128, 128, 128), Rgba(shots, 3 * 128, 128, 128, 128)) >= .03f);
+        // the motion bodies wear the painted cells
+        var crescent = ShotMotionArt.Sprite_(ShotMotionArt.Piece.Crescent, 2, 0);
+        var pod = ShotMotionArt.Sprite_(ShotMotionArt.Piece.Pod, 2, 1);
+        var leaf = ShotMotionArt.Sprite_(ShotMotionArt.Piece.Leaf, 2, 0);
+        Check("Verdant crescent / pod / leaf motion bodies are the painted sigA / sigB / shard cells",
+              crescent == AttackArt.ShotCell(2, AttackArt.ShotCellName.SigAA) && pod == AttackArt.ShotCell(2, AttackArt.ShotCellName.SigBB) &&
+              leaf == AttackArt.ShotCell(2, AttackArt.ShotCellName.ShardA));
+        Check("other worlds keep the procedural bodies",
+              ShotMotionArt.Sprite_(ShotMotionArt.Piece.Crescent, 1, 0) != crescent && ShotMotionArt.Painted(ShotMotionArt.Piece.Pod, 3, 0) == null);
+        // themed kinds when Verdant is enabled; hit radius is the def's, never the art's
+        ShotSkins.Enable(2);
+        bool themed = true;
+        foreach (var k in new[] { EliteShots.Kind.Bolt, EliteShots.Kind.Shard, EliteShots.Kind.Shell, EliteShots.Kind.Slag, EliteShots.Kind.Glob })
+            themed &= !ShotSkins.For(2, k).procedural && ShotSkins.For(2, k).drawScale == AttackArt.ThemedDrawScale;
+        Check("enabled, Verdant's bolt / shard / shell / slag / glob wear thorn dart / leaf / log chunk / sap atlas cells", themed);
+        Sprite pb; var pool = ShotSkins.PoolSprite(2, out pb);
+        Check("the landed pod pool is the painted cloud pair", pool == AttackArt.ShotCell(2, AttackArt.ShotCellName.PoolA) && pb == AttackArt.ShotCell(2, AttackArt.ShotCellName.PoolB));
+        ShotSkins.Enable(2, false);
+        Check("disabled, Verdant's shots are the procedural default again", ShotSkins.For(2, EliteShots.Kind.Bolt).procedural);
+        // missing atlas: the procedural body answers
+        AttackArt.Clear();
+        AttackArt.Inject(2, "shots", null);
+        Check("with the atlas missing the motion bodies fall back to procedural (no exception)", ShotMotionArt.Sprite_(ShotMotionArt.Piece.Pod, 2, 0) != null);
+        AttackArt.Clear();
+    }
+
+    static void MineLit()
+    {
+        const string LitFile = "Assets/Art/Resources/" + RailMineArt.VerdantLitAtlasPath + ".png";
+        var imp = AssetImporter.GetAtPath(LitFile) as TextureImporter;
+        Check("lit mine: imported point-filtered, no mipmaps, uncompressed, not readable, full size",
+              imp != null && imp.filterMode == FilterMode.Point && !imp.mipmapEnabled && imp.textureCompression == TextureImporterCompression.Uncompressed && !imp.isReadable && imp.maxTextureSize >= 1254);
+        var tex = RailMineArt.LitAtlas;
+        Check("lit mine: 1254 x 298, served from Resources/" + RailMineArt.VerdantLitAtlasPath, tex != null && tex.width == RailMineArt.AtlasSize && tex.height == RailMineArt.VerdantLitAtlasHeight);
+        Check("only Verdant has a lit mine", RailMineArt.HasLit(2) && !RailMineArt.HasLit(0) && !RailMineArt.HasLit(1) && !RailMineArt.HasLit(3) && !RailMineArt.HasLit(4));
+        bool geo = true;
+        for (int c = 0; c < 4; c++)
+        {
+            var o = RailMineArt.PixelRect(2, c); var r = RailMineArt.LitPixelRect(c);
+            geo &= r.x == o.x && r.y == o.y - 594 && r.width == o.width && r.height == o.height && r.yMax <= tex.height;
+            var f = RailMineArt.LitFrame(2, c);
+            geo &= f != null && f.texture == tex && Mathf.Approximately(f.rect.width, o.width) && Mathf.Approximately(f.pixelsPerUnit, RailMineArt.PixelsPerUnit) &&
+                   Mathf.Approximately(f.pivot.x, RailMineArt.PixelPivot(2, c).x - o.x) && Mathf.Approximately(f.rect.height - f.pivot.y, RailMineArt.PixelPivot(2, c).y - o.y);
+        }
+        Check("lit frames reuse the Verdant row's rects and pivots with the row's y removed (same size, same PPU, same clamp position)", geo);
+        var fb = RailMineArt.Flipbook(2);
+        var orig = RailMineArt.Frame(2, RailMineArt.Dormant);
+        Check("the flipbook shows the lit drawing only while arming (slots 4-5); idle, blink and hit stay the original atlas",
+              fb[0] == orig && fb[1] == RailMineArt.Frame(2, RailMineArt.Waking) && fb[6] == RailMineArt.Frame(2, RailMineArt.Burst) &&
+              fb[4] == RailMineArt.LitFrame(2, RailMineArt.Waking) && fb[5] == RailMineArt.LitFrame(2, RailMineArt.Charging) && fb[4].texture == tex && fb[1].texture != tex);
+        var other = RailMineArt.Flipbook(1);
+        Check("other worlds' flipbooks are untouched", other[4] == RailMineArt.Frame(1, RailMineArt.Waking) && other[4].texture == RailMineArt.Atlas);
+    }
+
+    static void BossShots()
+    {
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        t.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Bosses/Verdant_shots.png"));
+        Check("boss shots stay 1024 x 128 (8 cells)", t.width == 1024 && t.height == 128);
+        // cells 4-6 (lane telegraph, beam) are untouched; the bolt/shard cells (0-3, 7) are the brighter set
+        var bright = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        bright.LoadImage(File.ReadAllBytes("Assets/Art/Attacks/Verdant~/Verdant_shots_bright.png"));
+        Check("Resources/Bosses/Verdant_shots.png is the approved bright sheet", Changed(t.GetPixels32(), bright.GetPixels32()) == 0f);
     }
 
     static void Loops()

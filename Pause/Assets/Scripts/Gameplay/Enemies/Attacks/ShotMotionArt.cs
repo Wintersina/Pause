@@ -39,6 +39,14 @@ public static class ShotMotionArt
 
     public static Sprite Sprite_(Piece piece, int world, int frame)
     {
+        // the world's painted drawing when its shots atlas is delivered (Verdant: leaf = shard cells, crescent = sigA, pod = sigB);
+        // the procedural body (ProceduralSprite) stays as the fallback (hit radius and drawn length come from the shot, never from the sprite)
+        return Painted(piece, world, frame & 1) ?? ProceduralSprite(piece, world, frame);
+    }
+
+    // The pixel-sprite body of a piece, whether or not the world's art is delivered (the fallback; the pink-cue audit's subject).
+    public static Sprite ProceduralSprite(Piece piece, int world, int frame)
+    {
         int f = frame & 1;
         int w, h;
         System.Func<int, int, bool> inside;
@@ -53,6 +61,19 @@ public static class ShotMotionArt
         var ramp = MaterialOf(piece, world);
         string key = "ShotMot" + (int)piece + "_" + world + "_" + f;
         return AttackHazardArt.Made(key, w, h, Ppu, new Vector2(.5f, .5f), (px, ww, hh) => Shade(px, ww, hh, inside, f, ramp.light, ramp.dark, piece == Piece.Log, piece == Piece.Leaf || piece == Piece.Pod ? 2 : 1), false);
+    }
+
+    // Verdant's painted shots (verdant_attack_shots.png), or null (other worlds, the log and the slug, a missing atlas).
+    public static Sprite Painted(Piece piece, int world, int frame)
+    {
+        if (world != RailMineArt.VerdantWorld) return null;
+        switch (piece)
+        {
+            case Piece.Leaf: return AttackArt.ShotCell(world, frame == 0 ? AttackArt.ShotCellName.ShardA : AttackArt.ShotCellName.ShardB);
+            case Piece.Crescent: return AttackArt.ShotCell(world, frame == 0 ? AttackArt.ShotCellName.SigAA : AttackArt.ShotCellName.SigAB);
+            case Piece.Pod: return AttackArt.ShotCell(world, frame == 0 ? AttackArt.ShotCellName.SigBA : AttackArt.ShotCellName.SigBB);
+            default: return null;
+        }
     }
 
     static AttackHazardArt.Ramp MaterialOf(Piece piece, int world)

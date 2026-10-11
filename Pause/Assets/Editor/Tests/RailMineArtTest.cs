@@ -334,14 +334,17 @@ public static class RailMineArtTest
                     fb.Advance(EnemyFlipbook.TickSeconds);
                     if (fb.Telling) armed.Add(sr.sprite);
                 }
+                // Verdant's mine wears its LIT drawing while arming (RailMineArt.LitFrame); idle / hit stay the original atlas
+                var armWaking = RailMineArt.HasLit(w) ? RailMineArt.LitFrame(w, RailMineArt.Waking) : waking;
+                var armCharging = RailMineArt.HasLit(w) ? RailMineArt.LitFrame(w, RailMineArt.Charging) : charging;
                 Check(k + " arms when the ship is near", armed.Count > 0);
-                Check(k + " arming plays the waking frame", armed.Contains(waking));
-                Check(k + " arming plays the charging frame", armed.Contains(charging));
+                Check(k + " arming plays the waking frame", armed.Contains(armWaking));
+                Check(k + " arming plays the charging frame", armed.Contains(armCharging));
                 bool onlyArming = true;
-                foreach (var s in armed) onlyArming &= s == waking || s == charging;
+                foreach (var s in armed) onlyArming &= s == armWaking || s == armCharging;
                 Check(k + " arming shows only waking/charging", onlyArming);
-                int firstCharge = armed.IndexOf(charging);
-                Check(k + " waking comes before charging", firstCharge > 0 && armed[firstCharge - 1] == waking);
+                int firstCharge = armed.IndexOf(armCharging);
+                Check(k + " waking comes before charging", firstCharge > 0 && armed[firstCharge - 1] == armWaking);
                 Check(k + " each arming frame holds 4 ticks (the old RailBombAnimator's 6 fps)",
                       firstCharge >= 0 && firstCharge + 4 <= armed.Count && RunLength(armed, firstCharge) == 4);
 
