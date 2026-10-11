@@ -38,6 +38,12 @@ public class WorldMusic : MonoBehaviour
     public const string EmberTrack = "WorldMusic/Ember_Main";
     public const string FrostTrack = "WorldMusic/Frost_Main";
     public const string VerdantTrack = "WorldMusic/Verdant_Main";
+    public const string TideTrack = "WorldMusic/Tide_Main";
+    public const string StormTrack = "WorldMusic/Storm_Main";
+    // Space's own song (Neon Solitude, 212.8 s): plays in the Space sky, the
+    // space leg between worlds and the loop's return. It fades in from silence
+    // and ends on a 50 ms fade, so a plain end-to-end loop is clean.
+    public const string SpaceTrack = "WorldMusic/Space_Main";
 
 
     // The full song on the main source, and where it loops back.
@@ -65,6 +71,8 @@ public class WorldMusic : MonoBehaviour
         {
             case EmberTrack: return 225.5f;   // Anvil Arpeggio: full level to ~225.5 s of 229.9 s
             case FrostTrack: return 203.8f;
+            case StormTrack: return 118.9f;   // Static Storm (mp3): full level to ~119.1 s of 120.0 s, then a short near-silent tail
+            case TideTrack: return 205.9f;   // Deep Sonar Ping: full level to ~205.9 s of 208.4 s
             case VerdantTrack: return 197.0f;   // Jungle Night Pulse: full level to ~197.0 s of 200.0 s
             default: return 0f;
         }
@@ -307,7 +315,9 @@ public class WorldMusic : MonoBehaviour
         float oldVolume = main.volume;
         float oldTime = main.time;
 
-        if (oldClip != null && main.isPlaying)
+        // A source that has only just started (the scene's own track at the
+        // run's first Apply) has nothing worth fading out.
+        if (oldClip != null && main.isPlaying && oldTime > 0.3f)
         {
             var tailGo = new GameObject("~MusicTail");
             var tail = tailGo.AddComponent<AudioSource>();

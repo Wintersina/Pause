@@ -18,13 +18,15 @@ public static class WorldLogicTest
     // Worlds that play the scene's own default track: the Space/Verdant stage
     // arrangements and Verdant.wav were deleted on purpose, so these worlds
     // request no clips and never escalate.
-    static readonly string[] SceneDefaultWorlds = { "Space" };
+    static readonly string[] SceneDefaultWorlds = { };
 
     // Worlds that play one of the user's songs for the whole level.
     static readonly (string world, string resource, string asset)[] FullSongs =
     {
         ("Frost", "WorldMusic/Frost_Main", "Assets/Audio/Resources/WorldMusic/Frost_Main.wav"),
         ("Verdant", "WorldMusic/Verdant_Main", "Assets/Audio/Resources/WorldMusic/Verdant_Main.wav"),
+        ("Tide", "WorldMusic/Tide_Main", "Assets/Audio/Resources/WorldMusic/Tide_Main.wav"),
+        ("Storm", "WorldMusic/Storm_Main", "Assets/Audio/Resources/WorldMusic/Storm_Main.mp3"),
         ("Ember", "WorldMusic/Ember_Main", "Assets/Audio/Resources/WorldMusic/Ember_Main.wav"),
     };
 
@@ -82,7 +84,7 @@ public static class WorldLogicTest
               !WorldManager.TideEnabled && !WorldManager.StormEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
         Check("world 0 is Space", WorldManager.Worlds[0].displayName == "Space");
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
-        Check("space keeps authored music", WorldManager.Worlds[0].musicResource == "");
+        Check("space plays its own song (Space_Main)", WorldManager.Worlds[0].musicResource == WorldMusic.SpaceTrack);
         Check("teleport portal atlas is present",
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/Vfx/teleport_portal_atlas.png") != null);
         Check("teleport portal has sixteen animation frames", TeleportPortalSprites.FrameCount == 16);
@@ -214,9 +216,9 @@ public static class WorldLogicTest
         Check("Storm is world 5 (the sixth), named Storm, folder Storm, ramping harder than Tide",
               t.displayName == "Storm" && t.resourceFolder == "Storm" && t.speedRampPerSecond > WorldManager.Worlds[Tide].speedRampPerSecond &&
               t.enemyRampScale > WorldManager.Worlds[Tide].enemyRampScale);
-        Check("... ramp .00405 / enemy scale 1.65, no music of its own",
+        Check("... ramp .00405 / enemy scale 1.65, its own song (Storm_Main)",
               Mathf.Approximately(t.speedRampPerSecond, .00405f) && Mathf.Approximately(t.enemyRampScale, 1.65f) &&
-              t.musicResource == "" && !t.progressiveMusic);
+              t.musicResource == WorldMusic.StormTrack && !t.progressiveMusic);
         Color c = t.portalColor;
         float hue, sat, val; Color.RGBToHSV(c, out hue, out sat, out val);
         Check("... its portal is pale storm-white / yellow (hue 40..70 deg, soft), not violet, amber nor the mint",
@@ -254,6 +256,61 @@ public static class WorldLogicTest
         finally { WorldManager.TideEnabled = wasTide; WorldManager.StormEnabled = wasStorm; }
     }
 
+    // Space's own song (Neon Solitude): the Space sky, the space leg between
+    // worlds and the loop's return all resolve to it.
+    static void SpaceSong()
+    {
+        const string asset = "Assets/Audio/Resources/WorldMusic/Space_Main.wav";
+        var space = Theme("Space");
+        var clip = Resources.Load<AudioClip>(WorldMusic.SpaceTrack);
+        Check("Space plays " + WorldMusic.SpaceTrack, space.musicResource == WorldMusic.SpaceTrack && !WorldMusic.UsesStages(space));
+        Check("Space_Main loads from Resources and is the imported " + asset, clip != null && AssetDatabase.LoadAssetAtPath<AudioClip>(asset) == clip);
+        Check("Space_Main is ~212.8 s (" + (clip != null ? clip.length : 0f) + ")", clip != null && Mathf.Abs(clip.length - 212.8f) < 0.2f);
+        Check("Space_Main loops end to end (no loop-out point)", WorldMusic.LoopOutSeconds(WorldMusic.SpaceTrack) == 0f);
+
+        var importer = AssetImporter.GetAtPath(asset) as AudioImporter;
+        Check("Space_Main has an audio importer, stereo", importer != null && !importer.forceToMono);
+        if (importer != null)
+        {
+            foreach (var platform in new[] { "Android", "iOS" })
+            {
+                var s = importer.GetOverrideSampleSettings(platform);
+                Check("Space_Main overrides " + platform, importer.ContainsSampleSettingsOverride(platform));
+                Check("Space_Main streams on " + platform, s.loadType == AudioClipLoadType.Streaming);
+                Check("Space_Main is Vorbis on " + platform, s.compressionFormat == AudioCompressionFormat.Vorbis);
+                Check("Space_Main quality 0.5-0.6 on " + platform, s.quality >= 0.5f && s.quality <= 0.6f);
+                Check("Space_Main does not preload on " + platform, !s.preloadAudioData);
+            }
+        }
+
+        // MovingMusic.wav stays: it is the scene's own default clip (and the fallback for any world without a song).
+        Check("MovingMusic.wav stays (the scene default)",
+              System.IO.File.Exists("Assets/Audio/Music/MovingMusic.wav"));
+
+        // The space leg between worlds is Space's sky: every lift-off's interlude world is Space, and Liftoff.Swap applies its music.
+        foreach (var def in LiftoffCatalog.Defs)
+            Check("lift-off from world " + def.world + " flies the Space leg with Space's song",
+                  WorldManager.Worlds[def.interludeWorld].musicResource == WorldMusic.SpaceTrack);
+        Check("Liftoff.Swap applies the interlude world's music",
+              File.ReadAllText("Assets/Scripts/Worlds/Planetfall/Liftoff.cs").Contains("WorldMusic.Apply(theme);"));
+        Check("the loop returns to Space (Worlds[0]): Space's song again",
+              WorldManager.Worlds[0].musicResource == WorldMusic.SpaceTrack);
+
+        // Applying Space starts the song on the music source, looping; the next planet crossfades away and back.
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var src = new GameObject("MovingMusic").AddComponent<AudioSource>();
+        WorldMusic.Apply(space);
+        Check("Space starts Space_Main on the music source, looping", clip != null && src.clip == clip && src.loop);
+        WorldMusic.Apply(Theme("Frost"));
+        Check("Frost replaces it", src.clip != clip);
+        WorldMusic.Apply(space);
+        Check("the return to Space plays Space_Main again", src.clip == clip && src.loop);
+        WorldMusic.BeginBoss(space);
+        Check("boss fallback keeps Space's song", src.clip == clip && WorldMusic.BossFallbackActive);
+        WorldMusic.EndBoss();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+    }
+
     static WorldTheme Theme(string name)
     {
         foreach (var t in WorldManager.Worlds)
@@ -277,7 +334,7 @@ public static class WorldLogicTest
 
             var clip = Resources.Load<AudioClip>(song.resource);
             Check(song.resource + " loads", clip != null);
-            Check(song.resource + " is the full song (over three minutes)", clip != null && clip.length > 180f);
+            Check(song.resource + " is a full song (over 100 s)", clip != null && clip.length > 100f);
             Check(song.resource + " is imported from " + song.asset,
                   clip != null && AssetDatabase.LoadAssetAtPath<AudioClip>(song.asset) == clip);
 
@@ -322,6 +379,8 @@ public static class WorldLogicTest
                       src.clip == clip && src.loop && WorldMusic.LoopClip == clip);
             }
         }
+
+        SpaceSong();
 
         // A scene-default world keeps the scene's track and disarms the full-song loop.
         var sceneTrack = AudioClip.Create("sceneTrack", 44100, 1, 44100, false);
@@ -370,8 +429,15 @@ public static class WorldLogicTest
         Check("Verdant resolves to the Jungle Night Pulse WAV", verdantClip != null
               && AssetDatabase.GetAssetPath(verdantClip) == "Assets/Audio/Resources/WorldMusic/Verdant_Main.wav");
         Check("Verdant clip is ~200.0 s", verdantClip != null && Mathf.Abs(verdantClip.length - 200.0f) < 0.5f);
-        Check("Space, Tide and Storm still play the scene track (no musicResource)",
-              Theme("Space").musicResource == "" && Theme("Tide").musicResource == "" && Theme("Storm").musicResource == "");
+        var tideClip = Resources.Load<AudioClip>(WorldMusic.TideTrack);
+        Check("Tide resolves to the Deep Sonar Ping WAV (~208.4 s)", tideClip != null
+              && AssetDatabase.GetAssetPath(tideClip) == "Assets/Audio/Resources/WorldMusic/Tide_Main.wav"
+              && Mathf.Abs(tideClip.length - 208.4f) < 0.5f && Theme("Tide").musicResource == WorldMusic.TideTrack);
+        var stormClip = Resources.Load<AudioClip>(WorldMusic.StormTrack);
+        Check("Storm resolves to the Static Storm mp3 (~120.0 s)", stormClip != null
+              && AssetDatabase.GetAssetPath(stormClip) == "Assets/Audio/Resources/WorldMusic/Storm_Main.mp3"
+              && Mathf.Abs(stormClip.length - 120.0f) < 0.5f && Theme("Storm").musicResource == WorldMusic.StormTrack);
+        Check("Space keeps Space_Main", Theme("Space").musicResource == WorldMusic.SpaceTrack);
         var emberClip = Resources.Load<AudioClip>(WorldMusic.EmberTrack);
         Check("Ember resolves to the Anvil Arpeggio WAV (~229.9 s)", emberClip != null
               && AssetDatabase.GetAssetPath(emberClip) == "Assets/Audio/Resources/WorldMusic/Ember_Main.wav"
